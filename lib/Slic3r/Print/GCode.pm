@@ -384,7 +384,7 @@ sub process_layer {
         $pp->set('layer_z'   => $layer->print_z);
         $gcode .= $pp->process($self->print->config->before_layer_gcode) . "\n";
     }
-    $gcode .= $self->_gcodegen->change_layer($layer);  # this will increase $self->_gcodegen->layer_index
+    $gcode .= $self->_gcodegen->change_layer($layer->as_layer);  # this will increase $self->_gcodegen->layer_index
     if ($self->print->config->layer_gcode) {
         my $pp = $self->_gcodegen->placeholder_parser->clone;
         $pp->set('layer_num' => $self->_gcodegen->layer_index);
@@ -592,7 +592,7 @@ sub _extrude_perimeters {
     my $gcode = "";
     foreach my $region_id (sort keys %$entities_by_region) {
         $self->_gcodegen->config->apply_region_config($self->print->get_region($region_id)->config);
-        $gcode .= $self->_gcodegen->extrude($_, 'perimeter')
+        $gcode .= $self->_gcodegen->extrude($_, 'perimeter', -1)
             for @{ $entities_by_region->{$region_id} };
     }
     return $gcode;
@@ -608,10 +608,10 @@ sub _extrude_infill {
         my $collection = Slic3r::ExtrusionPath::Collection->new(@{ $entities_by_region->{$region_id} });
         for my $fill (@{$collection->chained_path_from($self->_gcodegen->last_pos, 0)}) {
             if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
-                $gcode .= $self->_gcodegen->extrude($_, 'infill') 
+                $gcode .= $self->_gcodegen->extrude($_, 'infill', -1) 
                     for @{$fill->chained_path_from($self->_gcodegen->last_pos, 0)};
             } else {
-                $gcode .= $self->_gcodegen->extrude($fill, 'infill') ;
+                $gcode .= $self->_gcodegen->extrude($fill, 'infill', -1) ;
             }
         }
     }

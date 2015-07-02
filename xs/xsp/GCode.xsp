@@ -124,13 +124,6 @@
     void set_layer(Layer* ptr)
         %code{% THIS->layer = ptr; %};
     
-    bool _has_seam_position(PrintObject* ptr)
-        %code{% RETVAL = THIS->_seam_position.count(ptr) > 0; %};
-    Clone<Point> _seam_position(PrintObject* ptr)
-        %code{% RETVAL = THIS->_seam_position[ptr]; %};
-    void _set_seam_position(PrintObject* ptr, Point* pos)
-        %code{% THIS->_seam_position[ptr] = *pos; %};
-    
     bool first_layer()
         %code{% RETVAL = THIS->first_layer; %};
     void set_first_layer(bool value)
@@ -160,10 +153,10 @@
     std::string preamble();
     std::string change_layer(Layer* layer)
         %code{% RETVAL = THIS->change_layer(*layer); %};
-    std::string extrude_path(ExtrusionPath* path, std::string description = "", double speed = -1)
-        %code{% RETVAL = THIS->extrude_path(*path, description, speed); %};
-    std::string _extrude_path(ExtrusionPath* path, std::string description = "", double speed = -1)
-        %code{% RETVAL = THIS->_extrude_path(*path, description, speed); %};
+    %name{extrude_loop} std::string extrude(ExtrusionLoop* loop, std::string description = "", double speed = -1)
+        %code{% RETVAL = THIS->extrude(*loop, description, speed); %};
+    %name{extrude_path} std::string extrude(ExtrusionPath* path, std::string description = "", double speed = -1)
+        %code{% RETVAL = THIS->extrude(*path, description, speed); %};
     std::string travel_to(Point* point, ExtrusionRole role, std::string comment)
         %code{% RETVAL = THIS->travel_to(*point, role, comment); %};
     bool needs_retraction(Polyline* travel, ExtrusionRole role = erNone)
@@ -173,4 +166,18 @@
     std::string set_extruder(unsigned int extruder_id);
     Clone<Pointf> point_to_gcode(Point* point)
         %code{% RETVAL = THIS->point_to_gcode(*point); %};
+
+%{
+std::string
+GCode::extrude(entity, description, speed)
+    SV*         entity
+    std::string description;
+    double      speed;
+    CODE:
+        ExtrusionEntity* e = (ExtrusionEntity *)SvIV((SV*)SvRV( entity ));
+        RETVAL = THIS->extrude(*e, description, speed);
+    OUTPUT:
+        RETVAL
+%}
+
 };

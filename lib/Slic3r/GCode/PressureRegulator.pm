@@ -43,7 +43,7 @@ sub process {
                 my $rel_flow_rate = $info->{dist_E} / $info->{dist_XY};
             
                 # Then calculate absolute flow rate (mm/sec of feedstock)
-                my $flow_rate = $rel_flow_rate * $args->{F} / 60;
+                my $flow_rate = $rel_flow_rate * $F / 60;
             
                 # And finally calculate advance by using the user-configured K factor.
                 my $new_advance = $self->config->pressure_advance * ($flow_rate**2);

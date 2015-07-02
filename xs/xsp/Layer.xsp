@@ -34,6 +34,9 @@
 
 %name{Slic3r::Layer} class Layer {
     // owned by PrintObject, no constructor/destructor
+    
+    Ref<Layer> as_layer()
+        %code%{ RETVAL = THIS; %};
 
     int id();
     void set_id(int id);

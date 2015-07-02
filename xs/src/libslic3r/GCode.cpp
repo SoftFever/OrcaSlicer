@@ -1,6 +1,7 @@
 #include "GCode.hpp"
 #include "ExtrusionEntity.hpp"
 #include <algorithm>
+#include <cstdlib>
 
 namespace Slic3r {
 
@@ -320,9 +321,173 @@ GCode::change_layer(const Layer &layer)
 }
 
 std::string
-GCode::extrude_path(const ExtrusionPath &path, std::string description, double speed)
+GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
 {
-    std::string gcode = this->_extrude_path(path, description, speed);
+    // get a copy; don't modify the orientation of the original loop object otherwise
+    // next copies (if any) would not detect the correct orientation
+    
+    // extrude all loops ccw
+    bool was_clockwise = loop.make_counter_clockwise();
+    
+    // find the point of the loop that is closest to the current extruder position
+    // or randomize if requested
+    Point last_pos = this->last_pos();
+    if (this->config.spiral_vase) {
+        loop.split_at(last_pos);
+    } else if (this->config.seam_position == spNearest || this->config.seam_position == spAligned) {
+        Polygon polygon = loop.polygon();
+        
+        // simplify polygon in order to skip false positives in concave/convex detection
+        // (loop is always ccw as polygon.simplify() only works on ccw polygons)
+        Polygons simplified = polygon.simplify(scale_(EXTRUDER_CONFIG(nozzle_diameter))/2);
+        
+        // restore original winding order so that concave and convex detection always happens
+        // on the right/outer side of the polygon
+        if (was_clockwise) {
+            for (Polygons::iterator p = simplified.begin(); p != simplified.end(); ++p)
+                p->reverse();
+        }
+        
+        // concave vertices have priority
+        Points candidates;
+        for (Polygons::const_iterator p = simplified.begin(); p != simplified.end(); ++p) {
+            Points concave = p->concave_points(PI*4/3);
+            candidates.insert(candidates.end(), concave.begin(), concave.end());
+        }
+        
+        // if no concave points were found, look for convex vertices
+        if (candidates.empty()) {
+            for (Polygons::const_iterator p = simplified.begin(); p != simplified.end(); ++p) {
+                Points convex = p->convex_points(PI*2/3);
+                candidates.insert(candidates.end(), convex.begin(), convex.end());
+            }
+        }
+        
+        // retrieve the last start position for this object
+        if (this->layer != NULL && this->_seam_position.count(this->layer->object()) > 0) {
+            last_pos = this->_seam_position[this->layer->object()];
+        }
+        
+        Point point;
+        if (this->config.seam_position == spNearest) {
+            if (candidates.empty()) candidates = polygon.points;
+            last_pos.nearest_point(candidates, &point);
+            
+            // On 32-bit Linux, Clipper will change some point coordinates by 1 unit
+            // while performing simplify_polygons(), thus split_at_vertex() won't 
+            // find them anymore.
+            if (!loop.split_at_vertex(point)) loop.split_at(point);
+        } else if (!candidates.empty()) {
+            Points non_overhang;
+            for (Points::const_iterator p = candidates.begin(); p != candidates.end(); ++p) {
+                if (!loop.has_overhang_point(*p))
+                    non_overhang.push_back(*p);
+            }
+            
+            if (!non_overhang.empty())
+                candidates = non_overhang;
+            
+            last_pos.nearest_point(candidates, &point);
+            if (!loop.split_at_vertex(point)) loop.split_at(point);  // see note above
+        } else {
+            point = last_pos.projection_onto(polygon);
+            loop.split_at(point);
+        }
+        if (this->layer != NULL)
+            this->_seam_position[this->layer->object()] = point;
+    } else if (this->config.seam_position == spRandom) {
+        if (loop.role == elrContourInternalPerimeter) {
+            Polygon polygon = loop.polygon();
+            Point centroid = polygon.centroid();
+            last_pos = Point(polygon.bounding_box().max.x, centroid.y);
+            last_pos.rotate(rand() % 2*PI, centroid);
+        }
+        loop.split_at(last_pos);
+    }
+    
+    // clip the path to avoid the extruder to get exactly on the first point of the loop;
+    // if polyline was shorter than the clipping distance we'd get a null polyline, so
+    // we discard it in that case
+    double clip_length = this->enable_loop_clipping
+        ? scale_(EXTRUDER_CONFIG(nozzle_diameter)) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER
+        : 0;
+    
+    // get paths
+    ExtrusionPaths paths;
+    loop.clip_end(clip_length, &paths);
+    if (paths.empty()) return "";
+    
+    // apply the small perimeter speed
+    if (paths.front().is_perimeter() && loop.length() <= SMALL_PERIMETER_LENGTH) {
+        if (speed == -1) speed = this->config.get_abs_value("small_perimeter_speed");
+    }
+    
+    // extrude along the path
+    std::string gcode;
+    for (ExtrusionPaths::const_iterator path = paths.begin(); path != paths.end(); ++path)
+        gcode += this->_extrude(*path, description, speed);
+    
+    // reset acceleration
+    gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
+    
+    if (this->wipe.enable)
+        this->wipe.path = paths.front().polyline;  // TODO: don't limit wipe to last path
+    
+    // make a little move inwards before leaving loop
+    if (paths.back().role == erExternalPerimeter && this->layer != NULL && this->config.perimeters > 1) {
+        Polyline &last_path_polyline = paths.back().polyline;
+        // detect angle between last and first segment
+        // the side depends on the original winding order of the polygon (left for contours, right for holes)
+        Point a = paths.front().polyline.points[1];  // second point
+        Point b = *(paths.back().polyline.points.end()-3);       // second to last point
+        if (was_clockwise) {
+            // swap points
+            Point c = a; a = b; b = c;
+        }
+        
+        double angle = paths.front().first_point().ccw_angle(a, b) / 3;
+        
+        // turn left if contour, turn right if hole
+        if (was_clockwise) angle *= -1;
+        
+        // create the destination point along the first segment and rotate it
+        // we make sure we don't exceed the segment length because we don't know
+        // the rotation of the second segment so we might cross the object boundary
+        Line first_segment(
+            paths.front().polyline.points[0],
+            paths.front().polyline.points[1]
+        );
+        double distance = std::min(
+            scale_(EXTRUDER_CONFIG(nozzle_diameter)),
+            first_segment.length()
+        );
+        Point point = first_segment.point_at(distance);
+        point.rotate(angle, first_segment.a);
+        
+        // generate the travel move
+        gcode += this->writer.travel_to_xy(this->point_to_gcode(point), "move inwards before travel");
+    }
+    
+    return gcode;
+}
+
+std::string
+GCode::extrude(const ExtrusionEntity &entity, std::string description, double speed)
+{
+    if (const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(&entity)) {
+        return this->extrude(*path, description, speed);
+    } else if (const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(&entity)) {
+        return this->extrude(*loop, description, speed);
+    } else {
+        CONFESS("Invalid argument supplied to extrude()");
+        return "";
+    }
+}
+
+std::string
+GCode::extrude(const ExtrusionPath &path, std::string description, double speed)
+{
+    std::string gcode = this->_extrude(path, description, speed);
     
     // reset acceleration
     gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
@@ -331,7 +496,7 @@ GCode::extrude_path(const ExtrusionPath &path, std::string description, double s
 }
 
 std::string
-GCode::_extrude_path(ExtrusionPath path, std::string description, double speed)
+GCode::_extrude(ExtrusionPath path, std::string description, double speed)
 {
     path.simplify(SCALED_RESOLUTION);
     

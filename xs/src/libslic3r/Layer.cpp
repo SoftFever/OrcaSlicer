@@ -53,6 +53,12 @@ Layer::object()
     return this->_object;
 }
 
+const PrintObject*
+Layer::object() const
+{
+    return this->_object;
+}
+
 
 size_t
 Layer::region_count()

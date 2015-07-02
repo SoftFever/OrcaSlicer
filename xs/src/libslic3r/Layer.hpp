@@ -76,6 +76,7 @@ class Layer {
     size_t id() const;
     void set_id(size_t id);
     PrintObject* object();
+    const PrintObject* object() const;
 
     Layer *upper_layer;
     Layer *lower_layer;
