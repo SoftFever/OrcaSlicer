@@ -16,6 +16,7 @@ has '_second_layer_things_done'      => (is => 'rw');
 has '_last_obj_copy'                 => (is => 'rw');
 
 use List::Util qw(first sum min max);
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y scale unscale chained_path convex_hull);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE union_ex offset);
@@ -251,7 +252,7 @@ sub export {
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
                         Slic3r::Point->new(0,0),
-                        undef,
+                        EXTR_ROLE_NONE,
                         'move to origin position for next object',
                     );
                     $gcodegen->set_enable_cooling_markers(1);

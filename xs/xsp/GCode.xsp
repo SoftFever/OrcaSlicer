@@ -157,6 +157,10 @@
     void set_origin(Pointf* pointf)
         %code{% THIS->set_origin(*pointf); %};
     std::string preamble();
+    std::string extrude_path(ExtrusionPath* path, std::string description = "", double speed = -1)
+        %code{% RETVAL = THIS->extrude_path(*path, description, speed); %};
+    std::string _extrude_path(ExtrusionPath* path, std::string description = "", double speed = -1)
+        %code{% RETVAL = THIS->_extrude_path(*path, description, speed); %};
     std::string travel_to(Point* point, ExtrusionRole role, std::string comment)
         %code{% RETVAL = THIS->travel_to(*point, role, comment); %};
     bool needs_retraction(Polyline* travel, ExtrusionRole role = erNone)

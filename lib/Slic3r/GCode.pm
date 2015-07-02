@@ -151,7 +151,7 @@ sub extrude_loop {
     }
     
     # extrude along the path
-    my $gcode = join '', map $self->_extrude_path($_, $description, $speed), @paths;
+    my $gcode = join '', map $self->_extrude_path($_, $description // "", $speed // -1), @paths;
     
     # reset acceleration
     $gcode .= $self->writer->set_acceleration($self->config->default_acceleration);
@@ -180,117 +180,6 @@ sub extrude_loop {
         
         # generate the travel move
         $gcode .= $self->writer->travel_to_xy($self->point_to_gcode($point), "move inwards before travel");
-    }
-    
-    return $gcode;
-}
-
-sub extrude_path {
-    my ($self, $path, $description, $speed) = @_;
-    
-    my $gcode = $self->_extrude_path($path, $description, $speed);
-    
-    # reset acceleration
-    $gcode .= $self->writer->set_acceleration($self->config->default_acceleration);
-    
-    return $gcode;
-}
-
-sub _extrude_path {
-    my ($self, $path, $description, $speed) = @_;
-    
-    $path->simplify(&Slic3r::SCALED_RESOLUTION);
-    
-    # go to first point of extrusion path
-    my $gcode = "";
-    {
-        my $first_point = $path->first_point;
-        $gcode .= $self->travel_to($first_point, $path->role, "move to first $description point")
-            if !$self->last_pos_defined || !$self->last_pos->coincides_with($first_point);
-    }
-    
-    # compensate retraction
-    $gcode .= $self->unretract;
-    
-    # adjust acceleration
-    {
-        my $acceleration;
-        if ($self->config->first_layer_acceleration && $self->first_layer) {
-            $acceleration = $self->config->first_layer_acceleration;
-        } elsif ($self->config->perimeter_acceleration && $path->is_perimeter) {
-            $acceleration = $self->config->perimeter_acceleration;
-        } elsif ($self->config->bridge_acceleration && $path->is_bridge) {
-            $acceleration = $self->config->bridge_acceleration;
-        } elsif ($self->config->infill_acceleration && $path->is_infill) {
-            $acceleration = $self->config->infill_acceleration;
-        } else {
-            $acceleration = $self->config->default_acceleration;
-        }
-        $gcode .= $self->writer->set_acceleration($acceleration);
-    }
-    
-    # calculate extrusion length per distance unit
-    my $e_per_mm = $self->writer->extruder->e_per_mm3 * $path->mm3_per_mm;
-    $e_per_mm = 0 if !$self->writer->extrusion_axis;
-    
-    # set speed
-    $speed //= -1;
-    if ($speed == -1) {
-        if ($path->role == EXTR_ROLE_PERIMETER) {
-            $speed = $self->config->get_abs_value('perimeter_speed');
-        } elsif ($path->role == EXTR_ROLE_EXTERNAL_PERIMETER) {
-            $speed = $self->config->get_abs_value('external_perimeter_speed');
-        } elsif ($path->role == EXTR_ROLE_OVERHANG_PERIMETER || $path->role == EXTR_ROLE_BRIDGE) {
-            $speed = $self->config->get_abs_value('bridge_speed');
-        } elsif ($path->role == EXTR_ROLE_FILL) {
-            $speed = $self->config->get_abs_value('infill_speed');
-        } elsif ($path->role == EXTR_ROLE_SOLIDFILL) {
-            $speed = $self->config->get_abs_value('solid_infill_speed');
-        } elsif ($path->role == EXTR_ROLE_TOPSOLIDFILL) {
-            $speed = $self->config->get_abs_value('top_solid_infill_speed');
-        } elsif ($path->role == EXTR_ROLE_GAPFILL) {
-            $speed = $self->config->get_abs_value('gap_fill_speed');
-        } else {
-            die "Invalid speed";
-        }
-    }
-    if ($self->first_layer) {
-        $speed = $self->config->get_abs_value_over('first_layer_speed', $speed);
-    }
-    if ($self->volumetric_speed != 0) {
-        $speed ||= $self->volumetric_speed / $path->mm3_per_mm;
-    }
-    if ($self->config->max_volumetric_speed > 0) {
-        # Cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
-        $speed = min(
-            $speed,
-            $self->config->max_volumetric_speed / $path->mm3_per_mm,
-        );
-    }
-    my $F = $speed * 60;  # convert mm/sec to mm/min
-    
-    # extrude arc or line
-    $gcode .= ";_BRIDGE_FAN_START\n" if $path->is_bridge && $self->enable_cooling_markers;
-    my $path_length = unscale $path->length;
-    {
-        my $extruder_offset = $self->config->get_at('extruder_offset', $self->writer->extruder->id);
-        $gcode .= $path->gcode($self->writer->extruder, $e_per_mm, $F,
-            $self->origin->x - $extruder_offset->x,
-            $self->origin->y - $extruder_offset->y,  #-
-            $self->writer->extrusion_axis,
-            $self->config->gcode_comments ? " ; $description" : "");
-
-        if ($self->wipe->enable) {
-            $self->wipe->set_path($path->polyline->clone);
-            $self->wipe->path->reverse;
-        }
-    }
-    $gcode .= ";_BRIDGE_FAN_END\n" if $path->is_bridge && $self->enable_cooling_markers;
-    $self->set_last_pos($path->last_point);
-    
-    if ($self->config->cooling) {
-        my $path_time = $path_length / $F * 60;
-        $self->set_elapsed_time($self->elapsed_time + $path_time);
     }
     
     return $gcode;

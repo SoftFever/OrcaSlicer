@@ -1,5 +1,6 @@
 #include "GCode.hpp"
 #include "ExtrusionEntity.hpp"
+#include <algorithm>
 
 namespace Slic3r {
 
@@ -267,13 +268,126 @@ GCode::preamble()
     return gcode;
 }
 
+std::string
+GCode::extrude_path(const ExtrusionPath &path, std::string description, double speed)
+{
+    std::string gcode = this->_extrude_path(path, description, speed);
+    
+    // reset acceleration
+    gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
+    
+    return gcode;
+}
+
+std::string
+GCode::_extrude_path(ExtrusionPath path, std::string description, double speed)
+{
+    path.simplify(SCALED_RESOLUTION);
+    
+    std::string gcode;
+    
+    // go to first point of extrusion path
+    if (!this->_last_pos_defined || !this->_last_pos.coincides_with(path.first_point())) {
+        gcode += this->travel_to(
+            path.first_point(),
+            path.role,
+            "move to first " + description + " point"
+        );
+    }
+    
+    // compensate retraction
+    gcode += this->unretract();
+    
+    // adjust acceleration
+    {
+        double acceleration;
+        if (this->config.first_layer_acceleration.value > 0 && this->first_layer) {
+            acceleration = this->config.first_layer_acceleration.value;
+        } else if (this->config.perimeter_acceleration.value > 0 && path.is_perimeter()) {
+            acceleration = this->config.perimeter_acceleration.value;
+        } else if (this->config.bridge_acceleration.value > 0 && path.is_bridge()) {
+            acceleration = this->config.bridge_acceleration.value;
+        } else if (this->config.infill_acceleration.value > 0 && path.is_infill()) {
+            acceleration = this->config.infill_acceleration.value;
+        } else {
+            acceleration = this->config.default_acceleration.value;
+        }
+        gcode += this->writer.set_acceleration(acceleration);
+    }
+    
+    // calculate extrusion length per distance unit
+    double e_per_mm = this->writer.extruder()->e_per_mm3 * path.mm3_per_mm;
+    if (this->writer.extrusion_axis().empty()) e_per_mm = 0;
+    
+    // set speed
+    if (speed == -1) {
+        if (path.role == erPerimeter) {
+            speed = this->config.get_abs_value("perimeter_speed");
+        } else if (path.role == erExternalPerimeter) {
+            speed = this->config.get_abs_value("external_perimeter_speed");
+        } else if (path.role == erOverhangPerimeter || path.role == erBridgeInfill) {
+            speed = this->config.get_abs_value("bridge_speed");
+        } else if (path.role == erInternalInfill) {
+            speed = this->config.get_abs_value("infill_speed");
+        } else if (path.role == erSolidInfill) {
+            speed = this->config.get_abs_value("solid_infill_speed");
+        } else if (path.role == erTopSolidInfill) {
+            speed = this->config.get_abs_value("top_solid_infill_speed");
+        } else if (path.role == erGapFill) {
+            speed = this->config.get_abs_value("gap_fill_speed");
+        } else {
+            CONFESS("Invalid speed");
+        }
+    }
+    if (this->first_layer) {
+        speed = this->config.get_abs_value("first_layer_speed", speed);
+    }
+    if (this->volumetric_speed != 0 && speed == 0) {
+        speed = this->volumetric_speed / path.mm3_per_mm;
+    }
+    if (this->config.max_volumetric_speed.value > 0) {
+        // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
+        speed = std::min(
+            speed,
+            this->config.max_volumetric_speed.value / path.mm3_per_mm
+        );
+    }
+    double F = speed * 60;  // convert mm/sec to mm/min
+    
+    // extrude arc or line
+    if (path.is_bridge() && this->enable_cooling_markers)
+        gcode += ";_BRIDGE_FAN_START\n";
+    double path_length = unscale(path.length());
+    {
+        Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
+        gcode += path.gcode(this->writer.extruder(), e_per_mm, F,
+            this->origin.x - extruder_offset.x,
+            this->origin.y - extruder_offset.y,
+            this->writer.extrusion_axis(),
+            this->config.gcode_comments ? (" ; " + description) : "");
+
+        if (this->wipe.enable) {
+            this->wipe.path = path.polyline;
+            this->wipe.path.reverse();
+        }
+    }
+    if (path.is_bridge() && this->enable_cooling_markers)
+        gcode += ";_BRIDGE_FAN_END\n";
+    this->set_last_pos(path.last_point());
+    
+    if (this->config.cooling)
+        this->elapsed_time += path_length / F * 60;
+    
+    return gcode;
+}
+
 // This method accepts &point in print coordinates.
 std::string
 GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
 {    
     /*  Define the travel move as a line between current position and the taget point.
         This is expressed in print coordinates, so it will need to be translated by
-        $self->origin in order to get G-code coordinates.  */
+        this->origin in order to get G-code coordinates.  */
     Polyline travel;
     travel.append(this->last_pos());
     travel.append(point);

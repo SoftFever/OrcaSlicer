@@ -92,6 +92,8 @@ class GCode {
     void apply_print_config(const PrintConfig &print_config);
     void set_origin(const Pointf &pointf);
     std::string preamble();
+    std::string extrude_path(const ExtrusionPath &path, std::string description = "", double speed = -1);
+    std::string _extrude_path(ExtrusionPath path, std::string description = "", double speed = -1);
     std::string travel_to(const Point &point, ExtrusionRole role, std::string comment);
     bool needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
     std::string retract(bool toolchange = false);
