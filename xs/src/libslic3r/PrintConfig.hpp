@@ -3,6 +3,8 @@
 
 #include "Config.hpp"
 
+#define OPT_PTR(KEY) if (opt_key == #KEY) return &this->KEY
+
 namespace Slic3r {
 
 enum GCodeFlavor {
@@ -148,29 +150,29 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
-        if (opt_key == "dont_support_bridges")                       return &this->dont_support_bridges;
-        if (opt_key == "extrusion_width")                            return &this->extrusion_width;
-        if (opt_key == "first_layer_height")                         return &this->first_layer_height;
-        if (opt_key == "infill_only_where_needed")                   return &this->infill_only_where_needed;
-        if (opt_key == "interface_shells")                           return &this->interface_shells;
-        if (opt_key == "layer_height")                               return &this->layer_height;
-        if (opt_key == "raft_layers")                                return &this->raft_layers;
-        if (opt_key == "seam_position")                              return &this->seam_position;
-        if (opt_key == "support_material")                           return &this->support_material;
-        if (opt_key == "support_material_angle")                     return &this->support_material_angle;
-        if (opt_key == "support_material_contact_distance")          return &this->support_material_contact_distance;
-        if (opt_key == "support_material_enforce_layers")            return &this->support_material_enforce_layers;
-        if (opt_key == "support_material_extruder")                  return &this->support_material_extruder;
-        if (opt_key == "support_material_extrusion_width")           return &this->support_material_extrusion_width;
-        if (opt_key == "support_material_interface_extruder")        return &this->support_material_interface_extruder;
-        if (opt_key == "support_material_interface_layers")          return &this->support_material_interface_layers;
-        if (opt_key == "support_material_interface_spacing")         return &this->support_material_interface_spacing;
-        if (opt_key == "support_material_interface_speed")           return &this->support_material_interface_speed;
-        if (opt_key == "support_material_pattern")                   return &this->support_material_pattern;
-        if (opt_key == "support_material_spacing")                   return &this->support_material_spacing;
-        if (opt_key == "support_material_speed")                     return &this->support_material_speed;
-        if (opt_key == "support_material_threshold")                 return &this->support_material_threshold;
-        if (opt_key == "xy_size_compensation")                       return &this->xy_size_compensation;
+        OPT_PTR(dont_support_bridges);
+        OPT_PTR(extrusion_width);
+        OPT_PTR(first_layer_height);
+        OPT_PTR(infill_only_where_needed);
+        OPT_PTR(interface_shells);
+        OPT_PTR(layer_height);
+        OPT_PTR(raft_layers);
+        OPT_PTR(seam_position);
+        OPT_PTR(support_material);
+        OPT_PTR(support_material_angle);
+        OPT_PTR(support_material_contact_distance);
+        OPT_PTR(support_material_enforce_layers);
+        OPT_PTR(support_material_extruder);
+        OPT_PTR(support_material_extrusion_width);
+        OPT_PTR(support_material_interface_extruder);
+        OPT_PTR(support_material_interface_layers);
+        OPT_PTR(support_material_interface_spacing);
+        OPT_PTR(support_material_interface_speed);
+        OPT_PTR(support_material_pattern);
+        OPT_PTR(support_material_spacing);
+        OPT_PTR(support_material_speed);
+        OPT_PTR(support_material_threshold);
+        OPT_PTR(xy_size_compensation);
         
         return NULL;
     };
@@ -258,38 +260,38 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
-        if (opt_key == "bottom_solid_layers")                        return &this->bottom_solid_layers;
-        if (opt_key == "bridge_flow_ratio")                          return &this->bridge_flow_ratio;
-        if (opt_key == "bridge_speed")                               return &this->bridge_speed;
-        if (opt_key == "external_fill_pattern")                      return &this->external_fill_pattern;
-        if (opt_key == "external_perimeter_extrusion_width")         return &this->external_perimeter_extrusion_width;
-        if (opt_key == "external_perimeter_speed")                   return &this->external_perimeter_speed;
-        if (opt_key == "external_perimeters_first")                  return &this->external_perimeters_first;
-        if (opt_key == "extra_perimeters")                           return &this->extra_perimeters;
-        if (opt_key == "fill_angle")                                 return &this->fill_angle;
-        if (opt_key == "fill_density")                               return &this->fill_density;
-        if (opt_key == "fill_pattern")                               return &this->fill_pattern;
-        if (opt_key == "gap_fill_speed")                             return &this->gap_fill_speed;
-        if (opt_key == "infill_extruder")                            return &this->infill_extruder;
-        if (opt_key == "infill_extrusion_width")                     return &this->infill_extrusion_width;
-        if (opt_key == "infill_every_layers")                        return &this->infill_every_layers;
-        if (opt_key == "infill_overlap")                             return &this->infill_overlap;
-        if (opt_key == "infill_speed")                               return &this->infill_speed;
-        if (opt_key == "overhangs")                                  return &this->overhangs;
-        if (opt_key == "perimeter_extruder")                         return &this->perimeter_extruder;
-        if (opt_key == "perimeter_extrusion_width")                  return &this->perimeter_extrusion_width;
-        if (opt_key == "perimeter_speed")                            return &this->perimeter_speed;
-        if (opt_key == "perimeters")                                 return &this->perimeters;
-        if (opt_key == "small_perimeter_speed")                      return &this->small_perimeter_speed;
-        if (opt_key == "solid_infill_below_area")                    return &this->solid_infill_below_area;
-        if (opt_key == "solid_infill_extruder")                      return &this->solid_infill_extruder;
-        if (opt_key == "solid_infill_extrusion_width")               return &this->solid_infill_extrusion_width;
-        if (opt_key == "solid_infill_every_layers")                  return &this->solid_infill_every_layers;
-        if (opt_key == "solid_infill_speed")                         return &this->solid_infill_speed;
-        if (opt_key == "thin_walls")                                 return &this->thin_walls;
-        if (opt_key == "top_infill_extrusion_width")                 return &this->top_infill_extrusion_width;
-        if (opt_key == "top_solid_infill_speed")                     return &this->top_solid_infill_speed;
-        if (opt_key == "top_solid_layers")                           return &this->top_solid_layers;
+        OPT_PTR(bottom_solid_layers);
+        OPT_PTR(bridge_flow_ratio);
+        OPT_PTR(bridge_speed);
+        OPT_PTR(external_fill_pattern);
+        OPT_PTR(external_perimeter_extrusion_width);
+        OPT_PTR(external_perimeter_speed);
+        OPT_PTR(external_perimeters_first);
+        OPT_PTR(extra_perimeters);
+        OPT_PTR(fill_angle);
+        OPT_PTR(fill_density);
+        OPT_PTR(fill_pattern);
+        OPT_PTR(gap_fill_speed);
+        OPT_PTR(infill_extruder);
+        OPT_PTR(infill_extrusion_width);
+        OPT_PTR(infill_every_layers);
+        OPT_PTR(infill_overlap);
+        OPT_PTR(infill_speed);
+        OPT_PTR(overhangs);
+        OPT_PTR(perimeter_extruder);
+        OPT_PTR(perimeter_extrusion_width);
+        OPT_PTR(perimeter_speed);
+        OPT_PTR(perimeters);
+        OPT_PTR(small_perimeter_speed);
+        OPT_PTR(solid_infill_below_area);
+        OPT_PTR(solid_infill_extruder);
+        OPT_PTR(solid_infill_extrusion_width);
+        OPT_PTR(solid_infill_every_layers);
+        OPT_PTR(solid_infill_speed);
+        OPT_PTR(thin_walls);
+        OPT_PTR(top_infill_extrusion_width);
+        OPT_PTR(top_solid_infill_speed);
+        OPT_PTR(top_solid_layers);
         
         return NULL;
     };
@@ -357,29 +359,29 @@ class GCodeConfig : public virtual StaticPrintConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
-        if (opt_key == "before_layer_gcode")                         return &this->before_layer_gcode;
-        if (opt_key == "end_gcode")                                  return &this->end_gcode;
-        if (opt_key == "extrusion_axis")                             return &this->extrusion_axis;
-        if (opt_key == "extrusion_multiplier")                       return &this->extrusion_multiplier;
-        if (opt_key == "filament_diameter")                          return &this->filament_diameter;
-        if (opt_key == "gcode_comments")                             return &this->gcode_comments;
-        if (opt_key == "gcode_flavor")                               return &this->gcode_flavor;
-        if (opt_key == "layer_gcode")                                return &this->layer_gcode;
-        if (opt_key == "max_print_speed")                            return &this->max_print_speed;
-        if (opt_key == "max_volumetric_speed")                       return &this->max_volumetric_speed;
-        if (opt_key == "pressure_advance")                           return &this->pressure_advance;
-        if (opt_key == "retract_length")                             return &this->retract_length;
-        if (opt_key == "retract_length_toolchange")                  return &this->retract_length_toolchange;
-        if (opt_key == "retract_lift")                               return &this->retract_lift;
-        if (opt_key == "retract_restart_extra")                      return &this->retract_restart_extra;
-        if (opt_key == "retract_restart_extra_toolchange")           return &this->retract_restart_extra_toolchange;
-        if (opt_key == "retract_speed")                              return &this->retract_speed;
-        if (opt_key == "start_gcode")                                return &this->start_gcode;
-        if (opt_key == "toolchange_gcode")                           return &this->toolchange_gcode;
-        if (opt_key == "travel_speed")                               return &this->travel_speed;
-        if (opt_key == "use_firmware_retraction")                    return &this->use_firmware_retraction;
-        if (opt_key == "use_relative_e_distances")                   return &this->use_relative_e_distances;
-        if (opt_key == "use_volumetric_e")                           return &this->use_volumetric_e;
+        OPT_PTR(before_layer_gcode);
+        OPT_PTR(end_gcode);
+        OPT_PTR(extrusion_axis);
+        OPT_PTR(extrusion_multiplier);
+        OPT_PTR(filament_diameter);
+        OPT_PTR(gcode_comments);
+        OPT_PTR(gcode_flavor);
+        OPT_PTR(layer_gcode);
+        OPT_PTR(max_print_speed);
+        OPT_PTR(max_volumetric_speed);
+        OPT_PTR(pressure_advance);
+        OPT_PTR(retract_length);
+        OPT_PTR(retract_length_toolchange);
+        OPT_PTR(retract_lift);
+        OPT_PTR(retract_restart_extra);
+        OPT_PTR(retract_restart_extra_toolchange);
+        OPT_PTR(retract_speed);
+        OPT_PTR(start_gcode);
+        OPT_PTR(toolchange_gcode);
+        OPT_PTR(travel_speed);
+        OPT_PTR(use_firmware_retraction);
+        OPT_PTR(use_relative_e_distances);
+        OPT_PTR(use_volumetric_e);
         
         return NULL;
     };
@@ -516,56 +518,56 @@ class PrintConfig : public GCodeConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
-        if (opt_key == "avoid_crossing_perimeters")                  return &this->avoid_crossing_perimeters;
-        if (opt_key == "bed_shape")                                  return &this->bed_shape;
-        if (opt_key == "bed_temperature")                            return &this->bed_temperature;
-        if (opt_key == "bridge_acceleration")                        return &this->bridge_acceleration;
-        if (opt_key == "bridge_fan_speed")                           return &this->bridge_fan_speed;
-        if (opt_key == "brim_width")                                 return &this->brim_width;
-        if (opt_key == "complete_objects")                           return &this->complete_objects;
-        if (opt_key == "cooling")                                    return &this->cooling;
-        if (opt_key == "default_acceleration")                       return &this->default_acceleration;
-        if (opt_key == "disable_fan_first_layers")                   return &this->disable_fan_first_layers;
-        if (opt_key == "duplicate_distance")                         return &this->duplicate_distance;
-        if (opt_key == "extruder_clearance_height")                  return &this->extruder_clearance_height;
-        if (opt_key == "extruder_clearance_radius")                  return &this->extruder_clearance_radius;
-        if (opt_key == "extruder_offset")                            return &this->extruder_offset;
-        if (opt_key == "fan_always_on")                              return &this->fan_always_on;
-        if (opt_key == "fan_below_layer_time")                       return &this->fan_below_layer_time;
-        if (opt_key == "filament_colour")                             return &this->filament_colour;
-        if (opt_key == "first_layer_acceleration")                   return &this->first_layer_acceleration;
-        if (opt_key == "first_layer_bed_temperature")                return &this->first_layer_bed_temperature;
-        if (opt_key == "first_layer_extrusion_width")                return &this->first_layer_extrusion_width;
-        if (opt_key == "first_layer_speed")                          return &this->first_layer_speed;
-        if (opt_key == "first_layer_temperature")                    return &this->first_layer_temperature;
-        if (opt_key == "gcode_arcs")                                 return &this->gcode_arcs;
-        if (opt_key == "infill_acceleration")                        return &this->infill_acceleration;
-        if (opt_key == "infill_first")                               return &this->infill_first;
-        if (opt_key == "max_fan_speed")                              return &this->max_fan_speed;
-        if (opt_key == "min_fan_speed")                              return &this->min_fan_speed;
-        if (opt_key == "min_print_speed")                            return &this->min_print_speed;
-        if (opt_key == "min_skirt_length")                           return &this->min_skirt_length;
-        if (opt_key == "notes")                                      return &this->notes;
-        if (opt_key == "nozzle_diameter")                            return &this->nozzle_diameter;
-        if (opt_key == "only_retract_when_crossing_perimeters")      return &this->only_retract_when_crossing_perimeters;
-        if (opt_key == "ooze_prevention")                            return &this->ooze_prevention;
-        if (opt_key == "output_filename_format")                     return &this->output_filename_format;
-        if (opt_key == "perimeter_acceleration")                     return &this->perimeter_acceleration;
-        if (opt_key == "post_process")                               return &this->post_process;
-        if (opt_key == "resolution")                                 return &this->resolution;
-        if (opt_key == "retract_before_travel")                      return &this->retract_before_travel;
-        if (opt_key == "retract_layer_change")                       return &this->retract_layer_change;
-        if (opt_key == "skirt_distance")                             return &this->skirt_distance;
-        if (opt_key == "skirt_height")                               return &this->skirt_height;
-        if (opt_key == "skirts")                                     return &this->skirts;
-        if (opt_key == "slowdown_below_layer_time")                  return &this->slowdown_below_layer_time;
-        if (opt_key == "spiral_vase")                                return &this->spiral_vase;
-        if (opt_key == "standby_temperature_delta")                  return &this->standby_temperature_delta;
-        if (opt_key == "temperature")                                return &this->temperature;
-        if (opt_key == "threads")                                    return &this->threads;
-        if (opt_key == "vibration_limit")                            return &this->vibration_limit;
-        if (opt_key == "wipe")                                       return &this->wipe;
-        if (opt_key == "z_offset")                                   return &this->z_offset;
+        OPT_PTR(avoid_crossing_perimeters);
+        OPT_PTR(bed_shape);
+        OPT_PTR(bed_temperature);
+        OPT_PTR(bridge_acceleration);
+        OPT_PTR(bridge_fan_speed);
+        OPT_PTR(brim_width);
+        OPT_PTR(complete_objects);
+        OPT_PTR(cooling);
+        OPT_PTR(default_acceleration);
+        OPT_PTR(disable_fan_first_layers);
+        OPT_PTR(duplicate_distance);
+        OPT_PTR(extruder_clearance_height);
+        OPT_PTR(extruder_clearance_radius);
+        OPT_PTR(extruder_offset);
+        OPT_PTR(fan_always_on);
+        OPT_PTR(fan_below_layer_time);
+        OPT_PTR(filament_colour);
+        OPT_PTR(first_layer_acceleration);
+        OPT_PTR(first_layer_bed_temperature);
+        OPT_PTR(first_layer_extrusion_width);
+        OPT_PTR(first_layer_speed);
+        OPT_PTR(first_layer_temperature);
+        OPT_PTR(gcode_arcs);
+        OPT_PTR(infill_acceleration);
+        OPT_PTR(infill_first);
+        OPT_PTR(max_fan_speed);
+        OPT_PTR(min_fan_speed);
+        OPT_PTR(min_print_speed);
+        OPT_PTR(min_skirt_length);
+        OPT_PTR(notes);
+        OPT_PTR(nozzle_diameter);
+        OPT_PTR(only_retract_when_crossing_perimeters);
+        OPT_PTR(ooze_prevention);
+        OPT_PTR(output_filename_format);
+        OPT_PTR(perimeter_acceleration);
+        OPT_PTR(post_process);
+        OPT_PTR(resolution);
+        OPT_PTR(retract_before_travel);
+        OPT_PTR(retract_layer_change);
+        OPT_PTR(skirt_distance);
+        OPT_PTR(skirt_height);
+        OPT_PTR(skirts);
+        OPT_PTR(slowdown_below_layer_time);
+        OPT_PTR(spiral_vase);
+        OPT_PTR(standby_temperature_delta);
+        OPT_PTR(temperature);
+        OPT_PTR(threads);
+        OPT_PTR(vibration_limit);
+        OPT_PTR(wipe);
+        OPT_PTR(z_offset);
         
         // look in parent class
         ConfigOption* opt;
@@ -587,8 +589,8 @@ class HostConfig : public virtual StaticPrintConfig
     };
     
     ConfigOption* option(const t_config_option_key opt_key, bool create = false) {
-        if (opt_key == "octoprint_host")                        return &this->octoprint_host;
-        if (opt_key == "octoprint_apikey")                      return &this->octoprint_apikey;
+        OPT_PTR(octoprint_host);
+        OPT_PTR(octoprint_apikey);
         
         return NULL;
     };
