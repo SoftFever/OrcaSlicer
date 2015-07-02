@@ -26,9 +26,6 @@
     bool is_infill();
     bool is_solid_infill();
     bool is_bridge();
-    std::string gcode(Extruder* extruder, double e, double F,
-        double xofs, double yofs, std::string extrusion_axis,
-        std::string gcode_line_suffix);
     Polygons grow();
 %{
 

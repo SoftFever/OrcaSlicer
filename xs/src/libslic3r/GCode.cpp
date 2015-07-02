@@ -357,22 +357,29 @@ GCode::_extrude_path(ExtrusionPath path, std::string description, double speed)
     // extrude arc or line
     if (path.is_bridge() && this->enable_cooling_markers)
         gcode += ";_BRIDGE_FAN_START\n";
-    double path_length = unscale(path.length());
+    gcode += this->writer.set_speed(F);
+    double path_length = 0;
     {
-        Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
-        gcode += path.gcode(this->writer.extruder(), e_per_mm, F,
-            this->origin.x - extruder_offset.x,
-            this->origin.y - extruder_offset.y,
-            this->writer.extrusion_axis(),
-            this->config.gcode_comments ? (" ; " + description) : "");
-
-        if (this->wipe.enable) {
-            this->wipe.path = path.polyline;
-            this->wipe.path.reverse();
+        std::string comment = this->config.gcode_comments ? (" ; " + description) : "";
+        Lines lines = path.polyline.lines();
+        for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
+            const double line_length = line->length() * SCALING_FACTOR;
+            path_length += line_length;
+            
+            gcode += this->writer.extrude_to_xy(
+                this->point_to_gcode(line->b),
+                e_per_mm * line_length,
+                comment
+            );
         }
+    }
+    if (this->wipe.enable) {
+        this->wipe.path = path.polyline;
+        this->wipe.path.reverse();
     }
     if (path.is_bridge() && this->enable_cooling_markers)
         gcode += ";_BRIDGE_FAN_END\n";
+    
     this->set_last_pos(path.last_point());
     
     if (this->config.cooling)
