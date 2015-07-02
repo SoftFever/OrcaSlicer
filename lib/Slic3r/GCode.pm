@@ -8,51 +8,6 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Geometry qw(epsilon scale unscale PI X Y B);
 use Slic3r::Geometry::Clipper qw(union_ex);
 
-sub set_extruders {
-    my ($self, $extruder_ids) = @_;
-    
-    $self->writer->set_extruders($extruder_ids);
-    
-    # enable wipe path generation if any extruder has wipe enabled
-    $self->wipe->set_enable(defined first { $self->config->get_at('wipe', $_) } @$extruder_ids);
-}
-
-sub change_layer {
-    my ($self, $layer) = @_;
-    
-    {
-        my $l = $layer->isa('Slic3r::Layer::Support')
-            ? $layer->as_layer
-            : $layer;
-        $self->set_layer($l);
-    }
-    $self->set_layer_index($self->layer_index + 1);
-    $self->set_first_layer($layer->id == 0);
-    
-    # avoid computing islands and overhangs if they're not needed
-    if ($self->config->avoid_crossing_perimeters) {
-        $self->avoid_crossing_perimeters->init_layer_mp(
-            union_ex([ map @$_, @{$layer->slices} ], 1),
-        );
-    }
-    
-    my $gcode = "";
-    if ($self->layer_count > 0) {
-        $gcode .= $self->writer->update_progress($self->layer_index, $self->layer_count);
-    }
-    
-    my $z = $layer->print_z + $self->config->z_offset;  # in unscaled coordinates
-    if ($self->config->get_at('retract_layer_change', $self->writer->extruder->id) && $self->writer->will_move_z($z)) {
-        $gcode .= $self->retract;
-    }
-    $gcode .= $self->writer->travel_to_z($z, 'move to next layer (' . $self->layer_index . ')');
-    
-    # forget last wiping path as wiping after raising Z is pointless
-    $self->wipe->reset_path;
-    
-    return $gcode;
-}
-
 sub extrude {
     my $self = shift;
     

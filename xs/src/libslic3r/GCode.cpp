@@ -241,6 +241,22 @@ GCode::apply_print_config(const PrintConfig &print_config)
 }
 
 void
+GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)
+{
+    this->writer.set_extruders(extruder_ids);
+    
+    // enable wipe path generation if any extruder has wipe enabled
+    this->wipe.enable = false;
+    for (std::vector<unsigned int>::const_iterator it = extruder_ids.begin();
+        it != extruder_ids.end(); ++it) {
+        if (this->config.wipe.get_at(*it)) {
+            this->wipe.enable = true;
+            break;
+        }
+    }
+}
+
+void
 GCode::set_origin(const Pointf &pointf)
 {    
     // if origin increases (goes towards right), last_pos decreases because it goes towards left
@@ -264,6 +280,41 @@ GCode::preamble()
         before the first layer change will raise the extruder from the correct
         initial Z instead of 0.  */
     this->writer.travel_to_z(this->config.z_offset.value);
+    
+    return gcode;
+}
+
+std::string
+GCode::change_layer(const Layer &layer)
+{
+    this->layer = &layer;
+    this->layer_index++;
+    this->first_layer = (layer.id() == 0);
+    
+    // avoid computing islands and overhangs if they're not needed
+    if (this->config.avoid_crossing_perimeters) {
+        ExPolygons islands;
+        union_(layer.slices, &islands, true);
+        this->avoid_crossing_perimeters.init_layer_mp(islands);
+    }
+    
+    std::string gcode;
+    if (this->layer_count > 0) {
+        gcode += this->writer.update_progress(this->layer_index, this->layer_count);
+    }
+    
+    coordf_t z = layer.print_z + this->config.z_offset.value;  // in unscaled coordinates
+    if (EXTRUDER_CONFIG(retract_layer_change) && this->writer.will_move_z(z)) {
+        gcode += this->retract();
+    }
+    {
+        std::ostringstream comment;
+        comment << "move to next layer (" << this->layer_index << ")";
+        gcode += this->writer.travel_to_z(z, comment.str());
+    }
+    
+    // forget last wiping path as wiping after raising Z is pointless
+    this->wipe.reset_path();
     
     return gcode;
 }
@@ -438,7 +489,7 @@ GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
     }
     
     if (role == erSupportMaterial) {
-        SupportLayer* support_layer = dynamic_cast<SupportLayer*>(this->layer);
+        const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(this->layer);
         if (support_layer != NULL && support_layer->support_islands.contains(travel)) {
             // skip retraction if this is a travel move inside a support material island
             return false;

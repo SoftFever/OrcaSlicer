@@ -154,9 +154,12 @@
     
     void apply_print_config(PrintConfig* print_config)
         %code{% THIS->apply_print_config(*print_config); %};
+    void set_extruders(std::vector<unsigned int> extruder_ids);
     void set_origin(Pointf* pointf)
         %code{% THIS->set_origin(*pointf); %};
     std::string preamble();
+    std::string change_layer(Layer* layer)
+        %code{% RETVAL = THIS->change_layer(*layer); %};
     std::string extrude_path(ExtrusionPath* path, std::string description = "", double speed = -1)
         %code{% RETVAL = THIS->extrude_path(*path, description, speed); %};
     std::string _extrude_path(ExtrusionPath* path, std::string description = "", double speed = -1)

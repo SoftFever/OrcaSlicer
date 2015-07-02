@@ -79,7 +79,7 @@ class GCode {
     bool enable_cooling_markers;
     size_t layer_count;
     int layer_index; // just a counter
-    Layer* layer;
+    const Layer* layer;
     std::map<PrintObject*,Point> _seam_position;
     bool first_layer; // this flag triggers first layer speeds
     unsigned int elapsed_time; // seconds
@@ -90,8 +90,10 @@ class GCode {
     void set_last_pos(const Point &pos);
     bool last_pos_defined() const;
     void apply_print_config(const PrintConfig &print_config);
+    void set_extruders(const std::vector<unsigned int> &extruder_ids);
     void set_origin(const Pointf &pointf);
     std::string preamble();
+    std::string change_layer(const Layer &layer);
     std::string extrude_path(const ExtrusionPath &path, std::string description = "", double speed = -1);
     std::string _extrude_path(ExtrusionPath path, std::string description = "", double speed = -1);
     std::string travel_to(const Point &point, ExtrusionRole role, std::string comment);
