@@ -156,7 +156,7 @@ REGISTER_CLASS(Wipe, "GCode::Wipe");
 GCode::GCode()
     : enable_loop_clipping(true), enable_cooling_markers(false), layer_count(0),
         layer_index(-1), first_layer(false), elapsed_time(0), volumetric_speed(0),
-        _last_pos_defined(false)
+        _last_pos_defined(false), layer(NULL), placeholder_parser(NULL)
 {
 }
 
@@ -224,7 +224,7 @@ GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
     
     if (role == erSupportMaterial) {
         SupportLayer* support_layer = dynamic_cast<SupportLayer*>(this->layer);
-        if (support_layer->support_islands.contains(travel)) {
+        if (support_layer != NULL && support_layer->support_islands.contains(travel)) {
             // skip retraction if this is a travel move inside a support material island
             return false;
         }

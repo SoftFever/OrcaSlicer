@@ -133,6 +133,7 @@ ExtrusionPath::subtract_expolygons(ExPolygonCollection* collection)
 IV
 _constant()
   ALIAS:
+    EXTR_ROLE_NONE                         = erNone
     EXTR_ROLE_PERIMETER                    = erPerimeter
     EXTR_ROLE_EXTERNAL_PERIMETER           = erExternalPerimeter
     EXTR_ROLE_OVERHANG_PERIMETER           = erOverhangPerimeter

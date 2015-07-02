@@ -13,6 +13,7 @@ class Extruder;
 
 /* Each ExtrusionRole value identifies a distinct set of { extruder, speed } */
 enum ExtrusionRole {
+    erNone,
     erPerimeter,
     erExternalPerimeter,
     erOverhangPerimeter,

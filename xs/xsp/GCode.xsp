@@ -152,7 +152,7 @@
     void set_origin(Pointf* pointf)
         %code{% THIS->set_origin(*pointf); %};
     std::string preamble();
-    bool needs_retraction(Polyline* travel, ExtrusionRole role)
+    bool needs_retraction(Polyline* travel, ExtrusionRole role = erNone)
         %code{% RETVAL = THIS->needs_retraction(*travel, role); %};
     std::string retract(bool toolchange = false);
     std::string unretract();

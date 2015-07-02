@@ -38,9 +38,8 @@ ExtrusionLoop::arrayref()
     CODE:
         AV* av = newAV();
         av_fill(av, THIS->paths.size()-1);
-        int i = 0;
         for (ExtrusionPaths::iterator it = THIS->paths.begin(); it != THIS->paths.end(); ++it) {
-            av_store(av, i++, perl_to_SV_ref(*it));
+            av_store(av, it - THIS->paths.begin(), perl_to_SV_ref(*it));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:

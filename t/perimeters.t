@@ -329,13 +329,16 @@ use Slic3r::Test;
             scalar(@$expolygons), 'expected number of collections';
         ok !defined(first { !$_->isa('Slic3r::ExtrusionPath::Collection') } @{$g->loops}),
             'everything is returned as collections';
-        is scalar(map @$_, @{$g->loops}),
+        
+        my $flattened_loops = $g->loops->flatten;
+        my @loops = @$flattened_loops;
+        is scalar(@loops),
             $expected{total}, 'expected number of loops';
-        is scalar(grep $_->role == EXTR_ROLE_EXTERNAL_PERIMETER, map @$_, map @$_, @{$g->loops}),
+        is scalar(grep $_->role == EXTR_ROLE_EXTERNAL_PERIMETER, map @$_, @loops),
             $expected{external}, 'expected number of external loops';
-        is scalar(grep $_->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER, map @$_, @{$g->loops}),
+        is scalar(grep $_->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER, @loops),
             $expected{cinternal}, 'expected number of internal contour loops';
-        is scalar(grep $_->polygon->is_counter_clockwise, map @$_, @{$g->loops}),
+        is scalar(grep $_->polygon->is_counter_clockwise, @loops),
             $expected{ccw}, 'expected number of ccw loops';
         
         return $g;

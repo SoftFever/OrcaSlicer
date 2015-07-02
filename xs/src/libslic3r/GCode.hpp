@@ -87,7 +87,7 @@ class GCode {
     void apply_print_config(const PrintConfig &print_config);
     void set_origin(const Pointf &pointf);
     std::string preamble();
-    bool needs_retraction(const Polyline &travel, ExtrusionRole role);
+    bool needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
     std::string retract(bool toolchange = false);
     std::string unretract();
     Pointf point_to_gcode(const Point &point);

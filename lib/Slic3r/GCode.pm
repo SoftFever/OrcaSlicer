@@ -306,7 +306,7 @@ sub travel_to {
     my $travel = Slic3r::Polyline->new($self->last_pos, $point);
     
     # check whether a straight travel move would need retraction
-    my $needs_retraction = $self->needs_retraction($travel, $role);
+    my $needs_retraction = $self->needs_retraction($travel, $role // EXTR_ROLE_NONE);
     
     # if a retraction would be needed, try to use avoid_crossing_perimeters to plan a
     # multi-hop travel path inside the configuration space
@@ -316,7 +316,7 @@ sub travel_to {
         $travel = $self->avoid_crossing_perimeters->travel_to($self, $point);
         
         # check again whether the new travel path still needs a retraction
-        $needs_retraction = $self->needs_retraction($travel, $role);
+        $needs_retraction = $self->needs_retraction($travel, $role // EXTR_ROLE_NONE);
     }
     
     # Re-allow avoid_crossing_perimeters for the next travel moves

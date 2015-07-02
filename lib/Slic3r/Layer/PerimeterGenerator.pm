@@ -355,7 +355,7 @@ sub _traverse_loops {
             # there's only one contour loop).
             $loop_role = EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER;
         } else {
-            $loop_role = EXTR_ROLE_PERIMETER;
+            $loop_role = EXTRL_ROLE_DEFAULT;
         }
         
         # detect overhanging/bridging perimeters
