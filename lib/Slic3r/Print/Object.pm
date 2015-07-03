@@ -942,7 +942,12 @@ sub discover_horizontal_shells {
                             # make sure our grown surfaces don't exceed the fill area
                             my @grown = @{intersection(
                                 offset($too_narrow, +$margin),
-                                [ map $_->p, @neighbor_fill_surfaces ],
+                                # Discard bridges as they are grown for anchoring and we can't
+                                # remove such anchors. (This may happen when a bridge is being 
+                                # anchored onto a wall where little space remains after the bridge
+                                # is grown, and that little space is an internal solid shell so 
+                                # it triggers this too_narrow logic.)
+                                [ map $_->p, grep { $_->is_internal && !$_->is_bridge } @neighbor_fill_surfaces ],
                             )};
                             $new_internal_solid = $solid = [ @grown, @$new_internal_solid ];
                         }
