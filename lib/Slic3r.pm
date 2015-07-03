@@ -79,7 +79,6 @@ use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
 use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
 use constant INFILL_OVERLAP_OVER_SPACING  => 0.3;
 use constant EXTERNAL_INFILL_MARGIN => 3;
-use constant INSET_OVERLAP_TOLERANCE => 0.4;
 
 # keep track of threads we created
 my @my_threads = ();

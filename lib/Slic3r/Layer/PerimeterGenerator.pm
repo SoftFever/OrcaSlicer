@@ -8,6 +8,8 @@ use Slic3r::Geometry::Clipper qw(union_ex diff diff_ex intersection_ex offset of
     offset_ex offset2_ex intersection_ppl diff_ppl);
 use Slic3r::Surface ':types';
 
+use constant INSET_OVERLAP_TOLERANCE => 0.4;
+
 has 'slices'                => (is => 'ro', required => 1);  # SurfaceCollection
 has 'lower_slices'          => (is => 'ro', required => 0);
 has 'layer_height'          => (is => 'ro', required => 1);
@@ -20,7 +22,6 @@ has 'config'                => (is => 'ro', default => sub { Slic3r::Config::Pri
 has 'object_config'         => (is => 'ro', default => sub { Slic3r::Config::PrintObject->new });
 has 'print_config'          => (is => 'ro', default => sub { Slic3r::Config::Print->new });
 has '_lower_slices_p'       => (is => 'rw', default => sub { [] });
-has '_holes_pt'             => (is => 'rw');
 has '_ext_mm3_per_mm'       => (is => 'rw');
 has '_mm3_per_mm'           => (is => 'rw');
 has '_mm3_per_mm_overhang'  => (is => 'rw');
@@ -499,35 +500,5 @@ sub _fill_gaps {
     return @entities;
 }
 
-
-package Slic3r::Layer::PerimeterGenerator::Loop;
-use Moo;
-
-has 'polygon'       => (is => 'ro', required => 1);
-has 'is_contour'    => (is => 'ro', required => 1);
-has 'depth'         => (is => 'ro', required => 1);
-has 'children'      => (is => 'ro', default => sub { [] });
-
-use List::Util qw(first);
-
-sub add_child {
-    my ($self, $child) = @_;
-    push @{$self->children}, $child;
-}
-
-sub is_external {
-    my ($self) = @_;
-    return $self->depth == 0;
-}
-
-sub is_internal_contour {
-    my ($self) = @_;
-    
-    if ($self->is_contour) {
-        # an internal contour is a contour containing no other contours
-        return !defined first { $_->is_contour } @{$self->children};
-    }
-    return 0;
-}
 
 1;
