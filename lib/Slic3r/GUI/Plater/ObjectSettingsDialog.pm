@@ -107,12 +107,17 @@ sub new {
         $grid->SetCellValue($event->GetRow, $event->GetCol, $value);
         
         # if there's no empty row, let's append one
-        for my $i (0 .. $grid->GetNumberRows-1) {
+        for my $i (0 .. $grid->GetNumberRows) {
+            if ($i == $grid->GetNumberRows) {
+                # if we're here then we found no empty row
+                $grid->AppendRows(1);
+                last;
+            }
             if (!grep $grid->GetCellValue($i, $_), 0..2) {
-                return;
+                # exit loop if this row is empty
+                last;
             }
         }
-        $grid->AppendRows(1);
         
         $self->{layers_changed} = 1;
     });
