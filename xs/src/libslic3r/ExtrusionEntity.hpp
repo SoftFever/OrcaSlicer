@@ -52,6 +52,7 @@ class ExtrusionEntity
     virtual Point last_point() const = 0;
     virtual Polygons grow() const = 0;
     virtual double min_mm3_per_mm() const = 0;
+    virtual Polyline as_polyline() const = 0;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -83,6 +84,9 @@ class ExtrusionPath : public ExtrusionEntity
     double min_mm3_per_mm() const {
         return this->mm3_per_mm;
     };
+    Polyline as_polyline() const {
+        return this->polyline;
+    };
 
     private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
@@ -97,6 +101,8 @@ class ExtrusionLoop : public ExtrusionEntity
     ExtrusionLoopRole role;
     
     ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : role(role) {};
+    ExtrusionLoop(const ExtrusionPaths &paths, ExtrusionLoopRole role = elrDefault)
+        : paths(paths), role(role) {};
     bool is_loop() const {
         return true;
     };
@@ -120,6 +126,9 @@ class ExtrusionLoop : public ExtrusionEntity
     bool is_solid_infill() const;
     Polygons grow() const;
     double min_mm3_per_mm() const;
+    Polyline as_polyline() const {
+        return this->polygon()->split_at_first_point();
+    };
 };
 
 }

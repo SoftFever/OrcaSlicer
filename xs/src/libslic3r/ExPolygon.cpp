@@ -122,6 +122,13 @@ ExPolygon::has_boundary_point(const Point &point) const
     return false;
 }
 
+void
+ExPolygon::simplify_p(double tolerance, Polygons* polygons) const
+{
+    Polygons pp = this->simplify_p(tolerance);
+    polygons->insert(polygons->end(), pp.begin(), pp.end());
+}
+
 Polygons
 ExPolygon::simplify_p(double tolerance) const
 {

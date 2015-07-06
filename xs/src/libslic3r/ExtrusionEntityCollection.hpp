@@ -15,7 +15,10 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     bool no_sort;
     ExtrusionEntityCollection(): no_sort(false) {};
     ExtrusionEntityCollection(const ExtrusionEntityCollection &collection);
+    ExtrusionEntityCollection(const ExtrusionPaths &paths);
     ExtrusionEntityCollection& operator= (const ExtrusionEntityCollection &other);
+    operator ExtrusionPaths() const;
+    
     bool is_collection() const {
         return true;
     };
@@ -23,6 +26,10 @@ class ExtrusionEntityCollection : public ExtrusionEntity
         return !this->no_sort;
     };
     void swap (ExtrusionEntityCollection &c);
+    void append(const ExtrusionEntity &entity);
+    void append(const ExtrusionEntityCollection &collection);
+    void append(const ExtrusionPaths &paths);
+    ExtrusionEntityCollection chained_path(bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
     void chained_path(ExtrusionEntityCollection* retval, bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
     void chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
     void reverse();
@@ -31,6 +38,7 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     Polygons grow() const;
     size_t items_count() const;
     void flatten(ExtrusionEntityCollection* retval) const;
+    ExtrusionEntityCollection flatten() const;
     double min_mm3_per_mm() const;
 };
 

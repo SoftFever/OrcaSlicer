@@ -8,9 +8,13 @@ namespace Slic3r {
 ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionEntityCollection& collection)
     : no_sort(collection.no_sort), orig_indices(collection.orig_indices)
 {
-    this->entities.reserve(collection.entities.size());
-    for (ExtrusionEntitiesPtr::const_iterator it = collection.entities.begin(); it != collection.entities.end(); ++it)
-        this->entities.push_back((*it)->clone());
+    this->append(collection);
+}
+
+ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths)
+    : no_sort(false)
+{
+    this->append(paths);
 }
 
 ExtrusionEntityCollection& ExtrusionEntityCollection::operator= (const ExtrusionEntityCollection &other)
@@ -26,6 +30,16 @@ ExtrusionEntityCollection::swap (ExtrusionEntityCollection &c)
     std::swap(this->entities, c.entities);
     std::swap(this->orig_indices, c.orig_indices);
     std::swap(this->no_sort, c.no_sort);
+}
+
+ExtrusionEntityCollection::operator ExtrusionPaths() const
+{
+    ExtrusionPaths paths;
+    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
+        if (const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(*it))
+            paths.push_back(*path);
+    }
+    return paths;
 }
 
 ExtrusionEntityCollection*
@@ -55,6 +69,33 @@ Point
 ExtrusionEntityCollection::last_point() const
 {
     return this->entities.back()->last_point();
+}
+
+void
+ExtrusionEntityCollection::append(const ExtrusionEntity &entity)
+{
+    this->entities.push_back(entity.clone());
+}
+
+void
+ExtrusionEntityCollection::append(const ExtrusionEntityCollection &collection)
+{
+    this->entities.insert(this->entities.end(), collection.entities.begin(), collection.entities.end());
+}
+
+void
+ExtrusionEntityCollection::append(const ExtrusionPaths &paths)
+{
+    for (ExtrusionPaths::const_iterator path = paths.begin(); path != paths.end(); ++path)
+        this->append(*path);
+}
+
+ExtrusionEntityCollection
+ExtrusionEntityCollection::chained_path(bool no_reverse, std::vector<size_t>* orig_indices) const
+{
+    ExtrusionEntityCollection coll;
+    this->chained_path(&coll, no_reverse, orig_indices);
+    return coll;
 }
 
 void
@@ -145,13 +186,19 @@ ExtrusionEntityCollection::flatten(ExtrusionEntityCollection* retval) const
     for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
         if ((*it)->is_collection()) {
             ExtrusionEntityCollection* collection = dynamic_cast<ExtrusionEntityCollection*>(*it);
-            ExtrusionEntityCollection contents;
-            collection->flatten(&contents);
-            retval->entities.insert(retval->entities.end(), contents.entities.begin(), contents.entities.end());
+            retval->append(collection->flatten());
         } else {
-            retval->entities.push_back((*it)->clone());
+            retval->append(**it);
         }
     }
+}
+
+ExtrusionEntityCollection
+ExtrusionEntityCollection::flatten() const
+{
+    ExtrusionEntityCollection coll;
+    this->flatten(&coll);
+    return coll;
 }
 
 double

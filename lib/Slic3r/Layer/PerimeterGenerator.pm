@@ -48,7 +48,7 @@ sub BUILDARGS {
     return { %args };
 }
 
-sub process {
+sub __process {
     my ($self) = @_;
     
     # other perimeters
@@ -335,7 +335,7 @@ sub process {
     }
 }
 
-sub _traverse_loops {
+sub ___traverse_loops {
     my ($self, $loops, $thin_walls) = @_;
     
     # loops is an arrayref of ::Loop objects
@@ -450,55 +450,5 @@ sub _traverse_loops {
     }
     return @entities;
 }
-
-sub _fill_gaps {
-    my ($self, $min, $max, $w, $gaps) = @_;
-    
-    $min *= (1 - &Slic3r::INSET_OVERLAP_TOLERANCE);
-    
-    my $this = diff_ex(
-        offset2($gaps, -$min/2, +$min/2),
-        offset2($gaps, -$max/2, +$max/2),
-        1,
-    );
-    
-    my @polylines = map @{$_->medial_axis($max, $min/2)}, @$this;
-    return if !@polylines;
-    
-    Slic3r::debugf "  %d gaps filled with extrusion width = %s\n", scalar @$this, $w
-        if @$this;
-
-    #my $flow = $layerm->flow(FLOW_ROLE_SOLID_INFILL, 0, $w);
-    my $flow = Slic3r::Flow->new(
-        width           => $w,
-        height          => $self->layer_height,
-        nozzle_diameter => $self->solid_infill_flow->nozzle_diameter,
-    );
-    
-    my %path_args = (
-        role        => EXTR_ROLE_GAPFILL,
-        mm3_per_mm  => $flow->mm3_per_mm,
-        width       => $flow->width,
-        height      => $self->layer_height,
-    );
-    
-    my @entities = ();
-    foreach my $polyline (@polylines) {
-        #if ($polylines[$i]->isa('Slic3r::Polygon')) {
-        #    my $loop = Slic3r::ExtrusionLoop->new;
-        #    $loop->append(Slic3r::ExtrusionPath->new(polyline => $polylines[$i]->split_at_first_point, %path_args));
-        #    $polylines[$i] = $loop;
-        if ($polyline->is_valid && $polyline->first_point->coincides_with($polyline->last_point)) {
-            # since medial_axis() now returns only Polyline objects, detect loops here
-            push @entities, my $loop = Slic3r::ExtrusionLoop->new;
-            $loop->append(Slic3r::ExtrusionPath->new(polyline => $polyline, %path_args));
-        } else {
-            push @entities, Slic3r::ExtrusionPath->new(polyline => $polyline, %path_args);
-        }
-    }
-    
-    return @entities;
-}
-
 
 1;
