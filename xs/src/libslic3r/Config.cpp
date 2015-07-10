@@ -1,6 +1,10 @@
 #include "Config.hpp"
 #include <stdlib.h>  // for setenv()
 
+#ifdef _WIN32
+#define setenv(k, v, o) _putenv_s(k, v)
+#endif
+
 namespace Slic3r {
 
 bool
