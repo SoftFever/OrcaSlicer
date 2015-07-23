@@ -54,7 +54,6 @@ use Slic3r::GCode::VibrationLimit;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Geometry::Clipper;
 use Slic3r::Layer;
-use Slic3r::Layer::PerimeterGenerator;
 use Slic3r::Layer::Region;
 use Slic3r::Line;
 use Slic3r::Model;
@@ -200,6 +199,7 @@ sub thread_cleanup {
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf3::DESTROY = sub {};
+    *Slic3r::Layer::PerimeterGenerator::DESTROY = sub {};
     *Slic3r::Line::DESTROY                  = sub {};
     *Slic3r::Linef3::DESTROY                = sub {};
     *Slic3r::Model::DESTROY                 = sub {};

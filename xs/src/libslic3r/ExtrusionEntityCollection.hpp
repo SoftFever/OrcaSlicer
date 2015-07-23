@@ -10,13 +10,14 @@ class ExtrusionEntityCollection : public ExtrusionEntity
 {
     public:
     ExtrusionEntityCollection* clone() const;
-    ExtrusionEntitiesPtr entities;
+    ExtrusionEntitiesPtr entities;     // we own these entities
     std::vector<size_t> orig_indices;  // handy for XS
     bool no_sort;
     ExtrusionEntityCollection(): no_sort(false) {};
     ExtrusionEntityCollection(const ExtrusionEntityCollection &collection);
     ExtrusionEntityCollection(const ExtrusionPaths &paths);
     ExtrusionEntityCollection& operator= (const ExtrusionEntityCollection &other);
+    ~ExtrusionEntityCollection();
     operator ExtrusionPaths() const;
     
     bool is_collection() const {
@@ -25,9 +26,12 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     bool can_reverse() const {
         return !this->no_sort;
     };
+    bool empty() const {
+        return this->entities.empty();
+    };
     void swap (ExtrusionEntityCollection &c);
     void append(const ExtrusionEntity &entity);
-    void append(const ExtrusionEntityCollection &collection);
+    void append(const ExtrusionEntitiesPtr &entities);
     void append(const ExtrusionPaths &paths);
     ExtrusionEntityCollection chained_path(bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
     void chained_path(ExtrusionEntityCollection* retval, bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
@@ -40,6 +44,10 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     void flatten(ExtrusionEntityCollection* retval) const;
     ExtrusionEntityCollection flatten() const;
     double min_mm3_per_mm() const;
+    Polyline as_polyline() const {
+        CONFESS("Calling as_polyline() on a ExtrusionEntityCollection");
+        return Polyline();
+    };
 };
 
 }

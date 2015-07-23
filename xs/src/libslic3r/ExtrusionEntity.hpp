@@ -127,7 +127,7 @@ class ExtrusionLoop : public ExtrusionEntity
     Polygons grow() const;
     double min_mm3_per_mm() const;
     Polyline as_polyline() const {
-        return this->polygon()->split_at_first_point();
+        return this->polygon().split_at_first_point();
     };
 };
 

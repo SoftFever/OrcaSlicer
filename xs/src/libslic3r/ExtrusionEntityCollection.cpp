@@ -8,7 +8,7 @@ namespace Slic3r {
 ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionEntityCollection& collection)
     : no_sort(collection.no_sort), orig_indices(collection.orig_indices)
 {
-    this->append(collection);
+    this->append(collection.entities);
 }
 
 ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths)
@@ -32,6 +32,12 @@ ExtrusionEntityCollection::swap (ExtrusionEntityCollection &c)
     std::swap(this->no_sort, c.no_sort);
 }
 
+ExtrusionEntityCollection::~ExtrusionEntityCollection()
+{
+    for (ExtrusionEntitiesPtr::iterator it = this->entities.begin(); it != this->entities.end(); ++it)
+        delete *it;
+}
+
 ExtrusionEntityCollection::operator ExtrusionPaths() const
 {
     ExtrusionPaths paths;
@@ -45,7 +51,11 @@ ExtrusionEntityCollection::operator ExtrusionPaths() const
 ExtrusionEntityCollection*
 ExtrusionEntityCollection::clone() const
 {
-    return new ExtrusionEntityCollection(*this);
+    ExtrusionEntityCollection* coll = new ExtrusionEntityCollection(*this);
+    for (size_t i = 0; i < coll->entities.size(); ++i) {
+        coll->entities[i] = this->entities[i]->clone();
+    }
+    return coll;
 }
 
 void
@@ -78,9 +88,10 @@ ExtrusionEntityCollection::append(const ExtrusionEntity &entity)
 }
 
 void
-ExtrusionEntityCollection::append(const ExtrusionEntityCollection &collection)
+ExtrusionEntityCollection::append(const ExtrusionEntitiesPtr &entities)
 {
-    this->entities.insert(this->entities.end(), collection.entities.begin(), collection.entities.end());
+    for (ExtrusionEntitiesPtr::const_iterator ptr = entities.begin(); ptr != entities.end(); ++ptr)
+        this->append(**ptr);
 }
 
 void
@@ -186,7 +197,7 @@ ExtrusionEntityCollection::flatten(ExtrusionEntityCollection* retval) const
     for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
         if ((*it)->is_collection()) {
             ExtrusionEntityCollection* collection = dynamic_cast<ExtrusionEntityCollection*>(*it);
-            retval->append(collection->flatten());
+            retval->append(collection->flatten().entities);
         } else {
             retval->append(**it);
         }

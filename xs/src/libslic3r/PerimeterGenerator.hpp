@@ -2,6 +2,12 @@
 #define slic3r_PerimeterGenerator_hpp_
 
 #include <myinit.h>
+#include <vector>
+#include "ExPolygonCollection.hpp"
+#include "Flow.hpp"
+#include "Polygon.hpp"
+#include "PrintConfig.hpp"
+#include "SurfaceCollection.hpp"
 
 namespace Slic3r {
 
@@ -25,7 +31,7 @@ class PerimeterGeneratorLoop {
 class PerimeterGenerator {
     public:
     SurfaceCollection* slices;
-    SurfaceCollection* lower_slices;
+    ExPolygonCollection* lower_slices;
     double layer_height;
     int layer_id;
     Flow perimeter_flow;
@@ -39,13 +45,15 @@ class PerimeterGenerator {
     ExtrusionEntityCollection* gap_fill;
     SurfaceCollection* fill_surfaces;
     
-    PerimeterGenerator(SurfaceCollection* slices, double layer_height,
+    PerimeterGenerator(SurfaceCollection* slices, double layer_height, Flow flow,
         PrintRegionConfig* config, PrintObjectConfig* object_config, 
         PrintConfig* print_config, ExtrusionEntityCollection* loops, 
         ExtrusionEntityCollection* gap_fill, SurfaceCollection* fill_surfaces)
-        : slices(slices), lower_slices(NULL), layer_height(layer_height), layer_id(-1),
+        : slices(slices), lower_slices(NULL), layer_height(layer_height),
+            perimeter_flow(flow), ext_perimeter_flow(flow), overhang_flow(flow),
+            solid_infill_flow(flow), layer_id(-1),
             config(config), object_config(object_config), print_config(print_config),
-            loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces)
+            loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
             _ext_mm3_per_mm(-1), _mm3_per_mm(-1), _mm3_per_mm_overhang(-1)
         {};
     void process();
@@ -57,7 +65,7 @@ class PerimeterGenerator {
     Polygons _lower_slices_p;
     
     ExtrusionEntityCollection _traverse_loops(const PerimeterGeneratorLoops &loops,
-        const Polylines &thin_walls) const;
+        Polylines &thin_walls) const;
     ExtrusionEntityCollection _fill_gaps(double min, double max, double w,
         const Polygons &gaps) const;
 };
@@ -67,7 +75,7 @@ class PerimeterGeneratorGapSize {
     coord_t min;
     coord_t max;
     coord_t width;
-    PerimeterGeneratorGapSizes(coord_t min, coord_t max, coord_t width)
+    PerimeterGeneratorGapSize(coord_t min, coord_t max, coord_t width)
         : min(min), max(max), width(width) {};
 };
 

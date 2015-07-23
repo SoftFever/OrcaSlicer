@@ -7,6 +7,7 @@
 
 %name{Slic3r::ExtrusionPath::Collection} class ExtrusionEntityCollection {
     %name{_new} ExtrusionEntityCollection();
+    ~ExtrusionEntityCollection();
     Clone<ExtrusionEntityCollection> clone()
         %code{% RETVAL = THIS->clone(); %};
     void reverse();
@@ -40,14 +41,6 @@
         %code{% RETVAL = THIS->orig_indices; %};
     Polygons grow();
 %{
-
-void
-ExtrusionEntityCollection::DESTROY()
-    CODE:
-        for (ExtrusionEntitiesPtr::iterator it = THIS->entities.begin(); it != THIS->entities.end(); ++it) {
-            delete *it;
-        }
-        delete THIS;
 
 SV*
 ExtrusionEntityCollection::arrayref()

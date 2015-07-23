@@ -187,16 +187,17 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     }
     
     // compute the Voronoi diagram
-    ma.build(polylines);
+    Polylines pp;
+    ma.build(&pp);
     
     // clip segments to our expolygon area
     // (do this before extending endpoints as external segments coule be extended into
     // expolygon, this leaving wrong things inside)
-    intersection(*polylines, *this, polylines);
+    pp = intersection(pp, *this);
     
     // extend initial and final segments of each polyline (they will be clipped)
     // unless they represent closed loops
-    for (Polylines::iterator polyline = polylines->begin(); polyline != polylines->end(); ++polyline) {
+    for (Polylines::iterator polyline = pp.begin(); polyline != pp.end(); ++polyline) {
         if (polyline->points.front().distance_to(polyline->points.back()) < min_width) continue;
         // TODO: we should *not* extend endpoints where other polylines start/end
         // (such as T joints, which are returned as three polylines by MedialAxis)
@@ -205,18 +206,20 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     }
     
     // clip again after extending endpoints to prevent them from exceeding the expolygon boundaries
-    intersection(*polylines, *this, polylines);
+    pp = intersection(pp, *this);
     
     // remove too short polylines
     // (we can't do this check before endpoints extension and clipping because we don't
     // know how long will the endpoints be extended since it depends on polygon thickness
     // which is variable - extension will be <= max_width/2 on each side)
-    for (size_t i = 0; i < polylines->size(); ++i) {
-        if ((*polylines)[i].length() < max_width) {
-            polylines->erase(polylines->begin() + i);
+    for (size_t i = 0; i < pp.size(); ++i) {
+        if (pp[i].length() < max_width) {
+            pp.erase(pp.begin() + i);
             --i;
         }
     }
+    
+    polylines->insert(polylines->end(), pp.begin(), pp.end());
 }
 
 void

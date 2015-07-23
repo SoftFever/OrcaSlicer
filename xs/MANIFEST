@@ -1690,6 +1690,8 @@ src/libslic3r/MotionPlanner.cpp
 src/libslic3r/MotionPlanner.hpp
 src/libslic3r/MultiPoint.cpp
 src/libslic3r/MultiPoint.hpp
+src/libslic3r/PerimeterGenerator.cpp
+src/libslic3r/PerimeterGenerator.hpp
 src/libslic3r/PlaceholderParser.cpp
 src/libslic3r/PlaceholderParser.hpp
 src/libslic3r/Point.cpp
@@ -1774,6 +1776,7 @@ xsp/Model.xsp
 xsp/MotionPlanner.xsp
 xsp/my.map
 xsp/mytype.map
+xsp/PerimeterGenerator.xsp
 xsp/PlaceholderParser.xsp
 xsp/Point.xsp
 xsp/Polygon.xsp
