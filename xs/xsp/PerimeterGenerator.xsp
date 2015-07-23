@@ -1,0 +1,34 @@
+%module{Slic3r::XS};
+
+%{
+#include <myinit.h>
+#include "libslic3r/PerimeterGenerator.hpp"
+%}
+
+%name{Slic3r::Layer::PerimeterGenerator} class PerimeterGenerator {
+    PerimeterGenerator(SurfaceCollection* slices, double layer_height, Flow* flow,
+        PrintRegionConfig* config, PrintObjectConfig* object_config, 
+        PrintConfig* print_config, ExtrusionEntityCollection* loops, 
+        ExtrusionEntityCollection* gap_fill, SurfaceCollection* fill_surfaces)
+        %code{% RETVAL = new PerimeterGenerator(slices, layer_height, *flow,
+            config, object_config, print_config, loops, gap_fill, fill_surfaces); %};
+    ~PerimeterGenerator();
+    
+    void set_lower_slices(ExPolygonCollection* lower_slices)
+        %code{% THIS->lower_slices = lower_slices; %};
+    void set_layer_id(int layer_id)
+        %code{% THIS->layer_id = layer_id; %};
+    void set_perimeter_flow(Flow* flow)
+        %code{% THIS->perimeter_flow = *flow; %};
+    void set_ext_perimeter_flow(Flow* flow)
+        %code{% THIS->ext_perimeter_flow = *flow; %};
+    void set_overhang_flow(Flow* flow)
+        %code{% THIS->overhang_flow = *flow; %};
+    void set_solid_infill_flow(Flow* flow)
+        %code{% THIS->solid_infill_flow = *flow; %};
+    
+    Ref<PrintRegionConfig> config()
+        %code{% RETVAL = THIS->config; %};
+    
+    void process();
+};

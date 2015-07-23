@@ -33,23 +33,25 @@ sub make_perimeters {
     
     my $generator = Slic3r::Layer::PerimeterGenerator->new(
         # input:
-        config              => $self->config,
-        object_config       => $self->layer->object->config,
-        print_config        => $self->layer->print->config,
-        layer_height        => $self->height,
-        layer_id            => $self->layer->id,
-        slices              => $slices,
-        lower_slices        => defined($self->layer->lower_layer) ? $self->layer->lower_layer->slices : undef,
-        perimeter_flow      => $self->flow(FLOW_ROLE_PERIMETER),
-        ext_perimeter_flow  => $self->flow(FLOW_ROLE_EXTERNAL_PERIMETER),
-        overhang_flow       => $self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, -1, $self->layer->object),
-        solid_infill_flow   => $self->flow(FLOW_ROLE_SOLID_INFILL),
+        $slices,
+        $self->height,
+        $self->flow(FLOW_ROLE_PERIMETER),
+        $self->config,
+        $self->layer->object->config,
+        $self->layer->print->config,
         
         # output:
-        loops               => $self->perimeters,
-        gap_fill            => $self->thin_fills,
-        fill_surfaces       => $fill_surfaces,
+        $self->perimeters,
+        $self->thin_fills,
+        $fill_surfaces,
     );
+    $generator->set_lower_slices($self->layer->lower_layer->slices)
+        if defined($self->layer->lower_layer);
+    $generator->set_layer_id($self->id);
+    $generator->set_ext_perimeter_flow($self->flow(FLOW_ROLE_EXTERNAL_PERIMETER));
+    $generator->set_overhang_flow($self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, -1, $self->layer->object));
+    $generator->set_solid_infill_flow($self->flow(FLOW_ROLE_SOLID_INFILL));
+    
     $generator->process;
 }
 

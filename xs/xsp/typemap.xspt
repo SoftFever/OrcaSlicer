@@ -94,6 +94,12 @@
 %typemap{BridgeDetector*};
 %typemap{Ref<BridgeDetector>}{simple};
 %typemap{Clone<BridgeDetector>}{simple};
+%typemap{SurfaceCollection*};
+%typemap{Ref<SurfaceCollection>}{simple};
+%typemap{Clone<SurfaceCollection>}{simple};
+%typemap{PerimeterGenerator*};
+%typemap{Ref<PerimeterGenerator>}{simple};
+%typemap{Clone<PerimeterGenerator>}{simple};
 
 %typemap{Surface*};
 %typemap{Ref<Surface>}{simple};
@@ -153,7 +159,6 @@
 %typemap{Polygons*};
 %typemap{TriangleMesh*};
 %typemap{TriangleMeshPtrs};
-%typemap{Ref<SurfaceCollection>}{simple};
 %typemap{Extruder*};
 %typemap{Ref<Extruder>}{simple};
 %typemap{Clone<Extruder>}{simple};
