@@ -29,6 +29,9 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     bool empty() const {
         return this->entities.empty();
     };
+    void clear() {
+        this->entities.clear();
+    };
     void swap (ExtrusionEntityCollection &c);
     void append(const ExtrusionEntity &entity);
     void append(const ExtrusionEntitiesPtr &entities);

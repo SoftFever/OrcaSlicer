@@ -310,7 +310,7 @@ use Slic3r::Test;
         [ map @$_, (@$covered_by_perimeters, @$covered_by_infill) ],
     );
     
-    if (1) {
+    if (0) {
         printf "max non covered = %f\n", List::Util::max(map unscale unscale $_->area, @$non_covered);
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output(

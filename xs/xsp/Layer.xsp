@@ -30,6 +30,8 @@
         %code%{ RETVAL = THIS->flow(role, bridge, width); %};
     void merge_slices();
     void prepare_fill_surfaces();
+    void make_perimeters(SurfaceCollection* slices, SurfaceCollection* fill_surfaces)
+        %code%{ THIS->make_perimeters(*slices, fill_surfaces); %};
 };
 
 %name{Slic3r::Layer} class Layer {

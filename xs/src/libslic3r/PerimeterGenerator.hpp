@@ -30,8 +30,8 @@ class PerimeterGeneratorLoop {
 
 class PerimeterGenerator {
     public:
-    SurfaceCollection* slices;
-    ExPolygonCollection* lower_slices;
+    const SurfaceCollection* slices;
+    const ExPolygonCollection* lower_slices;
     double layer_height;
     int layer_id;
     Flow perimeter_flow;
@@ -45,7 +45,7 @@ class PerimeterGenerator {
     ExtrusionEntityCollection* gap_fill;
     SurfaceCollection* fill_surfaces;
     
-    PerimeterGenerator(SurfaceCollection* slices, double layer_height, Flow flow,
+    PerimeterGenerator(const SurfaceCollection* slices, double layer_height, Flow flow,
         PrintRegionConfig* config, PrintObjectConfig* object_config, 
         PrintConfig* print_config, ExtrusionEntityCollection* loops, 
         ExtrusionEntityCollection* gap_fill, SurfaceCollection* fill_surfaces)

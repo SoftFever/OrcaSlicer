@@ -1,5 +1,6 @@
 #include "Layer.hpp"
 #include "ClipperUtils.hpp"
+#include "PerimeterGenerator.hpp"
 #include "Print.hpp"
 #include "Surface.hpp"
 
@@ -51,6 +52,38 @@ LayerRegion::merge_slices()
     
     for (ExPolygons::const_iterator expoly = expp.begin(); expoly != expp.end(); ++expoly)
         this->slices.surfaces.push_back(Surface(stInternal, *expoly));
+}
+
+void
+LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces)
+{
+    this->perimeters.clear();
+    this->thin_fills.clear();
+    
+    PerimeterGenerator g(
+        // input:
+        &slices,
+        this->layer()->height,
+        this->flow(frPerimeter),
+        &this->region()->config,
+        &this->layer()->object()->config,
+        &this->layer()->object()->print()->config,
+        
+        // output:
+        &this->perimeters,
+        &this->thin_fills,
+        fill_surfaces
+    );
+    
+    if (this->layer()->lower_layer != NULL)
+        g.lower_slices = &this->layer()->lower_layer->slices;
+    
+    g.layer_id              = this->layer()->id();
+    g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
+    g.overhang_flow         = this->region()->flow(frPerimeter, -1, true, false, -1, *this->layer()->object());
+    g.solid_infill_flow     = this->flow(frSolidInfill);
+    
+    g.process();
 }
 
 void

@@ -25,36 +25,6 @@ sub print   { return $_[0]->layer->print; }
 
 sub config  { return $_[0]->region->config; }
 
-sub make_perimeters {
-    my ($self, $slices, $fill_surfaces) = @_;
-    
-    $self->perimeters->clear;
-    $self->thin_fills->clear;
-    
-    my $generator = Slic3r::Layer::PerimeterGenerator->new(
-        # input:
-        $slices,
-        $self->height,
-        $self->flow(FLOW_ROLE_PERIMETER),
-        $self->config,
-        $self->layer->object->config,
-        $self->layer->print->config,
-        
-        # output:
-        $self->perimeters,
-        $self->thin_fills,
-        $fill_surfaces,
-    );
-    $generator->set_lower_slices($self->layer->lower_layer->slices)
-        if defined($self->layer->lower_layer);
-    $generator->set_layer_id($self->id);
-    $generator->set_ext_perimeter_flow($self->flow(FLOW_ROLE_EXTERNAL_PERIMETER));
-    $generator->set_overhang_flow($self->region->flow(FLOW_ROLE_PERIMETER, -1, 1, 0, -1, $self->layer->object));
-    $generator->set_solid_infill_flow($self->flow(FLOW_ROLE_SOLID_INFILL));
-    
-    $generator->process;
-}
-
 sub process_external_surfaces {
     my ($self, $lower_layer) = @_;
     
