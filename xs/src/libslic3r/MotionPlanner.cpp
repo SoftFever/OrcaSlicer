@@ -362,7 +362,7 @@ MotionPlannerGraph::shortest_path(size_t from, size_t to)
             const std::vector<neighbor> &neighbors = this->adjacency_list[u];
             for (std::vector<neighbor>::const_iterator neighbor_iter = neighbors.begin();
                  neighbor_iter != neighbors.end();
-                 neighbor_iter++)
+                 ++neighbor_iter)
             {
                 // neighbor node is v
                 node_t v = neighbor_iter->target;

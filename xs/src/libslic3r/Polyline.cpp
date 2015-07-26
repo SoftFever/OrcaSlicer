@@ -119,7 +119,7 @@ Polyline::equally_spaced_points(double distance) const
         double take = segment_length - (len - distance);  // how much we take of this segment
         Line segment(*(it-1), *it);
         points.push_back(segment.point_at(take));
-        it--;
+        --it;
         len = -take;
     }
     return points;
