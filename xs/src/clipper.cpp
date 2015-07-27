@@ -1514,7 +1514,7 @@ void Clipper::DisposeOutRec(PolyOutList::size_type index)
 }
 //------------------------------------------------------------------------------
 
-void Clipper::SetWindingCount(TEdge &edge)
+void Clipper::SetWindingCount(TEdge &edge) const
 {
   TEdge *e = edge.PrevInAEL;
   //find the edge of the same polytype that immediately preceeds 'edge' in AEL
@@ -2180,7 +2180,7 @@ void Clipper::IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &Pt)
 }
 //------------------------------------------------------------------------------
 
-void Clipper::SetHoleState(TEdge *e, OutRec *outrec)
+void Clipper::SetHoleState(TEdge *e, OutRec *outrec) const
 {
   bool IsHole = false;
   TEdge *e2 = e->PrevInAEL;
@@ -2238,7 +2238,7 @@ OutRec* Clipper::GetOutRec(int Idx)
 }
 //------------------------------------------------------------------------------
 
-void Clipper::AppendPolygon(TEdge *e1, TEdge *e2)
+void Clipper::AppendPolygon(TEdge *e1, TEdge *e2) const
 {
   //get the start and ends of both output polygons ...
   OutRec *outRec1 = m_PolyOuts[e1->OutIdx];
@@ -3576,7 +3576,7 @@ static OutRec* ParseFirstLeft(OutRec* FirstLeft)
 }
 //------------------------------------------------------------------------------
 
-void Clipper::FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec)
+void Clipper::FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec) const
 { 
   //tests if NewOutRec contains the polygon before reassigning FirstLeft
   for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i)
@@ -3593,7 +3593,7 @@ void Clipper::FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec)
 }
 //----------------------------------------------------------------------
 
-void Clipper::FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec)
+void Clipper::FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec) const
 { 
   //reassigns FirstLeft WITHOUT testing if NewOutRec contains the polygon
   for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i)

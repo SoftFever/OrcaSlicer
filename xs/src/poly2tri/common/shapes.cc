@@ -150,7 +150,7 @@ void Triangle::Legalize(Point& opoint, Point& npoint)
   }
 }
 
-int Triangle::Index(const Point* p)
+int Triangle::Index(const Point* p) const
 {
   if (p == points_[0]) {
     return 0;
@@ -163,7 +163,7 @@ int Triangle::Index(const Point* p)
   return -1;
 }
 
-int Triangle::EdgeIndex(const Point* p1, const Point* p2)
+int Triangle::EdgeIndex(const Point* p1, const Point* p2) const
 {
   if (points_[0] == p1) {
     if (points_[1] == p2) {
@@ -259,7 +259,7 @@ Triangle* Triangle::NeighborCCW(const Point& point)
   return neighbors_[1];
 }
 
-bool Triangle::GetConstrainedEdgeCCW(const Point& p)
+bool Triangle::GetConstrainedEdgeCCW(const Point& p) const
 {
   if (&p == points_[0]) {
     return constrained_edge[2];
@@ -269,7 +269,7 @@ bool Triangle::GetConstrainedEdgeCCW(const Point& p)
   return constrained_edge[1];
 }
 
-bool Triangle::GetConstrainedEdgeCW(const Point& p)
+bool Triangle::GetConstrainedEdgeCW(const Point& p) const
 {
   if (&p == points_[0]) {
     return constrained_edge[1];
@@ -301,7 +301,7 @@ void Triangle::SetConstrainedEdgeCW(const Point& p, bool ce)
   }
 }
 
-bool Triangle::GetDelunayEdgeCCW(const Point& p)
+bool Triangle::GetDelunayEdgeCCW(const Point& p) const
 {
   if (&p == points_[0]) {
     return delaunay_edge[2];
@@ -311,7 +311,7 @@ bool Triangle::GetDelunayEdgeCCW(const Point& p)
   return delaunay_edge[1];
 }
 
-bool Triangle::GetDelunayEdgeCW(const Point& p)
+bool Triangle::GetDelunayEdgeCW(const Point& p) const
 {
   if (&p == points_[0]) {
     return delaunay_edge[1];

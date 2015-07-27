@@ -61,7 +61,7 @@ Layer::object() const
 
 
 size_t
-Layer::region_count()
+Layer::region_count() const
 {
     return this->regions.size();
 }

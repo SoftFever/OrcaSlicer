@@ -82,7 +82,7 @@ TPPLPoly& TPPLPoly::operator=(const TPPLPoly &src) {
 	return *this;
 }
 
-int TPPLPoly::GetOrientation() {
+int TPPLPoly::GetOrientation() const {
 	long i1,i2;
 	tppl_float area = 0;
 	for(i1=0; i1<numpoints; i1++) {
@@ -1373,7 +1373,7 @@ bool TPPLPartition::Below(TPPLPoint &p1, TPPLPoint &p2) {
 }
 
 //sorts in the falling order of y values, if y is equal, x is used instead
-bool TPPLPartition::VertexSorter::operator() (long index1, long index2) {
+bool TPPLPartition::VertexSorter::operator() (long index1, long index2) const {
 	if(vertices[index1].p.y > vertices[index2].p.y) return true;
 	else if(vertices[index1].p.y == vertices[index2].p.y) {
 		if(vertices[index1].p.x > vertices[index2].p.x) return true;

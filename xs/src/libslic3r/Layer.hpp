@@ -93,7 +93,7 @@ class Layer {
     ExPolygonCollection slices;
 
 
-    size_t region_count();
+    size_t region_count() const;
     LayerRegion* get_region(int idx);
     LayerRegion* add_region(PrintRegion* print_region);
     

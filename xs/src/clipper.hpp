@@ -224,7 +224,7 @@ public:
   bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
   virtual void Clear();
   IntRect GetBounds();
-  bool PreserveCollinear() {return m_PreserveCollinear;};
+  bool PreserveCollinear() const {return m_PreserveCollinear;};
   void PreserveCollinear(bool value) {m_PreserveCollinear = value;};
 protected:
   void DisposeLocalMinimaList();
@@ -265,9 +265,9 @@ public:
       PolyTree &polytree,
       PolyFillType subjFillType,
       PolyFillType clipFillType);
-  bool ReverseSolution() { return m_ReverseOutput; };
+  bool ReverseSolution() const { return m_ReverseOutput; };
   void ReverseSolution(bool value) {m_ReverseOutput = value;};
-  bool StrictlySimple() {return m_StrictSimple;};
+  bool StrictlySimple() const {return m_StrictSimple;};
   void StrictlySimple(bool value) {m_StrictSimple = value;};
   //set the callback function for z value filling on intersections (otherwise Z is 0)
 #ifdef use_xyz
@@ -297,7 +297,7 @@ private:
 #ifdef use_xyz
   ZFillCallback   m_ZFill; //custom callback 
 #endif
-  void SetWindingCount(TEdge& edge);
+  void SetWindingCount(TEdge& edge) const;
   bool IsEvenOddFillType(const TEdge& edge) const;
   bool IsEvenOddAltFillType(const TEdge& edge) const;
   void InsertScanbeam(const cInt Y);
@@ -319,7 +319,7 @@ private:
   void AddLocalMaxPoly(TEdge *e1, TEdge *e2, const IntPoint &pt);
   OutPt* AddLocalMinPoly(TEdge *e1, TEdge *e2, const IntPoint &pt);
   OutRec* GetOutRec(int idx);
-  void AppendPolygon(TEdge *e1, TEdge *e2);
+  void AppendPolygon(TEdge *e1, TEdge *e2) const;
   void IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &pt);
   OutRec* CreateOutRec();
   OutPt* AddOutPt(TEdge *e, const IntPoint &pt);
@@ -332,7 +332,7 @@ private:
   void ProcessEdgesAtTopOfScanbeam(const cInt topY);
   void BuildResult(Paths& polys);
   void BuildResult2(PolyTree& polytree);
-  void SetHoleState(TEdge *e, OutRec *outrec);
+  void SetHoleState(TEdge *e, OutRec *outrec) const;
   void DisposeIntersectNodes();
   bool FixupIntersectionOrder();
   void FixupOutPolygon(OutRec &outrec);
@@ -347,8 +347,8 @@ private:
   bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
   void JoinCommonEdges();
   void DoSimplePolygons();
-  void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
-  void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec);
+  void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec) const;
+  void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec) const;
 #ifdef use_xyz
   void SetZ(IntPoint& pt, TEdge& e1, TEdge& e2);
 #endif

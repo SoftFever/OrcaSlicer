@@ -89,11 +89,11 @@ public:
 	TPPLPoly& operator=(const TPPLPoly &src);
 
 	//getters and setters
-	long GetNumPoints() {
+	long GetNumPoints() const {
 		return numpoints;
 	}
 
-	bool IsHole() {
+	bool IsHole() const {
 		return hole;
 	}
 
@@ -130,7 +130,7 @@ public:
 	//   TPPL_CCW : polygon vertices are in counter-clockwise order
 	//   TPPL_CW : polygon vertices are in clockwise order
 	//	 0 : the polygon has no (measurable) area
-	int GetOrientation();
+	int GetOrientation() const;
 
 	//sets the polygon orientation
 	//orientation can be
@@ -162,7 +162,7 @@ protected:
 		MonotoneVertex *vertices;
 	public:
 		VertexSorter(MonotoneVertex *v) : vertices(v) {}
-		bool operator() (long index1, long index2);
+		bool operator() (long index1, long index2) const;
 	};
 
 	struct Diagonal {
