@@ -30,7 +30,7 @@ class BridgeDirectionComparator {
 BridgeDetector::BridgeDetector(const ExPolygon &_expolygon, const ExPolygonCollection &_lower_slices,
     coord_t _extrusion_width)
     : expolygon(_expolygon), lower_slices(_lower_slices), extrusion_width(_extrusion_width),
-        angle(-1), resolution(PI/36.0)
+        resolution(PI/36.0), angle(-1)
 {
     /*  outset our bridge by an arbitrary amout; we'll use this outer margin
         for detecting anchors */

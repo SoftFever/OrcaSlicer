@@ -8,16 +8,16 @@ namespace Slic3r {
 
 Layer::Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z)
-:   _id(id),
-    _object(object),
-    upper_layer(NULL),
+:   upper_layer(NULL),
     lower_layer(NULL),
     regions(),
     slicing_errors(false),
     slice_z(slice_z),
     print_z(print_z),
     height(height),
-    slices()
+    slices(),
+    _id(id),
+    _object(object)
 {
 }
 

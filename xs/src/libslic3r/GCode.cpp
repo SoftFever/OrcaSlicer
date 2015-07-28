@@ -209,9 +209,9 @@ REGISTER_CLASS(Wipe, "GCode::Wipe");
 #define EXTRUDER_CONFIG(OPT) this->config.OPT.get_at(this->writer.extruder()->id)
 
 GCode::GCode()
-    : enable_loop_clipping(true), enable_cooling_markers(false), layer_count(0),
-        layer_index(-1), first_layer(false), elapsed_time(0), volumetric_speed(0),
-        _last_pos_defined(false), layer(NULL), placeholder_parser(NULL)
+    : placeholder_parser(NULL), enable_loop_clipping(true), enable_cooling_markers(false), layer_count(0),
+        layer_index(-1), layer(NULL), first_layer(false), elapsed_time(0), volumetric_speed(0),
+        _last_pos_defined(false)
 {
 }
 

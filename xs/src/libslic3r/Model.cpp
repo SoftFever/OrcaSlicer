@@ -248,7 +248,7 @@ REGISTER_CLASS(Model, "Model");
 
 ModelMaterial::ModelMaterial(Model *model) : model(model) {}
 ModelMaterial::ModelMaterial(Model *model, const ModelMaterial &other)
-    : model(model), config(other.config), attributes(other.attributes)
+    : attributes(other.attributes), config(other.config), model(model)
 {}
 
 void
@@ -268,8 +268,7 @@ ModelObject::ModelObject(Model *model)
 {}
 
 ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes)
-:   model(model),
-    name(other.name),
+:   name(other.name),
     input_file(other.input_file),
     instances(),
     volumes(),
@@ -277,7 +276,8 @@ ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volum
     layer_height_ranges(other.layer_height_ranges),
     origin_translation(other.origin_translation),
     _bounding_box(other._bounding_box),
-    _bounding_box_valid(other._bounding_box_valid)
+    _bounding_box_valid(other._bounding_box_valid),
+    model(model)
 {
     if (copy_volumes) {
         this->volumes.reserve(other.volumes.size());
@@ -647,12 +647,12 @@ REGISTER_CLASS(ModelObject, "Model::Object");
 
 
 ModelVolume::ModelVolume(ModelObject* object, const TriangleMesh &mesh)
-:   object(object), mesh(mesh), modifier(false)
+:   mesh(mesh), modifier(false), object(object)
 {}
 
 ModelVolume::ModelVolume(ModelObject* object, const ModelVolume &other)
-:   object(object), name(other.name), mesh(other.mesh), config(other.config),
-    modifier(other.modifier)
+:   name(other.name), mesh(other.mesh), config(other.config),
+    modifier(other.modifier), object(object)
 {
     this->material_id(other.material_id());
 }
@@ -701,11 +701,11 @@ REGISTER_CLASS(ModelVolume, "Model::Volume");
 
 
 ModelInstance::ModelInstance(ModelObject *object)
-:   object(object), rotation(0), scaling_factor(1)
+:   rotation(0), scaling_factor(1), object(object)
 {}
 
 ModelInstance::ModelInstance(ModelObject *object, const ModelInstance &other)
-:   object(object), rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset)
+:   rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object)
 {}
 
 void
