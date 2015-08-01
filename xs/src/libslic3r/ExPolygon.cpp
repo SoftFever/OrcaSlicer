@@ -375,31 +375,29 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
     simplify_polygons(*this, &expp, true);
     
     for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
-        p2t::CDT* cdt;
-        
         // TODO: prevent duplicate points
-        
+
         // contour
-        {
-            std::vector<p2t::Point*> points;
-            for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
-                points.push_back(new p2t::Point(point->x, point->y));
-            }
-            cdt = new p2t::CDT(points);
+        std::vector<p2t::Point*> ContourPoints;
+        for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
+            // We should delete each p2t::Point object
+            ContourPoints.push_back(new p2t::Point(point->x, point->y));
         }
-    
+        p2t::CDT cdt(ContourPoints);
+
         // holes
         for (Polygons::const_iterator hole = ex->holes.begin(); hole != ex->holes.end(); ++hole) {
             std::vector<p2t::Point*> points;
             for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
+                // will be destructed in SweepContext::~SweepContext
                 points.push_back(new p2t::Point(point->x, point->y));
             }
-            cdt->AddHole(points);
+            cdt.AddHole(points);
         }
         
         // perform triangulation
-        cdt->Triangulate();
-        std::vector<p2t::Triangle*> triangles = cdt->GetTriangles();
+        cdt.Triangulate();
+        std::vector<p2t::Triangle*> triangles = cdt.GetTriangles();
         
         for (std::vector<p2t::Triangle*>::const_iterator triangle = triangles.begin(); triangle != triangles.end(); ++triangle) {
             Polygon p;
@@ -408,6 +406,10 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
                 p.points.push_back(Point(point->x, point->y));
             }
             polygons->push_back(p);
+        }
+
+        for(std::vector<p2t::Point*>::iterator it = ContourPoints.begin(); it != ContourPoints.end(); ++it) {
+            delete *it;
         }
     }
 }
