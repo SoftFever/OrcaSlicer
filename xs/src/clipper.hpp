@@ -340,10 +340,10 @@ private:
   bool IsHole(TEdge *e);
   bool FindOwnerFromSplitRecs(OutRec &outRec, OutRec *&currOrfl);
   void FixHoleLinkage(OutRec &outrec);
-  void AddJoin(OutPt *op1, OutPt *op2, const IntPoint offPt);
+  void AddJoin(OutPt *op1, OutPt *op2, const IntPoint &offPt);
   void ClearJoins();
   void ClearGhostJoins();
-  void AddGhostJoin(OutPt *op, const IntPoint offPt);
+  void AddGhostJoin(OutPt *op, const IntPoint &offPt);
   bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
   void JoinCommonEdges();
   void DoSimplePolygons();
