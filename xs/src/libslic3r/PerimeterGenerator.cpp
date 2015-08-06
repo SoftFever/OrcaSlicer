@@ -47,7 +47,7 @@ PerimeterGenerator::process()
     for (Surfaces::const_iterator surface = this->slices->surfaces.begin();
         surface != this->slices->surfaces.end(); ++surface) {
         // detect how many perimeters must be generated for this island
-        unsigned short loop_number = this->config->perimeters + surface->extra_perimeters;
+        short loop_number = this->config->perimeters + surface->extra_perimeters;
         loop_number--;  // 0-indexed loops
         
         Polygons gaps;
@@ -187,7 +187,7 @@ PerimeterGenerator::process()
                     }
                 
                     // if no hole contains this hole, find the contour loop that contains it
-                    for (unsigned short t = loop_number; t >= 0; --t) {
+                    for (short t = loop_number; t >= 0; --t) {
                         for (unsigned short j = 0; j < contours[t].size(); ++j) {
                             PerimeterGeneratorLoop &candidate_parent = contours[t][j];
                             if (candidate_parent.polygon.contains(loop.polygon.first_point())) {
@@ -203,7 +203,7 @@ PerimeterGenerator::process()
             }
         
             // nest contour loops
-            for (unsigned short d = loop_number; d >= 1; --d) {
+            for (short d = loop_number; d >= 1; --d) {
                 PerimeterGeneratorLoops &contours_d = contours[d];
                 
                 // loop through all contours having depth == d
@@ -211,7 +211,7 @@ PerimeterGenerator::process()
                     const PerimeterGeneratorLoop &loop = contours_d[i];
                 
                     // find the contour loop that contains it
-                    for (unsigned short t = d-1; t >= 0; --t) {
+                    for (short t = d-1; t >= 0; --t) {
                         for (unsigned short j = 0; j < contours[t].size(); ++j) {
                             PerimeterGeneratorLoop &candidate_parent = contours[t][j];
                             if (candidate_parent.polygon.contains(loop.polygon.first_point())) {
