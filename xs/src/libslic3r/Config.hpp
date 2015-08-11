@@ -512,18 +512,18 @@ class ConfigBase
     t_optiondef_map* def;
     
     ConfigBase() : def(NULL) {};
-    bool has(const t_config_option_key opt_key);
-    virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
-    virtual const ConfigOption* option(const t_config_option_key opt_key) const = 0;
+    bool has(const t_config_option_key &opt_key);
+    virtual ConfigOption* option(const t_config_option_key &opt_key, bool create = false) = 0;
+    virtual const ConfigOption* option(const t_config_option_key &opt_key) const = 0;
     virtual t_config_option_keys keys() const = 0;
     void apply(const ConfigBase &other, bool ignore_nonexistent = false);
     bool equals(ConfigBase &other);
     t_config_option_keys diff(ConfigBase &other);
-    std::string serialize(const t_config_option_key opt_key);
-    bool set_deserialize(const t_config_option_key opt_key, std::string str);
+    std::string serialize(const t_config_option_key &opt_key);
+    bool set_deserialize(const t_config_option_key &opt_key, std::string str);
     void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
-    double get_abs_value(const t_config_option_key opt_key);
-    double get_abs_value(const t_config_option_key opt_key, double ratio_over);
+    double get_abs_value(const t_config_option_key &opt_key);
+    double get_abs_value(const t_config_option_key &opt_key, double ratio_over);
     void setenv_();
     
     #ifdef SLIC3RXS
@@ -531,7 +531,7 @@ class ConfigBase
     SV* get(t_config_option_key opt_key);
     SV* get_at(t_config_option_key opt_key, size_t i);
     bool set(t_config_option_key opt_key, SV* value);
-    bool set_deserialize(const t_config_option_key opt_key, SV* str);
+    bool set_deserialize(const t_config_option_key &opt_key, SV* str);
     #endif
 };
 
@@ -543,11 +543,11 @@ class DynamicConfig : public ConfigBase
     DynamicConfig& operator= (DynamicConfig other);
     void swap(DynamicConfig &other);
     ~DynamicConfig();
-    template<class T> T* opt(const t_config_option_key opt_key, bool create = false);
-    ConfigOption* option(const t_config_option_key opt_key, bool create = false);
-    const ConfigOption* option(const t_config_option_key opt_key) const;
+    template<class T> T* opt(const t_config_option_key &opt_key, bool create = false);
+    ConfigOption* option(const t_config_option_key &opt_key, bool create = false);
+    const ConfigOption* option(const t_config_option_key &opt_key) const;
     t_config_option_keys keys() const;
-    void erase(const t_config_option_key opt_key);
+    void erase(const t_config_option_key &opt_key);
     
     private:
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;
@@ -558,8 +558,8 @@ class StaticConfig : public ConfigBase
 {
     public:
     t_config_option_keys keys() const;
-    virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
-    const ConfigOption* option(const t_config_option_key opt_key) const;
+    virtual ConfigOption* option(const t_config_option_key &opt_key, bool create = false) = 0;
+    const ConfigOption* option(const t_config_option_key &opt_key) const;
     
     #ifdef SLIC3RXS
     bool set(t_config_option_key opt_key, SV* value);
