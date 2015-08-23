@@ -74,11 +74,13 @@ TPPLPoly::TPPLPoly(const TPPLPoly &src) {
 }
 
 TPPLPoly& TPPLPoly::operator=(const TPPLPoly &src) {
-	Clear();
-	hole = src.hole;
-	numpoints = src.numpoints;
-	points = new TPPLPoint[numpoints];
-	memcpy(points, src.points, numpoints*sizeof(TPPLPoint));
+	if(&src != this) {
+		Clear();
+		hole = src.hole;
+		numpoints = src.numpoints;
+		points = new TPPLPoint[numpoints];
+		memcpy(points, src.points, numpoints*sizeof(TPPLPoint));
+	}
 	return *this;
 }
 
