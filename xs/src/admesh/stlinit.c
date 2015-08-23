@@ -69,7 +69,7 @@ stl_count_facets(stl_file *stl, char *file) {
   long           file_size;
   int            header_num_facets;
   int            num_facets;
-  int            i, j;
+  int            i;
   size_t         s;
   unsigned char  chtest[128];
   int            num_lines = 1;

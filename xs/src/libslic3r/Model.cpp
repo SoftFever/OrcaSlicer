@@ -162,12 +162,10 @@ Model::has_objects_with_no_instances() const
 bool
 Model::add_default_instances()
 {
-    bool added = false;
     // apply a default position to all objects not having one
     for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
         if ((*o)->instances.empty()) {
             (*o)->add_instance();
-            added = true;
         }
     }
     return true;

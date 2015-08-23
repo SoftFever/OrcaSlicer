@@ -127,13 +127,12 @@ MotionPlanner::shortest_path(const Point &from, const Point &to)
     // Now check whether points are inside the environment.
     Point inner_from    = from;
     Point inner_to      = to;
-    bool from_is_inside, to_is_inside;
-    
-    if (!(from_is_inside = env.contains(from))) {
+
+    if (!env.contains(from)) {
         // Find the closest inner point to start from.
         inner_from = this->nearest_env_point(env, from, to);
     }
-    if (!(to_is_inside = env.contains(to))) {
+    if (!env.contains(to)) {
         // Find the closest inner point to start from.
         inner_to = this->nearest_env_point(env, to, inner_from);
     }

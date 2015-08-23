@@ -435,7 +435,6 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     
     // make a little move inwards before leaving loop
     if (paths.back().role == erExternalPerimeter && this->layer != NULL && this->config.perimeters > 1) {
-        Polyline &last_path_polyline = paths.back().polyline;
         // detect angle between last and first segment
         // the side depends on the original winding order of the polygon (left for contours, right for holes)
         Point a = paths.front().polyline.points[1];  // second point

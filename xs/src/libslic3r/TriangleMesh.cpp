@@ -100,7 +100,7 @@ TriangleMesh::repair() {
     stl.stats.facets_w_3_bad_edge = (stl.stats.number_of_facets - stl.stats.connected_facets_1_edge);
     
     // checking nearby
-    int last_edges_fixed = 0;
+    //int last_edges_fixed = 0;
     float tolerance = stl.stats.shortest_edge;
     float increment = stl.stats.bounding_diameter / 10000.0;
     int iterations = 2;
@@ -110,7 +110,7 @@ TriangleMesh::repair() {
                 //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
                 stl_check_facets_nearby(&stl, tolerance);
                 //printf("  Fixed %d edges.\n", stl.stats.edges_fixed - last_edges_fixed);
-                last_edges_fixed = stl.stats.edges_fixed;
+                //last_edges_fixed = stl.stats.edges_fixed;
                 tolerance += increment;
             } else {
                 break;
