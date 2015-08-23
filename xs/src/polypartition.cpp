@@ -170,7 +170,7 @@ int TPPLPartition::Intersects(TPPLPoint &p11, TPPLPoint &p12, TPPLPoint &p21, TP
 int TPPLPartition::RemoveHoles(list<TPPLPoly> *inpolys, list<TPPLPoly> *outpolys) {
 	list<TPPLPoly> polys;
 	list<TPPLPoly>::iterator holeiter,polyiter,iter,iter2;
-	long i,i2,holepointindex,polypointindex;
+	long i,i2,holepointindex,polypointindex = 0;
 	TPPLPoint holepoint,polypoint,bestpolypoint;
 	TPPLPoint linep1,linep2;
 	TPPLPoint v1,v2;
