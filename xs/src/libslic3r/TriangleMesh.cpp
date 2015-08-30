@@ -429,7 +429,7 @@ void TriangleMesh::ReadFromPerl(SV* vertices, SV* facets)
     
     // read geometry
     AV* vertices_av = (AV*)SvRV(vertices);
-    for (unsigned int i = 0; i < stl.stats.number_of_facets; i++) {
+    for (int i = 0; i < stl.stats.number_of_facets; i++) {
         AV* facet_av = (AV*)SvRV(*av_fetch(facets_av, i, 0));
         stl_facet facet;
         facet.normal.x = 0;

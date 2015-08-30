@@ -685,7 +685,7 @@ SV*
 polynode_children_2_perl(const ClipperLib::PolyNode& node)
 {
     AV* av = newAV();
-    const unsigned int len = node.ChildCount();
+    const int len = node.ChildCount();
     if (len > 0) av_extend(av, len-1);
     for (int i = 0; i < len; ++i) {
         av_store(av, i, polynode2perl(*node.Childs[i]));
