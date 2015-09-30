@@ -2,6 +2,7 @@
 #include "ExtrusionEntity.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <math.h>
 
 namespace Slic3r {
 
@@ -400,7 +401,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
             Polygon polygon = loop.polygon();
             Point centroid = polygon.centroid();
             last_pos = Point(polygon.bounding_box().max.x, centroid.y);
-            last_pos.rotate(rand() % 2*PI, centroid);
+            last_pos.rotate(fmod((float)rand()/16.0, 2.0*PI), centroid);
         }
         loop.split_at(last_pos);
     }
