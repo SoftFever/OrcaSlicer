@@ -18,10 +18,10 @@ class BridgeDetector {
     
     BridgeDetector(const ExPolygon &_expolygon, const ExPolygonCollection &_lower_slices, coord_t _extrusion_width);
     bool detect_angle();
-    void coverage(Polygons* coverage) const;
     void coverage(double angle, Polygons* coverage) const;
-    void unsupported_edges(Polylines* unsupported) const;
+    Polygons coverage(double angle = -1) const;
     void unsupported_edges(double angle, Polylines* unsupported) const;
+    Polylines unsupported_edges(double angle = -1) const;
     
     private:
     Polylines _edges;   // representing the supporting edges

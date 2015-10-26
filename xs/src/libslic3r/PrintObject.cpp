@@ -341,13 +341,31 @@ PrintObject::has_support_material() const
 }
 
 void
+PrintObject::process_external_surfaces()
+{
+    FOREACH_REGION(this->_print, region) {
+        size_t region_id = region - this->_print->regions.begin();
+        
+        FOREACH_LAYER(this, layer_it) {
+            const Layer* lower_layer = (layer_it == this->layers.begin())
+                ? NULL
+                : *(layer_it-1);
+            
+            (*layer_it)->get_region(region_id)->process_external_surfaces(lower_layer);
+        }
+    }
+}
+
+/* This method applies bridge flow to the first internal solid layer above
+   sparse infill */
+void
 PrintObject::bridge_over_infill()
 {
     FOREACH_REGION(this->_print, region) {
         size_t region_id = region - this->_print->regions.begin();
         
-        double fill_density = (*region)->config.fill_density.value;
-        if (fill_density == 100) continue;
+        // skip bridging in case there are no voids
+        if ((*region)->config.fill_density.value == 100) continue;
         
         // get bridge flow
         Flow bridge_flow = (*region)->flow(
@@ -360,6 +378,7 @@ PrintObject::bridge_over_infill()
         );
         
         FOREACH_LAYER(this, layer_it) {
+            // skip first layer
             if (layer_it == this->layers.begin()) continue;
             
             Layer* layer        = *layer_it;
@@ -379,7 +398,7 @@ PrintObject::bridge_over_infill()
                 // iterate through lower layers spanned by bridge_flow
                 double bottom_z = layer->print_z - bridge_flow.height;
                 for (int i = (layer_it - this->layers.begin()) - 1; i >= 0; --i) {
-                    Layer* lower_layer = this->layers[i];
+                    const Layer* lower_layer = this->layers[i];
                     
                     // stop iterating if layer is lower than bottom_z
                     if (lower_layer->print_z < bottom_z) break;
@@ -390,19 +409,19 @@ PrintObject::bridge_over_infill()
                         (*lower_layerm_it)->fill_surfaces.filter_by_type(stInternal, &lower_internal);
                     
                     // intersect such lower internal surfaces with the candidate solid surfaces
-                    intersection(to_bridge_pp, lower_internal, &to_bridge_pp);
+                    to_bridge_pp = intersection(to_bridge_pp, lower_internal);
                 }
                 
                 // there's no point in bridging too thin/short regions
                 {
                     double min_width = bridge_flow.scaled_width() * 3;
-                    offset2(to_bridge_pp, &to_bridge_pp, -min_width, +min_width);
+                    to_bridge_pp = offset2(to_bridge_pp, -min_width, +min_width);
                 }
                 
                 if (to_bridge_pp.empty()) continue;
                 
                 // convert into ExPolygons
-                union_(to_bridge_pp, &to_bridge);
+                to_bridge = union_ex(to_bridge_pp);
             }
             
             #ifdef SLIC3R_DEBUG
@@ -410,8 +429,7 @@ PrintObject::bridge_over_infill()
             #endif
             
             // compute the remaning internal solid surfaces as difference
-            ExPolygons not_to_bridge;
-            diff(internal_solid, to_bridge, &not_to_bridge, true);
+            ExPolygons not_to_bridge = diff_ex(internal_solid, to_bridge, true);
             
             // build the new collection of fill_surfaces
             {

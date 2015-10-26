@@ -212,6 +212,15 @@ offset(const Slic3r::Polygons &polygons, Slic3r::ExPolygons* retval, const float
     ClipperPaths_to_Slic3rExPolygons(output, retval);
 }
 
+Slic3r::ExPolygons
+offset_ex(const Slic3r::Polygons &polygons, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    Slic3r::ExPolygons expp;
+    offset(polygons, &expp, delta, scale, joinType, miterLimit);
+    return expp;
+}
+
 void
 offset2(const Slic3r::Polygons &polygons, ClipperLib::Paths* retval, const float delta1,
     const float delta2, const double scale, const ClipperLib::JoinType joinType, const double miterLimit)
@@ -472,13 +481,16 @@ diff(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_
     return pp;
 }
 
+template <class SubjectType, class ClipType>
 Slic3r::ExPolygons
-diff_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_)
+diff_ex(const SubjectType &subject, const ClipType &clip, bool safety_offset_)
 {
     Slic3r::ExPolygons expp;
     diff(subject, clip, &expp, safety_offset_);
     return expp;
 }
+template Slic3r::ExPolygons diff_ex<Slic3r::Polygons, Slic3r::Polygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_);
+template Slic3r::ExPolygons diff_ex<Slic3r::Polygons, Slic3r::ExPolygons>(const Slic3r::Polygons &subject, const Slic3r::ExPolygons &clip, bool safety_offset_);
 
 template <class SubjectType, class ResultType>
 void intersection(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType* retval, bool safety_offset_)
@@ -505,6 +517,14 @@ intersection(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, boo
     Slic3r::Polylines pp;
     intersection(subject, clip, &pp, safety_offset_);
     return pp;
+}
+
+Slic3r::ExPolygons
+intersection_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_)
+{
+    Slic3r::ExPolygons expp;
+    intersection(subject, clip, &expp, safety_offset_);
+    return expp;
 }
 
 template <class SubjectType>

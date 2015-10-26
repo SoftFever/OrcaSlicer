@@ -41,24 +41,25 @@ sub make_perimeters {
     
     for my $region_id (0..$#{$self->regions}) {
         next if $done{$region_id};
-        my $layerm = $self->regions->[$region_id];
+        my $layerm = $self->get_region($region_id);
+        my $config = $layerm->region->config;
         $done{$region_id} = 1;
         
         # find compatible regions
         my @layerms = ($layerm);
         for my $i (($region_id+1)..$#{$self->regions}) {
-            my $config = $self->regions->[$i]->config;
-            my $layerm_config = $layerm->config;
+            my $other_layerm = $self->get_region($i);
+            my $other_config = $other_layerm->region->config;
             
-            if ($config->perimeter_extruder == $layerm_config->perimeter_extruder
-                && $config->perimeters == $layerm_config->perimeters
-                && $config->perimeter_speed == $layerm_config->perimeter_speed
-                && $config->gap_fill_speed == $layerm_config->gap_fill_speed
-                && $config->overhangs == $layerm_config->overhangs
-                && $config->perimeter_extrusion_width == $layerm_config->perimeter_extrusion_width
-                && $config->thin_walls == $layerm_config->thin_walls
-                && $config->external_perimeters_first == $layerm_config->external_perimeters_first) {
-                push @layerms, $self->regions->[$i];
+            if ($config->perimeter_extruder             == $other_config->perimeter_extruder
+                && $config->perimeters                  == $other_config->perimeters
+                && $config->perimeter_speed             == $other_config->perimeter_speed
+                && $config->gap_fill_speed              == $other_config->gap_fill_speed
+                && $config->overhangs                   == $other_config->overhangs
+                && $config->perimeter_extrusion_width   == $other_config->perimeter_extrusion_width
+                && $config->thin_walls                  == $other_config->thin_walls
+                && $config->external_perimeters_first   == $other_config->external_perimeters_first) {
+                push @layerms, $other_layerm;
                 $done{$i} = 1;
             }
         }

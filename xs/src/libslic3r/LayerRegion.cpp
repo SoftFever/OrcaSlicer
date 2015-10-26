@@ -1,4 +1,5 @@
 #include "Layer.hpp"
+#include "BridgeDetector.hpp"
 #include "ClipperUtils.hpp"
 #include "PerimeterGenerator.hpp"
 #include "Print.hpp"
@@ -87,6 +88,146 @@ LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection*
 }
 
 void
+LayerRegion::process_external_surfaces(const Layer* lower_layer)
+{
+    const Surfaces &surfaces = this->fill_surfaces.surfaces;
+    const double margin = scale_(EXTERNAL_INFILL_MARGIN);
+    
+    SurfaceCollection bottom;
+    for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface) {
+        if (!surface->is_bottom()) continue;
+        
+        ExPolygons grown = offset_ex(surface->expolygon, +margin);
+        
+        /*  detect bridge direction before merging grown surfaces otherwise adjacent bridges
+            would get merged into a single one while they need different directions
+            also, supply the original expolygon instead of the grown one, because in case
+            of very thin (but still working) anchors, the grown expolygon would go beyond them */
+        double angle = -1;
+        if (lower_layer != NULL) {
+            BridgeDetector bd(
+                surface->expolygon,
+                lower_layer->slices,
+                this->flow(frInfill, this->layer()->height, true).scaled_width()
+            );
+            
+            #ifdef SLIC3R_DEBUG
+            printf("Processing bridge at layer %zu:\n", this->layer()->id();
+            #endif
+            
+            if (bd.detect_angle() && this->layer()->object()->config.support_material) {
+                angle = bd.angle;
+                
+                Polygons coverage = bd.coverage();
+                this->bridged.insert(this->bridged.end(), coverage.begin(), coverage.end());
+                this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
+            }
+        }
+        
+        for (ExPolygons::const_iterator it = grown.begin(); it != grown.end(); ++it) {
+            Surface s       = *surface;
+            s.expolygon     = *it;
+            s.bridge_angle  = angle;
+            bottom.surfaces.push_back(s);
+        }
+    }
+    
+    SurfaceCollection top;
+    for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface) {
+        if (surface->surface_type != stTop) continue;
+        
+        // give priority to bottom surfaces
+        ExPolygons grown = diff_ex(
+            offset(surface->expolygon, +margin),
+            (Polygons)bottom
+        );
+        for (ExPolygons::const_iterator it = grown.begin(); it != grown.end(); ++it) {
+            Surface s   = *surface;
+            s.expolygon = *it;
+            top.surfaces.push_back(s);
+        }
+    }
+    
+    /*  if we're slicing with no infill, we can't extend external surfaces
+        over non-existent infill */
+    SurfaceCollection fill_boundaries;
+    if (this->region()->config.fill_density.value > 0) {
+        fill_boundaries = SurfaceCollection(surfaces);
+    } else {
+        for (Surfaces::const_iterator it = surfaces.begin(); it != surfaces.end(); ++it) {
+            if (it->surface_type != stInternal)
+                fill_boundaries.surfaces.push_back(*it);
+        }
+    }
+    
+    // intersect the grown surfaces with the actual fill boundaries
+    SurfaceCollection new_surfaces;
+    {
+        // merge top and bottom in a single collection
+        SurfaceCollection tb = top;
+        tb.surfaces.insert(tb.surfaces.end(), bottom.surfaces.begin(), bottom.surfaces.end());
+        
+        // group surfaces
+        std::vector<SurfacesPtr> groups;
+        tb.group(&groups);
+        
+        for (std::vector<SurfacesPtr>::const_iterator g = groups.begin(); g != groups.end(); ++g) {
+            Polygons subject;
+            for (SurfacesPtr::const_iterator s = g->begin(); s != g->end(); ++s) {
+                Polygons pp = **s;
+                subject.insert(subject.end(), pp.begin(), pp.end());
+            }
+            
+            ExPolygons expp = intersection_ex(
+                subject,
+                (Polygons)fill_boundaries,
+                true // to ensure adjacent expolygons are unified
+            );
+            
+            for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
+                Surface s = *g->front();
+                s.expolygon = *ex;
+                new_surfaces.surfaces.push_back(s);
+            }
+        }
+    }
+    
+    /* subtract the new top surfaces from the other non-top surfaces and re-add them */
+    {
+        SurfaceCollection other;
+        for (Surfaces::const_iterator s = surfaces.begin(); s != surfaces.end(); ++s) {
+            if (s->surface_type != stTop && !s->is_bottom())
+                other.surfaces.push_back(*s);
+        }
+        
+        // group surfaces
+        std::vector<SurfacesPtr> groups;
+        other.group(&groups);
+        
+        for (std::vector<SurfacesPtr>::const_iterator g = groups.begin(); g != groups.end(); ++g) {
+            Polygons subject;
+            for (SurfacesPtr::const_iterator s = g->begin(); s != g->end(); ++s) {
+                Polygons pp = **s;
+                subject.insert(subject.end(), pp.begin(), pp.end());
+            }
+            
+            ExPolygons expp = diff_ex(
+                subject,
+                (Polygons)new_surfaces
+            );
+            
+            for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
+                Surface s = *g->front();
+                s.expolygon = *ex;
+                new_surfaces.surfaces.push_back(s);
+            }
+        }
+    }
+    
+    this->fill_surfaces = new_surfaces;
+}
+
+void
 LayerRegion::prepare_fill_surfaces()
 {
     /*  Note: in order to make the psPrepareInfill step idempotent, we should never
@@ -121,6 +262,13 @@ LayerRegion::prepare_fill_surfaces()
                 surface->surface_type = stInternalSolid;
         }
     }
+}
+
+double
+LayerRegion::infill_area_threshold() const
+{
+    double ss = this->flow(frSolidInfill).scaled_spacing();
+    return ss*ss;
 }
 
 #ifdef SLIC3RXS

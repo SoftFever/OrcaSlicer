@@ -830,17 +830,6 @@ sub clip_fill_surfaces {
     }
 }
 
-sub process_external_surfaces {
-    my ($self) = @_;
-    
-    for my $region_id (0 .. ($self->print->region_count-1)) {
-        $self->get_layer(0)->regions->[$region_id]->process_external_surfaces(undef);
-        for my $i (1 .. ($self->layer_count - 1)) {
-            $self->get_layer($i)->regions->[$region_id]->process_external_surfaces($self->get_layer($i-1));
-        }
-    }
-}
-
 sub discover_horizontal_shells {
     my $self = shift;
     
@@ -850,8 +839,8 @@ sub discover_horizontal_shells {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->get_layer($i)->regions->[$region_id];
             
-            if ($layerm->config->solid_infill_every_layers && $layerm->config->fill_density > 0
-                && ($i % $layerm->config->solid_infill_every_layers) == 0) {
+            if ($layerm->region->config->solid_infill_every_layers && $layerm->region->config->fill_density > 0
+                && ($i % $layerm->region->config->solid_infill_every_layers) == 0) {
                 $_->surface_type(S_TYPE_INTERNALSOLID) for @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
             }
             
@@ -873,8 +862,8 @@ sub discover_horizontal_shells {
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
                 my $solid_layers = ($type == S_TYPE_TOP)
-                    ? $layerm->config->top_solid_layers
-                    : $layerm->config->bottom_solid_layers;
+                    ? $layerm->region->config->top_solid_layers
+                    : $layerm->region->config->bottom_solid_layers;
                 NEIGHBOR: for (my $n = ($type == S_TYPE_TOP) ? $i-1 : $i+1; 
                         abs($n - $i) <= $solid_layers-1; 
                         ($type == S_TYPE_TOP) ? $n-- : $n++) {
@@ -902,7 +891,7 @@ sub discover_horizontal_shells {
                     );
                     next EXTERNAL if !@$new_internal_solid;
                     
-                    if ($layerm->config->fill_density == 0) {
+                    if ($layerm->region->config->fill_density == 0) {
                         # if we're printing a hollow object we discard any solid shell thinner
                         # than a perimeter width, since it's probably just crossing a sloping wall
                         # and it's not wanted in a hollow print even if it would make sense when
@@ -1100,12 +1089,12 @@ sub combine_infill {
                         )};
                     
                     # apply surfaces back with adjusted depth to the uppermost layer
-                    if ($layerm->id == $self->get_layer($layer_idx)->id) {
+                    if ($layerm->layer->id == $self->get_layer($layer_idx)->id) {
                         push @new_this_type,
                             map Slic3r::Surface->new(
                                 expolygon        => $_,
                                 surface_type     => $type,
-                                thickness        => sum(map $_->height, @layerms),
+                                thickness        => sum(map $_->layer->height, @layerms),
                                 thickness_layers => scalar(@layerms),
                             ),
                             @$intersection;

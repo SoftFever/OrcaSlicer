@@ -58,6 +58,9 @@ void offset(const Slic3r::Surface &surface, Slic3r::Surfaces* retval, const floa
 void offset(const Slic3r::Polygons &polygons, Slic3r::ExPolygons* retval, const float delta,
     double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
+Slic3r::ExPolygons offset_ex(const Slic3r::Polygons &polygons, const float delta,
+    double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    double miterLimit = 3);
 
 void offset2(const Slic3r::Polygons &polygons, ClipperLib::Paths* retval, const float delta1,
     const float delta2, double scale = 100000, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
@@ -96,13 +99,16 @@ template <class SubjectType, class ResultType>
 void diff(const SubjectType &subject, const Slic3r::ExPolygons &clip, ResultType* retval, bool safety_offset_ = false);
 
 Slic3r::Polygons diff(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
-Slic3r::ExPolygons diff_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
+
+template <class SubjectType, class ClipType>
+Slic3r::ExPolygons diff_ex(const SubjectType &subject, const ClipType &clip, bool safety_offset_ = false);
 
 template <class SubjectType, class ResultType>
 void intersection(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType* retval, bool safety_offset_ = false);
 
 Slic3r::Polygons intersection(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
 Slic3r::Polylines intersection(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
+Slic3r::ExPolygons intersection_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
 
 template <class SubjectType>
 bool intersects(const SubjectType &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);

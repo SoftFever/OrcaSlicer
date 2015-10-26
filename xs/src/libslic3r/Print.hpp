@@ -135,6 +135,7 @@ class PrintObject
     bool invalidate_all_steps();
     
     bool has_support_material() const;
+    void process_external_surfaces();
     void bridge_over_infill();
     
     private:

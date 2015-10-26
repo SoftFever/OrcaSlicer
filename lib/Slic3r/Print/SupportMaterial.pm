@@ -235,7 +235,7 @@ sub contact_area {
                         # just remove bridged areas
                         $diff = diff(
                             $diff,
-                            [ map @$_, @{$layerm->bridged} ],
+                            $layerm->bridged,
                             1,
                         );
                     }
@@ -267,7 +267,7 @@ sub contact_area {
             # get the average nozzle diameter used on this layer
             my @nozzle_diameters = map $self->print_config->get_at('nozzle_diameter', $_),
                 map { $_->config->perimeter_extruder-1, $_->config->infill_extruder-1, $_->config->solid_infill_extruder-1 }
-                @{$layer->regions};
+                map $_->region, @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             
             my $contact_z = $layer->print_z - $self->contact_distance($layer->height, $nozzle_diameter);

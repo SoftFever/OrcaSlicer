@@ -50,6 +50,12 @@ PolylineCollection::leftmost_point() const
     return p;
 }
 
+void
+PolylineCollection::append(const Polylines &pp)
+{
+    this->polylines.insert(this->polylines.end(), pp.begin(), pp.end());
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(PolylineCollection, "Polyline::Collection");
 #endif

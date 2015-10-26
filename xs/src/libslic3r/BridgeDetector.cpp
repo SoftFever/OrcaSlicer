@@ -186,15 +186,11 @@ BridgeDetector::detect_angle()
 }
 
 void
-BridgeDetector::coverage(Polygons* coverage) const
-{
-    if (this->angle == -1) return;
-    return this->coverage(angle, coverage);
-}
-
-void
 BridgeDetector::coverage(double angle, Polygons* coverage) const
 {
+    if (angle == -1) angle = this->angle;
+    if (angle == -1) return;
+    
     // Clone our expolygon and rotate it so that we work with vertical lines.
     ExPolygon expolygon = this->expolygon;
     expolygon.rotate(PI/2.0 - angle, Point(0,0));
@@ -263,19 +259,23 @@ BridgeDetector::coverage(double angle, Polygons* coverage) const
     */
 }
 
+Polygons
+BridgeDetector::coverage(double angle) const
+{
+    Polygons pp;
+    this->coverage(angle, &pp);
+    return pp;
+}
+
 /*  This method returns the bridge edges (as polylines) that are not supported
     but would allow the entire bridge area to be bridged with detected angle
     if supported too */
 void
-BridgeDetector::unsupported_edges(Polylines* unsupported) const
-{
-    if (this->angle == -1) return;
-    return this->unsupported_edges(this->angle, unsupported);
-}
-
-void
 BridgeDetector::unsupported_edges(double angle, Polylines* unsupported) const
 {
+    if (angle == -1) angle = this->angle;
+    if (angle == -1) return;
+    
     // get bridge edges (both contour and holes)
     Polylines bridge_edges;
     {
@@ -317,6 +317,14 @@ BridgeDetector::unsupported_edges(double angle, Polylines* unsupported) const
         );
     }
     */
+}
+
+Polylines
+BridgeDetector::unsupported_edges(double angle) const
+{
+    Polylines pp;
+    this->unsupported_edges(angle, &pp);
+    return pp;
 }
 
 #ifdef SLIC3RXS
