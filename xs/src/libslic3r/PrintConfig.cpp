@@ -301,6 +301,7 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].cli = "fill-pattern=s";
     Options["fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
     Options["fill_pattern"].enum_values.push_back("rectilinear");
+    Options["fill_pattern"].enum_values.push_back("grid");
     Options["fill_pattern"].enum_values.push_back("line");
     Options["fill_pattern"].enum_values.push_back("concentric");
     Options["fill_pattern"].enum_values.push_back("honeycomb");
@@ -309,6 +310,7 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].enum_values.push_back("archimedeanchords");
     Options["fill_pattern"].enum_values.push_back("octagramspiral");
     Options["fill_pattern"].enum_labels.push_back("Rectilinear");
+    Options["fill_pattern"].enum_labels.push_back("Grid");
     Options["fill_pattern"].enum_labels.push_back("Line");
     Options["fill_pattern"].enum_labels.push_back("Concentric");
     Options["fill_pattern"].enum_labels.push_back("Honeycomb");

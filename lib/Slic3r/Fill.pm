@@ -21,6 +21,7 @@ has 'fillers'   => (is => 'rw', default => sub { {} });
 our %FillTypes = (
     archimedeanchords   => 'Slic3r::Fill::ArchimedeanChords',
     rectilinear         => 'Slic3r::Fill::Rectilinear',
+    grid                => 'Slic3r::Fill::Grid',
     flowsnake           => 'Slic3r::Fill::Flowsnake',
     octagramspiral      => 'Slic3r::Fill::OctagramSpiral',
     hilbertcurve        => 'Slic3r::Fill::HilbertCurve',

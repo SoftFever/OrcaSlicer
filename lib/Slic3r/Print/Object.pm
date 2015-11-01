@@ -437,7 +437,7 @@ sub make_perimeters {
                     $slice->extra_perimeters($slice->extra_perimeters + 1);
                 }
                 Slic3r::debugf "  adding %d more perimeter(s) at layer %d\n",
-                    $slice->extra_perimeters, $layerm->id
+                    $slice->extra_perimeters, $layerm->layer->id
                     if $slice->extra_perimeters > 0;
             }
         }
@@ -1072,7 +1072,7 @@ sub combine_infill {
                      + $layerms[-1]->flow(FLOW_ROLE_PERIMETER)->scaled_width / 2
                      # Because fill areas for rectilinear and honeycomb are grown 
                      # later to overlap perimeters, we need to counteract that too.
-                     + (($type == S_TYPE_INTERNALSOLID || $region->config->fill_pattern =~ /(rectilinear|honeycomb)/)
+                     + (($type == S_TYPE_INTERNALSOLID || $region->config->fill_pattern =~ /(rectilinear|grid|line|honeycomb)/)
                        ? $layerms[-1]->flow(FLOW_ROLE_SOLID_INFILL)->scaled_width
                        : 0)
                      )}, @$intersection;
