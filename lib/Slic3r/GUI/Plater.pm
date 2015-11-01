@@ -337,7 +337,13 @@ sub new {
                 $text->SetFont($Slic3r::GUI::small_font);
                 my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
                 $self->{preset_choosers}{$group} = [$choice];
-                EVT_COMBOBOX($choice, $choice, sub { $self->_on_select_preset($group, @_) });
+                # setup the listener
+                EVT_COMBOBOX($choice, $choice, sub {
+                    my ($choice) = @_;
+                    wxTheApp->CallAfter(sub {
+                        $self->_on_select_preset($group, $choice);
+                    });
+                });
                 $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
                 $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 0);
             }
@@ -431,7 +437,9 @@ sub _on_select_preset {
 		wxTheApp->save_settings;
 		return;
 	}
-	$self->{on_select_preset}->($group, $choice->GetSelection)
+	
+	# call GetSelection() in scalar context as it's context-aware
+	$self->{on_select_preset}->($group, scalar $choice->GetSelection)
 	    if $self->{on_select_preset};
 	
 	# get new config and generate on_config_change() event for updating plater and other things
@@ -445,10 +453,16 @@ sub GetFrame {
 
 sub update_presets {
     my $self = shift;
-    my ($group, $presets, $selected) = @_;
+    my ($group, $presets, $selected, $is_dirty) = @_;
     
-    foreach my $choice (@{ $self->{preset_choosers}{$group} }) {
-        my $sel = $choice->GetSelection;
+    my @choosers = @{ $self->{preset_choosers}{$group} };
+    foreach my $choice (@choosers) {
+        if ($group eq 'filament' && @choosers > 1) {
+            # if we have more than one filament chooser, keep our selection
+            # instead of importing the one from the tab
+            $selected = $choice->GetSelection;
+            $is_dirty = 0;
+        }
         $choice->Clear;
         foreach my $preset (@$presets) {
             my $bitmap;
@@ -471,15 +485,23 @@ sub update_presets {
             }
             $choice->AppendString($preset->name, $bitmap);
         }
-        $choice->SetSelection($sel) if $sel <= $#$presets;
+        
+        if ($selected <= $#$presets) {
+            if ($is_dirty) {
+                $choice->SetString($selected, $choice->GetString($selected) . " (modified)");
+            }
+            # call SetSelection() only after SetString() otherwise the new string
+            # won't be picked up as the visible string
+            $choice->SetSelection($selected);
+        }
     }
-    $self->{preset_choosers}{$group}[0]->SetSelection($selected);
 }
 
 sub filament_presets {
     my $self = shift;
     
-    return map $_->GetSelection, @{ $self->{preset_choosers}{filament} };
+    # force scalar context for GetSelection() as it's context-aware
+    return map scalar($_->GetSelection), @{ $self->{preset_choosers}{filament} };
 }
 
 sub add {
@@ -1083,7 +1105,7 @@ sub export_gcode {
     } else {
         my $default_output_file = $self->{print}->expanded_output_filepath($main::opt{output});
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', wxTheApp->output_path(dirname($default_output_file)),
-            basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE);
+            basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return;
@@ -1091,7 +1113,7 @@ sub export_gcode {
         my $path = Slic3r::decode_path($dlg->GetPath);
         $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($path);
         wxTheApp->save_settings;
-        $self->{export_gcode_output_file} = $Slic3r::GUI::MainFrame::last_output_file = $path;
+        $self->{export_gcode_output_file} = $path;
         $dlg->Destroy;
     }
     
@@ -1239,13 +1261,15 @@ sub send_gcode {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(180);
     
+    my $path = Slic3r::encode_path($self->{send_gcode_file});
     my $res = $ua->post(
         "http://" . $self->{config}->octoprint_host . "/api/files/local",
         Content_Type => 'form-data',
         'X-Api-Key' => $self->{config}->octoprint_apikey,
         Content => [
-            # OctoPrint doesn't like Windows paths
-            file => [ $self->{send_gcode_file}, basename($self->{send_gcode_file}) ],
+            # OctoPrint doesn't like Windows paths so we use basename()
+            # Also, since we need to read from filesystem we process it through encode_path()
+            file => [ $path, basename($path) ],
         ],
     );
     
@@ -1315,7 +1339,7 @@ sub _get_export_file {
             $dlg->Destroy;
             return undef;
         }
-        $output_file = $Slic3r::GUI::MainFrame::last_output_file = Slic3r::decode_path($dlg->GetPath);
+        $output_file = Slic3r::decode_path($dlg->GetPath);
         $dlg->Destroy;
     }
     return $output_file;
@@ -1383,14 +1407,34 @@ sub on_extruders_change {
     
     my $choices = $self->{preset_choosers}{filament};
     while (@$choices < $num_extruders) {
+        # copy strings from first choice
         my @presets = $choices->[0]->GetStrings;
-        push @$choices, Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
+        
+        # initialize new choice
+        my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
+        push @$choices, $choice;
+        
+        # copy icons from first choice
+        $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
+        
+        # insert new choice into sizer
         $self->{presets_sizer}->Insert(4 + ($#$choices-1)*2, 0, 0);
-        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choices->[-1], 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-        EVT_COMBOBOX($choices->[-1], $choices->[-1], sub { $self->_on_select_preset('filament', @_) });
-        my $i = first { $choices->[-1]->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
-        $choices->[-1]->SetSelection($i || 0);
+        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+        
+        # setup the listener
+        EVT_COMBOBOX($choice, $choice, sub {
+            my ($choice) = @_;
+            wxTheApp->CallAfter(sub {
+                $self->_on_select_preset('filament', $choice);
+            });
+        });
+        
+        # initialize selection
+        my $i = first { $choice->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
+        $choice->SetSelection($i || 0);
     }
+    
+    # remove unused choices if any
     while (@$choices > $num_extruders) {
         $self->{presets_sizer}->Remove(4 + ($#$choices-1)*2);  # label
         $self->{presets_sizer}->Remove(4 + ($#$choices-1)*2);  # wxChoice

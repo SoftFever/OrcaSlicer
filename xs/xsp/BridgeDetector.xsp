@@ -9,14 +9,10 @@
     ~BridgeDetector();
     
     bool detect_angle();
-    Polygons coverage()
-        %code{% THIS->coverage(&RETVAL); %};
-    Polygons coverage_by_angle(double angle)
-        %code{% THIS->coverage(angle, &RETVAL); %};
-    Polylines unsupported_edges()
-        %code{% THIS->unsupported_edges(&RETVAL); %};
-    Polylines unsupported_edges_by_angle(double angle)
-        %code{% THIS->unsupported_edges(angle, &RETVAL); %};
+    Polygons coverage();
+    %name{coverage_by_angle} Polygons coverage(double angle);
+    Polylines unsupported_edges();
+    %name{unsupported_edges_by_angle} Polylines unsupported_edges(double angle);
     double angle()
         %code{% RETVAL = THIS->angle; %};
     double resolution()

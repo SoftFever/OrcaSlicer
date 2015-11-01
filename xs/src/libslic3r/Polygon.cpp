@@ -218,7 +218,8 @@ Polygon::wkt() const
     return wkt.str();
 }
 
-// find all concave vertices (i.e. having an internal angle greater than the supplied angle) */
+// find all concave vertices (i.e. having an internal angle greater than the supplied angle)
+// (external = right side, thus we consider ccw orientation)
 Points
 Polygon::concave_points(double angle) const
 {
@@ -241,7 +242,8 @@ Polygon::concave_points(double angle) const
     return points;
 }
 
-// find all convex vertices (i.e. having an internal angle smaller than the supplied angle) */
+// find all convex vertices (i.e. having an internal angle smaller than the supplied angle)
+// (external = right side, thus we consider ccw orientation)
 Points
 Polygon::convex_points(double angle) const
 {

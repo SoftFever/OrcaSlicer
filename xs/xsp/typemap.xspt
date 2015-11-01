@@ -97,6 +97,12 @@
 %typemap{BridgeDetector*};
 %typemap{Ref<BridgeDetector>}{simple};
 %typemap{Clone<BridgeDetector>}{simple};
+%typemap{SurfaceCollection*};
+%typemap{Ref<SurfaceCollection>}{simple};
+%typemap{Clone<SurfaceCollection>}{simple};
+%typemap{PerimeterGenerator*};
+%typemap{Ref<PerimeterGenerator>}{simple};
+%typemap{Clone<PerimeterGenerator>}{simple};
 
 %typemap{Surface*};
 %typemap{Ref<Surface>}{simple};
@@ -128,6 +134,22 @@
 %typemap{Ref<PlaceholderParser>}{simple};
 %typemap{Clone<PlaceholderParser>}{simple};
 
+%typemap{AvoidCrossingPerimeters*};
+%typemap{Ref<AvoidCrossingPerimeters>}{simple};
+%typemap{Clone<AvoidCrossingPerimeters>}{simple};
+
+%typemap{Wipe*};
+%typemap{Ref<Wipe>}{simple};
+%typemap{Clone<Wipe>}{simple};
+
+%typemap{OozePrevention*};
+%typemap{Ref<OozePrevention>}{simple};
+%typemap{Clone<OozePrevention>}{simple};
+
+%typemap{GCode*};
+%typemap{Ref<GCode>}{simple};
+%typemap{Clone<GCode>}{simple};
+
 
 %typemap{Points};
 %typemap{Pointfs};
@@ -140,7 +162,6 @@
 %typemap{Polygons*};
 %typemap{TriangleMesh*};
 %typemap{TriangleMeshPtrs};
-%typemap{Ref<SurfaceCollection>}{simple};
 %typemap{Extruder*};
 %typemap{Ref<Extruder>}{simple};
 %typemap{Clone<Extruder>}{simple};

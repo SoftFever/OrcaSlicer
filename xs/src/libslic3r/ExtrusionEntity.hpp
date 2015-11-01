@@ -13,6 +13,7 @@ class Extruder;
 
 /* Each ExtrusionRole value identifies a distinct set of { extruder, speed } */
 enum ExtrusionRole {
+    erNone,
     erPerimeter,
     erExternalPerimeter,
     erOverhangPerimeter,
@@ -50,6 +51,8 @@ class ExtrusionEntity
     virtual Point first_point() const = 0;
     virtual Point last_point() const = 0;
     virtual Polygons grow() const = 0;
+    virtual double min_mm3_per_mm() const = 0;
+    virtual Polyline as_polyline() const = 0;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -77,10 +80,13 @@ class ExtrusionPath : public ExtrusionEntity
     bool is_infill() const;
     bool is_solid_infill() const;
     bool is_bridge() const;
-    std::string gcode(Extruder* extruder, double e, double F,
-        double xofs, double yofs, std::string extrusion_axis,
-        std::string gcode_line_suffix) const;
     Polygons grow() const;
+    double min_mm3_per_mm() const {
+        return this->mm3_per_mm;
+    };
+    Polyline as_polyline() const {
+        return this->polyline;
+    };
 
     private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
@@ -95,6 +101,8 @@ class ExtrusionLoop : public ExtrusionEntity
     ExtrusionLoopRole role;
     
     ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : role(role) {};
+    ExtrusionLoop(const ExtrusionPaths &paths, ExtrusionLoopRole role = elrDefault)
+        : paths(paths), role(role) {};
     bool is_loop() const {
         return true;
     };
@@ -117,6 +125,10 @@ class ExtrusionLoop : public ExtrusionEntity
     bool is_infill() const;
     bool is_solid_infill() const;
     Polygons grow() const;
+    double min_mm3_per_mm() const;
+    Polyline as_polyline() const {
+        return this->polygon().split_at_first_point();
+    };
 };
 
 }

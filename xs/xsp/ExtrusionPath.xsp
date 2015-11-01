@@ -26,9 +26,6 @@
     bool is_infill();
     bool is_solid_infill();
     bool is_bridge();
-    std::string gcode(Extruder* extruder, double e, double F,
-        double xofs, double yofs, std::string extrusion_axis,
-        std::string gcode_line_suffix);
     Polygons grow();
 %{
 
@@ -133,6 +130,7 @@ ExtrusionPath::subtract_expolygons(ExPolygonCollection* collection)
 IV
 _constant()
   ALIAS:
+    EXTR_ROLE_NONE                         = erNone
     EXTR_ROLE_PERIMETER                    = erPerimeter
     EXTR_ROLE_EXTERNAL_PERIMETER           = erExternalPerimeter
     EXTR_ROLE_OVERHANG_PERIMETER           = erOverhangPerimeter

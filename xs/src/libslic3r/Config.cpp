@@ -1,4 +1,9 @@
 #include "Config.hpp"
+#include <stdlib.h>  // for setenv()
+
+#ifdef _WIN32
+#define setenv(k, v, o) _putenv_s(k, v)
+#endif
 
 namespace Slic3r {
 
@@ -10,8 +15,7 @@ ConfigBase::has(const t_config_option_key opt_key) {
 void
 ConfigBase::apply(const ConfigBase &other, bool ignore_nonexistent) {
     // get list of option keys to apply
-    t_config_option_keys opt_keys;
-    other.keys(&opt_keys);
+    t_config_option_keys opt_keys = other.keys();
     
     // loop through options and apply them
     for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it) {
@@ -37,8 +41,7 @@ t_config_option_keys
 ConfigBase::diff(ConfigBase &other) {
     t_config_option_keys diff;
     
-    t_config_option_keys my_keys;
-    this->keys(&my_keys);
+    t_config_option_keys my_keys = this->keys();
     for (t_config_option_keys::const_iterator opt_key = my_keys.begin(); opt_key != my_keys.end(); ++opt_key) {
         if (other.has(*opt_key) && other.serialize(*opt_key) != this->serialize(*opt_key)) {
             diff.push_back(*opt_key);
@@ -98,14 +101,31 @@ ConfigBase::get_abs_value(const t_config_option_key opt_key, double ratio_over) 
     return opt->get_abs_value(ratio_over);
 }
 
+void
+ConfigBase::setenv_()
+{
+    t_config_option_keys opt_keys = this->keys();
+    for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it) {
+        // prepend the SLIC3R_ prefix
+        std::ostringstream ss;
+        ss << "SLIC3R_";
+        ss << *it;
+        std::string envname = ss.str();
+        
+        // capitalize environment variable name
+        for (size_t i = 0; i < envname.size(); ++i)
+            envname[i] = (envname[i] <= 'z' && envname[i] >= 'a') ? envname[i]-('a'-'A') : envname[i];
+        
+        setenv(envname.c_str(), this->serialize(*it).c_str(), 1);
+    }
+}
+
 #ifdef SLIC3RXS
 SV*
 ConfigBase::as_hash() {
     HV* hv = newHV();
     
-    t_config_option_keys opt_keys;
-    this->keys(&opt_keys);
-    
+    t_config_option_keys opt_keys = this->keys();
     for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it)
         (void)hv_store( hv, it->c_str(), it->length(), this->get(*it), 0 );
     
@@ -368,10 +388,12 @@ DynamicConfig::option(const t_config_option_key opt_key) const {
     return const_cast<DynamicConfig*>(this)->option(opt_key, false);
 }
 
-void
-DynamicConfig::keys(t_config_option_keys *keys) const {
+t_config_option_keys
+DynamicConfig::keys() const {
+    t_config_option_keys keys;
     for (t_options_map::const_iterator it = this->options.begin(); it != this->options.end(); ++it)
-        keys->push_back(it->first);
+        keys.push_back(it->first);
+    return keys;
 }
 
 void
@@ -379,12 +401,14 @@ DynamicConfig::erase(const t_config_option_key opt_key) {
     this->options.erase(opt_key);
 }
 
-void
-StaticConfig::keys(t_config_option_keys *keys) const {
+t_config_option_keys
+StaticConfig::keys() const {
+    t_config_option_keys keys;
     for (t_optiondef_map::const_iterator it = this->def->begin(); it != this->def->end(); ++it) {
         const ConfigOption* opt = this->option(it->first);
-        if (opt != NULL) keys->push_back(it->first);
+        if (opt != NULL) keys.push_back(it->first);
     }
+    return keys;
 }
 
 const ConfigOption*

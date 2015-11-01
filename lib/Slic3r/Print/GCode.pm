@@ -15,7 +15,8 @@ has '_brim_done'                     => (is => 'rw');
 has '_second_layer_things_done'      => (is => 'rw');
 has '_last_obj_copy'                 => (is => 'rw');
 
-use List::Util qw(first sum);
+use List::Util qw(first sum min max);
+use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y scale unscale chained_path convex_hull);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE union_ex offset);
@@ -35,14 +36,65 @@ sub BUILD {
         }
     
         # set up our helper object
-        my $gcodegen = Slic3r::GCode->new(
-            placeholder_parser  => $self->placeholder_parser,
-            layer_count         => $layer_count,
-            enable_cooling_markers => 1,
-        );
+        my $gcodegen = Slic3r::GCode->new;
+        $self->_gcodegen($gcodegen);
+        $gcodegen->set_placeholder_parser($self->placeholder_parser);
+        $gcodegen->set_layer_count($layer_count);
+        $gcodegen->set_enable_cooling_markers(1);
         $gcodegen->apply_print_config($self->config);
         $gcodegen->set_extruders($self->print->extruders);
-        $self->_gcodegen($gcodegen);
+        
+        # initialize autospeed
+        {
+            # get the minimum cross-section used in the print
+            my @mm3_per_mm = ();
+            foreach my $object (@{$self->print->objects}) {
+                foreach my $region_id (0..$#{$self->print->regions}) {
+                    my $region = $self->print->get_region($region_id);
+                    foreach my $layer (@{$object->layers}) {
+                        my $layerm = $layer->get_region($region_id);
+                        if ($region->config->get_abs_value('perimeter_speed') == 0
+                            || $region->config->get_abs_value('small_perimeter_speed') == 0
+                            || $region->config->get_abs_value('external_perimeter_speed') == 0
+                            || $region->config->get_abs_value('bridge_speed') == 0) {
+                            push @mm3_per_mm, $layerm->perimeters->min_mm3_per_mm;
+                        }
+                        if ($region->config->get_abs_value('infill_speed') == 0
+                            || $region->config->get_abs_value('solid_infill_speed') == 0
+                            || $region->config->get_abs_value('top_solid_infill_speed') == 0
+                            || $region->config->get_abs_value('bridge_speed') == 0) {
+                            push @mm3_per_mm, $layerm->fills->min_mm3_per_mm;
+                        }
+                    }
+                }
+                if ($object->config->get_abs_value('support_material_speed') == 0
+                    || $object->config->get_abs_value('support_material_interface_speed') == 0) {
+                    foreach my $layer (@{$object->support_layers}) {
+                        push @mm3_per_mm, $layer->support_fills->min_mm3_per_mm;
+                        push @mm3_per_mm, $layer->support_interface_fills->min_mm3_per_mm;
+                    }
+                }
+            }
+            @mm3_per_mm = grep $_ != 0, @mm3_per_mm;
+            if (@mm3_per_mm) {
+                my $min_mm3_per_mm = min(@mm3_per_mm);
+                # In order to honor max_print_speed we need to find a target volumetric
+                # speed that we can use throughout the print. So we define this target 
+                # volumetric speed as the volumetric speed produced by printing the 
+                # smallest cross-section at the maximum speed: any larger cross-section
+                # will need slower feedrates.
+                my $volumetric_speed = $min_mm3_per_mm * $self->config->max_print_speed;
+                
+                # limit such volumetric speed with max_volumetric_speed if set
+                if ($self->config->max_volumetric_speed > 0) {
+                    $volumetric_speed = min(
+                        $volumetric_speed,
+                        $self->config->max_volumetric_speed,
+                    );
+                }
+                $gcodegen->set_volumetric_speed($volumetric_speed);
+            }
+        }
     }
     
     $self->_cooling_buffer(Slic3r::GCode::CoolingBuffer->new(
@@ -160,8 +212,8 @@ sub export {
             }
             my $convex_hull = convex_hull([ map @$_, @skirts ]);
             
-            $gcodegen->ooze_prevention->enable(1);
-            $gcodegen->ooze_prevention->standby_points(
+            $gcodegen->ooze_prevention->set_enable(1);
+            $gcodegen->ooze_prevention->set_standby_points(
                 [ map @{$_->equally_spaced_points(scale 10)}, @{offset([$convex_hull], scale 3)} ]
             );
             
@@ -195,18 +247,18 @@ sub export {
                 # no collision happens hopefully.
                 if ($finished_objects > 0) {
                     $gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
-                    $gcodegen->enable_cooling_markers(0);  # we're not filtering these moves through CoolingBuffer
-                    $gcodegen->avoid_crossing_perimeters->use_external_mp_once(1);
+                    $gcodegen->set_enable_cooling_markers(0);  # we're not filtering these moves through CoolingBuffer
+                    $gcodegen->avoid_crossing_perimeters->set_use_external_mp_once(1);
                     print $fh $gcodegen->retract;
                     print $fh $gcodegen->travel_to(
                         Slic3r::Point->new(0,0),
-                        undef,
+                        EXTR_ROLE_NONE,
                         'move to origin position for next object',
                     );
-                    $gcodegen->enable_cooling_markers(1);
+                    $gcodegen->set_enable_cooling_markers(1);
                     
                     # disable motion planner when traveling to first object point
-                    $gcodegen->avoid_crossing_perimeters->disable_once(1);
+                    $gcodegen->avoid_crossing_perimeters->set_disable_once(1);
                 }
                 
                 my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};
@@ -308,14 +360,14 @@ sub process_layer {
         $self->_spiral_vase->enable(
             ($layer->id > 0 || $self->print->config->brim_width == 0)
                 && ($layer->id >= $self->print->config->skirt_height && !$self->print->has_infinite_skirt)
-                && !defined(first { $_->config->bottom_solid_layers > $layer->id } @{$layer->regions})
+                && !defined(first { $_->region->config->bottom_solid_layers > $layer->id } @{$layer->regions})
                 && !defined(first { $_->perimeters->items_count > 1 } @{$layer->regions})
                 && !defined(first { $_->fills->items_count > 0 } @{$layer->regions})
         );
     }
     
     # if we're going to apply spiralvase to this layer, disable loop clipping
-    $self->_gcodegen->enable_loop_clipping(!defined $self->_spiral_vase || !$self->_spiral_vase->enable);
+    $self->_gcodegen->set_enable_loop_clipping(!defined $self->_spiral_vase || !$self->_spiral_vase->enable);
     
     if (!$self->_second_layer_things_done && $layer->id == 1) {
         for my $extruder (@{$self->_gcodegen->writer->extruders}) {
@@ -329,15 +381,19 @@ sub process_layer {
     }
     
     # set new layer - this will change Z and force a retraction if retract_layer_change is enabled
-    $gcode .= $self->_gcodegen->placeholder_parser->process($self->print->config->before_layer_gcode, {
-        layer_num => $self->_gcodegen->layer_index + 1,
-        layer_z   => $layer->print_z,
-    }) . "\n" if $self->print->config->before_layer_gcode;
-    $gcode .= $self->_gcodegen->change_layer($layer);  # this will increase $self->_gcodegen->layer_index
-    $gcode .= $self->_gcodegen->placeholder_parser->process($self->print->config->layer_gcode, {
-        layer_num => $self->_gcodegen->layer_index,
-        layer_z   => $layer->print_z,
-    }) . "\n" if $self->print->config->layer_gcode;
+    if ($self->print->config->before_layer_gcode) {
+        my $pp = $self->_gcodegen->placeholder_parser->clone;
+        $pp->set('layer_num' => $self->_gcodegen->layer_index + 1);
+        $pp->set('layer_z'   => $layer->print_z);
+        $gcode .= $pp->process($self->print->config->before_layer_gcode) . "\n";
+    }
+    $gcode .= $self->_gcodegen->change_layer($layer->as_layer);  # this will increase $self->_gcodegen->layer_index
+    if ($self->print->config->layer_gcode) {
+        my $pp = $self->_gcodegen->placeholder_parser->clone;
+        $pp->set('layer_num' => $self->_gcodegen->layer_index);
+        $pp->set('layer_z'   => $layer->print_z);
+        $gcode .= $pp->process($self->print->config->layer_gcode) . "\n";
+    }
     
     # extrude skirt along raft layers and normal object layers
     # (not along interlaced support material layers)
@@ -345,7 +401,7 @@ sub process_layer {
         && !$self->_skirt_done->{$layer->print_z}
         && (!$layer->isa('Slic3r::Layer::Support') || $layer->id < $object->config->raft_layers)) {
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(1);
         my @extruder_ids = map { $_->id } @{$self->_gcodegen->writer->extruders};
         $gcode .= $self->_gcodegen->set_extruder($extruder_ids[0]);
         # skip skirt if we have a large brim
@@ -378,12 +434,12 @@ sub process_layer {
             }
         }
         $self->_skirt_done->{$layer->print_z} = 1;
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(0);
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(0);
         
         # allow a straight travel move to the first object point if this is the first layer
         # (but don't in next layers)
         if ($layer->id == 0) {
-            $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
+            $self->_gcodegen->avoid_crossing_perimeters->set_disable_once(1);
         }
     }
     
@@ -391,19 +447,19 @@ sub process_layer {
     if (!$self->_brim_done) {
         $gcode .= $self->_gcodegen->set_extruder($self->print->regions->[0]->config->perimeter_extruder-1);
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(1);
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(1);
         $gcode .= $self->_gcodegen->extrude_loop($_, 'brim', $object->config->support_material_speed)
             for @{$self->print->brim};
         $self->_brim_done(1);
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp(0);
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(0);
         
         # allow a straight travel move to the first object point
-        $self->_gcodegen->avoid_crossing_perimeters->disable_once(1);
+        $self->_gcodegen->avoid_crossing_perimeters->set_disable_once(1);
     }
     
     for my $copy (@$object_copies) {
         # when starting a new object, use the external motion planner for the first travel move
-        $self->_gcodegen->avoid_crossing_perimeters->use_external_mp_once(1) if ($self->_last_obj_copy // '') ne "$copy";
+        $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp_once(1) if ($self->_last_obj_copy // '') ne "$copy";
         $self->_last_obj_copy("$copy");
         
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(map unscale $copy->[$_], X,Y));
@@ -539,7 +595,7 @@ sub _extrude_perimeters {
     my $gcode = "";
     foreach my $region_id (sort keys %$entities_by_region) {
         $self->_gcodegen->config->apply_region_config($self->print->get_region($region_id)->config);
-        $gcode .= $self->_gcodegen->extrude($_, 'perimeter')
+        $gcode .= $self->_gcodegen->extrude($_, 'perimeter', -1)
             for @{ $entities_by_region->{$region_id} };
     }
     return $gcode;
@@ -555,10 +611,10 @@ sub _extrude_infill {
         my $collection = Slic3r::ExtrusionPath::Collection->new(@{ $entities_by_region->{$region_id} });
         for my $fill (@{$collection->chained_path_from($self->_gcodegen->last_pos, 0)}) {
             if ($fill->isa('Slic3r::ExtrusionPath::Collection')) {
-                $gcode .= $self->_gcodegen->extrude($_, 'infill') 
+                $gcode .= $self->_gcodegen->extrude($_, 'infill', -1) 
                     for @{$fill->chained_path_from($self->_gcodegen->last_pos, 0)};
             } else {
-                $gcode .= $self->_gcodegen->extrude($fill, 'infill') ;
+                $gcode .= $self->_gcodegen->extrude($fill, 'infill', -1) ;
             }
         }
     }

@@ -192,14 +192,6 @@ sub save {
     __PACKAGE__->write_ini($file, $self->as_ini);
 }
 
-sub setenv {
-    my $self = shift;
-    
-    foreach my $opt_key (@{$self->get_keys}) {
-        $ENV{"SLIC3R_" . uc $opt_key} = $self->serialize($opt_key);
-    }
-}
-
 # this method is idempotent by design and only applies to ::DynamicConfig or ::Full
 # objects because it performs cross checks
 sub validate {

@@ -11,6 +11,9 @@ class SurfaceCollection
     public:
     Surfaces surfaces;
     
+    SurfaceCollection() {};
+    SurfaceCollection(const Surfaces &_surfaces)
+        : surfaces(_surfaces) {};
     operator Polygons() const;
     operator ExPolygons() const;
     void simplify(double tolerance);
@@ -19,6 +22,7 @@ class SurfaceCollection
     template <class T> bool any_bottom_contains(const T &item) const;
     SurfacesPtr filter_by_type(SurfaceType type);
     void filter_by_type(SurfaceType type, Polygons* polygons);
+    void append(const SurfaceCollection &coll);
 };
 
 }

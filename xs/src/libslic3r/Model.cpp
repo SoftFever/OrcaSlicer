@@ -690,7 +690,8 @@ ModelVolume::assign_unique_material()
 {
     Model* model = this->get_object()->get_model();
     
-    this->_material_id = 1 + model->materials.size();
+    // as material-id "0" is reserved by the AMF spec we start from 1
+    this->_material_id = 1 + model->materials.size();  // watchout for implicit cast
     return model->add_material(this->_material_id);
 }
 

@@ -30,7 +30,7 @@ warn "Running Slic3r under Perl 5.16 is not supported nor recommended\n"
     if $^V == v5.16;
 
 use FindBin;
-our $var = "$FindBin::Bin/var";
+our $var = decode_path($FindBin::Bin) . "/var";
 
 use Moo 1.003001;
 
@@ -44,11 +44,9 @@ use Slic3r::Flow;
 use Slic3r::Format::AMF;
 use Slic3r::Format::OBJ;
 use Slic3r::Format::STL;
-use Slic3r::GCode;
 use Slic3r::GCode::ArcFitting;
 use Slic3r::GCode::CoolingBuffer;
 use Slic3r::GCode::MotionPlanner;
-use Slic3r::GCode::PlaceholderParser;
 use Slic3r::GCode::PressureRegulator;
 use Slic3r::GCode::Reader;
 use Slic3r::GCode::SpiralVase;
@@ -56,8 +54,6 @@ use Slic3r::GCode::VibrationLimit;
 use Slic3r::Geometry qw(PI);
 use Slic3r::Geometry::Clipper;
 use Slic3r::Layer;
-use Slic3r::Layer::PerimeterGenerator;
-use Slic3r::Layer::Region;
 use Slic3r::Line;
 use Slic3r::Model;
 use Slic3r::Point;
@@ -71,15 +67,15 @@ use Slic3r::Print::SupportMaterial;
 use Slic3r::Surface;
 our $build = eval "use Slic3r::Build; 1";
 use Thread::Semaphore;
+use Encode::Locale 1.05;
+use Encode;
+use Unicode::Normalize;
 
 use constant SCALING_FACTOR         => 0.000001;
 use constant RESOLUTION             => 0.0125;
 use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
-use constant SMALL_PERIMETER_LENGTH => (6.5 / SCALING_FACTOR) * 2 * PI;
 use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
 use constant INFILL_OVERLAP_OVER_SPACING  => 0.3;
-use constant EXTERNAL_INFILL_MARGIN => 3;
-use constant INSET_OVERLAP_TOLERANCE => 0.4;
 
 # keep track of threads we created
 my @my_threads = ();
@@ -192,12 +188,17 @@ sub thread_cleanup {
     *Slic3r::ExtrusionPath::DESTROY         = sub {};
     *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
     *Slic3r::Flow::DESTROY                  = sub {};
+    *Slic3r::GCode::DESTROY                 = sub {};
+    *Slic3r::GCode::AvoidCrossingPerimeters::DESTROY = sub {};
+    *Slic3r::GCode::OozePrevention::DESTROY = sub {};
     *Slic3r::GCode::PlaceholderParser::DESTROY = sub {};
     *Slic3r::GCode::Sender::DESTROY         = sub {};
+    *Slic3r::GCode::Wipe::DESTROY           = sub {};
     *Slic3r::GCode::Writer::DESTROY         = sub {};
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf3::DESTROY = sub {};
+    *Slic3r::Layer::PerimeterGenerator::DESTROY = sub {};
     *Slic3r::Line::DESTROY                  = sub {};
     *Slic3r::Linef3::DESTROY                = sub {};
     *Slic3r::Model::DESTROY                 = sub {};
@@ -262,14 +263,24 @@ sub resume_all_threads {
 sub encode_path {
     my ($path) = @_;
     
-    utf8::downgrade($path) if $^O eq 'MSWin32';
+    $path = Unicode::Normalize::NFC($path);
+    $path = Encode::encode(locale_fs => $path);
+    
     return $path;
 }
 
 sub decode_path {
     my ($path) = @_;
     
-    utf8::upgrade($path) if $^O eq 'MSWin32';
+    $path = Encode::decode(locale_fs => $path)
+        unless utf8::is_utf8($path);
+    
+    # The filesystem might force a normalization form (like HFS+ does) so 
+    # if we rely on the filename being comparable after the open() + readdir()
+    # roundtrip (like when creating and then selecting a preset), we need to 
+    # restore our normalization form.
+    $path = Unicode::Normalize::NFC($path);
+    
     return $path;
 }
 

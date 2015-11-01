@@ -13,10 +13,8 @@ use Slic3r::Geometry qw(scale convex_hull);
 use Slic3r::Test;
 
 {
-    my $gcodegen = Slic3r::GCode->new(
-        layer_count     => 1,
-        extruders       => [],
-    );
+    my $gcodegen = Slic3r::GCode->new();
+    $gcodegen->set_layer_count(1);
     $gcodegen->set_origin(Slic3r::Pointf->new(10, 10));
     is_deeply $gcodegen->last_pos->arrayref, [scale -10, scale -10], 'last_pos is shifted correctly';
 }

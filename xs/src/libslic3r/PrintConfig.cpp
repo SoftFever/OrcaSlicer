@@ -151,10 +151,11 @@ PrintConfigDef::build_def() {
     Options["external_perimeter_speed"].type = coFloatOrPercent;
     Options["external_perimeter_speed"].label = "External perimeters";
     Options["external_perimeter_speed"].category = "Speed";
-    Options["external_perimeter_speed"].tooltip = "This separate setting will affect the speed of external perimeters (the visible ones). If expressed as percentage (for example: 80%) it will be calculated on the perimeters speed setting above.";
+    Options["external_perimeter_speed"].tooltip = "This separate setting will affect the speed of external perimeters (the visible ones). If expressed as percentage (for example: 80%) it will be calculated on the perimeters speed setting above. Set to zero for auto.";
     Options["external_perimeter_speed"].sidetext = "mm/s or %";
     Options["external_perimeter_speed"].cli = "external-perimeter-speed=s";
     Options["external_perimeter_speed"].ratio_over = "perimeter_speed";
+    Options["external_perimeter_speed"].min = 0;
 
     Options["external_perimeters_first"].type = coBool;
     Options["external_perimeters_first"].label = "External perimeters first";
@@ -300,6 +301,7 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].cli = "fill-pattern=s";
     Options["fill_pattern"].enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
     Options["fill_pattern"].enum_values.push_back("rectilinear");
+    Options["fill_pattern"].enum_values.push_back("grid");
     Options["fill_pattern"].enum_values.push_back("line");
     Options["fill_pattern"].enum_values.push_back("concentric");
     Options["fill_pattern"].enum_values.push_back("honeycomb");
@@ -308,6 +310,7 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].enum_values.push_back("archimedeanchords");
     Options["fill_pattern"].enum_values.push_back("octagramspiral");
     Options["fill_pattern"].enum_labels.push_back("Rectilinear");
+    Options["fill_pattern"].enum_labels.push_back("Grid");
     Options["fill_pattern"].enum_labels.push_back("Line");
     Options["fill_pattern"].enum_labels.push_back("Concentric");
     Options["fill_pattern"].enum_labels.push_back("Honeycomb");
@@ -350,6 +353,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_speed"].tooltip = "If expressed as absolute value in mm/s, this speed will be applied to all the print moves of the first layer, regardless of their type. If expressed as a percentage (for example: 40%) it will scale the default speeds.";
     Options["first_layer_speed"].sidetext = "mm/s or %";
     Options["first_layer_speed"].cli = "first-layer-speed=s";
+    Options["first_layer_speed"].min = 0;
 
     Options["first_layer_temperature"].type = coInts;
     Options["first_layer_temperature"].label = "First layer";
@@ -448,7 +452,7 @@ PrintConfigDef::build_def() {
     Options["infill_speed"].type = coFloat;
     Options["infill_speed"].label = "Infill";
     Options["infill_speed"].category = "Speed";
-    Options["infill_speed"].tooltip = "Speed for printing the internal fill.";
+    Options["infill_speed"].tooltip = "Speed for printing the internal fill. Set to zero for auto.";
     Options["infill_speed"].sidetext = "mm/s";
     Options["infill_speed"].cli = "infill-speed=f";
     Options["infill_speed"].aliases.push_back("print_feed_rate");
@@ -499,7 +503,20 @@ PrintConfigDef::build_def() {
     Options["min_print_speed"].sidetext = "mm/s";
     Options["min_print_speed"].cli = "min-print-speed=f";
     Options["min_print_speed"].min = 0;
-    Options["min_print_speed"].max = 1000;
+
+    Options["max_print_speed"].type = coFloat;
+    Options["max_print_speed"].label = "Max print speed";
+    Options["max_print_speed"].tooltip = "When setting other speed settings to 0 Slic3r will autocalculate the optimal speed in order to keep constant extruder pressure. This experimental setting is used to set the highest print speed you want to allow.";
+    Options["max_print_speed"].sidetext = "mm/s";
+    Options["max_print_speed"].cli = "max-print-speed=f";
+    Options["max_print_speed"].min = 1;
+
+    Options["max_volumetric_speed"].type = coFloat;
+    Options["max_volumetric_speed"].label = "Max volumetric speed";
+    Options["max_volumetric_speed"].tooltip = "This experimental setting is used to set the maximum volumetric speed your extruder supports.";
+    Options["max_volumetric_speed"].sidetext = "mm³/s";
+    Options["max_volumetric_speed"].cli = "max-volumetric-speed=f";
+    Options["max_volumetric_speed"].min = 0;
 
     Options["min_skirt_length"].type = coFloat;
     Options["min_skirt_length"].label = "Minimum extrusion length";
@@ -579,7 +596,7 @@ PrintConfigDef::build_def() {
     Options["perimeter_speed"].type = coFloat;
     Options["perimeter_speed"].label = "Perimeters";
     Options["perimeter_speed"].category = "Speed";
-    Options["perimeter_speed"].tooltip = "Speed for perimeters (contours, aka vertical shells).";
+    Options["perimeter_speed"].tooltip = "Speed for perimeters (contours, aka vertical shells). Set to zero for auto.";
     Options["perimeter_speed"].sidetext = "mm/s";
     Options["perimeter_speed"].cli = "perimeter-speed=f";
     Options["perimeter_speed"].aliases.push_back("perimeter_feed_rate");
@@ -637,12 +654,14 @@ PrintConfigDef::build_def() {
 
     Options["retract_length"].type = coFloats;
     Options["retract_length"].label = "Length";
+    Options["retract_length"].full_label = "Retraction Length";
     Options["retract_length"].tooltip = "When retraction is triggered, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).";
     Options["retract_length"].sidetext = "mm (zero to disable)";
     Options["retract_length"].cli = "retract-length=f@";
 
     Options["retract_length_toolchange"].type = coFloats;
     Options["retract_length_toolchange"].label = "Length";
+    Options["retract_length_toolchange"].full_label = "Retraction Length (Toolchange)";
     Options["retract_length_toolchange"].tooltip = "When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).";
     Options["retract_length_toolchange"].sidetext = "mm (zero to disable)";
     Options["retract_length_toolchange"].cli = "retract-length-toolchange=f@";
@@ -667,10 +686,10 @@ PrintConfigDef::build_def() {
 
     Options["retract_speed"].type = coInts;
     Options["retract_speed"].label = "Speed";
+    Options["retract_speed"].full_label = "Retraction Speed";
     Options["retract_speed"].tooltip = "The speed for retractions (it only applies to the extruder motor).";
     Options["retract_speed"].sidetext = "mm/s";
     Options["retract_speed"].cli = "retract-speed=f@";
-    Options["retract_speed"].max = 1000;
 
     Options["seam_position"].type = coEnum;
     Options["seam_position"].label = "Seam position";
@@ -719,6 +738,7 @@ PrintConfigDef::build_def() {
 
     Options["skirts"].type = coInt;
     Options["skirts"].label = "Loops (minimum)";
+    Options["skirts"].full_label = "Skirt Loops";
     Options["skirts"].tooltip = "Number of loops for the skirt. If the Minimum Extrusion Length option is set, the number of loops might be greater than the one configured here. Set this to zero to disable skirt completely.";
     Options["skirts"].cli = "skirts=i";
     Options["skirts"].min = 0;
@@ -735,10 +755,11 @@ PrintConfigDef::build_def() {
     Options["small_perimeter_speed"].type = coFloatOrPercent;
     Options["small_perimeter_speed"].label = "Small perimeters";
     Options["small_perimeter_speed"].category = "Speed";
-    Options["small_perimeter_speed"].tooltip = "This separate setting will affect the speed of perimeters having radius <= 6.5mm (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the perimeters speed setting above.";
+    Options["small_perimeter_speed"].tooltip = "This separate setting will affect the speed of perimeters having radius <= 6.5mm (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the perimeters speed setting above. Set to zero for auto.";
     Options["small_perimeter_speed"].sidetext = "mm/s or %";
     Options["small_perimeter_speed"].cli = "small-perimeter-speed=s";
     Options["small_perimeter_speed"].ratio_over = "perimeter_speed";
+    Options["small_perimeter_speed"].min = 0;
 
     Options["solid_infill_below_area"].type = coFloat;
     Options["solid_infill_below_area"].label = "Solid infill threshold area";
@@ -773,11 +794,12 @@ PrintConfigDef::build_def() {
     Options["solid_infill_speed"].type = coFloatOrPercent;
     Options["solid_infill_speed"].label = "Solid infill";
     Options["solid_infill_speed"].category = "Speed";
-    Options["solid_infill_speed"].tooltip = "Speed for printing solid regions (top/bottom/internal horizontal shells). This can be expressed as a percentage (for example: 80%) over the default infill speed above.";
+    Options["solid_infill_speed"].tooltip = "Speed for printing solid regions (top/bottom/internal horizontal shells). This can be expressed as a percentage (for example: 80%) over the default infill speed above. Set to zero for auto.";
     Options["solid_infill_speed"].sidetext = "mm/s or %";
     Options["solid_infill_speed"].cli = "solid-infill-speed=s";
     Options["solid_infill_speed"].ratio_over = "infill_speed";
     Options["solid_infill_speed"].aliases.push_back("solid_infill_feed_rate");
+    Options["solid_infill_speed"].min = 0;
 
     Options["solid_layers"].type = coInt;
     Options["solid_layers"].label = "Solid layers";
@@ -889,6 +911,7 @@ PrintConfigDef::build_def() {
     Options["support_material_interface_speed"].sidetext = "mm/s or %";
     Options["support_material_interface_speed"].cli = "support-material-interface-speed=s";
     Options["support_material_interface_speed"].ratio_over = "support_material_speed";
+    Options["support_material_interface_speed"].min = 0;
 
     Options["support_material_pattern"].type = coEnum;
     Options["support_material_pattern"].label = "Pattern";
@@ -970,10 +993,11 @@ PrintConfigDef::build_def() {
     Options["top_solid_infill_speed"].type = coFloatOrPercent;
     Options["top_solid_infill_speed"].label = "Top solid infill";
     Options["top_solid_infill_speed"].category = "Speed";
-    Options["top_solid_infill_speed"].tooltip = "Speed for printing top solid layers (it only applies to the uppermost external layers and not to their internal solid layers). You may want to slow down this to get a nicer surface finish. This can be expressed as a percentage (for example: 80%) over the solid infill speed above.";
+    Options["top_solid_infill_speed"].tooltip = "Speed for printing top solid layers (it only applies to the uppermost external layers and not to their internal solid layers). You may want to slow down this to get a nicer surface finish. This can be expressed as a percentage (for example: 80%) over the solid infill speed above. Set to zero for auto.";
     Options["top_solid_infill_speed"].sidetext = "mm/s or %";
     Options["top_solid_infill_speed"].cli = "top-solid-infill-speed=s";
     Options["top_solid_infill_speed"].ratio_over = "solid_infill_speed";
+    Options["top_solid_infill_speed"].min = 0;
 
     Options["top_solid_layers"].type = coInt;
     Options["top_solid_layers"].label = "Top";
@@ -989,7 +1013,7 @@ PrintConfigDef::build_def() {
     Options["travel_speed"].sidetext = "mm/s";
     Options["travel_speed"].cli = "travel-speed=f";
     Options["travel_speed"].aliases.push_back("travel_feed_rate");
-    Options["travel_speed"].min = 0;
+    Options["travel_speed"].min = 1;
 
     Options["use_firmware_retraction"].type = coBool;
     Options["use_firmware_retraction"].label = "Use firmware retraction";

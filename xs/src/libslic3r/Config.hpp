@@ -515,7 +515,7 @@ class ConfigBase
     bool has(const t_config_option_key opt_key);
     virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
     virtual const ConfigOption* option(const t_config_option_key opt_key) const = 0;
-    virtual void keys(t_config_option_keys *keys) const = 0;
+    virtual t_config_option_keys keys() const = 0;
     void apply(const ConfigBase &other, bool ignore_nonexistent = false);
     bool equals(ConfigBase &other);
     t_config_option_keys diff(ConfigBase &other);
@@ -524,6 +524,7 @@ class ConfigBase
     void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
     double get_abs_value(const t_config_option_key opt_key);
     double get_abs_value(const t_config_option_key opt_key, double ratio_over);
+    void setenv_();
     
     #ifdef SLIC3RXS
     SV* as_hash();
@@ -545,7 +546,7 @@ class DynamicConfig : public ConfigBase
     template<class T> T* opt(const t_config_option_key opt_key, bool create = false);
     ConfigOption* option(const t_config_option_key opt_key, bool create = false);
     const ConfigOption* option(const t_config_option_key opt_key) const;
-    void keys(t_config_option_keys *keys) const;
+    t_config_option_keys keys() const;
     void erase(const t_config_option_key opt_key);
     
     private:
@@ -556,7 +557,7 @@ class DynamicConfig : public ConfigBase
 class StaticConfig : public ConfigBase
 {
     public:
-    void keys(t_config_option_keys *keys) const;
+    t_config_option_keys keys() const;
     virtual ConfigOption* option(const t_config_option_key opt_key, bool create = false) = 0;
     const ConfigOption* option(const t_config_option_key opt_key) const;
     

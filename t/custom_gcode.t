@@ -47,7 +47,8 @@ use Slic3r::Test;
 {
     my $parser = Slic3r::GCode::PlaceholderParser->new;
     $parser->apply_config(my $config = Slic3r::Config->new_from_defaults);
-    is $parser->process('[temperature_[foo]]', { foo => '1' }),
+    $parser->set('foo' => '0');
+    is $parser->process('[temperature_[foo]]'),
         $config->temperature->[0],
         "nested config options";
 }

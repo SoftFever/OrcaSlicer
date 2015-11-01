@@ -2,14 +2,16 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <unistd.h>  // provides **environ
+
+extern char **environ;
 
 namespace Slic3r {
 
 PlaceholderParser::PlaceholderParser()
 {
-    this->_single["version"] = SLIC3R_VERSION;
-    // TODO: port these methods to C++, then call them here
-    // this->apply_env_variables();
+    this->set("version", SLIC3R_VERSION);
+    this->apply_env_variables();
     this->update_timestamp();
 }
 
@@ -62,16 +64,32 @@ void PlaceholderParser::apply_config(DynamicPrintConfig &config)
         
         if (const ConfigOptionVectorBase* optv = dynamic_cast<const ConfigOptionVectorBase*>(opt)) {
             // set placeholders for options with multiple values
+            // TODO: treat [bed_shape] as single, not multiple
             this->set(key, optv->vserialize());
         } else if (const ConfigOptionPoint* optp = dynamic_cast<const ConfigOptionPoint*>(opt)) {
-            this->_single[key] = optp->serialize();
+            this->set(key, optp->serialize());
             
             Pointf val = *optp;
-            this->_multiple[key + "_X"] = val.x;
-            this->_multiple[key + "_Y"] = val.y;
+            this->set(key + "_X", val.x);
+            this->set(key + "_Y", val.y);
         } else {
             // set single-value placeholders
-            this->_single[key] = opt->serialize();
+            this->set(key, opt->serialize());
+        }
+    }
+}
+
+void
+PlaceholderParser::apply_env_variables()
+{
+    for (char** env = environ; *env; env++) {
+        if (strncmp(*env, "SLIC3R_", 7) == 0) {
+            std::stringstream ss(*env);
+            std::string key, value;
+            std::getline(ss, key, '=');
+            ss >> value;
+            
+            this->set(key, value);
         }
     }
 }
@@ -92,18 +110,57 @@ PlaceholderParser::set(const std::string &key, int value)
 }
 
 void
-PlaceholderParser::set(const std::string &key, const std::vector<std::string> &values)
+PlaceholderParser::set(const std::string &key, std::vector<std::string> values)
 {
-    for (std::vector<std::string>::const_iterator v = values.begin(); v != values.end(); ++v) {
+    if (values.empty()) {
+        this->_multiple.erase(key);
+        this->_single.erase(key);
+    } else {
+        this->_multiple[key] = values;
+        this->_single[key] = values.front();
+    }
+}
+
+std::string
+PlaceholderParser::process(std::string str) const
+{
+    // replace single options, like [foo]
+    for (t_strstr_map::const_iterator it = this->_single.begin(); it != this->_single.end(); ++it) {
         std::stringstream ss;
-        ss << key << "_" << (v - values.begin());
-        
-        this->_multiple[ ss.str() ] = *v;
-        if (v == values.begin()) {
-            this->_multiple[key] = *v;
+        ss << '[' << it->first << ']';
+        this->find_and_replace(str, ss.str(), it->second);
+    }
+    
+    // replace multiple options like [foo_0] by looping until we have enough values
+    // or until a previous match was found (this handles non-existing indices reasonably
+    // without a regex)
+    for (t_strstrs_map::const_iterator it = this->_multiple.begin(); it != this->_multiple.end(); ++it) {
+        const std::vector<std::string> &values = it->second;
+        bool found = false;
+        for (size_t i = 0; (i < values.size()) || found; ++i) {
+            std::stringstream ss;
+            ss << '[' << it->first << '_' << i << ']';
+            if (i < values.size()) {
+                found = this->find_and_replace(str, ss.str(), values[i]);
+            } else {
+                found = this->find_and_replace(str, ss.str(), values.front());
+            }
         }
     }
-    this->_single.erase(key);
+    
+    return str;
+}
+
+bool
+PlaceholderParser::find_and_replace(std::string &source, std::string const &find, std::string const &replace) const
+{
+    bool found = false;
+    for (std::string::size_type i = 0; (i = source.find(find, i)) != std::string::npos; ) {
+        source.replace(i, find.length(), replace);
+        i += replace.length();
+        found = true;
+    }
+    return found;
 }
 
 #ifdef SLIC3RXS

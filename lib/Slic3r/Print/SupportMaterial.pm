@@ -4,7 +4,7 @@ use Moo;
 use List::Util qw(sum min max);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
-use Slic3r::Geometry qw(scale scaled_epsilon PI rad2deg deg2rad convex_hull);
+use Slic3r::Geometry qw(epsilon scale scaled_epsilon PI rad2deg deg2rad convex_hull);
 use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2
     intersection_pl offset2_ex diff_pl);
 use Slic3r::Surface ':types';
@@ -235,7 +235,7 @@ sub contact_area {
                         # just remove bridged areas
                         $diff = diff(
                             $diff,
-                            [ map @$_, @{$layerm->bridged} ],
+                            $layerm->bridged,
                             1,
                         );
                     }
@@ -267,13 +267,13 @@ sub contact_area {
             # get the average nozzle diameter used on this layer
             my @nozzle_diameters = map $self->print_config->get_at('nozzle_diameter', $_),
                 map { $_->config->perimeter_extruder-1, $_->config->infill_extruder-1, $_->config->solid_infill_extruder-1 }
-                @{$layer->regions};
+                map $_->region, @{$layer->regions};
             my $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             
             my $contact_z = $layer->print_z - $self->contact_distance($layer->height, $nozzle_diameter);
             
             # ignore this contact area if it's too low
-            next if $contact_z < $self->object_config->get_value('first_layer_height');
+            next if $contact_z < $self->object_config->get_value('first_layer_height') - epsilon;
             
             $contact{$contact_z}  = [ @contact ];
             $overhang{$contact_z} = [ @overhang ];
@@ -356,13 +356,16 @@ sub support_layers_z {
     if ($self->object_config->raft_layers > 1 && @z >= 2) {
         # $z[1] is last raft layer (contact layer for the first layer object)
         my $height = ($z[1] - $z[0]) / ($self->object_config->raft_layers - 1);
+        # since we already have two raft layers ($z[0] and $z[1]) we need to insert
+        # raft_layers-2 more
         splice @z, 1, 0,
             map { sprintf "%.2f", $_ }
             map { $z[0] + $height * $_ }
-            0..($self->object_config->raft_layers - 1);
+            1..($self->object_config->raft_layers - 2);
     }
     
-    for (my $i = $#z; $i >= 0; $i--) {
+    # create other layers (skip raft layers as they're already done and use thicker layers)
+    for (my $i = $#z; $i >= $self->object_config->raft_layers; $i--) {
         my $target_height = $support_material_height;
         if ($i > 0 && $top{ $z[$i-1] }) {
             $target_height = $nozzle_diameter;

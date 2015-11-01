@@ -65,7 +65,9 @@ sub new {
     $self->{treectrl}->AddRoot("root");
     $self->{pages} = [];
     $self->{treectrl}->SetIndent(0);
+    $self->{disable_tree_sel_changed_event} = 0;
     EVT_TREE_SEL_CHANGED($parent, $self->{treectrl}, sub {
+        return if $self->{disable_tree_sel_changed_event};
         my $page = first { $_->{title} eq $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection) } @{$self->{pages}}
             or return;
         $_->Hide for @{$self->{pages}};
@@ -106,6 +108,7 @@ sub new {
     
     $self->{config} = Slic3r::Config->new;
     $self->build;
+    $self->update_tree;
     $self->_update;
     if ($self->hidden_options) {
         $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
@@ -177,8 +180,11 @@ sub _update {}
 sub _on_presets_changed {
     my $self = shift;
     
-    $self->{on_presets_changed}->($self->{presets}, $self->{presets_choice}->GetSelection)
-        if $self->{on_presets_changed};
+    $self->{on_presets_changed}->(
+        $self->{presets},
+        scalar($self->{presets_choice}->GetSelection),
+        $self->is_dirty,
+    ) if $self->{on_presets_changed};
 }
 
 sub on_preset_loaded {}
@@ -198,6 +204,8 @@ sub select_preset {
 
 sub select_preset_by_name {
     my ($self, $name) = @_;
+    
+    $name = Unicode::Normalize::NFC($name);
     $self->select_preset(first { $self->{presets}[$_]->name eq $name } 0 .. $#{$self->{presets}});
 }
 
@@ -223,6 +231,10 @@ sub on_select_preset {
                                              'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
         if ($confirm->ShowModal == wxID_NO) {
             $self->{presets_choice}->SetSelection($self->current_preset);
+            
+            # trigger the on_presets_changed event so that we also restore the previous value
+            # in the plater selector
+            $self->_on_presets_changed;
             return;
         }
     }
@@ -282,7 +294,6 @@ sub add_options_page {
     $page->Hide;
     $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
     push @{$self->{pages}}, $page;
-    $self->update_tree;
     return $page;
 }
 
@@ -303,12 +314,15 @@ sub update_tree {
     foreach my $page (@{$self->{pages}}) {
         my $itemId = $self->{treectrl}->AppendItem($rootItem, $page->{title}, $page->{iconID});
         if ($page->{title} eq $selected) {
+            $self->{disable_tree_sel_changed_event} = 1;
             $self->{treectrl}->SelectItem($itemId);
+            $self->{disable_tree_sel_changed_event} = 0;
             $have_selection = 1;
         }
     }
     
     if (!$have_selection) {
+        # this is triggered on first load, so we don't disable the sel change event
         $self->{treectrl}->SelectItem($self->{treectrl}->GetFirstChild($rootItem));
     }
 }
@@ -431,6 +445,7 @@ sub set_value {
 package Slic3r::GUI::Tab::Print;
 use base 'Slic3r::GUI::Tab';
 
+use List::Util qw(first);
 use Wx qw(:icon :dialog :id);
 
 sub name { 'print' }
@@ -449,6 +464,7 @@ sub build {
         infill_every_layers infill_only_where_needed
         solid_infill_every_layers fill_angle solid_infill_below_area 
         only_retract_when_crossing_perimeters infill_first
+        max_print_speed max_volumetric_speed
         perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed 
         solid_infill_speed top_solid_infill_speed support_material_speed 
         support_material_interface_speed bridge_speed gap_fill_speed
@@ -606,6 +622,11 @@ sub build {
             $optgroup->append_single_option_line('first_layer_acceleration');
             $optgroup->append_single_option_line('default_acceleration');
         }
+        {
+            my $optgroup = $page->new_optgroup('Autospeed (advanced)');
+            $optgroup->append_single_option_line('max_print_speed');
+            $optgroup->append_single_option_line('max_volumetric_speed');
+        }
     }
     
     {
@@ -736,6 +757,22 @@ sub _update {
             $new_conf->set("spiral_vase", 0);
             $self->load_config($new_conf);
         }
+    }
+    
+    if ($config->fill_density == 100
+        && !first { $_ eq $config->fill_pattern } @{$Slic3r::Config::Options->{external_fill_pattern}{values}}) {
+        my $dialog = Wx::MessageDialog->new($self,
+            "The " . $config->fill_pattern . " infill pattern is not supposed to work at 100% density.\n"
+            . "\nShall I switch to rectilinear fill pattern?",
+            'Infill', wxICON_WARNING | wxYES | wxNO);
+        
+        my $new_conf = Slic3r::Config->new;
+        if ($dialog->ShowModal() == wxID_YES) {
+            $new_conf->set("fill_pattern", 1);
+        } else {
+            $new_conf->set("fill_density", 40);
+        }
+        $self->load_config($new_conf);
     }
     
     my $have_perimeters = $config->perimeters > 0;
@@ -1016,8 +1053,10 @@ sub build {
             $optgroup->on_change(sub {
                 my ($opt_id) = @_;
                 if ($opt_id eq 'extruders_count') {
+                    wxTheApp->CallAfter(sub {
+                        $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
+                    });
                     $self->update_dirty;
-                    $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
                 }
             });
         }
@@ -1231,8 +1270,6 @@ sub _build_extruder_pages {
             $optgroup->append_single_option_line($_, $extruder_idx)
                 for qw(retract_length_toolchange retract_restart_extra_toolchange);
         }
-        
-        $self->{extruder_pages}[$extruder_idx]{disabled} = 0;
     }
     
     # remove extra pages
@@ -1325,7 +1362,7 @@ sub load_config_file {
 }
 
 package Slic3r::GUI::Tab::Page;
-use Wx qw(:misc :panel :sizer);
+use Wx qw(wxTheApp :misc :panel :sizer);
 use base 'Wx::ScrolledWindow';
 
 sub new {
@@ -1353,8 +1390,11 @@ sub new_optgroup {
         config          => $self->GetParent->{config},
         label_width     => $params{label_width} // 200,
         on_change       => sub {
-            $self->GetParent->update_dirty;
-            $self->GetParent->_on_value_change(@_);
+            my ($opt_key, $value) = @_;
+            wxTheApp->CallAfter(sub {
+                $self->GetParent->update_dirty;
+                $self->GetParent->_on_value_change($opt_key, $value);
+            });
         },
     );
     
@@ -1454,7 +1494,7 @@ sub config {
     if ($self->default) {
         return Slic3r::Config->new_from_defaults(@$keys);
     } else {
-        if (!-e $self->file) {
+        if (!-e Slic3r::encode_path($self->file)) {
             Slic3r::GUI::show_error(undef, "The selected preset does not exist anymore (" . $self->file . ").");
             return undef;
         }

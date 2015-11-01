@@ -40,8 +40,7 @@ class LayerRegion
 
     // collection of expolygons representing the bridged areas (thus not
     // needing support material)
-    // (this could be just a Polygons object)
-    ExPolygonCollection bridged;
+    Polygons bridged;
 
     // collection of polylines representing the unsupported bridge edges
     PolylineCollection unsupported_bridge_edges;
@@ -57,6 +56,9 @@ class LayerRegion
     Flow flow(FlowRole role, bool bridge = false, double width = -1) const;
     void merge_slices();
     void prepare_fill_surfaces();
+    void make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces);
+    void process_external_surfaces(const Layer* lower_layer);
+    double infill_area_threshold() const;
     
     private:
     Layer *_layer;
@@ -76,6 +78,7 @@ class Layer {
     size_t id() const;
     void set_id(size_t id);
     PrintObject* object();
+    const PrintObject* object() const;
 
     Layer *upper_layer;
     Layer *lower_layer;

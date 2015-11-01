@@ -1,6 +1,7 @@
 package Slic3r::Fill;
 use Moo;
 
+use List::Util qw(max);
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Fill::3DHoneycomb;
 use Slic3r::Fill::Base;
@@ -20,6 +21,7 @@ has 'fillers'   => (is => 'rw', default => sub { {} });
 our %FillTypes = (
     archimedeanchords   => 'Slic3r::Fill::ArchimedeanChords',
     rectilinear         => 'Slic3r::Fill::Rectilinear',
+    grid                => 'Slic3r::Fill::Grid',
     flowsnake           => 'Slic3r::Fill::Flowsnake',
     octagramspiral      => 'Slic3r::Fill::OctagramSpiral',
     hilbertcurve        => 'Slic3r::Fill::HilbertCurve',
@@ -47,9 +49,9 @@ sub make_fill {
     my $self = shift;
     my ($layerm) = @_;
     
-    Slic3r::debugf "Filling layer %d:\n", $layerm->id;
+    Slic3r::debugf "Filling layer %d:\n", $layerm->layer->id;
     
-    my $fill_density            = $layerm->config->fill_density;
+    my $fill_density            = $layerm->region->config->fill_density;
     my $infill_flow             = $layerm->flow(FLOW_ROLE_INFILL);
     my $solid_infill_flow       = $layerm->flow(FLOW_ROLE_SOLID_INFILL);
     my $top_solid_infill_flow   = $layerm->flow(FLOW_ROLE_TOP_SOLID_INFILL);
@@ -73,13 +75,13 @@ sub make_fill {
             for (my $i = 0; $i <= $#groups; $i++) {
                 # we can only merge solid non-bridge surfaces, so discard
                 # non-solid surfaces
-                if ($groups[$i][0]->is_solid && (!$groups[$i][0]->is_bridge || $layerm->id == 0)) {
+                if ($groups[$i][0]->is_solid && (!$groups[$i][0]->is_bridge || $layerm->layer->id == 0)) {
                     $is_solid[$i] = 1;
                     $fw[$i] = ($groups[$i][0]->surface_type == S_TYPE_TOP)
                         ? $top_solid_infill_flow->width
                         : $solid_infill_flow->width;
                     $pattern[$i] = $groups[$i][0]->is_external
-                        ? $layerm->config->external_fill_pattern
+                        ? $layerm->region->config->external_fill_pattern
                         : 'rectilinear';
                 } else {
                     $is_solid[$i]   = 0;
@@ -143,8 +145,12 @@ sub make_fill {
     # we are going to grow such regions by overlapping them with the void (if any)
     # TODO: detect and investigate whether there could be narrow regions without
     # any void neighbors
-    my $distance_between_surfaces = $infill_flow->scaled_spacing;
     {
+        my $distance_between_surfaces = max(
+            $infill_flow->scaled_spacing,
+            $solid_infill_flow->scaled_spacing,
+            $top_solid_infill_flow->scaled_spacing,
+        );
         my $collapsed = diff(
             [ map @{$_->expolygon}, @surfaces ],
             offset2([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2, +$distance_between_surfaces/2),
@@ -163,9 +169,6 @@ sub make_fill {
         )};
     }
     
-    # add spacing between surfaces
-    @surfaces = map @{$_->offset(-$distance_between_surfaces / 2)}, @surfaces;
-    
     if (0) {
         require "Slic3r/SVG.pm";
         Slic3r::SVG::output("fill_" . $layerm->print_z . ".svg",
@@ -177,19 +180,19 @@ sub make_fill {
     my @fills = ();
     SURFACE: foreach my $surface (@surfaces) {
         next if $surface->surface_type == S_TYPE_INTERNALVOID;
-        my $filler          = $layerm->config->fill_pattern;
+        my $filler          = $layerm->region->config->fill_pattern;
         my $density         = $fill_density;
         my $role = ($surface->surface_type == S_TYPE_TOP) ? FLOW_ROLE_TOP_SOLID_INFILL
             : $surface->is_solid ? FLOW_ROLE_SOLID_INFILL
             : FLOW_ROLE_INFILL;
-        my $is_bridge       = $layerm->id > 0 && $surface->is_bridge;
+        my $is_bridge       = $layerm->layer->id > 0 && $surface->is_bridge;
         my $is_solid        = $surface->is_solid;
         
         if ($surface->is_solid) {
             $density = 100;
             $filler = 'rectilinear';
             if ($surface->is_external && !$is_bridge) {
-                $filler = $layerm->config->external_fill_pattern;
+                $filler = $layerm->region->config->external_fill_pattern;
             }
         } else {
             next SURFACE unless $density > 0;
@@ -199,14 +202,14 @@ sub make_fill {
         my $f = $self->filler($filler);
         
         # calculate the actual flow we'll be using for this infill
-        my $h = $surface->thickness == -1 ? $layerm->height : $surface->thickness;
+        my $h = $surface->thickness == -1 ? $layerm->layer->height : $surface->thickness;
         my $flow = $layerm->region->flow(
             $role,
             $h,
             $is_bridge || $f->use_bridge_flow,
-            $layerm->id == 0,
+            $layerm->layer->id == 0,
             -1,
-            $layerm->object,
+            $layerm->layer->object,
         );
         
         # calculate flow spacing for infill pattern generation
@@ -218,11 +221,11 @@ sub make_fill {
             # layer height
             my $internal_flow = $layerm->region->flow(
                 FLOW_ROLE_INFILL,
-                $layerm->object->config->layer_height,  # TODO: handle infill_every_layers?
+                $layerm->layer->object->config->layer_height,  # TODO: handle infill_every_layers?
                 0,  # no bridge
                 0,  # no first layer
                 -1, # auto width
-                $layerm->object,
+                $layerm->layer->object,
             );
             $f->spacing($internal_flow->spacing);
             $using_internal_flow = 1;
@@ -230,15 +233,18 @@ sub make_fill {
             $f->spacing($flow->spacing);
         }
         
-        $f->layer_id($layerm->id);
-        $f->z($layerm->print_z);
-        $f->angle(deg2rad($layerm->config->fill_angle));
+        $f->layer_id($layerm->layer->id);
+        $f->z($layerm->layer->print_z);
+        $f->angle(deg2rad($layerm->region->config->fill_angle));
         $f->loop_clipping(scale($flow->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
-        my @polylines = $f->fill_surface(
-            $surface,
+        
+        # apply half spacing using this flow's own spacing and generate infill
+        my @polylines = map $f->fill_surface(
+            $_,
             density         => $density/100,
             layer_height    => $h,
-        );
+        ), @{ $surface->offset(-scale($f->spacing)/2) };
+        
         next unless @polylines;
         
         # calculate actual flow from spacing (which might have been adjusted by the infill

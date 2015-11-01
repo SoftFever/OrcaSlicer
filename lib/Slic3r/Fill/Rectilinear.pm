@@ -12,6 +12,8 @@ has '_line_oscillation'     => (is => 'rw');
 use Slic3r::Geometry qw(scale unscale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(intersection_pl);
 
+sub horizontal_lines { 0 }
+
 sub fill_surface {
     my $self = shift;
     my ($surface, %params) = @_;
@@ -44,9 +46,18 @@ sub fill_surface {
     
     # generate the basic pattern
     my $x_max = $bounding_box->x_max + scaled_epsilon;
-    my @vertical_lines  = ();
+    my @lines  = ();
     for (my $x = $bounding_box->x_min; $x <= $x_max; $x += $self->_line_spacing) {
-        push @vertical_lines, $self->_line($#vertical_lines, $x, $bounding_box->y_min, $bounding_box->y_max);
+        push @lines, $self->_line($#lines, $x, $bounding_box->y_min, $bounding_box->y_max);
+    }
+    if ($self->horizontal_lines) {
+        my $y_max = $bounding_box->y_max + scaled_epsilon;
+        for (my $y = $bounding_box->y_min; $y <= $y_max; $y += $self->_line_spacing) {
+            push @lines, Slic3r::Polyline->new(
+                [$bounding_box->x_min, $y],
+                [$bounding_box->x_max, $y],
+            );
+        }
     }
     
     # clip paths against a slightly larger expolygon, so that the first and last paths
@@ -54,7 +65,7 @@ sub fill_surface {
     # the minimum offset for preventing edge lines from being clipped is scaled_epsilon;
     # however we use a larger offset to support expolygons with slightly skewed sides and 
     # not perfectly straight
-    my @polylines = @{intersection_pl(\@vertical_lines, $expolygon->offset(+scale 0.02))};
+    my @polylines = @{intersection_pl(\@lines, $expolygon->offset(+scale 0.02))};
     
     my $extra = $self->_min_spacing * &Slic3r::INFILL_OVERLAP_OVER_SPACING;
     foreach my $polyline (@polylines) {
@@ -145,5 +156,13 @@ sub _can_connect {
         && ($dist_X <= ($self->_line_spacing + $self->_line_oscillation) + $TOLERANCE)
         && $dist_Y <= $self->_diagonal_distance;
 }
+
+
+package Slic3r::Fill::Grid;
+use Moo;
+extends 'Slic3r::Fill::Rectilinear';
+
+sub angles () { [0] }
+sub horizontal_lines { 1 }
 
 1;

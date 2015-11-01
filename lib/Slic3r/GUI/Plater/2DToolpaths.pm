@@ -164,6 +164,8 @@ sub new {
     EVT_MOUSEWHEEL($self, sub {
         my ($self, $e) = @_;
         
+        return if !$self->GetParent->enabled;
+        
         my $old_zoom = $self->_zoom;
         
         # Calculate the zoom delta and apply it to the current zoom factor
@@ -204,6 +206,8 @@ sub new {
 
 sub mouse_event {
     my ($self, $e) = @_;
+    
+    return if !$self->GetParent->enabled;
     
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
     if ($e->Entering && &Wx::wxMSW) {
@@ -262,8 +266,9 @@ sub set_z {
         }
     }
     
+    # reverse layers so that we draw the lowermost (i.e. current) on top
     $self->z($z);
-    $self->layers([ @layers ]);
+    $self->layers([ reverse @layers ]);
     $self->Refresh;
 }
 

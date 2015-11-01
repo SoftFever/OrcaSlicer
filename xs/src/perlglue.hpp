@@ -44,6 +44,7 @@ class Ref {
 public:
     Ref() : val(NULL) {}
     Ref(T* t) : val(t) {}
+    Ref(const T* t) : val(const_cast<T*>(t)) {}
     operator T*() const { return val; }
     static const char* CLASS() { return ClassTraits<T>::name_ref; }
 };

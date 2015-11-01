@@ -2,6 +2,11 @@
 
 namespace Slic3r {
 
+Surface::operator Polygons() const
+{
+    return this->expolygon;
+}
+
 double
 Surface::area() const
 {

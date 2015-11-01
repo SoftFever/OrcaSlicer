@@ -45,8 +45,9 @@ sub slice {
         $self->clear_layers;
     
         # make layers taking custom heights into account
-        my $print_z = my $slice_z = my $height = my $id = 0;
-        my $first_object_layer_height = -1;
+        my $id      = 0;
+        my $print_z = 0;
+        my $first_object_layer_height   = -1;
         my $first_object_layer_distance = -1;
     
         # add raft layers
@@ -63,8 +64,8 @@ sub slice {
             {
                 my @nozzle_diameters = (
                     map $self->print->config->get_at('nozzle_diameter', $_),
-                        $self->config->support_material_extruder,
-                        $self->config->support_material_interface_extruder,
+                        $self->config->support_material_extruder-1,
+                        $self->config->support_material_interface_extruder-1,
                 );
                 $support_material_layer_height = 0.75 * min(@nozzle_diameters);
             }
@@ -78,20 +79,17 @@ sub slice {
                 );
                 $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
             }
-            my $distance = $self->_support_material->contact_distance($self->config->layer_height, $nozzle_diameter);
+            $first_object_layer_distance = $self->_support_material->contact_distance($self->config->layer_height, $nozzle_diameter);
         
             # force first layer print_z according to the contact distance
             # (the loop below will raise print_z by such height)
-            if ($self->config->support_material_contact_distance == 0) {
-                $first_object_layer_height = $distance;
-            } else {
-                $first_object_layer_height = $nozzle_diameter;
-            }
-            $first_object_layer_distance = $distance;
+            $first_object_layer_height = $first_object_layer_distance - $self->config->support_material_contact_distance;
         }
     
         # loop until we have at least one layer and the max slice_z reaches the object height
-        my $max_z = unscale($self->size->z);
+        my $slice_z = 0;
+        my $height  = 0;
+        my $max_z   = unscale($self->size->z);
         while (($slice_z - $height) <= $max_z) {
             # assign the default height to the layer according to the general settings
             $height = ($id == 0)
@@ -439,7 +437,7 @@ sub make_perimeters {
                     $slice->extra_perimeters($slice->extra_perimeters + 1);
                 }
                 Slic3r::debugf "  adding %d more perimeter(s) at layer %d\n",
-                    $slice->extra_perimeters, $layerm->id
+                    $slice->extra_perimeters, $layerm->layer->id
                     if $slice->extra_perimeters > 0;
             }
         }
@@ -832,17 +830,6 @@ sub clip_fill_surfaces {
     }
 }
 
-sub process_external_surfaces {
-    my ($self) = @_;
-    
-    for my $region_id (0 .. ($self->print->region_count-1)) {
-        $self->get_layer(0)->regions->[$region_id]->process_external_surfaces(undef);
-        for my $i (1 .. ($self->layer_count - 1)) {
-            $self->get_layer($i)->regions->[$region_id]->process_external_surfaces($self->get_layer($i-1));
-        }
-    }
-}
-
 sub discover_horizontal_shells {
     my $self = shift;
     
@@ -852,8 +839,8 @@ sub discover_horizontal_shells {
         for (my $i = 0; $i < $self->layer_count; $i++) {
             my $layerm = $self->get_layer($i)->regions->[$region_id];
             
-            if ($layerm->config->solid_infill_every_layers && $layerm->config->fill_density > 0
-                && ($i % $layerm->config->solid_infill_every_layers) == 0) {
+            if ($layerm->region->config->solid_infill_every_layers && $layerm->region->config->fill_density > 0
+                && ($i % $layerm->region->config->solid_infill_every_layers) == 0) {
                 $_->surface_type(S_TYPE_INTERNALSOLID) for @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
             }
             
@@ -875,8 +862,8 @@ sub discover_horizontal_shells {
                 Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
                 my $solid_layers = ($type == S_TYPE_TOP)
-                    ? $layerm->config->top_solid_layers
-                    : $layerm->config->bottom_solid_layers;
+                    ? $layerm->region->config->top_solid_layers
+                    : $layerm->region->config->bottom_solid_layers;
                 NEIGHBOR: for (my $n = ($type == S_TYPE_TOP) ? $i-1 : $i+1; 
                         abs($n - $i) <= $solid_layers-1; 
                         ($type == S_TYPE_TOP) ? $n-- : $n++) {
@@ -904,7 +891,7 @@ sub discover_horizontal_shells {
                     );
                     next EXTERNAL if !@$new_internal_solid;
                     
-                    if ($layerm->config->fill_density == 0) {
+                    if ($layerm->region->config->fill_density == 0) {
                         # if we're printing a hollow object we discard any solid shell thinner
                         # than a perimeter width, since it's probably just crossing a sloping wall
                         # and it's not wanted in a hollow print even if it would make sense when
@@ -944,7 +931,12 @@ sub discover_horizontal_shells {
                             # make sure our grown surfaces don't exceed the fill area
                             my @grown = @{intersection(
                                 offset($too_narrow, +$margin),
-                                [ map $_->p, @neighbor_fill_surfaces ],
+                                # Discard bridges as they are grown for anchoring and we can't
+                                # remove such anchors. (This may happen when a bridge is being 
+                                # anchored onto a wall where little space remains after the bridge
+                                # is grown, and that little space is an internal solid shell so 
+                                # it triggers this too_narrow logic.)
+                                [ map $_->p, grep { $_->is_internal && !$_->is_bridge } @neighbor_fill_surfaces ],
                             )};
                             $new_internal_solid = $solid = [ @grown, @$new_internal_solid ];
                         }
@@ -1080,7 +1072,7 @@ sub combine_infill {
                      + $layerms[-1]->flow(FLOW_ROLE_PERIMETER)->scaled_width / 2
                      # Because fill areas for rectilinear and honeycomb are grown 
                      # later to overlap perimeters, we need to counteract that too.
-                     + (($type == S_TYPE_INTERNALSOLID || $region->config->fill_pattern =~ /(rectilinear|honeycomb)/)
+                     + (($type == S_TYPE_INTERNALSOLID || $region->config->fill_pattern =~ /(rectilinear|grid|line|honeycomb)/)
                        ? $layerms[-1]->flow(FLOW_ROLE_SOLID_INFILL)->scaled_width
                        : 0)
                      )}, @$intersection;
@@ -1097,12 +1089,12 @@ sub combine_infill {
                         )};
                     
                     # apply surfaces back with adjusted depth to the uppermost layer
-                    if ($layerm->id == $self->get_layer($layer_idx)->id) {
+                    if ($layerm->layer->id == $self->get_layer($layer_idx)->id) {
                         push @new_this_type,
                             map Slic3r::Surface->new(
                                 expolygon        => $_,
                                 surface_type     => $type,
-                                thickness        => sum(map $_->height, @layerms),
+                                thickness        => sum(map $_->layer->height, @layerms),
                                 thickness_layers => scalar(@layerms),
                             ),
                             @$intersection;

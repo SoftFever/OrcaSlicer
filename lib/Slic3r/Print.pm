@@ -14,16 +14,6 @@ use Slic3r::Print::State ':steps';
 
 our $status_cb;
 
-sub new {
-    # TODO: port PlaceholderParser methods to C++, then its own constructor
-    # can call them and no need for this new() method at all
-    my ($class) = @_;
-    my $self = $class->_new;
-    $self->placeholder_parser->apply_env_variables;
-    $self->placeholder_parser->update_timestamp;
-    return $self;
-}
-
 sub set_status_cb {
     my ($class, $cb) = @_;
     $status_cb = $cb;

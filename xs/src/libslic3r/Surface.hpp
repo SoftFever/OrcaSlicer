@@ -21,6 +21,7 @@ class Surface
         : surface_type(_surface_type), expolygon(_expolygon),
             thickness(-1), thickness_layers(1), bridge_angle(-1), extra_perimeters(0)
         {};
+    operator Polygons() const;
     double area() const;
     bool is_solid() const;
     bool is_external() const;

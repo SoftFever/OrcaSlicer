@@ -31,6 +31,7 @@ class ExPolygonCollection
     Polygon convex_hull() const;
     Lines lines() const;
     Polygons contours() const;
+    void append(const ExPolygons &expolygons);
 };
 
 }

@@ -33,6 +33,9 @@ class MultiPoint
     bool has_boundary_point(const Point &point) const;
     BoundingBox bounding_box() const;
     void remove_duplicate_points();
+    void append(const Point &point);
+    void append(const Points &points);
+    void append(const Points::const_iterator &begin, const Points::const_iterator &end);
     
     static Points _douglas_peucker(const Points &points, const double tolerance);
     
