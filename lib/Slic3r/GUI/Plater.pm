@@ -291,7 +291,6 @@ sub new {
     EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
         $self->on_process_completed($event->GetData);
-        Slic3r::thread_cleanup();
     });
     
     if ($Slic3r::have_threads) {
