@@ -389,14 +389,15 @@ sub print_completed {
     $self->set_status('Print completed.');
     $self->{log_textctrl}->AppendText(sprintf "Print completed at %s\n", $self->_timestamp);
     
-    # reorder jobs
-    @{$self->jobs} = sort { $a->printed <=> $b->printed } @{$self->jobs};
-    
     $self->reload_jobs;
 }
 
 sub reload_jobs {
     my ($self) = @_;
+    
+    # reorder jobs
+    @{$self->jobs} = sort { ($a->printed <=> $b->printed) || ($a->timestamp <=> $b->timestamp) }
+        @{$self->jobs};
     
     # remove all panels
     foreach my $child ($self->{jobs_panel_sizer}->GetChildren) {
@@ -476,6 +477,7 @@ use Moo;
 use File::Basename qw(basename);
 
 has 'id'                => (is => 'ro', required => 1);
+has 'timestamp'         => (is => 'ro', default => sub { time });
 has 'gcode_file'        => (is => 'ro', required => 1);
 has 'filament_stats'    => (is => 'rw');
 has 'printing'          => (is => 'rw', default => sub { 0 });
