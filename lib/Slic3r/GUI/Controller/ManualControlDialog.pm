@@ -81,11 +81,11 @@ sub new {
     # X buttons
     {
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        for my $d (qw(-0.1 -1 -10)) {
+        for my $d (qw(-10 -1 -0.1)) {
             $move_button->($sizer, $d, 'arrow_left', 0, wxTOP, sub { $self->rel_move('X', $d) });
         }
         $move_button->($sizer, 'X', 'house', 1, wxTOP, sub { $self->home('X') });
-        for my $d (qw(+10 +1 +0.1)) {
+        for my $d (qw(+0.1 +1 +10)) {
             $move_button->($sizer, $d, 'arrow_right', 0, wxTOP, sub { $self->rel_move('X', $d) });
         }
         $bed_sizer->Add($sizer, 1, wxEXPAND, 0);
