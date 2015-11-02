@@ -228,7 +228,6 @@ sub new {
     });
     EVT_BUTTON($self, $self->{btn_send_gcode}, sub {
         $self->{send_gcode_file} = $self->export_gcode(Wx::StandardPaths::Get->GetTempDir());
-        Slic3r::thread_cleanup();
     });
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
@@ -1260,9 +1259,6 @@ sub export_stl {
     my $output_file = $self->_get_export_file('STL') or return;
     Slic3r::Format::STL->write_file($output_file, $self->{model}, binary => 1);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
-    
-    # this method gets executed in a separate thread by wxWidgets since it's a button handler
-    Slic3r::thread_cleanup() if $Slic3r::have_threads;
 }
 
 sub export_object_stl {
@@ -1286,9 +1282,6 @@ sub export_amf {
     my $output_file = $self->_get_export_file('AMF') or return;
     Slic3r::Format::AMF->write_file($output_file, $self->{model});
     $self->statusbar->SetStatusText("AMF file exported to $output_file");
-    
-    # this method gets executed in a separate thread by wxWidgets since it's a menu handler
-    Slic3r::thread_cleanup() if $Slic3r::have_threads;
 }
 
 sub _get_export_file {
