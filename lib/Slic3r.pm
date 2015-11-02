@@ -172,6 +172,11 @@ sub parallelize {
 sub thread_cleanup {
     return if !$Slic3r::have_threads;
     
+    if (threads->tid == 0) {
+        warn "Calling thread_cleanup() from main thread\n";
+        return;
+    }
+    
     # prevent destruction of shared objects
     no warnings 'redefine';
     *Slic3r::BridgeDetector::DESTROY        = sub {};
