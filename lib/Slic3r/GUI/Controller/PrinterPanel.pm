@@ -160,6 +160,21 @@ sub new {
     $self->{status_text} = Wx::StaticText->new($box, -1, "", wxDefaultPosition, [200,-1]);
     $left_sizer->Add($self->{status_text}, 1, wxEXPAND | wxTOP, 15);
     
+    # manual control
+    {
+        $self->{btn_manual_control} = my $btn = Wx::Button->new($box, -1, "Manual control", wxDefaultPosition, wxDefaultSize);
+        $btn->SetFont($Slic3r::GUI::small_font);
+        if ($Slic3r::GUI::have_button_icons) {
+            $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
+        }
+        $btn->Hide;
+        $left_sizer->Add($btn, 0, wxTOP, 15);
+        EVT_BUTTON($self, $btn, sub {
+            my $dlg = Slic3r::GUI::Controller::ManualControlDialog->new($self);
+            $dlg->ShowModal;
+        });
+    }
+    
     # temperature
     {
         my $temp_panel = $self->{temp_panel} = Wx::Panel->new($box, -1);
@@ -246,11 +261,15 @@ sub _update_connection_controls {
     $self->{serial_port_combobox}->Enable;
     $self->{serial_speed_combobox}->Enable;
     $self->{btn_rescan_serial}->Enable;
+    $self->{btn_manual_control}->Hide;
+    $self->{btn_manual_control}->Disable;
     
     if ($self->is_connected) {
         $self->{btn_connect}->Hide;
+        $self->{btn_manual_control}->Show;
         if (!$self->printing || $self->printing->paused) {
             $self->{btn_disconnect}->Show;
+            $self->{btn_manual_control}->Enable;
         }
         $self->{serial_port_combobox}->Disable;
         $self->{serial_speed_combobox}->Disable;
