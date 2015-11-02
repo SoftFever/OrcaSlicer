@@ -5,6 +5,7 @@
 #include <string>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
 
 #if __APPLE__
@@ -132,6 +133,18 @@ bool
 GCodeSender::is_connected() const
 {
     return this->connected;
+}
+
+bool
+GCodeSender::wait_connected(unsigned int timeout) const
+{
+    using namespace boost::posix_time;
+    ptime t0 = second_clock::local_time() + seconds(timeout);
+    while (!this->connected) {
+        if (second_clock::local_time() > t0) return false;
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+    }
+    return true;
 }
 
 size_t

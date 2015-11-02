@@ -24,6 +24,7 @@ class GCodeSender : private boost::noncopyable {
     void disconnect();
     bool error_status() const;
     bool is_connected() const;
+    bool wait_connected(unsigned int timeout = 3) const;
     size_t queue_size() const;
     void pause_queue();
     void resume_queue();

@@ -1094,16 +1094,7 @@ sub build {
                         $self->{config}->serial_port,
                         $self->{config}->serial_speed,
                     );
-                    if ($res) {
-                        {
-                            # set up a timeout
-                            my $timestamp = time();
-                            my $CONNECTION_TIMEOUT = 3; # seconds
-                            1 until $sender->is_connected || (time - $timestamp) >= $CONNECTION_TIMEOUT;
-                        }
-                        $res = $sender->is_connected;
-                    }
-                    if ($res) {
+                    if ($res && $sender->wait_connected) {
                         Slic3r::GUI::show_info($self, "Connection to printer works correctly.", "Success!");
                     } else {
                         Slic3r::GUI::show_error($self, "Connection failed.");

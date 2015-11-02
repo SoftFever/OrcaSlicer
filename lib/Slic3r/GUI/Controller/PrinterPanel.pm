@@ -301,12 +301,7 @@ sub connect {
     if (!$res) {
         $self->set_status("Connection failed");
     }
-    {
-        # set up a timeout
-        my $timestamp = time();
-        1 until $self->sender->is_connected || (time - $timestamp) >= CONNECTION_TIMEOUT;
-    }
-    if ($self->sender->is_connected) {
+    if ($self->sender->wait_connected) {
         $self->set_status("Printer is online. You can now start printing from the queue on the right.");
         $self->status_timer->Start(STATUS_TIMER_INTERVAL, wxTIMER_CONTINUOUS);
         $self->temp_timer->Start(TEMP_TIMER_INTERVAL, wxTIMER_CONTINUOUS);

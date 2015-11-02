@@ -13,8 +13,9 @@
     
     bool connect(std::string port, unsigned int baud_rate);
     void disconnect();
-    bool is_connected() const;
-    int queue_size() const;
+    bool is_connected();
+    bool wait_connected(unsigned int timeout = 3);
+    int queue_size();
     void send(std::string s, bool priority = false);
     void pause_queue();
     void resume_queue();
