@@ -29,7 +29,6 @@ GCodeSender::GCodeSender()
 
 GCodeSender::~GCodeSender()
 {
-    printf("disconnecting\n");
     this->disconnect();
 }
 
