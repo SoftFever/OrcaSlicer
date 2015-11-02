@@ -27,6 +27,7 @@ class GCodeSender : private boost::noncopyable {
     size_t queue_size() const;
     void pause_queue();
     void resume_queue();
+    void purge_queue();
     std::vector<std::string> purge_log();
     std::string getT() const;
     std::string getB() const;

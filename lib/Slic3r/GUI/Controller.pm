@@ -64,7 +64,6 @@ sub new {
             $panel->disconnect;
         }
         
-        undef wxTheApp->{controller_frame};
         $event->Skip;
     });
     

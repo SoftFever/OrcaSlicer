@@ -158,6 +158,18 @@ GCodeSender::resume_queue()
     this->send();
 }
 
+void
+GCodeSender::purge_queue()
+{
+    boost::lock_guard<boost::mutex> l(this->queue_mutex);
+    {
+        // clear queue
+        std::queue<std::string> empty;
+        std::swap(this->queue, empty);
+    }
+    this->queue_paused = false;
+}
+
 // purge log and return its contents
 std::vector<std::string>
 GCodeSender::purge_log()

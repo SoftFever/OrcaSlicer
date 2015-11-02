@@ -189,17 +189,18 @@ sub new {
         }
         $temp_panel->SetSizer($temp_sizer);
         $temp_panel->Hide;
-        $left_sizer->Add($temp_panel, 0, wxEXPAND | wxTOP, 4);
+        $left_sizer->Add($temp_panel, 0, wxEXPAND | wxTOP | wxBOTTOM, 4);
     }
     
     # print jobs panel
-    my $print_jobs_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $self->{print_jobs_sizer} = my $print_jobs_sizer = Wx::BoxSizer->new(wxVERTICAL);
     {
         my $text = Wx::StaticText->new($box, -1, "Queue:", wxDefaultPosition, wxDefaultSize);
         $text->SetFont($Slic3r::GUI::small_font);
         $print_jobs_sizer->Add($text, 0, wxEXPAND, 0);
         
-        $self->{jobs_panel} = Wx::ScrolledWindow->new($box, -1, wxDefaultPosition, wxDefaultSize, wxBORDER_SUNKEN);
+        $self->{jobs_panel} = Wx::ScrolledWindow->new($box, -1, wxDefaultPosition, wxDefaultSize,
+            wxVSCROLL | wxBORDER_NONE);
         $self->{jobs_panel}->SetScrollbars(0, 1, 0, 1);
         $self->{jobs_panel_sizer} = Wx::BoxSizer->new(wxVERTICAL);
         $self->{jobs_panel}->SetSizer($self->{jobs_panel_sizer});
@@ -212,7 +213,8 @@ sub new {
         $text->SetFont($Slic3r::GUI::small_font);
         $log_sizer->Add($text, 0, wxEXPAND, 0);
         
-        my $log = $self->{log_textctrl} = Wx::TextCtrl->new($box, -1, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxBORDER_SUNKEN);
+        my $log = $self->{log_textctrl} = Wx::TextCtrl->new($box, -1, "", wxDefaultPosition, wxDefaultSize,
+            wxTE_MULTILINE | wxBORDER_NONE);
         $log->SetBackgroundColour($box->GetBackgroundColour);
         $log->SetFont($Slic3r::GUI::small_font);
         $log->SetEditable(0);
@@ -319,9 +321,11 @@ sub disconnect {
 sub update_serial_ports {
     my ($self) = @_;
     
-    $self->{serial_port_combobox}->Clear;
-    $self->{serial_port_combobox}->Append($_)
-        for wxTheApp->scan_serial_ports;
+    my $cb = $self->{serial_port_combobox};
+    my $current = $cb->GetValue;
+    $cb->Clear;
+    $cb->Append($_) for wxTheApp->scan_serial_ports;
+    $cb->SetValue($current);
 }
 
 sub load_print_job {
@@ -366,10 +370,9 @@ sub print_job {
     $self->Layout;
     
     $self->set_status('Printing...');
-    {
-        my @time = localtime(time);
-        $self->{log_textctrl}->AppendText(sprintf "=====\nPrint started at %02d:%02d:%02d\n", @time[2,1,0]);
-    }
+    $self->{log_textctrl}->AppendText(sprintf "=====\n");
+    $self->{log_textctrl}->AppendText(sprintf "Printing %s\n", $job->name);
+    $self->{log_textctrl}->AppendText(sprintf "Print started at %s\n", $self->_timestamp);
 }
 
 sub print_completed {
@@ -384,10 +387,7 @@ sub print_completed {
     $self->Layout;
     
     $self->set_status('Print completed.');
-    {
-        my @time = localtime(time);
-        $self->{log_textctrl}->AppendText(sprintf "Print completed at %02d:%02d:%02d\n", @time[2,1,0]);
-    }
+    $self->{log_textctrl}->AppendText(sprintf "Print completed at %s\n", $self->_timestamp);
     
     # reorder jobs
     @{$self->jobs} = sort { $a->printed <=> $b->printed } @{$self->jobs};
@@ -428,6 +428,19 @@ sub reload_jobs {
             $self->{gauge}->Disable;
             $self->set_status('Print is paused. Click on Resume to continue.');
         });
+        $panel->on_abort_print(sub {
+            my ($job) = @_;
+            $self->sender->purge_queue;
+            $self->printing(undef);
+            $job->printing(0);
+            $job->paused(0);
+            $self->reload_jobs;
+            $self->_update_connection_controls;
+            $self->{gauge}->Disable;
+            $self->{gauge}->Hide;
+            $self->set_status('Print was aborted.');
+            $self->{log_textctrl}->AppendText(sprintf "Print aborted at %s\n", $self->_timestamp);
+        });
         $panel->on_resume_print(sub {
             my ($job) = @_;
             $self->sender->resume_queue;
@@ -447,6 +460,14 @@ sub reload_jobs {
     }
     
     $self->{jobs_panel}->Layout;
+    $self->{print_jobs_sizer}->Layout;
+}
+
+sub _timestamp {
+    my ($self) = @_;
+    
+    my @time = localtime(time);
+    return sprintf '%02d:%02d:%02d', @time[2,1,0];
 }
 
 package Slic3r::GUI::Controller::PrinterPanel::PrintJob;
@@ -471,39 +492,71 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(wxTheApp :panel :id :misc :sizer :button :bitmap :font :dialog :icon);
-use Wx::Event qw(EVT_BUTTON);
+use Wx qw(wxTheApp :panel :id :misc :sizer :button :bitmap :font :dialog :icon :timer
+    :colour :brush :pen);
+use Wx::Event qw(EVT_BUTTON EVT_TIMER EVT_ERASE_BACKGROUND);
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(job on_delete_job on_print_job on_pause_print on_resume_print));
+__PACKAGE__->mk_accessors(qw(job on_delete_job on_print_job on_pause_print on_resume_print
+    on_abort_print blink_timer));
 
 sub new {
     my ($class, $parent, $job) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
     
     $self->job($job);
-    $self->SetBackgroundColour(Wx::wxWHITE);
+    $self->SetBackgroundColour(wxWHITE);
     
-    my $title_and_buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     {
-        my $text = Wx::StaticText->new($self, -1, $job->name, wxDefaultPosition, wxDefaultSize);
+        my $white_brush = Wx::Brush->new(wxWHITE, wxSOLID);
+        my $pen = Wx::Pen->new(Wx::Colour->new(200,200,200), 1, wxSOLID);
+        EVT_ERASE_BACKGROUND($self, sub {
+            my $dc = Wx::PaintDC->new($self);
+            my $size = $self->GetSize;
+            $dc->SetBrush($white_brush);
+            $dc->SetPen($pen);
+            $dc->DrawRoundedRectangle(0, 0, $size->GetWidth,$size->GetHeight, 6);
+        });
+    }
+    
+    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    {
+        $self->{job_name_textctrl} = my $text = Wx::StaticText->new($self, -1, $job->name, wxDefaultPosition, wxDefaultSize);
         my $font = $text->GetFont;
         $font->SetWeight(wxFONTWEIGHT_BOLD);
         $text->SetFont($font);
-        if ($job->printing) {
-            $text->SetForegroundColour(Wx::wxGREEN);
-        } elsif ($job->printed) {
+        if ($job->printed) {
             $text->SetForegroundColour($Slic3r::GUI::grey);
         }
-        $title_and_buttons_sizer->Add($text, 1, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+        $left_sizer->Add($text, 0, wxEXPAND, 0);
     }
     {
-        my $btn = $self->{btn_delete} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG),
-            wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);
+        my $filament_stats = join "\n",
+            map "$_ (" . sprintf("%.2f", $job->filament_stats->{$_}/100) . "m)",
+            sort keys %{$job->filament_stats};
+        my $text = Wx::StaticText->new($self, -1, $filament_stats, wxDefaultPosition, wxDefaultSize);
+        $text->SetFont($Slic3r::GUI::small_font);
+        if ($job->printed && !$job->printing) {
+            $text->SetForegroundColour($Slic3r::GUI::grey);
+        }
+        $left_sizer->Add($text, 0, wxEXPAND | wxTOP, 6);
+    }
+    
+    my $buttons_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    my $button_style = Wx::wxBORDER_NONE | wxBU_EXACTFIT;
+    {
+        my $btn = $self->{btn_delete} = Wx::Button->new($self, -1, 'Delete',
+            wxDefaultPosition, wxDefaultSize, $button_style);
         $btn->SetToolTipString("Delete this job from print queue")
             if $btn->can('SetToolTipString');
         $btn->SetFont($Slic3r::GUI::small_font);
-        $title_and_buttons_sizer->Add($btn, 0, wxEXPAND | wxBOTTOM, 0);
+        if ($Slic3r::GUI::have_button_icons) {
+            $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG));
+        }
+        if ($job->printing) {
+            $btn->Hide;
+        }
+        $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
         
         EVT_BUTTON($self, $btn, sub {
             my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete this print job?", 'Delete Job', wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION)->ShowModal;
@@ -514,30 +567,18 @@ sub new {
             });
         });
     }
-    
-    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    {
-        my $filament_stats = join "\n",
-            map "$_ (" . sprintf("%.2f", $job->filament_stats->{$_}/100) . "m)",
-            sort keys %{$job->filament_stats};
-        my $text = Wx::StaticText->new($self, -1, $filament_stats, wxDefaultPosition, wxDefaultSize);
-        $text->SetFont($Slic3r::GUI::small_font);
-        if ($job->printed && !$job->printing) {
-            $text->SetForegroundColour($Slic3r::GUI::grey);
-        }
-        $left_sizer->Add($text, 1, wxEXPAND | wxTOP | wxBOTTOM, 7);
-    }
-    
-    
-    my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
     {
         my $label = $job->printed ? 'Print Again' : 'Print This';
-        my $btn = $self->{btn_print} = Wx::Button->new($self, -1, $label, wxDefaultPosition, wxDefaultSize);
-        $btn->Hide;
+        my $btn = $self->{btn_print} = Wx::Button->new($self, -1, $label, wxDefaultPosition, wxDefaultSize,
+            $button_style);
+        $btn->SetFont($Slic3r::GUI::small_bold_font);
         if ($Slic3r::GUI::have_button_icons) {
-            $self->{btn_print}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/arrow_up.png", wxBITMAP_TYPE_PNG));
+            $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_play.png", wxBITMAP_TYPE_PNG));
+            $btn->SetBitmapCurrent(Wx::Bitmap->new("$Slic3r::var/control_play_blue.png", wxBITMAP_TYPE_PNG));
+            #$btn->SetBitmapPosition(wxRIGHT);
         }
-        $right_sizer->Add($btn, 0, wxEXPAND | wxBOTTOM, 7);
+        $btn->Hide;
+        $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
         
         EVT_BUTTON($self, $btn, sub {
             wxTheApp->CallAfter(sub {
@@ -546,14 +587,17 @@ sub new {
         });
     }
     {
-        my $btn = $self->{btn_pause} = Wx::Button->new($self, -1, "Pause", wxDefaultPosition, wxDefaultSize);
+        my $btn = $self->{btn_pause} = Wx::Button->new($self, -1, "Pause", wxDefaultPosition, wxDefaultSize,
+            $button_style);
+        $btn->SetFont($Slic3r::GUI::small_font);
         if (!$job->printing || $job->paused) {
             $btn->Hide;
         }
         if ($Slic3r::GUI::have_button_icons) {
-            $self->{btn_print}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/arrow_up.png", wxBITMAP_TYPE_PNG));
+            $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_pause.png", wxBITMAP_TYPE_PNG));
+            $btn->SetBitmapCurrent(Wx::Bitmap->new("$Slic3r::var/control_pause_blue.png", wxBITMAP_TYPE_PNG));
         }
-        $right_sizer->Add($btn, 0, wxEXPAND | wxBOTTOM, 7);
+        $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
         
         EVT_BUTTON($self, $btn, sub {
             wxTheApp->CallAfter(sub {
@@ -562,14 +606,17 @@ sub new {
         });
     }
     {
-        my $btn = $self->{btn_resume} = Wx::Button->new($self, -1, "Resume", wxDefaultPosition, wxDefaultSize);
+        my $btn = $self->{btn_resume} = Wx::Button->new($self, -1, "Resume", wxDefaultPosition, wxDefaultSize,
+            $button_style);
+        $btn->SetFont($Slic3r::GUI::small_font);
         if (!$job->printing || !$job->paused) {
             $btn->Hide;
         }
         if ($Slic3r::GUI::have_button_icons) {
-            $self->{btn_print}->SetBitmap(Wx::Bitmap->new("$Slic3r::var/arrow_up.png", wxBITMAP_TYPE_PNG));
+            $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_play.png", wxBITMAP_TYPE_PNG));
+            $btn->SetBitmapCurrent(Wx::Bitmap->new("$Slic3r::var/control_play_blue.png", wxBITMAP_TYPE_PNG));
         }
-        $right_sizer->Add($btn, 0, wxEXPAND | wxBOTTOM, 7);
+        $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
         
         EVT_BUTTON($self, $btn, sub {
             wxTheApp->CallAfter(sub {
@@ -577,15 +624,45 @@ sub new {
             });
         });
     }
+    {
+        my $btn = $self->{btn_abort} = Wx::Button->new($self, -1, "Abort", wxDefaultPosition, wxDefaultSize,
+            $button_style);
+        $btn->SetFont($Slic3r::GUI::small_font);
+        if (!$job->printing) {
+            $btn->Hide;
+        }
+        if ($Slic3r::GUI::have_button_icons) {
+            $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_stop.png", wxBITMAP_TYPE_PNG));
+            $btn->SetBitmapCurrent(Wx::Bitmap->new("$Slic3r::var/control_stop_blue.png", wxBITMAP_TYPE_PNG));
+        }
+        $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
+        
+        EVT_BUTTON($self, $btn, sub {
+            wxTheApp->CallAfter(sub {
+                $self->on_abort_print->($job);
+            });
+        });
+    }
     
-    my $middle_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-    $middle_sizer->Add($left_sizer, 1, wxEXPAND, 0);
-    $middle_sizer->Add($right_sizer, 0, wxEXPAND, 0);
-    
-    my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $sizer->Add($title_and_buttons_sizer, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 3);
-    $sizer->Add($middle_sizer, 1, wxEXPAND, 0);
+    my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    $sizer->Add($left_sizer, 1, wxEXPAND | wxALL, 6);
+    $sizer->Add($buttons_sizer, 0, wxEXPAND | wxALL, 6);
     $self->SetSizer($sizer);
+    
+    # set-up the timer that changes the job name color while printing
+    if ($self->job->printing && !$self->job->paused) {
+        my $timer_id = &Wx::NewId();
+        $self->blink_timer(Wx::Timer->new($self, $timer_id));
+        my $blink = 0;  # closure
+        my $colour = Wx::Colour->new(0, 190, 0);
+        EVT_TIMER($self, $timer_id, sub {
+            my ($self, $event) = @_;
+            
+            $self->{job_name_textctrl}->SetForegroundColour($blink ? Wx::wxBLACK : $colour);
+            $blink = !$blink;
+        });
+        $self->blink_timer->Start(1000, wxTIMER_CONTINUOUS);
+    }
     
     return $self;
 }
@@ -597,6 +674,17 @@ sub enable_print {
         $self->{btn_print}->Show;
     }
     $self->Layout;
+}
+
+sub Destroy {
+    my ($self) = @_;
+    
+    # There's a gap between the time Perl destroys the wxPanel object and
+    # the blink_timer member, so the wxTimer might still fire an event which
+    # isn't handled properly, causing a crash. So we ensure that blink_timer
+    # is stopped before we destroy the wxPanel.
+    $self->blink_timer->Stop if $self->blink_timer;
+    return $self->SUPER::Destroy;
 }
 
 1;

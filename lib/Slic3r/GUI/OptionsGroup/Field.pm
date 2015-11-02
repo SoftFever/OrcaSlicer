@@ -254,8 +254,13 @@ sub set_values {
     
     $self->disable_change_event(1);
     
-    $self->wxWindow->Clear;
-    $self->wxWindow->Append($_) for @$values;
+    # it looks that Clear() also clears the text field in recent wxWidgets versions,
+    # but we want to preserve it
+    my $ww = $self->wxWindow;
+    my $value = $ww->GetValue;
+    $ww->Clear;
+    $ww->Append($_) for @$values;
+    $ww->SetValue($value);
     
     $self->disable_change_event(0);
 }
