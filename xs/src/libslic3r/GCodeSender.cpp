@@ -24,8 +24,8 @@ namespace Slic3r {
 namespace asio = boost::asio;
 
 GCodeSender::GCodeSender()
-    : io(), serial(io), can_send(false), sent(0), error(false), connected(false),
-      queue_paused(false)
+    : io(), serial(io), can_send(false), sent(0), open(false), error(false),
+      connected(false), queue_paused(false)
 {}
 
 GCodeSender::~GCodeSender()
@@ -36,11 +36,11 @@ GCodeSender::~GCodeSender()
 bool
 GCodeSender::connect(std::string devname, unsigned int baud_rate)
 {
-    
+    this->set_error_status(false);
     try {
         this->serial.open(devname);
     } catch (boost::system::system_error &e) {
-        this->error = true;
+        this->set_error_status(true);
         return false;
     }
     
@@ -214,6 +214,7 @@ GCodeSender::getB() const
 void
 GCodeSender::do_close()
 {
+    this->set_error_status(false);
     boost::system::error_code ec;
     this->serial.cancel(ec);
     if (ec) this->set_error_status(true);
@@ -256,6 +257,7 @@ void
 GCodeSender::on_read(const boost::system::error_code& error,
     size_t bytes_transferred)
 {
+    this->set_error_status(false);
     if (error) {
         // error can be true even because the serial port was closed.
         // In this case it is not a real error, so ignore.
