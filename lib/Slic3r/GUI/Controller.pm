@@ -23,6 +23,11 @@ sub new {
         EVT_LEFT_DOWN($btn, sub {
             my $menu = Wx::Menu->new;
             my %presets = wxTheApp->presets('printer');
+            
+            # remove printers that already exist
+            my @panels = $self->print_panels;
+            delete $presets{$_} for map $_->printer_name, @panels;
+            
             foreach my $preset_name (sort keys %presets) {
                 my $config = Slic3r::Config->load($presets{$preset_name});
                 next if !$config->serial_port;
@@ -67,21 +72,57 @@ sub new {
         $event->Skip;
     });
     
-    {
-        my %presets = wxTheApp->presets('printer');
-        my %configs = map { my $name = $_; $name => Slic3r::Config->load($presets{$name}) } keys %presets;
-        my @presets_with_printer = grep $configs{$_}->serial_port, keys %presets;
-        
-        if (@presets_with_printer == 1) {
-            # if only one preset exists, load it
-            my $name = $presets_with_printer[0];
-            $self->add_printer($name, $configs{$name});
-        }
-    }
-    
     $self->Layout;
     
     return $self;
+}
+
+sub OnActivate {
+    my ($self) = @_;
+    
+    # get all available presets
+    my %presets = ();
+    {
+        my %all = wxTheApp->presets('printer');
+        my %configs = map { my $name = $_; $name => Slic3r::Config->load($all{$name}) } keys %all;
+        %presets = map { $_ => $configs{$_} } grep $configs{$_}->serial_port, keys %all;
+    }
+    
+    # decide which ones we want to keep
+    my %active = ();
+    
+    # keep the ones that are currently connected or have jobs in queue
+    $active{$_} = 1 for map $_->printer_name,
+        grep { $_->is_connected || @{$_->jobs} > 0 }
+        $self->print_panels;
+    
+    # if there are no active panels, use sensible defaults
+    if (!%active) {
+        if (keys %presets <= 2) {
+            # if only one or two presets exist, load them
+            $active{$_} = 1 for keys %presets;
+        } else {
+            # enable printers whose port is available
+            my %ports = map { $_ => 1 } wxTheApp->scan_serial_ports;
+            $active{$_} = 1
+                for grep exists $ports{$presets{$_}->serial_port}, keys %presets;
+        }
+    }
+    
+    # apply changes
+    for my $panel ($self->print_panels) {
+        next if $active{$panel->printer_name};
+        
+        $self->{sizer}->DetachWindow($panel);
+        $panel->Destroy;
+    }
+    $self->add_printer($_, $presets{$_}) for sort keys %active;
+    
+    $self->Layout;
+    
+    # we need this in order to trigger the OnSize event of wxScrolledWindow which
+    # recalculates the virtual size
+    Wx::GetTopLevelParent($self)->SendSizeEvent;
 }
 
 sub add_printer {

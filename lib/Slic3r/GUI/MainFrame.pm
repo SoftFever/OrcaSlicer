@@ -8,7 +8,7 @@ use List::Util qw(min);
 use Slic3r::Geometry qw(X Y Z);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
     :font :icon wxTheApp);
-use Wx::Event qw(EVT_CLOSE EVT_MENU);
+use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Frame';
 
 our $qs_last_input_file;
@@ -89,6 +89,10 @@ sub _init_tabpanel {
     my ($self) = @_;
     
     $self->{tabpanel} = my $panel = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
+    EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{tabpanel}, sub {
+        my $panel = $self->{tabpanel}->GetCurrentPage;
+        $panel->OnActivate if $panel->can('OnActivate');
+    });
     
     if (!$self->{no_plater}) {
         $panel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($panel), "Plater");
