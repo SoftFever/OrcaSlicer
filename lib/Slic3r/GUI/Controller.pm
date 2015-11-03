@@ -14,8 +14,17 @@ sub new {
     $self->SetScrollbars(0, 1, 0, 1);
     $self->{sizer} = my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     
+    # warning to show when there are no printers configured
     {
-        my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG),
+        $self->{text_no_printers} = Wx::StaticText->new($self, -1,
+            "No printers were configured for USB/serial control.",
+            wxDefaultPosition, wxDefaultSize);
+        $self->{sizer}->Add($self->{text_no_printers}, 0, wxTOP | wxLEFT, 30);
+    }
+    
+    # button for adding new printer panels
+    {
+        my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG),
             wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);
         $btn->SetToolTipString("Add printer…")
             if $btn->can('SetToolTipString');
@@ -117,6 +126,12 @@ sub OnActivate {
         $panel->Destroy;
     }
     $self->add_printer($_, $presets{$_}) for sort keys %active;
+    
+    # show/hide the warning about no printers
+    $self->{text_no_printers}->Show(!%presets);
+    
+    # show/hide the Add button
+    $self->{btn_add}->Show(keys %presets != keys %active);
     
     $self->Layout;
     
