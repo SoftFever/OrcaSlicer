@@ -5,7 +5,7 @@ use utf8;
 
 use Wx qw(wxTheApp :panel :id :misc :sizer :button :bitmap :window :gauge :timer
     :textctrl :font :systemsettings);
-use Wx::Event qw(EVT_BUTTON EVT_MOUSEWHEEL EVT_TIMER);
+use Wx::Event qw(EVT_BUTTON EVT_MOUSEWHEEL EVT_TIMER EVT_SCROLLWIN);
 use base qw(Wx::Panel Class::Accessor);
 
 __PACKAGE__->mk_accessors(qw(printer_name config sender jobs 
@@ -220,6 +220,20 @@ sub new {
         $self->{jobs_panel_sizer} = Wx::BoxSizer->new(wxVERTICAL);
         $self->{jobs_panel}->SetSizer($self->{jobs_panel_sizer});
         $print_jobs_sizer->Add($self->{jobs_panel}, 1, wxEXPAND, 0);
+        
+        # TODO: fix this. We're trying to pass the scroll event to the parent but it
+        # doesn't work.
+        EVT_SCROLLWIN($self->{jobs_panel}, sub {
+            my ($panel, $event) = @_;
+            
+            my $controller = $self->GetParent;
+            my $new_event = Wx::ScrollWinEvent->new(
+                $event->GetEventType,
+                $event->GetPosition,
+                $event->GetOrientation,
+            );
+            $controller->ProcessEvent($new_event);
+        }) if 0;
     }
     
     my $log_sizer = Wx::BoxSizer->new(wxVERTICAL);
