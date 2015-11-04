@@ -576,7 +576,7 @@ GCode::_extrude(ExtrusionPath path, std::string description, double speed)
     gcode += this->writer.set_speed(F);
     double path_length = 0;
     {
-        std::string comment = this->config.gcode_comments ? (" ; " + description) : "";
+        std::string comment = this->config.gcode_comments ? description : "";
         Lines lines = path.polyline.lines();
         for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
             const double line_length = line->length() * SCALING_FACTOR;
