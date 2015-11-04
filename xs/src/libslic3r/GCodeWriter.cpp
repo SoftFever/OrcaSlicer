@@ -84,7 +84,7 @@ GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool)
     std::string code, comment;
     if (wait && FLAVOR_IS_NOT(gcfTeacup)) {
         code = "M109";
-        comment = "wait for temperature to be reached";
+        comment = "set temperature and wait for it to be reached";
     } else {
         code = "M104";
         comment = "set temperature";
@@ -119,10 +119,10 @@ GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait)
         } else {
             code = "M190";
         }
-        comment = "set bed temperature";
+        comment = "set bed temperature and wait for it to be reached";
     } else {
         code = "M140";
-        comment = "wait for bed temperature to be reached";
+        comment = "set bed temperature";
     }
     
     std::ostringstream gcode;
