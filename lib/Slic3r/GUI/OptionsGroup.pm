@@ -334,7 +334,8 @@ sub get_option {
         gui_flags   => $optdef->{gui_flags},
         label       => ($self->full_labels && defined $optdef->{full_label}) ? $optdef->{full_label} : $optdef->{label},
         sidetext    => $optdef->{sidetext},
-        tooltip     => $optdef->{tooltip} . " (default: " . $default_value . ")",
+        # calling serialize() ensures we get a stringified value
+        tooltip     => $optdef->{tooltip} . " (default: " . $self->config->serialize($opt_key) . ")",
         multiline   => $optdef->{multiline},
         width       => $optdef->{width},
         min         => $optdef->{min},
