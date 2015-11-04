@@ -335,6 +335,7 @@ PrintConfigDef::build_def() {
 
     Options["first_layer_extrusion_width"].type = coFloatOrPercent;
     Options["first_layer_extrusion_width"].label = "First layer";
+    Options["first_layer_extrusion_width"].category = "Extrusion Width";
     Options["first_layer_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for first layer. You can use this to force fatter extrudates for better adhesion. If expressed as percentage (for example 120%) it will be computed over first layer height. If set to zero, it will use the Default Extrusion Width.";
     Options["first_layer_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["first_layer_extrusion_width"].cli = "first-layer-extrusion-width=s";
