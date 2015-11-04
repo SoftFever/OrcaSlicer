@@ -975,7 +975,7 @@ sub _update_description {
 
 package Slic3r::GUI::Tab::Printer;
 use base 'Slic3r::GUI::Tab';
-use Wx qw(wxTheApp :sizer :button :bitmap :misc :id);
+use Wx qw(wxTheApp :sizer :button :bitmap :misc :id :icon :dialog);
 use Wx::Event qw(EVT_BUTTON);
 
 sub name { 'printer' }
@@ -1298,6 +1298,22 @@ sub _update {
         # some options only apply when not using firmware retraction
         $self->get_field($_, $i)->toggle($retraction && !$config->use_firmware_retraction)
             for qw(retract_speed retract_restart_extra wipe);
+        if ($config->use_firmware_retraction && $config->get_at('wipe', $i)) {
+            my $dialog = Wx::MessageDialog->new($self,
+                "The Wipe option is not available when using the Firmware Retraction mode.\n"
+                . "\nShall I disable it in order to enable Firmware Retraction?",
+                'Firmware Retraction', wxICON_WARNING | wxYES | wxNO);
+            
+            my $new_conf = Slic3r::Config->new;
+            if ($dialog->ShowModal() == wxID_YES) {
+                my $wipe = $config->wipe;
+                $wipe->[$i] = 0;
+                $new_conf->set("wipe", $wipe);
+            } else {
+                $new_conf->set("use_firmware_retraction", 0);
+            }
+            $self->load_config($new_conf);
+        }
         
         $self->get_field('retract_length_toolchange', $i)->toggle($have_multiple_extruders);
         
