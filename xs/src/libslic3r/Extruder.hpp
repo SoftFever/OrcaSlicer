@@ -10,7 +10,7 @@ namespace Slic3r {
 class Extruder
 {
     public:
-    int id;
+    unsigned int id;
     double E;
     double absolute_E;
     double retracted;
@@ -18,7 +18,7 @@ class Extruder
     double e_per_mm3;
     double retract_speed_mm_min;
     
-    Extruder(int id, GCodeConfig *config);
+    Extruder(unsigned int id, GCodeConfig *config);
     virtual ~Extruder() {}
     void reset();
     double extrude(double dE);

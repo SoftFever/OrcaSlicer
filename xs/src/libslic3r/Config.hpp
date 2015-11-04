@@ -459,6 +459,7 @@ class ConfigOptionEnumGeneric : public ConfigOption
 };
 
 enum ConfigOptionType {
+    coNone,
     coFloat,
     coFloats,
     coInt,
@@ -500,7 +501,8 @@ class ConfigOptionDef
     std::vector<std::string> enum_labels;
     t_config_enum_values enum_keys_map;
     
-    ConfigOptionDef() : multiline(false), full_width(false), readonly(false),
+    ConfigOptionDef() : type(coNone),
+                        multiline(false), full_width(false), readonly(false),
                         height(-1), width(-1), min(INT_MIN), max(INT_MAX) {};
 };
 

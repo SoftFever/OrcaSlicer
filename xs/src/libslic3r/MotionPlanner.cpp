@@ -73,7 +73,7 @@ MotionPlanner::initialize()
 }
 
 ExPolygonCollection
-MotionPlanner::get_env(size_t island_idx) const
+MotionPlanner::get_env(int island_idx) const
 {
     if (island_idx == -1) {
         return ExPolygonCollection(this->outer);

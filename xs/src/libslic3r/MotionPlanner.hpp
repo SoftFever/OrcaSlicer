@@ -33,7 +33,7 @@ class MotionPlanner
     
     void initialize();
     MotionPlannerGraph* init_graph(int island_idx);
-    ExPolygonCollection get_env(size_t island_idx) const;
+    ExPolygonCollection get_env(int island_idx) const;
     Point nearest_env_point(const ExPolygonCollection &env, const Point &from, const Point &to) const;
 };
 
@@ -42,7 +42,7 @@ class MotionPlannerGraph
     friend class MotionPlanner;
     
     private:
-    typedef size_t node_t;
+    typedef int node_t;
     typedef double weight_t;
     struct neighbor {
         node_t target;
