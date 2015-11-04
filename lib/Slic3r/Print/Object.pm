@@ -308,7 +308,7 @@ sub slice {
     
     # remove empty layers from bottom
     while (@{$self->layers} && !@{$self->get_layer(0)->slices}) {
-        shift @{$self->layers};
+        $self->delete_layer(0);
         for (my $i = 0; $i <= $#{$self->layers}; $i++) {
             $self->get_layer($i)->set_id( $self->get_layer($i)->id-1 );
         }
