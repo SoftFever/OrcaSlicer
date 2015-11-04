@@ -299,6 +299,7 @@ GCodeSender::on_read(const boost::system::error_code& error,
             {
                 boost::lock_guard<boost::mutex> l(this->queue_mutex);
                 this->priqueue.push(this->last_sent);
+                this->sent--;  // resend it with the same line number
                 this->can_send = true;
             }
             this->send();
@@ -400,18 +401,22 @@ GCodeSender::send()
 void
 GCodeSender::do_send(const std::string &line)
 {
+    // compute full line
+    this->sent++;
+    std::string full_line = "N" + boost::lexical_cast<std::string>(this->sent) + " " + line;
+    
     // calculate checksum
     int cs = 0;
-    for (std::string::const_iterator it = line.begin(); it != line.end(); ++it)
+    for (std::string::const_iterator it = full_line.begin(); it != full_line.end(); ++it)
        cs = cs ^ *it;
     
-    this->sent++;
-    this->last_sent = line;
+    // write line to device
     asio::streambuf b;
     std::ostream os(&b);
-    os << "N" << sent << " " << line
-       << "*" << cs << "\n";
+    os << full_line << "*" << cs << "\n";
     asio::write(this->serial, b);
+    
+    this->last_sent = line;
     this->can_send = false;
 }
 
