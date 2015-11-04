@@ -319,7 +319,7 @@ sub slice {
         $self->_simplify_slices(scale($self->print->config->resolution));
     }
     
-    die "No layers were detected. You might want to repair your STL file(s) or check their size and retry.\n"
+    die "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
         if !@{$self->layers};
     
     $self->set_typed_slices(0);

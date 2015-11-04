@@ -999,7 +999,7 @@ sub start_background_process {
             $self->{print}->process;
         };
         if ($@) {
-            Slic3r::debugf "Discarding background process error: $@\n";
+            Slic3r::debugf "Background process error: $@\n";
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, $@));
         } else {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, undef));
@@ -1149,6 +1149,12 @@ sub on_process_completed {
     Slic3r::debugf "Background processing completed.\n";
     $self->{process_thread}->detach if $self->{process_thread};
     $self->{process_thread} = undef;
+    
+    # if we're supposed to perform an explicit export let's display the error in a dialog
+    if ($error && $self->{export_gcode_output_file}) {
+        $self->{export_gcode_output_file} = undef;
+        Slic3r::GUI::show_error($self, $error);
+    }
     
     return if $error;
     $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
