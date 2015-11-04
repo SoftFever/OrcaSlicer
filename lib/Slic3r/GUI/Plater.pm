@@ -224,7 +224,6 @@ sub new {
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_export_gcode}, sub {
         $self->export_gcode;
-        Slic3r::thread_cleanup();
     });
     EVT_BUTTON($self, $self->{btn_send_gcode}, sub {
         $self->{send_gcode_file} = $self->export_gcode(Wx::StandardPaths::Get->GetTempDir());
