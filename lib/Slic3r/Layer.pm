@@ -56,7 +56,7 @@ sub make_perimeters {
                 && $config->perimeter_speed             == $other_config->perimeter_speed
                 && $config->gap_fill_speed              == $other_config->gap_fill_speed
                 && $config->overhangs                   == $other_config->overhangs
-                && $config->perimeter_extrusion_width   == $other_config->perimeter_extrusion_width
+                && $config->serialize('perimeter_extrusion_width') eq $other_config->serialize('perimeter_extrusion_width')
                 && $config->thin_walls                  == $other_config->thin_walls
                 && $config->external_perimeters_first   == $other_config->external_perimeters_first) {
                 push @layerms, $other_layerm;
