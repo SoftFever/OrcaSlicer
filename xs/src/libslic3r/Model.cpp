@@ -529,10 +529,10 @@ ModelObject::rotate(float angle, const Axis &axis)
 }
 
 void
-ModelObject::flip(const Axis &axis)
+ModelObject::mirror(const Axis &axis)
 {
     for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
-        (*v)->mesh.flip(axis);
+        (*v)->mesh.mirror(axis);
     }
     this->origin_translation = Pointf3(0,0,0);
     this->invalidate_bounding_box();

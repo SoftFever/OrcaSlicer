@@ -230,7 +230,7 @@ void TriangleMesh::rotate_z(float angle)
     this->rotate(angle, Z);
 }
 
-void TriangleMesh::flip(const Axis &axis)
+void TriangleMesh::mirror(const Axis &axis)
 {
     if (axis == X) {
         stl_mirror_yz(&this->stl);
@@ -242,19 +242,19 @@ void TriangleMesh::flip(const Axis &axis)
     stl_invalidate_shared_vertices(&this->stl);
 }
 
-void TriangleMesh::flip_x()
+void TriangleMesh::mirror_x()
 {
-    this->flip(X);
+    this->mirror(X);
 }
 
-void TriangleMesh::flip_y()
+void TriangleMesh::mirror_y()
 {
-    this->flip(Y);
+    this->mirror(Y);
 }
 
-void TriangleMesh::flip_z()
+void TriangleMesh::mirror_z()
 {
-    this->flip(Z);
+    this->mirror(Z);
 }
 
 void TriangleMesh::align_to_origin()
