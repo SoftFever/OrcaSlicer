@@ -29,6 +29,13 @@ if (defined $ENV{BOOST_DIR}) {
     push @LIBS, map "-L$_", grep { -d $_ }
         qw(/opt/local/lib /usr/local/lib /opt/lib /usr/lib),
         qw(C:/Boost/lib /lib);
+    
+    if ($^O eq 'MSWin32') {
+        for my $path (glob 'C:/dev/boost* C:/boost*') {
+            push @INC "-I" . $path;
+            push @INC "-L" . $path . "/stage/lib";
+        }
+    }
 }
 
 push @INC, '-Iinclude';
