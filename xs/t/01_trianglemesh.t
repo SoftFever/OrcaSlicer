@@ -100,7 +100,7 @@ my $cube = {
         my $slices = $m->slice([ 5, 10 ]);
         is $slices->[0][0]->area, $slices->[1][0]->area, 'slicing a top tangent plane includes its area';
     }
-    $m->flip_z;
+    $m->mirror_z;
     {
         # this second test also checks that performing a second slice on a mesh after
         # a transformation works properly (shared_vertices is correctly invalidated);

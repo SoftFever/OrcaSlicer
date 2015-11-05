@@ -171,23 +171,23 @@ void MarkConstrainedEdge(int index);
 void MarkConstrainedEdge(Edge& edge);
 void MarkConstrainedEdge(Point* p, Point* q);
 
-int Index(const Point* p);
-int EdgeIndex(const Point* p1, const Point* p2);
+int Index(const Point* p) const;
+int EdgeIndex(const Point* p1, const Point* p2) const;
 
 Triangle* NeighborCW(const Point& point);
 Triangle* NeighborCCW(const Point& point);
-bool GetConstrainedEdgeCCW(const Point& p);
-bool GetConstrainedEdgeCW(const Point& p);
+bool GetConstrainedEdgeCCW(const Point& p) const;
+bool GetConstrainedEdgeCW(const Point& p) const;
 void SetConstrainedEdgeCCW(const Point& p, bool ce);
 void SetConstrainedEdgeCW(const Point& p, bool ce);
-bool GetDelunayEdgeCCW(const Point& p);
-bool GetDelunayEdgeCW(const Point& p);
+bool GetDelunayEdgeCCW(const Point& p) const;
+bool GetDelunayEdgeCW(const Point& p) const;
 void SetDelunayEdgeCCW(const Point& p, bool e);
 void SetDelunayEdgeCW(const Point& p, bool e);
 
-bool Contains(const Point* p);
-bool Contains(const Edge& e);
-bool Contains(const Point* p, const Point* q);
+bool Contains(const Point* p) const;
+bool Contains(const Edge& e) const;
+bool Contains(const Point* p, const Point* q) const;
 void Legalize(Point& point);
 void Legalize(Point& opoint, Point& npoint);
 /**
@@ -198,7 +198,7 @@ void ClearNeighbor(const Triangle *triangle);
 void ClearNeighbors();
 void ClearDelunayEdges();
 
-inline bool IsInterior();
+inline bool IsInterior() const;
 inline void IsInterior(bool b);
 
 Triangle& NeighborAcross(const Point& opoint);
@@ -293,22 +293,22 @@ inline Triangle* Triangle::GetNeighbor(int index)
   return neighbors_[index];
 }
 
-inline bool Triangle::Contains(const Point* p)
+inline bool Triangle::Contains(const Point* p) const
 {
   return p == points_[0] || p == points_[1] || p == points_[2];
 }
 
-inline bool Triangle::Contains(const Edge& e)
+inline bool Triangle::Contains(const Edge& e) const
 {
   return Contains(e.p) && Contains(e.q);
 }
 
-inline bool Triangle::Contains(const Point* p, const Point* q)
+inline bool Triangle::Contains(const Point* p, const Point* q) const
 {
   return Contains(p) && Contains(q);
 }
 
-inline bool Triangle::IsInterior()
+inline bool Triangle::IsInterior() const
 {
   return interior_;
 }

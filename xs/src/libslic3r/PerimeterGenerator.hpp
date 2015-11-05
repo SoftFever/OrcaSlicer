@@ -22,7 +22,7 @@ class PerimeterGeneratorLoop {
     std::vector<PerimeterGeneratorLoop> children;
     
     PerimeterGeneratorLoop(Polygon polygon, unsigned short depth)
-        : polygon(polygon), depth(depth), is_contour(false)
+        : polygon(polygon), is_contour(false), depth(depth)
         {};
     bool is_external() const;
     bool is_internal_contour() const;
@@ -50,8 +50,8 @@ class PerimeterGenerator {
         PrintConfig* print_config, ExtrusionEntityCollection* loops, 
         ExtrusionEntityCollection* gap_fill, SurfaceCollection* fill_surfaces)
         : slices(slices), lower_slices(NULL), layer_height(layer_height),
-            perimeter_flow(flow), ext_perimeter_flow(flow), overhang_flow(flow),
-            solid_infill_flow(flow), layer_id(-1),
+            layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
+            overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
             loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
             _ext_mm3_per_mm(-1), _mm3_per_mm(-1), _mm3_per_mm_overhang(-1)

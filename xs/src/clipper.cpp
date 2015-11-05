@@ -542,8 +542,8 @@ bool SlopesEqual(const TEdge &e1, const TEdge &e2, bool UseFullInt64Range)
 }
 //------------------------------------------------------------------------------
 
-bool SlopesEqual(const IntPoint pt1, const IntPoint pt2,
-  const IntPoint pt3, bool UseFullInt64Range)
+bool SlopesEqual(const IntPoint &pt1, const IntPoint &pt2,
+  const IntPoint &pt3, bool UseFullInt64Range)
 {
 #ifndef use_int32
   if (UseFullInt64Range)
@@ -554,8 +554,8 @@ bool SlopesEqual(const IntPoint pt1, const IntPoint pt2,
 }
 //------------------------------------------------------------------------------
 
-bool SlopesEqual(const IntPoint pt1, const IntPoint pt2,
-  const IntPoint pt3, const IntPoint pt4, bool UseFullInt64Range)
+bool SlopesEqual(const IntPoint &pt1, const IntPoint &pt2,
+  const IntPoint &pt3, const IntPoint &pt4, bool UseFullInt64Range)
 {
 #ifndef use_int32
   if (UseFullInt64Range)
@@ -572,7 +572,7 @@ inline bool IsHorizontal(TEdge &e)
 }
 //------------------------------------------------------------------------------
 
-inline double GetDx(const IntPoint pt1, const IntPoint pt2)
+inline double GetDx(const IntPoint &pt1, const IntPoint &pt2)
 {
   return (pt1.Y == pt2.Y) ?
     HORIZONTAL : (double)(pt2.X - pt1.X) / (pt2.Y - pt1.Y);
@@ -845,8 +845,8 @@ OutPt* GetBottomPt(OutPt *pp)
 }
 //------------------------------------------------------------------------------
 
-bool Pt2IsBetweenPt1AndPt3(const IntPoint pt1,
-  const IntPoint pt2, const IntPoint pt3)
+bool Pt2IsBetweenPt1AndPt3(const IntPoint &pt1,
+  const IntPoint &pt2, const IntPoint &pt3)
 {
   if ((pt1 == pt3) || (pt1 == pt2) || (pt3 == pt2))
     return false;
@@ -1514,7 +1514,7 @@ void Clipper::DisposeOutRec(PolyOutList::size_type index)
 }
 //------------------------------------------------------------------------------
 
-void Clipper::SetWindingCount(TEdge &edge)
+void Clipper::SetWindingCount(TEdge &edge) const
 {
   TEdge *e = edge.PrevInAEL;
   //find the edge of the same polytype that immediately preceeds 'edge' in AEL
@@ -1814,7 +1814,7 @@ void Clipper::CopyAELToSEL()
 }
 //------------------------------------------------------------------------------
 
-void Clipper::AddJoin(OutPt *op1, OutPt *op2, const IntPoint OffPt)
+void Clipper::AddJoin(OutPt *op1, OutPt *op2, const IntPoint &OffPt)
 {
   Join* j = new Join;
   j->OutPt1 = op1;
@@ -1840,7 +1840,7 @@ void Clipper::ClearGhostJoins()
 }
 //------------------------------------------------------------------------------
 
-void Clipper::AddGhostJoin(OutPt *op, const IntPoint OffPt)
+void Clipper::AddGhostJoin(OutPt *op, const IntPoint &OffPt)
 {
   Join* j = new Join;
   j->OutPt1 = op;
@@ -2180,7 +2180,7 @@ void Clipper::IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &Pt)
 }
 //------------------------------------------------------------------------------
 
-void Clipper::SetHoleState(TEdge *e, OutRec *outrec)
+void Clipper::SetHoleState(TEdge *e, OutRec *outrec) const
 {
   bool IsHole = false;
   TEdge *e2 = e->PrevInAEL;
@@ -2238,7 +2238,7 @@ OutRec* Clipper::GetOutRec(int Idx)
 }
 //------------------------------------------------------------------------------
 
-void Clipper::AppendPolygon(TEdge *e1, TEdge *e2)
+void Clipper::AppendPolygon(TEdge *e1, TEdge *e2) const
 {
   //get the start and ends of both output polygons ...
   OutRec *outRec1 = m_PolyOuts[e1->OutIdx];
@@ -2588,20 +2588,20 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
 
   MaximaList::const_iterator maxIt;
   MaximaList::const_reverse_iterator maxRit;
-  if (m_Maxima.size() > 0)
+  if (!m_Maxima.empty())
   {
       //get the first maxima in range (X) ...
       if (dir == dLeftToRight)
       {
           maxIt = m_Maxima.begin();
-          while (maxIt != m_Maxima.end() && *maxIt <= horzEdge->Bot.X) maxIt++;
+          while (maxIt != m_Maxima.end() && *maxIt <= horzEdge->Bot.X) ++maxIt;
           if (maxIt != m_Maxima.end() && *maxIt >= eLastHorz->Top.X)
               maxIt = m_Maxima.end();
       }
       else
       {
           maxRit = m_Maxima.rbegin();
-          while (maxRit != m_Maxima.rend() && *maxRit > horzEdge->Bot.X) maxRit++;
+          while (maxRit != m_Maxima.rend() && *maxRit > horzEdge->Bot.X) ++maxRit;
           if (maxRit != m_Maxima.rend() && *maxRit <= eLastHorz->Top.X)
               maxRit = m_Maxima.rend();
       }
@@ -2620,7 +2620,7 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
         //this code block inserts extra coords into horizontal edges (in output
         //polygons) whereever maxima touch these horizontal edges. This helps
         //'simplifying' polygons (ie if the Simplify property is set).
-        if (m_Maxima.size() > 0)
+        if (!m_Maxima.empty())
         {
             if (dir == dLeftToRight)
             {
@@ -2628,7 +2628,7 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
                 {
                   if (horzEdge->OutIdx >= 0 && !IsOpen)
                     AddOutPt(horzEdge, IntPoint(*maxIt, horzEdge->Bot.Y));
-                  maxIt++;
+                  ++maxIt;
                 }
             }
             else
@@ -2637,7 +2637,7 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
                 {
                   if (horzEdge->OutIdx >= 0 && !IsOpen)
                     AddOutPt(horzEdge, IntPoint(*maxRit, horzEdge->Bot.Y));
-                  maxRit++;
+                  ++maxRit;
                 }
             }
         };
@@ -3323,7 +3323,7 @@ OutPt* DupOutPt(OutPt* outPt, bool InsertAfter)
 //------------------------------------------------------------------------------
 
 bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
-  const IntPoint Pt, bool DiscardLeft)
+  const IntPoint &Pt, bool DiscardLeft)
 {
   Direction Dir1 = (op1->Pt.X > op1b->Pt.X ? dRightToLeft : dLeftToRight);
   Direction Dir2 = (op2->Pt.X > op2b->Pt.X ? dRightToLeft : dLeftToRight);
@@ -3576,7 +3576,7 @@ static OutRec* ParseFirstLeft(OutRec* FirstLeft)
 }
 //------------------------------------------------------------------------------
 
-void Clipper::FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec)
+void Clipper::FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec) const
 { 
   //tests if NewOutRec contains the polygon before reassigning FirstLeft
   for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i)
@@ -3593,7 +3593,7 @@ void Clipper::FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec)
 }
 //----------------------------------------------------------------------
 
-void Clipper::FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec)
+void Clipper::FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec) const
 { 
   //reassigns FirstLeft WITHOUT testing if NewOutRec contains the polygon
   for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i)
@@ -4462,7 +4462,7 @@ void MinkowskiSum(const Path& pattern, const Path& path, Paths& solution, bool p
 }
 //------------------------------------------------------------------------------
 
-void TranslatePath(const Path& input, Path& output, const IntPoint delta)
+void TranslatePath(const Path& input, Path& output, const IntPoint& delta)
 {
   //precondition: input != output
   output.resize(input.size());

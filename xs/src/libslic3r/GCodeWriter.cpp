@@ -67,7 +67,7 @@ GCodeWriter::preamble()
 }
 
 std::string
-GCodeWriter::postamble()
+GCodeWriter::postamble() const
 {
     std::ostringstream gcode;
     if (FLAVOR_IS(gcfMachinekit))
@@ -76,7 +76,7 @@ GCodeWriter::postamble()
 }
 
 std::string
-GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool)
+GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
 {
     if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
         return "";
@@ -84,7 +84,7 @@ GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool)
     std::string code, comment;
     if (wait && FLAVOR_IS_NOT(gcfTeacup)) {
         code = "M109";
-        comment = "wait for temperature to be reached";
+        comment = "set temperature and wait for it to be reached";
     } else {
         code = "M104";
         comment = "set temperature";
@@ -110,7 +110,7 @@ GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool)
 }
 
 std::string
-GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait)
+GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait) const
 {
     std::string code, comment;
     if (wait && FLAVOR_IS_NOT(gcfTeacup)) {
@@ -119,10 +119,10 @@ GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait)
         } else {
             code = "M190";
         }
-        comment = "set bed temperature";
+        comment = "set bed temperature and wait for it to be reached";
     } else {
         code = "M140";
-        comment = "wait for bed temperature to be reached";
+        comment = "set bed temperature";
     }
     
     std::ostringstream gcode;
@@ -217,7 +217,7 @@ GCodeWriter::reset_e(bool force)
 }
 
 std::string
-GCodeWriter::update_progress(unsigned int num, unsigned int tot, bool allow_100)
+GCodeWriter::update_progress(unsigned int num, unsigned int tot, bool allow_100) const
 {
     if (FLAVOR_IS_NOT(gcfMakerWare) && FLAVOR_IS_NOT(gcfSailfish))
         return "";
@@ -273,7 +273,7 @@ GCodeWriter::toolchange(unsigned int extruder_id)
 }
 
 std::string
-GCodeWriter::set_speed(double F, const std::string &comment)
+GCodeWriter::set_speed(double F, const std::string &comment) const
 {
     std::ostringstream gcode;
     gcode << "G1 F" << F;

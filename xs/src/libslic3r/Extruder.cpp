@@ -2,7 +2,7 @@
 
 namespace Slic3r {
 
-Extruder::Extruder(int id, GCodeConfig *config)
+Extruder::Extruder(unsigned int id, GCodeConfig *config)
 :   id(id),
     config(config)
 {

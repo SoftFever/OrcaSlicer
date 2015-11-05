@@ -6,9 +6,9 @@
 namespace Slic3r {
 
 PrintObject::PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox)
-:   _print(print),
-    _model_object(model_object),
-    typed_slices(false)
+:   typed_slices(false),
+    _print(print),
+    _model_object(model_object)
 {
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
     {

@@ -227,7 +227,6 @@ sub new {
     $self->object_list_changed;
     EVT_BUTTON($self, $self->{btn_export_gcode}, sub {
         $self->export_gcode;
-        Slic3r::thread_cleanup();
     });
     EVT_BUTTON($self, $self->{btn_print}, sub {
         $self->{print_file} = $self->export_gcode(Wx::StandardPaths::Get->GetTempDir());
@@ -791,7 +790,7 @@ sub rotate {
     $self->schedule_background_process;
 }
 
-sub flip {
+sub mirror {
     my ($self, $axis) = @_;
     
     my ($obj_idx, $object) = $self->selected_object;
@@ -800,13 +799,13 @@ sub flip {
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $model_instance = $model_object->instances->[0];
     
-    # apply Z rotation before flipping
+    # apply Z rotation before mirroring
     if ($model_instance->rotation != 0) {
         $model_object->rotate($model_instance->rotation, Z);
         $_->set_rotation(0) for @{ $model_object->instances };
     }
     
-    $model_object->flip($axis);
+    $model_object->mirror($axis);
     $model_object->update_bounding_box;
     
     # realign object to Z = 0
@@ -1006,7 +1005,7 @@ sub start_background_process {
             $self->{print}->process;
         };
         if ($@) {
-            Slic3r::debugf "Discarding background process error: $@\n";
+            Slic3r::debugf "Background process error: $@\n";
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, $@));
         } else {
             Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, undef));
@@ -1156,6 +1155,12 @@ sub on_process_completed {
     Slic3r::debugf "Background processing completed.\n";
     $self->{process_thread}->detach if $self->{process_thread};
     $self->{process_thread} = undef;
+    
+    # if we're supposed to perform an explicit export let's display the error in a dialog
+    if ($error && $self->{export_gcode_output_file}) {
+        $self->{export_gcode_output_file} = undef;
+        Slic3r::GUI::show_error($self, $error);
+    }
     
     return if $error;
     $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
@@ -1721,17 +1726,17 @@ sub object_menu {
         $self->rotate(undef, Z);
     });
     
-    my $flipMenu = Wx::Menu->new;
-    my $flipMenuItem = $menu->AppendSubMenu($flipMenu, "Flip", 'Mirror the selected object');
-    $frame->_set_menu_item_icon($flipMenuItem, 'shape_flip_horizontal.png');
-    $frame->_append_menu_item($flipMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
-        $self->flip(X);
+    my $mirrorMenu = Wx::Menu->new;
+    my $mirrorMenuItem = $menu->AppendSubMenu($mirrorMenu, "Mirror", 'Mirror the selected object');
+    $frame->_set_menu_item_icon($mirrorMenuItem, 'shape_flip_horizontal.png');
+    $frame->_append_menu_item($mirrorMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
+        $self->mirror(X);
     });
-    $frame->_append_menu_item($flipMenu, "Along Y axis…", 'Mirror the selected object along the Y axis', sub {
-        $self->flip(Y);
+    $frame->_append_menu_item($mirrorMenu, "Along Y axis…", 'Mirror the selected object along the Y axis', sub {
+        $self->mirror(Y);
     });
-    $frame->_append_menu_item($flipMenu, "Along Z axis…", 'Mirror the selected object along the Z axis', sub {
-        $self->flip(Z);
+    $frame->_append_menu_item($mirrorMenu, "Along Z axis…", 'Mirror the selected object along the Z axis', sub {
+        $self->mirror(Z);
     });
     
     my $scaleMenu = Wx::Menu->new;

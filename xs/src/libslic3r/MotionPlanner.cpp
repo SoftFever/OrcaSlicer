@@ -73,7 +73,7 @@ MotionPlanner::initialize()
 }
 
 ExPolygonCollection
-MotionPlanner::get_env(size_t island_idx) const
+MotionPlanner::get_env(int island_idx) const
 {
     if (island_idx == -1) {
         return ExPolygonCollection(this->outer);
@@ -127,13 +127,12 @@ MotionPlanner::shortest_path(const Point &from, const Point &to)
     // Now check whether points are inside the environment.
     Point inner_from    = from;
     Point inner_to      = to;
-    bool from_is_inside, to_is_inside;
-    
-    if (!(from_is_inside = env.contains(from))) {
+
+    if (!env.contains(from)) {
         // Find the closest inner point to start from.
         inner_from = this->nearest_env_point(env, from, to);
     }
-    if (!(to_is_inside = env.contains(to))) {
+    if (!env.contains(to)) {
         // Find the closest inner point to start from.
         inner_to = this->nearest_env_point(env, to, inner_from);
     }
@@ -362,7 +361,7 @@ MotionPlannerGraph::shortest_path(size_t from, size_t to)
             const std::vector<neighbor> &neighbors = this->adjacency_list[u];
             for (std::vector<neighbor>::const_iterator neighbor_iter = neighbors.begin();
                  neighbor_iter != neighbors.end();
-                 neighbor_iter++)
+                 ++neighbor_iter)
             {
                 // neighbor node is v
                 node_t v = neighbor_iter->target;

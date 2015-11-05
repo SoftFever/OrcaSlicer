@@ -30,7 +30,7 @@ class BridgeDirectionComparator {
 BridgeDetector::BridgeDetector(const ExPolygon &_expolygon, const ExPolygonCollection &_lower_slices,
     coord_t _extrusion_width)
     : expolygon(_expolygon), lower_slices(_lower_slices), extrusion_width(_extrusion_width),
-        angle(-1), resolution(PI/36.0)
+        resolution(PI/36.0), angle(-1)
 {
     /*  outset our bridge by an arbitrary amout; we'll use this outer margin
         for detecting anchors */
@@ -293,8 +293,8 @@ BridgeDetector::unsupported_edges(double angle, Polylines* unsupported) const
         TODO: angle tolerance should probably be based on segment length and flow width,
         so that we build supports whenever there's a chance that at least one or two bridge
         extrusions would be anchored within such length (i.e. a slightly non-parallel bridging
-        direction might still benefit from anchors if long enough) */
-    double angle_tolerance = PI / 180.0 * 5.0;
+        direction might still benefit from anchors if long enough)
+        double angle_tolerance = PI / 180.0 * 5.0; */
     for (Polylines::const_iterator polyline = _unsupported.begin(); polyline != _unsupported.end(); ++polyline) {
         Lines lines = polyline->lines();
         for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {

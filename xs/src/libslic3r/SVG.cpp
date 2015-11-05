@@ -6,7 +6,7 @@
 namespace Slic3r {
 
 SVG::SVG(const char* filename)
-    : arrows(true), filename(filename), fill("grey"), stroke("black")
+    : arrows(true), fill("grey"), stroke("black"), filename(filename)
 {
     this->f = fopen(filename, "w");
     fprintf(this->f,

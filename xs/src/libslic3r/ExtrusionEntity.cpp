@@ -283,7 +283,7 @@ ExtrusionLoop::has_overhang_point(const Point &point) const
         if (pos != -1) {
             // point belongs to this path
             // we consider it overhang only if it's not an endpoint
-            return (path->is_bridge() && pos > 0 && pos != path->polyline.points.size()-1);
+            return (path->is_bridge() && pos > 0 && pos != (int)(path->polyline.points.size())-1);
         }
     }
     return false;

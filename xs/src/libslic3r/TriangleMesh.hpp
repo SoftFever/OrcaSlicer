@@ -36,10 +36,10 @@ class TriangleMesh
     void rotate_x(float angle);
     void rotate_y(float angle);
     void rotate_z(float angle);
-    void flip(const Axis &axis);
-    void flip_x();
-    void flip_y();
-    void flip_z();
+    void mirror(const Axis &axis);
+    void mirror_x();
+    void mirror_y();
+    void mirror_z();
     void align_to_origin();
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split() const;

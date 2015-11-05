@@ -8,7 +8,7 @@
 namespace Slic3r {
 
 bool
-ConfigBase::has(const t_config_option_key opt_key) {
+ConfigBase::has(const t_config_option_key &opt_key) {
     return (this->option(opt_key, false) != NULL);
 }
 
@@ -52,14 +52,14 @@ ConfigBase::diff(ConfigBase &other) {
 }
 
 std::string
-ConfigBase::serialize(const t_config_option_key opt_key) {
+ConfigBase::serialize(const t_config_option_key &opt_key) {
     ConfigOption* opt = this->option(opt_key);
     assert(opt != NULL);
     return opt->serialize();
 }
 
 bool
-ConfigBase::set_deserialize(const t_config_option_key opt_key, std::string str) {
+ConfigBase::set_deserialize(const t_config_option_key &opt_key, std::string str) {
     if (this->def->count(opt_key) == 0) throw "Calling set_deserialize() on unknown option";
     ConfigOptionDef* optdef = &(*this->def)[opt_key];
     if (!optdef->shortcut.empty()) {
@@ -75,7 +75,7 @@ ConfigBase::set_deserialize(const t_config_option_key opt_key, std::string str) 
 }
 
 double
-ConfigBase::get_abs_value(const t_config_option_key opt_key) {
+ConfigBase::get_abs_value(const t_config_option_key &opt_key) {
     ConfigOption* opt = this->option(opt_key, false);
     if (ConfigOptionFloatOrPercent* optv = dynamic_cast<ConfigOptionFloatOrPercent*>(opt)) {
         // get option definition
@@ -92,7 +92,7 @@ ConfigBase::get_abs_value(const t_config_option_key opt_key) {
 }
 
 double
-ConfigBase::get_abs_value(const t_config_option_key opt_key, double ratio_over) {
+ConfigBase::get_abs_value(const t_config_option_key &opt_key, double ratio_over) {
     // get stored option value
     ConfigOptionFloatOrPercent* opt = dynamic_cast<ConfigOptionFloatOrPercent*>(this->option(opt_key));
     assert(opt != NULL);
@@ -282,7 +282,7 @@ ConfigBase::set(t_config_option_key opt_key, SV* value) {
 /* This method is implemented as a workaround for this typemap bug:
    https://rt.cpan.org/Public/Bug/Display.html?id=94110 */
 bool
-ConfigBase::set_deserialize(const t_config_option_key opt_key, SV* str) {
+ConfigBase::set_deserialize(const t_config_option_key &opt_key, SV* str) {
     size_t len;
     const char * c = SvPV(str, len);
     std::string value(c, len);
@@ -328,7 +328,7 @@ DynamicConfig::DynamicConfig (const DynamicConfig& other) {
 }
 
 ConfigOption*
-DynamicConfig::option(const t_config_option_key opt_key, bool create) {
+DynamicConfig::option(const t_config_option_key &opt_key, bool create) {
     if (this->options.count(opt_key) == 0) {
         if (create) {
             ConfigOptionDef* optdef = &(*this->def)[opt_key];
@@ -375,16 +375,16 @@ DynamicConfig::option(const t_config_option_key opt_key, bool create) {
 
 template<class T>
 T*
-DynamicConfig::opt(const t_config_option_key opt_key, bool create) {
+DynamicConfig::opt(const t_config_option_key &opt_key, bool create) {
     return dynamic_cast<T*>(this->option(opt_key, create));
 }
-template ConfigOptionInt* DynamicConfig::opt<ConfigOptionInt>(const t_config_option_key opt_key, bool create);
-template ConfigOptionBool* DynamicConfig::opt<ConfigOptionBool>(const t_config_option_key opt_key, bool create);
-template ConfigOptionBools* DynamicConfig::opt<ConfigOptionBools>(const t_config_option_key opt_key, bool create);
-template ConfigOptionPercent* DynamicConfig::opt<ConfigOptionPercent>(const t_config_option_key opt_key, bool create);
+template ConfigOptionInt* DynamicConfig::opt<ConfigOptionInt>(const t_config_option_key &opt_key, bool create);
+template ConfigOptionBool* DynamicConfig::opt<ConfigOptionBool>(const t_config_option_key &opt_key, bool create);
+template ConfigOptionBools* DynamicConfig::opt<ConfigOptionBools>(const t_config_option_key &opt_key, bool create);
+template ConfigOptionPercent* DynamicConfig::opt<ConfigOptionPercent>(const t_config_option_key &opt_key, bool create);
 
 const ConfigOption*
-DynamicConfig::option(const t_config_option_key opt_key) const {
+DynamicConfig::option(const t_config_option_key &opt_key) const {
     return const_cast<DynamicConfig*>(this)->option(opt_key, false);
 }
 
@@ -397,7 +397,7 @@ DynamicConfig::keys() const {
 }
 
 void
-DynamicConfig::erase(const t_config_option_key opt_key) {
+DynamicConfig::erase(const t_config_option_key &opt_key) {
     this->options.erase(opt_key);
 }
 
@@ -412,7 +412,7 @@ StaticConfig::keys() const {
 }
 
 const ConfigOption*
-StaticConfig::option(const t_config_option_key opt_key) const
+StaticConfig::option(const t_config_option_key &opt_key) const
 {
     return const_cast<StaticConfig*>(this)->option(opt_key, false);
 }
