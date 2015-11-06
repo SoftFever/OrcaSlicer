@@ -424,7 +424,9 @@ GCodeSender::do_send(const std::string &line)
 
 #ifdef SLIC3RXS
 #include <myinit.h>
-__REGISTER_CLASS(Slic3r::GCodeSender, "GCode::Sender");
+namespace Slic3r {
+__REGISTER_CLASS(GCodeSender, "GCode::Sender");
+}
 #endif
 
 #endif

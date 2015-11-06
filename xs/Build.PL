@@ -12,7 +12,7 @@ use Module::Build::WithXSpp;
 # NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
 my @cflags = qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS);
 
-my @INC  = qw(-Iinclude);
+my @INC  = qw();
 my @LIBS = qw();
 
 # search for Boost in a number of places
@@ -56,6 +56,7 @@ foreach my $path (@boost_libs) {
         
         push @INC, (map " -I$_", @boost_include);  # TODO: only use the one related to the chosen lib path
         push @LIBS, " -L$path", (map " -lboost_$_$suffix", qw(thread system));  # we need these
+        push @cflags, '-DBOOST_LIBS';
         $have_boost = 1;
         last;
     }
