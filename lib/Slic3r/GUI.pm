@@ -320,11 +320,11 @@ sub scan_serial_ports {
     
     if ($^O eq 'MSWin32') {
         # Windows
-        if (eval "use Win32::TieRegistry qw(KEY_READ); 1") {
-            my $ts = Win32::TieRegistry->new("HKEY_CURRENT_USER\\HARDWARE\\DEVICEMAP\\SERIALCOMM",
-                { Access => KEY_READ });
+        if (eval "use Win32::TieRegistry; 1") {
+            my $ts = Win32::TieRegistry->new("HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIALCOMM",
+                { Access => Win32::TieRegistry::KEY_READ() });
             $ts->Tie(\my %reg);
-            push @ports, sort values %$reg;
+            push @ports, sort values %reg;
         }
     } else {
         # UNIX and OS X
