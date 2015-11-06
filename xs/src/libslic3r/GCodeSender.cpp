@@ -420,9 +420,11 @@ GCodeSender::do_send(const std::string &line)
     this->can_send = false;
 }
 
+}
+
 #ifdef SLIC3RXS
-REGISTER_CLASS(GCodeSender, "GCode::Sender");
+#include <myinit.h>
+__REGISTER_CLASS(Slic3r::GCodeSender, "GCode::Sender");
 #endif
 
-}
 #endif

@@ -25,15 +25,15 @@ if (defined $ENV{BOOST_DIR}) {
 } else {
     push @INC, map "-I$_", grep { -d $_ }
         qw(/opt/local/include /usr/local/include /opt/include),
-        qw(/usr/include C:/Boost/include);
+        qw(/usr/include C:\Boost\include);
     push @LIBS, map "-L$_", grep { -d $_ }
         qw(/opt/local/lib /usr/local/lib /opt/lib /usr/lib),
-        qw(C:/Boost/lib /lib);
+        qw(C:\Boost\lib /lib);
     
     if ($^O eq 'MSWin32') {
-        for my $path (glob 'C:/dev/boost* C:/boost*') {
-            push @INC "-I" . $path;
-            push @INC "-L" . $path . "/stage/lib";
+        for my $path (glob 'C:\dev\boost* C:\boost*') {
+            push @INC, "-I" . $path;
+            push @INC, "-L" . $path . "/stage/lib";
         }
     }
 }
@@ -41,7 +41,8 @@ if (defined $ENV{BOOST_DIR}) {
 push @INC, '-Iinclude';
 
 my @boost_libs = qw(thread system);
-for my $pattern ('boost_%s', 'boost_%s-mt') {
+my $have_boost = 0;
+for my $pattern ('boost_%s', 'boost_%s-mt', 'boost_%s-mgw47-mt-1_59') {
     check_lib(
         lib     => sprintf($pattern, 'system'),
         INC     => join(' ', @INC),
@@ -49,8 +50,10 @@ for my $pattern ('boost_%s', 'boost_%s-mt') {
     ) or next;
     push @LIBS, map sprintf("-l$pattern", $_), @boost_libs;
     push @cflags, '-DBOOST_LIBS';
+    $have_boost = 1;
     last;
 }
+die "No Boost!\n" if !$have_boost;
 if ($ENV{SLIC3R_DEBUG}) {
     # only on newer GCCs: -ftemplate-backtrace-limit=0
     push @cflags, qw(-DSLIC3R_DEBUG -g);
@@ -94,7 +97,8 @@ my $build = Module::Build::WithXSpp->new(
         cstring
         cstdlib
         ostream
-		sstream
+        sstream
+        libslic3r/GCodeSender.hpp
     )]
 );
 
