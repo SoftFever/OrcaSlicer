@@ -320,16 +320,18 @@ sub scan_serial_ports {
     
     if ($^O eq 'MSWin32') {
         # Windows
-        my %reg;
-        if (eval "use Win32::TieRegistry (TiedHash => \\%reg); 1") {
-            push @ports, sort values %{$reg{"HKEY_CURRENT_USER\\HARDWARE\\DEVICEMAP\\SERIALCOMM"}};
+        if (eval "use Win32::TieRegistry qw(KEY_READ); 1") {
+            my $ts = Win32::TieRegistry->new("HKEY_CURRENT_USER\\HARDWARE\\DEVICEMAP\\SERIALCOMM",
+                { Access => KEY_READ });
+            $ts->Tie(\my %reg);
+            push @ports, sort values %$reg;
         }
     } else {
         # UNIX and OS X
         push @ports, glob '/dev/{ttyUSB,ttyACM,tty.,cu.,rfcomm}*';
     }
     
-    return @ports;
+    return grep !/Bluetooth|FireFly/, @ports;
 }
 
 1;
