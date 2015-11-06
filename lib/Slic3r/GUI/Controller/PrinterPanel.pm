@@ -313,17 +313,18 @@ sub connect {
         $self->{serial_speed_combobox}->GetValue,
     );
     if (!$res) {
-        $self->set_status("Connection failed");
-    }
-    if ($self->sender->wait_connected) {
-        $self->set_status("Printer is online. You can now start printing from the queue on the right.");
-        $self->status_timer->Start(STATUS_TIMER_INTERVAL, wxTIMER_CONTINUOUS);
-        $self->temp_timer->Start(TEMP_TIMER_INTERVAL, wxTIMER_CONTINUOUS);
-        
-        # request temperature now, without waiting for the timer
-        $self->sender->send("M105", 1);
-    } else {
         $self->set_status("Connection failed. Check serial port and speed.");
+    } else {
+        if ($self->sender->wait_connected) {
+            $self->set_status("Printer is online. You can now start printing from the queue on the right.");
+            $self->status_timer->Start(STATUS_TIMER_INTERVAL, wxTIMER_CONTINUOUS);
+            $self->temp_timer->Start(TEMP_TIMER_INTERVAL, wxTIMER_CONTINUOUS);
+        
+            # request temperature now, without waiting for the timer
+            $self->sender->send("M105", 1);
+        } else {
+            $self->set_status("Connection failed. Check serial port and speed.");
+        }
     }
     $self->_update_connection_controls;
     $self->reload_jobs;
