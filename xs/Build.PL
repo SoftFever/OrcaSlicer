@@ -12,48 +12,65 @@ use Module::Build::WithXSpp;
 # NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
 my @cflags = qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS);
 
-my @INC  = qw();
+my @INC  = qw(-Iinclude);
 my @LIBS = qw();
 
+# search for Boost in a number of places
+my @boost_include = my @boost_libs = ();
 if (defined $ENV{BOOST_DIR}) {
     if (-d "$ENV{BOOST_DIR}/include") {
-        push @INC, '-I' . $ENV{BOOST_DIR} . '/include';
+        push @boost_include, $ENV{BOOST_DIR} . '/include';
     } else {
-        push @INC, '-I' . $ENV{BOOST_DIR};
+        push @boost_include, $ENV{BOOST_DIR};
     }
-    push @LIBS, '-L' . $ENV{BOOST_DIR};
+    push @boost_libs, $ENV{BOOST_DIR};
 } else {
-    push @INC, map "-I$_", grep { -d $_ }
+    push @boost_include, grep { -d $_ }
         qw(/opt/local/include /usr/local/include /opt/include),
         qw(/usr/include C:\Boost\include);
-    push @LIBS, map "-L$_", grep { -d $_ }
+    push @boost_libs, grep { -d $_ }
         qw(/opt/local/lib /usr/local/lib /opt/lib /usr/lib),
         qw(C:\Boost\lib /lib);
     
     if ($^O eq 'MSWin32') {
-        for my $path (glob 'C:\dev\boost* C:\boost*') {
-            push @INC, "-I" . $path;
-            push @INC, "-L" . $path . "/stage/lib";
+        for my $path (glob('C:\dev\boost*'), glob ('C:\boost*')) {
+            push @boost_include, $path;
+            push @boost_libs, $path . "/stage/lib";
         }
     }
 }
 
-push @INC, '-Iinclude';
-
-my @boost_libs = qw(thread system);
+# In order to generate the -l switches we need to know how Boost libraries are named
 my $have_boost = 0;
-for my $pattern ('boost_%s', 'boost_%s-mt', 'boost_%s-mgw47-mt-1_59') {
-    check_lib(
-        lib     => sprintf($pattern, 'system'),
-        INC     => join(' ', @INC),
-        LIBS    => join(' ', @LIBS),
-    ) or next;
-    push @LIBS, map sprintf("-l$pattern", $_), @boost_libs;
-    push @cflags, '-DBOOST_LIBS';
-    $have_boost = 1;
-    last;
+foreach my $path (@boost_libs) {
+    my @files = glob "$path/libboost_system*";
+    next if !@files;
+    
+    if ($files[0] =~ /libboost_system([^.]+)/) {
+        my $suffix = $1;
+        check_lib(
+            lib     => "boost_system$suffix",
+            INC     => join(' ', map "-I$_", @INC,  @boost_include),
+            LIBS    => "-L$path",
+        ) or next;
+        
+        push @INC, (map " -I$_", @boost_include);  # TODO: only use the one related to the chosen lib path
+        push @LIBS, " -L$path", (map " -lboost_$_$suffix", qw(thread system));  # we need these
+        $have_boost = 1;
+        last;
+    }
 }
-die "No Boost!\n" if !$have_boost;
+die <<'EOF' if !$have_boost;
+Slic3r requires the Boost libraries. Please make sure they are installed.
+
+If they are installed, this script should be able to locate them in several
+standard locations. If this is not the case, you might want to supply their 
+path through the BOOST_DIR environment variable:
+
+    BOOST_DIR=/path/to/boost perl Build.PL
+
+EOF
+
 if ($ENV{SLIC3R_DEBUG}) {
     # only on newer GCCs: -ftemplate-backtrace-limit=0
     push @cflags, qw(-DSLIC3R_DEBUG -g);
