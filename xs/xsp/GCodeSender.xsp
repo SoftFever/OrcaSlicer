@@ -3,7 +3,6 @@
 #ifdef BOOST_LIBS
 
 %{
-#include <myinit.h>
 #include "libslic3r/GCodeSender.hpp"
 %}
 
