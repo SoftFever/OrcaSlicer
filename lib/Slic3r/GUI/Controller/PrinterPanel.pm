@@ -542,7 +542,8 @@ sub new {
         my $white_brush = Wx::Brush->new(wxWHITE, wxSOLID);
         my $pen = Wx::Pen->new(Wx::Colour->new(200,200,200), 1, wxSOLID);
         EVT_ERASE_BACKGROUND($self, sub {
-            my $dc = Wx::PaintDC->new($self);
+            my ($self, $event) = @_;
+            my $dc = $event->GetDC;
             my $size = $self->GetSize;
             $dc->SetBrush($white_brush);
             $dc->SetPen($pen);
