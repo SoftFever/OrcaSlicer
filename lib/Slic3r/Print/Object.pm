@@ -686,7 +686,7 @@ sub detect_surfaces_type {
             # as bottom surfaces (to allow for bridge detection)
             if (@top && @bottom) {
                 my $overlapping = intersection_ex([ map $_->p, @top ], [ map $_->p, @bottom ]);
-                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->id, scalar(@$overlapping)
+                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->layer->id, scalar(@$overlapping)
                     if $Slic3r::debug;
                 @top = $difference->([map $_->expolygon, @top], $overlapping, S_TYPE_TOP);
             }
@@ -703,7 +703,7 @@ sub detect_surfaces_type {
             $layerm->slices->append($_) for (@bottom, @top, @internal);
             
             Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
-                $layerm->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
+                $layerm->layer->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
         }
         
         # clip surfaces to the fill boundaries
