@@ -5,7 +5,11 @@ use utf8;
 
 use Wx qw(wxTheApp :frame :id :misc :sizer :bitmap :button :icon :dialog);
 use Wx::Event qw(EVT_CLOSE EVT_LEFT_DOWN EVT_MENU);
-use base 'Wx::ScrolledWindow';
+use base qw(Wx::ScrolledWindow Class::Accessor);
+
+__PACKAGE__->mk_accessors(qw(_selected_printer_preset));
+
+our @ConfigOptions = qw(bed_shape serial_port serial_speed);
 
 sub new {
     my ($class, $parent) = @_;
@@ -105,16 +109,22 @@ sub OnActivate {
         grep { $_->is_connected || @{$_->jobs} > 0 }
         $self->print_panels;
     
-    # if there are no active panels, use sensible defaults
-    if (!%active) {
-        if (keys %presets <= 2) {
+    if (%presets) {
+        # if there are no active panels, use sensible defaults
+        if (!%active && keys %presets <= 2) {
             # if only one or two presets exist, load them
             $active{$_} = 1 for keys %presets;
-        } else {
+        }
+        if (!%active) {
             # enable printers whose port is available
             my %ports = map { $_ => 1 } wxTheApp->scan_serial_ports;
             $active{$_} = 1
                 for grep exists $ports{$presets{$_}->serial_port}, keys %presets;
+        }
+        if (!%active && $self->_selected_printer_preset) {
+            # enable currently selected printer if it is configured
+            $active{$self->_selected_printer_preset} = 1
+                if $presets{$self->_selected_printer_preset};
         }
     }
     
@@ -161,6 +171,23 @@ sub print_panels {
     my ($self) = @_;
     return grep $_->isa('Slic3r::GUI::Controller::PrinterPanel'),
         map $_->GetWindow, $self->{sizer}->GetChildren;
+}
+
+sub update_presets {
+    my $self = shift;
+    my ($group, $presets, $selected, $is_dirty) = @_;
+    
+    # update configs of currently loaded print panels
+    foreach my $panel ($self->print_panels) {
+        foreach my $preset (@$presets) {
+            if ($panel->printer_name eq $preset->name) {
+                my $config = $preset->config(\@ConfigOptions);
+                $panel->config->apply($config);
+            }
+        }
+    }
+    
+    $self->_selected_printer_preset($presets->[$selected]->name);
 }
 
 1;

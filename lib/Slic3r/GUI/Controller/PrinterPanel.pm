@@ -564,7 +564,7 @@ sub new {
     }
     {
         my $filament_stats = join "\n",
-            map "$_ (" . sprintf("%.2f", $job->filament_stats->{$_}/100) . "m)",
+            map "$_ (" . sprintf("%.2f", $job->filament_stats->{$_}/1000) . "m)",
             sort keys %{$job->filament_stats};
         my $text = Wx::StaticText->new($self, -1, $filament_stats, wxDefaultPosition, wxDefaultSize);
         $text->SetFont($Slic3r::GUI::small_font);

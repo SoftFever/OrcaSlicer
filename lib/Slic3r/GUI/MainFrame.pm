@@ -136,6 +136,7 @@ sub _init_tabpanel {
             if ($self->{plater}) {
                 $self->{plater}->update_presets($tab_name, @_);
                 $self->{plater}->on_config_change($tab->config);
+                $self->{controller}->update_presets($tab_name, @_);
             }
         });
         $tab->load_presets;
@@ -735,7 +736,7 @@ sub check_unsaved_changes {
 
 sub select_tab {
     my ($self, $tab) = @_;
-    $self->{tabpanel}->ChangeSelection($tab);
+    $self->{tabpanel}->SetSelection($tab);
 }
 
 sub _append_menu_item {
