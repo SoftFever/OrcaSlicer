@@ -58,6 +58,9 @@ sub new {
         $canvas->interactive(1);
         $canvas->on_move(sub {
             my ($pos) = @_;
+            
+            # delete any pending commands to get a smoother movement
+            $self->purge_queue(1);
             $self->abs_xy_move($pos);
         });
         $bed_sizer->Add($canvas, 0, wxEXPAND | wxRIGHT, 3);
