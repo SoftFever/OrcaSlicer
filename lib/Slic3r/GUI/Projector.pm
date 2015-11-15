@@ -11,13 +11,16 @@ sub new {
     my ($class, $parent) = @_;
     my $self = $class->SUPER::new($parent, -1, "Projector for DLP", wxDefaultPosition, wxDefaultSize);
     $self->config2({
-        display         => 0,
-        show_bed        => 1,
-        zoom            => 100,
-        exposure_time   => 4,
-        settle_time     => 4,
-        z_lift          => 15,
-        offset          => [0,0],
+        display                 => 0,
+        show_bed                => 1,
+        zoom                    => 100,
+        exposure_time           => 4,
+        bottom_exposure_time    => 10,
+        settle_time             => 4,
+        bottom_layers           => 3,
+        z_lift                  => 15,
+        z_lift_speed            => 50,
+        offset                  => [0,0],
     });
     
     my $ini = eval { Slic3r::Config->read_ini("$Slic3r::GUI::datadir/DLP.ini") };
@@ -33,9 +36,12 @@ sub new {
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     
+    $self->config(Slic3r::Config->new_from_defaults(
+        qw(serial_port serial_speed bed_shape start_gcode end_gcode)
+    ));
+    $self->config->apply(wxTheApp->{mainframe}->config);
+    
     {
-        $self->config(Slic3r::Config->new_from_defaults(qw(serial_port serial_speed bed_shape)));
-        $self->config->apply(wxTheApp->{mainframe}->config);
         
         my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
             parent      => $self,
@@ -45,51 +51,76 @@ sub new {
         );
         $sizer->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
         
-        my $line = Slic3r::GUI::OptionsGroup::Line->new(
-            label => 'Serial port',
-        );
-        my $serial_port = $optgroup->get_option('serial_port');
-        $serial_port->side_widget(sub {
-            my ($parent) = @_;
+        {
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label => 'Serial port',
+            );
+            my $serial_port = $optgroup->get_option('serial_port');
+            $serial_port->side_widget(sub {
+                my ($parent) = @_;
             
-            my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG),
-                wxDefaultPosition, wxDefaultSize, &Wx::wxBORDER_NONE);
-            $btn->SetToolTipString("Rescan serial ports")
-                if $btn->can('SetToolTipString');
-            EVT_BUTTON($self, $btn, sub {
-                $optgroup->get_field('serial_port')->set_values([ wxTheApp->scan_serial_ports ]);
+                my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG),
+                    wxDefaultPosition, wxDefaultSize, &Wx::wxBORDER_NONE);
+                $btn->SetToolTipString("Rescan serial ports")
+                    if $btn->can('SetToolTipString');
+                EVT_BUTTON($self, $btn, sub {
+                    $optgroup->get_field('serial_port')->set_values([ wxTheApp->scan_serial_ports ]);
+                });
+            
+                return $btn;
             });
+            my $serial_test = sub {
+                my ($parent) = @_;
             
-            return $btn;
-        });
-        my $serial_test = sub {
-            my ($parent) = @_;
-            
-            my $btn = $self->{serial_test_btn} = Wx::Button->new($parent, -1,
-                "Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-            $btn->SetFont($Slic3r::GUI::small_font);
-            if ($Slic3r::GUI::have_button_icons) {
-                $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/wrench.png", wxBITMAP_TYPE_PNG));
-            }
-            
-            EVT_BUTTON($self, $btn, sub {
-                my $sender = Slic3r::GCode::Sender->new;
-                my $res = $sender->connect(
-                    $self->{config}->serial_port,
-                    $self->{config}->serial_speed,
-                );
-                if ($res && $sender->wait_connected) {
-                    Slic3r::GUI::show_info($self, "Connection to printer works correctly.", "Success!");
-                } else {
-                    Slic3r::GUI::show_error($self, "Connection failed.");
+                my $btn = $self->{serial_test_btn} = Wx::Button->new($parent, -1,
+                    "Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+                $btn->SetFont($Slic3r::GUI::small_font);
+                if ($Slic3r::GUI::have_button_icons) {
+                    $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/wrench.png", wxBITMAP_TYPE_PNG));
                 }
-            });
-            return $btn;
-        };
-        $line->append_option($serial_port);
-        $line->append_option($optgroup->get_option('serial_speed'));
-        $line->append_widget($serial_test);
-        $optgroup->append_line($line);
+            
+                EVT_BUTTON($self, $btn, sub {
+                    my $sender = Slic3r::GCode::Sender->new;
+                    my $res = $sender->connect(
+                        $self->{config}->serial_port,
+                        $self->{config}->serial_speed,
+                    );
+                    if ($res && $sender->wait_connected) {
+                        Slic3r::GUI::show_info($self, "Connection to printer works correctly.", "Success!");
+                    } else {
+                        Slic3r::GUI::show_error($self, "Connection failed.");
+                    }
+                });
+                return $btn;
+            };
+            $line->append_option($serial_port);
+            $line->append_option($optgroup->get_option('serial_speed'));
+            $line->append_widget($serial_test);
+            $optgroup->append_line($line);
+        }
+    }
+    
+    {
+        my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+            parent      => $self,
+            title       => 'G-code',
+            config      => $self->config,
+            label_width => 200,
+        );
+        $sizer->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+        
+        {
+            my $option = $optgroup->get_option('start_gcode');
+            $option->height(50);
+            $option->full_width(1);
+            $optgroup->append_single_option_line($option);
+        }
+        {
+            my $option = $optgroup->get_option('end_gcode');
+            $option->height(50);
+            $option->full_width(1);
+            $optgroup->append_single_option_line($option);
+        }
     }
     
     my $on_change = sub {
@@ -120,39 +151,46 @@ sub new {
         );
         $sizer->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
         
-        my @displays = 0 .. (Wx::Display::GetCount()-1);
-        $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-            opt_id      => 'display',
-            type        => 'select',
-            label       => 'Display',
-            tooltip     => '',
-            labels      => [@displays],
-            values      => [@displays],
-            default     => $self->config2->{display},
-        ));
+        {
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label => 'Display',
+            );
+        
+            my @displays = 0 .. (Wx::Display::GetCount()-1);
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'display',
+                type        => 'select',
+                label       => 'Display',
+                tooltip     => '',
+                labels      => [@displays],
+                values      => [@displays],
+                default     => $self->config2->{display},
+            ));
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'zoom',
+                type        => 'percent',
+                label       => 'Zoom %',
+                tooltip     => '',
+                default     => $self->config2->{zoom},
+                min         => 0.1,
+                max         => 100,
+            ));
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'offset',
+                type        => 'point',
+                label       => 'Offset',
+                tooltip     => '',
+                default     => $self->config2->{offset},
+            ));
+            $optgroup->append_line($line);
+        }
+        
         $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
             opt_id      => 'show_bed',
             type        => 'bool',
             label       => 'Show bed',
             tooltip     => '',
             default     => $self->config2->{show_bed},
-        ));
-        $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-            opt_id      => 'zoom',
-            type        => 'percent',
-            label       => 'Zoom',
-            sidetext    => '%',
-            tooltip     => '',
-            default     => $self->config2->{zoom},
-            min         => 0.1,
-            max         => 100,
-        ));
-        $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-            opt_id      => 'offset',
-            type        => 'point',
-            label       => 'Offset',
-            tooltip     => '',
-            default     => $self->config2->{offset},
         ));
     }
     
@@ -165,30 +203,64 @@ sub new {
         );
         $sizer->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
         
+        {
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label => 'Time (seconds)',
+            );
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'bottom_exposure_time',
+                type        => 'i',
+                label       => 'Bottom exposure',
+                tooltip     => '',
+                default     => $self->config2->{bottom_exposure_time},
+            ));
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'exposure_time',
+                type        => 'i',
+                label       => 'Exposure',
+                tooltip     => '',
+                default     => $self->config2->{exposure_time},
+            ));
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'settle_time',
+                type        => 'i',
+                label       => 'Settle',
+                tooltip     => '',
+                default     => $self->config2->{settle_time},
+            ));
+            $optgroup->append_line($line);
+        }
+        
         $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-            opt_id      => 'exposure_time',
+            opt_id      => 'bottom_layers',
             type        => 'i',
-            label       => 'Exposure time',
-            sidetext    => 'seconds',
+            label       => 'Bottom layers',
             tooltip     => '',
-            default     => $self->config2->{exposure_time},
+            default     => $self->config2->{bottom_layers},
         ));
-        $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-            opt_id      => 'settle_time',
-            type        => 'i',
-            label       => 'Settle time',
-            sidetext    => 'seconds',
-            tooltip     => '',
-            default     => $self->config2->{settle_time},
-        ));
-        $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-            opt_id      => 'z_lift',
-            type        => 'f',
-            label       => 'Z Lift',
-            sidetext    => 'mm',
-            tooltip     => '',
-            default     => $self->config2->{z_lift},
-        ));
+        
+        {
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label => 'Z Lift',
+            );
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'z_lift',
+                type        => 'f',
+                label       => 'Distance',
+                sidetext    => 'mm',
+                tooltip     => '',
+                default     => $self->config2->{z_lift},
+            ));
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'z_lift_speed',
+                type        => 'f',
+                label       => 'Speed',
+                sidetext    => 'mm/s',
+                tooltip     => '',
+                default     => $self->config2->{z_lift_speed},
+            ));
+            $optgroup->append_line($line);
+        }
     }
     
     {
@@ -410,14 +482,15 @@ sub start_print {
             $self->config->serial_speed,
         );
         if (!$res || !$self->sender->wait_connected) {
-            Slic3r::GUI::show_error($self, "Connection failed. Check serial port and speed.");
+            Slic3r::GUI::show_error(undef, "Connection failed. Check serial port and speed.");
             return;
         }
         Slic3r::debugf "connected to " . $self->config->serial_port . "\n";
         
-        # TODO: replace this with customizable start G-code
-        $self->sender->send("G28 Z", 1);
-        $self->sender->send(sprintf("G1 Z%.5f F5000", $self->config2->{z_lift}), 1);
+        # send custom start G-code
+        $self->sender->send($_, 1) for grep !/^;/, split /\n/, $self->config->start_gcode;
+        $self->sender->send(sprintf("G1 Z%.5f F%d",
+            $self->config2->{z_lift}, $self->config2->{z_lift_speed}*60), 1);
     }
     
     # TODO: block until the G1 command has been performed
@@ -439,6 +512,9 @@ sub stop_print {
     $self->timer->Stop;
     $self->_timer_cb(undef);
     $self->screen->project_layers(undef);
+    
+    # send custom end G-code
+    $self->sender->send($_, 1) for grep !/^;/, split /\n/, $self->config->end_gcode;
     $self->sender->disconnect if $self->sender;
 }
 
@@ -456,17 +532,26 @@ sub project_next_layer {
     
     if ($self->sender) {
         my $z = $self->current_layer_height;
-        $self->sender->send(sprintf("G1 Z%.5f F5000", $z + $self->config2->{z_lift}), 1);
-        $self->sender->send(sprintf("G1 Z%.5f F5000", $z), 1);
+        my $F = $self->config2->{z_lift_speed} * 60;
+        if ($self->config2->{z_lift} != 0) {
+            $self->sender->send(sprintf("G1 Z%.5f F%d", $z + $self->config2->{z_lift}, $F), 1);
+        }
+        $self->sender->send(sprintf("G1 Z%.5f F%d", $z, $F), 1);
     }
     
     # TODO: we should block until G1 commands have been performed, see note below
     # TODO: subtract this waiting time from the settle_time
     $self->delay(2, sub {
         my @layers = @{ $self->_layers->{ $self->_heights->[$self->_layer_num] } };
-        printf "id = %d, height = %s\n", $self->_layer_num, $self->_heights->[$self->_layer_num];
         $self->screen->project_layers([ @layers ]);
-        $self->delay($self->config2->{exposure_time}, sub {
+        
+        # get exposure time
+        my $time = $self->config2->{exposure_time};
+        if ($self->_layer_num < $self->config2->{bottom_layers}) {
+            $time = $self->config2->{bottom_exposure_time};
+        }
+        
+        $self->delay($time, sub {
             $self->settle;
         });
     });
