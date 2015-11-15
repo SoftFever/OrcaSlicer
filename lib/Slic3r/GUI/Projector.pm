@@ -402,6 +402,7 @@ package Slic3r::GUI::Projector::Controller;
 use Moo;
 use Wx qw(wxTheApp :id :timer);
 use Wx::Event qw(EVT_TIMER);
+use Slic3r::Print::State ':steps';
 
 has 'config'                => (is => 'ro', required => 1);
 has 'config2'               => (is => 'ro', required => 1);
@@ -446,6 +447,18 @@ sub is_printing {
 
 sub set_print {
     my ($self, $print) = @_;
+    
+    # make sure layers were sliced
+    {
+        my $progress_dialog;
+        foreach my $object (@{$print->objects}) {
+            next if $object->step_done(STEP_SLICE);
+            $progress_dialog //= Wx::ProgressDialog->new('Slicing…', "Processing layers…", 100, undef, 0);
+            $progress_dialog->Pulse;
+            $object->slice;
+        }
+        $progress_dialog->Destroy if $progress_dialog;
+    }
     
     $self->_print($print);
     
