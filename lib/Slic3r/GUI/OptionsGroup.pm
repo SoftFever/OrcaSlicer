@@ -247,8 +247,8 @@ sub set_value {
 }
 
 sub _on_change {
-    my ($self, $opt_id) = @_;
-    $self->on_change->($opt_id);
+    my ($self, $opt_id, $value) = @_;
+    $self->on_change->($opt_id, $value);
 }
 
 sub _on_kill_focus {
@@ -408,7 +408,7 @@ sub _get_config_value {
 }
 
 sub _on_change {
-    my ($self, $opt_id) = @_;
+    my ($self, $opt_id, $value) = @_;
     
     if (exists $self->_opt_map->{$opt_id}) {
         my ($opt_key, $opt_index) = @{ $self->_opt_map->{$opt_id} };
@@ -430,7 +430,7 @@ sub _on_change {
         }
     }
     
-    $self->SUPER::_on_change($opt_id);
+    $self->SUPER::_on_change($opt_id, $value);
 }
 
 sub _on_kill_focus {
