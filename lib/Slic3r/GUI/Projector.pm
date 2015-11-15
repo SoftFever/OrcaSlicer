@@ -403,7 +403,7 @@ sub current_layer_height {
 sub start_print {
     my ($self) = @_;
     
-    if (0) {
+    {
         $self->sender(Slic3r::GCode::Sender->new);
         my $res = $self->sender->connect(
             $self->config->serial_port,
