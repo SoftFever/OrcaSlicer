@@ -322,9 +322,13 @@ sub scan_serial_ports {
         # Windows
         if (eval "use Win32::TieRegistry; 1") {
             my $ts = Win32::TieRegistry->new("HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIALCOMM",
-                { Access => Win32::TieRegistry::KEY_READ() });
-            $ts->Tie(\my %reg);
-            push @ports, sort values %reg;
+                { Access => 'KEY_READ' });
+            if ($ts) {
+                # when no serial ports are available, the registry key doesn't exist and 
+                # TieRegistry->new returns undef
+                $ts->Tie(\my %reg);
+                push @ports, sort values %reg;
+            }
         }
     } else {
         # UNIX and OS X
