@@ -14,12 +14,12 @@ sub new {
         display                 => 0,
         show_bed                => 1,
         zoom                    => 100,
-        exposure_time           => 4,
-        bottom_exposure_time    => 10,
-        settle_time             => 4,
+        exposure_time           => 2,
+        bottom_exposure_time    => 7,
+        settle_time             => 1.5,
         bottom_layers           => 3,
-        z_lift                  => 15,
-        z_lift_speed            => 50,
+        z_lift                  => 5,
+        z_lift_speed            => 8,
         offset                  => [0,0],
     });
     
@@ -209,21 +209,21 @@ sub new {
             );
             $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
                 opt_id      => 'bottom_exposure_time',
-                type        => 'i',
+                type        => 'f',
                 label       => 'Bottom exposure',
                 tooltip     => '',
                 default     => $self->config2->{bottom_exposure_time},
             ));
             $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
                 opt_id      => 'exposure_time',
-                type        => 'i',
+                type        => 'f',
                 label       => 'Exposure',
                 tooltip     => '',
                 default     => $self->config2->{exposure_time},
             ));
             $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
                 opt_id      => 'settle_time',
-                type        => 'i',
+                type        => 'f',
                 label       => 'Settle',
                 tooltip     => '',
                 default     => $self->config2->{settle_time},
