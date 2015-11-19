@@ -14,11 +14,11 @@ __PACKAGE__->mk_accessors(qw(sender));
 use constant TRAVEL_SPEED => 130*60;  # TODO: make customizable?
 
 sub new {
-    my ($class, $printer_panel) = @_;
+    my ($class, $parent, $config, $sender) = @_;
     
-    my $self = $class->SUPER::new($printer_panel, -1, "Manual Control", wxDefaultPosition,
+    my $self = $class->SUPER::new($parent, -1, "Manual Control", wxDefaultPosition,
         [430,380], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-    $self->sender($printer_panel->sender);
+    $self->sender($sender);
     
     my $bed_sizer = Wx::FlexGridSizer->new(2, 3, 1, 1);
     $bed_sizer->AddGrowableCol(1, 1);
@@ -53,7 +53,7 @@ sub new {
     
     # Bed canvas
     {
-        my $bed_shape = $printer_panel->config->bed_shape;
+        my $bed_shape = $config->bed_shape;
         $self->{canvas} = my $canvas = Slic3r::GUI::2DBed->new($self, $bed_shape);
         $canvas->interactive(1);
         $canvas->on_move(sub {

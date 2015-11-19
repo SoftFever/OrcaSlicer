@@ -170,7 +170,8 @@ sub new {
         $btn->Hide;
         $left_sizer->Add($btn, 0, wxTOP, 15);
         EVT_BUTTON($self, $btn, sub {
-            my $dlg = Slic3r::GUI::Controller::ManualControlDialog->new($self);
+            my $dlg = Slic3r::GUI::Controller::ManualControlDialog->new
+                ($self, $self->config, $self->sender);
             $dlg->ShowModal;
         });
     }

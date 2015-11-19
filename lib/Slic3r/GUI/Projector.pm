@@ -268,6 +268,30 @@ sub new {
         $sizer->Add($buttons, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
         
         {
+            my $btn = $self->{btn_manual_control} = Wx::Button->new($self, -1, 'Manual Control', wxDefaultPosition, wxDefaultSize);
+            if ($Slic3r::GUI::have_button_icons) {
+                $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
+            }
+            $buttons->Add($btn, 0);
+            EVT_BUTTON($self, $btn, sub {
+                my $sender = Slic3r::GCode::Sender->new;
+                my $res = $sender->connect(
+                    $self->config->serial_port,
+                    $self->config->serial_speed,
+                );
+                if (!$res || !$sender->wait_connected) {
+                    Slic3r::GUI::show_error(undef, "Connection failed. Check serial port and speed.");
+                    return;
+                }
+                my $dlg = Slic3r::GUI::Controller::ManualControlDialog->new
+                    ($self, $self->config, $sender);
+                $dlg->ShowModal;
+                $sender->disconnect;
+            });
+            
+            
+        }
+        {
             my $btn = $self->{btn_print} = Wx::Button->new($self, -1, 'Print', wxDefaultPosition, wxDefaultSize);
             if ($Slic3r::GUI::have_button_icons) {
                 $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_play.png", wxBITMAP_TYPE_PNG));
@@ -346,6 +370,7 @@ sub _update_buttons {
     my ($self) = @_;
     
     my $is_printing = $self->controller->is_printing;
+    $self->{btn_manual_control}->Show(!$is_printing);
     $self->{btn_print}->Show(!$is_printing);
     $self->{btn_stop}->Show($is_printing);
     $self->Layout;
