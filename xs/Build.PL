@@ -43,25 +43,36 @@ if (defined $ENV{BOOST_DIR}) {
 
 # In order to generate the -l switches we need to know how Boost libraries are named
 my $have_boost = 0;
-foreach my $path (@boost_libs) {
-    my @files = glob "$path/libboost_system*";
-    next if !@files;
+
+# check without explicit lib path (works on Linux)
+$have_boost = 1
+    if check_lib(
+        lib     => "boost_system",
+        INC     => join(' ', map "-I$_", @INC, @boost_include),
+        LIBS    => join(' ', map "-L$_", @INC, @boost_libs),
+    );
+
+if (!$have_boost) {
+    foreach my $path (@boost_libs) {
+        my @files = glob "$path/libboost_system*";
+        next if !@files;
     
-    if ($files[0] =~ /libboost_system([^.]+)/) {
-        my $suffix = $1;
-        check_lib(
-            lib     => "boost_system$suffix",
-            INC     => join(' ', map "-I$_", @INC,  @boost_include),
-            LIBS    => "-L$path",
-        ) or next;
+        if ($files[0] =~ /libboost_system([^.]+)/) {
+            my $suffix = $1;
+            check_lib(
+                lib     => "boost_system$suffix",
+                INC     => join(' ', map "-I$_", @INC,  @boost_include),
+                LIBS    => "-L$path",
+            ) or next;
         
-        push @INC, (map " -I$_", @boost_include);  # TODO: only use the one related to the chosen lib path
-        push @LIBS, " -L$path", (map " -lboost_$_$suffix", qw(thread system));  # we need these
-        push @cflags, '-DBOOST_LIBS';
-        $have_boost = 1;
-        last;
+            push @INC, (map " -I$_", @boost_include);  # TODO: only use the one related to the chosen lib path
+            push @LIBS, " -L$path", (map " -lboost_$_$suffix", qw(thread system));  # we need these
+            $have_boost = 1;
+            last;
+        }
     }
 }
+push @cflags, '-DBOOST_LIBS' if $have_boost;
 die <<'EOF' if !$have_boost;
 Slic3r requires the Boost libraries. Please make sure they are installed.
 
