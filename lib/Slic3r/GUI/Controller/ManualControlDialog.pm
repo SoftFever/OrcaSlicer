@@ -60,7 +60,7 @@ sub new {
             my ($pos) = @_;
             
             # delete any pending commands to get a smoother movement
-            $self->purge_queue(1);
+            $self->sender->purge_queue(1);
             $self->abs_xy_move($pos);
         });
         $bed_sizer->Add($canvas, 0, wxEXPAND | wxRIGHT, 3);
@@ -97,6 +97,7 @@ sub new {
     my $main_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $main_sizer->Add($bed_sizer, 1, wxEXPAND | wxALL, 10);
     $main_sizer->Add($self->CreateButtonSizer(wxCLOSE), 0, wxEXPAND);
+    EVT_BUTTON($self, wxID_CLOSE, sub { $self->Close });
     
     $self->SetSizer($main_sizer);
     $self->SetMinSize($self->GetSize);

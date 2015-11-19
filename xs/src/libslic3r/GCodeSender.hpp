@@ -32,6 +32,8 @@ class GCodeSender : private boost::noncopyable {
     std::vector<std::string> purge_log();
     std::string getT() const;
     std::string getB() const;
+    void set_DTR(bool on);
+    void reset();
     
     private:
     asio::io_service io;
@@ -58,6 +60,7 @@ class GCodeSender : private boost::noncopyable {
     
     void set_baud_rate(unsigned int baud_rate);
     void set_error_status(bool e);
+    void do_send();
     void do_send(const std::string &line);
     void do_close();
     void do_read();
