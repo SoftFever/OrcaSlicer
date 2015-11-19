@@ -83,7 +83,7 @@ sub append_line {
     # if we have a single option with no sidetext just add it directly to the grid sizer
     my @options = @{$line->get_options};
     $self->_options->{$_->opt_id} = $_ for @options;
-    if (@options == 1 && !$options[0]->sidetext && !@{$line->get_extra_widgets}) {
+    if (@options == 1 && !$options[0]->sidetext && !$options[0]->side_widget && !@{$line->get_extra_widgets}) {
         my $option = $options[0];
         my $field = $self->_build_field($option);
         $grid_sizer->Add($field, 0, ($option->full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
@@ -95,7 +95,9 @@ sub append_line {
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $grid_sizer->Add($sizer, 0, 0, 0);
     
-    foreach my $option (@options) {
+    foreach my $i (0..$#options) {
+        my $option = $options[$i];
+        
         # add label if any
         if ($option->label) {
             my $field_label = Wx::StaticText->new($self->parent, -1, $option->label . ":", wxDefaultPosition, wxDefaultSize);
@@ -111,7 +113,16 @@ sub append_line {
         if ($option->sidetext) {
             my $sidetext = Wx::StaticText->new($self->parent, -1, $option->sidetext, wxDefaultPosition, wxDefaultSize);
             $sidetext->SetFont($self->sidetext_font);
-            $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL , 4);
+            $sizer->Add($sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
+        }
+        
+        # add side widget if any
+        if ($option->side_widget) {
+            $sizer->Add($option->side_widget->($self->parent), 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);
+        }
+        
+        if ($option != $#options) {
+            $sizer->AddSpacer(4);
         }
     }
         
@@ -177,7 +188,7 @@ sub _build_field {
             parent => $self->parent,
             option => $opt,
         );
-    } elsif ($type eq 'select') {
+    } elsif ($type eq 'select' || $type eq 'select_open') {
         $field = Slic3r::GUI::OptionsGroup::Field::Choice->new(
             parent => $self->parent,
             option => $opt,
@@ -299,6 +310,7 @@ has 'max'           => (is => 'rw', default => sub { undef });
 has 'labels'        => (is => 'rw', default => sub { [] });
 has 'values'        => (is => 'rw', default => sub { [] });
 has 'readonly'      => (is => 'rw', default => sub { 0 });
+has 'side_widget'   => (is => 'rw', default => sub { undef });
 
 
 package Slic3r::GUI::ConfigOptionsGroup;

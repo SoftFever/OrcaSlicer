@@ -8,7 +8,7 @@ use List::Util qw(min);
 use Slic3r::Geometry qw(X Y Z);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
     :font :icon wxTheApp);
-use Wx::Event qw(EVT_CLOSE EVT_MENU);
+use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Frame';
 
 our $qs_last_input_file;
@@ -89,9 +89,14 @@ sub _init_tabpanel {
     my ($self) = @_;
     
     $self->{tabpanel} = my $panel = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
+    EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{tabpanel}, sub {
+        my $panel = $self->{tabpanel}->GetCurrentPage;
+        $panel->OnActivate if $panel->can('OnActivate');
+    });
     
     if (!$self->{no_plater}) {
         $panel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($panel), "Plater");
+        $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), "Controller");
     }
     $self->{options_tabs} = {};
     
@@ -131,6 +136,7 @@ sub _init_tabpanel {
             if ($self->{plater}) {
                 $self->{plater}->update_presets($tab_name, @_);
                 $self->{plater}->on_config_change($tab->config);
+                $self->{controller}->update_presets($tab_name, @_);
             }
         });
         $tab->load_presets;
@@ -228,18 +234,25 @@ sub _init_menubar {
     # Window menu
     my $windowMenu = Wx::Menu->new;
     {
-        my $tab_count = $self->{no_plater} ? 3 : 4;
-        $self->_append_menu_item($windowMenu, "Select &Plater Tab\tCtrl+1", 'Show the plater', sub {
-            $self->select_tab(0);
-        }, undef, 'application_view_tile.png') unless $self->{no_plater};
+        my $tab_offset = 0;
+        if (!$self->{no_plater}) {
+            $self->_append_menu_item($windowMenu, "Select &Plater Tab\tCtrl+1", 'Show the plater', sub {
+                $self->select_tab(0);
+            }, undef, 'application_view_tile.png');
+            $self->_append_menu_item($windowMenu, "Select &Controller Tab\tCtrl+T", 'Show the printer controller', sub {
+                $self->select_tab(1);
+            }, undef, 'printer_empty.png');
+            $windowMenu->AppendSeparator();
+            $tab_offset += 2;
+        }
         $self->_append_menu_item($windowMenu, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings', sub {
-            $self->select_tab($tab_count-3);
+            $self->select_tab($tab_offset+0);
         }, undef, 'cog.png');
         $self->_append_menu_item($windowMenu, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings', sub {
-            $self->select_tab($tab_count-2);
+            $self->select_tab($tab_offset+1);
         }, undef, 'spool.png');
         $self->_append_menu_item($windowMenu, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings', sub {
-            $self->select_tab($tab_count-1);
+            $self->select_tab($tab_offset+2);
         }, undef, 'printer_empty.png');
     }
     
@@ -692,6 +705,17 @@ sub config {
     return $config;
 }
 
+sub filament_preset_names {
+    my ($self) = @_;
+    
+    if ($self->{mode} eq 'simple') {
+        return '';
+    }
+    
+    return map $self->{options_tabs}{filament}->get_preset($_)->name,
+        $self->{plater}->filament_presets;
+}
+
 sub check_unsaved_changes {
     my $self = shift;
     
@@ -712,7 +736,7 @@ sub check_unsaved_changes {
 
 sub select_tab {
     my ($self, $tab) = @_;
-    $self->{tabpanel}->ChangeSelection($tab);
+    $self->{tabpanel}->SetSelection($tab);
 }
 
 sub _append_menu_item {

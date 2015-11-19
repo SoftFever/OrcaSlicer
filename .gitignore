@@ -8,3 +8,4 @@ xs/buildtmp
 *.o
 MANIFEST.bak
 xs/MANIFEST.bak
+xs/assertlib*

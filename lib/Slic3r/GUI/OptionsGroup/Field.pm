@@ -213,13 +213,15 @@ extends 'Slic3r::GUI::OptionsGroup::Field::wxWindow';
 
 use List::Util qw(first);
 use Wx qw(:misc :combobox);
-use Wx::Event qw(EVT_COMBOBOX);
+use Wx::Event qw(EVT_COMBOBOX EVT_TEXT);
 
 sub BUILD {
     my ($self) = @_;
     
+    my $style = 0;
+    $style |= wxCB_READONLY if $self->option->gui_type ne 'select_open';
     my $field = Wx::ComboBox->new($self->parent, -1, "", wxDefaultPosition, $self->_default_size,
-        $self->option->labels || $self->option->values, wxCB_READONLY);
+        $self->option->labels || $self->option->values || [], $style);
     $self->wxWindow($field);
     
     $self->set_value($self->option->default);
@@ -227,23 +229,53 @@ sub BUILD {
     EVT_COMBOBOX($self->parent, $field, sub {
         $self->_on_change($self->option->opt_id);
     });
+    EVT_TEXT($self->parent, $field, sub {
+        $self->_on_change($self->option->opt_id);
+    });
 }
 
 sub set_value {
     my ($self, $value) = @_;
     
-    my $idx = first { $self->option->values->[$_] eq $value } 0..$#{$self->option->values};
+    $self->disable_change_event(1);
+    
+    if ($self->option->values) {
+        my $idx = first { $self->option->values->[$_] eq $value } 0..$#{$self->option->values};
+        $self->wxWindow->SetSelection($idx);
+    } else {
+        $self->wxWindow->SetValue($value);
+    }
+    
+    $self->disable_change_event(0);
+}
+
+sub set_values {
+    my ($self, $values) = @_;
     
     $self->disable_change_event(1);
-    $self->wxWindow->SetSelection($idx);
+    
+    # it looks that Clear() also clears the text field in recent wxWidgets versions,
+    # but we want to preserve it
+    my $ww = $self->wxWindow;
+    my $value = $ww->GetValue;
+    $ww->Clear;
+    $ww->Append($_) for @$values;
+    $ww->SetValue($value);
+    
     $self->disable_change_event(0);
 }
 
 sub get_value {
     my ($self) = @_;
-    return $self->option->values->[$self->wxWindow->GetSelection];
+    
+    if ($self->option->values) {
+        my $idx = $self->wxWindow->GetSelection;
+        if ($idx != &Wx::wxNOT_FOUND) {
+            return $self->option->values->[$idx];
+        }
+    }
+    return $self->wxWindow->GetValue;
 }
-
 
 package Slic3r::GUI::OptionsGroup::Field::NumericChoice;
 use Moo;
@@ -333,12 +365,14 @@ sub get_value {
     my ($self) = @_;
     
     my $label = $self->wxWindow->GetValue;
-    my $value_idx = first { $self->option->labels->[$_] eq $label } 0..$#{$self->option->labels};
-    if (defined $value_idx) {
-        if ($self->option->values) {
-            return $self->option->values->[$value_idx];
+    if ($self->option->labels) {
+        my $value_idx = first { $self->option->labels->[$_] eq $label } 0..$#{$self->option->labels};
+        if (defined $value_idx) {
+            if ($self->option->values) {
+                return $self->option->values->[$value_idx];
+            }
+            return $value_idx;
         }
-        return $value_idx;
     }
     return $label;
 }

@@ -186,6 +186,28 @@ _constant()
                 RETVAL.push_back(*e);
             }
         %};
+    void clear_filament_stats()
+        %code%{
+            THIS->filament_stats.clear();
+        %};
+    void set_filament_stats(int extruder_id, float length)
+        %code%{
+            THIS->filament_stats.insert(std::pair<size_t,float>(extruder_id, 0));
+            THIS->filament_stats[extruder_id] += length;
+        %};
+    SV* filament_stats()
+        %code%{
+            HV* hv = newHV();
+            for (std::map<size_t,float>::const_iterator it = THIS->filament_stats.begin(); it != THIS->filament_stats.end(); ++it) {
+                // stringify extruder_id
+                std::ostringstream ss;
+                ss << it->first;
+                std::string str = ss.str();
+                
+                (void)hv_store( hv, str.c_str(), str.length(), newSViv(it->second), 0 );
+                RETVAL = newRV_noinc((SV*)hv);
+            }
+        %};
     void _simplify_slices(double distance);
     double max_allowed_layer_height() const;
     bool has_support_material() const;

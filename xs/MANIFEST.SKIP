@@ -71,3 +71,5 @@
 
 # Avoid archives of this distribution
 \bSlic3r-XS-[\d\.\_]+
+
+^assertlib

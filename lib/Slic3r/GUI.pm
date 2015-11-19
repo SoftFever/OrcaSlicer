@@ -5,10 +5,14 @@ use utf8;
 
 use File::Basename qw(basename);
 use FindBin;
+use Slic3r::GUI::2DBed;
 use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::BedShapeDialog;
 use Slic3r::GUI::BonjourBrowser;
 use Slic3r::GUI::ConfigWizard;
+use Slic3r::GUI::Controller;
+use Slic3r::GUI::Controller::ManualControlDialog;
+use Slic3r::GUI::Controller::PrinterPanel;
 use Slic3r::GUI::MainFrame;
 use Slic3r::GUI::Notifier;
 use Slic3r::GUI::Plater;
@@ -31,7 +35,7 @@ our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
 our $have_LWP    = eval "use LWP::UserAgent; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow
-    :filedialog);
+    :filedialog :font);
 use Wx::Event qw(EVT_IDLE EVT_COMMAND);
 use base 'Wx::App';
 
@@ -64,8 +68,12 @@ our $Settings = {
 our $have_button_icons = &Wx::wxVERSION_STRING =~ / (?:2\.9\.[1-9]|3\.)/;
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
+our $small_bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+$small_bold_font->SetPointSize(11) if !&Wx::wxMSW;
+$small_bold_font->SetWeight(wxFONTWEIGHT_BOLD);
 our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
+our $grey = Wx::Colour->new(200,200,200);
 
 our $VERSION_CHECK_EVENT : shared = Wx::NewEventType;
 
@@ -303,6 +311,31 @@ sub open_model {
 sub CallAfter {
     my ($self, $cb) = @_;
     push @cb, $cb;
+}
+
+sub scan_serial_ports {
+    my ($self) = @_;
+    
+    my @ports = ();
+    
+    if ($^O eq 'MSWin32') {
+        # Windows
+        if (eval "use Win32::TieRegistry; 1") {
+            my $ts = Win32::TieRegistry->new("HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIALCOMM",
+                { Access => 'KEY_READ' });
+            if ($ts) {
+                # when no serial ports are available, the registry key doesn't exist and 
+                # TieRegistry->new returns undef
+                $ts->Tie(\my %reg);
+                push @ports, sort values %reg;
+            }
+        }
+    } else {
+        # UNIX and OS X
+        push @ports, glob '/dev/{ttyUSB,ttyACM,tty.,cu.,rfcomm}*';
+    }
+    
+    return grep !/Bluetooth|FireFly/, @ports;
 }
 
 1;
