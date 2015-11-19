@@ -97,6 +97,7 @@ sub new {
     my $main_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $main_sizer->Add($bed_sizer, 1, wxEXPAND | wxALL, 10);
     $main_sizer->Add($self->CreateButtonSizer(wxCLOSE), 0, wxEXPAND);
+    EVT_BUTTON($self, wxID_CLOSE, sub { $self->Close });
     
     $self->SetSizer($main_sizer);
     $self->SetMinSize($self->GetSize);

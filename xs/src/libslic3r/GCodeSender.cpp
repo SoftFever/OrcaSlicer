@@ -36,6 +36,8 @@ GCodeSender::~GCodeSender()
 bool
 GCodeSender::connect(std::string devname, unsigned int baud_rate)
 {
+    this->disconnect();
+    
     this->set_error_status(false);
     try {
         this->serial.open(devname);
@@ -57,6 +59,7 @@ GCodeSender::connect(std::string devname, unsigned int baud_rate)
     // set baud rate again because set_option overwrote it
     this->set_baud_rate(baud_rate);
     this->open = true;
+    this->reset();
     
     // this gives some work to the io_service before it is started
     // (post() runs the supplied function in its thread)
@@ -117,7 +120,6 @@ void
 GCodeSender::disconnect()
 {
     if (!this->open) return;
-
     this->open = false;
     this->connected = false;
     this->io.post(boost::bind(&GCodeSender::do_close, this));
@@ -262,73 +264,81 @@ GCodeSender::on_read(const boost::system::error_code& error,
 {
     this->set_error_status(false);
     if (error) {
-        // error can be true even because the serial port was closed.
-        // In this case it is not a real error, so ignore.
-        if (this->open) {
-            this->do_close();
-            this->set_error_status(true);
+        if (error.value() == 45) {
+            // OS X bug: http://osdir.com/ml/lib.boost.asio.user/2008-08/msg00004.html
+            this->do_read();
+        } else {
+            // printf("ERROR: [%d] %s\n", error.value(), error.message().c_str());
+            // error can be true even because the serial port was closed.
+            // In this case it is not a real error, so ignore.
+            if (this->open) {
+                this->do_close();
+                this->set_error_status(true);
+            }
         }
         return;
     }
     
-    // copy the read buffer into string
     std::istream is(&this->read_buffer);
     std::string line;
     std::getline(is, line);
-    // note that line might contain \r at its end
-    
-    // parse incoming line
-    if (!this->connected
-        && (boost::starts_with(line, "start")
-         || boost::starts_with(line, "Grbl "))) {
-        this->connected = true;
-        {
-            boost::lock_guard<boost::mutex> l(this->queue_mutex);
-            this->can_send = true;
-        }
-        this->send();
-    } else if (boost::starts_with(line, "ok")) {
-        {
-            boost::lock_guard<boost::mutex> l(this->queue_mutex);
-            this->can_send = true;
-        }
-        this->send();
-    } else if (boost::istarts_with(line, "resend")  // Marlin uses "Resend: "
-            || boost::istarts_with(line, "rs")) {
-        // extract the first number from line
-        boost::algorithm::trim_left_if(line, !boost::algorithm::is_digit());
-        size_t toresend = boost::lexical_cast<size_t>(line.substr(0, line.find_first_not_of("0123456789")));
-        if (toresend == this->sent) {
+    if (!line.empty()) {
+        // note that line might contain \r at its end
+        // parse incoming line
+        if (!this->connected
+            && (boost::starts_with(line, "start")
+             || boost::starts_with(line, "Grbl ")
+             || boost::starts_with(line, "ok")
+             || boost::contains(line, "T:"))) {
+            this->connected = true;
             {
                 boost::lock_guard<boost::mutex> l(this->queue_mutex);
-                this->priqueue.push(this->last_sent);
-                this->sent--;  // resend it with the same line number
                 this->can_send = true;
             }
             this->send();
+        } else if (boost::starts_with(line, "ok")) {
+            {
+                boost::lock_guard<boost::mutex> l(this->queue_mutex);
+                this->can_send = true;
+            }
+            this->send();
+        } else if (boost::istarts_with(line, "resend")  // Marlin uses "Resend: "
+                || boost::istarts_with(line, "rs")) {
+            // extract the first number from line
+            boost::algorithm::trim_left_if(line, !boost::algorithm::is_digit());
+            size_t toresend = boost::lexical_cast<size_t>(line.substr(0, line.find_first_not_of("0123456789")));
+            if (toresend == this->sent) {
+                {
+                    boost::lock_guard<boost::mutex> l(this->queue_mutex);
+                    this->priqueue.push(this->last_sent);
+                    this->sent--;  // resend it with the same line number
+                    this->can_send = true;
+                }
+                this->send();
+            } else {
+                printf("Cannot resend %lu (last was %lu)\n", toresend, this->sent);
+            }
+        } else if (boost::starts_with(line, "wait")) {
+            // ignore
         } else {
-            printf("Cannot resend %lu (last was %lu)\n", toresend, this->sent);
-        }
-    } else if (boost::starts_with(line, "wait")) {
-        // ignore
-    } else {
-        // push any other line into the log
-        boost::lock_guard<boost::mutex> l(this->log_mutex);
-        this->log.push(line);
-    }
-    
-    // parse temperature info
-    {
-        size_t pos = line.find("T:");
-        if (pos != std::string::npos && line.size() > pos + 2) {
-            // we got temperature info
+            // push any other line into the log
             boost::lock_guard<boost::mutex> l(this->log_mutex);
-            this->T = line.substr(pos+2, line.find_first_not_of("0123456789.", pos+2) - (pos+2));
-        
-            pos = line.find("B:");
+            this->log.push(line);
+        }
+    
+        // parse temperature info
+        {
+            size_t pos = line.find("T:");
             if (pos != std::string::npos && line.size() > pos + 2) {
-                // we got bed temperature info
-                this->B = line.substr(pos+2, line.find_first_not_of("0123456789.", pos+2) - (pos+2));
+                // we got temperature info
+                boost::lock_guard<boost::mutex> l(this->log_mutex);
+                this->T = line.substr(pos+2, line.find_first_not_of("0123456789.", pos+2) - (pos+2));
+        
+                pos = line.find("B:");
+                if (pos != std::string::npos && line.size() > pos + 2) {
+                    // we got bed temperature info
+                    this->B = line.substr(pos+2, line.find_first_not_of("0123456789.", pos+2) - (pos+2));
+                }
             }
         }
     }
@@ -370,6 +380,12 @@ GCodeSender::send(const std::string &line, bool priority)
 
 void
 GCodeSender::send()
+{
+    this->io.post(boost::bind(&GCodeSender::do_send, this));
+}
+
+void
+GCodeSender::do_send()
 {
     boost::lock_guard<boost::mutex> l(this->queue_mutex);
     
@@ -414,13 +430,45 @@ GCodeSender::do_send(const std::string &line)
        cs = cs ^ *it;
     
     // write line to device
-    asio::streambuf b;
-    std::ostream os(&b);
-    os << full_line << "*" << cs << "\n";
-    asio::write(this->serial, b);
+    full_line += "*";
+    full_line += boost::lexical_cast<std::string>(cs);
+    full_line += "\n";
+    asio::async_write(this->serial, asio::buffer(full_line), boost::bind(&GCodeSender::do_send, this));
     
     this->last_sent = line;
     this->can_send = false;
+}
+
+void
+GCodeSender::set_DTR(bool on)
+{
+#if defined(_WIN32) && !defined(__SYMBIAN32__)
+    asio::serial_port_service::native_handle_type handle = this->serial.native_handle();
+    if (on)
+        EscapeCommFunction(handle, SETDTR);
+    else
+        EscapeCommFunction(handle, CLRDTR);
+#else
+    int fd = this->serial.native_handle();
+    int status;
+    ioctl(fd, TIOCMGET, &status);
+    if (on)
+        status |= TIOCM_DTR;
+    else
+        status &= ~TIOCM_DTR;
+    ioctl(fd, TIOCMSET, &status);
+#endif
+}
+
+void
+GCodeSender::reset()
+{
+    this->set_DTR(false);
+    boost::this_thread::sleep(boost::posix_time::milliseconds(200));
+    this->set_DTR(true);
+    boost::this_thread::sleep(boost::posix_time::milliseconds(200));
+    this->set_DTR(false);
+    boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 }
 
 }
