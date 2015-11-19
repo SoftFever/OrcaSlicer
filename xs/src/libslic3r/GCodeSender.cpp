@@ -105,8 +105,8 @@ GCodeSender::set_baud_rate(unsigned int baud_rate)
         long closestSpeed = ss.baud_base / ss.custom_divisor;
         //cout << " Closest speed " << closestSpeed << endl;
         ss.reserved_char[0] = 0;
-        if (closestSpeed < baud * 98 / 100 || closestSpeed > baud_rate * 102 / 100) {
-            throw std::exception("Failed to set baud rate");
+        if (closestSpeed < baud_rate * 98 / 100 || closestSpeed > baud_rate * 102 / 100) {
+            printf("Failed to set baud rate\n");
         }
 
         ioctl(handle, TIOCSSERIAL, &ss);
@@ -316,7 +316,7 @@ GCodeSender::on_read(const boost::system::error_code& error,
                 }
                 this->send();
             } else {
-                printf("Cannot resend %lu (last was %lu)\n", toresend, this->sent);
+                printf("Cannot resend %zu (last was %zu)\n", toresend, this->sent);
             }
         } else if (boost::starts_with(line, "wait")) {
             // ignore

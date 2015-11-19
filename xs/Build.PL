@@ -52,7 +52,9 @@ $have_boost = 1
         LIBS    => join(' ', map "-L$_", @INC, @boost_libs),
     );
 
-if (!$have_boost) {
+if ($have_boost) {
+    push @LIBS, '-lboost_system', '-lboost_thread';
+} else {
     foreach my $path (@boost_libs) {
         my @files = glob "$path/libboost_system*";
         next if !@files;
