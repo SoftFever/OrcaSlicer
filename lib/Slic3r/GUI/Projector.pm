@@ -687,6 +687,7 @@ use base qw(Wx::Dialog Class::Accessor);
 
 use List::Util qw(min);
 use Slic3r::Geometry qw(X Y unscale scale);
+use Slic3r::Geometry::Clipper qw(intersection_pl);
 
 __PACKAGE__->mk_accessors(qw(config config2 scaling_factor bed_origin layers));
 
@@ -763,8 +764,27 @@ sub _repaint {
     if ($self->config2->{show_bed}) {
         $dc->SetPen(Wx::Pen->new(wxRED, 2, wxSOLID));
         $dc->SetBrush(Wx::Brush->new(wxWHITE, wxTRANSPARENT));
+        
+        # draw contour
         my $bed_polygon = Slic3r::Polygon->new_scale(@{$self->config->bed_shape});
         $dc->DrawPolygon($self->scaled_points_to_pixel($bed_polygon), 0, 0);
+        
+        # draw grid
+        $dc->SetPen(Wx::Pen->new(wxRED, 1, wxSOLID));
+        {
+            my $bb = $bed_polygon->bounding_box;
+            my $step = scale 10;  # 1cm grid
+            my @polylines = ();
+            for (my $x = $bb->x_min - ($bb->x_min % $step) + $step; $x < $bb->x_max; $x += $step) {
+                push @polylines, Slic3r::Polyline->new([$x, $bb->y_min], [$x, $bb->y_max]);
+            }
+            for (my $y = $bb->y_min - ($bb->y_min % $step) + $step; $y < $bb->y_max; $y += $step) {
+                push @polylines, Slic3r::Polyline->new([$bb->x_min, $y], [$bb->x_max, $y]);
+            }
+            $dc->DrawLine(map @$_, @$_)
+                for map $self->scaled_points_to_pixel([ @$_[0,-1] ], 1),
+                    @{intersection_pl(\@polylines, [$bed_polygon])};
+        }
     }
     
     return if !defined $self->layers;
