@@ -395,6 +395,7 @@ sub new {
             my ($layer_num) = @_;
             
             $self->{layers_spinctrl}->SetValue($layer_num);
+            $self->{layers_slider}->SetValue($layer_num);
             $self->_set_status(sprintf "Printing layer %d/%d (z = %.2f)",
                 $layer_num, $self->controller->layer_count,
                 $self->controller->current_layer_height);
@@ -404,7 +405,11 @@ sub new {
             $self->_set_status('');
         },
     ));
-    #$self->{layers_spinctrl}->SetMax($self->controller->layer_count);
+    {
+        my $max = $self->controller->layer_count-1;
+        $self->{layers_spinctrl}->SetRange(0, $max); 
+        $self->{layers_slider}->SetRange(0, $max);
+    }
     
     $self->_update_buttons;
     
