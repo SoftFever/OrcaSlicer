@@ -281,7 +281,7 @@ sub new {
                 );
                 if (!$res || !$sender->wait_connected) {
                     Slic3r::GUI::show_error(undef, "Connection failed. Check serial port and speed.");
-                    return;
+                    #return;
                 }
                 my $dlg = Slic3r::GUI::Controller::ManualControlDialog->new
                     ($self, $self->config, $sender);

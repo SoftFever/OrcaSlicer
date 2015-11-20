@@ -9,7 +9,7 @@ use Wx qw(:dialog :id :misc :sizer :choicebook :button :bitmap
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON);
 use base qw(Wx::Dialog Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(sender config2));
+__PACKAGE__->mk_accessors(qw(sender config2 x_homed y_homed));
 
 sub new {
     my ($class, $parent, $config, $sender) = @_;
@@ -61,6 +61,11 @@ sub new {
         $canvas->interactive(1);
         $canvas->on_move(sub {
             my ($pos) = @_;
+            
+            if (!($self->x_homed && $self->y_homed)) {
+                Slic3r::GUI::show_error($self, "Please home both X and Y before moving.");
+                return ;
+            }
             
             # delete any pending commands to get a smoother movement
             $self->sender->purge_queue(1);
@@ -177,6 +182,8 @@ sub home {
     
     $self->sender->send(sprintf("G28 %s", $axis), 1);
     $self->{canvas}->set_pos(undef);
+    $self->x_homed if $axis eq 'X';
+    $self->y_homed if $axis eq 'Y';
 }
 
 1;
