@@ -9,16 +9,19 @@ use Wx qw(:dialog :id :misc :sizer :choicebook :button :bitmap
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON);
 use base qw(Wx::Dialog Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(sender));
-
-use constant TRAVEL_SPEED => 130*60;  # TODO: make customizable?
+__PACKAGE__->mk_accessors(qw(sender config2));
 
 sub new {
     my ($class, $parent, $config, $sender) = @_;
     
     my $self = $class->SUPER::new($parent, -1, "Manual Control", wxDefaultPosition,
-        [430,380], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+        [500,380], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
     $self->sender($sender);
+    
+    $self->config2({
+        xy_travel_speed     => 130,
+        z_travel_speed      => 10,
+    });
     
     my $bed_sizer = Wx::FlexGridSizer->new(2, 3, 1, 1);
     $bed_sizer->AddGrowableCol(1, 1);
@@ -94,10 +97,40 @@ sub new {
         $bed_sizer->Add($sizer, 1, wxEXPAND, 0);
     }
     
+    my $optgroup = Slic3r::GUI::OptionsGroup->new(
+        parent      => $self,
+        title       => 'Settings',
+        on_change   => sub {
+            my ($opt_id, $value) = @_;
+            $self->config2->{$opt_id} = $value;
+        },
+    );
+    {
+        my $line = Slic3r::GUI::OptionsGroup::Line->new(
+            label => 'Speed (mm/s)',
+        );
+        $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+            opt_id      => 'xy_travel_speed',
+            type        => 'f',
+            label       => 'X/Y',
+            tooltip     => '',
+            default     => $self->config2->{xy_travel_speed},
+        ));
+        $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+            opt_id      => 'z_travel_speed',
+            type        => 'f',
+            label       => 'Z',
+            tooltip     => '',
+            default     => $self->config2->{z_travel_speed},
+        ));
+        $optgroup->append_line($line);
+    }
+    
     my $main_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $main_sizer->Add($bed_sizer, 1, wxEXPAND | wxALL, 10);
-    $main_sizer->Add($self->CreateButtonSizer(wxCLOSE), 0, wxEXPAND);
-    EVT_BUTTON($self, wxID_CLOSE, sub { $self->Close });
+    $main_sizer->Add($optgroup->sizer, 0, wxEXPAND | wxALL, 10);
+    #$main_sizer->Add($self->CreateButtonSizer(wxCLOSE), 0, wxEXPAND);
+    #EVT_BUTTON($self, wxID_CLOSE, sub { $self->Close });
     
     $self->SetSizer($main_sizer);
     $self->SetMinSize($self->GetSize);
@@ -117,15 +150,16 @@ sub abs_xy_move {
     my ($self, $pos) = @_;
     
     $self->sender->send("G90", 1); # set absolute positioning
-    $self->sender->send(sprintf("G1 X%.1f Y%.1f F%d", @$pos, TRAVEL_SPEED), 1);
+    $self->sender->send(sprintf("G1 X%.1f Y%.1f F%d", @$pos, $self->config2->{xy_travel_speed}*60), 1);
     $self->{canvas}->set_pos($pos);
 }
 
 sub rel_move {
     my ($self, $axis, $distance) = @_;
     
+    my $speed = ($axis eq 'Z') ? $self->config2->{z_travel_speed} : $self->config2->{xy_travel_speed};
     $self->sender->send("G91", 1); # set relative positioning
-    $self->sender->send(sprintf("G1 %s%.1f F%d", $axis, $distance, TRAVEL_SPEED), 1);
+    $self->sender->send(sprintf("G1 %s%.1f F%d", $axis, $distance, $speed*60), 1);
     $self->sender->send("G90", 1); # set absolute positioning
     
     if (my $pos = $self->{canvas}->pos) {
