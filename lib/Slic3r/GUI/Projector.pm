@@ -4,6 +4,7 @@ use warnings;
 use Wx qw(:dialog :id :misc :sizer :systemsettings :bitmap :button :icon wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER EVT_SPINCTRL EVT_SLIDER);
 use base qw(Wx::Dialog Class::Accessor);
+use utf8;
 
 __PACKAGE__->mk_accessors(qw(config config2 screen controller));
 
@@ -771,15 +772,19 @@ sub _repaint {
     # get layers at this height
     # draw layers
     $dc->SetPen(Wx::Pen->new(wxWHITE, 1, wxSOLID));
-    $dc->SetBrush(Wx::Brush->new(wxWHITE, wxSOLID));
     foreach my $layer (@{$self->layers}) {
+        my @polygons = sort { $a->contains_point($b->first_point) ? -1 : 1 } map @$_, @{ $layer->slices };
         foreach my $copy (@{$layer->object->_shifted_copies}) {
-            foreach my $expolygon (@{ $layer->slices }) {
-                $expolygon = $expolygon->clone;
-                $expolygon->translate(@$copy);
-                foreach my $points (@{$expolygon->pp}) {
-                    $dc->DrawPolygon($self->scaled_points_to_pixel($points), 0, 0);
+            foreach my $polygon (@polygons) {
+                $polygon = $polygon->clone;
+                $polygon->translate(@$copy);
+                
+                if ($polygon->is_counter_clockwise) {
+                    $dc->SetBrush(Wx::Brush->new(wxWHITE, wxSOLID));
+                } else {
+                    $dc->SetBrush(Wx::Brush->new(wxBLACK, wxSOLID));
                 }
+                $dc->DrawPolygon($self->scaled_points_to_pixel($polygon->pp), 0, 0);
             }
         }
     }
