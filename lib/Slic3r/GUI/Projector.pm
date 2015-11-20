@@ -2,7 +2,7 @@ package Slic3r::GUI::Projector;
 use strict;
 use warnings;
 use Wx qw(:dialog :id :misc :sizer :systemsettings :bitmap :button :icon wxTheApp);
-use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
+use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER EVT_SPINCTRL EVT_SLIDER);
 use base qw(Wx::Dialog Class::Accessor);
 
 __PACKAGE__->mk_accessors(qw(config config2 screen controller));
@@ -264,15 +264,15 @@ sub new {
     }
     
     {
-        my $buttons = Wx::BoxSizer->new(wxHORIZONTAL);
-        $sizer->Add($buttons, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+        my $sizer1 = Wx::BoxSizer->new(wxHORIZONTAL);
+        $sizer->Add($sizer1, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
         
         {
             my $btn = $self->{btn_manual_control} = Wx::Button->new($self, -1, 'Manual Control', wxDefaultPosition, wxDefaultSize);
             if ($Slic3r::GUI::have_button_icons) {
                 $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
             }
-            $buttons->Add($btn, 0);
+            $sizer1->Add($btn, 0);
             EVT_BUTTON($self, $btn, sub {
                 my $sender = Slic3r::GCode::Sender->new;
                 my $res = $sender->connect(
@@ -296,7 +296,7 @@ sub new {
             if ($Slic3r::GUI::have_button_icons) {
                 $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_play.png", wxBITMAP_TYPE_PNG));
             }
-            $buttons->Add($btn, 0);
+            $sizer1->Add($btn, 0);
             EVT_BUTTON($self, $btn, sub {
                 $self->controller->start_print;
                 $self->_update_buttons;
@@ -304,11 +304,11 @@ sub new {
             });
         }
         {
-            my $btn = $self->{btn_stop} = Wx::Button->new($self, -1, 'Stop', wxDefaultPosition, wxDefaultSize);
+            my $btn = $self->{btn_stop} = Wx::Button->new($self, -1, 'Stop/Black', wxDefaultPosition, wxDefaultSize);
             if ($Slic3r::GUI::have_button_icons) {
                 $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_stop.png", wxBITMAP_TYPE_PNG));
             }
-            $buttons->Add($btn, 0);
+            $sizer1->Add($btn, 0);
             EVT_BUTTON($self, $btn, sub {
                 $self->controller->stop_print;
                 $self->_update_buttons;
@@ -316,8 +316,50 @@ sub new {
             });
         }
         
-        $self->{status_text} = Wx::StaticText->new($self, -1, "", wxDefaultPosition, [200,-1]);
-        $buttons->Add($self->{status_text}, 0);
+        {
+            {
+                my $text = Wx::StaticText->new($self, -1, "Layer:", wxDefaultPosition, wxDefaultSize);
+                $text->SetFont($Slic3r::GUI::small_font);
+                $sizer1->Add($text, 0, wxEXPAND | wxLEFT, 10);
+            }
+            {
+                my $spin = $self->{layers_spinctrl} = Wx::SpinCtrl->new($self, -1, 0, wxDefaultPosition, [60,-1],
+                    0, 0, 300, 0);
+                $sizer1->Add($spin, 0);
+                EVT_SPINCTRL($self, $spin, sub {
+                    my $value = $spin->GetValue;
+                    $self->{layers_slider}->SetValue($value);
+                    $self->controller->project_layer($value);
+                    $self->_update_buttons;
+                });
+            }
+            {
+                my $slider = $self->{layers_slider} = Wx::Slider->new(
+                    $self, -1,
+                    0,           # default
+                    0,           # min
+                    300,         # max
+                    wxDefaultPosition,
+                    wxDefaultSize,
+                );
+                $sizer1->Add($slider, 1);
+                EVT_SLIDER($self, $slider, sub {
+                    my $value = $slider->GetValue;
+                    $self->{layers_spinctrl}->SetValue($value);
+                    $self->controller->project_layer($value);
+                    $self->_update_buttons;
+                });
+            }
+        }
+        
+        my $sizer2 = Wx::BoxSizer->new(wxHORIZONTAL);
+        $sizer->Add($sizer2, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+        
+        {
+            $self->{status_text} = Wx::StaticText->new($self, -1, "", wxDefaultPosition, wxDefaultSize);
+            $self->{status_text}->SetFont($Slic3r::GUI::small_font);
+            $sizer2->Add($self->{status_text}, 1 | wxEXPAND);
+        }
     }
     
     {
@@ -351,6 +393,8 @@ sub new {
         screen  => $self->screen,
         on_project_layer => sub {
             my ($layer_num) = @_;
+            
+            $self->{layers_spinctrl}->SetValue($layer_num);
             $self->_set_status(sprintf "Printing layer %d/%d (z = %.2f)",
                 $layer_num, $self->controller->layer_count,
                 $self->controller->current_layer_height);
@@ -360,6 +404,7 @@ sub new {
             $self->_set_status('');
         },
     ));
+    #$self->{layers_spinctrl}->SetMax($self->controller->layer_count);
     
     $self->_update_buttons;
     
@@ -370,9 +415,11 @@ sub _update_buttons {
     my ($self) = @_;
     
     my $is_printing = $self->controller->is_printing;
+    my $is_projecting = $self->controller->is_projecting;
     $self->{btn_manual_control}->Show(!$is_printing);
-    $self->{btn_print}->Show(!$is_printing);
-    $self->{btn_stop}->Show($is_printing);
+    $self->{btn_print}->Show(!$is_printing && !$is_projecting);
+    $self->{btn_stop}->Show($is_printing || $is_projecting);
+    $self->{layers_spinctrl}->Enable(!$is_printing);
     $self->Layout;
 }
 
@@ -436,6 +483,7 @@ has 'on_project_layer'      => (is => 'rw');
 has 'on_print_completed'    => (is => 'rw');
 has 'sender'                => (is => 'rw');
 has 'timer'                 => (is => 'rw');
+has 'is_printing'           => (is => 'rw', default => sub { 0 });
 has '_print'                => (is => 'rw');
 has '_layers'               => (is => 'rw');
 has '_heights'              => (is => 'rw');
@@ -462,12 +510,6 @@ sub delay {
     
     $self->_timer_cb($cb);
     $self->timer->Start($wait * 1000, wxTIMER_ONE_SHOT);
-}
-
-sub is_printing {
-    my ($self) = @_;
-    
-    return $self->timer->IsRunning;
 }
 
 sub set_print {
@@ -531,9 +573,11 @@ sub start_print {
             $self->config2->{z_lift}, $self->config2->{z_lift_speed}*60), 1);
     }
     
+    $self->is_printing(1);
+    
     # TODO: block until the G1 command has been performed
     # we could do this with M400 + M115 but maybe it's not portable
-    $self->delay(2, sub {
+    $self->delay(5, sub {
         # start with black
         Slic3r::debugf "starting black projection\n";
         $self->_layer_num(-1);
@@ -547,6 +591,7 @@ sub start_print {
 sub stop_print {
     my ($self) = @_;
     
+    $self->is_printing(0);
     $self->timer->Stop;
     $self->_timer_cb(undef);
     $self->screen->project_layers(undef);
@@ -556,13 +601,32 @@ sub stop_print {
     $self->sender->disconnect if $self->sender;
 }
 
+sub is_projecting {
+    my ($self) = @_;
+    
+    return defined $self->screen->layers;
+}
+
+sub project_layer {
+    my ($self, $layer_num) = @_;
+    
+    if (!defined $layer_num || $layer_num >= $self->layer_count) {
+        $self->screen->project_layers(undef);
+        return;
+    }
+    
+    my @layers = @{ $self->_layers->{ $self->_heights->[$layer_num] } };
+    $self->screen->project_layers([ @layers ]);
+}
+
 sub project_next_layer {
     my ($self) = @_;
     
-    Slic3r::debugf "projecting next layer\n";
     $self->_layer_num($self->_layer_num + 1);
+    Slic3r::debugf "projecting layer %d\n", $self->_layer_num;
     if ($self->_layer_num >= $self->layer_count) {
-        $self->on_print_completed->() if $self->on_print_completed;
+        $self->on_print_completed->()
+            if $self->is_printing && $self->on_print_completed;
         return;
     }
     
@@ -580,8 +644,7 @@ sub project_next_layer {
     # TODO: we should block until G1 commands have been performed, see note below
     # TODO: subtract this waiting time from the settle_time
     $self->delay(2, sub {
-        my @layers = @{ $self->_layers->{ $self->_heights->[$self->_layer_num] } };
-        $self->screen->project_layers([ @layers ]);
+        $self->project_layer($self->_layer_num);
         
         # get exposure time
         my $time = $self->config2->{exposure_time};
