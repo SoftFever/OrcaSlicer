@@ -14,6 +14,7 @@ sub new {
     $self->config2({
         display                 => 0,
         show_bed                => 1,
+        invert_y                => 0,
         zoom                    => 100,
         exposure_time           => 2,
         bottom_exposure_time    => 7,
@@ -43,7 +44,6 @@ sub new {
     $self->config->apply(wxTheApp->{mainframe}->config);
     
     {
-        
         my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
             parent      => $self,
             title       => 'USB/Serial connection',
@@ -182,6 +182,13 @@ sub new {
                 label       => 'Offset',
                 tooltip     => '',
                 default     => $self->config2->{offset},
+            ));
+            $line->append_option(Slic3r::GUI::OptionsGroup::Option->new(
+                opt_id      => 'invert_y',
+                type        => 'bool',
+                label       => 'Invert Y',
+                tooltip     => '',
+                default     => $self->config2->{invert_y},
             ));
             $optgroup->append_line($line);
         }
@@ -681,7 +688,7 @@ sub DESTROY {
 }
 
 package Slic3r::GUI::Projector::Screen;
-use Wx qw(:dialog :id :misc :sizer :colour :pen :brush);
+use Wx qw(:dialog :id :misc :sizer :colour :pen :brush :font);
 use Wx::Event qw(EVT_PAINT EVT_SIZE);
 use base qw(Wx::Dialog Class::Accessor);
 
@@ -782,8 +789,23 @@ sub _repaint {
                 push @polylines, Slic3r::Polyline->new([$bb->x_min, $y], [$bb->x_max, $y]);
             }
             $dc->DrawLine(map @$_, @$_)
-                for map $self->scaled_points_to_pixel([ @$_[0,-1] ], 1),
+                for map $self->scaled_points_to_pixel([ @$_[0,-1] ]),
                     @{intersection_pl(\@polylines, [$bed_polygon])};
+        }
+        
+        # draw axes orientation
+        $dc->SetPen(Wx::Pen->new(wxWHITE, 4, wxSOLID));
+        {
+            foreach my $endpoint ([10, 0], [0, 10]) {
+                $dc->DrawLine(
+                    map @{$self->unscaled_point_to_pixel($_)}, [0,0], $endpoint
+                );
+            }
+            
+            $dc->SetTextForeground(wxWHITE);
+            $dc->SetFont(Wx::Font->new(20, wxDEFAULT, wxNORMAL, wxNORMAL));
+            $dc->DrawText("X", @{$self->unscaled_point_to_pixel([10, -2])});
+            $dc->DrawText("Y", @{$self->unscaled_point_to_pixel([-2, 10])});
         }
     }
     
@@ -814,12 +836,18 @@ sub _repaint {
 sub unscaled_point_to_pixel {
     my ($self, $point) = @_;
     
-    my $ch = $self->GetSize->GetHeight;
     my $zero = $self->bed_origin;
-    return [
+    my $p = [
         $point->[X] * $self->scaling_factor + $zero->[X],
-        $ch - ($point->[Y] * $self->scaling_factor + $zero->[Y]),
+        $point->[Y] * $self->scaling_factor + $zero->[Y],
     ];
+    
+    if (!$self->config2->{invert_y}) {
+        my $ch = $self->GetSize->GetHeight;
+        $p->[Y] = $ch - $p->[Y];
+    }
+    
+    return $p;
 }
 
 sub scaled_points_to_pixel {
