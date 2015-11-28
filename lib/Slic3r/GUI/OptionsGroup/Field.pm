@@ -35,7 +35,7 @@ sub toggle {
 sub _on_change {
     my ($self, $opt_id) = @_;
     
-    $self->on_change->($opt_id)
+    $self->on_change->($opt_id, $self->get_value)
         unless $self->disable_change_event;
 }
 
@@ -219,7 +219,7 @@ sub BUILD {
     my ($self) = @_;
     
     my $style = 0;
-    $style |= wxCB_READONLY if $self->option->gui_type ne 'select_open';
+    $style |= wxCB_READONLY if defined $self->option->gui_type && $self->option->gui_type ne 'select_open';
     my $field = Wx::ComboBox->new($self->parent, -1, "", wxDefaultPosition, $self->_default_size,
         $self->option->labels || $self->option->values || [], $style);
     $self->wxWindow($field);

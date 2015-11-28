@@ -26,6 +26,7 @@ use Slic3r::GUI::Plater::ObjectSettingsDialog;
 use Slic3r::GUI::Plater::OverrideSettingsPanel;
 use Slic3r::GUI::Preferences;
 use Slic3r::GUI::ProgressStatusBar;
+use Slic3r::GUI::Projector;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SimpleTab;
@@ -76,6 +77,8 @@ $medium_font->SetPointSize(12);
 our $grey = Wx::Colour->new(200,200,200);
 
 our $VERSION_CHECK_EVENT : shared = Wx::NewEventType;
+
+our $DLP_projection_screen;
 
 sub OnInit {
     my ($self) = @_;
