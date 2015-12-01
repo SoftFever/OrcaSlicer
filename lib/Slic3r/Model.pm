@@ -104,32 +104,13 @@ sub duplicate_objects {
     $self->arrange_objects($distance, $bb);
 }
 
-# arrange objects preserving their instance count
-# but altering their instance positions
-sub arrange_objects {
-    my ($self, $distance, $bb) = @_;
-    
-    # get the (transformed) size of each instance so that we take
-    # into account their different transformations when packing
-    my @instance_sizes = ();
-    foreach my $object (@{$self->objects}) {
-        push @instance_sizes, map $object->instance_bounding_box($_)->size, 0..$#{$object->instances};
-    }
-    
-    my @positions = $self->_arrange(\@instance_sizes, $distance, $bb);
-    
-    foreach my $object (@{$self->objects}) {
-        $_->set_offset(Slic3r::Pointf->new(@{shift @positions})) for @{$object->instances};
-        $object->update_bounding_box;
-    }
-}
-
 # duplicate the entire model preserving instance relative positions
 sub duplicate {
     my ($self, $copies_num, $distance, $bb) = @_;
     
-    my $model_size = $self->bounding_box->size;
-    my @positions = $self->_arrange([ map $model_size, 2..$copies_num ], $distance, $bb);
+    my $model_size = Slic3r::Pointf->new(@{$self->bounding_box->size}[X,Y]);
+    $bb //= Slic3r::Geometry::BoundingBoxf->new;
+    my @positions = @{$self->_arrange([ map $model_size, 2..$copies_num ], $distance, $bb)};
     
     # note that this will leave the object count unaltered
     
@@ -146,23 +127,6 @@ sub duplicate {
         }
         $object->update_bounding_box;
     }
-}
-
-sub _arrange {
-    my ($self, $sizes, $distance, $bb) = @_;
-
-    $bb //= Slic3r::Geometry::BoundingBoxf->new;
-    
-    # we supply unscaled data to arrange()
-    return @{Slic3r::Geometry::arrange(
-        scalar(@$sizes),                # number of parts
-        Slic3r::Pointf->new(
-            max(map $_->x, @$sizes),        # cell width
-            max(map $_->y, @$sizes),        # cell height  ,
-        ),
-        $distance,                      # distance between cells
-        $bb,                            # bounding box of the area to fill (can be undef)
-    )};
 }
 
 sub print_info {

@@ -239,6 +239,42 @@ Model::raw_mesh() const
     return mesh;
 }
 
+Pointfs
+Model::_arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf &bb) const
+{
+    // we supply unscaled data to arrange()
+    return Slic3r::Geometry::arrange(
+        sizes.size(),               // number of parts
+        BoundingBoxf(sizes).max,    // width and height of a single cell
+        dist,                       // distance between cells
+        bb                          // bounding box of the area to fill
+    );
+}
+
+/*  arrange objects preserving their instance count
+    but altering their instance positions */
+void
+Model::arrange_objects(coordf_t dist, BoundingBoxf bb)
+{
+    // get the (transformed) size of each instance so that we take
+    // into account their different transformations when packing
+    Pointfs instance_sizes;
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        for (size_t i = 0; i < (*o)->instances.size(); ++i) {
+            instance_sizes.push_back((*o)->instance_bounding_box(i).size());
+        }
+    }
+    
+    Pointfs positions = this->_arrange(instance_sizes, dist, bb);
+    
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        for (ModelInstancePtrs::const_iterator i = (*o)->instances.begin(); i != (*o)->instances.end(); ++i) {
+            (*i)->offset = positions.back();
+            positions.pop_back();
+        }
+    }
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(Model, "Model");
 #endif

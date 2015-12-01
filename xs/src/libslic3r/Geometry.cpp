@@ -186,7 +186,6 @@ arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf &bb)
     // this is how many cells we have available into which to put parts
     size_t cellw = floor((area.x + dist) / part.x);
     size_t cellh = floor((area.x + dist) / part.x);
-    
     if (total_parts > (cellw * cellh))
         CONFESS("%zu parts won't fit in your print area!\n", total_parts);
     

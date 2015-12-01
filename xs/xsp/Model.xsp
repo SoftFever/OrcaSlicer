@@ -55,7 +55,6 @@
 
     // void duplicate_objects_grid(coordf_t x, coordf_t y, coordf_t distance);
     // void duplicate_objects(size_t copies_num, coordf_t distance, const BoundingBox &bb);
-    // void arrange_objects(coordf_t distance, const BoundingBox &bb);
     // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     bool has_objects_with_no_instances();
     bool add_default_instances();
@@ -71,6 +70,12 @@
 
     ModelObjectPtrs* objects()
         %code%{ RETVAL = &THIS->objects; %};
+    
+    Pointfs _arrange(Pointfs sizes, double dist, BoundingBoxf* bb)
+        %code%{ RETVAL = THIS->_arrange(sizes, dist, *bb); %};
+    
+    void arrange_objects(double dist, BoundingBoxf* bb)
+        %code%{ THIS->arrange_objects(dist, *bb); %};
 };
 
 

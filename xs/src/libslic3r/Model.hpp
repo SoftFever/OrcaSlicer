@@ -61,10 +61,8 @@ class Model
     TriangleMesh mesh() const;
     TriangleMesh raw_mesh() const;
     // std::string get_material_name(t_model_material_id material_id);
-
-    
-    private:
-    void _arrange(const std::vector<Size> &sizes, coordf_t distance, const BoundingBox &bb) const;
+    Pointfs _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf &bb) const;
+    void arrange_objects(coordf_t dist, BoundingBoxf bb = BoundingBoxf());
 };
 
 class ModelMaterial
