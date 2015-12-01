@@ -1,4 +1,4 @@
-use Test::More tests => 33;
+use Test::More tests => 59;
 use strict;
 use warnings;
 
@@ -63,10 +63,23 @@ use Slic3r::Test;
             $expected{total}, 'expected number of loops';
         is scalar(grep $_->role == EXTR_ROLE_EXTERNAL_PERIMETER, map @$_, @loops),
             $expected{external}, 'expected number of external loops';
+        is_deeply [ map { ($_->role == EXTR_ROLE_EXTERNAL_PERIMETER) || 0 } map @$_, @loops ],
+            $expected{ext_order}, 'expected external order';
         is scalar(grep $_->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER, @loops),
             $expected{cinternal}, 'expected number of internal contour loops';
         is scalar(grep $_->polygon->is_counter_clockwise, @loops),
             $expected{ccw}, 'expected number of ccw loops';
+        is_deeply [ map $_->polygon->is_counter_clockwise, @loops ],
+            $expected{ccw_order}, 'expected ccw/cw order';
+        
+        if ($expected{nesting}) {
+            foreach my $nesting (@{ $expected{nesting} }) {
+                for my $i (1..$#$nesting) {
+                    ok $loops[$nesting->[$i-1]]->polygon->contains_point($loops[$nesting->[$i]]->first_point),
+                        'expected nesting order';
+                }
+            }
+        }
     };
     
     $config->set('perimeters', 3);
@@ -78,8 +91,11 @@ use Slic3r::Test;
         ],
         total       => 3,
         external    => 1,
+        ext_order   => [0,0,1],
         cinternal   => 1,
         ccw         => 3,
+        ccw_order   => [1,1,1],
+        nesting     => [ [2,1,0] ],
     );
     $test->(
         [
@@ -90,8 +106,11 @@ use Slic3r::Test;
         ],
         total       => 6,
         external    => 2,
+        ext_order   => [0,0,1,0,0,1],
         cinternal   => 1,
         ccw         => 3,
+        ccw_order   => [0,0,0,1,1,1],
+        nesting     => [ [5,4,3,0,1,2] ],
     );
     $test->(
         [
@@ -107,8 +126,31 @@ use Slic3r::Test;
         ],
         total       => 4*3,
         external    => 4,
+        ext_order   => [0,0,1,0,0,1,0,0,1,0,0,1],
         cinternal   => 2,
         ccw         => 2*3,
+        ccw_order   => [0,0,0,1,1,1,0,0,0,1,1,1],
+    );
+    
+    $config->set('perimeters', 2);
+    $test->(
+        [
+            Slic3r::ExPolygon->new(
+                Slic3r::Polygon->new_scale([0,0], [50,0], [50,50], [0,50]),
+                Slic3r::Polygon->new_scale([7.5,7.5], [7.5,12.5], [12.5,12.5], [12.5,7.5]),
+                Slic3r::Polygon->new_scale([7.5,17.5], [7.5,22.5], [12.5,22.5], [12.5,17.5]),
+                Slic3r::Polygon->new_scale([7.5,27.5], [7.5,32.5], [12.5,32.5], [12.5,27.5]),
+                Slic3r::Polygon->new_scale([7.5,37.5], [7.5,42.5], [12.5,42.5], [12.5,37.5]),
+                Slic3r::Polygon->new_scale([17.5,7.5], [17.5,12.5], [22.5,12.5], [22.5,7.5]),
+            ),
+        ],
+        total       => 12,
+        external    => 6,
+        ext_order   => [0,1,0,1,0,1,0,1,0,1,0,1],
+        cinternal   => 1,
+        ccw         => 2,
+        ccw_order   => [0,0,0,0,0,0,0,0,0,0,1,1],
+        nesting     => [ [0,1],[2,3],[4,5],[6,7],[8,9] ],
     );
 }
 
