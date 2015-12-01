@@ -610,8 +610,10 @@ sub stop_print {
     $self->screen->project_layers(undef);
     
     # send custom end G-code
-    $self->sender->send($_, 1) for grep !/^;/, split /\n/, $self->config->end_gcode;
-    $self->sender->disconnect if $self->sender;
+    if ($self->sender) {
+        $self->sender->send($_, 1) for grep !/^;/, split /\n/, $self->config->end_gcode;
+        $self->sender->disconnect;
+    }
 }
 
 sub is_projecting {
@@ -655,8 +657,7 @@ sub project_next_layer {
     }
     
     # TODO: we should block until G1 commands have been performed, see note below
-    # TODO: subtract this waiting time from the settle_time
-    $self->delay(2, sub {
+    $self->delay($self->config2->{settle_time}, sub {
         $self->project_layer($self->_layer_num);
         
         # get exposure time
@@ -666,18 +667,9 @@ sub project_next_layer {
         }
         
         $self->delay($time, sub {
-            $self->settle;
+            $self->screen->project_layers(undef);
+            $self->project_next_layer;
         });
-    });
-}
-
-sub settle {
-    my ($self) = @_;
-    
-    Slic3r::debugf "settling\n";
-    $self->screen->project_layers(undef);
-    $self->delay($self->config2->{settle_time}, sub {
-        $self->project_next_layer;
     });
 }
 
@@ -685,6 +677,7 @@ sub DESTROY {
     my ($self) = @_;
     
     $self->timer->Stop if $self->timer;
+    $self->sender->disconnect if $self->sender;
 }
 
 package Slic3r::GUI::Projector::Screen;
