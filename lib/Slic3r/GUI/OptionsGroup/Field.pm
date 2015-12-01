@@ -239,8 +239,13 @@ sub set_value {
     
     $self->disable_change_event(1);
     
+    my $idx;
     if ($self->option->values) {
-        my $idx = first { $self->option->values->[$_] eq $value } 0..$#{$self->option->values};
+        $idx = first { $self->option->values->[$_] eq $value } 0..$#{$self->option->values};
+        # if value is not among indexes values we use SetValue()
+    }
+    
+    if (defined $idx) {
         $self->wxWindow->SetSelection($idx);
     } else {
         $self->wxWindow->SetValue($value);
