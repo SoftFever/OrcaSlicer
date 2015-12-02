@@ -576,6 +576,8 @@ class PrintConfig : public GCodeConfig
         
         return NULL;
     };
+    
+    double min_object_distance() const;
 };
 
 class HostConfig : public virtual StaticPrintConfig

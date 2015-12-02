@@ -75,6 +75,7 @@
     %name{get_keys} std::vector<std::string> keys();
     std::string get_extrusion_axis();
     %name{setenv} void setenv_();
+    double min_object_distance();
 };
 
 %name{Slic3r::Config::PrintRegion} class PrintRegionConfig {
@@ -146,6 +147,7 @@
     %name{get_keys} std::vector<std::string> keys();
     std::string get_extrusion_axis();
     %name{setenv} void setenv_();
+    double min_object_distance();
 };
 
 %package{Slic3r::Config};

@@ -1095,6 +1095,15 @@ DynamicPrintConfig::normalize() {
     }
 }
 
+double
+PrintConfig::min_object_distance() const
+{
+    // min object distance is max(duplicate_distance, clearance_radius)
+    return (this->complete_objects.value && this->extruder_clearance_radius.value > this->duplicate_distance.value)
+        ? this->extruder_clearance_radius.value
+        : this->duplicate_distance.value;
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(DynamicPrintConfig, "Config");
 REGISTER_CLASS(PrintObjectConfig, "Config::PrintObject");

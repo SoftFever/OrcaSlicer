@@ -444,22 +444,4 @@ sub expanded_output_filepath {
     return $self->placeholder_parser->process($path);
 }
 
-# This method assigns extruders to the volumes having a material
-# but not having extruders set in the volume config.
-sub auto_assign_extruders {
-    my ($self, $model_object) = @_;
-    
-    # only assign extruders if object has more than one volume
-    return if @{$model_object->volumes} == 1;
-    
-    my $extruders = scalar @{ $self->config->nozzle_diameter };
-    foreach my $i (0..$#{$model_object->volumes}) {
-        my $volume = $model_object->volumes->[$i];
-        if ($volume->material_id ne '') {
-            my $extruder_id = $i + 1;
-            $volume->config->set_ifndef('extruder', $extruder_id);
-        }
-    }
-}
-
 1;
