@@ -175,7 +175,7 @@ arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf* bb)
     part.y += dist;
     
     Pointf area;
-    if (bb != NULL) {
+    if (bb != NULL && bb->defined) {
         area = bb->size();
     } else {
         // bogus area size, large enough not to trigger the error below
@@ -278,7 +278,7 @@ arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf* bb)
         positions.push_back(Pointf(cx * part.x, cy * part.y));
     }
     
-    if (bb != NULL) {
+    if (bb != NULL && bb->defined) {
         for (Pointfs::iterator p = positions.begin(); p != positions.end(); ++p) {
             p->x += bb->min.x;
             p->y += bb->min.y;

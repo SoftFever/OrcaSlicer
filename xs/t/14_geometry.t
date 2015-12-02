@@ -33,8 +33,7 @@ use constant PI => 4 * atan2(1, 1);
 }
 
 {
-    my $positions = Slic3r::Geometry::arrange(4, Slic3r::Pointf->new(20, 20),
-        5, Slic3r::Geometry::BoundingBoxf->new);
+    my $positions = Slic3r::Geometry::arrange(4, Slic3r::Pointf->new(20, 20), 5);
     is scalar(@$positions), 4, 'arrange() returns expected number of positions';
 }
 
