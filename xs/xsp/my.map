@@ -337,10 +337,10 @@ T_STD_VECTOR_DOUBLE
 
 O_OBJECT_SLIC3R
     if( sv_isobject($arg) && (SvTYPE(SvRV($arg)) == SVt_PVMG) ) {
-        if ( sv_isa($arg, perl_class_name($var) ) ||  sv_isa($arg, perl_class_name_ref($var) )) {
+        if ( sv_isa($arg, Slic3r::perl_class_name($var) ) ||  sv_isa($arg, Slic3r::perl_class_name_ref($var) )) {
               $var = ($type)SvIV((SV*)SvRV( $arg ));
         } else {
-              croak(\"$var is not of type %s (got %s)\", perl_class_name($var), HvNAME(SvSTASH(SvRV($arg))));
+              croak(\"$var is not of type %s (got %s)\", Slic3r::perl_class_name($var), HvNAME(SvSTASH(SvRV($arg))));
               XSRETURN_UNDEF;
         }
     } else {
@@ -464,7 +464,7 @@ T_STD_VECTOR_DOUBLE
 O_OBJECT_SLIC3R
         if ($var == NULL)
             XSRETURN_UNDEF;
-        sv_setref_pv( $arg, perl_class_name($var), (void*)$var );
+        sv_setref_pv( $arg, Slic3r::perl_class_name($var), (void*)$var );
 
 # return value handled by template class
 O_OBJECT_SLIC3R_T
