@@ -360,6 +360,12 @@ Pointf::translate(double x, double y)
 }
 
 void
+Pointf::translate(const Vectorf &vector)
+{
+    this->translate(vector.x, vector.y);
+}
+
+void
 Pointf::rotate(double angle, const Pointf &center)
 {
     double cur_x = this->x;

@@ -121,29 +121,6 @@ Model::get_material(t_model_material_id material_id)
     }
 }
 
-/*
-void
-Model::duplicate_objects_grid(unsigned int x, unsigned int y, coordf_t distance)
-{
-    if (this->objects.size() > 1) throw "Grid duplication is not supported with multiple objects";
-    if (this->objects.empty()) throw "No objects!";
-
-    ModelObject* object = this->objects.front();
-    object->clear_instances();
-
-    BoundingBoxf3 bb = object->bounding_box();
-    Sizef3 size = bb.size();
-
-    for (unsigned int x_copy = 1; x_copy <= x; ++x_copy) {
-        for (unsigned int y_copy = 1; y_copy <= y; ++y_copy) {
-            ModelInstance* instance = object->add_instance();
-            instance->offset.x = (size.x + distance) * (x_copy-1);
-            instance->offset.y = (size.y + distance) * (y_copy-1);
-        }
-    }
-}
-*/
-
 bool
 Model::has_objects_with_no_instances() const
 {
@@ -240,7 +217,7 @@ Model::raw_mesh() const
 }
 
 Pointfs
-Model::_arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf &bb) const
+Model::_arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb) const
 {
     // we supply unscaled data to arrange()
     return Slic3r::Geometry::arrange(
@@ -254,7 +231,7 @@ Model::_arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf &bb) con
 /*  arrange objects preserving their instance count
     but altering their instance positions */
 void
-Model::arrange_objects(coordf_t dist, BoundingBoxf bb)
+Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
 {
     // get the (transformed) size of each instance so that we take
     // into account their different transformations when packing
@@ -271,6 +248,65 @@ Model::arrange_objects(coordf_t dist, BoundingBoxf bb)
         for (ModelInstancePtrs::const_iterator i = (*o)->instances.begin(); i != (*o)->instances.end(); ++i) {
             (*i)->offset = positions.back();
             positions.pop_back();
+        }
+    }
+}
+
+/*  duplicate the entire model preserving instance relative positions */
+void
+Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
+{
+    Pointfs model_sizes(copies_num-1, this->bounding_box().size());
+    Pointfs positions = this->_arrange(model_sizes, dist, bb);
+    
+    // note that this will leave the object count unaltered
+    
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        // make a copy of the pointers in order to avoid recursion when appending their copies
+        ModelInstancePtrs instances = (*o)->instances;
+        for (ModelInstancePtrs::const_iterator i = instances.begin(); i != instances.end(); ++i) {
+            for (Pointfs::const_iterator pos = positions.begin(); pos != positions.end(); ++pos) {
+                ModelInstance* instance = (*o)->add_instance(**i);
+                instance->offset.translate(*pos);
+            }
+        }
+        (*o)->update_bounding_box();
+    }
+}
+
+/*  this will append more instances to each object
+    and then automatically rearrange everything */
+void
+Model::duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
+{
+    for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
+        // make a copy of the pointers in order to avoid recursion when appending their copies
+        ModelInstancePtrs instances = (*o)->instances;
+        for (ModelInstancePtrs::const_iterator i = instances.begin(); i != instances.end(); ++i) {
+            for (size_t k = 2; k <= copies_num; ++k)
+                (*o)->add_instance(**i);
+        }
+    }
+    
+    this->arrange_objects(dist, bb);
+}
+
+void
+Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
+{
+    if (this->objects.size() > 1) throw "Grid duplication is not supported with multiple objects";
+    if (this->objects.empty()) throw "No objects!";
+
+    ModelObject* object = this->objects.front();
+    object->clear_instances();
+
+    Sizef3 size = object->bounding_box().size();
+
+    for (size_t x_copy = 1; x_copy <= x; ++x_copy) {
+        for (size_t y_copy = 1; y_copy <= y; ++y_copy) {
+            ModelInstance* instance = object->add_instance();
+            instance->offset.x = (size.x + dist) * (x_copy-1);
+            instance->offset.y = (size.y + dist) * (y_copy-1);
         }
     }
 }

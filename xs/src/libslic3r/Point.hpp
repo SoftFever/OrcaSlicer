@@ -94,6 +94,7 @@ class Pointf
     };
     void scale(double factor);
     void translate(double x, double y);
+    void translate(const Vectorf &vector);
     void rotate(double angle, const Pointf &center);
     Pointf negative() const;
     Vectorf vector_to(const Pointf &point) const;

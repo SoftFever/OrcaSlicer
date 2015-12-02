@@ -67,84 +67,9 @@ sub set_material {
     return $material;
 }
 
-sub duplicate_objects_grid {
-    my ($self, $grid, $distance) = @_;
-
-    die "Grid duplication is not supported with multiple objects\n"
-        if @{$self->objects} > 1;
-
-    my $object = $self->objects->[0];
-    $object->clear_instances;
-
-    my $size = $object->bounding_box->size;
-    for my $x_copy (1..$grid->[X]) {
-        for my $y_copy (1..$grid->[Y]) {
-            $object->add_instance(
-                offset => Slic3r::Pointf->new(
-                    ($size->[X] + $distance) * ($x_copy-1),
-                    ($size->[Y] + $distance) * ($y_copy-1),
-                ),
-            );
-        }
-    }
-}
-
-# this will append more instances to each object
-# and then automatically rearrange everything
-sub duplicate_objects {
-    my ($self, $copies_num, $distance, $bb) = @_;
-    
-    foreach my $object (@{$self->objects}) {
-        my @instances = @{$object->instances};
-        foreach my $instance (@instances) {
-            $object->add_instance($instance) for 2..$copies_num;
-        }
-    }
-    
-    $self->arrange_objects($distance, $bb);
-}
-
-# duplicate the entire model preserving instance relative positions
-sub duplicate {
-    my ($self, $copies_num, $distance, $bb) = @_;
-    
-    my $model_size = Slic3r::Pointf->new(@{$self->bounding_box->size}[X,Y]);
-    $bb //= Slic3r::Geometry::BoundingBoxf->new;
-    my @positions = @{$self->_arrange([ map $model_size, 2..$copies_num ], $distance, $bb)};
-    
-    # note that this will leave the object count unaltered
-    
-    foreach my $object (@{$self->objects}) {
-        my @instances = @{$object->instances};  # store separately to avoid recursion from add_instance() below
-        foreach my $instance (@instances) {
-            foreach my $pos (@positions) {
-                $object->add_instance(
-                    offset          => Slic3r::Pointf->new($instance->offset->[X] + $pos->[X], $instance->offset->[Y] + $pos->[Y]),
-                    rotation        => $instance->rotation,
-                    scaling_factor  => $instance->scaling_factor,
-                );
-            }
-        }
-        $object->update_bounding_box;
-    }
-}
-
 sub print_info {
     my $self = shift;
     $_->print_info for @{$self->objects};
-}
-
-sub get_material_name {
-    my $self = shift;
-    my ($material_id) = @_;
-    
-    my $name;
-    if ($self->has_material($material_id)) {
-        $name //= $self->get_material($material_id)
-            ->attributes->{$_} for qw(Name name);
-    }
-    $name //= $material_id;
-    return $name;
 }
 
 package Slic3r::Model::Material;

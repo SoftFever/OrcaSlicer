@@ -36,7 +36,7 @@ class ArrangeItemIndex {
     ArrangeItemIndex(coordf_t _index, ArrangeItem _item) : index(_index), item(_item) {};
 };
 double linint(double value, double oldmin, double oldmax, double newmin, double newmax);
-Pointfs arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf &bb = BoundingBoxf());
+Pointfs arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf* bb);
 
 class MedialAxis {
     public:

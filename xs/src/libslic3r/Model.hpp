@@ -48,10 +48,6 @@ class Model
     ModelMaterial* get_material(t_model_material_id material_id);
     void delete_material(t_model_material_id material_id);
     void clear_materials();
-    // void duplicate_objects_grid(unsigned int x, unsigned int y, coordf_t distance);
-    // void duplicate_objects(size_t copies_num, coordf_t distance, const BoundingBox &bb);
-    // void arrange_objects(coordf_t distance, const BoundingBox &bb);
-    // void duplicate(size_t copies_num, coordf_t distance, const BoundingBox &bb);
     bool has_objects_with_no_instances() const;
     bool add_default_instances();
     BoundingBoxf3 bounding_box() const;
@@ -60,9 +56,11 @@ class Model
     void translate(coordf_t x, coordf_t y, coordf_t z);
     TriangleMesh mesh() const;
     TriangleMesh raw_mesh() const;
-    // std::string get_material_name(t_model_material_id material_id);
-    Pointfs _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf &bb) const;
-    void arrange_objects(coordf_t dist, BoundingBoxf bb = BoundingBoxf());
+    Pointfs _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb = NULL) const;
+    void arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
+    void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
+    void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
 };
 
 class ModelMaterial
