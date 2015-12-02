@@ -101,6 +101,7 @@ class Layer {
     void merge_slices();
     template <class T> bool any_internal_region_slice_contains(const T &item) const;
     template <class T> bool any_bottom_region_slice_contains(const T &item) const;
+    void make_perimeters();
     
     protected:
     size_t _id;     // sequential number of layer, 0-based

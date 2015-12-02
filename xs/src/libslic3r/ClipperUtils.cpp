@@ -569,6 +569,17 @@ union_ex(const Slic3r::Polygons &subject, bool safety_offset)
     return expp;
 }
 
+Slic3r::ExPolygons
+union_ex(const Slic3r::Surfaces &subject, bool safety_offset)
+{
+    Polygons pp;
+    for (Slic3r::Surfaces::const_iterator s = subject.begin(); s != subject.end(); ++s) {
+        Polygons spp = *s;
+        pp.insert(pp.end(), spp.begin(), spp.end());
+    }
+    return union_ex(pp, safety_offset);
+}
+
 void union_(const Slic3r::Polygons &subject1, const Slic3r::Polygons &subject2, Slic3r::Polygons* retval, bool safety_offset)
 {
     Polygons pp = subject1;

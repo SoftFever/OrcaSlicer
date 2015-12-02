@@ -162,6 +162,89 @@ Layer::any_bottom_region_slice_contains(const T &item) const
 }
 template bool Layer::any_bottom_region_slice_contains<Polyline>(const Polyline &item) const;
 
+void
+Layer::make_perimeters()
+{
+    #ifdef SLIC3R_DEBUG
+    printf("Making perimeters for layer %zu\n", this->id());
+    #endif
+    
+    // keep track of regions whose perimeters we have already generated
+    std::set<size_t> done;
+    
+    FOREACH_LAYERREGION(this, layerm) {
+        size_t region_id = layerm - this->regions.begin();
+        if (done.find(region_id) != done.end()) continue;
+        done.insert(region_id);
+        const PrintRegionConfig &config = (*layerm)->region()->config;
+        
+        // find compatible regions
+        LayerRegionPtrs layerms;
+        layerms.push_back(*layerm);
+        for (LayerRegionPtrs::const_iterator it = layerm + 1; it != this->regions.end(); ++it) {
+            LayerRegion* other_layerm = *it;
+            const PrintRegionConfig &other_config = other_layerm->region()->config;
+            
+            if (config.perimeter_extruder   == other_config.perimeter_extruder
+                && config.perimeters        == other_config.perimeters
+                && config.perimeter_speed   == other_config.perimeter_speed
+                && config.gap_fill_speed    == other_config.gap_fill_speed
+                && config.overhangs         == other_config.overhangs
+                && config.serialize("perimeter_extrusion_width").compare(other_config.serialize("perimeter_extrusion_width")) == 0
+                && config.thin_walls        == other_config.thin_walls
+                && config.external_perimeters_first == other_config.external_perimeters_first) {
+                layerms.push_back(other_layerm);
+                done.insert(it - this->regions.begin());
+            }
+        }
+        
+        if (layerms.size() == 1) {  // optimization
+            (*layerm)->fill_surfaces.surfaces.clear();
+            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces);
+        } else {
+            // group slices (surfaces) according to number of extra perimeters
+            std::map<unsigned short,Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
+            for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
+                for (Surfaces::iterator s = (*l)->slices.surfaces.begin(); s != (*l)->slices.surfaces.end(); ++s) {
+                    slices[s->extra_perimeters].push_back(*s);
+                }
+            }
+            
+            // merge the surfaces assigned to each group
+            SurfaceCollection new_slices;
+            for (std::map<unsigned short,Surfaces>::const_iterator it = slices.begin(); it != slices.end(); ++it) {
+                ExPolygons expp = union_ex(it->second, true);
+                for (ExPolygons::iterator ex = expp.begin(); ex != expp.end(); ++ex) {
+                    Surface s = it->second.front();  // clone type and extra_perimeters
+                    s.expolygon = *ex;
+                    new_slices.surfaces.push_back(s);
+                }
+            }
+            
+            // make perimeters
+            SurfaceCollection fill_surfaces;
+            (*layerm)->make_perimeters(new_slices, &fill_surfaces);
+            
+            // assign fill_surfaces to each layer
+            if (!fill_surfaces.surfaces.empty()) {
+                for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
+                    ExPolygons expp = intersection_ex(
+                        fill_surfaces,
+                        (*l)->slices
+                    );
+                    (*l)->fill_surfaces.surfaces.clear();
+                    
+                    for (ExPolygons::iterator ex = expp.begin(); ex != expp.end(); ++ex) {
+                        Surface s = fill_surfaces.surfaces.front();  // clone type and extra_perimeters
+                        s.expolygon = *ex;
+                        (*l)->fill_surfaces.surfaces.push_back(s);
+                    }
+                }
+            }
+        }
+    }
+}
+
 #ifdef SLIC3RXS
 REGISTER_CLASS(Layer, "Layer");
 #endif

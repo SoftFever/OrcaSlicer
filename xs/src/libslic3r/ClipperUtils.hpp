@@ -121,6 +121,7 @@ void union_(const Slic3r::Polygons &subject, T* retval, bool safety_offset_ = fa
 
 Slic3r::Polygons union_(const Slic3r::Polygons &subject, bool safety_offset = false);
 Slic3r::ExPolygons union_ex(const Slic3r::Polygons &subject, bool safety_offset = false);
+Slic3r::ExPolygons union_ex(const Slic3r::Surfaces &subject, bool safety_offset = false);
 
 void union_(const Slic3r::Polygons &subject1, const Slic3r::Polygons &subject2, Slic3r::Polygons* retval, bool safety_offset = false);
 

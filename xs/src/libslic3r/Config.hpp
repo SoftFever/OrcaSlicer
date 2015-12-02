@@ -24,6 +24,8 @@ class ConfigOption {
     virtual bool deserialize(std::string str) = 0;
     virtual int getInt() const { return 0; };
     virtual void setInt(int val) {};
+    friend bool operator== (const ConfigOption &a, const ConfigOption &b);
+    friend bool operator!= (const ConfigOption &a, const ConfigOption &b);
 };
 
 class ConfigOptionVectorBase : public ConfigOption {
@@ -521,7 +523,7 @@ class ConfigBase
     void apply(const ConfigBase &other, bool ignore_nonexistent = false);
     bool equals(ConfigBase &other);
     t_config_option_keys diff(ConfigBase &other);
-    std::string serialize(const t_config_option_key &opt_key);
+    std::string serialize(const t_config_option_key &opt_key) const;
     bool set_deserialize(const t_config_option_key &opt_key, std::string str);
     void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
     double get_abs_value(const t_config_option_key &opt_key);

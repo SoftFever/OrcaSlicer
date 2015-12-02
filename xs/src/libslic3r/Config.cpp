@@ -8,6 +8,18 @@
 namespace Slic3r {
 
 bool
+operator== (const ConfigOption &a, const ConfigOption &b)
+{
+    return a.serialize().compare(b.serialize()) == 0;
+}
+
+bool
+operator!= (const ConfigOption &a, const ConfigOption &b)
+{
+    return !(a == b);
+}
+
+bool
 ConfigBase::has(const t_config_option_key &opt_key) {
     return (this->option(opt_key, false) != NULL);
 }
@@ -52,8 +64,8 @@ ConfigBase::diff(ConfigBase &other) {
 }
 
 std::string
-ConfigBase::serialize(const t_config_option_key &opt_key) {
-    ConfigOption* opt = this->option(opt_key);
+ConfigBase::serialize(const t_config_option_key &opt_key) const {
+    const ConfigOption* opt = this->option(opt_key);
     assert(opt != NULL);
     return opt->serialize();
 }
