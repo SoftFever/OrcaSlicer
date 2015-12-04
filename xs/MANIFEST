@@ -38,6 +38,8 @@ src/libslic3r/GCodeWriter.cpp
 src/libslic3r/GCodeWriter.hpp
 src/libslic3r/Geometry.cpp
 src/libslic3r/Geometry.hpp
+src/libslic3r/GUI/GUI.cpp
+src/libslic3r/GUI/GUI.hpp
 src/libslic3r/GUI/3DScene.cpp
 src/libslic3r/GUI/3DScene.hpp
 src/libslic3r/Layer.cpp
@@ -132,6 +134,7 @@ xsp/GCodeSender.xsp
 xsp/GCode.xsp
 xsp/GCodeWriter.xsp
 xsp/Geometry.xsp
+xsp/GUI.xsp
 xsp/GUI_3DScene.xsp
 xsp/Layer.xsp
 xsp/Line.xsp

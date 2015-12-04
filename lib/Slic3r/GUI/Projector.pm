@@ -595,6 +595,8 @@ sub current_layer_height {
 sub start_print {
     my ($self) = @_;
     
+    Slic3r::GUI::disable_screensaver();
+    
     {
         $self->sender(Slic3r::GCode::Sender->new);
         my $res = $self->sender->connect(
@@ -632,15 +634,25 @@ sub stop_print {
     my ($self) = @_;
     
     $self->is_printing(0);
+    Slic3r::GUI::enable_screensaver();
     $self->timer->Stop;
     $self->_timer_cb(undef);
     $self->screen->project_layers(undef);
+}
+
+sub print_completed {
+    my ($self) = @_;
     
     # send custom end G-code
     if ($self->sender) {
         $self->sender->send($_, 1) for grep !/^;/, split /\n/, $self->config->end_gcode;
         $self->sender->disconnect;
     }
+    
+    $self->on_print_completed->()
+        if $self->is_printing && $self->on_print_completed;
+    
+    $self->stop_print;
 }
 
 sub is_projecting {
@@ -667,8 +679,7 @@ sub project_next_layer {
     $self->_layer_num($self->_layer_num + 1);
     Slic3r::debugf "projecting layer %d\n", $self->_layer_num;
     if ($self->_layer_num >= $self->layer_count) {
-        $self->on_print_completed->()
-            if $self->is_printing && $self->on_print_completed;
+        $self->print_completed;
         return;
     }
     

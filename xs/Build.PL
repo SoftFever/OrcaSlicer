@@ -12,6 +12,10 @@ use Module::Build::WithXSpp;
 # NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
 # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
 my @cflags = qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS -DBOOST_ASIO_DISABLE_KQUEUE);
+my @ldflags = ();
+if ($^O eq 'darwin') {
+    push @ldflags, qw(-framework IOKit -framework CoreFoundation);
+}
 
 my @INC  = qw();
 my @LIBS = qw();
@@ -117,7 +121,7 @@ my $build = Module::Build::WithXSpp->new(
         Module::Build::WithXSpp     0.13
     )},
     extra_compiler_flags => [ @INC, @cflags ],
-    extra_linker_flags => \@LIBS,
+    extra_linker_flags => [ @LIBS, @ldflags ],
     
     # Provides extra C typemaps that are auto-merged
     extra_typemap_modules => {
