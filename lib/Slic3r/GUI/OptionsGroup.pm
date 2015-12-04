@@ -251,6 +251,18 @@ sub _on_change {
     $self->on_change->($opt_id, $value);
 }
 
+sub enable {
+    my ($self) = @_;
+    
+    $_->enable for values %{$self->_fields};
+}
+
+sub disable {
+    my ($self) = @_;
+    
+    $_->disable for values %{$self->_fields};
+}
+
 sub _on_kill_focus {
     my ($self, $opt_id) = @_;
     # nothing

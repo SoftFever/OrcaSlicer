@@ -6,7 +6,7 @@ use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER EVT_SPINCTRL EVT_SLIDER);
 use base qw(Wx::Dialog Class::Accessor);
 use utf8;
 
-__PACKAGE__->mk_accessors(qw(config config2 screen controller));
+__PACKAGE__->mk_accessors(qw(config config2 screen controller _optgroups));
 
 sub new {
     my ($class, $parent) = @_;
@@ -43,8 +43,9 @@ sub new {
     ));
     $self->config->apply(wxTheApp->{mainframe}->config);
     
+    my @optgroups = ();
     {
-        my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+        push @optgroups, my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
             parent      => $self,
             title       => 'USB/Serial connection',
             config      => $self->config,
@@ -102,7 +103,7 @@ sub new {
     }
     
     {
-        my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
+        push @optgroups, my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(
             parent      => $self,
             title       => 'G-code',
             config      => $self->config,
@@ -129,6 +130,7 @@ sub new {
         
         $self->config2->{$opt_id} = $value;
         $self->position_screen;
+        $self->show_print_time;
         
         my $serialized = {};
         foreach my $opt_id (keys %{$self->config2}) {
@@ -144,7 +146,7 @@ sub new {
     };
     
     {
-        my $optgroup = Slic3r::GUI::OptionsGroup->new(
+        push @optgroups, my $optgroup = Slic3r::GUI::OptionsGroup->new(
             parent      => $self,
             title       => 'Projection',
             on_change   => $on_change,
@@ -203,7 +205,7 @@ sub new {
     }
     
     {
-        my $optgroup = Slic3r::GUI::OptionsGroup->new(
+        push @optgroups, my $optgroup = Slic3r::GUI::OptionsGroup->new(
             parent      => $self,
             title       => 'Print',
             on_change   => $on_change,
@@ -270,6 +272,8 @@ sub new {
             $optgroup->append_line($line);
         }
     }
+    
+    $self->_optgroups([@optgroups]);
     
     {
         my $sizer1 = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -404,9 +408,12 @@ sub new {
             
             $self->{layers_spinctrl}->SetValue($layer_num);
             $self->{layers_slider}->SetValue($layer_num);
-            $self->_set_status(sprintf "Printing layer %d/%d (z = %.2f)",
+            
+            my $duration = $self->controller->remaining_print_time;
+            $self->_set_status(sprintf "Printing layer %d/%d (z = %.2f); %d minutes and %d seconds left",
                 $layer_num, $self->controller->layer_count,
-                $self->controller->current_layer_height);
+                $self->controller->current_layer_height,
+                int($duration/60), ($duration - int($duration/60)*60));  # % truncates to integer
         },
         on_print_completed => sub {
             $self->_update_buttons;
@@ -420,6 +427,7 @@ sub new {
     }
     
     $self->_update_buttons;
+    $self->show_print_time;
     
     return $self;
 }
@@ -433,6 +441,12 @@ sub _update_buttons {
     $self->{btn_print}->Show(!$is_printing && !$is_projecting);
     $self->{btn_stop}->Show($is_printing || $is_projecting);
     $self->{layers_spinctrl}->Enable(!$is_printing);
+    $self->{layers_slider}->Enable(!$is_printing);
+    if ($is_printing) {
+        $_->disable for @{$self->_optgroups};
+    } else {
+        $_->enable for @{$self->_optgroups};
+    }
     $self->Layout;
 }
 
@@ -442,6 +456,15 @@ sub _set_status {
     $self->{status_text}->Wrap($self->{status_text}->GetSize->GetWidth);
     $self->{status_text}->Refresh;
     $self->Layout;
+}
+
+sub show_print_time {
+    my ($self) = @_;
+    
+    
+    my $duration = $self->controller->print_time;
+    $self->_set_status(sprintf "Estimated print time: %d minutes and %d seconds",
+        int($duration/60), ($duration - int($duration/60)*60));  # % truncates to integer
 }
 
 sub position_screen {
@@ -480,6 +503,9 @@ sub _close {
     }
     wxTheApp->{mainframe}->Show;
     
+    my $printer_tab = wxTheApp->{mainframe}{options_tabs}{printer};
+    $printer_tab->load_config($self->config);
+    
     $self->EndModal(wxID_OK);
 }
 
@@ -488,6 +514,7 @@ use Moo;
 use Wx qw(wxTheApp :id :timer);
 use Wx::Event qw(EVT_TIMER);
 use Slic3r::Print::State ':steps';
+use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'config'                => (is => 'ro', required => 1);
 has 'config2'               => (is => 'ro', required => 1);
@@ -671,6 +698,27 @@ sub project_next_layer {
             $self->project_next_layer;
         });
     });
+}
+
+sub remaining_print_time {
+    my ($self) = @_;
+    
+    my $remaining_layers = @{$self->_heights} - $self->_layer_num;
+    my $remaining_bottom_layers = $self->_layer_num >= $self->config2->{bottom_layers}
+        ? 0
+        : $self->config2->{bottom_layers} - $self->_layer_num;
+    
+    return $remaining_bottom_layers * $self->config2->{bottom_exposure_time}
+        + ($remaining_layers - $remaining_bottom_layers) * $self->config2->{exposure_time}
+        + $remaining_layers * $self->config2->{settle_time};
+}
+
+sub print_time {
+    my ($self) = @_;
+    
+    return $self->config2->{bottom_layers} * $self->config2->{bottom_exposure_time}
+        + (@{$self->_heights} - $self->config2->{bottom_layers}) * $self->config2->{exposure_time}
+        + @{$self->_heights} * $self->config2->{settle_time};
 }
 
 sub DESTROY {
