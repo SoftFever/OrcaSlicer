@@ -133,7 +133,7 @@ sub update_optgroup {
         }
         $self->{options_sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 0);
     }
-    $self->Layout;
+    $self->GetParent->Layout;  # we need this for showing scrollbars
 }
 
 # work around a wxMAC bug causing controls not being disabled when calling Disable() on a Window
