@@ -17,4 +17,5 @@ addons:
     sources:
     - boost-latest
     packages:
-    - libboost-thread1.55-dev libboost-system1.55-dev
+    - libboost-thread1.55-dev
+    - libboost-system1.55-dev
