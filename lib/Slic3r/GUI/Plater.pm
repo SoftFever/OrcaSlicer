@@ -822,7 +822,7 @@ sub mirror {
 }
 
 sub changescale {
-    my ($self, $axis) = @_;
+    my ($self, $axis, $tosize) = @_;
     
     my ($obj_idx, $object) = $self->selected_object;
     return if !defined $obj_idx;
@@ -833,9 +833,22 @@ sub changescale {
     # we need thumbnail to be computed before allowing scaling
     return if !$object->thumbnail;
     
+    my $object_size = $model_object->bounding_box->size;
+    my $bed_size = Slic3r::Polygon->new_scale(@{$self->{config}->bed_shape})->bounding_box->size;
+    
     if (defined $axis) {
         my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
-        my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale along $axis_name", 100, 0, 100000, $self);
+        my $scale;
+        if ($tosize) {
+            my $cursize = $object_size->[$axis];
+            my $newsize = Wx::GetNumberFromUser("", "Enter the new size for the selected object:", "Scale along $axis_name",
+                $cursize, 0, $bed_size->[$axis], $self);
+            return if !$newsize || $newsize < 0;
+            $scale = $newsize / $cursize * 100;
+        } else {
+            $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale along $axis_name",
+                100, 0, 100000, $self);
+        }
         return if !$scale || $scale < 0;
         
         # apply Z rotation before scaling
@@ -850,8 +863,18 @@ sub changescale {
         # object was already aligned to Z = 0, so no need to realign it
         $self->make_thumbnail($obj_idx);
     } else {
-        # max scale factor should be above 2540 to allow importing files exported in inches
-        my $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", 'Scale', $model_instance->scaling_factor*100, 0, 100000, $self);
+        my $scale;
+        if ($tosize) {
+            my $cursize = max(@$object_size);
+            my $newsize = Wx::GetNumberFromUser("", "Enter the new max size for the selected object:", "Scale",
+                $cursize, 0, max(@$bed_size), $self);
+            return if !$newsize || $newsize < 0;
+            $scale = $newsize / $cursize * 100;
+        } else {
+            # max scale factor should be above 2540 to allow importing files exported in inches
+            $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", 'Scale',
+                $model_instance->scaling_factor*100, 0, 100000, $self);
+        }
         return if !$scale || $scale < 0;
     
         $self->{list}->SetItem($obj_idx, 2, "$scale%");
@@ -1753,6 +1776,22 @@ sub object_menu {
     }, undef, 'bullet_green.png');
     $frame->_append_menu_item($scaleMenu, "Along Z axis…", 'Scale the selected object along the Z axis', sub {
         $self->changescale(Z);
+    }, undef, 'bullet_blue.png');
+    
+    my $scaleToSizeMenu = Wx::Menu->new;
+    my $scaleToSizeMenuItem = $menu->AppendSubMenu($scaleToSizeMenu, "Scale to size", 'Scale the selected object along a single axis');
+    $frame->_set_menu_item_icon($scaleToSizeMenuItem, 'arrow_out.png');
+    $frame->_append_menu_item($scaleToSizeMenu, "Uniformly…", 'Scale the selected object along the XYZ axes', sub {
+        $self->changescale(undef, 1);
+    });
+    $frame->_append_menu_item($scaleToSizeMenu, "Along X axis…", 'Scale the selected object along the X axis', sub {
+        $self->changescale(X, 1);
+    }, undef, 'bullet_red.png');
+    $frame->_append_menu_item($scaleToSizeMenu, "Along Y axis…", 'Scale the selected object along the Y axis', sub {
+        $self->changescale(Y, 1);
+    }, undef, 'bullet_green.png');
+    $frame->_append_menu_item($scaleToSizeMenu, "Along Z axis…", 'Scale the selected object along the Z axis', sub {
+        $self->changescale(Z, 1);
     }, undef, 'bullet_blue.png');
     
     $frame->_append_menu_item($menu, "Split", 'Split the selected object into individual parts', sub {
