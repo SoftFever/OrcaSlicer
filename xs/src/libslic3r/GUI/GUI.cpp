@@ -9,7 +9,9 @@
 
 namespace Slic3r { namespace GUI {
 
+#if __APPLE__
 IOPMAssertionID assertionID;
+#endif
 
 void
 disable_screensaver()
