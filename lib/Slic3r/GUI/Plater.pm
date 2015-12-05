@@ -1718,26 +1718,26 @@ sub object_menu {
     $frame->_set_menu_item_icon($rotateMenuItem, 'textfield.png');
     $frame->_append_menu_item($rotateMenu, "Around X axis…", 'Rotate the selected object by an arbitrary angle around X axis', sub {
         $self->rotate(undef, X);
-    });
+    }, undef, 'bullet_red.png');
     $frame->_append_menu_item($rotateMenu, "Around Y axis…", 'Rotate the selected object by an arbitrary angle around Y axis', sub {
         $self->rotate(undef, Y);
-    });
+    }, undef, 'bullet_green.png');
     $frame->_append_menu_item($rotateMenu, "Around Z axis…", 'Rotate the selected object by an arbitrary angle around Z axis', sub {
         $self->rotate(undef, Z);
-    });
+    }, undef, 'bullet_blue.png');
     
     my $mirrorMenu = Wx::Menu->new;
     my $mirrorMenuItem = $menu->AppendSubMenu($mirrorMenu, "Mirror", 'Mirror the selected object');
     $frame->_set_menu_item_icon($mirrorMenuItem, 'shape_flip_horizontal.png');
     $frame->_append_menu_item($mirrorMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
         $self->mirror(X);
-    });
+    }, undef, 'bullet_red.png');
     $frame->_append_menu_item($mirrorMenu, "Along Y axis…", 'Mirror the selected object along the Y axis', sub {
         $self->mirror(Y);
-    });
+    }, undef, 'bullet_green.png');
     $frame->_append_menu_item($mirrorMenu, "Along Z axis…", 'Mirror the selected object along the Z axis', sub {
         $self->mirror(Z);
-    });
+    }, undef, 'bullet_blue.png');
     
     my $scaleMenu = Wx::Menu->new;
     my $scaleMenuItem = $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
@@ -1747,13 +1747,13 @@ sub object_menu {
     });
     $frame->_append_menu_item($scaleMenu, "Along X axis…", 'Scale the selected object along the X axis', sub {
         $self->changescale(X);
-    });
+    }, undef, 'bullet_red.png');
     $frame->_append_menu_item($scaleMenu, "Along Y axis…", 'Scale the selected object along the Y axis', sub {
         $self->changescale(Y);
-    });
+    }, undef, 'bullet_green.png');
     $frame->_append_menu_item($scaleMenu, "Along Z axis…", 'Scale the selected object along the Z axis', sub {
         $self->changescale(Z);
-    });
+    }, undef, 'bullet_blue.png');
     
     $frame->_append_menu_item($menu, "Split", 'Split the selected object into individual parts', sub {
         $self->split_object;
