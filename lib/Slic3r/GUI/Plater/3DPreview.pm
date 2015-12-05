@@ -95,6 +95,7 @@ sub load_print {
         return;
     }
     
+    my $z_idx;
     {
         my %z = ();  # z => 1
         foreach my $object (@{$self->{print}->objects}) {
@@ -105,11 +106,11 @@ sub load_print {
         $self->enabled(1);
         $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
         $self->slider->SetRange(0, scalar(@{$self->{layers_z}})-1);
-        if ((my $z_idx = $self->slider->GetValue) <= $#{$self->{layers_z}} && $self->slider->GetValue != 0) {
-            $self->set_z($self->{layers_z}[$z_idx]);
+        if (($z_idx = $self->slider->GetValue) <= $#{$self->{layers_z}} && $self->slider->GetValue != 0) {
+            # use $z_idx
         } else {
             $self->slider->SetValue(scalar(@{$self->{layers_z}})-1);
-            $self->set_z($self->{layers_z}[-1]) if @{$self->{layers_z}};
+            $z_idx = @{$self->{layers_z}} ? -1 : undef;
         }
         $self->slider->Show;
         $self->Layout;
@@ -128,6 +129,8 @@ sub load_print {
         $self->canvas->zoom_to_volumes;
         $self->_loaded(1);
     }
+    
+    $self->set_z($self->{layers_z}[$z_idx]);
 }
 
 sub set_z {
