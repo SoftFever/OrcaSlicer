@@ -403,8 +403,9 @@ GCodeSender::do_send()
         }
         
         // strip comments
-        if (size_t comment_pos = line.find_first_of(';') != std::string::npos)
-        line.erase(comment_pos, std::string::npos);
+        size_t comment_pos = line.find_first_of(';');
+        if (comment_pos != std::string::npos)
+            line.erase(comment_pos, std::string::npos);
         boost::algorithm::trim(line);
         
         // if line is not empty, send it
