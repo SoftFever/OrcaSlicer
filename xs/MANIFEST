@@ -38,10 +38,6 @@ src/libslic3r/GCodeWriter.cpp
 src/libslic3r/GCodeWriter.hpp
 src/libslic3r/Geometry.cpp
 src/libslic3r/Geometry.hpp
-src/libslic3r/GUI/GUI.cpp
-src/libslic3r/GUI/GUI.hpp
-src/libslic3r/GUI/3DScene.cpp
-src/libslic3r/GUI/3DScene.hpp
 src/libslic3r/Layer.cpp
 src/libslic3r/Layer.hpp
 src/libslic3r/LayerRegion.cpp
@@ -99,6 +95,10 @@ src/poly2tri/sweep/sweep_context.h
 src/polypartition.cpp
 src/polypartition.h
 src/ppport.h
+src/slic3r/GUI/GUI.cpp
+src/slic3r/GUI/GUI.hpp
+src/slic3r/GUI/3DScene.cpp
+src/slic3r/GUI/3DScene.hpp
 t/01_trianglemesh.t
 t/03_point.t
 t/04_expolygon.t

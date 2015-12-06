@@ -2,7 +2,7 @@
 
 %{
 #include <myinit.h>
-#include "libslic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/GUI.hpp"
 %}
 
 

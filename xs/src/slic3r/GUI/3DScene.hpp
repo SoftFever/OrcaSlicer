@@ -2,9 +2,9 @@
 #define slic3r_3DScene_hpp_
 
 #include <myinit.h>
-#include "../Point.hpp"
-#include "../Line.hpp"
-#include "../TriangleMesh.hpp"
+#include "../../libslic3r/Point.hpp"
+#include "../../libslic3r/Line.hpp"
+#include "../../libslic3r/TriangleMesh.hpp"
 
 namespace Slic3r {
 
