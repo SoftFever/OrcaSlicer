@@ -22,7 +22,7 @@ disable_screensaver()
         kIOPMAssertionLevelOn, reasonForActivity, &assertionID); 
     // ignore result: success == kIOReturnSuccess
     #elif _WIN32
-    SetThreadExecutionState(EXECUTION_STATE.ES_DISPLAY_REQUIRED | EXECUTION_STATE.ES_CONTINUOUS);
+    SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_CONTINUOUS);
     #endif
 }
 
@@ -32,7 +32,7 @@ enable_screensaver()
     #if __APPLE__
     IOReturn success = IOPMAssertionRelease(assertionID);
     #elif _WIN32
-    SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS);
+    SetThreadExecutionState(ES_CONTINUOUS);
     #endif
 }
 
