@@ -5,6 +5,7 @@ use utf8;
 
 use File::Basename qw(basename);
 use FindBin;
+use List::Util qw(first);
 use Slic3r::GUI::2DBed;
 use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::BedShapeDialog;
@@ -125,6 +126,22 @@ sub OnInit {
         no_plater   => $no_plater,
     );
     $self->SetTopWindow($frame);
+    
+    # load init bundle
+    {
+        my @dirs = ($FindBin::Bin);
+        if (&Wx::wxMAC) {
+            push @dirs, qw();
+        } elsif (&Wx::wxMSW) {
+            push @dirs, qw();
+        }
+        my $init_bundle = first { -e $_ } map "$_/.init_bundle.ini", @dirs;
+        if ($init_bundle) {
+            Slic3r::debugf "Loading config bundle from %s\n", $init_bundle;
+            $self->{mainframe}->load_configbundle($init_bundle, 1);
+            $run_wizard = 0;
+        }
+    }
     
     if (!$run_wizard && (!defined $last_version || $last_version ne $Slic3r::VERSION)) {
         # user was running another Slic3r version on this computer

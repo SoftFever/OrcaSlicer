@@ -493,6 +493,7 @@ sub build {
         infill_overlap bridge_flow_ratio
         xy_size_compensation threads resolution
     ));
+    $self->{config}->set('print_settings_id', '');
     
     {
         my $page = $self->add_options_page('Layers and perimeters', 'layers.png');
@@ -856,6 +857,7 @@ sub build {
         min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers
         fan_below_layer_time slowdown_below_layer_time min_print_speed
     ));
+    $self->{config}->set('filament_settings_id', '');
     
     {
         my $page = $self->add_options_page('Filament', 'spool.png');
@@ -996,6 +998,7 @@ sub build {
         retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
         retract_length_toolchange retract_restart_extra_toolchange
     ));
+    $self->{config}->set('printer_settings_id', '');
     
     my $bed_shape_widget = sub {
         my ($parent) = @_;

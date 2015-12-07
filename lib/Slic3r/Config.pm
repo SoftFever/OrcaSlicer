@@ -31,7 +31,8 @@ sub new_from_defaults {
     my $self = $class->new;
     my $defaults = Slic3r::Config::Full->new;
     if (@opt_keys) {
-        $self->set($_, $defaults->get($_)) for @opt_keys;
+        $self->set($_, $defaults->get($_))
+            for grep $defaults->has($_), @opt_keys;
     } else {
         $self->apply_static($defaults);
     }

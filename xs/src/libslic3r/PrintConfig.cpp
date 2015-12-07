@@ -245,6 +245,8 @@ PrintConfigDef::build_def() {
     Options["filament_diameter"].sidetext = "mm";
     Options["filament_diameter"].cli = "filament-diameter=f@";
     Options["filament_diameter"].min = 0;
+    
+    Options["filament_settings_id"].type = coString;
 
     Options["fill_angle"].type = coInt;
     Options["fill_angle"].label = "Fill angle";
@@ -620,6 +622,9 @@ PrintConfigDef::build_def() {
     Options["post_process"].multiline = true;
     Options["post_process"].full_width = true;
     Options["post_process"].height = 60;
+
+    Options["print_settings_id"].type = coString;
+    Options["printer_settings_id"].type = coString;
 
     Options["pressure_advance"].type = coFloat;
     Options["pressure_advance"].label = "Pressure advance";

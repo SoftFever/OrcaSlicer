@@ -560,14 +560,16 @@ sub export_configbundle {
 }
 
 sub load_configbundle {
-    my $self = shift;
+    my ($self, $file, $skip_no_id) = @_;
     
-    my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
-    my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
-            &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    return unless $dlg->ShowModal == wxID_OK;
-    my $file = Slic3r::decode_path($dlg->GetPaths);
-    $dlg->Destroy;
+    if (!$file) {
+        my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
+        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
+                &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        return unless $dlg->ShowModal == wxID_OK;
+        $file = Slic3r::decode_path($dlg->GetPaths);
+        $dlg->Destroy;
+    }
     
     $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
     wxTheApp->save_settings;
@@ -593,11 +595,23 @@ sub load_configbundle {
         }
     }
     my $imported = 0;
-    foreach my $ini_category (sort keys %$ini) {
+    INI_BLOCK: foreach my $ini_category (sort keys %$ini) {
         next unless $ini_category =~ /^(print|filament|printer):(.+)$/;
         my ($section, $preset_name) = ($1, $2);
         my $config = Slic3r::Config->load_ini_hash($ini->{$ini_category});
+        next if $skip_no_id && !$config->get($section . "_settings_id");
+        
+        {
+            my %current_presets = Slic3r::GUI->presets($section);
+            my %current_ids = map { $_ => 1 }
+                grep $_,
+                map Slic3r::Config->load($_)->get($section . "_settings_id"),
+                values %current_presets;
+            next INI_BLOCK if exists $current_ids{$config->get($section . "_settings_id")};
+        }
+        
         $config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $section, $preset_name);
+        Slic3r::debugf "Imported %s preset %s\n", $section, $preset_name;
         $imported++;
     }
     if ($self->{mode} eq 'expert') {
