@@ -299,46 +299,6 @@ operator*(double scalar, const Point& point2)
     return Point(scalar * point2.x, scalar * point2.y);
 }
 
-#ifdef SLIC3RXS
-
-REGISTER_CLASS(Point, "Point");
-
-SV*
-Point::to_SV_pureperl() const {
-    AV* av = newAV();
-    av_fill(av, 1);
-    av_store(av, 0, newSViv(this->x));
-    av_store(av, 1, newSViv(this->y));
-    return newRV_noinc((SV*)av);
-}
-
-void
-Point::from_SV(SV* point_sv)
-{
-    AV* point_av = (AV*)SvRV(point_sv);
-    // get a double from Perl and round it, otherwise
-    // it would get truncated
-    this->x = lrint(SvNV(*av_fetch(point_av, 0, 0)));
-    this->y = lrint(SvNV(*av_fetch(point_av, 1, 0)));
-}
-
-void
-Point::from_SV_check(SV* point_sv)
-{
-    if (sv_isobject(point_sv) && (SvTYPE(SvRV(point_sv)) == SVt_PVMG)) {
-        if (!sv_isa(point_sv, perl_class_name(this)) && !sv_isa(point_sv, perl_class_name_ref(this)))
-            CONFESS("Not a valid %s object (got %s)", perl_class_name(this), HvNAME(SvSTASH(SvRV(point_sv))));
-        *this = *(Point*)SvIV((SV*)SvRV( point_sv ));
-    } else {
-        this->from_SV(point_sv);
-    }
-}
-
-
-REGISTER_CLASS(Point3, "Point3");
-
-#endif
-
 std::ostream&
 operator<<(std::ostream &stm, const Pointf &pointf)
 {
@@ -386,46 +346,6 @@ Pointf::vector_to(const Pointf &point) const
     return Vectorf(point.x - this->x, point.y - this->y);
 }
 
-#ifdef SLIC3RXS
-
-REGISTER_CLASS(Pointf, "Pointf");
-
-SV*
-Pointf::to_SV_pureperl() const {
-    AV* av = newAV();
-    av_fill(av, 1);
-    av_store(av, 0, newSVnv(this->x));
-    av_store(av, 1, newSVnv(this->y));
-    return newRV_noinc((SV*)av);
-}
-
-bool
-Pointf::from_SV(SV* point_sv)
-{
-    AV* point_av = (AV*)SvRV(point_sv);
-    SV* sv_x = *av_fetch(point_av, 0, 0);
-    SV* sv_y = *av_fetch(point_av, 1, 0);
-    if (!looks_like_number(sv_x) || !looks_like_number(sv_y)) return false;
-    
-    this->x = SvNV(sv_x);
-    this->y = SvNV(sv_y);
-    return true;
-}
-
-bool
-Pointf::from_SV_check(SV* point_sv)
-{
-    if (sv_isobject(point_sv) && (SvTYPE(SvRV(point_sv)) == SVt_PVMG)) {
-        if (!sv_isa(point_sv, perl_class_name(this)) && !sv_isa(point_sv, perl_class_name_ref(this)))
-            CONFESS("Not a valid %s object (got %s)", perl_class_name(this), HvNAME(SvSTASH(SvRV(point_sv))));
-        *this = *(Pointf*)SvIV((SV*)SvRV( point_sv ));
-        return true;
-    } else {
-        return this->from_SV(point_sv);
-    }
-}
-#endif
-
 void
 Pointf3::scale(double factor)
 {
@@ -466,9 +386,5 @@ Pointf3::vector_to(const Pointf3 &point) const
 {
     return Vectorf3(point.x - this->x, point.y - this->y, point.z - this->z);
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(Pointf3, "Pointf3");
-#endif
 
 }

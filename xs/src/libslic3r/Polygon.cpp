@@ -1,4 +1,3 @@
-#include <myinit.h>
 #include "ClipperUtils.hpp"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
@@ -265,18 +264,5 @@ Polygon::convex_points(double angle) const
     
     return points;
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(Polygon, "Polygon");
-
-void
-Polygon::from_SV_check(SV* poly_sv)
-{
-    if (sv_isobject(poly_sv) && !sv_isa(poly_sv, perl_class_name(this)) && !sv_isa(poly_sv, perl_class_name_ref(this)))
-        CONFESS("Not a valid %s object", perl_class_name(this));
-    
-    MultiPoint::from_SV_check(poly_sv);
-}
-#endif
 
 }

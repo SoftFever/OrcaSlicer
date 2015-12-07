@@ -1,7 +1,7 @@
 #ifndef slic3r_Polygon_hpp_
 #define slic3r_Polygon_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include <vector>
 #include <string>
 #include "Line.hpp"
@@ -42,10 +42,6 @@ class Polygon : public MultiPoint {
     std::string wkt() const;
     Points concave_points(double angle = PI) const;
     Points convex_points(double angle = PI) const;
-    
-    #ifdef SLIC3RXS
-    void from_SV_check(SV* poly_sv);
-    #endif
 };
 
 }

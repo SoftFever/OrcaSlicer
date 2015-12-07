@@ -1,6 +1,7 @@
 #ifndef slic3r_Surface_hpp_
 #define slic3r_Surface_hpp_
 
+#include "libslic3r.h"
 #include "ExPolygon.hpp"
 
 namespace Slic3r {
@@ -28,10 +29,6 @@ class Surface
     bool is_internal() const;
     bool is_bottom() const;
     bool is_bridge() const;
-    
-    #ifdef SLIC3RXS
-    void from_SV_check(SV* surface_sv);
-    #endif
 };
 
 typedef std::vector<Surface> Surfaces;

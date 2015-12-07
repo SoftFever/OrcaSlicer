@@ -1,7 +1,7 @@
 %module{Slic3r::XS};
 
 %{
-#include <myinit.h>
+#include <xsinit.h>
 #include "slic3r/GUI/GUI.hpp"
 %}
 

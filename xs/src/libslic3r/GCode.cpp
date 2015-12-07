@@ -65,10 +65,6 @@ AvoidCrossingPerimeters::travel_to(GCode &gcodegen, Point point)
     }
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(AvoidCrossingPerimeters, "GCode::AvoidCrossingPerimeters");
-#endif
-
 OozePrevention::OozePrevention()
     : enable(false)
 {
@@ -124,10 +120,6 @@ OozePrevention::_get_temp(GCode &gcodegen)
         ? gcodegen.config.first_layer_temperature.get_at(gcodegen.writer.extruder()->id)
         : gcodegen.config.temperature.get_at(gcodegen.writer.extruder()->id);
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(OozePrevention, "GCode::OozePrevention");
-#endif
 
 Wipe::Wipe()
     : enable(false)
@@ -201,10 +193,6 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
     
     return gcode;
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(Wipe, "GCode::Wipe");
-#endif
 
 #define EXTRUDER_CONFIG(OPT) this->config.OPT.get_at(this->writer.extruder()->id)
 
@@ -765,9 +753,5 @@ GCode::point_to_gcode(const Point &point)
         unscale(point.y) + this->origin.y - extruder_offset.y
     );
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(GCode, "GCode");
-#endif
 
 }

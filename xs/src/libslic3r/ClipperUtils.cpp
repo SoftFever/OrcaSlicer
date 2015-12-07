@@ -689,35 +689,4 @@ void safety_offset(ClipperLib::Paths* paths)
     scaleClipperPolygons(*paths, 1.0/CLIPPER_OFFSET_SCALE);
 }
 
-///////////////////////
-
-#ifdef SLIC3RXS
-SV*
-polynode_children_2_perl(const ClipperLib::PolyNode& node)
-{
-    AV* av = newAV();
-    const int len = node.ChildCount();
-    if (len > 0) av_extend(av, len-1);
-    for (int i = 0; i < len; ++i) {
-        av_store(av, i, polynode2perl(*node.Childs[i]));
-    }
-    return (SV*)newRV_noinc((SV*)av);
-}
-
-SV*
-polynode2perl(const ClipperLib::PolyNode& node)
-{
-    HV* hv = newHV();
-    Slic3r::Polygon p;
-    ClipperPath_to_Slic3rMultiPoint(node.Contour, &p);
-    if (node.IsHole()) {
-        (void)hv_stores( hv, "hole", Slic3r::perl_to_SV_clone_ref(p) );
-    } else {
-        (void)hv_stores( hv, "outer", Slic3r::perl_to_SV_clone_ref(p) );
-    }
-    (void)hv_stores( hv, "children", polynode_children_2_perl(node) );
-    return (SV*)newRV_noinc((SV*)hv);
-}
-#endif
-
 }

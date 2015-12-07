@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <myinit.h>
+#include "libslic3r.h"
 #include "Point.hpp"
 
 namespace Slic3r {
@@ -555,18 +555,9 @@ class ConfigBase
     t_config_option_keys diff(ConfigBase &other);
     std::string serialize(const t_config_option_key &opt_key) const;
     bool set_deserialize(const t_config_option_key &opt_key, std::string str);
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
     double get_abs_value(const t_config_option_key &opt_key);
     double get_abs_value(const t_config_option_key &opt_key, double ratio_over);
     void setenv_();
-    
-    #ifdef SLIC3RXS
-    SV* as_hash();
-    SV* get(t_config_option_key opt_key);
-    SV* get_at(t_config_option_key opt_key, size_t i);
-    bool set(t_config_option_key opt_key, SV* value);
-    bool set_deserialize(const t_config_option_key &opt_key, SV* str);
-    #endif
 };
 
 class DynamicConfig : public virtual ConfigBase
@@ -596,10 +587,6 @@ class StaticConfig : public virtual ConfigBase
     virtual ConfigOption* option(const t_config_option_key &opt_key, bool create = false) = 0;
     const ConfigOption* option(const t_config_option_key &opt_key) const;
     void set_defaults();
-    
-    #ifdef SLIC3RXS
-    bool set(t_config_option_key opt_key, SV* value);
-    #endif
 };
 
 }

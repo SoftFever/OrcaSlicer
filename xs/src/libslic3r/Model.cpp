@@ -311,11 +311,6 @@ Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
     }
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(Model, "Model");
-#endif
-
-
 ModelMaterial::ModelMaterial(Model *model) : model(model) {}
 ModelMaterial::ModelMaterial(Model *model, const ModelMaterial &other)
     : attributes(other.attributes), config(other.config), model(model)
@@ -326,11 +321,6 @@ ModelMaterial::apply(const t_model_material_attributes &attributes)
 {
     this->attributes.insert(attributes.begin(), attributes.end());
 }
-
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(ModelMaterial, "Model::Material");
-#endif
 
 
 ModelObject::ModelObject(Model *model)
@@ -711,10 +701,6 @@ ModelObject::split(ModelObjectPtrs* new_objects)
     return;
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(ModelObject, "Model::Object");
-#endif
-
 
 ModelVolume::ModelVolume(ModelObject* object, const TriangleMesh &mesh)
 :   mesh(mesh), modifier(false), object(object)
@@ -765,10 +751,6 @@ ModelVolume::assign_unique_material()
     return model->add_material(this->_material_id);
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(ModelVolume, "Model::Volume");
-#endif
-
 
 ModelInstance::ModelInstance(ModelObject *object)
 :   rotation(0), scaling_factor(1), object(object)
@@ -793,9 +775,5 @@ ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->rotate(this->rotation, Point(0,0));    // rotate around polygon origin
     polygon->scale(this->scaling_factor);           // scale around polygon origin
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(ModelInstance, "Model::Instance");
-#endif
 
 }

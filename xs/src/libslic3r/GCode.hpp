@@ -1,7 +1,7 @@
 #ifndef slic3r_GCode_hpp_
 #define slic3r_GCode_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include "ExPolygon.hpp"
 #include "GCodeWriter.hpp"
 #include "Layer.hpp"

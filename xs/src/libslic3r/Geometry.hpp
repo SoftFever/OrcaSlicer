@@ -1,6 +1,7 @@
 #ifndef slic3r_Geometry_hpp_
 #define slic3r_Geometry_hpp_
 
+#include "libslic3r.h"
 #include "BoundingBox.hpp"
 #include "Polygon.hpp"
 #include "Polyline.hpp"

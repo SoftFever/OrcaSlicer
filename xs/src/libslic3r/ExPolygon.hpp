@@ -1,6 +1,7 @@
 #ifndef slic3r_ExPolygon_hpp_
 #define slic3r_ExPolygon_hpp_
 
+#include "libslic3r.h"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 #include <vector>
@@ -40,13 +41,6 @@ class ExPolygon
     void triangulate_pp(Polygons* polygons) const;
     void triangulate_p2t(Polygons* polygons) const;
     Lines lines() const;
-    
-    #ifdef SLIC3RXS
-    void from_SV(SV* poly_sv);
-    void from_SV_check(SV* poly_sv);
-    SV* to_AV();
-    SV* to_SV_pureperl() const;
-    #endif
 };
 
 }

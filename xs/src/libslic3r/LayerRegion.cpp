@@ -271,8 +271,4 @@ LayerRegion::infill_area_threshold() const
     return ss*ss;
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(LayerRegion, "Layer::Region");
-#endif
-
 }

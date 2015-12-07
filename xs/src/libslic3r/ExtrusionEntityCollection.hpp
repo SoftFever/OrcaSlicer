@@ -1,7 +1,7 @@
 #ifndef slic3r_ExtrusionEntityCollection_hpp_
 #define slic3r_ExtrusionEntityCollection_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include "ExtrusionEntity.hpp"
 
 namespace Slic3r {

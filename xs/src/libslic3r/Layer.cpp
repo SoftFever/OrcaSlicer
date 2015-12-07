@@ -245,10 +245,6 @@ Layer::make_perimeters()
     }
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(Layer, "Layer");
-#endif
-
 
 SupportLayer::SupportLayer(size_t id, PrintObject *object, coordf_t height,
         coordf_t print_z, coordf_t slice_z)
@@ -259,10 +255,6 @@ SupportLayer::SupportLayer(size_t id, PrintObject *object, coordf_t height,
 SupportLayer::~SupportLayer()
 {
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(SupportLayer, "Layer::Support");
-#endif
 
 
 }

@@ -1,7 +1,7 @@
 %module{Slic3r::XS};
 
 %{
-#include <myinit.h>
+#include <xsinit.h>
 #include "libslic3r/ExPolygon.hpp"
 %}
 
@@ -10,9 +10,9 @@
     Clone<ExPolygon> clone()
         %code{% RETVAL = THIS; %};
     SV* arrayref()
-        %code{% RETVAL = THIS->to_AV(); %};
+        %code{% RETVAL = to_AV(THIS); %};
     SV* pp()
-        %code{% RETVAL = THIS->to_SV_pureperl(); %};
+        %code{% RETVAL = to_SV_pureperl(THIS); %};
     Ref<Polygon> contour()
         %code{% RETVAL = &(THIS->contour); %};
     Polygons* holes()
@@ -46,10 +46,10 @@ ExPolygon::new(...)
     CODE:
         RETVAL = new ExPolygon ();
         // ST(0) is class name, ST(1) is contour and others are holes
-        RETVAL->contour.from_SV_check(ST(1));
+        from_SV_check(ST(1), &RETVAL->contour);
         RETVAL->holes.resize(items-2);
         for (unsigned int i = 2; i < items; i++) {
-            RETVAL->holes[i-2].from_SV_check(ST(i));
+            from_SV_check(ST(i), &RETVAL->holes[i-2]);
         }
     OUTPUT:
         RETVAL
@@ -60,7 +60,7 @@ ExPolygon::rotate(angle, center_sv)
     SV*     center_sv;
     CODE:
         Point center;
-        center.from_SV_check(center_sv);
+        from_SV_check(center_sv, &center);
         THIS->rotate(angle, center);
 
 %}

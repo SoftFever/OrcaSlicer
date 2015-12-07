@@ -842,10 +842,4 @@ Print::auto_assign_extruders(ModelObject* model_object) const
     }
 }
 
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(Print, "Print");
-#endif
-
-
 }

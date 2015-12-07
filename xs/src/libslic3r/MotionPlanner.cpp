@@ -391,8 +391,4 @@ MotionPlannerGraph::shortest_path(size_t from, size_t to)
     return polyline;
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(MotionPlanner, "MotionPlanner");
-#endif
-
 }

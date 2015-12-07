@@ -1,4 +1,4 @@
-#include <myinit.h>
+#include <xsinit.h>
 
 void
 confess_at(const char *file, int line, const char *func,

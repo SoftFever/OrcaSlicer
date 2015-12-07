@@ -1,7 +1,7 @@
 #ifndef slic3r_Layer_hpp_
 #define slic3r_Layer_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include "Flow.hpp"
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"

@@ -1,7 +1,7 @@
 #ifndef slic3r_GCodeWriter_hpp_
 #define slic3r_GCodeWriter_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include <string>
 #include "Extruder.hpp"
 #include "Point.hpp"

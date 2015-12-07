@@ -1,7 +1,7 @@
 #ifndef slic3r_Point_hpp_
 #define slic3r_Point_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include <vector>
 #include <math.h>
 #include <string>
@@ -60,12 +60,6 @@ class Point
     Point projection_onto(const Line &line) const;
     Point negative() const;
     Vector vector_to(const Point &point) const;
-    
-    #ifdef SLIC3RXS
-    void from_SV(SV* point_sv);
-    void from_SV_check(SV* point_sv);
-    SV* to_SV_pureperl() const;
-    #endif
 };
 
 Point operator+(const Point& point1, const Point& point2);
@@ -98,12 +92,6 @@ class Pointf
     void rotate(double angle, const Pointf &center);
     Pointf negative() const;
     Vectorf vector_to(const Pointf &point) const;
-    
-    #ifdef SLIC3RXS
-    bool from_SV(SV* point_sv);
-    bool from_SV_check(SV* point_sv);
-    SV* to_SV_pureperl() const;
-    #endif
 };
 
 class Pointf3 : public Pointf

@@ -227,9 +227,4 @@ ExtrusionEntityCollection::min_mm3_per_mm() const
     return min_mm3_per_mm;
 }
 
-#ifdef SLIC3RXS
-// there is no ExtrusionLoop::Collection or ExtrusionEntity::Collection
-REGISTER_CLASS(ExtrusionEntityCollection, "ExtrusionPath::Collection");
-#endif
-
 }

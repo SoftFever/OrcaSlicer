@@ -1,6 +1,6 @@
 %module{Slic3r::XS};
 
-#include <myinit.h>
+#include <xsinit.h>
 #include "libslic3r/SupportMaterial.hpp"
 
 %package{Slic3r::Print::SupportMaterial};

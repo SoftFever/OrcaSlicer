@@ -1,7 +1,7 @@
 #ifndef slic3r_BoundingBox_hpp_
 #define slic3r_BoundingBox_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include "Point.hpp"
 #include "Polygon.hpp"
 

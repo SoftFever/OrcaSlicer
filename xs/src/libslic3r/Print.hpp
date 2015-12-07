@@ -1,7 +1,7 @@
 #ifndef slic3r_Print_hpp_
 #define slic3r_Print_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include <set>
 #include <vector>
 #include <stdexcept>

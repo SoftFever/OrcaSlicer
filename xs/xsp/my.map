@@ -355,7 +355,7 @@ T_ARRAYREF
         $var.resize(len);
         for (unsigned int i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
-            $var\[i].from_SV_check(*elem);
+            from_SV_check(*elem, &$var\[i]);
         }
     } else
         Perl_croak(aTHX_ \"%s: %s is not an array reference\",
@@ -514,7 +514,7 @@ T_PTR_ARRAYREF
 	if (len > 0) av_extend(av, len-1);
 	int i = 0;
     for (${type}::iterator it = $var.begin(); it != $var.end(); ++it) {
-        av_store(av, i++, (*it)->to_SV());
+        av_store(av, i++, to_SV(*it));
 	}
 
 T_LAYER_HEIGHT_RANGES

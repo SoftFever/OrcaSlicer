@@ -78,8 +78,7 @@ src/libslic3r/SVG.hpp
 src/libslic3r/TriangleMesh.cpp
 src/libslic3r/TriangleMesh.hpp
 src/libslic3r/utils.cpp
-src/myinit.h
-src/perlglue.hpp
+src/perlglue.cpp
 src/poly2tri/common/shapes.cc
 src/poly2tri/common/shapes.h
 src/poly2tri/common/utils.h
@@ -95,10 +94,11 @@ src/poly2tri/sweep/sweep_context.h
 src/polypartition.cpp
 src/polypartition.h
 src/ppport.h
-src/slic3r/GUI/GUI.cpp
-src/slic3r/GUI/GUI.hpp
 src/slic3r/GUI/3DScene.cpp
 src/slic3r/GUI/3DScene.hpp
+src/slic3r/GUI/GUI.cpp
+src/slic3r/GUI/GUI.hpp
+src/xsinit.h
 t/01_trianglemesh.t
 t/03_point.t
 t/04_expolygon.t
@@ -130,8 +130,8 @@ xsp/ExtrusionEntityCollection.xsp
 xsp/ExtrusionLoop.xsp
 xsp/ExtrusionPath.xsp
 xsp/Flow.xsp
-xsp/GCodeSender.xsp
 xsp/GCode.xsp
+xsp/GCodeSender.xsp
 xsp/GCodeWriter.xsp
 xsp/Geometry.xsp
 xsp/GUI.xsp

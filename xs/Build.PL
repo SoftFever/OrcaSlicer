@@ -17,8 +17,8 @@ if ($^O eq 'darwin') {
     push @ldflags, qw(-framework IOKit -framework CoreFoundation);
 }
 
-my @INC  = qw();
-my @LIBS = qw();
+my @INC  = qw(-Isrc/libslic3r);
+my @LIBS = qw(-Lsrc/libslic3r);
 
 # search for Boost in a number of places
 my @boost_include = my @boost_libs = ();

@@ -1,7 +1,7 @@
 #ifndef slic3r_Flow_hpp_
 #define slic3r_Flow_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include "Config.hpp"
 #include "ExtrusionEntity.hpp"
 

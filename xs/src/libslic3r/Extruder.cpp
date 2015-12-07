@@ -153,9 +153,4 @@ Extruder::retract_restart_extra_toolchange() const
     return this->config->retract_restart_extra_toolchange.get_at(this->id);
 }
 
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(Extruder, "Extruder");
-#endif
-
 }

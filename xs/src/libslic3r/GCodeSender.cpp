@@ -474,11 +474,4 @@ GCodeSender::reset()
 
 }
 
-#ifdef SLIC3RXS
-#include <myinit.h>
-namespace Slic3r {
-__REGISTER_CLASS(GCodeSender, "GCode::Sender");
-}
-#endif
-
 #endif

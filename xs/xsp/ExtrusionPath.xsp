@@ -1,7 +1,7 @@
 %module{Slic3r::XS};
 
 %{
-#include <myinit.h>
+#include <xsinit.h>
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
 %}
@@ -9,9 +9,9 @@
 %name{Slic3r::ExtrusionPath} class ExtrusionPath {
     ~ExtrusionPath();
     SV* arrayref()
-        %code{% RETVAL = THIS->polyline.to_AV(); %};
+        %code{% RETVAL = to_AV(&THIS->polyline); %};
     SV* pp()
-        %code{% RETVAL = THIS->polyline.to_SV_pureperl(); %};
+        %code{% RETVAL = to_SV_pureperl(&THIS->polyline); %};
     void pop_back()
         %code{% THIS->polyline.points.pop_back(); %};
     void reverse();
@@ -39,7 +39,7 @@ _new(CLASS, polyline_sv, role, mm3_per_mm, width, height)
     float           height;
     CODE:
         RETVAL = new ExtrusionPath (role);
-        RETVAL->polyline.from_SV_check(polyline_sv);
+        from_SV_check(polyline_sv, &RETVAL->polyline);
         RETVAL->mm3_per_mm      = mm3_per_mm;
         RETVAL->width           = width;
         RETVAL->height          = height;
@@ -50,7 +50,7 @@ Ref<Polyline>
 ExtrusionPath::polyline(...)
     CODE:
         if (items > 1) {
-            THIS->polyline.from_SV_check( ST(1) );
+            from_SV_check(ST(1), &THIS->polyline);
         }
         RETVAL = &(THIS->polyline);
     OUTPUT:
@@ -101,7 +101,7 @@ ExtrusionPath::append(...)
     CODE:
         for (unsigned int i = 1; i < items; i++) {
             Point p;
-            p.from_SV_check(ST(i));
+            from_SV_check(ST(i), &p);
             THIS->polyline.points.push_back(p);
         }
 

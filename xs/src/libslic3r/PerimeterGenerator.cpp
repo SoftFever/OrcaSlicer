@@ -497,10 +497,6 @@ PerimeterGenerator::_fill_gaps(double min, double max, double w,
     return coll;
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(PerimeterGenerator, "Layer::PerimeterGenerator");
-#endif
-
 bool
 PerimeterGeneratorLoop::is_external() const
 {

@@ -110,10 +110,6 @@ ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCo
     }
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(ExtrusionPath, "ExtrusionPath");
-#endif
-
 Polygons
 ExtrusionPath::grow() const
 {
@@ -338,9 +334,5 @@ ExtrusionLoop::min_mm3_per_mm() const
     }
     return min_mm3_per_mm;
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(ExtrusionLoop, "ExtrusionLoop");
-#endif
 
 }

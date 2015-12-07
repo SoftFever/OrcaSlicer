@@ -163,51 +163,6 @@ Line::normal() const
     return Vector((this->b.y - this->a.y), -(this->b.x - this->a.x));
 }
 
-#ifdef SLIC3RXS
-
-REGISTER_CLASS(Line, "Line");
-
-void
-Line::from_SV(SV* line_sv)
-{
-    AV* line_av = (AV*)SvRV(line_sv);
-    this->a.from_SV_check(*av_fetch(line_av, 0, 0));
-    this->b.from_SV_check(*av_fetch(line_av, 1, 0));
-}
-
-void
-Line::from_SV_check(SV* line_sv)
-{
-    if (sv_isobject(line_sv) && (SvTYPE(SvRV(line_sv)) == SVt_PVMG)) {
-        if (!sv_isa(line_sv, perl_class_name(this)) && !sv_isa(line_sv, perl_class_name_ref(this)))
-            CONFESS("Not a valid %s object", perl_class_name(this));
-        *this = *(Line*)SvIV((SV*)SvRV( line_sv ));
-    } else {
-        this->from_SV(line_sv);
-    }
-}
-
-SV*
-Line::to_AV() {
-    AV* av = newAV();
-    av_extend(av, 1);
-    
-    av_store(av, 0, perl_to_SV_ref(this->a));
-    av_store(av, 1, perl_to_SV_ref(this->b));
-    
-    return newRV_noinc((SV*)av);
-}
-
-SV*
-Line::to_SV_pureperl() const {
-    AV* av = newAV();
-    av_extend(av, 1);
-    av_store(av, 0, this->a.to_SV_pureperl());
-    av_store(av, 1, this->b.to_SV_pureperl());
-    return newRV_noinc((SV*)av);
-}
-#endif
-
 Pointf3
 Linef3::intersect_plane(double z) const
 {
@@ -224,9 +179,5 @@ Linef3::scale(double factor)
     this->a.scale(factor);
     this->b.scale(factor);
 }
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(Linef3, "Linef3");
-#endif
 
 }

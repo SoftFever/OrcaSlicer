@@ -327,8 +327,4 @@ BridgeDetector::unsupported_edges(double angle) const
     return pp;
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(BridgeDetector, "BridgeDetector");
-#endif
-
 }

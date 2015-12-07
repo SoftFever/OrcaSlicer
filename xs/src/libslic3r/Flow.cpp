@@ -114,8 +114,4 @@ Flow::_width_from_spacing(float spacing, float nozzle_diameter, float height, bo
     return spacing + OVERLAP_FACTOR * height * (1 - PI/4.0);
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(Flow, "Flow");
-#endif
-
 }

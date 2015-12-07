@@ -151,8 +151,4 @@ PlaceholderParser::find_and_replace(std::string &source, std::string const &find
     return found;
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(PlaceholderParser, "GCode::PlaceholderParser");
-#endif
-
 }

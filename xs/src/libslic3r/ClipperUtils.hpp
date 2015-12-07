@@ -1,7 +1,7 @@
 #ifndef slic3r_ClipperUtils_hpp_
 #define slic3r_ClipperUtils_hpp_
 
-#include <myinit.h>
+#include <libslic3r.h>
 #include "clipper.hpp"
 #include "ExPolygon.hpp"
 #include "Polygon.hpp"
@@ -133,13 +133,6 @@ void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::Polygons* retval
 void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::ExPolygons* retval, bool preserve_collinear = false);
 
 void safety_offset(ClipperLib::Paths* paths);
-
-/////////////////
-
-#ifdef SLIC3RXS
-SV* polynode_children_2_perl(const ClipperLib::PolyNode& node);
-SV* polynode2perl(const ClipperLib::PolyNode& node);
-#endif
 
 }
 

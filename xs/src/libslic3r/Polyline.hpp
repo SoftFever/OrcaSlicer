@@ -1,6 +1,7 @@
 #ifndef slic3r_Polyline_hpp_
 #define slic3r_Polyline_hpp_
 
+#include "libslic3r.h"
 #include "Line.hpp"
 #include "MultiPoint.hpp"
 #include <string>
@@ -28,10 +29,6 @@ class Polyline : public MultiPoint {
     void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
     bool is_straight() const;
     std::string wkt() const;
-    
-    #ifdef SLIC3RXS
-    void from_SV_check(SV* poly_sv);
-    #endif
 };
 
 }

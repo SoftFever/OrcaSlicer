@@ -241,8 +241,4 @@ GLVertexArray::load_mesh(const TriangleMesh &mesh)
     }
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(GLVertexArray, "GUI::_3DScene::GLVertexArray");
-#endif
-
 }

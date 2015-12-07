@@ -1316,13 +1316,4 @@ PrintConfigBase::min_object_distance() const
         : duplicate_distance;
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(DynamicPrintConfig, "Config");
-REGISTER_CLASS(PrintObjectConfig, "Config::PrintObject");
-REGISTER_CLASS(PrintRegionConfig, "Config::PrintRegion");
-REGISTER_CLASS(GCodeConfig, "Config::GCode");
-REGISTER_CLASS(PrintConfig, "Config::Print");
-REGISTER_CLASS(FullPrintConfig, "Config::Full");
-#endif
-
 }

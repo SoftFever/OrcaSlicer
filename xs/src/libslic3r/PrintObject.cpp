@@ -485,9 +485,4 @@ PrintObject::bridge_over_infill()
     }
 }
 
-
-#ifdef SLIC3RXS
-REGISTER_CLASS(PrintObject, "Print::Object");
-#endif
-
 }

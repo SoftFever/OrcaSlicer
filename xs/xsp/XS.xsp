@@ -1,7 +1,7 @@
 %module{Slic3r::XS};
 %package{Slic3r::XS};
 
-#include <myinit.h>
+#include <xsinit.h>
 
 %{
 

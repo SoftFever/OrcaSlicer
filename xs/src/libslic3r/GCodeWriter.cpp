@@ -520,8 +520,4 @@ GCodeWriter::get_position() const
     return this->_pos;
 }
 
-#ifdef SLIC3RXS
-REGISTER_CLASS(GCodeWriter, "GCode::Writer");
-#endif
-
 }

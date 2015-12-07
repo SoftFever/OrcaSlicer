@@ -1,7 +1,7 @@
 %module{Slic3r::XS};
 
 %{
-#include <myinit.h>
+#include <xsinit.h>
 #include "libslic3r/PrintConfig.hpp"
 %}
 
@@ -9,12 +9,18 @@
     DynamicPrintConfig();
     ~DynamicPrintConfig();
     bool has(t_config_option_key opt_key);
-    SV* as_hash();
-    SV* get(t_config_option_key opt_key);
-    SV* get_at(t_config_option_key opt_key, int i);
-    bool set(t_config_option_key opt_key, SV* value);
-    bool set_deserialize(t_config_option_key opt_key, SV* str);
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
+    SV* as_hash()
+        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
+    SV* get(t_config_option_key opt_key)
+        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
+    SV* get_at(t_config_option_key opt_key, int i)
+        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
+    bool set(t_config_option_key opt_key, SV* value)
+        %code{% RETVAL = ConfigBase__set(THIS, opt_key, value); %};
+    bool set_deserialize(t_config_option_key opt_key, SV* str)
+        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
+    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
+        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -38,12 +44,18 @@
     GCodeConfig();
     ~GCodeConfig();
     bool has(t_config_option_key opt_key);
-    SV* as_hash();
-    SV* get(t_config_option_key opt_key);
-    SV* get_at(t_config_option_key opt_key, int i);
-    bool set(t_config_option_key opt_key, SV* value);
-    bool set_deserialize(t_config_option_key opt_key, SV* str);
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
+    SV* as_hash()
+        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
+    SV* get(t_config_option_key opt_key)
+        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
+    SV* get_at(t_config_option_key opt_key, int i)
+        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
+    bool set(t_config_option_key opt_key, SV* value)
+        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
+    bool set_deserialize(t_config_option_key opt_key, SV* str)
+        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
+    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
+        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -61,12 +73,18 @@
     PrintConfig();
     ~PrintConfig();
     bool has(t_config_option_key opt_key);
-    SV* as_hash();
-    SV* get(t_config_option_key opt_key);
-    SV* get_at(t_config_option_key opt_key, int i);
-    bool set(t_config_option_key opt_key, SV* value);
-    bool set_deserialize(t_config_option_key opt_key, SV* str);
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
+    SV* as_hash()
+        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
+    SV* get(t_config_option_key opt_key)
+        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
+    SV* get_at(t_config_option_key opt_key, int i)
+        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
+    bool set(t_config_option_key opt_key, SV* value)
+        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
+    bool set_deserialize(t_config_option_key opt_key, SV* str)
+        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
+    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
+        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -83,12 +101,18 @@
     PrintRegionConfig();
     ~PrintRegionConfig();
     bool has(t_config_option_key opt_key);
-    SV* as_hash();
-    SV* get(t_config_option_key opt_key);
-    SV* get_at(t_config_option_key opt_key, int i);
-    bool set(t_config_option_key opt_key, SV* value);
-    bool set_deserialize(t_config_option_key opt_key, SV* str);
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
+    SV* as_hash()
+        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
+    SV* get(t_config_option_key opt_key)
+        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
+    SV* get_at(t_config_option_key opt_key, int i)
+        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
+    bool set(t_config_option_key opt_key, SV* value)
+        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
+    bool set_deserialize(t_config_option_key opt_key, SV* str)
+        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
+    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
+        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -105,12 +129,18 @@
     PrintObjectConfig();
     ~PrintObjectConfig();
     bool has(t_config_option_key opt_key);
-    SV* as_hash();
-    SV* get(t_config_option_key opt_key);
-    SV* get_at(t_config_option_key opt_key, int i);
-    bool set(t_config_option_key opt_key, SV* value);
-    bool set_deserialize(t_config_option_key opt_key, SV* str);
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
+    SV* as_hash()
+        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
+    SV* get(t_config_option_key opt_key)
+        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
+    SV* get_at(t_config_option_key opt_key, int i)
+        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
+    bool set(t_config_option_key opt_key, SV* value)
+        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
+    bool set_deserialize(t_config_option_key opt_key, SV* str)
+        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
+    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
+        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -127,12 +157,18 @@
     FullPrintConfig();
     ~FullPrintConfig();
     bool has(t_config_option_key opt_key);
-    SV* as_hash();
-    SV* get(t_config_option_key opt_key);
-    SV* get_at(t_config_option_key opt_key, int i);
-    bool set(t_config_option_key opt_key, SV* value);
-    bool set_deserialize(t_config_option_key opt_key, SV* str);
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false);
+    SV* as_hash()
+        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
+    SV* get(t_config_option_key opt_key)
+        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
+    SV* get_at(t_config_option_key opt_key, int i)
+        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
+    bool set(t_config_option_key opt_key, SV* value)
+        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
+    bool set_deserialize(t_config_option_key opt_key, SV* str)
+        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
+    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
+        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
     std::string serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
@@ -244,7 +280,7 @@ print_config_def()
                 (void)hv_stores( hv, "labels", newRV_noinc((SV*)av) );
             }
             
-            (void)hv_stores( hv, "default", config.get(opt_key) );
+            (void)hv_stores( hv, "default", ConfigBase__get(&config, opt_key) );
             (void)hv_store( options_hv, opt_key.c_str(), opt_key.length(), newRV_noinc((SV*)hv), 0 );
         }
         

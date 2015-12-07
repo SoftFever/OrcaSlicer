@@ -2,7 +2,7 @@
 #define slic3r_GCodeSender_hpp_
 #ifdef BOOST_LIBS
 
-#include <libslic3r/libslic3r.h>
+#include "libslic3r.h"
 #include <queue>
 #include <string>
 #include <vector>

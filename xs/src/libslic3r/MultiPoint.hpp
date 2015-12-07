@@ -1,7 +1,7 @@
 #ifndef slic3r_MultiPoint_hpp_
 #define slic3r_MultiPoint_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include <algorithm>
 #include <vector>
 #include "Line.hpp"
@@ -38,13 +38,6 @@ class MultiPoint
     void append(const Points::const_iterator &begin, const Points::const_iterator &end);
     
     static Points _douglas_peucker(const Points &points, const double tolerance);
-    
-    #ifdef SLIC3RXS
-    void from_SV(SV* poly_sv);
-    void from_SV_check(SV* poly_sv);
-    SV* to_AV();
-    SV* to_SV_pureperl() const;
-    #endif
 };
 
 }

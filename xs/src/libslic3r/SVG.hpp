@@ -1,7 +1,7 @@
 #ifndef slic3r_SVG_hpp_
 #define slic3r_SVG_hpp_
 
-#include <myinit.h>
+#include "libslic3r.h"
 #include "ExPolygon.hpp"
 #include "Line.hpp"
 #include "TriangleMesh.hpp"

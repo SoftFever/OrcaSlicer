@@ -1,6 +1,7 @@
 #ifndef slic3r_SurfaceCollection_hpp_
 #define slic3r_SurfaceCollection_hpp_
 
+#include "libslic3r.h"
 #include "Surface.hpp"
 #include <vector>
 
