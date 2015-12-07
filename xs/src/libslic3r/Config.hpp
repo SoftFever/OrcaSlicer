@@ -22,10 +22,26 @@ class ConfigOption {
     virtual ~ConfigOption() {};
     virtual std::string serialize() const = 0;
     virtual bool deserialize(std::string str) = 0;
+    virtual void set(const ConfigOption &option) = 0;
     virtual int getInt() const { return 0; };
+    virtual double getFloat() const { return 0; };
+    virtual bool getBool() const { return false; };
     virtual void setInt(int val) {};
     friend bool operator== (const ConfigOption &a, const ConfigOption &b);
     friend bool operator!= (const ConfigOption &a, const ConfigOption &b);
+};
+
+template <class T>
+class ConfigOptionSingle : public ConfigOption {
+    public:
+    T value;
+    ConfigOptionSingle(T _value) : value(_value) {};
+    operator T() const { return this->value; };
+    
+    void set(const ConfigOption &option) {
+        const ConfigOptionSingle<T>* other = dynamic_cast< const ConfigOptionSingle<T>* >(&option);
+        if (other != NULL) this->value = other->value;
+    };
 };
 
 class ConfigOptionVectorBase : public ConfigOption {
@@ -41,6 +57,11 @@ class ConfigOptionVector : public ConfigOptionVectorBase
     virtual ~ConfigOptionVector() {};
     std::vector<T> values;
     
+    void set(const ConfigOption &option) {
+        const const ConfigOptionVector<T>* other = dynamic_cast< const ConfigOptionVector<T>* >(&option);
+        if (other != NULL) this->values = other->values;
+    };
+    
     T get_at(size_t i) const {
         try {
             return this->values.at(i);
@@ -50,14 +71,13 @@ class ConfigOptionVector : public ConfigOptionVectorBase
     };
 };
 
-class ConfigOptionFloat : public ConfigOption
+class ConfigOptionFloat : public ConfigOptionSingle<double>
 {
     public:
-    double value;  // use double instead of float for preserving compatibility with values coming from Perl
-    ConfigOptionFloat() : value(0) {};
+    ConfigOptionFloat() : ConfigOptionSingle(0) {};
+    ConfigOptionFloat(double _value) : ConfigOptionSingle(_value) {};
     
-    operator float() const { return this->value; };
-    operator double() const { return this->value; };
+    double getFloat() const { return this->value; };
     
     std::string serialize() const {
         std::ostringstream ss;
@@ -108,13 +128,12 @@ class ConfigOptionFloats : public ConfigOptionVector<double>
     };
 };
 
-class ConfigOptionInt : public ConfigOption
+class ConfigOptionInt : public ConfigOptionSingle<int>
 {
     public:
-    int value;
-    ConfigOptionInt() : value(0) {};
+    ConfigOptionInt() : ConfigOptionSingle(0) {};
+    ConfigOptionInt(double _value) : ConfigOptionSingle(_value) {};
     
-    operator int() const { return this->value; };
     int getInt() const { return this->value; };
     void setInt(int val) { this->value = val; };
     
@@ -167,13 +186,11 @@ class ConfigOptionInts : public ConfigOptionVector<int>
     };
 };
 
-class ConfigOptionString : public ConfigOption
+class ConfigOptionString : public ConfigOptionSingle<std::string>
 {
     public:
-    std::string value;
-    ConfigOptionString() : value("") {};
-    
-    operator std::string() const { return this->value; };
+    ConfigOptionString() : ConfigOptionSingle("") {};
+    ConfigOptionString(std::string _value) : ConfigOptionSingle(_value) {};
     
     std::string serialize() const {
         std::string str = this->value;
@@ -230,11 +247,11 @@ class ConfigOptionStrings : public ConfigOptionVector<std::string>
     };
 };
 
-class ConfigOptionPercent : public ConfigOption
+class ConfigOptionPercent : public ConfigOptionFloat
 {
     public:
-    double value;
-    ConfigOptionPercent() : value(0) {};
+    ConfigOptionPercent() : ConfigOptionFloat(0) {};
+    ConfigOptionPercent(double _value) : ConfigOptionFloat(_value) {};
     
     double get_abs_value(double ratio_over) const {
         return ratio_over * this->value / 100;
@@ -255,12 +272,21 @@ class ConfigOptionPercent : public ConfigOption
     };
 };
 
-class ConfigOptionFloatOrPercent : public ConfigOption
+class ConfigOptionFloatOrPercent : public ConfigOptionPercent
 {
     public:
-    double value;
     bool percent;
-    ConfigOptionFloatOrPercent() : value(0), percent(false) {};
+    ConfigOptionFloatOrPercent() : ConfigOptionPercent(0), percent(false) {};
+    ConfigOptionFloatOrPercent(double _value, bool _percent)
+        : ConfigOptionPercent(_value), percent(_percent) {};
+    
+    void set(const ConfigOption &option) {
+        const ConfigOptionFloatOrPercent* other = dynamic_cast< const ConfigOptionFloatOrPercent* >(&option);
+        if (other != NULL) {
+            this->value = other->value;
+            this->percent = other->percent;
+        }
+    };
     
     double get_abs_value(double ratio_over) const {
         if (this->percent) {
@@ -285,28 +311,26 @@ class ConfigOptionFloatOrPercent : public ConfigOption
     };
 };
 
-class ConfigOptionPoint : public ConfigOption
+class ConfigOptionPoint : public ConfigOptionSingle<Pointf>
 {
     public:
-    Pointf point;
-    ConfigOptionPoint() : point(Pointf(0,0)) {};
-    
-    operator Pointf() const { return this->point; };
+    ConfigOptionPoint() : ConfigOptionSingle(Pointf(0,0)) {};
+    ConfigOptionPoint(Pointf _value) : ConfigOptionSingle(_value) {};
     
     std::string serialize() const {
         std::ostringstream ss;
-        ss << this->point.x;
+        ss << this->value.x;
         ss << ",";
-        ss << this->point.y;
+        ss << this->value.y;
         return ss.str();
     };
     
     bool deserialize(std::string str) {
         std::istringstream iss(str);
-        iss >> this->point.x;
+        iss >> this->value.x;
         iss.ignore(std::numeric_limits<std::streamsize>::max(), ',');
         iss.ignore(std::numeric_limits<std::streamsize>::max(), 'x');
-        iss >> this->point.y;
+        iss >> this->value.y;
         return true;
     };
 };
@@ -356,13 +380,13 @@ class ConfigOptionPoints : public ConfigOptionVector<Pointf>
     };
 };
 
-class ConfigOptionBool : public ConfigOption
+class ConfigOptionBool : public ConfigOptionSingle<bool>
 {
     public:
-    bool value;
-    ConfigOptionBool() : value(false) {};
+    ConfigOptionBool() : ConfigOptionSingle(false) {};
+    ConfigOptionBool(bool _value) : ConfigOptionSingle(_value) {};
     
-    operator bool() const { return this->value; };
+    bool getBool() const { return this->value; };
     
     std::string serialize() const {
         return std::string(this->value ? "1" : "0");
@@ -411,12 +435,12 @@ class ConfigOptionBools : public ConfigOptionVector<bool>
 typedef std::map<std::string,int> t_config_enum_values;
 
 template <class T>
-class ConfigOptionEnum : public ConfigOption
+class ConfigOptionEnum : public ConfigOptionSingle<T>
 {
     public:
-    T value;
-    
-    operator T() const { return this->value; };
+    // by default, use the first value (0) of the T enum type
+    ConfigOptionEnum() : ConfigOptionSingle<T>(static_cast<T>(0)) {};
+    ConfigOptionEnum(T _value) : ConfigOptionSingle<T>(_value) {};
     
     std::string serialize() const {
         t_config_enum_values enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
@@ -438,16 +462,13 @@ class ConfigOptionEnum : public ConfigOption
 
 /* We use this one in DynamicConfig objects, otherwise it's better to use
    the specialized ConfigOptionEnum<T> containers. */
-class ConfigOptionEnumGeneric : public ConfigOption
+class ConfigOptionEnumGeneric : public ConfigOptionInt
 {
     public:
-    int value;
-    t_config_enum_values* keys_map;
-    
-    operator int() const { return this->value; };
+    const t_config_enum_values* keys_map;
     
     std::string serialize() const {
-        for (t_config_enum_values::iterator it = this->keys_map->begin(); it != this->keys_map->end(); ++it) {
+        for (t_config_enum_values::const_iterator it = this->keys_map->begin(); it != this->keys_map->end(); ++it) {
             if (it->second == this->value) return it->first;
         }
         return "";
@@ -455,7 +476,7 @@ class ConfigOptionEnumGeneric : public ConfigOption
 
     bool deserialize(std::string str) {
         if (this->keys_map->count(str) == 0) return false;
-        this->value = (*this->keys_map)[str];
+        this->value = (*const_cast<t_config_enum_values*>(this->keys_map))[str];
         return true;
     };
 };
@@ -481,6 +502,7 @@ class ConfigOptionDef
 {
     public:
     ConfigOptionType type;
+    ConfigOption* default_value;
     std::string gui_type;
     std::string gui_flags;
     std::string label;
@@ -503,17 +525,25 @@ class ConfigOptionDef
     std::vector<std::string> enum_labels;
     t_config_enum_values enum_keys_map;
     
-    ConfigOptionDef() : type(coNone),
+    ConfigOptionDef() : type(coNone), default_value(NULL),
                         multiline(false), full_width(false), readonly(false),
                         height(-1), width(-1), min(INT_MIN), max(INT_MAX) {};
 };
 
 typedef std::map<t_config_option_key,ConfigOptionDef> t_optiondef_map;
 
+class ConfigDef
+{
+    public:
+    t_optiondef_map options;
+    ~ConfigDef();
+    const ConfigOptionDef* get(const t_config_option_key &opt_key) const;
+};
+
 class ConfigBase
 {
     public:
-    t_optiondef_map* def;
+    const ConfigDef* def;
     
     ConfigBase() : def(NULL) {};
     bool has(const t_config_option_key &opt_key);
@@ -539,7 +569,7 @@ class ConfigBase
     #endif
 };
 
-class DynamicConfig : public ConfigBase
+class DynamicConfig : public virtual ConfigBase
 {
     public:
     DynamicConfig() {};
@@ -558,12 +588,14 @@ class DynamicConfig : public ConfigBase
     t_options_map options;
 };
 
-class StaticConfig : public ConfigBase
+class StaticConfig : public virtual ConfigBase
 {
     public:
+    StaticConfig() : ConfigBase() {};
     t_config_option_keys keys() const;
     virtual ConfigOption* option(const t_config_option_key &opt_key, bool create = false) = 0;
     const ConfigOption* option(const t_config_option_key &opt_key) const;
+    void set_defaults();
     
     #ifdef SLIC3RXS
     bool set(t_config_option_key opt_key, SV* value);

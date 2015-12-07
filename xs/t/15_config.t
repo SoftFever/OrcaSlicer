@@ -30,6 +30,7 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     is $config->serialize('first_layer_height'), '0.3', 'serialize absolute floatOrPercent';
     
     $config->set('first_layer_height', '50%');
+    $config->get_abs_value('first_layer_height');
     ok abs($config->get_abs_value('first_layer_height') - 0.15) < 1e-4, 'set/get relative floatOrPercent';
     is $config->serialize('first_layer_height'), '50%', 'serialize relative floatOrPercent';
     

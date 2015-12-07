@@ -2,18 +2,27 @@
 
 namespace Slic3r {
 
-t_optiondef_map
-PrintConfigDef::build_def() {
-    t_optiondef_map Options;
+PrintConfigDef::PrintConfigDef()
+{
+    t_optiondef_map &Options = this->options;
     
     Options["avoid_crossing_perimeters"].type = coBool;
     Options["avoid_crossing_perimeters"].label = "Avoid crossing perimeters";
     Options["avoid_crossing_perimeters"].tooltip = "Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.";
     Options["avoid_crossing_perimeters"].cli = "avoid-crossing-perimeters!";
+    Options["avoid_crossing_perimeters"].default_value = new ConfigOptionBool(false);
 
     Options["bed_shape"].type = coPoints;
     Options["bed_shape"].label = "Bed shape";
-
+    {
+        ConfigOptionPoints* opt = new ConfigOptionPoints();
+        opt->values.push_back(Pointf(0,0));
+        opt->values.push_back(Pointf(200,0));
+        opt->values.push_back(Pointf(200,200));
+        opt->values.push_back(Pointf(0,200));
+        Options["bed_shape"].default_value = opt;
+    }
+    
     Options["bed_temperature"].type = coInt;
     Options["bed_temperature"].label = "Other layers";
     Options["bed_temperature"].tooltip = "Bed temperature for layers after the first one. Set this to zero to disable bed temperature control commands in the output.";
@@ -21,6 +30,7 @@ PrintConfigDef::build_def() {
     Options["bed_temperature"].full_label = "Bed temperature";
     Options["bed_temperature"].min = 0;
     Options["bed_temperature"].max = 300;
+    Options["bed_temperature"].default_value = new ConfigOptionInt(0);
 
     Options["before_layer_gcode"].type = coString;
     Options["before_layer_gcode"].label = "Before layer change G-code";
@@ -29,6 +39,7 @@ PrintConfigDef::build_def() {
     Options["before_layer_gcode"].multiline = true;
     Options["before_layer_gcode"].full_width = true;
     Options["before_layer_gcode"].height = 50;
+    Options["before_layer_gcode"].default_value = new ConfigOptionString("");
 
     Options["bottom_solid_layers"].type = coInt;
     Options["bottom_solid_layers"].label = "Bottom";
@@ -37,6 +48,7 @@ PrintConfigDef::build_def() {
     Options["bottom_solid_layers"].cli = "bottom-solid-layers=i";
     Options["bottom_solid_layers"].full_label = "Bottom solid layers";
     Options["bottom_solid_layers"].min = 0;
+    Options["bottom_solid_layers"].default_value = new ConfigOptionInt(3);
 
     Options["bridge_acceleration"].type = coFloat;
     Options["bridge_acceleration"].label = "Bridge";
@@ -44,6 +56,7 @@ PrintConfigDef::build_def() {
     Options["bridge_acceleration"].sidetext = "mm/s²";
     Options["bridge_acceleration"].cli = "bridge-acceleration=f";
     Options["bridge_acceleration"].min = 0;
+    Options["bridge_acceleration"].default_value = new ConfigOptionFloat(0);
 
     Options["bridge_fan_speed"].type = coInt;
     Options["bridge_fan_speed"].label = "Bridges fan speed";
@@ -52,6 +65,7 @@ PrintConfigDef::build_def() {
     Options["bridge_fan_speed"].cli = "bridge-fan-speed=i";
     Options["bridge_fan_speed"].min = 0;
     Options["bridge_fan_speed"].max = 100;
+    Options["bridge_fan_speed"].default_value = new ConfigOptionInt(100);
 
     Options["bridge_flow_ratio"].type = coFloat;
     Options["bridge_flow_ratio"].label = "Bridge flow ratio";
@@ -59,6 +73,7 @@ PrintConfigDef::build_def() {
     Options["bridge_flow_ratio"].tooltip = "This factor affects the amount of plastic for bridging. You can decrease it slightly to pull the extrudates and prevent sagging, although default settings are usually good and you should experiment with cooling (use a fan) before tweaking this.";
     Options["bridge_flow_ratio"].cli = "bridge-flow-ratio=f";
     Options["bridge_flow_ratio"].min = 0;
+    Options["bridge_flow_ratio"].default_value = new ConfigOptionFloat(1);
 
     Options["bridge_speed"].type = coFloat;
     Options["bridge_speed"].label = "Bridges";
@@ -68,6 +83,7 @@ PrintConfigDef::build_def() {
     Options["bridge_speed"].cli = "bridge-speed=f";
     Options["bridge_speed"].aliases.push_back("bridge_feed_rate");
     Options["bridge_speed"].min = 0;
+    Options["bridge_speed"].default_value = new ConfigOptionFloat(60);
 
     Options["brim_width"].type = coFloat;
     Options["brim_width"].label = "Brim width";
@@ -75,16 +91,19 @@ PrintConfigDef::build_def() {
     Options["brim_width"].sidetext = "mm";
     Options["brim_width"].cli = "brim-width=f";
     Options["brim_width"].min = 0;
+    Options["brim_width"].default_value = new ConfigOptionFloat(0);
 
     Options["complete_objects"].type = coBool;
     Options["complete_objects"].label = "Complete individual objects";
     Options["complete_objects"].tooltip = "When printing multiple objects or copies, this feature will complete each object before moving onto next one (and starting it from its bottom layer). This feature is useful to avoid the risk of ruined prints. Slic3r should warn and prevent you from extruder collisions, but beware.";
     Options["complete_objects"].cli = "complete-objects!";
+    Options["complete_objects"].default_value = new ConfigOptionBool(false);
 
     Options["cooling"].type = coBool;
     Options["cooling"].label = "Enable auto cooling";
     Options["cooling"].tooltip = "This flag enables the automatic cooling logic that adjusts print speed and fan speed according to layer printing time.";
     Options["cooling"].cli = "cooling!";
+    Options["cooling"].default_value = new ConfigOptionBool(true);
 
     Options["default_acceleration"].type = coFloat;
     Options["default_acceleration"].label = "Default";
@@ -92,6 +111,7 @@ PrintConfigDef::build_def() {
     Options["default_acceleration"].sidetext = "mm/s²";
     Options["default_acceleration"].cli = "default-acceleration=f";
     Options["default_acceleration"].min = 0;
+    Options["default_acceleration"].default_value = new ConfigOptionFloat(0);
 
     Options["disable_fan_first_layers"].type = coInt;
     Options["disable_fan_first_layers"].label = "Disable fan for the first";
@@ -100,12 +120,14 @@ PrintConfigDef::build_def() {
     Options["disable_fan_first_layers"].cli = "disable-fan-first-layers=i";
     Options["disable_fan_first_layers"].min = 0;
     Options["disable_fan_first_layers"].max = 1000;
+    Options["disable_fan_first_layers"].default_value = new ConfigOptionInt(3);
 
     Options["dont_support_bridges"].type = coBool;
     Options["dont_support_bridges"].label = "Don't support bridges";
     Options["dont_support_bridges"].category = "Support material";
     Options["dont_support_bridges"].tooltip = "Experimental option for preventing support material from being generated under bridged areas.";
     Options["dont_support_bridges"].cli = "dont-support-bridges!";
+    Options["dont_support_bridges"].default_value = new ConfigOptionBool(true);
 
     Options["duplicate_distance"].type = coFloat;
     Options["duplicate_distance"].label = "Distance between copies";
@@ -114,6 +136,7 @@ PrintConfigDef::build_def() {
     Options["duplicate_distance"].cli = "duplicate-distance=f";
     Options["duplicate_distance"].aliases.push_back("multiply_distance");
     Options["duplicate_distance"].min = 0;
+    Options["duplicate_distance"].default_value = new ConfigOptionFloat(6);
 
     Options["end_gcode"].type = coString;
     Options["end_gcode"].label = "End G-code";
@@ -122,6 +145,7 @@ PrintConfigDef::build_def() {
     Options["end_gcode"].multiline = true;
     Options["end_gcode"].full_width = true;
     Options["end_gcode"].height = 120;
+    Options["end_gcode"].default_value = new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n");
 
     Options["external_fill_pattern"].type = coEnum;
     Options["external_fill_pattern"].label = "Top/bottom fill pattern";
@@ -140,6 +164,7 @@ PrintConfigDef::build_def() {
     Options["external_fill_pattern"].enum_labels.push_back("Archimedean Chords");
     Options["external_fill_pattern"].enum_labels.push_back("Octagram Spiral");
     Options["external_fill_pattern"].aliases.push_back("solid_fill_pattern");
+    Options["external_fill_pattern"].default_value = new ConfigOptionEnum<InfillPattern>(ipRectilinear);
 
     Options["external_perimeter_extrusion_width"].type = coFloatOrPercent;
     Options["external_perimeter_extrusion_width"].label = "External perimeters";
@@ -147,6 +172,7 @@ PrintConfigDef::build_def() {
     Options["external_perimeter_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for external perimeters. If left zero, an automatic value will be used that maximizes accuracy of the external visible surfaces. If expressed as percentage (for example 200%) it will be computed over layer height.";
     Options["external_perimeter_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["external_perimeter_extrusion_width"].cli = "external-perimeter-extrusion-width=s";
+    Options["external_perimeter_extrusion_width"].default_value = new ConfigOptionFloatOrPercent(0, false);
 
     Options["external_perimeter_speed"].type = coFloatOrPercent;
     Options["external_perimeter_speed"].label = "External perimeters";
@@ -156,18 +182,21 @@ PrintConfigDef::build_def() {
     Options["external_perimeter_speed"].cli = "external-perimeter-speed=s";
     Options["external_perimeter_speed"].ratio_over = "perimeter_speed";
     Options["external_perimeter_speed"].min = 0;
+    Options["external_perimeter_speed"].default_value = new ConfigOptionFloatOrPercent(50, true);
 
     Options["external_perimeters_first"].type = coBool;
     Options["external_perimeters_first"].label = "External perimeters first";
     Options["external_perimeters_first"].category = "Layers and Perimeters";
     Options["external_perimeters_first"].tooltip = "Print contour perimeters from the outermost one to the innermost one instead of the default inverse order.";
     Options["external_perimeters_first"].cli = "external-perimeters-first!";
+    Options["external_perimeters_first"].default_value = new ConfigOptionBool(false);
 
     Options["extra_perimeters"].type = coBool;
     Options["extra_perimeters"].label = "Extra perimeters if needed";
     Options["extra_perimeters"].category = "Layers and Perimeters";
     Options["extra_perimeters"].tooltip = "Add more perimeters when needed for avoiding gaps in sloping walls.";
     Options["extra_perimeters"].cli = "extra-perimeters!";
+    Options["extra_perimeters"].default_value = new ConfigOptionBool(true);
 
     Options["extruder"].type = coInt;
     Options["extruder"].gui_type = "i_enum_open";
@@ -188,6 +217,7 @@ PrintConfigDef::build_def() {
     Options["extruder_clearance_height"].sidetext = "mm";
     Options["extruder_clearance_height"].cli = "extruder-clearance-height=f";
     Options["extruder_clearance_height"].min = 0;
+    Options["extruder_clearance_height"].default_value = new ConfigOptionFloat(20);
 
     Options["extruder_clearance_radius"].type = coFloat;
     Options["extruder_clearance_radius"].label = "Radius";
@@ -195,34 +225,48 @@ PrintConfigDef::build_def() {
     Options["extruder_clearance_radius"].sidetext = "mm";
     Options["extruder_clearance_radius"].cli = "extruder-clearance-radius=f";
     Options["extruder_clearance_radius"].min = 0;
+    Options["extruder_clearance_radius"].default_value = new ConfigOptionFloat(20);
 
     Options["extruder_offset"].type = coPoints;
     Options["extruder_offset"].label = "Extruder offset";
     Options["extruder_offset"].tooltip = "If your firmware doesn't handle the extruder displacement you need the G-code to take it into account. This option lets you specify the displacement of each extruder with respect to the first one. It expects positive coordinates (they will be subtracted from the XY coordinate).";
     Options["extruder_offset"].sidetext = "mm";
     Options["extruder_offset"].cli = "extruder-offset=s@";
+    {
+        ConfigOptionPoints* opt = new ConfigOptionPoints();
+        opt->values.push_back(Pointf(0,0));
+        Options["extruder_offset"].default_value = opt;
+    }
 
     Options["extrusion_axis"].type = coString;
     Options["extrusion_axis"].label = "Extrusion axis";
     Options["extrusion_axis"].tooltip = "Use this option to set the axis letter associated to your printer's extruder (usually E but some printers use A).";
     Options["extrusion_axis"].cli = "extrusion-axis=s";
+    Options["extrusion_axis"].default_value = new ConfigOptionString("E");
 
     Options["extrusion_multiplier"].type = coFloats;
     Options["extrusion_multiplier"].label = "Extrusion multiplier";
     Options["extrusion_multiplier"].tooltip = "This factor changes the amount of flow proportionally. You may need to tweak this setting to get nice surface finish and correct single wall widths. Usual values are between 0.9 and 1.1. If you think you need to change this more, check filament diameter and your firmware E steps.";
     Options["extrusion_multiplier"].cli = "extrusion-multiplier=f@";
-
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(1);
+        Options["extrusion_multiplier"].default_value = opt;
+    }
+    
     Options["extrusion_width"].type = coFloatOrPercent;
     Options["extrusion_width"].label = "Default extrusion width";
     Options["extrusion_width"].category = "Extrusion Width";
     Options["extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width. If left to zero, Slic3r calculates a width automatically. If expressed as percentage (for example: 230%) it will be computed over layer height.";
     Options["extrusion_width"].sidetext = "mm or % (leave 0 for auto)";
     Options["extrusion_width"].cli = "extrusion-width=s";
+    Options["extrusion_width"].default_value = new ConfigOptionFloatOrPercent(0, false);
 
     Options["fan_always_on"].type = coBool;
     Options["fan_always_on"].label = "Keep fan always on";
     Options["fan_always_on"].tooltip = "If this is enabled, fan will never be disabled and will be kept running at least at its minimum speed. Useful for PLA, harmful for ABS.";
     Options["fan_always_on"].cli = "fan-always-on!";
+    Options["fan_always_on"].default_value = new ConfigOptionBool(false);
 
     Options["fan_below_layer_time"].type = coInt;
     Options["fan_below_layer_time"].label = "Enable fan if layer print time is below";
@@ -232,12 +276,18 @@ PrintConfigDef::build_def() {
     Options["fan_below_layer_time"].width = 60;
     Options["fan_below_layer_time"].min = 0;
     Options["fan_below_layer_time"].max = 1000;
+    Options["fan_below_layer_time"].default_value = new ConfigOptionInt(60);
 
     Options["filament_colour"].type = coStrings;
     Options["filament_colour"].label = "Color";
     Options["filament_colour"].tooltip = "This is only used in the Slic3r interface as a visual help.";
     Options["filament_colour"].cli = "filament-color=s@";
     Options["filament_colour"].gui_type = "color";
+    {
+        ConfigOptionStrings* opt = new ConfigOptionStrings();
+        opt->values.push_back("#FFFFFF");
+        Options["filament_colour"].default_value = opt;
+    }
 
     Options["filament_diameter"].type = coFloats;
     Options["filament_diameter"].label = "Diameter";
@@ -245,9 +295,15 @@ PrintConfigDef::build_def() {
     Options["filament_diameter"].sidetext = "mm";
     Options["filament_diameter"].cli = "filament-diameter=f@";
     Options["filament_diameter"].min = 0;
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(3);
+        Options["filament_diameter"].default_value = opt;
+    }
     
     Options["filament_settings_id"].type = coString;
-
+    Options["filament_settings_id"].default_value = new ConfigOptionString("");
+    
     Options["fill_angle"].type = coInt;
     Options["fill_angle"].label = "Fill angle";
     Options["fill_angle"].category = "Infill";
@@ -256,6 +312,7 @@ PrintConfigDef::build_def() {
     Options["fill_angle"].cli = "fill-angle=i";
     Options["fill_angle"].min = 0;
     Options["fill_angle"].max = 359;
+    Options["fill_angle"].default_value = new ConfigOptionFloat(45);
 
     Options["fill_density"].type = coPercent;
     Options["fill_density"].gui_type = "f_enum_open";
@@ -295,6 +352,7 @@ PrintConfigDef::build_def() {
     Options["fill_density"].enum_labels.push_back("80%");
     Options["fill_density"].enum_labels.push_back("90%");
     Options["fill_density"].enum_labels.push_back("100%");
+    Options["fill_density"].default_value = new ConfigOptionPercent(20);
 
     Options["fill_pattern"].type = coEnum;
     Options["fill_pattern"].label = "Fill pattern";
@@ -320,6 +378,7 @@ PrintConfigDef::build_def() {
     Options["fill_pattern"].enum_labels.push_back("Hilbert Curve");
     Options["fill_pattern"].enum_labels.push_back("Archimedean Chords");
     Options["fill_pattern"].enum_labels.push_back("Octagram Spiral");
+    Options["fill_pattern"].default_value = new ConfigOptionEnum<InfillPattern>(ipHoneycomb);
 
     Options["first_layer_acceleration"].type = coFloat;
     Options["first_layer_acceleration"].label = "First layer";
@@ -327,6 +386,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_acceleration"].sidetext = "mm/s²";
     Options["first_layer_acceleration"].cli = "first-layer-acceleration=f";
     Options["first_layer_acceleration"].min = 0;
+    Options["first_layer_acceleration"].default_value = new ConfigOptionFloat(0);
 
     Options["first_layer_bed_temperature"].type = coInt;
     Options["first_layer_bed_temperature"].label = "First layer";
@@ -334,6 +394,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_bed_temperature"].cli = "first-layer-bed-temperature=i";
     Options["first_layer_bed_temperature"].max = 0;
     Options["first_layer_bed_temperature"].max = 300;
+    Options["first_layer_bed_temperature"].default_value = new ConfigOptionInt(0);
 
     Options["first_layer_extrusion_width"].type = coFloatOrPercent;
     Options["first_layer_extrusion_width"].label = "First layer";
@@ -342,6 +403,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["first_layer_extrusion_width"].cli = "first-layer-extrusion-width=s";
     Options["first_layer_extrusion_width"].ratio_over = "first_layer_height";
+    Options["first_layer_extrusion_width"].default_value = new ConfigOptionFloatOrPercent(200, true);
 
     Options["first_layer_height"].type = coFloatOrPercent;
     Options["first_layer_height"].label = "First layer height";
@@ -350,6 +412,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_height"].sidetext = "mm or %";
     Options["first_layer_height"].cli = "first-layer-height=s";
     Options["first_layer_height"].ratio_over = "layer_height";
+    Options["first_layer_height"].default_value = new ConfigOptionFloatOrPercent(0.35, false);
 
     Options["first_layer_speed"].type = coFloatOrPercent;
     Options["first_layer_speed"].label = "First layer speed";
@@ -357,6 +420,7 @@ PrintConfigDef::build_def() {
     Options["first_layer_speed"].sidetext = "mm/s or %";
     Options["first_layer_speed"].cli = "first-layer-speed=s";
     Options["first_layer_speed"].min = 0;
+    Options["first_layer_speed"].default_value = new ConfigOptionFloatOrPercent(30, false);
 
     Options["first_layer_temperature"].type = coInts;
     Options["first_layer_temperature"].label = "First layer";
@@ -364,7 +428,12 @@ PrintConfigDef::build_def() {
     Options["first_layer_temperature"].cli = "first-layer-temperature=i@";
     Options["first_layer_temperature"].min = 0;
     Options["first_layer_temperature"].max = 400;
-
+    {
+        ConfigOptionInts* opt = new ConfigOptionInts();
+        opt->values.push_back(200);
+        Options["first_layer_temperature"].default_value = opt;
+    }
+    
     Options["gap_fill_speed"].type = coFloat;
     Options["gap_fill_speed"].label = "Gap fill";
     Options["gap_fill_speed"].category = "Speed";
@@ -372,16 +441,19 @@ PrintConfigDef::build_def() {
     Options["gap_fill_speed"].sidetext = "mm/s";
     Options["gap_fill_speed"].cli = "gap-fill-speed=f";
     Options["gap_fill_speed"].min = 0;
+    Options["gap_fill_speed"].default_value = new ConfigOptionFloat(20);
 
     Options["gcode_arcs"].type = coBool;
     Options["gcode_arcs"].label = "Use native G-code arcs";
     Options["gcode_arcs"].tooltip = "This experimental feature tries to detect arcs from segments and generates G2/G3 arc commands instead of multiple straight G1 commands.";
     Options["gcode_arcs"].cli = "gcode-arcs!";
+    Options["gcode_arcs"].default_value = new ConfigOptionBool(0);
 
     Options["gcode_comments"].type = coBool;
     Options["gcode_comments"].label = "Verbose G-code";
     Options["gcode_comments"].tooltip = "Enable this to get a commented G-code file, with each line explained by a descriptive text. If you print from SD card, the additional weight of the file could make your firmware slow down.";
     Options["gcode_comments"].cli = "gcode-comments!";
+    Options["gcode_comments"].default_value = new ConfigOptionBool(0);
 
     Options["gcode_flavor"].type = coEnum;
     Options["gcode_flavor"].label = "G-code flavor";
@@ -402,6 +474,7 @@ PrintConfigDef::build_def() {
     Options["gcode_flavor"].enum_labels.push_back("Mach3/LinuxCNC");
     Options["gcode_flavor"].enum_labels.push_back("Machinekit");
     Options["gcode_flavor"].enum_labels.push_back("No extrusion");
+    Options["gcode_flavor"].default_value = new ConfigOptionEnum<GCodeFlavor>(gcfRepRap);
 
     Options["infill_acceleration"].type = coFloat;
     Options["infill_acceleration"].label = "Infill";
@@ -409,6 +482,7 @@ PrintConfigDef::build_def() {
     Options["infill_acceleration"].sidetext = "mm/s²";
     Options["infill_acceleration"].cli = "infill-acceleration=f";
     Options["infill_acceleration"].min = 0;
+    Options["infill_acceleration"].default_value = new ConfigOptionFloat(0);
 
     Options["infill_every_layers"].type = coInt;
     Options["infill_every_layers"].label = "Combine infill every";
@@ -418,6 +492,7 @@ PrintConfigDef::build_def() {
     Options["infill_every_layers"].cli = "infill-every-layers=i";
     Options["infill_every_layers"].full_label = "Combine infill every n layers";
     Options["infill_every_layers"].min = 1;
+    Options["infill_every_layers"].default_value = new ConfigOptionInt(1);
 
     Options["infill_extruder"].type = coInt;
     Options["infill_extruder"].label = "Infill extruder";
@@ -425,6 +500,7 @@ PrintConfigDef::build_def() {
     Options["infill_extruder"].tooltip = "The extruder to use when printing infill.";
     Options["infill_extruder"].cli = "infill-extruder=i";
     Options["infill_extruder"].min = 1;
+    Options["infill_extruder"].default_value = new ConfigOptionInt(1);
 
     Options["infill_extrusion_width"].type = coFloatOrPercent;
     Options["infill_extrusion_width"].label = "Infill";
@@ -432,17 +508,20 @@ PrintConfigDef::build_def() {
     Options["infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill. You may want to use fatter extrudates to speed up the infill and make your parts stronger. If expressed as percentage (for example 90%) it will be computed over layer height.";
     Options["infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["infill_extrusion_width"].cli = "infill-extrusion-width=s";
+    Options["infill_extrusion_width"].default_value = new ConfigOptionFloatOrPercent(0, false);
 
     Options["infill_first"].type = coBool;
     Options["infill_first"].label = "Infill before perimeters";
     Options["infill_first"].tooltip = "This option will switch the print order of perimeters and infill, making the latter first.";
     Options["infill_first"].cli = "infill-first!";
+    Options["infill_first"].default_value = new ConfigOptionBool(false);
 
     Options["infill_only_where_needed"].type = coBool;
     Options["infill_only_where_needed"].label = "Only infill where needed";
     Options["infill_only_where_needed"].category = "Infill";
     Options["infill_only_where_needed"].tooltip = "This option will limit infill to the areas actually needed for supporting ceilings (it will act as internal support material). If enabled, slows down the G-code generation due to the multiple checks involved.";
     Options["infill_only_where_needed"].cli = "infill-only-where-needed!";
+    Options["infill_only_where_needed"].default_value = new ConfigOptionBool(false);
 
     Options["infill_overlap"].type = coFloatOrPercent;
     Options["infill_overlap"].label = "Infill/perimeters overlap";
@@ -451,6 +530,7 @@ PrintConfigDef::build_def() {
     Options["infill_overlap"].sidetext = "mm or %";
     Options["infill_overlap"].cli = "infill-overlap=s";
     Options["infill_overlap"].ratio_over = "perimeter_extrusion_width";
+    Options["infill_overlap"].default_value = new ConfigOptionFloatOrPercent(15, true);
 
     Options["infill_speed"].type = coFloat;
     Options["infill_speed"].label = "Infill";
@@ -461,12 +541,14 @@ PrintConfigDef::build_def() {
     Options["infill_speed"].aliases.push_back("print_feed_rate");
     Options["infill_speed"].aliases.push_back("infill_feed_rate");
     Options["infill_speed"].min = 0;
+    Options["infill_speed"].default_value = new ConfigOptionFloat(80);
 
     Options["interface_shells"].type = coBool;
     Options["interface_shells"].label = "Interface shells";
     Options["interface_shells"].tooltip = "Force the generation of solid shells between adjacent materials/volumes. Useful for multi-extruder prints with translucent materials or manual soluble support material.";
     Options["interface_shells"].cli = "interface-shells!";
     Options["interface_shells"].category = "Layers and Perimeters";
+    Options["interface_shells"].default_value = new ConfigOptionBool(false);
 
     Options["layer_gcode"].type = coString;
     Options["layer_gcode"].label = "After layer change G-code";
@@ -475,6 +557,7 @@ PrintConfigDef::build_def() {
     Options["layer_gcode"].multiline = true;
     Options["layer_gcode"].full_width = true;
     Options["layer_gcode"].height = 50;
+    Options["layer_gcode"].default_value = new ConfigOptionString("");
 
     Options["layer_height"].type = coFloat;
     Options["layer_height"].label = "Layer height";
@@ -483,6 +566,7 @@ PrintConfigDef::build_def() {
     Options["layer_height"].sidetext = "mm";
     Options["layer_height"].cli = "layer-height=f";
     Options["layer_height"].min = 0;
+    Options["layer_height"].default_value = new ConfigOptionFloat(0.3);
 
     Options["max_fan_speed"].type = coInt;
     Options["max_fan_speed"].label = "Max";
@@ -491,6 +575,23 @@ PrintConfigDef::build_def() {
     Options["max_fan_speed"].cli = "max-fan-speed=i";
     Options["max_fan_speed"].min = 0;
     Options["max_fan_speed"].max = 100;
+    Options["max_fan_speed"].default_value = new ConfigOptionInt(100);
+
+    Options["max_print_speed"].type = coFloat;
+    Options["max_print_speed"].label = "Max print speed";
+    Options["max_print_speed"].tooltip = "When setting other speed settings to 0 Slic3r will autocalculate the optimal speed in order to keep constant extruder pressure. This experimental setting is used to set the highest print speed you want to allow.";
+    Options["max_print_speed"].sidetext = "mm/s";
+    Options["max_print_speed"].cli = "max-print-speed=f";
+    Options["max_print_speed"].min = 1;
+    Options["max_print_speed"].default_value = new ConfigOptionFloat(80);
+
+    Options["max_volumetric_speed"].type = coFloat;
+    Options["max_volumetric_speed"].label = "Max volumetric speed";
+    Options["max_volumetric_speed"].tooltip = "This experimental setting is used to set the maximum volumetric speed your extruder supports.";
+    Options["max_volumetric_speed"].sidetext = "mm³/s";
+    Options["max_volumetric_speed"].cli = "max-volumetric-speed=f";
+    Options["max_volumetric_speed"].min = 0;
+    Options["max_volumetric_speed"].default_value = new ConfigOptionFloat(0);
 
     Options["min_fan_speed"].type = coInt;
     Options["min_fan_speed"].label = "Min";
@@ -499,27 +600,15 @@ PrintConfigDef::build_def() {
     Options["min_fan_speed"].cli = "min-fan-speed=i";
     Options["min_fan_speed"].min = 0;
     Options["min_fan_speed"].max = 100;
+    Options["min_fan_speed"].default_value = new ConfigOptionInt(35);
 
-    Options["min_print_speed"].type = coInt;
+    Options["min_print_speed"].type = coFloat;
     Options["min_print_speed"].label = "Min print speed";
     Options["min_print_speed"].tooltip = "Slic3r will not scale speed down below this speed.";
     Options["min_print_speed"].sidetext = "mm/s";
     Options["min_print_speed"].cli = "min-print-speed=f";
     Options["min_print_speed"].min = 0;
-
-    Options["max_print_speed"].type = coFloat;
-    Options["max_print_speed"].label = "Max print speed";
-    Options["max_print_speed"].tooltip = "When setting other speed settings to 0 Slic3r will autocalculate the optimal speed in order to keep constant extruder pressure. This experimental setting is used to set the highest print speed you want to allow.";
-    Options["max_print_speed"].sidetext = "mm/s";
-    Options["max_print_speed"].cli = "max-print-speed=f";
-    Options["max_print_speed"].min = 1;
-
-    Options["max_volumetric_speed"].type = coFloat;
-    Options["max_volumetric_speed"].label = "Max volumetric speed";
-    Options["max_volumetric_speed"].tooltip = "This experimental setting is used to set the maximum volumetric speed your extruder supports.";
-    Options["max_volumetric_speed"].sidetext = "mm³/s";
-    Options["max_volumetric_speed"].cli = "max-volumetric-speed=f";
-    Options["max_volumetric_speed"].min = 0;
+    Options["min_print_speed"].default_value = new ConfigOptionFloat(10);
 
     Options["min_skirt_length"].type = coFloat;
     Options["min_skirt_length"].label = "Minimum extrusion length";
@@ -527,6 +616,7 @@ PrintConfigDef::build_def() {
     Options["min_skirt_length"].sidetext = "mm";
     Options["min_skirt_length"].cli = "min-skirt-length=f";
     Options["min_skirt_length"].min = 0;
+    Options["min_skirt_length"].default_value = new ConfigOptionFloat(0);
 
     Options["notes"].type = coString;
     Options["notes"].label = "Configuration notes";
@@ -535,50 +625,63 @@ PrintConfigDef::build_def() {
     Options["notes"].multiline = true;
     Options["notes"].full_width = true;
     Options["notes"].height = 130;
+    Options["notes"].default_value = new ConfigOptionString("");
 
     Options["nozzle_diameter"].type = coFloats;
     Options["nozzle_diameter"].label = "Nozzle diameter";
     Options["nozzle_diameter"].tooltip = "This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)";
     Options["nozzle_diameter"].sidetext = "mm";
     Options["nozzle_diameter"].cli = "nozzle-diameter=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0.5);
+        Options["nozzle_diameter"].default_value = opt;
+    }
 
     Options["octoprint_apikey"].type = coString;
     Options["octoprint_apikey"].label = "API Key";
     Options["octoprint_apikey"].tooltip = "Slic3r can upload G-code files to OctoPrint. This field should contain the API Key required for authentication.";
     Options["octoprint_apikey"].cli = "octoprint-apikey=s";
-
+    Options["octoprint_apikey"].default_value = new ConfigOptionString("");
+    
     Options["octoprint_host"].type = coString;
     Options["octoprint_host"].label = "Host or IP";
     Options["octoprint_host"].tooltip = "Slic3r can upload G-code files to OctoPrint. This field should contain the hostname or IP address of the OctoPrint instance.";
     Options["octoprint_host"].cli = "octoprint-host=s";
+    Options["octoprint_host"].default_value = new ConfigOptionString("");
 
     Options["only_retract_when_crossing_perimeters"].type = coBool;
     Options["only_retract_when_crossing_perimeters"].label = "Only retract when crossing perimeters";
     Options["only_retract_when_crossing_perimeters"].tooltip = "Disables retraction when the travel path does not exceed the upper layer's perimeters (and thus any ooze will be probably invisible).";
     Options["only_retract_when_crossing_perimeters"].cli = "only-retract-when-crossing-perimeters!";
+    Options["only_retract_when_crossing_perimeters"].default_value = new ConfigOptionBool(true);
 
     Options["ooze_prevention"].type = coBool;
     Options["ooze_prevention"].label = "Enable";
     Options["ooze_prevention"].tooltip = "This option will drop the temperature of the inactive extruders to prevent oozing. It will enable a tall skirt automatically and move extruders outside such skirt when changing temperatures.";
     Options["ooze_prevention"].cli = "ooze-prevention!";
+    Options["ooze_prevention"].default_value = new ConfigOptionBool(false);
 
     Options["output_filename_format"].type = coString;
     Options["output_filename_format"].label = "Output filename format";
     Options["output_filename_format"].tooltip = "You can use all configuration options as variables inside this template. For example: [layer_height], [fill_density] etc. You can also use [timestamp], [year], [month], [day], [hour], [minute], [second], [version], [input_filename], [input_filename_base].";
     Options["output_filename_format"].cli = "output-filename-format=s";
     Options["output_filename_format"].full_width = true;
+    Options["output_filename_format"].default_value = new ConfigOptionString("[input_filename_base].gcode");
 
     Options["overhangs"].type = coBool;
     Options["overhangs"].label = "Detect bridging perimeters";
     Options["overhangs"].category = "Layers and Perimeters";
     Options["overhangs"].tooltip = "Experimental option to adjust flow for overhangs (bridge flow will be used), to apply bridge speed to them and enable fan.";
     Options["overhangs"].cli = "overhangs!";
+    Options["overhangs"].default_value = new ConfigOptionBool(true);
 
     Options["perimeter_acceleration"].type = coFloat;
     Options["perimeter_acceleration"].label = "Perimeters";
     Options["perimeter_acceleration"].tooltip = "This is the acceleration your printer will use for perimeters. A high value like 9000 usually gives good results if your hardware is up to the job. Set zero to disable acceleration control for perimeters.";
     Options["perimeter_acceleration"].sidetext = "mm/s²";
     Options["perimeter_acceleration"].cli = "perimeter-acceleration=f";
+    Options["perimeter_acceleration"].default_value = new ConfigOptionFloat(0);
 
     Options["perimeter_extruder"].type = coInt;
     Options["perimeter_extruder"].label = "Perimeter extruder";
@@ -587,6 +690,7 @@ PrintConfigDef::build_def() {
     Options["perimeter_extruder"].cli = "perimeter-extruder=i";
     Options["perimeter_extruder"].aliases.push_back("perimeters_extruder");
     Options["perimeter_extruder"].min = 1;
+    Options["perimeter_extruder"].default_value = new ConfigOptionInt(1);
 
     Options["perimeter_extrusion_width"].type = coFloatOrPercent;
     Options["perimeter_extrusion_width"].label = "Perimeters";
@@ -595,6 +699,7 @@ PrintConfigDef::build_def() {
     Options["perimeter_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["perimeter_extrusion_width"].cli = "perimeter-extrusion-width=s";
     Options["perimeter_extrusion_width"].aliases.push_back("perimeters_extrusion_width");
+    Options["perimeter_extrusion_width"].default_value = new ConfigOptionFloatOrPercent(0, false);
 
     Options["perimeter_speed"].type = coFloat;
     Options["perimeter_speed"].label = "Perimeters";
@@ -604,6 +709,7 @@ PrintConfigDef::build_def() {
     Options["perimeter_speed"].cli = "perimeter-speed=f";
     Options["perimeter_speed"].aliases.push_back("perimeter_feed_rate");
     Options["perimeter_speed"].min = 0;
+    Options["perimeter_speed"].default_value = new ConfigOptionFloat(60);
 
     Options["perimeters"].type = coInt;
     Options["perimeters"].label = "Perimeters";
@@ -613,6 +719,7 @@ PrintConfigDef::build_def() {
     Options["perimeters"].cli = "perimeters=i";
     Options["perimeters"].aliases.push_back("perimeter_offsets");
     Options["perimeters"].min = 0;
+    Options["perimeters"].default_value = new ConfigOptionInt(3);
 
     Options["post_process"].type = coStrings;
     Options["post_process"].label = "Post-processing scripts";
@@ -624,13 +731,17 @@ PrintConfigDef::build_def() {
     Options["post_process"].height = 60;
 
     Options["print_settings_id"].type = coString;
+    Options["print_settings_id"].default_value = new ConfigOptionString("");
+    
     Options["printer_settings_id"].type = coString;
+    Options["printer_settings_id"].default_value = new ConfigOptionString("");
 
     Options["pressure_advance"].type = coFloat;
     Options["pressure_advance"].label = "Pressure advance";
     Options["pressure_advance"].tooltip = "When set to a non-zero value, this experimental option enables pressure regulation. It's the K constant for the advance algorithm that pushes more or less filament upon speed changes. It's useful for Bowden-tube extruders. Reasonable values are in range 0-10.";
     Options["pressure_advance"].cli = "pressure-advance=f";
     Options["pressure_advance"].min = 0;
+    Options["pressure_advance"].default_value = new ConfigOptionFloat(0);
 
     Options["raft_layers"].type = coInt;
     Options["raft_layers"].label = "Raft layers";
@@ -639,6 +750,7 @@ PrintConfigDef::build_def() {
     Options["raft_layers"].sidetext = "layers";
     Options["raft_layers"].cli = "raft-layers=i";
     Options["raft_layers"].min = 0;
+    Options["raft_layers"].default_value = new ConfigOptionInt(0);
 
     Options["resolution"].type = coFloat;
     Options["resolution"].label = "Resolution";
@@ -646,17 +758,28 @@ PrintConfigDef::build_def() {
     Options["resolution"].sidetext = "mm";
     Options["resolution"].cli = "resolution=f";
     Options["resolution"].min = 0;
+    Options["resolution"].default_value = new ConfigOptionFloat(0);
 
     Options["retract_before_travel"].type = coFloats;
     Options["retract_before_travel"].label = "Minimum travel after retraction";
     Options["retract_before_travel"].tooltip = "Retraction is not triggered when travel moves are shorter than this length.";
     Options["retract_before_travel"].sidetext = "mm";
     Options["retract_before_travel"].cli = "retract-before-travel=f@";
-
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(2);
+        Options["retract_before_travel"].default_value = opt;
+    }
+    
     Options["retract_layer_change"].type = coBools;
     Options["retract_layer_change"].label = "Retract on layer change";
     Options["retract_layer_change"].tooltip = "This flag enforces a retraction whenever a Z move is done.";
     Options["retract_layer_change"].cli = "retract-layer-change!";
+    {
+        ConfigOptionBools* opt = new ConfigOptionBools();
+        opt->values.push_back(false);
+        Options["retract_layer_change"].default_value = opt;
+    }
 
     Options["retract_length"].type = coFloats;
     Options["retract_length"].label = "Length";
@@ -664,6 +787,11 @@ PrintConfigDef::build_def() {
     Options["retract_length"].tooltip = "When retraction is triggered, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).";
     Options["retract_length"].sidetext = "mm (zero to disable)";
     Options["retract_length"].cli = "retract-length=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(2);
+        Options["retract_length"].default_value = opt;
+    }
 
     Options["retract_length_toolchange"].type = coFloats;
     Options["retract_length_toolchange"].label = "Length";
@@ -671,31 +799,56 @@ PrintConfigDef::build_def() {
     Options["retract_length_toolchange"].tooltip = "When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).";
     Options["retract_length_toolchange"].sidetext = "mm (zero to disable)";
     Options["retract_length_toolchange"].cli = "retract-length-toolchange=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(10);
+        Options["retract_length_toolchange"].default_value = opt;
+    }
 
     Options["retract_lift"].type = coFloats;
     Options["retract_lift"].label = "Lift Z";
     Options["retract_lift"].tooltip = "If you set this to a positive value, Z is quickly raised every time a retraction is triggered. When using multiple extruders, only the setting for the first extruder will be considered.";
     Options["retract_lift"].sidetext = "mm";
     Options["retract_lift"].cli = "retract-lift=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
+        Options["retract_lift"].default_value = opt;
+    }
 
     Options["retract_restart_extra"].type = coFloats;
     Options["retract_restart_extra"].label = "Extra length on restart";
     Options["retract_restart_extra"].tooltip = "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed.";
     Options["retract_restart_extra"].sidetext = "mm";
     Options["retract_restart_extra"].cli = "retract-restart-extra=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
+        Options["retract_restart_extra"].default_value = opt;
+    }
 
     Options["retract_restart_extra_toolchange"].type = coFloats;
     Options["retract_restart_extra_toolchange"].label = "Extra length on restart";
     Options["retract_restart_extra_toolchange"].tooltip = "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament.";
     Options["retract_restart_extra_toolchange"].sidetext = "mm";
     Options["retract_restart_extra_toolchange"].cli = "retract-restart-extra-toolchange=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
+        Options["retract_restart_extra_toolchange"].default_value = opt;
+    }
 
-    Options["retract_speed"].type = coInts;
+    Options["retract_speed"].type = coFloats;
     Options["retract_speed"].label = "Speed";
     Options["retract_speed"].full_label = "Retraction Speed";
     Options["retract_speed"].tooltip = "The speed for retractions (it only applies to the extruder motor).";
     Options["retract_speed"].sidetext = "mm/s";
     Options["retract_speed"].cli = "retract-speed=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(40);
+        Options["retract_speed"].default_value = opt;
+    }
 
     Options["seam_position"].type = coEnum;
     Options["seam_position"].label = "Seam position";
@@ -709,6 +862,7 @@ PrintConfigDef::build_def() {
     Options["seam_position"].enum_labels.push_back("Random");
     Options["seam_position"].enum_labels.push_back("Nearest");
     Options["seam_position"].enum_labels.push_back("Aligned");
+    Options["seam_position"].default_value = new ConfigOptionEnum<SeamPosition>(spAligned);
 
     Options["serial_port"].type = coString;
     Options["serial_port"].gui_type = "select_open";
@@ -717,6 +871,7 @@ PrintConfigDef::build_def() {
     Options["serial_port"].tooltip = "USB/serial port for printer connection.";
     Options["serial_port"].cli = "serial-port=s";
     Options["serial_port"].width = 200;
+    Options["serial_port"].default_value = new ConfigOptionString("");
 
     Options["serial_speed"].type = coInt;
     Options["serial_speed"].gui_type = "i_enum_open";
@@ -728,6 +883,7 @@ PrintConfigDef::build_def() {
     Options["serial_speed"].max = 300000;
     Options["serial_speed"].enum_values.push_back("115200");
     Options["serial_speed"].enum_values.push_back("250000");
+    Options["serial_speed"].default_value = new ConfigOptionInt(250000);
 
     Options["skirt_distance"].type = coFloat;
     Options["skirt_distance"].label = "Distance from object";
@@ -735,12 +891,14 @@ PrintConfigDef::build_def() {
     Options["skirt_distance"].sidetext = "mm";
     Options["skirt_distance"].cli = "skirt-distance=f";
     Options["skirt_distance"].min = 0;
+    Options["skirt_distance"].default_value = new ConfigOptionFloat(6);
 
     Options["skirt_height"].type = coInt;
     Options["skirt_height"].label = "Skirt height";
     Options["skirt_height"].tooltip = "Height of skirt expressed in layers. Set this to a tall value to use skirt as a shield against drafts.";
     Options["skirt_height"].sidetext = "layers";
     Options["skirt_height"].cli = "skirt-height=i";
+    Options["skirt_height"].default_value = new ConfigOptionInt(1);
 
     Options["skirts"].type = coInt;
     Options["skirts"].label = "Loops (minimum)";
@@ -748,6 +906,7 @@ PrintConfigDef::build_def() {
     Options["skirts"].tooltip = "Number of loops for the skirt. If the Minimum Extrusion Length option is set, the number of loops might be greater than the one configured here. Set this to zero to disable skirt completely.";
     Options["skirts"].cli = "skirts=i";
     Options["skirts"].min = 0;
+    Options["skirts"].default_value = new ConfigOptionInt(1);
     
     Options["slowdown_below_layer_time"].type = coInt;
     Options["slowdown_below_layer_time"].label = "Slow down if layer print time is below";
@@ -757,6 +916,7 @@ PrintConfigDef::build_def() {
     Options["slowdown_below_layer_time"].width = 60;
     Options["slowdown_below_layer_time"].min = 0;
     Options["slowdown_below_layer_time"].max = 1000;
+    Options["slowdown_below_layer_time"].default_value = new ConfigOptionInt(5);
 
     Options["small_perimeter_speed"].type = coFloatOrPercent;
     Options["small_perimeter_speed"].label = "Small perimeters";
@@ -766,6 +926,7 @@ PrintConfigDef::build_def() {
     Options["small_perimeter_speed"].cli = "small-perimeter-speed=s";
     Options["small_perimeter_speed"].ratio_over = "perimeter_speed";
     Options["small_perimeter_speed"].min = 0;
+    Options["small_perimeter_speed"].default_value = new ConfigOptionFloatOrPercent(15, false);
 
     Options["solid_infill_below_area"].type = coFloat;
     Options["solid_infill_below_area"].label = "Solid infill threshold area";
@@ -774,6 +935,7 @@ PrintConfigDef::build_def() {
     Options["solid_infill_below_area"].sidetext = "mm²";
     Options["solid_infill_below_area"].cli = "solid-infill-below-area=f";
     Options["solid_infill_below_area"].min = 0;
+    Options["solid_infill_below_area"].default_value = new ConfigOptionFloat(70);
 
     Options["solid_infill_extruder"].type = coInt;
     Options["solid_infill_extruder"].label = "Solid infill extruder";
@@ -781,6 +943,7 @@ PrintConfigDef::build_def() {
     Options["solid_infill_extruder"].tooltip = "The extruder to use when printing solid infill.";
     Options["solid_infill_extruder"].cli = "solid-infill-extruder=i";
     Options["solid_infill_extruder"].min = 1;
+    Options["solid_infill_extruder"].default_value = new ConfigOptionInt(1);
 
     Options["solid_infill_every_layers"].type = coInt;
     Options["solid_infill_every_layers"].label = "Solid infill every";
@@ -789,6 +952,7 @@ PrintConfigDef::build_def() {
     Options["solid_infill_every_layers"].sidetext = "layers";
     Options["solid_infill_every_layers"].cli = "solid-infill-every-layers=i";
     Options["solid_infill_every_layers"].min = 0;
+    Options["solid_infill_every_layers"].default_value = new ConfigOptionInt(0);
 
     Options["solid_infill_extrusion_width"].type = coFloatOrPercent;
     Options["solid_infill_extrusion_width"].label = "Solid infill";
@@ -796,6 +960,7 @@ PrintConfigDef::build_def() {
     Options["solid_infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill for solid surfaces. If expressed as percentage (for example 90%) it will be computed over layer height.";
     Options["solid_infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["solid_infill_extrusion_width"].cli = "solid-infill-extrusion-width=s";
+    Options["solid_infill_extrusion_width"].default_value = new ConfigOptionFloatOrPercent(0, false);
 
     Options["solid_infill_speed"].type = coFloatOrPercent;
     Options["solid_infill_speed"].label = "Solid infill";
@@ -806,6 +971,7 @@ PrintConfigDef::build_def() {
     Options["solid_infill_speed"].ratio_over = "infill_speed";
     Options["solid_infill_speed"].aliases.push_back("solid_infill_feed_rate");
     Options["solid_infill_speed"].min = 0;
+    Options["solid_infill_speed"].default_value = new ConfigOptionFloatOrPercent(20, false);
 
     Options["solid_layers"].type = coInt;
     Options["solid_layers"].label = "Solid layers";
@@ -819,6 +985,7 @@ PrintConfigDef::build_def() {
     Options["spiral_vase"].label = "Spiral vase";
     Options["spiral_vase"].tooltip = "This feature will raise Z gradually while printing a single-walled object in order to remove any visible seam. This option requires a single perimeter, no infill, no top solid layers and no support material. You can still set any number of bottom solid layers as well as skirt/brim loops. It won't work when printing more than an object.";
     Options["spiral_vase"].cli = "spiral-vase!";
+    Options["spiral_vase"].default_value = new ConfigOptionBool(false);
 
     Options["standby_temperature_delta"].type = coInt;
     Options["standby_temperature_delta"].label = "Temperature variation";
@@ -827,6 +994,7 @@ PrintConfigDef::build_def() {
     Options["standby_temperature_delta"].cli = "standby-temperature-delta=i";
     Options["standby_temperature_delta"].min = -400;
     Options["standby_temperature_delta"].max = 400;
+    Options["standby_temperature_delta"].default_value = new ConfigOptionInt(-5);
 
     Options["start_gcode"].type = coString;
     Options["start_gcode"].label = "Start G-code";
@@ -835,12 +1003,14 @@ PrintConfigDef::build_def() {
     Options["start_gcode"].multiline = true;
     Options["start_gcode"].full_width = true;
     Options["start_gcode"].height = 120;
+    Options["start_gcode"].default_value = new ConfigOptionString("G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n");
 
     Options["support_material"].type = coBool;
     Options["support_material"].label = "Generate support material";
     Options["support_material"].category = "Support material";
     Options["support_material"].tooltip = "Enable support material generation.";
     Options["support_material"].cli = "support-material!";
+    Options["support_material"].default_value = new ConfigOptionBool(false);
 
     Options["support_material_angle"].type = coInt;
     Options["support_material_angle"].label = "Pattern angle";
@@ -850,6 +1020,7 @@ PrintConfigDef::build_def() {
     Options["support_material_angle"].cli = "support-material-angle=i";
     Options["support_material_angle"].min = 0;
     Options["support_material_angle"].max = 359;
+    Options["support_material_angle"].default_value = new ConfigOptionInt(0);
 
     Options["support_material_contact_distance"].type = coFloat;
     Options["support_material_contact_distance"].gui_type = "f_enum_open";
@@ -863,6 +1034,7 @@ PrintConfigDef::build_def() {
     Options["support_material_contact_distance"].enum_values.push_back("0.2");
     Options["support_material_contact_distance"].enum_labels.push_back("0 (soluble)");
     Options["support_material_contact_distance"].enum_labels.push_back("0.2 (detachable)");
+    Options["support_material_contact_distance"].default_value = new ConfigOptionFloat(0.2);
 
     Options["support_material_enforce_layers"].type = coInt;
     Options["support_material_enforce_layers"].label = "Enforce support for the first";
@@ -872,6 +1044,7 @@ PrintConfigDef::build_def() {
     Options["support_material_enforce_layers"].cli = "support-material-enforce-layers=f";
     Options["support_material_enforce_layers"].full_label = "Enforce support for the first n layers";
     Options["support_material_enforce_layers"].min = 0;
+    Options["support_material_enforce_layers"].default_value = new ConfigOptionInt(0);
 
     Options["support_material_extruder"].type = coInt;
     Options["support_material_extruder"].label = "Support material/raft/skirt extruder";
@@ -879,6 +1052,7 @@ PrintConfigDef::build_def() {
     Options["support_material_extruder"].tooltip = "The extruder to use when printing support material, raft and skirt.";
     Options["support_material_extruder"].cli = "support-material-extruder=i";
     Options["support_material_extruder"].min = 1;
+    Options["support_material_extruder"].default_value = new ConfigOptionInt(1);
 
     Options["support_material_extrusion_width"].type = coFloatOrPercent;
     Options["support_material_extrusion_width"].label = "Support material";
@@ -886,6 +1060,7 @@ PrintConfigDef::build_def() {
     Options["support_material_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for support material. If expressed as percentage (for example 90%) it will be computed over layer height.";
     Options["support_material_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["support_material_extrusion_width"].cli = "support-material-extrusion-width=s";
+    Options["support_material_extrusion_width"].default_value = new ConfigOptionFloatOrPercent(0, false);
 
     Options["support_material_interface_extruder"].type = coInt;
     Options["support_material_interface_extruder"].label = "Support material/raft interface extruder";
@@ -893,6 +1068,7 @@ PrintConfigDef::build_def() {
     Options["support_material_interface_extruder"].tooltip = "The extruder to use when printing support material interface. This affects raft too.";
     Options["support_material_interface_extruder"].cli = "support-material-interface-extruder=i";
     Options["support_material_interface_extruder"].min = 1;
+    Options["support_material_interface_extruder"].default_value = new ConfigOptionInt(1);
 
     Options["support_material_interface_layers"].type = coInt;
     Options["support_material_interface_layers"].label = "Interface layers";
@@ -901,6 +1077,7 @@ PrintConfigDef::build_def() {
     Options["support_material_interface_layers"].sidetext = "layers";
     Options["support_material_interface_layers"].cli = "support-material-interface-layers=i";
     Options["support_material_interface_layers"].min = 0;
+    Options["support_material_interface_layers"].default_value = new ConfigOptionInt(3);
 
     Options["support_material_interface_spacing"].type = coFloat;
     Options["support_material_interface_spacing"].label = "Interface pattern spacing";
@@ -909,6 +1086,7 @@ PrintConfigDef::build_def() {
     Options["support_material_interface_spacing"].sidetext = "mm";
     Options["support_material_interface_spacing"].cli = "support-material-interface-spacing=f";
     Options["support_material_interface_spacing"].min = 0;
+    Options["support_material_interface_spacing"].default_value = new ConfigOptionFloat(0);
 
     Options["support_material_interface_speed"].type = coFloatOrPercent;
     Options["support_material_interface_speed"].label = "Support material interface";
@@ -918,6 +1096,7 @@ PrintConfigDef::build_def() {
     Options["support_material_interface_speed"].cli = "support-material-interface-speed=s";
     Options["support_material_interface_speed"].ratio_over = "support_material_speed";
     Options["support_material_interface_speed"].min = 0;
+    Options["support_material_interface_speed"].default_value = new ConfigOptionFloatOrPercent(100, true);
 
     Options["support_material_pattern"].type = coEnum;
     Options["support_material_pattern"].label = "Pattern";
@@ -933,6 +1112,7 @@ PrintConfigDef::build_def() {
     Options["support_material_pattern"].enum_labels.push_back("rectilinear grid");
     Options["support_material_pattern"].enum_labels.push_back("honeycomb");
     Options["support_material_pattern"].enum_labels.push_back("pillars");
+    Options["support_material_pattern"].default_value = new ConfigOptionEnum<SupportMaterialPattern>(smpPillars);
 
     Options["support_material_spacing"].type = coFloat;
     Options["support_material_spacing"].label = "Pattern spacing";
@@ -941,6 +1121,7 @@ PrintConfigDef::build_def() {
     Options["support_material_spacing"].sidetext = "mm";
     Options["support_material_spacing"].cli = "support-material-spacing=f";
     Options["support_material_spacing"].min = 0;
+    Options["support_material_spacing"].default_value = new ConfigOptionFloat(2.5);
 
     Options["support_material_speed"].type = coFloat;
     Options["support_material_speed"].label = "Support material";
@@ -949,6 +1130,7 @@ PrintConfigDef::build_def() {
     Options["support_material_speed"].sidetext = "mm/s";
     Options["support_material_speed"].cli = "support-material-speed=f";
     Options["support_material_speed"].min = 0;
+    Options["support_material_speed"].default_value = new ConfigOptionFloat(60);
 
     Options["support_material_threshold"].type = coInt;
     Options["support_material_threshold"].label = "Overhang threshold";
@@ -958,6 +1140,7 @@ PrintConfigDef::build_def() {
     Options["support_material_threshold"].cli = "support-material-threshold=i";
     Options["support_material_threshold"].min = 0;
     Options["support_material_threshold"].max = 90;
+    Options["support_material_threshold"].default_value = new ConfigOptionInt(0);
 
     Options["temperature"].type = coInts;
     Options["temperature"].label = "Other layers";
@@ -966,12 +1149,18 @@ PrintConfigDef::build_def() {
     Options["temperature"].full_label = "Temperature";
     Options["temperature"].max = 0;
     Options["temperature"].max = 400;
-
+    {
+        ConfigOptionInts* opt = new ConfigOptionInts();
+        opt->values.push_back(200);
+        Options["temperature"].default_value = opt;
+    }
+    
     Options["thin_walls"].type = coBool;
     Options["thin_walls"].label = "Detect thin walls";
     Options["thin_walls"].category = "Layers and Perimeters";
     Options["thin_walls"].tooltip = "Detect single-width walls (parts where two extrusions don't fit and we need to collapse them into a single trace).";
     Options["thin_walls"].cli = "thin-walls!";
+    Options["thin_walls"].default_value = new ConfigOptionBool(true);
 
     Options["threads"].type = coInt;
     Options["threads"].label = "Threads";
@@ -980,6 +1169,7 @@ PrintConfigDef::build_def() {
     Options["threads"].readonly = true;
     Options["threads"].min = 1;
     Options["threads"].max = 16;
+    Options["threads"].default_value = new ConfigOptionInt(2);
 
     Options["toolchange_gcode"].type = coString;
     Options["toolchange_gcode"].label = "Tool change G-code";
@@ -988,6 +1178,7 @@ PrintConfigDef::build_def() {
     Options["toolchange_gcode"].multiline = true;
     Options["toolchange_gcode"].full_width = true;
     Options["toolchange_gcode"].height = 50;
+    Options["toolchange_gcode"].default_value = new ConfigOptionString("");
 
     Options["top_infill_extrusion_width"].type = coFloatOrPercent;
     Options["top_infill_extrusion_width"].label = "Top solid infill";
@@ -995,6 +1186,7 @@ PrintConfigDef::build_def() {
     Options["top_infill_extrusion_width"].tooltip = "Set this to a non-zero value to set a manual extrusion width for infill for top surfaces. You may want to use thinner extrudates to fill all narrow regions and get a smoother finish. If expressed as percentage (for example 90%) it will be computed over layer height.";
     Options["top_infill_extrusion_width"].sidetext = "mm or % (leave 0 for default)";
     Options["top_infill_extrusion_width"].cli = "top-infill-extrusion-width=s";
+    Options["top_infill_extrusion_width"].default_value = new ConfigOptionFloatOrPercent(0, false);
 
     Options["top_solid_infill_speed"].type = coFloatOrPercent;
     Options["top_solid_infill_speed"].label = "Top solid infill";
@@ -1004,6 +1196,7 @@ PrintConfigDef::build_def() {
     Options["top_solid_infill_speed"].cli = "top-solid-infill-speed=s";
     Options["top_solid_infill_speed"].ratio_over = "solid_infill_speed";
     Options["top_solid_infill_speed"].min = 0;
+    Options["top_solid_infill_speed"].default_value = new ConfigOptionFloatOrPercent(15, false);
 
     Options["top_solid_layers"].type = coInt;
     Options["top_solid_layers"].label = "Top";
@@ -1012,6 +1205,7 @@ PrintConfigDef::build_def() {
     Options["top_solid_layers"].cli = "top-solid-layers=i";
     Options["top_solid_layers"].full_label = "Top solid layers";
     Options["top_solid_layers"].min = 0;
+    Options["top_solid_layers"].default_value = new ConfigOptionInt(3);
 
     Options["travel_speed"].type = coFloat;
     Options["travel_speed"].label = "Travel";
@@ -1020,21 +1214,25 @@ PrintConfigDef::build_def() {
     Options["travel_speed"].cli = "travel-speed=f";
     Options["travel_speed"].aliases.push_back("travel_feed_rate");
     Options["travel_speed"].min = 1;
+    Options["travel_speed"].default_value = new ConfigOptionFloat(130);
 
     Options["use_firmware_retraction"].type = coBool;
     Options["use_firmware_retraction"].label = "Use firmware retraction";
     Options["use_firmware_retraction"].tooltip = "This experimental setting uses G10 and G11 commands to have the firmware handle the retraction. This is only supported in recent Marlin.";
     Options["use_firmware_retraction"].cli = "use-firmware-retraction!";
+    Options["use_firmware_retraction"].default_value = new ConfigOptionFloat(false);
 
     Options["use_relative_e_distances"].type = coBool;
     Options["use_relative_e_distances"].label = "Use relative E distances";
     Options["use_relative_e_distances"].tooltip = "If your firmware requires relative E values, check this, otherwise leave it unchecked. Most firmwares use absolute values.";
     Options["use_relative_e_distances"].cli = "use-relative-e-distances!";
+    Options["use_relative_e_distances"].default_value = new ConfigOptionFloat(false);
 
     Options["use_volumetric_e"].type = coBool;
     Options["use_volumetric_e"].label = "Use volumetric E";
     Options["use_volumetric_e"].tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. If your firmware doesn't already know filament diameter(s), you can put commands like 'M200 D[filament_diameter_0] T0' in your start G-code in order to turn volumetric mode on and use the filament diameter associated to the filament selected in Slic3r. This is only supported in recent Marlin.";
     Options["use_volumetric_e"].cli = "use-volumetric-e!";
+    Options["use_volumetric_e"].default_value = new ConfigOptionFloat(false);
 
     Options["vibration_limit"].type = coFloat;
     Options["vibration_limit"].label = "Vibration limit (deprecated)";
@@ -1042,11 +1240,17 @@ PrintConfigDef::build_def() {
     Options["vibration_limit"].sidetext = "Hz";
     Options["vibration_limit"].cli = "vibration-limit=f";
     Options["vibration_limit"].min = 0;
+    Options["vibration_limit"].default_value = new ConfigOptionFloat(0);
 
     Options["wipe"].type = coBools;
     Options["wipe"].label = "Wipe while retracting";
     Options["wipe"].tooltip = "This flag will move the nozzle while retracting to minimize the possible blob on leaky extruders.";
     Options["wipe"].cli = "wipe!";
+    {
+        ConfigOptionBools* opt = new ConfigOptionBools();
+        opt->values.push_back(false);
+        Options["wipe"].default_value = opt;
+    }
 
     Options["xy_size_compensation"].type = coFloat;
     Options["xy_size_compensation"].label = "XY Size Compensation";
@@ -1054,17 +1258,17 @@ PrintConfigDef::build_def() {
     Options["xy_size_compensation"].tooltip = "The object will be grown/shrunk in the XY plane by the configured value (negative = inwards, positive = outwards). This might be useful for fine-tuning hole sizes.";
     Options["xy_size_compensation"].sidetext = "mm";
     Options["xy_size_compensation"].cli = "xy-size-compensation=f";
+    Options["xy_size_compensation"].default_value = new ConfigOptionFloat(0);
 
     Options["z_offset"].type = coFloat;
     Options["z_offset"].label = "Z offset";
     Options["z_offset"].tooltip = "This value will be added (or subtracted) from all the Z coordinates in the output G-code. It is used to compensate for bad Z endstop position: for example, if your endstop zero actually leaves the nozzle 0.3mm far from the print bed, set this to -0.3 (or fix your endstop).";
     Options["z_offset"].sidetext = "mm";
     Options["z_offset"].cli = "z-offset=f";
-    
-    return Options;
-};
+    Options["z_offset"].default_value = new ConfigOptionFloat(0);
+}
 
-t_optiondef_map PrintConfigDef::def = PrintConfigDef::build_def();
+PrintConfigDef print_config_def;
 
 void
 DynamicPrintConfig::normalize() {
@@ -1101,12 +1305,15 @@ DynamicPrintConfig::normalize() {
 }
 
 double
-PrintConfig::min_object_distance() const
+PrintConfigBase::min_object_distance() const
 {
+    double extruder_clearance_radius = this->option("extruder_clearance_radius")->getFloat();
+    double duplicate_distance = this->option("duplicate_distance")->getFloat();
+    
     // min object distance is max(duplicate_distance, clearance_radius)
-    return (this->complete_objects.value && this->extruder_clearance_radius.value > this->duplicate_distance.value)
-        ? this->extruder_clearance_radius.value
-        : this->duplicate_distance.value;
+    return (this->option("complete_objects")->getBool() && extruder_clearance_radius > duplicate_distance)
+        ? extruder_clearance_radius
+        : duplicate_distance;
 }
 
 #ifdef SLIC3RXS

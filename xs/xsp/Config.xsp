@@ -31,6 +31,7 @@
     void erase(t_config_option_key opt_key);
     void normalize();
     %name{setenv} void setenv_();
+    double min_object_distance();
 };
 
 %name{Slic3r::Config::GCode} class GCodeConfig {
@@ -158,11 +159,11 @@ PROTOTYPES: DISABLE
 SV*
 print_config_def()
     CODE:
+        t_optiondef_map &def = Slic3r::print_config_def.options;
         FullPrintConfig config;
-        t_optiondef_map* def = config.def;
         
         HV* options_hv = newHV();
-        for (t_optiondef_map::iterator oit = def->begin(); oit != def->end(); ++oit) {
+        for (t_optiondef_map::iterator oit = def.begin(); oit != def.end(); ++oit) {
             HV* hv = newHV();
             
             t_config_option_key opt_key = oit->first;

@@ -41,40 +41,28 @@ PlaceholderParser::update_timestamp()
     this->set("second", timeinfo->tm_sec);
 }
 
-void PlaceholderParser::apply_config(DynamicPrintConfig &config)
+void PlaceholderParser::apply_config(const DynamicPrintConfig &config)
 {
-    // options that are set and aren't text-boxes
-    t_config_option_keys opt_keys;
-    for (t_optiondef_map::iterator i = config.def->begin();
-        i != config.def->end(); ++i)
-    {
-        const t_config_option_key &key = i->first;
-        const ConfigOptionDef &def = i->second;
-
-        if (config.has(key) && !def.multiline) {
-            opt_keys.push_back(key);
-        }
-    }
-
-    for (t_config_option_keys::iterator i = opt_keys.begin();
-        i != opt_keys.end(); ++i)
-    {
-        const t_config_option_key &key = *i;
-        const ConfigOption* opt = config.option(key);
+    t_config_option_keys opt_keys = config.keys();
+    for (t_config_option_keys::const_iterator i = opt_keys.begin(); i != opt_keys.end(); ++i) {
+        const t_config_option_key &opt_key = *i;
+        const ConfigOptionDef* def = config.def->get(opt_key);
+        if (def->multiline) continue;
         
+        const ConfigOption* opt = config.option(opt_key);
         if (const ConfigOptionVectorBase* optv = dynamic_cast<const ConfigOptionVectorBase*>(opt)) {
             // set placeholders for options with multiple values
             // TODO: treat [bed_shape] as single, not multiple
-            this->set(key, optv->vserialize());
+            this->set(opt_key, optv->vserialize());
         } else if (const ConfigOptionPoint* optp = dynamic_cast<const ConfigOptionPoint*>(opt)) {
-            this->set(key, optp->serialize());
+            this->set(opt_key, optp->serialize());
             
             Pointf val = *optp;
-            this->set(key + "_X", val.x);
-            this->set(key + "_Y", val.y);
+            this->set(opt_key + "_X", val.x);
+            this->set(opt_key + "_Y", val.y);
         } else {
             // set single-value placeholders
-            this->set(key, opt->serialize());
+            this->set(opt_key, opt->serialize());
         }
     }
 }

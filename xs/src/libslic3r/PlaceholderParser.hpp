@@ -22,7 +22,7 @@ class PlaceholderParser
     
     PlaceholderParser();
     void update_timestamp();
-    void apply_config(DynamicPrintConfig &config);
+    void apply_config(const DynamicPrintConfig &config);
     void apply_env_variables();
     void set(const std::string &key, const std::string &value);
     void set(const std::string &key, int value);

@@ -67,33 +67,38 @@ template<> inline t_config_enum_values ConfigOptionEnum<SeamPosition>::get_enum_
     return keys_map;
 }
 
-class PrintConfigDef
+class PrintConfigDef : public ConfigDef
 {
     public:
-    static t_optiondef_map def;
-    
-    static t_optiondef_map build_def();
+    PrintConfigDef();
 };
 
-class DynamicPrintConfig : public DynamicConfig
+extern PrintConfigDef print_config_def;
+
+class PrintConfigBase : public virtual ConfigBase
 {
     public:
-    DynamicPrintConfig() {
-        this->def = &PrintConfigDef::def;
+    PrintConfigBase() {
+        this->def = &print_config_def;
     };
     
+    double min_object_distance() const;
+};
+
+class DynamicPrintConfig : public PrintConfigBase, public DynamicConfig
+{
+    public:
+    DynamicPrintConfig() : PrintConfigBase(), DynamicConfig() {};
     void normalize();
 };
 
-class StaticPrintConfig : public virtual StaticConfig
+class StaticPrintConfigBase : public PrintConfigBase, public StaticConfig
 {
     public:
-    StaticPrintConfig() {
-        this->def = &PrintConfigDef::def;
-    };
+    StaticPrintConfigBase() : PrintConfigBase(), StaticConfig() {};
 };
 
-class PrintObjectConfig : public virtual StaticPrintConfig
+class PrintObjectConfig : public virtual StaticPrintConfigBase
 {
     public:
     ConfigOptionBool                dont_support_bridges;
@@ -120,34 +125,8 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 support_material_threshold;
     ConfigOptionFloat               xy_size_compensation;
     
-    PrintObjectConfig() : StaticPrintConfig() {
-        this->dont_support_bridges.value                         = true;
-        this->extrusion_width.value                              = 0;
-        this->extrusion_width.percent                            = false;
-        this->first_layer_height.value                           = 0.35;
-        this->first_layer_height.percent                         = false;
-        this->infill_only_where_needed.value                     = false;
-        this->interface_shells.value                             = false;
-        this->layer_height.value                                 = 0.3;
-        this->raft_layers.value                                  = 0;
-        this->seam_position.value                                = spAligned;
-        this->support_material.value                             = false;
-        this->support_material_angle.value                       = 0;
-        this->support_material_contact_distance.value            = 0.2;
-        this->support_material_enforce_layers.value              = 0;
-        this->support_material_extruder.value                    = 1;
-        this->support_material_extrusion_width.value             = 0;
-        this->support_material_extrusion_width.percent           = false;
-        this->support_material_interface_extruder.value          = 1;
-        this->support_material_interface_layers.value            = 3;
-        this->support_material_interface_spacing.value           = 0;
-        this->support_material_interface_speed.value             = 100;
-        this->support_material_interface_speed.percent           = true;
-        this->support_material_pattern.value                     = smpPillars;
-        this->support_material_spacing.value                     = 2.5;
-        this->support_material_speed.value                       = 60;
-        this->support_material_threshold.value                   = 0;
-        this->xy_size_compensation.value                         = 0;
+    PrintObjectConfig() : StaticPrintConfigBase() {
+        this->set_defaults();
     };
     
     ConfigOption* option(const t_config_option_key &opt_key, bool create = false) {
@@ -179,7 +158,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     };
 };
 
-class PrintRegionConfig : public virtual StaticPrintConfig
+class PrintRegionConfig : public virtual StaticPrintConfigBase
 {
     public:
     ConfigOptionInt                 bottom_solid_layers;
@@ -215,49 +194,8 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 top_solid_layers;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
     
-    PrintRegionConfig() : StaticPrintConfig() {
-        this->bottom_solid_layers.value                          = 3;
-        this->bridge_flow_ratio.value                            = 1;
-        this->bridge_speed.value                                 = 60;
-        this->external_fill_pattern.value                        = ipRectilinear;
-        this->external_perimeter_extrusion_width.value           = 0;
-        this->external_perimeter_extrusion_width.percent         = false;
-        this->external_perimeter_speed.value                     = 50;
-        this->external_perimeter_speed.percent                   = true;
-        this->external_perimeters_first.value                    = false;
-        this->extra_perimeters.value                             = true;
-        this->fill_angle.value                                   = 45;
-        this->fill_density.value                                 = 20;
-        this->fill_pattern.value                                 = ipHoneycomb;
-        this->gap_fill_speed.value                               = 20;
-        this->infill_extruder.value                              = 1;
-        this->infill_extrusion_width.value                       = 0;
-        this->infill_extrusion_width.percent                     = false;
-        this->infill_every_layers.value                          = 1;
-        this->infill_overlap.value                               = 15;
-        this->infill_overlap.percent                             = true;
-        this->infill_speed.value                                 = 80;
-        this->overhangs.value                                    = true;
-        this->perimeter_extruder.value                           = 1;
-        this->perimeter_extrusion_width.value                    = 0;
-        this->perimeter_extrusion_width.percent                  = false;
-        this->perimeter_speed.value                              = 60;
-        this->perimeters.value                                   = 3;
-        this->solid_infill_extruder.value                        = 1;
-        this->small_perimeter_speed.value                        = 15;
-        this->small_perimeter_speed.percent                      = false;
-        this->solid_infill_below_area.value                      = 70;
-        this->solid_infill_extrusion_width.value                 = 0;
-        this->solid_infill_extrusion_width.percent               = false;
-        this->solid_infill_every_layers.value                    = 0;
-        this->solid_infill_speed.value                           = 20;
-        this->solid_infill_speed.percent                         = false;
-        this->thin_walls.value                                   = true;
-        this->top_infill_extrusion_width.value                   = 0;
-        this->top_infill_extrusion_width.percent                 = false;
-        this->top_solid_infill_speed.value                       = 15;
-        this->top_solid_infill_speed.percent                     = false;
-        this->top_solid_layers.value                             = 3;
+    PrintRegionConfig() : StaticPrintConfigBase() {
+        this->set_defaults();
     };
     
     ConfigOption* option(const t_config_option_key &opt_key, bool create = false) {
@@ -298,7 +236,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     };
 };
 
-class GCodeConfig : public virtual StaticPrintConfig
+class GCodeConfig : public virtual StaticPrintConfigBase
 {
     public:
     ConfigOptionString              before_layer_gcode;
@@ -317,7 +255,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionFloats              retract_lift;
     ConfigOptionFloats              retract_restart_extra;
     ConfigOptionFloats              retract_restart_extra_toolchange;
-    ConfigOptionInts                retract_speed;
+    ConfigOptionFloats              retract_speed;
     ConfigOptionString              start_gcode;
     ConfigOptionString              toolchange_gcode;
     ConfigOptionFloat               travel_speed;
@@ -325,38 +263,8 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionBool                use_relative_e_distances;
     ConfigOptionBool                use_volumetric_e;
     
-    GCodeConfig() : StaticPrintConfig() {
-        this->before_layer_gcode.value                           = "";
-        this->end_gcode.value                                    = "M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n";
-        this->extrusion_axis.value                               = "E";
-        this->extrusion_multiplier.values.resize(1);
-        this->extrusion_multiplier.values[0]                     = 1;
-        this->filament_diameter.values.resize(1);
-        this->filament_diameter.values[0]                        = 3;
-        this->gcode_comments.value                               = false;
-        this->gcode_flavor.value                                 = gcfRepRap;
-        this->layer_gcode.value                                  = "";
-        this->max_print_speed.value                              = 80;
-        this->max_volumetric_speed.value                         = 0;
-        this->pressure_advance.value                             = 0;
-        this->retract_length.values.resize(1);
-        this->retract_length.values[0]                           = 2;
-        this->retract_length_toolchange.values.resize(1);
-        this->retract_length_toolchange.values[0]                = 10;
-        this->retract_lift.values.resize(1);
-        this->retract_lift.values[0]                             = 0;
-        this->retract_restart_extra.values.resize(1);
-        this->retract_restart_extra.values[0]                    = 0;
-        this->retract_restart_extra_toolchange.values.resize(1);
-        this->retract_restart_extra_toolchange.values[0]         = 0;
-        this->retract_speed.values.resize(1);
-        this->retract_speed.values[0]                            = 40;
-        this->start_gcode.value                                  = "G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n";
-        this->toolchange_gcode.value                             = "";
-        this->travel_speed.value                                 = 130;
-        this->use_firmware_retraction.value                      = false;
-        this->use_relative_e_distances.value                     = false;
-        this->use_volumetric_e.value                             = false;
+    GCodeConfig() : StaticPrintConfigBase() {
+        this->set_defaults();
     };
     
     ConfigOption* option(const t_config_option_key &opt_key, bool create = false) {
@@ -429,7 +337,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionBool                infill_first;
     ConfigOptionInt                 max_fan_speed;
     ConfigOptionInt                 min_fan_speed;
-    ConfigOptionInt                 min_print_speed;
+    ConfigOptionFloat               min_print_speed;
     ConfigOptionFloat               min_skirt_length;
     ConfigOptionString              notes;
     ConfigOptionFloats              nozzle_diameter;
@@ -454,68 +362,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionFloat               z_offset;
     
     PrintConfig() : GCodeConfig() {
-        this->avoid_crossing_perimeters.value                    = false;
-        this->bed_shape.values.push_back(Pointf(0,0));
-        this->bed_shape.values.push_back(Pointf(200,0));
-        this->bed_shape.values.push_back(Pointf(200,200));
-        this->bed_shape.values.push_back(Pointf(0,200));
-        this->bed_temperature.value                              = 0;
-        this->bridge_acceleration.value                          = 0;
-        this->bridge_fan_speed.value                             = 100;
-        this->brim_width.value                                   = 0;
-        this->complete_objects.value                             = false;
-        this->cooling.value                                      = true;
-        this->default_acceleration.value                         = 0;
-        this->disable_fan_first_layers.value                     = 3;
-        this->duplicate_distance.value                           = 6;
-        this->extruder_clearance_height.value                    = 20;
-        this->extruder_clearance_radius.value                    = 20;
-        this->extruder_offset.values.resize(1);
-        this->extruder_offset.values[0]                          = Pointf(0,0);
-        this->fan_always_on.value                                = false;
-        this->fan_below_layer_time.value                         = 60;
-        this->filament_colour.values.resize(1);
-        this->filament_colour.values[0]                          = "#FFFFFF";
-        this->first_layer_acceleration.value                     = 0;
-        this->first_layer_bed_temperature.value                  = 0;
-        this->first_layer_extrusion_width.value                  = 200;
-        this->first_layer_extrusion_width.percent                = true;
-        this->first_layer_speed.value                            = 30;
-        this->first_layer_speed.percent                          = false;
-        this->first_layer_temperature.values.resize(1);
-        this->first_layer_temperature.values[0]                  = 200;
-        this->gcode_arcs.value                                   = false;
-        this->infill_acceleration.value                          = 0;
-        this->infill_first.value                                 = false;
-        this->max_fan_speed.value                                = 100;
-        this->min_fan_speed.value                                = 35;
-        this->min_print_speed.value                              = 10;
-        this->min_skirt_length.value                             = 0;
-        this->notes.value                                        = "";
-        this->nozzle_diameter.values.resize(1);
-        this->nozzle_diameter.values[0]                          = 0.5;
-        this->only_retract_when_crossing_perimeters.value        = true;
-        this->ooze_prevention.value                              = false;
-        this->output_filename_format.value                       = "[input_filename_base].gcode";
-        this->perimeter_acceleration.value                       = 0;
-        this->resolution.value                                   = 0;
-        this->retract_before_travel.values.resize(1);
-        this->retract_before_travel.values[0]                    = 2;
-        this->retract_layer_change.values.resize(1);
-        this->retract_layer_change.values[0]                     = false;
-        this->skirt_distance.value                               = 6;
-        this->skirt_height.value                                 = 1;
-        this->skirts.value                                       = 1;
-        this->slowdown_below_layer_time.value                    = 5;
-        this->spiral_vase.value                                  = false;
-        this->standby_temperature_delta.value                    = -5;
-        this->temperature.values.resize(1);
-        this->temperature.values[0]                              = 200;
-        this->threads.value                                      = 2;
-        this->vibration_limit.value                              = 0;
-        this->wipe.values.resize(1);
-        this->wipe.values[0]                                     = false;
-        this->z_offset.value                                     = 0;
+        this->set_defaults();
     };
     
     ConfigOption* option(const t_config_option_key &opt_key, bool create = false) {
@@ -576,11 +423,9 @@ class PrintConfig : public GCodeConfig
         
         return NULL;
     };
-    
-    double min_object_distance() const;
 };
 
-class HostConfig : public virtual StaticPrintConfig
+class HostConfig : public virtual StaticPrintConfigBase
 {
     public:
     ConfigOptionString              octoprint_host;
@@ -588,11 +433,8 @@ class HostConfig : public virtual StaticPrintConfig
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
     
-    HostConfig() : StaticPrintConfig() {
-        this->octoprint_host.value                              = "";
-        this->octoprint_apikey.value                            = "";
-        this->serial_port.value                                 = "";
-        this->serial_speed.value                                = 250000;
+    HostConfig() : StaticPrintConfigBase() {
+        this->set_defaults();
     };
     
     ConfigOption* option(const t_config_option_key &opt_key, bool create = false) {
