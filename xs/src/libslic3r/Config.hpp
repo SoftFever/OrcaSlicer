@@ -58,7 +58,7 @@ class ConfigOptionVector : public ConfigOptionVectorBase
     std::vector<T> values;
     
     void set(const ConfigOption &option) {
-        const const ConfigOptionVector<T>* other = dynamic_cast< const ConfigOptionVector<T>* >(&option);
+        const ConfigOptionVector<T>* other = dynamic_cast< const ConfigOptionVector<T>* >(&option);
         if (other != NULL) this->values = other->values;
     };
     
