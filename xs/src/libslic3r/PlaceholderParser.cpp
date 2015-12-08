@@ -1,4 +1,5 @@
 #include "PlaceholderParser.hpp"
+#include <cstring>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
