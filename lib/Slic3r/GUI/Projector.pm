@@ -129,7 +129,7 @@ sub new {
         my ($opt_id, $value) = @_;
         
         $self->config2->{$opt_id} = $value;
-        $self->position_screen;
+        $self->screen->reposition;
         $self->show_print_time;
         
         my $serialized = {};
@@ -394,7 +394,7 @@ sub new {
         $self->screen(Slic3r::GUI::Projector::Screen->new($parent, $self->config, $self->config2));
         $Slic3r::GUI::DLP_projection_screen = $self->screen;
     }
-    $self->position_screen;
+    $self->screen->reposition;
     $self->screen->Show;
     wxTheApp->{mainframe}->Hide;
     
@@ -466,19 +466,6 @@ sub show_print_time {
     my $duration = $self->controller->print_time;
     $self->_set_status(sprintf "Estimated print time: %d minutes and %d seconds",
         int($duration/60), ($duration - int($duration/60)*60));  # % truncates to integer
-}
-
-sub position_screen {
-    my ($self) = @_;
-    
-    my $display = Wx::Display->new($self->config2->{display});
-    my $area = $display->GetGeometry;
-    $self->screen->Move($area->GetPosition);
-    # ShowFullScreen doesn't use the right screen
-    #$self->screen->ShowFullScreen($self->config2->{fullscreen});
-    $self->screen->SetSize($area->GetSize);
-    $self->screen->_resize;
-    $self->screen->Refresh;
 }
 
 sub _close {
@@ -764,6 +751,19 @@ sub new {
     $self->_resize;
     
     return $self;
+}
+
+sub reposition {
+    my ($self) = @_;
+    
+    my $display = Wx::Display->new($self->config2->{display});
+    my $area = $display->GetGeometry;
+    $self->Move($area->GetPosition);
+    # ShowFullScreen doesn't use the right screen
+    #$self->ShowFullScreen($self->config2->{fullscreen});
+    $self->SetSize($area->GetSize);
+    $self->_resize;
+    $self->Refresh;
 }
 
 sub _resize {
