@@ -1,5 +1,6 @@
 #include "Flow.hpp"
 #include <cmath>
+#include <assert.h>
 
 namespace Slic3r {
 

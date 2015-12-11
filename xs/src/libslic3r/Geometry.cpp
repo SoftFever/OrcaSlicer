@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <assert.h>
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"

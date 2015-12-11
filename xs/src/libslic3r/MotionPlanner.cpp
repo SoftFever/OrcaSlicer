@@ -1,6 +1,7 @@
 #include "BoundingBox.hpp"
 #include "MotionPlanner.hpp"
 #include <limits> // for numeric_limits
+#include <assert.h>
 
 #include "boost/polygon/voronoi.hpp"
 using boost::polygon::voronoi_builder;
