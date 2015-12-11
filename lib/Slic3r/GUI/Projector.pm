@@ -418,6 +418,7 @@ sub new {
         on_print_completed => sub {
             $self->_update_buttons;
             $self->_set_status('');
+            Wx::Bell();
         },
     ));
     {
@@ -533,6 +534,8 @@ has '_timer_cb'             => (is => 'rw');
 sub BUILD {
     my ($self) = @_;
     
+    Slic3r::GUI::disable_screensaver();
+    
     $self->set_print(wxTheApp->{mainframe}->{plater}->{print});
     
     # projection timer
@@ -595,8 +598,6 @@ sub current_layer_height {
 sub start_print {
     my ($self) = @_;
     
-    Slic3r::GUI::disable_screensaver();
-    
     {
         $self->sender(Slic3r::GCode::Sender->new);
         my $res = $self->sender->connect(
@@ -634,7 +635,6 @@ sub stop_print {
     my ($self) = @_;
     
     $self->is_printing(0);
-    Slic3r::GUI::enable_screensaver();
     $self->timer->Stop;
     $self->_timer_cb(undef);
     $self->screen->project_layers(undef);
@@ -649,10 +649,12 @@ sub print_completed {
         $self->sender->disconnect;
     }
     
+    # call this before the on_print_completed callback otherwise buttons
+    # won't be updated correctly
+    $self->stop_print;
+    
     $self->on_print_completed->()
         if $self->is_printing && $self->on_print_completed;
-    
-    $self->stop_print;
 }
 
 sub is_projecting {
@@ -737,6 +739,7 @@ sub DESTROY {
     
     $self->timer->Stop if $self->timer;
     $self->sender->disconnect if $self->sender;
+    Slic3r::GUI::enable_screensaver();
 }
 
 package Slic3r::GUI::Projector::Screen;
