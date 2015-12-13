@@ -165,14 +165,13 @@ Model::center_instances_around_point(const Pointf &point)
     BoundingBoxf3 bb = this->bounding_box();
     
     Sizef3 size = bb.size();
-    double shift_x = -bb.min.x + point.x - size.x/2;
-    double shift_y = -bb.min.y + point.y - size.y/2;
-    
+    coordf_t shift_x = -bb.min.x + point.x - size.x/2;
+    coordf_t shift_y = -bb.min.y + point.y - size.y/2;
     for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
         for (ModelInstancePtrs::const_iterator i = (*o)->instances.begin(); i != (*o)->instances.end(); ++i) {
             (*i)->offset.translate(shift_x, shift_y);
         }
-        (*o)->update_bounding_box();
+        (*o)->invalidate_bounding_box();
     }
 }
 
@@ -249,6 +248,7 @@ Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
             (*i)->offset = positions.back();
             positions.pop_back();
         }
+        (*o)->invalidate_bounding_box();
     }
 }
 
@@ -270,7 +270,7 @@ Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
                 instance->offset.translate(*pos);
             }
         }
-        (*o)->update_bounding_box();
+        (*o)->invalidate_bounding_box();
     }
 }
 
@@ -549,7 +549,7 @@ ModelObject::center_around_origin()
             v.scale((*i)->scaling_factor);
             (*i)->offset.translate(v.x, v.y);
         }
-        this->update_bounding_box();
+        this->invalidate_bounding_box();
     }
 }
 
