@@ -22,6 +22,7 @@ sub new {
         keep_upper      => 1,
         keep_lower      => 1,
         rotate_lower    => 1,
+        preview         => 0,
     };
     
     my $optgroup;
@@ -70,6 +71,13 @@ sub new {
         tooltip     => 'If enabled, the lower part will be rotated by 180° so that the flat cut surface lies on the print bed.',
         default     => $self->{cut_options}{rotate_lower},
     ));
+    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id      => 'preview',
+        label       => 'Show preview',
+        type        => 'bool',
+        tooltip     => 'If enabled, object will be cut in real time.',
+        default     => $self->{cut_options}{preview},
+    ));
     {
         my $cut_button_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $self->{btn_cut} = Wx::Button->new($self, -1, "Perform cut", wxDefaultPosition, wxDefaultSize);
@@ -109,7 +117,10 @@ sub new {
         $self->Destroy;
     });
     
-    EVT_BUTTON($self, $self->{btn_cut}, sub { $self->perform_cut });
+    EVT_BUTTON($self, $self->{btn_cut}, sub {
+        $self->perform_cut(1);
+        $self->Close;
+    });
     
     $self->_update;
     
@@ -123,6 +134,15 @@ sub _update {
     
     # update canvas
     if ($self->{canvas}) {
+        my @objects = ();
+        if ($self->{cut_options}{preview}) {
+            $self->perform_cut;
+            push @objects, @{$self->{new_model_objects}};
+        } else {
+            push @objects, $self->{model_object};
+        }
+        $self->{canvas}->reset_objects;
+        $self->{canvas}->load_object($_, undef, [0]) for @objects;
         $self->{canvas}->SetCuttingPlane($self->{cut_options}{z});
         $self->{canvas}->Render;
     }
@@ -132,6 +152,7 @@ sub _update {
     $optgroup->get_field('keep_upper')->toggle(my $have_upper = abs($z - $optgroup->get_option('z')->max) > 0.1);
     $optgroup->get_field('keep_lower')->toggle(my $have_lower = $z > 0.1);
     $optgroup->get_field('rotate_lower')->toggle($z > 0 && $self->{cut_options}{keep_lower});
+    $optgroup->get_field('preview')->toggle($self->{cut_options}{keep_upper} != $self->{cut_options}{keep_lower});
     
     # update cut button
     if (($self->{cut_options}{keep_upper} && $have_upper)
@@ -143,7 +164,7 @@ sub _update {
 }
 
 sub perform_cut {
-    my ($self) = @_;
+    my ($self, $final) = @_;
     
     # scale Z down to original size since we're using the transformed mesh for 3D preview
     # and cut dialog but ModelObject::cut() needs Z without any instance transformation
@@ -154,18 +175,16 @@ sub perform_cut {
     $self->{new_model} = $new_model;
     $self->{new_model_objects} = [];
     if ($self->{cut_options}{keep_upper} && $upper_object->volumes_count > 0) {
-        $upper_object->center_around_origin;  # align to Z = 0
+        $upper_object->center_around_origin if $final;  # align to Z = 0
         push @{$self->{new_model_objects}}, $upper_object;
     }
     if ($self->{cut_options}{keep_lower} && $lower_object->volumes_count > 0) {
         push @{$self->{new_model_objects}}, $lower_object;
-        if ($self->{cut_options}{rotate_lower}) {
+        if ($self->{cut_options}{rotate_lower} && $final) {
             $lower_object->rotate(PI, X);
             $lower_object->center_around_origin;  # align to Z = 0
         }
     }
-    
-    $self->Close;
 }
 
 sub NewModelObjects {
