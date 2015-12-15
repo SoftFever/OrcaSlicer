@@ -25,7 +25,7 @@ sub new {
 sub _repaint {
     my ($self) = @_;
     
-    my $dc = Wx::PaintDC->new($self);
+    my $dc = Wx::AutoBufferedPaintDC->new($self);
     my ($cw, $ch) = $self->GetSizeWH;
     return if $cw == 0;  # when canvas is not rendered yet, size is 0,0
     

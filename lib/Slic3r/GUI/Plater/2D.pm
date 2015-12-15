@@ -71,7 +71,7 @@ sub on_instances_moved {
 sub repaint {
     my ($self, $event) = @_;
     
-    my $dc = Wx::PaintDC->new($self);
+    my $dc = Wx::AutoBufferedPaintDC->new($self);
     my $size = $self->GetSize;
     my @size = ($size->GetWidth, $size->GetHeight);
     

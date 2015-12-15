@@ -730,7 +730,7 @@ sub DESTROY {
 }
 
 package Slic3r::GUI::Projector::Screen;
-use Wx qw(:dialog :id :misc :sizer :colour :pen :brush :font);
+use Wx qw(:dialog :id :misc :sizer :colour :pen :brush :font wxBG_STYLE_CUSTOM);
 use Wx::Event qw(EVT_PAINT EVT_SIZE);
 use base qw(Wx::Dialog Class::Accessor);
 
@@ -746,6 +746,7 @@ sub new {
     
     $self->config($config);
     $self->config2($config2);
+    $self->SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     EVT_SIZE($self, \&_resize);
     EVT_PAINT($self, \&_repaint);
     $self->_resize;
@@ -807,7 +808,7 @@ sub project_layers {
 sub _repaint {
     my ($self) = @_;
     
-    my $dc = Wx::PaintDC->new($self);
+    my $dc = Wx::AutoBufferedPaintDC->new($self);
     my ($cw, $ch) = $self->GetSizeWH;
     return if $cw == 0;  # when canvas is not rendered yet, size is 0,0
     
