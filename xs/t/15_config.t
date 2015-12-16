@@ -6,7 +6,7 @@ use warnings;
 use Slic3r::XS;
 use Test::More tests => 110;
 
-foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
+foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintConfig) {
     $config->set('layer_height', 0.3);
     ok abs($config->get('layer_height') - 0.3) < 1e-4, 'set/get float';
     is $config->serialize('layer_height'), '0.3', 'serialize float';
@@ -140,13 +140,13 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Full->new) {
     # test that no crash happens when using set_deserialize() with a key that hasn't been set() yet
     $config->set_deserialize('filament_diameter', '3');
     
-    my $config2 = Slic3r::Config::Full->new;
+    my $config2 = Slic3r::Config::Static::new_FullPrintConfig;
     $config2->apply_dynamic($config);
     is $config2->get('perimeters'), 2, 'apply_dynamic';
 }
 
 {
-    my $config = Slic3r::Config::Full->new;
+    my $config = Slic3r::Config::Static::new_FullPrintConfig;
     my $config2 = Slic3r::Config->new;
     $config2->apply_static($config);
     is $config2->get('perimeters'), Slic3r::Config::print_config_def()->{perimeters}{default}, 'apply_static and print_config_def';

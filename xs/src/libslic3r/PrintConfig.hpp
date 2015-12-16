@@ -170,7 +170,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionFloatOrPercent      external_perimeter_speed;
     ConfigOptionBool                external_perimeters_first;
     ConfigOptionBool                extra_perimeters;
-    ConfigOptionInt                 fill_angle;
+    ConfigOptionFloat               fill_angle;
     ConfigOptionPercent             fill_density;
     ConfigOptionEnum<InfillPattern> fill_pattern;
     ConfigOptionFloat               gap_fill_speed;

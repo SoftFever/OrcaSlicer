@@ -73,62 +73,76 @@ ConfigBase__get(ConfigBase* THIS, const t_config_option_key &opt_key) {
     if (opt == NULL) return &PL_sv_undef;
     
     const ConfigOptionDef* def = THIS->def->get(opt_key);
-    if (def->type == coFloat) {
-        ConfigOptionFloat* optv = dynamic_cast<ConfigOptionFloat*>(opt);
+    return ConfigOption_to_SV(*opt, *def);
+}
+
+SV*
+ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def) {
+    if (def.type == coFloat) {
+        const ConfigOptionFloat* optv = dynamic_cast<const ConfigOptionFloat*>(&opt);
+        if (optv == NULL) {
+            printf("opt_key = %s\n", def.label.c_str());
+        }
         return newSVnv(optv->value);
-    } else if (def->type == coFloats) {
-        ConfigOptionFloats* optv = dynamic_cast<ConfigOptionFloats*>(opt);
+    } else if (def.type == coFloats) {
+        const ConfigOptionFloats* optv = dynamic_cast<const ConfigOptionFloats*>(&opt);
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
-        for (std::vector<double>::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
+        for (std::vector<double>::const_iterator it = optv->values.begin(); it != optv->values.end(); ++it)
             av_store(av, it - optv->values.begin(), newSVnv(*it));
         return newRV_noinc((SV*)av);
-    } else if (def->type == coPercent) {
-        ConfigOptionPercent* optv = dynamic_cast<ConfigOptionPercent*>(opt);
+    } else if (def.type == coPercent) {
+        const ConfigOptionPercent* optv = dynamic_cast<const ConfigOptionPercent*>(&opt);
         return newSVnv(optv->value);
-    } else if (def->type == coInt) {
-        ConfigOptionInt* optv = dynamic_cast<ConfigOptionInt*>(opt);
+    } else if (def.type == coInt) {
+        const ConfigOptionInt* optv = dynamic_cast<const ConfigOptionInt*>(&opt);
+        if (optv == NULL) {
+            printf("opt_key = %s\n", def.label.c_str());
+        }
         return newSViv(optv->value);
-    } else if (def->type == coInts) {
-        ConfigOptionInts* optv = dynamic_cast<ConfigOptionInts*>(opt);
+    } else if (def.type == coInts) {
+        const ConfigOptionInts* optv = dynamic_cast<const ConfigOptionInts*>(&opt);
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
-        for (std::vector<int>::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
+        for (std::vector<int>::const_iterator it = optv->values.begin(); it != optv->values.end(); ++it)
             av_store(av, it - optv->values.begin(), newSViv(*it));
         return newRV_noinc((SV*)av);
-    } else if (def->type == coString) {
-        ConfigOptionString* optv = dynamic_cast<ConfigOptionString*>(opt);
+    } else if (def.type == coString) {
+        const ConfigOptionString* optv = dynamic_cast<const ConfigOptionString*>(&opt);
         // we don't serialize() because that would escape newlines
         return newSVpvn_utf8(optv->value.c_str(), optv->value.length(), true);
-    } else if (def->type == coStrings) {
-        ConfigOptionStrings* optv = dynamic_cast<ConfigOptionStrings*>(opt);
+    } else if (def.type == coStrings) {
+        const ConfigOptionStrings* optv = dynamic_cast<const ConfigOptionStrings*>(&opt);
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
-        for (std::vector<std::string>::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
+        for (std::vector<std::string>::const_iterator it = optv->values.begin(); it != optv->values.end(); ++it)
             av_store(av, it - optv->values.begin(), newSVpvn_utf8(it->c_str(), it->length(), true));
         return newRV_noinc((SV*)av);
-    } else if (def->type == coPoint) {
-        ConfigOptionPoint* optv = dynamic_cast<ConfigOptionPoint*>(opt);
+    } else if (def.type == coPoint) {
+        const ConfigOptionPoint* optv = dynamic_cast<const ConfigOptionPoint*>(&opt);
         return perl_to_SV_clone_ref(optv->value);
-    } else if (def->type == coPoints) {
-        ConfigOptionPoints* optv = dynamic_cast<ConfigOptionPoints*>(opt);
+    } else if (def.type == coPoints) {
+        const ConfigOptionPoints* optv = dynamic_cast<const ConfigOptionPoints*>(&opt);
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
-        for (Pointfs::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
+        for (Pointfs::const_iterator it = optv->values.begin(); it != optv->values.end(); ++it)
             av_store(av, it - optv->values.begin(), perl_to_SV_clone_ref(*it));
         return newRV_noinc((SV*)av);
-    } else if (def->type == coBool) {
-        ConfigOptionBool* optv = dynamic_cast<ConfigOptionBool*>(opt);
+    } else if (def.type == coBool) {
+        const ConfigOptionBool* optv = dynamic_cast<const ConfigOptionBool*>(&opt);
+        if (optv == NULL) {
+            printf("opt_key = %s\n", def.label.c_str());
+        }
         return newSViv(optv->value ? 1 : 0);
-    } else if (def->type == coBools) {
-        ConfigOptionBools* optv = dynamic_cast<ConfigOptionBools*>(opt);
+    } else if (def.type == coBools) {
+        const ConfigOptionBools* optv = dynamic_cast<const ConfigOptionBools*>(&opt);
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
-        for (std::vector<bool>::iterator it = optv->values.begin(); it != optv->values.end(); ++it)
+        for (std::vector<bool>::const_iterator it = optv->values.begin(); it != optv->values.end(); ++it)
             av_store(av, it - optv->values.begin(), newSViv(*it ? 1 : 0));
         return newRV_noinc((SV*)av);
     } else {
-        std::string serialized = opt->serialize();
+        std::string serialized = opt.serialize();
         return newSVpvn_utf8(serialized.c_str(), serialized.length(), true);
     }
 }

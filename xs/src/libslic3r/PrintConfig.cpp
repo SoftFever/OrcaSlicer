@@ -304,7 +304,7 @@ PrintConfigDef::PrintConfigDef()
     Options["filament_settings_id"].type = coString;
     Options["filament_settings_id"].default_value = new ConfigOptionString("");
     
-    Options["fill_angle"].type = coInt;
+    Options["fill_angle"].type = coFloat;
     Options["fill_angle"].label = "Fill angle";
     Options["fill_angle"].category = "Infill";
     Options["fill_angle"].tooltip = "Default base angle for infill orientation. Cross-hatching will be applied to this. Bridges will be infilled using the best direction Slic3r can detect, so this setting does not affect them.";
@@ -1220,19 +1220,19 @@ PrintConfigDef::PrintConfigDef()
     Options["use_firmware_retraction"].label = "Use firmware retraction";
     Options["use_firmware_retraction"].tooltip = "This experimental setting uses G10 and G11 commands to have the firmware handle the retraction. This is only supported in recent Marlin.";
     Options["use_firmware_retraction"].cli = "use-firmware-retraction!";
-    Options["use_firmware_retraction"].default_value = new ConfigOptionFloat(false);
+    Options["use_firmware_retraction"].default_value = new ConfigOptionBool(false);
 
     Options["use_relative_e_distances"].type = coBool;
     Options["use_relative_e_distances"].label = "Use relative E distances";
     Options["use_relative_e_distances"].tooltip = "If your firmware requires relative E values, check this, otherwise leave it unchecked. Most firmwares use absolute values.";
     Options["use_relative_e_distances"].cli = "use-relative-e-distances!";
-    Options["use_relative_e_distances"].default_value = new ConfigOptionFloat(false);
+    Options["use_relative_e_distances"].default_value = new ConfigOptionBool(false);
 
     Options["use_volumetric_e"].type = coBool;
     Options["use_volumetric_e"].label = "Use volumetric E";
     Options["use_volumetric_e"].tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. If your firmware doesn't already know filament diameter(s), you can put commands like 'M200 D[filament_diameter_0] T0' in your start G-code in order to turn volumetric mode on and use the filament diameter associated to the filament selected in Slic3r. This is only supported in recent Marlin.";
     Options["use_volumetric_e"].cli = "use-volumetric-e!";
-    Options["use_volumetric_e"].default_value = new ConfigOptionFloat(false);
+    Options["use_volumetric_e"].default_value = new ConfigOptionBool(false);
 
     Options["vibration_limit"].type = coFloat;
     Options["vibration_limit"].label = "Vibration limit (deprecated)";

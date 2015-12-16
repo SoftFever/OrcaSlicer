@@ -95,7 +95,6 @@ SV*
 print_config_def()
     CODE:
         t_optiondef_map &def = Slic3r::print_config_def.options;
-        FullPrintConfig config;
         
         HV* options_hv = newHV();
         for (t_optiondef_map::iterator oit = def.begin(); oit != def.end(); ++oit) {
@@ -179,7 +178,8 @@ print_config_def()
                 (void)hv_stores( hv, "labels", newRV_noinc((SV*)av) );
             }
             
-            (void)hv_stores( hv, "default", ConfigBase__get(&config, opt_key) );
+            if (optdef->default_value != NULL)
+                (void)hv_stores( hv, "default", ConfigOption_to_SV(*optdef->default_value, *optdef) );
             (void)hv_store( options_hv, opt_key.c_str(), opt_key.length(), newRV_noinc((SV*)hv), 0 );
         }
         

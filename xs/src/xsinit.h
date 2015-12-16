@@ -113,6 +113,7 @@ public:
 };
 
 SV* ConfigBase__as_hash(ConfigBase* THIS);
+SV* ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def);
 SV* ConfigBase__get(ConfigBase* THIS, const t_config_option_key &opt_key);
 SV* ConfigBase__get_at(ConfigBase* THIS, const t_config_option_key &opt_key, size_t i);
 bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* value);
