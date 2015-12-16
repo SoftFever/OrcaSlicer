@@ -31,7 +31,7 @@
         %code{% RETVAL = THIS->diff(*other); %};
     bool equals(DynamicPrintConfig* other)
         %code{% RETVAL = THIS->equals(*other); %};
-    void apply_static(FullPrintConfig* other)
+    void apply_static(StaticPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     %name{get_keys} std::vector<std::string> keys();
     void erase(t_config_option_key opt_key);
@@ -40,9 +40,18 @@
     double min_object_distance();
 };
 
-%name{Slic3r::Config::GCode} class GCodeConfig {
-    GCodeConfig();
-    ~GCodeConfig();
+%name{Slic3r::Config::Static} class StaticPrintConfig {
+    static StaticPrintConfig* new_GCodeConfig()
+        %code{% RETVAL = new GCodeConfig (); %};
+    static StaticPrintConfig* new_PrintConfig()
+        %code{% RETVAL = new PrintConfig (); %};
+    static StaticPrintConfig* new_PrintObjectConfig()
+        %code{% RETVAL = new PrintObjectConfig (); %};
+    static StaticPrintConfig* new_PrintRegionConfig()
+        %code{% RETVAL = new PrintRegionConfig (); %};
+    static StaticPrintConfig* new_FullPrintConfig()
+        %code{% RETVAL = new FullPrintConfig (); %};
+    ~StaticPrintConfig();
     bool has(t_config_option_key opt_key);
     SV* as_hash()
         %code{% RETVAL = ConfigBase__as_hash(THIS); %};
@@ -60,129 +69,19 @@
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
         double get_abs_value(t_config_option_key opt_key, double ratio_over);
-    void apply_print_config(PrintConfig* other)
+    void apply_static(StaticPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     void apply_dynamic(DynamicPrintConfig* other)
         %code{% THIS->apply(*other, true); %};
     %name{get_keys} std::vector<std::string> keys();
-    std::string get_extrusion_axis();
-    %name{setenv} void setenv_();
-};
-
-%name{Slic3r::Config::Print} class PrintConfig {
-    PrintConfig();
-    ~PrintConfig();
-    bool has(t_config_option_key opt_key);
-    SV* as_hash()
-        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
-    SV* get(t_config_option_key opt_key)
-        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
-    SV* get_at(t_config_option_key opt_key, int i)
-        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
-    bool set(t_config_option_key opt_key, SV* value)
-        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
-    bool set_deserialize(t_config_option_key opt_key, SV* str)
-        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
-        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
-    std::string serialize(t_config_option_key opt_key);
-    double get_abs_value(t_config_option_key opt_key);
-    %name{get_abs_value_over}
-        double get_abs_value(t_config_option_key opt_key, double ratio_over);
-    void apply_dynamic(DynamicPrintConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    %name{get_keys} std::vector<std::string> keys();
-    std::string get_extrusion_axis();
-    %name{setenv} void setenv_();
-    double min_object_distance();
-};
-
-%name{Slic3r::Config::PrintRegion} class PrintRegionConfig {
-    PrintRegionConfig();
-    ~PrintRegionConfig();
-    bool has(t_config_option_key opt_key);
-    SV* as_hash()
-        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
-    SV* get(t_config_option_key opt_key)
-        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
-    SV* get_at(t_config_option_key opt_key, int i)
-        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
-    bool set(t_config_option_key opt_key, SV* value)
-        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
-    bool set_deserialize(t_config_option_key opt_key, SV* str)
-        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
-        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
-    std::string serialize(t_config_option_key opt_key);
-    double get_abs_value(t_config_option_key opt_key);
-    %name{get_abs_value_over}
-        double get_abs_value(t_config_option_key opt_key, double ratio_over);
-    void apply(PrintRegionConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    void apply_dynamic(DynamicPrintConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    %name{get_keys} std::vector<std::string> keys();
-    %name{setenv} void setenv_();
-};
-
-%name{Slic3r::Config::PrintObject} class PrintObjectConfig {
-    PrintObjectConfig();
-    ~PrintObjectConfig();
-    bool has(t_config_option_key opt_key);
-    SV* as_hash()
-        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
-    SV* get(t_config_option_key opt_key)
-        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
-    SV* get_at(t_config_option_key opt_key, int i)
-        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
-    bool set(t_config_option_key opt_key, SV* value)
-        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
-    bool set_deserialize(t_config_option_key opt_key, SV* str)
-        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
-        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
-    std::string serialize(t_config_option_key opt_key);
-    double get_abs_value(t_config_option_key opt_key);
-    %name{get_abs_value_over}
-        double get_abs_value(t_config_option_key opt_key, double ratio_over);
-    void apply(PrintObjectConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    void apply_dynamic(DynamicPrintConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    %name{get_keys} std::vector<std::string> keys();
-    %name{setenv} void setenv_();
-};
-
-%name{Slic3r::Config::Full} class FullPrintConfig {
-    FullPrintConfig();
-    ~FullPrintConfig();
-    bool has(t_config_option_key opt_key);
-    SV* as_hash()
-        %code{% RETVAL = ConfigBase__as_hash(THIS); %};
-    SV* get(t_config_option_key opt_key)
-        %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
-    SV* get_at(t_config_option_key opt_key, int i)
-        %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
-    bool set(t_config_option_key opt_key, SV* value)
-        %code{% RETVAL = StaticConfig__set(THIS, opt_key, value); %};
-    bool set_deserialize(t_config_option_key opt_key, SV* str)
-        %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
-    void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
-        %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
-    std::string serialize(t_config_option_key opt_key);
-    double get_abs_value(t_config_option_key opt_key);
-    %name{get_abs_value_over}
-        double get_abs_value(t_config_option_key opt_key, double ratio_over);
-    void apply_print_config(PrintConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    void apply_object_config(PrintObjectConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    void apply_region_config(PrintRegionConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    void apply_dynamic(DynamicPrintConfig* other)
-        %code{% THIS->apply(*other, true); %};
-    %name{get_keys} std::vector<std::string> keys();
-    std::string get_extrusion_axis();
+    std::string get_extrusion_axis()
+        %code{%
+            if (GCodeConfig* config = dynamic_cast<GCodeConfig*>(THIS)) {
+                RETVAL = config->get_extrusion_axis();
+            } else {
+                CONFESS("This StaticConfig object does not provide get_extrusion_axis()");
+            }
+        %};
     %name{setenv} void setenv_();
     double min_object_distance();
 };

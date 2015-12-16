@@ -353,7 +353,7 @@ sub process_layer {
     my $gcode = "";
     
     my $object = $layer->object;
-    $self->_gcodegen->config->apply_object_config($object->config);
+    $self->_gcodegen->config->apply_static($object->config);
     
     # check whether we're going to apply spiralvase logic
     if (defined $self->_spiral_vase) {
@@ -594,7 +594,7 @@ sub _extrude_perimeters {
     
     my $gcode = "";
     foreach my $region_id (sort keys %$entities_by_region) {
-        $self->_gcodegen->config->apply_region_config($self->print->get_region($region_id)->config);
+        $self->_gcodegen->config->apply_static($self->print->get_region($region_id)->config);
         $gcode .= $self->_gcodegen->extrude($_, 'perimeter', -1)
             for @{ $entities_by_region->{$region_id} };
     }
@@ -606,7 +606,7 @@ sub _extrude_infill {
     
     my $gcode = "";
     foreach my $region_id (sort keys %$entities_by_region) {
-        $self->_gcodegen->config->apply_region_config($self->print->get_region($region_id)->config);
+        $self->_gcodegen->config->apply_static($self->print->get_region($region_id)->config);
         
         my $collection = Slic3r::ExtrusionPath::Collection->new(@{ $entities_by_region->{$region_id} });
         for my $fill (@{$collection->chained_path_from($self->_gcodegen->last_pos, 0)}) {

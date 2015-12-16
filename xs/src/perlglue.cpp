@@ -45,6 +45,7 @@ REGISTER_CLASS(Point3, "Point3");
 REGISTER_CLASS(Pointf, "Pointf");
 REGISTER_CLASS(Pointf3, "Pointf3");
 REGISTER_CLASS(DynamicPrintConfig, "Config");
+REGISTER_CLASS(StaticPrintConfig, "Config::Static");
 REGISTER_CLASS(PrintObjectConfig, "Config::PrintObject");
 REGISTER_CLASS(PrintRegionConfig, "Config::PrintRegion");
 REGISTER_CLASS(GCodeConfig, "Config::GCode");

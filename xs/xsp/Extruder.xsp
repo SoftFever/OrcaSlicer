@@ -6,7 +6,8 @@
 %}
 
 %name{Slic3r::Extruder} class Extruder {
-    Extruder(unsigned int id, GCodeConfig *config);
+    Extruder(unsigned int id, StaticPrintConfig* config)
+        %code%{ RETVAL = new Extruder (id, dynamic_cast<GCodeConfig*>(config)); %};
     ~Extruder();
     void reset();
     double extrude(double dE);

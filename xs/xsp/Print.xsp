@@ -30,7 +30,7 @@ _constant()
 %name{Slic3r::Print::Region} class PrintRegion {
     // owned by Print, no constructor/destructor
 
-    Ref<PrintRegionConfig> config()
+    Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
     Ref<Print> print();
     
@@ -53,7 +53,7 @@ _constant()
 
     Ref<Print> print();
     Ref<ModelObject> model_object();
-    Ref<PrintObjectConfig> config()
+    Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
     Points copies();
     t_layer_height_ranges layer_height_ranges()
@@ -119,11 +119,11 @@ _constant()
     Print();
     ~Print();
 
-    Ref<PrintConfig> config()
+    Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
-    Ref<PrintObjectConfig> default_object_config()
+    Ref<StaticPrintConfig> default_object_config()
         %code%{ RETVAL = &THIS->default_object_config; %};
-    Ref<PrintRegionConfig> default_region_config()
+    Ref<StaticPrintConfig> default_region_config()
         %code%{ RETVAL = &THIS->default_region_config; %};
     Ref<PlaceholderParser> placeholder_parser()
         %code%{ RETVAL = &THIS->placeholder_parser; %};

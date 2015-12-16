@@ -77,7 +77,7 @@
     Ref<Pointf> origin()
         %code{% RETVAL = &(THIS->origin); %};
     
-    Ref<FullPrintConfig> config()
+    Ref<StaticPrintConfig> config()
         %code{% RETVAL = &(THIS->config); %};
     
     Ref<GCodeWriter> writer()
@@ -145,8 +145,14 @@
     void set_volumetric_speed(double value)
         %code{% THIS->volumetric_speed = value; %};
     
-    void apply_print_config(PrintConfig* print_config)
-        %code{% THIS->apply_print_config(*print_config); %};
+    void apply_print_config(StaticPrintConfig* print_config)
+        %code{%
+            if (const PrintConfig* config = dynamic_cast<PrintConfig*>(print_config)) {
+                THIS->apply_print_config(*config);
+            } else {
+                CONFESS("A PrintConfig object was not supplied to apply_print_config()");
+            }
+        %};
     void set_extruders(std::vector<unsigned int> extruder_ids);
     void set_origin(Pointf* pointf)
         %code{% THIS->set_origin(*pointf); %};

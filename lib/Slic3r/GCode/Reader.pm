@@ -15,7 +15,7 @@ my @AXES = qw(X Y Z E);
 sub apply_print_config {
     my ($self, $print_config) = @_;
     
-    $self->config->apply_print_config($print_config);
+    $self->config->apply_static($print_config);
     $self->_extrusion_axis($self->config->get_extrusion_axis);
 }
 

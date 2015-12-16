@@ -287,7 +287,7 @@ sub make_skirt {
             $extruded_length[$extruder_idx] ||= 0;
             if (!$extruders_e_per_mm[$extruder_idx]) {
                 my $config = Slic3r::Config::GCode->new;
-                $config->apply_print_config($self->config);
+                $config->apply_static($self->config);
                 my $extruder = Slic3r::Extruder->new($extruder_idx, $config);
                 $extruders_e_per_mm[$extruder_idx] = $extruder->e_per_mm($mm3_per_mm);
             }

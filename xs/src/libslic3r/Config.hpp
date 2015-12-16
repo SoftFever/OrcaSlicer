@@ -546,9 +546,11 @@ class ConfigBase
     const ConfigDef* def;
     
     ConfigBase() : def(NULL) {};
+    virtual ~ConfigBase() {};
     bool has(const t_config_option_key &opt_key);
-    virtual ConfigOption* option(const t_config_option_key &opt_key, bool create = false) = 0;
-    virtual const ConfigOption* option(const t_config_option_key &opt_key) const = 0;
+    const ConfigOption* option(const t_config_option_key &opt_key) const;
+    ConfigOption* option(const t_config_option_key &opt_key, bool create = false);
+    virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) = 0;
     virtual t_config_option_keys keys() const = 0;
     void apply(const ConfigBase &other, bool ignore_nonexistent = false);
     bool equals(ConfigBase &other);
@@ -567,10 +569,9 @@ class DynamicConfig : public virtual ConfigBase
     DynamicConfig(const DynamicConfig& other);
     DynamicConfig& operator= (DynamicConfig other);
     void swap(DynamicConfig &other);
-    ~DynamicConfig();
+    virtual ~DynamicConfig();
     template<class T> T* opt(const t_config_option_key &opt_key, bool create = false);
-    ConfigOption* option(const t_config_option_key &opt_key, bool create = false);
-    const ConfigOption* option(const t_config_option_key &opt_key) const;
+    virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false);
     t_config_option_keys keys() const;
     void erase(const t_config_option_key &opt_key);
     
@@ -584,8 +585,7 @@ class StaticConfig : public virtual ConfigBase
     public:
     StaticConfig() : ConfigBase() {};
     t_config_option_keys keys() const;
-    virtual ConfigOption* option(const t_config_option_key &opt_key, bool create = false) = 0;
-    const ConfigOption* option(const t_config_option_key &opt_key) const;
+    //virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) = 0;
     void set_defaults();
 };
 

@@ -9,7 +9,7 @@
     GCodeWriter();
     ~GCodeWriter();
     
-    Ref<GCodeConfig> config()
+    Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
     bool multiple_extruders()
         %code{% RETVAL = THIS->multiple_extruders; %};

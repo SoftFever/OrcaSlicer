@@ -39,6 +39,8 @@
 %typemap{Clone<BoundingBoxf3>}{simple};
 %typemap{DynamicPrintConfig*};
 %typemap{Ref<DynamicPrintConfig>}{simple};
+%typemap{StaticPrintConfig*};
+%typemap{Ref<StaticPrintConfig>}{simple};
 %typemap{PrintObjectConfig*};
 %typemap{Ref<PrintObjectConfig>}{simple};
 %typemap{PrintRegionConfig*};

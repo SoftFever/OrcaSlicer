@@ -186,6 +186,7 @@ sub thread_cleanup {
     *Slic3r::Config::Print::DESTROY         = sub {};
     *Slic3r::Config::PrintObject::DESTROY   = sub {};
     *Slic3r::Config::PrintRegion::DESTROY   = sub {};
+    *Slic3r::Config::Static::DESTROY        = sub {};
     *Slic3r::ExPolygon::DESTROY             = sub {};
     *Slic3r::ExPolygon::Collection::DESTROY = sub {};
     *Slic3r::Extruder::DESTROY              = sub {};
