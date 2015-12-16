@@ -80,9 +80,6 @@ SV*
 ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def) {
     if (def.type == coFloat) {
         const ConfigOptionFloat* optv = dynamic_cast<const ConfigOptionFloat*>(&opt);
-        if (optv == NULL) {
-            printf("opt_key = %s\n", def.label.c_str());
-        }
         return newSVnv(optv->value);
     } else if (def.type == coFloats) {
         const ConfigOptionFloats* optv = dynamic_cast<const ConfigOptionFloats*>(&opt);
@@ -96,9 +93,6 @@ ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def) {
         return newSVnv(optv->value);
     } else if (def.type == coInt) {
         const ConfigOptionInt* optv = dynamic_cast<const ConfigOptionInt*>(&opt);
-        if (optv == NULL) {
-            printf("opt_key = %s\n", def.label.c_str());
-        }
         return newSViv(optv->value);
     } else if (def.type == coInts) {
         const ConfigOptionInts* optv = dynamic_cast<const ConfigOptionInts*>(&opt);
@@ -130,9 +124,6 @@ ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def) {
         return newRV_noinc((SV*)av);
     } else if (def.type == coBool) {
         const ConfigOptionBool* optv = dynamic_cast<const ConfigOptionBool*>(&opt);
-        if (optv == NULL) {
-            printf("opt_key = %s\n", def.label.c_str());
-        }
         return newSViv(optv->value ? 1 : 0);
     } else if (def.type == coBools) {
         const ConfigOptionBools* optv = dynamic_cast<const ConfigOptionBools*>(&opt);
