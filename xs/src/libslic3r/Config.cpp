@@ -28,6 +28,14 @@ ConfigDef::~ConfigDef()
     }
 }
 
+ConfigOptionDef*
+ConfigDef::add(const t_config_option_key &opt_key, ConfigOptionType type)
+{
+    ConfigOptionDef* opt = &this->options[opt_key];
+    opt->type = type;
+    return opt;
+}
+
 const ConfigOptionDef*
 ConfigDef::get(const t_config_option_key &opt_key) const
 {

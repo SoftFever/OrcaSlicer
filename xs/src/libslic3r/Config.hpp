@@ -537,6 +537,7 @@ class ConfigDef
     public:
     t_optiondef_map options;
     ~ConfigDef();
+    ConfigOptionDef* add(const t_config_option_key &opt_key, ConfigOptionType type);
     const ConfigOptionDef* get(const t_config_option_key &opt_key) const;
 };
 
