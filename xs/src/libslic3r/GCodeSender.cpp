@@ -125,10 +125,12 @@ GCodeSender::disconnect()
     this->io.post(boost::bind(&GCodeSender::do_close, this));
     this->background_thread.join();
     this->io.reset();
+    /*
     if (this->error_status()) {
         throw(boost::system::system_error(boost::system::error_code(),
             "Error while closing the device"));
     }
+    */
 }
 
 bool
