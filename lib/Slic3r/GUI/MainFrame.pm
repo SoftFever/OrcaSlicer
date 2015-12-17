@@ -619,6 +619,9 @@ sub load_configbundle {
             $tab->load_presets;
         }
     }
+    
+    return if !$imported;
+    
     my $message = sprintf "%d presets successfully imported.", $imported;
     if ($self->{mode} eq 'simple' && $Slic3r::GUI::Settings->{_}{mode} eq 'expert') {
         Slic3r::GUI::show_info($self, "$message You need to restart Slic3r to make the changes effective.");
