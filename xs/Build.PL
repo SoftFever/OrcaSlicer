@@ -56,7 +56,7 @@ $have_boost = 1
     );
 
 if ($have_boost) {
-    push @LIBS, map "-l$_", @boost_libraries;
+    push @LIBS, map "-lboost_${_}", @boost_libraries;
 } else {
     foreach my $path (@boost_libs) {
         my @files = glob "$path/libboost_system*";
