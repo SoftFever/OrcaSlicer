@@ -254,6 +254,8 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionFloats              retract_length;
     ConfigOptionFloats              retract_length_toolchange;
     ConfigOptionFloats              retract_lift;
+    ConfigOptionFloats              retract_lift_above;
+    ConfigOptionFloats              retract_lift_below;
     ConfigOptionFloats              retract_restart_extra;
     ConfigOptionFloats              retract_restart_extra_toolchange;
     ConfigOptionFloats              retract_speed;
@@ -283,6 +285,8 @@ class GCodeConfig : public virtual StaticPrintConfig
         OPT_PTR(retract_length);
         OPT_PTR(retract_length_toolchange);
         OPT_PTR(retract_lift);
+        OPT_PTR(retract_lift_above);
+        OPT_PTR(retract_lift_below);
         OPT_PTR(retract_restart_extra);
         OPT_PTR(retract_restart_extra_toolchange);
         OPT_PTR(retract_speed);

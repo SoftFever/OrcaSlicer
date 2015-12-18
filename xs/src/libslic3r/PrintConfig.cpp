@@ -818,6 +818,30 @@ PrintConfigDef::PrintConfigDef()
         def->default_value = opt;
     }
 
+    def = this->add("retract_lift_above", coFloats);
+    def->label = "Above Z";
+    def->full_label = "Only lift Z above";
+    def->tooltip = "If you set this to a positive value, Z lift will only take place above the specified absolute Z. You can tune this setting for skipping lift on the first layers.";
+    def->sidetext = "mm";
+    def->cli = "retract-lift-above=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
+        def->default_value = opt;
+    }
+
+    def = this->add("retract_lift_below", coFloats);
+    def->label = "Below Z";
+    def->full_label = "Only lift Z below";
+    def->tooltip = "If you set this to a positive value, Z lift will only take place below the specified absolute Z. You can tune this setting for limiting lift to the first layers.";
+    def->sidetext = "mm";
+    def->cli = "retract-lift-below=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
+        def->default_value = opt;
+    }
+
     def = this->add("retract_restart_extra", coFloats);
     def->label = "Extra length on restart";
     def->tooltip = "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed.";

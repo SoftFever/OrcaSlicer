@@ -218,6 +218,8 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "retract_length"
             || *opt_key == "retract_length_toolchange"
             || *opt_key == "retract_lift"
+            || *opt_key == "retract_lift_above"
+            || *opt_key == "retract_lift_below"
             || *opt_key == "retract_restart_extra"
             || *opt_key == "retract_restart_extra_toolchange"
             || *opt_key == "retract_speed"

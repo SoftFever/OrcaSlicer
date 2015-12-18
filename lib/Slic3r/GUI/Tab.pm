@@ -1257,7 +1257,7 @@ sub _extruders_count_changed {
     $self->_update;
 }
 
-sub _extruder_options { qw(nozzle_diameter extruder_offset retract_length retract_lift retract_speed retract_restart_extra retract_before_travel wipe
+sub _extruder_options { qw(nozzle_diameter extruder_offset retract_length retract_lift retract_lift_above retract_lift_below retract_speed retract_restart_extra retract_before_travel wipe
     retract_layer_change retract_length_toolchange retract_restart_extra_toolchange) }
 
 sub _build_extruder_pages {
@@ -1293,7 +1293,19 @@ sub _build_extruder_pages {
         {
             my $optgroup = $page->new_optgroup('Retraction');
             $optgroup->append_single_option_line($_, $extruder_idx)
-                for qw(retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe);
+                for qw(retract_length retract_lift);
+            
+            {
+                my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                    label => 'Only lift Z',
+                );
+                $line->append_option($optgroup->get_option('retract_lift_above', $extruder_idx));
+                $line->append_option($optgroup->get_option('retract_lift_below', $extruder_idx));
+                $optgroup->append_line($line);
+            }
+            
+            $optgroup->append_single_option_line($_, $extruder_idx)
+                for qw(retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe);
         }
         {
             my $optgroup = $page->new_optgroup('Retraction when tool is disabled (advanced settings for multi-extruder setups)');
@@ -1359,6 +1371,10 @@ sub _update {
         my $retraction = ($have_retract_length || $config->use_firmware_retraction);
         $self->get_field($_, $i)->toggle($retraction)
             for qw(retract_lift retract_layer_change);
+        
+        # retract lift above/below only applies if using retract lift
+        $self->get_field($_, $i)->toggle($retraction && $config->get_at('retract_lift', $i) > 0)
+            for qw(retract_lift_above retract_lift_below);
         
         # some options only apply when not using firmware retraction
         $self->get_field($_, $i)->toggle($retraction && !$config->use_firmware_retraction)
