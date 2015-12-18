@@ -6,8 +6,8 @@ use utf8;
 use File::Basename qw(basename);
 use List::Util qw(first);
 use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window
-    :button wxTheApp);
-use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED);
+    :button :sashwindow wxTheApp);
+use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED EVT_SASH_DRAGGED);
 use base qw(Wx::Panel Class::Accessor);
 
 __PACKAGE__->mk_accessors(qw(current_preset));
@@ -22,30 +22,40 @@ sub new {
     $self->{sizer}->SetSizeHints($self);
     $self->SetSizer($self->{sizer});
     
-    # left vertical sizer
-    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $self->{sizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
+    # left window and vertical sizer
+    my $left_col_width = 200;
     
-    my $left_col_width = 150;
+    my $left_sashwin = Wx::SashWindow->new($self, -1, wxDefaultPosition, [$left_col_width,-1], 0);
+    $left_sashwin->SetSashVisible(wxSASH_RIGHT, 1);
+    $self->{sizer}->Add($left_sashwin, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
+    EVT_SASH_DRAGGED($self, $left_sashwin, sub {
+        my (undef, $event) = @_;
+        $left_sashwin->SetMinSize([$event->GetDragRect()->GetWidth, -1]);
+        $self->Layout;
+    });
+    
+    my $left_win = Wx::Window->new($left_sashwin, -1);
+    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $left_win->SetSizer($left_sizer);
     
     # preset chooser
     {
         
         # choice menu
-        $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [$left_col_width, -1], []);
+        $self->{presets_choice} = Wx::Choice->new($left_win, -1, wxDefaultPosition, wxDefaultSize, []);
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
-        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG), 
+        $self->{btn_save_preset} = Wx::BitmapButton->new($left_win, -1, Wx::Bitmap->new("$Slic3r::var/disk.png", wxBITMAP_TYPE_PNG), 
             wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), 
+        $self->{btn_delete_preset} = Wx::BitmapButton->new($left_win, -1, Wx::Bitmap->new("$Slic3r::var/delete.png", wxBITMAP_TYPE_PNG), 
             wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         $self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_delete_preset}->Disable;
         
         ### These cause GTK warnings:
-        ###my $box = Wx::StaticBox->new($self, -1, "Presets:", wxDefaultPosition, [$left_col_width, 50]);
+        ###my $box = Wx::StaticBox->new($left_win, -1, "Presets:", wxDefaultPosition, [-1, 50]);
         ###my $hsizer = Wx::StaticBoxSizer->new($box, wxHORIZONTAL);
         
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -57,7 +67,7 @@ sub new {
     }
     
     # tree
-    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
+    $self->{treectrl} = Wx::TreeCtrl->new($left_win, -1, wxDefaultPosition, wxDefaultSize, wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
     $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
     $self->{icons} = Wx::ImageList->new(16, 16, 1);
     $self->{treectrl}->AssignImageList($self->{icons});
@@ -114,6 +124,7 @@ sub new {
         $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
     }
     
+    $left_win->Layout;
     return $self;
 }
 
