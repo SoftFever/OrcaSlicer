@@ -47,17 +47,16 @@ if (defined $ENV{BOOST_DIR}) {
 
 # In order to generate the -l switches we need to know how Boost libraries are named
 my $have_boost = 0;
+my @boost_libraries = qw(system thread);  # we need these
 
 # check without explicit lib path (works on Linux)
 $have_boost = 1
     if check_lib(
-        lib     => "boost_system",
-        INC     => join(' ', map "-I$_", @INC, @boost_include),
-        LIBS    => join(' ', map "-L$_", @INC, @boost_libs),
+        lib     => [ map "boost_${_}", @boost_libraries ],
     );
 
 if ($have_boost) {
-    push @LIBS, '-lboost_system', '-lboost_thread';
+    push @LIBS, map "-l$_", @boost_libraries;
 } else {
     foreach my $path (@boost_libs) {
         my @files = glob "$path/libboost_system*";
@@ -66,13 +65,13 @@ if ($have_boost) {
         if ($files[0] =~ /libboost_system([^.]+)/) {
             my $suffix = $1;
             check_lib(
-                lib     => "boost_system$suffix",
+                lib     => [ map "boost_${_}${suffix}", @boost_libraries ],
                 INC     => join(' ', map "-I$_", @INC,  @boost_include),
                 LIBS    => "-L$path",
             ) or next;
         
             push @INC, (map " -I$_", @boost_include);  # TODO: only use the one related to the chosen lib path
-            push @LIBS, " -L$path", (map " -lboost_$_$suffix", qw(thread system));  # we need these
+            push @LIBS, " -L$path", (map " -lboost_$_$suffix", @boost_libraries);
             $have_boost = 1;
             last;
         }

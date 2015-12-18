@@ -74,8 +74,8 @@ class ConfigOptionVector : public ConfigOptionVectorBase
 class ConfigOptionFloat : public ConfigOptionSingle<double>
 {
     public:
-    ConfigOptionFloat() : ConfigOptionSingle(0) {};
-    ConfigOptionFloat(double _value) : ConfigOptionSingle(_value) {};
+    ConfigOptionFloat() : ConfigOptionSingle<double>(0) {};
+    ConfigOptionFloat(double _value) : ConfigOptionSingle<double>(_value) {};
     
     double getFloat() const { return this->value; };
     
@@ -131,8 +131,8 @@ class ConfigOptionFloats : public ConfigOptionVector<double>
 class ConfigOptionInt : public ConfigOptionSingle<int>
 {
     public:
-    ConfigOptionInt() : ConfigOptionSingle(0) {};
-    ConfigOptionInt(double _value) : ConfigOptionSingle(_value) {};
+    ConfigOptionInt() : ConfigOptionSingle<int>(0) {};
+    ConfigOptionInt(double _value) : ConfigOptionSingle<int>(_value) {};
     
     int getInt() const { return this->value; };
     void setInt(int val) { this->value = val; };
@@ -189,8 +189,8 @@ class ConfigOptionInts : public ConfigOptionVector<int>
 class ConfigOptionString : public ConfigOptionSingle<std::string>
 {
     public:
-    ConfigOptionString() : ConfigOptionSingle("") {};
-    ConfigOptionString(std::string _value) : ConfigOptionSingle(_value) {};
+    ConfigOptionString() : ConfigOptionSingle<std::string>("") {};
+    ConfigOptionString(std::string _value) : ConfigOptionSingle<std::string>(_value) {};
     
     std::string serialize() const {
         std::string str = this->value;
@@ -314,8 +314,8 @@ class ConfigOptionFloatOrPercent : public ConfigOptionPercent
 class ConfigOptionPoint : public ConfigOptionSingle<Pointf>
 {
     public:
-    ConfigOptionPoint() : ConfigOptionSingle(Pointf(0,0)) {};
-    ConfigOptionPoint(Pointf _value) : ConfigOptionSingle(_value) {};
+    ConfigOptionPoint() : ConfigOptionSingle<Pointf>(Pointf(0,0)) {};
+    ConfigOptionPoint(Pointf _value) : ConfigOptionSingle<Pointf>(_value) {};
     
     std::string serialize() const {
         std::ostringstream ss;
@@ -383,8 +383,8 @@ class ConfigOptionPoints : public ConfigOptionVector<Pointf>
 class ConfigOptionBool : public ConfigOptionSingle<bool>
 {
     public:
-    ConfigOptionBool() : ConfigOptionSingle(false) {};
-    ConfigOptionBool(bool _value) : ConfigOptionSingle(_value) {};
+    ConfigOptionBool() : ConfigOptionSingle<bool>(false) {};
+    ConfigOptionBool(bool _value) : ConfigOptionSingle<bool>(_value) {};
     
     bool getBool() const { return this->value; };
     
