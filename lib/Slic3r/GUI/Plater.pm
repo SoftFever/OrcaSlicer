@@ -1541,7 +1541,7 @@ sub object_cut_dialog {
 		object              => $self->{objects}[$obj_idx],
 		model_object        => $self->{model}->objects->[$obj_idx],
 	);
-	$dlg->ShowModal;
+	return unless $dlg->ShowModal == wxID_OK;
 	
 	if (my @new_objects = $dlg->NewModelObjects) {
 	    $self->remove($obj_idx);

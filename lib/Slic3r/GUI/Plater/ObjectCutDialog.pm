@@ -111,14 +111,9 @@ sub new {
     $self->SetMinSize($self->GetSize);
     $self->{sizer}->SetSizeHints($self);
     
-    # needed to actually free memory
-    EVT_CLOSE($self, sub {
-        $self->EndModal(wxID_OK);
-        $self->Destroy;
-    });
-    
     EVT_BUTTON($self, $self->{btn_cut}, sub {
         $self->perform_cut(1);
+        $self->EndModal(wxID_OK);
         $self->Close;
     });
     
