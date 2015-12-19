@@ -93,7 +93,7 @@ PerimeterGenerator::process()
                         for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex)
                             ex->medial_axis(ext_pwidth + ext_pspacing, min_width, &pp);
                         
-                        double threshold = ext_pwidth * ext_pwidth;
+                        double threshold = ext_pwidth * 2;
                         for (Polylines::const_iterator p = pp.begin(); p != pp.end(); ++p) {
                             if (p->length() > threshold) {
                                 thin_walls.push_back(*p);
