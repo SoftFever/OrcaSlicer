@@ -208,7 +208,7 @@ use Slic3r::Test qw(_eq);
     
     my @lifted_at = ();
     my $test = sub {
-        my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+        my $print = Slic3r::Test::init_print('20mm_cube', config => $config, duplicate => 2);
         @lifted_at = ();
         Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
             my ($self, $cmd, $args, $info) = @_;
