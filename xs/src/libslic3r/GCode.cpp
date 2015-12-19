@@ -322,7 +322,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     if (this->config.spiral_vase) {
         loop.split_at(last_pos);
     } else if (this->config.seam_position == spNearest || this->config.seam_position == spAligned) {
-        Polygon polygon = loop.polygon();
+        const Polygon polygon = loop.polygon();
         
         // simplify polygon in order to skip false positives in concave/convex detection
         // (loop is always ccw as polygon.simplify() only works on ccw polygons)

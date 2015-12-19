@@ -68,18 +68,18 @@ PerimeterGenerator::process()
                     if (this->config->thin_walls) {
                         offsets = offset2(
                             last,
-                            -(0.5*ext_pwidth + 0.5*ext_min_spacing - 1),
-                            +(0.5*ext_min_spacing - 1)
+                            -(ext_pwidth/2 + ext_min_spacing/2 - 1),
+                            +(ext_min_spacing/2 - 1)
                         );
                     } else {
-                        offsets = offset(last, -0.5*ext_pwidth);
+                        offsets = offset(last, -ext_pwidth/2);
                     }
                     
                     // look for thin walls
                     if (this->config->thin_walls) {
                         Polygons diffpp = diff(
                             last,
-                            offset(offsets, +0.5*ext_pwidth),
+                            offset(offsets, +ext_pwidth/2),
                             true  // medial axis requires non-overlapping geometry
                         );
                         
@@ -122,8 +122,8 @@ PerimeterGenerator::process()
                     if (this->config->thin_walls) {
                         offsets = offset2(
                             last,
-                            -(distance + 0.5*min_spacing - 1),
-                            +(0.5*min_spacing - 1)
+                            -(distance + min_spacing/2 - 1),
+                            +(min_spacing/2 - 1)
                         );
                     } else {
                         offsets = offset(
