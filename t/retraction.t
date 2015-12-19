@@ -1,4 +1,4 @@
-use Test::More tests => 21;
+use Test::More tests => 22;
 use strict;
 use warnings;
 
@@ -205,20 +205,29 @@ use Slic3r::Test qw(_eq);
     my $config = Slic3r::Config->new_from_defaults;
     $config->set('start_gcode', '');
     $config->set('retract_lift', [3]);
+    
+    my @lifted_at = ();
+    my $test = sub {
+        my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
+        @lifted_at = ();
+        Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+            my ($self, $cmd, $args, $info) = @_;
+        
+            if ($cmd eq 'G1' && $info->{dist_Z} < 0) {
+                push @lifted_at, $info->{new_Z};
+            }
+        });
+    };
+    
+    $config->set('retract_lift_above', [0]);
+    $config->set('retract_lift_below', [0]);
+    $test->();
+    ok !!@lifted_at, 'lift takes place when above/below == 0';
+    
     $config->set('retract_lift_above', [5]);
     $config->set('retract_lift_below', [15]);
-    
-    my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
-    my @lifted_at = ();
-    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
-        my ($self, $cmd, $args, $info) = @_;
-        
-        if ($cmd eq 'G1' && $info->{dist_Z} < 0) {
-            push @lifted_at, $info->{new_Z};
-        }
-    });
-    
-    ok !!@lifted_at, 'lift takes place';
+    $test->();
+    ok !!@lifted_at, 'lift takes place when above/below != 0';
     ok !(any { $_ < $config->get_at('retract_lift_above', 0) } @lifted_at),
         'Z is not lifted below the configured value';
     ok !(any { $_ > $config->get_at('retract_lift_below', 0) } @lifted_at),

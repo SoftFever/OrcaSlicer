@@ -500,7 +500,7 @@ GCodeWriter::lift()
     {
         double above = this->config.retract_lift_above.get_at(0);
         double below = this->config.retract_lift_below.get_at(0);
-        if (this->_pos.z >= above && this->_pos.z <= below && below > 0)
+        if (this->_pos.z >= above && (below == 0 || this->_pos.z <= below))
             target_lift = this->config.retract_lift.get_at(0);
     }
     if (this->_lifted == 0 && target_lift > 0) {
