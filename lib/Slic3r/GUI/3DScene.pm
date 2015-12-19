@@ -13,7 +13,6 @@ use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
  
 __PACKAGE__->mk_accessors( qw(_quat _dirty init
-                              enable_cutting
                               enable_picking
                               enable_moving
                               on_viewport_changed
@@ -319,7 +318,9 @@ sub bed_bounding_box {
     my ($self) = @_;
     
     my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    $bb->merge_point(Slic3r::Pointf3->new(@$_, 0)) for @{$self->bed_shape};
+    if ($self->bed_shape) {
+        $bb->merge_point(Slic3r::Pointf3->new(@$_, 0)) for @{$self->bed_shape};
+    }
     return $bb;
 }
 
@@ -402,25 +403,19 @@ sub select_volume {
 }
 
 sub SetCuttingPlane {
-    my ($self, $z) = @_;
+    my ($self, $z, $expolygons) = @_;
     
     $self->cutting_plane_z($z);
     
-    # perform cut and cache section lines
+    # grow slices in order to display them better
+    $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
+    
     my @verts = ();
-    foreach my $volume (@{$self->volumes}) {
-        foreach my $volume (@{$self->volumes}) {
-            next if !$volume->mesh;
-            my $expolygons = $volume->mesh->slice([ $z - $volume->origin->z ])->[0];
-            $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
-            
-            foreach my $line (map @{$_->lines}, map @$_, @$expolygons) {
-                push @verts, (
-                    unscale($line->a->x), unscale($line->a->y), $z,  #))
-                    unscale($line->b->x), unscale($line->b->y), $z,  #))
-                );
-            }
-        }
+    foreach my $line (map @{$_->lines}, map @$_, @$expolygons) {
+        push @verts, (
+            unscale($line->a->x), unscale($line->a->y), $z,  #))
+            unscale($line->b->x), unscale($line->b->y), $z,  #))
+        );
     }
     $self->cut_lines_vertices(OpenGL::Array->new_list(GL_FLOAT, @verts));
 }
@@ -999,7 +994,6 @@ sub load_object {
                 bounding_box    => $mesh->bounding_box,
                 color           => $color,
             );
-            $v->mesh($mesh) if $self->enable_cutting;
             if ($self->select_by eq 'object') {
                 $v->select_group_id($obj_idx*1000000);
             } elsif ($self->select_by eq 'volume') {

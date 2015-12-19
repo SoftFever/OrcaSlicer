@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use Slic3r::Geometry qw(PI X);
-use Wx qw(:dialog :id :misc :sizer wxTAB_TRAVERSAL);
+use Wx qw(wxTheApp :dialog :id :misc :sizer wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON);
 use base 'Wx::Dialog';
 
@@ -33,7 +33,9 @@ sub new {
             my ($opt_id) = @_;
             
             $self->{cut_options}{$opt_id} = $optgroup->get_value($opt_id);
-            $self->_update;
+            wxTheApp->CallAfter(sub {
+                $self->_update;
+            });
         },
         label_width  => 120,
     );
@@ -95,7 +97,6 @@ sub new {
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
         $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
-        $canvas->enable_cutting(1);
         $canvas->load_object($self->{model_object}, undef, [0]);
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
@@ -112,7 +113,16 @@ sub new {
     $self->{sizer}->SetSizeHints($self);
     
     EVT_BUTTON($self, $self->{btn_cut}, sub {
-        $self->perform_cut(1);
+        if ($self->{new_model_objects}{lower}) {
+            if ($self->{cut_options}{rotate_lower}) {
+                $self->{new_model_objects}{lower}->rotate(PI, X);
+                $self->{new_model_objects}{lower}->center_around_origin;  # align to Z = 0
+            }
+        }
+        if ($self->{new_model_objects}{upper}) {
+            $self->{new_model_objects}{upper}->center_around_origin;  # align to Z = 0
+        }
+        
         $self->EndModal(wxID_OK);
         $self->Close;
     });
@@ -125,66 +135,80 @@ sub new {
 sub _update {
     my ($self) = @_;
     
-    my $optgroup = $self->{optgroup};
-    
-    # update canvas
-    if ($self->{canvas}) {
-        my @objects = ();
-        if ($self->{cut_options}{preview}) {
-            $self->perform_cut;
-            push @objects, @{$self->{new_model_objects}};
-        } else {
-            push @objects, $self->{model_object};
+    {
+        # scale Z down to original size since we're using the transformed mesh for 3D preview
+        # and cut dialog but ModelObject::cut() needs Z without any instance transformation
+        my $z = $self->{cut_options}{z} / $self->{model_object}->instances->[0]->scaling_factor;
+        
+        {
+            my ($new_model) = $self->{model_object}->cut($z);
+            my ($upper_object, $lower_object) = @{$new_model->objects};
+            $self->{new_model} = $new_model;
+            $self->{new_model_objects} = {};
+            if ($self->{cut_options}{keep_upper} && $upper_object->volumes_count > 0) {
+                $self->{new_model_objects}{upper} = $upper_object;
+            }
+            if ($self->{cut_options}{keep_lower} && $lower_object->volumes_count > 0) {
+                $self->{new_model_objects}{lower} = $lower_object;
+            }
         }
-        $self->{canvas}->reset_objects;
-        $self->{canvas}->load_object($_, undef, [0]) for @objects;
-        $self->{canvas}->SetCuttingPlane($self->{cut_options}{z});
-        $self->{canvas}->Render;
+        
+        # update canvas
+        if ($self->{canvas}) {
+            # get volumes to render
+            my @objects = ();
+            if ($self->{cut_options}{preview}) {
+                push @objects, values %{$self->{new_model_objects}};
+            } else {
+                push @objects, $self->{model_object};
+            }
+        
+            # get section contour
+            my @expolygons = ();
+            foreach my $volume (@{$self->{model_object}->volumes}) {
+                next if !$volume->mesh;
+                next if $volume->modifier;
+                my $expp = $volume->mesh->slice([ $z + $volume->mesh->bounding_box->z_min ])->[0];
+                push @expolygons, @$expp;
+            }
+            foreach my $expolygon (@expolygons) {
+                $self->{model_object}->instances->[0]->transform_polygon($_)
+                    for @$expolygon;
+                $expolygon->translate(map Slic3r::Geometry::scale($_), @{ $self->{model_object}->instances->[0]->offset });
+            }
+            
+            $self->{canvas}->reset_objects;
+            $self->{canvas}->load_object($_, undef, [0]) for @objects;
+            $self->{canvas}->SetCuttingPlane(
+                $self->{cut_options}{z},
+                [@expolygons],
+            );
+            $self->{canvas}->Render;
+        }
     }
     
     # update controls
-    my $z = $self->{cut_options}{z};
-    $optgroup->get_field('keep_upper')->toggle(my $have_upper = abs($z - $optgroup->get_option('z')->max) > 0.1);
-    $optgroup->get_field('keep_lower')->toggle(my $have_lower = $z > 0.1);
-    $optgroup->get_field('rotate_lower')->toggle($z > 0 && $self->{cut_options}{keep_lower});
-    $optgroup->get_field('preview')->toggle($self->{cut_options}{keep_upper} != $self->{cut_options}{keep_lower});
+    {
+        my $z = $self->{cut_options}{z};
+        my $optgroup = $self->{optgroup};
+        $optgroup->get_field('keep_upper')->toggle(my $have_upper = abs($z - $optgroup->get_option('z')->max) > 0.1);
+        $optgroup->get_field('keep_lower')->toggle(my $have_lower = $z > 0.1);
+        $optgroup->get_field('rotate_lower')->toggle($z > 0 && $self->{cut_options}{keep_lower});
+        $optgroup->get_field('preview')->toggle($self->{cut_options}{keep_upper} != $self->{cut_options}{keep_lower});
     
-    # update cut button
-    if (($self->{cut_options}{keep_upper} && $have_upper)
-        || ($self->{cut_options}{keep_lower} && $have_lower)) {
-        $self->{btn_cut}->Enable;
-    } else {
-        $self->{btn_cut}->Disable;
-    }
-}
-
-sub perform_cut {
-    my ($self, $final) = @_;
-    
-    # scale Z down to original size since we're using the transformed mesh for 3D preview
-    # and cut dialog but ModelObject::cut() needs Z without any instance transformation
-    my $z = $self->{cut_options}{z} / $self->{model_object}->instances->[0]->scaling_factor;
-    
-    my ($new_model) = $self->{model_object}->cut($z);
-    my ($upper_object, $lower_object) = @{$new_model->objects};
-    $self->{new_model} = $new_model;
-    $self->{new_model_objects} = [];
-    if ($self->{cut_options}{keep_upper} && $upper_object->volumes_count > 0) {
-        $upper_object->center_around_origin if $final;  # align to Z = 0
-        push @{$self->{new_model_objects}}, $upper_object;
-    }
-    if ($self->{cut_options}{keep_lower} && $lower_object->volumes_count > 0) {
-        push @{$self->{new_model_objects}}, $lower_object;
-        if ($self->{cut_options}{rotate_lower} && $final) {
-            $lower_object->rotate(PI, X);
-            $lower_object->center_around_origin;  # align to Z = 0
+        # update cut button
+        if (($self->{cut_options}{keep_upper} && $have_upper)
+            || ($self->{cut_options}{keep_lower} && $have_lower)) {
+            $self->{btn_cut}->Enable;
+        } else {
+            $self->{btn_cut}->Disable;
         }
     }
 }
 
 sub NewModelObjects {
     my ($self) = @_;
-    return @{ $self->{new_model_objects} };
+    return values %{ $self->{new_model_objects} };
 }
 
 1;
