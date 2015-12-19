@@ -37,6 +37,7 @@ ClipperPath_to_Slic3rMultiPoint(const ClipperLib::Path &input, T* output)
         output->points.push_back(Slic3r::Point( (*pit).X, (*pit).Y ));
     }
 }
+template void ClipperPath_to_Slic3rMultiPoint<Slic3r::Polygon>(const ClipperLib::Path &input, Slic3r::Polygon* output);
 
 template <class T>
 void
