@@ -90,12 +90,8 @@ MotionPlanner::shortest_path(const Point &from, const Point &to)
     if (!this->initialized) this->initialize();
     
     // if we have an empty configuration space, return a straight move
-    if (this->islands.empty()) {
-        Polyline p;
-        p.points.push_back(from);
-        p.points.push_back(to);
-        return p;
-    }
+    if (this->islands.empty())
+        return Line(from, to);
     
     // Are both points in the same island?
     int island_idx = -1;
@@ -103,12 +99,9 @@ MotionPlanner::shortest_path(const Point &from, const Point &to)
         if (island->contains(from) && island->contains(to)) {
             // since both points are in the same island, is a direct move possible?
             // if so, we avoid generating the visibility environment
-            if (island->contains(Line(from, to))) {
-                Polyline p;
-                p.points.push_back(from);
-                p.points.push_back(to);
-                return p;
-            }
+            if (island->contains(Line(from, to)))
+                return Line(from, to);
+            
             island_idx = island - this->islands.begin();
             break;
         }
@@ -119,10 +112,7 @@ MotionPlanner::shortest_path(const Point &from, const Point &to)
     if (env.expolygons.empty()) {
         // if this environment is empty (probably because it's too small), perform straight move
         // and avoid running the algorithms on empty dataset
-        Polyline p;
-        p.points.push_back(from);
-        p.points.push_back(to);
-        return p; // bye bye
+        return Line(from, to);
     }
     
     // Now check whether points are inside the environment.

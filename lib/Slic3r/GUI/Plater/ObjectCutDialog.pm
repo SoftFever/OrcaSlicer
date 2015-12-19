@@ -22,7 +22,7 @@ sub new {
         keep_upper      => 1,
         keep_lower      => 1,
         rotate_lower    => 1,
-        preview         => 0,
+        preview         => 1,
     };
     
     my $optgroup;

@@ -472,11 +472,10 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     // build loops
     layers->resize(z.size());
     for (std::vector<IntersectionLines>::iterator it = lines.begin(); it != lines.end(); ++it) {
-        int layer_idx = it - lines.begin();
+        size_t layer_idx = it - lines.begin();
         #ifdef SLIC3R_DEBUG
-        printf("Layer %d:\n", layer_idx);
+        printf("Layer %zu:\n", layer_idx);
         #endif
-        
         this->make_loops(*it, &(*layers)[layer_idx]);
     }
 }
@@ -708,7 +707,7 @@ TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* l
                     // loop is complete
                     Polygon p;
                     p.points.reserve(loop.size());
-                    for (IntersectionLinePtrs::iterator lineptr = loop.begin(); lineptr != loop.end(); ++lineptr) {
+                    for (IntersectionLinePtrs::const_iterator lineptr = loop.begin(); lineptr != loop.end(); ++lineptr) {
                         p.points.push_back((*lineptr)->a);
                     }
                     loops->push_back(p);
@@ -858,7 +857,7 @@ TriangleMeshSlicer::make_expolygons(std::vector<IntersectionLine> &lines, ExPoly
 void
 TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
 {
-    std::vector<IntersectionLine> upper_lines, lower_lines;
+    IntersectionLines upper_lines, lower_lines;
     
     float scaled_z = scale_(z);
     for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; facet_idx++) {
@@ -869,11 +868,11 @@ TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower)
         float max_z = fmaxf(facet->vertex[0].z, fmaxf(facet->vertex[1].z, facet->vertex[2].z));
         
         // intersect facet with cutting plane
-        std::vector<IntersectionLine> lines;
+        IntersectionLines lines;
         this->slice_facet(scaled_z, *facet, facet_idx, min_z, max_z, &lines);
         
         // save intersection lines for generating correct triangulations
-        for (std::vector<IntersectionLine>::iterator it = lines.begin(); it != lines.end(); ++it) {
+        for (IntersectionLines::const_iterator it = lines.begin(); it != lines.end(); ++it) {
             if (it->edge_type == feTop) {
                 lower_lines.push_back(*it);
             } else if (it->edge_type == feBottom) {
