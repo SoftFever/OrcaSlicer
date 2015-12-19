@@ -66,7 +66,7 @@ sub new {
     $vsizer->Add($html, 1, wxEXPAND | wxALIGN_LEFT | wxRIGHT | wxBOTTOM, 20);
     EVT_HTML_LINK_CLICKED($self, $html, \&link_clicked);
     
-    my $buttons = $self->CreateStdDialogButtonSizer(wxCLOSE);
+    my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
     $self->SetEscapeId(wxID_CLOSE);
     EVT_BUTTON($self, wxID_CLOSE, sub {
         $self->EndModal(wxID_CLOSE);
