@@ -841,7 +841,8 @@ sub discover_horizontal_shells {
             
             if ($layerm->region->config->solid_infill_every_layers && $layerm->region->config->fill_density > 0
                 && ($i % $layerm->region->config->solid_infill_every_layers) == 0) {
-                $_->surface_type(S_TYPE_INTERNALSOLID) for @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
+                my $type = $layerm->region->config->fill_density == 100 ? S_TYPE_INTERNALSOLID : S_TYPE_INTERNALBRIDGE;
+                $_->surface_type($type) for @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
             }
             
             EXTERNAL: foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_BOTTOMBRIDGE) {
