@@ -86,7 +86,7 @@ class GCode {
     double volumetric_speed;
     
     GCode();
-    Point& last_pos();
+    const Point& last_pos() const;
     void set_last_pos(const Point &pos);
     bool last_pos_defined() const;
     void apply_print_config(const PrintConfig &print_config);

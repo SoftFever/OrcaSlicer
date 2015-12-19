@@ -86,6 +86,7 @@ class Pointf
     static Pointf new_unscale(const Point &p) {
         return Pointf(unscale(p.x), unscale(p.y));
     };
+    std::string wkt() const;
     void scale(double factor);
     void translate(double x, double y);
     void translate(const Vectorf &vector);

@@ -17,8 +17,8 @@
 #define SMALL_PERIMETER_LENGTH (6.5 / SCALING_FACTOR) * 2 * PI
 #define INSET_OVERLAP_TOLERANCE 0.4
 #define EXTERNAL_INFILL_MARGIN 3
-#define scale_(val) (val / SCALING_FACTOR)
-#define unscale(val) (val * SCALING_FACTOR)
+#define scale_(val) ((val) / SCALING_FACTOR)
+#define unscale(val) ((val) * SCALING_FACTOR)
 #define SCALED_EPSILON scale_(EPSILON)
 typedef long coord_t;
 typedef double coordf_t;

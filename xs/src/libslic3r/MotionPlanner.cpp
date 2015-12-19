@@ -171,7 +171,7 @@ MotionPlanner::shortest_path(const Point &from, const Point &to)
         svg.draw(inner_from, "red");
         svg.draw(to);
         svg.draw(inner_to, "red");
-        svg.draw(*polyline, "red");
+        svg.draw(polyline, "red");
         svg.Close();
     */
     

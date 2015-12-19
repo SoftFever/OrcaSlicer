@@ -305,6 +305,14 @@ operator<<(std::ostream &stm, const Pointf &pointf)
     return stm << pointf.x << "," << pointf.y;
 }
 
+std::string
+Pointf::wkt() const
+{
+    std::ostringstream ss;
+    ss << "POINT(" << this->x << " " << this->y << ")";
+    return ss.str();
+}
+
 void
 Pointf::scale(double factor)
 {

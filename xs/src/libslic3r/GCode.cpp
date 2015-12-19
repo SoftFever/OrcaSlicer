@@ -203,8 +203,8 @@ GCode::GCode()
 {
 }
 
-Point&
-GCode::last_pos()
+const Point&
+GCode::last_pos() const
 {
     return this->_last_pos;
 }
@@ -249,13 +249,12 @@ void
 GCode::set_origin(const Pointf &pointf)
 {    
     // if origin increases (goes towards right), last_pos decreases because it goes towards left
-    Point translate(
+    const Point translate(
         scale_(this->origin.x - pointf.x),
         scale_(this->origin.y - pointf.y)
     );
     this->_last_pos.translate(translate);
     this->wipe.path.translate(translate);
-    
     this->origin = pointf;
 }
 
