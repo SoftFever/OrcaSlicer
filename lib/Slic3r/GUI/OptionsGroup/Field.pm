@@ -512,11 +512,11 @@ extends 'Slic3r::GUI::OptionsGroup::Field::wxSizer';
 
 has 'scale'         => (is => 'rw', default => sub { 10 });
 has 'slider'        => (is => 'rw');
-has 'statictext'    => (is => 'rw');
+has 'textctrl'      => (is => 'rw');
 
 use Slic3r::Geometry qw(X Y);
 use Wx qw(:misc :sizer);
-use Wx::Event qw(EVT_SLIDER);
+use Wx::Event qw(EVT_SLIDER EVT_TEXT EVT_KILL_FOCUS);
 
 sub BUILD {
     my ($self) = @_;
@@ -534,16 +534,26 @@ sub BUILD {
     );
     $self->slider($slider);
     
-    my $statictext = Wx::StaticText->new($self->parent, -1, $slider->GetValue/$self->scale,
-        wxDefaultPosition, [20,-1]);
-    $self->statictext($statictext);
+    my $textctrl = Wx::TextCtrl->new($self->parent, -1, $slider->GetValue/$self->scale,
+        wxDefaultPosition, [50,-1]);
+    $self->textctrl($textctrl);
     
     $sizer->Add($slider, 1, wxALIGN_CENTER_VERTICAL, 0);
-    $sizer->Add($statictext, 0, wxALIGN_CENTER_VERTICAL, 0);
+    $sizer->Add($textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
     
     EVT_SLIDER($self->parent, $slider, sub {
-        $self->_update_statictext;
+        $self->_update_textctrl;
         $self->_on_change($self->option->opt_id);
+    });
+    EVT_TEXT($self->parent, $textctrl, sub {
+        my $value = $textctrl->GetValue;
+        if ($value =~ /^-?\d+(\.\d*)?$/) {
+            $self->set_value($value);
+            $self->_on_change($self->option->opt_id);
+        }
+    });
+    EVT_KILL_FOCUS($textctrl, sub {
+        $self->_on_kill_focus($self->option->opt_id, @_);
     });
 }
 
@@ -551,8 +561,8 @@ sub set_value {
     my ($self, $value) = @_;
     
     $self->disable_change_event(1);
-    $self->slider->SetValue($value);
-    $self->_update_statictext;
+    $self->slider->SetValue($value*$self->scale);
+    $self->_update_textctrl;
     $self->disable_change_event(0);
 }
 
@@ -561,9 +571,25 @@ sub get_value {
     return $self->slider->GetValue/$self->scale;
 }
 
-sub _update_statictext {
+sub _update_textctrl {
     my ($self) = @_;
-    $self->statictext->SetLabel($self->get_value);
+    $self->textctrl->SetLabel($self->get_value);
+}
+
+sub enable {
+    my ($self) = @_;
+    
+    $self->slider->Enable;
+    $self->textctrl->Enable;
+    $self->textctrl->SetEditable(1);
+}
+
+sub disable {
+    my ($self) = @_;
+    
+    $self->slider->Disable;
+    $self->textctrl->Disable;
+    $self->textctrl->SetEditable(0);
 }
 
 1;
