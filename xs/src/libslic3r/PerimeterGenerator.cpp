@@ -14,8 +14,9 @@ PerimeterGenerator::process()
     
     // external perimeters
     this->_ext_mm3_per_mm       = this->ext_perimeter_flow.mm3_per_mm();
-    coord_t ext_pwidth        = this->ext_perimeter_flow.scaled_width();
-    coord_t ext_pspacing      = scale_(this->ext_perimeter_flow.spacing(this->perimeter_flow));
+    coord_t ext_pwidth          = this->ext_perimeter_flow.scaled_width();
+    coord_t ext_pspacing        = this->ext_perimeter_flow.scaled_spacing();
+    coord_t ext_pspacing2       = this->ext_perimeter_flow.scaled_spacing(this->perimeter_flow);
     
     // overhang perimeters
     this->_mm3_per_mm_overhang  = this->overhang_flow.mm3_per_mm();
@@ -29,6 +30,11 @@ PerimeterGenerator::process()
     // with some tolerance in order to avoid triggering medial axis when
     // some squishing might work. Loops are still spaced by the entire
     // flow spacing; this only applies to collapsing parts.
+    // For ext_min_spacing we use the ext_pspacing calculated for two adjacent
+    // external loops (which is the correct way) instead of using ext_pspacing2
+    // which is the spacing between external and internal, which is not correct
+    // and would make the collapsing (thus the details resolution) dependent on 
+    // internal flow which is unrelated.
     coord_t min_spacing         = pspacing      * (1 - INSET_OVERLAP_TOLERANCE);
     coord_t ext_min_spacing     = ext_pspacing  * (1 - INSET_OVERLAP_TOLERANCE);
     
@@ -91,7 +97,7 @@ PerimeterGenerator::process()
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
                         Polylines pp;
                         for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex)
-                            ex->medial_axis(ext_pwidth + ext_pspacing, min_width, &pp);
+                            ex->medial_axis(ext_pwidth + ext_pspacing2, min_width, &pp);
                         
                         double threshold = ext_pwidth * 2;
                         for (Polylines::const_iterator p = pp.begin(); p != pp.end(); ++p) {
@@ -117,7 +123,7 @@ PerimeterGenerator::process()
                         */
                     }
                 } else {
-                    coord_t distance = (i == 1) ? ext_pspacing : pspacing;
+                    coord_t distance = (i == 1) ? ext_pspacing2 : pspacing;
                     
                     if (this->config->thin_walls) {
                         offsets = offset2(
@@ -291,7 +297,7 @@ PerimeterGenerator::process()
         coord_t inset = 0;
         if (loop_number == 0) {
             // one loop
-            inset += ext_pspacing/2;
+            inset += ext_pspacing2/2;
         } else if (loop_number > 0) {
             // two or more loops
             inset += pspacing/2;
