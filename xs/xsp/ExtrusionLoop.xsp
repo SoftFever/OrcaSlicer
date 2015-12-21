@@ -66,6 +66,7 @@ _constant()
   ALIAS:
     EXTRL_ROLE_DEFAULT                      = elrDefault
     EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER   = elrContourInternalPerimeter
+    EXTRL_ROLE_SKIRT                        = elrSkirt
   PROTOTYPE:
   CODE:
     RETVAL = ix;

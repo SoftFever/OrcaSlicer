@@ -316,12 +316,15 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     // extrude all loops ccw
     bool was_clockwise = loop.make_counter_clockwise();
     
+    SeamPosition seam_position = this->config.seam_position;
+    if (loop.role == elrSkirt) seam_position = spNearest;
+    
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
     if (this->config.spiral_vase) {
         loop.split_at(last_pos);
-    } else if (this->config.seam_position == spNearest || this->config.seam_position == spAligned) {
+    } else if (seam_position == spNearest || seam_position == spAligned) {
         const Polygon polygon = loop.polygon();
         
         // simplify polygon in order to skip false positives in concave/convex detection
@@ -356,7 +359,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         }
         
         Point point;
-        if (this->config.seam_position == spNearest) {
+        if (seam_position == spNearest) {
             if (candidates.empty()) candidates = polygon.points;
             last_pos.nearest_point(candidates, &point);
             
@@ -382,7 +385,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         }
         if (this->layer != NULL)
             this->_seam_position[this->layer->object()] = point;
-    } else if (this->config.seam_position == spRandom) {
+    } else if (seam_position == spRandom) {
         if (loop.role == elrContourInternalPerimeter) {
             Polygon polygon = loop.polygon();
             Point centroid = polygon.centroid();

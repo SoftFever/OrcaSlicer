@@ -31,6 +31,7 @@ enum ExtrusionRole {
 enum ExtrusionLoopRole {
     elrDefault,
     elrContourInternalPerimeter,
+    elrSkirt,
 };
 
 class ExtrusionEntity

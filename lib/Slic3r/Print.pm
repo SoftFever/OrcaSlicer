@@ -5,6 +5,7 @@ use warnings;
 use File::Basename qw(basename fileparse);
 use File::Spec;
 use List::Util qw(min max first sum);
+use Slic3r::ExtrusionLoop ':roles';
 use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y Z X1 Y1 X2 Y2 MIN MAX PI scale unscale convex_hull);
@@ -273,7 +274,7 @@ sub make_skirt {
     for (my $i = $skirts; $i > 0; $i--) {
         $distance += scale $spacing;
         my $loop = offset([$convex_hull], $distance, 1, JT_ROUND, scale(0.1))->[0];
-        $self->skirt->append(Slic3r::ExtrusionLoop->new_from_paths(
+        my $eloop = Slic3r::ExtrusionLoop->new_from_paths(
             Slic3r::ExtrusionPath->new(
                 polyline        => Slic3r::Polygon->new(@$loop)->split_at_first_point,
                 role            => EXTR_ROLE_SKIRT,
@@ -281,7 +282,9 @@ sub make_skirt {
                 width           => $flow->width,
                 height          => $first_layer_height, # this will be overridden at G-code export time
             ),
-        ));
+        );
+        $eloop->role(EXTRL_ROLE_SKIRT);
+        $self->skirt->append($eloop);
         
         if ($self->config->min_skirt_length > 0) {
             $extruded_length[$extruder_idx] ||= 0;
