@@ -14,27 +14,18 @@
 
 namespace Slic3r {
 
-class MotionPlannerGraph;
+class MotionPlanner;
 
-class MotionPlanner
+class MotionPlannerEnv
 {
+    friend class MotionPlanner;
+    
     public:
-    MotionPlanner(const ExPolygons &islands);
-    ~MotionPlanner();
-    Polyline shortest_path(const Point &from, const Point &to);
-    size_t islands_count() const;
-    
-    private:
-    ExPolygons islands;
-    bool initialized;
-    ExPolygon outer;
-    ExPolygonCollections inner;
-    std::vector<MotionPlannerGraph*> graphs;
-    
-    void initialize();
-    MotionPlannerGraph* init_graph(int island_idx);
-    ExPolygonCollection get_env(int island_idx) const;
-    Point nearest_env_point(const ExPolygonCollection &env, const Point &from, const Point &to) const;
+    ExPolygon island;
+    ExPolygonCollection env;
+    MotionPlannerEnv() {};
+    MotionPlannerEnv(const ExPolygon &island) : island(island) {};
+    Point nearest_env_point(const Point &from, const Point &to) const;
 };
 
 class MotionPlannerGraph
@@ -59,6 +50,25 @@ class MotionPlannerGraph
     void add_edge(size_t from, size_t to, double weight);
     size_t find_node(const Point &point) const;
     Polyline shortest_path(size_t from, size_t to);
+};
+
+class MotionPlanner
+{
+    public:
+    MotionPlanner(const ExPolygons &islands);
+    ~MotionPlanner();
+    Polyline shortest_path(const Point &from, const Point &to);
+    size_t islands_count() const;
+    
+    private:
+    bool initialized;
+    std::vector<MotionPlannerEnv> islands;
+    MotionPlannerEnv outer;
+    std::vector<MotionPlannerGraph*> graphs;
+    
+    void initialize();
+    MotionPlannerGraph* init_graph(int island_idx);
+    const MotionPlannerEnv& get_env(int island_idx) const;
 };
 
 }

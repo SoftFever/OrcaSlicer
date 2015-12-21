@@ -55,7 +55,7 @@ AvoidCrossingPerimeters::travel_to(GCode &gcodegen, Point point)
         
         // calculate path
         Polyline travel = this->_external_mp->shortest_path(last_pos, point);
-        
+        //exit(0);
         // translate the path back into the shifted coordinate system that gcodegen
         // is currently using for writing coordinates
         travel.translate(scaled_origin.negative());
@@ -613,6 +613,7 @@ GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
         
         // check again whether the new travel path still needs a retraction
         needs_retraction = this->needs_retraction(travel, role);
+        //if (needs_retraction && this->layer_index > 1) exit(0);
     }
     
     // Re-allow avoid_crossing_perimeters for the next travel moves

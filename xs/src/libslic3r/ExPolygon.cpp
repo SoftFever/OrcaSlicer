@@ -160,17 +160,14 @@ ExPolygons
 ExPolygon::simplify(double tolerance) const
 {
     Polygons pp = this->simplify_p(tolerance);
-    ExPolygons expp;
-    union_(pp, &expp);
-    return expp;
+    return union_ex(pp);
 }
 
 void
-ExPolygon::simplify(double tolerance, ExPolygons &expolygons) const
+ExPolygon::simplify(double tolerance, ExPolygons* expolygons) const
 {
     ExPolygons ep = this->simplify(tolerance);
-    expolygons.reserve(expolygons.size() + ep.size());
-    expolygons.insert(expolygons.end(), ep.begin(), ep.end());
+    expolygons->insert(expolygons->end(), ep.begin(), ep.end());
 }
 
 void

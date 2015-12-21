@@ -504,21 +504,17 @@ template void intersection<Slic3r::Polygons, Slic3r::Polylines>(const Slic3r::Po
 template void intersection<Slic3r::Polylines, Slic3r::Polylines>(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines* retval, bool safety_offset_);
 template void intersection<Slic3r::Lines, Slic3r::Lines>(const Slic3r::Lines &subject, const Slic3r::Polygons &clip, Slic3r::Lines* retval, bool safety_offset_);
 
-Slic3r::Polygons
-intersection(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_)
+template <class SubjectType>
+SubjectType intersection(const SubjectType &subject, const Slic3r::Polygons &clip, bool safety_offset_)
 {
-    Slic3r::Polygons pp;
+    SubjectType pp;
     intersection(subject, clip, &pp, safety_offset_);
     return pp;
 }
 
-Slic3r::Polylines
-intersection(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, bool safety_offset_)
-{
-    Slic3r::Polylines pp;
-    intersection(subject, clip, &pp, safety_offset_);
-    return pp;
-}
+template Slic3r::Polygons intersection<Slic3r::Polygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_);
+template Slic3r::Polylines intersection<Slic3r::Polylines>(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, bool safety_offset_);
+template Slic3r::Lines intersection<Slic3r::Lines>(const Slic3r::Lines &subject, const Slic3r::Polygons &clip, bool safety_offset_);
 
 Slic3r::ExPolygons
 intersection_ex(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_)

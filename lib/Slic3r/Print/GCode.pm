@@ -178,20 +178,13 @@ sub export {
         # compute the offsetted convex hull for each object and repeat it for each copy.
         my @islands_p = ();
         foreach my $object (@{$self->objects}) {
-            # compute the convex hull of the entire object
-            my $convex_hull = convex_hull([
-                map @{$_->contour}, map @{$_->slices}, @{$object->layers},
-            ]);
-            
             # discard objects only containing thin walls (offset would fail on an empty polygon)
-            next if !@$convex_hull;
-            
-            # grow convex hull by the wanted clearance
-            my @obj_islands_p = @{offset([$convex_hull], $distance_from_objects, 1, JT_SQUARE)};
+            my @polygons = map $_->contour, map @{$_->slices}, @{$object->layers};
+            next if !@polygons;
             
             # translate convex hull for each object copy and append it to the islands array
             foreach my $copy (@{ $object->_shifted_copies }) {
-                my @copy_islands_p = map $_->clone, @obj_islands_p;
+                my @copy_islands_p = map $_->clone, @polygons;
                 $_->translate(@$copy) for @copy_islands_p;
                 push @islands_p, @copy_islands_p;
             }

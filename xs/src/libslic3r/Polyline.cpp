@@ -138,47 +138,18 @@ Polyline::simplify_by_visibility(const T &area)
 {
     Points &pp = this->points;
     
-    // find first point in area
     size_t s = 0;
-    while (s < pp.size() && !area.contains(pp[s])) {
-        ++s;
-    }
-    
-    // find last point in area
-    size_t e = pp.size()-1;
-    while (e > 0 && !area.contains(pp[e])) {
-        --e;
-    }
-    
-    // this ugly algorithm resembles a binary search
-    while (e > s + 1) {
-        size_t mid = (s + e) / 2;
-        if (area.contains(Line(pp[s], pp[mid]))) {
-            pp.erase(pp.begin() + s + 1, pp.begin() + mid);
-            // repeat recursively until no further simplification is possible
-            ++s;
-            e = pp.size()-1;
+    bool did_erase = false;
+    for (size_t i = s+2; i < pp.size(); i = s + 2) {
+        if (area.contains(Line(pp[s], pp[i]))) {
+            pp.erase(pp.begin() + s + 1, pp.begin() + i);
+            did_erase = true;
         } else {
-            e = mid;
+            ++s;
         }
     }
-    /*
-    // The following implementation is complete but it's not efficient at all:
-    for (size_t s = start; s < pp.size() && !pp.empty(); ++s) {
-        // find the farthest point to which we can build
-        // a line that is contained in the supplied area
-        // a binary search would be more efficient for this
-        for (size_t e = pp.size()-1; e > (s + 1); --e) {
-            if (area.contains(Line(pp[s], pp[e]))) {
-                // we can suppress points between s and e
-                pp.erase(pp.begin() + s + 1, pp.begin() + e);
-                
-                // repeat recursively until no further simplification is possible
-                return this->simplify_by_visibility(area);
-            }
-        }
-    }
-    */
+    if (did_erase)
+        this->simplify_by_visibility(area);
 }
 template void Polyline::simplify_by_visibility<ExPolygon>(const ExPolygon &area);
 template void Polyline::simplify_by_visibility<ExPolygonCollection>(const ExPolygonCollection &area);

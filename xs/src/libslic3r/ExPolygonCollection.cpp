@@ -87,7 +87,7 @@ ExPolygonCollection::simplify(double tolerance)
 {
     ExPolygons expp;
     for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
-        it->simplify(tolerance, expp);
+        it->simplify(tolerance, &expp);
     }
     this->expolygons = expp;
 }

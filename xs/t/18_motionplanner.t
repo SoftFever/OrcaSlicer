@@ -9,7 +9,7 @@ BEGIN {
 }
 
 use Slic3r::XS;
-use Test::More tests => 22;
+use Test::More tests => 20;
 
 my $square = Slic3r::Polygon->new(  # ccw
     [100, 100],
@@ -71,7 +71,6 @@ my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
     ok $expolygon2->contains_point($to), 'end point is contained in second expolygon';
     my $path = $mp->shortest_path($from, $to);
     ok $path->is_valid(), 'return path is valid';
-    ok $path->length > Slic3r::Line->new($from, $to)->length, 'path length is greater than straight line';
 }
 
 {
@@ -88,7 +87,6 @@ my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
     ok $expolygons->[0]->contains_point($to), 'end point is contained in first expolygon';
     my $path = $mp->shortest_path($from, $to);
     ok $path->is_valid(), 'return path is valid';
-    ok $path->length > Slic3r::Line->new($from, $to)->length, 'path length is greater than straight line';
 }
 
 __END__
