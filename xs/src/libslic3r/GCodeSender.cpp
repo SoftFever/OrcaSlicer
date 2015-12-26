@@ -19,6 +19,12 @@
 #include <linux/serial.h>
 #endif
 
+//#define DEBUG_SERIAL
+#ifdef DEBUG_SERIAL
+#include <fstream>
+std::fstream fs;
+#endif
+
 namespace Slic3r {
 
 namespace asio = boost::asio;
@@ -60,6 +66,11 @@ GCodeSender::connect(std::string devname, unsigned int baud_rate)
     this->set_baud_rate(baud_rate);
     this->open = true;
     this->reset();
+    
+    /* Initialize debugger */
+#ifdef DEBUG_SERIAL
+    fs.open("serial.txt", std::fstream::out | std::fstream::trunc);
+#endif
     
     // this gives some work to the io_service before it is started
     // (post() runs the supplied function in its thread)
@@ -131,6 +142,10 @@ GCodeSender::disconnect()
             "Error while closing the device"));
     }
     */
+    
+#ifdef DEBUG_SERIAL
+    fs.close();
+#endif
 }
 
 bool
@@ -285,6 +300,10 @@ GCodeSender::on_read(const boost::system::error_code& error,
     std::string line;
     std::getline(is, line);
     if (!line.empty()) {
+#ifdef DEBUG_SERIAL
+    fs << "<< " << line;
+#endif
+        
         // note that line might contain \r at its end
         // parse incoming line
         if (!this->connected
@@ -440,6 +459,10 @@ GCodeSender::do_send(const std::string &line)
     
     this->last_sent = line;
     this->can_send = false;
+    
+#ifdef DEBUG_SERIAL
+    fs << ">> " << full_line;
+#endif
 }
 
 void
