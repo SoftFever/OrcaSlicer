@@ -8,14 +8,15 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
 
+#if defined(__APPLE__) || defined(__linux) || defined(__OpenBSD__)
+#include <termios.h>
+#endif
 #if __APPLE__
 #include <sys/ioctl.h>
-#include <termios.h>
 #include <IOKit/serial/ioss.h>
 #endif
 #ifdef __linux
 #include <sys/ioctl.h>
-#include <termios.h>
 #include <linux/serial.h>
 #endif
 
@@ -99,8 +100,7 @@ GCodeSender::set_baud_rate(unsigned int baud_rate)
         speed_t newSpeed = baud_rate;
         ioctl(handle, IOSSIOSPEED, &newSpeed);
         ::tcsetattr(handle, TCSANOW, &ios);
-#endif
-#ifdef __linux
+#elif __linux
         termios ios;
         ::tcgetattr(handle, &ios);
         ::cfsetispeed(&ios, B38400);
@@ -121,6 +121,13 @@ GCodeSender::set_baud_rate(unsigned int baud_rate)
         }
 
         ioctl(handle, TIOCSSERIAL, &ss);
+		printf("< set_baud_rate: %u\n", baud_rate);
+#elif __OpenBSD__
+		struct termios ios;
+		::tcgetattr(handle, &ios);
+		::cfsetspeed(&ios, baud_rate);
+		if (::tcsetattr(handle, TCSAFLUSH, &ios) != 0)
+			printf("Failed to set baud rate: %s\n", strerror(errno));
 #else
         //throw invalid_argument ("OS does not currently support custom bauds");
 #endif
