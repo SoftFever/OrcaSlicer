@@ -264,13 +264,13 @@ PerimeterGenerator::process()
             // where $pwidth < thickness < 2*$pspacing, infill with width = 2*$pwidth
             // where 0.1*$pwidth < thickness < $pwidth, infill with width = 1*$pwidth
             std::vector<PerimeterGeneratorGapSize> gap_sizes;
-            gap_sizes.push_back(PerimeterGeneratorGapSize(pwidth, 2*pspacing, unscale(2*pwidth)));
-            gap_sizes.push_back(PerimeterGeneratorGapSize(0.1*pwidth, pwidth, unscale(1*pwidth)));
+            gap_sizes.push_back(PerimeterGeneratorGapSize(pwidth, 2*pspacing, 2*pwidth));
+            gap_sizes.push_back(PerimeterGeneratorGapSize(0.1*pwidth, pwidth, 1*pwidth));
             
             for (std::vector<PerimeterGeneratorGapSize>::const_iterator gap_size = gap_sizes.begin();
                 gap_size != gap_sizes.end(); ++gap_size) {
                 ExtrusionEntityCollection gap_fill = this->_fill_gaps(gap_size->min, 
-                    gap_size->max, gap_size->width, gaps);
+                    gap_size->max, unscale(gap_size->width), gaps);
                 this->gap_fill->append(gap_fill.entities);
                 
                 // Make sure we don't infill narrow parts that are already gap-filled
@@ -279,12 +279,14 @@ PerimeterGenerator::process()
                 // are not subtracted from fill surfaces (they might be too short gaps
                 // that medial axis skips but infill might join with other infill regions
                 // and use zigzag).
-                double dist = scale_(gap_size->width/2);
+                coord_t dist = gap_size->width/2;
                 Polygons filled;
                 for (ExtrusionEntitiesPtr::const_iterator it = gap_fill.entities.begin();
-                    it != gap_fill.entities.end(); ++it)
-                    offset((*it)->as_polyline(), &filled, dist);
-                
+                    it != gap_fill.entities.end(); ++it) {
+                    Polygons f;
+                    offset((*it)->as_polyline(), &f, dist);
+                    filled.insert(filled.end(), f.begin(), f.end());
+                }
                 last = diff(last, filled);
                 gaps = diff(gaps, filled);  // prevent more gap fill here
             }
