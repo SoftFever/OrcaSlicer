@@ -531,7 +531,7 @@ sub build {
     }
     
     {
-        my $page = $self->add_options_page('Infill', 'shading.png');
+        my $page = $self->add_options_page('Infill', 'infill.png');
         {
             my $optgroup = $page->new_optgroup('Infill');
             $optgroup->append_single_option_line('fill_density');
