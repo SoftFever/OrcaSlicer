@@ -515,26 +515,16 @@ sub infill {
     
     Slic3r::parallelize(
         threads => $self->print->config->threads,
-        items => sub {
-            my @items = ();  # [layer_id, region_id]
-            for my $region_id (0 .. ($self->print->region_count-1)) {
-                push @items, map [$_, $region_id], 0..($self->layer_count - 1);
-            }
-            @items;
-        },
+        items => sub { 0..$#{$self->layers} },
         thread_cb => sub {
             my $q = shift;
-            while (defined (my $obj_layer = $q->dequeue)) {
-                my ($i, $region_id) = @$obj_layer;
-                my $layerm = $self->get_layer($i)->regions->[$region_id];
-                $layerm->fills->clear;
-                $layerm->fills->append($_) for $self->fill_maker->make_fill($layerm);
+            while (defined (my $i = $q->dequeue)) {
+                $self->get_layer($i)->make_fill;
             }
         },
         no_threads_cb => sub {
-            foreach my $layerm (map @{$_->regions}, @{$self->layers}) {
-                $layerm->fills->clear;
-                $layerm->fills->append($_) for $self->fill_maker->make_fill($layerm);
+            foreach my $layer (@{$self->layers}) {
+                $layer->make_fill;
             }
         },
     );

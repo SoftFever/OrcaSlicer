@@ -29,6 +29,15 @@ sub regions {
     return [ map $self->get_region($_), 0..($self->region_count-1) ];
 }
 
+sub make_fill {
+    my ($self) = @_;
+    
+    foreach my $layerm (@{$self->regions}) {
+        $layerm->fills->clear;
+        $layerm->fills->append($_) for $self->object->fill_maker->make_fill($layerm);
+    }
+}
+
 package Slic3r::Layer::Support;
 our @ISA = qw(Slic3r::Layer);
 

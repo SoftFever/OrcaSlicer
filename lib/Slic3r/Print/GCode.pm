@@ -480,6 +480,7 @@ sub process_layer {
         # - for each extruder, we group extrusions by island
         # - for each island, we extrude perimeters first, unless user set the infill_first
         #   option
+        # (Still, we have to keep track of regions because we need to apply their config)
         
         # group extrusions by extruder and then by island
         my %by_extruder = ();  # extruder_id => [ { perimeters => \@perimeters, infill => \@infill } ]
