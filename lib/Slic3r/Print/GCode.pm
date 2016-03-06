@@ -75,7 +75,8 @@ sub BUILD {
                     }
                 }
             }
-            @mm3_per_mm = grep $_ != 0, @mm3_per_mm;
+            # filter out 0-width segments
+            @mm3_per_mm = grep $_ > 0.000001, @mm3_per_mm;
             if (@mm3_per_mm) {
                 my $min_mm3_per_mm = min(@mm3_per_mm);
                 # In order to honor max_print_speed we need to find a target volumetric
