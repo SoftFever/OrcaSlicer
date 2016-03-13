@@ -7,20 +7,16 @@ namespace Slic3r {
 
 class BridgeDirectionComparator {
     public:
-    std::map<double,double> dir_coverage, dir_avg_length;  // angle => score
+    std::map<double,double> dir_coverage;  // angle => score
     
     BridgeDirectionComparator(double _extrusion_width)
-        : extrusion_width(_extrusion_width) {};
+        : extrusion_width(_extrusion_width)
+    {};
     
     // the best direction is the one causing most lines to be bridged (thus most coverage)
-    // and shortest max line length
     bool operator() (double a, double b) {
-        double coverage_diff = this->dir_coverage[a] - this->dir_coverage[b];
-        if (fabs(coverage_diff) < this->extrusion_width) {
-            return (this->dir_avg_length[b] > this->dir_avg_length[a]);
-        } else {
-            return (coverage_diff > 0);
-        }
+        // Initial sort by coverage only - comparator must obey strict weak ordering
+        return (this->dir_coverage[a] > this->dir_coverage[b]);
     };
     
     private:
@@ -113,6 +109,7 @@ BridgeDetector::detect_angle()
         angles.pop_back();
     
     BridgeDirectionComparator bdcomp(this->extrusion_width);
+    std::map<double,double> dir_avg_length;
     double line_increment = this->extrusion_width;
     bool have_coverage = false;
     for (std::vector<double>::const_iterator angle = angles.begin(); angle != angles.end(); ++angle) {
@@ -164,7 +161,7 @@ BridgeDetector::detect_angle()
         // $directions_coverage{$angle} = sum(map $_->area, @{$self->coverage($angle)}) // 0;
         
         // max length of bridged lines
-        bdcomp.dir_avg_length[*angle] = !lengths.empty()
+        dir_avg_length[*angle] = !lengths.empty()
             ? *std::max_element(lengths.begin(), lengths.end())
             : 0;
     }
@@ -172,10 +169,22 @@ BridgeDetector::detect_angle()
     // if no direction produced coverage, then there's no bridge direction
     if (!have_coverage) return false;
     
-    // sort directions by score
+    // sort directions by coverage - most coverage first
     std::sort(angles.begin(), angles.end(), bdcomp);
-    
     this->angle = angles.front();
+    
+    // if any other direction is within extrusion width of coverage, prefer it if shorter
+    // TODO: There are two options here - within width of the angle with most coverage, or within width of the currently perferred?
+    double most_coverage_angle = this->angle;
+    for (std::vector<double>::const_iterator angle = angles.begin() + 1;
+        angle != angles.end() && bdcomp.dir_coverage[most_coverage_angle] - bdcomp.dir_coverage[*angle] < this->extrusion_width;
+        ++angle
+    ) {
+        if (dir_avg_length[*angle] < dir_avg_length[this->angle]) {
+            this->angle = *angle;
+        }
+    }
+    
     if (this->angle >= PI) this->angle -= PI;
     
     #ifdef SLIC3R_DEBUG
