@@ -429,7 +429,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "Extruder temperature for first layer. If you want to control temperature manually during print, set this to zero to disable temperature control commands in the output file.";
     def->cli = "first-layer-temperature=i@";
     def->min = 0;
-    def->max = 400;
+    def->max = 500;
     {
         ConfigOptionInts* opt = new ConfigOptionInts();
         opt->values.push_back(200);
@@ -1018,8 +1018,8 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "Temperature difference to be applied when an extruder is not active.";
     def->sidetext = "∆°C";
     def->cli = "standby-temperature-delta=i";
-    def->min = -400;
-    def->max = 400;
+    def->min = -500;
+    def->max = 500;
     def->default_value = new ConfigOptionInt(-5);
 
     def = this->add("start_gcode", coString);
@@ -1174,7 +1174,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "temperature=i@";
     def->full_label = "Temperature";
     def->max = 0;
-    def->max = 400;
+    def->max = 500;
     {
         ConfigOptionInts* opt = new ConfigOptionInts();
         opt->values.push_back(200);
