@@ -4,7 +4,7 @@ use warnings;
 
 use List::Util qw(min max sum first);
 use Slic3r::Flow ':roles';
-use Slic3r::Geometry qw(X Y Z PI scale unscale chained_path);
+use Slic3r::Geometry qw(X Y Z PI scale unscale chained_path epsilon);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
     offset offset_ex offset2 offset2_ex intersection_ppl CLIPPER_OFFSET_SCALE JT_MITER);
 use Slic3r::Print::State ':steps';
@@ -1010,7 +1010,7 @@ sub combine_infill {
                 
                 # check whether the combination of this layer with the lower layers' buffer
                 # would exceed max layer height or max combined layer count
-                if ($current_height + $height >= $nozzle_diameter || $layers >= $every) {
+                if ($current_height + $height >= $nozzle_diameter + epsilon || $layers >= $every) {
                     # append combination to lower layer
                     $combine{$layer_idx-1} = $layers;
                     $current_height = $layers = 0;
