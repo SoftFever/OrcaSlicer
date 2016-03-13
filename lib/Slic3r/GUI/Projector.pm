@@ -375,7 +375,7 @@ sub new {
     }
     
     {
-        my $buttons = $self->CreateStdDialogButtonSizer(wxCLOSE);
+        my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
         EVT_BUTTON($self, wxID_CLOSE, sub {
             $self->_close;
         });
