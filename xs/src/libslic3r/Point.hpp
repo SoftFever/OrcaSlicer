@@ -119,6 +119,9 @@ namespace boost { namespace polygon {
     template <>
     struct geometry_concept<coord_t> { typedef coordinate_concept type; };
     
+/* Boost.Polygon already defines a specialization for coordinate_traits<long> as of 1.60:
+   https://github.com/boostorg/polygon/commit/0ac7230dd1f8f34cb12b86c8bb121ae86d3d9b97 */
+#if BOOST_VERSION < 106000
     template <>
     struct coordinate_traits<coord_t> {
         typedef coord_t coordinate_type;
@@ -128,6 +131,7 @@ namespace boost { namespace polygon {
         typedef long long coordinate_difference;
         typedef long double coordinate_distance;
     };
+#endif
 
     template <>
     struct geometry_concept<Point> { typedef point_concept type; };
