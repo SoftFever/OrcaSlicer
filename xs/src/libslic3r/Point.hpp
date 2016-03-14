@@ -114,6 +114,7 @@ class Pointf3 : public Pointf
 }
 
 // start Boost
+#include <boost/version.hpp>
 #include <boost/polygon/polygon.hpp>
 namespace boost { namespace polygon {
     template <>
