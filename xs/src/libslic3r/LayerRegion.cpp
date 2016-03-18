@@ -115,12 +115,14 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             printf("Processing bridge at layer %zu:\n", this->layer()->id();
             #endif
             
-            if (bd.detect_angle() && this->layer()->object()->config.support_material) {
+            if (bd.detect_angle()) {
                 angle = bd.angle;
-                
-                Polygons coverage = bd.coverage();
-                this->bridged.insert(this->bridged.end(), coverage.begin(), coverage.end());
-                this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
+            
+                if (this->layer()->object()->config.support_material) {
+                    Polygons coverage = bd.coverage();
+                    this->bridged.insert(this->bridged.end(), coverage.begin(), coverage.end());
+                    this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
+                }
             }
         }
         

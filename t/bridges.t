@@ -1,4 +1,4 @@
-use Test::More tests => 14;
+use Test::More tests => 16;
 use strict;
 use warnings;
 
@@ -105,6 +105,32 @@ sub check_angle {
     my $delta=rad2deg($result) - $expected;
     $delta-=180 if $delta>=180 - epsilon;
     return defined $result && $result>=0 && abs($delta) < $tolerance;
+}
+
+{
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('top_solid_layers', 0);            # to prevent bridging on sparse infill
+    $config->set('bridge_speed', 99);
+    
+    my $print = Slic3r::Test::init_print('bridge', config => $config);
+    
+    my %extrusions = ();  # angle => length
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd eq 'G1' && ($args->{F} // $self->F)/60 == $config->bridge_speed) {
+            my $line = Slic3r::Line->new_scale(
+                [ $self->X, $self->Y ],
+                [ $info->{new_X}, $info->{new_Y} ],
+            );
+            my $angle = $line->direction;
+            $extrusions{$angle} //= 0;
+            $extrusions{$angle} += $line->length;
+        }
+    });
+    ok !!%extrusions, "bridge is generated";
+    my ($main_angle) = sort { $extrusions{$b} <=> $extrusions{$a} } keys %extrusions;
+    is $main_angle, 0, "bridge has the expected direction";
 }
 
 __END__
