@@ -523,6 +523,16 @@ sub load_file {
     Slic3r::GUI::show_error($self, $@) if $@;
     
     if (defined $model) {
+        if ($model->looks_like_multipart_object) {
+            my $dialog = Wx::MessageDialog->new($self,
+                "This file contains several objects positioned at multiple heights. "
+                . "Instead of considering them as multiple objects, should I consider\n"
+                . "this file as a single object having multiple parts?\n",
+                'Multi-part object detected', wxICON_WARNING | wxYES | wxNO);
+            if ($dialog->ShowModal() == wxID_YES) {
+                $model->convert_multipart_object;
+            }
+        }
         $self->load_model_objects(@{$model->objects});
         $self->statusbar->SetStatusText("Loaded " . basename($input_file));
     }

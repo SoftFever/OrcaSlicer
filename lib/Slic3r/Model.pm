@@ -1,6 +1,6 @@
 package Slic3r::Model;
 
-use List::Util qw(first max);
+use List::Util qw(first max any);
 use Slic3r::Geometry qw(X Y Z move_points);
 
 sub read_from_file {
@@ -70,6 +70,33 @@ sub set_material {
 sub print_info {
     my $self = shift;
     $_->print_info for @{$self->objects};
+}
+
+sub looks_like_multipart_object {
+    my ($self) = @_;
+    
+    return 0 if $self->objects_count == 1;
+    return 0 if any { $_->volumes_count > 1 } @{$self->objects};
+    return 0 if any { @{$_->config->get_keys} > 1 } @{$self->objects};
+    
+    my %heights = map { $_ => 1 } map $_->mesh->bounding_box->z_min, map @{$_->volumes}, @{$self->objects};
+    return scalar(keys %heights) > 1;
+}
+
+sub convert_multipart_object {
+    my ($self) = @_;
+    
+    my @objects = @{$self->objects};
+    my $object = $self->add_object(
+        input_file          => $objects[0]->input_file,
+    );
+    foreach my $v (map @{$_->volumes}, @objects) {
+        my $volume = $object->add_volume($v);
+        $volume->set_name($v->object->name);
+    }
+    $object->add_instance($_) for map @{$_->instances}, @objects;
+    
+    $self->delete_object($_) for reverse 0..($self->objects_count-2);
 }
 
 package Slic3r::Model::Material;
