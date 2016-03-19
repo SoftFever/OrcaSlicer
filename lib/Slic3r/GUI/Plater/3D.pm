@@ -39,10 +39,14 @@ sub new {
     $self->on_move(sub {
         my @volume_idxs = @_;
         
+        my %done = ();  # prevent moving instances twice
         foreach my $volume_idx (@volume_idxs) {
             my $volume = $self->volumes->[$volume_idx];
             my $obj_idx = $self->object_idx($volume_idx);
             my $instance_idx = $self->instance_idx($volume_idx);
+            next if $done{"${obj_idx}_${instance_idx}"};
+            $done{"${obj_idx}_${instance_idx}"} = 1;
+            
             my $model_object = $self->{model}->get_object($obj_idx);
             $model_object
                 ->instances->[$instance_idx]
