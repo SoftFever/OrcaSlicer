@@ -65,7 +65,7 @@ class PerimeterGenerator {
     Polygons _lower_slices_p;
     
     ExtrusionEntityCollection _traverse_loops(const PerimeterGeneratorLoops &loops,
-        Polylines &thin_walls) const;
+        ThickPolylines &thin_walls) const;
     ExtrusionEntityCollection _variable_width
         (const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const;
 };

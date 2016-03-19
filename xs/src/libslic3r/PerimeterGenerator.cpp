@@ -64,7 +64,7 @@ PerimeterGenerator::process()
             
             std::vector<PerimeterGeneratorLoops> contours(loop_number+1);    // depth => loops
             std::vector<PerimeterGeneratorLoops> holes(loop_number+1);       // depth => loops
-            Polylines thin_walls;
+            ThickPolylines thin_walls;
             
             // we loop one time more than needed in order to find gaps after the last perimeter was applied
             for (signed short i = 0; i <= loop_number+1; ++i) {  // outer loop is 0
@@ -96,16 +96,8 @@ PerimeterGenerator::process()
                         ExPolygons expp = offset2_ex(diffpp, -min_width/2, +min_width/2);
                         
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
-                        Polylines pp;
                         for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex)
-                            ex->medial_axis(ext_pwidth + ext_pspacing2, min_width, &pp);
-                        
-                        double threshold = ext_pwidth * 2;
-                        for (Polylines::const_iterator p = pp.begin(); p != pp.end(); ++p) {
-                            if (p->length() > threshold) {
-                                thin_walls.push_back(*p);
-                            }
-                        }
+                            ex->medial_axis(ext_pwidth + ext_pspacing2, min_width, &thin_walls);
                         
                         #ifdef DEBUG
                         printf("  %zu thin walls detected\n", thin_walls.size());
@@ -329,7 +321,7 @@ PerimeterGenerator::process()
 
 ExtrusionEntityCollection
 PerimeterGenerator::_traverse_loops(const PerimeterGeneratorLoops &loops,
-    Polylines &thin_walls) const
+    ThickPolylines &thin_walls) const
 {
     // loops is an arrayref of ::Loop objects
     // turn each one into an ExtrusionLoop object
@@ -403,15 +395,21 @@ PerimeterGenerator::_traverse_loops(const PerimeterGeneratorLoops &loops,
     }
     
     // append thin walls to the nearest-neighbor search (only for first iteration)
-    for (Polylines::const_iterator polyline = thin_walls.begin(); polyline != thin_walls.end(); ++polyline) {
-        ExtrusionPath path(erExternalPerimeter);
-        path.polyline   = *polyline;
-        path.mm3_per_mm = this->_mm3_per_mm;
-        path.width      = this->perimeter_flow.width;
-        path.height     = this->layer_height;
-        coll.append(path);
+    {
+        ExtrusionEntityCollection tw = this->_variable_width
+            (thin_walls, erExternalPerimeter, this->ext_perimeter_flow);
+        
+        const double threshold = this->ext_perimeter_flow.scaled_width() * 2;
+        for (size_t i = 0; i < tw.entities.size(); ++i) {
+            if (tw.entities[i]->length() < threshold) {
+                tw.remove(i);
+                --i;
+            }
+        }
+        
+        coll.append(tw.entities);
+        thin_walls.clear();
     }
-    thin_walls.clear();
     
     // sort entities into a new collection using a nearest-neighbor search,
     // preserving the original indices which are useful for detecting thin walls
