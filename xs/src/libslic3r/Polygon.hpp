@@ -23,7 +23,7 @@ class Polygon : public MultiPoint {
     Polygon() {};
     explicit Polygon(const Points &points): MultiPoint(points) {};
     Point last_point() const;
-    Lines lines() const;
+    virtual Lines lines() const;
     Polyline split_at_vertex(const Point &point) const;
     Polyline split_at_index(int index) const;
     Polyline split_at_first_point() const;

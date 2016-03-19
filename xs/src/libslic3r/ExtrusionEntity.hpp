@@ -104,6 +104,10 @@ class ExtrusionLoop : public ExtrusionEntity
     ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : role(role) {};
     ExtrusionLoop(const ExtrusionPaths &paths, ExtrusionLoopRole role = elrDefault)
         : paths(paths), role(role) {};
+    ExtrusionLoop(const ExtrusionPath &path, ExtrusionLoopRole role = elrDefault)
+        : role(role) {
+        this->paths.push_back(path);
+    };
     bool is_loop() const {
         return true;
     };

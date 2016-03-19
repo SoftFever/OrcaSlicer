@@ -5,12 +5,14 @@
 #include "Line.hpp"
 #include "MultiPoint.hpp"
 #include <string>
+#include <vector>
 
 namespace Slic3r {
 
-class ExPolygon;
 class Polyline;
+class ThickPolyline;
 typedef std::vector<Polyline> Polylines;
+typedef std::vector<ThickPolyline> ThickPolylines;
 
 class Polyline : public MultiPoint {
     public:
@@ -18,7 +20,7 @@ class Polyline : public MultiPoint {
     operator Line() const;
     Point last_point() const;
     Point leftmost_point() const;
-    Lines lines() const;
+    virtual Lines lines() const;
     void clip_end(double distance);
     void clip_start(double distance);
     void extend_end(double distance);
@@ -29,6 +31,13 @@ class Polyline : public MultiPoint {
     void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
     bool is_straight() const;
     std::string wkt() const;
+};
+
+class ThickPolyline : public Polyline {
+    public:
+    std::vector<coordf_t> width;
+    std::vector<bool> endpoints;
+    ThickLines thicklines() const;
 };
 
 }

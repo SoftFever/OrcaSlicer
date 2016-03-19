@@ -114,7 +114,7 @@ Polygons
 ExtrusionPath::grow() const
 {
     Polygons pp;
-    offset(this->polyline, &pp, +this->width/2);
+    offset(this->polyline, &pp, +scale_(this->width/2));
     return pp;
 }
 

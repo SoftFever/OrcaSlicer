@@ -9,7 +9,9 @@ namespace Slic3r {
 class Line;
 class Linef3;
 class Polyline;
+class ThickLine;
 typedef std::vector<Line> Lines;
+typedef std::vector<ThickLine> ThickLines;
 
 class Line
 {
@@ -39,6 +41,18 @@ class Line
     double direction() const;
     Vector vector() const;
     Vector normal() const;
+    void extend_end(double distance);
+    void extend_start(double distance);
+    bool intersection(const Line& line, Point* intersection) const;
+};
+
+class ThickLine : public Line
+{
+    public:
+    coordf_t a_width, b_width;
+    
+    ThickLine() : a_width(0), b_width(0) {};
+    ThickLine(Point _a, Point _b) : a_width(0), b_width(0), Line(_a, _b) {};
 };
 
 class Linef

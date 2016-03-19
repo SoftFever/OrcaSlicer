@@ -66,17 +66,8 @@ class PerimeterGenerator {
     
     ExtrusionEntityCollection _traverse_loops(const PerimeterGeneratorLoops &loops,
         Polylines &thin_walls) const;
-    ExtrusionEntityCollection _fill_gaps(double min, double max, double w,
-        const Polygons &gaps) const;
-};
-
-class PerimeterGeneratorGapSize {
-    public:
-    coord_t min;
-    coord_t max;
-    coord_t width;
-    PerimeterGeneratorGapSize(coord_t min, coord_t max, coord_t width)
-        : min(min), max(max), width(width) {};
+    ExtrusionEntityCollection _variable_width
+        (const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const;
 };
 
 }

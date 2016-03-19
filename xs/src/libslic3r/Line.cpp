@@ -163,6 +163,55 @@ Line::normal() const
     return Vector((this->b.y - this->a.y), -(this->b.x - this->a.x));
 }
 
+void
+Line::extend_end(double distance)
+{
+    // relocate last point by extending the segment by the specified length
+    Line line = *this;
+    line.reverse();
+    this->b = line.point_at(-distance);
+}
+
+void
+Line::extend_start(double distance)
+{
+    // relocate first point by extending the first segment by the specified length
+    this->a = this->point_at(-distance);
+}
+
+bool
+Line::intersection(const Line& line, Point* intersection) const
+{
+    double denom = ((line.b.y - line.a.y)*(this->b.x - this->a.x)) -
+                   ((line.b.x - line.a.x)*(this->b.y - this->a.y));
+
+    double nume_a = ((line.b.x - line.a.x)*(this->a.y - line.a.y)) -
+                    ((line.b.y - line.a.y)*(this->a.x - line.a.x));
+
+    double nume_b = ((this->b.x - this->a.x)*(this->a.y - line.a.y)) -
+                    ((this->b.y - this->a.y)*(this->a.x - line.a.x));
+    
+    if (fabs(denom) < EPSILON) {
+        if (fabs(nume_a) < EPSILON && fabs(nume_b) < EPSILON) {
+            return false; // coincident
+        }
+        return false; // parallel
+    }
+
+    double ua = nume_a / denom;
+    double ub = nume_b / denom;
+
+    if (ua >= 0 && ua <= 1.0f && ub >= 0 && ub <= 1.0f)
+    {
+        // Get the intersection point.
+        intersection->x = this->a.x + ua*(this->b.x - this->a.x);
+        intersection->y = this->a.y + ua*(this->b.y - this->a.y);
+        return true;
+    }
+    
+    return false;  // not intersecting
+}
+
 Pointf3
 Linef3::intersect_plane(double z) const
 {

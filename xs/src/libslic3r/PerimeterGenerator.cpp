@@ -1,6 +1,7 @@
 #include "PerimeterGenerator.hpp"
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntityCollection.hpp"
+#include <cmath>
 
 namespace Slic3r {
 
@@ -91,7 +92,7 @@ PerimeterGenerator::process()
                         
                         // the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         // (actually, something larger than that still may exist due to mitering or other causes)
-                        coord_t min_width = ext_pwidth / 2;
+                        coord_t min_width = scale_(this->ext_perimeter_flow.nozzle_diameter / 3);
                         ExPolygons expp = offset2_ex(diffpp, -min_width/2, +min_width/2);
                         
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
@@ -252,43 +253,37 @@ PerimeterGenerator::process()
         // fill gaps
         if (!gaps.empty()) {
             /*
-            if (false) {
-                require "Slic3r/SVG.pm";
-                Slic3r::SVG::output(
-                    "gaps.svg",
-                    expolygons => union_ex(\@gaps),
-                );
-            }
+            SVG svg("gaps.svg");
+            svg.draw(union_ex(gaps));
+            svg.Close();
             */
             
-            // where $pwidth < thickness < 2*$pspacing, infill with width = 2*$pwidth
-            // where 0.1*$pwidth < thickness < $pwidth, infill with width = 1*$pwidth
-            std::vector<PerimeterGeneratorGapSize> gap_sizes;
-            gap_sizes.push_back(PerimeterGeneratorGapSize(pwidth, 2*pspacing, 2*pwidth));
-            gap_sizes.push_back(PerimeterGeneratorGapSize(0.1*pwidth, pwidth, 1*pwidth));
+            // collapse 
+            double min = 0.1*pwidth * (1 - INSET_OVERLAP_TOLERANCE);
+            double max = 2*pspacing;
+            ExPolygons gaps_ex = diff_ex(
+                offset2(gaps, -min/2, +min/2),
+                offset2(gaps, -max/2, +max/2),
+                true
+            );
             
-            for (std::vector<PerimeterGeneratorGapSize>::const_iterator gap_size = gap_sizes.begin();
-                gap_size != gap_sizes.end(); ++gap_size) {
-                ExtrusionEntityCollection gap_fill = this->_fill_gaps(gap_size->min, 
-                    gap_size->max, unscale(gap_size->width), gaps);
-                this->gap_fill->append(gap_fill.entities);
+            ThickPolylines polylines;
+            for (ExPolygons::const_iterator ex = gaps_ex.begin(); ex != gaps_ex.end(); ++ex)
+                ex->medial_axis(max, min/2, &polylines);
+            
+            if (!polylines.empty()) {
+                ExtrusionEntityCollection gap_fill = this->_variable_width(polylines, 
+                    erGapFill, this->solid_infill_flow);
                 
-                // Make sure we don't infill narrow parts that are already gap-filled
-                // (we only consider this surface's gaps to reduce the diff() complexity).
-                // Growing actual extrusions ensures that gaps not filled by medial axis
-                // are not subtracted from fill surfaces (they might be too short gaps
-                // that medial axis skips but infill might join with other infill regions
-                // and use zigzag).
-                coord_t dist = gap_size->width/2;
-                Polygons filled;
-                for (ExtrusionEntitiesPtr::const_iterator it = gap_fill.entities.begin();
-                    it != gap_fill.entities.end(); ++it) {
-                    Polygons f;
-                    offset((*it)->as_polyline(), &f, dist);
-                    filled.insert(filled.end(), f.begin(), f.end());
-                }
-                last = diff(last, filled);
-                gaps = diff(gaps, filled);  // prevent more gap fill here
+                this->gap_fill->append(gap_fill.entities);
+            
+                /*  Make sure we don't infill narrow parts that are already gap-filled
+                    (we only consider this surface's gaps to reduce the diff() complexity).
+                    Growing actual extrusions ensures that gaps not filled by medial axis
+                    are not subtracted from fill surfaces (they might be too short gaps
+                    that medial axis skips but infill might join with other infill regions
+                    and use zigzag).  */
+                last = diff(last, gap_fill.grow());
             }
         }
         
@@ -454,51 +449,92 @@ PerimeterGenerator::_traverse_loops(const PerimeterGeneratorLoops &loops,
 }
 
 ExtrusionEntityCollection
-PerimeterGenerator::_fill_gaps(double min, double max, double w,
-    const Polygons &gaps) const
+PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const
 {
+    const double tolerance = scale_(0.1);
+    
     ExtrusionEntityCollection coll;
-    
-    min *= (1 - INSET_OVERLAP_TOLERANCE);
-    
-    ExPolygons curr = diff_ex(
-        offset2(gaps, -min/2, +min/2),
-        offset2(gaps, -max/2, +max/2),
-        true
-    );
-    
-    Polylines polylines;
-    for (ExPolygons::const_iterator ex = curr.begin(); ex != curr.end(); ++ex)
-        ex->medial_axis(max, min/2, &polylines);
-    if (polylines.empty())
-        return coll;
-    
-    #ifdef SLIC3R_DEBUG
-    if (!curr.empty())
-        printf("  %zu gaps filled with extrusion width = %f\n", curr.size(), w);
-    #endif
-    
-    //my $flow = $layerm->flow(FLOW_ROLE_SOLID_INFILL, 0, $w);
-    Flow flow(
-        w, this->layer_height, this->solid_infill_flow.nozzle_diameter
-    );
-    
-    double mm3_per_mm = flow.mm3_per_mm();
-    
-    for (Polylines::const_iterator p = polylines.begin(); p != polylines.end(); ++p) {
-        ExtrusionPath path(erGapFill);
-        path.polyline   = *p;
-        path.mm3_per_mm = mm3_per_mm;
-        path.width      = flow.width;
-        path.height     = this->layer_height;
+    for (ThickPolylines::const_iterator p = polylines.begin(); p != polylines.end(); ++p) {
+        ExtrusionPaths paths;
+        ExtrusionPath path(role);
+        ThickLines lines = p->thicklines();
+        for (size_t i = 0; i < lines.size(); ++i) {
+            const ThickLine& line = lines[i];
+            const double thickness_delta = fabs(line.a_width - line.b_width);
+            if (thickness_delta > tolerance) {
+                const unsigned short segments = ceil(thickness_delta / tolerance);
+                const coordf_t line_len = line.length();
+                const coordf_t seg_len = line_len / segments;
+                Points pp;
+                std::vector<coordf_t> width;
+                {
+                    pp.push_back(line.a);
+                    width.push_back(line.a_width);
+                    for (size_t j = 1; j < segments; ++j) {
+                        pp.push_back(line.point_at(j*seg_len));
+                        
+                        coordf_t w = line.a_width + (j*seg_len) * (line.b_width-line.a_width) / line_len;
+                        width.push_back(w);
+                        width.push_back(w);
+                    }
+                    pp.push_back(line.b);
+                    width.push_back(line.b_width);
+                    
+                    assert(pp.size() == segments + 1);
+                    assert(width.size() == segments*2);
+                }
+                
+                // delete this line and insert new ones
+                lines.erase(lines.begin() + i);
+                for (size_t j = 0; j < segments; ++j) {
+                    ThickLine new_line(pp[j], pp[j+1]);
+                    new_line.a_width = width[2*j];
+                    new_line.b_width = width[2*j+1];
+                    lines.insert(lines.begin() + i + j, new_line);
+                }
+                
+                --i;
+                continue;
+            }
+            
+            const double w = fmax(line.a_width, line.b_width);
+            
+            if (path.polyline.points.empty()) {
+                path.polyline.append(line.a);
+                path.polyline.append(line.b);
+                
+                flow.width = unscale(w);
+                #ifdef SLIC3R_DEBUG
+                printf("  filling %f gap\n", flow.width);
+                #endif
+                path.mm3_per_mm  = flow.mm3_per_mm();
+                path.width       = flow.width;
+                path.height      = flow.height;
+            } else if (fabs(flow.width - w) <= tolerance) {
+                // the width difference between this line and the current flow width is 
+                // within the accepted tolerance
+                
+                path.polyline.append(line.b);
+            } else {
+                // we need to initialize a new line
+                paths.push_back(path);
+                path = ExtrusionPath(role);
+                --i;
+            }
+        }
+        if (!path.polyline.points.empty())
+            paths.push_back(path);
         
-        if (p->is_valid() && p->first_point().coincides_with(p->last_point())) {
-            // since medial_axis() now returns only Polyline objects, detect loops here
-            ExtrusionLoop loop;
-            loop.paths.push_back(path);
-            coll.append(loop);
-        } else {
-            coll.append(path);
+        // loop through generated paths
+        for (ExtrusionPaths::const_iterator p = paths.begin(); p != paths.end(); ++p) {
+            if (p->polyline.is_valid()) {
+                if (p->first_point().coincides_with(p->last_point())) {
+                    // since medial_axis() now returns only Polyline objects, detect loops here
+                    coll.append(ExtrusionLoop(*p));
+                } else {
+                    coll.append(*p);
+                }
+            }
         }
     }
     

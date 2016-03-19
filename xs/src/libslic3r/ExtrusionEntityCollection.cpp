@@ -101,6 +101,20 @@ ExtrusionEntityCollection::append(const ExtrusionPaths &paths)
         this->append(*path);
 }
 
+void
+ExtrusionEntityCollection::replace(size_t i, const ExtrusionEntity &entity)
+{
+    delete this->entities[i];
+    this->entities[i] = entity.clone();
+}
+
+void
+ExtrusionEntityCollection::remove(size_t i)
+{
+    delete this->entities[i];
+    this->entities.erase(this->entities.begin() + i);
+}
+
 ExtrusionEntityCollection
 ExtrusionEntityCollection::chained_path(bool no_reverse, std::vector<size_t>* orig_indices) const
 {

@@ -5,12 +5,13 @@
 #include "PolylineCollection.hpp"
 #include "clipper.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <list>
 #include <map>
 #include <set>
+#include <utility>
 #include <vector>
-#include <assert.h>
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"
@@ -289,19 +290,8 @@ arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf* bb)
     return positions;
 }
 
-Line
-MedialAxis::edge_to_line(const VD::edge_type &edge) const
-{
-    Line line;
-    line.a.x = edge.vertex0()->x();
-    line.a.y = edge.vertex0()->y();
-    line.b.x = edge.vertex1()->x();
-    line.b.y = edge.vertex1()->y();
-    return line;
-}
-
 void
-MedialAxis::build(Polylines* polylines)
+MedialAxis::build(ThickPolylines* polylines)
 {
     /*
     // build bounding box (we use it for clipping infinite segments)
@@ -317,7 +307,7 @@ MedialAxis::build(Polylines* polylines)
         for (VD::const_edge_iterator edge = this->vd.edges().begin(); edge != this->vd.edges().end(); ++edge) {
             if (edge->is_infinite()) continue;
             
-            Polyline polyline;
+            ThickPolyline polyline;
             polyline.points.push_back(Point( edge->vertex0()->x(), edge->vertex0()->y() ));
             polyline.points.push_back(Point( edge->vertex1()->x(), edge->vertex1()->y() ));
             polylines->push_back(polyline);
@@ -373,7 +363,7 @@ MedialAxis::build(Polylines* polylines)
         assert(vertex_edges[v].size() == 1);
         edge_t* edge = *vertex_edges[v].begin();
         
-        if (!this->is_valid_edge(*edge)) {
+        if (!this->validate_edge(*edge)) {
             // if edge is not valid, erase it and its twin from edge list
             (void)this->edges.erase(edge);
             (void)this->edges.erase(edge->twin());
@@ -400,22 +390,36 @@ MedialAxis::build(Polylines* polylines)
         edge_t &edge = **this->edges.begin();
         
         // start a polyline
-        Polyline polyline;
+        ThickPolyline polyline;
         polyline.points.push_back(Point( edge.vertex0()->x(), edge.vertex0()->y() ));
         polyline.points.push_back(Point( edge.vertex1()->x(), edge.vertex1()->y() ));
+        polyline.width.push_back(this->thickness[&edge].first);
+        polyline.width.push_back(this->thickness[&edge].second);
         
         // remove this edge and its twin from the available edges
         (void)this->edges.erase(&edge);
         (void)this->edges.erase(edge.twin());
         
         // get next points
-        this->process_edge_neighbors(edge, &polyline.points);
+        this->process_edge_neighbors(edge, &polyline.points, &polyline.width, &polyline.endpoints);
         
         // get previous points
         {
             Points pp;
-            this->process_edge_neighbors(*edge.twin(), &pp);
+            std::vector<coordf_t> width;
+            std::vector<bool> endpoints;
+            this->process_edge_neighbors(*edge.twin(), &pp, &width, &endpoints);
             polyline.points.insert(polyline.points.begin(), pp.rbegin(), pp.rend());
+            polyline.width.insert(polyline.width.begin(), width.rbegin(), width.rend());
+            polyline.endpoints.insert(polyline.endpoints.begin(), endpoints.rbegin(), endpoints.rend());
+        }
+        
+        assert(polyline.width.size() == polyline.points.size()*2 - 2);
+        assert(polyline.endpoints.size() == polyline.points.size());
+        
+        if (polyline.first_point().coincides_with(polyline.last_point())) {
+            polyline.endpoints.front() = false;
+            polyline.endpoints.back() = false;
         }
         
         // append polyline to result
@@ -424,7 +428,16 @@ MedialAxis::build(Polylines* polylines)
 }
 
 void
-MedialAxis::process_edge_neighbors(const VD::edge_type& edge, Points* points)
+MedialAxis::build(Polylines* polylines)
+{
+    ThickPolylines tp;
+    this->build(&tp);
+    polylines->insert(polylines->end(), tp.begin(), tp.end());
+}
+
+void
+MedialAxis::process_edge_neighbors(const VD::edge_type& edge, Points* points,
+    std::vector<coordf_t>* width, std::vector<bool>* endpoints)
 {
     // Since rot_next() works on the edge starting point but we want
     // to find neighbors on the ending point, we just swap edge with
@@ -439,18 +452,26 @@ MedialAxis::process_edge_neighbors(const VD::edge_type& edge, Points* points)
     
     // if we have a single neighbor then we can continue recursively
     if (neighbors.size() == 1) {
+        endpoints->push_back(false);
         const VD::edge_type& neighbor = *neighbors.front();
         points->push_back(Point( neighbor.vertex1()->x(), neighbor.vertex1()->y() ));
+        width->push_back(this->thickness[&neighbor].first);
+        width->push_back(this->thickness[&neighbor].second);
         (void)this->edges.erase(&neighbor);
         (void)this->edges.erase(neighbor.twin());
-        this->process_edge_neighbors(neighbor, points);
+        this->process_edge_neighbors(neighbor, points, width, endpoints);
+    } else if (neighbors.size() == 0) {
+        endpoints->push_back(true);
+    } else {
+        // T-shaped or star-shaped joint
+        endpoints->push_back(false);
     }
 }
 
 bool
-MedialAxis::is_valid_edge(const VD::edge_type& edge) const
+MedialAxis::validate_edge(const VD::edge_type& edge)
 {
-    /* If the cells sharing this edge have a common vertex, we're not interested
+    /* If the cells sharing this edge have a common vertex, we're not (probably) interested
        in this edge. Why? Because it means that the edge lies on the bisector of
        two contiguous input lines and it was included in the Voronoi graph because
        it's the locus of centers of circles tangent to both vertices. Due to the 
@@ -481,30 +502,31 @@ MedialAxis::is_valid_edge(const VD::edge_type& edge) const
     // and we might need to skip the edge since it's not really part of
     // our skeleton
     
-    // get perpendicular distance of each edge vertex to the segment(s)
-    double dist0 = segment1.a.distance_to(segment2.b);
-    double dist1 = segment1.b.distance_to(segment2.a);
+    /*  Calculate perpendicular distance. We consider segment2 instead of segment1 
+        because our Voronoi edge is part of a CCW sequence going around its Voronoi cell
+        (segment).
+        This means that such segment is on the left on our edge, and goes backwards.
+        So we use the cell of the twin edge, which is located on the right of our edge
+        and goes in the same direction as it. This way we can map dist0 and dist1 
+        correctly.  */
+    const Line line(
+        Point( edge.vertex0()->x(), edge.vertex0()->y() ),
+        Point( edge.vertex1()->x(), edge.vertex1()->y() )
+    );
+    coordf_t dist0 = segment2.a.perp_distance_to(line)*2;
+    coordf_t dist1 = segment2.b.perp_distance_to(line)*2;
     
-    /*
-    Line line = this->edge_to_line(edge);
-    double diff = fabs(dist1 - dist0);
-    double dist_between_segments1 = segment1.a.distance_to(segment2);
-    double dist_between_segments2 = segment1.b.distance_to(segment2);
-    printf("w = %f/%f, dist0 = %f, dist1 = %f, diff = %f, seg1len = %f, seg2len = %f, edgelen = %f, s2s = %f / %f\n",
-        unscale(this->max_width), unscale(this->min_width),
-        unscale(dist0), unscale(dist1), unscale(diff),
-        unscale(segment1.length()), unscale(segment2.length()),
-        unscale(line.length()),
-        unscale(dist_between_segments1), unscale(dist_between_segments2)
-        );
-    */
-
     // if this edge is the centerline for a very thin area, we might want to skip it
     // in case the area is too thin
     if (dist0 < this->min_width && dist1 < this->min_width) {
         //printf(" => too thin, skipping\n");
         return false;
     }
+    
+    if (this->expolygon != NULL && !this->expolygon->contains(line))
+        return false;
+    
+    this->thickness[&edge] = std::make_pair(dist0, dist1);
     
     return true;
 }

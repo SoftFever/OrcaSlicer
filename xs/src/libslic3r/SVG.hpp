@@ -24,6 +24,7 @@ class SVG
     void draw(const Polygons &polygons, std::string fill = "grey");
     void draw(const Polyline &polyline, std::string stroke = "black");
     void draw(const Polylines &polylines, std::string stroke = "black");
+    void draw(const ThickPolylines &polylines, std::string stroke = "black");
     void draw(const Point &point, std::string fill = "black", unsigned int radius = 3);
     void draw(const Points &points, std::string fill = "black", unsigned int radius = 3);
     void Close();

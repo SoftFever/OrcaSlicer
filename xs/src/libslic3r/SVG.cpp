@@ -6,7 +6,7 @@
 namespace Slic3r {
 
 SVG::SVG(const char* filename)
-    : arrows(true), fill("grey"), stroke("black"), filename(filename)
+    : arrows(false), fill("grey"), stroke("black"), filename(filename)
 {
     this->f = fopen(filename, "w");
     fprintf(this->f,
@@ -90,7 +90,14 @@ void
 SVG::draw(const Polylines &polylines, std::string stroke)
 {
     for (Polylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
-        this->draw(*it, fill);
+        this->draw(*it, stroke);
+}
+
+void
+SVG::draw(const ThickPolylines &polylines, std::string stroke)
+{
+    for (ThickPolylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
+        this->draw((Polyline)*it, stroke);
 }
 
 void

@@ -3,6 +3,7 @@
 
 #include "libslic3r.h"
 #include "BoundingBox.hpp"
+#include "ExPolygon.hpp"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
@@ -43,18 +44,22 @@ class MedialAxis {
     public:
     Points points;
     Lines lines;
+    const ExPolygon* expolygon;
     double max_width;
     double min_width;
-    MedialAxis(double _max_width, double _min_width) : max_width(_max_width), min_width(_min_width) {};
+    MedialAxis(double _max_width, double _min_width)
+        : max_width(_max_width), min_width(_min_width), expolygon(NULL) {};
+    void build(ThickPolylines* polylines);
     void build(Polylines* polylines);
     
     private:
     typedef voronoi_diagram<double> VD;
     VD vd;
     std::set<const VD::edge_type*> edges;
-    Line edge_to_line(const VD::edge_type &edge) const;
-    void process_edge_neighbors(const voronoi_diagram<double>::edge_type& edge, Points* points);
-    bool is_valid_edge(const voronoi_diagram<double>::edge_type& edge) const;
+    std::map<const VD::edge_type*, std::pair<coordf_t,coordf_t> > thickness;
+    void process_edge_neighbors(const voronoi_diagram<double>::edge_type& edge,
+        Points* points, std::vector<coordf_t>* width, std::vector<bool>* endpoints);
+    bool validate_edge(const voronoi_diagram<double>::edge_type& edge);
     const Line& retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
 };
 

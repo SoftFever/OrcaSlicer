@@ -83,17 +83,18 @@ void
 Polyline::extend_end(double distance)
 {
     // relocate last point by extending the last segment by the specified length
-    Line line(this->points[ this->points.size()-2 ], this->points.back());
-    this->points.pop_back();
-    this->points.push_back(line.point_at(line.length() + distance));
+    Line line(
+        this->points.back(),
+        *(this->points.end() - 2)
+    );
+    this->points.back() = line.point_at(-distance);
 }
 
 void
 Polyline::extend_start(double distance)
 {
     // relocate first point by extending the first segment by the specified length
-    Line line(this->points[1], this->points.front());
-    this->points[0] = line.point_at(line.length() + distance);
+    this->points.front() = Line(this->points.front(), this->points[1]).point_at(-distance);
 }
 
 /* this method returns a collection of points picked on the polygon contour
@@ -216,6 +217,22 @@ Polyline::wkt() const
     }
     wkt << "))";
     return wkt.str();
+}
+
+ThickLines
+ThickPolyline::thicklines() const
+{
+    ThickLines lines;
+    if (this->points.size() >= 2) {
+        lines.reserve(this->points.size() - 1);
+        for (size_t i = 0; i < this->points.size()-1; ++i) {
+            ThickLine line(this->points[i], this->points[i+1]);
+            line.a_width = this->width[2*i];
+            line.b_width = this->width[2*i+1];
+            lines.push_back(line);
+        }
+    }
+    return lines;
 }
 
 }

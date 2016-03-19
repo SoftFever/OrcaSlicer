@@ -6,7 +6,6 @@
 #include "ClipperUtils.hpp"
 #include "polypartition.h"
 #include "poly2tri/poly2tri.h"
-
 #include <algorithm>
 #include <list>
 
@@ -171,10 +170,11 @@ ExPolygon::simplify(double tolerance, ExPolygons* expolygons) const
 }
 
 void
-ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines) const
+ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polylines) const
 {
     // init helper object
     Slic3r::Geometry::MedialAxis ma(max_width, min_width);
+    ma.expolygon = this;
     
     // populate list of segments for the Voronoi diagram
     ma.lines = this->contour.lines();
@@ -184,39 +184,69 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     }
     
     // compute the Voronoi diagram
-    Polylines pp;
+    ThickPolylines pp;
     ma.build(&pp);
     
-    // clip segments to our expolygon area
-    // (do this before extending endpoints as external segments coule be extended into
-    // expolygon, this leaving wrong things inside)
-    pp = intersection(pp, *this);
+    /*
+    SVG svg("medial_axis.svg");
+    svg.draw(*this);
+    svg.draw(pp);
+    svg.Close();
+    */
     
-    // extend initial and final segments of each polyline (they will be clipped)
-    // unless they represent closed loops
-    for (Polylines::iterator polyline = pp.begin(); polyline != pp.end(); ++polyline) {
-        if (polyline->points.front().distance_to(polyline->points.back()) < min_width) continue;
-        // TODO: we should *not* extend endpoints where other polylines start/end
-        // (such as T joints, which are returned as three polylines by MedialAxis)
-        polyline->extend_start(max_width);
-        polyline->extend_end(max_width);
-    }
-    
-    // clip again after extending endpoints to prevent them from exceeding the expolygon boundaries
-    pp = intersection(pp, *this);
-    
-    // remove too short polylines
-    // (we can't do this check before endpoints extension and clipping because we don't
-    // know how long will the endpoints be extended since it depends on polygon thickness
-    // which is variable - extension will be <= max_width/2 on each side)
     for (size_t i = 0; i < pp.size(); ++i) {
-        if (pp[i].length() < max_width) {
+        ThickPolyline& polyline = pp[i];
+        
+        // extend initial and final segments of each polyline if they're actual endpoints
+        /* We assign new endpoints to temporary variables because in case of a single-line
+           polyline, after we extend the start point it will be caught by the intersection()
+           call, so we keep the inner point until we perform the second intersection() as well */
+        Point new_front = polyline.points.front();
+        Point new_back  = polyline.points.back();
+        if (polyline.endpoints.front() && !this->has_boundary_point(new_front)) {
+            Line line(polyline.points.front(), polyline.points[1]);
+            
+            // prevent the line from touching on the other side, otherwise intersection() might return that solution
+            if (polyline.points.size() == 2) line.b = line.midpoint();
+            
+            line.extend_start(max_width);
+            (void)this->contour.intersection(line, &new_front);
+        }
+        if (polyline.endpoints.back() && !this->has_boundary_point(new_back)) {
+            Line line(
+                *(polyline.points.end() - 2),
+                polyline.points.back()
+            );
+            
+            // prevent the line from touching on the other side, otherwise intersection() might return that solution
+            if (polyline.points.size() == 2) line.a = line.midpoint();
+            line.extend_end(max_width);
+            
+            (void)this->contour.intersection(line, &new_back);
+        }
+        polyline.points.front() = new_front;
+        polyline.points.back()  = new_back;
+        
+        /*  remove too short polylines
+            (we can't do this check before endpoints extension and clipping because we don't
+            know how long will the endpoints be extended since it depends on polygon thickness
+            which is variable - extension will be <= max_width/2 on each side)  */
+        if (polyline.length() < max_width) {
             pp.erase(pp.begin() + i);
             --i;
+            continue;
         }
     }
     
     polylines->insert(polylines->end(), pp.begin(), pp.end());
+}
+
+void
+ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines) const
+{
+    ThickPolylines tp;
+    this->medial_axis(max_width, min_width, &tp);
+    polylines->insert(polylines->end(), tp.begin(), tp.end());
 }
 
 void

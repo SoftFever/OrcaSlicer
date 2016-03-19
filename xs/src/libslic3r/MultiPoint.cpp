@@ -118,6 +118,16 @@ MultiPoint::append(const Points::const_iterator &begin, const Points::const_iter
     this->points.insert(this->points.end(), begin, end);
 }
 
+bool
+MultiPoint::intersection(const Line& line, Point* intersection) const
+{
+    Lines lines = this->lines();
+    for (Lines::const_iterator it = lines.begin(); it != lines.end(); ++it) {
+        if (it->intersection(line, intersection)) return true;
+    }
+    return false;
+}
+
 Points
 MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 {
