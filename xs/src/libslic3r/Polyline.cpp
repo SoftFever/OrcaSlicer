@@ -4,6 +4,7 @@
 #include "Line.hpp"
 #include "Polygon.hpp"
 #include <iostream>
+#include <utility>
 
 namespace Slic3r {
 
@@ -233,6 +234,14 @@ ThickPolyline::thicklines() const
         }
     }
     return lines;
+}
+
+void
+ThickPolyline::reverse()
+{
+    Polyline::reverse();
+    std::reverse(this->width.begin(), this->width.end());
+    std::swap(this->endpoints.first, this->endpoints.second);
 }
 
 }

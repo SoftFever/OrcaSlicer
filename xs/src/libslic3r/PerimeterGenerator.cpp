@@ -25,7 +25,6 @@ PerimeterGenerator::process()
     
     // solid infill
     coord_t ispacing            = this->solid_infill_flow.scaled_spacing();
-    coord_t gap_area_threshold  = pwidth * pwidth;
     
     // Calculate the minimum required spacing between two adjacent traces.
     // This should be equal to the nominal flow spacing but we experiment
@@ -137,16 +136,11 @@ PerimeterGenerator::process()
                         // not using safety offset here would "detect" very narrow gaps
                         // (but still long enough to escape the area threshold) that gap fill
                         // won't be able to fill but we'd still remove from infill area
-                        ExPolygons diff_expp = diff_ex(
+                        Polygons diff_pp = diff(
                             offset(last, -0.5*distance),
                             offset(offsets, +0.5*distance + 10)  // safety offset
                         );
-                        for (ExPolygons::const_iterator ex = diff_expp.begin(); ex != diff_expp.end(); ++ex) {
-                            if (fabs(ex->area()) >= gap_area_threshold) {
-                                Polygons pp = *ex;
-                                gaps.insert(gaps.end(), pp.begin(), pp.end());
-                            }
-                        }
+                        gaps.insert(gaps.end(), diff_pp.begin(), diff_pp.end());
                     }
                 }
                 
@@ -396,17 +390,9 @@ PerimeterGenerator::_traverse_loops(const PerimeterGeneratorLoops &loops,
     }
     
     // append thin walls to the nearest-neighbor search (only for first iteration)
-    {
+    if (!thin_walls.empty()) {
         ExtrusionEntityCollection tw = this->_variable_width
             (thin_walls, erExternalPerimeter, this->ext_perimeter_flow);
-        
-        const double threshold = this->ext_perimeter_flow.scaled_width() * 2;
-        for (size_t i = 0; i < tw.entities.size(); ++i) {
-            if (tw.entities[i]->length() < threshold) {
-                tw.remove(i);
-                --i;
-            }
-        }
         
         coll.append(tw.entities);
         thin_walls.clear();
@@ -457,12 +443,16 @@ PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRo
         ExtrusionPaths paths;
         ExtrusionPath path(role);
         ThickLines lines = p->thicklines();
+        
         for (size_t i = 0; i < lines.size(); ++i) {
             const ThickLine& line = lines[i];
-            const double thickness_delta = fabs(line.a_width - line.b_width);
+            
+            const coordf_t line_len = line.length();
+            if (line_len < SCALED_EPSILON) continue;
+            
+            double thickness_delta = fabs(line.a_width - line.b_width);
             if (thickness_delta > tolerance) {
                 const unsigned short segments = ceil(thickness_delta / tolerance);
-                const coordf_t line_len = line.length();
                 const coordf_t seg_len = line_len / segments;
                 Points pp;
                 std::vector<coordf_t> width;
@@ -509,30 +499,30 @@ PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRo
                 path.mm3_per_mm  = flow.mm3_per_mm();
                 path.width       = flow.width;
                 path.height      = flow.height;
-            } else if (fabs(flow.width - w) <= tolerance) {
-                // the width difference between this line and the current flow width is 
-                // within the accepted tolerance
-                
-                path.polyline.append(line.b);
             } else {
-                // we need to initialize a new line
-                paths.push_back(path);
-                path = ExtrusionPath(role);
-                --i;
+                thickness_delta = fabs(scale_(flow.width) - w);
+                if (thickness_delta <= tolerance) {
+                    // the width difference between this line and the current flow width is 
+                    // within the accepted tolerance
+                
+                    path.polyline.append(line.b);
+                } else {
+                    // we need to initialize a new line
+                    paths.push_back(path);
+                    path = ExtrusionPath(role);
+                    --i;
+                }
             }
         }
-        if (!path.polyline.points.empty())
+        if (path.polyline.is_valid())
             paths.push_back(path);
         
-        // loop through generated paths
-        for (ExtrusionPaths::const_iterator p = paths.begin(); p != paths.end(); ++p) {
-            if (p->polyline.is_valid()) {
-                if (p->first_point().coincides_with(p->last_point())) {
-                    // since medial_axis() now returns only Polyline objects, detect loops here
-                    coll.append(ExtrusionLoop(*p));
-                } else {
-                    coll.append(*p);
-                }
+        // append paths to collection
+        if (!paths.empty()) {
+            if (paths.front().first_point().coincides_with(paths.back().last_point())) {
+                coll.append(ExtrusionLoop(paths));
+            } else {
+                coll.append(paths);
             }
         }
     }

@@ -42,7 +42,6 @@ Pointfs arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBo
 
 class MedialAxis {
     public:
-    Points points;
     Lines lines;
     const ExPolygon* expolygon;
     double max_width;
@@ -55,12 +54,12 @@ class MedialAxis {
     private:
     typedef voronoi_diagram<double> VD;
     VD vd;
-    std::set<const VD::edge_type*> edges;
+    std::set<const VD::edge_type*> edges, valid_edges;
     std::map<const VD::edge_type*, std::pair<coordf_t,coordf_t> > thickness;
-    void process_edge_neighbors(const voronoi_diagram<double>::edge_type& edge,
-        Points* points, std::vector<coordf_t>* width, std::vector<bool>* endpoints);
-    bool validate_edge(const voronoi_diagram<double>::edge_type& edge);
-    const Line& retrieve_segment(const voronoi_diagram<double>::cell_type& cell) const;
+    void process_edge_neighbors(const VD::edge_type* edge, ThickPolyline* polyline);
+    bool validate_edge(const VD::edge_type* edge);
+    const Line& retrieve_segment(const VD::cell_type* cell) const;
+    const Point& retrieve_endpoint(const VD::cell_type* cell) const;
 };
 
 } }

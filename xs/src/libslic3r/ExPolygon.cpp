@@ -7,6 +7,7 @@
 #include "polypartition.h"
 #include "poly2tri/poly2tri.h"
 #include <algorithm>
+#include <cassert>
 #include <list>
 
 namespace Slic3r {
@@ -194,6 +195,7 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
     svg.Close();
     */
     
+    bool removed = false;
     for (size_t i = 0; i < pp.size(); ++i) {
         ThickPolyline& polyline = pp[i];
         
@@ -203,7 +205,7 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
            call, so we keep the inner point until we perform the second intersection() as well */
         Point new_front = polyline.points.front();
         Point new_back  = polyline.points.back();
-        if (polyline.endpoints.front() && !this->has_boundary_point(new_front)) {
+        if (polyline.endpoints.first && !this->has_boundary_point(new_front)) {
             Line line(polyline.points.front(), polyline.points[1]);
             
             // prevent the line from touching on the other side, otherwise intersection() might return that solution
@@ -212,7 +214,7 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
             line.extend_start(max_width);
             (void)this->contour.intersection(line, &new_front);
         }
-        if (polyline.endpoints.back() && !this->has_boundary_point(new_back)) {
+        if (polyline.endpoints.second && !this->has_boundary_point(new_back)) {
             Line line(
                 *(polyline.points.end() - 2),
                 polyline.points.back()
@@ -230,11 +232,51 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
         /*  remove too short polylines
             (we can't do this check before endpoints extension and clipping because we don't
             know how long will the endpoints be extended since it depends on polygon thickness
-            which is variable - extension will be <= max_width/2 on each side)  */
-        if (polyline.length() < max_width) {
+            which is variable - extension will be <= max_width/2 on each side)
+            Maybe instead of using max_width we should use max_element(polyline.width)  */
+        if ((polyline.endpoints.first || polyline.endpoints.second)
+            && polyline.length() < max_width*2) {
             pp.erase(pp.begin() + i);
             --i;
+            removed = true;
             continue;
+        }
+    }
+    
+    /*  If we removed any short polylines we now try to connect consecutive polylines
+        in order to allow loop detection. Note that this algorithm is greedier than 
+        MedialAxis::process_edge_neighbors() as it will connect random pairs of 
+        polylines even when more than two start from the same point. This has no 
+        drawbacks since we optimize later using nearest-neighbor which would do the 
+        same, but should we use a more sophisticated optimization algorithm we should
+        not connect polylines when more than two meet.  */
+    if (removed) {
+        for (size_t i = 0; i < pp.size(); ++i) {
+            ThickPolyline& polyline = pp[i];
+            if (polyline.endpoints.first && polyline.endpoints.second) continue; // optimization
+            
+            // find another polyline starting here
+            for (size_t j = i+1; j < pp.size(); ++j) {
+                ThickPolyline& other = pp[j];
+                if (polyline.last_point().coincides_with(other.last_point())) {
+                    other.reverse();
+                } else if (polyline.first_point().coincides_with(other.last_point())) {
+                    polyline.reverse();
+                    other.reverse();
+                } else if (polyline.first_point().coincides_with(other.first_point())) {
+                    polyline.reverse();
+                } else if (!polyline.last_point().coincides_with(other.first_point())) {
+                    continue;
+                }
+                
+                polyline.points.insert(polyline.points.end(), other.points.begin() + 1, other.points.end());
+                polyline.width.insert(polyline.width.end(), other.width.begin(), other.width.end());
+                polyline.endpoints.second = other.endpoints.second;
+                assert(polyline.width.size() == polyline.points.size()*2 - 2);
+                
+                pp.erase(pp.begin() + j);
+                j = i;  // restart search from i+1
+            }
         }
     }
     

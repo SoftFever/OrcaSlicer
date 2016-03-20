@@ -61,7 +61,7 @@ if (0) {
         [160, 140],
     );
     my $expolygon = Slic3r::ExPolygon->new($square, $hole_in_square);
-    my $res = $expolygon->medial_axis(scale 1, scale 0.5);
+    my $res = $expolygon->medial_axis(scale 40, scale 0.5);
     is scalar(@$res), 1, 'medial axis of a square shape is a single path';
     isa_ok $res->[0], 'Slic3r::Polyline', 'medial axis result is a polyline';
     ok $res->[0]->first_point->coincides_with($res->[0]->last_point), 'polyline forms a closed loop';
@@ -76,7 +76,7 @@ if (0) {
         [120, 200],
         [100, 200],
     ));
-    my $res = $expolygon->medial_axis(scale 1, scale 0.5);
+    my $res = $expolygon->medial_axis(scale 20, scale 0.5);
     is scalar(@$res), 1, 'medial axis of a narrow rectangle is a single line';
     ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has reasonable length';
     
@@ -101,7 +101,7 @@ if (0) {
         [112, 200],
         [108, 200],
     ));
-    my $res = $expolygon->medial_axis(scale 1, scale 0.5);
+    my $res = $expolygon->medial_axis(scale 20, scale 0.5);
     is scalar(@$res), 1, 'medial axis of a narrow trapezoid is a single line';
     ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has reasonable length';
 }
@@ -115,7 +115,7 @@ if (0) {
         [200, 200],
         [100, 200],
     ));
-    my $res = $expolygon->medial_axis(scale 1, scale 0.5);
+    my $res = $expolygon->medial_axis(scale 20, scale 0.5);
     is scalar(@$res), 1, 'medial axis of a L shape is a single polyline';
     my $len = unscale($res->[0]->length) + 20;  # 20 is the thickness of the expolygon, which is subtracted from the ends
     ok $len > 80*2 && $len < 100*2, 'medial axis has reasonable length';
@@ -150,7 +150,6 @@ if (0) {
         [91294454,31032190],[11294481,31032190],[11294481,29967810],[44969182,29967810],[89909960,29967808],[91294454,29967808]
     ));
     my $polylines = $expolygon->medial_axis(1871238, 500000);
-    
     is scalar(@$polylines), 1, 'medial axis is a single polyline';
     my $polyline = $polylines->[0];
     

@@ -36,8 +36,10 @@ class Polyline : public MultiPoint {
 class ThickPolyline : public Polyline {
     public:
     std::vector<coordf_t> width;
-    std::vector<bool> endpoints;
+    std::pair<bool,bool> endpoints;
+    ThickPolyline() : endpoints(std::make_pair(false, false)) {};
     ThickLines thicklines() const;
+    void reverse();
 };
 
 }
