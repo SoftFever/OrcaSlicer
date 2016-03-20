@@ -164,6 +164,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionBool                support_material_synchronize_layers;
     ConfigOptionInt                 support_material_threshold;
     ConfigOptionBool                support_material_with_sheath;
+    ConfigOptionFloat               support_material_xy_spacing;
     ConfigOptionFloat               xy_size_compensation;
     
     PrintObjectConfig(bool initialize = true) : StaticPrintConfig() {
@@ -198,6 +199,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         OPT_PTR(support_material_spacing);
         OPT_PTR(support_material_speed);
         OPT_PTR(support_material_synchronize_layers);
+        OPT_PTR(support_material_xy_spacing);
         OPT_PTR(support_material_threshold);
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);

@@ -523,6 +523,7 @@ sub build {
         max_volumetric_extrusion_rate_slope_positive max_volumetric_extrusion_rate_slope_negative
         perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed 
         solid_infill_speed top_solid_infill_speed support_material_speed 
+        support_material_xy_spacing
         support_material_interface_speed bridge_speed gap_fill_speed
         travel_speed
         first_layer_speed
@@ -648,6 +649,7 @@ sub build {
             $optgroup->append_single_option_line('support_material_interface_spacing');
             $optgroup->append_single_option_line('support_material_interface_contact_loops');
             $optgroup->append_single_option_line('support_material_buildplate_only');
+            $optgroup->append_single_option_line('support_material_xy_spacing');
             $optgroup->append_single_option_line('dont_support_bridges');
             $optgroup->append_single_option_line('support_material_synchronize_layers');
         }

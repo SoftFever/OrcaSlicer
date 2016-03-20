@@ -1121,6 +1121,13 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "support-material!";
     def->default_value = new ConfigOptionBool(false);
 
+    def = this->add("support_material_xy_spacing", coFloat);
+    def->label = "Extra separation between part and support (mm)";
+    def->category = "Support material";
+    def->tooltip = "Add offset to support material separation (0 is 1 extrusion width).";
+    def->cli = "support-material-xy-spacing=f";
+    def->default_value = new ConfigOptionFloat(0.0);
+
     def = this->add("support_material_angle", coInt);
     def->label = "Pattern angle";
     def->category = "Support material";
