@@ -2,6 +2,7 @@
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include <cmath>
+#include <cassert>
 
 namespace Slic3r {
 
