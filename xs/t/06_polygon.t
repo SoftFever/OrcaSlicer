@@ -5,7 +5,7 @@ use warnings;
 
 use List::Util qw(first);
 use Slic3r::XS;
-use Test::More tests => 20;
+use Test::More tests => 21;
 
 use constant PI => 4 * atan2(1, 1);
 
@@ -71,6 +71,17 @@ ok $cw_polygon->contains_point(Slic3r::Point->new(150,150)), 'cw contains_point'
 
 {
     is_deeply $polygon->centroid->pp, [150,150], 'centroid';
+}
+
+{
+    my $polygon = Slic3r::Polygon->new(
+        [50000000,  100000000],
+        [300000000, 102000000],
+        [50000000,  104000000],
+    );
+    my $line = Slic3r::Line->new([175992032,102000000], [47983964,102000000]);
+    my $intersection = $polygon->intersection($line);
+    is_deeply $intersection->pp, [50000000, 102000000], 'polygon-line intersection';
 }
 
 # this is not a test: this just demonstrates bad usage, where $polygon->clone gets

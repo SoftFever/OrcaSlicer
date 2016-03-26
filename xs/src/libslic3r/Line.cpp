@@ -182,14 +182,14 @@ Line::extend_start(double distance)
 bool
 Line::intersection(const Line& line, Point* intersection) const
 {
-    double denom = ((line.b.y - line.a.y)*(this->b.x - this->a.x)) -
-                   ((line.b.x - line.a.x)*(this->b.y - this->a.y));
+    double denom = ((double)(line.b.y - line.a.y)*(this->b.x - this->a.x)) -
+                   ((double)(line.b.x - line.a.x)*(this->b.y - this->a.y));
 
-    double nume_a = ((line.b.x - line.a.x)*(this->a.y - line.a.y)) -
-                    ((line.b.y - line.a.y)*(this->a.x - line.a.x));
+    double nume_a = ((double)(line.b.x - line.a.x)*(this->a.y - line.a.y)) -
+                    ((double)(line.b.y - line.a.y)*(this->a.x - line.a.x));
 
-    double nume_b = ((this->b.x - this->a.x)*(this->a.y - line.a.y)) -
-                    ((this->b.y - this->a.y)*(this->a.x - line.a.x));
+    double nume_b = ((double)(this->b.x - this->a.x)*(this->a.y - line.a.y)) -
+                    ((double)(this->b.y - this->a.y)*(this->a.x - line.a.x));
     
     if (fabs(denom) < EPSILON) {
         if (fabs(nume_a) < EPSILON && fabs(nume_b) < EPSILON) {

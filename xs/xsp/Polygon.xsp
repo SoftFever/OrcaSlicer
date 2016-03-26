@@ -42,6 +42,12 @@
     std::string wkt();
     Points concave_points(double angle);
     Points convex_points(double angle);
+    Clone<Point> intersection(Line* line)
+        %code{%
+            Point p;
+            (void)THIS->intersection(*line, &p);
+            RETVAL = p;
+        %};
 %{
 
 Polygon*
