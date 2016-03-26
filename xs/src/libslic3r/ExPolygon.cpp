@@ -195,6 +195,15 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
     svg.Close();
     */
     
+    // find the maximum width returned
+    double max_w = 0;
+    if (!pp.empty()) {
+        std::vector<double> widths;
+        for (ThickPolylines::const_iterator it = pp.begin(); it != pp.end(); ++it)
+            widths.insert(widths.end(), it->width.begin(), it->width.end());
+        max_w = *std::max_element(widths.begin(), widths.end());
+    }
+    
     bool removed = false;
     for (size_t i = 0; i < pp.size(); ++i) {
         ThickPolyline& polyline = pp[i];
@@ -232,10 +241,9 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
         /*  remove too short polylines
             (we can't do this check before endpoints extension and clipping because we don't
             know how long will the endpoints be extended since it depends on polygon thickness
-            which is variable - extension will be <= max_width/2 on each side)
-            Maybe instead of using max_width we should use max_element(polyline.width)  */
+            which is variable - extension will be <= max_width/2 on each side)  */
         if ((polyline.endpoints.first || polyline.endpoints.second)
-            && polyline.length() < max_width*2) {
+            && polyline.length() < max_w*2) {
             pp.erase(pp.begin() + i);
             --i;
             removed = true;
