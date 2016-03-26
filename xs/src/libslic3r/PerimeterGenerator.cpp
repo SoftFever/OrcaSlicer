@@ -92,7 +92,7 @@ PerimeterGenerator::process()
                         
                         // the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         // (actually, something larger than that still may exist due to mitering or other causes)
-                        coord_t min_width = scale_(this->ext_perimeter_flow.nozzle_diameter / 3);
+                        coord_t min_width = scale_(this->ext_perimeter_flow.nozzle_diameter / 2);
                         ExPolygons expp = offset2_ex(diffpp, -min_width/2, +min_width/2);
                         
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
@@ -246,7 +246,7 @@ PerimeterGenerator::process()
             */
             
             // collapse 
-            double min = 0.1*pwidth * (1 - INSET_OVERLAP_TOLERANCE);
+            double min = 0.2*pwidth * (1 - INSET_OVERLAP_TOLERANCE);
             double max = 2*pspacing;
             ExPolygons gaps_ex = diff_ex(
                 offset2(gaps, -min/2, +min/2),
@@ -256,7 +256,7 @@ PerimeterGenerator::process()
             
             ThickPolylines polylines;
             for (ExPolygons::const_iterator ex = gaps_ex.begin(); ex != gaps_ex.end(); ++ex)
-                ex->medial_axis(max, min/2, &polylines);
+                ex->medial_axis(max, min, &polylines);
             
             if (!polylines.empty()) {
                 ExtrusionEntityCollection gap_fill = this->_variable_width(polylines, 
@@ -436,7 +436,10 @@ PerimeterGenerator::_traverse_loops(const PerimeterGeneratorLoops &loops,
 ExtrusionEntityCollection
 PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const
 {
-    const double tolerance = scale_(0.1);
+    // this value determines granularity of adaptive width, as G-code does not allow
+    // variable extrusion within a single move; this value shall only affect the amount
+    // of segments, and any pruning shall be performed before we apply this tolerance
+    const double tolerance = scale_(0.05);
     
     ExtrusionEntityCollection coll;
     for (ThickPolylines::const_iterator p = polylines.begin(); p != polylines.end(); ++p) {
