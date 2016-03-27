@@ -52,7 +52,13 @@ class MedialAxis {
     void build(Polylines* polylines);
     
     private:
-    typedef voronoi_diagram<double> VD;
+    class VD : public voronoi_diagram<double> {
+    public:
+        typedef double                                          coord_type;
+        typedef boost::polygon::point_data<coordinate_type>     point_type;
+        typedef boost::polygon::segment_data<coordinate_type>   segment_type;
+        typedef boost::polygon::rectangle_data<coordinate_type> rect_type;
+    };
     VD vd;
     std::set<const VD::edge_type*> edges, valid_edges;
     std::map<const VD::edge_type*, std::pair<coordf_t,coordf_t> > thickness;
