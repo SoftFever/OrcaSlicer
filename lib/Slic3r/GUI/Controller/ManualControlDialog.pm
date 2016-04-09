@@ -34,7 +34,7 @@ sub new {
             wxBU_LEFT | wxBU_EXACTFIT);
         $btn->SetFont($bold ? $Slic3r::GUI::small_bold_font : $Slic3r::GUI::small_font);
         if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/$icon.png", wxBITMAP_TYPE_PNG));
+            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("$icon.png"), wxBITMAP_TYPE_PNG));
             $btn->SetBitmapPosition($pos);
         }
         EVT_BUTTON($self, $btn, $handler);

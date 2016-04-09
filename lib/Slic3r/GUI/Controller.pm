@@ -28,7 +28,7 @@ sub new {
     
     # button for adding new printer panels
     {
-        my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/add.png", wxBITMAP_TYPE_PNG),
+        my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new($Slic3r::var->("add.png"), wxBITMAP_TYPE_PNG),
             wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);
         $btn->SetToolTipString("Add printer…")
             if $btn->can('SetToolTipString');

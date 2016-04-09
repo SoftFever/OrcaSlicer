@@ -54,6 +54,7 @@ my %cli_options = ();
         $options{ "$opt_key|$cli" } = \$cli_options{$opt_key};
     }
     
+    @ARGV = grep !/^-psn_\d/, @ARGV if $^O eq 'darwin';
     GetOptions(%options) or usage(1);
 }
 
