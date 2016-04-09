@@ -372,7 +372,7 @@ sub object_top {
                 # grow top surfaces so that interface and support generation are generated
                 # with some spacing from object - it looks we don't need the actual
                 # top shapes so this can be done here
-                $top{ $layer->print_z } = offset($touching, $self->flow->scaled_width);
+                $top{ $layer->print_z } = offset($touching, $self->flow->scaled_width + ($self->object_config->support_material_xy_spacing / 0.000001) );
             }
             
             # remove the areas that touched from the projection that will continue on 
@@ -627,7 +627,7 @@ sub clip_with_object {
         # We leave a gap equal to a full extrusion width.
         $support->{$i} = diff(
             $support->{$i},
-            offset([ map @$_, map @{$_->slices}, @layers ], +$self->flow->scaled_width),
+            offset([ map @$_, map @{$_->slices}, @layers ], +($self->flow->scaled_width +($self->object_config->support_material_xy_spacing / 0.000001))),
         );
     }
 }
@@ -640,7 +640,7 @@ sub generate_toolpaths {
     
     # shape of contact area
     my $contact_loops   = $self->object_config->support_material_interface_contact_loops ? 1 : 0;
-    my $circle_radius   = 1.5 * $interface_flow->scaled_width;
+    my $circle_radius   = 1.5 * $interface_flow->scaled_width - ($self->object_config->support_material_xy_spacing / 0.000001) ;
     my $circle_distance = 3 * $circle_radius;
     my $circle          = Slic3r::Polygon->new(map [ $circle_radius * cos $_, $circle_radius * sin $_ ],
                             (5*PI/3, 4*PI/3, PI, 2*PI/3, PI/3, 0));
@@ -710,7 +710,7 @@ sub generate_toolpaths {
             # generate the outermost loop
             
             # find centerline of the external loop (or any other kind of extrusions should the loop be skipped)
-            $contact = offset($contact, -$_interface_flow->scaled_width/2);
+            $contact = offset($contact, -($_interface_flow->scaled_width + ($self->object_config->support_material_xy_spacing / 0.000001)) /2);
             
             my @loops0 = ();
             {
