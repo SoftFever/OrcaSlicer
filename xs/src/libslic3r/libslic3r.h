@@ -36,4 +36,14 @@ using namespace Slic3r;
 void confess_at(const char *file, int line, const char *func, const char *pat, ...);
 /* End implementation of CONFESS("foo"): */
 
+// Which C++ version is supported?
+// For example, could optimized functions with move semantics be used?
+#if __cplusplus==201402L
+	#define SLIC3R_CPPVER 14
+#elif __cplusplus==201103L
+	#define SLIC3R_CPPVER 11
+#else
+	#define SLIC3R_CPPVER 0
+#endif
+
 #endif
