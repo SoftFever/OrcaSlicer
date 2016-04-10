@@ -41,6 +41,7 @@ class Point
     void scale(double factor);
     void translate(double x, double y);
     void translate(const Vector &vector);
+    void rotate(double angle);
     void rotate(double angle, const Point &center);
     bool coincides_with(const Point &point) const;
     bool coincides_with_epsilon(const Point &point) const;
@@ -63,6 +64,7 @@ class Point
 };
 
 Point operator+(const Point& point1, const Point& point2);
+Point operator-(const Point& point1, const Point& point2);
 Point operator*(double scalar, const Point& point2);
 
 class Point3 : public Point
@@ -90,6 +92,7 @@ class Pointf
     void scale(double factor);
     void translate(double x, double y);
     void translate(const Vectorf &vector);
+    void rotate(double angle);
     void rotate(double angle, const Pointf &center);
     Pointf negative() const;
     Vectorf vector_to(const Pointf &point) const;
