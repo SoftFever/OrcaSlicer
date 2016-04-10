@@ -34,14 +34,20 @@ $config->set('disable_fan_first_layers', 0);
 {
     my $buffer = buffer($config);
     $buffer->gcodegen->set_elapsed_time($buffer->config->slowdown_below_layer_time + 1);
-    my $gcode = $buffer->append('G1 X100 E1 F3000', 0, 0, 0.4) . $buffer->flush;
+    my $gcode = $buffer->append('G1 F3000;_EXTRUDE_SET_SPEED\nG1 X100 E1', 0, 0, 0.4) . $buffer->flush;
     like $gcode, qr/F3000/, 'speed is not altered when elapsed time is greater than slowdown threshold';
 }
 
 {
     my $buffer = buffer($config);
     $buffer->gcodegen->set_elapsed_time($buffer->config->slowdown_below_layer_time - 1);
-    my $gcode = $buffer->append("G1 X50 F2500\nG1 X100 E1 F3000\nG1 E4 F400", 0, 0, 0.4) . $buffer->flush;
+    my $gcode = $buffer->append(
+        "G1 X50 F2500\n" .
+        "G1 F3000;_EXTRUDE_SET_SPEED\n" .
+        "G1 X100 E1\n" .
+        "G1 E4 F400",
+        0, 0, 0.4
+    ) . $buffer->flush;
     unlike $gcode, qr/F3000/, 'speed is altered when elapsed time is lower than slowdown threshold';
     like $gcode, qr/F2500/, 'speed is not altered for travel moves';
     like $gcode, qr/F400/, 'speed is not altered for extruder-only moves';
