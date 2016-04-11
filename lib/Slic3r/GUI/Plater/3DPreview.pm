@@ -50,8 +50,6 @@ sub new {
     });
     EVT_KEY_DOWN($canvas, sub {
         my ($s, $event) = @_;
-
-        print "3DPreview.pm: Getting key $event\n";
         
         my $key = $event->GetKeyCode;
         if ($key == 85 || $key == 315) {

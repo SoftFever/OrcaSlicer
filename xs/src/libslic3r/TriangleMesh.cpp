@@ -13,6 +13,7 @@
 #include <assert.h>
 
 #ifdef SLIC3R_DEBUG
+#define SLIC3R_TRIANGLEMESH_DEBUG
 #include "SVG.hpp"
 #endif
 
@@ -445,8 +446,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
         float min_z = fminf(facet->vertex[0].z, fminf(facet->vertex[1].z, facet->vertex[2].z));
         float max_z = fmaxf(facet->vertex[0].z, fmaxf(facet->vertex[1].z, facet->vertex[2].z));
         
-        #if 0
-        // #ifdef SLIC3R_DEBUG
+        #ifdef SLIC3R_TRIANGLEMESH_DEBUG
         printf("\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n", facet_idx,
             facet->vertex[0].x, facet->vertex[0].y, facet->vertex[0].z,
             facet->vertex[1].x, facet->vertex[1].y, facet->vertex[1].z,
@@ -458,8 +458,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
         std::vector<float>::const_iterator min_layer, max_layer;
         min_layer = std::lower_bound(z.begin(), z.end(), min_z); // first layer whose slice_z is >= min_z
         max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z) - 1; // last layer whose slice_z is <= max_z
-        #if 0
-        // #ifdef SLIC3R_DEBUG
+        #ifdef SLIC3R_TRIANGLEMESH_DEBUG
         printf("layers: min = %d, max = %d\n", (int)(min_layer - z.begin()), (int)(max_layer - z.begin()));
         #endif
         
@@ -475,8 +474,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     layers->resize(z.size());
     for (std::vector<IntersectionLines>::iterator it = lines.begin(); it != lines.end(); ++it) {
         size_t layer_idx = it - lines.begin();
-        #if 0
-        // #ifdef SLIC3R_DEBUG
+        #ifdef SLIC3R_TRIANGLEMESH_DEBUG
         printf("Layer %zu:\n", layer_idx);
         #endif
         this->make_loops(*it, &(*layers)[layer_idx]);
@@ -491,8 +489,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
     
     layers->resize(z.size());
     for (std::vector<Polygons>::const_iterator loops = layers_p.begin(); loops != layers_p.end(); ++loops) {
-        #if 0
-        // #ifdef SLIC3R_DEBUG
+        #ifdef SLIC3R_TRIANGLEMESH_DEBUG
         size_t layer_id = loops - layers_p.begin();
         printf("Layer %zu (slice_z = %.2f):\n", layer_id, z[layer_id]);
         #endif
@@ -716,8 +713,7 @@ TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* l
                     }
                     loops->push_back(p);
                     
-                    #if 0
-                    // #ifdef SLIC3R_DEBUG
+                    #ifdef SLIC3R_TRIANGLEMESH_DEBUG
                     printf("  Discovered %s polygon of %d points\n", (p.is_counter_clockwise() ? "ccw" : "cw"), (int)p.points.size());
                     #endif
                     
@@ -726,7 +722,7 @@ TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* l
                 
                 // we can't close this loop!
                 //// push @failed_loops, [@loop];
-                //#ifdef SLIC3R_DEBUG
+                //#ifdef SLIC3R_TRIANGLEMESH_DEBUG
                 printf("  Unable to close this loop having %d points\n", (int)loop.size());
                 //#endif
                 goto CYCLE;
@@ -838,8 +834,7 @@ TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices)
     ExPolygons ex_slices;
     offset2(p_slices, &ex_slices, +safety_offset, -safety_offset);
     
-    #if 0
-    // #ifdef SLIC3R_DEBUG
+    #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     size_t holes_count = 0;
     for (ExPolygons::const_iterator e = ex_slices.begin(); e != ex_slices.end(); ++e) {
         holes_count += e->holes.size();
@@ -1058,8 +1053,7 @@ TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) : mesh(_mesh), v_sca
                 }
                 this->facets_edges[facet_idx][i] = edge_idx;
                 
-                #if 0
-                // #ifdef SLIC3R_DEBUG
+                #ifdef SLIC3R_TRIANGLEMESH_DEBUG
                 printf("  [facet %d, edge %d] a_id = %d, b_id = %d   --> edge %d\n", facet_idx, i, a_id, b_id, edge_idx);
                 #endif
             }

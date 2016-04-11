@@ -1,6 +1,5 @@
 #ifdef SLIC3RXS
 #include <xsinit.h>
-#include <assert.h>
 
 namespace Slic3r {
 
@@ -394,7 +393,6 @@ void from_SV(SV* poly_sv, MultiPoint* THIS)
 void from_SV_check(SV* poly_sv, MultiPoint* THIS)
 {
     if (sv_isobject(poly_sv) && (SvTYPE(SvRV(poly_sv)) == SVt_PVMG)) {
-//        (MultiPoint*)SvIV((SV*)SvRV( poly_sv ))
         *THIS = *(MultiPoint*)SvIV((SV*)SvRV( poly_sv ));
     } else {
         from_SV(poly_sv, THIS);

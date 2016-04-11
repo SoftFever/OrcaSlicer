@@ -9,9 +9,6 @@ use Slic3r::Geometry qw(X Y PI scale chained_path deg2rad);
 use Slic3r::Geometry::Clipper qw(union union_ex diff diff_ex intersection_ex offset offset2);
 use Slic3r::Surface ':types';
 
-use Data::Dumper qw(Dumper);
-
-
 has 'bounding_box' => (is => 'ro', required => 0);
 has 'fillers'   => (is => 'rw', default => sub { {} });
 
@@ -227,10 +224,8 @@ sub make_fill {
             density         => $density/100,
             layer_height    => $h,
         ), @{ $surface->offset(-scale($f->spacing)/2) };
-
         next unless @polylines;
 
-        print "Polylines after fill_surface: ", Dumper(\@polylines);
         
         # calculate actual flow from spacing (which might have been adjusted by the infill
         # pattern generator)
@@ -256,7 +251,6 @@ sub make_fill {
             
             push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
             $collection->no_sort($f->no_sort);
-            print "collecton->append\n";
             $collection->append(
                 map Slic3r::ExtrusionPath->new(
                     polyline    => $_,

@@ -77,7 +77,6 @@ sub new {
     });
     EVT_KEY_DOWN($self->{treectrl}, sub {
         my ($treectrl, $event) = @_;
-        print "Tab.pm: Getting key $event\n";
         if ($event->GetKeyCode == WXK_TAB) {
             $treectrl->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
         } else {

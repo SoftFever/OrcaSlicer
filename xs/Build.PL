@@ -89,9 +89,6 @@ path through the BOOST_DIR environment variable:
 
 EOF
 
-# Enable C++ 0x features of the language.
-#push @cflags, qw(-std=c++0x);
-
 if ($ENV{SLIC3R_DEBUG}) {
     # only on newer GCCs: -ftemplate-backtrace-limit=0
     push @cflags, qw(-DSLIC3R_DEBUG -g);

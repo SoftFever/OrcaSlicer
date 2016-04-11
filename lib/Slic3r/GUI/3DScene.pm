@@ -124,7 +124,6 @@ sub mouse_event {
     if ($e->Entering && &Wx::wxMSW) {
         # wxMSW needs focus in order to catch mouse wheel events
         $self->SetFocus;
-        print "Slic3r::GUI::3DScene::Base; SetFocus\n";
     } elsif ($e->LeftDClick) {
         $self->on_double_click->()
             if $self->on_double_click;
