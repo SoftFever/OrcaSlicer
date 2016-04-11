@@ -11,7 +11,7 @@ struct Chaining
 
 #ifndef sqr
 template<typename T>
-inline sqr(T x) { return x * x; }
+inline T sqr(T x) { return x * x; }
 #endif /* sqr */
 
 template<typename T>
@@ -43,7 +43,6 @@ inline int nearest_point_index(const std::vector<Chaining> &pairs, const Point &
             }
         }
     }
-
     return idx;
 }
 
@@ -64,12 +63,13 @@ Polylines PolylineCollection::chained_path_from(
         if (! no_reverse)
             c.last = src[i].last_point();
         c.idx = i;
+        endpoints.push_back(c);
     }
-
     Polylines retval;
     while (! endpoints.empty()) {
         // find nearest point
         int endpoint_index = nearest_point_index<double>(endpoints, start_near, no_reverse);
+        assert(endpoint_index >= 0 && endpoint_index < endpoints.size() * 2);
 #if SLIC3R_CPPVER > 11
         retval.push_back(std::move(src[endpoints[endpoint_index/2].idx]));
 #else
@@ -80,6 +80,7 @@ Polylines PolylineCollection::chained_path_from(
         endpoints.erase(endpoints.begin() + endpoint_index/2);
         start_near = retval.back().last_point();
     }
+    return retval;
 }
 
 #if SLIC3R_CPPVER > 11

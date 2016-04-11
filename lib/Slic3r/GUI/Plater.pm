@@ -182,6 +182,7 @@ sub new {
     EVT_LIST_ITEM_ACTIVATED($self, $self->{list}, \&list_item_activated);
     EVT_KEY_DOWN($self->{list}, sub {
         my ($list, $event) = @_;
+        print "Plater.pm: Getting key $event\n";
         if ($event->GetKeyCode == WXK_TAB) {
             $list->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
         } else {

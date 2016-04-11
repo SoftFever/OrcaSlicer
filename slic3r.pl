@@ -13,9 +13,16 @@ use Getopt::Long qw(:config no_auto_abbrev);
 use List::Util qw(first);
 use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
+use Slic3r::GUI;
 use Time::HiRes qw(gettimeofday tv_interval);
+#use Slic3r::XS;
+#use Data::Dumper;
 $|++;
 binmode STDOUT, ':utf8';
+
+# my $extrusionsim = Slic3r::ExtrusionSimulator->new(width=>0, height=>0, nozzle_diameter=>0);
+#print Dumper($extrusionsim);
+#print Dumper($extrusionsim->image_ptr);
 
 our %opt = ();
 my %cli_options = ();

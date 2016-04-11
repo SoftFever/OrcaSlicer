@@ -1,5 +1,6 @@
 #ifdef SLIC3RXS
 #include <xsinit.h>
+#include <assert.h>
 
 namespace Slic3r {
 
@@ -10,6 +11,8 @@ REGISTER_CLASS(ExtrusionPath, "ExtrusionPath");
 REGISTER_CLASS(ExtrusionLoop, "ExtrusionLoop");
 // there is no ExtrusionLoop::Collection or ExtrusionEntity::Collection
 REGISTER_CLASS(ExtrusionEntityCollection, "ExtrusionPath::Collection");
+REGISTER_CLASS(ExtrusionSimulator, "ExtrusionSimulator");
+REGISTER_CLASS(Filler, "Filler");
 REGISTER_CLASS(Flow, "Flow");
 REGISTER_CLASS(AvoidCrossingPerimeters, "GCode::AvoidCrossingPerimeters");
 REGISTER_CLASS(OozePrevention, "GCode::OozePrevention");
@@ -391,6 +394,7 @@ void from_SV(SV* poly_sv, MultiPoint* THIS)
 void from_SV_check(SV* poly_sv, MultiPoint* THIS)
 {
     if (sv_isobject(poly_sv) && (SvTYPE(SvRV(poly_sv)) == SVt_PVMG)) {
+//        (MultiPoint*)SvIV((SV*)SvRV( poly_sv ))
         *THIS = *(MultiPoint*)SvIV((SV*)SvRV( poly_sv ));
     } else {
         from_SV(poly_sv, THIS);

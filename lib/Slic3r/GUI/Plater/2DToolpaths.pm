@@ -1,10 +1,16 @@
+# 2D preview of the tool paths of a single layer, using a thin line.
+# OpenGL is used to render the paths.
+
 package Slic3r::GUI::Plater::2DToolpaths;
 use strict;
 use warnings;
 use utf8;
+use Data::Dumper qw(Dumper);
+#use Carp qw(confess);
+use Carp;
 
 use Slic3r::Print::State ':steps';
-use Wx qw(:misc :sizer :slider :statictext wxWHITE);
+use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE wxWANTS_CHARS);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN);
 use base qw(Wx::Panel Class::Accessor);
 
@@ -14,7 +20,7 @@ sub new {
     my $class = shift;
     my ($parent, $print) = @_;
     
-    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     $self->SetBackgroundColour(wxWHITE);
     
     # init GUI elements
@@ -48,17 +54,25 @@ sub new {
     });
     EVT_KEY_DOWN($canvas, sub {
         my ($s, $event) = @_;
+
+        print "Slic3r::GUI::Plater::2DToolpaths: Getting key ",  $event->GetKeyCode, "\n";
+#        print Dumper(\$event);
         
         my $key = $event->GetKeyCode;
-        if ($key == 85 || $key == 315) {
+        if ($key == 85 || $key == WXK_LEFT) {
+            # Keys: 'D' or WXK_LEFT
             $slider->SetValue($slider->GetValue + 1);
             $self->set_z($self->{layers_z}[$slider->GetValue]);
-        } elsif ($key == 68 || $key == 317) {
+        } elsif ($key == 68 || $key == WXK_RIGHT) {
+            # Keys: 'U' or WXK_RIGHT
             $slider->SetValue($slider->GetValue - 1);
             $self->set_z($self->{layers_z}[$slider->GetValue]);
+        } elsif ($key >= 49 && $key <= 55) {
+            # Keys: '1' to '3'
+            $canvas->set_simulation_mode($key - 49);
         }
     });
-    
+
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
     $sizer->SetSizeHints($self);
@@ -116,8 +130,10 @@ sub set_z {
 
 package Slic3r::GUI::Plater::2DToolpaths::Canvas;
 
-use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
+use Wx qw(:misc wxWANTS_CHARS);
+use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_KEY_DOWN);
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
+use OpenGL::Shader;
 use base qw(Wx::GLCanvas Class::Accessor);
 use Wx::GLCanvas qw(:all);
 use List::Util qw(min max first);
@@ -132,6 +148,10 @@ __PACKAGE__->mk_accessors(qw(
     _zoom
     _camera_target
     _drag_start_xy
+    _texture_name
+    _texture_size
+    _extrusion_simulator
+    _simulation_mode
 ));
 
 # make OpenGL::Array thread-safe
@@ -143,13 +163,21 @@ __PACKAGE__->mk_accessors(qw(
 sub new {
     my ($class, $parent, $print) = @_;
     
-    my $self = $class->SUPER::new($parent);
+    my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     $self->print($print);
     $self->_zoom(1);
-    
+
     # 2D point in model space
     $self->_camera_target(Slic3r::Pointf->new(0,0));
-    
+
+    # Texture for the extrusion simulator. The texture will be allocated / reallocated on Resize.
+    # print "new\n";
+    $self->_texture_name(0);
+    $self->_texture_size(Slic3r::Point->new(0,0));
+    $self->_extrusion_simulator(Slic3r::ExtrusionSimulator->new());
+    $self->_simulation_mode(0);
+    # print "new end\n";
+
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
         $self->Render($dc);
@@ -200,8 +228,34 @@ sub new {
         $self->Refresh;
     });
     EVT_MOUSE_EVENTS($self, \&mouse_event);
+    EVT_KEY_DOWN($self, sub {
+        my ($s, $event) = @_;
+
+        print "Slic3r::GUI::Plater::2DToolpaths::Canvas: Getting key $event\n";
+        
+        my $key = $event->GetKeyCode;
+        if ($key > 45 && $key <= 50) {
+            # Keys: '1' to '3'
+            $self->set_simulation_mode($key - 45);
+        }
+    });
     
     return $self;
+}
+
+sub Destroy {
+    my ($self) = @_;
+    
+    # Deallocate the OpenGL resources.
+    my $context = $self->GetContext;
+    if ($context and $self->texture_id) {
+        $self->SetCurrent($context);
+        glDeleteTextures(1, ($self->texture_id));
+        $self->SetCurrent(0);
+        $self->texture_id(0);
+        $self->texture_size(new Slic3r::Point(0, 0));
+    }
+    return $self->SUPER::Destroy;
 }
 
 sub mouse_event {
@@ -213,6 +267,7 @@ sub mouse_event {
     if ($e->Entering && &Wx::wxMSW) {
         # wxMSW needs focus in order to catch mouse wheel events
         $self->SetFocus;
+        print "Slic3r::GUI::Plater::2DToolpaths::Canvas SetFocus\n";
     } elsif ($e->Dragging) {
         if ($e->LeftIsDown || $e->MiddleIsDown || $e->RightIsDown) {
             # if dragging, translate view
@@ -272,6 +327,14 @@ sub set_z {
     $self->Refresh;
 }
 
+sub set_simulation_mode
+{
+    my ($self, $mode) = @_;
+    $self->_simulation_mode($mode);
+    $self->_dirty(1);
+    $self->Refresh;
+}
+
 sub Render {
     my ($self, $dc) = @_;
     
@@ -280,6 +343,14 @@ sub Render {
     return unless my $context = $self->GetContext;
     $self->SetCurrent($context);
     $self->InitGL;
+
+    #print glGetString(GL_VERSION), "\n";
+    #print glGetString(GL_VENDOR), "\n";
+    #print glGetString(GL_RENDERER), "\n";
+ #   my $nExtensions = glGetInteger(GL_NUM_EXTENSIONS);
+ #   for (my $i = 0; $i < $nExtensions; ++ $i) {
+ #       print glGetStringi(GL_EXTENSIONS, $i);
+ #   }
     
     glClearColor(1, 1, 1, 0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -293,7 +364,46 @@ sub Render {
     glDisable(GL_DEPTH_TEST);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    
+
+    if ($self->_simulation_mode and $self->_texture_name and $self->_texture_size->x() > 0 and $self->_texture_size->y() > 0) {
+        #print "draw\n";
+        $self->_simulate_extrusion();
+        my ($x, $y) = $self->GetSizeWH;
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_REPLACE);
+        #print "Texture name ", $self->_texture_name, "\n";
+        glBindTexture(GL_TEXTURE_2D, $self->_texture_name);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexImage2D_c(GL_TEXTURE_2D,
+            0,                        # level (0 normal, heighr is form mip-mapping)
+            GL_RGBA,                  # internal format
+            $self->_texture_size->x(), $self->_texture_size->y(),
+            0,                        # border 
+            GL_RGBA,                  # format RGBA color data
+            GL_UNSIGNED_BYTE,         # unsigned byte data
+            $self->_extrusion_simulator->image_ptr()); # ptr to texture data
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, 1, 0, 1, 0, 1);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);
+        glVertex2f(0, 0);
+        glTexCoord2f($x/$self->_texture_size->x(), 0);
+        glVertex2f(1, 0);
+        glTexCoord2f($x/$self->_texture_size->x(), $y/$self->_texture_size->y());
+        glVertex2f(1, 1);
+        glTexCoord2f(0, $y/$self->_texture_size->y());
+        glVertex2f(0, 1);
+        glEnd();
+        glPopMatrix();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        #print "draw end\n";
+    }
+
     # anti-alias
     if (0) {
         glEnable(GL_LINE_SMOOTH);
@@ -302,8 +412,9 @@ sub Render {
         glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);
     }
     
+    # Tesselator triangulates polygons with holes on the fly for the rendering purposes only.
     my $tess;
-    if (!(&Wx::wxMSW && $OpenGL::VERSION < 0.6704)) {
+    if ($self->_simulation_mode() == 0 and !(&Wx::wxMSW && $OpenGL::VERSION < 0.6704)) {
         # We can't use the GLU tesselator on MSW with older OpenGL versions
         # because of an upstream bug:
         # http://sourceforge.net/p/pogl/bugs/16/
@@ -329,7 +440,7 @@ sub Render {
             glTranslatef(@$copy, 0);
             
             foreach my $slice (@{$layer->slices}) {
-                glColor3f(0.95, 0.95, 0.95);
+                glColor3f(0.75, 0.75, 0.75);
                 
                 if ($tess) {
                     gluTessBeginPolygon($tess);
@@ -429,21 +540,78 @@ sub _draw_path {
             glPushMatrix();
             glTranslatef(@$copy, 0);
             foreach my $line (@{$path->polyline->lines}) {
-                glBegin(GL_LINES);
-                glVertex2f(@{$line->a});
-                glVertex2f(@{$line->b});
-                glEnd();
+                if (1) {
+                    glBegin(GL_LINES);
+                    glVertex2f(@{$line->a});
+                    glVertex2f(@{$line->b});
+                    glEnd();                    
+                } else {
+                    my @c = $self->color;
+                    $self->line($line->a->x, $line->a->y, $line->b->x, $line->b->y, $path->width, $c[0], $c[1], $c[2], 0.5, 0, 0, 1);                    
+                }
             }
             glPopMatrix();
         }
     } else {
         foreach my $line (@{$path->polyline->lines}) {
-            glBegin(GL_LINES);
-            glVertex2f(@{$line->a});
-            glVertex2f(@{$line->b});
-            glEnd();
+            if (1) {
+                glBegin(GL_LINES);
+                glVertex2f(@{$line->a});
+                glVertex2f(@{$line->b});
+                glEnd();
+            } else {
+                my @c = $self->color;
+                $self->line($line->a->x, $line->a->y, $line->b->x, $line->b->y, $path->width, $c[0], $c[1], $c[2], 0.5, 0, 0, 1);
+            }
         }
     }
+}
+
+sub _simulate_extrusion {
+    #print "_simulate_extrusion";
+    my ($self) = @_;
+    $self->_extrusion_simulator->reset_accumulator();
+    foreach my $layer (@{$self->layers}) {
+        if (abs($layer->print_z - $self->z) < epsilon) {
+            #print "_simulate_extrusion - print_z ", $layer->print_z, "\n";
+            my $object = $layer->object;
+#            print Dumper($object);
+            my @shifts = (defined $object) ? @{$object->_shifted_copies} : (Slic3r::Point->new(0, 0));
+            foreach my $layerm (@{$layer->regions}) {
+#                print Dumper($layerm);
+                my @extrusions = ();
+                if ($object->step_done(STEP_PERIMETERS)) {
+                    #print "Perimeters: ", @{$layerm->perimeters}, "\n";
+#                    print Dumper(\@{$layerm->perimeters});
+                    push @extrusions, @$_ for @{$layerm->perimeters};
+                }
+                if ($object->step_done(STEP_INFILL)) {
+                    #print "Fills: ", @{$layerm->fills}, "\n";
+#                    print Dumper(\@{$layerm->fills});
+                    push @extrusions, @$_ for @{$layerm->fills};
+                }
+#                print Dumper(\@extrusions);
+                foreach my $extrusion_entity (@extrusions) {
+                    #print "simulating an extrusion entity\n";
+                    my @paths = $extrusion_entity->isa('Slic3r::ExtrusionLoop')
+                        ? @$extrusion_entity
+                        : ($extrusion_entity);
+                    foreach my $path (@paths) {
+                        #print "simulating a path\n";
+                        #print Data::Dumper->Dump([$path, @paths], [qw(foo *ary)]);
+#                        print Data::Dumper(\$path);
+                        print "width: ", $path->width, 
+                              " height: ", $path->height,
+                              " mm3_per_mm: ", $path->mm3_per_mm,
+                              " height2: ", $path->mm3_per_mm / $path->height,
+                              "\n";
+                        $self->_extrusion_simulator->extrude_to_accumulator($path, $_, $self->_simulation_mode()) for @shifts;
+                    }
+                }
+            }
+        }
+    }
+    $self->_extrusion_simulator->evaluate_accumulator($self->_simulation_mode());
 }
 
 sub InitGL {
@@ -451,6 +619,14 @@ sub InitGL {
  
     return if $self->init;
     return unless $self->GetContext;
+
+    #Vojtech: Create an OpenGL texture?
+    #print "initgl\n";
+    my $texture_id = 0;
+    ($texture_id) = glGenTextures_p(1);
+    $self->_texture_name($texture_id);
+    #print "initgl end\n";
+
     $self->init(1);
 }
 
@@ -483,7 +659,39 @@ sub Resize {
     
     $self->SetCurrent($self->GetContext);
     my ($x, $y) = $self->GetSizeWH;
+
+    #print "resize\n";
+    if ($self->_texture_size->x() < $x or $self->_texture_size->y() < $y) {
+        # Allocate a large enough OpenGL texture with power of 2 dimensions.
+        $self->_texture_size->set_x(1) if ($self->_texture_size->x() == 0);
+        $self->_texture_size->set_y(1) if ($self->_texture_size->y() == 0);
+        $self->_texture_size->set_x($self->_texture_size->x() * 2) while ($self->_texture_size->x() < $x);
+        $self->_texture_size->set_y($self->_texture_size->y() * 2) while ($self->_texture_size->y() < $y);
+        #print "screen size ", $x, "x", $y;
+        #print "texture size ", $self->_texture_size->x(), "x", $self->_texture_size->y();
+        # Initialize an empty texture.
+        glBindTexture(GL_TEXTURE_2D, $self->_texture_name);
+        if (1) {
+        glTexImage2D_c(GL_TEXTURE_2D,
+            0,                        # level (0 normal, heighr is form mip-mapping)
+            GL_RGBA,                  # internal format
+            $self->_texture_size->x(), $self->_texture_size->y(),
+            0,                        # border 
+            GL_RGBA,                  # format RGBA color data
+            GL_UNSIGNED_BYTE,         # unsigned byte data
+            0);                       # ptr to texture data
+        }
+        glBindTexture(GL_TEXTURE_2D, 0);
+        #print "resize - setimagesize\n";
+        $self->_extrusion_simulator->set_image_size($self->_texture_size);
+    }
+    $self->_extrusion_simulator->set_viewport(Slic3r::Geometry::BoundingBox->new_from_points(
+        [Slic3r::Point->new(0, 0), Slic3r::Point->new($x, $y)]));
+    #print "resize end\n";
+
     glViewport(0, 0, $x, $y);
+
+    Slic3r::Point->new(0,0);
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -538,10 +746,18 @@ sub Resize {
         $x2 = $x1 + $new_x;
     }
     glOrtho($x1, $x2, $y1, $y2, 0, 1);
-    
+
+    # Set the adjusted bounding box at the extrusion simulator.
+    #print "Scene bbox ", $bb->x_min, ",", $bb->y_min, " ", $bb->x_max, ",", $bb->y_max, "\n";
+    #print "Setting simulator bbox ", $x1, ",", $y1, " ", $x2, ",", $y2, "\n";
+    $self->_extrusion_simulator->set_bounding_box(
+        Slic3r::Geometry::BoundingBox->new_from_points(
+            [Slic3r::Point->new($x1, $y1), Slic3r::Point->new($x2, $y2)]));
+
     glMatrixMode(GL_MODELVIEW);
 }
 
+# Thick line drawing is not used anywhere. Probably not tested?
 sub line {
     my (
         $x1, $y1, $x2, $y2,     # coordinates of the line
@@ -551,6 +767,8 @@ sub line {
                                 # Br=alpha of color when alphablend=true
         $alphablend,            # use alpha blend or not
     ) = @_;
+
+    #die 'Inside 2DToolpaths::line(). This was not expected to be called.';
     
     my $t;
     my $R;
@@ -719,6 +937,8 @@ sub line {
 }
 
 
+# What is the purpose of this dialog? Testing? A stand-alone application?
+# Currently this dialog is not instantiated.
 package Slic3r::GUI::Plater::2DToolpaths::Dialog;
 
 use Wx qw(:dialog :id :misc :sizer);

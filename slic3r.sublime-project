@@ -1,0 +1,40 @@
+{
+	"build_systems":
+	[
+		{
+			"name": "List",
+   			//"file_regex": " at ([^-\\s]*) line ([0-9]*)",
+//   			"file_regex": " at (D\\:\\/src\\/Slic3r\\/.*?) line ([0-9]*)",
+			"shell_cmd": "ls -l"
+		},
+		{
+			"name": "Run",
+			"working_dir": "$project_path",
+   			"file_regex": " at (.*?) line ([0-9]*)",
+			"shell_cmd": "perl slic3r.pl --gui \"..\\Slic3r-tests\\gap fill torture 20 -rt.stl\""
+		},
+		{
+			"name": "full",
+   			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+			"shell_cmd": "perl Build.pl"
+		},
+		{
+			"name": "xs",
+			"working_dir": "$project_path/xs",
+  			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+			"shell_cmd": "perl Build install"
+		},
+		{
+			"name": "xs & run",
+			"working_dir": "$project_path/xs",
+  			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+			"shell_cmd": "perl Build install & perl ..\\slic3r.pl --gui \"..\\..\\Slic3r-tests\\star3-big2.stl\""
+		}
+	],
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	]
+}

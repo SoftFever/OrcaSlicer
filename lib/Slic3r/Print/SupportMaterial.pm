@@ -675,8 +675,8 @@ sub generate_toolpaths {
         
         # interface and contact infill
         if (@$interface || @$contact_infill) {
-            $fillers{interface}->angle($interface_angle);
-            $fillers{interface}->spacing($_interface_flow->spacing);
+            $fillers{interface}->set_angle($interface_angle);
+            $fillers{interface}->set_spacing($_interface_flow->spacing);
             
             # find centerline of the external loop
             $interface = offset2($interface, +scaled_epsilon, -(scaled_epsilon + $_interface_flow->scaled_width/2));
@@ -725,11 +725,11 @@ sub generate_toolpaths {
         # support or flange
         if (@$base) {
             my $filler = $fillers{support};
-            $filler->angle($angles[ ($layer_id) % @angles ]);
+            $filler->set_angle($angles[ ($layer_id) % @angles ]);
             
             # We don't use $base_flow->spacing because we need a constant spacing
             # value that guarantees that all layers are correctly aligned.
-            $filler->spacing($flow->spacing);
+            $filler->set_spacing($flow->spacing);
             
             my $density     = $support_density;
             my $base_flow   = $_flow;
@@ -742,13 +742,13 @@ sub generate_toolpaths {
             # base flange
             if ($layer_id == 0) {
                 $filler = $fillers{interface};
-                $filler->angle($self->object_config->support_material_angle + 90);
+                $filler->set_angle($self->object_config->support_material_angle + 90);
                 $density        = 0.5;
                 $base_flow      = $self->first_layer_flow;
                 
                 # use the proper spacing for first layer as we don't need to align
                 # its pattern to the other layers
-                $filler->spacing($base_flow->spacing);
+                $filler->set_spacing($base_flow->spacing);
             } else {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm

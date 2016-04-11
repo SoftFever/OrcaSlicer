@@ -3,45 +3,28 @@ use Moo;
 
 use List::Util qw(max);
 use Slic3r::ExtrusionPath ':roles';
-use Slic3r::Fill::3DHoneycomb;
-use Slic3r::Fill::Base;
-use Slic3r::Fill::Concentric;
-use Slic3r::Fill::Honeycomb;
-use Slic3r::Fill::PlanePath;
-use Slic3r::Fill::Rectilinear;
+
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y PI scale chained_path deg2rad);
 use Slic3r::Geometry::Clipper qw(union union_ex diff diff_ex intersection_ex offset offset2);
 use Slic3r::Surface ':types';
 
+use Data::Dumper qw(Dumper);
+
 
 has 'bounding_box' => (is => 'ro', required => 0);
 has 'fillers'   => (is => 'rw', default => sub { {} });
-
-our %FillTypes = (
-    archimedeanchords   => 'Slic3r::Fill::ArchimedeanChords',
-    rectilinear         => 'Slic3r::Fill::Rectilinear',
-    grid                => 'Slic3r::Fill::Grid',
-    flowsnake           => 'Slic3r::Fill::Flowsnake',
-    octagramspiral      => 'Slic3r::Fill::OctagramSpiral',
-    hilbertcurve        => 'Slic3r::Fill::HilbertCurve',
-    line                => 'Slic3r::Fill::Line',
-    concentric          => 'Slic3r::Fill::Concentric',
-    honeycomb           => 'Slic3r::Fill::Honeycomb',
-    '3dhoneycomb'       => 'Slic3r::Fill::3DHoneycomb',
-);
 
 sub filler {
     my $self = shift;
     my ($filler) = @_;
     
     if (!ref $self) {
-        return $FillTypes{$filler}->new;
+       return Slic3r::Filler->new_from_type($filler);
     }
-    
-    $self->fillers->{$filler} ||= $FillTypes{$filler}->new(
-        bounding_box => $self->bounding_box,
-    );
+
+    $self->fillers->{$filler} ||= Slic3r::Filler->new_from_type($filler);
+    $self->fillers->{$filler}->set_bounding_box($self->bounding_box);
     return $self->fillers->{$filler};
 }
 
@@ -227,16 +210,16 @@ sub make_fill {
                 -1, # auto width
                 $layerm->layer->object,
             );
-            $f->spacing($internal_flow->spacing);
+            $f->set_spacing($internal_flow->spacing);
             $using_internal_flow = 1;
         } else {
-            $f->spacing($flow->spacing);
+            $f->set_spacing($flow->spacing);
         }
         
-        $f->layer_id($layerm->layer->id);
-        $f->z($layerm->layer->print_z);
-        $f->angle(deg2rad($layerm->region->config->fill_angle));
-        $f->loop_clipping(scale($flow->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
+        $f->set_layer_id($layerm->layer->id);
+        $f->set_z($layerm->layer->print_z);
+        $f->set_angle(deg2rad($layerm->region->config->fill_angle));
+        $f->set_loop_clipping(scale($flow->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
         
         # apply half spacing using this flow's own spacing and generate infill
         my @polylines = map $f->fill_surface(
@@ -244,8 +227,10 @@ sub make_fill {
             density         => $density/100,
             layer_height    => $h,
         ), @{ $surface->offset(-scale($f->spacing)/2) };
-        
+
         next unless @polylines;
+
+        print "Polylines after fill_surface: ", Dumper(\@polylines);
         
         # calculate actual flow from spacing (which might have been adjusted by the infill
         # pattern generator)
@@ -271,6 +256,7 @@ sub make_fill {
             
             push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
             $collection->no_sort($f->no_sort);
+            print "collecton->append\n";
             $collection->append(
                 map Slic3r::ExtrusionPath->new(
                     polyline    => $_,
@@ -278,7 +264,7 @@ sub make_fill {
                     mm3_per_mm  => $mm3_per_mm,
                     width       => $flow->width,
                     height      => $flow->height,
-                ), @polylines,
+                ), map @$_, @polylines,
             );
         }
     }

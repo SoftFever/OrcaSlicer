@@ -112,6 +112,14 @@ ExtrusionLoop*             O_OBJECT_SLIC3R
 Ref<ExtrusionLoop>         O_OBJECT_SLIC3R_T
 Clone<ExtrusionLoop>       O_OBJECT_SLIC3R_T
 
+ExtrusionSimulator*        O_OBJECT_SLIC3R
+Ref<ExtrusionSimulator>    O_OBJECT_SLIC3R_T
+Clone<ExtrusionSimulator>  O_OBJECT_SLIC3R_T
+
+Filler*                    O_OBJECT_SLIC3R
+Ref<Filler>                O_OBJECT_SLIC3R_T
+Clone<Filler>              O_OBJECT_SLIC3R_T
+
 Flow*                      O_OBJECT_SLIC3R
 Ref<Flow>                  O_OBJECT_SLIC3R_T
 Clone<Flow>                O_OBJECT_SLIC3R_T
@@ -214,6 +222,7 @@ GLVertexArray*             O_OBJECT_SLIC3R
 Axis                  T_UV
 ExtrusionLoopRole     T_UV
 ExtrusionRole     T_UV
+ExtrusionSimulationType T_UV
 FlowRole     T_UV
 PrintStep     T_UV
 PrintObjectStep     T_UV
