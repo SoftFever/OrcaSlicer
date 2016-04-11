@@ -91,7 +91,6 @@ class FillWithDirection : public Fill
 public:
     virtual float _layer_angle(size_t idx) const { 
         bool odd = idx & 1;
-        printf("_layer_angle: %s\n", odd ? "odd" : "even");
         return (idx & 1) ? float(M_PI/2.) : 0;
     }
     virtual std::pair<float, Point> infill_direction(const Surface *surface) const ;

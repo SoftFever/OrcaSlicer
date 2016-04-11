@@ -49,7 +49,7 @@ std::pair<float, Point> FillWithDirection::infill_direction(const Surface *surfa
 
 	if (out_angle == FLT_MAX) {
 		//FIXME Vojtech: Add a warning?
-        // warn "Using undefined infill angle";
+        printf("Using undefined infill angle\n");
         out_angle = 0.f;
     }
 
@@ -61,22 +61,18 @@ std::pair<float, Point> FillWithDirection::infill_direction(const Surface *surfa
 	    // use bridge angle
 		//FIXME Vojtech: Add a debugf?
         // Slic3r::debugf "Filling bridge with angle %d\n", rad2deg($surface->bridge_angle);
-#if 1
-//#ifdef _DEBUG
+#ifdef SLIC3R_DEBUG
         printf("Filling bridge with angle %f\n", surface->bridge_angle);
-#endif /* _DEBUG */
+#endif /* SLIC3R_DEBUG */
         out_angle = surface->bridge_angle;
     } else if (this->layer_id != size_t(-1)) {
         // alternate fill direction
-        printf("Filling layer %d, thickness %d, id: %d\n", 
-        	this->layer_id, surface->thickness_layers, int(this->layer_id / surface->thickness_layers));
         out_angle += this->_layer_angle(this->layer_id / surface->thickness_layers);
     } else {
     	printf("Layer_ID undefined!\n");
     }
 
     out_angle += float(M_PI/2.);
-    printf("out_angle: %f", out_angle);
     return std::pair<float, Point>(out_angle, out_shift);
 }
 
