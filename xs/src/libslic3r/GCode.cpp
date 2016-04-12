@@ -198,7 +198,7 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
 
 GCode::GCode()
     : placeholder_parser(NULL), enable_loop_clipping(true), enable_cooling_markers(false), layer_count(0),
-        layer_index(-1), layer(NULL), first_layer(false), elapsed_time(0), volumetric_speed(0),
+        layer_index(-1), layer(NULL), first_layer(false), elapsed_time(0.0), volumetric_speed(0),
         _last_pos_defined(false)
 {
 }
