@@ -129,9 +129,9 @@
     void set_first_layer(bool value)
         %code{% THIS->first_layer = value; %};
     
-    unsigned int elapsed_time()
+    float elapsed_time()
         %code{% RETVAL = THIS->elapsed_time; %};
-    void set_elapsed_time(unsigned int value)
+    void set_elapsed_time(float value)
         %code{% THIS->elapsed_time = value; %};
     
     bool last_pos_defined();
