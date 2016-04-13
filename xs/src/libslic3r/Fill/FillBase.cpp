@@ -6,6 +6,7 @@
 #include "Fill3DHoneycomb.hpp"
 #include "FillPlanePath.hpp"
 #include "FillRectilinear.hpp"
+#include "FillRectilinear2.hpp"
 
 namespace Slic3r {
 
@@ -18,7 +19,8 @@ Fill* Fill::new_from_type(const std::string &type)
 	if (type == "3dhoneycomb")
 		return new Fill3DHoneycomb();
 	if (type == "rectilinear")
-		return new FillRectilinear();
+//		return new FillRectilinear();
+        return new FillRectilinear2();
 	if (type == "line")
 		return new FillLine();
 	if (type == "grid")

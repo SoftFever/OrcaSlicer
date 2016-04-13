@@ -34,7 +34,7 @@ Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams
             bounding_box.min.x - (bounding_box.min.x % this->_line_spacing),
             bounding_box.min.y - (bounding_box.min.y % this->_line_spacing)));
     }
-    
+
     // generate the basic pattern
     coord_t x_max = bounding_box.max.x + SCALED_EPSILON;
     Lines lines;

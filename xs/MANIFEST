@@ -42,6 +42,8 @@ src/libslic3r/Fill/FillPlanePath.cpp
 src/libslic3r/Fill/FillPlanePath.hpp
 src/libslic3r/Fill/FillRectilinear.cpp
 src/libslic3r/Fill/FillRectilinear.hpp
+src/libslic3r/Fill/FillRectilinear2.cpp
+src/libslic3r/Fill/FillRectilinear2.hpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Flow.hpp
 src/libslic3r/GCode.cpp

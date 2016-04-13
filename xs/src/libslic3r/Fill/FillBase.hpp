@@ -12,6 +12,8 @@ class Surface;
 
 struct FillParams
 {
+    FillParams() { memset(this, 0, sizeof(FillParams)); }
+
     coordf_t    width;
     // Fraction in <0, 1>
     float       density;

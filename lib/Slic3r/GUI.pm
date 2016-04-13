@@ -40,6 +40,7 @@ use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow
     :filedialog :font);
 use Wx::Event qw(EVT_IDLE EVT_COMMAND);
 use base 'Wx::App';
+#use base 'Wx::AppConsole';
 
 use constant FILE_WILDCARDS => {
     known   => 'Known files (*.stl, *.obj, *.amf, *.xml)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML',

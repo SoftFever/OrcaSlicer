@@ -13,7 +13,7 @@
 #include <assert.h>
 
 #ifdef SLIC3R_DEBUG
-#define SLIC3R_TRIANGLEMESH_DEBUG
+// #define SLIC3R_TRIANGLEMESH_DEBUG
 #include "SVG.hpp"
 #endif
 
