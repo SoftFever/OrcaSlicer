@@ -39,7 +39,11 @@ enable_screensaver()
 bool 
 debugged()
 {
+    #ifdef _WIN32
     return IsDebuggerPresent();
+	#else
+	return false;
+    #endif /* _WIN32 */
 }
 
 void
