@@ -1,12 +1,14 @@
+#include <assert.h>
 #include <stdint.h>
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 
+#include <boost/static_assert.hpp>
+
 #include "../ClipperUtils.hpp"
 #include "../ExPolygon.hpp"
-#include "../PolylineCollection.hpp"
 #include "../Surface.hpp"
 
 #include "FillRectilinear2.hpp"
@@ -36,11 +38,13 @@
 
 namespace Slic3r {
 
+#ifndef clamp
 template<typename T>
 static inline T clamp(T low, T high, T x)
 {
     return std::max<T>(low, std::min<T>(high, x));
 }
+#endif /* clamp */
 
 #ifndef sqr
 template<typename T>
@@ -48,21 +52,21 @@ static inline T sqr(T x)
 {
     return x * x;
 }
-#endif
+#endif /* sqr */
 
 #ifndef mag2
 static inline coordf_t mag2(const Point &p)
 {
     return sqr(coordf_t(p.x)) + sqr(coordf_t(p.y));
 }
-#endif
+#endif /* mag2 */
 
 #ifndef mag
 static inline coordf_t mag(const Point &p)
 {
     return std::sqrt(mag2(p));
 }
-#endif
+#endif /* mag */
 
 enum Orientation
 {
@@ -72,9 +76,12 @@ enum Orientation
 };
 
 // Return orientation of the three points (clockwise, counter-clockwise, colinear)
-// The predicate is exact.
-inline Orientation orient(const Point &a, const Point &b, const Point &c)
+// The predicate is exact for the coord_t type, using 64bit signed integers for the temporaries.
+//FIXME Make sure the temporaries do not overflow,
+// which means, the coord_t types must not have some of the topmost bits utilized.
+static inline Orientation orient(const Point &a, const Point &b, const Point &c)
 {
+    BOOST_STATIC_ASSERT(sizeof(coord_t) * 2 == sizeof(int64_t));
     int64_t u = int64_t(b.x) * int64_t(c.y) - int64_t(b.y) * int64_t(c.x);
     int64_t v = int64_t(a.x) * int64_t(c.y) - int64_t(a.y) * int64_t(c.x);
     int64_t w = int64_t(a.x) * int64_t(b.y) - int64_t(a.y) * int64_t(b.x);
@@ -84,12 +91,12 @@ inline Orientation orient(const Point &a, const Point &b, const Point &c)
 
 // Return orientation of the polygon.
 // The input polygon must not contain duplicate points.
-inline bool is_ccw(const Polygon &poly)
+static inline bool is_ccw(const Polygon &poly)
 {
     // The polygon shall be at least a triangle.
     assert(poly.points.size() >= 3);
     if (poly.points.size() < 3)
-        return false;
+        return true;
 
     // 1) Find the lowest lexicographical point.
     int     imin = 0;
@@ -100,94 +107,83 @@ inline bool is_ccw(const Polygon &poly)
             imin = i;
     }
 
-    // 2) Detect its orientation.
+    // 2) Detect the orientation of the corner imin.
     size_t iPrev = ((imin == 0) ? poly.points.size() : imin) - 1;
     size_t iNext = ((imin + 1 == poly.points.size()) ? 0 : imin + 1);
     Orientation o = orient(poly.points[iPrev], poly.points[imin], poly.points[iNext]);
-    // The lowest bottom point must not be collinear if the polygon does not contain duplicate points.
+    // The lowest bottom point must not be collinear if the polygon does not contain duplicate points
+    // or overlapping segments.
     assert(o != ORIENTATION_COLINEAR);
     return o == ORIENTATION_CCW;
 }
 
-/*
-// Segment of a polygon, starting with p1, ending with p2.
-// The indices seg1, seg2 address an end point of a starting resp. ending segment of a polygon.
-struct PolygonSegment
+// Having a segment of a closed polygon, calculate its Euclidian length.
+// The segment indices seg1 and seg2 signify an end point of an edge in the forward direction of the loop,
+// therefore the point p1 lies on poly.points[seg1-1], poly.points[seg1] etc.
+static inline coordf_t segment_length(const Polygon &poly, size_t seg1, const Point &p1, size_t seg2, const Point &p2)
 {
-    Point  p1;
-    size_t seg1;
-    Point  p2;
-    size_t seg2;
-};
-
-PolygonSegment reverse_segment(const Polygon &poly, const PolygonSegment &seg)
-{
-    PolygonSegment out;
-    out.p1 = seg.p2;
-    out.p2 = seg.p1;
-    out.seg1 = seg.seg2;
-    out.seg2 = seg.seg1;
-
-}
-*/
-
-coordf_t segment_length(const Polygon &poly, size_t seg1, const Point &p1, size_t seg2, const Point &p2)
-{
-    if (seg1 == seg2)
-        // The points p1 and p2 reside on the same segment.
-        // Measure a linear segment.
-        return p1.distance_to(p2);
-
+#ifdef SLIC3R_DEBUG
+    // Verify that p1 lies on seg1. This is difficult to verify precisely,
+    // but at least verify, that p1 lies in the bounding box of seg1.
+    for (size_t i = 0; i < 2; ++ i) {
+        size_t seg = (i == 0) ? seg1 : seg2;
+        Point  px  = (i == 0) ? p1   : p2;
+        Point  pa  = poly.points[((seg == 0) ? poly.points.size() : seg) - 1];
+        Point  pb  = poly.points[seg];
+        if (pa.x > pb.x)
+            std::swap(pa.x, pb.x);
+        if (pa.y > pb.y)
+            std::swap(pa.y, pb.y);
+        assert(px.x >= pa.x && px.x <= pb.x);
+        assert(px.y >= pa.y && px.y <= pb.y);
+    }
+#endif /* SLIC3R_DEBUG */
     const Point *pPrev = &p1;
+    const Point *pThis = NULL;
     coordf_t len = 0;
-    if (seg1 < seg2) {
-        for (size_t i = seg1; i < seg2; ++ i) {
-           const Point &pThis = poly.points[i];
-           len += pPrev->distance_to(pThis);
-           pPrev = &pThis;
-        }
+    if (seg1 <= seg2) {
+        for (size_t i = seg1; i < seg2; ++ i, pPrev = pThis)
+           len += pPrev->distance_to(*(pThis = &poly.points[i]));
     } else {
-        for (size_t i = seg1; i < poly.points.size(); ++ i) {
-           const Point &pThis = poly.points[i];
-           len += pPrev->distance_to(pThis);
-           pPrev = &pThis;
-        }
-        for (size_t i = 0; i < seg2; ++ i) {
-           const Point &pThis = poly.points[i];
-           len += pPrev->distance_to(pThis);
-           pPrev = &pThis;
-        }
+        for (size_t i = seg1; i < poly.points.size(); ++ i, pPrev = pThis)
+           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+        for (size_t i = 0; i < seg2; ++ i, pPrev = pThis)
+           len += pPrev->distance_to(*(pThis = &poly.points[i]));
     }
     len += pPrev->distance_to(p2);
     return len;
 }
 
-void segment_append(Points &out, const Polygon &polygon, size_t seg1, size_t seg2)
+// Append a segment of a closed polygon to a polyline.
+// The segment indices seg1 and seg2 signify an end point of an edge in the forward direction of the loop.
+// Only insert intermediate points between seg1 and seg2.
+static inline void polygon_segment_append(Points &out, const Polygon &polygon, size_t seg1, size_t seg2)
 {
-    if (seg1 == seg2)
+    if (seg1 == seg2) {
         // Nothing to append from this segment.
-        return;
-
-    if (seg1 < seg2) {
+    } else if (seg1 < seg2) {
+        // Do not append a point pointed to by seg2.
         out.insert(out.end(), polygon.points.begin() + seg1, polygon.points.begin() + seg2);
     } else {
         out.reserve(out.size() + seg2 + polygon.points.size() - seg1);
         out.insert(out.end(), polygon.points.begin() + seg1, polygon.points.end());
+        // Do not append a point pointed to by seg2.
         out.insert(out.end(), polygon.points.begin(), polygon.points.begin() + seg2);
     }
 }
 
-void segment_append_reversed(Points &out, const Polygon &polygon, size_t seg1, size_t seg2)
+// Append a segment of a closed polygon to a polyline.
+// The segment indices seg1 and seg2 signify an end point of an edge in the forward direction of the loop,
+// but this time the segment is traversed backward.
+// Only insert intermediate points between seg1 and seg2.
+static inline void polygon_segment_append_reversed(Points &out, const Polygon &polygon, size_t seg1, size_t seg2)
 {
-    if (seg1 == seg2)
-        // Nothing to append from this segment.
-        return;
-
-    if (seg1 > seg2) {
-        out.reserve(out.size() + seg2 - seg1);
+    if (seg1 >= seg2) {
+        out.reserve(seg1 - seg2);
         for (size_t i = seg1; i > seg2; -- i)
             out.push_back(polygon.points[i - 1]);
     } else {
+        // it could be, that seg1 == seg2. In that case, append the complete loop.
         out.reserve(out.size() + seg2 + polygon.points.size() - seg1);
         for (size_t i = seg1; i > 0; -- i)
             out.push_back(polygon.points[i - 1]);
@@ -196,6 +192,7 @@ void segment_append_reversed(Points &out, const Polygon &polygon, size_t seg1, s
     }
 }
 
+// Intersection point of a vertical line with a polygon segment.
 class SegmentIntersection
 {
 public:
@@ -208,10 +205,17 @@ public:
         consumed_perimeter_right(false)
         {}
 
+    // Index of a contour in ExPolygonWithOffset, with which this vertical line intersects.
     size_t      iContour;
+    // Index of a segment in iContour, with which this vertical line intersects.
     size_t      iSegment;
+    // y position of the intersection.
     coord_t     pos;
 
+    // Kind of intersection. With the original contour, or with the inner offestted contour?
+    // A vertical segment will be at least intersected by OUTER_LOW, OUTER_HIGH,
+    // but it could be intersected with OUTER_LOW, INNER_LOW, INNER_HIGH, OUTER_HIGH,
+    // and there may be more than one pair of INNER_LOW, INNER_HIGH between OUTER_LOW, OUTER_HIGH.
     enum SegmentIntersectionType {
         OUTER_LOW   = 0,
         OUTER_HIGH  = 1,
@@ -228,12 +232,10 @@ public:
     // Right means right from the vertical segment.
     bool consumed_perimeter_right;
 
-    // For the INNER_LOW type, this point may be connected to another INNER_LOW point.
-    // For the INNER_HIGH type, this point may be connected to another INNER_HIGH point.
+    // For the INNER_LOW type, this point may be connected to another INNER_LOW point following a perimeter contour.
+    // For the INNER_HIGH type, this point may be connected to another INNER_HIGH point following a perimeter contour.
     // If INNER_LOW is connected to INNER_HIGH or vice versa,
     // one has to make sure the vertical infill line does not overlap with the connecting perimeter line.
-
-
     bool is_inner() const { return type == INNER_LOW  || type == INNER_HIGH; }
     bool is_outer() const { return type == OUTER_LOW  || type == OUTER_HIGH; }
     bool is_low  () const { return type == INNER_LOW  || type == OUTER_LOW; }
@@ -243,21 +245,31 @@ public:
         { return pos < other.pos; }
 };
 
+// A vertical line with intersection points with polygons.
 class SegmentedIntersectionLine
 {
 public:
-    size_t      idx;
-    coord_t     pos;
-
+    // Index of this vertical intersection line.
+    size_t                              idx;
+    // x position of this vertical intersection line.
+    coord_t                             pos;
+    // List of intersection points with polygons, sorted increasingly by the y axis.
     std::vector<SegmentIntersection>    intersections;
 };
 
+// A container maintaining an expolygon with its inner offsetted polygon.
+// The purpose of the inner offsetted polygon is to provide segments to connect the infill lines.
 struct ExPolygonWithOffset
 {
 public:
     ExPolygonWithOffset(const ExPolygon &aexpolygon, coord_t aoffset) : expolygon(aexpolygon)
     {
-        polygons_inner = offset((Polygons)expolygon, aoffset);
+        polygons_inner = offset((Polygons)expolygon, aoffset, 
+            CLIPPER_OFFSET_SCALE, 
+            ClipperLib::jtMiter, 
+            // for the infill pattern, don't cut the corners.
+            // default miterLimt = 3
+            10.);
         n_contours_outer = 1 + expolygon.holes.size();
         n_contours_inner = polygons_inner.size();
         n_contours = n_contours_outer + n_contours_inner;
@@ -302,11 +314,11 @@ protected:
 };
 
 // For a vertical line, an inner contour and an intersection point,
-// find an intersection point on the previous / next vertical line.
-// The intersection point is connected with the prev / next intersection point with iInnerContour.
-// Return -1 if there is no such point.
-inline int intersection_on_prev_next_vertical_line(
-    const ExPolygonWithOffset                     &poly_with_offset, 
+// find an intersection point on the previous resp. next vertical line.
+// The intersection point is connected with the prev resp. next intersection point with iInnerContour.
+// Return -1 if there is no such point on the previous resp. next vertical line.
+static inline int intersection_on_prev_next_vertical_line(
+    const ExPolygonWithOffset                     &poly_with_offset,
     const std::vector<SegmentedIntersectionLine>  &segs,
     size_t                                         iVerticalLine,
     size_t                                         iInnerContour,
@@ -330,13 +342,16 @@ inline int intersection_on_prev_next_vertical_line(
     const bool                       ccw   = poly_with_offset.is_contour_ccw(iInnerContour);
     // Resulting index of an intersection point on il2.
     int                              out   = -1;
+    // Find an intersection point on iVerticalLineOther, intersecting iInnerContour
+    // at the same orientation as iIntersection, and being closest to iIntersection
+    // in the number of contour segments, when following the direction of the contour.
     int                              dmin  = std::numeric_limits<int>::max();
     for (size_t i = 0; i < il2.intersections.size(); ++ i) {
         const SegmentIntersection &itsct2 = il2.intersections[i];
         if (itsct.iContour == itsct2.iContour && itsct.type == itsct2.type) {
             // The intersection points lie on the same contour and have the same orientation.
-            // Find the intersection point with a shortest paht.
-            int d = int(itsct.iSegment) - int(itsct2.iSegment);
+            // Find the intersection point with a shortest path in the direction of the contour.
+            int d = int(itsct2.iSegment) - int(itsct.iSegment);
             if (ccw != dir_is_next)
                 d = - d;
             if (d < 0)
@@ -347,10 +362,11 @@ inline int intersection_on_prev_next_vertical_line(
             }
         }
     }
+    //FIXME this routine is not asymptotic optimal, it will be slow if there are many intersection points along the line.
     return out;
 }
 
-inline int intersection_on_prev_vertical_line(
+static inline int intersection_on_prev_vertical_line(
     const ExPolygonWithOffset                     &poly_with_offset, 
     const std::vector<SegmentedIntersectionLine>  &segs,
     size_t                                         iVerticalLine,
@@ -360,7 +376,7 @@ inline int intersection_on_prev_vertical_line(
     return intersection_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, false);
 }
 
-int intersection_on_next_vertical_line(
+static inline intersection_on_next_vertical_line(
     const ExPolygonWithOffset                     &poly_with_offset, 
     const std::vector<SegmentedIntersectionLine>  &segs, 
     size_t                                         iVerticalLine, 
@@ -371,40 +387,56 @@ int intersection_on_next_vertical_line(
 }
 
 // Find an intersection on a previous line, but return -1, if the connecting segment of a perimeter was already extruded.
-inline int intersection_unused_on_prev_vertical_line(
-    const ExPolygonWithOffset                     &poly_with_offset, 
+static inline int intersection_unused_on_prev_next_vertical_line(
+    const ExPolygonWithOffset                     &poly_with_offset,
     const std::vector<SegmentedIntersectionLine>  &segs,
     size_t                                         iVerticalLine,
     size_t                                         iInnerContour,
-    size_t                                         iIntersection)
+    size_t                                         iIntersection,
+    bool                                           dir_is_next)
 {
-    int iIntersectionPrev = intersection_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, false);
-    if (iIntersectionPrev == -1)
+    int iIntersectionOther = intersection_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, dir_is_next);
+    if (iIntersectionOther == -1)
         return -1;
-    assert(iVerticalLine > 0);
-    const SegmentedIntersectionLine &il_prev     = segs[iVerticalLine - 1];
-    const SegmentIntersection       &itsct_prev  = il_prev.intersections[iIntersectionPrev];
-    return itsct_prev.consumed_perimeter_right ? -1 : iIntersectionPrev;
+    //FIXME this routine will propose a connecting line even if the connecting perimeter segment intersects iVertical line multiple times before reaching iIntersectionOther.
+    assert(dir_is_next ? (iVerticalLine + 1 < segs.size()) : (iVerticalLine > 0));
+    const SegmentedIntersectionLine &il_this      = segs[iVerticalLine];
+    const SegmentIntersection       &itsct_this   = il_this.intersections[iIntersection];
+    const SegmentedIntersectionLine &il_other     = segs[dir_is_next ? (iVerticalLine+1) : (iVerticalLine-1)];
+    const SegmentIntersection       &itsct_other  = il_other.intersections[iIntersectionOther];
+    assert(itsct_other.is_inner());
+    assert(itsct_other.is_low() || iIntersectionOther > 1);
+    if (dir_is_next ? itsct_this.consumed_perimeter_right : itsct_other.consumed_perimeter_right)
+        // This perimeter segment was already consumed.
+        return -1;
+    if (itsct_other.is_low() ? itsct_other.consumed_vertical_up : il_other.intersections[iIntersectionOther-1].consumed_vertical_up)
+        // This vertical segment was already consumed.
+        return -1;
+    return iIntersectionOther;
 }
 
-// Find an intersection on a next line, but return -1, if the connecting segment of a perimeter was already extruded.
-int intersection_unused_on_next_vertical_line(
+static inline intersection_unused_on_prev_vertical_line(
     const ExPolygonWithOffset                     &poly_with_offset, 
     const std::vector<SegmentedIntersectionLine>  &segs, 
     size_t                                         iVerticalLine, 
     size_t                                         iInnerContour, 
     size_t                                         iIntersection)
 {
-    int iIntersectionNext = intersection_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, true);
-    if (iIntersectionNext == -1)
-        return -1;
-    assert(iVerticalLine + 1 < segs.size());
-    const SegmentedIntersectionLine &il    = segs[iVerticalLine];
-    const SegmentIntersection       &itsct = il.intersections[iIntersection];
-    return itsct.consumed_perimeter_right ? -1 : iIntersectionNext;
+    return intersection_unused_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, false);
 }
 
-inline coordf_t measure_perimeter_prev_next_segment_length(
+static inline intersection_unused_on_next_vertical_line(
+    const ExPolygonWithOffset                     &poly_with_offset, 
+    const std::vector<SegmentedIntersectionLine>  &segs, 
+    size_t                                         iVerticalLine, 
+    size_t                                         iInnerContour, 
+    size_t                                         iIntersection)
+{
+    return intersection_unused_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, true);
+}
+
+// Measure an Euclidian length of a perimeter segment when going from iIntersection to iIntersection2.
+static inline coordf_t measure_perimeter_prev_next_segment_length(
     const ExPolygonWithOffset                     &poly_with_offset, 
     const std::vector<SegmentedIntersectionLine>  &segs,
     size_t                                         iVerticalLine,
@@ -441,7 +473,7 @@ inline coordf_t measure_perimeter_prev_next_segment_length(
         segment_length(poly, itsct2.iSegment, p2, itsct .iSegment, p1);
 }
 
-inline coordf_t measure_perimeter_prev_segment_length(
+static inline coordf_t measure_perimeter_prev_segment_length(
     const ExPolygonWithOffset                     &poly_with_offset,
     const std::vector<SegmentedIntersectionLine>  &segs,
     size_t                                         iVerticalLine,
@@ -452,7 +484,7 @@ inline coordf_t measure_perimeter_prev_segment_length(
     return measure_perimeter_prev_next_segment_length(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, iIntersection2, false);
 }
 
-inline coordf_t measure_perimeter_next_segment_length(
+static inline coordf_t measure_perimeter_next_segment_length(
     const ExPolygonWithOffset                     &poly_with_offset,
     const std::vector<SegmentedIntersectionLine>  &segs,
     size_t                                         iVerticalLine,
@@ -463,8 +495,11 @@ inline coordf_t measure_perimeter_next_segment_length(
     return measure_perimeter_prev_next_segment_length(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, iIntersection2, true);
 }
 
-inline void emit_perimeter_prev_next_segment(
-    const ExPolygonWithOffset                     &poly_with_offset, 
+// Append the points of a perimeter segment when going from iIntersection to iIntersection2.
+// The first point (the point of iIntersection) will not be inserted,
+// the last point will be inserted.
+static inline void emit_perimeter_prev_next_segment(
+    const ExPolygonWithOffset                     &poly_with_offset,
     const std::vector<SegmentedIntersectionLine>  &segs,
     size_t                                         iVerticalLine,
     size_t                                         iInnerContour,
@@ -492,11 +527,13 @@ inline void emit_perimeter_prev_next_segment(
     assert(itsct.iContour == itsct2.iContour);
     assert(itsct.is_inner());
     const bool                       forward = (itsct.is_low() == ccw) == dir_is_next;
-    out.points.push_back(Point(il.pos, itsct.pos));
+    // Do not append the first point.
+    // out.points.push_back(Point(il.pos, itsct.pos));
     if (forward)
-        segment_append(out.points, poly, itsct.iSegment, itsct2.iSegment);
+        polygon_segment_append(out.points, poly, itsct.iSegment, itsct2.iSegment);
     else
-        segment_append_reversed(out.points, poly, itsct.iSegment, itsct2.iSegment);
+        polygon_segment_append_reversed(out.points, poly, itsct.iSegment, itsct2.iSegment);
+    // Append the last point.
     out.points.push_back(Point(il2.pos, itsct2.pos));
 }
 
@@ -804,20 +841,25 @@ Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParam
             // Start a new path.
             polylines_out.push_back(Polyline());
             polyline_current = &polylines_out.back();
+            // Emit the first point of a path.
+            pointLast = Point(segs[i_vline].pos, segs[i_vline].intersections[i_intersection].pos);
+            polyline_current->points.push_back(pointLast);
         }
 
         // From the initial point (i_vline, i_intersection), follow a path.
-        SegmentedIntersectionLine &seg       = segs[i_vline];
+        SegmentedIntersectionLine &seg      = segs[i_vline];
         SegmentIntersection       *intrsctn = &seg.intersections[i_intersection];
-        // consumed_vertical_up(false),
-        // consumed_perimeter_right(false)
         bool going_up = intrsctn->is_low();
         bool try_connect = false;
         if (going_up) {
             assert(! intrsctn->consumed_vertical_up);
             assert(i_intersection + 1 < seg.intersections.size());
-            // Emit a point
-            polyline_current->points.push_back(Point(seg.pos, intrsctn->pos));
+            // Step back to the beginning of the vertical segment to mark it as consumed.
+            if (intrsctn->is_inner()) {
+                assert(i_intersection > 0);
+                -- intrsctn;
+                -- i_intersection;
+            }
             // Consume the complete vertical segment up to the outer contour.
             do {
                 intrsctn->consumed_vertical_up = true;
@@ -837,9 +879,9 @@ Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParam
             assert(intrsctn->is_high());
             assert(i_intersection > 0);
             assert(! (intrsctn - 1)->consumed_vertical_up);
-            // Emit a point
-            polyline_current->points.push_back(Point(seg.pos, intrsctn->pos));
             // Consume the complete vertical segment up to the outer contour.
+            if (intrsctn->is_inner())
+                intrsctn->consumed_vertical_up = true;
             do {
                 assert(i_intersection > 0);
                 -- intrsctn;
@@ -866,8 +908,15 @@ Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParam
                     measure_perimeter_next_segment_length(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext);
                 // Take the shorter path.
                 bool take_next = (iPrev != -1 && iNext != -1) ? (distNext < distPrev) : distNext != -1;
+                assert(intrsctn->is_inner());
                 polyline_current->points.push_back(Point(seg.pos, intrsctn->pos));
                 emit_perimeter_prev_next_segment(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, take_next ? iNext : iPrev, *polyline_current, take_next);
+                // Mark both the left and right connecting segment as consumed, because one cannot go to this intersection point as it has been consumed.
+                if (iPrev != -1)
+                    segs[i_vline-1].intersections[iPrev].consumed_perimeter_right = true;
+                if (iNext != -1)
+                    intrsctn->consumed_perimeter_right = true;
+                //FIXME consume the left / right connecting segments at the other end of this line? Currently it is not critical because a perimeter segment is not followed if the vertical segment at the other side has already been consumed.
                 // Advance to the neighbor line.
                 if (take_next) {
                     ++ i_vline;
@@ -884,7 +933,10 @@ Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParam
             else
                 -- intrsctn;
         }
-        // Finish the vertical line, pick a new starting point.
+        // Finish the current vertical line,
+        // reset the current vertical line to pick a new starting point in the next round.
+        assert(intrsctn->is_outer());
+        assert(intrsctn->is_high() == going_up);
         pointLast = Point(seg.pos, intrsctn->pos);
         polyline_current->points.push_back(pointLast);
         intrsctn = NULL;

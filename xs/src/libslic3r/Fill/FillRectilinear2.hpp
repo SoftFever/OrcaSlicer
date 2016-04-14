@@ -22,6 +22,16 @@ protected:
 	coord_t _diagonal_distance;
 };
 
+class FillGrid2 : public FillRectilinear2
+{
+public:
+    virtual ~FillGrid2() {}
+
+protected:
+	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill::Base.
+    virtual float _layer_angle(size_t idx) const { return 0.f; }
+};
+
 }; // namespace Slic3r
 
 #endif // slic3r_FillRectilinear2_hpp_

@@ -1,5 +1,7 @@
 // Optimize the extrusion simulator to the bones.
-#pragma GCC optimize ("O0")
+#pragma GCC optimize ("O3")
+#undef SLIC3R_DEBUG
+#define NDEBUG
 
 #include <cmath>
 #include <cassert>
