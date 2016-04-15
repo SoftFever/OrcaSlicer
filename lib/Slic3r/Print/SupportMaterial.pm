@@ -702,7 +702,7 @@ sub generate_toolpaths {
             
             my @paths = ();
             foreach my $expolygon (@{union_ex($interface)}) {
-                my @p = $fillers{interface}->fill_surface(
+                my $polylines = $fillers{interface}->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density      => $interface_density,
                     layer_height => $layer->height,
@@ -711,12 +711,12 @@ sub generate_toolpaths {
                 my $mm3_per_mm = $_interface_flow->mm3_per_mm;
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
-                    polyline    => Slic3r::Polyline->new(@$_),
+                    polyline    => $_,
                     role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
                     mm3_per_mm  => $mm3_per_mm,
                     width       => $_interface_flow->width,
                     height      => $layer->height,
-                ), @p;
+                ), @$polylines,
             }
             
             $layer->support_interface_fills->append(@paths);
@@ -767,7 +767,7 @@ sub generate_toolpaths {
             
             my $mm3_per_mm = $base_flow->mm3_per_mm;
             foreach my $expolygon (@$to_infill) {
-                my @p = $filler->fill_surface(
+                my $polylines = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density     => $density,
                     layer_height => $layer->height,
@@ -775,12 +775,12 @@ sub generate_toolpaths {
                 );
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
-                    polyline    => Slic3r::Polyline->new(@$_),
+                    polyline    => $_,
                     role        => EXTR_ROLE_SUPPORTMATERIAL,
                     mm3_per_mm  => $mm3_per_mm,
                     width       => $base_flow->width,
                     height      => $layer->height,
-                ), @p;
+                ), @$polylines;
             }
             
             $layer->support_fills->append(@paths);
