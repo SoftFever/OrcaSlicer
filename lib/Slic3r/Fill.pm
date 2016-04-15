@@ -219,11 +219,11 @@ sub make_fill {
         $f->set_loop_clipping(scale($flow->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
         
         # apply half spacing using this flow's own spacing and generate infill
-        my @polylines = map $f->fill_surface(
-            $_,
+        my @polylines = $f->fill_surface(
+            $surface,
             density         => $density/100,
             layer_height    => $h,
-        ), @{ $surface->offset(-scale($f->spacing)/2) };
+        );
         next unless @polylines;
 
         
