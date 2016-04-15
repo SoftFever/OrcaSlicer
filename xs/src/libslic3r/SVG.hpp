@@ -17,6 +17,8 @@ class SVG
 
     SVG(const char* filename);
     SVG(const char* filename, const BoundingBox &bbox);
+    ~SVG() { if (f != NULL) Close(); }
+
     void draw(const Line &line, std::string stroke = "black", coord_t stroke_width = 0);
     void draw(const ThickLine &line, const std::string &fill, const std::string &stroke, coord_t stroke_width = 0);
     void draw(const Lines &lines, std::string stroke = "black");

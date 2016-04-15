@@ -204,6 +204,7 @@ SVG::Close()
 {
     fprintf(this->f, "</svg>\n");
     fclose(this->f);
+    this->f = NULL;
     printf("SVG written to %s\n", this->filename.c_str());
 }
 
