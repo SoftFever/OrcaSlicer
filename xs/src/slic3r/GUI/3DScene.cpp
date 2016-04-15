@@ -1,5 +1,7 @@
 #include "3DScene.hpp"
 
+#include <assert.h>
+
 namespace Slic3r {
 
 // caller is responsible for supplying NO lines with zero length
@@ -15,6 +17,10 @@ _3DScene::_extrusionentity_to_verts_do(const Lines &lines, const std::vector<dou
     // two triangles for each corner
     tverts->reserve_more(3 * 3 * 2 * (lines.size() + 1));
     */
+
+    assert(! lines.empty());
+    if (lines.empty())
+        return;
     
     Line prev_line;
     Pointf prev_b1, prev_b2;
