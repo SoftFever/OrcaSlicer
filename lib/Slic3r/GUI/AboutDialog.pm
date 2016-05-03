@@ -47,7 +47,7 @@ sub new {
         '<html>' .
         '<body bgcolor="#ffffff" link="#808080">' .
         '<font color="#808080">' .
-        'Copyright &copy; 2011-2015 Alessandro Ranellucci. <br />' .
+        'Copyright &copy; 2011-2016 Alessandro Ranellucci. <br />' .
         '<a href="http://slic3r.org/">Slic3r</a> is licensed under the ' .
         '<a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License, version 3</a>.' .
         '<br /><br /><br />' .
@@ -96,7 +96,7 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_);
 
-    $self->{logo} = Wx::Bitmap->new("$Slic3r::var/Slic3r_192px.png", wxBITMAP_TYPE_PNG);
+    $self->{logo} = Wx::Bitmap->new($Slic3r::var->("Slic3r_192px.png"), wxBITMAP_TYPE_PNG);
     $self->SetMinSize(Wx::Size->new($self->{logo}->GetWidth, $self->{logo}->GetHeight));
 
     EVT_PAINT($self, \&repaint);

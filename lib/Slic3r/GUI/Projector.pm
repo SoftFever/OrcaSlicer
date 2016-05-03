@@ -61,7 +61,7 @@ sub new {
             $serial_port->side_widget(sub {
                 my ($parent) = @_;
             
-                my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new("$Slic3r::var/arrow_rotate_clockwise.png", wxBITMAP_TYPE_PNG),
+                my $btn = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new($Slic3r::var->("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG),
                     wxDefaultPosition, wxDefaultSize, &Wx::wxBORDER_NONE);
                 $btn->SetToolTipString("Rescan serial ports")
                     if $btn->can('SetToolTipString');
@@ -78,7 +78,7 @@ sub new {
                     "Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
                 $btn->SetFont($Slic3r::GUI::small_font);
                 if ($Slic3r::GUI::have_button_icons) {
-                    $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/wrench.png", wxBITMAP_TYPE_PNG));
+                    $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("wrench.png"), wxBITMAP_TYPE_PNG));
                 }
             
                 EVT_BUTTON($self, $btn, sub {
@@ -282,7 +282,7 @@ sub new {
         {
             my $btn = $self->{btn_manual_control} = Wx::Button->new($self, -1, 'Manual Control', wxDefaultPosition, wxDefaultSize);
             if ($Slic3r::GUI::have_button_icons) {
-                $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/cog.png", wxBITMAP_TYPE_PNG));
+                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG));
             }
             $sizer1->Add($btn, 0);
             EVT_BUTTON($self, $btn, sub {
@@ -306,7 +306,7 @@ sub new {
         {
             my $btn = $self->{btn_print} = Wx::Button->new($self, -1, 'Print', wxDefaultPosition, wxDefaultSize);
             if ($Slic3r::GUI::have_button_icons) {
-                $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_play.png", wxBITMAP_TYPE_PNG));
+                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_play.png"), wxBITMAP_TYPE_PNG));
             }
             $sizer1->Add($btn, 0);
             EVT_BUTTON($self, $btn, sub {
@@ -318,7 +318,7 @@ sub new {
         {
             my $btn = $self->{btn_stop} = Wx::Button->new($self, -1, 'Stop/Black', wxDefaultPosition, wxDefaultSize);
             if ($Slic3r::GUI::have_button_icons) {
-                $btn->SetBitmap(Wx::Bitmap->new("$Slic3r::var/control_stop.png", wxBITMAP_TYPE_PNG));
+                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_stop.png"), wxBITMAP_TYPE_PNG));
             }
             $sizer1->Add($btn, 0);
             EVT_BUTTON($self, $btn, sub {

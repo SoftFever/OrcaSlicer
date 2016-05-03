@@ -55,7 +55,7 @@ $have_boost = 1
         lib     => [ map "boost_${_}", @boost_libraries ],
     );
 
-if ($have_boost) {
+if (!$ENV{SLIC3R_STATIC} && $have_boost) {
     push @LIBS, map "-lboost_${_}", @boost_libraries;
 } else {
     foreach my $path (@boost_libs) {
@@ -71,7 +71,11 @@ if ($have_boost) {
             ) or next;
         
             push @INC, (map " -I$_", @boost_include);  # TODO: only use the one related to the chosen lib path
-            push @LIBS, " -L$path", (map " -lboost_$_$suffix", @boost_libraries);
+            if ($ENV{SLIC3R_STATIC}) {
+                push @LIBS, map "$path/libboost_$_$suffix.a", @boost_libraries;
+            } else {
+                push @LIBS, " -L$path", (map " -lboost_$_$suffix", @boost_libraries);
+            }
             $have_boost = 1;
             last;
         }

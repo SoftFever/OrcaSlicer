@@ -5,7 +5,13 @@
 #include <sstream>
 #include <unistd.h>  // provides **environ
 
-extern char **environ;
+#ifdef __APPLE__
+#include <crt_externs.h>
+#undef environ
+#define environ (*_NSGetEnviron())
+#else
+ 	extern char **environ;
+#endif
 
 namespace Slic3r {
 
