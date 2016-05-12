@@ -273,11 +273,13 @@ GCodeWriter::toolchange(unsigned int extruder_id)
 }
 
 std::string
-GCodeWriter::set_speed(double F, const std::string &comment) const
+GCodeWriter::set_speed(double F, const std::string &comment,
+                       const std::string &cooling_marker) const
 {
     std::ostringstream gcode;
     gcode << "G1 F" << F;
     COMMENT(comment);
+    gcode << cooling_marker;
     gcode << "\n";
     return gcode.str();
 }

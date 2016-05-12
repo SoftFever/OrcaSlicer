@@ -177,7 +177,7 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
             /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
                 due to rounding (TODO: test and/or better math for this)  */
             double dE = length * (segment_length / wipe_dist) * 0.95;
-            gcode += gcodegen.writer.set_speed(wipe_speed*60, gcodegen.enable_cooling_markers ? ";_WIPE" : "");
+            gcode += gcodegen.writer.set_speed(wipe_speed*60, "", gcodegen.enable_cooling_markers ? ";_WIPE" : "");
             gcode += gcodegen.writer.extrude_to_xy(
                 gcodegen.point_to_gcode(line->b),
                 -dE,
@@ -562,7 +562,7 @@ GCode::_extrude(ExtrusionPath path, std::string description, double speed)
     // extrude arc or line
     if (path.is_bridge() && this->enable_cooling_markers)
         gcode += ";_BRIDGE_FAN_START\n";
-    gcode += this->writer.set_speed(F, this->enable_cooling_markers ? ";_EXTRUDE_SET_SPEED" : "");
+    gcode += this->writer.set_speed(F, "", this->enable_cooling_markers ? ";_EXTRUDE_SET_SPEED" : "");
     double path_length = 0;
     {
         std::string comment = this->config.gcode_comments ? description : "";
