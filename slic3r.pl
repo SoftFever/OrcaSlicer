@@ -32,6 +32,7 @@ my %cli_options = ();
         'load=s@'               => \$opt{load},
         'autosave=s'            => \$opt{autosave},
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
+        'no-controller'         => \$opt{no_controller},
         'no-plater'             => \$opt{no_plater},
         'gui-mode=s'            => \$opt{gui_mode},
         'datadir=s'             => \$opt{datadir},
@@ -99,10 +100,11 @@ my $gui;
 if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
-        $Slic3r::GUI::datadir   = Slic3r::decode_path($opt{datadir} // '');
-        $Slic3r::GUI::no_plater = $opt{no_plater};
-        $Slic3r::GUI::mode      = $opt{gui_mode};
-        $Slic3r::GUI::autosave  = $opt{autosave};
+        $Slic3r::GUI::datadir       = Slic3r::decode_path($opt{datadir} // '');
+        $Slic3r::GUI::no_controller = $opt{no_controller};
+        $Slic3r::GUI::no_plater     = $opt{no_plater};
+        $Slic3r::GUI::mode          = $opt{gui_mode};
+        $Slic3r::GUI::autosave      = $opt{autosave};
     }
     $gui = Slic3r::GUI->new;
     setlocale(LC_NUMERIC, 'C');
