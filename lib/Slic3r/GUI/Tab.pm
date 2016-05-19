@@ -107,7 +107,7 @@ sub new {
     });
     
     $self->{config} = Slic3r::Config->new;
-    $self->build;
+    $self->build(%params);
     $self->update_tree;
     $self->_update;
     if ($self->hidden_options) {
@@ -985,6 +985,7 @@ sub title { 'Printer Settings' }
 
 sub build {
     my $self = shift;
+    my (%params) = @_;
     
     $self->init_config_options(qw(
         bed_shape z_offset
@@ -1064,6 +1065,7 @@ sub build {
                 }
             });
         }
+        if (!$params{no_controller})
         {
             my $optgroup = $page->new_optgroup('USB/Serial connection');
             my $line = Slic3r::GUI::OptionsGroup::Line->new(
@@ -1239,7 +1241,7 @@ sub build {
     
     $self->{extruder_pages} = [];
     $self->_build_extruder_pages;
-    $self->_update_serial_ports;
+    $self->_update_serial_ports if (!$params{no_controller});
 }
 
 sub _update_serial_ports {
@@ -1341,11 +1343,14 @@ sub _update {
     
     my $config = $self->{config};
     
-    $self->get_field('serial_speed')->toggle($config->get('serial_port'));
-    if ($config->get('serial_speed') && $config->get('serial_port')) {
-        $self->{serial_test_btn}->Enable;
-    } else {
-        $self->{serial_test_btn}->Disable;
+    my $serial_speed = $self->get_field('serial_speed');
+    if ($serial_speed) {
+        $self->get_field('serial_speed')->toggle($config->get('serial_port'));
+        if ($config->get('serial_speed') && $config->get('serial_port')) {
+            $self->{serial_test_btn}->Enable;
+        } else {
+            $self->{serial_test_btn}->Disable;
+        }
     }
     if ($config->get('octoprint_host') && eval "use LWP::UserAgent; 1") {
         $self->{octoprint_host_test_btn}->Enable;
