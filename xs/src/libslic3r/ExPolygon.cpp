@@ -174,17 +174,10 @@ void
 ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polylines) const
 {
     // init helper object
-    Slic3r::Geometry::MedialAxis ma(max_width, min_width);
-    ma.expolygon = this;
+    Slic3r::Geometry::MedialAxis ma(max_width, min_width, this);
+    ma.lines = this->lines();
     
-    // populate list of segments for the Voronoi diagram
-    ma.lines = this->contour.lines();
-    for (Polygons::const_iterator hole = this->holes.begin(); hole != this->holes.end(); ++hole) {
-        Lines lines = hole->lines();
-        ma.lines.insert(ma.lines.end(), lines.begin(), lines.end());
-    }
-    
-    // compute the Voronoi diagram
+    // compute the Voronoi diagram and extract medial axis polylines
     ThickPolylines pp;
     ma.build(&pp);
     
@@ -195,15 +188,14 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
     svg.Close();
     */
     
-    // find the maximum width returned
+    /* Find the maximum width returned; we're going to use this for validating and 
+       filtering the output segments. */
     double max_w = 0;
-    if (!pp.empty()) {
-        std::vector<double> widths;
-        for (ThickPolylines::const_iterator it = pp.begin(); it != pp.end(); ++it)
-            widths.insert(widths.end(), it->width.begin(), it->width.end());
-        max_w = *std::max_element(widths.begin(), widths.end());
-    }
+    for (ThickPolylines::const_iterator it = pp.begin(); it != pp.end(); ++it)
+        max_w = fmaxf(max_w, *std::max_element(it->width.begin(), it->width.end()));
     
+    /* Loop through all returned polylines in order to extend their endpoints to the 
+       expolygon boundaries */
     bool removed = false;
     for (size_t i = 0; i < pp.size(); ++i) {
         ThickPolyline& polyline = pp[i];
@@ -500,6 +492,17 @@ ExPolygon::lines() const
         lines.insert(lines.end(), hole_lines.begin(), hole_lines.end());
     }
     return lines;
+}
+
+std::string
+ExPolygon::dump_perl() const
+{
+    std::ostringstream ret;
+    ret << "[" << this->contour.dump_perl();
+    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h)
+        ret << "," << h->dump_perl();
+    ret << "]";
+    return ret.str();
 }
 
 }

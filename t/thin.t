@@ -1,4 +1,4 @@
-use Test::More tests => 21;
+use Test::More tests => 23;
 use strict;
 use warnings;
 
@@ -8,7 +8,7 @@ BEGIN {
 }
 
 use Slic3r;
-use List::Util qw(first sum);
+use List::Util qw(first sum none);
 use Slic3r::Geometry qw(epsilon scale unscale scaled_epsilon Y);
 use Slic3r::Test;
 
@@ -91,7 +91,20 @@ if (0) {
     is scalar(@$res), 1, 'medial axis of a narrow rectangle with an extra vertex is still a single line';
     ok unscale($res->[0]->length) >= (200-100 - (120-100)) - epsilon, 'medial axis has still a reasonable length';
     ok !(grep { abs($_ - scale 150) < scaled_epsilon } map $_->[Y], map @$_, @$res2), "extra vertices don't influence medial axis";
+}
+
+{
+    my $expolygon = Slic3r::ExPolygon->new(
+        Slic3r::Polygon->new([1185881,829367],[1421988,1578184],[1722442,2303558],[2084981,2999998],[2506843,3662186],[2984809,4285086],[3515250,4863959],[4094122,5394400],[4717018,5872368],[5379210,6294226],[6075653,6656769],[6801033,6957229],[7549842,7193328],[8316383,7363266],[9094809,7465751],[9879211,7500000],[10663611,7465750],[11442038,7363265],[12208580,7193327],[12957389,6957228],[13682769,6656768],[14379209,6294227],[15041405,5872366],[15664297,5394401],[16243171,4863960],[16758641,4301424],[17251579,3662185],[17673439,3000000],[18035980,2303556],[18336441,1578177],[18572539,829368],[18750748,0],[19758422,0],[19727293,236479],[19538467,1088188],[19276136,1920196],[18942292,2726179],[18539460,3499999],[18070731,4235755],[17539650,4927877],[16950279,5571067],[16307090,6160437],[15614974,6691519],[14879209,7160248],[14105392,7563079],[13299407,7896927],[12467399,8159255],[11615691,8348082],[10750769,8461952],[9879211,8500000],[9007652,8461952],[8142729,8348082],[7291022,8159255],[6459015,7896927],[5653029,7563079],[4879210,7160247],[4143447,6691519],[3451331,6160437],[2808141,5571066],[2218773,4927878],[1687689,4235755],[1218962,3499999],[827499,2748020],[482284,1920196],[219954,1088186],[31126,236479],[0,0],[1005754,0]),
+    );
+    my $res = $expolygon->medial_axis(scale 1.324888, scale 0.25);
+    is scalar(@$res), 1, 'medial axis of a semicircumference is a single line';
     
+    # check whether turns are all CCW or all CW
+    my @lines = @{$res->[0]->lines};
+    my @angles = map { $lines[$_-1]->ccw($lines[$_]->b) } 1..$#lines;
+    ok !!(none { $_ < 0 } @angles) || (none { $_ > 0 } @angles),
+        'all medial axis segments of a semicircumference have the same orientation';
 }
 
 {
@@ -136,7 +149,7 @@ if (0) {
 {
     my $expolygon = Slic3r::ExPolygon->new(Slic3r::Polygon->new_scale(
         [50, 100],
-        [300, 102],
+        [1000, 102],
         [50, 104],
     ));
     my $res = $expolygon->medial_axis(scale 4, scale 0.5);

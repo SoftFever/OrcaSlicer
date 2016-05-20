@@ -37,6 +37,7 @@ class MultiPoint
     void append(const Points &points);
     void append(const Points::const_iterator &begin, const Points::const_iterator &end);
     bool intersection(const Line& line, Point* intersection) const;
+    std::string dump_perl() const;
     
     static Points _douglas_peucker(const Points &points, const double tolerance);
 };

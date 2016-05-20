@@ -38,6 +38,7 @@ class Point
     };
     bool operator==(const Point& rhs) const;
     std::string wkt() const;
+    std::string dump_perl() const;
     void scale(double factor);
     void translate(double x, double y);
     void translate(const Vector &vector);
@@ -87,6 +88,7 @@ class Pointf
         return Pointf(unscale(p.x), unscale(p.y));
     };
     std::string wkt() const;
+    std::string dump_perl() const;
     void scale(double factor);
     void translate(double x, double y);
     void translate(const Vectorf &vector);
