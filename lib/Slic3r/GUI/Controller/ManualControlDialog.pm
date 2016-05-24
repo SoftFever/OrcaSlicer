@@ -182,8 +182,8 @@ sub home {
     
     $self->sender->send(sprintf("G28 %s", $axis), 1);
     $self->{canvas}->set_pos(undef);
-    $self->x_homed if $axis eq 'X';
-    $self->y_homed if $axis eq 'Y';
+    $self->x_homed(1) if $axis eq 'X';
+    $self->y_homed(1) if $axis eq 'Y';
 }
 
 1;
