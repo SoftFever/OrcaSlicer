@@ -87,7 +87,8 @@ sub new {
         $bed_sizer->Add($sizer, 1, wxEXPAND, 0);
     }
     
-    $bed_sizer->AddSpacer(0);
+    # XYZ home button
+    $move_button->($bed_sizer, 'XYZ', 'house', 1, wxTOP, sub { $self->home(undef) });
     
     # X buttons
     {
@@ -180,6 +181,7 @@ sub rel_move {
 sub home {
     my ($self, $axis) = @_;
     
+    $axis //= '';
     $self->sender->send(sprintf("G28 %s", $axis), 1);
     $self->{canvas}->set_pos(undef);
     $self->x_homed(1) if $axis eq 'X';
