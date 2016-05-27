@@ -11,7 +11,7 @@ use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
- 
+
 __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               enable_picking
                               enable_moving
@@ -56,11 +56,31 @@ use constant HOVER_COLOR    => [0.4,0.9,0,1];
 sub new {
     my ($class, $parent) = @_;
     
+    # We can only enable multi sample anti aliasing wih wxWidgets 3.0.3 and with a hacked Wx::GLCanvas,
+    # which exports some new WX_GL_XXX constants, namely WX_GL_SAMPLE_BUFFERS and WX_GL_SAMPLES.
+    my $can_multisample =
+        Wx::wxVERSION >= 3.000003 &&
+        defined Wx::GLCanvas->can('WX_GL_SAMPLE_BUFFERS') &&
+        defined Wx::GLCanvas->can('WX_GL_SAMPLES');
+    my $attrib = [WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24];
+    if ($can_multisample) {
+        # Request a window with multi sampled anti aliasing. This is a new feature in Wx 3.0.3 (backported from 3.1.0).
+        # Use eval to avoid compilation, if the subs WX_GL_SAMPLE_BUFFERS and WX_GL_SAMPLES are missing.
+        eval 'push(@$attrib, (WX_GL_SAMPLE_BUFFERS, 1, WX_GL_SAMPLES, 4));';
+    }
+    # wxWidgets expect the attrib list to be ended by zero.
+    push(@$attrib, 0);
+
     # we request a depth buffer explicitely because it looks like it's not created by 
     # default on Linux, causing transparency issues
-    my $self = $class->SUPER::new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, 0, "",
-        [WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0]);
-   
+    my $self = $class->SUPER::new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, 0, "", $attrib);
+    if (Wx::wxVERSION >= 3.000003) {
+        # Wx 3.0.3 contains an ugly hack to support some advanced OpenGL attributes through the attribute list.
+        # The attribute list is transferred between the wxGLCanvas and wxGLContext constructors using a single static array s_wglContextAttribs.
+        # Immediatelly force creation of the OpenGL context to consume the static variable s_wglContextAttribs.
+        $self->GetContext();
+    }
+
     $self->background(1);
     $self->_quat((0, 0, 0, 1));
     $self->_stheta(45);
