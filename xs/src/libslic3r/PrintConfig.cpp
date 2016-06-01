@@ -1015,7 +1015,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("standby_temperature_delta", coInt);
     def->label = "Temperature variation";
-    def->tooltip = "Temperature difference to be applied when an extruder is not active.";
+    def->tooltip = "Temperature difference to be applied when an extruder is not active.  Enables a full-height \"sacrificial\" skirt on which the nozzles are periodically wiped.";
     def->sidetext = "∆°C";
     def->cli = "standby-temperature-delta=i";
     def->min = -500;
