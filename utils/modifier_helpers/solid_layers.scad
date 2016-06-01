@@ -15,7 +15,7 @@ initial_offset=0; // don't generate below this
 position_on_bed=[0,0,0]; // in case you need to move it around
 
 // don't touch below unless you know what you are doing.
-simple_layers = round(model_height/0.3);
+simple_layers = round(model_height/layer_height);
 translate(position_on_bed)
   for (i = [initial_offset:N:simple_layers]) {
     translate([0,0,i*layer_height])
