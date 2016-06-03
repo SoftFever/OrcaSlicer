@@ -5,8 +5,8 @@ use warnings;
 use List::Util qw(min max);
 use Slic3r::Geometry qw(PI X Y unscale deg2rad);
 use Slic3r::Geometry::Clipper qw(intersection_pl);
-use Wx qw(:misc :pen :brush :font wxTAB_TRAVERSAL);
-use Wx::Event qw(EVT_PAINT EVT_MOUSE_EVENTS);
+use Wx qw(:misc :pen :brush :font :systemsettings wxTAB_TRAVERSAL wxSOLID);
+use Wx::Event qw(EVT_PAINT EVT_ERASE_BACKGROUND EVT_MOUSE_EVENTS EVT_SIZE);
 use base qw(Wx::Panel Class::Accessor);
 
 __PACKAGE__->mk_accessors(qw(bed_shape interactive pos _scale_factor _shift on_move));
@@ -15,19 +15,33 @@ sub new {
     my ($class, $parent, $bed_shape) = @_;
     
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, [250,-1], wxTAB_TRAVERSAL);
+    $self->{user_drawn_background} = $^O ne 'darwin';
     $self->bed_shape($bed_shape // []);
     EVT_PAINT($self, \&_repaint);
+    EVT_ERASE_BACKGROUND($self, sub {}) if $self->{user_drawn_background};
     EVT_MOUSE_EVENTS($self, \&_mouse_event);
-    
+    EVT_SIZE($self, sub { $self->Refresh; });
     return $self;
 }
 
 sub _repaint {
-    my ($self) = @_;
+    my ($self, $event) = @_;
     
     my $dc = Wx::AutoBufferedPaintDC->new($self);
     my ($cw, $ch) = $self->GetSizeWH;
     return if $cw == 0;  # when canvas is not rendered yet, size is 0,0
+
+    if ($self->{user_drawn_background}) {
+        # On all systems the AutoBufferedPaintDC() achieves double buffering.
+        # On MacOS the background is erased, on Windows the background is not erased 
+        # and on Linux/GTK the background is erased to gray color.
+        # Fill DC with the background on Windows & Linux/GTK.
+        my $color = Wx::SystemSettings::GetSystemColour(wxSYS_COLOUR_3DLIGHT);
+        $dc->SetPen(Wx::Pen->new($color, 1, wxSOLID));
+        $dc->SetBrush(Wx::Brush->new($color, wxSOLID));
+        my $rect = $self->GetUpdateRegion()->GetBox();
+        $dc->DrawRectangle($rect->GetLeft(), $rect->GetTop(), $rect->GetWidth(), $rect->GetHeight());
+    }
     
     # turn $cw and $ch from sizes to max coordinates
     $cw--;
@@ -39,11 +53,12 @@ sub _repaint {
     ]);
     
     # leave space for origin point
-    $cbb->set_x_min($cbb->x_min + 2);
-    $cbb->set_y_max($cbb->y_max - 2);
+    $cbb->set_x_min($cbb->x_min + 4);
+    $cbb->set_x_max($cbb->x_max - 4);
+    $cbb->set_y_max($cbb->y_max - 4);
     
     # leave space for origin label
-    $cbb->set_y_max($cbb->y_max - 10);
+    $cbb->set_y_max($cbb->y_max - 13);
     
     # read new size
     ($cw, $ch) = @{$cbb->size};
