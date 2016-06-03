@@ -1130,13 +1130,24 @@ sub build {
                 }
                 
                 EVT_BUTTON($self, $btn, sub {
-                    my $dlg = Slic3r::GUI::BonjourBrowser->new($self);
-                    if ($dlg->ShowModal == wxID_OK) {
-                        my $value = $dlg->GetValue . ":" . $dlg->GetPort;
-                        $self->{config}->set('octoprint_host', $value);
-                        $self->update_dirty;
-                        $self->_on_value_change('octoprint_host', $value);
-                        $self->reload_config;
+                    # look for devices
+                    my $entries;
+                    {
+                        my $res = Net::Bonjour->new('http');
+                        $res->discover;
+                        $entries = [ $res->entries ];
+                    }
+                    if (@{$entries}) {
+                        my $dlg = Slic3r::GUI::BonjourBrowser->new($self, $entries);
+                        if ($dlg->ShowModal == wxID_OK) {
+                            my $value = $dlg->GetValue . ":" . $dlg->GetPort;
+                            $self->{config}->set('octoprint_host', $value);
+                            $self->update_dirty;
+                            $self->_on_value_change('octoprint_host', $value);
+                            $self->reload_config;
+                        }
+                    } else {
+                        Wx::MessageDialog->new($self, 'No Bonjour device found', 'Device Browser', wxOK | wxICON_INFORMATION)->ShowModal;
                     }
                 });
                 

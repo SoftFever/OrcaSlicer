@@ -9,14 +9,10 @@ use base 'Wx::Dialog';
 
 sub new {
     my $class = shift;
-    my ($parent) = @_;
+    my ($parent, $devices) = @_;
     my $self = $class->SUPER::new($parent, -1, "Device Browser", wxDefaultPosition, [350,700], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
     
-    # look for devices
-    eval "use Net::Bonjour; 1";
-    my $res = Net::Bonjour->new('http');
-    $res->discover;
-    $self->{devices} = [ $res->entries ];
+    $self->{devices} = $devices;
     
     # label
     my $text = Wx::StaticText->new($self, -1, "Choose an OctoPrint device in your network:", wxDefaultPosition, wxDefaultSize);
