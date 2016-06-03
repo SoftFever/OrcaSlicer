@@ -7,7 +7,7 @@ use List::Util qw(min max first);
 use Slic3r::Geometry qw(X Y scale unscale convex_hull);
 use Slic3r::Geometry::Clipper qw(offset JT_ROUND intersection_pl);
 use Wx qw(:misc :pen :brush :sizer :font :cursor wxTAB_TRAVERSAL);
-use Wx::Event qw(EVT_MOUSE_EVENTS EVT_PAINT EVT_SIZE);
+use Wx::Event qw(EVT_MOUSE_EVENTS EVT_PAINT EVT_ERASE_BACKGROUND EVT_SIZE);
 use base 'Wx::Panel';
 
 use constant CANVAS_TEXT => join('-', +(localtime)[3,4]) eq '13-8'
@@ -19,8 +19,9 @@ sub new {
     my ($parent, $size, $objects, $model, $config) = @_;
     
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, $size, wxTAB_TRAVERSAL);
+    # This has only effect on MacOS. On Windows and Linux/GTK, the background is painted by $self->repaint().
     $self->SetBackgroundColour(Wx::wxWHITE);
-    
+
     $self->{objects}            = $objects;
     $self->{model}              = $model;
     $self->{config}             = $config;
@@ -37,8 +38,11 @@ sub new {
     $self->{print_center_pen}   = Wx::Pen->new(Wx::Colour->new(200,200,200), 1, wxSOLID);
     $self->{clearance_pen}      = Wx::Pen->new(Wx::Colour->new(0,0,200), 1, wxSOLID);
     $self->{skirt_pen}          = Wx::Pen->new(Wx::Colour->new(150,150,150), 1, wxSOLID);
+
+    $self->{user_drawn_background} = $^O ne 'darwin';
     
     EVT_PAINT($self, \&repaint);
+    EVT_ERASE_BACKGROUND($self, sub {}) if $self->{user_drawn_background};
     EVT_MOUSE_EVENTS($self, \&mouse_event);
     EVT_SIZE($self, sub {
         $self->update_bed_size;
@@ -74,7 +78,19 @@ sub repaint {
     my $dc = Wx::AutoBufferedPaintDC->new($self);
     my $size = $self->GetSize;
     my @size = ($size->GetWidth, $size->GetHeight);
-    
+
+    if ($self->{user_drawn_background}) {
+        # On all systems the AutoBufferedPaintDC() achieves double buffering.
+        # On MacOS the background is erased, on Windows the background is not erased 
+        # and on Linux/GTK the background is erased to gray color.
+        # Fill DC with the background on Windows & Linux/GTK.
+        my $brush_background = Wx::Brush->new(Wx::wxWHITE, wxSOLID);
+        $dc->SetPen(wxWHITE_PEN);
+        $dc->SetBrush($brush_background);
+        my $rect = $self->GetUpdateRegion()->GetBox();
+        $dc->DrawRectangle($rect->GetLeft(), $rect->GetTop(), $rect->GetWidth(), $rect->GetHeight());
+    }
+
     # draw grid
     $dc->SetPen($self->{grid_pen});
     $dc->DrawLine(map @$_, @$_) for @{$self->{grid}};
