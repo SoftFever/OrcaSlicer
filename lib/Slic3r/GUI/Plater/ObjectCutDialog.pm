@@ -15,6 +15,11 @@ sub new {
     $self->{model_object_idx} = $params{model_object_idx};
     $self->{model_object} = $params{model_object};
     $self->{new_model_objects} = [];
+    # Mark whether the mesh cut is valid.
+    # If not, it needs to be recalculated by _update() on wxTheApp->CallAfter() or on exit of the dialog.
+    $self->{mesh_cut_valid} = 0;
+    # Note whether the window was already closed, so a pending update is not executed.
+    $self->{already_closed} = 0;
     
     # cut options
     $self->{cut_options} = {
@@ -31,11 +36,18 @@ sub new {
         title       => 'Cut',
         on_change   => sub {
             my ($opt_id) = @_;
-            
-            $self->{cut_options}{$opt_id} = $optgroup->get_value($opt_id);
-            wxTheApp->CallAfter(sub {
-                $self->_update;
-            });
+            # There seems to be an issue with wxWidgets 3.0.2/3.0.3, where the slider
+            # genates tens of events for a single value change.
+            # Only trigger the recalculation if the value changes
+            # or a live preview was activated and the mesh cut is not valid yet.
+            if ($self->{cut_options}{$opt_id} != $optgroup->get_value($opt_id) ||
+                ! $self->{mesh_cut_valid} && $self->_life_preview_active()) {
+                $self->{cut_options}{$opt_id} = $optgroup->get_value($opt_id);
+                $self->{mesh_cut_valid} = 0;
+                wxTheApp->CallAfter(sub {
+                    $self->_update;
+                });
+            }
         },
         label_width  => 120,
     );
@@ -113,6 +125,10 @@ sub new {
     $self->{sizer}->SetSizeHints($self);
     
     EVT_BUTTON($self, $self->{btn_cut}, sub {
+        # Recalculate the cut if the preview was not active.
+        $self->_perform_cut() unless $self->{mesh_cut_valid};
+
+        # Adjust position / orientation of the split object halves.
         if ($self->{new_model_objects}{lower}) {
             if ($self->{cut_options}{rotate_lower}) {
                 $self->{new_model_objects}{lower}->rotate(PI, X);
@@ -123,41 +139,86 @@ sub new {
             $self->{new_model_objects}{upper}->center_around_origin;  # align to Z = 0
         }
         
+        # Note that the window was already closed, so a pending update will not be executed.
+        $self->{already_closed} = 1;
         $self->EndModal(wxID_OK);
-        $self->Close;
+        $self->Destroy();
     });
-    
+
+    EVT_CLOSE($self, sub {
+        # Note that the window was already closed, so a pending update will not be executed.
+        $self->{already_closed} = 1;
+        $self->EndModal(wxID_CANCEL);
+        $self->Destroy();
+    });
+
     $self->_update;
     
     return $self;
 }
 
+# scale Z down to original size since we're using the transformed mesh for 3D preview
+# and cut dialog but ModelObject::cut() needs Z without any instance transformation
+sub _mesh_slice_z_pos
+{
+    my ($self) = @_;
+    return $self->{cut_options}{z} / $self->{model_object}->instances->[0]->scaling_factor;
+}
+
+# Only perform live preview if just a single part of the object shall survive.
+sub _life_preview_active
+{
+    my ($self) = @_;
+    return $self->{cut_options}{preview} && ($self->{cut_options}{keep_upper} != $self->{cut_options}{keep_lower});
+}
+
+# Slice the mesh, keep the top / bottom part.
+sub _perform_cut 
+{
+    my ($self) = @_;
+
+    # Early exit. If the cut is valid, don't recalculate it.
+    return if $self->{mesh_cut_valid};
+
+    my $z = $self->_mesh_slice_z_pos();
+
+    my ($new_model) = $self->{model_object}->cut($z);
+    my ($upper_object, $lower_object) = @{$new_model->objects};
+    $self->{new_model} = $new_model;
+    $self->{new_model_objects} = {};
+    if ($self->{cut_options}{keep_upper} && $upper_object->volumes_count > 0) {
+        $self->{new_model_objects}{upper} = $upper_object;
+    }
+    if ($self->{cut_options}{keep_lower} && $lower_object->volumes_count > 0) {
+        $self->{new_model_objects}{lower} = $lower_object;
+    }
+
+    $self->{mesh_cut_valid} = 1;
+}
+
 sub _update {
     my ($self) = @_;
-    
+
+    # Don't update if the window was already closed.
+    # We are not sure whether the action planned by wxTheApp->CallAfter() may be triggered after the window is closed.
+    # Probably not, but better be safe than sorry, which is espetially true on multiple platforms.
+    return if $self->{already_closed};
+
+    # Only recalculate the cut, if the live cut preview is active.
+    my $life_preview_active = $self->_life_preview_active();
+    $self->_perform_cut() if $life_preview_active;
+
     {
         # scale Z down to original size since we're using the transformed mesh for 3D preview
         # and cut dialog but ModelObject::cut() needs Z without any instance transformation
-        my $z = $self->{cut_options}{z} / $self->{model_object}->instances->[0]->scaling_factor;
-        
-        {
-            my ($new_model) = $self->{model_object}->cut($z);
-            my ($upper_object, $lower_object) = @{$new_model->objects};
-            $self->{new_model} = $new_model;
-            $self->{new_model_objects} = {};
-            if ($self->{cut_options}{keep_upper} && $upper_object->volumes_count > 0) {
-                $self->{new_model_objects}{upper} = $upper_object;
-            }
-            if ($self->{cut_options}{keep_lower} && $lower_object->volumes_count > 0) {
-                $self->{new_model_objects}{lower} = $lower_object;
-            }
-        }
+        my $z = $self->_mesh_slice_z_pos();
+
         
         # update canvas
         if ($self->{canvas}) {
             # get volumes to render
             my @objects = ();
-            if ($self->{cut_options}{preview}) {
+            if ($life_preview_active) {
                 push @objects, values %{$self->{new_model_objects}};
             } else {
                 push @objects, $self->{model_object};
