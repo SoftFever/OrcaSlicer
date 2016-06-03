@@ -128,6 +128,19 @@ MultiPoint::intersection(const Line& line, Point* intersection) const
     return false;
 }
 
+std::string
+MultiPoint::dump_perl() const
+{
+    std::ostringstream ret;
+    ret << "[";
+    for (Points::const_iterator p = this->points.begin(); p != this->points.end(); ++p) {
+        ret << p->dump_perl();
+        if (p != this->points.end()-1) ret << ",";
+    }
+    ret << "]";
+    return ret.str();
+}
+
 Points
 MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 {

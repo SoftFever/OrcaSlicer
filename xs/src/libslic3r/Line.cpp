@@ -212,6 +212,12 @@ Line::intersection(const Line& line, Point* intersection) const
     return false;  // not intersecting
 }
 
+double
+Line::ccw(const Point& point) const
+{
+    return point.ccw(*this);
+}
+
 Pointf3
 Linef3::intersect_plane(double z) const
 {

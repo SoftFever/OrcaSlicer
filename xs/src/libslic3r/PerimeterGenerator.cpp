@@ -92,7 +92,7 @@ PerimeterGenerator::process()
                         
                         // the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         // (actually, something larger than that still may exist due to mitering or other causes)
-                        coord_t min_width = scale_(this->ext_perimeter_flow.nozzle_diameter / 2);
+                        coord_t min_width = scale_(this->ext_perimeter_flow.nozzle_diameter / 3);
                         ExPolygons expp = offset2_ex(diffpp, -min_width/2, +min_width/2);
                         
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop

@@ -41,6 +41,8 @@
         %code{% RETVAL = Polyline(*THIS); %};
     Clone<Point> normal();
     Clone<Point> vector();
+    double ccw(Point* point)
+        %code{% RETVAL = THIS->ccw(*point); %};
 %{
 
 Line*

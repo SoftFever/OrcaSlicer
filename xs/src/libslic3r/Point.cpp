@@ -26,6 +26,14 @@ Point::wkt() const
     return ss.str();
 }
 
+std::string
+Point::dump_perl() const
+{
+    std::ostringstream ss;
+    ss << "[" << this->x << "," << this->y << "]";
+    return ss.str();
+}
+
 void
 Point::scale(double factor)
 {
@@ -310,6 +318,14 @@ Pointf::wkt() const
 {
     std::ostringstream ss;
     ss << "POINT(" << this->x << " " << this->y << ")";
+    return ss.str();
+}
+
+std::string
+Pointf::dump_perl() const
+{
+    std::ostringstream ss;
+    ss << "[" << this->x << "," << this->y << "]";
     return ss.str();
 }
 

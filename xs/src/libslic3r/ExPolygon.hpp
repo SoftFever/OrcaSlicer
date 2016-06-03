@@ -42,6 +42,7 @@ class ExPolygon
     void triangulate_pp(Polygons* polygons) const;
     void triangulate_p2t(Polygons* polygons) const;
     Lines lines() const;
+    std::string dump_perl() const;
 };
 
 }

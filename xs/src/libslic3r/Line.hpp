@@ -44,6 +44,7 @@ class Line
     void extend_end(double distance);
     void extend_start(double distance);
     bool intersection(const Line& line, Point* intersection) const;
+    double ccw(const Point& point) const;
 };
 
 class ThickLine : public Line
