@@ -1,0 +1,273 @@
+How to build Slic3r on Mac OS X 10.7 Lion 64bit
+---------------------------------------------
+Vojtech Bubnik, 2016-04-26
+
+
+1) Install Mac OS X 10.7 Lion 64 bit with X Code
+------------------------------------------------
+
+One has to build the OSX Slic3r on a real Mac, either directly on the system, or on a virtualized OSX. On Mac, two commercial solutions are available to legally virtualize MacOS on MacOS:
+http://www.parallels.com/eu/products/desktop/
+http://www.vmware.com/products/workstation/
+
+Installation of a X Code on an OS X 10.7 Lion needs a bit of work. The latest X Code supported by the Lion on a Virtual Box is 4.21. The trouble is, the certificates of the X Code 4.21 installation package expired. One way to work around the certificate is to flatten the installation package by unpacking and repacking it:
+pkgutil --expand Foobar.pkg foobar
+pkgutil --flatten foobar barfoo.pkg
+
+The flattened package is available here:
+\\rs.prusa\Development\Slic3r-Prusa\installxcode_421_lion_fixed.pkg
+
+This installer does not install the X Code directly. Instead, it installs another installer with a set of 47 pkg files. These files have their certificates expired as well. You will find the packages on your MacOS here:
+/Applications/Install Xcode.app/Contents/Resources/Packages/
+
+It is best to flatten them in a loop:
+cd /Applications/Install\ Xcode.app/Contents/Resources/Packages/
+for f in *.pkg; do 
+  pkgutil --expand $f /tmp/$f
+  rm -f $f
+  pkgutil --flatten /tmp/$f $f
+done
+
+After that, you may finish the installation of Xcode by running
+/Applications/Install\ Xcode.app
+
+
+1b) Installing the Xcode on a newer system
+-------------------------------------------
+You will need to register as an Apple developer on
+https://developer.apple.com/
+log in and download and install Xcode
+https://developer.apple.com/downloads/
+You will likely need to download and install Xcode Command Line Tools, though the Xcode 4.1 came with the command line tools installed.
+
+
+2) Prepare the development environment
+--------------------------------------
+
+Install the brew package manager:
+http://brew.sh/
+The brew package manager requires the git command line tool. Normally the git tool is installed as part of the Xcode command line tools.
+Copy and execute a command line from the top of http://brew.sh/ . It is possible, that the invocation of git fails because of some parameters the old git does not recognize. If so, invoke the git call manually.
+
+Compile the boost library using brew. Following line compiles a 64bit boost with both static and shared libraries.
+brew install boost --universal
+
+Install dylibbundler tool. The dylibbundler tool serves to collect dependent dynamic libraries and fix their linkage. Execute
+brew install dylibbundler
+
+3) Install perl
+---------------
+
+We don't want to distribute perl pre-installed on the Mac OS box. First, the system perl installation is not correct on some Mac OS versions, second it is not rellocatable. To compile a 64bit rellocatable perl, we use the perlbrew distribution. The perlbrew distribution installs into a user home directory and it allows switching between multiple versions of perl.
+http://perlbrew.pl/
+
+First install perlbrew
+\curl -L http://install.perlbrew.pl | bash
+Then compile the newest perl with the rellocatable @INC path and with multithreading enabled, execute following line:
+perlbrew install --threads -Duserelocatableinc --switch perl-5.22.0
+The --switch parameter switches the active perl to the currently compiled one.
+Available perl versions could be listed by calling
+perlbrew available
+
+Initialize CPAN, install PAR and PAR::Packer modules
+execute cpan command, from the cpan prompt, run
+install App::cpanminus
+install PAR
+install PAR::Packer
+quit
+
+4) Download and install Slic3r
+------------------------------
+
+git clone git://github.com/alexrj/Slic3r
+cd Slic3r
+perl Build.PL
+
+Now Slic3r shall be compiled. You may try to execute
+perl slic3r.pl
+to get a help screen, or
+perl slic3r.pl some_model.stl
+to have the model sliced.
+
+5) Download and compile the GUI libraries needed to execute Slic3r in GUI mode
+------------------------------------------------------------------------------
+
+For the current Slic3r 1.2.30 code base, set the environment variable SLIC3R_STATIC to link a static version of the boost library:
+export SLIC3R_STATIC=1
+
+then execute 
+perl Build.PL --gui
+and keep your fingers crossed. The Build.PL script downloads and compiles the WxWidgets 3.0 through a Alien::Wx PERL package. The WxWidget shared libraries will land into
+~/perl5/perlbrew/perls/perl-5.22.1/lib/site_perl/5.22.1/darwin-thread-multi-2level/Alien/wxWidgets/
+
+On Maverics, we experienced following issue compiling WxPerl:
+http://wiki.bolay.net/doku.php?id=acdsn:acdsn-a:mac
+
+Now you could run the GUI version of slic3r by calling
+perl slic3r.pl --gui
+If some dependency is missing, the MacOS system will let you know.
+
+6) Packing the Slic3r
+---------------------
+
+Perl is an operating system on its own. Many modules are shared among multiple applications and it is difficult to extract a stand-alone application from a perl installation manually. Fortunately, tools are available, which automate the process to some extent. One of the tools is the PAR::Packer. The PAR::Packer tool (pp executable) is able to create a standalone executable for a perl script. The standalone executable contains a PAR archive (a zip file) bundled with a perl interpreter. When executed, the bundled executable will decompress most of the PAR archive into a temp folder. Because of that, we will use the PAR::Packer to resolve and collect the dependencies, but we will create an installer manually.
+
+The PAR::Packer could analyze the dependencies by a statical analysis, or at a runtime. The statical analysis does not resolve the dynamically loaded modules. On the other side, the statical analysis is pessimistic, therefore it often collects unneeded packages. The dynamic analysis may miss some package, if not all branches of a code are executed. We will try to solely depend on the dynamic analysis to keep the installation size minimal. We may need to develop a protocol or an automatic UI tool to exercise as much as possible from the Slic3r GUI to pack the GUI version reliably. Once a reliable list of dependencies is collected, we may not need the PAR::Packer anymore.
+
+To create a PAR archive of a command line slic3r, execute
+pp -e -p -x slic3r.pl --xargs cube.stl -o slic3r.par
+and let the slic3r slice a cube.stl to load the dynamic modules.
+
+To create a PAR archive of a GUI slic3r, execute
+pp -e -p -x slic3r.pl --xargs --gui -o slic3r.par
+and exercise the slic3r gui to load all modules.
+
+Rename the slic3r.par file to slic3r.zip and decompress. Most of the code needed to execute Slic3r is there, only the perl executable is missing for the command line slic3r, and the WxWidgets shared libraries and the liblzma shared library are missing for the GUI version.
+
+7) Collecting the dependent shared libraries, making the link paths relative
+----------------------------------------------------------------------------
+
+We have linked Slic3r against a static boost library, therefore the command line slic3r is not dependent on any non-system shared library. The situation is different for the GUI slic3r, which links dynamically against WxWidgets and liblzma.
+
+The trick developed by Apple to allow rellocable shared libraries is to addres a shared library relatively to the path of the executable by encoding a special token @executable_path at the start of the path. Unfortunately the libraries requried by Slic3r are compiled with absolute paths.
+
+Once the slic3r.par archive is unpacked, one may list the native shared libraries by 
+find ./ -name '*.bundle'
+and one may list the dependencies by running
+otool -L somefile.bundle
+Most of the dependencies point to system directores and these dependences are always fulfilled. Dependencies pointing to the WxWidget libraries need to be fixed. These have a form
+~/perlbrew/perls/perl-5.22.1/lib/site_perl/5.22.1/darwin-thread-multi-2level/Alien/wxWidgets/osx_cocoa_3_0_2_uni/lib/libwx_*.dylib
+and we need to replace them with 
+@executable_path/../Frameworks/libwx_*.dylib
+Another dependency, which needs our attention is 
+/usr/local/Cellar/xz/5.2.2/lib/liblzma.5.dylib
+
+Fortunately, a tool dylibbundler was developed to address this problem.
+First install dylibbundler by calling
+brew dylibbundler
+
+For some installations, the dylibbundler tool sufficiently fixes all dependencies. Unfortunately, the WxWidgets installation is inconsistent in the versioning, therefore a certain clean-up is required. Namely, the WxWidgets libraries are compiled with the full build number in their file name. For example, the base library is built as libwx_baseu-3.0.0.2.0.dylib and a symlink is created libwx_baseu-3.0.dylib pointing to the full name. Then some of the Wx libraries link against the full name and some against the symlink, leading the dylibbundler to pack both. We solved the problem by whipping up a following script:
+\\rs.prusa\Development\Slic3r-Prusa\How_to_build_on_MacOSX_Lion\fix_dependencies.sh
+
+call
+slic3r_dependencies.sh --fix
+to collect the shared libraries into Content/Frameworks and to fix their linkage.
+
+call
+slic3r_dependencies.sh --show
+to list dependent libraries in a sorted order. All the non-system dependencies shall start with @executable_path after the fix.
+
+
+
+8) Packing Slic3r into a dmg image using a bunch of scripts
+-----------------------------------------------------------
+
+Instead of relying on the PAR::Packer to collect the dependencies, we have used PAR::Packer to extract the dependencies, we manually cleaned them up and created an installer script.
+\\rs.prusa\Development\Slic3r-Prusa\How_to_build_on_MacOSX_Lion\Slic3r-Build-MacOS
+First compile Slic3r, then call build_dmg.sh with a path to the Slic3r source tree as a parameter.
+The script will collect all dependencies into Slic3r.app and it will create Slic3r.dmg.
+If SLIC3R_GUI variable is defined, a GUI variant of Slic3r will be packed. 
+
+
+
+
+How to build on Windows
+-----------------------
+
+The prefered perl distribution on MS Windows is the Strawberry Perl 5.22.1.3 (32bit)
+http://strawberryperl.com/
+
+Let it install into c:\strawberry
+You may make a copy of the distribution. We recommend to make following copies:
+For a release command line only build:   c:\strawberry-minimal
+For a release GUI build:                 c:\strawberry-minimal-gui
+For a development build with debugging information: c:\strawberry-debug
+and to make one of them active by making a directory junction:
+mklink /d c:\Strawberry c:\Strawberry-debug
+
+Building boost:
+Slic3r seems to have a trouble with the latest boost 1.60.0 on Windows. Please use 1.59.
+Decompress it to 
+c:\dev\
+otherwise it will not be found by the Build.PL on Windows. You may consider to hack xs\Build.PL with your prefered boost path.
+run
+bootstrap.bat mingw
+b2 toolset=gcc
+
+Install git command line
+https://git-scm.com/
+
+Download Slic3r source code
+git clone git://github.com/alexrj/Slic3r.git
+
+Run compilation
+cd Slic3r
+perl Build.PL
+perl Build.PL --gui
+
+With a bit of luck, you will end up with a working Slic3r including GUI.
+
+
+
+
+Packing on Windows
+------------------
+
+Life is easy on Windows. PAR::Packer will help again to collect the dependencies. The basic procedure is the same as for MacOS:
+
+To create a PAR archive of a command line slic3r, execute
+pp -e -p -x slic3r.pl --xargs cube.stl -o slic3r.par
+and let the slic3r slice a cube.stl to load the dynamic modules.
+
+To create a PAR archive of a GUI slic3r, execute
+pp -e -p -x slic3r.pl --xargs --gui -o slic3r.par
+and exercise the slic3r gui to load all modules.
+
+The standalone installation is then created from the PAR archive by renaming it into a zip and adding following binaries from c:\strawberry to the root of the extracted zip:
+perl5.22.1.exe
+perl522.dll
+libgcc_s_sjlj-1.dll
+libstdc++-6.dll
+libwinpthread-1.dll
+
+The GUI build requires following DLLs in addition:
+libglut-0_.dll
+wxbase30u_gcc_custom.dll
+wxmsw30u_adv_gcc_custom.dll
+wxmsw30u_core_gcc_custom.dll
+wxmsw30u_gl_gcc_custom.dll
+wxmsw30u_html_gcc_custom.dll
+
+and the var directory with the icons needs to be copied to the destination directory.
+
+To run the slic3r, move the script\slic3r.pl one level up and create a following tiny windows batch in the root of the unpacked zip:
+@perl5.22.1.exe slic3r.pl %*
+A windows shortcut may be created for the GUI version. Instead of the perl.exe, it is better to use the wperl.exe to start the GUI Slic3r, because it does not open a text console.
+
+The strawberry perl is already rellocatable, which means that the perl interpreter will find the perl modules in the lib directory,
+and Windows look up the missing DLLs in the directory of the executable, therefore no further rellocation effort is necessary.
+
+
+Packing on Windows, a single EXE solution
+-----------------------------------------
+
+One may try to create a PAR executable for command line slic3r:
+pp -M Encode::Locale -M Moo -M Thread::Semaphore -M Slic3r::XS -M Unicode::Normalize -o slic3r.exe slic3r.pl
+
+One may as well create a PAR executable for Windows GUI:
+pp -M Encode::Locale -M Moo -M Thread::Semaphore -M OpenGL -M Slic3r::XS -M Unicode::Normalize -M Wx -M Class::Accessor -M Wx::DND -M Wx::Grid -M Wx::Print -M Wx::Html -M Wx::GLCanvas -M Math::Trig -M threads -M threads::shared -M Thread::Queue -l C:\strawberry\perl\site\lib\auto\Wx\Wx.xs.dll -o -l C:\strawberry\perl\site\lib\Alien\wxWidgets\msw_3_0_2_uni_gcc_3_4\lib\wxbase30u_gcc_custom.dll -l C:\strawberry\perl\site\lib\Alien\wxWidgets\msw_3_0_2_uni_gcc_3_4\lib\wxmsw30u_core_gcc_custom.dll -l C:\strawberry\perl\site\lib\Alien\wxWidgets\msw_3_0_2_uni_gcc_3_4\lib\wxmsw30u_gl_gcc_custom.dll -l C:\strawberry\perl\site\lib\Alien\wxWidgets\msw_3_0_2_uni_gcc_3_4\lib\wxmsw30u_adv_gcc_custom.dll -l C:\strawberry\perl\site\lib\Alien\wxWidgets\msw_3_0_2_uni_gcc_3_4\lib\wxmsw30u_html_gcc_custom.dll -o slic3r.exe slic3r.pl
+
+Remember, that these executables will unpack into a temporary directory. The directory may be declared by setting an environment variable PAR_GLOBAL_TEMP. Otherwise the temporaries are unpacked into
+C:\Users\xxx\AppData\Local\Temp\par-xxxxxx
+
+
+Debugging the perl, debugging on Windows
+----------------------------------------
+
+It is possible to debug perl using the integrated debugger. The EPIC plugin for Eclipse works very well with an older eclipse-SDK-3.6.2. There is a catch though: The Perl debugger does not work correctly with multiple threads running under the Perl interpreter. If that happens, the EPIC plugin gets confused and the debugger stops working. The same happens with the Komodo IDE.
+
+Debugging the C++ code works fine using the latest Eclipse for C++ and the gdb of MinGW. The gdb packed with the Strawberry distribution does not contain the Python support, so pretty printing of the stl containers only works if another gdb build is used. The one of the QT installation works well.
+
+It is yet a bit more complicated. The Strawberry MINGW is compiled for a different C++ exception passing model (SJLJ) than the other MINGWs, so one cannot simply combine MINGWs on Windows. For an unknown reason the nice debugger of the QT Creator hangs when debugging the C++ compiled by the Strawberry MINGW. Mabe it is because of the different exception passing models.
+
+And to disable optimization of the C/C++ code, one has to manually modify Config_heavy.pl in the Perl central installation. The SLIC3R_DEBUG environment variable did not override all the -O2 and -O3 flags that the perl build adds the gcc execution line.
