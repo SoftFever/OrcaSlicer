@@ -526,18 +526,22 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "gcode-flavor=s";
     def->enum_keys_map = ConfigOptionEnum<GCodeFlavor>::get_enum_values();
     def->enum_values.push_back("reprap");
+    def->enum_values.push_back("repetier");
     def->enum_values.push_back("teacup");
     def->enum_values.push_back("makerware");
     def->enum_values.push_back("sailfish");
     def->enum_values.push_back("mach3");
     def->enum_values.push_back("machinekit");
+    def->enum_values.push_back("smoothie");
     def->enum_values.push_back("no-extrusion");
-    def->enum_labels.push_back("RepRap (Marlin/Sprinter/Repetier)");
+    def->enum_labels.push_back("RepRap (Marlin/Sprinter)");
+    def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("Teacup");
     def->enum_labels.push_back("MakerWare (MakerBot)");
     def->enum_labels.push_back("Sailfish (MakerBot)");
     def->enum_labels.push_back("Mach3/LinuxCNC");
     def->enum_labels.push_back("Machinekit");
+    def->enum_labels.push_back("Smoothie");
     def->enum_labels.push_back("No extrusion");
     def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfRepRap);
 
@@ -1431,6 +1435,12 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. If your firmware doesn't already know filament diameter(s), you can put commands like 'M200 D[filament_diameter_0] T0' in your start G-code in order to turn volumetric mode on and use the filament diameter associated to the filament selected in Slic3r. This is only supported in recent Marlin.";
     def->cli = "use-volumetric-e!";
     def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("variable_layer_height", coBool);
+    def->label = "Enable variable layer height feature";
+    def->tooltip = "Some printers or printer setups may have difficulties printing with a variable layer height. Enabled by default.";
+    def->cli = "variable-layer-height!";
+    def->default_value = new ConfigOptionBool(true);
 
     def = this->add("wipe", coBools);
     def->label = "Wipe while retracting";

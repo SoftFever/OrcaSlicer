@@ -41,7 +41,7 @@ GCodeWriter::preamble()
         gcode << "G21 ; set units to millimeters\n";
         gcode << "G90 ; use absolute coordinates\n";
     }
-    if (FLAVOR_IS(gcfRepRap) || FLAVOR_IS(gcfTeacup)) {
+    if (FLAVOR_IS(gcfRepRap) || FLAVOR_IS(gcfTeacup) || FLAVOR_IS(gcfRepetier) || FLAVOR_IS(gcfSmoothie)) {
         if (this->config.use_relative_e_distances) {
             gcode << "M83 ; use relative distances for extrusion\n";
         } else {
@@ -172,7 +172,14 @@ GCodeWriter::set_acceleration(unsigned int acceleration)
     this->_last_acceleration = acceleration;
     
     std::ostringstream gcode;
-    gcode << "M204 S" << acceleration;
+    if (FLAVOR_IS(gcfRepetier)) {
+        gcode << "M201 X" << acceleration << " Y" << acceleration;
+        if (this->config.gcode_comments) gcode << " ; adjust acceleration";
+        gcode << "\n";
+        gcode << "M202 X" << acceleration << " Y" << acceleration;
+    } else {
+        gcode << "M204 S" << acceleration;
+    }
     if (this->config.gcode_comments) gcode << " ; adjust acceleration";
     gcode << "\n";
     
