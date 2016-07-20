@@ -1,4 +1,4 @@
-use Test::More tests => 23;
+use Test::More tests => 25;
 use strict;
 use warnings;
 
@@ -213,6 +213,33 @@ use Slic3r::Test;
     });
     
     ok !$spiral, 'spiral vase is correctly disabled on layers with multiple loops';
+}
+
+
+{
+    # Tests that the Repetier flavor produces M201 Xnnn Ynnn for resetting
+    # acceleration, also that M204 Snnn syntax is not generated. 
+    my $config = Slic3r::Config->new_from_defaults;
+    $config->set('gcode_flavor', 'repetier');
+    $config->set('default_acceleration', 1337);
+    my $print = Slic3r::Test::init_print('cube_with_hole', config => $config);
+    
+    my $has_accel = 0;
+    my $has_m204 = 0;
+    Slic3r::GCode::Reader->new->parse(Slic3r::Test::gcode($print), sub {
+        my ($self, $cmd, $args, $info) = @_;
+        
+        if ($cmd eq 'M201' && exists $args->{X} && exists $args->{Y}) {
+            if ($args->{X} == 1337 && $args->{Y} == 1337) {
+                $has_accel = 1;
+            }
+        }
+        if ($cmd eq 'M204' && exists $args->{S}) {
+            $has_m204 = 1;
+        }
+    });
+    ok $has_accel, 'M201 is generated for repetier firmware.';
+    ok !$has_m204, 'M204 is not generated for repetier firmware';
 }
 
 __END__
