@@ -25,14 +25,17 @@ typedef double coordf_t;
 
 namespace Slic3r {
 
-// TODO: make sure X = 0
-enum Axis { X, Y, Z };
+enum Axis { X=0, Y, Z };
 
 }
 using namespace Slic3r;
 
 /* Implementation of CONFESS("foo"): */
-#define CONFESS(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#ifdef _MSC_VER
+	#define CONFESS(...) confess_at(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#else
+	#define CONFESS(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#endif
 void confess_at(const char *file, int line, const char *func, const char *pat, ...);
 /* End implementation of CONFESS("foo"): */
 
