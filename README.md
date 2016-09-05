@@ -322,6 +322,9 @@ The author of the Silk icon set is Mark James.
         --duplicate         Number of items with auto-arrange (1+, default: 1)
         --duplicate-grid    Number of items with grid arrangement (default: 1,1)
         --duplicate-distance Distance in mm between copies (default: 6)
+        --dont-arrange      Don't arrange the objects on the build plate. The model coordinates
+                            define the absolute positions on the build plate. 
+                            The option --print-center will be ignored.
         --xy-size-compensation
                             Grow/shrink objects by the configured absolute distance (mm, default: 0)
     

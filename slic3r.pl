@@ -48,6 +48,7 @@ my %cli_options = ();
         'duplicate=i'           => \$opt{duplicate},
         'duplicate-grid=s'      => \$opt{duplicate_grid},
         'print-center=s'        => \$opt{print_center},
+        'dont-arrange'          => \$opt{dont_arrange},
     );
     foreach my $opt_key (keys %{$Slic3r::Config::Options}) {
         my $cli = $Slic3r::Config::Options->{$opt_key}->{cli} or next;
@@ -204,6 +205,7 @@ if (@ARGV) {  # slicing from command line
             duplicate       => $opt{duplicate}      // 1,
             duplicate_grid  => $opt{duplicate_grid} // [1,1],
             print_center    => $opt{print_center}   // Slic3r::Pointf->new(100,100),
+            dont_arrange    => $opt{dont_arrange}   // 0,
             status_cb       => sub {
                 my ($percent, $message) = @_;
                 printf "=> %s\n", $message;
@@ -485,6 +487,9 @@ $j
     --duplicate         Number of items with auto-arrange (1+, default: 1)
     --duplicate-grid    Number of items with grid arrangement (default: 1,1)
     --duplicate-distance Distance in mm between copies (default: $config->{duplicate_distance})
+    --dont-arrange      Don't arrange the objects on the build plate. The model coordinates
+                        define the absolute positions on the build plate. 
+                        The option --print-center will be ignored.
     --xy-size-compensation
                         Grow/shrink objects by the configured absolute distance (mm, default: $config->{xy_size_compensation})
    

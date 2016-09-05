@@ -41,6 +41,11 @@ has 'print_center' => (
     default => sub { Slic3r::Pointf->new(100,100) },
 );
 
+has 'dont_arrange' => (
+    is      => 'rw',
+    default => sub { 0 },
+);
+
 has 'output_file' => (
     is      => 'rw',
 );
@@ -52,7 +57,7 @@ sub set_model {
     $self->_print->clear_objects;
     
     # make sure all objects have at least one defined instance
-    my $need_arrange = $model->add_default_instances;
+    my $need_arrange = $model->add_default_instances && ! $self->dont_arrange;
     
     # apply scaling and rotation supplied from command line if any
     foreach my $instance (map @{$_->instances}, @{$model->objects}) {
@@ -61,7 +66,7 @@ sub set_model {
     }
     
     if ($self->duplicate_grid->[X] > 1 || $self->duplicate_grid->[Y] > 1) {
-        $model->duplicate_objects_grid($self->duplicate_grid, $self->_print->config->duplicate_distance);
+        $model->duplicate_objects_grid($self->duplicate_grid->[X], $self->duplicate_grid->[Y], $self->_print->config->duplicate_distance);
     } elsif ($need_arrange) {
         $model->duplicate_objects($self->duplicate, $self->_print->config->min_object_distance);
     } elsif ($self->duplicate > 1) {
@@ -69,7 +74,7 @@ sub set_model {
         $model->duplicate($self->duplicate, $self->_print->config->min_object_distance);
     }
     $_->translate(0,0,-$_->bounding_box->z_min) for @{$model->objects};
-    $model->center_instances_around_point($self->print_center);
+    $model->center_instances_around_point($self->print_center) if (! $self->dont_arrange);
     
     foreach my $model_object (@{$model->objects}) {
         $self->_print->auto_assign_extruders($model_object);
