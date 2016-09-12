@@ -25,8 +25,22 @@ if ($mswin) {
     push @cflags, qw(-DNOMINMAX -D_USE_MATH_DEFINES);
 }
 
+my @early_includes = ();
 my @INC  = qw(-Isrc/libslic3r);
 my @LIBS = $cpp_guess->is_msvc ? qw(-LIBPATH:src/libslic3r) : qw(-Lsrc/libslic3r);
+   
+#if ($ENV{SLIC3R_GUI}) 
+{
+    print "Slic3r will be built with GUI support\n";
+    require Alien::wxWidgets;
+    Alien::wxWidgets->load;
+    push @INC, Alien::wxWidgets->include_path;
+    push @cflags, qw(-DSLIC3R_GUI -DUNICODE), Alien::wxWidgets->defines, Alien::wxWidgets->c_flags;
+    my $alienwx_libraries = Alien::wxWidgets->libraries(qw(gl html));
+    $alienwx_libraries =~ s/-L/-LIBPATH:/g if ($cpp_guess->is_msvc);
+    push @ldflags, Alien::wxWidgets->link_flags, $alienwx_libraries;
+#    push @early_includes, qw(slic3r/GUI/wxinit.h);
+}
 
 # search for Boost in a number of places
 my @boost_include = ();
@@ -195,7 +209,7 @@ my $build = Module::Build::WithXSpp->new(
         ostream
         sstream
         libslic3r/GCodeSender.hpp
-    )]
+    ), @early_includes]
 );
 
 $build->create_build_script;

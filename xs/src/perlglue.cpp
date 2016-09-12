@@ -19,6 +19,7 @@ REGISTER_CLASS(Wipe, "GCode::Wipe");
 REGISTER_CLASS(GCode, "GCode");
 REGISTER_CLASS(GCodeSender, "GCode::Sender");
 REGISTER_CLASS(GCodeWriter, "GCode::Writer");
+REGISTER_CLASS(GCodePressureEqualizer, "GCode::PressureEqualizer");
 REGISTER_CLASS(Layer, "Layer");
 REGISTER_CLASS(SupportLayer, "Layer::Support");
 REGISTER_CLASS(LayerRegion, "Layer::Region");

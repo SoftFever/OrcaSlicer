@@ -10,6 +10,7 @@ has '_spiral_vase'                   => (is => 'rw');
 has '_vibration_limit'               => (is => 'rw');
 has '_arc_fitting'                   => (is => 'rw');
 has '_pressure_regulator'            => (is => 'rw');
+has '_pressure_equalizer'            => (is => 'rw');
 has '_skirt_done'                    => (is => 'rw', default => sub { {} });  # print_z => 1
 has '_brim_done'                     => (is => 'rw');
 has '_second_layer_things_done'      => (is => 'rw');
@@ -114,6 +115,11 @@ sub BUILD {
     
     $self->_pressure_regulator(Slic3r::GCode::PressureRegulator->new(config => $self->config))
         if $self->config->pressure_advance > 0;
+
+    $self->_pressure_equalizer(Slic3r::GCode::PressureEqualizer->new($self->config))
+        if defined($ENV{"SLIC3R_PRESSURE_EQUALIZER"}) && $ENV{'SLIC3R_PRESSURE_EQUALIZER'} == 1;
+
+    $self->_gcodegen->set_enable_extrusion_role_markers(defined $self->_pressure_equalizer);
 }
 
 # Export a G-code for the complete print.
@@ -560,7 +566,7 @@ sub process_layer {
                     }
                 }
             }
-        }
+        } # for regions
         
         # tweak extruder ordering to save toolchanges
         my @extruders = sort keys %by_extruder;
@@ -586,7 +592,7 @@ sub process_layer {
                 }
             }
         }
-    }
+    } # for object copies
     
     # apply spiral vase post-processing if this layer contains suitable geometry
     # (we must feed all the G-code into the post-processor, including the first 
@@ -658,7 +664,13 @@ sub filter {
     # this depends on actual speeds
     $gcode = $self->_pressure_regulator->process($gcode, $flush)
         if defined $self->_pressure_regulator;
-    
+
+    # apply pressure equalization if enabled;
+#    print "G-code before filter:\n", $gcode;
+    $gcode = $self->_pressure_equalizer->process($gcode, $flush)
+        if defined $self->_pressure_equalizer;
+#    print "G-code after filter:\n", $gcode;
+
     # apply arc fitting if enabled;
     # this does not depend on speeds but changes G1 XY commands into G2/G2 IJ
     $gcode = $self->_arc_fitting->process($gcode)

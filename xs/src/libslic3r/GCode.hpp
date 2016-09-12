@@ -14,7 +14,9 @@
 
 namespace Slic3r {
 
+// Forward declarations.
 class GCode;
+namespace EdgeGrid { class Grid; }
 
 class AvoidCrossingPerimeters {
     public:
@@ -77,15 +79,23 @@ class GCode {
     AvoidCrossingPerimeters avoid_crossing_perimeters;
     bool enable_loop_clipping;
     bool enable_cooling_markers;
+    // Markers for the Pressure Equalizer to recognize the extrusion type.
+    // The Pressure Equalizer removes the markers from the final G-code.
+    bool enable_extrusion_role_markers;
     size_t layer_count;
     int layer_index; // just a counter
     const Layer* layer;
     std::map<const PrintObject*,Point> _seam_position;
+    // Distance Field structure to 
+    EdgeGrid::Grid *_lower_layer_edge_grid;
     bool first_layer; // this flag triggers first layer speeds
     float elapsed_time; // seconds
     double volumetric_speed;
+    // Support for the extrusion role markers. Which marker is active?
+    ExtrusionRole _last_extrusion_role;
     
     GCode();
+    ~GCode();
     const Point& last_pos() const;
     void set_last_pos(const Point &pos);
     bool last_pos_defined() const;

@@ -4,6 +4,19 @@ use strict;
 
 our $VERSION = '0.01';
 
+# We have to load these modules in order to have Wx.pm find the correct paths
+# for wxWidgets dlls on MSW.
+# We avoid loading these on OS X because Wx::Load() initializes a Wx App
+# automatically and it steals focus even when we're not running Slic3r in GUI mode.
+# TODO: only load these when compiling with GUI support
+BEGIN {
+    if ($^O eq 'MSWin32') {
+        eval "use Wx";
+#        eval "use Wx::Html";
+        eval "use Wx::Print";  # because of some Wx bug, thread creation fails if we don't have this (looks like Wx::Printout is hard-coded in some thread cleanup code)
+    }
+}
+
 use Carp qw();
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);

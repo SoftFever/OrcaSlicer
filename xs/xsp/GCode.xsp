@@ -107,6 +107,11 @@
     void set_enable_cooling_markers(bool value)
         %code{% THIS->enable_cooling_markers = value; %};
     
+    bool enable_extrusion_role_markers()
+        %code{% RETVAL = THIS->enable_extrusion_role_markers; %};
+    void set_enable_extrusion_role_markers(bool value)
+        %code{% THIS->enable_extrusion_role_markers = value; %};
+
     int layer_count()
         %code{% RETVAL = THIS->layer_count; %};
     void set_layer_count(int value)

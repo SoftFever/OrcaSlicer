@@ -102,6 +102,9 @@
 %typemap{GCodeSender*};
 %typemap{Ref<GCodeSender>}{simple};
 %typemap{Clone<GCodeSender>}{simple};
+%typemap{GCodePressureEqualizer*};
+%typemap{Ref<GCodePressureEqualizer>}{simple};
+%typemap{Clone<GCodePressureEqualizer>}{simple};
 %typemap{BridgeDetector*};
 %typemap{Ref<BridgeDetector>}{simple};
 %typemap{Clone<BridgeDetector>}{simple};

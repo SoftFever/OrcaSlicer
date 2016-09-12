@@ -52,6 +52,8 @@ src/libslic3r/GCodeSender.cpp
 src/libslic3r/GCodeSender.hpp
 src/libslic3r/GCodeWriter.cpp
 src/libslic3r/GCodeWriter.hpp
+src/libslic3r/GCode/PressureEqualizer.cpp
+src/libslic3r/GCode/PressureEqualizer.hpp
 src/libslic3r/Geometry.cpp
 src/libslic3r/Geometry.hpp
 src/libslic3r/Layer.cpp
@@ -151,6 +153,7 @@ xsp/Flow.xsp
 xsp/GCode.xsp
 xsp/GCodeSender.xsp
 xsp/GCodeWriter.xsp
+xsp/GCodePressureEqualizer.xsp
 xsp/Geometry.xsp
 xsp/GUI.xsp
 xsp/GUI_3DScene.xsp

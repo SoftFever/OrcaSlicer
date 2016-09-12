@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Fill/FillBase.hpp"
+#include "libslic3r/PolylineCollection.hpp"
 %}
 
 %name{Slic3r::Filler} class Filler {

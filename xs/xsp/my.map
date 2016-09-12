@@ -209,6 +209,10 @@ GCodeWriter*               O_OBJECT_SLIC3R
 Ref<GCodeWriter>           O_OBJECT_SLIC3R_T
 Clone<GCodeWriter>         O_OBJECT_SLIC3R_T
 
+GCodePressureEqualizer*    		O_OBJECT_SLIC3R
+Ref<GCodePressureEqualizer>     O_OBJECT_SLIC3R_T
+Clone<GCodePressureEqualizer>   O_OBJECT_SLIC3R_T
+
 BridgeDetector*            O_OBJECT_SLIC3R
 Ref<BridgeDetector>        O_OBJECT_SLIC3R_T
 Clone<BridgeDetector>      O_OBJECT_SLIC3R_T

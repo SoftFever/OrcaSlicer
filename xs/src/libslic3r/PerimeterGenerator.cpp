@@ -235,7 +235,7 @@ PerimeterGenerator::process()
             // append perimeters for this slice as a collection
             if (!entities.empty())
                 this->loops->append(entities);
-        }
+        } // for each loop of an island
         
         // fill gaps
         if (!gaps.empty()) {
@@ -311,7 +311,7 @@ PerimeterGenerator::process()
             for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex)
                 this->fill_surfaces->surfaces.push_back(Surface(stInternal, *ex));  // use a bogus surface type
         }
-    }
+    } // for each island
 }
 
 ExtrusionEntityCollection
