@@ -72,8 +72,10 @@ Point::rotate(double angle, const Point &center)
     double cur_y = (double)this->y;
     double s     = sin(angle);
     double c     = cos(angle);
-    this->x = (coord_t)round( (double)center.x + c * (cur_x - (double)center.x) - s * (cur_y - (double)center.y) );
-    this->y = (coord_t)round( (double)center.y + c * (cur_y - (double)center.y) + s * (cur_x - (double)center.x) );
+    double dx    = cur_x - (double)center.x;
+    double dy    = cur_y - (double)center.y;
+    this->x = (coord_t)round( (double)center.x + c * dx - s * dy );
+    this->y = (coord_t)round( (double)center.y + c * dy + s * dx );
 }
 
 bool
@@ -386,8 +388,10 @@ Pointf::rotate(double angle, const Pointf &center)
     double cur_y = this->y;
     double s     = sin(angle);
     double c     = cos(angle);
-    this->x = center.x + c * (cur_x - center.x) - s * (cur_y - center.y);
-    this->y = center.y + c * (cur_y - center.y) + s * (cur_x - center.x);
+    double dx    = cur_x - center.x;
+    double dy    = cur_y - center.y;
+    this->x = center.x + c * dx - s * dy;
+    this->y = center.y + c * dy + s * dx;
 }
 
 Pointf
