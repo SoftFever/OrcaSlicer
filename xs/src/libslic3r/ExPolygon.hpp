@@ -20,6 +20,7 @@ class ExPolygon
     operator Polygons() const;
     void scale(double factor);
     void translate(double x, double y);
+    void rotate(double angle);
     void rotate(double angle, const Point &center);
     double area() const;
     bool is_valid() const;
@@ -44,6 +45,32 @@ class ExPolygon
     Lines lines() const;
     std::string dump_perl() const;
 };
+
+inline Polygons to_polygons(const ExPolygons &src)
+{
+    Polygons polygons;
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
+        polygons.push_back(it->contour);
+        for (Polygons::const_iterator ith = it->holes.begin(); ith != it->holes.end(); ++ith) {
+            polygons.push_back(*ith);
+        }
+    }
+    return polygons;
+}
+
+#if SLIC3R_CPPVER > 11
+inline Polygons to_polygons(ExPolygons &&src)
+{
+    Polygons polygons;
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
+        polygons.push_back(std::move(it->contour));
+        for (Polygons::const_iterator ith = it->holes.begin(); ith != it->holes.end(); ++ith) {
+            polygons.push_back(std::move(*ith));
+        }
+    }
+    return polygons;
+}
+#endif
 
 }
 

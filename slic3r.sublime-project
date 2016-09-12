@@ -1,0 +1,61 @@
+{
+	"build_systems":
+	[
+		{
+			"name": "List",
+   			//"file_regex": " at ([^-\\s]*) line ([0-9]*)",
+//   			"file_regex": " at (D\\:\\/src\\/Slic3r\\/.*?) line ([0-9]*)",
+			"shell_cmd": "ls -l"
+		},
+		{
+			"name": "Run",
+			"working_dir": "$project_path",
+   			"file_regex": " at (.*?) line ([0-9]*)",
+			"shell_cmd": "perl slic3r.pl --gui \"..\\Slic3r-tests\\gap fill torture 20 -rt.stl\""
+		},
+		{
+			"name": "full",
+   			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+			"shell_cmd": "perl Build.pl"
+		},
+		{
+			"name": "xs",
+			"working_dir": "$project_path/xs",
+  			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+			"shell_cmd": "perl Build install"
+		},
+		{
+			"name": "xs & run",
+			"working_dir": "$project_path/xs",
+  			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+			"shell_cmd": "perl Build install & cd .. & perl slic3r.pl --gui \"..\\Slic3r-tests\\star3-big2.stl\""
+		}
+	],
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+
+    "settings":
+    {
+        "sublimegdb_workingdir": "${folder:${project_path:run}}",
+  		// NOTE: You MUST provide --interpreter=mi for the plugin to work
+//    	"sublimegdb_commandline": "D:\\Qt\\Tools\\mingw492_32\\bin\\gdb.exe --interpreter=mi -ex 'target localhost:2345'",
+//    	"sublimegdb_commandline": "D:\\Qt\\Tools\\mingw492_32\\bin\\gdb.exe --interpreter=mi perl --args perl slic3r.pl",
+//    	"sublimegdb_commandline": "D:\\Qt\\Tools\\mingw492_32\\bin\\gdb.exe --interpreter=mi perl --args slic3r.pl ",
+//    	"sublimegdb_commandline": "D:\\Qt\\Tools\\mingw492_32\\bin\\gdb.exe --interpreter=mi -e C:\\Strawberry\\perl\\bin\\perl.exe -s C:\\Strawberry\\perl\\site\\lib\\auto\\Slic3r\\XS\\XS.xs.dll --args perl slic3r.pl -j 1 --gui D:\\src\\Slic3r-tests\\star3-big.stl",
+    	"sublimegdb_commandline": "D:\\Qt\\Tools\\mingw492_32\\bin\\gdb.exe --interpreter=mi perl.exe --args perl slic3r.pl -j 1 --gui", //  D:\\src\\Slic3r-tests\\star3-big.stl",
+//    	"sublimegdb_commandline": "D:\\Qt\\Tools\\mingw492_32\\bin\\gdb.exe --interpreter=mi -x slic3r.gdb",
+//    	"arguments": "slic3r -j 1 --gui ../Slic3r-tests/star3-big.stl",
+//	  	"arguments": "../slic3r.pl -j 1 --gui",
+//        "sublimegdb_exec_cmd": "-exec-continue",
+    	
+    	// Add "pending breakpoints" for symbols that are dynamically loaded from
+    	// external shared libraries
+    	"debug_ext" : true,
+    	"run_after_init": false,
+    	"close_views": false
+    }
+}

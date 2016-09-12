@@ -57,6 +57,9 @@
 %typemap{ExPolygonCollection*};
 %typemap{Ref<ExPolygonCollection>}{simple};
 %typemap{Clone<ExPolygonCollection>}{simple};
+%typemap{Filler*};
+%typemap{Ref<Filler>}{simple};
+%typemap{Clone<Filler>}{simple};
 %typemap{Flow*};
 %typemap{Ref<Flow>}{simple};
 %typemap{Clone<Flow>}{simple};
@@ -81,6 +84,9 @@
 %typemap{ExtrusionLoop*};
 %typemap{Ref<ExtrusionLoop>}{simple};
 %typemap{Clone<ExtrusionLoop>}{simple};
+%typemap{ExtrusionSimulator*};
+%typemap{Ref<ExtrusionSimulator>}{simple};
+%typemap{Clone<ExtrusionSimulator>}{simple};
 %typemap{TriangleMesh*};
 %typemap{Ref<TriangleMesh>}{simple};
 %typemap{Clone<TriangleMesh>}{simple};
@@ -221,6 +227,12 @@
   %cpp_type{ExtrusionRole};
   %precall_code{%
     $CVar = (ExtrusionRole)SvUV($PerlVar);
+  %};
+};
+%typemap{ExtrusionSimulationType}{parsed}{
+  %cpp_type{ExtrusionSimulationType};
+  %precall_code{%
+    $CVar = (ExtrusionSimulationType)SvUV($PerlVar);
   %};
 };
 %typemap{FlowRole}{parsed}{

@@ -193,7 +193,9 @@ sub thread_cleanup {
     *Slic3r::ExtrusionLoop::DESTROY         = sub {};
     *Slic3r::ExtrusionPath::DESTROY         = sub {};
     *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
+    *Slic3r::ExtrusionSimulator::DESTROY    = sub {};
     *Slic3r::Flow::DESTROY                  = sub {};
+    *Slic3r::Filler::Destroy                = sub {};
     *Slic3r::GCode::DESTROY                 = sub {};
     *Slic3r::GCode::AvoidCrossingPerimeters::DESTROY = sub {};
     *Slic3r::GCode::OozePrevention::DESTROY = sub {};

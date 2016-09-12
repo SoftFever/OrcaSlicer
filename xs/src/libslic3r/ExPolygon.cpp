@@ -53,6 +53,15 @@ ExPolygon::translate(double x, double y)
 }
 
 void
+ExPolygon::rotate(double angle)
+{
+    contour.rotate(angle);
+    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
+        (*it).rotate(angle);
+    }
+}
+
+void
 ExPolygon::rotate(double angle, const Point &center)
 {
     contour.rotate(angle, center);

@@ -13,3 +13,9 @@ void disable_screensaver()
 
 void enable_screensaver()
     %code{% Slic3r::GUI::enable_screensaver(); %};
+
+bool debugged()
+    %code{% RETVAL=Slic3r::GUI::debugged(); %};
+
+void break_to_debugger()
+    %code{% Slic3r::GUI::break_to_debugger(); %};

@@ -675,8 +675,8 @@ sub generate_toolpaths {
         
         # interface and contact infill
         if (@$interface || @$contact_infill) {
-            $fillers{interface}->angle($interface_angle);
-            $fillers{interface}->spacing($_interface_flow->spacing);
+            $fillers{interface}->set_angle($interface_angle);
+            $fillers{interface}->set_spacing($_interface_flow->spacing);
             
             # find centerline of the external loop
             $interface = offset2($interface, +scaled_epsilon, -(scaled_epsilon + $_interface_flow->scaled_width/2));
@@ -702,7 +702,7 @@ sub generate_toolpaths {
             
             my @paths = ();
             foreach my $expolygon (@{union_ex($interface)}) {
-                my @p = $fillers{interface}->fill_surface(
+                my $polylines = $fillers{interface}->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density      => $interface_density,
                     layer_height => $layer->height,
@@ -711,12 +711,12 @@ sub generate_toolpaths {
                 my $mm3_per_mm = $_interface_flow->mm3_per_mm;
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
-                    polyline    => Slic3r::Polyline->new(@$_),
+                    polyline    => $_,
                     role        => EXTR_ROLE_SUPPORTMATERIAL_INTERFACE,
                     mm3_per_mm  => $mm3_per_mm,
                     width       => $_interface_flow->width,
                     height      => $layer->height,
-                ), @p;
+                ), @$polylines,
             }
             
             $layer->support_interface_fills->append(@paths);
@@ -725,11 +725,11 @@ sub generate_toolpaths {
         # support or flange
         if (@$base) {
             my $filler = $fillers{support};
-            $filler->angle($angles[ ($layer_id) % @angles ]);
+            $filler->set_angle($angles[ ($layer_id) % @angles ]);
             
             # We don't use $base_flow->spacing because we need a constant spacing
             # value that guarantees that all layers are correctly aligned.
-            $filler->spacing($flow->spacing);
+            $filler->set_spacing($flow->spacing);
             
             my $density     = $support_density;
             my $base_flow   = $_flow;
@@ -742,13 +742,13 @@ sub generate_toolpaths {
             # base flange
             if ($layer_id == 0) {
                 $filler = $fillers{interface};
-                $filler->angle($self->object_config->support_material_angle + 90);
+                $filler->set_angle($self->object_config->support_material_angle + 90);
                 $density        = 0.5;
                 $base_flow      = $self->first_layer_flow;
                 
                 # use the proper spacing for first layer as we don't need to align
                 # its pattern to the other layers
-                $filler->spacing($base_flow->spacing);
+                $filler->set_spacing($base_flow->spacing);
             } else {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm
@@ -767,7 +767,7 @@ sub generate_toolpaths {
             
             my $mm3_per_mm = $base_flow->mm3_per_mm;
             foreach my $expolygon (@$to_infill) {
-                my @p = $filler->fill_surface(
+                my $polylines = $filler->fill_surface(
                     Slic3r::Surface->new(expolygon => $expolygon, surface_type => S_TYPE_INTERNAL),
                     density     => $density,
                     layer_height => $layer->height,
@@ -775,12 +775,12 @@ sub generate_toolpaths {
                 );
                 
                 push @paths, map Slic3r::ExtrusionPath->new(
-                    polyline    => Slic3r::Polyline->new(@$_),
+                    polyline    => $_,
                     role        => EXTR_ROLE_SUPPORTMATERIAL,
                     mm3_per_mm  => $mm3_per_mm,
                     width       => $base_flow->width,
                     height      => $layer->height,
-                ), @p;
+                ), @$polylines;
             }
             
             $layer->support_fills->append(@paths);

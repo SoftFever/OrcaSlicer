@@ -36,4 +36,23 @@ enable_screensaver()
     #endif
 }
 
+bool 
+debugged()
+{
+    #ifdef _WIN32
+    return IsDebuggerPresent();
+	#else
+	return false;
+    #endif /* _WIN32 */
+}
+
+void
+break_to_debugger()
+{
+    #ifdef _WIN32
+    if (IsDebuggerPresent())
+        DebugBreak();
+    #endif /* _WIN32 */
+}
+
 } }

@@ -112,7 +112,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             );
             
             #ifdef SLIC3R_DEBUG
-            printf("Processing bridge at layer %zu:\n", this->layer()->id();
+            printf("Processing bridge at layer %zu:\n", this->layer()->id());
             #endif
             
             if (bd.detect_angle()) {

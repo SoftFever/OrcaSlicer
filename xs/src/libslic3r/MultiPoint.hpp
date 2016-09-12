@@ -22,6 +22,7 @@ class MultiPoint
     void scale(double factor);
     void translate(double x, double y);
     void translate(const Point &vector);
+    void rotate(double angle);
     void rotate(double angle, const Point &center);
     void reverse();
     Point first_point() const;
@@ -32,7 +33,10 @@ class MultiPoint
     int find_point(const Point &point) const;
     bool has_boundary_point(const Point &point) const;
     BoundingBox bounding_box() const;
-    void remove_duplicate_points();
+    // Return true if there are exact duplicates.
+    bool has_duplicate_points() const;
+    // Remove exact duplicates, return true if any duplicate has been removed.
+    bool remove_duplicate_points();
     void append(const Point &point);
     void append(const Points &points);
     void append(const Points::const_iterator &begin, const Points::const_iterator &end);

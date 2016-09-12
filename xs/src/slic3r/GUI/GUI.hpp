@@ -5,6 +5,8 @@ namespace Slic3r { namespace GUI {
 
 void disable_screensaver();
 void enable_screensaver();
+bool debugged();
+void break_to_debugger();
 
 } }
 

@@ -294,8 +294,13 @@ sub _init_menubar {
         $self->_append_menu_item($helpMenu, "&About Slic3r", 'Show about dialog', sub {
             wxTheApp->about;
         });
+        if (Slic3r::GUI::debugged()) {
+            $self->_append_menu_item($helpMenu, "&Debug", 'Break to debugger', sub {
+                Slic3r::GUI::break_to_debugger();
+            });
+        }
     }
-    
+
     # menubar
     # assign menubar to frame after appending items, otherwise special items
     # will not be handled correctly

@@ -40,10 +40,15 @@ if (defined $ENV{BOOST_INCLUDEDIR}) {
         push @boost_include, $ENV{BOOST_DIR};
     }
 } else {
-    # Boost library was not defined by the environment.
-    # Try to guess at some default paths.
-    if ($mswin) {
-        for my $path (glob('C:\dev\boost*\include'), glob ('C:\boost*\include')) {
+    push @boost_include, grep { -d $_ }
+        qw(/opt/local/include /usr/local/include /opt/include),
+        qw(/usr/include C:\Boost\include);
+    push @boost_libs, grep { -d $_ }
+        qw(/opt/local/lib /usr/local/lib /opt/lib /usr/lib),
+        qw(C:\Boost\lib /lib);
+    
+    if ($^O eq 'MSWin32') {
+        for my $path (glob('C:\dev\boost*'), glob ('C:\boost*'), glob ('d:\src\boost*')) {
             push @boost_include, $path;
         }
         if (! @boost_include) {

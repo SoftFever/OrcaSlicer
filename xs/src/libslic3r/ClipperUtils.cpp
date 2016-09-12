@@ -594,6 +594,10 @@ void union_pt_chained(const Slic3r::Polygons &subject, Slic3r::Polygons* retval,
 {
     ClipperLib::PolyTree pt;
     union_pt(subject, &pt, safety_offset_);
+    if (&subject == retval)
+        // It is safe to use the same variable for input and output, because this function makes
+        // a temporary copy of the results.
+        retval->clear();
     traverse_pt(pt.Childs, retval);
 }
 
