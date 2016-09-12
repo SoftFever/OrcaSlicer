@@ -17,7 +17,7 @@
 #include "SVG.hpp"
 #endif
 
-#if defined(SLIC3R_DEBUG) and defined(_WIN32)
+#if defined(SLIC3R_DEBUG) && defined(_WIN32)
 #include <Windows.h>
 #pragma comment(lib, "user32.lib")
     static inline void assert_fail(const char *assertion, const char *file, unsigned line, const char *function)
@@ -376,7 +376,7 @@ static inline int intersection_on_prev_vertical_line(
     return intersection_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, false);
 }
 
-static inline intersection_on_next_vertical_line(
+static inline int intersection_on_next_vertical_line(
     const ExPolygonWithOffset                     &poly_with_offset, 
     const std::vector<SegmentedIntersectionLine>  &segs, 
     size_t                                         iVerticalLine, 
@@ -415,7 +415,7 @@ static inline int intersection_unused_on_prev_next_vertical_line(
     return iIntersectionOther;
 }
 
-static inline intersection_unused_on_prev_vertical_line(
+static inline int intersection_unused_on_prev_vertical_line(
     const ExPolygonWithOffset                     &poly_with_offset, 
     const std::vector<SegmentedIntersectionLine>  &segs, 
     size_t                                         iVerticalLine, 
@@ -425,7 +425,7 @@ static inline intersection_unused_on_prev_vertical_line(
     return intersection_unused_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, false);
 }
 
-static inline intersection_unused_on_next_vertical_line(
+static inline int intersection_unused_on_next_vertical_line(
     const ExPolygonWithOffset                     &poly_with_offset, 
     const std::vector<SegmentedIntersectionLine>  &segs, 
     size_t                                         iVerticalLine, 
