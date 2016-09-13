@@ -13,13 +13,19 @@ namespace Slic3r {
 // http://user42.tuxfamily.org/math-planepath/
 // http://user42.tuxfamily.org/math-planepath/gallery.html
 
-class FillPlanePath : public FillWithDirection
+class FillPlanePath : public Fill
 {
 public:
     virtual ~FillPlanePath() {}
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
 protected:
+    virtual void _fill_surface_single(
+        const FillParams                &params, 
+        unsigned int                     thickness_layers,
+        const std::pair<float, Point>   &direction, 
+        ExPolygon                       &expolygon, 
+        Polylines                       &polylines_out);
+
     virtual float _layer_angle(size_t idx) const { return 0.f; }
     virtual bool  _centered() const = 0;
     virtual Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) = 0;

@@ -9,9 +9,15 @@ class FillConcentric : public Fill
 {
 public:
     virtual ~FillConcentric() {}
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
 protected:
+	virtual void _fill_surface_single(
+	    const FillParams                &params, 
+	    unsigned int                     thickness_layers,
+	    const std::pair<float, Point>   &direction, 
+	    ExPolygon                       &expolygon, 
+	    Polylines                       &polylines_out);
+
 	virtual bool no_sort() const { return true; }
 };
 

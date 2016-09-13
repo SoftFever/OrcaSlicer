@@ -9,13 +9,19 @@ namespace Slic3r {
 
 class Surface;
 
-class FillRectilinear : public FillWithDirection
+class FillRectilinear : public Fill
 {
 public:
     virtual ~FillRectilinear() {}
-    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
 protected:
+	virtual void _fill_surface_single(
+	    const FillParams                &params, 
+	    unsigned int                     thickness_layers,
+	    const std::pair<float, Point>   &direction, 
+	    ExPolygon                       &expolygon, 
+	    Polylines                       &polylines_out);
+
 	coord_t _min_spacing;
 	coord_t _line_spacing;
 	// distance threshold for allowing the horizontal infill lines to be connected into a continuous path

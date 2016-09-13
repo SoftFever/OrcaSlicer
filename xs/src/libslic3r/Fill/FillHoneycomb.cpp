@@ -6,10 +6,13 @@
 
 namespace Slic3r {
 
-Polylines FillHoneycomb::fill_surface(const Surface *surface, const FillParams &params)
+void FillHoneycomb::_fill_surface_single(
+    const FillParams                &params, 
+    unsigned int                     thickness_layers,
+    const std::pair<float, Point>   &direction, 
+    ExPolygon                       &expolygon, 
+    Polylines                       &polylines_out)
 {
-    std::pair<float, Point> rotate_vector = this->infill_direction(surface);
-    
     // cache hexagons math
     CacheID cache_id(params.density, this->spacing);
     Cache::iterator it_m = this->cache.find(cache_id);
@@ -38,20 +41,19 @@ Polylines FillHoneycomb::fill_surface(const Surface *surface, const FillParams &
         // adjust actual bounding box to the nearest multiple of our hex pattern
         // and align it so that it matches across layers
         
-        BoundingBox bounding_box = surface->expolygon.contour.bounding_box();
+        BoundingBox bounding_box = expolygon.contour.bounding_box();
         {
             // rotate bounding box according to infill direction
             Polygon bb_polygon = bounding_box.polygon();
-            bb_polygon.rotate(rotate_vector.first, m.hex_center);
+            bb_polygon.rotate(direction.first, m.hex_center);
             bounding_box = bb_polygon.bounding_box();
             
             // extend bounding box so that our pattern will be aligned with other layers
             // $bounding_box->[X1] and [Y1] represent the displacement between new bounding box offset and old one
-            bounding_box.merge(Point(
-                bounding_box.min.x - (bounding_box.min.x % m.hex_width),
-                bounding_box.min.y - (bounding_box.min.y % m.pattern_height)));
+            // The infill is not aligned to the object bounding box, but to a world coordinate system. Supposedly good enough.
+            bounding_box.merge(_align_to_grid(bounding_box.min, Point(m.hex_width, m.pattern_height)));
         }
-        
+
         coord_t x = bounding_box.min.x;
         while (x <= bounding_box.max.x) {
             Polygon p;
@@ -70,27 +72,27 @@ Polylines FillHoneycomb::fill_surface(const Surface *surface, const FillParams &
                 std::swap(ax[0], ax[1]); // draw symmetrical pattern
                 x += m.distance;
             }
-            p.rotate(-rotate_vector.first, m.hex_center);
+            p.rotate(-direction.first, m.hex_center);
             polygons.push_back(p);
         }
     }
     
-    Polylines paths;
     if (params.complete || true) {
         // we were requested to complete each loop;
         // in this case we don't try to make more continuous paths
-        Polygons polygons_trimmed = intersection((Polygons)*surface, polygons);
+        Polygons polygons_trimmed = intersection((Polygons)expolygon, polygons);
         for (Polygons::iterator it = polygons_trimmed.begin(); it != polygons_trimmed.end(); ++ it)
-            paths.push_back(it->split_at_first_point());
+            polylines_out.push_back(it->split_at_first_point());
     } else {
         // consider polygons as polylines without re-appending the initial point:
         // this cuts the last segment on purpose, so that the jump to the next 
         // path is more straight
+        Polylines paths;
         {
             Polylines p;
             for (Polygons::iterator it = polygons.begin(); it != polygons.end(); ++ it)
                 p.push_back((Polyline)(*it));
-            paths = intersection(p, (Polygons)*surface);
+            intersection(p, (Polygons)expolygon, &paths);
         }
 
         // connect paths
@@ -119,15 +121,13 @@ Polylines FillHoneycomb::fill_surface(const Surface *surface, const FillParams &
         }
         
         // clip paths again to prevent connection segments from crossing the expolygon boundaries
-        Polylines paths_trimmed = intersection(paths, to_polygons(offset_ex(surface->expolygon, SCALED_EPSILON)));
-#if SLIC3R_CPPVER >= 11
-        paths = std::move(paths_trimmed);
-#else
-        std::swap(paths, paths_trimmed);
-#endif
+        intersection(paths, to_polygons(offset_ex(expolygon, SCALED_EPSILON)), &paths);
+        // Move the polylines to the output, avoid a deep copy.
+        size_t j = polylines_out.size();
+        polylines_out.resize(j + paths.size(), Polyline());
+        for (size_t i = 0; i < paths.size(); ++ i)
+            std::swap(polylines_out[j ++], paths[i]);
     }
-    
-    return paths;
 }
 
 } // namespace Slic3r

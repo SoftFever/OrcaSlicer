@@ -9,13 +9,15 @@ namespace Slic3r {
 
 class Surface;
 
-class FillRectilinear2 : public FillWithDirection
+class FillRectilinear2 : public Fill
 {
 public:
     virtual ~FillRectilinear2() {}
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
 protected:
+	void fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, Polylines &polylines_out);
+
 	coord_t _min_spacing;
 	coord_t _line_spacing;
 	// distance threshold for allowing the horizontal infill lines to be connected into a continuous path
@@ -26,6 +28,7 @@ class FillGrid2 : public FillRectilinear2
 {
 public:
     virtual ~FillGrid2() {}
+    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
 protected:
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill::Base.

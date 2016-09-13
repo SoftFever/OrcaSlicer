@@ -6,18 +6,20 @@
 
 namespace Slic3r {
 
-Polylines FillPlanePath::fill_surface(const Surface *surface, const FillParams &params)
+void FillPlanePath::_fill_surface_single(
+    const FillParams                &params, 
+    unsigned int                     thickness_layers,
+    const std::pair<float, Point>   &direction, 
+    ExPolygon                       &expolygon, 
+    Polylines                       &polylines_out)
 {
-    ExPolygon expolygon = surface->expolygon;
-    std::pair<float, Point> rotate_vector = this->infill_direction(surface);
-    expolygon.rotate(- rotate_vector.first);
+    expolygon.rotate(- direction.first);
 
     coord_t distance_between_lines = scale_(this->spacing) / params.density;
     
     // align infill across layers using the object's bounding box
-    Polygon bb_polygon = this->bounding_box.polygon();
-    bb_polygon.rotate(- rotate_vector.first);
-    BoundingBox bounding_box = bb_polygon.bounding_box();
+    // Rotated bounding box of the whole object.
+    BoundingBox bounding_box = this->bounding_box.rotated(- direction.first);
     
     Point shift = this->_centered() ? 
         bounding_box.center() :
@@ -61,11 +63,15 @@ Polylines FillPlanePath::fill_surface(const Surface *surface, const FillParams &
         // paths must be repositioned and rotated back
         for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it) {
             it->translate(shift.x, shift.y);
-            it->rotate(rotate_vector.first);
+            it->rotate(direction.first);
         }
     }
-    
-    return polylines;
+
+    // Move the polylines to the output, avoid a deep copy.
+    size_t j = polylines_out.size();
+    polylines_out.resize(j + polylines.size(), Polyline());
+    for (size_t i = 0; i < polylines.size(); ++ i)
+        std::swap(polylines_out[j ++], polylines[i]);
 }
 
 // Follow an Archimedean spiral, in polar coordinates: r=a+b\theta

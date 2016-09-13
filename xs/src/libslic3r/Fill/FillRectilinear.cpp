@@ -7,15 +7,15 @@
 
 namespace Slic3r {
 
-Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams &params)
+void FillRectilinear::_fill_surface_single(
+    const FillParams                &params,
+    unsigned int                     thickness_layers,
+    const std::pair<float, Point>   &direction,
+    ExPolygon                       &expolygon,
+    Polylines                       &polylines_out)
 {
     // rotate polygons so that we can work with vertical lines here
-    ExPolygon expolygon = surface->expolygon;
-    std::pair<float, Point> rotate_vector = this->infill_direction(surface);
-    expolygon.rotate(- rotate_vector.first);
-    // No need to translate the polygon anyhow for the infill.
-    // The infill will be performed inside a bounding box of the expolygon and its absolute position does not matter.
-//    expolygon.translate(rotate_vector.second.x, rotate_vector.second.y);
+    expolygon.rotate(- direction.first);
 
     this->_min_spacing = scale_(this->spacing);
     assert(params.density > 0.0001f && params.density <= 1.f);
@@ -26,13 +26,15 @@ Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams
     
     // define flow spacing according to requested density
     if (params.density > 0.9999f && !params.dont_adjust) {
-        this->_line_spacing = this->adjust_solid_spacing(bounding_box.size().x, this->_line_spacing);
+        this->_line_spacing = this->_adjust_solid_spacing(bounding_box.size().x, this->_line_spacing);
         this->spacing = unscale(this->_line_spacing);
     } else {
         // extend bounding box so that our pattern will be aligned with other layers
-        bounding_box.merge(Point(
-            bounding_box.min.x - (bounding_box.min.x % this->_line_spacing),
-            bounding_box.min.y - (bounding_box.min.y % this->_line_spacing)));
+        // Transform the reference point to the rotated coordinate system.
+        bounding_box.merge(_align_to_grid(
+            bounding_box.min, 
+            Point(this->_line_spacing, this->_line_spacing), 
+            direction.second.rotated(- direction.first)));
     }
 
     // generate the basic pattern
@@ -65,6 +67,7 @@ Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams
 
     // FIXME Vojtech: This is only performed for horizontal lines, not for the vertical lines!
     const float INFILL_OVERLAP_OVER_SPACING = 0.3f;
+    // How much to extend an infill path from expolygon outside?
     coord_t extra = coord_t(floor(this->_min_spacing * INFILL_OVERLAP_OVER_SPACING + 0.5f));
     for (Polylines::iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
         Point *first_point = &it_polyline->points.front();
@@ -74,6 +77,8 @@ Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams
         first_point->y -= extra;
         last_point->y += extra;
     }
+
+    size_t n_polylines_out_old = polylines_out.size();
 
     // connect lines
     if (! params.dont_connect && ! polylines.empty()) { // prevent calling leftmost_point() on empty collections
@@ -94,15 +99,11 @@ Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams
             polylines,
 #endif
             PolylineCollection::leftmost_point(polylines), false); // reverse allowed
-#if SLIC3R_CPPVER >= 11
-            assert(polylines.empty());
-#else
-            polylines.clear();
-#endif
+        bool first = true;
         for (Polylines::iterator it_polyline = chained.begin(); it_polyline != chained.end(); ++ it_polyline) {
-            if (! polylines.empty()) {
+            if (! first) {
                 // Try to connect the lines.
-                Points &pts_end = polylines.back().points;
+                Points &pts_end = polylines_out.back().points;
                 const Point &first_point = it_polyline->points.front();
                 const Point &last_point = pts_end.back();
                 // Distance in X, Y.
@@ -118,21 +119,21 @@ Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams
             }
             // The lines cannot be connected.
 #if SLIC3R_CPPVER >= 11
-            polylines.push_back(std::move(*it_polyline));
+            polylines_out.push_back(std::move(*it_polyline));
 #else
-            polylines.push_back(Polyline());
-            std::swap(polylines.back(), *it_polyline);
+            polylines_out.push_back(Polyline());
+            std::swap(polylines_out.back(), *it_polyline);
 #endif
+            first = false;
         }
     }
 
     // paths must be rotated back
-    for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it) {
+    for (Polylines::iterator it = polylines_out.begin() + n_polylines_out_old; it != polylines_out.end(); ++ it) {
         // No need to translate, the absolute position is irrelevant.
-        // it->translate(- rotate_vector.second.x, - rotate_vector.second.y);
-        it->rotate(rotate_vector.first);
+        // it->translate(- direction.second.x, - direction.second.y);
+        it->rotate(direction.first);
     }
-    return polylines;
 }
 
 } // namespace Slic3r
