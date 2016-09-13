@@ -639,7 +639,7 @@ Print::validate() const
             if (!object_height.empty() && object_height.back() > scale_(this->config.extruder_clearance_height.value))
                 throw PrintValidationException("Some objects are too tall and cannot be printed without extruder collisions.");
         }
-    }
+    } // end if (this->config.complete_objects)
     
     if (this->config.spiral_vase) {
         size_t total_copies_count = 0;
@@ -837,6 +837,7 @@ Print::auto_assign_extruders(ModelObject* model_object) const
     size_t extruders = this->config.nozzle_diameter.values.size();
     for (ModelVolumePtrs::const_iterator v = model_object->volumes.begin(); v != model_object->volumes.end(); ++v) {
         if (!(*v)->material_id().empty()) {
+            //FIXME Vojtech: This assigns an extruder ID even to a modifier volume, if it has a material assigned.
             size_t extruder_id = (v - model_object->volumes.begin()) + 1;
             if (!(*v)->config.has("extruder"))
                 (*v)->config.opt<ConfigOptionInt>("extruder", true)->value = extruder_id;

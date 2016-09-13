@@ -1,12 +1,12 @@
 #include "SVG.hpp"
 #include <iostream>
 
-#define COORD(x) ((float)unscale(x)*10)
+#define COORD(x) ((float)unscale((x))*10)
 
 namespace Slic3r {
 
 SVG::SVG(const char* filename)
-    : arrows(false), fill("grey"), stroke("black"), filename(filename)
+    : arrows(false), fill("grey"), stroke("black"), filename(filename), flipY(false)
 {
     this->f = fopen(filename, "w");
     fprintf(this->f,
@@ -19,12 +19,12 @@ SVG::SVG(const char* filename)
 	    );
 }
 
-SVG::SVG(const char* filename, const BoundingBox &bbox)
-    : arrows(false), fill("grey"), stroke("black"), filename(filename), origin(bbox.min)
+SVG::SVG(const char* filename, const BoundingBox &bbox, const coord_t bbox_offset, bool aflipY)
+    : arrows(false), fill("grey"), stroke("black"), filename(filename), origin(bbox.min - Point(bbox_offset, bbox_offset)), flipY(aflipY)
 {
     this->f = fopen(filename, "w");
-    float w = COORD(bbox.max.x - bbox.min.x);
-    float h = COORD(bbox.max.y - bbox.min.y);
+    float w = COORD(bbox.max.x - bbox.min.x + 2 * bbox_offset);
+    float h = COORD(bbox.max.y - bbox.min.y + 2 * bbox_offset);
     fprintf(this->f,
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n"
@@ -36,7 +36,7 @@ SVG::SVG(const char* filename, const BoundingBox &bbox)
 }
 
 void
-SVG::draw(const Line &line, std::string stroke, coord_t stroke_width)
+SVG::draw(const Line &line, std::string stroke, coordf_t stroke_width)
 {
     fprintf(this->f,
         "   <line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\" style=\"stroke: %s; stroke-width: %f\"",
@@ -46,7 +46,7 @@ SVG::draw(const Line &line, std::string stroke, coord_t stroke_width)
     fprintf(this->f, "/>\n");
 }
 
-void SVG::draw(const ThickLine &line, const std::string &fill, const std::string &stroke, coord_t stroke_width)
+void SVG::draw(const ThickLine &line, const std::string &fill, const std::string &stroke, coordf_t stroke_width)
 {
     Pointf dir(line.b.x-line.a.x, line.b.y-line.a.y);
     Pointf perp(-dir.y, dir.x);
@@ -68,10 +68,10 @@ void SVG::draw(const ThickLine &line, const std::string &fill, const std::string
 }
 
 void
-SVG::draw(const Lines &lines, std::string stroke)
+SVG::draw(const Lines &lines, std::string stroke, coordf_t stroke_width)
 {
     for (Lines::const_iterator it = lines.begin(); it != lines.end(); ++it)
-        this->draw(*it, stroke);
+        this->draw(*it, stroke, stroke_width);
 }
 
 void
@@ -91,7 +91,7 @@ SVG::draw(const ExPolygon &expolygon, std::string fill)
     for (Polygons::const_iterator p = pp.begin(); p != pp.end(); ++p) {
         d += this->get_path_d(*p, true) + " ";
     }
-    this->path(d, true);
+    this->path(d, true, 0);
 }
 
 void
@@ -105,7 +105,7 @@ void
 SVG::draw(const Polygon &polygon, std::string fill)
 {
     this->fill = fill;
-    this->path(this->get_path_d(polygon, true), !fill.empty());
+    this->path(this->get_path_d(polygon, true), !fill.empty(), 0);
 }
 
 void
@@ -116,34 +116,34 @@ SVG::draw(const Polygons &polygons, std::string fill)
 }
 
 void
-SVG::draw(const Polyline &polyline, std::string stroke, coord_t stroke_width)
+SVG::draw(const Polyline &polyline, std::string stroke, coordf_t stroke_width)
 {
     this->stroke = stroke;
     this->path(this->get_path_d(polyline, false), false, stroke_width);
 }
 
 void
-SVG::draw(const Polylines &polylines, std::string stroke, coord_t stroke_width)
+SVG::draw(const Polylines &polylines, std::string stroke, coordf_t stroke_width)
 {
     for (Polylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
         this->draw(*it, fill, stroke_width);
 }
 
-void SVG::draw(const ThickLines &thicklines, const std::string &fill, const std::string &stroke, coord_t stroke_width)
+void SVG::draw(const ThickLines &thicklines, const std::string &fill, const std::string &stroke, coordf_t stroke_width)
 {
     for (ThickLines::const_iterator it = thicklines.begin(); it != thicklines.end(); ++it)
         this->draw(*it, fill, stroke, stroke_width);
 }
 
 void
-SVG::draw(const ThickPolylines &polylines, const std::string &stroke, coord_t stroke_width)
+SVG::draw(const ThickPolylines &polylines, const std::string &stroke, coordf_t stroke_width)
 {
     for (ThickPolylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
         this->draw((Polyline)*it, stroke, stroke_width);
 }
 
 void 
-SVG::draw(const ThickPolylines &thickpolylines, const std::string &fill, const std::string &stroke, coord_t stroke_width)
+SVG::draw(const ThickPolylines &thickpolylines, const std::string &fill, const std::string &stroke, coordf_t stroke_width)
 {
     for (ThickPolylines::const_iterator it = thickpolylines.begin(); it != thickpolylines.end(); ++ it)
         draw(it->thicklines(), fill, stroke, stroke_width);
@@ -168,8 +168,36 @@ SVG::draw(const Points &points, std::string fill, coord_t radius)
         this->draw(*it, fill, radius);
 }
 
+void 
+SVG::draw(const ClipperLib::Path &polygon, double scale, std::string stroke, coordf_t stroke_width)
+{
+    this->stroke = stroke;
+    this->path(this->get_path_d(polygon, scale, true), false, stroke_width);
+}
+
+void 
+SVG::draw(const ClipperLib::Paths &polygons, double scale, std::string stroke, coordf_t stroke_width)
+{
+    for (ClipperLib::Paths::const_iterator it = polygons.begin(); it != polygons.end(); ++ it)
+        draw(*it, scale, stroke, stroke_width);
+}
+
+void 
+SVG::draw_outline(const Polygon &polygon, std::string stroke, coordf_t stroke_width)
+{
+    this->stroke = stroke;
+    this->path(this->get_path_d(polygon, true), false, stroke_width);
+}
+
+void 
+SVG::draw_outline(const Polygons &polygons, std::string stroke, coordf_t stroke_width)
+{
+    for (Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++ it)
+        draw_outline(*it, stroke, stroke_width);
+}
+
 void
-SVG::path(const std::string &d, bool fill, coord_t stroke_width)
+SVG::path(const std::string &d, bool fill, coordf_t stroke_width)
 {
     float lineWidth = 0.f;
     if (! fill)
@@ -194,6 +222,19 @@ SVG::get_path_d(const MultiPoint &mp, bool closed) const
     for (Points::const_iterator p = mp.points.begin(); p != mp.points.end(); ++p) {
         d << COORD(p->x - origin.x) << " ";
         d << COORD(p->y - origin.y) << " ";
+    }
+    if (closed) d << "z";
+    return d.str();
+}
+
+std::string
+SVG::get_path_d(const ClipperLib::Path &path, double scale, bool closed) const
+{
+    std::ostringstream d;
+    d << "M ";
+    for (ClipperLib::Path::const_iterator p = path.begin(); p != path.end(); ++p) {
+        d << COORD(scale * p->X - origin.x) << " ";
+        d << COORD(scale * p->Y - origin.y) << " ";
     }
     if (closed) d << "z";
     return d.str();

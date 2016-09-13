@@ -14,6 +14,11 @@ using ClipperLib::jtSquare;
 
 namespace Slic3r {
 
+// Factor to convert from coord_t (which is int32) to an int64 type used by the Clipper library.
+//FIXME Vojtech: Better to use a power of 2 coefficient and to use bit shifts for scaling.
+// How about 2^17=131072?
+// By the way, is the scalling needed at all? Cura runs all the computation with a fixed point precision of 1um, while Slic3r scales to 1nm,
+// further scaling by 10e5 brings us to 
 #define CLIPPER_OFFSET_SCALE 100000.0
 
 //-----------------------------------------------------------

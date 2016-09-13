@@ -20,7 +20,7 @@ class Print;
 class PrintObject;
 class ModelObject;
 
-
+// Print step IDs for keeping track of the print state.
 enum PrintStep {
     psSkirt, psBrim,
 };
@@ -34,6 +34,7 @@ class PrintValidationException : public std::runtime_error {
     PrintValidationException(const std::string &error) : std::runtime_error(error) {};
 };
 
+// To be instantiated over PrintStep or PrintObjectStep enums.
 template <class StepType>
 class PrintState
 {
@@ -120,6 +121,7 @@ class PrintObject
     size_t layer_count() const;
     void clear_layers();
     Layer* get_layer(int idx);
+    // print_z: top of the layer; slice_z: center of the layer.
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_layer(int idx);
 
@@ -152,6 +154,7 @@ class PrintObject
 typedef std::vector<PrintObject*> PrintObjectPtrs;
 typedef std::vector<PrintRegion*> PrintRegionPtrs;
 
+// The complete print tray with possibly multiple objects.
 class Print
 {
     public:

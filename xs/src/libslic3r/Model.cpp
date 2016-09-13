@@ -772,7 +772,7 @@ ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 void
 ModelInstance::transform_polygon(Polygon* polygon) const
 {
-    polygon->rotate(this->rotation, Point(0,0));    // rotate around polygon origin
+    polygon->rotate(this->rotation);                // rotate around polygon origin
     polygon->scale(this->scaling_factor);           // scale around polygon origin
 }
 

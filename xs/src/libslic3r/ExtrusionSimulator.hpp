@@ -2,7 +2,6 @@
 #define slic3r_ExtrusionSimulator_hpp_
 
 #include "libslic3r.h"
-#include "Config.hpp"
 #include "ExtrusionEntity.hpp"
 #include "BoundingBox.hpp"
 

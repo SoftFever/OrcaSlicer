@@ -1,3 +1,4 @@
+#include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
@@ -59,6 +60,7 @@ Polygon::split_at_vertex(const Point &point) const
     return Polyline();
 }
 
+// Split a closed polygon into an open polyline, with the split point duplicated at both ends.
 Polyline
 Polygon::split_at_index(int index) const
 {
@@ -71,6 +73,7 @@ Polygon::split_at_index(int index) const
     return polyline;
 }
 
+// Split a closed polygon into an open polyline, with the split point duplicated at both ends.
 Polyline
 Polygon::split_at_first_point() const
 {
@@ -131,6 +134,8 @@ Polygon::is_valid() const
     return this->points.size() >= 3;
 }
 
+// Does an unoriented polygon contain a point?
+// Tested by counting intersections along a horizontal line.
 bool
 Polygon::contains(const Point &point) const
 {
@@ -139,9 +144,20 @@ Polygon::contains(const Point &point) const
     Points::const_iterator i = this->points.begin();
     Points::const_iterator j = this->points.end() - 1;
     for (; i != this->points.end(); j = i++) {
+        //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point.y well.
+        // Does the ray with y == point.y intersect this line segment?
+#if 1
         if ( ((i->y > point.y) != (j->y > point.y))
             && ((double)point.x < (double)(j->x - i->x) * (double)(point.y - i->y) / (double)(j->y - i->y) + (double)i->x) )
             result = !result;
+#else
+        if ((i->y > point.y) != (j->y > point.y)) {
+            // Orientation predicated relative to i-th point.
+            double orient = (double)(point.x - i->x) * (double)(j->y - i->y) - (double)(point.y - i->y) * (double)(j->x - i->x);
+            if ((i->y > j->y) ? (orient > 0.) : (orient < 0.))
+                result = !result;
+        }
+#endif
     }
     return result;
 }
@@ -263,6 +279,22 @@ Polygon::convex_points(double angle) const
         points.push_back(this->points.back());
     
     return points;
+}
+
+BoundingBox get_extents(const Polygon &poly) 
+{ 
+    return poly.bounding_box();
+}
+
+BoundingBox get_extents(const Polygons &polygons)
+{
+    BoundingBox bb;
+    if (! polygons.empty()) {
+        bb = polygons.front().bounding_box();
+        for (size_t i = 1; i < polygons.size(); ++ i)
+            bb.merge(polygons[i]);
+    }
+    return bb;
 }
 
 }

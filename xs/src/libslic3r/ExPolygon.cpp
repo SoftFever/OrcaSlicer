@@ -514,4 +514,20 @@ ExPolygon::dump_perl() const
     return ret.str();
 }
 
+BoundingBox get_extents(const ExPolygon &expolygon)
+{
+    return get_extents(expolygon.contour);
 }
+
+BoundingBox get_extents(const ExPolygons &expolygons)
+{
+    BoundingBox bbox;
+    if (! expolygons.empty()) {
+        bbox = get_extents(expolygons.front());
+        for (size_t i = 1; i < expolygons.size(); ++ i)
+            bbox.merge(get_extents(expolygons[i]));
+    }
+    return bbox;
+}
+
+} // namespace Slic3r

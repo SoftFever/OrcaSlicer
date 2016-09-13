@@ -39,8 +39,8 @@ ConfigDef::add(const t_config_option_key &opt_key, ConfigOptionType type)
 const ConfigOptionDef*
 ConfigDef::get(const t_config_option_key &opt_key) const
 {
-    if (this->options.count(opt_key) == 0) return NULL;
-    return &const_cast<ConfigDef*>(this)->options[opt_key];
+    t_optiondef_map::iterator it = const_cast<ConfigDef*>(this)->options.find(opt_key);
+    return (it == this->options.end()) ? NULL : &it->second;
 }
 
 bool
@@ -113,6 +113,8 @@ ConfigBase::set_deserialize(const t_config_option_key &opt_key, std::string str)
     return opt->deserialize(str);
 }
 
+// Return an absolute value of a possibly relative config variable.
+// For example, return absolute infill extrusion width, either from an absolute value, or relative to the layer height.
 double
 ConfigBase::get_abs_value(const t_config_option_key &opt_key) {
     ConfigOption* opt = this->option(opt_key, false);
@@ -130,6 +132,8 @@ ConfigBase::get_abs_value(const t_config_option_key &opt_key) {
     }
 }
 
+// Return an absolute value of a possibly relative config variable.
+// For example, return absolute infill extrusion width, either from an absolute value, or relative to a provided value.
 double
 ConfigBase::get_abs_value(const t_config_option_key &opt_key, double ratio_over) {
     // get stored option value
@@ -180,6 +184,7 @@ DynamicConfig& DynamicConfig::operator= (DynamicConfig other)
 void
 DynamicConfig::swap(DynamicConfig &other)
 {
+    std::swap(this->def, other.def);
     std::swap(this->options, other.options);
 }
 
@@ -197,7 +202,8 @@ DynamicConfig::DynamicConfig (const DynamicConfig& other) {
 
 ConfigOption*
 DynamicConfig::optptr(const t_config_option_key &opt_key, bool create) {
-    if (this->options.count(opt_key) == 0) {
+    t_options_map::iterator it = options.find(opt_key);
+    if (it == options.end()) {
         if (create) {
             const ConfigOptionDef* optdef = this->def->get(opt_key);
             assert(optdef != NULL);
@@ -239,7 +245,7 @@ DynamicConfig::optptr(const t_config_option_key &opt_key, bool create) {
             return NULL;
         }
     }
-    return this->options[opt_key];
+    return it->second;
 }
 
 template<class T>
@@ -273,7 +279,6 @@ StaticConfig::set_defaults()
     t_config_option_keys keys = this->keys();
     for (t_config_option_keys::const_iterator it = keys.begin(); it != keys.end(); ++it) {
         const ConfigOptionDef* def = this->def->get(*it);
-        
         if (def->default_value != NULL)
             this->option(*it)->set(*def->default_value);
     }

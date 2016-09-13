@@ -94,6 +94,12 @@ Point::nearest_point_index(const Points &points) const
     return this->nearest_point_index(p);
 }
 
+template<typename T>
+inline T sqr(const T x)
+{
+    return x * x;
+}
+
 int
 Point::nearest_point_index(const PointConstPtrs &points) const
 {
@@ -103,12 +109,12 @@ Point::nearest_point_index(const PointConstPtrs &points) const
     for (PointConstPtrs::const_iterator it = points.begin(); it != points.end(); ++it) {
         /* If the X distance of the candidate is > than the total distance of the
            best previous candidate, we know we don't want it */
-        double d = pow(this->x - (*it)->x, 2);
+        double d = sqr<double>(this->x - (*it)->x);
         if (distance != -1 && d > distance) continue;
         
         /* If the Y distance of the candidate is > than the total distance of the
            best previous candidate, we know we don't want it */
-        d += pow(this->y - (*it)->y, 2);
+        d += sqr<double>(this->y - (*it)->y);
         if (distance != -1 && d > distance) continue;
         
         idx = it - points.begin();
@@ -129,10 +135,10 @@ Point::nearest_waypoint_index(const Points &points, const Point &dest) const
     
     for (Points::const_iterator p = points.begin(); p != points.end(); ++p) {
         // distance from this to candidate
-        double d = pow(this->x - p->x, 2) + pow(this->y - p->y, 2);
+        double d = sqr<double>(this->x - p->x) + sqr<double>(this->y - p->y);
         
         // distance from candidate to dest
-        d += pow(p->x - dest.x, 2) + pow(p->y - dest.y, 2);
+        d += sqr<double>(p->x - dest.x) + sqr<double>(p->y - dest.y);
         
         // if the total distance is greater than current min distance, ignore it
         if (distance != -1 && d > distance) continue;
@@ -278,8 +284,10 @@ Point::projection_onto(const Line &line) const
         If theta is outside the interval [0,1], then one of the Line_Segment's endpoints
         must be closest to calling Point.
     */
-    double theta = ( (double)(line.b.x - this->x)*(double)(line.b.x - line.a.x) + (double)(line.b.y- this->y)*(double)(line.b.y - line.a.y) ) 
-          / ( (double)pow(line.b.x - line.a.x, 2) + (double)pow(line.b.y - line.a.y, 2) );
+    double lx = (double)(line.b.x - line.a.x);
+    double ly = (double)(line.b.y - line.a.y);
+    double theta = ( (double)(line.b.x - this->x)*lx + (double)(line.b.y- this->y)*ly ) 
+          / ( sqr<double>(lx) + sqr<double>(ly) );
     
     if (0.0 <= theta && theta <= 1.0)
         return theta * line.a + (1.0-theta) * line.b;

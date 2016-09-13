@@ -23,6 +23,10 @@
 // We want our version of assert.
 #include "../libslic3r.h"
 
+#ifndef myassert
+#define myassert assert
+#endif
+
 namespace Slic3r {
 
 #ifndef clamp

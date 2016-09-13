@@ -270,6 +270,8 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             steps.insert(posPerimeters);
             steps.insert(posInfill);
         } else if (*opt_key == "seam_position"
+            || *opt_key == "seam_preferred_direction"
+            || *opt_key == "seam_preferred_direction_jitter"
             || *opt_key == "support_material_speed"
             || *opt_key == "bridge_speed"
             || *opt_key == "external_perimeter_speed"

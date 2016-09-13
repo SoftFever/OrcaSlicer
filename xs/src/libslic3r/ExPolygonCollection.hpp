@@ -34,6 +34,8 @@ class ExPolygonCollection
     void append(const ExPolygons &expolygons);
 };
 
+extern BoundingBox get_extents(const ExPolygonCollection &expolygon);
+
 }
 
 #endif

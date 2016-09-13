@@ -34,6 +34,10 @@ class Surface
 typedef std::vector<Surface> Surfaces;
 typedef std::vector<Surface*> SurfacesPtr;
 
+extern BoundingBox get_extents(const Surface &surface);
+extern BoundingBox get_extents(const Surfaces &surfaces);
+extern BoundingBox get_extents(const SurfacesPtr &surfaces);
+
 }
 
 #endif

@@ -885,10 +885,36 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("random");
     def->enum_values.push_back("nearest");
     def->enum_values.push_back("aligned");
+//    def->enum_values.push_back("preferred");
     def->enum_labels.push_back("Random");
     def->enum_labels.push_back("Nearest");
     def->enum_labels.push_back("Aligned");
+//    def->enum_labels.push_back("Preferred Direction");
     def->default_value = new ConfigOptionEnum<SeamPosition>(spAligned);
+
+#if 0
+    def = this->add("seam_preferred_direction", coFloat);
+//    def->gui_type = "slider";
+    def->label = "Direction";
+    def->sidetext = "°";
+    def->full_label = "Preferred direction of the seam";
+    def->tooltip = "Seam preferred direction";
+    def->cli = "seam-preferred-direction=f";
+    def->min = 0;
+    def->max = 360;
+    def->default_value = new ConfigOptionFloat(0);
+
+    def = this->add("seam_preferred_direction_jitter", coFloat);
+//    def->gui_type = "slider";
+    def->label = "Jitter";
+    def->sidetext = "°";
+    def->full_label = "Seam preferred direction jitter";
+    def->tooltip = "Preferred direction of the seam - jitter";
+    def->cli = "seam-preferred-direction-jitter=f";
+    def->min = 0;
+    def->max = 360;
+    def->default_value = new ConfigOptionFloat(30);
+#endif
 
     def = this->add("serial_port", coString);
     def->gui_type = "select_open";

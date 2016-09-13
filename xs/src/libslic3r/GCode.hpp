@@ -78,6 +78,9 @@ class GCode {
     Wipe wipe;
     AvoidCrossingPerimeters avoid_crossing_perimeters;
     bool enable_loop_clipping;
+    // If enabled, the G-code generator will put following comments at the ends
+    // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _BRIDGE_FAN_START, _BRIDGE_FAN_END
+    // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.
     bool enable_cooling_markers;
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.
@@ -89,6 +92,10 @@ class GCode {
     // Distance Field structure to 
     EdgeGrid::Grid *_lower_layer_edge_grid;
     bool first_layer; // this flag triggers first layer speeds
+    // Used by the CoolingBuffer.pm Perl module to calculate time spent per layer change.
+    // This value is not quite precise. First it only accouts for extrusion moves and travel moves,
+    // it does not account for wipe, retract / unretract moves.
+    // second it does not account for the velocity profiles of the printer.
     float elapsed_time; // seconds
     double volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?

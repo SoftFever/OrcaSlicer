@@ -19,13 +19,15 @@
     Clone<Polygon> polygon();
     Clone<Point> size();
     Clone<Point> center();
+    double radius();
     Clone<Point> min_point() %code{% RETVAL = THIS->min; %};
     Clone<Point> max_point() %code{% RETVAL = THIS->max; %};
     long x_min() %code{% RETVAL = THIS->min.x; %};
     long x_max() %code{% RETVAL = THIS->max.x; %};
     long y_min() %code{% RETVAL = THIS->min.y; %};
     long y_max() %code{% RETVAL = THIS->max.y; %};
-    
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%d,%d;%d,%d", THIS->min.x, THIS->min.y, THIS->max.x, THIS->max.y); RETVAL = buf; %};
+  
 %{
 
 BoundingBox*
@@ -51,6 +53,7 @@ new_from_points(CLASS, points)
     void translate(double x, double y);
     Clone<Pointf> size();
     Clone<Pointf> center();
+    double radius();
     Clone<Pointf> min_point() %code{% RETVAL = THIS->min; %};
     Clone<Pointf> max_point() %code{% RETVAL = THIS->max; %};
     double x_min() %code{% RETVAL = THIS->min.x; %};
@@ -61,7 +64,8 @@ new_from_points(CLASS, points)
     void set_x_max(double val) %code{% THIS->max.x = val; %};
     void set_y_min(double val) %code{% THIS->min.y = val; %};
     void set_y_max(double val) %code{% THIS->max.y = val; %};
-    
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf;%lf,%lf", THIS->min.x, THIS->min.y, THIS->max.x, THIS->max.y); RETVAL = buf; %};
+
 %{
 
 BoundingBoxf*
@@ -87,6 +91,7 @@ new_from_points(CLASS, points)
     void translate(double x, double y, double z);
     Clone<Pointf3> size();
     Clone<Pointf3> center();
+    double radius();
     Clone<Pointf3> min_point() %code{% RETVAL = THIS->min; %};
     Clone<Pointf3> max_point() %code{% RETVAL = THIS->max; %};
     double x_min() %code{% RETVAL = THIS->min.x; %};
@@ -95,4 +100,5 @@ new_from_points(CLASS, points)
     double y_max() %code{% RETVAL = THIS->max.y; %};
     double z_min() %code{% RETVAL = THIS->min.z; %};
     double z_max() %code{% RETVAL = THIS->max.z; %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf,%lf;%lf,%lf,%lf", THIS->min.x, THIS->min.y, THIS->min.z, THIS->max.x, THIS->max.y, THIS->max.z); RETVAL = buf; %};
 };

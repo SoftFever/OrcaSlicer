@@ -534,12 +534,6 @@ PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRo
 }
 
 bool
-PerimeterGeneratorLoop::is_external() const
-{
-    return this->depth == 0;
-}
-
-bool
 PerimeterGeneratorLoop::is_internal_contour() const
 {
     if (this->is_contour) {

@@ -1,6 +1,12 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 
+// #define CLIPPER_UTILS_DEBUG
+
+#ifdef CLIPPER_UTILS_DEBUG
+#include "SVG.hpp"
+#endif /* CLIPPER_UTILS_DEBUG */
+
 namespace Slic3r {
 
 //-----------------------------------------------------------
@@ -226,6 +232,19 @@ void
 offset2(const Slic3r::Polygons &polygons, ClipperLib::Paths* retval, const float delta1,
     const float delta2, const double scale, const ClipperLib::JoinType joinType, const double miterLimit)
 {
+#ifdef CLIPPER_UTILS_DEBUG
+    BoundingBox bbox = get_extents(polygons);
+    coordf_t stroke_width = scale_(0.005);
+    static int iRun = 0;
+    ++ iRun;
+    char path[2048];
+    sprintf(path, "out\\offset2-%d.svg", iRun);
+    bool flipY = false;
+    SVG svg(path, bbox, scale_(1.), flipY);
+    for (Slic3r::Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++ it)
+        svg.draw(it->lines(), "gray", stroke_width);
+#endif /* CLIPPER_UTILS_DEBUG */
+
     // read input
     ClipperLib::Paths input;
     Slic3rMultiPoints_to_ClipperPaths(polygons, &input);
@@ -245,12 +264,18 @@ offset2(const Slic3r::Polygons &polygons, ClipperLib::Paths* retval, const float
     ClipperLib::Paths output1;
     co.AddPaths(input, joinType, ClipperLib::etClosedPolygon);
     co.Execute(output1, (delta1*scale));
+#ifdef CLIPPER_UTILS_DEBUG
+    svg.draw(output1, 1./CLIPPER_OFFSET_SCALE, "red", stroke_width);
+#endif /* CLIPPER_UTILS_DEBUG */
     
     // perform second offset
     co.Clear();
     co.AddPaths(output1, joinType, ClipperLib::etClosedPolygon);
     co.Execute(*retval, (delta2*scale));
-    
+#ifdef CLIPPER_UTILS_DEBUG
+    svg.draw(*retval, 1./CLIPPER_OFFSET_SCALE, "green", stroke_width);
+#endif /* CLIPPER_UTILS_DEBUG */
+
     // unscale output
     scaleClipperPolygons(*retval, 1/scale);
 }

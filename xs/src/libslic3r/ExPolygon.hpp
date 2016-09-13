@@ -72,7 +72,10 @@ inline Polygons to_polygons(ExPolygons &&src)
 }
 #endif
 
-}
+extern BoundingBox get_extents(const ExPolygon &expolygon);
+extern BoundingBox get_extents(const ExPolygons &expolygons);
+
+} // namespace Slic3r
 
 // start Boost
 #include <boost/polygon/polygon.hpp>

@@ -128,4 +128,9 @@ ExPolygonCollection::append(const ExPolygons &expp)
     this->expolygons.insert(this->expolygons.end(), expp.begin(), expp.end());
 }
 
+BoundingBox get_extents(const ExPolygonCollection &expolygon)
+{
+    return get_extents(expolygon.expolygons);
+}
+
 }

@@ -162,6 +162,10 @@ Layer::any_bottom_region_slice_contains(const T &item) const
 }
 template bool Layer::any_bottom_region_slice_contains<Polyline>(const Polyline &item) const;
 
+
+// Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
+// The perimeter paths and the thin fills (ExtrusionEntityCollection) are assigned to the first compatible layer region.
+// The resulting fill surface is split back among the originating regions.
 void
 Layer::make_perimeters()
 {

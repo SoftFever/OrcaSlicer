@@ -68,6 +68,26 @@ BoundingBox::polygon() const
     return p;
 }
 
+BoundingBox BoundingBox::rotated(double angle) const
+{
+    BoundingBox out;
+    out.merge(this->min.rotated(angle));
+    out.merge(this->max.rotated(angle));
+    out.merge(Point(this->min.x, this->max.y).rotated(angle));
+    out.merge(Point(this->max.x, this->min.y).rotated(angle));
+    return out;
+}
+
+BoundingBox BoundingBox::rotated(double angle, const Point &center) const
+{
+    BoundingBox out;
+    out.merge(this->min.rotated(angle, center));
+    out.merge(this->max.rotated(angle, center));
+    out.merge(Point(this->min.x, this->max.y).rotated(angle, center));
+    out.merge(Point(this->max.x, this->min.y).rotated(angle, center));
+    return out;
+}
+
 template <class PointClass> void
 BoundingBoxBase<PointClass>::scale(double factor)
 {
@@ -162,6 +182,26 @@ BoundingBox3Base<PointClass>::size() const
     return PointClass(this->max.x - this->min.x, this->max.y - this->min.y, this->max.z - this->min.z);
 }
 template Pointf3 BoundingBox3Base<Pointf3>::size() const;
+
+template <class PointClass> double
+BoundingBoxBase<PointClass>::radius() const
+{
+    double x = this->max.x - this->min.x;
+    double y = this->max.y - this->min.y;
+    return 0.5 * sqrt(x*x+y*y);
+}
+template double BoundingBoxBase<Point>::radius() const;
+template double BoundingBoxBase<Pointf>::radius() const;
+
+template <class PointClass> double
+BoundingBox3Base<PointClass>::radius() const
+{
+    double x = this->max.x - this->min.x;
+    double y = this->max.y - this->min.y;
+    double z = this->max.z - this->min.z;
+    return 0.5 * sqrt(x*x+y*y+z*z);
+}
+template double BoundingBox3Base<Pointf3>::radius() const;
 
 template <class PointClass> void
 BoundingBoxBase<PointClass>::translate(coordf_t x, coordf_t y)

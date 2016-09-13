@@ -47,6 +47,8 @@ class MultiPoint
     static Points _douglas_peucker(const Points &points, const double tolerance);
 };
 
-}
+extern BoundingBox get_extents(const MultiPoint &mp);
+
+} // namespace Slic3r
 
 #endif

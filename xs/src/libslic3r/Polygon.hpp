@@ -25,7 +25,9 @@ class Polygon : public MultiPoint {
     Point last_point() const;
     virtual Lines lines() const;
     Polyline split_at_vertex(const Point &point) const;
+    // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_index(int index) const;
+    // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_first_point() const;
     Points equally_spaced_points(double distance) const;
     double area() const;
@@ -34,6 +36,8 @@ class Polygon : public MultiPoint {
     bool make_counter_clockwise();
     bool make_clockwise();
     bool is_valid() const;
+    // Does an unoriented polygon contain a point?
+    // Tested by counting intersections along a horizontal line.
     bool contains(const Point &point) const;
     Polygons simplify(double tolerance) const;
     void simplify(double tolerance, Polygons &polygons) const;
@@ -43,6 +47,9 @@ class Polygon : public MultiPoint {
     Points concave_points(double angle = PI) const;
     Points convex_points(double angle = PI) const;
 };
+
+extern BoundingBox get_extents(const Polygon &poly);
+extern BoundingBox get_extents(const Polygons &polygons);
 
 }
 

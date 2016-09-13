@@ -11,25 +11,33 @@
 
 namespace Slic3r {
 
-class PerimeterGeneratorLoop;
-typedef std::vector<PerimeterGeneratorLoop> PerimeterGeneratorLoops;
-
+// Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
-    public:
+public:
+    // Polygon of this contour.
     Polygon polygon;
+    // Is it a contour or a hole?
+    // Contours are CCW oriented, holes are CW oriented.
     bool is_contour;
+    // Depth in the hierarchy. External perimeter has depth = 0. An external perimeter could be both a contour and a hole.
     unsigned short depth;
+    // Children contour, may be both CCW and CW oriented (outer contours or holes).
     std::vector<PerimeterGeneratorLoop> children;
     
     PerimeterGeneratorLoop(Polygon polygon, unsigned short depth)
         : polygon(polygon), is_contour(false), depth(depth)
         {};
-    bool is_external() const;
+    // External perimeter. It may be CCW or CW oriented (outer contour or hole contour).
+    bool is_external() const { return this->depth == 0; }
+    // An island, which may have holes, but it does not have another internal island.
     bool is_internal_contour() const;
 };
 
+typedef std::vector<PerimeterGeneratorLoop> PerimeterGeneratorLoops;
+
 class PerimeterGenerator {
-    public:
+public:
+    // Inputs:
     const SurfaceCollection* slices;
     const ExPolygonCollection* lower_slices;
     double layer_height;
@@ -41,14 +49,26 @@ class PerimeterGenerator {
     PrintRegionConfig* config;
     PrintObjectConfig* object_config;
     PrintConfig* print_config;
+    // Outputs:
     ExtrusionEntityCollection* loops;
     ExtrusionEntityCollection* gap_fill;
     SurfaceCollection* fill_surfaces;
     
-    PerimeterGenerator(const SurfaceCollection* slices, double layer_height, Flow flow,
-        PrintRegionConfig* config, PrintObjectConfig* object_config, 
-        PrintConfig* print_config, ExtrusionEntityCollection* loops, 
-        ExtrusionEntityCollection* gap_fill, SurfaceCollection* fill_surfaces)
+    PerimeterGenerator(
+        // Input:
+        const SurfaceCollection*    slices, 
+        double                      layer_height,
+        Flow                        flow,
+        PrintRegionConfig*          config,
+        PrintObjectConfig*          object_config,
+        PrintConfig*                print_config,
+        // Output:
+        // Loops with the external thin walls
+        ExtrusionEntityCollection*  loops,
+        // Gaps without the thin walls
+        ExtrusionEntityCollection*  gap_fill,
+        // Infills without the gap fills
+        SurfaceCollection*          fill_surfaces)
         : slices(slices), lower_slices(NULL), layer_height(layer_height),
             layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
