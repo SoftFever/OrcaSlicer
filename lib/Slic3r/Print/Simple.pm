@@ -1,3 +1,10 @@
+# A simple wrapper to quickly print a single model without a GUI.
+# Used by the command line slic3r.pl, by command line utilities pdf-slic3s.pl and view-toolpaths.pl,
+# and by the quick slice menu of the Slic3r GUI.
+#
+# It creates and owns an instance of Slic3r::Print  to perform the slicing
+# and it accepts an instance of Slic3r::Model from the outside.
+
 package Slic3r::Print::Simple;
 use Moo;
 
@@ -51,6 +58,7 @@ has 'output_file' => (
 );
 
 sub set_model {
+    # $model is of type Slic3r::Model
     my ($self, $model) = @_;
     
     # make method idempotent so that the object is reusable

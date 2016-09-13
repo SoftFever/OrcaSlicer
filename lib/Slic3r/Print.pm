@@ -1,3 +1,5 @@
+# The slicing work horse.
+# Extends C++ class Slic3r::Print
 package Slic3r::Print;
 use strict;
 use warnings;
@@ -89,6 +91,7 @@ sub export_gcode {
     }
 }
 
+# Export SVG slices for the offline SLA printing.
 sub export_svg {
     my $self = shift;
     my %params = @_;

@@ -1,4 +1,5 @@
 package Slic3r::Print::Object;
+# extends c++ class Slic3r::PrintObject (Print.xsp)
 use strict;
 use warnings;
 
@@ -32,6 +33,14 @@ sub support_layers {
     return [ map $self->get_support_layer($_), 0..($self->support_layer_count - 1) ];
 }
 
+# 1) Decides Z positions of the layers,
+# 2) Initializes layers and their regions
+# 3) Slices the object meshes
+# 4) Slices the modifier meshes and reclassifies the slices of the object meshes by the slices of the modifier meshes
+# 5) Applies size compensation (offsets the slices in XY plane)
+# 6) Replaces bad slices by the slices reconstructed from the upper/lower layer
+# Resulting expolygons of layer regions are marked as Internal.
+#
 # this should be idempotent
 sub slice {
     my $self = shift;
@@ -326,6 +335,7 @@ sub slice {
     $self->set_step_done(STEP_SLICE);
 }
 
+# called from slice()
 sub _slice_region {
     my ($self, $region_id, $z, $modifier) = @_;
 
@@ -1110,6 +1120,9 @@ sub combine_infill {
     }
 }
 
+# Simplify the sliced model, if "resolution" configuration parameter > 0.
+# The simplification is problematic, because it simplifies the slices independent from each other,
+# which makes the simplified discretization visible on the object surface.
 sub _simplify_slices {
     my ($self, $distance) = @_;
     

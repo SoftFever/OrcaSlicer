@@ -1,3 +1,5 @@
+# A pure perl (no C++ implementation) G-code filter, to control the pressure inside the nozzle.
+
 package Slic3r::GCode::PressureRegulator;
 use Moo;
 

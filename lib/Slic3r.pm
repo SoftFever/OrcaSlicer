@@ -1,3 +1,6 @@
+# This package loads all the non-GUI Slic3r perl packages.
+# In addition, it implements utility functions for file handling and threading.
+
 package Slic3r;
 
 # Copyright holder: Alessandro Ranellucci
@@ -26,10 +29,11 @@ BEGIN {
     $have_threads = 0 if $Moo::VERSION == 1.003000;
 }
 
-warn "Running Slic3r under Perl 5.16 is not supported nor recommended\n"
+warn "Running Slic3r under Perl 5.16 is neither supported nor recommended\n"
     if $^V == v5.16;
 
 use FindBin;
+# Path to the images.
 our $var = sub { decode_path($FindBin::Bin) . "/var/" . $_[0] };
 
 use Moo 1.003001;
@@ -71,13 +75,16 @@ use Encode::Locale 1.05;
 use Encode;
 use Unicode::Normalize;
 
+# Scaling between the float and integer coordinates.
+# Floats are in mm.
 use constant SCALING_FACTOR         => 0.000001;
-use constant RESOLUTION             => 0.0125;
-use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
+# Resolution to simplify perimeters to. These constants are now used in C++ code only. Better to publish them to Perl from the C++ code.
+# use constant RESOLUTION             => 0.0125;
+# use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
 use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
-use constant INFILL_OVERLAP_OVER_SPACING  => 0.3;
+# use constant INFILL_OVERLAP_OVER_SPACING  => 0.3;
 
-# keep track of threads we created
+# Keep track of threads we created. Each thread keeps its own list of threads it spwaned.
 my @my_threads = ();
 my @threads : shared = ();
 my $pause_sema = Thread::Semaphore->new;
@@ -113,6 +120,12 @@ sub spawn_thread {
     return $thread;
 }
 
+# If the threading is enabled, spawn a set of threads.
+# Otherwise run the task on the current thread.
+# Used for 
+#   Slic3r::Print::Object->layers->make_perimeters  : This is a pure C++ function.
+#   Slic3r::Print::Object->layers->make_fill        : This requires a rewrite of Fill.pm to C++.
+#   Slic3r::Print::SupportMaterial::generate_toolpaths
 sub parallelize {
     my %params = @_;
     
@@ -176,7 +189,7 @@ sub thread_cleanup {
         warn "Calling thread_cleanup() from main thread\n";
         return;
     }
-    
+
     # prevent destruction of shared objects
     no warnings 'redefine';
     *Slic3r::BridgeDetector::DESTROY        = sub {};
@@ -195,7 +208,7 @@ sub thread_cleanup {
     *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
     *Slic3r::ExtrusionSimulator::DESTROY    = sub {};
     *Slic3r::Flow::DESTROY                  = sub {};
-    *Slic3r::Filler::Destroy                = sub {};
+    *Slic3r::Filler::DESTROY                = sub {};
     *Slic3r::GCode::DESTROY                 = sub {};
     *Slic3r::GCode::AvoidCrossingPerimeters::DESTROY = sub {};
     *Slic3r::GCode::OozePrevention::DESTROY = sub {};
@@ -268,6 +281,12 @@ sub resume_all_threads {
     $pause_sema->up;
 }
 
+# Convert a Unicode path to a file system locale.
+# The encoding is (from Encode::Locale POD):
+# Alias       | Windows | Mac OS X     | POSIX
+# locale_fs   | ANSI    | UTF-8        | nl_langinfo
+# where nl_langinfo is en-US.UTF-8 on a modern Linux as well.
+# So this conversion seems to make the most sense on Windows.
 sub encode_path {
     my ($path) = @_;
     
@@ -277,6 +296,7 @@ sub encode_path {
     return $path;
 }
 
+# Convert a path coded by a file system locale to Unicode.
 sub decode_path {
     my ($path) = @_;
     
@@ -292,6 +312,7 @@ sub decode_path {
     return $path;
 }
 
+# Open a file by converting $filename to local file system locales.
 sub open {
     my ($fh, $mode, $filename) = @_;
     return CORE::open $$fh, $mode, encode_path($filename);

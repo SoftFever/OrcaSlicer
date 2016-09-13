@@ -1,3 +1,5 @@
+# Extends the C++ class Slic3r::Layer.
+
 package Slic3r::Layer;
 use strict;
 use warnings;

@@ -51,6 +51,7 @@ sub new {
     ));
     $self->{model} = Slic3r::Model->new;
     $self->{print} = Slic3r::Print->new;
+    # List of Perl objects Slic3r::GUI::Plater::Object, representing a 2D preview of the platter.
     $self->{objects} = [];
     
     $self->{print}->set_status_cb(sub {
@@ -976,6 +977,8 @@ sub schedule_background_process {
     }
 }
 
+# Executed asynchronously by a timer every PROCESS_DELAY (0.5 second).
+# The timer is started by schedule_background_process(), 
 sub async_apply_config {
     my ($self) = @_;
     
@@ -1848,6 +1851,7 @@ sub OnDropFiles {
     $self->{window}->load_file($_) for @$filenames;
 }
 
+# 2D preview of an object. Each object is previewed by its convex hull.
 package Slic3r::GUI::Plater::Object;
 use Moo;
 

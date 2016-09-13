@@ -1,3 +1,4 @@
+# Slices at the XZ plane, for debugging purposes.
 package Slic3r::Test::SectionCut;
 use Moo;
 
