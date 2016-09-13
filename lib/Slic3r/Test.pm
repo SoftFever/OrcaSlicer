@@ -139,11 +139,15 @@ sub mesh {
 
 sub model {
     my ($model_name, %params) = @_;
+
+    my $input_file = "${model_name}.stl";
+    my $mesh = mesh($model_name, %params);
+#    $mesh->write_ascii("out/$input_file");
     
     my $model = Slic3r::Model->new;
-    my $object = $model->add_object(input_file => "${model_name}.stl");
+    my $object = $model->add_object(input_file => $input_file);
     $model->set_material($model_name);
-    $object->add_volume(mesh => mesh($model_name, %params), material_id => $model_name);
+    $object->add_volume(mesh => $mesh, material_id => $model_name);
     $object->add_instance(
         offset          => Slic3r::Pointf->new(0,0),
         rotation        => $params{rotation} // 0,
