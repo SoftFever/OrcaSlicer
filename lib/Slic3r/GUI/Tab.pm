@@ -464,7 +464,8 @@ sub build {
         infill_every_layers infill_only_where_needed
         solid_infill_every_layers fill_angle solid_infill_below_area 
         only_retract_when_crossing_perimeters infill_first
-        max_print_speed max_volumetric_speed
+        max_print_speed max_volumetric_speed 
+        max_volumetric_extrusion_rate_slope_positive max_volumetric_extrusion_rate_slope_negative
         perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed 
         solid_infill_speed top_solid_infill_speed support_material_speed 
         support_material_interface_speed bridge_speed gap_fill_speed
@@ -627,6 +628,8 @@ sub build {
             my $optgroup = $page->new_optgroup('Autospeed (advanced)');
             $optgroup->append_single_option_line('max_print_speed');
             $optgroup->append_single_option_line('max_volumetric_speed');
+            $optgroup->append_single_option_line('max_volumetric_extrusion_rate_slope_positive');
+            $optgroup->append_single_option_line('max_volumetric_extrusion_rate_slope_negative');
         }
     }
     

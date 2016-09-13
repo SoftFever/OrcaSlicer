@@ -78,11 +78,13 @@ use Unicode::Normalize;
 # Scaling between the float and integer coordinates.
 # Floats are in mm.
 use constant SCALING_FACTOR         => 0.000001;
+use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
+
+# Following constants are used by the infill algorithms and integration tests.
 # Resolution to simplify perimeters to. These constants are now used in C++ code only. Better to publish them to Perl from the C++ code.
 # use constant RESOLUTION             => 0.0125;
 # use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
-use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
-# use constant INFILL_OVERLAP_OVER_SPACING  => 0.3;
+use constant INFILL_OVERLAP_OVER_SPACING  => 0.3;
 
 # Keep track of threads we created. Each thread keeps its own list of threads it spwaned.
 my @my_threads = ();

@@ -117,7 +117,8 @@ sub BUILD {
         if $self->config->pressure_advance > 0;
 
     $self->_pressure_equalizer(Slic3r::GCode::PressureEqualizer->new($self->config))
-        if defined($ENV{"SLIC3R_PRESSURE_EQUALIZER"}) && $ENV{'SLIC3R_PRESSURE_EQUALIZER'} == 1;
+        if ($self->config->max_volumetric_extrusion_rate_slope_positive > 0 ||
+            $self->config->max_volumetric_extrusion_rate_slope_negative > 0);
 
     $self->_gcodegen->set_enable_extrusion_role_markers(defined $self->_pressure_equalizer);
 }

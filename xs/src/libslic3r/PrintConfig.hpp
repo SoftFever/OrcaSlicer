@@ -289,6 +289,8 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionString              layer_gcode;
     ConfigOptionFloat               max_print_speed;
     ConfigOptionFloat               max_volumetric_speed;
+    ConfigOptionFloat               max_volumetric_extrusion_rate_slope_positive;
+    ConfigOptionFloat               max_volumetric_extrusion_rate_slope_negative;
     ConfigOptionFloat               pressure_advance;
     ConfigOptionFloats              retract_length;
     ConfigOptionFloats              retract_length_toolchange;
@@ -321,6 +323,8 @@ class GCodeConfig : public virtual StaticPrintConfig
         OPT_PTR(layer_gcode);
         OPT_PTR(max_print_speed);
         OPT_PTR(max_volumetric_speed);
+        OPT_PTR(max_volumetric_extrusion_rate_slope_positive);
+        OPT_PTR(max_volumetric_extrusion_rate_slope_negative);
         OPT_PTR(pressure_advance);
         OPT_PTR(retract_length);
         OPT_PTR(retract_length_toolchange);
