@@ -57,7 +57,7 @@ protected:
 	std::vector<const Slic3r::Points*>			m_contours;
 
 	// Referencing a contour and a line segment of m_contours.
-	std::vector<std::pair<size_t, size_t>>		m_cell_data;
+	std::vector<std::pair<size_t, size_t> >		m_cell_data;
 
 	struct Cell {
 		Cell() : begin(0), end(0) {}
