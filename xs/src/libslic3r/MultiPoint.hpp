@@ -29,7 +29,8 @@ class MultiPoint
     virtual Point last_point() const = 0;
     virtual Lines lines() const = 0;
     double length() const;
-    bool is_valid() const;
+    bool is_valid() const { return this->points.size() >= 2; }
+
     int find_point(const Point &point) const;
     bool has_boundary_point(const Point &point) const;
     BoundingBox bounding_box() const;

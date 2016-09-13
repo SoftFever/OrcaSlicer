@@ -44,7 +44,7 @@ class Point
     void translate(const Vector &vector);
     void rotate(double angle);
     void rotate(double angle, const Point &center);
-    bool coincides_with(const Point &point) const;
+    bool coincides_with(const Point &point) const { return this->x == point.x && this->y == point.y; }
     bool coincides_with_epsilon(const Point &point) const;
     int nearest_point_index(const Points &points) const;
     int nearest_point_index(const PointConstPtrs &points) const;

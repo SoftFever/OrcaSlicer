@@ -79,12 +79,6 @@ Point::rotate(double angle, const Point &center)
 }
 
 bool
-Point::coincides_with(const Point &point) const
-{
-    return this->x == point.x && this->y == point.y;
-}
-
-bool
 Point::coincides_with_epsilon(const Point &point) const
 {
     return std::abs(this->x - point.x) < SCALED_EPSILON && std::abs(this->y - point.y) < SCALED_EPSILON;
