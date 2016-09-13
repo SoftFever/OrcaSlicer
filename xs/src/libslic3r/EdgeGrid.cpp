@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <vector>
+#include <float.h>
 
 #include <wx/image.h>
 
