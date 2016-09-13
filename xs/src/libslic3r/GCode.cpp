@@ -582,7 +582,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         // Insert a projection of last_pos into the polygon.
 		size_t last_pos_proj_idx;
 		{
-			auto it = project_point_to_polygon_and_insert(polygon, last_pos, 0.1 * nozzle_r);
+			Points::iterator it = project_point_to_polygon_and_insert(polygon, last_pos, 0.1 * nozzle_r);
 			last_pos_proj_idx = it - polygon.points.begin();
 		}
         Point last_pos_proj = polygon.points[last_pos_proj_idx];
