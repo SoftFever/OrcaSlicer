@@ -2,7 +2,9 @@
 #include <vector>
 #include <float.h>
 
+#ifdef SLIC3R_GUI
 #include <wx/image.h>
+#endif /* SLIC3R_GUI */
 
 #include "libslic3r.h"
 #include "EdgeGrid.hpp"
@@ -551,7 +553,8 @@ void EdgeGrid::Grid::calculate_sdf()
 		}
 	}
 
-#if 1
+#if 0
+//#ifdef SLIC3R_GUI
 	{ 
 		wxImage img(ncols, nrows);
 		unsigned char *data = img.GetData();
@@ -609,7 +612,7 @@ void EdgeGrid::Grid::calculate_sdf()
 		}
 		img.SaveFile("out\\signed_df.png", wxBITMAP_TYPE_PNG);
 	}
-#endif
+#endif /* SLIC3R_GUI */
 
 	// 2) Propagate the signum.
 	#define PROPAGATE_SIGNUM_SINGLE_STEP(DELTA) do { \
@@ -681,7 +684,8 @@ void EdgeGrid::Grid::calculate_sdf()
 		}
 	}
 
-#if 1
+#if 0
+//#ifdef SLIC3R_GUI
 	{
 		wxImage img(ncols, nrows);
 		unsigned char *data = img.GetData();
@@ -733,9 +737,10 @@ void EdgeGrid::Grid::calculate_sdf()
 		}
 		img.SaveFile("out\\signed_df-signs.png", wxBITMAP_TYPE_PNG);
 	}
-#endif
+#endif /* SLIC3R_GUI */
 
-#if 1
+#if 0
+//#ifdef SLIC3R_GUI
 	{
 		wxImage img(ncols, nrows);
 		unsigned char *data = img.GetData();
@@ -761,7 +766,7 @@ void EdgeGrid::Grid::calculate_sdf()
 		}
 		img.SaveFile("out\\signed_df2.png", wxBITMAP_TYPE_PNG);
 	}
-#endif
+#endif /* SLIC3R_GUI */
 }
 
 float EdgeGrid::Grid::signed_distance_bilinear(const Point &pt) const
@@ -932,6 +937,7 @@ bool EdgeGrid::Grid::signed_distance(const Point &pt, coord_t search_radius, coo
 	return true;
 }
 
+#ifdef SLIC3R_GUI
 void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path)
 {
 	unsigned int w = (bbox.max.x - bbox.min.x + resolution - 1) / resolution;
@@ -1022,5 +1028,6 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
 
     img.SaveFile(path, wxBITMAP_TYPE_PNG);
 }
+#endif /* SLIC3R_GUI */
 
 } // namespace Slic3r

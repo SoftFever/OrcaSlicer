@@ -30,6 +30,8 @@
 ** THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef SLIC3R_GUI
+
 #include <GL/glew.h>
 
 #if defined(_WIN32)
@@ -18605,3 +18607,5 @@ GLboolean glxewIsSupported (const char* name)
 }
 
 #endif /* _WIN32 */
+
+#endif /* SLIC3R_GUI */

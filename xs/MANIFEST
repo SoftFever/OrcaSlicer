@@ -18,6 +18,8 @@ src/libslic3r/ClipperUtils.cpp
 src/libslic3r/ClipperUtils.hpp
 src/libslic3r/Config.cpp
 src/libslic3r/Config.hpp
+src/libslic3r/EdgeGrid.cpp
+src/libslic3r/EdgeGrid.hpp
 src/libslic3r/ExPolygon.cpp
 src/libslic3r/ExPolygon.hpp
 src/libslic3r/ExPolygonCollection.cpp
@@ -136,6 +138,8 @@ src/Shiny/ShinyNodeState.c
 src/Shiny/ShinyOutput.c
 src/Shiny/ShinyTools.c
 src/Shiny/ShinyZone.c
+src/glew/LICENSE.txt
+src/glew/README.md
 src/glew/src/glew.c
 src/glew/include/GL/glew.h
 src/glew/include/GL/glxew.h

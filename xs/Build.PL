@@ -14,7 +14,7 @@ my $mswin = $^O eq 'MSWin32';
 # HAS_BOOL         : stops Perl/lib/CORE/handy.h from doing "#  define bool char" for MSVC
 # NOGDI            : prevents inclusion of wingdi.h which defines functions Polygon() and Polyline() in global namespace
 # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
-my @cflags = qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS -DBOOST_ASIO_DISABLE_KQUEUE);
+my @cflags = qw(-D_GLIBCXX_USE_C99 -DHAS_BOOL -DNOGDI -DSLIC3RXS -DBOOST_ASIO_DISABLE_KQUEUE -DGLEW_STATIC);
 my @ldflags = ();
 if ($^O eq 'darwin') {
     push @ldflags, qw(-framework IOKit -framework CoreFoundation);
@@ -22,14 +22,14 @@ if ($^O eq 'darwin') {
 if ($mswin) {
     # In case windows.h is included, we don't want the min / max macros to be active.
     # If <math.h> is included, we want the #defines to be active (M_PI etc.)
-    push @cflags, qw(-DNOMINMAX -D_USE_MATH_DEFINES);
+    push @cflags, qw(-D_WIN32 -DNOMINMAX -D_USE_MATH_DEFINES);
 }
 
 my @early_includes = ();
-my @INC  = qw(-Isrc/libslic3r);
+my @INC  = qw(-Isrc/libslic3r -Isrc/glew/include);
 my @LIBS = $cpp_guess->is_msvc ? qw(-LIBPATH:src/libslic3r) : qw(-Lsrc/libslic3r);
-   
-#if ($ENV{SLIC3R_GUI}) 
+
+if ($ENV{SLIC3R_GUI}) 
 {
     print "Slic3r will be built with GUI support\n";
     require Alien::wxWidgets;
@@ -162,6 +162,19 @@ Or you may specify BOOST_INCLUDEPATH and BOOST_LIBRARYPATH separatly, which
 is handy, if you have built Boost libraries with mutliple settings.
 
 EOF
+
+# Add the OpenGL and GLU libraries.
+if ($ENV{SLIC3R_GUI}) {
+    if ($mswin) {
+        if ($cpp_guess->is_msvc) {
+            push @LIBS, qw(OpenGL32.Lib GlU32.Lib);
+        } else {
+            push @LIBS, qw(-lopengl32);
+        }
+    } else {
+        push @LIBS, qw(-lgl -lglu);
+    }
+}
 
 if ($ENV{SLIC3R_DEBUG}) {
     # only on newer GCCs: -ftemplate-backtrace-limit=0

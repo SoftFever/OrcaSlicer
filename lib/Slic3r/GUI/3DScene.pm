@@ -1083,6 +1083,10 @@ sub load_object {
                 $color_idx = $obj_idx;
             }
         
+            # Using the colors 'yellowish', 'greenish', 'blueish' for both the extrusion paths
+            # and the volumes of a single multi-color object.
+            #FIXME so for 4 or more color print, there will be only 3 colors displayed, which will
+            # not correspond to the color of the filament.
             my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
             $color->[3] = $volume->modifier ? 0.5 : 1;
             push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
@@ -1114,6 +1118,7 @@ sub load_object {
     return @volumes_idx;
 }
 
+# Called possibly by utils/view-toolpaths.pl, likely broken.
 sub load_print_object_slices {
     my ($self, $object) = @_;
     
@@ -1168,6 +1173,8 @@ sub load_print_object_slices {
     );
 }
 
+# Create 3D thick extrusion lines for a skirt and brim.
+# Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes.
 sub load_print_toolpaths {
     my ($self, $print) = @_;
     
@@ -1221,6 +1228,9 @@ sub load_print_toolpaths {
     );
 }
 
+# Create 3D thick extrusion lines for object forming extrusions.
+# Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
+# one for perimeters, one for infill and one for supports.
 sub load_print_object_toolpaths {
     my ($self, $object) = @_;
     
@@ -1319,6 +1329,7 @@ sub set_toolpaths_range {
     }
 }
 
+# called by load_print_object_slices, probably not used.
 sub _expolygons_to_verts {
     my ($self, $expolygons, $z, $verts, $norms) = @_;
     
