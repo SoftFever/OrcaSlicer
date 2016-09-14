@@ -136,6 +136,10 @@ src/Shiny/ShinyNodeState.c
 src/Shiny/ShinyOutput.c
 src/Shiny/ShinyTools.c
 src/Shiny/ShinyZone.c
+src/glew/src/glew.c
+src/glew/include/GL/glew.h
+src/glew/include/GL/glxew.h
+src/glew/include/GL/wglew.h
 src/xsinit.h
 t/01_trianglemesh.t
 t/03_point.t
