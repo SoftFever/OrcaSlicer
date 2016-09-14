@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#if SHINY_IS_COMPILED == TRUE
+
 #include "ShinyTools.h"
 
 #if SHINY_PLATFORM == SHINY_PLATFORM_WIN32
@@ -107,3 +109,5 @@ float ShinyGetTickInvFreq(void) {
 }
 
 #endif
+
+#endif /* SHINY_IS_COMPILED */
