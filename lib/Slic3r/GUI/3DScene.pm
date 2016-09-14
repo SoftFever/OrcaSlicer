@@ -1249,6 +1249,21 @@ sub load_print_object_toolpaths {
     my @layers = sort { $a->print_z <=> $b->print_z }
         @{$object->layers}, @{$object->support_layers};
     
+    # Bounding box of the object and its copies.
+    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
+    {
+        my $obb = $object->bounding_box;
+        foreach my $copy (@{ $object->_shifted_copies }) {
+            my $cbb = $obb->clone;
+            $cbb->translate(@$copy);
+            $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$cbb->min_point}, 0));
+            $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$cbb->max_point}, $object->size->z));
+        }
+    }
+
+    # Maximum size of an allocation block: 32MB / sizeof(float)
+    my $alloc_size_max = 32 * 1048576 / 4;
+    
     foreach my $layer (@layers) {
         my $top_z = $layer->print_z;
         
@@ -1256,9 +1271,13 @@ sub load_print_object_toolpaths {
             $perim_offsets{$top_z} = [
                 $perim_qverts->size, $perim_tverts->size,
             ];
+        }
+        if (!exists $infill_offsets{$top_z}) {
             $infill_offsets{$top_z} = [
                 $infill_qverts->size, $infill_tverts->size,
             ];
+        }
+        if (!exists $support_offsets{$top_z}) {
             $support_offsets{$top_z} = [
                 $support_qverts->size, $support_tverts->size,
             ];
@@ -1285,40 +1304,79 @@ sub load_print_object_toolpaths {
                     $support_qverts, $support_tverts);
             }
         }
+
+        if ($perim_qverts->size() > $alloc_size_max || $perim_tverts->size() > $alloc_size_max) {
+            # Store the vertex arrays and restart their containers.
+            push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+                bounding_box    => $bb,
+                color           => COLORS->[0],
+                qverts          => $perim_qverts,
+                tverts          => $perim_tverts,
+                offsets         => { %perim_offsets },
+            );
+            $perim_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
+            $perim_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
+            %perim_offsets  = ();
+        }
+
+        if ($infill_qverts->size() > $alloc_size_max || $infill_tverts->size() > $alloc_size_max) {
+            # Store the vertex arrays and restart their containers.
+            push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+                bounding_box    => $bb,
+                color           => COLORS->[1],
+                qverts          => $infill_qverts,
+                tverts          => $infill_tverts,
+                offsets         => { %infill_offsets },
+            );
+            $infill_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
+            $infill_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
+            %infill_offsets  = ();
+        }
+
+        if ($support_qverts->size() > $alloc_size_max || $support_tverts->size() > $alloc_size_max) {
+            # Store the vertex arrays and restart their containers.
+            push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+                bounding_box    => $bb,
+                color           => COLORS->[2],
+                qverts          => $support_qverts,
+                tverts          => $support_tverts,
+                offsets         => { %support_offsets },
+            );
+            $support_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
+            $support_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
+            %support_offsets  = ();
+        }
+    }
+
+    if ($perim_qverts->size() > 0 || $perim_tverts->size() > 0) {
+        push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+            bounding_box    => $bb,
+            color           => COLORS->[0],
+            qverts          => $perim_qverts,
+            tverts          => $perim_tverts,
+            offsets         => { %perim_offsets },
+        );
     }
     
-    my $obb = $object->bounding_box;
-    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    foreach my $copy (@{ $object->_shifted_copies }) {
-        my $cbb = $obb->clone;
-        $cbb->translate(@$copy);
-        $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$cbb->min_point}, 0));
-        $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$cbb->max_point}, $object->size->z));
+    if ($infill_qverts->size() > 0 || $infill_tverts->size() > 0) {
+        push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+            bounding_box    => $bb,
+            color           => COLORS->[1],
+            qverts          => $infill_qverts,
+            tverts          => $infill_tverts,
+            offsets         => { %infill_offsets },
+        );
     }
     
-    push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-        bounding_box    => $bb,
-        color           => COLORS->[0],
-        qverts          => $perim_qverts,
-        tverts          => $perim_tverts,
-        offsets         => { %perim_offsets },
-    );
-    
-    push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-        bounding_box    => $bb,
-        color           => COLORS->[1],
-        qverts          => $infill_qverts,
-        tverts          => $infill_tverts,
-        offsets         => { %infill_offsets },
-    );
-    
-    push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-        bounding_box    => $bb,
-        color           => COLORS->[2],
-        qverts          => $support_qverts,
-        tverts          => $support_tverts,
-        offsets         => { %support_offsets },
-    );
+    if ($support_qverts->size() > 0 || $support_tverts->size() > 0) {
+        push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
+            bounding_box    => $bb,
+            color           => COLORS->[2],
+            qverts          => $support_qverts,
+            tverts          => $support_tverts,
+            offsets         => { %support_offsets },
+        );
+    }
 }
 
 sub set_toolpaths_range {
