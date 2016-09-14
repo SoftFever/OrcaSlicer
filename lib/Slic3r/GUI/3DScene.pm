@@ -1,3 +1,19 @@
+# Implements pure perl packages
+#
+# Slic3r::GUI::3DScene::Base;
+# Slic3r::GUI::3DScene::Volume;
+# Slic3r::GUI::3DScene;
+#
+# It uses static methods of a C++ class Slic3r::GUI::_3DScene::GLVertexArray
+# for efficient building of vertex arrays for OpenGL rendering.
+# 
+# Slic3r::GUI::Plater::3D derives from Slic3r::GUI::3DScene,
+# Slic3r::GUI::Plater::3DPreview, Slic3r::GUI::Plater::ObjectCutDialog and Slic3r::GUI::Plater::ObjectPartsPanel
+# own $self->{canvas} of the Slic3r::GUI::3DScene type.
+#
+# Therefore the 3DScene supports renderng of STLs, extrusions and cutting planes,
+# and camera manipulation.
+
 package Slic3r::GUI::3DScene::Base;
 use strict;
 use warnings;
@@ -6,12 +22,16 @@ use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL
 # must load OpenGL *before* Wx::GLCanvas
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
-use Math::Trig qw(asin);
+use Math::Trig qw(asin tan);
 use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
 use Wx::GLCanvas qw(:all);
+use Slic3r::Geometry qw(PI);
 
+# _dirty: boolean flag indicating, that the screen has to be redrawn on EVT_IDLE.
+# volumes: reference to vector of Slic3r::GUI::3DScene::Volume.
+# _camera_type: 'perspective' or 'ortho'
 __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               enable_picking
                               enable_moving
@@ -36,15 +56,20 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _drag_start_pos
                               _drag_start_xy
                               _dragged
+                              _camera_type
                               _camera_target
+                              _camera_distance
                               _zoom
                               ) );
 
 use constant TRACKBALLSIZE  => 0.8;
 use constant TURNTABLE_MODE => 1;
 use constant GROUND_Z       => -0.02;
+# For mesh selection: Not selected - bright yellow.
 use constant DEFAULT_COLOR  => [1,1,0];
+# For mesh selection: Selected - bright green.
 use constant SELECTED_COLOR => [0,1,0,1];
+# For mesh selection: Mouse hovers over the object, but object not selected yet - dark green.
 use constant HOVER_COLOR    => [0.4,0.9,0,1];
 
 # make OpenGL::Array thread-safe
@@ -88,7 +113,10 @@ sub new {
     $self->_zoom(1);
     
     # 3D point in model space
+    $self->_camera_type('ortho');
+#    $self->_camera_type('perspective');
     $self->_camera_target(Slic3r::Pointf3->new(0,0,0));
+    $self->_camera_distance(0.);
     
     $self->reset_objects;
     
@@ -272,6 +300,7 @@ sub mouse_event {
     }
 }
 
+# Reset selection.
 sub reset_objects {
     my ($self) = @_;
     
@@ -279,6 +308,7 @@ sub reset_objects {
     $self->_dirty(1);
 }
 
+# Setup camera to view all objects.
 sub set_viewport_from_scene {
     my ($self, $scene) = @_;
     
@@ -603,15 +633,31 @@ sub Resize {
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    my $depth = 10 * max(@{ $self->max_bounding_box->size });
-    glOrtho(
-        -$x/2, $x/2, -$y/2, $y/2,
-        -$depth, 2*$depth,
-    );
-    
+    if ($self->_camera_type eq 'ortho') {
+        my $depth = 1.05 * $self->max_bounding_box->radius();
+        glOrtho(
+            -$x/2, $x/2, -$y/2, $y/2,
+            -$depth, $depth,
+        );
+    } else {
+        die "Invalid camera type: ", $self->_camera_type, "\n" if ($self->_camera_type ne 'perspective');
+        my $bbox_r = $self->max_bounding_box->radius();
+        my $fov = PI * 45. / 180.;
+        my $fov_tan = tan(0.5 * $fov);
+        my $cam_distance = 0.5 * $bbox_r / $fov_tan;
+        $self->_camera_distance($cam_distance);
+        my $nr = $cam_distance - $bbox_r * 1.1;
+        my $fr = $cam_distance + $bbox_r * 1.1;
+        $nr = 1 if ($nr < 1);
+        $fr = $nr + 1 if ($fr < $nr + 1);
+        my $h2 = $fov_tan * $nr;
+        my $w2 = $h2 * $x / $y;
+        glFrustum(-$w2, $w2, -$h2, $h2, $nr, $fr);        
+    }
+
     glMatrixMode(GL_MODELVIEW);
 }
- 
+
 sub InitGL {
     my $self = shift;
  
@@ -632,6 +678,7 @@ sub InitGL {
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_POLYGON_SMOOTH);
     glEnable(GL_MULTISAMPLE);
+    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     
     # ambient lighting
     glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.3, 0.3, 0.3, 1);
@@ -675,6 +722,12 @@ sub Render {
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    {
+        # Shift the perspective camera.
+        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+        glTranslatef(@$camera_pos);
+    }
     
     if (TURNTABLE_MODE) {
         glRotatef(-$self->_stheta, 1, 0, 0); # pitch
@@ -691,6 +744,9 @@ sub Render {
     glLightfv_p(GL_LIGHT0, GL_DIFFUSE,  0.5, 0.5, 0.5, 1);
     
     if ($self->enable_picking) {
+        # Render the object for picking.
+        # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
+        # Better to use software ray-casting on a bounding-box hierarchy.
         glDisable(GL_LIGHTING);
         $self->draw_volumes(1);
         glFlush();
@@ -729,15 +785,18 @@ sub Render {
         glPushMatrix();
         glLoadIdentity();
         
+        # Draws a bluish bottom to top gradient over the complete screen.
+        glDisable(GL_DEPTH_TEST);
         glBegin(GL_QUADS);
         glColor3f(0.0,0.0,0.0);
-        glVertex2f(-1.0,-1.0);
-        glVertex2f(1,-1.0);
+        glVertex3f(-1.0,-1.0, 1.0);
+        glVertex3f( 1.0,-1.0, 1.0);
         glColor3f(10/255,98/255,144/255);
-        glVertex2f(1, 1);
-        glVertex2f(-1.0, 1);
+        glVertex3f( 1.0, 1.0, 1.0);
+        glVertex3f(-1.0, 1.0, 1.0);
         glEnd();
         glPopMatrix();
+        glEnable(GL_DEPTH_TEST);
         
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
@@ -839,6 +898,7 @@ sub Render {
 }
 
 sub draw_volumes {
+    # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
     my ($self, $fakecolor) = @_;
     
     glEnable(GL_BLEND);
@@ -853,6 +913,7 @@ sub draw_volumes {
         glTranslatef(@{$volume->origin});
         
         if ($fakecolor) {
+            # Object picking mode. Render the object with a color encoding the object index.
             my $r = ($volume_idx & 0x000000FF) >>  0;
             my $g = ($volume_idx & 0x0000FF00) >>  8;
             my $b = ($volume_idx & 0x00FF0000) >> 16;
@@ -922,23 +983,34 @@ sub draw_volumes {
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+
+# Container for object geometry and selection status.
 package Slic3r::GUI::3DScene::Volume;
 use Moo;
 
 has 'bounding_box'      => (is => 'ro', required => 1);
 has 'origin'            => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
 has 'color'             => (is => 'ro', required => 1);
+# An ID for group selection. It may be the same for all meshes of all object instances, or for just a single object instance.
 has 'select_group_id'   => (is => 'rw', default => sub { -1 });
+# An ID for group dragging. It may be the same for all meshes of all object instances, or for just a single object instance.
 has 'drag_group_id'     => (is => 'rw', default => sub { -1 });
+# Boolean: Is this object selected?
 has 'selected'          => (is => 'rw', default => sub { 0 });
+# Boolean: Is mouse over this object?
 has 'hover'             => (is => 'rw', default => sub { 0 });
+# Vector of two values: a span in the Z axis. Meaningful for a display of layers.
 has 'range'             => (is => 'rw');
 
-# geometric data
-has 'qverts'            => (is => 'rw');  # GLVertexArray object
-has 'tverts'            => (is => 'rw');  # GLVertexArray object
-has 'mesh'              => (is => 'rw');  # only required for cut contours
-has 'offsets'           => (is => 'rw');  # [ z => [ qverts_idx, tverts_idx ] ]
+# Geometric data.
+# Quads: GLVertexArray object: C++ class maintaining an std::vector<float> for coords and normals.
+has 'qverts'            => (is => 'rw');  
+# Triangles: GLVertexArray object
+has 'tverts'            => (is => 'rw');
+# If the qverts or tverts contain thick extrusions, then offsets keeps pointers of the starts
+# of the extrusions per layer.
+# [ z => [ qverts_idx, tverts_idx ] ]
+has 'offsets'           => (is => 'rw');
 
 sub transformed_bounding_box {
     my ($self) = @_;
@@ -948,6 +1020,8 @@ sub transformed_bounding_box {
     return $bb;
 }
 
+
+# The 3D canvas to display objects and tool paths.
 package Slic3r::GUI::3DScene;
 use base qw(Slic3r::GUI::3DScene::Base);
 
@@ -956,6 +1030,7 @@ use List::Util qw(first min max);
 use Slic3r::Geometry qw(scale unscale epsilon);
 use Slic3r::Print::State ':steps';
 
+# Perimeter: yellow, Infill: redish, Suport: greenish, last: blueish, 
 use constant COLORS => [ [1,1,0,1], [1,0.5,0.5,1], [0.5,1,0.5,1], [0.5,0.5,1,1] ];
 
 __PACKAGE__->mk_accessors(qw(
@@ -1303,6 +1378,7 @@ sub _extrusionentity_to_verts {
             push @$heights, map $path->height, 0..$#$path_lines;
         }
     }
+    # Calling the C++ implementation Slic3r::_3DScene::_extrusionentity_to_verts_do()
     Slic3r::GUI::_3DScene::_extrusionentity_to_verts_do($lines, $widths, $heights,
         $closed, $top_z, $copy, $qverts, $tverts);
 }
