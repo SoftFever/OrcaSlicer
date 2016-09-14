@@ -1,5 +1,6 @@
 # 2D preview of the tool paths of a single layer, using a thin line.
 # OpenGL is used to render the paths.
+# Vojtech also added a 2D simulation of under/over extrusion in a single layer.
 
 package Slic3r::GUI::Plater::2DToolpaths;
 use strict;

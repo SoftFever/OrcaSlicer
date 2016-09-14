@@ -1,3 +1,6 @@
+# Included in ObjectSettingsDialog -> ObjectPartsPanel.
+# Maintains, displays, adds and removes overrides of slicing parameters for an object and its modifier mesh.
+
 package Slic3r::GUI::Plater::OverrideSettingsPanel;
 use strict;
 use warnings;

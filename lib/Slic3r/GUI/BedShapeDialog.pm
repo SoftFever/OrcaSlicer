@@ -1,3 +1,6 @@
+# The bed shape dialog.
+# The dialog opens from Print Settins tab -> Bed Shape: Set...
+
 package Slic3r::GUI::BedShapeDialog;
 use strict;
 use warnings;

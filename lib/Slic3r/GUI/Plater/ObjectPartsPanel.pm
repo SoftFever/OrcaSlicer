@@ -1,3 +1,6 @@
+# Configuration of mesh modifiers and their parameters.
+# This panel is inserted into ObjectSettingsDialog.
+
 package Slic3r::GUI::Plater::ObjectPartsPanel;
 use strict;
 use warnings;

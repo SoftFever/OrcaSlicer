@@ -1,3 +1,6 @@
+# The "Expert" tab at the right of the main tabbed window.
+# The "Expert" is enabled by File->Preferences dialog.
+
 package Slic3r::GUI::Tab;
 use strict;
 use warnings;

@@ -1,3 +1,5 @@
+# The main frame, the parent of all.
+
 package Slic3r::GUI::MainFrame;
 use strict;
 use warnings;

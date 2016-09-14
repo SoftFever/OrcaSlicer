@@ -116,6 +116,8 @@ PerimeterGenerator::process()
                         */
                     }
                 } else {
+                    //FIXME Is this offset correct if the line width of the inner perimeters differs
+                    // from the line width of the infill?
                     coord_t distance = (i == 1) ? ext_pspacing2 : pspacing;
                     
                     if (this->config->thin_walls) {

@@ -20,6 +20,7 @@ sub debugf {
 # load threads before Moo as required by it
 our $have_threads;
 BEGIN {
+    # Test, whether the perl was compiled with ithreads support and ithreads actually work.
     use Config;
     $have_threads = $Config{useithreads} && eval "use threads; use threads::shared; use Thread::Queue; 1";
     warn "threads.pm >= 1.96 is required, please update\n" if $have_threads && $threads::VERSION < 1.96;
@@ -27,6 +28,13 @@ BEGIN {
     ### temporarily disable threads if using the broken Moo version
     use Moo;
     $have_threads = 0 if $Moo::VERSION == 1.003000;
+
+    # Disable multi threading completely by an environment value.
+    # This is useful for debugging as the Perl debugger does not work
+    # in multi-threaded context at all.
+    # A good interactive perl debugger is the ActiveState Komodo IDE
+    # or the EPIC http://www.epic-ide.org/
+    $have_threads = 0 if (defined($ENV{'SLIC3R_SINGLETHREADED'}) && $ENV{'SLIC3R_SINGLETHREADED'} == 1)
 }
 
 warn "Running Slic3r under Perl 5.16 is neither supported nor recommended\n"

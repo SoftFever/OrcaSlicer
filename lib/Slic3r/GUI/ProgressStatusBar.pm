@@ -1,3 +1,5 @@
+# Status bar at the bottom of the main screen.
+
 package Slic3r::GUI::ProgressStatusBar;
 use strict;
 use warnings;

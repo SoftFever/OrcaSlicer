@@ -1,3 +1,6 @@
+# 2D preview on the platter.
+# 3D objects are visualized by their convex hulls.
+
 package Slic3r::GUI::Plater::2D;
 use strict;
 use warnings;

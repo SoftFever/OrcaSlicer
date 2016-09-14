@@ -1,3 +1,5 @@
+# A printer "Controller" -> "ManualControlDialog" subtab, opened per 3D printer connected?
+
 package Slic3r::GUI::Controller::ManualControlDialog;
 use strict;
 use warnings;

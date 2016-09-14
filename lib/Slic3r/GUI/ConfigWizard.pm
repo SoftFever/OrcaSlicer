@@ -1,3 +1,6 @@
+# The config wizard is executed when the Slic3r is first started.
+# The wizard helps the user to specify the 3D printer properties.
+
 package Slic3r::GUI::ConfigWizard;
 use strict;
 use warnings;

@@ -1,3 +1,7 @@
+# This dialog opens up when double clicked on an object line in the list at the right side of the platter.
+# One may load additional STLs and additional modifier STLs,
+# one may change the properties of the print per each modifier mesh or a Z-span.
+
 package Slic3r::GUI::Plater::ObjectSettingsDialog;
 use strict;
 use warnings;

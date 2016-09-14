@@ -1,3 +1,7 @@
+# The "Controller" tab to control the printer using serial / USB.
+# This feature is rarely used. Much more often, the firmware reads the G-codes from a SD card.
+# May there be multiple subtabs per each printer connected?
+
 package Slic3r::GUI::Controller;
 use strict;
 use warnings;

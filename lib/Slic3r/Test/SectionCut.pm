@@ -1,4 +1,6 @@
-# Slices at the XZ plane, for debugging purposes.
+# 2D cut in the XZ plane through the toolpaths.
+# For debugging purposes.
+
 package Slic3r::Test::SectionCut;
 use Moo;
 

@@ -1,3 +1,6 @@
+# Cut an object at a Z position, keep either the top or the bottom of the object.
+# This dialog gets opened with the "Cut..." button above the platter.
+
 package Slic3r::GUI::Plater::ObjectCutDialog;
 use strict;
 use warnings;

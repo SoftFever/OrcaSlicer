@@ -1,3 +1,5 @@
+# The "Plater" tab. It contains the "3D", "2D", "Preview" and "Layers" subtabs.
+
 package Slic3r::GUI::Plater;
 use strict;
 use warnings;

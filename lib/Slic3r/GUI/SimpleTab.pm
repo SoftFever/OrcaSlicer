@@ -1,3 +1,6 @@
+# The "Simple" Print Settings tab.
+# The "Simple" mode is enabled by File->Preferences dialog.
+
 package Slic3r::GUI::SimpleTab;
 use strict;
 use warnings;

@@ -1,3 +1,5 @@
+# A tiny dialog to select an OctoPrint device to print to.
+
 package Slic3r::GUI::BonjourBrowser;
 use strict;
 use warnings;

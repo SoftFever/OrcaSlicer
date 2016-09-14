@@ -1,3 +1,5 @@
+# Bed shape dialog
+
 package Slic3r::GUI::2DBed;
 use strict;
 use warnings;

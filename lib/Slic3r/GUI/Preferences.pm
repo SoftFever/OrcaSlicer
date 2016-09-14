@@ -1,3 +1,5 @@
+# Preferences dialog, opens from Menu: File->Preferences
+
 package Slic3r::GUI::Preferences;
 use Wx qw(:dialog :id :misc :sizer :systemsettings wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
