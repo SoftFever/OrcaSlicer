@@ -634,7 +634,11 @@ sub Resize {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if ($self->_camera_type eq 'ortho') {
-        my $depth = 1.05 * $self->max_bounding_box->radius();
+        #FIXME setting the size of the box 10x larger than necessary
+        # is only a workaround for an incorrectly set camera.
+        # This workaround harms Z-buffer accuracy!
+#        my $depth = 1.05 * $self->max_bounding_box->radius(); 
+       my $depth = 10.0 * $self->max_bounding_box->radius();
         glOrtho(
             -$x/2, $x/2, -$y/2, $y/2,
             -$depth, $depth,
@@ -678,7 +682,7 @@ sub InitGL {
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_POLYGON_SMOOTH);
     glEnable(GL_MULTISAMPLE);
-    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+#    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     
     # ambient lighting
     glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.3, 0.3, 0.3, 1);
@@ -909,8 +913,6 @@ sub draw_volumes {
     
     foreach my $volume_idx (0..$#{$self->volumes}) {
         my $volume = $self->volumes->[$volume_idx];
-        glPushMatrix();
-        glTranslatef(@{$volume->origin});
         
         if ($fakecolor) {
             # Object picking mode. Render the object with a color encoding the object index.
@@ -925,48 +927,49 @@ sub draw_volumes {
         } else {
             glColor4f(@{ $volume->color });
         }
-        
-        my @sorted_z = ();
-        my ($min_z, $max_z);
-        if ($volume->range && $volume->offsets) {
-            @sorted_z = sort { $a <=> $b } keys %{$volume->offsets};
-            
-            ($min_z, $max_z) = @{$volume->range};
-            $min_z = first { $_ >= $min_z } @sorted_z;
-            $max_z = first { $_ > $max_z }  @sorted_z;
+
+        my $qverts_begin = 0;
+        my $qverts_end = defined($volume->qverts) ? $volume->qverts->size() : 0;
+        my $tverts_begin = 0;
+        my $tverts_end = defined($volume->tverts) ? $volume->tverts->size() : 0;
+        if ($volume->range && $volume->offsets && @{$volume->offsets}) {
+            # The Z layer range is specified.
+            # First test whether the Z span of this object is not out of ($min_z, $max_z) completely.
+            my ($min_z, $max_z) = @{$volume->range};
+            next if ($volume->offsets->[0] > $max_z || $volume->offsets->[-3] < $min_z);
+            # Then find the lowest layer to be displayed.
+            my $i = 0;
+            while ($i < @{$volume->offsets} && $volume->offsets->[$i] < $min_z) {
+                $i += 3;
+            }
+            # This shall not happen.
+            next if ($i == @{$volume->offsets});
+            # Some layers are above $min_z. Which?
+            $qverts_begin = $volume->offsets->[$i+1];
+            $tverts_begin = $volume->offsets->[$i+2];
+            while ($i < @{$volume->offsets} && $volume->offsets->[$i] <= $max_z) {
+                $i += 3;
+            }
+            if ($i < @{$volume->offsets}) {
+                $qverts_end = $volume->offsets->[$i+1];
+                $tverts_end = $volume->offsets->[$i+2];
+            }
         }
         
+        glPushMatrix();
+        glTranslatef(@{$volume->origin});
+
         glCullFace(GL_BACK);
-        if ($volume->qverts) {
-            my ($min_offset, $max_offset);
-            if (defined $min_z) {
-                $min_offset = $volume->offsets->{$min_z}->[0];
-            }
-            if (defined $max_z) {
-                $max_offset = $volume->offsets->{$max_z}->[0];
-            }
-            $min_offset //= 0;
-            $max_offset //= $volume->qverts->size;
-            
+        if ($qverts_begin < $qverts_end) {
             glVertexPointer_c(3, GL_FLOAT, 0, $volume->qverts->verts_ptr);
             glNormalPointer_c(GL_FLOAT, 0, $volume->qverts->norms_ptr);
-            glDrawArrays(GL_QUADS, $min_offset / 3, ($max_offset-$min_offset) / 3);
+            glDrawArrays(GL_QUADS, $qverts_begin / 3, ($qverts_end-$qverts_begin) / 3);
         }
         
-        if ($volume->tverts) {
-            my ($min_offset, $max_offset);
-            if (defined $min_z) {
-                $min_offset = $volume->offsets->{$min_z}->[1];
-            }
-            if (defined $max_z) {
-                $max_offset = $volume->offsets->{$max_z}->[1];
-            }
-            $min_offset //= 0;
-            $max_offset //= $volume->tverts->size;
-            
+        if ($tverts_begin < $tverts_end) {
             glVertexPointer_c(3, GL_FLOAT, 0, $volume->tverts->verts_ptr);
             glNormalPointer_c(GL_FLOAT, 0, $volume->tverts->norms_ptr);
-            glDrawArrays(GL_TRIANGLES, $min_offset / 3, ($max_offset-$min_offset) / 3);
+            glDrawArrays(GL_TRIANGLES, $tverts_begin / 3, ($tverts_end-$tverts_begin) / 3);
         }
         
         glPopMatrix();
@@ -983,6 +986,34 @@ sub draw_volumes {
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+sub _report_opengl_state
+{
+    my ($self, $comment) = @_;
+    my $err = glGetError();
+    return 0 if ($err == 0);
+ 
+    # gluErrorString() hangs. Don't use it.
+#    my $errorstr = gluErrorString();
+    my $errorstr = '';
+    if ($err == 0x0500) {
+        $errorstr = 'GL_INVALID_ENUM';
+    } elsif ($err == GL_INVALID_VALUE) {
+        $errorstr = 'GL_INVALID_VALUE';
+    } elsif ($err == GL_INVALID_OPERATION) {
+        $errorstr = 'GL_INVALID_OPERATION';
+    } elsif ($err == GL_STACK_OVERFLOW) {
+        $errorstr = 'GL_STACK_OVERFLOW';
+    } elsif ($err == GL_OUT_OF_MEMORY) {
+        $errorstr = 'GL_OUT_OF_MEMORY';
+    } else {        
+        $errorstr = 'unknown';
+    }
+    if (defined($comment)) {
+        printf("OpenGL error at %s, nr %d (0x%x): %s\n", $comment, $err, $err, $errorstr);
+    } else {
+        printf("OpenGL error nr %d (0x%x): %s\n", $err, $err, $errorstr);
+    }
+}
 
 # Container for object geometry and selection status.
 package Slic3r::GUI::3DScene::Volume;
@@ -1009,7 +1040,7 @@ has 'qverts'            => (is => 'rw');
 has 'tverts'            => (is => 'rw');
 # If the qverts or tverts contain thick extrusions, then offsets keeps pointers of the starts
 # of the extrusions per layer.
-# [ z => [ qverts_idx, tverts_idx ] ]
+# The offsets stores tripples of (z_top, qverts_idx, tverts_idx) in a linear array.
 has 'offsets'           => (is => 'rw');
 
 sub transformed_bounding_box {
@@ -1184,7 +1215,7 @@ sub load_print_toolpaths {
     
     my $qverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
     my $tverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    my %offsets = ();  # print_z => [ qverts, tverts ]
+    my $offsets = [];  # triples stored in a linear array, sorted by print_z: print_z, qverts, tverts
     
     my $skirt_height = 0;  # number of layers
     if ($print->has_infinite_skirt) {
@@ -1204,7 +1235,7 @@ sub load_print_toolpaths {
     
     foreach my $i (0..($skirt_height-1)) {
         my $top_z = $layers[$i]->print_z;
-        $offsets{$top_z} = [$qverts->size, $tverts->size];
+        push @$offsets, ($top_z, $qverts->size, $tverts->size);
         
         if ($i == 0) {
             $self->_extrusionentity_to_verts($print->brim, $top_z, Slic3r::Point->new(0,0), $qverts, $tverts);
@@ -1212,7 +1243,7 @@ sub load_print_toolpaths {
         
         $self->_extrusionentity_to_verts($print->skirt, $top_z, Slic3r::Point->new(0,0), $qverts, $tverts);
     }
-    
+
     my $bb = Slic3r::Geometry::BoundingBoxf3->new;
     {
         my $pbb = $print->bounding_box;
@@ -1224,7 +1255,7 @@ sub load_print_toolpaths {
         color           => COLORS->[2],
         qverts          => $qverts,
         tverts          => $tverts,
-        offsets         => { %offsets },
+        offsets         => $offsets,
     );
 }
 
@@ -1241,9 +1272,9 @@ sub load_print_object_toolpaths {
     my $support_qverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
     my $support_tverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
     
-    my %perim_offsets   = ();  # print_z => [ qverts, tverts ]
-    my %infill_offsets  = ();
-    my %support_offsets = ();
+    my $perim_offsets   = [];  # triples of (print_z, qverts, tverts), stored linearly, sorted by print_z
+    my $infill_offsets  = [];
+    my $support_offsets = [];
     
     # order layers by print_z
     my @layers = sort { $a->print_z <=> $b->print_z }
@@ -1267,22 +1298,13 @@ sub load_print_object_toolpaths {
     foreach my $layer (@layers) {
         my $top_z = $layer->print_z;
         
-        if (!exists $perim_offsets{$top_z}) {
-            $perim_offsets{$top_z} = [
-                $perim_qverts->size, $perim_tverts->size,
-            ];
-        }
-        if (!exists $infill_offsets{$top_z}) {
-            $infill_offsets{$top_z} = [
-                $infill_qverts->size, $infill_tverts->size,
-            ];
-        }
-        if (!exists $support_offsets{$top_z}) {
-            $support_offsets{$top_z} = [
-                $support_qverts->size, $support_tverts->size,
-            ];
-        }
-        
+        push @$perim_offsets, ($top_z, $perim_qverts->size, $perim_tverts->size)
+            if (!@$perim_offsets || $perim_offsets->[-3] != $top_z);
+        push @$infill_offsets, ($top_z, $infill_qverts->size, $infill_tverts->size)
+            if (!@$infill_offsets || $infill_offsets->[-3] != $top_z);
+        push @$support_offsets, ($top_z, $support_qverts->size, $support_tverts->size)
+            if (!@$support_offsets || $support_offsets->[-3] != $top_z);
+
         foreach my $copy (@{ $object->_shifted_copies }) {
             foreach my $layerm (@{$layer->regions}) {
                 if ($object->step_done(STEP_PERIMETERS)) {
@@ -1312,11 +1334,11 @@ sub load_print_object_toolpaths {
                 color           => COLORS->[0],
                 qverts          => $perim_qverts,
                 tverts          => $perim_tverts,
-                offsets         => { %perim_offsets },
+                offsets         => $perim_offsets,
             );
             $perim_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
             $perim_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            %perim_offsets  = ();
+            $perim_offsets  = [];
         }
 
         if ($infill_qverts->size() > $alloc_size_max || $infill_tverts->size() > $alloc_size_max) {
@@ -1326,11 +1348,11 @@ sub load_print_object_toolpaths {
                 color           => COLORS->[1],
                 qverts          => $infill_qverts,
                 tverts          => $infill_tverts,
-                offsets         => { %infill_offsets },
+                offsets         => $infill_offsets,
             );
             $infill_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
             $infill_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            %infill_offsets  = ();
+            $infill_offsets  = [];
         }
 
         if ($support_qverts->size() > $alloc_size_max || $support_tverts->size() > $alloc_size_max) {
@@ -1340,11 +1362,11 @@ sub load_print_object_toolpaths {
                 color           => COLORS->[2],
                 qverts          => $support_qverts,
                 tverts          => $support_tverts,
-                offsets         => { %support_offsets },
+                offsets         => $support_offsets,
             );
             $support_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
             $support_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            %support_offsets  = ();
+            $support_offsets  = [];
         }
     }
 
@@ -1354,7 +1376,7 @@ sub load_print_object_toolpaths {
             color           => COLORS->[0],
             qverts          => $perim_qverts,
             tverts          => $perim_tverts,
-            offsets         => { %perim_offsets },
+            offsets         => $perim_offsets,
         );
     }
     
@@ -1364,7 +1386,7 @@ sub load_print_object_toolpaths {
             color           => COLORS->[1],
             qverts          => $infill_qverts,
             tverts          => $infill_tverts,
-            offsets         => { %infill_offsets },
+            offsets         => $infill_offsets,
         );
     }
     
@@ -1374,7 +1396,7 @@ sub load_print_object_toolpaths {
             color           => COLORS->[2],
             qverts          => $support_qverts,
             tverts          => $support_tverts,
-            offsets         => { %support_offsets },
+            offsets         => $support_offsets,
         );
     }
 }
