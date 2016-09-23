@@ -22,7 +22,7 @@ sub apply_print_config {
 sub clone {
     my $self = shift;
     return (ref $self)->new(
-        map { $_ => $self->$_ } (@AXES, 'F', '_extrusion_axis'),
+        map { $_ => $self->$_ } (@AXES, 'F', '_extrusion_axis', 'config'),
     );
 }
 
