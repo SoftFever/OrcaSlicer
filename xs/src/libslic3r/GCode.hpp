@@ -85,8 +85,16 @@ class GCode {
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.
     bool enable_extrusion_role_markers;
+    // Extended markers for the G-code Analyzer.
+    // The G-code Analyzer will remove these comments from the final G-code.
+    bool enable_analyzer_markers;
+    // How many times will change_layer() be called?
+    // change_layer() will update the progress bar.
     size_t layer_count;
-    int layer_index; // just a counter
+    // Progress bar indicator. Increments from -1 up to layer_count.
+    int layer_index;
+    // Current layer processed. Insequential printing mode, only a single copy will be printed.
+    // In non-sequential mode, all its copies will be printed.
     const Layer* layer;
     std::map<const PrintObject*,Point> _seam_position;
     // Distance Field structure to 

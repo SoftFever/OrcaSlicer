@@ -69,7 +69,7 @@ class GCodeSender : private boost::noncopyable {
     void send();
 };
 
-}
+} // namespace Slic3r
 
-#endif
-#endif
+#endif /* BOOST_LIBS */
+#endif /* slic3r_GCodeSender_hpp_ */

@@ -211,7 +211,7 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
 
 GCode::GCode()
     : placeholder_parser(NULL), enable_loop_clipping(true), 
-        enable_cooling_markers(false), enable_extrusion_role_markers(false), 
+        enable_cooling_markers(false), enable_extrusion_role_markers(false), enable_analyzer_markers(false),
         layer_count(0),
         layer_index(-1), layer(NULL), first_layer(false), elapsed_time(0.0), volumetric_speed(0),
         _last_pos_defined(false),
@@ -303,6 +303,15 @@ GCode::change_layer(const Layer &layer)
     this->first_layer = (layer.id() == 0);
     delete this->_lower_layer_edge_grid;
     this->_lower_layer_edge_grid = NULL;
+
+    std::string gcode;
+
+    if (enable_analyzer_markers) {
+        // Store the binary pointer to the layer object directly into the G-code to be accessed by the GCodeAnalyzer.
+        char buf[64];
+        sprintf(buf, ";_LAYEROBJ:%p\n", this->layer);
+        gcode += buf;
+    }
     
     // avoid computing islands and overhangs if they're not needed
     if (this->config.avoid_crossing_perimeters) {
@@ -311,7 +320,6 @@ GCode::change_layer(const Layer &layer)
         this->avoid_crossing_perimeters.init_layer_mp(islands);
     }
     
-    std::string gcode;
     if (this->layer_count > 0) {
         gcode += this->writer.update_progress(this->layer_index, this->layer_count);
     }
@@ -864,7 +872,7 @@ GCode::_extrude(ExtrusionPath path, std::string description, double speed)
     double F = speed * 60;  // convert mm/sec to mm/min
     
     // extrude arc or line
-    if (this->enable_extrusion_role_markers) {
+    if (this->enable_extrusion_role_markers || this->enable_analyzer_markers) {
         if (path.role != this->_last_extrusion_role) {
             this->_last_extrusion_role = path.role;
             char buf[32];
