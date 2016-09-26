@@ -82,7 +82,7 @@ SVG::draw(const IntersectionLines &lines, std::string stroke)
 }
 
 void
-SVG::draw(const ExPolygon &expolygon, std::string fill)
+SVG::draw(const ExPolygon &expolygon, std::string fill, const float fill_opacity)
 {
     this->fill = fill;
     
@@ -91,21 +91,77 @@ SVG::draw(const ExPolygon &expolygon, std::string fill)
     for (Polygons::const_iterator p = pp.begin(); p != pp.end(); ++p) {
         d += this->get_path_d(*p, true) + " ";
     }
-    this->path(d, true, 0);
+    this->path(d, true, 0, fill_opacity);
+}
+
+void 
+SVG::draw_outline(const ExPolygon &expolygon, std::string stroke_outer, std::string stroke_holes, coordf_t stroke_width)
+{
+    draw_outline(expolygon.contour, stroke_outer, stroke_width);
+    for (Polygons::const_iterator it = expolygon.holes.begin(); it != expolygon.holes.end(); ++ it) {
+        draw_outline(*it, stroke_holes, stroke_width);
+    }
 }
 
 void
-SVG::draw(const ExPolygons &expolygons, std::string fill)
+SVG::draw(const ExPolygons &expolygons, std::string fill, const float fill_opacity)
 {
     for (ExPolygons::const_iterator it = expolygons.begin(); it != expolygons.end(); ++it)
-        this->draw(*it, fill);
+        this->draw(*it, fill, fill_opacity);
+}
+
+void 
+SVG::draw_outline(const ExPolygons &expolygons, std::string stroke_outer, std::string stroke_holes, coordf_t stroke_width)
+{
+    for (ExPolygons::const_iterator it = expolygons.begin(); it != expolygons.end(); ++ it)
+        draw_outline(*it, stroke_outer, stroke_holes, stroke_width);
+}
+
+void
+SVG::draw(const Surface &surface, std::string fill, const float fill_opacity)
+{
+    draw(surface.expolygon, fill, fill_opacity);
+}
+
+void 
+SVG::draw_outline(const Surface &surface, std::string stroke_outer, std::string stroke_holes, coordf_t stroke_width)
+{
+    draw_outline(surface.expolygon, stroke_outer, stroke_holes, stroke_width);
+}
+
+void
+SVG::draw(const Surfaces &surfaces, std::string fill, const float fill_opacity)
+{
+    for (Surfaces::const_iterator it = surfaces.begin(); it != surfaces.end(); ++it)
+        this->draw(*it, fill, fill_opacity);
+}
+
+void 
+SVG::draw_outline(const Surfaces &surfaces, std::string stroke_outer, std::string stroke_holes, coordf_t stroke_width)
+{
+    for (Surfaces::const_iterator it = surfaces.begin(); it != surfaces.end(); ++ it)
+        draw_outline(*it, stroke_outer, stroke_holes, stroke_width);
+}
+
+void
+SVG::draw(const SurfacesPtr &surfaces, std::string fill, const float fill_opacity)
+{
+    for (SurfacesPtr::const_iterator it = surfaces.begin(); it != surfaces.end(); ++it)
+        this->draw(*(*it), fill, fill_opacity);
+}
+
+void 
+SVG::draw_outline(const SurfacesPtr &surfaces, std::string stroke_outer, std::string stroke_holes, coordf_t stroke_width)
+{
+    for (SurfacesPtr::const_iterator it = surfaces.begin(); it != surfaces.end(); ++ it)
+        draw_outline(*(*it), stroke_outer, stroke_holes, stroke_width);
 }
 
 void
 SVG::draw(const Polygon &polygon, std::string fill)
 {
     this->fill = fill;
-    this->path(this->get_path_d(polygon, true), !fill.empty(), 0);
+    this->path(this->get_path_d(polygon, true), !fill.empty(), 0, 1.f);
 }
 
 void
@@ -119,7 +175,7 @@ void
 SVG::draw(const Polyline &polyline, std::string stroke, coordf_t stroke_width)
 {
     this->stroke = stroke;
-    this->path(this->get_path_d(polyline, false), false, stroke_width);
+    this->path(this->get_path_d(polyline, false), false, stroke_width, 1.f);
 }
 
 void
@@ -172,7 +228,7 @@ void
 SVG::draw(const ClipperLib::Path &polygon, double scale, std::string stroke, coordf_t stroke_width)
 {
     this->stroke = stroke;
-    this->path(this->get_path_d(polygon, scale, true), false, stroke_width);
+    this->path(this->get_path_d(polygon, scale, true), false, stroke_width, 1.f);
 }
 
 void 
@@ -186,7 +242,7 @@ void
 SVG::draw_outline(const Polygon &polygon, std::string stroke, coordf_t stroke_width)
 {
     this->stroke = stroke;
-    this->path(this->get_path_d(polygon, true), false, stroke_width);
+    this->path(this->get_path_d(polygon, true), false, stroke_width, 1.f);
 }
 
 void 
@@ -197,7 +253,7 @@ SVG::draw_outline(const Polygons &polygons, std::string stroke, coordf_t stroke_
 }
 
 void
-SVG::path(const std::string &d, bool fill, coordf_t stroke_width)
+SVG::path(const std::string &d, bool fill, coordf_t stroke_width, const float fill_opacity)
 {
     float lineWidth = 0.f;
     if (! fill)
@@ -205,12 +261,13 @@ SVG::path(const std::string &d, bool fill, coordf_t stroke_width)
 
     fprintf(
         this->f,
-        "   <path d=\"%s\" style=\"fill: %s; stroke: %s; stroke-width: %f; fill-type: evenodd\" %s />\n",
+        "   <path d=\"%s\" style=\"fill: %s; stroke: %s; stroke-width: %f; fill-type: evenodd\" %s fill-opacity=\"%f\" />\n",
         d.c_str(),
         fill ? this->fill.c_str() : "none",
         this->stroke.c_str(),
         lineWidth, 
-        (this->arrows && !fill) ? " marker-end=\"url(#endArrow)\"" : ""
+        (this->arrows && !fill) ? " marker-end=\"url(#endArrow)\"" : "",
+        fill_opacity
     );
 }
 
@@ -240,6 +297,29 @@ SVG::get_path_d(const ClipperLib::Path &path, double scale, bool closed) const
     return d.str();
 }
 
+void SVG::draw_text(const Point &pt, const char *text, const char *color)
+{
+    fprintf(this->f,
+        "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"20px\" fill=\"%s\">%s</text>",
+        COORD(pt.x-origin.x),
+        COORD(pt.y-origin.y),
+        color, text);
+}
+
+void SVG::draw_legend(const Point &pt, const char *text, const char *color)
+{
+    fprintf(this->f,
+        "<circle cx=\"%f\" cy=\"%f\" r=\"10\" fill=\"%s\"/>",
+        COORD(pt.x-origin.x),
+        COORD(pt.y-origin.y),
+        color);
+    fprintf(this->f,
+        "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"10px\" fill=\"%s\">%s</text>",
+        COORD(pt.x-origin.x) + 20.f,
+        COORD(pt.y-origin.y),
+        "black", text);
+}
+
 void
 SVG::Close()
 {
@@ -247,6 +327,14 @@ SVG::Close()
     fclose(this->f);
     this->f = NULL;
     printf("SVG written to %s\n", this->filename.c_str());
+}
+
+void SVG::export_expolygons(const char *path, const BoundingBox &bbox, const Slic3r::ExPolygons &expolygons, std::string stroke_outer, std::string stroke_holes, coordf_t stroke_width)
+{
+    SVG svg(path, bbox);
+    svg.draw(expolygons);
+    svg.draw_outline(expolygons, stroke_outer, stroke_holes, stroke_width);
+    svg.Close();
 }
 
 }

@@ -6,6 +6,7 @@
 #include "ExPolygon.hpp"
 #include "Line.hpp"
 #include "TriangleMesh.hpp"
+#include "Surface.hpp"
 
 namespace Slic3r {
 
@@ -25,8 +26,19 @@ class SVG
     void draw(const ThickLine &line, const std::string &fill, const std::string &stroke, coordf_t stroke_width = 0);
     void draw(const Lines &lines, std::string stroke = "black", coordf_t stroke_width = 0);
     void draw(const IntersectionLines &lines, std::string stroke = "black");
-    void draw(const ExPolygon &expolygon, std::string fill = "grey");
-    void draw(const ExPolygons &expolygons, std::string fill = "grey");
+
+    void draw(const ExPolygon &expolygon, std::string fill = "grey", const float fill_opacity=1.f);
+    void draw_outline(const ExPolygon &polygon, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0);
+    void draw(const ExPolygons &expolygons, std::string fill = "grey", const float fill_opacity=1.f);
+    void draw_outline(const ExPolygons &polygons, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0);
+
+    void draw(const Surface &surface, std::string fill = "grey", const float fill_opacity=1.f);
+    void draw_outline(const Surface &surface, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0);
+    void draw(const Surfaces &surfaces, std::string fill = "grey", const float fill_opacity=1.f);
+    void draw_outline(const Surfaces &surfaces, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0);
+    void draw(const SurfacesPtr &surfaces, std::string fill = "grey", const float fill_opacity=1.f);
+    void draw_outline(const SurfacesPtr &surfaces, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0);
+ 
     void draw(const Polygon &polygon, std::string fill = "grey");
     void draw_outline(const Polygon &polygon, std::string stroke = "black", coordf_t stroke_width = 0);
     void draw(const Polygons &polygons, std::string fill = "grey");
@@ -43,15 +55,21 @@ class SVG
     void draw(const ClipperLib::Path  &polygon, double scale, std::string fill = "grey", coordf_t stroke_width = 0);
     void draw(const ClipperLib::Paths &polygons, double scale, std::string fill = "grey", coordf_t stroke_width = 0);
 
+    void draw_text(const Point &pt, const char *text, const char *color);
+    void draw_legend(const Point &pt, const char *text, const char *color);
+
     void Close();
     
     private:
     std::string filename;
     FILE* f;
     
-    void path(const std::string &d, bool fill, coordf_t stroke_width);
+    void path(const std::string &d, bool fill, coordf_t stroke_width, const float fill_opacity);
     std::string get_path_d(const MultiPoint &mp, bool closed = false) const;
     std::string get_path_d(const ClipperLib::Path &mp, double scale, bool closed = false) const;
+
+public:
+    static void export_expolygons(const char *path, const BoundingBox &bbox, const Slic3r::ExPolygons &expolygons, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0);
 };
 
 }
