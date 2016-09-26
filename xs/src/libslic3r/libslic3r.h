@@ -5,6 +5,7 @@
 #include <ostream>
 #include <iostream>
 #include <sstream>
+#include <stdint.h>
 
 #define SLIC3R_VERSION "1.3.0-dev"
 
@@ -26,7 +27,9 @@
 // Maximum perimeter length for the loop to apply the small perimeter speed. 
 #define SMALL_PERIMETER_LENGTH (6.5 / SCALING_FACTOR) * 2 * PI
 #define INSET_OVERLAP_TOLERANCE 0.4
-#define EXTERNAL_INFILL_MARGIN 3
+// 3mm ring around the top / bottom / bridging areas.
+//FIXME This is quite a lot.
+#define EXTERNAL_INFILL_MARGIN 3.
 #define scale_(val) ((val) / SCALING_FACTOR)
 #define unscale(val) ((val) * SCALING_FACTOR)
 #define SCALED_EPSILON scale_(EPSILON)

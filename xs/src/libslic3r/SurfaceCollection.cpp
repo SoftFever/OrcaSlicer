@@ -91,11 +91,26 @@ SurfaceCollection::any_bottom_contains(const T &item) const
 template bool SurfaceCollection::any_bottom_contains<Polyline>(const Polyline &item) const;
 
 SurfacesPtr
-SurfaceCollection::filter_by_type(SurfaceType type)
+SurfaceCollection::filter_by_type(const SurfaceType type)
 {
     SurfacesPtr ss;
     for (Surfaces::iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
         if (surface->surface_type == type) ss.push_back(&*surface);
+    }
+    return ss;
+}
+
+SurfacesPtr
+SurfaceCollection::filter_by_types(const SurfaceType *types, int ntypes)
+{
+    SurfacesPtr ss;
+    for (Surfaces::iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
+        for (int i = 0; i < ntypes; ++ i) {
+            if (surface->surface_type == types[i]) {
+                ss.push_back(&*surface);
+                break;
+            }
+        }
     }
     return ss;
 }
@@ -112,9 +127,90 @@ SurfaceCollection::filter_by_type(SurfaceType type, Polygons* polygons)
 }
 
 void
+SurfaceCollection::keep_type(const SurfaceType type)
+{
+    size_t j = 0;
+    for (size_t i = 0; i < surfaces.size(); ++ i) {
+        if (surfaces[i].surface_type == type) {
+            if (j < i)
+                std::swap(surfaces[i], surfaces[j]);
+            ++ j;
+        }
+    }
+    if (j < surfaces.size())
+        surfaces.erase(surfaces.begin() + j, surfaces.end());
+}
+
+void
+SurfaceCollection::keep_types(const SurfaceType *types, int ntypes)
+{
+    size_t j = 0;
+    for (size_t i = 0; i < surfaces.size(); ++ i) {
+        bool keep = false;
+        for (int k = 0; k < ntypes; ++ k) {
+            if (surfaces[i].surface_type == types[k]) {
+                keep = true;
+                break;
+            }
+        }
+        if (keep) {
+            if (j < i)
+                std::swap(surfaces[i], surfaces[j]);
+            ++ j;
+        }
+    }
+    if (j < surfaces.size())
+        surfaces.erase(surfaces.begin() + j, surfaces.end());
+}
+
+void
+SurfaceCollection::remove_type(const SurfaceType type)
+{
+    size_t j = 0;
+    for (size_t i = 0; i < surfaces.size(); ++ i) {
+        if (surfaces[i].surface_type != type) {
+            if (j < i)
+                std::swap(surfaces[i], surfaces[j]);
+            ++ j;
+        }
+    }
+    if (j < surfaces.size())
+        surfaces.erase(surfaces.begin() + j, surfaces.end());
+}
+
+void
+SurfaceCollection::remove_types(const SurfaceType *types, int ntypes)
+{
+    size_t j = 0;
+    for (size_t i = 0; i < surfaces.size(); ++ i) {
+        bool remove = false;
+        for (int k = 0; k < ntypes; ++ k) {
+            if (surfaces[i].surface_type == types[k]) {
+                remove = true;
+                break;
+            }
+        }
+        if (! remove) {
+            if (j < i)
+                std::swap(surfaces[i], surfaces[j]);
+            ++ j;
+        }
+    }
+    if (j < surfaces.size())
+        surfaces.erase(surfaces.begin() + j, surfaces.end());
+}
+
+void
 SurfaceCollection::append(const SurfaceCollection &coll)
 {
     this->surfaces.insert(this->surfaces.end(), coll.surfaces.begin(), coll.surfaces.end());
+}
+
+void 
+SurfaceCollection::append(const SurfaceType surfaceType, const Slic3r::ExPolygons &expoly)
+{
+    for (Slic3r::ExPolygons::const_iterator it = expoly.begin(); it != expoly.end(); ++ it)
+        this->surfaces.push_back(Slic3r::Surface(surfaceType, *it));
 }
 
 }
