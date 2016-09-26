@@ -40,6 +40,8 @@ sub BUILD {
         my $gcodegen = Slic3r::GCode->new;
         $self->_gcodegen($gcodegen);
         $gcodegen->set_placeholder_parser($self->placeholder_parser);
+        # Tell the G-code generator, how many times the $gcodegen->change_layer() will be called.
+        # $gcodegen->change_layer() in turn increments the progress bar status. 
         $gcodegen->set_layer_count($layer_count);
         $gcodegen->set_enable_cooling_markers(1);
         $gcodegen->apply_print_config($self->config);
@@ -353,6 +355,8 @@ sub _print_first_layer_temperature {
 # Called per object's layer.
 # First a $gcode string is collected,
 # then filtered and finally written to a file $fh.
+#FIXME If printing multiple objects at once, this incorrectly applies cooling logic to a single object's layer instead
+# of all the objects printed.
 sub process_layer {
     my $self = shift;
     my ($layer, $object_copies) = @_;
@@ -610,7 +614,8 @@ sub process_layer {
         $layer->print_z,
     ) if defined $self->_cooling_buffer;
     
-    print {$self->fh} $self->filter($gcode);
+    $gcode = $self->filter($gcode);
+    print {$self->fh} $gcode if defined($gcode);
 }
 
 # Extrude perimeters: Decide where to put seams (hide or align seams).
@@ -655,6 +660,7 @@ sub flush_filters {
 
 sub filter {
     my ($self, $gcode, $flush) = @_;
+    $flush //= 0;
     
     # apply vibration limit if enabled;
     # this injects pauses according to time (thus depends on actual speeds)

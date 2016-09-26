@@ -123,6 +123,7 @@ sub load_print {
         foreach my $object (@{$self->print->objects}) {
             $self->canvas->load_print_object_toolpaths($object);
             
+            # Show the objects in very transparent color.
             #my @volume_ids = $self->canvas->load_object($object->model_object);
             #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
         }

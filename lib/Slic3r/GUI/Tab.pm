@@ -775,7 +775,8 @@ sub _update {
         
         my $new_conf = Slic3r::Config->new;
         if ($dialog->ShowModal() == wxID_YES) {
-            $new_conf->set("fill_pattern", 1);
+            $new_conf->set("fill_pattern", 'rectilinear');
+            $new_conf->set("fill_density", 100);
         } else {
             $new_conf->set("fill_density", 40);
         }

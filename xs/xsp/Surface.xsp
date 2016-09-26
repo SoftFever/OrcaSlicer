@@ -109,6 +109,7 @@ _constant()
     S_TYPE_INTERNALSOLID    = stInternalSolid
     S_TYPE_INTERNALBRIDGE   = stInternalBridge
     S_TYPE_INTERNALVOID     = stInternalVoid
+    S_TYPW_PERIMETER        = stPerimeter
   PROTOTYPE:
   CODE:
     RETVAL = ix;
