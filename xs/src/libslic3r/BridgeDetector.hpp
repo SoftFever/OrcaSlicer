@@ -9,11 +9,16 @@
 namespace Slic3r {
 
 class BridgeDetector {
-    public:
+public:
+    // The non-grown hole.
     ExPolygon expolygon;
+    // Lower slices, all regions.
     ExPolygonCollection lower_slices;
-    double extrusion_width;  // scaled
+    // Scaled extrusion width of the infill.
+    double extrusion_width;
+    // Angle resolution for the brute force search of the best bridging angle.
     double resolution;
+    // The final optimal angle.
     double angle;
     
     BridgeDetector(const ExPolygon &_expolygon, const ExPolygonCollection &_lower_slices, coord_t _extrusion_width);
@@ -23,8 +28,10 @@ class BridgeDetector {
     void unsupported_edges(double angle, Polylines* unsupported) const;
     Polylines unsupported_edges(double angle = -1) const;
     
-    private:
-    Polylines _edges;   // representing the supporting edges
+private:
+    // Open lines representing the supporting edges.
+    Polylines _edges;
+    // Closed polygons representing the supporting areas.
     ExPolygons _anchors;
 };
 
