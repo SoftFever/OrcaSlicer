@@ -171,9 +171,12 @@ MultiPoint::dump_perl() const
     return ret.str();
 }
 
+//FIXME This is very inefficient in term of memory use.
+// The recursive algorithm shall run in place, not allocating temporary data in each recursion.
 Points
 MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 {
+    assert(points.size() >= 2);
     Points results;
     double dmax = 0;
     size_t index = 0;
@@ -190,13 +193,15 @@ MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
         Points dp0;
         dp0.reserve(index + 1);
         dp0.insert(dp0.end(), points.begin(), points.begin() + index + 1);
+        // Recursive call.
         Points dp1 = MultiPoint::_douglas_peucker(dp0, tolerance);
         results.reserve(results.size() + dp1.size() - 1);
         results.insert(results.end(), dp1.begin(), dp1.end() - 1);
         
         dp0.clear();
-        dp0.reserve(points.size() - index + 1);
+        dp0.reserve(points.size() - index);
         dp0.insert(dp0.end(), points.begin() + index, points.end());
+        // Recursive call.
         dp1 = MultiPoint::_douglas_peucker(dp0, tolerance);
         results.reserve(results.size() + dp1.size());
         results.insert(results.end(), dp1.begin(), dp1.end());
