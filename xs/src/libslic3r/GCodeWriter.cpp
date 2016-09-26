@@ -500,10 +500,10 @@ GCodeWriter::lift()
     // check whether the above/below conditions are met
     double target_lift = 0;
     {
-        double above = this->config.retract_lift_above.get_at(0);
-        double below = this->config.retract_lift_below.get_at(0);
+        double above = this->config.retract_lift_above.get_at(this->_extruder->id);
+        double below = this->config.retract_lift_below.get_at(this->_extruder->id);
         if (this->_pos.z >= above && (below == 0 || this->_pos.z <= below))
-            target_lift = this->config.retract_lift.get_at(0);
+            target_lift = this->config.retract_lift.get_at(this->_extruder->id);
     }
     if (this->_lifted == 0 && target_lift > 0) {
         this->_lifted = target_lift;

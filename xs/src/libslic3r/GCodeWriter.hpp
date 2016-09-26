@@ -10,7 +10,7 @@
 namespace Slic3r {
 
 class GCodeWriter {
-    public:
+public:
     GCodeConfig config;
     std::map<unsigned int,Extruder> extruders;
     bool multiple_extruders;
@@ -48,7 +48,7 @@ class GCodeWriter {
     std::string unlift();
     Pointf3 get_position() const;
     
-    private:
+private:
     std::string _extrusion_axis;
     Extruder* _extruder;
     unsigned int _last_acceleration;
@@ -60,6 +60,6 @@ class GCodeWriter {
     std::string _retract(double length, double restart_extra, const std::string &comment);
 };
 
-}
+} /* namespace Slic3r */
 
-#endif
+#endif /* slic3r_GCodeWriter_hpp_ */
