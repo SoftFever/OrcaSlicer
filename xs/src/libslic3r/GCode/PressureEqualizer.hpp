@@ -167,6 +167,9 @@ private:
     std::vector<char>               output_buffer;
     size_t                          output_buffer_length;
 
+    // For debugging purposes. Index of the G-code line processed.
+    size_t                          line_idx;
+
     bool process_line(const char *line, const size_t len, GCodeLine &buf);
     void output_gcode_line(GCodeLine &buf);
 

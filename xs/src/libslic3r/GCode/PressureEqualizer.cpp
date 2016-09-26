@@ -49,9 +49,9 @@ void GCodePressureEqualizer::reset()
     // Volumetric rate of a 0.45mm x 0.2mm extrusion at 20mm/s XY movement: 0.45*0.2*20*60=1.8*60 = 108 mm^3/min
     // Slope of the volumetric rate, changing from 20mm/s to 60mm/s over 2 seconds: (5.4-1.8)*60*60/2=60*60*1.8 = 6480 mm^3/min^2 = 1.8 mm^3/s^2
     m_max_volumetric_extrusion_rate_slope_positive = (this->m_config == NULL) ? 6480.f :
-        this->m_config->max_volumetric_extrusion_rate_slope_positive.value * 60. * 60.;
+        this->m_config->max_volumetric_extrusion_rate_slope_positive.value * 60.f * 60.f;
     m_max_volumetric_extrusion_rate_slope_negative = (this->m_config == NULL) ? 6480.f :
-        this->m_config->max_volumetric_extrusion_rate_slope_negative.value * 60. * 60.;
+        this->m_config->max_volumetric_extrusion_rate_slope_negative.value * 60.f * 60.f;
 
     for (size_t i = 0; i < numExtrusionRoles; ++ i) {
         m_max_volumetric_extrusion_rate_slopes[i].negative = m_max_volumetric_extrusion_rate_slope_negative;
@@ -66,6 +66,7 @@ void GCodePressureEqualizer::reset()
     m_max_volumetric_extrusion_rate_slopes[erGapFill].positive = 0;
 
     m_stat.reset();
+    line_idx = 0;
 }
 
 const char* GCodePressureEqualizer::process(const char *szGCode, bool flush)
@@ -112,7 +113,7 @@ const char* GCodePressureEqualizer::process(const char *szGCode, bool flush)
         circular_buffer_pos = 0;
 
 #if 1 
-        printf("Statistics: \n");
+        printf("Statistics: \n"); 
         printf("Minimum volumetric extrusion rate: %f\n", m_stat.volumetric_extrusion_rate_min);
         printf("Maximum volumetric extrusion rate: %f\n", m_stat.volumetric_extrusion_rate_max);
         if (m_stat.extrusion_length > 0)
@@ -170,6 +171,7 @@ bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GC
         line += strlen(EXTRUSION_ROLE_TAG);
         int role = atoi(line);
         this->m_current_extrusion_role = ExtrusionRole(role);
+        ++ line_idx;
         return false;
     }
 
@@ -259,8 +261,13 @@ bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GC
                     buf.volumetric_extrusion_rate_start = rate;
                     buf.volumetric_extrusion_rate_end   = rate;
                     m_stat.update(rate, sqrt(len2));
-                    if (rate < 10.f) {
-                    	printf("Extremely low flow rate: %f\n", rate);
+                    if (rate < 40.f) {
+                    	printf("Extremely low flow rate: %f. Line %d, Length: %f, extrusion: %f Old position: (%f, %f, %f), new position: (%f, %f, %f)\n", 
+                            rate, 
+                            line_idx,
+                            sqrt(len2), sqrt((diff[3]*diff[3])/len2),
+                            m_current_pos[0], m_current_pos[1], m_current_pos[2],
+                            new_pos[0], new_pos[1], new_pos[2]);
                     }
                 }
             } else if (changed[0] || changed[1] || changed[2]) {
@@ -270,7 +277,7 @@ bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GC
             memcpy(m_current_pos, new_pos, sizeof(float) * 5);
             break;
         }
-        case 92:
+        case 92: 
         {
             // G92 : Set Position
             // Set a logical coordinate position to a new value without actually moving the machine motors.
@@ -344,6 +351,7 @@ bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GC
     memcpy(buf.pos_end, m_current_pos, sizeof(float)*5);
 
     adjust_volumetric_rate();
+    ++ line_idx;
 	return true;
 }
 
@@ -365,7 +373,6 @@ void GCodePressureEqualizer::output_gcode_line(GCodeLine &line)
     float l2 = line.dist_xyz2();
     float l = sqrt(l2);
     size_t nSegments = size_t(ceil(l / m_max_segment_length));
-    char text[2048];
     if (nSegments == 1) {
         // Just update this segment.
         push_line_to_output(line, line.feedrate() * line.volumetric_correction_avg(), comment);
@@ -470,6 +477,7 @@ void GCodePressureEqualizer::adjust_volumetric_rate()
         for (; ! circular_buffer[idx_prev].extruding() && idx_prev != idx_head; idx_prev = circular_buffer_idx_prev(idx_prev)) ;
         if (! circular_buffer[idx_prev].extruding())
         	break;
+        // Volumetric extrusion rate at the start of the succeding segment.
         float rate_succ = circular_buffer[idx].volumetric_extrusion_rate_start;
         // What is the gradient of the extrusion rate between idx_prev and idx?
         idx = idx_prev;
@@ -481,6 +489,7 @@ void GCodePressureEqualizer::adjust_volumetric_rate()
                 continue;
             float rate_end = feedrate_per_extrusion_role[iRole];
             if (iRole == line.extrusion_role && rate_succ < rate_end)
+                // Limit by the succeeding volumetric flow rate.
                 rate_end = rate_succ;
             if (line.volumetric_extrusion_rate_end > rate_end) {
                 line.volumetric_extrusion_rate_end = rate_end;
@@ -598,7 +607,7 @@ void GCodePressureEqualizer::push_to_output(const char *text, const size_t len, 
 void GCodePressureEqualizer::push_line_to_output(const GCodeLine &line, const float new_feedrate, const char *comment)
 {
     push_to_output("G1", 2, false);
-    for (size_t i = 0; i < 3; ++ i)
+    for (char i = 0; i < 3; ++ i)
         if (line.pos_provided[i])
             push_axis_to_output('X'+i, line.pos_end[i]);
     push_axis_to_output('E', m_config->use_relative_e_distances.value ? (line.pos_end[3] - line.pos_start[3]) : line.pos_end[3]);
