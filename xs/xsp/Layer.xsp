@@ -17,6 +17,8 @@
         %code%{ RETVAL = &THIS->thin_fills; %};
     Ref<SurfaceCollection> fill_surfaces()
         %code%{ RETVAL = &THIS->fill_surfaces; %};
+    Ref<SurfaceCollection> perimeter_surfaces()
+        %code%{ RETVAL = &THIS->perimeter_surfaces; %};
     Polygons bridged()
         %code%{ RETVAL = THIS->bridged; %};
     Ref<PolylineCollection> unsupported_bridge_edges()
@@ -30,9 +32,14 @@
         %code%{ RETVAL = THIS->flow(role, bridge, width); %};
     void merge_slices();
     void prepare_fill_surfaces();
-    void make_perimeters(SurfaceCollection* slices, SurfaceCollection* fill_surfaces)
-        %code%{ THIS->make_perimeters(*slices, fill_surfaces); %};
+    void make_perimeters(SurfaceCollection* slices, SurfaceCollection* perimeter_surfaces, SurfaceCollection* fill_surfaces)
+        %code%{ THIS->make_perimeters(*slices, perimeter_surfaces, fill_surfaces); %};
     double infill_area_threshold();
+
+    void export_region_slices_to_svg(const char *path);
+    void export_region_fill_surfaces_to_svg(const char *path);
+    void export_region_slices_to_svg_debug(const char *name);
+    void export_region_fill_surfaces_to_svg_debug(const char *name);
 };
 
 %name{Slic3r::Layer} class Layer {
@@ -72,6 +79,9 @@
 
     Ref<ExPolygonCollection> slices()
         %code%{ RETVAL = &THIS->slices; %};
+
+    Ref<ExPolygonCollection> perimeter_expolygons()
+        %code%{ RETVAL = &THIS->perimeter_expolygons; %};
     
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
@@ -86,6 +96,11 @@
     bool any_bottom_region_slice_contains_polyline(Polyline* polyline)
         %code%{ RETVAL = THIS->any_bottom_region_slice_contains(*polyline); %};
     void make_perimeters();
+
+    void export_region_slices_to_svg(const char *path);
+    void export_region_fill_surfaces_to_svg(const char *path);
+    void export_region_slices_to_svg_debug(const char *name);
+    void export_region_fill_surfaces_to_svg_debug(const char *name);
 };
 
 %name{Slic3r::Layer::Support} class SupportLayer {
@@ -136,8 +151,8 @@
     Ref<ExPolygonCollection> slices()
         %code%{ RETVAL = &THIS->slices; %};
     
-    bool any_internal_region_slice_contains_polyline(Polyline* polyline)
-        %code%{ RETVAL = THIS->any_internal_region_slice_contains(*polyline); %};
-    bool any_bottom_region_slice_contains_polyline(Polyline* polyline)
-        %code%{ RETVAL = THIS->any_bottom_region_slice_contains(*polyline); %};
+    void export_region_slices_to_svg(const char *path);
+    void export_region_fill_surfaces_to_svg(const char *path);
+    void export_region_slices_to_svg_debug(const char *name);
+    void export_region_fill_surfaces_to_svg_debug(const char *name);
 };

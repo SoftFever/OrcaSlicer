@@ -4,6 +4,10 @@
 #include "PerimeterGenerator.hpp"
 #include "Print.hpp"
 #include "Surface.hpp"
+#include "SVG.hpp"
+
+#include <string>
+#include <map>
 
 namespace Slic3r {
 
@@ -56,7 +60,7 @@ LayerRegion::merge_slices()
 }
 
 void
-LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces)
+LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* perimeter_surfaces, SurfaceCollection* fill_surfaces)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
@@ -73,6 +77,7 @@ LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection*
         // output:
         &this->perimeters,
         &this->thin_fills,
+        perimeter_surfaces, 
         fill_surfaces
     );
     
@@ -94,10 +99,15 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
     const Surfaces &surfaces = this->fill_surfaces.surfaces;
     const double margin = scale_(EXTERNAL_INFILL_MARGIN);
     
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    export_region_fill_surfaces_to_svg_debug("3_process_external_surfaces-initial");
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
     SurfaceCollection bottom;
+    // For all stBottom && stBottomBridge surfaces:
     for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface) {
         if (!surface->is_bottom()) continue;
-        
+        // Grown by 3mm.
         ExPolygons grown = offset_ex(surface->expolygon, +margin);
         
         /*  detect bridge direction before merging grown surfaces otherwise adjacent bridges
@@ -109,6 +119,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             BridgeDetector bd(
                 surface->expolygon,
                 lower_layer->slices,
+                // Using extrusion width of an infill.
                 this->flow(frInfill, this->layer()->height, true).scaled_width()
             );
             
@@ -118,10 +129,12 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             
             if (bd.detect_angle()) {
                 angle = bd.angle;
-            
+                // Are supports enabled?
                 if (this->layer()->object()->config.support_material) {
                     Polygons coverage = bd.coverage();
+                    // Bridged polygons do not require supports.
                     this->bridged.insert(this->bridged.end(), coverage.begin(), coverage.end());
+                    // Unsupported edges of the infill.
                     this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
                 }
             }
@@ -228,6 +241,10 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
     }
     
     this->fill_surfaces = new_surfaces;
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    export_region_fill_surfaces_to_svg_debug("3_process_external_surfaces-final");
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 }
 
 void
@@ -265,6 +282,10 @@ LayerRegion::prepare_fill_surfaces()
                 surface->surface_type = stInternalSolid;
         }
     }
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    export_region_slices_to_svg_debug("2_prepare_fill_surfaces");
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 }
 
 double
@@ -274,4 +295,62 @@ LayerRegion::infill_area_threshold() const
     return ss*ss;
 }
 
+
+void LayerRegion::export_region_slices_to_svg(const char *path)
+{
+    BoundingBox bbox;
+    for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++surface)
+        bbox.merge(get_extents(surface->expolygon));
+    Point legend_size = export_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min.x, bbox.max.y);
+    bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
+
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++surface)
+        svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
+    for (Surfaces::const_iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface)
+        svg.draw(surface->expolygon.lines(), surface_type_to_color_name(surface->surface_type));
+    export_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close();
 }
+
+// Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
+void LayerRegion::export_region_slices_to_svg_debug(const char *name)
+{
+    static std::map<std::string, size_t> idx_map;
+    size_t &idx = idx_map[name];
+    char path[2048];
+    sprintf(path, "out\\LayerRegion-slices-%s-%d.svg", name, idx ++);
+    this->export_region_slices_to_svg(path);
+}
+
+void LayerRegion::export_region_fill_surfaces_to_svg(const char *path) 
+{
+    BoundingBox bbox;
+    for (Surfaces::const_iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface)
+        bbox.merge(get_extents(surface->expolygon));
+    Point legend_size = export_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min.x, bbox.max.y);
+    bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
+
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (Surfaces::const_iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface)
+        svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
+    export_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close();
+}
+
+// Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
+void LayerRegion::export_region_fill_surfaces_to_svg_debug(const char *name)
+{
+    static std::map<std::string, size_t> idx_map;
+    size_t &idx = idx_map[name];
+    char path[2048];
+    sprintf(path, "out\\LayerRegion-fill_surfaces-%s-%d.svg", name, idx ++);
+    this->export_region_fill_surfaces_to_svg(path);
+}
+
+}
+ 

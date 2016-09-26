@@ -2,7 +2,7 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "Print.hpp"
-
+#include "SVG.hpp"
 
 namespace Slic3r {
 
@@ -204,7 +204,11 @@ Layer::make_perimeters()
         
         if (layerms.size() == 1) {  // optimization
             (*layerm)->fill_surfaces.surfaces.clear();
-            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces);
+            (*layerm)->perimeter_surfaces.surfaces.clear();
+            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->perimeter_surfaces, &(*layerm)->fill_surfaces);
+            this->perimeter_expolygons.expolygons.clear();
+            for (Surfaces::const_iterator it = (*layerm)->perimeter_surfaces.surfaces.begin(); it != (*layerm)->perimeter_surfaces.surfaces.end(); ++ it)
+                this->perimeter_expolygons.expolygons.push_back(it->expolygon);
         } else {
             // group slices (surfaces) according to number of extra perimeters
             std::map<unsigned short,Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
@@ -226,12 +230,18 @@ Layer::make_perimeters()
             }
             
             // make perimeters
+            SurfaceCollection perimeter_surfaces;
             SurfaceCollection fill_surfaces;
-            (*layerm)->make_perimeters(new_slices, &fill_surfaces);
-            
+            (*layerm)->make_perimeters(new_slices, &perimeter_surfaces, &fill_surfaces);
+            // Copy the perimeter surfaces to the layer's surfaces before splitting them into the regions.
+            this->perimeter_expolygons.expolygons.clear();
+            for (Surfaces::const_iterator it = perimeter_surfaces.surfaces.begin(); it != perimeter_surfaces.surfaces.end(); ++ it)
+                this->perimeter_expolygons.expolygons.push_back(it->expolygon);
+
             // assign fill_surfaces to each layer
-            if (!fill_surfaces.surfaces.empty()) {
+            if (!fill_surfaces.surfaces.empty()) { 
                 for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
+                    // Separate the fill surfaces.
                     ExPolygons expp = intersection_ex(
                         fill_surfaces,
                         (*l)->slices
@@ -243,12 +253,80 @@ Layer::make_perimeters()
                         s.expolygon = *ex;
                         (*l)->fill_surfaces.surfaces.push_back(s);
                     }
+
+                    // Separate the perimeter surfaces.
+                    expp = intersection_ex(
+                        perimeter_surfaces,
+                        (*l)->slices
+                    );
+                    (*l)->perimeter_surfaces.surfaces.clear();
+                    
+                    for (ExPolygons::iterator ex = expp.begin(); ex != expp.end(); ++ex) {
+                        Surface s = fill_surfaces.surfaces.front();  // clone type and extra_perimeters
+                        s.expolygon = *ex; 
+                        (*l)->perimeter_surfaces.surfaces.push_back(s);
+                    }
                 }
             }
         }
     }
 }
 
+void Layer::export_region_slices_to_svg(const char *path)
+{
+    BoundingBox bbox;
+    for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
+        for (Surfaces::const_iterator surface = (*region)->slices.surfaces.begin(); surface != (*region)->slices.surfaces.end(); ++surface)
+            bbox.merge(get_extents(surface->expolygon));
+    Point legend_size = export_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min.x, bbox.max.y);
+    bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
+
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
+        for (Surfaces::const_iterator surface = (*region)->slices.surfaces.begin(); surface != (*region)->slices.surfaces.end(); ++surface)
+            svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
+    export_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close(); 
+}
+
+// Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
+void Layer::export_region_slices_to_svg_debug(const char *name)
+{
+    static size_t idx = 0;
+    char path[2048];
+    sprintf(path, "out\\Layer-slices-%s-%d.svg", name, idx ++);
+    this->export_region_slices_to_svg(path);
+}
+
+void Layer::export_region_fill_surfaces_to_svg(const char *path)
+{
+    BoundingBox bbox;
+    for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
+        for (Surfaces::const_iterator surface = (*region)->fill_surfaces.surfaces.begin(); surface != (*region)->fill_surfaces.surfaces.end(); ++surface)
+            bbox.merge(get_extents(surface->expolygon));
+    Point legend_size = export_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min.x, bbox.max.y);
+    bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
+
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
+        for (Surfaces::const_iterator surface = (*region)->fill_surfaces.surfaces.begin(); surface != (*region)->fill_surfaces.surfaces.end(); ++surface)
+            svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
+    export_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close();
+}
+
+// Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
+void Layer::export_region_fill_surfaces_to_svg_debug(const char *name)
+{
+    static size_t idx = 0;
+    char path[2048];
+    sprintf(path, "out\\Layer-fill_surfaces-%s-%d.svg", name, idx ++);
+    this->export_region_fill_surfaces_to_svg(path);
+}
 
 SupportLayer::SupportLayer(size_t id, PrintObject *object, coordf_t height,
         coordf_t print_z, coordf_t slice_z)
