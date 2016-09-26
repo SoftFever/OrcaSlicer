@@ -229,10 +229,15 @@ sub make_fill {
             );
             $f->spacing($internal_flow->spacing);
             $using_internal_flow = 1;
+        } elsif ($surface->surface_type == S_TYPE_INTERNALBRIDGE) {
+            # The internal bridging layer will be sparse.
+            $f->spacing($flow->spacing * 2.);
         } else {
             $f->spacing($flow->spacing);
         }
         
+        my $old_spacing = $f->spacing;
+
         $f->layer_id($layerm->layer->id);
         $f->z($layerm->layer->print_z);
         $f->angle(deg2rad($layerm->region->config->fill_angle));
@@ -243,6 +248,7 @@ sub make_fill {
             $_,
             density         => $density/100,
             layer_height    => $h,
+            dont_adjust     => 1,
         ), @{ $surface->offset(-scale($f->spacing)/2) };
         
         next unless @polylines;
@@ -254,6 +260,9 @@ sub make_fill {
             # so we can safely ignore the slight variation that might have
             # been applied to $f->flow_spacing
         } else {
+            if (abs($old_spacing - $f->spacing) > 0.3 * $old_spacing) {
+                print "Infill: Extreme spacing adjustment, from: ", $old_spacing, " to: ", $f->spacing, "\n";
+            }
             $flow = Slic3r::Flow->new_from_spacing(
                 spacing         => $f->spacing,
                 nozzle_diameter => $flow->nozzle_diameter,

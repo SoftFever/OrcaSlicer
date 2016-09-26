@@ -31,11 +31,15 @@ sub fill_surface {
     
     # define flow spacing according to requested density
     if ($params{density} == 1 && !$params{dont_adjust}) {
+        my $old_spacing = $self->spacing;
         $self->_line_spacing($self->adjust_solid_spacing(
             width       => $bounding_box->size->x,
             distance    => $self->_line_spacing,
         ));
         $self->spacing(unscale $self->_line_spacing);
+        if (abs($old_spacing - $self->spacing) > 0.3 * $old_spacing) {
+            print "Infill2: Extreme spacing adjustment, from: ", $old_spacing, " to: ", $self->spacing, "\n";
+        }
     } else {
         # extend bounding box so that our pattern will be aligned with other layers
         $bounding_box->merge_point(Slic3r::Point->new(
