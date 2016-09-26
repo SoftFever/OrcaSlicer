@@ -138,6 +138,7 @@ class PrintObject
     
     bool has_support_material() const;
     void process_external_surfaces();
+    void discover_vertical_shells();
     void bridge_over_infill();
     
     private:

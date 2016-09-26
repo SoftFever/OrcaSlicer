@@ -134,7 +134,7 @@ namespace boost { namespace polygon {
             return t.holes.end();
         }
         static inline unsigned int size_holes(const ExPolygon& t) {
-            return t.holes.size();
+            return (int)t.holes.size();
         }
     };
 

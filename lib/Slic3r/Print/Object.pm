@@ -11,6 +11,8 @@ use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union
 use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
+# If enabled, phases of prepare_infill will be written into SVG files to an "out" directory.
+our $SLIC3R_DEBUG_SLICE_PROCESSING = 0;
 
 # TODO: lazy
 sub fill_maker {
@@ -492,19 +494,76 @@ sub prepare_infill {
     # and transform $layerm->fill_surfaces from expolygon 
     # to typed top/bottom/internal surfaces;
     $self->detect_surfaces_type;
+    # Mark the object to have the slices classified (typed, which also means they are split based on whether they are supported, bridging, top layers etc.)
     $self->set_typed_slices(1);
     
-    # decide what surfaces are to be filled
+    # Decide what surfaces are to be filled.
+    # Here the S_TYPE_TOP / S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is turned to just S_TYPE_INTERNAL if zero top / bottom infill layers are configured.
+    # Also tiny S_TYPE_INTERNAL surfaces are turned to S_TYPE_INTERNAL_SOLID.
     $_->prepare_fill_surfaces for map @{$_->regions}, @{$self->layers};
 
     # this will detect bridges and reverse bridges
     # and rearrange top/bottom/internal surfaces
+    # It produces enlarged overlapping bridging areas.
+    #
+    # 1) S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
+    # 2) S_TYPE_TOP is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
+    # 3) Clip the internal surfaces by the grown top/bottom surfaces.
+    # 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
+    #FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
     $self->process_external_surfaces;
 
-    # detect which fill surfaces are near external layers
-    # they will be split in internal and internal-solid surfaces
+    # Add solid fills to ensure the shell vertical thickness.
+    $self->discover_vertical_shells;
+
+    # Debugging output.
+    if ($SLIC3R_DEBUG_SLICE_PROCESSING) {
+        for my $region_id (0 .. ($self->print->region_count-1)) {
+            for (my $i = 0; $i < $self->layer_count; $i++) {
+                my $layerm = $self->get_layer($i)->regions->[$region_id];
+                $layerm->export_region_slices_to_svg_debug("6_discover_vertical_shells-final");
+                $layerm->export_region_fill_surfaces_to_svg_debug("6_discover_vertical_shells-final");
+            } # for each layer
+        } # for each region
+    }
+
+    # Detect, which fill surfaces are near external layers.
+    # They will be split in internal and internal-solid surfaces.
+    # The purpose is to add a configurable number of solid layers to support the TOP surfaces
+    # and to add a configurable number of solid layers above the BOTTOM / BOTTOMBRIDGE surfaces
+    # to close these surfaces reliably.
+    #FIXME Vojtech: Is this a good place to add supporting infills below sloping perimeters?
     $self->discover_horizontal_shells;
+
+    if ($SLIC3R_DEBUG_SLICE_PROCESSING) {
+        # Debugging output.
+        for my $region_id (0 .. ($self->print->region_count-1)) {
+            for (my $i = 0; $i < $self->layer_count; $i++) {
+                my $layerm = $self->get_layer($i)->regions->[$region_id];
+                $layerm->export_region_slices_to_svg_debug("7_discover_horizontal_shells-final");
+                $layerm->export_region_fill_surfaces_to_svg_debug("7_discover_horizontal_shells-final");
+            } # for each layer
+        } # for each region
+    }
+
+    # Only active if config->infill_only_where_needed. This step trims the sparse infill,
+    # so it acts as an internal support. It maintains all other infill types intact.
+    # Here the internal surfaces and perimeters have to be supported by the sparse infill.
+    #FIXME The surfaces are supported by a sparse infill, but the sparse infill is only as large as the area to support.
+    # Likely the sparse infill will not be anchored correctly, so it will not work as intended.
+    # Also one wishes the perimeters to be supported by a full infill.
     $self->clip_fill_surfaces;
+
+    if ($SLIC3R_DEBUG_SLICE_PROCESSING) {
+        # Debugging output.
+        for my $region_id (0 .. ($self->print->region_count-1)) {
+            for (my $i = 0; $i < $self->layer_count; $i++) {
+                my $layerm = $self->get_layer($i)->regions->[$region_id];
+                $layerm->export_region_slices_to_svg_debug("8_clip_surfaces-final");
+                $layerm->export_region_fill_surfaces_to_svg_debug("8_clip_surfaces-final");
+            } # for each layer
+        } # for each region
+    }
     
     # the following step needs to be done before combination because it may need
     # to remove only half of the combined infill
@@ -513,6 +572,22 @@ sub prepare_infill {
     # combine fill surfaces to honor the "infill every N layers" option
     $self->combine_infill;
     
+    # Debugging output.
+    if ($SLIC3R_DEBUG_SLICE_PROCESSING) {
+        for my $region_id (0 .. ($self->print->region_count-1)) {
+            for (my $i = 0; $i < $self->layer_count; $i++) {
+                my $layerm = $self->get_layer($i)->regions->[$region_id];
+                $layerm->export_region_slices_to_svg_debug("9_prepare_infill-final");
+                $layerm->export_region_fill_surfaces_to_svg_debug("9_prepare_infill-final");
+            } # for each layer
+        } # for each region
+        for (my $i = 0; $i < $self->layer_count; $i++) {
+            my $layer = $self->get_layer($i);
+            $layer->export_region_slices_to_svg_debug("9_prepare_infill-final");
+            $layer->export_region_fill_surfaces_to_svg_debug("9_prepare_infill-final");
+        } # for each layer
+    }
+
     $self->set_step_done(STEP_PREPARE_INFILL);
 }
 
@@ -591,6 +666,15 @@ sub _support_material {
     );
 }
 
+# This function analyzes slices of a region (SurfaceCollection slices).
+# Each slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
+# Initially all slices are of type S_TYPE_INTERNAL.
+# Slices are compared against the top / bottom slices and regions and classified to the following groups:
+# S_TYPE_TOP - Part of a region, which is not covered by any upper layer. This surface will be filled with a top solid infill.
+# S_TYPE_BOTTOMBRIDGE - Part of a region, which is not fully supported, but it hangs in the air, or it hangs losely on a support or a raft.
+# S_TYPE_BOTTOM - Part of a region, which is not supported by the same region, but it is supported either by another region, or by a soluble interface layer.
+# S_TYPE_INTERNAL - Part of a region, which is supported by the same region type.
+# If a part of a region is of S_TYPE_BOTTOM and S_TYPE_TOP, the S_TYPE_BOTTOM wins.
 sub detect_surfaces_type {
     my $self = shift;
     Slic3r::debugf "Detecting solid surfaces...\n";
@@ -623,6 +707,8 @@ sub detect_surfaces_type {
             # of current layer and upper one)
             my @top = ();
             if ($upper_layer) {
+                # Config value $self->config->interface_shells is true, if a support is separated from the object
+                # by a soluble material (for example a PVA plastic).
                 my $upper_slices = $self->config->interface_shells
                     ? [ map $_->expolygon, @{$upper_layer->regions->[$region_id]->slices} ]
                     : $upper_layer->slices;
@@ -643,14 +729,15 @@ sub detect_surfaces_type {
             # of current layer and lower one)
             my @bottom = ();
             if ($lower_layer) {
-                # any surface lying on the void is a true bottom bridge
+                # Any surface lying on the void is a true bottom bridge (an overhang)
                 push @bottom, $difference->(
                     [ map $_->expolygon, @{$layerm->slices} ],
                     $lower_layer->slices,
                     S_TYPE_BOTTOMBRIDGE,
                 );
                 
-                # if we have soluble support material, don't bridge
+                # If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
+                # the support from the print.
                 if ($self->config->support_material && $self->config->support_material_contact_distance == 0) {
                     $_->surface_type(S_TYPE_BOTTOM) for @bottom;
                 }
@@ -707,7 +794,11 @@ sub detect_surfaces_type {
             
             Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
                 $layerm->layer->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
-        }
+
+            if ($SLIC3R_DEBUG_SLICE_PROCESSING) {
+                $layerm->export_region_slices_to_svg_debug("detect_surfaces_type-final");
+            }
+        } # for each layer of a region
         
         # clip surfaces to the fill boundaries
         foreach my $layer (@{$self->layers}) {
@@ -728,8 +819,12 @@ sub detect_surfaces_type {
                     for map Slic3r::Surface->new(expolygon => $_, surface_type => $surface->surface_type),
                         @$intersection;
             }
-        }
-    }
+
+            if ($SLIC3R_DEBUG_SLICE_PROCESSING) {
+                $layerm->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-final");
+            }
+        } # for each layer of a region
+    } # for each $self->print->region_count
 }
 
 # Idempotence of this method is guaranteed by the fact that we don't remove things from
@@ -771,6 +866,8 @@ sub clip_fill_surfaces {
             );
             
             # only consider perimeter areas that are at least one extrusion width thick
+            #FIXME Offset2 eats out from both sides, while the perimeters are create outside in.
+            #Should the $pw not be half of the current value?
             my $pw = min(map $_->flow(FLOW_ROLE_PERIMETER)->scaled_width, @{$layer->regions});
             $perimeters = offset2($perimeters, -$pw, +$pw);
             
@@ -829,6 +926,10 @@ sub clip_fill_surfaces {
             
             $layerm->fill_surfaces->clear;
             $layerm->fill_surfaces->append($_) for (@new, @other);
+
+            if ($SLIC3R_DEBUG_SLICE_PROCESSING) {
+                $layerm->export_region_fill_surfaces_to_svg_debug("6_clip_fill_surfaces");
+            }
         }
     }
 }
@@ -844,6 +945,8 @@ sub discover_horizontal_shells {
             
             if ($layerm->region->config->solid_infill_every_layers && $layerm->region->config->fill_density > 0
                 && ($i % $layerm->region->config->solid_infill_every_layers) == 0) {
+                # This is the layer to put the sparse infill in. Mark S_TYPE_INTERNAL surfaces as S_TYPE_INTERNALSOLID or S_TYPE_INTERNALBRIDGE.
+                # If the sparse infill is not active, the internal surfaces are of type S_TYPE_INTERNAL.
                 my $type = $layerm->region->config->fill_density == 100 ? S_TYPE_INTERNALSOLID : S_TYPE_INTERNALBRIDGE;
                 $_->surface_type($type) for @{$layerm->fill_surfaces->filter_by_type(S_TYPE_INTERNAL)};
             }
@@ -869,15 +972,18 @@ sub discover_horizontal_shells {
                     ? $layerm->region->config->top_solid_layers
                     : $layerm->region->config->bottom_solid_layers;
                 NEIGHBOR: for (my $n = ($type == S_TYPE_TOP) ? $i-1 : $i+1; 
-                        abs($n - $i) <= $solid_layers-1; 
-                        ($type == S_TYPE_TOP) ? $n-- : $n++) {
+                                abs($n - $i) < $solid_layers;
+                                ($type == S_TYPE_TOP) ? $n-- : $n++) {
                     
                     next if $n < 0 || $n >= $self->layer_count;
                     Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
                     
+                    # Reference to the lower layer of a TOP surface, or an upper layer of a BOTTOM surface.
                     my $neighbor_layerm = $self->get_layer($n)->regions->[$region_id];
+                    # Reference to the neighbour fill surfaces.
                     my $neighbor_fill_surfaces = $neighbor_layerm->fill_surfaces;
-                    my @neighbor_fill_surfaces = map $_->clone, @$neighbor_fill_surfaces;  # clone because we will use these surfaces even after clearing the collection
+                    # Clone because we will use these surfaces even after clearing the collection.
+                    my @neighbor_fill_surfaces = map $_->clone, @$neighbor_fill_surfaces;
                     
                     # find intersection between neighbor and current layer's surfaces
                     # intersections have contours and holes
@@ -888,6 +994,7 @@ sub discover_horizontal_shells {
                     # shells to be generated in the base but not in the walls (where there are many
                     # narrow bottom surfaces): reassigning $solid will consider the 'shadow' of the 
                     # upper perimeter as an obstacle and shell will not be propagated to more upper layers
+                    #FIXME How does it work for S_TYPE_INTERNALBRIDGE? This is set for sparse infill. Likely this does not work.
                     my $new_internal_solid = $solid = intersection(
                         $solid,
                         [ map $_->p, grep { ($_->surface_type == S_TYPE_INTERNAL) || ($_->surface_type == S_TYPE_INTERNALSOLID) } @neighbor_fill_surfaces ],
@@ -914,7 +1021,7 @@ sub discover_horizontal_shells {
                     
                     # make sure the new internal solid is wide enough, as it might get collapsed
                     # when spacing is added in Fill.pm
-                    {
+                    if (0) {
                         my $margin = 3 * $layerm->flow(FLOW_ROLE_SOLID_INFILL)->scaled_width; # require at least this size
                         # we use a higher miterLimit here to handle areas with acute angles
                         # in those cases, the default miterLimit would cut the corner and we'd
@@ -984,12 +1091,23 @@ sub discover_horizontal_shells {
                             for map $s->[0]->clone(expolygon => $_), @$solid_surfaces;
                     }
                 }
-            }
-        }
+            } # foreach my $type (S_TYPE_TOP, S_TYPE_BOTTOM, S_TYPE_BOTTOMBRIDGE)
+        } # for each layer
+    } # for each region
+
+    # Debugging output.
+    if ($SLIC3R_DEBUG_SLICE_PROCESSING) {
+        for my $region_id (0 .. ($self->print->region_count-1)) {
+            for (my $i = 0; $i < $self->layer_count; $i++) {
+                my $layerm = $self->get_layer($i)->regions->[$region_id];
+                $layerm->export_region_slices_to_svg_debug("5_discover_horizontal_shells");
+                $layerm->export_region_fill_surfaces_to_svg_debug("5_discover_horizontal_shells");
+            } # for each layer
+        } # for each region
     }
 }
 
-# combine fill surfaces across layers
+# combine fill surfaces across layers to honor the "infill every N layers" option
 # Idempotence of this method is guaranteed by the fact that we don't remove things from
 # fill_surfaces but we only turn them into VOID surfaces, thus preserving the boundaries.
 sub combine_infill {
