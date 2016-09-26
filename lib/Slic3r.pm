@@ -34,7 +34,11 @@ BEGIN {
     # in multi-threaded context at all.
     # A good interactive perl debugger is the ActiveState Komodo IDE
     # or the EPIC http://www.epic-ide.org/
-    $have_threads = 0 if (defined($ENV{'SLIC3R_SINGLETHREADED'}) && $ENV{'SLIC3R_SINGLETHREADED'} == 1)
+    $have_threads = 0 if (defined($ENV{'SLIC3R_SINGLETHREADED'}) && $ENV{'SLIC3R_SINGLETHREADED'} == 1);
+    print "Threading disabled\n" if !$have_threads;
+
+    $debug = 1 if (defined($ENV{'SLIC3R_DEBUGOUT'}) && $ENV{'SLIC3R_DEBUGOUT'} == 1);
+    print "Debugging output enabled\n" if $debug;
 }
 
 warn "Running Slic3r under Perl 5.16 is neither supported nor recommended\n"
