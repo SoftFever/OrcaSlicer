@@ -1,3 +1,4 @@
+#include "BoundingBox.hpp"
 #include "Polyline.hpp"
 #include "ExPolygon.hpp"
 #include "ExPolygonCollection.hpp"
@@ -218,6 +219,22 @@ Polyline::wkt() const
     }
     wkt << "))";
     return wkt.str();
+}
+
+BoundingBox get_extents(const Polyline &polyline)
+{
+    return polyline.bounding_box();
+}
+
+BoundingBox get_extents(const Polylines &polylines)
+{
+    BoundingBox bb;
+    if (! polylines.empty()) {
+        bb = polylines.front().bounding_box();
+        for (size_t i = 1; i < polylines.size(); ++ i)
+            bb.merge(polylines[i]);
+    }
+    return bb;
 }
 
 ThickLines

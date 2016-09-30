@@ -1,4 +1,7 @@
 #include "SurfaceCollection.hpp"
+#include "BoundingBox.hpp"
+#include "SVG.hpp"
+
 #include <map>
 
 namespace Slic3r {
@@ -211,6 +214,30 @@ SurfaceCollection::append(const SurfaceType surfaceType, const Slic3r::ExPolygon
 {
     for (Slic3r::ExPolygons::const_iterator it = expoly.begin(); it != expoly.end(); ++ it)
         this->surfaces.push_back(Slic3r::Surface(surfaceType, *it));
+}
+
+void SurfaceCollection::export_to_svg(const char *path, bool show_labels) 
+{
+    BoundingBox bbox;
+    for (Surfaces::const_iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface)
+        bbox.merge(get_extents(surface->expolygon));
+    Point legend_size = export_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min.x, bbox.max.y);
+    bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
+
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (Surfaces::const_iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
+        svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
+        if (show_labels) {
+            int idx = int(surface - this->surfaces.cbegin());
+            char label[64];
+            sprintf(label, "%d", idx);
+            svg.draw_text(surface->expolygon.contour.points.front(), label, "black");
+        }
+    }
+    export_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close();
 }
 
 }

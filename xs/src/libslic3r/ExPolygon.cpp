@@ -4,6 +4,7 @@
 #include "Polygon.hpp"
 #include "Line.hpp"
 #include "ClipperUtils.hpp"
+#include "SVG.hpp"
 #include "polypartition.h"
 #include "poly2tri/poly2tri.h"
 #include <algorithm>
@@ -32,6 +33,17 @@ ExPolygon::operator Polygons() const
         polygons.push_back(*it);
     }
     return polygons;
+}
+
+ExPolygon::operator Polylines() const
+{
+    Polylines polylines;
+    polylines.reserve(this->holes.size() + 1);
+    polylines.push_back((Polyline)this->contour);
+    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
+        polylines.push_back((Polyline)*it);
+    }
+    return polylines;
 }
 
 void
@@ -105,6 +117,25 @@ ExPolygon::contains(const Polyline &polyline) const
 }
 
 bool
+ExPolygon::contains(const Polylines &polylines) const
+{
+    #if 0
+    BoundingBox bbox = get_extents(polylines);
+    bbox.merge(get_extents(*this));
+    SVG svg("out\\ExPolygon_contains.svg", bbox);
+    svg.draw(*this);
+    svg.draw_outline(*this);
+    svg.draw(polylines, "blue");
+    #endif
+    Polylines pl_out;
+    diff(polylines, *this, &pl_out);
+    #if 0
+    svg.draw(pl_out, "red");
+    #endif
+    return pl_out.empty();
+}
+
+bool
 ExPolygon::contains(const Point &point) const
 {
     if (!this->contour.contains(point)) return false;
@@ -129,6 +160,16 @@ ExPolygon::has_boundary_point(const Point &point) const
         if (h->has_boundary_point(point)) return true;
     }
     return false;
+}
+
+bool
+ExPolygon::overlaps(const ExPolygon &other) const
+{
+    Polylines pl_out;
+    intersection((Polylines)other, *this, &pl_out);
+    if (! pl_out.empty())
+        return true; 
+    return ! other.contour.points.empty() && this->contains_b(other.contour.points.front());
 }
 
 void

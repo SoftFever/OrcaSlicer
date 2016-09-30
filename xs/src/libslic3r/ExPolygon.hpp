@@ -18,17 +18,28 @@ class ExPolygon
     Polygons holes;
     operator Points() const;
     operator Polygons() const;
+    operator Polylines() const;
+    void clear() { contour.points.clear(); holes.clear(); }
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle);
     void rotate(double angle, const Point &center);
     double area() const;
     bool is_valid() const;
+
+    // Contains the line / polyline / polylines etc COMPLETELY.
     bool contains(const Line &line) const;
     bool contains(const Polyline &polyline) const;
+    bool contains(const Polylines &polylines) const;
     bool contains(const Point &point) const;
     bool contains_b(const Point &point) const;
     bool has_boundary_point(const Point &point) const;
+
+    // Does this expolygon overlap another expolygon?
+    // Either the ExPolygons intersect, or one is fully inside the other,
+    // and it is not inside a hole of the other expolygon.
+    bool overlap(const ExPolygon &other) const;
+
     void simplify_p(double tolerance, Polygons* polygons) const;
     Polygons simplify_p(double tolerance) const;
     ExPolygons simplify(double tolerance) const;

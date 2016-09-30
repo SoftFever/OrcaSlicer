@@ -33,6 +33,9 @@ class Polyline : public MultiPoint {
     std::string wkt() const;
 };
 
+extern BoundingBox get_extents(const Polyline &polyline);
+extern BoundingBox get_extents(const Polylines &polylines);
+
 class ThickPolyline : public Polyline {
     public:
     std::vector<coordf_t> width;

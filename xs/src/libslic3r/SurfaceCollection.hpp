@@ -30,6 +30,9 @@ class SurfaceCollection
     void filter_by_type(SurfaceType type, Polygons* polygons);
     void append(const SurfaceCollection &coll);
     void append(const SurfaceType surfaceType, const Slic3r::ExPolygons &expoly);
+
+    // For debugging purposes:
+    void export_to_svg(const char *path, bool show_labels);
 };
 
 }

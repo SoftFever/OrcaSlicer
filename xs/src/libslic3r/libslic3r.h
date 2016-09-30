@@ -63,6 +63,6 @@ void confess_at(const char *file, int line, const char *func, const char *pat, .
 #endif
 
 // Write slices as SVG images into out directory during the 2D processing of the slices.
-#define SLIC3R_DEBUG_SLICE_PROCESSING
+// #define SLIC3R_DEBUG_SLICE_PROCESSING
 
 #endif

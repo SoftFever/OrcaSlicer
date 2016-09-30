@@ -16,6 +16,8 @@
     void scale(double factor);
     void translate(double x, double y);
     void offset(double delta);
+    bool contains_point(Point* point) %code{% RETVAL = THIS->contains(*point); %};
+    bool overlap(BoundingBox* bbox) %code{% RETVAL = THIS->overlap(*bbox); %};
     Clone<Polygon> polygon();
     Clone<Point> size();
     Clone<Point> center();
