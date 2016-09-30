@@ -165,8 +165,22 @@ ExPolygon::has_boundary_point(const Point &point) const
 bool
 ExPolygon::overlaps(const ExPolygon &other) const
 {
+    #if 0
+    BoundingBox bbox = get_extents(other);
+    bbox.merge(get_extents(*this));
+    static int iRun = 0;
+    char path[2048];
+    sprintf(path, "out\\ExPolygon_overlaps-%d.svg", iRun ++);
+    SVG svg(path, bbox);
+    svg.draw(*this);
+    svg.draw_outline(*this);
+    svg.draw_outline(other, "blue");
+    #endif
     Polylines pl_out;
     intersection((Polylines)other, *this, &pl_out);
+    #if 0
+    svg.draw(pl_out, "red");
+    #endif
     if (! pl_out.empty())
         return true; 
     return ! other.contour.points.empty() && this->contains_b(other.contour.points.front());

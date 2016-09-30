@@ -271,7 +271,8 @@ template bool BoundingBoxBase<Pointf>::contains(const Pointf &point) const;
 template <class PointClass> bool
 BoundingBoxBase<PointClass>::overlap(const BoundingBoxBase<PointClass> &other) const
 {
-    return this->contains(other.min) || other.contains(this->min);
+    return ! (this->max.x < other.min.x || this->min.x > other.max.x ||
+              this->max.y < other.min.y || this->min.y > other.max.y);
 }
 template bool BoundingBoxBase<Point>::overlap(const BoundingBoxBase<Point> &point) const;
 template bool BoundingBoxBase<Pointf>::overlap(const BoundingBoxBase<Pointf> &point) const;

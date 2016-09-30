@@ -38,7 +38,7 @@ class ExPolygon
     // Does this expolygon overlap another expolygon?
     // Either the ExPolygons intersect, or one is fully inside the other,
     // and it is not inside a hole of the other expolygon.
-    bool overlap(const ExPolygon &other) const;
+    bool overlaps(const ExPolygon &other) const;
 
     void simplify_p(double tolerance, Polygons* polygons) const;
     Polygons simplify_p(double tolerance) const;
