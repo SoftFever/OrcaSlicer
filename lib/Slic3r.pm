@@ -56,6 +56,7 @@ use Slic3r::ExPolygon;
 use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
 use Slic3r::Fill;
+use Slic3r::Fill2;
 use Slic3r::Flow;
 use Slic3r::Format::AMF;
 use Slic3r::Format::OBJ;

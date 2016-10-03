@@ -20,6 +20,13 @@ sub fill_maker {
     return Slic3r::Fill->new(bounding_box => $self->bounding_box);
 }
 
+# Vojtech's implementation: Create the C++ filler.
+# TODO: lazy
+sub fill_maker2 {
+    my $self = shift;
+    return Slic3r::Fill2->new(bounding_box => $self->bounding_box);
+}
+
 sub region_volumes {
     my $self = shift;
     return [ map $self->get_region_volumes($_), 0..($self->region_count - 1) ];

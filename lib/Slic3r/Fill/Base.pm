@@ -8,6 +8,16 @@ has 'spacing'             => (is => 'rw'); # in unscaled coordinates
 has 'loop_clipping'       => (is => 'rw', default => sub { 0 }); # in scaled coordinates
 has 'bounding_box'        => (is => 'ro', required => 0);  # Slic3r::Geometry::BoundingBox object
 
+sub set_spacing {
+    my ($self, $spacing) = @_;
+    $self->spacing($spacing);
+}
+
+sub set_angle {
+    my ($self, $angle) = @_;
+    $self->angle($angle);
+}
+
 sub adjust_solid_spacing {
     my $self = shift;
     my %params = @_;

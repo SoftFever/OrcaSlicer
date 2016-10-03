@@ -14,7 +14,7 @@
 
 #include "FillRectilinear2.hpp"
 
-#define SLIC3R_DEBUG
+// #define SLIC3R_DEBUG
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"
