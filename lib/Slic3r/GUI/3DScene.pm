@@ -8,7 +8,8 @@
 # for efficient building of vertex arrays for OpenGL rendering.
 # 
 # Slic3r::GUI::Plater::3D derives from Slic3r::GUI::3DScene,
-# Slic3r::GUI::Plater::3DPreview, Slic3r::GUI::Plater::ObjectCutDialog and Slic3r::GUI::Plater::ObjectPartsPanel
+# Slic3r::GUI::Plater::3DPreview, Slic3r::GUI::Plater::3DToolpaths, 
+# Slic3r::GUI::Plater::ObjectCutDialog and Slic3r::GUI::Plater::ObjectPartsPanel
 # own $self->{canvas} of the Slic3r::GUI::3DScene type.
 #
 # Therefore the 3DScene supports renderng of STLs, extrusions and cutting planes,
@@ -944,9 +945,13 @@ sub draw_volumes {
             }
             # This shall not happen.
             next if ($i == @{$volume->offsets});
+            # Remember start of the layer.
+            if ($i >= 3) {
+                # Get end of the preceding layer, which is the start of the current layer.
+                $qverts_begin = $volume->offsets->[$i-2];
+                $tverts_begin = $volume->offsets->[$i-1];
+            }
             # Some layers are above $min_z. Which?
-            $qverts_begin = $volume->offsets->[$i+1];
-            $tverts_begin = $volume->offsets->[$i+2];
             while ($i < @{$volume->offsets} && $volume->offsets->[$i] <= $max_z) {
                 $i += 3;
             }
