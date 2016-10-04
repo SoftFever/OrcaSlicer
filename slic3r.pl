@@ -418,6 +418,9 @@ $j
                         default: $config->{support_material_threshold})
     --support-material-pattern
                         Pattern to use for support material (default: $config->{support_material_pattern})
+    --support-material-with-sheath
+                        Add a sheath (a single perimeter line) around the base support.
+                        This makes the support more reliable, but also more difficult to remove. (default: yes)
     --support-material-spacing
                         Spacing between pattern lines (mm, default: $config->{support_material_spacing})
     --support-material-angle

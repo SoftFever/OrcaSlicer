@@ -592,6 +592,7 @@ sub generate_toolpaths {
     
     # prepare fillers
     my $pattern = $self->object_config->support_material_pattern;
+    my $with_sheath = $self->object_config->support_material_with_sheath;
     my @angles = ($self->object_config->support_material_angle);
     if ($pattern eq 'rectilinear-grid') {
         $pattern = 'rectilinear';
@@ -791,7 +792,7 @@ sub generate_toolpaths {
                 # use the proper spacing for first layer as we don't need to align
                 # its pattern to the other layers
                 $filler->spacing($base_flow->spacing);
-            } else {
+            } elsif ($with_sheath) {
                 # draw a perimeter all around support infill
                 # TODO: use brim ordering algorithm
                 my $mm3_per_mm = $_flow->mm3_per_mm;

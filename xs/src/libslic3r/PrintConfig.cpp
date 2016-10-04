@@ -1219,6 +1219,13 @@ PrintConfigDef::PrintConfigDef()
     def->max = 90;
     def->default_value = new ConfigOptionInt(0);
 
+    def = this->add("support_material_with_sheath", coBool);
+    def->label = "With sheath around the support";
+    def->category = "Support material";
+    def->tooltip = "Add a sheath (a single perimeter line) around the base support. This makes the support more reliable, but also more difficult to remove.";
+    def->cli = "support-material-with-sheath!";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("temperature", coInts);
     def->label = "Other layers";
     def->tooltip = "Extruder temperature for layers after the first one. Set this to zero to disable temperature control commands in the output.";

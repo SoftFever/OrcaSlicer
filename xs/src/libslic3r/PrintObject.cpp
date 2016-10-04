@@ -240,6 +240,7 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "support_material_pattern"
             || *opt_key == "support_material_spacing"
             || *opt_key == "support_material_threshold"
+            || *opt_key == "support_material_with_sheath"
             || *opt_key == "dont_support_bridges"
             || *opt_key == "first_layer_extrusion_width") {
             steps.insert(posSupportMaterial);

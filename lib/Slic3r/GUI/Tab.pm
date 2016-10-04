@@ -480,7 +480,7 @@ sub build {
         brim_width
         support_material support_material_threshold support_material_enforce_layers
         raft_layers
-        support_material_pattern support_material_spacing support_material_angle
+        support_material_pattern support_material_with_sheath support_material_spacing support_material_angle
         support_material_interface_layers support_material_interface_spacing
         support_material_contact_distance support_material_buildplate_only dont_support_bridges
         notes
@@ -588,6 +588,7 @@ sub build {
             my $optgroup = $page->new_optgroup('Options for support material and raft');
             $optgroup->append_single_option_line('support_material_contact_distance');
             $optgroup->append_single_option_line('support_material_pattern');
+            $optgroup->append_single_option_line('support_material_with_sheath');
             $optgroup->append_single_option_line('support_material_spacing');
             $optgroup->append_single_option_line('support_material_angle');
             $optgroup->append_single_option_line('support_material_interface_layers');
@@ -826,7 +827,7 @@ sub _update {
     my $have_support_material = $config->support_material || $config->raft_layers > 0;
     my $have_support_interface = $config->support_material_interface_layers > 0;
     $self->get_field($_)->toggle($have_support_material)
-        for qw(support_material_threshold support_material_pattern
+        for qw(support_material_threshold support_material_pattern support_material_with_sheath
             support_material_spacing support_material_angle
             support_material_interface_layers dont_support_bridges
             support_material_extrusion_width support_material_contact_distance);
