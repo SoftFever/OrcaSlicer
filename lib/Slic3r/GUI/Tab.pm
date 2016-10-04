@@ -482,7 +482,7 @@ sub build {
         raft_layers
         support_material_pattern support_material_spacing support_material_angle
         support_material_interface_layers support_material_interface_spacing
-        support_material_contact_distance dont_support_bridges
+        support_material_contact_distance support_material_buildplate_only dont_support_bridges
         notes
         complete_objects extruder_clearance_radius extruder_clearance_height
         gcode_comments output_filename_format
@@ -592,6 +592,7 @@ sub build {
             $optgroup->append_single_option_line('support_material_angle');
             $optgroup->append_single_option_line('support_material_interface_layers');
             $optgroup->append_single_option_line('support_material_interface_spacing');
+            $optgroup->append_single_option_line('support_material_buildplate_only');
             $optgroup->append_single_option_line('dont_support_bridges');
         }
     }

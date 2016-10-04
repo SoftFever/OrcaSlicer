@@ -124,7 +124,7 @@ sub build {
         layer_height perimeters top_solid_layers bottom_solid_layers 
         fill_density fill_pattern external_fill_pattern
         support_material support_material_spacing raft_layers
-        support_material_contact_distance dont_support_bridges
+        support_material_contact_distance support_material_buildplate_only dont_support_bridges
         perimeter_speed infill_speed travel_speed
         brim_width
         xy_size_compensation
@@ -155,6 +155,7 @@ sub build {
         $optgroup->append_single_option_line('support_material');
         $optgroup->append_single_option_line('support_material_spacing');
         $optgroup->append_single_option_line('support_material_contact_distance');
+        $optgroup->append_single_option_line('support_material_buildplate_only');
         $optgroup->append_single_option_line('dont_support_bridges');
         $optgroup->append_single_option_line('raft_layers');
     }

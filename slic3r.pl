@@ -432,6 +432,8 @@ $j
     --support-material-enforce-layers
                         Enforce support material on the specified number of layers from bottom,
                         regardless of --support-material and threshold (0+, default: $config->{support_material_enforce_layers})
+    --support-material-buildplate-only
+                        Only create support if it lies on a build plate. Don't create support on a print. (default: no)
     --dont-support-bridges
                         Experimental option for preventing support material from being generated under bridged areas (default: yes)
   

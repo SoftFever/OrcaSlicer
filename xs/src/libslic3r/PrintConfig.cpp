@@ -1092,6 +1092,13 @@ PrintConfigDef::PrintConfigDef()
     def->max = 359;
     def->default_value = new ConfigOptionInt(0);
 
+    def = this->add("support_material_buildplate_only", coBool);
+    def->label = "Support on build plate only";
+    def->category = "Support material";
+    def->tooltip = "Only create support if it lies on a build plate. Don't create support on a print.";
+    def->cli = "support-material-buildplate-only!";
+    def->default_value = new ConfigOptionBool(false);
+
     def = this->add("support_material_contact_distance", coFloat);
     def->gui_type = "f_enum_open";
     def->label = "Contact Z distance";

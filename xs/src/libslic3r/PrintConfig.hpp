@@ -145,6 +145,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
 //    ConfigOptionFloat               seam_preferred_direction_jitter;
     ConfigOptionBool                support_material;
     ConfigOptionInt                 support_material_angle;
+    ConfigOptionBool                support_material_buildplate_only;
     ConfigOptionFloat               support_material_contact_distance;
     ConfigOptionInt                 support_material_enforce_layers;
     ConfigOptionInt                 support_material_extruder;
@@ -177,6 +178,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
 //        OPT_PTR(seam_preferred_direction_jitter);
         OPT_PTR(support_material);
         OPT_PTR(support_material_angle);
+        OPT_PTR(support_material_buildplate_only);
         OPT_PTR(support_material_contact_distance);
         OPT_PTR(support_material_enforce_layers);
         OPT_PTR(support_material_extruder);

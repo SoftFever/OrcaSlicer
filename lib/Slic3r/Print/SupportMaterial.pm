@@ -1,3 +1,5 @@
+# Instantiated by Slic3r::Print::Object->_support_material()
+# only generate() and contact_distance() are called from the outside of this module.
 package Slic3r::Print::SupportMaterial;
 use Moo;
 
@@ -25,6 +27,7 @@ use constant PILLAR_SIZE    => 2.5;
 use constant PILLAR_SPACING => 10;
 
 sub generate {
+    # $object is Slic3r::Print::Object
     my ($self, $object) = @_;
     
     # Determine the top surfaces of the support, defined as:
@@ -38,7 +41,7 @@ sub generate {
     # the layer heights of support material and to clip support to the object
     # silhouette.
     my ($top) = $self->object_top($object, $contact);
-    
+
     # We now know the upper and lower boundaries for our support material object
     # (@$contact_z and @$top_z), so we can generate intermediate layers.
     my $support_z = $self->support_layers_z(
@@ -88,6 +91,7 @@ sub generate {
 }
 
 sub contact_area {
+    # $object is Slic3r::Print::Object
     my ($self, $object) = @_;
     
     # if user specified a custom angle threshold, convert it to radians
@@ -97,6 +101,12 @@ sub contact_area {
         Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
     }
     
+    # Build support on a build plate only? If so, then collect top surfaces into $buildplate_only_top_surfaces
+    # and subtract $buildplate_only_top_surfaces from the contact surfaces, so
+    # there is no contact surface supported by a top surface.
+    my $buildplate_only = $self->object_config->support_material && $self->object_config->support_material_buildplate_only;
+    my $buildplate_only_top_surfaces = [];
+
     # determine contact areas
     my %contact  = ();  # contact_z => [ polygons ]
     my %overhang = ();  # contact_z => [ polygons ] - this stores the actual overhang supported by each contact layer
@@ -113,7 +123,22 @@ sub contact_area {
             last if $layer_id > 0;
         }
         my $layer = $object->get_layer($layer_id);
-        
+
+        if ($buildplate_only) {
+            # Collect the top surfaces up to this layer and merge them.
+            my $projection_new = [];
+            push @$projection_new, ( map $_->p, map @{$_->slices->filter_by_type(S_TYPE_TOP)}, @{$layer->regions} );
+            if (@$projection_new) {
+                # Merge the new top surfaces with the preceding top surfaces.
+                # Apply the safety offset to the newly added polygons, so they will connect
+                # with the polygons collected before,
+                # but don't apply the safety offset during the union operation as it would
+                # inflate the polygons over and over.
+                push @$buildplate_only_top_surfaces, @{ offset($projection_new, scale(0.01)) };
+                $buildplate_only_top_surfaces = union($buildplate_only_top_surfaces, 0);
+            }
+        }
+
         # detect overhangs and contact areas needed to support them
         my (@overhang, @contact) = ();
         if ($layer_id == 0) {
@@ -239,8 +264,14 @@ sub contact_area {
                             1,
                         );
                     }
+                } # if ($self->object_config->dont_support_bridges)
+
+                if ($buildplate_only) {
+                    # Don't support overhangs above the top surfaces.
+                    # This step is done before the contact surface is calcuated by growing the overhang region.
+                    $diff = diff($diff, $buildplate_only_top_surfaces);
                 }
-                
+
                 next if !@$diff;
                 push @overhang, @$diff;  # NOTE: this is not the full overhang as it misses the outermost half of the perimeter width!
             
@@ -249,11 +280,16 @@ sub contact_area {
                 # We increment the area in steps because we don't want our support to overflow
                 # on the other side of the object (if it's very thin).
                 {
-                    my @slices_margin = @{offset([ map @$_, @{$lower_layer->slices} ], +$fw/2)};
+                    my $slices_margin = offset([ map @$_, @{$lower_layer->slices} ], +$fw/2);
+                    if ($buildplate_only) {
+                        # Trim the inflated contact surfaces by the top surfaces as well.
+                        push @$slices_margin, map $_->clone, @{$buildplate_only_top_surfaces};
+                        $slices_margin = union($slices_margin);
+                    }
                     for ($fw/2, map {scale MARGIN_STEP} 1..(MARGIN / MARGIN_STEP)) {
                         $diff = diff(
                             offset($diff, $_),
-                            \@slices_margin,
+                            $slices_margin,
                         );
                     }
                 }
@@ -280,14 +316,15 @@ sub contact_area {
             
             if (0) {
                 require "Slic3r/SVG.pm";
-                Slic3r::SVG::output("contact_" . $contact_z . ".svg",
-                    expolygons      => union_ex(\@contact),
-                    red_expolygons  => union_ex(\@overhang),
+                Slic3r::SVG::output("out\\contact_" . $contact_z . ".svg",
+                    green_expolygons => union_ex($buildplate_only_top_surfaces),
+                    blue_expolygons  => union_ex(\@contact),
+                    red_expolygons   => union_ex(\@overhang),
                 );
             }
         }
     }
-    
+
     return (\%contact, \%overhang);
 }
 
@@ -297,6 +334,8 @@ sub object_top {
     # find object top surfaces
     # we'll use them to clip our support and detect where does it stick
     my %top = ();  # print_z => [ expolygons ]
+    return \%top if ($self->object_config->support_material_buildplate_only);
+
     my $projection = [];
     foreach my $layer (reverse @{$object->layers}) {
         if (my @top = map @{$_->slices->filter_by_type(S_TYPE_TOP)}, @{$layer->regions}) {
@@ -429,6 +468,9 @@ sub generate_interface_layers {
 
 sub generate_bottom_interface_layers {
     my ($self, $support_z, $base, $top, $interface) = @_;
+
+    # If no interface layers are allowed, don't generate bottom interface layers.
+    return if $self->object_config->support_material_interface_layers == 0;
     
     my $area_threshold = $self->interface_flow->scaled_spacing ** 2;
     
@@ -717,7 +759,7 @@ sub generate_toolpaths {
                     width       => $_interface_flow->width,
                     height      => $layer->height,
                 ), @p;
-            }
+            }                
             
             $layer->support_interface_fills->append(@paths);
         }

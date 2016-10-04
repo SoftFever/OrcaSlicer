@@ -236,6 +236,7 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "support_material_interface_extruder"
             || *opt_key == "support_material_interface_spacing"
             || *opt_key == "support_material_interface_speed"
+            || *opt_key == "support_material_buildplate_only"
             || *opt_key == "support_material_pattern"
             || *opt_key == "support_material_spacing"
             || *opt_key == "support_material_threshold"
