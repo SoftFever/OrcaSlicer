@@ -73,6 +73,15 @@ use constant SELECTED_COLOR => [0,1,0,1];
 # For mesh selection: Mouse hovers over the object, but object not selected yet - dark green.
 use constant HOVER_COLOR    => [0.4,0.9,0,1];
 
+# phi / theta angles to orient the camera.
+use constant VIEW_DEFAULT    => [45.0,45.0];
+use constant VIEW_LEFT       => [90.0,90.0];
+use constant VIEW_RIGHT      => [-90.0,90.0];
+use constant VIEW_TOP        => [0.0,0.0];
+use constant VIEW_BOTTOM     => [0.0,180.0];
+use constant VIEW_FRONT      => [0.0,90.0];
+use constant VIEW_REAR       => [180.0,90.0];
+
 # make OpenGL::Array thread-safe
 {
     no warnings 'redefine';
@@ -319,6 +328,41 @@ sub set_viewport_from_scene {
     $self->_zoom($scene->_zoom);
     $self->_quat($scene->_quat);
     $self->_dirty(1);
+}
+
+# Set the camera to a default orientation,
+# zoom to volumes.
+sub select_view {
+    my ($self, $direction) = @_;
+    my $dirvec;
+    if (ref($direction)) {
+        $dirvec = $direction;
+    } else {
+        if ($direction eq 'default') {
+            $dirvec = VIEW_DEFAULT;
+        } elsif ($direction eq 'left') {
+            $dirvec = VIEW_LEFT;
+        } elsif ($direction eq 'right') {
+            $dirvec = VIEW_RIGHT;
+        } elsif ($direction eq 'top') {
+            $dirvec = VIEW_TOP;
+        } elsif ($direction eq 'bottom') {
+            $dirvec = VIEW_BOTTOM;
+        } elsif ($direction eq 'front') {
+            $dirvec = VIEW_FRONT;
+        } elsif ($direction eq 'rear') {
+            $dirvec = VIEW_REAR;
+        }
+    }
+    $self->_sphi($dirvec->[0]);
+    $self->_stheta($dirvec->[1]);
+    # Avoid gimball lock.
+    $self->_stheta(150) if $self->_stheta > 150;
+    $self->_stheta(0) if $self->_stheta < 0;
+    # View everything.
+    $self->zoom_to_volumes;
+    $self->on_viewport_changed->() if $self->on_viewport_changed;
+    $self->Refresh;
 }
 
 sub zoom_to_bounding_box {

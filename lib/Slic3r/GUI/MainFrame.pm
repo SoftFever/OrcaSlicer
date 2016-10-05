@@ -274,6 +274,18 @@ sub _init_menubar {
             $self->select_tab($tab_offset+2);
         }, undef, 'printer_empty.png');
     }
+
+    # View menu
+    if (!$self->{no_plater}) {
+        $self->{viewMenu} = Wx::Menu->new;
+        $self->_append_menu_item($self->{viewMenu}, "Default", 'Default View', sub { $self->select_view('default'); });
+        $self->_append_menu_item($self->{viewMenu}, "Top"    , 'Top View'    , sub { $self->select_view('top'    ); });
+        $self->_append_menu_item($self->{viewMenu}, "Bottom" , 'Bottom View' , sub { $self->select_view('bottom' ); });
+        $self->_append_menu_item($self->{viewMenu}, "Front"  , 'Front View'  , sub { $self->select_view('front'  ); });
+        $self->_append_menu_item($self->{viewMenu}, "Rear"   , 'Rear View'   , sub { $self->select_view('rear'   ); });
+        $self->_append_menu_item($self->{viewMenu}, "Left"   , 'Left View'   , sub { $self->select_view('left'   ); });
+        $self->_append_menu_item($self->{viewMenu}, "Right"  , 'Right View'  , sub { $self->select_view('right'  ); });
+    }
     
     # Help menu
     my $helpMenu = Wx::Menu->new;
@@ -307,6 +319,7 @@ sub _init_menubar {
         $menubar->Append($self->{plater_menu}, "&Plater") if $self->{plater_menu};
         $menubar->Append($self->{object_menu}, "&Object") if $self->{object_menu};
         $menubar->Append($windowMenu, "&Window");
+        $menubar->Append($self->{viewMenu}, "&View") if $self->{viewMenu};
         $menubar->Append($helpMenu, "&Help");
         $self->SetMenuBar($menubar);
     }
@@ -773,6 +786,14 @@ sub check_unsaved_changes {
 sub select_tab {
     my ($self, $tab) = @_;
     $self->{tabpanel}->SetSelection($tab);
+}
+
+# Set a camera direction, zoom to all objects.
+sub select_view {
+    my ($self, $direction) = @_;
+    if (! $self->{no_plater}) {
+        $self->{plater}->select_view($direction);
+    }
 }
 
 sub _append_menu_item {

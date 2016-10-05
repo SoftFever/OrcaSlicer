@@ -1827,6 +1827,20 @@ sub object_menu {
     return $menu;
 }
 
+# Set a camera direction, zoom to all objects.
+sub select_view {
+    my ($self, $direction) = @_;
+    my $idx_page = $self->{preview_notebook}->GetSelection;
+    my $page = ($idx_page == &Wx::wxNOT_FOUND) ? '3D' : $self->{preview_notebook}->GetPageText($idx_page);
+    if ($page eq 'Preview') {
+        $self->{preview3D}->canvas->select_view($direction);
+        $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
+    } else {
+        $self->{canvas3D}->select_view($direction);
+        $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
+    }
+}
+
 package Slic3r::GUI::Plater::DropTarget;
 use Wx::DND;
 use base 'Wx::FileDropTarget';
