@@ -287,6 +287,7 @@ StaticConfig::set_defaults()
 t_config_option_keys
 StaticConfig::keys() const {
     t_config_option_keys keys;
+	assert(this->def != NULL);
     for (t_optiondef_map::const_iterator it = this->def->options.begin(); it != this->def->options.end(); ++it) {
         const ConfigOption* opt = this->option(it->first);
         if (opt != NULL) keys.push_back(it->first);

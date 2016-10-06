@@ -66,7 +66,7 @@ BridgeDetector::detect_angle()
         we'll use this one to clip our test lines and be sure that their endpoints
         are inside the anchors and not on their contours leading to false negatives. */
     Polygons clip_area;
-    offset(this->expolygon, &clip_area, +this->extrusion_width/2);
+    offset((const Slic3r::Polygons)this->expolygon, &clip_area, +this->extrusion_width/2);
     
     /*  we'll now try several directions using a rudimentary visibility check:
         bridge in several directions and then sum the length of lines having both

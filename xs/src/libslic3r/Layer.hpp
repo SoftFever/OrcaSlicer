@@ -139,12 +139,15 @@ protected:
 class SupportLayer : public Layer {
     friend class PrintObject;
 
-    public:
+public:
+    // Polygons covered by the supports: base, interface and contact areas.
     ExPolygonCollection support_islands;
+    // Extrusion paths for the support base.
     ExtrusionEntityCollection support_fills;
+    // Extrusion paths for the support interface and contacts.
     ExtrusionEntityCollection support_interface_fills;
 
-    protected:
+protected:
     SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z);
     virtual ~SupportLayer();

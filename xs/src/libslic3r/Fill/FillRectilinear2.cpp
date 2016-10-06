@@ -434,20 +434,35 @@ static inline int intersection_on_next_vertical_line(
     return intersection_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, true);
 }
 
+enum IntersectionTypeOtherVLine {
+    // There is no connection point on the other vertical line.
+    INTERSECTION_TYPE_OTHER_VLINE_UNDEFINED = -1,
+    // Connection point on the other vertical segment was found
+    // and it could be followed.
+    INTERSECTION_TYPE_OTHER_VLINE_OK = 0,
+    // The connection segment connects to a middle of a vertical segment.
+    // Cannot follow.
+    INTERSECTION_TYPE_OTHER_VLINE_INNER,
+    // Cannot extend the contor to this intersection point as either the connection segment
+    // or the succeeding vertical segment were already consumed.
+    INTERSECTION_TYPE_OTHER_VLINE_CONSUMED,
+    // Not the first intersection along the contor. This intersection point
+    // has been preceded by an intersection point along the vertical line.
+    INTERSECTION_TYPE_OTHER_VLINE_NOT_FIRST,
+};
+
 // Find an intersection on a previous line, but return -1, if the connecting segment of a perimeter was already extruded.
-static inline int intersection_unused_on_prev_next_vertical_line(
-    const ExPolygonWithOffset                     &poly_with_offset,
+static inline IntersectionTypeOtherVLine intersection_type_on_prev_next_vertical_line(
     const std::vector<SegmentedIntersectionLine>  &segs,
     size_t                                         iVerticalLine,
-    size_t                                         iInnerContour,
     size_t                                         iIntersection,
+    size_t                                         iIntersectionOther,
     bool                                           dir_is_next)
 {
-    //FIXME This routine will propose a connecting line even if the connecting perimeter segment intersects 
+    // This routine will propose a connecting line even if the connecting perimeter segment intersects 
     // iVertical line multiple times before reaching iIntersectionOther.
-    int iIntersectionOther = intersection_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, dir_is_next);
     if (iIntersectionOther == -1)
-        return -1;
+        return INTERSECTION_TYPE_OTHER_VLINE_UNDEFINED;
     myassert(dir_is_next ? (iVerticalLine + 1 < segs.size()) : (iVerticalLine > 0));
     const SegmentedIntersectionLine &il_this      = segs[iVerticalLine];
     const SegmentIntersection       &itsct_this   = il_this.intersections[iIntersection];
@@ -461,35 +476,33 @@ static inline int intersection_unused_on_prev_next_vertical_line(
     if (itsct_other2.is_inner())
         // Cannot follow a perimeter segment into the middle of another vertical segment.
         // Only perimeter segments connecting to the end of a vertical segment are followed.
-        return -1;
+        return INTERSECTION_TYPE_OTHER_VLINE_INNER;
     myassert(itsct_other.is_low() == itsct_other2.is_low());
     if (dir_is_next ? itsct_this.consumed_perimeter_right : itsct_other.consumed_perimeter_right)
         // This perimeter segment was already consumed.
-        return -1;
+        return INTERSECTION_TYPE_OTHER_VLINE_CONSUMED;
     if (itsct_other.is_low() ? itsct_other.consumed_vertical_up : il_other.intersections[iIntersectionOther-1].consumed_vertical_up)
         // This vertical segment was already consumed.
-        return -1;
-    return iIntersectionOther;
+        return INTERSECTION_TYPE_OTHER_VLINE_CONSUMED;
+    return INTERSECTION_TYPE_OTHER_VLINE_OK;
 }
 
-static inline int intersection_unused_on_prev_vertical_line(
-    const ExPolygonWithOffset                     &poly_with_offset, 
+static inline IntersectionTypeOtherVLine intersection_type_on_prev_vertical_line(
     const std::vector<SegmentedIntersectionLine>  &segs, 
     size_t                                         iVerticalLine, 
-    size_t                                         iInnerContour, 
-    size_t                                         iIntersection)
+    size_t                                         iIntersection,
+    size_t                                         iIntersectionPrev)
 {
-    return intersection_unused_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, false);
+    return intersection_type_on_prev_next_vertical_line(segs, iVerticalLine, iIntersection, iIntersectionPrev, false);
 }
 
-static inline int intersection_unused_on_next_vertical_line(
-    const ExPolygonWithOffset                     &poly_with_offset, 
+static inline IntersectionTypeOtherVLine intersection_type_on_next_vertical_line(
     const std::vector<SegmentedIntersectionLine>  &segs, 
     size_t                                         iVerticalLine, 
-    size_t                                         iInnerContour, 
-    size_t                                         iIntersection)
+    size_t                                         iIntersection,
+    size_t                                         iIntersectionNext)
 {
-    return intersection_unused_on_prev_next_vertical_line(poly_with_offset, segs, iVerticalLine, iInnerContour, iIntersection, true);
+    return intersection_type_on_prev_next_vertical_line(segs, iVerticalLine, iIntersection, iIntersectionNext, true);
 }
 
 // Measure an Euclidian length of a perimeter segment when going from iIntersection to iIntersection2.
@@ -593,6 +606,44 @@ static inline void emit_perimeter_prev_next_segment(
     // Append the last point.
     out.points.push_back(Point(il2.pos, itsct2.pos));
 }
+
+// Append the points of a perimeter segment when going from iIntersection to iIntersection2.
+// The first point (the point of iIntersection) will not be inserted,
+// the last point will be inserted.
+static inline void emit_perimeter_segment_on_vertical_line(
+	const ExPolygonWithOffset                     &poly_with_offset,
+	const std::vector<SegmentedIntersectionLine>  &segs,
+	size_t                                         iVerticalLine,
+	size_t                                         iInnerContour,
+	size_t                                         iIntersection,
+	size_t                                         iIntersection2,
+	Polyline                                      &out,
+	bool                                           forward)
+{
+	const SegmentedIntersectionLine &il = segs[iVerticalLine];
+	const SegmentIntersection       &itsct = il.intersections[iIntersection];
+	const SegmentIntersection       &itsct2 = il.intersections[iIntersection2];
+	const Polygon                   &poly = poly_with_offset.contour(iInnerContour);
+	myassert(itsct.is_inner());
+	myassert(itsct2.is_inner());
+	myassert(itsct.type != itsct2.type);
+    myassert(itsct.iContour == iInnerContour);
+	myassert(itsct.iContour == itsct2.iContour);
+	// Do not append the first point.
+	// out.points.push_back(Point(il.pos, itsct.pos));
+	if (forward)
+		polygon_segment_append(out.points, poly, itsct.iSegment, itsct2.iSegment);
+	else
+		polygon_segment_append_reversed(out.points, poly, itsct.iSegment, itsct2.iSegment);
+	// Append the last point.
+	out.points.push_back(Point(il.pos, itsct2.pos));
+}
+
+enum DirectionMask
+{
+    DIR_FORWARD  = 1,
+    DIR_BACKWARD = 2
+};
 
 void FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, Polylines &polylines_out)
 {
@@ -929,6 +980,16 @@ void FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     }
 #endif /* SLIC3R_DEBUG */
 
+    // Mark an outer only chord as consumed, so there will be no tiny pieces emitted.
+    for (size_t i_vline = 0; i_vline < segs.size(); ++ i_vline) {
+        SegmentedIntersectionLine &seg = segs[i_vline];
+        for (size_t i = 0; i + 1 < seg.intersections.size(); ++ i) {
+            if (seg.intersections[i].type == SegmentIntersection::OUTER_LOW &&
+                seg.intersections[i+1].type == SegmentIntersection::OUTER_HIGH)
+                seg.intersections[i].consumed_vertical_up = true;
+        }
+    }
+
     // Now construct a graph.
     // Find the first point.
     //FIXME ideally one would plan the initial point to be closest to the current print head position.
@@ -964,10 +1025,11 @@ void FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                                     dist2min = dist2;
                                     i_vline = i_vline2;
                                     i_intersection = i;
-                                    if (polylines_out.empty()) {
+                                    //FIXME We are taking the first left point always. Verify, that the caller chains the paths
+                                    // by a shortest distance, while reversing the paths if needed.
+                                    //if (polylines_out.empty())
                                         // Initial state, take the first line, which is the first from the left.
                                         goto found;
-                                    }
                                 }
                             }
                         }
@@ -1038,91 +1100,179 @@ void FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         }
         if (try_connect) {
             // Decide, whether to finish the segment, or whether to follow the perimeter.
-            int iPrev = intersection_unused_on_prev_vertical_line(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection);
-            int iNext = intersection_unused_on_next_vertical_line(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection);
-            if (iPrev != -1 || iNext != -1) {
-                // Does the perimeter intersect the current vertical line?
+
+            // 1) Find possible connection points on the previous / next vertical line.
+            int iPrev = intersection_on_prev_vertical_line(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection);
+            int iNext = intersection_on_next_vertical_line(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection);
+            IntersectionTypeOtherVLine intrsctn_type_prev = intersection_type_on_prev_vertical_line(segs, i_vline, i_intersection, iPrev);
+            IntersectionTypeOtherVLine intrsctn_type_next = intersection_type_on_next_vertical_line(segs, i_vline, i_intersection, iNext);
+
+            // 2) Find possible connection points on the same vertical line.
+            int iAbove = -1;
+            int iBelow = -1;
+            int iSegAbove = -1;
+            int iSegBelow = -1;
+            {
                 SegmentIntersection::SegmentIntersectionType type_crossing = (intrsctn->type == SegmentIntersection::INNER_LOW) ?
                     SegmentIntersection::INNER_HIGH : SegmentIntersection::INNER_LOW;
                 // Does the perimeter intersect the current vertical line above intrsctn?
-                int iSegAbove = -1;
                 for (size_t i = i_intersection + 1; i + 1 < seg.intersections.size(); ++ i)
-                    if (seg.intersections[i].iContour == intrsctn->iContour &&
-                        seg.intersections[i].type == type_crossing) {
+//                    if (seg.intersections[i].iContour == intrsctn->iContour && seg.intersections[i].type == type_crossing) {
+                    if (seg.intersections[i].iContour == intrsctn->iContour) {
+                        iAbove = i;
                         iSegAbove = seg.intersections[i].iSegment;
                         break;
                     }
                 // Does the perimeter intersect the current vertical line below intrsctn?
-                int iSegBelow = -1;
                 for (size_t i = i_intersection - 1; i > 0; -- i)
-                    if (seg.intersections[i].iContour == intrsctn->iContour &&
-                        seg.intersections[i].type == type_crossing) {
+//                    if (seg.intersections[i].iContour == intrsctn->iContour && seg.intersections[i].type == type_crossing) {
+                    if (seg.intersections[i].iContour == intrsctn->iContour) {
+                        iBelow = i;
                         iSegBelow = seg.intersections[i].iSegment;
                         break;
                     }
-                if (iSegBelow != -1 || iSegAbove != -1) {
-                    // Invalidate iPrev resp. iNext, if the perimeter crosses the current vertical line earlier than iPrev resp. iNext.
-                    // The perimeter contour orientation.
-                    const bool forward = intrsctn->is_low(); // == poly_with_offset.is_contour_ccw(intrsctn->iContour);
-                    const Polygon &poly = poly_with_offset.contour(intrsctn->iContour);
-                    if (iPrev != -1) {
-                        int d1 = distance_of_segmens(poly, segs[i_vline-1].intersections[iPrev].iSegment, intrsctn->iSegment, forward);
-                        int d2 = (iSegBelow == -1) ? std::numeric_limits<int>::max() :
-                            distance_of_segmens(poly, iSegBelow, intrsctn->iSegment, forward);
-                        if (iSegAbove != -1)
-                            d2 = std::min(d2, distance_of_segmens(poly, iSegAbove, intrsctn->iSegment, forward));
-                        if (d2 < d1)
-                            // The vertical crossing comes eralier than the prev crossing.
-                            // Disable the perimeter going back.
-                            iPrev = -1;
-                    }
-                    if (iNext != -1) {
-                        int d1 = distance_of_segmens(poly, intrsctn->iSegment, segs[i_vline+1].intersections[iNext].iSegment, forward);
-                        int d2 = (iSegBelow == -1) ? std::numeric_limits<int>::max() :
-                            distance_of_segmens(poly, intrsctn->iSegment, iSegBelow, forward);
-                        if (iSegAbove != -1)
-                            d2 = std::min(d2, distance_of_segmens(poly, intrsctn->iSegment, iSegAbove, forward));
-                        if (d2 < d1)
-                            // The vertical crossing comes eralier than the prev crossing.
-                            // Disable the perimeter going forward.
-                            iNext = -1;
-                    }
+            }
+
+            // 3) Sort the intersection points, clear iPrev / iNext / iSegBelow / iSegAbove,
+            // if it is preceded by any other intersection point along the contour.
+			unsigned int vert_seg_dir_valid_mask = 
+                (going_up ? 
+                    (iSegAbove != -1 && seg.intersections[iAbove].type == SegmentIntersection::INNER_LOW) :
+                    (iSegBelow != -1 && seg.intersections[iBelow].type == SegmentIntersection::INNER_HIGH)) ?
+                (DIR_FORWARD | DIR_BACKWARD) :
+                0;
+            {
+                // Invalidate iPrev resp. iNext, if the perimeter crosses the current vertical line earlier than iPrev resp. iNext.
+                // The perimeter contour orientation.
+                const bool forward = intrsctn->is_low(); // == poly_with_offset.is_contour_ccw(intrsctn->iContour);
+                const Polygon &poly = poly_with_offset.contour(intrsctn->iContour);
+                {
+                    int d_horiz = (iPrev     == -1) ? std::numeric_limits<int>::max() :
+                        distance_of_segmens(poly, segs[i_vline-1].intersections[iPrev].iSegment, intrsctn->iSegment, forward);
+                    int d_down  = (iSegBelow == -1) ? std::numeric_limits<int>::max() :
+                        distance_of_segmens(poly, iSegBelow, intrsctn->iSegment, forward);
+                    int d_up    = (iSegAbove == -1) ? std::numeric_limits<int>::max() :
+                        distance_of_segmens(poly, iSegAbove, intrsctn->iSegment, forward);
+                    if (intrsctn_type_prev == INTERSECTION_TYPE_OTHER_VLINE_OK && d_horiz > std::min(d_down, d_up))
+                        // The vertical crossing comes eralier than the prev crossing.
+                        // Disable the perimeter going back.
+                        intrsctn_type_prev = INTERSECTION_TYPE_OTHER_VLINE_NOT_FIRST;
+                    if (going_up ? (d_up > std::min(d_horiz, d_down)) : (d_down > std::min(d_horiz, d_up)))
+                        // The horizontal crossing comes earlier than the vertical crossing.
+                        vert_seg_dir_valid_mask &= ~(forward ? DIR_BACKWARD : DIR_FORWARD);
                 }
-                if (iPrev != -1 || iNext != -1) {
-                    // Zig zag
-                    coord_t distPrev = (iPrev == -1) ? std::numeric_limits<coord_t>::max() :
-                        measure_perimeter_prev_segment_length(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iPrev);
-                    coord_t distNext = (iNext == -1) ? std::numeric_limits<coord_t>::max() :
-                        measure_perimeter_next_segment_length(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext);
-                    // Take the shorter path.
-                    bool take_next = (iPrev != -1 && iNext != -1) ? (distNext < distPrev) : iNext != -1;
-                    myassert(intrsctn->is_inner());
-                    pointLast = Point(seg.pos, intrsctn->pos);
-                    polyline_current->points.push_back(pointLast);
-                    emit_perimeter_prev_next_segment(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, take_next ? iNext : iPrev, *polyline_current, take_next);
+                {
+                    int d_horiz = (iNext     == -1) ? std::numeric_limits<int>::max() :
+                        distance_of_segmens(poly, intrsctn->iSegment, segs[i_vline+1].intersections[iNext].iSegment, forward);
+                    int d_down  = (iSegBelow == -1) ? std::numeric_limits<int>::max() :
+                        distance_of_segmens(poly, intrsctn->iSegment, iSegBelow, forward);
+                    int d_up    = (iSegAbove == -1) ? std::numeric_limits<int>::max() :
+                        distance_of_segmens(poly, intrsctn->iSegment, iSegAbove, forward);
+                    if (intrsctn_type_next == INTERSECTION_TYPE_OTHER_VLINE_OK && d_horiz > std::min(d_down, d_up))
+                        // The vertical crossing comes eralier than the prev crossing.
+                        // Disable the perimeter going forward.
+                        intrsctn_type_next = INTERSECTION_TYPE_OTHER_VLINE_NOT_FIRST;
+                    if (going_up ? (d_up > std::min(d_horiz, d_down)) : (d_down > std::min(d_horiz, d_up)))
+                        // The horizontal crossing comes earlier than the vertical crossing.
+                        vert_seg_dir_valid_mask &= ~(forward ? DIR_FORWARD : DIR_BACKWARD);
+                }
+            }
+
+            // 4) Try to connect to a previous or next vertical line, making a zig-zag pattern.
+            if (intrsctn_type_prev == INTERSECTION_TYPE_OTHER_VLINE_OK || intrsctn_type_next == INTERSECTION_TYPE_OTHER_VLINE_OK) {
+                coordf_t distPrev = (intrsctn_type_prev != INTERSECTION_TYPE_OTHER_VLINE_OK) ? std::numeric_limits<coord_t>::max() :
+                    measure_perimeter_prev_segment_length(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iPrev);
+                coordf_t distNext = (intrsctn_type_next != INTERSECTION_TYPE_OTHER_VLINE_OK) ? std::numeric_limits<coord_t>::max() :
+                    measure_perimeter_next_segment_length(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext);
+                // Take the shorter path.
+                //FIXME this may not be always the best strategy to take the shortest connection line now.
+                bool take_next = (intrsctn_type_prev == INTERSECTION_TYPE_OTHER_VLINE_OK && intrsctn_type_next == INTERSECTION_TYPE_OTHER_VLINE_OK) ?
+                    (distNext < distPrev) : 
+                    intrsctn_type_next == INTERSECTION_TYPE_OTHER_VLINE_OK;
+                myassert(intrsctn->is_inner());
+                polyline_current->points.push_back(Point(seg.pos, intrsctn->pos));
+                emit_perimeter_prev_next_segment(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, take_next ? iNext : iPrev, *polyline_current, take_next);
+                // Mark both the left and right connecting segment as consumed, because one cannot go to this intersection point as it has been consumed.
+                if (iPrev != -1)
+                    segs[i_vline-1].intersections[iPrev].consumed_perimeter_right = true;
+                if (iNext != -1)
+                    intrsctn->consumed_perimeter_right = true;
+                //FIXME consume the left / right connecting segments at the other end of this line? Currently it is not critical because a perimeter segment is not followed if the vertical segment at the other side has already been consumed.
+                // Advance to the neighbor line.
+                if (take_next) {
+                    ++ i_vline;
+                    i_intersection = iNext;
+                } else {
+                    -- i_vline;
+                    i_intersection = iPrev;
+                }
+                continue;
+            } 
+
+            // 5) Try to connect to a previous or next point on the same vertical line.
+            if (vert_seg_dir_valid_mask) {
+                bool valid = true;
+                // Verify, that there is no intersection with the inner contour up to the end of the contour segment.
+				// Verify, that the successive segment has not been consumed yet.
+				if (going_up) {
+					if (seg.intersections[iAbove].consumed_vertical_up) {
+						valid = false;
+					} else {
+						for (int i = (int)i_intersection + 1; i < iAbove && valid; ++i)
+							if (seg.intersections[i].is_inner()) 
+								valid = false;
+					}
+                } else {
+					if (seg.intersections[iBelow-1].consumed_vertical_up) {
+						valid = false;
+					} else {
+						for (int i = iBelow + 1; i < (int)i_intersection && valid; ++i)
+							if (seg.intersections[i].is_inner()) 
+								valid = false;
+					}
+                }
+                if (valid) {
+                    const Polygon &poly = poly_with_offset.contour(intrsctn->iContour);
+                    int iNext    = going_up ? iAbove : iBelow;
+                    int iSegNext = going_up ? iSegAbove : iSegBelow;
+                    bool dir_forward = (vert_seg_dir_valid_mask == (DIR_FORWARD | DIR_BACKWARD)) ?
+                        // Take the shorter length between the current and the next intersection point.
+                        (distance_of_segmens(poly, intrsctn->iSegment, iSegNext, true) <
+                         distance_of_segmens(poly, intrsctn->iSegment, iSegNext, false)) :
+                        (vert_seg_dir_valid_mask == DIR_FORWARD);
+                    // Consume the connecting contour and the next segment.
+                    polyline_current->points.push_back(Point(seg.pos, intrsctn->pos));
+    				emit_perimeter_segment_on_vertical_line(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext, *polyline_current, dir_forward);
                     // Mark both the left and right connecting segment as consumed, because one cannot go to this intersection point as it has been consumed.
-                    if (iPrev != -1)
-                        segs[i_vline-1].intersections[iPrev].consumed_perimeter_right = true;
-                    if (iNext != -1)
-                        intrsctn->consumed_perimeter_right = true;
-                    //FIXME consume the left / right connecting segments at the other end of this line? Currently it is not critical because a perimeter segment is not followed if the vertical segment at the other side has already been consumed.
-                    // Advance to the neighbor line.
-                    if (take_next) {
-                        ++ i_vline;
-                        i_intersection = iNext;
+                    // If there are any outer intersection points skipped (bypassed) by the contour,
+                    // mark them as processed.
+                    if (going_up) {
+                        for (int i = (int)i_intersection; i < iAbove; ++ i)
+                            seg.intersections[i].consumed_vertical_up = true;
                     } else {
-                        -- i_vline;
-                        i_intersection = iPrev;
+                        for (int i = iBelow; i < (int)i_intersection; ++ i)
+                            seg.intersections[i].consumed_vertical_up = true;
                     }
+//                    seg.intersections[going_up ? i_intersection : i_intersection - 1].consumed_vertical_up = true;
+                    intrsctn->consumed_perimeter_right = true;
+                    i_intersection = iNext;
+                    if (going_up)
+                        ++ intrsctn;
+                    else
+                        -- intrsctn;
+                    intrsctn->consumed_perimeter_right = true;
                     continue;
                 }
             }
-            // Take the complete line up to the outer contour.
+
+            // No way to continue the current polyline. Take the rest of the line up to the outer contour.
+            // This will finish the polyline, starting another polyline at a new point.
             if (going_up)
                 ++ intrsctn;
             else
                 -- intrsctn;
         }
+
         // Finish the current vertical line,
         // reset the current vertical line to pick a new starting point in the next round.
         myassert(intrsctn->is_outer());
@@ -1145,16 +1295,32 @@ void FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
 
 #ifdef SLIC3R_DEBUG
     {
-        sprintf(path, "out/FillRectilinear2-final-%d.svg", iRun);
-        ::Slic3r::SVG svg(path, bbox_svg); // , scale_(1.));
-        for (size_t i = 0; i < poly_with_offset.polygons_src.size(); ++ i)
-            svg.draw(poly_with_offset.polygons_src[i].lines());
-        for (size_t i = 0; i < poly_with_offset.polygons_outer.size(); ++ i)
-            svg.draw(poly_with_offset.polygons_outer[i].lines(), "green");
-             for (size_t i = 0; i < poly_with_offset.polygons_inner.size(); ++ i)
-            svg.draw(poly_with_offset.polygons_inner[i].lines(), "brown");
-        for (size_t i = n_polylines_out_initial; i < polylines_out.size(); ++ i)
-            svg.draw(polylines_out[i].lines(), "black");
+        {
+            sprintf(path, "out\\FillRectilinear2-final-%03d.svg", iRun);
+            ::Slic3r::SVG svg(path, bbox_svg); // , scale_(1.));
+            for (size_t i = 0; i < poly_with_offset.polygons_src.size(); ++ i)
+                svg.draw(poly_with_offset.polygons_src[i].lines());
+            for (size_t i = 0; i < poly_with_offset.polygons_outer.size(); ++ i)
+                svg.draw(poly_with_offset.polygons_outer[i].lines(), "green");
+            for (size_t i = 0; i < poly_with_offset.polygons_inner.size(); ++ i)
+                svg.draw(poly_with_offset.polygons_inner[i].lines(), "brown");
+            for (size_t i = n_polylines_out_initial; i < polylines_out.size(); ++ i)
+                svg.draw(polylines_out[i].lines(), "black");
+            svg.Close(); 
+        }
+        // Paint a picture per polyline. This makes it easier to discover the order of the polylines and their overlap.
+        for (size_t i_polyline = n_polylines_out_initial; i_polyline < polylines_out.size(); ++ i_polyline) {
+            sprintf(path, "out\\FillRectilinear2-final-%03d-%03d.svg", iRun, i_polyline);   
+            ::Slic3r::SVG svg(path, bbox_svg); // , scale_(1.));
+            for (size_t i = 0; i < poly_with_offset.polygons_src.size(); ++ i)
+                svg.draw(poly_with_offset.polygons_src[i].lines());
+            for (size_t i = 0; i < poly_with_offset.polygons_outer.size(); ++ i)
+                svg.draw(poly_with_offset.polygons_outer[i].lines(), "green");
+            for (size_t i = 0; i < poly_with_offset.polygons_inner.size(); ++ i)
+                svg.draw(poly_with_offset.polygons_inner[i].lines(), "brown");
+            svg.draw(polylines_out[i_polyline].lines(), "black");
+            svg.Close();
+        }
     }
 #endif /* SLIC3R_DEBUG */
 
@@ -1192,3 +1358,4 @@ Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &para
 }
 
 } // namespace Slic3r
+ 
