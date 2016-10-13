@@ -2,6 +2,7 @@
 
 #include "../ClipperUtils.hpp"
 #include "../Surface.hpp"
+#include "../PrintConfig.hpp"
 
 #include "FillBase.hpp"
 #include "FillConcentric.hpp"
@@ -15,28 +16,27 @@ namespace Slic3r {
 
 Fill* Fill::new_from_type(const std::string &type)
 {
-	if (type == "concentric")
-		return new FillConcentric();
-	if (type == "honeycomb")
-		return new FillHoneycomb();
-	if (type == "3dhoneycomb")
-		return new Fill3DHoneycomb();
-	if (type == "rectilinear")
-//		return new FillRectilinear();
-        return new FillRectilinear2();
-	if (type == "line")
-		return new FillLine();
-	if (type == "grid")
-//		return new FillGrid();
-        return new FillGrid2();
-	if (type == "archimedeanchords")
-		return new FillArchimedeanChords();
-	if (type == "hilbertcurve")
-		return new FillHilbertCurve();
-	if (type == "octagramspiral")
-		return new FillOctagramSpiral();
-	CONFESS("unknown type");
-	return NULL;
+    static t_config_enum_values enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
+    t_config_enum_values::const_iterator it = enum_keys_map.find(type);
+    return (it == enum_keys_map.end()) ? NULL : new_from_type(InfillPattern(it->second));
+}
+
+Fill* Fill::new_from_type(const InfillPattern type)
+{
+    switch (type) {
+    case ipConcentric:          return new FillConcentric();
+    case ipHoneycomb:           return new FillHoneycomb();
+    case ip3DHoneycomb:         return new Fill3DHoneycomb();
+    case ipRectilinear:         return new FillRectilinear2();
+//  case ipRectilinear:         return new FillRectilinear();
+    case ipLine:                return new FillLine();
+    case ipGrid:                return new FillGrid2();
+//  case ipGrid:                return new FillGrid();
+    case ipArchimedeanChords:   return new FillArchimedeanChords();
+    case ipHilbertCurve:        return new FillHilbertCurve();
+    case ipOctagramSpiral:      return new FillOctagramSpiral();
+    default: CONFESS("unknown type"); return NULL;
+    }
 }
 
 Polylines Fill::fill_surface(const Surface *surface, const FillParams &params)

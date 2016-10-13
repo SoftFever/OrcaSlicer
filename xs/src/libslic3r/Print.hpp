@@ -76,7 +76,7 @@ class PrintObject
 {
     friend class Print;
 
-    public:
+public:
     // map of (vectors of volume ids), indexed by region_id
     /* (we use map instead of vector so that we don't have to worry about
        resizing it and the [] operator adds new items automagically) */
@@ -141,7 +141,7 @@ class PrintObject
     void discover_vertical_shells();
     void bridge_over_infill();
     
-    private:
+private:
     Print* _print;
     ModelObject* _model_object;
     Points _copies;      // Slic3r::Point objects in scaled G-code coordinates
