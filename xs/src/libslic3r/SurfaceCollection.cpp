@@ -230,7 +230,7 @@ void SurfaceCollection::export_to_svg(const char *path, bool show_labels)
     for (Surfaces::const_iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
         svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
         if (show_labels) {
-            int idx = int(surface - this->surfaces.cbegin());
+            int idx = int(surface - this->surfaces.begin());
             char label[64];
             sprintf(label, "%d", idx);
             svg.draw_text(surface->expolygon.contour.points.front(), label, "black");
