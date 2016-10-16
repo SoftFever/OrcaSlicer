@@ -3,6 +3,8 @@
 
 namespace Slic3r {
 
+class PrintObject;
+
 // how much we extend support around the actual contact area
 #define SUPPORT_MATERIAL_MARGIN 1.5	
 
@@ -43,7 +45,7 @@ public:
 		}
 
 		bool operator==(const MyLayer &layer2) const {
-			return print_z == layer2.printz && height == layer2.height && bridging == layer2.bridging;
+			return print_z == layer2.print_z && height == layer2.height && bridging == layer2.bridging;
 		}
 
 		bool operator<(const MyLayer &layer2) const {
@@ -90,50 +92,59 @@ public:
 		// top or bottom extreme
 		bool   		 is_top;
 
-		coordf_t	z() const { return is_top ? layer->print_z : layer->print_z - height; }
+		coordf_t	z() const { return is_top ? layer->print_z : layer->print_z - layer->height; }
 
 		bool operator<(const LayerExtreme &other) const { return z() < other.z(); }
-	}
+	};
 
 	struct LayerPrintZ_Hash {
-		static size_t operator(const MyLayer &layer) { 
-			return std::hash<double>(layer.print_z)^std::hash<double>(layer.height)^size_t(layer.bridging);
+		size_t operator()(const MyLayer &layer) const { 
+			return std::hash<double>()(layer.print_z)^std::hash<double>()(layer.height)^size_t(layer.bridging);
 		}
 	};
 
-	typedef std::set<MyLayer, LayerPrintZ_Hash> MyLayersSet;
-	typedef std::vector<Layer*> 				MyLayersPtr;
-	typedef std::deque<Layer> 					MyLayersDeque;
-	typedef std::deque<Layer> 					MyLayerStorage;
+	typedef std::vector<MyLayer*> 				MyLayersPtr;
+	typedef std::deque<MyLayer> 				MyLayerStorage;
 
 public:
-	PrintSupportMaterial() :
-		m_object(NULL),
-		m_print_config(NULL),
-		m_object_config(NULL),
-		m_soluble_interface(false),
+	PrintSupportMaterial(
+		const PrintConfig 		*print_config,
+		const PrintObjectConfig	*object_config,
+		const Flow 			 	&flow,
+		const Flow 			 	&first_layer_flow,
+		const Flow 			 	&interface_flow,
+		bool 			 	 	 soluble_interface) :
+		m_print_config(print_config),
+		m_object_config(object_config),
+		m_flow(flow),
+		m_first_layer_flow(first_layer_flow),
+		m_interface_flow(interface_flow),
+		m_soluble_interface(soluble_interface),
 		m_support_layer_height_max(0.),
 		m_support_interface_layer_height_max(0.)
 	{}
 
-	void setup(
-		const PrintConfig 	*print_config;
-		const ObjectConfig 	*object_config;
-		Flow 			 	 flow;
-		Flow 			 	 first_layer_flow;
-		Flow 			 	 interface_flow;
-		bool 			 	 soluble_interface)
-	{
-		this->m_object 				= object;
-		this->m_print_config 		= print_config;
-		this->m_object_config 		= object_config;
-		this->m_flow 				= flow;
-		this->m_first_layer_flow 	= first_layer_flow;
-		this->m_interface_flow 		= interface_flow;
-		this->m_soluble_interface 	= soluble_interface;
-	}
+	PrintSupportMaterial(
+		PrintConfig 		*print_config,
+		PrintObjectConfig	*object_config,
+		Flow 			 	*flow,
+		Flow 			 	*first_layer_flow,
+		Flow 			 	*interface_flow,
+		bool 			 	 soluble_interface) :
+		m_print_config(print_config),
+		m_object_config(object_config),
+		m_flow(*flow),
+		m_first_layer_flow(*first_layer_flow),
+		m_interface_flow(*interface_flow),
+		m_soluble_interface(soluble_interface),
+		m_support_layer_height_max(0.),
+		m_support_interface_layer_height_max(0.)
+	{}
 
-	void generate(const PrintObject *object);
+	// Generate support material for the object.
+	// New support layers will be added to the object,
+	// with extrusion paths and islands filled in for each support layer.
+	void generate(PrintObject &object);
 
 private:
 	// Generate top contact layers supporting overhangs.
@@ -146,26 +157,29 @@ private:
 	// otherwise set the layer height to a bridging flow of a support interface nozzle.
 	MyLayersPtr bottom_contact_layers(const PrintObject &object, const MyLayersPtr &top_contacts, MyLayerStorage &layer_storage) const;
 
+	// Trim the top_contacts layers with the bottom_contacts layers if they overlap, so there would not be enough vertical space for both of them.
+	void trim_top_contacts_by_bottom_contacts(const PrintObject &object, const MyLayersPtr &bottom_contacts, MyLayersPtr &top_contacts) const;
+
 	// Generate raft layers and the intermediate support layers between the bottom contact and top contact surfaces.
 	MyLayersPtr raft_and_intermediate_support_layers(
 	    const PrintObject   &object,
 	    const MyLayersPtr   &bottom_contacts,
 	    const MyLayersPtr   &top_contacts,
 	    MyLayerStorage	 	&layer_storage,
-	    const coordf_t       max_object_layer_height);
+	    const coordf_t       max_object_layer_height) const;
 
 	void generate_base_layers(
 	    const PrintObject   &object,
 	    const MyLayersPtr   &bottom_contacts,
 	    const MyLayersPtr   &top_contacts,
-	    MyLayersPtr         &intermediate_layers);
+	    MyLayersPtr         &intermediate_layers) const;
 
 	MyLayersPtr generate_interface_layers(
 	    const PrintObject   &object,
 	    const MyLayersPtr   &bottom_contacts,
 	    const MyLayersPtr   &top_contacts,
 	    MyLayersPtr         &intermediate_layers,
-	    MyLayerStorage      &layer_storage);
+	    MyLayerStorage      &layer_storage) const;
 
 /*
 	void generate_pillars_shape();
@@ -178,10 +192,10 @@ private:
         const MyLayersPtr   &bottom_contacts,
         const MyLayersPtr   &top_contacts,
         const MyLayersPtr   &intermediate_layers,
-        const MyLayersPtr   &interface_layers);
+        const MyLayersPtr   &interface_layers) const;
 
-	const PrintConfig 	*m_print_config;
-	const ObjectConfig 	*m_object_config;
+	const PrintConfig 		*m_print_config;
+	const PrintObjectConfig *m_object_config;
 	Flow 			 	 m_flow;
 	Flow 			 	 m_first_layer_flow;
 	Flow 			 	 m_interface_flow;
@@ -189,6 +203,9 @@ private:
 
 	coordf_t		 	 m_support_layer_height_max;
 	coordf_t		 	 m_support_interface_layer_height_max;
+	bool 				 m_synchronize_support_layers_with_object;
 };
 
-#endif
+} // namespace Slic3r
+
+#endif /* slic3r_SupportMaterial_hpp_ */

@@ -77,10 +77,11 @@ Flow::mm3_per_mm() const {
 }
 
 /* This static method returns bridge width for a given nozzle diameter. */
-float
-Flow::_bridge_width(float nozzle_diameter, float bridge_flow_ratio) {
-    if (bridge_flow_ratio == 1) return nozzle_diameter;  // optimization to avoid sqrt()
-    return sqrt(bridge_flow_ratio * (nozzle_diameter*nozzle_diameter));
+float Flow::_bridge_width(float nozzle_diameter, float bridge_flow_ratio) {
+    return (bridge_flow_ratio == 1.) ?
+        // optimization to avoid sqrt()
+        nozzle_diameter :
+        sqrt(bridge_flow_ratio) * nozzle_diameter;
 }
 
 /* This static method returns a sane extrusion width default. */

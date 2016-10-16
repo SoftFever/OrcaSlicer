@@ -7,6 +7,7 @@
 
 #include "../libslic3r.h"
 #include "../BoundingBox.hpp"
+#include "../PrintConfig.hpp"
 
 namespace Slic3r {
 
@@ -52,6 +53,7 @@ public:
 public:
     virtual ~Fill() {}
 
+    static Fill* Fill::new_from_type(const InfillPattern type);
     static Fill* new_from_type(const std::string &type);
 
     void         set_bounding_box(const Slic3r::BoundingBox &bbox) { bounding_box = bbox; }

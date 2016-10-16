@@ -229,6 +229,21 @@ sub new {
     return $self;
 }
 
+package Slic3r::Print::SupportMaterial2;
+
+sub new {
+    my ($class, %args) = @_;
+    
+    return $class->_new(
+        $args{print_config},        # required
+        $args{object_config},       # required
+        $args{first_layer_flow},    # required
+        $args{flow},                # required
+        $args{interface_flow},      # required
+        $args{soluble_interface}    // 0
+    );
+}
+
 package Slic3r::GUI::_3DScene::GLVertexArray;
 sub CLONE_SKIP { 1 }
 
@@ -283,6 +298,7 @@ for my $class (qw(
         Slic3r::Print::State
         Slic3r::Surface
         Slic3r::Surface::Collection
+        Slic3r::Print::SupportMaterial2
         Slic3r::TriangleMesh
     ))
 {

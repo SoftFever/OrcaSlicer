@@ -28,12 +28,6 @@ LayerRegion::layer()
     return this->_layer;
 }
 
-PrintRegion*
-LayerRegion::region()
-{
-    return this->_region;
-}
-
 Flow
 LayerRegion::flow(FlowRole role, bool bridge, double width) const
 {

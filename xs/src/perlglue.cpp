@@ -56,6 +56,7 @@ REGISTER_CLASS(PrintConfig, "Config::Print");
 REGISTER_CLASS(FullPrintConfig, "Config::Full");
 REGISTER_CLASS(Surface, "Surface");
 REGISTER_CLASS(SurfaceCollection, "Surface::Collection");
+REGISTER_CLASS(PrintSupportMaterial, "Print::SupportMaterial2");
 REGISTER_CLASS(TriangleMesh, "TriangleMesh");
 REGISTER_CLASS(GLVertexArray, "GUI::_3DScene::GLVertexArray");
 

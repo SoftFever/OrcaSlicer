@@ -1,7 +1,23 @@
 %module{Slic3r::XS};
 
+%{
 #include <xsinit.h>
 #include "libslic3r/SupportMaterial.hpp"
+%}
+
+%name{Slic3r::Print::SupportMaterial2} class PrintSupportMaterial {
+    %name{_new} PrintSupportMaterial(
+		PrintConfig 		*print_config,
+		PrintObjectConfig	*object_config,
+		Flow 			 	*flow,
+		Flow 			 	*first_layer_flow,
+		Flow 			 	*interface_flow,
+		bool 			 	 soluble_interface);
+    ~PrintSupportMaterial();
+
+    void generate(PrintObject *object)
+        %code{% THIS->generate(*object); %};
+};
 
 %package{Slic3r::Print::SupportMaterial};
 %{

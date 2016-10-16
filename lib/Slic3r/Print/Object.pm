@@ -70,14 +70,16 @@ sub slice {
     
         # add raft layers
         if ($self->config->raft_layers > 0) {
+            # Reserve object layers for the raft. Last layer of the raft is the contact layer.
             $id += $self->config->raft_layers;
         
-            # raise first object layer Z by the thickness of the raft itself
-            # plus the extra distance required by the support material logic
+            # Raise first object layer Z by the thickness of the raft itself
+            # plus the extra distance required by the support material logic.
+            #FIXME The last raft layer is the contact layer, which shall be printed with a bridging flow for ease of separation. Currently it is not the case.
             my $first_layer_height = $self->config->get_value('first_layer_height');
             $print_z += $first_layer_height;
             
-            # use a large height
+            # Use as large as possible layer height for the intermediate raft layers.
             my $support_material_layer_height;
             {
                 my @nozzle_diameters = (
@@ -90,6 +92,7 @@ sub slice {
             $print_z += $support_material_layer_height * ($self->config->raft_layers - 1);
         
             # compute the average of all nozzles used for printing the object
+            #FIXME It is expected, that the 1st layer of the object is printed with a bridging flow over a full raft. Shall it not be vice versa?
             my $nozzle_diameter;
             {
                 my @nozzle_diameters = (
@@ -664,13 +667,26 @@ sub _support_material {
         bridge_flow_ratio   => 0,
     );
     
-    return Slic3r::Print::SupportMaterial->new(
-        print_config        => $self->print->config,
-        object_config       => $self->config,
-        first_layer_flow    => $first_layer_flow,
-        flow                => $self->support_material_flow,
-        interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
-    );
+    if (1) {
+        # Old supports, Perl implementation.
+        return Slic3r::Print::SupportMaterial->new(
+            print_config        => $self->print->config,
+            object_config       => $self->config,
+            first_layer_flow    => $first_layer_flow,
+            flow                => $self->support_material_flow,
+            interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
+        );
+    } else {
+        # New supports, C++ implementation.
+        return Slic3r::Print::SupportMaterial2->new(
+            print_config        => $self->print->config,
+            object_config       => $self->config,
+            first_layer_flow    => $first_layer_flow,
+            flow                => $self->support_material_flow,
+            interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
+            soluble_interface   => ($self->config->support_material_contact_distance == 0),
+        );        
+    }
 }
 
 # This function analyzes slices of a region (SurfaceCollection slices).

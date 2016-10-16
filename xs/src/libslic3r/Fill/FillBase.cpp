@@ -14,13 +14,6 @@
 
 namespace Slic3r {
 
-Fill* Fill::new_from_type(const std::string &type)
-{
-    static t_config_enum_values enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
-    t_config_enum_values::const_iterator it = enum_keys_map.find(type);
-    return (it == enum_keys_map.end()) ? NULL : new_from_type(InfillPattern(it->second));
-}
-
 Fill* Fill::new_from_type(const InfillPattern type)
 {
     switch (type) {
@@ -37,6 +30,13 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipOctagramSpiral:      return new FillOctagramSpiral();
     default: CONFESS("unknown type"); return NULL;
     }
+}
+
+Fill* Fill::new_from_type(const std::string &type)
+{
+    static t_config_enum_values enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
+    t_config_enum_values::const_iterator it = enum_keys_map.find(type);
+    return (it == enum_keys_map.end()) ? NULL : new_from_type(InfillPattern(it->second));
 }
 
 Polylines Fill::fill_surface(const Surface *surface, const FillParams &params)

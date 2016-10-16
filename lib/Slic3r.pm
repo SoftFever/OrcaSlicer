@@ -250,6 +250,7 @@ sub thread_cleanup {
     *Slic3r::Print::Region::DESTROY         = sub {};
     *Slic3r::Surface::DESTROY               = sub {};
     *Slic3r::Surface::Collection::DESTROY   = sub {};
+    *Slic3r::Print::SupportMaterial2::DESTROY = sub {};
     *Slic3r::TriangleMesh::DESTROY          = sub {};
     return undef;  # this prevents a "Scalars leaked" warning
 }

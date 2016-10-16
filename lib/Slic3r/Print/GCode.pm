@@ -288,6 +288,8 @@ sub export {
         my @obj_idx = @{chained_path([ map Slic3r::Point->new(@{$_->_shifted_copies->[0]}), @{$self->objects} ])};
         
         # sort layers by Z
+        # All extrusion moves with the same top layer height are extruded uninterrupted,
+        # object extrusion moves are performed first, then the support.
         my %layers = ();  # print_z => [ [layers], [layers], [layers] ]  by obj_idx
         foreach my $obj_idx (0 .. ($self->print->object_count - 1)) {
             my $object = $self->objects->[$obj_idx];

@@ -120,7 +120,9 @@ public:
     size_t total_layer_count() const;
     size_t layer_count() const;
     void clear_layers();
-    Layer* get_layer(int idx);
+    Layer* get_layer(int idx) { return this->layers.at(idx); }
+    const Layer* get_layer(int idx) const { return this->layers.at(idx); }
+
     // print_z: top of the layer; slice_z: center of the layer.
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_layer(int idx);

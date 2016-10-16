@@ -141,6 +141,10 @@
 %typemap{SupportLayer*};
 %typemap{Ref<SupportLayer>}{simple};
 
+%typemap{PrintSupportMaterial*};
+%typemap{Ref<PrintSupportMaterial>}{simple};
+%typemap{Clone<PrintSupportMaterial>}{simple};
+
 %typemap{PlaceholderParser*};
 %typemap{Ref<PlaceholderParser>}{simple};
 %typemap{Clone<PlaceholderParser>}{simple};

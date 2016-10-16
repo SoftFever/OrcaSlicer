@@ -88,6 +88,7 @@ src/libslic3r/PrintConfig.cpp
 src/libslic3r/PrintConfig.hpp
 src/libslic3r/PrintObject.cpp
 src/libslic3r/PrintRegion.cpp
+src/libslic3r/SupportMaterial.cpp
 src/libslic3r/SupportMaterial.hpp
 src/libslic3r/Surface.cpp
 src/libslic3r/Surface.hpp
