@@ -101,11 +101,13 @@ public:
 		bool operator<(const LayerExtreme &other) const { return z() < other.z(); }
 	};
 
+/*
 	struct LayerPrintZ_Hash {
 		size_t operator()(const MyLayer &layer) const { 
 			return std::hash<double>()(layer.print_z)^std::hash<double>()(layer.height)^size_t(layer.bridging);
 		}
 	};
+*/
 
 	typedef std::vector<MyLayer*> 				MyLayersPtr;
 	typedef std::deque<MyLayer> 				MyLayerStorage;
