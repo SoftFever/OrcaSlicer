@@ -461,7 +461,7 @@ sub build {
         layer_height first_layer_height
         perimeters spiral_vase
         top_solid_layers bottom_solid_layers
-        extra_perimeters avoid_crossing_perimeters thin_walls overhangs
+        extra_perimeters ensure_vertical_shell_thickness avoid_crossing_perimeters thin_walls overhangs
         seam_position external_perimeters_first
         fill_density fill_pattern external_fill_pattern
         infill_every_layers infill_only_where_needed
@@ -523,6 +523,7 @@ sub build {
         {
             my $optgroup = $page->new_optgroup('Quality (slower slicing)');
             $optgroup->append_single_option_line('extra_perimeters');
+            $optgroup->append_single_option_line('ensure_vertical_shell_thickness');
             $optgroup->append_single_option_line('avoid_crossing_perimeters');
             $optgroup->append_single_option_line('thin_walls');
             $optgroup->append_single_option_line('overhangs');
@@ -787,7 +788,7 @@ sub _update {
     
     my $have_perimeters = $config->perimeters > 0;
     $self->get_field($_)->toggle($have_perimeters)
-        for qw(extra_perimeters thin_walls overhangs seam_position external_perimeters_first
+        for qw(extra_perimeters ensure_vertical_shell_thickness thin_walls overhangs seam_position external_perimeters_first
             external_perimeter_extrusion_width
             perimeter_speed small_perimeter_speed external_perimeter_speed);
     

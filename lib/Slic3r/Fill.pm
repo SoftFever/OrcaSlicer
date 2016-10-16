@@ -229,9 +229,9 @@ sub make_fill {
             );
             $f->spacing($internal_flow->spacing);
             $using_internal_flow = 1;
-        } elsif ($surface->surface_type == S_TYPE_INTERNALBRIDGE) {
-            # The internal bridging layer will be sparse.
-            $f->spacing($flow->spacing * 2.);
+#        } elsif ($surface->surface_type == S_TYPE_INTERNALBRIDGE) {
+#            # The internal bridging layer will be sparse.
+#            $f->spacing($flow->spacing * 2.);
         } else {
             $f->spacing($flow->spacing);
         }
@@ -248,6 +248,11 @@ sub make_fill {
             $_,
             density         => $density/100,
             layer_height    => $h,
+#FIXME Vojtech disabled the automatic extrusion width adjustment as this feature quite often
+# generated extrusions with excessive widths.
+# The goal of the automatic line width adjustment was to fill in a region without a gap, but because
+# the filled regions are mostly not aligned with the fill direction, very likely 
+# the extrusion width adjustment causes more harm than good.
             dont_adjust     => 1,
         ), @{ $surface->offset(-scale($f->spacing)/2) };
         

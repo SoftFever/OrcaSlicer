@@ -1,9 +1,13 @@
 #ifndef slic3r_SupportMaterial_hpp_
 #define slic3r_SupportMaterial_hpp_
 
+#include "Flow.hpp"
+
 namespace Slic3r {
 
 class PrintObject;
+class PrintConfig;
+class PrintObjectConfig;
 
 // how much we extend support around the actual contact area
 #define SUPPORT_MATERIAL_MARGIN 1.5	

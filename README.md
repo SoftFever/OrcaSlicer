@@ -240,6 +240,7 @@ The author of the Silk icon set is Mark James.
     
        Quality options (slower slicing):
         --extra-perimeters  Add more perimeters when needed (default: yes)
+        --ensure_vertical_shell_thickness  Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers). (default: no)
         --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
         --thin-walls        Detect single-width walls (default: yes)
         --overhangs         Experimental option to use bridge flow, speed and fan for overhangs

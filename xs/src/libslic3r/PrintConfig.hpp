@@ -206,6 +206,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 bottom_solid_layers;
     ConfigOptionFloat               bridge_flow_ratio;
     ConfigOptionFloat               bridge_speed;
+    ConfigOptionBool                ensure_vertical_shell_thickness;
     ConfigOptionEnum<InfillPattern> external_fill_pattern;
     ConfigOptionFloatOrPercent      external_perimeter_extrusion_width;
     ConfigOptionFloatOrPercent      external_perimeter_speed;
@@ -245,6 +246,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         OPT_PTR(bottom_solid_layers);
         OPT_PTR(bridge_flow_ratio);
         OPT_PTR(bridge_speed);
+        OPT_PTR(ensure_vertical_shell_thickness);
         OPT_PTR(external_fill_pattern);
         OPT_PTR(external_perimeter_extrusion_width);
         OPT_PTR(external_perimeter_speed);

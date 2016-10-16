@@ -247,7 +247,8 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "solid_infill_below_area"
             || *opt_key == "infill_extruder"
             || *opt_key == "solid_infill_extruder"
-            || *opt_key == "infill_extrusion_width") {
+            || *opt_key == "infill_extrusion_width"
+            || *opt_key == "ensure_vertical_shell_thickness") {
             steps.insert(posPrepareInfill);
         } else if (*opt_key == "external_fill_pattern"
             || *opt_key == "fill_angle"
@@ -359,6 +360,8 @@ void
 PrintObject::discover_vertical_shells()
 {
     for (size_t idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
+        if (! this->_print->regions[idx_region]->config.ensure_vertical_shell_thickness.value)
+            continue;
         for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++ idx_layer) {
             Layer* layer = this->layers[idx_layer];
             LayerRegion* layerm = layer->get_region(idx_region);

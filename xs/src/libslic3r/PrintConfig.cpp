@@ -149,6 +149,13 @@ PrintConfigDef::PrintConfigDef()
     def->height = 120;
     def->default_value = new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n");
 
+    def = this->add("ensure_vertical_shell_thickness", coBool);
+    def->label = "Ensure vertical shell thickness";
+    def->category = "Layers and Perimeters";
+    def->tooltip = "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers).";
+    def->cli = "ensure-vertical-shell-thickness!";
+    def->default_value = new ConfigOptionBool(false);
+
     def = this->add("external_fill_pattern", coEnum);
     def->label = "Top/bottom fill pattern";
     def->category = "Infill";
