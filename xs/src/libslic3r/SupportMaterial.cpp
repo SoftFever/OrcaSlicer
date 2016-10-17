@@ -1047,10 +1047,11 @@ void PrintSupportMaterial::generate_toolpaths(
 
             ExPolygons to_fill = union_ex(interface_polygons);
             for (ExPolygons::const_iterator it_expolygon = to_fill.begin(); it_expolygon != to_fill.end(); ++ it_expolygon) {
+                Surface surface(stInternal, *it_expolygon);
                 FillParams fill_params;
                 fill_params.density = interface_density;
                 fill_params.complete = true;
-                Polylines polylines = filler_interface->fill_surface(&Surface(stInternal, *it_expolygon), fill_params);
+                Polylines polylines = filler_interface->fill_surface(&surface, fill_params);
                 for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
                     ExtrusionPath *extrusion_path = new ExtrusionPath(erSupportMaterialInterface);
                     support_layer.support_interface_fills.entities.push_back(extrusion_path);
@@ -1115,10 +1116,11 @@ void PrintSupportMaterial::generate_toolpaths(
             }
             
             for (ExPolygons::const_iterator it_expolygon = to_infill.begin(); it_expolygon != to_infill.end(); ++ it_expolygon) {
+                Surface surface(stInternal, *it_expolygon);
                 FillParams fill_params;
                 fill_params.density = density;
                 fill_params.complete = true;
-                Polylines polylines = filler->fill_surface(&Surface(stInternal, *it_expolygon), fill_params);
+                Polylines polylines = filler->fill_surface(&surface, fill_params);
                 for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
                     ExtrusionPath *extrusion_path = new ExtrusionPath(erSupportMaterial);
                     support_layer.support_fills.entities.push_back(extrusion_path);
@@ -1183,10 +1185,11 @@ void PrintSupportMaterial::generate_toolpaths(
             }
             
             for (ExPolygons::const_iterator it_expolygon = to_infill.begin(); it_expolygon != to_infill.end(); ++ it_expolygon) {
+                Surface surface(stInternal, *it_expolygon);
                 FillParams fill_params;
                 fill_params.density = density;
                 fill_params.complete = true;
-                Polylines polylines = filler->fill_surface(&Surface(stInternal, *it_expolygon), fill_params);
+                Polylines polylines = filler->fill_surface(&surface, fill_params);
                 for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
                     ExtrusionPath *extrusion_path = new ExtrusionPath(erSupportMaterial);
                     support_layer.support_fills.entities.push_back(extrusion_path);
