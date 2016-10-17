@@ -100,7 +100,7 @@ void ShinyGetTicks(shinytick_t *p) {
 	*p = time.tv_sec * 1000000 + time.tv_usec;
 }
 
-const shinytick_t& ShinyGetTickFreq(void) {
+shinytick_t ShinyGetTickFreq(void) {
 	return 1000000;
 }
 

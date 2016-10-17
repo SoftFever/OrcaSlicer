@@ -32,6 +32,8 @@ THE SOFTWARE.
  */
 #if defined(SLIC3R_PROFILE) && defined(WIN32)
 #define SHINY_IS_COMPILED		TRUE
+#else
+#define SHINY_IS_COMPILED		FALSE
 #endif
 
 #define SHINY_STATIC_LINK		TRUE
