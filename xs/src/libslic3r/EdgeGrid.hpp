@@ -22,6 +22,19 @@ struct Grid
 	void create(const ExPolygons &expolygons, coord_t resolution);
 	void create(const ExPolygonCollection &expolygons, coord_t resolution);
 
+#if 0
+	// Test, whether the edges inside the grid intersect with the polygons provided.
+	bool intersect(const MultiPoint &polyline, bool closed);
+	bool intersect(const Polygon &polygon) { return intersect(static_cast<const MultiPoint&>(polygon), true); }
+	bool intersect(const Polygons &polygons) { for (size_t i = 0; i < polygons.size(); ++ i) if (intersect(polygons[i])) return true; return false; }
+	bool intersect(const ExPolygon &expoly) { if (intersect(expoly.contour)) return true; for (size_t i = 0; i < expoly.holes.size(); ++ i) if (intersect(expoly.holes[i])) return true; return false; }
+	bool intersect(const ExPolygons &expolygons) { for (size_t i = 0; i < expolygons.size(); ++ i) if (intersect(expolygons[i])) return true; return false; }
+	bool intersect(const ExPolygonCollection &expolygons) { return intersect(expolygons.expolygons); }
+
+	// Test, whether a point is inside a contour.
+	bool inside(const Point &pt);
+#endif
+
 	// Fill in a rough m_signed_distance_field from the edge grid.
 	// The rough SDF is used by signed_distance() for distances outside of the search_radius.
 	void calculate_sdf();
@@ -42,7 +55,16 @@ struct Grid
 	const size_t		cols() const { return m_cols; }
 
 protected:
+	struct Cell {
+		Cell() : begin(0), end(0) {}
+		size_t begin;
+		size_t end;
+	};
+
 	void create_from_m_contours(coord_t resolution);
+#if 0
+	bool line_cell_intersect(const Point &p1, const Point &p2, const Cell &cell);
+#endif
 
 	// Bounding box around the contours.
 	BoundingBox 								m_bbox;
@@ -59,11 +81,6 @@ protected:
 	// Referencing a contour and a line segment of m_contours.
 	std::vector<std::pair<size_t, size_t> >		m_cell_data;
 
-	struct Cell {
-		Cell() : begin(0), end(0) {}
-		size_t begin;
-		size_t end;
-	};
 	// Full grid of cells.
 	std::vector<Cell> 							m_cells;
 

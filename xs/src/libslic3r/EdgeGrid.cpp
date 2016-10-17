@@ -158,6 +158,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 			if (p1.x < p2.x) {
 				int64_t ex = int64_t((ix + 1)*m_resolution - p1.x) * int64_t(dy);
 				if (p1.y < p2.y) {
+					// x positive, y positive
 					int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
 					do {
 						assert(ix <= ixb && iy <= iyb);
@@ -182,6 +183,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 					} while (ix != ixb || iy != iyb);
 				}
 				else {
+					// x positive, y non positive
 					int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
 					do {
 						assert(ix <= ixb && iy >= iyb);
@@ -202,6 +204,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 			else {
 				int64_t ex = int64_t(p1.x - ix*m_resolution) * int64_t(dy);
 				if (p1.y < p2.y) {
+					// x non positive, y positive
 					int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
 					do {
 						assert(ix >= ixb && iy <= iyb);
@@ -220,6 +223,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 					} while (ix != ixb || iy != iyb);
 				}
 				else {
+					// x non positive, y non positive
 					int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
 					do {
 						assert(ix >= ixb && iy >= iyb);
@@ -229,10 +233,17 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 							ix -= 1;
 						}
 						else if (ex == ey) {
-							ex = int64_t(dy) * m_resolution;
-							ey = int64_t(dx) * m_resolution;
-							ix -= 1;
-							iy -= 1;
+							// The lower edge of a grid cell belongs to the cell.
+							// Handle the case where the ray may cross the lower left corner of a cell in a general case,
+							// or a left or lower edge in a degenerate case (horizontal or vertical line).
+							if (dx > 0) {
+								ex = int64_t(dy) * m_resolution;
+								ix -= 1;
+							}
+							if (dy > 0) {
+								ey = int64_t(dx) * m_resolution;
+								iy -= 1;
+							}
 						}
 						else {
 							assert(ex > ey);
@@ -291,6 +302,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 			if (p1.x < p2.x) {
 				int64_t ex = int64_t((ix + 1)*m_resolution - p1.x) * int64_t(dy);
 				if (p1.y < p2.y) {
+					// x positive, y positive
 					int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
 					do {
 						assert(ix <= ixb && iy <= iyb);
@@ -315,6 +327,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 					} while (ix != ixb || iy != iyb);
 				}
 				else {
+					// x positive, y non positive
 					int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
 					do {
 						assert(ix <= ixb && iy >= iyb);
@@ -335,6 +348,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 			else {
 				int64_t ex = int64_t(p1.x - ix*m_resolution) * int64_t(dy);
 				if (p1.y < p2.y) {
+					// x non positive, y positive
 					int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
 					do {
 						assert(ix >= ixb && iy <= iyb);
@@ -353,6 +367,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 					} while (ix != ixb || iy != iyb);
 				}
 				else {
+					// x non positive, y non positive
 					int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
 					do {
 						assert(ix >= ixb && iy >= iyb);
@@ -362,10 +377,17 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 							ix -= 1;
 						}
 						else if (ex == ey) {
-							ex = int64_t(dy) * m_resolution;
-							ey = int64_t(dx) * m_resolution;
-							ix -= 1;
-							iy -= 1;
+							// The lower edge of a grid cell belongs to the cell.
+							// Handle the case where the ray may cross the lower left corner of a cell in a general case,
+							// or a left or lower edge in a degenerate case (horizontal or vertical line).
+							if (dx > 0) {
+								ex = int64_t(dy) * m_resolution;
+								ix -= 1;
+							}
+							if (dy > 0) {
+								ey = int64_t(dx) * m_resolution;
+								iy -= 1;
+							}
 						}
 						else {
 							assert(ex > ey);
@@ -380,6 +402,269 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 		}
 	}
 }
+
+#if 0
+// Divide, round to a grid coordinate.
+// Divide x/y, round down. y is expected to be positive.
+static inline coord_t div_floor(coord_t x, coord_t y)
+{
+	assert(y > 0);
+	return ((x < 0) ? (x - y + 1) : x) / y;
+}
+
+// Walk the polyline, test whether any lines of this polyline does not intersect
+// any line stored into the grid.
+bool EdgeGrid::Grid::intersect(const MultiPoint &polyline, bool closed)
+{
+	size_t n = polyline.points.size();
+	if (closed)
+		++ n;
+	for (size_t i = 0; i < n; ++ i) {
+		size_t j = i + 1;
+		if (j == polyline.points.size())
+			j = 0;
+		Point p1src = polyline.points[i];
+		Point p2src = polyline.points[j];
+		Point p1 = p1src;
+		Point p2 = p2src;
+		// Discretize the line segment p1, p2.
+		p1.x -= m_bbox.min.x;
+		p1.y -= m_bbox.min.y;
+		p2.x -= m_bbox.min.x;
+		p2.y -= m_bbox.min.y;
+		// Get the cells of the end points.
+		coord_t ix = div_floor(p1.x, m_resolution);
+		coord_t iy = div_floor(p1.y, m_resolution);
+		coord_t ixb = div_floor(p2.x, m_resolution);
+		coord_t iyb = div_floor(p2.y, m_resolution);
+//		assert(ix >= 0 && ix < m_cols);
+//		assert(iy >= 0 && iy < m_rows);
+//		assert(ixb >= 0 && ixb < m_cols);
+//		assert(iyb >= 0 && iyb < m_rows);
+		// Account for the end points.
+		if (line_cell_intersect(p1src, p2src, m_cells[iy*m_cols + ix]))
+			return true;
+		if (ix == ixb && iy == iyb)
+			// Both ends fall into the same cell.
+			continue;
+		// Raster the centeral part of the line.
+		coord_t dx = std::abs(p2.x - p1.x);
+		coord_t dy = std::abs(p2.y - p1.y);
+		if (p1.x < p2.x) {
+			int64_t ex = int64_t((ix + 1)*m_resolution - p1.x) * int64_t(dy);
+			if (p1.y < p2.y) {
+				int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
+				do {
+					assert(ix <= ixb && iy <= iyb);
+					if (ex < ey) {
+						ey -= ex;
+						ex = int64_t(dy) * m_resolution;
+						ix += 1;
+					}
+					else if (ex == ey) {
+						ex = int64_t(dy) * m_resolution;
+						ey = int64_t(dx) * m_resolution;
+						ix += 1;
+						iy += 1;
+					}
+					else {
+						assert(ex > ey);
+						ex -= ey;
+						ey = int64_t(dx) * m_resolution;
+						iy += 1;
+					}
+					if (line_cell_intersect(p1src, p2src, m_cells[iy*m_cols + ix]))
+						return true;
+				} while (ix != ixb || iy != iyb);
+			}
+			else {
+				int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
+				do {
+					assert(ix <= ixb && iy >= iyb);
+					if (ex <= ey) {
+						ey -= ex;
+						ex = int64_t(dy) * m_resolution;
+						ix += 1;
+					}
+					else {
+						ex -= ey;
+						ey = int64_t(dx) * m_resolution;
+						iy -= 1;
+					}
+					if (line_cell_intersect(p1src, p2src, m_cells[iy*m_cols + ix]))
+						return true;
+				} while (ix != ixb || iy != iyb);
+			}
+		}
+		else {
+			int64_t ex = int64_t(p1.x - ix*m_resolution) * int64_t(dy);
+			if (p1.y < p2.y) {
+				int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
+				do {
+					assert(ix >= ixb && iy <= iyb);
+					if (ex < ey) {
+						ey -= ex;
+						ex = int64_t(dy) * m_resolution;
+						ix -= 1;
+					}
+					else {
+						assert(ex >= ey);
+						ex -= ey;
+						ey = int64_t(dx) * m_resolution;
+						iy += 1;
+					}
+					if (line_cell_intersect(p1src, p2src, m_cells[iy*m_cols + ix]))
+						return true;
+				} while (ix != ixb || iy != iyb);
+			}
+			else {
+				int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
+				do {
+					assert(ix >= ixb && iy >= iyb);
+					if (ex < ey) {
+						ey -= ex;
+						ex = int64_t(dy) * m_resolution;
+						ix -= 1;
+					}
+					else if (ex == ey) {
+						if (dx > 0) {
+							ex = int64_t(dy) * m_resolution;
+							ix -= 1;
+						}
+						if (dy > 0) {
+							ey = int64_t(dx) * m_resolution;
+							iy -= 1;
+						}
+					}
+					else {
+						assert(ex > ey);
+						ex -= ey;
+						ey = int64_t(dx) * m_resolution;
+						iy -= 1;
+					}
+					if (line_cell_intersect(p1src, p2src, m_cells[iy*m_cols + ix]))
+						return true;
+				} while (ix != ixb || iy != iyb);
+			}
+		}
+	}
+	return false;
+}
+
+bool EdgeGrid::Grid::line_cell_intersect(const Point &p1a, const Point &p2a, const Cell &cell)
+{
+	BoundingBox bbox(p1a, p1a);
+	bbox.merge(p2a);
+	int64_t va_x = p2a.x - p1a.x;
+	int64_t va_y = p2a.y - p1a.y;
+	for (size_t i = cell.begin; i != cell.end; ++ i) {
+		const std::pair<size_t, size_t> &cell_data = m_cell_data[i];
+		// Contour indexed by the ith line of this cell.
+		const Slic3r::Points &contour = *m_contours[cell_data.first];
+		// Point indices in contour indexed by the ith line of this cell.
+		size_t idx1 = cell_data.second;
+		size_t idx2 = idx1 + 1;
+		if (idx2 == contour.size())
+			idx2 = 0;
+		// The points of the ith line of this cell and its bounding box.
+		const Point &p1b = contour[idx1];
+		const Point &p2b = contour[idx2];
+		BoundingBox bbox2(p1b, p1b);
+		bbox2.merge(p2b);
+		// Do the bounding boxes intersect?
+		if (! bbox.overlap(bbox2))
+			continue;
+		// Now intersect the two line segments using exact arithmetics.
+		int64_t w1_x = p1b.x - p1a.x;
+		int64_t w1_y = p1b.y - p1a.y;
+		int64_t w2_x = p2b.x - p1a.x;
+		int64_t w2_y = p2b.y - p1a.y;
+		int64_t side1 = va_x * w1_y - va_y * w1_x;
+		int64_t side2 = va_x * w2_y - va_y * w2_x;
+		if (side1 == side2 && side1 != 0)
+			// The line segments don't intersect.
+			continue;
+		w1_x = p1a.x - p1b.x;
+		w1_y = p1a.y - p1b.y;
+		w2_x = p2a.x - p1b.x;
+		w2_y = p2a.y - p1b.y;
+		int64_t vb_x = p2b.x - p1b.x;
+		int64_t vb_y = p2b.y - p1b.y;
+		side1 = vb_x * w1_y - vb_y * w1_x;
+		side2 = vb_x * w2_y - vb_y * w2_x;
+		if (side1 == side2 && side1 != 0)
+			// The line segments don't intersect.
+			continue;
+		// The line segments intersect.
+		return true;
+	}
+	// The line segment (p1a, p2a) does not intersect any of the line segments inside this cell.
+	return false;
+}
+
+// Test, whether a point is inside a contour.
+bool EdgeGrid::Grid::inside(const Point &pt_src)
+{
+	Point p = pt_src;
+	p.x -= m_bbox.min.x;
+	p.y -= m_bbox.min.y;
+	// Get the cell of the point.
+	if (p.x < 0 || p.y < 0)
+		return false;
+	coord_t ix = p.x / m_resolution;
+	coord_t iy = p.y / m_resolution;
+	if (ix >= this->m_cols || iy >= this->m_rows)
+		return false;
+
+	size_t i_closest = (size_t)-1;
+	bool   inside = false;
+
+	{
+		// Hit in the first cell?
+		const Cell &cell = m_cells[iy * m_cols + ix];
+		for (size_t i = cell.begin; i != cell.end; ++ i) {
+			const std::pair<size_t, size_t> &cell_data = m_cell_data[i];
+			// Contour indexed by the ith line of this cell.
+			const Slic3r::Points &contour = *m_contours[cell_data.first];
+			// Point indices in contour indexed by the ith line of this cell.
+			size_t idx1 = cell_data.second;
+			size_t idx2 = idx1 + 1;
+			if (idx2 == contour.size())
+				idx2 = 0;
+			const Point &p1 = contour[idx1];
+			const Point &p2 = contour[idx2];
+			if (p1.y < p2.y) {
+				if (p.y < p1.y || p.y > p2.y)
+					continue;
+				//FIXME finish this!
+				int64_t vx = 0;// pt_src
+				//FIXME finish this!
+				int64_t det = 0;
+			} else if (p1.y != p2.y) {
+				assert(p1.y > p2.y);
+				if (p.y < p2.y || p.y > p1.y)
+					continue;
+			} else {
+				assert(p1.y == p2.y);
+				if (p1.y == p.y) {
+					if (p.x >= p1.x && p.x <= p2.x)
+						// On the segment.
+						return true;
+					// Before or after the segment.
+					size_t idx0 = idx1 - 1;
+					size_t idx2 = idx1 + 1;
+					if (idx0 == (size_t)-1)
+						idx0 = contour.size() - 1;
+					if (idx2 == contour.size())
+						idx2 = 0;
+				}
+			}
+		}
+	}
+
+	//FIXME This code follows only a single direction. Better to follow the direction closest to the bounding box.
+}
+#endif
 
 template<const int INCX, const int INCY>
 struct PropagateDanielssonSingleStep {
