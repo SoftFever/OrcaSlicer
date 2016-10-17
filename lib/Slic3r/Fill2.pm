@@ -22,7 +22,7 @@ sub filler {
        return Slic3r::Filler->new_from_type($filler);
     }
 
-    print "Filler: ", $filler, "\n";
+    #print "Filler: ", $filler, "\n";
     $self->fillers->{$filler} ||= Slic3r::Filler->new_from_type($filler);
     $self->fillers->{$filler}->set_bounding_box($self->bounding_box);
     return $self->fillers->{$filler};
