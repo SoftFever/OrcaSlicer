@@ -33,7 +33,7 @@ THE SOFTWARE.
 
 #include <stdio.h>
 
-#ifdef SHINY_IS_COMPILED
+#if SHINY_IS_COMPILED == TRUE
 
 #ifdef __cplusplus
 extern "C" {

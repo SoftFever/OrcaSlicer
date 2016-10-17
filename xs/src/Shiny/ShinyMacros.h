@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "ShinyManager.h"
 
-#ifdef SHINY_IS_COMPILED
+#if SHINY_IS_COMPILED == TRUE
 
 /*---------------------------------------------------------------------------*/
 /* public preprocessors */
@@ -254,7 +254,7 @@ THE SOFTWARE.
 
 /*---------------------------------------------------------------------------*/
 
-#else /* #if SHINY_IS_COMPILED == TRUE */
+#else /* if SHINY_IS_COMPILED == TRUE */
 
 #ifdef __cplusplus
 extern "C" {
@@ -292,6 +292,6 @@ SHINY_INLINE ShinyData GetEmptyData() {
 #define PROFILE_SET_ENABLED(boolean)
 #endif
 
-#endif /* SHINY_IS_COMPILED */
+#endif /* SHINY_IS_COMPILED == TRUE */
 
 #endif /* SHINY_MACROS_H */

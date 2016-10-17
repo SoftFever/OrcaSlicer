@@ -110,4 +110,4 @@ float ShinyGetTickInvFreq(void) {
 
 #endif
 
-#endif /* SHINY_IS_COMPILED */
+#endif /* if SHINY_IS_COMPILED == TRUE */

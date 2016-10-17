@@ -25,6 +25,20 @@ THE SOFTWARE.
 #ifndef SHINY_PREREQS_H
 #define SHINY_PREREQS_H
 
+/*---------------------------------------------------------------------------*/
+
+#ifndef FALSE
+#define FALSE	0x0
+#endif
+
+#ifndef TRUE
+#define TRUE	0x1
+#endif
+
+#ifndef NULL
+#define NULL	0
+#endif
+
 #include "ShinyConfig.h"
 #include "ShinyVersion.h"
 
@@ -64,21 +78,6 @@ extern "C" {
 
 /*---------------------------------------------------------------------------*/
 
-#ifndef FALSE
-#define FALSE	0x0
-#endif
-
-#ifndef TRUE
-#define TRUE	0x1
-#endif
-
-#ifndef NULL
-#define NULL	0
-#endif
-
-
-/*---------------------------------------------------------------------------*/
-
 #if SHINY_COMPILER == SHINY_COMPILER_GNUC
 #include <sys/types.h>
 #include <stdint.h>
@@ -87,7 +86,7 @@ extern "C" {
 
 /*---------------------------------------------------------------------------*/
 
-#ifdef SHINY_IS_COMPILED
+#if SHINY_IS_COMPILED == TRUE
 	struct _ShinyNode;
 	struct _ShinyZone;
 
