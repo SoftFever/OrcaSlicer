@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <memory>
 
 namespace Slic3r {
 
@@ -508,7 +509,7 @@ PrintSupportMaterial::MyLayersPtr PrintSupportMaterial::bottom_contact_layers(
                 // Place a bridge flow interface layer over the top surface.
                 m_interface_flow.nozzle_diameter;
             layer_new.print_z = layer.print_z + layer_new.height + 
-                (m_soluble_interface ? 0 : m_object_config->support_material_contact_distance);
+                (m_soluble_interface ? 0. : m_object_config->support_material_contact_distance.value);
             layer_new.bottom_z = layer.print_z;
             layer_new.idx_object_layer_below = layer_id;
             layer_new.bridging = ! m_soluble_interface;
