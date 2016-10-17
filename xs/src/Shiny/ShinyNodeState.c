@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "ShinyNode.h"
 #include "ShinyZone.h"
 
-#include <malloc.h>
+// #include <malloc.h>
 
 
 #if SHINY_IS_COMPILED == TRUE
