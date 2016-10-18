@@ -21,6 +21,7 @@
     Clone<Polygon> polygon();
     Clone<Point> size();
     Clone<Point> center();
+    bool empty() %code{% RETVAL = empty(*THIS); %};
     double radius();
     Clone<Point> min_point() %code{% RETVAL = THIS->min; %};
     Clone<Point> max_point() %code{% RETVAL = THIS->max; %};
@@ -56,6 +57,7 @@ new_from_points(CLASS, points)
     Clone<Pointf> size();
     Clone<Pointf> center();
     double radius();
+    bool empty() %code{% RETVAL = empty(*THIS); %};
     Clone<Pointf> min_point() %code{% RETVAL = THIS->min; %};
     Clone<Pointf> max_point() %code{% RETVAL = THIS->max; %};
     double x_min() %code{% RETVAL = THIS->min.x; %};
@@ -94,6 +96,7 @@ new_from_points(CLASS, points)
     Clone<Pointf3> size();
     Clone<Pointf3> center();
     double radius();
+    bool empty() %code{% RETVAL = empty(*THIS); %};
     Clone<Pointf3> min_point() %code{% RETVAL = THIS->min; %};
     Clone<Pointf3> max_point() %code{% RETVAL = THIS->max; %};
     double x_min() %code{% RETVAL = THIS->min.x; %};

@@ -17,6 +17,7 @@
 // Scaling factor for a conversion from coord_t to coordf_t: 10e-6
 // This scaling generates a following fixed point representation with for a 32bit integer:
 // 0..4294mm with 1nm resolution
+// int32_t fits an interval of (-2147.48mm, +2147.48mm)
 #define SCALING_FACTOR 0.000001
 // RESOLUTION, SCALED_RESOLUTION: Used as an error threshold for a Douglas-Peucker polyline simplification algorithm.
 #define RESOLUTION 0.0125

@@ -102,13 +102,13 @@ inline bool operator!=(const BoundingBoxBase<VT> &bb1, const BoundingBoxBase<VT>
 template<typename VT>
 inline bool empty(const BoundingBoxBase<VT> &bb)
 {
-    return bb.min.x > bb.max.x || bb.min.y > bb.max.y;
+    return ! bb.defined || bb.min.x > bb.max.x || bb.min.y > bb.max.y;
 }
 
 template<typename VT>
 inline bool empty(const BoundingBox3Base<VT> &bb)
 {
-    return bb.min.x > bb.max.x || bb.min.y > bb.max.y || bb.min.z > bb.max.z;
+    return ! bb.defined || bb.min.x > bb.max.x || bb.min.y > bb.max.y || bb.min.z > bb.max.z;
 }
 
 } // namespace Slic3r

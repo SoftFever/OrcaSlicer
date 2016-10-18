@@ -354,15 +354,18 @@ sub select_view {
             $dirvec = VIEW_REAR;
         }
     }
-    $self->_sphi($dirvec->[0]);
-    $self->_stheta($dirvec->[1]);
-    # Avoid gimball lock.
-    $self->_stheta(150) if $self->_stheta > 150;
-    $self->_stheta(0) if $self->_stheta < 0;
-    # View everything.
-    $self->zoom_to_volumes;
-    $self->on_viewport_changed->() if $self->on_viewport_changed;
-    $self->Refresh;
+    my $bb = $self->volumes_bounding_box;
+    if (! $bb->empty) {
+        $self->_sphi($dirvec->[0]);
+        $self->_stheta($dirvec->[1]);
+        # Avoid gimball lock.
+        $self->_stheta(150) if $self->_stheta > 150;
+        $self->_stheta(0) if $self->_stheta < 0;
+        # View everything.
+        $self->zoom_to_bounding_box($bb);
+        $self->on_viewport_changed->() if $self->on_viewport_changed;
+        $self->Refresh;
+    }
 }
 
 sub zoom_to_bounding_box {
