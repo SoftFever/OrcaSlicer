@@ -5,7 +5,8 @@
 #include <ostream>
 #include <iostream>
 #include <sstream>
-#include <stdint.h>
+#include <cstdio>
+#include <cstdint>
 #include <stdarg.h>
 
 #define SLIC3R_VERSION "1.3.0-dev"
@@ -71,7 +72,7 @@ inline std::string debug_out_path(const char *name, ...)
 	char buffer[2048];
 	va_list args;
 	va_start(args, name);
-	vsprintf(buffer, name, args);
+	std::vsprintf(buffer, name, args);
 	va_end(args);
 	return std::string(DEBUG_FILE_PREFIX) + std::string(buffer);
 }

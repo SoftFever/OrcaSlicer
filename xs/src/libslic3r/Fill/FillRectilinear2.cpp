@@ -1043,7 +1043,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     }
 
     // Verify the segments. If something is wrong, give up.
-#define ASSERT_OR_RETURN(CONDITION) do { assert(CONDITION); if (CONDITION) return false; } while (0)
+#define ASSERT_OR_RETURN(CONDITION) do { assert(CONDITION); if (! (CONDITION)) return false; } while (0)
     for (size_t i_seg = 0; i_seg < segs.size(); ++ i_seg) {
         SegmentedIntersectionLine &sil = segs[i_seg];
         // The intersection points have to be even.
