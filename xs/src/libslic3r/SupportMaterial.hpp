@@ -2,6 +2,7 @@
 #define slic3r_SupportMaterial_hpp_
 
 #include "Flow.hpp"
+#include "PrintConfig.hpp"
 
 namespace Slic3r {
 
@@ -120,7 +121,7 @@ public:
 
 	// Height of the 1st layer is user configured as it is important for the print
 	// to stick to he print bed.
-	coordf_t	first_layer_height() const { return m_object_config->first_layer_height.value; }
+	coordf_t	first_layer_height() 		const { return m_object_config->first_layer_height.value; }
 
 	// Is raft enabled?
 	bool 		has_raft() 					const { return m_has_raft; }

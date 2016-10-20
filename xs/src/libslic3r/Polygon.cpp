@@ -406,7 +406,7 @@ bool remove_small(Polygons &polys, double min_area)
     bool modified = false;
     size_t j = 0;
     for (size_t i = 0; i < polys.size(); ++ i) {
-        if (polys[i].area() >= min_area) {
+        if (std::abs(polys[i].area()) >= min_area) {
             if (j < i) 
                 std::swap(polys[i].points, polys[j].points);
             ++ j;

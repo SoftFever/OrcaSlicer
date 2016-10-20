@@ -144,7 +144,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
             }
         }
 
-        m_object_1st_layer_gap = m_soluble_interface ? 0 : m_object_config->support_material_contact_distance;
+        m_object_1st_layer_gap = m_soluble_interface ? 0. : m_object_config->support_material_contact_distance.value;
         m_object_1st_layer_print_z = m_raft_height + m_object_1st_layer_gap + m_object_1st_layer_height;
     }
     else

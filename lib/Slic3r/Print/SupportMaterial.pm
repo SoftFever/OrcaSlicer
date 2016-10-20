@@ -647,11 +647,6 @@ sub generate_toolpaths {
         $pattern = 'honeycomb';
     }
     
-    my %fillers = (
-        interface   => $object->fill_maker2->filler('rectilinear'),
-        support     => $object->fill_maker2->filler($pattern),
-    );
-    
     my $interface_angle = $self->object_config->support_material_angle + 90;
     my $interface_spacing = $self->object_config->support_material_interface_spacing + $interface_flow->spacing;
     my $interface_density = $interface_spacing == 0 ? 1 : $interface_flow->spacing / $interface_spacing;
@@ -762,6 +757,13 @@ sub generate_toolpaths {
             
             $layer->support_interface_fills->append(@loops);
         }
+
+        # Allocate the fillers exclusively in the worker threads! Don't allocate them at the main thread,
+        # as Perl copies the C++ pointers by default, so then the C++ objects are shared between threads!
+        my %fillers = (
+            interface   => $object->fill_maker2->filler('rectilinear'),
+            support     => $object->fill_maker2->filler($pattern),
+        );
         
         # interface and contact infill
         if (@$interface || @$contact_infill) {

@@ -5,24 +5,31 @@
 
 namespace Slic3r {
 
-SVG::SVG(const char* filename)
-    : arrows(false), fill("grey"), stroke("black"), filename(filename), flipY(false)
+bool SVG::open(const char* afilename)
 {
-    this->f = fopen(filename, "w");
+    this->filename = afilename;
+    this->f = fopen(afilename, "w");
+    if (this->f == NULL)
+        return false;
     fprintf(this->f,
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n"
         "<svg height=\"2000\" width=\"2000\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:svg=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n"
-	    "   <marker id=\"endArrow\" markerHeight=\"8\" markerUnits=\"strokeWidth\" markerWidth=\"10\" orient=\"auto\" refX=\"1\" refY=\"5\" viewBox=\"0 0 10 10\">\n"
-		"      <polyline fill=\"darkblue\" points=\"0,0 10,5 0,10 1,5\" />\n"
-	    "   </marker>\n"
-	    );
+        "   <marker id=\"endArrow\" markerHeight=\"8\" markerUnits=\"strokeWidth\" markerWidth=\"10\" orient=\"auto\" refX=\"1\" refY=\"5\" viewBox=\"0 0 10 10\">\n"
+        "      <polyline fill=\"darkblue\" points=\"0,0 10,5 0,10 1,5\" />\n"
+        "   </marker>\n"
+        );
+    return true;
 }
 
-SVG::SVG(const char* filename, const BoundingBox &bbox, const coord_t bbox_offset, bool aflipY)
-    : arrows(false), fill("grey"), stroke("black"), filename(filename), origin(bbox.min - Point(bbox_offset, bbox_offset)), flipY(aflipY)
+bool SVG::open(const char* afilename, const BoundingBox &bbox, const coord_t bbox_offset, bool aflipY)
 {
-    this->f = fopen(filename, "w");
+    this->filename = afilename;
+    this->origin   = bbox.min - Point(bbox_offset, bbox_offset);
+    this->flipY    = aflipY;
+    this->f        = ::fopen(afilename, "w");
+    if (f == NULL)
+        return false;
     float w = COORD(bbox.max.x - bbox.min.x + 2 * bbox_offset);
     float h = COORD(bbox.max.y - bbox.min.y + 2 * bbox_offset);
     fprintf(this->f,
@@ -33,6 +40,7 @@ SVG::SVG(const char* filename, const BoundingBox &bbox, const coord_t bbox_offse
         "      <polyline fill=\"darkblue\" points=\"0,0 10,5 0,10 1,5\" />\n"
         "   </marker>\n",
         h, w);
+    return true;
 }
 
 void

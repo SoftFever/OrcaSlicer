@@ -18,9 +18,26 @@ class SVG
     Point origin;
     bool flipY;
 
-    SVG(const char* filename);
-    SVG(const char* filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = false);
+    SVG(const char* afilename) :
+        arrows(false), fill("grey"), stroke("black"), filename(afilename), flipY(false)
+        { open(filename); }
+    SVG(const char* afilename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool aflipY = false) : 
+        arrows(false), fill("grey"), stroke("black"), filename(afilename), origin(bbox.min - Point(bbox_offset, bbox_offset)), flipY(aflipY)
+        { open(filename, bbox, bbox_offset, aflipY); }
+    SVG(const std::string &filename) :
+        arrows(false), fill("grey"), stroke("black"), filename(filename), flipY(false)
+        { open(filename); }
+    SVG(const std::string &filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool aflipY = false) : 
+        arrows(false), fill("grey"), stroke("black"), filename(filename), origin(bbox.min - Point(bbox_offset, bbox_offset)), flipY(aflipY)
+        { open(filename, bbox, bbox_offset, aflipY); }
     ~SVG() { if (f != NULL) Close(); }
+
+    bool open(const char* filename);
+    bool open(const char* filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = false);
+    bool open(const std::string &filename) 
+        { return open(filename.c_str()); }
+    bool open(const std::string &filename, const BoundingBox &bbox, const coord_t bbox_offset = scale_(1.), bool flipY = false)
+        { return open(filename.c_str(), bbox, bbox_offset, flipY); }
 
     void draw(const Line &line, std::string stroke = "black", coordf_t stroke_width = 0);
     void draw(const ThickLine &line, const std::string &fill, const std::string &stroke, coordf_t stroke_width = 0);

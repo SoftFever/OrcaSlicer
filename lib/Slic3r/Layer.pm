@@ -36,7 +36,9 @@ sub make_fill {
     
     foreach my $layerm (@{$self->regions}) {
         $layerm->fills->clear;
-        $layerm->fills->append($_) for $self->object->fill_maker->make_fill($layerm);
+        # Fearlessly enable the C++ fillers.
+        $layerm->fills->append($_) for $self->object->fill_maker2->make_fill($layerm);
+#        $layerm->fills->append($_) for $self->object->fill_maker->make_fill($layerm);
     }
 }
 

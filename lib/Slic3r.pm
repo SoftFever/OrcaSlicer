@@ -223,7 +223,9 @@ sub thread_cleanup {
     *Slic3r::ExtrusionPath::Collection::DESTROY = sub {};
     *Slic3r::ExtrusionSimulator::DESTROY    = sub {};
     *Slic3r::Flow::DESTROY                  = sub {};
-    *Slic3r::Filler::DESTROY                = sub {};
+# Fillers are only being allocated in worker threads, which are not going to be forked.
+# Therefore the Filler instances shall be released at the end of the thread.
+#    *Slic3r::Filler::DESTROY                = sub {};
     *Slic3r::GCode::DESTROY                 = sub {};
     *Slic3r::GCode::AvoidCrossingPerimeters::DESTROY = sub {};
     *Slic3r::GCode::OozePrevention::DESTROY = sub {};

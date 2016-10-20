@@ -16,7 +16,7 @@ public:
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
 protected:
-	void fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, Polylines &polylines_out);
+	bool fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, Polylines &polylines_out);
 
 	coord_t _min_spacing;
 	coord_t _line_spacing;
