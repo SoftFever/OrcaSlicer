@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstdio>
-#include <cstdint>
+#include <stdint.h>
 #include <stdarg.h>
 
 #define SLIC3R_VERSION "1.3.0-dev"
