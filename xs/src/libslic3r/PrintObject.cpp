@@ -31,28 +31,6 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     this->layer_height_ranges = model_object->layer_height_ranges;
 }
 
-PrintObject::~PrintObject()
-{
-}
-
-Print*
-PrintObject::print()
-{
-    return this->_print;
-}
-
-ModelObject*
-PrintObject::model_object()
-{
-    return this->_model_object;
-}
-
-Points
-PrintObject::copies() const
-{
-    return this->_copies;
-}
-
 bool
 PrintObject::add_copy(const Pointf &point)
 {

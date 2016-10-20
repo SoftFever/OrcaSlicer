@@ -585,4 +585,9 @@ BoundingBox get_extents(const ExPolygons &expolygons)
     return bbox;
 }
 
+bool remove_sticks(ExPolygon &poly)
+{
+    return remove_sticks(poly.contour) || remove_sticks(poly.holes);
+}
+
 } // namespace Slic3r

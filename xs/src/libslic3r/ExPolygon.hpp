@@ -86,6 +86,8 @@ inline Polygons to_polygons(ExPolygons &&src)
 extern BoundingBox get_extents(const ExPolygon &expolygon);
 extern BoundingBox get_extents(const ExPolygons &expolygons);
 
+extern bool        remove_sticks(ExPolygon &poly);
+
 } // namespace Slic3r
 
 // start Boost

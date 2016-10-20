@@ -5,15 +5,9 @@
 #include "libslic3r/SupportMaterial.hpp"
 %}
 
-%name{Slic3r::Print::SupportMaterial2} class PrintSupportMaterial {
-    %name{_new} PrintSupportMaterial(
-		PrintConfig 		*print_config,
-		PrintObjectConfig	*object_config,
-		Flow 			 	*flow,
-		Flow 			 	*first_layer_flow,
-		Flow 			 	*interface_flow,
-		bool 			 	 soluble_interface);
-    ~PrintSupportMaterial();
+%name{Slic3r::Print::SupportMaterial2} class PrintObjectSupportMaterial {
+    PrintObjectSupportMaterial(PrintObject *print_object);
+    ~PrintObjectSupportMaterial();
 
     void generate(PrintObject *object)
         %code{% THIS->generate(*object); %};

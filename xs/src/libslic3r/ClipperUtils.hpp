@@ -49,6 +49,16 @@ Slic3r::Polygons offset(const Slic3r::Polygons &polygons, const float delta,
     double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
+// This is a safe variant of the polygon offset, tailored for a single ExPolygon:
+// a single polygon with multiple non-overlapping holes.
+// Each contour and hole is offsetted separately, then the holes are subtracted from the outer contours.
+void offset(const Slic3r::ExPolygon &expolygon, ClipperLib::Paths* retval, const float delta,
+    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
+    double miterLimit = 3);
+Slic3r::Polygons offset(const Slic3r::ExPolygon &expolygon, const float delta,
+    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
+    double miterLimit = 3);
+
 // offset Polylines
 void offset(const Slic3r::Polylines &polylines, ClipperLib::Paths* retval, const float delta,
     double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 

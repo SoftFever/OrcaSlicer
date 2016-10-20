@@ -103,10 +103,12 @@ public:
     // TODO: Fill* fill_maker        => (is => 'lazy');
     PrintState<PrintObjectStep> state;
     
-    Print* print();
-    ModelObject* model_object();
-    
-    Points copies() const;
+    Print*              print()                 { return this->_print; }
+    const Print*        print() const           { return this->_print; }
+    ModelObject*        model_object()          { return this->_model_object; }
+    const ModelObject*  model_object() const    { return this->_model_object; }
+
+    Points copies() const { return this->_copies; }
     bool add_copy(const Pointf &point);
     bool delete_last_copy();
     bool delete_all_copies();
@@ -151,7 +153,7 @@ private:
     // TODO: call model_object->get_bounding_box() instead of accepting
         // parameter
     PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox);
-    ~PrintObject();
+    ~PrintObject() {}
 };
 
 typedef std::vector<PrintObject*> PrintObjectPtrs;

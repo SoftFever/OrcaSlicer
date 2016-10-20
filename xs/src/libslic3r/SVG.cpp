@@ -326,7 +326,7 @@ SVG::Close()
     fprintf(this->f, "</svg>\n");
     fclose(this->f);
     this->f = NULL;
-    printf("SVG written to %s\n", this->filename.c_str());
+//    printf("SVG written to %s\n", this->filename.c_str());
 }
 
 void SVG::export_expolygons(const char *path, const BoundingBox &bbox, const Slic3r::ExPolygons &expolygons, std::string stroke_outer, std::string stroke_holes, coordf_t stroke_width)

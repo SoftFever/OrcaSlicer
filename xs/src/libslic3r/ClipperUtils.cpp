@@ -39,9 +39,9 @@ void
 ClipperPath_to_Slic3rMultiPoint(const ClipperLib::Path &input, T* output)
 {
     output->points.clear();
-    for (ClipperLib::Path::const_iterator pit = input.begin(); pit != input.end(); ++pit) {
+    output->points.reserve(input.size());
+    for (ClipperLib::Path::const_iterator pit = input.begin(); pit != input.end(); ++pit)
         output->points.push_back(Slic3r::Point( (*pit).X, (*pit).Y ));
-    }
 }
 template void ClipperPath_to_Slic3rMultiPoint<Slic3r::Polygon>(const ClipperLib::Path &input, Slic3r::Polygon* output);
 
@@ -50,6 +50,7 @@ void
 ClipperPaths_to_Slic3rMultiPoints(const ClipperLib::Paths &input, T* output)
 {
     output->clear();
+    output->reserve(input.size());
     for (ClipperLib::Paths::const_iterator it = input.begin(); it != input.end(); ++it) {
         typename T::value_type p;
         ClipperPath_to_Slic3rMultiPoint(*it, &p);
@@ -78,9 +79,18 @@ void
 Slic3rMultiPoint_to_ClipperPath(const Slic3r::MultiPoint &input, ClipperLib::Path* output)
 {
     output->clear();
-    for (Slic3r::Points::const_iterator pit = input.points.begin(); pit != input.points.end(); ++pit) {
+    output->reserve(input.points.size());
+    for (Slic3r::Points::const_iterator pit = input.points.begin(); pit != input.points.end(); ++pit)
         output->push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
-    }
+}
+
+void
+Slic3rMultiPoint_to_ClipperPath_reversed(const Slic3r::MultiPoint &input, ClipperLib::Path* output)
+{
+    output->clear();
+    output->reserve(input.points.size());
+    for (Slic3r::Points::const_reverse_iterator pit = input.points.rbegin(); pit != input.points.rend(); ++pit)
+        output->push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
 }
 
 template <class T>
@@ -88,10 +98,23 @@ void
 Slic3rMultiPoints_to_ClipperPaths(const T &input, ClipperLib::Paths* output)
 {
     output->clear();
+    output->reserve(input.size());
     for (typename T::const_iterator it = input.begin(); it != input.end(); ++it) {
+        // std::vector< IntPoint >, IntPoint is a pair of int64_t
         ClipperLib::Path p;
         Slic3rMultiPoint_to_ClipperPath(*it, &p);
         output->push_back(p);
+    }
+}
+
+void
+scaleClipperPolygon(ClipperLib::Path &polygon, const double scale)
+{
+    for (ClipperLib::Path::iterator pit = polygon.begin(); pit != polygon.end(); ++pit) {
+        //FIXME multiplication of int64_t by double!
+        // Replace by bit shifts?
+        (*pit).X *= scale;
+        (*pit).Y *= scale;
     }
 }
 
@@ -100,6 +123,8 @@ scaleClipperPolygons(ClipperLib::Paths &polygons, const double scale)
 {
     for (ClipperLib::Paths::iterator it = polygons.begin(); it != polygons.end(); ++it) {
         for (ClipperLib::Path::iterator pit = (*it).begin(); pit != (*it).end(); ++pit) {
+            //FIXME multiplication of int64_t by double!
+            // Replace by bit shifts?
             (*pit).X *= scale;
             (*pit).Y *= scale;
         }
@@ -217,6 +242,76 @@ offset(const Slic3r::Polygons &polygons, Slic3r::ExPolygons* retval, const float
     
     // convert into ExPolygons
     ClipperPaths_to_Slic3rExPolygons(output, retval);
+}
+
+// This is a safe variant of the polygon offset, tailored for a single ExPolygon:
+// a single polygon with multiple non-overlapping holes.
+// Each contour and hole is offsetted separately, then the holes are subtracted from the outer contours.
+void offset(const Slic3r::ExPolygon &expolygon, ClipperLib::Paths* retval, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+//    printf("new ExPolygon offset\n");
+    // 1) Offset the outer contour.
+    const float delta_scaled = float(delta * scale);
+    ClipperLib::Paths contours;
+    {
+        ClipperLib::Path input;
+        Slic3rMultiPoint_to_ClipperPath(expolygon.contour, &input);
+        scaleClipperPolygon(input, scale);
+        ClipperLib::ClipperOffset co;
+        if (joinType == jtRound)
+            co.ArcTolerance = miterLimit;
+        else
+            co.MiterLimit = miterLimit;
+        co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
+        co.Execute(contours, delta_scaled);
+    }
+
+    // 2) Offset the holes one by one, collect the results.
+    ClipperLib::Paths holes;
+    {
+        holes.reserve(expolygon.holes.size());
+        for (Polygons::const_iterator it_hole = expolygon.holes.begin(); it_hole != expolygon.holes.end(); ++ it_hole) {
+            ClipperLib::Path input;
+            Slic3rMultiPoint_to_ClipperPath_reversed(*it_hole, &input);
+            scaleClipperPolygon(input, scale);
+            ClipperLib::ClipperOffset co;
+            if (joinType == jtRound)
+                co.ArcTolerance = miterLimit;
+            else
+                co.MiterLimit = miterLimit;
+            co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
+            ClipperLib::Paths out;
+            co.Execute(out, - delta_scaled);
+            holes.insert(holes.end(), out.begin(), out.end());
+        }
+    }
+
+    // 3) Subtract holes from the contours.
+    ClipperLib::Paths output;
+    {
+        ClipperLib::Clipper clipper;
+        clipper.Clear();
+        clipper.AddPaths(contours, ClipperLib::ptSubject, true);
+        clipper.AddPaths(holes, ClipperLib::ptClip, true);
+        clipper.Execute(ClipperLib::ctDifference, *retval, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+    }
+    
+    // 4) Unscale the output.
+    scaleClipperPolygons(*retval, 1/scale);
+}
+
+Slic3r::Polygons offset(const Slic3r::ExPolygon &expolygon, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    ClipperLib::Paths output;
+    offset(expolygon, &output, delta, scale, joinType, miterLimit);
+    
+    // convert into ExPolygons
+    Slic3r::Polygons retval;
+    ClipperPaths_to_Slic3rMultiPoints(output, &retval);
+    return retval;
 }
 
 Slic3r::ExPolygons

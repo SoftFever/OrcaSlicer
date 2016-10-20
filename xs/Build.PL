@@ -180,6 +180,9 @@ if ($ENV{SLIC3R_DEBUG}) {
     # only on newer GCCs: -ftemplate-backtrace-limit=0
     push @cflags, '-DSLIC3R_DEBUG';
     push @cflags, $cpp_guess->is_msvc ? '-Gd' : '-g';
+} else {
+    # Disable asserts in the release builds.
+    push @cflags, '-DNDEBUG';
 }
 if ($cpp_guess->is_gcc) {
     # check whether we're dealing with a buggy GCC version

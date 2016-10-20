@@ -86,12 +86,34 @@ Polygon::equally_spaced_points(double distance) const
     return this->split_at_first_point().equally_spaced_points(distance);
 }
 
-double
-Polygon::area() const
+/*
+int64_t Polygon::area2x() const
 {
-    ClipperLib::Path p;
-    Slic3rMultiPoint_to_ClipperPath(*this, &p);
-    return ClipperLib::Area(p);
+    size_t n = poly.size();
+    if (n < 3) 
+        return 0;
+
+    int64_t a = 0;
+    for (size_t i = 0, j = n - 1; i < n; ++i)
+        a += int64_t(poly[j].x + poly[i].x) * int64_t(poly[j].y - poly[i].y);
+        j = i;
+    }
+    return -a * 0.5;
+}
+*/
+
+double Polygon::area() const
+{
+    size_t n = points.size();
+    if (n < 3) 
+        return 0.;
+
+    double a = 0.;
+    for (size_t i = 0, j = n - 1; i < n; ++i) {
+        a += double(points[j].x + points[i].x) * double(points[i].y - points[j].y);
+        j = i;
+    }
+    return 0.5 * a;
 }
 
 bool
@@ -295,6 +317,105 @@ BoundingBox get_extents(const Polygons &polygons)
             bb.merge(polygons[i]);
     }
     return bb;
+}
+
+static inline bool is_stick(const Point &p1, const Point &p2, const Point &p3)
+{
+    Point v1 = p2 - p1;
+    Point v2 = p3 - p2;
+    int64_t dir = int64_t(v1.x) * int64_t(v2.x) + int64_t(v1.y) * int64_t(v2.y);
+    if (dir > 0)
+        // p3 does not turn back to p1. Do not remove p2.
+        return false;
+    double l2_1 = double(v1.x) * double(v1.x) + double(v1.y) * double(v1.y);
+    double l2_2 = double(v2.x) * double(v2.x) + double(v2.y) * double(v2.y);
+    if (dir == 0)
+        // p1, p2, p3 may make a perpendicular corner, or there is a zero edge length.
+        // Remove p2 if it is coincident with p1 or p2.
+        return l2_1 == 0 || l2_2 == 0;
+    // p3 turns back to p1 after p2. Are p1, p2, p3 collinear?
+    // Calculate distance from p3 to a segment (p1, p2) or from p1 to a segment(p2, p3),
+    // whichever segment is longer
+    double cross = double(v1.x) * double(v2.y) - double(v2.x) * double(v1.y);
+    double dist2 = cross * cross / std::max(l2_1, l2_2);
+    return dist2 < EPSILON * EPSILON;
+}
+
+bool remove_sticks(Polygon &poly)
+{
+    bool modified = false;
+    size_t j = 1;
+    for (size_t i = 1; i + 1 < poly.points.size(); ++ i) {
+        if (! is_stick(poly[j-1], poly[i], poly[i+1])) {
+            // Keep the point.
+            if (j < i)
+                poly.points[j] = poly.points[i];
+            ++ j;
+        }
+    }
+    if (++ j < poly.points.size()) {
+        poly.points[j-1] = poly.points.back();
+        poly.points.erase(poly.points.begin() + j, poly.points.end());
+        modified = true;
+    }
+    while (poly.points.size() >= 3 && is_stick(poly.points[poly.points.size()-2], poly.points.back(), poly.points.front())) {
+        poly.points.pop_back();
+        modified = true;
+    }
+    while (poly.points.size() >= 3 && is_stick(poly.points.back(), poly.points.front(), poly.points[1]))
+        poly.points.erase(poly.points.begin());
+    return modified;
+}
+
+bool remove_sticks(Polygons &polys)
+{
+    bool modified = false;
+    size_t j = 0;
+    for (size_t i = 0; i < polys.size(); ++ i) {
+        modified |= remove_sticks(polys[i]);
+        if (polys[i].points.size() >= 3) {
+            if (j < i) 
+                std::swap(polys[i].points, polys[j].points);
+            ++ j;
+        }
+    }
+    if (j < polys.size())
+        polys.erase(polys.begin() + j, polys.end());
+    return modified;
+}
+
+bool remove_degenerate(Polygons &polys)
+{
+    bool modified = false;
+    size_t j = 0;
+    for (size_t i = 0; i < polys.size(); ++ i) {
+        if (polys[i].points.size() >= 3) {
+            if (j < i) 
+                std::swap(polys[i].points, polys[j].points);
+            ++ j;
+        } else
+            modified = true;
+    }
+    if (j < polys.size())
+        polys.erase(polys.begin() + j, polys.end());
+    return modified;
+}
+
+bool remove_small(Polygons &polys, double min_area)
+{
+    bool modified = false;
+    size_t j = 0;
+    for (size_t i = 0; i < polys.size(); ++ i) {
+        if (polys[i].area() >= min_area) {
+            if (j < i) 
+                std::swap(polys[i].points, polys[j].points);
+            ++ j;
+        } else
+            modified = true;
+    }
+    if (j < polys.size())
+        polys.erase(polys.begin() + j, polys.end());
+    return modified;
 }
 
 }
