@@ -343,9 +343,92 @@ linint(double value, double oldmin, double oldmax, double newmin, double newmax)
     return (value - oldmin) * (newmax - newmin) / (oldmax - oldmin) + newmin;
 }
 
-Pointfs
-arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf* bb)
+#if 0
+// Point with a weight, by which the points are sorted.
+// If the points have the same weight, sort them lexicographically by their positions.
+struct ArrangeItem {
+    ArrangeItem() {}
+    Pointf    pos;
+    coordf_t  weight;
+    bool operator<(const ArrangeItem &other) const {
+        return weight < other.weight ||
+            ((weight == other.weight) && (pos.y < other.pos.y || (pos.y == other.pos.y && pos.x < other.pos.x)));
+    }
+};
+
+Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box)
 {
+    // Use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm.
+    const Pointf       cell_size(part_size.x + gap, part_size.y + gap);
+
+    const BoundingBoxf bed_bbox = (bed_bounding_box != NULL && bed_bounding_box->defined) ? 
+        *bed_bounding_box :
+        // Bogus bed size, large enough not to trigger the unsufficient bed size error.
+        BoundingBoxf(
+            Pointf(0, 0),
+            Pointf(cell_size.x * num_parts, cell_size.y * num_parts));
+
+    // This is how many cells we have available into which to put parts.
+    size_t cellw = size_t(floor((bed_bbox.size().x + gap) / cell_size.x));
+    size_t cellh = size_t(floor((bed_bbox.size().y + gap) / cell_size.y));
+    if (num_parts > cellw * cellh)
+        CONFESS("%zu parts won't fit in your print area!\n", num_parts);
+    
+    // Get a bounding box of cellw x cellh cells, centered at the center of the bed.
+    Pointf       cells_size(cellw * cell_size.x - gap, cellh * cell_size.y - gap);
+    Pointf       cells_offset(bed_bbox.center() - 0.5 * cells_size);
+    BoundingBoxf cells_bb(cells_offset, cells_size + cells_offset);
+    
+    // List of cells, sorted by distance from center.
+    std::vector<ArrangeItem> cellsorder(cellw * cellh, ArrangeItem());
+    for (size_t j = 0; j < cellh; ++ j) {
+        // Center of the jth row on the bed.
+        coordf_t cy = linint(j + 0.5, 0., double(cellh), cells_bb.min.y, cells_bb.max.y);
+        // Offset from the bed center.
+        coordf_t yd = cells_bb.center().y - cy;
+        for (size_t i = 0; i < cellw; ++ i) {
+            // Center of the ith column on the bed.
+            coordf_t cx = linint(i + 0.5, 0., double(cellw), cells_bb.min.x, cells_bb.max.x);
+            // Offset from the bed center.
+            coordf_t xd = cells_bb.center().x - cx;
+            // Cell with a distance from the bed center.
+            ArrangeItem &ci = cellsorder[j * cellw + i];
+            // Cell center
+            ci.pos.x = cx;
+            ci.pos.y = cy;
+            // Square distance of the cell center to the bed center.
+            ci.weight = xd * xd + yd * yd;
+        }
+    }
+    // Sort the cells lexicographically by their distances to the bed center and left to right / bttom to top.
+    std::sort(cellsorder.begin(), cellsorder.end());
+    cellsorder.erase(cellsorder.begin() + num_parts, cellsorder.end());
+
+    // Return the (left,top) corners of the cells.
+    Pointfs positions;
+    positions.reserve(num_parts);
+    for (std::vector<ArrangeItem>::const_iterator it = cellsorder.begin(); it != cellsorder.end(); ++ it)
+        positions.push_back(Pointf(it->pos.x - 0.5 * part_size.x, it->pos.y - 0.5 * part_size.y));
+    return positions;
+}
+#else
+class ArrangeItem {
+    public:
+    Pointf pos;
+    size_t index_x, index_y;
+    coordf_t dist;
+};
+class ArrangeItemIndex {
+    public:
+    coordf_t index;
+    ArrangeItem item;
+    ArrangeItemIndex(coordf_t _index, ArrangeItem _item) : index(_index), item(_item) {};
+};
+Pointfs
+arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const BoundingBoxf* bb)
+{
+    Pointf part = part_size;
+
     // use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
     part.x += dist;
     part.y += dist;
@@ -463,6 +546,7 @@ arrange(size_t total_parts, Pointf part, coordf_t dist, const BoundingBoxf* bb)
     
     return positions;
 }
+#endif
 
 #ifdef SLIC3R_DEBUG
 // The following code for the visualization of the boost Voronoi diagram is based on:

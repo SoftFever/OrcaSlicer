@@ -109,7 +109,6 @@ $config->set('disable_fan_first_layers', 0);
     $config->set('bridge_speed', 99);
     $config->set('top_solid_layers', 1);     # internal bridges use solid_infil speed
     $config->set('bottom_solid_layers', 1);  # internal bridges use solid_infil speed
-    $config->set('vibration_limit', 30);     # test that fan is turned on even when vibration limit (or other G-code post-processor) is enabled
     
     my $print = Slic3r::Test::init_print('overhang', config => $config);
     my $fan = 0;

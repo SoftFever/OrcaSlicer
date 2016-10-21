@@ -35,6 +35,17 @@ protected:
     virtual float _layer_angle(size_t idx) const { return 0.f; }
 };
 
+class FillTriangles : public FillRectilinear2
+{
+public:
+    virtual ~FillTriangles() {}
+    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
+
+protected:
+	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill::Base.
+    virtual float _layer_angle(size_t idx) const { return 0.f; }
+};
+
 }; // namespace Slic3r
 
 #endif // slic3r_FillRectilinear2_hpp_

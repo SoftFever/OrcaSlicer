@@ -90,6 +90,7 @@ sub OnInit {
     my ($self) = @_;
     
     $self->SetAppName('Slic3r');
+    $self->SetAppDisplayName('Slic3r Prusa Edition');
     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;

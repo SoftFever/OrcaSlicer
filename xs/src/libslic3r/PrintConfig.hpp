@@ -30,7 +30,7 @@ enum GCodeFlavor {
 };
 
 enum InfillPattern {
-    ipRectilinear, ipGrid, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
+    ipRectilinear, ipGrid, ipTriangles, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral,
 };
 
@@ -58,6 +58,7 @@ template<> inline t_config_enum_values ConfigOptionEnum<InfillPattern>::get_enum
     t_config_enum_values keys_map;
     keys_map["rectilinear"]         = ipRectilinear;
     keys_map["grid"]                = ipGrid;
+    keys_map["triangles"]           = ipTriangles;
     keys_map["line"]                = ipLine;
     keys_map["concentric"]          = ipConcentric;
     keys_map["honeycomb"]           = ipHoneycomb;
@@ -413,7 +414,6 @@ class PrintConfig : public GCodeConfig
     ConfigOptionInt                 standby_temperature_delta;
     ConfigOptionInts                temperature;
     ConfigOptionInt                 threads;
-    ConfigOptionFloat               vibration_limit;
     ConfigOptionBools               wipe;
     ConfigOptionFloat               z_offset;
     
@@ -470,7 +470,6 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(standby_temperature_delta);
         OPT_PTR(temperature);
         OPT_PTR(threads);
-        OPT_PTR(vibration_limit);
         OPT_PTR(wipe);
         OPT_PTR(z_offset);
         

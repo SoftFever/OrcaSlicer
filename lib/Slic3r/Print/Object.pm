@@ -685,7 +685,7 @@ sub _support_material {
             flow                => $self->support_material_flow,
             interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
             soluble_interface   => ($self->config->support_material_contact_distance == 0),
-        );        
+        );
     }
 }
 

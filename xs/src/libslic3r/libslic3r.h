@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 
+#define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
 #define SLIC3R_VERSION "1.3.0-dev"
 
 //FIXME This epsilon value is used for many non-related purposes:

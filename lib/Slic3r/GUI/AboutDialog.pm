@@ -27,7 +27,7 @@ sub new {
     $hsizer->Add($vsizer, 1, wxEXPAND, 0);
 
     # title
-    my $title = Wx::StaticText->new($self, -1, 'Slic3r', wxDefaultPosition, wxDefaultSize);
+    my $title = Wx::StaticText->new($self, -1, $Slic3r::FORK_NAME, wxDefaultPosition, wxDefaultSize);
     my $title_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     $title_font->SetWeight(wxFONTWEIGHT_BOLD);
     $title_font->SetFamily(wxFONTFAMILY_ROMAN);
@@ -47,6 +47,7 @@ sub new {
         '<html>' .
         '<body bgcolor="#ffffff" link="#808080">' .
         '<font color="#808080">' .
+        'Copyright &copy; 2016 Vojtech Bubnik, Prusa Research. <br />' .
         'Copyright &copy; 2011-2016 Alessandro Ranellucci. <br />' .
         '<a href="http://slic3r.org/">Slic3r</a> is licensed under the ' .
         '<a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License, version 3</a>.' .

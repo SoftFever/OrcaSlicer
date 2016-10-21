@@ -12,7 +12,7 @@ use List::Util qw(first max);
 our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
     adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid
     rotate scale duplicate_grid start_perimeters_at_concave_points start_perimeters_at_non_overhang
-    randomize_start seal_position bed_size print_center g0);
+    randomize_start seal_position bed_size print_center g0 vibration_limit);
 
 # C++ Slic3r::PrintConfigDef exported as a Perl hash of hashes.
 # The C++ counterpart is a constant singleton.

@@ -371,6 +371,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("grid");
+    def->enum_values.push_back("triangles");
     def->enum_values.push_back("line");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("honeycomb");
@@ -380,6 +381,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back("Rectilinear");
     def->enum_labels.push_back("Grid");
+    def->enum_labels.push_back("Triangles");
     def->enum_labels.push_back("Line");
     def->enum_labels.push_back("Concentric");
     def->enum_labels.push_back("Honeycomb");
@@ -1324,14 +1326,6 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "This experimental setting uses outputs the E values in cubic millimeters instead of linear millimeters. If your firmware doesn't already know filament diameter(s), you can put commands like 'M200 D[filament_diameter_0] T0' in your start G-code in order to turn volumetric mode on and use the filament diameter associated to the filament selected in Slic3r. This is only supported in recent Marlin.";
     def->cli = "use-volumetric-e!";
     def->default_value = new ConfigOptionBool(false);
-
-    def = this->add("vibration_limit", coFloat);
-    def->label = "Vibration limit (deprecated)";
-    def->tooltip = "This experimental option will slow down those moves hitting the configured frequency limit. The purpose of limiting vibrations is to avoid mechanical resonance. Set zero to disable.";
-    def->sidetext = "Hz";
-    def->cli = "vibration-limit=f";
-    def->min = 0;
-    def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("wipe", coBools);
     def->label = "Wipe while retracting";

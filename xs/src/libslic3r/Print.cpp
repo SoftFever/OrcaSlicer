@@ -233,7 +233,6 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "travel_speed"
             || *opt_key == "use_firmware_retraction"
             || *opt_key == "use_relative_e_distances"
-            || *opt_key == "vibration_limit"
             || *opt_key == "wipe"
             || *opt_key == "z_offset"
             || *opt_key == "max_volumetric_extrusion_rate_slope_negative"

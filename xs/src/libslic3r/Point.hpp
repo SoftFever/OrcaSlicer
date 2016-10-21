@@ -66,9 +66,9 @@ class Point
     Vector vector_to(const Point &point) const;
 };
 
-Point operator+(const Point& point1, const Point& point2);
-Point operator-(const Point& point1, const Point& point2);
-Point operator*(double scalar, const Point& point2);
+inline Point operator+(const Point& point1, const Point& point2) { return Point(point1.x + point2.x, point1.y + point2.y); }
+inline Point operator-(const Point& point1, const Point& point2) { return Point(point1.x - point2.x, point1.y - point2.y); }
+inline Point operator*(double scalar, const Point& point2) { return Point(scalar * point2.x, scalar * point2.y); }
 
 class Point3 : public Point
 {
@@ -101,6 +101,10 @@ class Pointf
     Pointf negative() const;
     Vectorf vector_to(const Pointf &point) const;
 };
+
+inline Pointf operator+(const Pointf& point1, const Pointf& point2) { return Pointf(point1.x + point2.x, point1.y + point2.y); }
+inline Pointf operator-(const Pointf& point1, const Pointf& point2) { return Pointf(point1.x - point2.x, point1.y - point2.y); }
+inline Pointf operator*(double scalar, const Pointf& point2) { return Pointf(scalar * point2.x, scalar * point2.y); }
 
 class Pointf3 : public Pointf
 {

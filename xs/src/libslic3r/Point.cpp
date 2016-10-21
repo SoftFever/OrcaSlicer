@@ -312,24 +312,6 @@ Point::vector_to(const Point &point) const
     return Vector(point.x - this->x, point.y - this->y);
 }
 
-Point
-operator+(const Point& point1, const Point& point2)
-{
-    return Point(point1.x + point2.x, point1.y + point2.y);
-}
-
-Point
-operator-(const Point& point1, const Point& point2)
-{
-    return Point(point1.x - point2.x, point1.y - point2.y);
-}
-
-Point
-operator*(double scalar, const Point& point2)
-{
-    return Point(scalar * point2.x, scalar * point2.y);
-}
-
 std::ostream&
 operator<<(std::ostream &stm, const Pointf &pointf)
 {

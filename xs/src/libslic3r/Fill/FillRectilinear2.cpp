@@ -1449,10 +1449,20 @@ Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &para
     Polylines polylines_out;
     if (! fill_surface_by_lines(surface, params, 0.f, polylines_out) ||
         ! fill_surface_by_lines(surface, params, float(M_PI / 2.), polylines_out)) {
-        printf("FillRectilinear2::fill_surface() failed to fill a region.\n");
+        printf("FillGrid2::fill_surface() failed to fill a region.\n");
+    }
+    return polylines_out;
 }
+
+Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &params)
+{
+    Polylines polylines_out;
+    if (! fill_surface_by_lines(surface, params, 0.f, polylines_out) ||
+        ! fill_surface_by_lines(surface, params, float(M_PI / 3.), polylines_out) ||
+        ! fill_surface_by_lines(surface, params, float(2. * M_PI / 3.), polylines_out)) {
+        printf("FillTriangles::fill_surface() failed to fill a region.\n");
+    }
     return polylines_out;
 }
 
 } // namespace Slic3r
- 

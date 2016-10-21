@@ -7,7 +7,6 @@ has 'fh'        => (is => 'ro', required => 1);
 has '_gcodegen'                      => (is => 'rw');
 has '_cooling_buffer'                => (is => 'rw');
 has '_spiral_vase'                   => (is => 'rw');
-has '_vibration_limit'               => (is => 'rw');
 has '_arc_fitting'                   => (is => 'rw');
 has '_pressure_regulator'            => (is => 'rw');
 has '_pressure_equalizer'            => (is => 'rw');
@@ -108,9 +107,6 @@ sub BUILD {
     
     $self->_spiral_vase(Slic3r::GCode::SpiralVase->new(config => $self->config))
         if $self->config->spiral_vase;
-    
-    $self->_vibration_limit(Slic3r::GCode::VibrationLimit->new(config => $self->config))
-        if $self->config->vibration_limit != 0;
     
     $self->_arc_fitting(Slic3r::GCode::ArcFitting->new(config => $self->config))
         if $self->config->gcode_arcs;
@@ -663,11 +659,6 @@ sub flush_filters {
 sub filter {
     my ($self, $gcode, $flush) = @_;
     $flush //= 0;
-    
-    # apply vibration limit if enabled;
-    # this injects pauses according to time (thus depends on actual speeds)
-    $gcode = $self->_vibration_limit->process($gcode)
-        if defined $self->_vibration_limit;
     
     # apply pressure regulation if enabled;
     # this depends on actual speeds

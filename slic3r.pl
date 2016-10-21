@@ -306,8 +306,6 @@ $j
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                         by all firmwares)
     --gcode-comments    Make G-code verbose by adding comments (default: no)
-    --vibration-limit   Limit the frequency of moves on X and Y axes (Hz, set zero to disable;
-                        default: $config->{vibration_limit})
     --pressure-advance  Adjust pressure using the experimental advance algorithm (K constant,
                         set zero to disable; default: $config->{pressure_advance})
     
