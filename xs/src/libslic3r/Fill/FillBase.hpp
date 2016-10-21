@@ -39,7 +39,7 @@ class Fill
 public:
     // Index of the layer.
     size_t      layer_id;
-    // Height of the layer, in unscaled coordinates
+    // Z coordinate of the top print surface, in unscaled coordinates
     coordf_t    z;
     // in unscaled coordinates
     coordf_t    spacing;

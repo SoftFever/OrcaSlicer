@@ -16,7 +16,7 @@ public:
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
 protected:
-	bool fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, Polylines &polylines_out);
+	bool fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out);
 
 	coord_t _min_spacing;
 	coord_t _line_spacing;
@@ -45,6 +45,18 @@ protected:
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill::Base.
     virtual float _layer_angle(size_t idx) const { return 0.f; }
 };
+
+class FillCubic : public FillRectilinear2
+{
+public:
+    virtual ~FillCubic() {}
+    virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
+
+protected:
+	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill::Base.
+    virtual float _layer_angle(size_t idx) const { return 0.f; }
+};
+
 
 }; // namespace Slic3r
 

@@ -751,7 +751,7 @@ enum DirectionMask
     DIR_BACKWARD = 2
 };
 
-bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, Polylines &polylines_out)
+bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out)
 {
     // At the end, only the new polylines will be rotated back.
     size_t n_polylines_out_initial = polylines_out.size();
@@ -791,10 +791,14 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     } else {
         // extend bounding box so that our pattern will be aligned with other layers
         // Transform the reference point to the rotated coordinate system.
+        Point refpt = rotate_vector.second.rotated(- rotate_vector.first);
+        // _align_to_grid will not work correctly with positive pattern_shift.
+        coord_t pattern_shift_scaled = coord_t(scale_(pattern_shift)) % this->_line_spacing;
+        refpt.x -= (pattern_shift_scaled > 0) ? pattern_shift_scaled : (this->_line_spacing + pattern_shift_scaled);
         bounding_box.merge(_align_to_grid(
             bounding_box.min, 
             Point(this->_line_spacing, this->_line_spacing), 
-            rotate_vector.second.rotated(- rotate_vector.first)));
+            refpt));
     }
 
     // Intersect a set of euqally spaced vertical lines wiht expolygon.
@@ -1438,7 +1442,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
 Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, polylines_out)) {
+    if (! fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out)) {
         printf("FillRectilinear2::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
@@ -1447,8 +1451,8 @@ Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParam
 Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, polylines_out) ||
-        ! fill_surface_by_lines(surface, params, float(M_PI / 2.), polylines_out)) {
+    if (! fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out) ||
+        ! fill_surface_by_lines(surface, params, float(M_PI / 2.), 0.f, polylines_out)) {
         printf("FillGrid2::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
@@ -1457,12 +1461,24 @@ Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &para
 Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, polylines_out) ||
-        ! fill_surface_by_lines(surface, params, float(M_PI / 3.), polylines_out) ||
-        ! fill_surface_by_lines(surface, params, float(2. * M_PI / 3.), polylines_out)) {
+    if (! fill_surface_by_lines(surface, params, 0.f, 0., polylines_out) ||
+        ! fill_surface_by_lines(surface, params, float(M_PI / 3.), 0., polylines_out) ||
+        ! fill_surface_by_lines(surface, params, float(2. * M_PI / 3.), 0., polylines_out)) {
         printf("FillTriangles::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
+}
+
+Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &params)
+{
+    Polylines polylines_out;
+    if (! fill_surface_by_lines(surface, params, 0.f, z, polylines_out) ||
+        ! fill_surface_by_lines(surface, params, float(M_PI / 3.), -z, polylines_out) ||
+        // Rotated by PI*2/3 + PI to achieve reverse sloping wall.
+        ! fill_surface_by_lines(surface, params, float(M_PI * 2. / 3.), z, polylines_out)) {
+        printf("FillCubic::fill_surface() failed to fill a region.\n");
+    } 
+    return polylines_out; 
 }
 
 } // namespace Slic3r

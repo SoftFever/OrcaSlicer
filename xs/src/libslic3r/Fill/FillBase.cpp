@@ -25,6 +25,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipLine:                return new FillLine();
     case ipGrid:                return new FillGrid2();
     case ipTriangles:           return new FillTriangles();
+    case ipCubic:               return new FillCubic();
 //  case ipGrid:                return new FillGrid();
     case ipArchimedeanChords:   return new FillArchimedeanChords();
     case ipHilbertCurve:        return new FillHilbertCurve();
