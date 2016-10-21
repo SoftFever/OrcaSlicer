@@ -332,10 +332,8 @@ offset2(const Slic3r::Polygons &polygons, ClipperLib::Paths* retval, const float
     coordf_t stroke_width = scale_(0.005);
     static int iRun = 0;
     ++ iRun;
-    char path[2048];
-    sprintf(path, "out\\offset2-%d.svg", iRun);
     bool flipY = false;
-    SVG svg(path, bbox, scale_(1.), flipY);
+    SVG svg(debug_out_path("offset2-%d.svg", iRun), bbox, scale_(1.), flipY);
     for (Slic3r::Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++ it)
         svg.draw(it->lines(), "gray", stroke_width);
 #endif /* CLIPPER_UTILS_DEBUG */

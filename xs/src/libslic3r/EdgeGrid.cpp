@@ -862,7 +862,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile("out\\unsigned_df.png", wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("unsigned_df.png"), wxBITMAP_TYPE_PNG);
 	}
 	{
 		wxImage img(ncols, nrows);
@@ -895,7 +895,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile("out\\signed_df.png", wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df.png"), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 
@@ -1020,7 +1020,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile("out\\signed_df-signs.png", wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df-signs.png"), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 
@@ -1049,7 +1049,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile("out\\signed_df2.png", wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df2.png"), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 }

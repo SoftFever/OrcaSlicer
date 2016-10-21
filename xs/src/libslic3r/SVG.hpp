@@ -87,6 +87,8 @@ class SVG
 
 public:
     static void export_expolygons(const char *path, const BoundingBox &bbox, const Slic3r::ExPolygons &expolygons, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0);
+    static void export_expolygons(const std::string &path, const BoundingBox &bbox, const Slic3r::ExPolygons &expolygons, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0) 
+        { export_expolygons(path.c_str(), bbox, expolygons, stroke_outer, stroke_holes, stroke_width); }
 };
 
 }

@@ -838,12 +838,8 @@ MedialAxis::build(ThickPolylines* polylines)
 
     #ifdef SLIC3R_DEBUG
     {
-        char path[2048];
         static int iRun = 0;
-        sprintf(path, "out/MedialAxis-%d.svg", iRun ++);
-        dump_voronoi_to_svg(this->lines, this->vd, polylines, path);
-
-
+        dump_voronoi_to_svg(this->lines, this->vd, polylines, debug_out_path("MedialAxis-%d.svg", iRun ++).c_str());
         printf("Thick lines: ");
         for (ThickPolylines::const_iterator it = polylines->begin(); it != polylines->end(); ++ it) {
             ThickLines lines = it->thicklines();

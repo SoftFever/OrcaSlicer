@@ -65,7 +65,7 @@ void confess_at(const char *file, int line, const char *func, const char *pat, .
 	#define SLIC3R_CPPVER 0
 #endif
 
-#define DEBUG_FILE_PREFIX "out/"
+#define SLIC3R_DEBUG_OUT_PATH_PREFIX "out/"
 
 inline std::string debug_out_path(const char *name, ...)
 {
@@ -74,7 +74,7 @@ inline std::string debug_out_path(const char *name, ...)
 	va_start(args, name);
 	std::vsprintf(buffer, name, args);
 	va_end(args);
-	return std::string(DEBUG_FILE_PREFIX) + std::string(buffer);
+	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
 }
 
 // Write slices as SVG images into out directory during the 2D processing of the slices.

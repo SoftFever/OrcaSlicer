@@ -791,7 +791,7 @@ void gcode_spread_points(
 #endif
 		float area_circle_total2 = float(M_PI) * sqr(radius);
 		float area_err = fabs(area_circle_total2 - area_circle_total) / area_circle_total2;
-		printf("area_circle_total: %f, %f, %f\n", area_circle_total, area_circle_total2, area_err);
+//		printf("area_circle_total: %f, %f, %f\n", area_circle_total, area_circle_total2, area_err);
 		float volume_full = float(M_PI) * sqr(radius) * height_target;
 //		if (true) {
 //		printf("volume_total: %f, volume_full: %f, fill factor: %f\n", volume_total, volume_full, 100.f - 100.f * volume_total / volume_full);

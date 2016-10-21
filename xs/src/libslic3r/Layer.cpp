@@ -295,9 +295,7 @@ void Layer::export_region_slices_to_svg(const char *path)
 void Layer::export_region_slices_to_svg_debug(const char *name)
 {
     static size_t idx = 0;
-    char path[2048];
-    sprintf(path, "out\\Layer-slices-%s-%d.svg", name, idx ++);
-    this->export_region_slices_to_svg(path);
+    this->export_region_slices_to_svg(debug_out_path("Layer-slices-%s-%d.svg", name, idx ++).c_str());
 }
 
 void Layer::export_region_fill_surfaces_to_svg(const char *path)
@@ -323,9 +321,7 @@ void Layer::export_region_fill_surfaces_to_svg(const char *path)
 void Layer::export_region_fill_surfaces_to_svg_debug(const char *name)
 {
     static size_t idx = 0;
-    char path[2048];
-    sprintf(path, "out\\Layer-fill_surfaces-%s-%d.svg", name, idx ++);
-    this->export_region_fill_surfaces_to_svg(path);
+    this->export_region_fill_surfaces_to_svg(debug_out_path("Layer-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
 }
 
 SupportLayer::SupportLayer(size_t id, PrintObject *object, coordf_t height,

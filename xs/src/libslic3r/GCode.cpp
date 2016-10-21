@@ -551,14 +551,12 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
             #if 0
             {
                 static int iRun = 0;
-                char path[2048];
-                sprintf(path, "out\\GCode_extrude_loop_edge_grid-%d.png", iRun++);
                 BoundingBox bbox = this->_lower_layer_edge_grid->bbox();
                 bbox.min.x -= scale_(5.f);
                 bbox.min.y -= scale_(5.f);
                 bbox.max.x += scale_(5.f);
                 bbox.max.y += scale_(5.f);
-                EdgeGrid::save_png(*this->_lower_layer_edge_grid, bbox, scale_(0.1f), path);
+                EdgeGrid::save_png(*this->_lower_layer_edge_grid, bbox, scale_(0.1f), debug_out_path("GCode_extrude_loop_edge_grid-%d.png", iRun++));
             }
             #endif
         }
@@ -663,9 +661,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         #if 0
         {
             static int iRun = 0;
-            char path[2048];
-            sprintf(path, "out\\GCode_extrude_loop-%d.svg", iRun ++);
-            SVG svg(path);
+            SVG svg(debug_out_path("GCode_extrude_loop-%d.svg", iRun ++));
 			if (this->layer->lower_layer != NULL)
 				svg.draw(this->layer->lower_layer->slices.expolygons);
             for (size_t i = 0; i < loop.paths.size(); ++ i)

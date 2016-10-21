@@ -122,7 +122,7 @@ ExPolygon::contains(const Polylines &polylines) const
     #if 0
     BoundingBox bbox = get_extents(polylines);
     bbox.merge(get_extents(*this));
-    SVG svg("out\\ExPolygon_contains.svg", bbox);
+    SVG svg(debug_out_path("ExPolygon_contains.svg"), bbox);
     svg.draw(*this);
     svg.draw_outline(*this);
     svg.draw(polylines, "blue");
@@ -169,9 +169,7 @@ ExPolygon::overlaps(const ExPolygon &other) const
     BoundingBox bbox = get_extents(other);
     bbox.merge(get_extents(*this));
     static int iRun = 0;
-    char path[2048];
-    sprintf(path, "out\\ExPolygon_overlaps-%d.svg", iRun ++);
-    SVG svg(path, bbox);
+    SVG svg(debug_out_path("ExPolygon_overlaps-%d.svg", iRun ++), bbox);
     svg.draw(*this);
     svg.draw_outline(*this);
     svg.draw_outline(other, "blue");

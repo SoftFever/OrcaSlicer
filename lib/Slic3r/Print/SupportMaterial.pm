@@ -331,7 +331,7 @@ sub contact_area {
             
             if (0) {
                 require "Slic3r/SVG.pm";
-                Slic3r::SVG::output("out\\contact_" . $contact_z . ".svg",
+                Slic3r::SVG::output(Slic3r::DEBUG_OUT_PATH_PREFIX . "contact_" . $contact_z . ".svg",
                     green_expolygons => union_ex($buildplate_only_top_surfaces),
                     blue_expolygons  => union_ex(\@contact),
                     red_expolygons   => union_ex(\@overhang),
@@ -676,7 +676,7 @@ sub generate_toolpaths {
         
         if (0) {
             require "Slic3r/SVG.pm";
-            Slic3r::SVG::output("out\\layer_" . $z . ".svg",
+            Slic3r::SVG::output(Slic3r::DEBUG_OUT_PATH_PREFIX . "layer_" . $z . ".svg",
                 blue_expolygons     => union_ex($base),
                 red_expolygons      => union_ex($contact),
                 green_expolygons    => union_ex($interface),
@@ -831,7 +831,7 @@ sub generate_toolpaths {
 
             if (0) {
                 require "Slic3r/SVG.pm";
-                Slic3r::SVG::output("out\\to_infill_base" . $z . ".svg",
+                Slic3r::SVG::output(Slic3r::DEBUG_OUT_PATH_PREFIX . "to_infill_base" . $z . ".svg",
                     red_expolygons      => union_ex($contact),
                     green_expolygons    => union_ex($interface),
                     blue_expolygons     => $to_infill,

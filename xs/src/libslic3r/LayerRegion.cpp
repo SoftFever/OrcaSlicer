@@ -164,10 +164,8 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
 
 #if 0
     {
-        char path[2048];
         static int iRun = 0;
-        sprintf(path, "out\\bridges-before-grouping-%d.svg", iRun ++);
-        bridges.export_to_svg(path, true);
+        bridges.export_to_svg(debug_out_path("bridges-before-grouping-%d.svg", iRun ++), true);
     }
 #endif
 
@@ -238,10 +236,8 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
 
 #if 0
     {
-        char path[2048];
         static int iRun = 0;
-        sprintf(path, "out\\bridges-after-grouping-%d.svg", iRun ++);
-        bridges.export_to_svg(path, true);
+        bridges.export_to_svg(debug_out_path("bridges-after-grouping-%d.svg", iRun ++), true);
     }
 #endif
 
@@ -256,6 +252,8 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             BridgeDetector bd(
                 surface.expolygon,
                 lower_layer->slices,
+                //FIXME parameters are not correct!
+                // flow(FlowRole role, bool bridge = false, double width = -1) const;
                 this->flow(frInfill, this->layer()->height, true).scaled_width()
             );
             #ifdef SLIC3R_DEBUG
@@ -446,9 +444,7 @@ void LayerRegion::export_region_slices_to_svg_debug(const char *name)
 {
     static std::map<std::string, size_t> idx_map;
     size_t &idx = idx_map[name];
-    char path[2048];
-    sprintf(path, "out\\LayerRegion-slices-%s-%d.svg", name, idx ++);
-    this->export_region_slices_to_svg(path);
+    this->export_region_slices_to_svg(debug_out_path("LayerRegion-slices-%s-%d.svg", name, idx ++).c_str());
 }
 
 void LayerRegion::export_region_fill_surfaces_to_svg(const char *path) 
@@ -473,9 +469,7 @@ void LayerRegion::export_region_fill_surfaces_to_svg_debug(const char *name)
 {
     static std::map<std::string, size_t> idx_map;
     size_t &idx = idx_map[name];
-    char path[2048];
-    sprintf(path, "out\\LayerRegion-fill_surfaces-%s-%d.svg", name, idx ++);
-    this->export_region_fill_surfaces_to_svg(path);
+    this->export_region_fill_surfaces_to_svg(debug_out_path("LayerRegion-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
 }
 
 }
