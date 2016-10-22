@@ -148,7 +148,6 @@ void Fill3DHoneycomb::_fill_surface_single(
 {
     // no rotation is supported for this infill pattern
     BoundingBox bb = expolygon.contour.bounding_box();
-    Point       size = bb.size();
     coord_t     distance = coord_t(scale_(this->spacing) / params.density);
 
     // align bounding box to a multiple of our honeycomb grid module
@@ -157,11 +156,11 @@ void Fill3DHoneycomb::_fill_surface_single(
     bb.merge(_align_to_grid(bb.min, Point(2*distance, 2*distance)));
     
     // generate pattern
-    Polylines polylines = makeGrid(
+    Polylines   polylines = makeGrid(
         scale_(this->z),
         distance,
-        ceil(size.x / distance) + 1,
-        ceil(size.y / distance) + 1,
+        ceil(bb.size().x / distance) + 1,
+        ceil(bb.size().y / distance) + 1,
         ((this->layer_id/thickness_layers) % 2) + 1);
     
     // move pattern in place
