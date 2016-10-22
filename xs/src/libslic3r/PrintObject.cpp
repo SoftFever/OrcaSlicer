@@ -341,11 +341,15 @@ PrintObject::discover_vertical_shells()
         if (! this->_print->regions[idx_region]->config.ensure_vertical_shell_thickness.value)
             continue;
         for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++ idx_layer) {
-            Layer* layer = this->layers[idx_layer];
-            LayerRegion* layerm = layer->get_region(idx_region);
+            Layer       *layer               = this->layers[idx_layer];
+            LayerRegion *layerm              = layer->get_region(idx_region);
+            Flow         solid_infill_flow   = layerm->flow(frSolidInfill);
+            coord_t      infill_line_spacing = solid_infill_flow.scaled_spacing(); 
             // Find a union of perimeters below / above this surface to guarantee a minimum shell thickness.
             Polygons shell;
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             ExPolygons shell_ex;
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
             if (1)
             {
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -390,10 +394,20 @@ PrintObject::discover_vertical_shells()
                 }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                 shell = union_(shell, true);
+                if (! shell.empty()) {
+                    // These regions will be filled by a rectilinear full infill. Currently this type of infill
+                    // will only fill regions, which will fit at least a single line. To avoid gaps in the sparse infill,
+                    // make sure that this region does not contain narrow parts.
+                    coord_t min_perimeter_infill_spacing = coord_t(double(infill_line_spacing) * (1. - INSET_OVERLAP_TOLERANCE));
+                    shell = offset2(shell, -min_perimeter_infill_spacing/2, min_perimeter_infill_spacing/2);
+                }
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 shell_ex = union_ex(shell, true);
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
             }
+
+            if (shell.empty())
+                continue;
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             {
