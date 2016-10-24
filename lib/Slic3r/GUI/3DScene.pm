@@ -370,6 +370,7 @@ sub select_view {
 
 sub zoom_to_bounding_box {
     my ($self, $bb) = @_;
+    return if ($bb->empty);
     
     # calculate the zoom factor needed to adjust viewport to
     # bounding box
