@@ -140,6 +140,8 @@ sub _init_tabpanel {
                 $self->config->save($Slic3r::GUI::autosave) if $Slic3r::GUI::autosave;
             }
         });
+        # Install a callback for the tab to update the platter and print controller presets, when
+        # a preset changes at Slic3r::GUI::Tab.
         $tab->on_presets_changed(sub {
             if ($self->{plater}) {
                 $self->{plater}->update_presets($tab_name, @_);
@@ -393,7 +395,7 @@ sub quick_slice {
             print_center    => $print_center,
             status_cb       => sub {
                 my ($percent, $message) = @_;
-                return if &Wx::wxVERSION_STRING !~ / 2\.(8\.|9\.[2-9])/;
+                return if &Wx::wxVERSION_STRING !~ m" 2\.(8\.|9\.[2-9])";
                 $progress_dialog->Update($percent, "$message…");
             },
         );

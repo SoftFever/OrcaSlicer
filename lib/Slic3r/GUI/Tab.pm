@@ -1,6 +1,18 @@
 # The "Expert" tab at the right of the main tabbed window.
 # The "Expert" is enabled by File->Preferences dialog.
 
+# This file implements following packages:
+#   Slic3r::GUI::Tab;
+#       Slic3r::GUI::Tab::Print;
+#       Slic3r::GUI::Tab::Filament;
+#       Slic3r::GUI::Tab::Printer;
+#   Slic3r::GUI::Tab::Page
+#       - Option page: For example, the Slic3r::GUI::Tab::Print has option pages "Layers and perimeters", "Infill", "Skirt and brim" ...
+#   Slic3r::GUI::SavePresetWindow
+#       - Dialog to select a new preset name to store the configuration.
+#   Slic3r::GUI::Tab::Preset;
+#       - Single preset item: name, file is default or external.
+
 package Slic3r::GUI::Tab;
 use strict;
 use warnings;
@@ -13,6 +25,7 @@ use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :wi
 use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED);
 use base qw(Wx::Panel Class::Accessor);
 
+# Index of the currently active preset.
 __PACKAGE__->mk_accessors(qw(current_preset));
 
 sub new {
@@ -30,7 +43,7 @@ sub new {
     $self->{sizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
     
     my $left_col_width = 150;
-    
+
     # preset chooser
     {
         
@@ -96,16 +109,32 @@ sub new {
     
     EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
         my $i = $self->current_preset;
-        return if $i == 0;  # this shouldn't happen but let's trap it anyway
+        # Don't let the user delete the '- default -' configuration.
+        # This shall not happen as the 'delete' button is disabled for the '- default -' entry,
+        # but better be safe than sorry.
+        return if ($i == 0 && $self->get_current_preset->{default});
         my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
         return unless $res == wxID_YES;
-        if (-e $self->{presets}[$i]->file) {
-            unlink $self->{presets}[$i]->file;
+        # Delete the file.
+        my $path = Slic3r::encode_path($self->{presets}[$i]->file);
+        if (-e $path && ! unlink $path) {
+            # Cannot delete the file, therefore the item will not be removed from the selection.
+            Slic3r::GUI::show_error($self, "Cannot delete file $path : $!");
+            return;
         }
+        # Delete the preset.
         splice @{$self->{presets}}, $i, 1;
-        $self->{presets_choice}->Delete($i);
+        # Delete the item from the UI component.
+        $self->{presets_choice}->Delete($i - $self->{default_suppressed});
         $self->current_preset(undef);
-        $self->select_preset(0);
+        if ($self->{default_suppressed} && scalar(@{$self->{presets}}) == 1) {
+            # Empty selection. Add the '- default -' item into the drop down selection.
+            $self->{presets_choice}->Append($self->{presets}->[0]->name);
+            # and remember that the '- default -' is shown.
+            $self->{default_suppressed} = 0;
+        }
+        # Select the 0th item. If default is suppressed, select the first valid.
+        $self->select_preset($self->{default_suppressed});
         $self->_on_presets_changed;
     });
     
@@ -120,11 +149,18 @@ sub new {
     return $self;
 }
 
+# Are the '- default -' selections suppressed by the Slic3r GUI preferences?
+sub no_defaults {
+    return $Slic3r::GUI::Settings->{_}{no_defaults} ? 1 : 0;
+}
+
+# Get a currently active preset (Perl class Slic3r::GUI::Tab::Preset).
 sub get_current_preset {
     my $self = shift;
     return $self->get_preset($self->current_preset);
 }
 
+# Get a preset (Perl class Slic3r::GUI::Tab::Preset) with an index $i.
 sub get_preset {
     my ($self, $i) = @_;
     return $self->{presets}[$i];
@@ -185,7 +221,8 @@ sub _on_presets_changed {
     
     $self->{on_presets_changed}->(
         $self->{presets},
-        scalar($self->{presets_choice}->GetSelection),
+        $self->{default_suppressed},
+        scalar($self->{presets_choice}->GetSelection) + $self->{default_suppressed},
         $self->is_dirty,
     ) if $self->{on_presets_changed};
 }
@@ -200,8 +237,18 @@ sub select_default_preset {
 }
 
 sub select_preset {
-    my $self = shift;
-    $self->{presets_choice}->SetSelection($_[0]);
+    my ($self, $i) = @_;
+    if ($self->{default_suppressed} && $i == 0) {
+        # Selecting the '- default -'. Add it to the combo box.
+        $self->{default_suppressed} = 0;
+        $self->{presets_choice}->Insert($self->{presets}->[0]->name, 0);
+    } elsif ($self->no_defaults && ! $self->{default_suppressed} && $i > 0) {
+        # The user wants to hide the '- default -' items and a non-default item has been added to the presets.
+        # Hide the '- default -' item.
+        $self->{presets_choice}->Delete(0);
+        $self->{default_suppressed} = 1;
+    }
+    $self->{presets_choice}->SetSelection($i - $self->{default_suppressed});
     $self->on_select_preset;
 }
 
@@ -216,6 +263,7 @@ sub on_select_preset {
     my $self = shift;
     
     if ($self->is_dirty) {
+        # Display a dialog showing the dirty options in a human readable form.
         my $old_preset = $self->get_current_preset;
         my $name = $old_preset->default ? 'Default preset' : "Preset \"" . $old_preset->name . "\"";
         
@@ -233,7 +281,7 @@ sub on_select_preset {
         my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes:\n$changes\n\nDiscard changes and continue anyway?",
                                              'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
         if ($confirm->ShowModal == wxID_NO) {
-            $self->{presets_choice}->SetSelection($self->current_preset);
+            $self->{presets_choice}->SetSelection($self->current_preset - $self->{default_suppressed});
             
             # trigger the on_presets_changed event so that we also restore the previous value
             # in the plater selector
@@ -242,7 +290,7 @@ sub on_select_preset {
         }
     }
     
-    $self->current_preset($self->{presets_choice}->GetSelection);
+    $self->current_preset($self->{presets_choice}->GetSelection + $self->{default_suppressed});
     my $preset = $self->get_current_preset;
     my $preset_config = $self->get_preset_config($preset);
     eval {
@@ -333,15 +381,13 @@ sub update_tree {
 sub update_dirty {
     my $self = shift;
     
-    foreach my $i (0..$#{$self->{presets}}) {
+    foreach my $i ($self->{default_suppressed}..$#{$self->{presets}}) {
         my $preset = $self->get_preset($i);
-        if ($i == $self->current_preset && $self->is_dirty) {
-            $self->{presets_choice}->SetString($i, $preset->name . " (modified)");
-        } else {
-            $self->{presets_choice}->SetString($i, $preset->name);
-        }
+        $self->{presets_choice}->SetString(
+            $i - $self->{default_suppressed}, 
+            ($i == $self->current_preset && $self->is_dirty) ? $preset->name . " (modified)" : $preset->name);
     }
-    $self->{presets_choice}->SetSelection($self->current_preset);  # http://trac.wxwidgets.org/ticket/13769
+    $self->{presets_choice}->SetSelection($self->current_preset - $self->{default_suppressed});  # http://trac.wxwidgets.org/ticket/13769
     $self->_on_presets_changed;
 }
 
@@ -374,14 +420,17 @@ sub load_presets {
             file => $presets{$preset_name},
         );
     }
-    
     $self->current_preset(undef);
+    $self->{default_suppressed} = Slic3r::GUI::Tab->no_defaults && scalar(@{$self->{presets}}) > 1;
     $self->{presets_choice}->Clear;
-    $self->{presets_choice}->Append($_->name) for @{$self->{presets}};
+    foreach my $preset (@{$self->{presets}}) {
+        next if ($preset->default && $self->{default_suppressed});
+        $self->{presets_choice}->Append($preset->name);
+    }
     {
         # load last used preset
         my $i = first { basename($self->{presets}[$_]->file) eq ($Slic3r::GUI::Settings->{presets}{$self->name} || '') } 1 .. $#{$self->{presets}};
-        $self->select_preset($i || 0);
+        $self->select_preset($i || $self->{default_suppressed});
     }
     $self->_on_presets_changed;
 }
@@ -402,7 +451,7 @@ sub load_config_file {
         $self->{presets_choice}->Append($preset_name);
         $i = $#{$self->{presets}};
     }
-    $self->{presets_choice}->SetSelection($i);
+    $self->{presets_choice}->SetSelection($i - $self->{default_suppressed});
     $self->on_select_preset;
     $self->_on_presets_changed;
 }
@@ -1584,6 +1633,7 @@ sub config {
     my ($self, $keys) = @_;
     
     if ($self->default) {
+        # Perl class Slic3r::Config extends the C++ class Slic3r::DynamicPrintConfig
         return Slic3r::Config->new_from_defaults(@$keys);
     } else {
         if (!-e Slic3r::encode_path($self->file)) {

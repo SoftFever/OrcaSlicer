@@ -177,9 +177,14 @@ sub print_panels {
         map $_->GetWindow, $self->{sizer}->GetChildren;
 }
 
+# Called by 
+#       Slic3r::GUI::Tab::Print::_on_presets_changed
+#       Slic3r::GUI::Tab::Filament::_on_presets_changed
+#       Slic3r::GUI::Tab::Printer::_on_presets_changed
+# when the presets are loaded or the user select another preset.
 sub update_presets {
     my $self = shift;
-    my ($group, $presets, $selected, $is_dirty) = @_;
+    my ($group, $presets, $default_suppressed, $selected, $is_dirty) = @_;
     
     # update configs of currently loaded print panels
     foreach my $panel ($self->print_panels) {

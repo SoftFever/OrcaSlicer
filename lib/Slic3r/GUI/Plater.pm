@@ -330,12 +330,19 @@ sub new {
                 filament    => 'Filament',
                 printer     => 'Printer',
             );
+            # UI Combo boxes for a print, multiple filaments, and a printer.
+            # Initially a single filament combo box is created, but the number of combo boxes for the filament selection may increase,
+            # once a printer preset with multiple extruders is activated.
+            # $self->{preset_choosers}{$group}[$idx]
             $self->{preset_choosers} = {};
+            # Boolean indicating whether the '- default -' preset is shown by the combo box.
+            $self->{preset_choosers_default_suppressed} = {};
             for my $group (qw(print filament printer)) {
                 my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
                 $self->{preset_choosers}{$group} = [$choice];
+                $self->{preset_choosers_default_suppressed}{$group} = 0;
                 # setup the listener
                 EVT_COMBOBOX($choice, $choice, sub {
                     my ($choice) = @_;
@@ -427,18 +434,22 @@ sub _on_select_preset {
 	my $self = shift;
 	my ($group, $choice) = @_;
 	
-	# if user changed filament preset, don't propagate this to the tabs
+	# If user changed a filament preset and the selected machine is equipped with multiple extruders,
+    # there are multiple filament selection combo boxes shown at the platter. In that case
+    # don't propagate the filament selection changes to the tab.
+    my $default_suppressed = $self->{preset_choosers_default_suppressed}{$group};
 	if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
+        # Indices of the filaments selected.
 		my @filament_presets = $self->filament_presets;
-		$Slic3r::GUI::Settings->{presets}{filament} = $choice->GetString($filament_presets[0]) . ".ini";
-		$Slic3r::GUI::Settings->{presets}{"filament_${_}"} = $choice->GetString($filament_presets[$_])
+		$Slic3r::GUI::Settings->{presets}{filament} = $choice->GetString($filament_presets[0] - $default_suppressed) . ".ini";
+		$Slic3r::GUI::Settings->{presets}{"filament_${_}"} = $choice->GetString($filament_presets[$_] - $default_suppressed)
 			for 1 .. $#filament_presets;
 		wxTheApp->save_settings;
 		return;
 	}
 	
 	# call GetSelection() in scalar context as it's context-aware
-	$self->{on_select_preset}->($group, scalar $choice->GetSelection)
+	$self->{on_select_preset}->($group, scalar($choice->GetSelection) + $default_suppressed)
 	    if $self->{on_select_preset};
 	
 	# get new config and generate on_config_change() event for updating plater and other things
@@ -450,20 +461,32 @@ sub GetFrame {
     return &Wx::GetTopLevelParent($self);
 }
 
+# Update presets (Print settings, Filament, Printer) from their respective tabs.
+# Called by 
+#       Slic3r::GUI::Tab::Print::_on_presets_changed
+#       Slic3r::GUI::Tab::Filament::_on_presets_changed
+#       Slic3r::GUI::Tab::Printer::_on_presets_changed
+# when the presets are loaded or the user selects another preset.
+# For Print settings and Printer, synchronize the selection index with their tabs.
+# For Filament, synchronize the selection index for a single extruder printer only, otherwise keep the selection.
 sub update_presets {
     my $self = shift;
-    my ($group, $presets, $selected, $is_dirty) = @_;
+    # $presets: one of qw(print filament printer)
+    # $selected: index of the selected preset in the array. This may not correspond
+    # with the index of selection in the UI element, where not all items are displayed.
+    my ($group, $presets, $default_suppressed, $selected, $is_dirty) = @_;
     
     my @choosers = @{ $self->{preset_choosers}{$group} };
     foreach my $choice (@choosers) {
         if ($group eq 'filament' && @choosers > 1) {
             # if we have more than one filament chooser, keep our selection
             # instead of importing the one from the tab
-            $selected = $choice->GetSelection;
+            $selected = $choice->GetSelection + $self->{preset_choosers_default_suppressed}{$group};
             $is_dirty = 0;
         }
         $choice->Clear;
         foreach my $preset (@$presets) {
+            next if ($preset->default && $default_suppressed);
             my $bitmap;
             if ($group eq 'filament') {
                 my $config = $preset->config(['filament_colour']);
@@ -486,21 +509,26 @@ sub update_presets {
         }
         
         if ($selected <= $#$presets) {
-            if ($is_dirty) {
-                $choice->SetString($selected, $choice->GetString($selected) . " (modified)");
+            my $idx = $selected - $default_suppressed;
+            if ($idx >= 0) {
+                if ($is_dirty) {
+                    $choice->SetString($idx, $choice->GetString($idx) . " (modified)");
+                }
+                # call SetSelection() only after SetString() otherwise the new string
+                # won't be picked up as the visible string
+                $choice->SetSelection($idx);
             }
-            # call SetSelection() only after SetString() otherwise the new string
-            # won't be picked up as the visible string
-            $choice->SetSelection($selected);
         }
     }
+
+    $self->{preset_choosers_default_suppressed}{$group} = $default_suppressed;
 }
 
+# Return a vector of indices of filaments selected by the $self->{preset_choosers}{filament} combo boxes.
 sub filament_presets {
     my $self = shift;
-    
     # force scalar context for GetSelection() as it's context-aware
-    return map scalar($_->GetSelection), @{ $self->{preset_choosers}{filament} };
+    return map scalar($_->GetSelection) + $self->{preset_choosers_default_suppressed}{filament}, @{ $self->{preset_choosers}{filament} };
 }
 
 sub add {
@@ -1436,6 +1464,7 @@ sub update {
     $self->refresh_canvases;
 }
 
+# When a number of extruders changes, the UI needs to be updated to show a single filament selection combo box per extruder.
 sub on_extruders_change {
     my ($self, $num_extruders) = @_;
     

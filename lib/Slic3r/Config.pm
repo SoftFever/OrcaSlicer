@@ -36,6 +36,7 @@ sub new_from_defaults {
     my (@opt_keys) = @_;
     
     my $self = $class->new;
+    # Instantiating the C++ class Slic3r::FullPrintConfig.
     my $defaults = Slic3r::Config::Full->new;
     if (@opt_keys) {
         $self->set($_, $defaults->get($_))

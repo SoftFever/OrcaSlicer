@@ -69,10 +69,12 @@ our $Settings = {
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
         # By default, Prusa has the controller hidden.
         no_controller => 1,
+        # If set, the "- default -" selections of print/filament/printer are suppressed, if there is a valid preset available.
+        no_defaults => 1,
     },
 };
 
-our $have_button_icons = &Wx::wxVERSION_STRING =~ / (?:2\.9\.[1-9]|3\.)/;
+our $have_button_icons = &Wx::wxVERSION_STRING =~ m" (?:2\.9\.[1-9]|3\.)";
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if !&Wx::wxMSW;
 our $small_bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -126,6 +128,8 @@ sub OnInit {
         $Settings->{_}{background_processing} //= 1;
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
         $Settings->{_}{no_controller} //= 1;
+        # If set, the "- default -" selections of print/filament/printer are suppressed, if there is a valid preset available.
+        $Settings->{_}{no_defaults} //= 1;
     }
     $Settings->{_}{version} = $Slic3r::VERSION;
     $self->save_settings;
