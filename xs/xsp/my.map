@@ -271,7 +271,9 @@ INPUT
 T_STD_STRING
     {
       size_t len;
-      const char * c = SvPV($arg, len);
+      // const char * c = SvPV($arg, len);
+      // Always convert strings to UTF-8 before passing them to XS
+      const char * c = SvPVutf8($arg, len);
       $var = std::string(c, len);
     }
 
