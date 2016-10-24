@@ -141,6 +141,7 @@ Slic3r::ExPolygons union_ex(const Slic3r::Polygons &subject, bool safety_offset 
 Slic3r::ExPolygons union_ex(const Slic3r::Surfaces &subject, bool safety_offset = false);
 
 void union_(const Slic3r::Polygons &subject1, const Slic3r::Polygons &subject2, Slic3r::Polygons* retval, bool safety_offset = false);
+Slic3r::Polygons union_(const Slic3r::ExPolygons &subject1, const Slic3r::ExPolygons &subject2, bool safety_offset = false);
 
 void union_pt(const Slic3r::Polygons &subject, ClipperLib::PolyTree* retval, bool safety_offset_ = false);
 void union_pt_chained(const Slic3r::Polygons &subject, Slic3r::Polygons* retval, bool safety_offset_ = false);

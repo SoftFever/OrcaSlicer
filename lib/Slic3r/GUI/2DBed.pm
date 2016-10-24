@@ -11,7 +11,7 @@ use Wx qw(:misc :pen :brush :font :systemsettings wxTAB_TRAVERSAL wxSOLID);
 use Wx::Event qw(EVT_PAINT EVT_ERASE_BACKGROUND EVT_MOUSE_EVENTS EVT_SIZE);
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(bed_shape interactive pos _scale_factor _shift on_move));
+__PACKAGE__->mk_accessors(qw(bed_shape interactive pos _scale_factor _shift on_move _painted));
 
 sub new {
     my ($class, $parent, $bed_shape) = @_;
@@ -165,12 +165,15 @@ sub _repaint {
         $dc->DrawLine($pos_px->[X]-15, $pos_px->[Y], $pos_px->[X]+15, $pos_px->[Y]);
         $dc->DrawLine($pos_px->[X], $pos_px->[Y]-15, $pos_px->[X], $pos_px->[Y]+15);
     }
+
+    $self->_painted(1);
 }
 
 sub _mouse_event {
     my ($self, $event) = @_;
     
     return if !$self->interactive;
+    return if !$self->_painted;
     
     my $pos = $event->GetPosition;
     my $point = $self->to_units([ $pos->x, $pos->y ]);  #]]
