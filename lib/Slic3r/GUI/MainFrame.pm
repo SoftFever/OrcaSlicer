@@ -89,6 +89,8 @@ sub new {
         # propagate event
         $event->Skip;
     });
+
+    $self->update_ui_from_settings;
     
     return $self;
 }
@@ -213,6 +215,9 @@ sub _init_menubar {
         $self->_append_menu_item($fileMenu, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG', sub {
             $self->quick_slice(save_as => 1, export_svg => 1);
         }, undef, 'shape_handles.png');
+        $self->{menu_item_reslice_now} = $self->_append_menu_item(
+            $fileMenu, "(&Re)Slice Now\tCtrl+S", 'Start new slicing process', 
+            sub { $self->reslice_now; }, undef, 'shape_handles.png');
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, "Repair STL file…", 'Automatically repair an STL file', sub {
             $self->repair_stl;
@@ -463,6 +468,13 @@ sub quick_slice {
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
     Slic3r::GUI::catch_error($self, sub { $progress_dialog->Destroy if $progress_dialog });
+}
+
+sub reslice_now {
+    my ($self) = @_;
+    if ($self->{plater}) {
+        $self->{plater}->reslice;
+    }
 }
 
 sub repair_stl {
@@ -826,6 +838,14 @@ sub _set_menu_item_icon {
     if ($icon && $menuItem->can('SetBitmap')) {
         $menuItem->SetBitmap(Wx::Bitmap->new($Slic3r::var->($icon), wxBITMAP_TYPE_PNG));
     }
+}
+
+# Called after the Preferences dialog is closed and the program settings are saved.
+# Update the UI based on the current preferences.
+sub update_ui_from_settings {
+    my ($self) = @_;
+    $self->{menu_item_reslice_now}->Enable(! $Slic3r::GUI::Settings->{_}{background_processing});
+    $self->{plater}->update_ui_from_settings if ($self->{plater});
 }
 
 1;

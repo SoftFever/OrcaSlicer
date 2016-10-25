@@ -100,6 +100,9 @@ sub _accept {
     
     $self->EndModal(wxID_OK);
     $self->Close;  # needed on Linux
+
+    # Nothify the UI to update itself from the ini file.
+    wxTheApp->update_ui_from_settings;
 }
 
 1;

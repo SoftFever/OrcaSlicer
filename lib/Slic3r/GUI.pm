@@ -277,6 +277,13 @@ sub save_settings {
     Slic3r::Config->write_ini("$datadir/slic3r.ini", $Settings);
 }
 
+# Called after the Preferences dialog is closed and the program settings are saved.
+# Update the UI based on the current preferences.
+sub update_ui_from_settings {
+    my ($self) = @_;
+    $self->{mainframe}->update_ui_from_settings;
+}
+
 sub presets {
     my ($self, $section) = @_;
     

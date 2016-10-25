@@ -35,6 +35,7 @@ use constant TB_SETTINGS => &Wx::NewId;
 our $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
 our $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
 our $ERROR_EVENT             : shared = Wx::NewEventType;
+# Emitted from the worker thread when the G-code export is finished.
 our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
 our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 
@@ -194,6 +195,7 @@ sub new {
     
     # right pane buttons
     $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_reslice} = Wx::Button->new($self, -1, "Slice now", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_print} = Wx::Button->new($self, -1, "Print…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_send_gcode} = Wx::Button->new($self, -1, "Send to printer", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
@@ -211,6 +213,7 @@ sub new {
             export_gcode    cog_go.png
             print           arrow_up.png
             send_gcode      arrow_up.png
+            reslice         reslice.png
             export_stl      brick_go.png
             
             increase        add.png
@@ -237,6 +240,7 @@ sub new {
     EVT_BUTTON($self, $self->{btn_send_gcode}, sub {
         $self->{send_gcode_file} = $self->export_gcode(Wx::StandardPaths::Get->GetTempDir());
     });
+    EVT_BUTTON($self, $self->{btn_reslice}, \&reslice);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
     if ($self->{htoolbar}) {
@@ -396,8 +400,10 @@ sub new {
         }
         
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $self->{buttons_sizer} = $buttons_sizer;
         $buttons_sizer->AddStretchSpacer(1);
         $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_reslice}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_print}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
@@ -420,6 +426,8 @@ sub new {
         $sizer->SetSizeHints($self);
         $self->SetSizer($sizer);
     }
+
+    $self->update_ui_from_settings();
     
     return $self;
 }
@@ -459,6 +467,17 @@ sub _on_select_preset {
 sub GetFrame {
     my ($self) = @_;
     return &Wx::GetTopLevelParent($self);
+}
+
+# Called after the Preferences dialog is closed and the program settings are saved.
+# Update the UI based on the current preferences.
+sub update_ui_from_settings
+{
+    my ($self) = @_;
+    if (defined($self->{btn_reslice}) && $self->{buttons_sizer}->IsShown($self->{btn_reslice}) != (! $Slic3r::GUI::Settings->{_}{background_processing})) {
+        $self->{buttons_sizer}->Show($self->{btn_reslice}, ! $Slic3r::GUI::Settings->{_}{background_processing});
+        $self->{buttons_sizer}->Layout;
+    }
 }
 
 # Update presets (Print settings, Filament, Printer) from their respective tabs.
@@ -1129,6 +1148,22 @@ sub resume_background_process {
     }
 }
 
+sub reslice {
+    # explicitly cancel a previous thread and start a new one.
+    my ($self) = @_;
+    # Don't reslice if export of G-code or sending to OctoPrint is running.
+    if ($Slic3r::have_threads && ! defined($self->{export_gcode_output_file}) && ! defined($self->{send_gcode_file})) {
+        $self->stop_background_process;
+        $self->statusbar->SetCancelCallback(sub {
+            $self->stop_background_process;
+            $self->statusbar->SetStatusText("Slicing cancelled");
+            # this updates buttons status
+            $self->object_list_changed;
+        });
+        $self->start_background_process;
+    }
+}
+
 sub export_gcode {
     my ($self, $output_file) = @_;
     
@@ -1263,6 +1298,7 @@ sub on_progress_event {
     $self->statusbar->SetStatusText("$message…");
 }
 
+# Called when the G-code export finishes, either successfully or with an error.
 # This gets called also if we don't have threads.
 sub on_export_completed {
     my ($self, $result) = @_;
@@ -1279,6 +1315,7 @@ sub on_export_completed {
     my $send_gcode = 0;
     my $do_print = 0;
     if ($result) {
+        # G-code file exported successfully.
         if ($self->{print_file}) {
             $message = "File added to print queue";
             $do_print = 1;
@@ -1296,6 +1333,7 @@ sub on_export_completed {
     wxTheApp->notify($message);
     
     $self->do_print if $do_print;
+    # Send $self->{send_gcode_file} to OctoPrint.
     $self->send_gcode if $send_gcode;
     $self->{print_file} = undef;
     $self->{send_gcode_file} = undef;
@@ -1321,6 +1359,8 @@ sub do_print {
     $self->GetFrame->select_tab(1);
 }
 
+# Send $self->{send_gcode_file} to OctoPrint.
+#FIXME Currently this call blocks the UI. Make it asynchronous.
 sub send_gcode {
     my ($self) = @_;
     
@@ -1632,15 +1672,19 @@ sub object_settings_dialog {
     }
 }
 
+# Called to update various buttons depending on whether there are any objects or
+# whether background processing (export of a G-code, sending to Octoprint, forced background re-slicing) is active.
 sub object_list_changed {
     my $self = shift;
     
+    # Enable/disable buttons depending on whether there are any objects on the platter.
     my $have_objects = @{$self->{objects}} ? 1 : 0;
     my $method = $have_objects ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(reset arrange export_gcode export_stl print send_gcode);
+        for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode);
     
     if ($self->{export_gcode_output_file} || $self->{send_gcode_file}) {
+        $self->{btn_reslice}->Disable;
         $self->{btn_export_gcode}->Disable;
         $self->{btn_print}->Disable;
         $self->{btn_send_gcode}->Disable;
