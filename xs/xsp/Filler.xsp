@@ -2,7 +2,7 @@
 
 %{
 #include <xsinit.h>
-#include "libslic3r/Fill/FillBase.hpp"
+#include "libslic3r/Fill/Fill.hpp"
 #include "libslic3r/PolylineCollection.hpp"
 %}
 
@@ -21,6 +21,8 @@
         %code{% THIS->fill->z = z; %};
     void set_angle(float angle)
         %code{% THIS->fill->angle = angle; %};
+    void set_link_max_length(coordf_t len)
+        %code{% THIS->fill->link_max_length = len; %};
     void set_loop_clipping(coordf_t clipping)
         %code{% THIS->fill->loop_clipping = clipping; %};
 
@@ -29,12 +31,8 @@
     bool no_sort()
         %code{% RETVAL = THIS->fill->no_sort(); %};
 
-    void set_width(float width)
-        %code{% THIS->params.width = width; %};
     void set_density(float density)
         %code{% THIS->params.density = density; %};
-    void set_distance(float distance)
-        %code{% THIS->params.distance = distance; %};
     void set_dont_connect(bool dont_connect)
         %code{% THIS->params.dont_connect = dont_connect; %};
     void set_dont_adjust(bool dont_adjust)

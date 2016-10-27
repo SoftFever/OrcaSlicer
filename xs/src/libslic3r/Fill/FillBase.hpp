@@ -17,10 +17,8 @@ struct FillParams
 {
     FillParams() { memset(this, 0, sizeof(FillParams)); }
 
-    coordf_t    width;
-    // Fraction in <0, 1>
+    // Fill density, fraction in <0, 1>
     float       density;
-    coordf_t    distance;
 
     // Don't connect the fill lines around the inner perimeter.
     bool        dont_connect;
@@ -45,9 +43,13 @@ public:
     coordf_t    spacing;
     // in radians, ccw, 0 = East
     float       angle;
-    // in scaled coordinates
+    // In scaled coordinates. Maximum lenght of a perimeter segment connecting two infill lines.
+    // Used by the FillRectilinear2, FillGrid2, FillTriangles and FillCubic.
+    // If left to zero, the links will not be limited.
+    coord_t     link_max_length;
+    // In scaled coordinates. Used by the concentric infill pattern to clip the loops to create extrusion paths.
     coord_t     loop_clipping;
-    // in scaled coordinates
+    // In scaled coordinates. Bounding box of the 2D projection of the object.
     BoundingBox bounding_box;
 
 public:
@@ -74,6 +76,7 @@ protected:
         spacing(0.f),
         // Initial angle is undefined.
         angle(FLT_MAX),
+        link_max_length(0),
         loop_clipping(0),
         // The initial bounding box is empty, therefore undefined.
         bounding_box(Point(0, 0), Point(-1, -1))
@@ -114,19 +117,6 @@ protected:
         { return base + _align_to_grid(coord - base, spacing); }
     static Point   _align_to_grid(Point   coord, Point   spacing, Point   base)
         { return Point(_align_to_grid(coord.x, spacing.x, base.x), _align_to_grid(coord.y, spacing.y, base.y)); }
-};
-
-// An interface class to Perl, aggregating an instance of a Fill and a FillData.
-class Filler
-{
-public:
-    Filler() : fill(NULL) {}
-    ~Filler() { 
-        delete fill; 
-        fill = NULL;
-    }
-    Fill        *fill;
-    FillParams   params;
 };
 
 } // namespace Slic3r

@@ -713,6 +713,31 @@ static inline void emit_perimeter_prev_next_segment(
     out.points.push_back(Point(il2.pos, itsct2.pos()));
 }
 
+static inline coordf_t measure_perimeter_segment_on_vertical_line_length(
+    const ExPolygonWithOffset                     &poly_with_offset,
+    const std::vector<SegmentedIntersectionLine>  &segs,
+    size_t                                         iVerticalLine,
+    size_t                                         iInnerContour,
+    size_t                                         iIntersection,
+    size_t                                         iIntersection2,
+    bool                                           forward)
+{
+    const SegmentedIntersectionLine &il = segs[iVerticalLine];
+    const SegmentIntersection       &itsct = il.intersections[iIntersection];
+    const SegmentIntersection       &itsct2 = il.intersections[iIntersection2];
+    const Polygon                   &poly = poly_with_offset.contour(iInnerContour);
+    myassert(itsct.is_inner());
+    myassert(itsct2.is_inner());
+    myassert(itsct.type != itsct2.type);
+    myassert(itsct.iContour == iInnerContour);
+    myassert(itsct.iContour == itsct2.iContour);
+    Point p1(il.pos, itsct.pos());
+    Point p2(il.pos, itsct2.pos());
+    return forward ?
+        segment_length(poly, itsct .iSegment, p1, itsct2.iSegment, p2) :
+        segment_length(poly, itsct2.iSegment, p2, itsct .iSegment, p1);
+}
+
 // Append the points of a perimeter segment when going from iIntersection to iIntersection2.
 // The first point (the point of iIntersection) will not be inserted,
 // the last point will be inserted.
@@ -1300,8 +1325,19 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                     (distNext < distPrev) : 
                     intrsctn_type_next == INTERSECTION_TYPE_OTHER_VLINE_OK;
                 myassert(intrsctn->is_inner());
-                polyline_current->points.push_back(Point(seg.pos, intrsctn->pos()));
-                emit_perimeter_prev_next_segment(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, take_next ? iNext : iPrev, *polyline_current, take_next);
+                bool skip = params.dont_connect || (link_max_length > 0 && (take_next ? distNext : distPrev) > link_max_length);
+                if (skip) {
+                    // Just skip the connecting contour and start a new path.
+                    goto dont_connect;
+                    polyline_current->points.push_back(Point(seg.pos, intrsctn->pos()));
+                    polylines_out.push_back(Polyline()); 
+                    polyline_current = &polylines_out.back(); 
+                    const SegmentedIntersectionLine &il2 = segs[take_next ? (i_vline + 1) : (i_vline - 1)];
+                    polyline_current->points.push_back(Point(il2.pos, il2.intersections[take_next ? iNext : iPrev].pos()));
+                } else {
+                    polyline_current->points.push_back(Point(seg.pos, intrsctn->pos()));
+                    emit_perimeter_prev_next_segment(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, take_next ? iNext : iPrev, *polyline_current, take_next);
+                }
                 // Mark both the left and right connecting segment as consumed, because one cannot go to this intersection point as it has been consumed.
                 if (iPrev != -1)
                     segs[i_vline-1].intersections[iPrev].consumed_perimeter_right = true;
@@ -1350,9 +1386,23 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                         (distance_of_segmens(poly, intrsctn->iSegment, iSegNext, true) <
                          distance_of_segmens(poly, intrsctn->iSegment, iSegNext, false)) :
                         (vert_seg_dir_valid_mask == DIR_FORWARD);
-                    // Consume the connecting contour and the next segment.
+                    // Skip this perimeter line?
+                    bool skip = params.dont_connect;
+                    if (! skip && link_max_length > 0) {
+                        coordf_t link_length = measure_perimeter_segment_on_vertical_line_length(
+                            poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext, dir_forward);
+                        skip = link_length > link_max_length;
+                    }
                     polyline_current->points.push_back(Point(seg.pos, intrsctn->pos()));
-    				emit_perimeter_segment_on_vertical_line(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext, *polyline_current, dir_forward);
+                    if (skip) {
+                        // Just skip the connecting contour and start a new path.
+                        polylines_out.push_back(Polyline()); 
+                        polyline_current = &polylines_out.back();
+                        polyline_current->points.push_back(Point(seg.pos, seg.intersections[iNext].pos()));
+                    } else {
+                        // Consume the connecting contour and the next segment.
+                        emit_perimeter_segment_on_vertical_line(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext, *polyline_current, dir_forward);
+                    }
                     // Mark both the left and right connecting segment as consumed, because one cannot go to this intersection point as it has been consumed.
                     // If there are any outer intersection points skipped (bypassed) by the contour,
                     // mark them as processed.
@@ -1374,7 +1424,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                     continue;
                 }
             }
-
+        dont_connect: 
             // No way to continue the current polyline. Take the rest of the line up to the outer contour.
             // This will finish the polyline, starting another polyline at a new point.
             if (going_up)
@@ -1450,9 +1500,12 @@ Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParam
 
 Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &params)
 {
+    // Each linear fill covers half of the target coverage.
+    FillParams params2 = params;
+    params2.density *= 0.5f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out) ||
-        ! fill_surface_by_lines(surface, params, float(M_PI / 2.), 0.f, polylines_out)) {
+    if (! fill_surface_by_lines(surface, params2, 0.f, 0.f, polylines_out) ||
+        ! fill_surface_by_lines(surface, params2, float(M_PI / 2.), 0.f, polylines_out)) {
         printf("FillGrid2::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
@@ -1460,10 +1513,13 @@ Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &para
 
 Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &params)
 {
+    // Each linear fill covers 1/3 of the target coverage.
+    FillParams params2 = params;
+    params2.density *= 0.333333333f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params, float(2. * M_PI / 3.), 0., polylines_out)) {
+    if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
+        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
+        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0., polylines_out)) {
         printf("FillTriangles::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
@@ -1471,11 +1527,14 @@ Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &
 
 Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &params)
 {
+    // Each linear fill covers 1/3 of the target coverage.
+    FillParams params2 = params;
+    params2.density *= 0.333333333f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, z, polylines_out) ||
-        ! fill_surface_by_lines(surface, params, float(M_PI / 3.), -z, polylines_out) ||
+    if (! fill_surface_by_lines(surface, params2, 0.f, z, polylines_out) ||
+        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), -z, polylines_out) ||
         // Rotated by PI*2/3 + PI to achieve reverse sloping wall.
-        ! fill_surface_by_lines(surface, params, float(M_PI * 2. / 3.), z, polylines_out)) {
+        ! fill_surface_by_lines(surface, params2, float(M_PI * 2. / 3.), z, polylines_out)) {
         printf("FillCubic::fill_surface() failed to fill a region.\n");
     } 
     return polylines_out; 
