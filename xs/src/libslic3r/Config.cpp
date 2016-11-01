@@ -143,7 +143,7 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
         // Store the string into the output vector.
         out.push_back(std::string(buf.data(), buf.size()));
         if (i == str.size())
-            break;
+            return true;
         // Skip white spaces.
         c = str[i];
         while (c == ' ' || c == '\t') {
