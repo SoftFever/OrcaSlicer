@@ -865,6 +865,13 @@ GCode::_extrude(ExtrusionPath path, std::string description, double speed)
             this->config.max_volumetric_speed.value / path.mm3_per_mm
         );
     }
+    if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
+        // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
+        speed = std::min(
+            speed,
+            EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm
+        );
+    }
     double F = speed * 60;  // convert mm/sec to mm/min
     
     // extrude arc or line

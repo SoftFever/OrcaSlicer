@@ -298,6 +298,31 @@ PrintConfigDef::PrintConfigDef()
         def->default_value = opt;
     }
 
+    def = this->add("filament_notes", coStrings);
+    def->label = "Filament notes";
+    def->tooltip = "You can put your notes regarding the filament here.";
+    def->cli = "filament-notes=s@";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 130;
+    {
+        ConfigOptionStrings* opt = new ConfigOptionStrings();
+        opt->values.push_back("");
+        def->default_value = opt;
+    }
+
+    def = this->add("filament_max_volumetric_speed", coFloats);
+    def->label = "Max volumetric speed";
+    def->tooltip = "Maximum volumetric speed allowed for this filament. Limits the maximum volumetric speed of a print to the minimum of print and filament volumetric speed. Set to zero for no limit.";
+    def->sidetext = "mm³/s";
+    def->cli = "filament-max-volumetric-speed=f@";
+    def->min = 0;
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0.f);
+        def->default_value = opt;
+    }
+
     def = this->add("filament_diameter", coFloats);
     def->label = "Diameter";
     def->tooltip = "Enter your filament diameter here. Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average.";

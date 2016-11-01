@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 110;
+use Test::More tests => 146;
+use Data::Dumper;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintConfig) {
     $config->set('layer_height', 0.3);
@@ -24,7 +25,48 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintCo
     is $config->serialize('notes'), 'foo\nbar', 'serialize string with newline';
     $config->set_deserialize('notes', 'bar\nbaz');
     is $config->get('notes'), "bar\nbaz", 'deserialize string with newline';
-    
+
+    foreach my $test_data (
+        {
+            name => 'empty',
+            values => [],
+            serialized => ''
+        },
+        {
+            name => 'single empty',
+            values => [''],
+            serialized => '""'
+        },
+        {
+            name => 'single noempty, simple',
+            values => ['RGB'],
+            serialized => 'RGB'
+        },
+        {
+            name => 'multiple noempty, simple',
+            values => ['ABC', 'DEF', '09182745@!#$*(&'],
+            serialized => 'ABC;DEF;09182745@!#$*(&'
+        },
+        {
+            name => 'multiple, simple, some empty',
+            values => ['ABC', 'DEF', '', '09182745@!#$*(&', ''],
+            serialized => 'ABC;DEF;;09182745@!#$*(&;'
+        },
+        {
+            name => 'complex',
+            values => ['some "quoted" notes', "yet\n some notes", "whatever \n notes", ''],
+            serialized => '"some \"quoted\" notes";"yet\n some notes";"whatever \n notes";'
+        }
+        )
+    {    
+        $config->set('filament_notes', $test_data->{values});
+        is $config->serialize('filament_notes'), $test_data->{serialized}, 'serialize multi-string value ' . $test_data->{name};
+        $config->set_deserialize('filament_notes', '');
+        is_deeply $config->get('filament_notes'), [], 'deserialize multi-string value - empty ' . $test_data->{name};
+        $config->set_deserialize('filament_notes', $test_data->{serialized});
+        is_deeply $config->get('filament_notes'), $test_data->{values}, 'deserialize complex multi-string value ' . $test_data->{name};
+    }
+
     $config->set('first_layer_height', 0.3);
     ok abs($config->get('first_layer_height') - 0.3) < 1e-4, 'set/get absolute floatOrPercent';
     is $config->serialize('first_layer_height'), '0.3', 'serialize absolute floatOrPercent';

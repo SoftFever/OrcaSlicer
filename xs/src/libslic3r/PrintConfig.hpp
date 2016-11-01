@@ -292,6 +292,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionString              extrusion_axis;
     ConfigOptionFloats              extrusion_multiplier;
     ConfigOptionFloats              filament_diameter;
+    ConfigOptionFloats              filament_max_volumetric_speed;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
     ConfigOptionString              layer_gcode;
@@ -326,6 +327,7 @@ class GCodeConfig : public virtual StaticPrintConfig
         OPT_PTR(extrusion_axis);
         OPT_PTR(extrusion_multiplier);
         OPT_PTR(filament_diameter);
+        OPT_PTR(filament_max_volumetric_speed);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);
         OPT_PTR(layer_gcode);
@@ -385,6 +387,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionBool                fan_always_on;
     ConfigOptionInt                 fan_below_layer_time;
     ConfigOptionStrings             filament_colour;
+    ConfigOptionStrings             filament_notes;
     ConfigOptionFloat               first_layer_acceleration;
     ConfigOptionInt                 first_layer_bed_temperature;
     ConfigOptionFloatOrPercent      first_layer_extrusion_width;
@@ -441,6 +444,7 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(fan_always_on);
         OPT_PTR(fan_below_layer_time);
         OPT_PTR(filament_colour);
+        OPT_PTR(filament_notes);
         OPT_PTR(first_layer_acceleration);
         OPT_PTR(first_layer_bed_temperature);
         OPT_PTR(first_layer_extrusion_width);

@@ -138,7 +138,10 @@ sub new {
         $self->_on_presets_changed;
     });
     
+    # C++ instance DynamicPrintConfig
     $self->{config} = Slic3r::Config->new;
+    # Initialize the DynamicPrintConfig by default keys/values.
+    # Possible %params keys: no_controller
     $self->build(%params);
     $self->update_tree;
     $self->_update;
@@ -910,7 +913,7 @@ sub build {
     my $self = shift;
     
     $self->init_config_options(qw(
-        filament_colour filament_diameter extrusion_multiplier
+        filament_colour filament_diameter filament_notes filament_max_volumetric_speed extrusion_multiplier
         temperature first_layer_temperature bed_temperature first_layer_bed_temperature
         fan_always_on cooling
         min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers
@@ -989,6 +992,27 @@ sub build {
             $optgroup->append_single_option_line('fan_below_layer_time');
             $optgroup->append_single_option_line('slowdown_below_layer_time');
             $optgroup->append_single_option_line('min_print_speed');
+        }
+    }
+
+    {
+        my $page = $self->add_options_page('Advanced', 'wrench.png');
+        {
+            my $optgroup = $page->new_optgroup('Print speed override');
+            $optgroup->append_single_option_line('filament_max_volumetric_speed', 0);
+        }
+    }
+
+    {
+        my $page = $self->add_options_page('Notes', 'note.png');
+        {
+            my $optgroup = $page->new_optgroup('Notes',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('filament_notes', 0);
+            $option->full_width(1);
+            $option->height(250);
+            $optgroup->append_single_option_line($option);
         }
     }
 }
