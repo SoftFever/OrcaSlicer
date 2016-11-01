@@ -1,6 +1,7 @@
 #include "Config.hpp"
 #include <stdlib.h>  // for setenv()
 #include <assert.h>
+#include <string.h>
 
 #if defined(_WIN32) && !defined(setenv) && defined(_putenv_s)
 #define setenv(k, v, o) _putenv_s(k, v)
