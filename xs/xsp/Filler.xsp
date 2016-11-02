@@ -4,6 +4,8 @@
 #include <xsinit.h>
 #include "libslic3r/Fill/Fill.hpp"
 #include "libslic3r/PolylineCollection.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
+#include "libslic3r/ExtrusionEntityCollection.hpp"
 %}
 
 %name{Slic3r::Filler} class Filler {
@@ -63,5 +65,13 @@ new_from_type(CLASS, type)
     OUTPUT:
         RETVAL
 
+void
+make_fill(CLASS, layer_region, out_append)
+    char*                       CLASS;
+    LayerRegion*                layer_region;
+    ExtrusionEntityCollection*  out_append;
+    CODE:
+        make_fill(*layer_region, *out_append);
 %}
+
 };

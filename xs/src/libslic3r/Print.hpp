@@ -100,7 +100,6 @@ public:
 
     LayerPtrs layers;
     SupportLayerPtrs support_layers;
-    // TODO: Fill* fill_maker        => (is => 'lazy');
     PrintState<PrintObjectStep> state;
     
     Print*              print()                 { return this->_print; }
@@ -114,7 +113,10 @@ public:
     bool delete_all_copies();
     bool set_copies(const Points &points);
     bool reload_model_instances();
-    BoundingBox bounding_box() const;
+    BoundingBox bounding_box() const {
+        // since the object is aligned to origin, bounding box coincides with size
+        return BoundingBox(Point(0,0), this->size);
+    }
     
     // adds region_id, too, if necessary
     void add_region_volume(int region_id, int volume_id);

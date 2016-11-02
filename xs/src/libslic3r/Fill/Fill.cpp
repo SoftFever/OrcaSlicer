@@ -1,14 +1,17 @@
+#include <assert.h>
 #include <stdio.h>
 
 #include "../ClipperUtils.hpp"
-#include "../Surface.hpp"
+#include "../Geometry.hpp"
+#include "../Layer.hpp"
+#include "../Print.hpp"
 #include "../PrintConfig.hpp"
+#include "../Surface.hpp"
 
 #include "FillBase.hpp"
 
 namespace Slic3r {
 
-#if 0
 // Generate infills for Slic3r::Layer::Region.
 // The Slic3r::Layer::Region at this point of time may contain
 // surfaces of various types (internal/bridge/top/bottom/solid).
@@ -31,8 +34,8 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
     // without any angle (shouldn't this logic be moved to process_external_surfaces()?)
     {
         SurfacesPtr surfaces_with_bridge_angle;
-        surfaces_with_bridge_angle.reserve(layerm->fill_surfaces.surfaces.size());
-        for (Surfaces::iterator it = layerm->fill_surfaces.surfaces.begin(); it != layerm->fill_surfaces.surfaces.end(); ++ it)
+        surfaces_with_bridge_angle.reserve(layerm.fill_surfaces.surfaces.size());
+        for (Surfaces::iterator it = layerm.fill_surfaces.surfaces.begin(); it != layerm.fill_surfaces.surfaces.end(); ++ it)
             if (it->bridge_angle >= 0)
                 surfaces_with_bridge_angle.push_back(&(*it));
         
@@ -40,76 +43,61 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         // group is of type Slic3r::SurfaceCollection
         //FIXME: Use some smart heuristics to merge similar surfaces to eliminate tiny regions.
         std::vector<SurfacesPtr> groups;
-        layerm->fill_surfaces.group(&groups);
+        layerm.fill_surfaces.group(&groups);
         
         // merge compatible groups (we can generate continuous infill for them)
         {
             // cache flow widths and patterns used for all solid groups
             // (we'll use them for comparing compatible groups)
-            my @is_solid = my @fw = my @pattern = ();
-            for (my $i = 0; $i <= $num_ groups; $i++) {
+            std::vector<char>   is_solid(groups.size(), false);
+            std::vector<float>  fw(groups.size(), 0.f);
+            std::vector<int>    pattern(groups.size(), -1);
+            for (size_t i = 0; i < groups.size(); ++ i) {
                 // we can only merge solid non-bridge surfaces, so discard
                 // non-solid surfaces
-                if ($groups[$i][0]->is_solid && (!$groups[$i][0]->is_bridge || $layerm->layer->id == 0)) {
-                    $is_solid[$i] = 1;
-                    $fw[$i] = ($groups[$i][0]->surface_type == S_TYPE_TOP)
-                        ? $top_solid_infill_flow->width
-                        : $solid_infill_flow->width;
-                    $pattern[$i] = $groups[$i][0]->is_external
-                        ? $layerm->region->config->external_fill_pattern
-                        : 'rectilinear';
-                } else {
-                    $is_solid[$i]   = 0;
-                    $fw[$i]         = 0;
-                    $pattern[$i]    = 'none';
+                const Surface &surface = *groups[i].front();
+                if (surface.is_solid() && (!surface.is_bridge() || layerm.layer()->id() == 0)) {
+                    is_solid[i] = true;
+                    fw[i] = (surface.surface_type == stTop) ? top_solid_infill_flow.width : solid_infill_flow.width;
+                    pattern[i] = surface.is_external() ? layerm.region()->config.external_fill_pattern.value : ipRectilinear;
                 }
             }
-            
             // loop through solid groups
-            for (my $i = 0; $i <= $num_groups; $i++) {
-                next if !$is_solid[$i];
-                
-                // find compatible groups and append them to this one
-                for (my $j = $i+1; $j <= $num_groups; $j++) {
-                    next if !$is_solid[$j];
-                
-                    if ($fw[$i] == $fw[$j] && $pattern[$i] eq $pattern[$j]) {
-                        // groups are compatible, merge them
-                        push @{$groups[$i]}, @{$groups[$j]};
-                        splice @groups,     $j, 1;
-                        splice @is_solid,   $j, 1;
-                        splice @fw,         $j, 1;
-                        splice @pattern,    $j, 1;
+            for (size_t i = 0; i < groups.size(); ++ i) {
+                if (is_solid[i]) {
+                    // find compatible groups and append them to this one
+                    for (size_t j = i + 1; j < groups.size(); ++ j) {
+                        if (is_solid[j] && fw[i] == fw[j] && pattern[i] == pattern[j]) {
+                            // groups are compatible, merge them
+                            groups[i].insert(groups[i].end(), groups[j].begin(), groups[j].end());
+                            groups.erase(groups.begin() + j);
+                            is_solid.erase(is_solid.begin() + j);
+                            fw.erase(fw.begin() + j);
+                            pattern.erase(pattern.begin() + j);
+                        }
                     }
                 }
             }
         }
         
-        // give priority to bridges
-        @groups = sort { ($a->[0]->bridge_angle >= 0) ? -1 : 0 } @groups;
-        
-        foreach my $group (@groups) {
-            // Make a union of polygons defining the infiill regions of a group, use a safety offset.
-            my $union_p = union([ map $_->p, @$group ], 1);
-            
-            // Subtract surfaces having a defined bridge_angle from any other, use a safety offset.
-            if (@surfaces_with_bridge_angle && $group->[0]->bridge_angle < 0) {
-                $union_p = diff(
-                    $union_p,
-                    [ map $_->p, @surfaces_with_bridge_angle ],
-                    1,
-                );
+        // Give priority to bridges. Process the bridges in the first round, the rest of the surfaces in the 2nd round.
+        for (size_t round = 0; round < 2; ++ round) {
+            for (std::vector<SurfacesPtr>::iterator it_group = groups.begin(); it_group != groups.end(); ++ it_group) {
+                const SurfacesPtr &group = *it_group;
+                bool is_bridge = group.front()->bridge_angle >= 0;
+                if (is_bridge != (round == 0))
+                    continue;
+                // Make a union of polygons defining the infiill regions of a group, use a safety offset.
+                Polygons union_p = union_(to_polygons(*it_group), true);
+                // Subtract surfaces having a defined bridge_angle from any other, use a safety offset.
+                if (! surfaces_with_bridge_angle.empty() && it_group->front()->bridge_angle < 0)
+                    union_p = diff(union_p, to_polygons(surfaces_with_bridge_angle), true);
+                // subtract any other surface already processed
+                //FIXME Vojtech: Because the bridge surfaces came first, they are subtracted twice!
+                ExPolygons union_expolys = diff_ex(union_p, to_polygons(surfaces), true);
+                for (ExPolygons::const_iterator it_expoly = union_expolys.begin(); it_expoly != union_expolys.end(); ++ it_expoly)
+                    surfaces.push_back(Surface(*it_group->front(), *it_expoly));
             }
-            
-            // subtract any other surface already processed
-            //FIXME Vojtech: Because the bridge surfaces came first, they are subtracted twice!
-            my $union = diff_ex(
-                $union_p,
-                [ map $_->p, @surfaces ],
-                1,
-            );
-            
-            push @surfaces, map $group->[0]->clone(expolygon => $_), @$union;
         }
     }
     
@@ -123,149 +111,140 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
     // TODO: detect and investigate whether there could be narrow regions without
     // any void neighbors
     {
-        my $distance_between_surfaces = max(
-            $infill_flow->scaled_spacing,
-            $solid_infill_flow->scaled_spacing,
-            $top_solid_infill_flow->scaled_spacing,
-        );
-        my $collapsed = diff(
-            [ map @{$_->expolygon}, @surfaces ],
-            offset2([ map @{$_->expolygon}, @surfaces ], -$distance_between_surfaces/2, +$distance_between_surfaces/2),
-            1,
-        );
-        push @surfaces, map Slic3r::Surface->new(
-            expolygon       => $_,
-            surface_type    => S_TYPE_INTERNALSOLID,
-        ), @{intersection_ex(
-            offset($collapsed, $distance_between_surfaces),
-            [
-                (map @{$_->expolygon}, grep $_->surface_type == S_TYPE_INTERNALVOID, @surfaces),
-                (@$collapsed),
-            ],
-            1,
-        )};
+        coord_t distance_between_surfaces = std::max(
+            std::max(infill_flow.scaled_spacing(), solid_infill_flow.scaled_spacing()),
+            top_solid_infill_flow.scaled_spacing());
+        Polygons surfaces_polygons = to_polygons(surfaces);
+        Polygons collapsed = diff(
+            surfaces_polygons,
+            offset2(surfaces_polygons, -distance_between_surfaces/2, +distance_between_surfaces/2),
+            true);
+        Polygons to_subtract;
+        to_subtract.reserve(collapsed.size() + number_polygons(surfaces));
+        for (Surfaces::const_iterator it_surface = surfaces.begin(); it_surface != surfaces.end(); ++ it_surface)
+            if (it_surface->surface_type == stInternalVoid)
+                polygons_append(to_subtract, *it_surface);
+        polygons_append(to_subtract, collapsed);
+        surfaces_append(
+            surfaces,
+            intersection_ex(
+                offset(collapsed, distance_between_surfaces),
+                to_subtract,
+                true),
+            stInternalSolid);
     }
-    
+
     if (0) {
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output("fill_" . $layerm->print_z . ".svg",
-            expolygons      => [ map $_->expolygon, grep !$_->is_solid, @surfaces ],
-            red_expolygons  => [ map $_->expolygon, grep  $_->is_solid, @surfaces ],
-        );
+//        require "Slic3r/SVG.pm";
+//        Slic3r::SVG::output("fill_" . $layerm->print_z . ".svg",
+//            expolygons      => [ map $_->expolygon, grep !$_->is_solid, @surfaces ],
+//            red_expolygons  => [ map $_->expolygon, grep  $_->is_solid, @surfaces ],
+//        );
     }
-    
-    SURFACE: foreach my $surface (@surfaces) {
-        next if $surface->surface_type == S_TYPE_INTERNALVOID;
-        my $filler          = $layerm->region->config->fill_pattern;
-        my $density         = $fill_density;
-        my $role = ($surface->surface_type == S_TYPE_TOP) ? FLOW_ROLE_TOP_SOLID_INFILL
-            : $surface->is_solid ? FLOW_ROLE_SOLID_INFILL
-            : FLOW_ROLE_INFILL;
-        my $is_bridge       = $layerm->layer->id > 0 && $surface->is_bridge;
-        my $is_solid        = $surface->is_solid;
+
+    for (Surfaces::const_iterator surface_it = surfaces.begin(); surface_it != surfaces.end(); ++ surface_it) {
+        const Surface &surface = *surface_it;
+        if (surface.surface_type == stInternalVoid)
+            continue;
+        InfillPattern  fill_pattern = layerm.region()->config.fill_pattern.value;
+        double         density      = fill_density;
+        FlowRole role = (surface.surface_type == stTop) ? frTopSolidInfill :
+            (surface.is_solid() ? frSolidInfill : frInfill);
+        bool is_bridge = layerm.layer()->id() > 0 && surface.is_bridge();
         
-        if ($surface->is_solid) {
-            $density = 100;
-            $filler = 'rectilinear';
-            if ($surface->is_external && !$is_bridge) {
-                $filler = $layerm->region->config->external_fill_pattern;
-            }
-        } else {
-            next SURFACE unless $density > 0;
-        }
+        if (surface.is_solid()) {
+            density = 100;
+            fill_pattern = (surface.is_external() && ! is_bridge) ? 
+                layerm.region()->config.external_fill_pattern.value :
+                ipRectilinear;
+        } else if (density <= 0)
+            continue;
         
         // get filler object
-        my $f = $self->filler($filler);
+        std::auto_ptr<Fill> f = std::auto_ptr<Fill>(Fill::new_from_type(fill_pattern));
+        f->set_bounding_box(layerm.layer()->object()->bounding_box());
         
         // calculate the actual flow we'll be using for this infill
-        my $h = $surface->thickness == -1 ? $layerm->layer->height : $surface->thickness;
-        my $flow = $layerm->region->flow(
-            $role,
-            $h,
-            $is_bridge || $f->use_bridge_flow,
-            $layerm->layer->id == 0,
-            -1,
-            $layerm->layer->object,
+        coordf_t h = (surface.thickness == -1) ? layerm.layer()->height : surface.thickness;
+        Flow flow = layerm.region()->flow(
+            role,
+            h,
+            is_bridge || f->use_bridge_flow(),  // bridge flow?
+            layerm.layer()->id() == 0,          // first layer?
+            -1,                                 // auto width
+            *layerm.layer()->object()
         );
         
         // calculate flow spacing for infill pattern generation
-        my $using_internal_flow = 0;
-        if (!$is_solid && !$is_bridge) {
+        bool using_internal_flow = false;
+        if (! surface.is_solid() && ! is_bridge) {
             // it's internal infill, so we can calculate a generic flow spacing 
             // for all layers, for avoiding the ugly effect of
             // misaligned infill on first layer because of different extrusion width and
             // layer height
-            my $internal_flow = $layerm->region->flow(
-                FLOW_ROLE_INFILL,
-                $layerm->layer->object->config->layer_height,  // TODO: handle infill_every_layers?
-                0,  // no bridge
-                0,  // no first layer
-                -1, // auto width
-                $layerm->layer->object,
+            Flow internal_flow = layerm.region()->flow(
+                frInfill,
+                layerm.layer()->object()->config.layer_height.value,  // TODO: handle infill_every_layers?
+                false,  // no bridge
+                false,  // no first layer
+                -1,     // auto width
+                *layerm.layer()->object()
             );
-            $f->set_spacing($internal_flow->spacing);
-            $using_internal_flow = 1;
+            f->spacing = internal_flow.spacing();
+            using_internal_flow = 1;
         } else {
-            $f->set_spacing($flow->spacing);
+            f->spacing = flow.spacing();
         }
 
-        my $link_max_length = 0;
-        if (! $is_bridge) {
-            $link_max_length = $layerm->region->config->get_abs_value_over($surface->is_external ? 'external_fill_link_max_length' : 'fill_link_max_length', $flow->spacing);
-            print "flow spacing: ", $flow->spacing, " is_external: ", $surface->is_external, ", link_max_length: $link_max_length\n";
+        double link_max_length = 0.;
+        if (! is_bridge) {
+            link_max_length = layerm.region()->config.get_abs_value(surface.is_external() ? "external_fill_link_max_length" : "fill_link_max_length", flow.spacing());
+//            printf("flow spacing: %f,  is_external: %d, link_max_length: %lf\n", flow.spacing(), int(surface.is_external()), link_max_length);
         }
         
-        $f->set_layer_id($layerm->layer->id);
-        $f->set_z($layerm->layer->print_z);
-        $f->set_angle(deg2rad($layerm->region->config->fill_angle));
+        f->layer_id = layerm.layer()->id();
+        f->z = layerm.layer()->print_z;
+        f->angle = Geometry::deg2rad(layerm.region()->config.fill_angle.value);
         // Maximum length of the perimeter segment linking two infill lines.
-        $f->set_link_max_length(scale($link_max_length));
+        f->link_max_length = scale_(link_max_length);
         // Used by the concentric infill pattern to clip the loops to create extrusion paths.
-        $f->set_loop_clipping(scale($flow->nozzle_diameter) * &Slic3r::LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
-        
-        // apply half spacing using this flow's own spacing and generate infill
-        my @polylines = $f->fill_surface(
-            $surface,
-            density         => $density/100,
-            layer_height    => $h,
-        );
-        next unless @polylines;
+        f->loop_clipping = scale_(flow.nozzle_diameter) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER;
+//        f->layer_height = h;
 
-        
+        // apply half spacing using this flow's own spacing and generate infill
+        FillParams params;
+        params.density = 0.01 * density;
+        params.dont_adjust = true;
+        Polylines polylines = f->fill_surface(&surface, params);
+        if (polylines.empty())
+            continue;
+
         // calculate actual flow from spacing (which might have been adjusted by the infill
         // pattern generator)
-        if ($using_internal_flow) {
+        if (using_internal_flow) {
             // if we used the internal flow we're not doing a solid infill
             // so we can safely ignore the slight variation that might have
             // been applied to $f->flow_spacing
         } else {
-            $flow = Slic3r::Flow->new_from_spacing(
-                spacing         => $f->spacing,
-                nozzle_diameter => $flow->nozzle_diameter,
-                layer_height    => $h,
-                bridge          => $is_bridge || $f->use_bridge_flow,
-            );
+            flow = Flow::new_from_spacing(f->spacing, flow.nozzle_diameter, h, is_bridge || f->use_bridge_flow());
         }
 
         // save into layer
         {
-            my $role = $is_bridge ? EXTR_ROLE_BRIDGE
-                : $is_solid ? (($surface->surface_type == S_TYPE_TOP) ? EXTR_ROLE_TOPSOLIDFILL : EXTR_ROLE_SOLIDFILL)
-                : EXTR_ROLE_FILL;
-            
-            out.
-            push @fills, my $collection = Slic3r::ExtrusionPath::Collection->new;
+            ExtrusionRole role = is_bridge ? erBridgeInfill :
+                (surface.is_solid() ? ((surface.surface_type == stTop) ? erTopSolidInfill : erSolidInfill) : erInternalInfill);
+            ExtrusionEntityCollection &collection = *(new ExtrusionEntityCollection());
+            out.entities.push_back(&collection);
             // Only concentric fills are not sorted.
-            $collection->no_sort($f->no_sort);
-            $collection->append(
-                map Slic3r::ExtrusionPath->new(
-                    polyline    => $_,
-                    role        => $role,
-                    mm3_per_mm  => $flow->mm3_per_mm,
-                    width       => $flow->width,
-                    height      => $flow->height,
-                ), map @$_, @polylines,
-            );
+            collection.no_sort = f->no_sort();
+            for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it) {
+                ExtrusionPath *path = new ExtrusionPath(role);
+                collection.entities.push_back(path);
+                path->polyline.points.swap(it->points);
+                path->mm3_per_mm = flow.mm3_per_mm();
+                path->width      = flow.width,
+                path->height     = flow.height;
+            }
         }
     }
     
@@ -275,12 +254,15 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
     // The path type could be ExtrusionPath, ExtrusionLoop or ExtrusionEntityCollection.
     // Why the paths are unpacked?
     for (ExtrusionEntitiesPtr::iterator thin_fill = layerm.thin_fills.entities.begin(); thin_fill != layerm.thin_fills.entities.end(); ++ thin_fill) {
-        // ExtrusionEntityCollection
-        out.append(new ExtrusionEntityCollection->new($thin_fill);
+    #if 0
+        out.entities.push_back((*thin_fill)->clone());
+        assert(dynamic_cast<ExtrusionEntityCollection*>(out.entities.back()) != NULL);
+    #else
+        ExtrusionEntityCollection &collection = *(new ExtrusionEntityCollection());
+        out.entities.push_back(&collection);
+        collection.entities.push_back((*thin_fill)->clone());
+    #endif
     }
-    
-    return @fills;
 }
-#endif
 
 } // namespace Slic3r

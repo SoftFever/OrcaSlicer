@@ -29,7 +29,7 @@ class SurfaceCollection
     void remove_types(const SurfaceType *types, int ntypes);
     void filter_by_type(SurfaceType type, Polygons* polygons);
     void append(const SurfaceCollection &coll);
-    void append(const SurfaceType surfaceType, const Slic3r::ExPolygons &expoly);
+    void append(const SurfaceType surfaceType, const ExPolygons &expoly);
 
     // For debugging purposes:
     void export_to_svg(const char *path, bool show_labels);

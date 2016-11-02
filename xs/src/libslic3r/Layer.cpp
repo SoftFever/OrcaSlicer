@@ -2,6 +2,7 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "Print.hpp"
+#include "Fill/Fill.hpp"
 #include "SVG.hpp"
 
 namespace Slic3r {
@@ -69,8 +70,9 @@ Layer::region_count() const
 void
 Layer::clear_regions()
 {
-    for (int i = this->regions.size()-1; i >= 0; --i)
-        this->delete_region(i);
+    for (size_t i = 0; i < this->regions.size(); ++ i)
+        delete this->regions[i];
+    this->regions.clear();
 }
 
 LayerRegion*
@@ -170,7 +172,7 @@ void
 Layer::make_perimeters()
 {
     #ifdef SLIC3R_DEBUG
-    printf("Making perimeters for layer %zu\n", this->id());
+    printf("Making perimeters for layer " PRINTF_ZU "\n", this->id());
     #endif
     
     // keep track of regions whose perimeters we have already generated
@@ -269,6 +271,22 @@ Layer::make_perimeters()
                 }
             }
         }
+    }
+}
+
+void Layer::make_fills()
+{
+    #ifdef SLIC3R_DEBUG
+    printf("Making fills for layer " PRINTF_ZU "\n", this->id());
+    #endif
+    for (LayerRegionPtrs::iterator it_layerm = regions.begin(); it_layerm != regions.end(); ++ it_layerm) {
+        LayerRegion &layerm = *(*it_layerm);
+        layerm.fills.clear();
+        make_fill(layerm, layerm.fills);
+#ifndef NDEBUG
+        for (size_t i = 0; i < layerm.fills.entities.size(); ++ i)
+            assert(dynamic_cast<ExtrusionEntityCollection*>(layerm.fills.entities[i]) != NULL);
+#endif
     }
 }
 

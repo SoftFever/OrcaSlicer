@@ -116,6 +116,7 @@ public:
     template <class T> bool any_internal_region_slice_contains(const T &item) const;
     template <class T> bool any_bottom_region_slice_contains(const T &item) const;
     void make_perimeters();
+    void make_fills();
 
     void export_region_slices_to_svg(const char *path);
     void export_region_fill_surfaces_to_svg(const char *path);

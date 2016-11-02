@@ -372,7 +372,7 @@ Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const B
     size_t cellw = size_t(floor((bed_bbox.size().x + gap) / cell_size.x));
     size_t cellh = size_t(floor((bed_bbox.size().y + gap) / cell_size.y));
     if (num_parts > cellw * cellh)
-        CONFESS("%zu parts won't fit in your print area!\n", num_parts);
+        CONFESS(PRINTF_ZU " parts won't fit in your print area!\n", num_parts);
     
     // Get a bounding box of cellw x cellh cells, centered at the center of the bed.
     Pointf       cells_size(cellw * cell_size.x - gap, cellh * cell_size.y - gap);
@@ -446,7 +446,7 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
     size_t cellw = floor((area.x + dist) / part.x);
     size_t cellh = floor((area.y + dist) / part.y);
     if (total_parts > (cellw * cellh))
-        CONFESS("%zu parts won't fit in your print area!\n", total_parts);
+        CONFESS(PRINTF_ZU " parts won't fit in your print area!\n", total_parts);
     
     // total space used by cells
     Pointf cells(cellw * part.x, cellh * part.y);

@@ -5,7 +5,6 @@ use warnings;
 
 use Slic3r::XS;
 use Test::More tests => 146;
-use Data::Dumper;
 
 foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintConfig) {
     $config->set('layer_height', 0.3);

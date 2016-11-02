@@ -56,8 +56,6 @@ use Slic3r::Config;
 use Slic3r::ExPolygon;
 use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
-use Slic3r::Fill;
-use Slic3r::Fill2;
 use Slic3r::Flow;
 use Slic3r::Format::AMF;
 use Slic3r::Format::OBJ;
@@ -139,7 +137,7 @@ sub spawn_thread {
 # Otherwise run the task on the current thread.
 # Used for 
 #   Slic3r::Print::Object->layers->make_perimeters  : This is a pure C++ function.
-#   Slic3r::Print::Object->layers->make_fill        : This requires a rewrite of Fill.pm to C++.
+#   Slic3r::Print::Object->layers->make_fill        : This is a pure C++ function.
 #   Slic3r::Print::SupportMaterial::generate_toolpaths
 sub parallelize {
     my %params = @_;

@@ -475,7 +475,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     for (std::vector<IntersectionLines>::iterator it = lines.begin(); it != lines.end(); ++it) {
         size_t layer_idx = it - lines.begin();
         #ifdef SLIC3R_TRIANGLEMESH_DEBUG
-        printf("Layer %zu:\n", layer_idx);
+        printf("Layer " PRINTF_ZU ":\n", layer_idx);
         #endif
         this->make_loops(*it, &(*layers)[layer_idx]);
     }
@@ -491,7 +491,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
     for (std::vector<Polygons>::const_iterator loops = layers_p.begin(); loops != layers_p.end(); ++loops) {
         #ifdef SLIC3R_TRIANGLEMESH_DEBUG
         size_t layer_id = loops - layers_p.begin();
-        printf("Layer %zu (slice_z = %.2f):\n", layer_id, z[layer_id]);
+        printf("Layer " PRINTF_ZU " (slice_z = %.2f):\n", layer_id, z[layer_id]);
         #endif
         
         this->make_expolygons(*loops, &(*layers)[ loops - layers_p.begin() ]);
@@ -839,7 +839,7 @@ TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices)
     for (ExPolygons::const_iterator e = ex_slices.begin(); e != ex_slices.end(); ++e) {
         holes_count += e->holes.size();
     }
-    printf("%zu surface(s) having %zu holes detected from %zu polylines\n",
+    printf(PRINTF_ZU " surface(s) having " PRINTF_ZU " holes detected from " PRINTF_ZU " polylines\n",
         ex_slices.size(), holes_count, loops.size());
     #endif
     

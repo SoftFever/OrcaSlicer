@@ -13,7 +13,8 @@
 
 namespace Slic3r {
 
-class Surface;
+class ExtrusionEntityCollection;
+class LayerRegion;
 
 // An interface class to Perl, aggregating an instance of a Fill and a FillData.
 class Filler
@@ -27,6 +28,8 @@ public:
     Fill        *fill;
     FillParams   params;
 };
+
+void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out);
 
 } // namespace Slic3r
 

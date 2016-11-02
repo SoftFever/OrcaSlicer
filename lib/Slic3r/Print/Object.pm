@@ -14,19 +14,6 @@ use Slic3r::Surface ':types';
 # If enabled, phases of prepare_infill will be written into SVG files to an "out" directory.
 our $SLIC3R_DEBUG_SLICE_PROCESSING = 0;
 
-# TODO: lazy
-sub fill_maker {
-    my $self = shift;
-    return Slic3r::Fill->new(bounding_box => $self->bounding_box);
-}
-
-# Vojtech's implementation: Create the C++ filler.
-# TODO: lazy
-sub fill_maker2 {
-    my $self = shift;
-    return Slic3r::Fill2->new(bounding_box => $self->bounding_box);
-}
-
 sub region_volumes {
     my $self = shift;
     return [ map $self->get_region_volumes($_), 0..($self->region_count - 1) ];
@@ -617,12 +604,12 @@ sub infill {
         thread_cb => sub {
             my $q = shift;
             while (defined (my $i = $q->dequeue)) {
-                $self->get_layer($i)->make_fill;
+                $self->get_layer($i)->make_fills;
             }
         },
         no_threads_cb => sub {
             foreach my $layer (@{$self->layers}) {
-                $layer->make_fill;
+                $layer->make_fills;
             }
         },
     );
@@ -678,14 +665,7 @@ sub _support_material {
         );
     } else {
         # New supports, C++ implementation.
-        return Slic3r::Print::SupportMaterial2->new(
-            print_config        => $self->print->config,
-            object_config       => $self->config,
-            first_layer_flow    => $first_layer_flow,
-            flow                => $self->support_material_flow,
-            interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
-            soluble_interface   => ($self->config->support_material_contact_distance == 0),
-        );
+        return Slic3r::Print::SupportMaterial2->new($self);
     }
 }
 

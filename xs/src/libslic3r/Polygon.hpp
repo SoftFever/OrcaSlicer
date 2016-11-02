@@ -58,6 +58,18 @@ extern bool        remove_sticks(Polygons &polys);
 // Remove polygons with less than 3 edges.
 extern bool        remove_degenerate(Polygons &polys);
 extern bool        remove_small(Polygons &polys, double min_area);
+
+// Append a vector of polygons at the end of another vector of polygons.
+inline void        polygons_append(Polygons &dst, const Polygons &src) { dst.insert(dst.end(), src.begin(), src.end()); }
+#if SLIC3R_CPPVER >= 11
+inline void        polygons_append(Polygons &dst, Polygons &&src) 
+{
+    if (dst.empty())
+        dst = std::move(src);
+    else
+        std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+}
+#endif
 }
 
 // start Boost

@@ -790,10 +790,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
     rotate_vector.first += angleBase;
 
-    this->_min_spacing = scale_(this->spacing);
     myassert(params.density > 0.0001f && params.density <= 1.f);
-    this->_line_spacing = coord_t(coordf_t(this->_min_spacing) / params.density);
-    this->_diagonal_distance = this->_line_spacing * 2;
+    coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
 
     // On the polygons of poly_with_offset, the infill lines will be connected.
     ExPolygonWithOffset poly_with_offset(
@@ -811,24 +809,24 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     // define flow spacing according to requested density
     bool full_infill = params.density > 0.9999f;
     if (full_infill && !params.dont_adjust) {
-//        this->_min_spacing = this->_line_spacing = this->_adjust_solid_spacing(bounding_box.size().x, this->_line_spacing);
-//        this->spacing = unscale(this->_line_spacing);
+        line_spacing = this->_adjust_solid_spacing(bounding_box.size().x, line_spacing);
+        this->spacing = unscale(line_spacing);
     } else {
         // extend bounding box so that our pattern will be aligned with other layers
         // Transform the reference point to the rotated coordinate system.
         Point refpt = rotate_vector.second.rotated(- rotate_vector.first);
         // _align_to_grid will not work correctly with positive pattern_shift.
-        coord_t pattern_shift_scaled = coord_t(scale_(pattern_shift)) % this->_line_spacing;
-        refpt.x -= (pattern_shift_scaled > 0) ? pattern_shift_scaled : (this->_line_spacing + pattern_shift_scaled);
+        coord_t pattern_shift_scaled = coord_t(scale_(pattern_shift)) % line_spacing;
+        refpt.x -= (pattern_shift_scaled > 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
         bounding_box.merge(_align_to_grid(
             bounding_box.min, 
-            Point(this->_line_spacing, this->_line_spacing), 
+            Point(line_spacing, line_spacing), 
             refpt));
     }
 
     // Intersect a set of euqally spaced vertical lines wiht expolygon.
-    size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + SCALED_EPSILON) / this->_line_spacing;
-    coord_t x0 = bounding_box.min.x + this->_line_spacing;
+    size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + SCALED_EPSILON) / line_spacing;
+    coord_t x0 = bounding_box.min.x + line_spacing / 2;
 
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;
@@ -847,7 +845,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     std::vector<SegmentedIntersectionLine> segs(n_vlines, SegmentedIntersectionLine());
     for (size_t i = 0; i < n_vlines; ++ i) {
         segs[i].idx = i;
-        segs[i].pos = x0 + i * this->_line_spacing;
+        segs[i].pos = x0 + i * line_spacing;
     }
     for (size_t iContour = 0; iContour < poly_with_offset.n_contours; ++ iContour) {
         const Points &contour = poly_with_offset.contour(iContour).points;
@@ -864,12 +862,12 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             if (l > r)
                 std::swap(l, r);
             // il, ir are the left / right indices of vertical lines intersecting a segment
-            int il = (l - x0) / this->_line_spacing;
-            while (il * this->_line_spacing + x0 < l)
+            int il = (l - x0) / line_spacing;
+            while (il * line_spacing + x0 < l)
                 ++ il;
             il = std::max(int(0), il);
-            int ir = (r - x0 + this->_line_spacing) / this->_line_spacing;
-            while (ir * this->_line_spacing + x0 > r)
+            int ir = (r - x0 + line_spacing) / line_spacing;
+            while (ir * line_spacing + x0 > r)
                 -- ir;
             ir = std::min(int(segs.size()) - 1, ir);
             if (il > ir)
@@ -879,7 +877,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             myassert(ir >= 0 && ir < segs.size());
             for (int i = il; i <= ir; ++ i) {
                 coord_t this_x = segs[i].pos;
-				assert(this_x == i * this->_line_spacing + x0);
+				assert(this_x == i * line_spacing + x0);
                 SegmentIntersection is;
                 is.iContour = iContour;
                 is.iSegment = iSegment;

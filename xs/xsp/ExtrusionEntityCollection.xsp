@@ -11,8 +11,7 @@
     Clone<ExtrusionEntityCollection> clone()
         %code{% RETVAL = THIS->clone(); %};
     void reverse();
-    void clear()
-        %code{% THIS->entities.clear(); %};
+    void clear();
     ExtrusionEntityCollection* chained_path(bool no_reverse)
         %code{%
             RETVAL = new ExtrusionEntityCollection();

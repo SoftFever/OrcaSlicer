@@ -40,6 +40,20 @@ public:
         : surface_type(_surface_type), expolygon(_expolygon),
             thickness(-1), thickness_layers(1), bridge_angle(-1), extra_perimeters(0)
         {};
+    Surface(const Surface &other, const ExPolygon &_expolygon)
+        : surface_type(other.surface_type), expolygon(_expolygon),
+            thickness(other.thickness), thickness_layers(other.thickness_layers), bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
+        {};
+#if SLIC3R_CPPVER >= 11
+    Surface(SurfaceType _surface_type, const ExPolygon &&_expolygon)
+        : surface_type(_surface_type), expolygon(std::move(_expolygon)),
+            thickness(-1), thickness_layers(1), bridge_angle(-1), extra_perimeters(0)
+        {};
+    Surface(const Surface &other, const ExPolygon &&_expolygon)
+        : surface_type(other.surface_type), expolygon(std::move(_expolygon)),
+            thickness(other.thickness), thickness_layers(other.thickness_layers), bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
+        {};
+#endif
     operator Polygons() const;
     double area() const;
     bool is_solid() const;
@@ -52,22 +66,43 @@ public:
 typedef std::vector<Surface> Surfaces;
 typedef std::vector<Surface*> SurfacesPtr;
 
-inline Polygons to_polygons(const SurfacesPtr &src)
+inline Polygons to_polygons(const Surfaces &src)
 {
+    size_t num = 0;
+    for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++it)
+        num += it->expolygon.holes.size() + 1;
     Polygons polygons;
-    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it) {
-        polygons.push_back((*it)->expolygon.contour);
-        for (Polygons::const_iterator ith = (*it)->expolygon.holes.begin(); ith != (*it)->expolygon.holes.end(); ++ith) {
+    polygons.reserve(num);
+    for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++it) {
+        polygons.push_back(it->expolygon.contour);
+        for (Polygons::const_iterator ith = it->expolygon.holes.begin(); ith != it->expolygon.holes.end(); ++ith)
             polygons.push_back(*ith);
-        }
     }
     return polygons;
 }
 
-#if SLIC3R_CPPVER > 11
+inline Polygons to_polygons(const SurfacesPtr &src)
+{
+    size_t num = 0;
+    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it)
+        num += (*it)->expolygon.holes.size() + 1;
+    Polygons polygons;
+    polygons.reserve(num);
+    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it) {
+        polygons.push_back((*it)->expolygon.contour);
+        for (Polygons::const_iterator ith = (*it)->expolygon.holes.begin(); ith != (*it)->expolygon.holes.end(); ++ith)
+            polygons.push_back(*ith);
+    }
+    return polygons;
+}
+
+#if SLIC3R_CPPVER >= 11
 inline Polygons to_polygons(SurfacesPtr &&src)
 {
+    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it)
+        num += (*it)->expolygon.holes.size() + 1;
     Polygons polygons;
+    polygons.reserve(num);
     for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
         polygons.push_back(std::move((*it)->expolygon.contour));
         for (Polygons::const_iterator ith = (*it)->expolygon.holes.begin(); ith != (*it)->expolygon.holes.end(); ++ith) {
@@ -75,6 +110,94 @@ inline Polygons to_polygons(SurfacesPtr &&src)
         }
     }
     return polygons;
+}
+#endif
+
+// Count a nuber of polygons stored inside the vector of expolygons.
+// Useful for allocating space for polygons when converting expolygons to polygons.
+inline size_t number_polygons(const Surfaces &surfaces)
+{
+    size_t n_polygons = 0;
+    for (Surfaces::const_iterator it = surfaces.begin(); it != surfaces.end(); ++ it)
+        n_polygons += it->expolygon.holes.size() + 1;
+    return n_polygons;
+}
+inline size_t number_polygons(const SurfacesPtr &surfaces)
+{
+    size_t n_polygons = 0;
+    for (SurfacesPtr::const_iterator it = surfaces.begin(); it != surfaces.end(); ++ it)
+        n_polygons += (*it)->expolygon.holes.size() + 1;
+    return n_polygons;
+}
+
+// Append a vector of Surfaces at the end of another vector of polygons.
+inline void polygons_append(Polygons &dst, const Surfaces &src) 
+{ 
+    dst.reserve(dst.size() + number_polygons(src));
+    for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++ it) {
+        dst.push_back(it->expolygon.contour);
+        dst.insert(dst.end(), it->expolygon.holes.begin(), it->expolygon.holes.end());
+    }
+}
+
+#if SLIC3R_CPPVER >= 11
+inline void polygons_append(Polygons &dst, Surfaces &&src) 
+{ 
+    dst.reserve(dst.size() + number_polygons(src));
+    for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++ it) {
+        dst.push_back(std::move(it->expolygon.contour));
+        std::move(std::begin(it->expolygon.contour), std::end(it->expolygon.contour), std::back_inserter(dst));
+    }
+}
+#endif
+
+// Append a vector of Surfaces at the end of another vector of polygons.
+inline void polygons_append(Polygons &dst, const SurfacesPtr &src) 
+{ 
+    dst.reserve(dst.size() + number_polygons(src));
+    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++ it) {
+        dst.push_back((*it)->expolygon.contour);
+        dst.insert(dst.end(), (*it)->expolygon.holes.begin(), (*it)->expolygon.holes.end());
+    }
+}
+
+#if SLIC3R_CPPVER >= 11
+inline void polygons_append(Polygons &dst, SurfacesPtr &&src) 
+{ 
+    dst.reserve(dst.size() + number_polygons(src));
+    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++ it) {
+        dst.push_back(std::move((*it)->expolygon.contour));
+        std::move(std::begin((*it)->expolygon.contour), std::end((*it)->expolygon.contour), std::back_inserter(dst));
+    }
+}
+#endif
+
+// Append a vector of Surfaces at the end of another vector of polygons.
+inline void surfaces_append(Surfaces &dst, const ExPolygons &src, SurfaceType surfaceType) 
+{ 
+    dst.reserve(dst.size() + src.size());
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
+        dst.push_back(Surface(surfaceType, *it));
+}
+inline void surfaces_append(Surfaces &dst, const ExPolygons &src, const Surface &surfaceTempl) 
+{ 
+    dst.reserve(dst.size() + number_polygons(src));
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
+        dst.push_back(Surface(surfaceTempl, *it));
+}
+
+#if SLIC3R_CPPVER >= 11
+inline void surfaces_append(Surfaces &dst, ExPolygons &&src, SurfaceType surfaceType) 
+{ 
+    dst.reserve(dst.size() + src.size());
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
+        dst.push_back(Surface(surfaceType, std::move(*it)));
+}
+inline void surfaces_append(Surfaces &dst, ExPolygons &&src, const Surface &surfaceTempl) 
+{ 
+    dst.reserve(dst.size() + number_polygons(src));
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
+        dst.push_back(Surface(surfaceTempl, std::move(*it)));
 }
 #endif
 

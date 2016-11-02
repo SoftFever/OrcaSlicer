@@ -19,26 +19,10 @@ use Slic3r::Test;
 sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
 
 {
-    my $print = Slic3r::Print->new;
-    my $filler = Slic3r::Fill::Rectilinear->new(
-        print           => $print,
-        bounding_box    => Slic3r::Geometry::BoundingBox->new_from_points([ Slic3r::Point->new(0, 0), Slic3r::Point->new(10, 10) ]),
-    );
-    my $surface_width = 250;
-    my $distance = $filler->adjust_solid_spacing(
-        width       => $surface_width,
-        distance    => 100,
-    );
-    is $distance, 125, 'adjusted solid distance';
-    is $surface_width % $distance, 0, 'adjusted solid distance';
-}
-
-{
     my $expolygon = Slic3r::ExPolygon->new([ scale_points [0,0], [50,0], [50,50], [0,50] ]);
-    my $filler = Slic3r::Fill::Rectilinear->new(
-        bounding_box => $expolygon->bounding_box,
-        angle        => 0,
-    );
+    my $filler = Slic3r::Filler->new_from_type('rectilinear');
+    $filler->set_bounding_box($expolygon->bounding_box);
+    $filler->set_angle(0);
     my $surface = Slic3r::Surface->new(
         surface_type    => S_TYPE_TOP,
         expolygon       => $expolygon,
@@ -48,11 +32,11 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
         height          => 0.4,
         nozzle_diameter => 0.50,
     );
-    $filler->spacing($flow->spacing);
+    $filler->set_spacing($flow->spacing);
     foreach my $angle (0, 45) {
         $surface->expolygon->rotate(Slic3r::Geometry::deg2rad($angle), [0,0]);
-        my @paths = $filler->fill_surface($surface, layer_height => 0.4, density => 0.4);
-        is scalar @paths, 1, 'one continuous path';
+        my $paths = $filler->fill_surface($surface, layer_height => 0.4, density => 0.4);
+        is scalar @$paths, 1, 'one continuous path';
     }
 }
 
@@ -60,10 +44,12 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
     my $test = sub {
         my ($expolygon, $flow_spacing, $angle, $density) = @_;
         
-        my $filler = Slic3r::Fill::Rectilinear->new(
-            bounding_box    => $expolygon->bounding_box,
-            angle           => $angle // 0,
-        );
+        my $filler = Slic3r::Filler->new_from_type('rectilinear');
+        $filler->set_bounding_box($expolygon->bounding_box);
+        $filler->set_angle($angle // 0);
+        # Adjust line spacing to fill the region.
+        $filler->set_dont_adjust(0);
+        $filler->set_link_max_length(scale(1.2*$flow_spacing));
         my $surface = Slic3r::Surface->new(
             surface_type    => S_TYPE_BOTTOM,
             expolygon       => $expolygon,
@@ -73,28 +59,30 @@ sub scale_points (@) { map [scale $_->[X], scale $_->[Y]], @_ }
             height          => 0.4,
             nozzle_diameter => $flow_spacing,
         );
-        $filler->spacing($flow->spacing);
-        my @paths = $filler->fill_surface(
+        $filler->set_spacing($flow->spacing);
+        my $paths = $filler->fill_surface(
             $surface,
             layer_height    => $flow->height,
             density         => $density // 1,
         );
         
         # check whether any part was left uncovered
-        my @grown_paths = map @{Slic3r::Polyline->new(@$_)->grow(scale $filler->spacing/2)}, @paths;
+        my @grown_paths = map @{Slic3r::Polyline->new(@$_)->grow(scale $filler->spacing/2)}, @$paths;
         my $uncovered = diff_ex([ @$expolygon ], [ @grown_paths ], 1);
         
         # ignore very small dots
-        @$uncovered = grep $_->area > (scale $flow_spacing)**2, @$uncovered;
+        my $uncovered_filtered = [ grep $_->area > (scale $flow_spacing)**2, @$uncovered ];
+
+        is scalar(@$uncovered_filtered), 0, 'solid surface is fully filled';
         
-        is scalar(@$uncovered), 0, 'solid surface is fully filled';
-        
-        if (0 && @$uncovered) {
+        if (0 && @$uncovered_filtered) {
             require "Slic3r/SVG.pm";
-            Slic3r::SVG::output(
-                "uncovered.svg",
-                expolygons => [$expolygon],
-                red_expolygons => $uncovered,
+            Slic3r::SVG::output("uncovered.svg", 
+                no_arrows       => 1,
+                expolygons      => [ $expolygon ],
+                blue_expolygons => [ @$uncovered ],
+                red_expolygons  => [ @$uncovered_filtered ],
+                polylines       => [ @$paths ],
             );
             exit;
         }

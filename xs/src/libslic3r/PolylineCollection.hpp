@@ -19,7 +19,7 @@ public:
     void append(const Polylines &polylines);
 
 	static Point     leftmost_point(const Polylines &polylines);
-#if SLIC3R_CPPVER > 11
+#if SLIC3R_CPPVER >= 11
 	static Polylines chained_path(Polylines &&src, bool no_reverse = false);
 	static Polylines chained_path_from(Polylines &&src, Point start_near, bool no_reverse = false);
 	static Polylines chained_path(Polylines src, bool no_reverse = false);

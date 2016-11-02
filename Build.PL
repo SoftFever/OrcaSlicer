@@ -15,7 +15,6 @@ my %prereqs = qw(
     File::Basename                  0
     File::Spec                      0
     Getopt::Long                    0
-    Math::PlanePath                 53
     Module::Build::WithXSpp         0.14
     Moo                             1.003001
     POSIX                           0

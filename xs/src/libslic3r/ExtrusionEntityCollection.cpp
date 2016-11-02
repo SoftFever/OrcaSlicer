@@ -19,8 +19,11 @@ ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths
 
 ExtrusionEntityCollection& ExtrusionEntityCollection::operator= (const ExtrusionEntityCollection &other)
 {
-    ExtrusionEntityCollection tmp(other);
-    this->swap(tmp);
+    this->entities      = other.entities;
+    for (size_t i = 0; i < this->entities.size(); ++i)
+        this->entities[i] = this->entities[i]->clone();
+    this->orig_indices  = other.orig_indices;
+    this->no_sort       = other.no_sort;
     return *this;
 }
 
@@ -32,10 +35,11 @@ ExtrusionEntityCollection::swap (ExtrusionEntityCollection &c)
     std::swap(this->no_sort, c.no_sort);
 }
 
-ExtrusionEntityCollection::~ExtrusionEntityCollection()
+void ExtrusionEntityCollection::clear()
 {
-    for (ExtrusionEntitiesPtr::iterator it = this->entities.begin(); it != this->entities.end(); ++it)
-        delete *it;
+	for (size_t i = 0; i < this->entities.size(); ++i)
+		delete this->entities[i];
+    this->entities.clear();
 }
 
 ExtrusionEntityCollection::operator ExtrusionPaths() const
@@ -52,9 +56,8 @@ ExtrusionEntityCollection*
 ExtrusionEntityCollection::clone() const
 {
     ExtrusionEntityCollection* coll = new ExtrusionEntityCollection(*this);
-    for (size_t i = 0; i < coll->entities.size(); ++i) {
+    for (size_t i = 0; i < coll->entities.size(); ++i)
         coll->entities[i] = this->entities[i]->clone();
-    }
     return coll;
 }
 

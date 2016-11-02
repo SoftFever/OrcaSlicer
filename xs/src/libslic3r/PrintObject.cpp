@@ -89,16 +89,6 @@ PrintObject::reload_model_instances()
     return this->set_copies(copies);
 }
 
-BoundingBox
-PrintObject::bounding_box() const
-{
-    // since the object is aligned to origin, bounding box coincides with size
-    Points pp;
-    pp.push_back(Point(0,0));
-    pp.push_back(this->size);
-    return BoundingBox(pp);
-}
-
 void
 PrintObject::add_region_volume(int region_id, int volume_id)
 {
@@ -229,8 +219,10 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             || *opt_key == "ensure_vertical_shell_thickness") {
             steps.insert(posPrepareInfill);
         } else if (*opt_key == "external_fill_pattern"
+            || *opt_key == "external_fill_link_max_length"
             || *opt_key == "fill_angle"
             || *opt_key == "fill_pattern"
+            || *opt_key == "fill_link_max_length"
             || *opt_key == "top_infill_extrusion_width"
             || *opt_key == "first_layer_extrusion_width") {
             steps.insert(posInfill);
@@ -375,15 +367,9 @@ PrintObject::discover_vertical_shells()
                     ++ idx;
                 }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-                for (int n = (int)idx_layer - layerm->region()->config.bottom_solid_layers + 1; n < (int)idx_layer + layerm->region()->config.top_solid_layers; ++ n) {
-                    if (n < 0 || n >= (int)this->layers.size())
-                        continue;
-                    ExPolygons &expolys = this->layers[n]->perimeter_expolygons;
-                    for (size_t i = 0; i < expolys.size(); ++ i) {
-                        shell.push_back(expolys[i].contour);
-                        shell.insert(shell.end(), expolys[i].holes.begin(), expolys[i].holes.end());
-                    }
-                }
+                for (int n = (int)idx_layer - layerm->region()->config.bottom_solid_layers + 1; n < (int)idx_layer + layerm->region()->config.top_solid_layers; ++ n)
+                    if (n >= 0 && n < (int)this->layers.size())
+                        polygons_append(shell, this->layers[n]->perimeter_expolygons.expolygons);
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 {
                     static size_t idx = 0;
@@ -565,7 +551,7 @@ PrintObject::bridge_over_infill()
             }
             
             #ifdef SLIC3R_DEBUG
-            printf("Bridging %zu internal areas at layer %zu\n", to_bridge.size(), layer->id());
+            printf("Bridging " PRINTF_ZU " internal areas at layer " PRINTF_ZU "\n", to_bridge.size(), layer->id());
             #endif
             
             // compute the remaning internal solid surfaces as difference

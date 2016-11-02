@@ -43,7 +43,8 @@ public:
 			height(0.),
 			idx_object_layer_above(size_t(-1)),
 			idx_object_layer_below(size_t(-1)),
-			bridging(false)
+			bridging(false),
+			aux_polygons(NULL)
 			{}
 
 		~MyLayer() 

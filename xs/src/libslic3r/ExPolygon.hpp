@@ -69,7 +69,7 @@ inline Polygons to_polygons(const ExPolygons &src)
     return polygons;
 }
 
-#if SLIC3R_CPPVER > 11
+#if SLIC3R_CPPVER >= 11
 inline Polygons to_polygons(ExPolygons &&src)
 {
     Polygons polygons;
@@ -80,6 +80,37 @@ inline Polygons to_polygons(ExPolygons &&src)
         }
     }
     return polygons;
+}
+#endif
+
+// Count a nuber of polygons stored inside the vector of expolygons.
+// Useful for allocating space for polygons when converting expolygons to polygons.
+inline size_t number_polygons(const ExPolygons &expolys)
+{
+    size_t n_polygons = 0;
+    for (ExPolygons::const_iterator it = expolys.begin(); it != expolys.end(); ++ it)
+        n_polygons += it->holes.size() + 1;
+    return n_polygons;
+}
+
+// Append a vector of ExPolygons at the end of another vector of polygons.
+inline void polygons_append(Polygons &dst, const ExPolygons &src) 
+{ 
+    dst.reserve(dst.size() + number_polygons(src));
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it) {
+        dst.push_back(it->contour);
+        dst.insert(dst.end(), it->holes.begin(), it->holes.end());
+    }
+}
+
+#if SLIC3R_CPPVER >= 11
+inline void polygons_append(Polygons &dst, ExPolygons &&src) 
+{ 
+    dst.reserve(dst.size() + number_polygons(src));
+    for (ExPolygons::const_iterator it = expolys.begin(); it != expolys.end(); ++ it) {
+        dst.push_back(std::move(it->contour));
+        std::move(std::begin(it->contour), std::end(it->contour), std::back_inserter(dst));
+    }
 }
 #endif
 

@@ -17,7 +17,8 @@ void FillHoneycomb::_fill_surface_single(
     CacheID cache_id(params.density, this->spacing);
     Cache::iterator it_m = this->cache.find(cache_id);
     if (it_m == this->cache.end()) {
-#if SLIC3R_CPPVER > 11
+#if 0
+// #if SLIC3R_CPPVER > 11
         it_m = this->cache.emplace_hint(it_m);
 #else
         it_m = this->cache.insert(it_m, std::pair<CacheID, CacheData>(cache_id, CacheData()));

@@ -38,7 +38,7 @@ BridgeDetector::BridgeDetector(const ExPolygon &_expolygon, const ExPolygonColle
     intersection(grown, this->lower_slices.contours(), &this->_edges);
     
     #ifdef SLIC3R_DEBUG
-    printf("  bridge has %zu support(s)\n", this->_edges.size());
+    printf("  bridge has " PRINTF_ZU " support(s)\n", this->_edges.size());
     #endif
     
     // detect anchors as intersection between our bridge expolygon and the lower slices

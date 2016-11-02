@@ -100,7 +100,7 @@ PerimeterGenerator::process()
                             ex->medial_axis(ext_pwidth + ext_pspacing2, min_width, &thin_walls);
                         
                         #ifdef DEBUG
-                        printf("  %zu thin walls detected\n", thin_walls.size());
+                        printf("  " PRINTF_ZU " thin walls detected\n", thin_walls.size());
                         #endif
                         
                         /*

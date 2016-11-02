@@ -78,6 +78,13 @@ inline std::string debug_out_path(const char *name, ...)
 	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
 }
 
+#ifdef _MSC_VER
+	// Visual Studio older than 2015 does not support the prinf type specifier %zu. Use %Iu instead.
+	#define PRINTF_ZU "%Iu"
+#else
+	#define PRINTF_ZU "%zu"
+#endif
+
 // Write slices as SVG images into out directory during the 2D processing of the slices.
 // #define SLIC3R_DEBUG_SLICE_PROCESSING
 

@@ -47,7 +47,7 @@ inline int nearest_point_index(const std::vector<Chaining> &pairs, const Point &
 }
 
 Polylines PolylineCollection::chained_path_from(
-#if SLIC3R_CPPVER > 11
+#if SLIC3R_CPPVER >= 11
     Polylines &&src,
 #else
     const Polylines &src,
@@ -70,7 +70,7 @@ Polylines PolylineCollection::chained_path_from(
         // find nearest point
         int endpoint_index = nearest_point_index<double>(endpoints, start_near, no_reverse);
         assert(endpoint_index >= 0 && endpoint_index < endpoints.size() * 2);
-#if SLIC3R_CPPVER > 11
+#if SLIC3R_CPPVER >= 11
         retval.push_back(std::move(src[endpoints[endpoint_index/2].idx]));
 #else
         retval.push_back(src[endpoints[endpoint_index/2].idx]);
@@ -83,7 +83,7 @@ Polylines PolylineCollection::chained_path_from(
     return retval;
 }
 
-#if SLIC3R_CPPVER > 11
+#if SLIC3R_CPPVER >= 11
 Polylines PolylineCollection::chained_path(Polylines &&src, bool no_reverse)
 {
     return (src.empty() || src.front().empty()) ?

@@ -544,8 +544,8 @@ sub process_layer {
             }
             
             # process infill
-            # $layerm->fills is a collection of ExtrusionPath::Collection objects, each one containing
-            # the ExtrusionPath objects of a certain infill "group" (also called "surface"
+            # $layerm->fills is a collection of Slic3r::ExtrusionPath::Collection objects (C++ class ExtrusionEntityCollection), 
+            # each one containing the ExtrusionPath objects of a certain infill "group" (also called "surface"
             # throughout the code). We can redefine the order of such Collections but we have to 
             # do each one completely at once.
             foreach my $fill (@{$layerm->fills}) {

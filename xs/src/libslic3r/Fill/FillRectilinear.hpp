@@ -67,7 +67,7 @@ public:
     virtual ~FillGrid() {}
 
 protected:
-	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill::Base.
+	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
     virtual float _layer_angle(size_t idx) const { return 0.f; }
 	// Flag for Slic3r::Fill::Rectilinear to fill both directions.
 	virtual bool _horizontal_lines() const { return true; }

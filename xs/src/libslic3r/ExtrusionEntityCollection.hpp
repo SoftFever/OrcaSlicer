@@ -17,7 +17,7 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     ExtrusionEntityCollection(const ExtrusionEntityCollection &collection);
     ExtrusionEntityCollection(const ExtrusionPaths &paths);
     ExtrusionEntityCollection& operator= (const ExtrusionEntityCollection &other);
-    ~ExtrusionEntityCollection();
+    ~ExtrusionEntityCollection() { clear(); }
     operator ExtrusionPaths() const;
     
     bool is_collection() const {
@@ -29,9 +29,7 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     bool empty() const {
         return this->entities.empty();
     };
-    void clear() {
-        this->entities.clear();
-    };
+    void clear();
     void swap (ExtrusionEntityCollection &c);
     void append(const ExtrusionEntity &entity);
     void append(const ExtrusionEntitiesPtr &entities);

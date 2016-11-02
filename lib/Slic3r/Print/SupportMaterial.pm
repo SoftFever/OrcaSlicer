@@ -761,10 +761,13 @@ sub generate_toolpaths {
         # Allocate the fillers exclusively in the worker threads! Don't allocate them at the main thread,
         # as Perl copies the C++ pointers by default, so then the C++ objects are shared between threads!
         my %fillers = (
-            interface   => $object->fill_maker2->filler('rectilinear'),
-            support     => $object->fill_maker2->filler($pattern),
+            interface   => Slic3r::Filler->new_from_type('rectilinear'),
+            support     => Slic3r::Filler->new_from_type($pattern),
         );
-        
+        my $bounding_box = $object->bounding_box;
+        $fillers{interface}->set_bounding_box($object->bounding_box);
+        $fillers{support}->set_bounding_box($object->bounding_box);
+
         # interface and contact infill
         if (@$interface || @$contact_infill) {
             $fillers{interface}->set_angle($interface_angle);
