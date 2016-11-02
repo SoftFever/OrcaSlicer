@@ -99,11 +99,12 @@ inline Polygons to_polygons(const SurfacesPtr &src)
 #if SLIC3R_CPPVER >= 11
 inline Polygons to_polygons(SurfacesPtr &&src)
 {
+    size_t num = 0;
     for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it)
         num += (*it)->expolygon.holes.size() + 1;
     Polygons polygons;
     polygons.reserve(num);
-    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
+    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it) {
         polygons.push_back(std::move((*it)->expolygon.contour));
         for (Polygons::const_iterator ith = (*it)->expolygon.holes.begin(); ith != (*it)->expolygon.holes.end(); ++ith) {
             polygons.push_back(std::move(*ith));
@@ -146,7 +147,7 @@ inline void polygons_append(Polygons &dst, Surfaces &&src)
     dst.reserve(dst.size() + number_polygons(src));
     for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++ it) {
         dst.push_back(std::move(it->expolygon.contour));
-        std::move(std::begin(it->expolygon.contour), std::end(it->expolygon.contour), std::back_inserter(dst));
+        std::move(std::begin(it->expolygon.holes), std::end(it->expolygon.holes), std::back_inserter(dst));
     }
 }
 #endif
@@ -167,7 +168,7 @@ inline void polygons_append(Polygons &dst, SurfacesPtr &&src)
     dst.reserve(dst.size() + number_polygons(src));
     for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++ it) {
         dst.push_back(std::move((*it)->expolygon.contour));
-        std::move(std::begin((*it)->expolygon.contour), std::end((*it)->expolygon.contour), std::back_inserter(dst));
+        std::move(std::begin((*it)->expolygon.holes), std::end((*it)->expolygon.holes), std::back_inserter(dst));
     }
 }
 #endif
