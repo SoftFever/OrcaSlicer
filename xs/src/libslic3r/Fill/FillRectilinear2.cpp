@@ -18,12 +18,10 @@
 // Make assert active if SLIC3R_DEBUG
 #ifdef SLIC3R_DEBUG
     #undef NDEBUG
+    #include "SVG.hpp"
 #endif
-#include <assert.h>
 
-#ifdef SLIC3R_DEBUG
-#include "SVG.hpp"
-#endif
+#include <cassert>
 
 // We want our version of assert.
 #include "../libslic3r.h"
