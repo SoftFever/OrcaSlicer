@@ -1,6 +1,7 @@
 #ifndef slic3r_FillBase_hpp_
 #define slic3r_FillBase_hpp_
 
+#include <assert.h>
 #include <memory.h>
 #include <float.h>
 #include <stdint.h>
@@ -15,7 +16,11 @@ class Surface;
 
 struct FillParams
 {
-    FillParams() { memset(this, 0, sizeof(FillParams)); }
+    FillParams() { 
+        memset(this, 0, sizeof(FillParams));
+        // Adjustment does not work.
+        dont_adjust = true;
+    }
 
     // Fill density, fraction in <0, 1>
     float       density;
