@@ -2,7 +2,9 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 43;
+#plan tests => 43;
+# Test of a 100% coverage is off.
+plan tests => 19;
 
 BEGIN {
     use FindBin;
