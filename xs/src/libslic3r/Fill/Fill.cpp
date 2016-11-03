@@ -196,19 +196,22 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
                 *layerm.layer()->object()
             );
             f->spacing = internal_flow.spacing();
-            using_internal_flow = 1;
+            using_internal_flow = true;
         } else {
             f->spacing = flow.spacing();
         }
 
         double link_max_length = 0.;
-#if 0
         if (! is_bridge) {
+#if 0
             link_max_length = layerm.region()->config.get_abs_value(surface.is_external() ? "external_fill_link_max_length" : "fill_link_max_length", flow.spacing());
 //            printf("flow spacing: %f,  is_external: %d, link_max_length: %lf\n", flow.spacing(), int(surface.is_external()), link_max_length);
-        }
+#else
+            if (density > 80.) // 80%
+                link_max_length = 3. * f->spacing;
 #endif
-  
+        }
+
         f->layer_id = layerm.layer()->id();
         f->z = layerm.layer()->print_z;
         f->angle = Geometry::deg2rad(layerm.region()->config.fill_angle.value);

@@ -380,13 +380,6 @@ PrintObject::discover_vertical_shells()
                 }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                 shell = union_(shell, true);
-                if (! shell.empty()) {
-                    // These regions will be filled by a rectilinear full infill. Currently this type of infill
-                    // will only fill regions, which will fit at least a single line. To avoid gaps in the sparse infill,
-                    // make sure that this region does not contain narrow parts.
-                    coord_t min_perimeter_infill_spacing = coord_t(double(infill_line_spacing) * (1. - INSET_OVERLAP_TOLERANCE));
-                    shell = offset2(shell, -min_perimeter_infill_spacing/2, min_perimeter_infill_spacing/2);
-                }
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 shell_ex = union_ex(shell, true);
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
@@ -435,7 +428,44 @@ PrintObject::discover_vertical_shells()
             } 
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-            // Trim the internal & internalvoid by the $shell.
+            // Trim the shells region by the internal & internal void surfaces.
+            const SurfaceType surfaceTypesInternal[] = { stInternal, stInternalVoid };
+            const Polygons    polygonsInternal = to_polygons(layerm->fill_surfaces.filter_by_types(surfaceTypesInternal, 2));
+            shell = intersection(shell, polygonsInternal, true);
+            if (shell.empty())
+                continue;
+
+            // These regions will be filled by a rectilinear full infill. Currently this type of infill
+            // only fills regions, which fit at least a single line. To avoid gaps in the sparse infill,
+            // make sure that this region does not contain parts narrower than the infill spacing width.
+            float min_perimeter_infill_spacing = float(infill_line_spacing) * 1.05f;
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+            Polygons shell_before = shell;
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+            // Intentionally inflate a bit more than how much the region has been shrunk, 
+            // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
+            shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing,
+                CLIPPER_OFFSET_SCALE, ClipperLib::jtSquare);
+            if (shell.empty())
+                continue;
+            ExPolygons new_internal_solid = intersection_ex(polygonsInternal, shell, false);
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+            {
+                static size_t idx = 0;
+                SVG svg(debug_out_path("discover_vertical_shells-regularized-%d.svg", idx ++), get_extents(shell_before));
+                // Source shell.
+                svg.draw(union_ex(shell_before, true));
+                // Shell trimmed to the internal surfaces.
+                svg.draw_outline(union_ex(shell, true), "black", "blue", scale_(0.05));
+                // Regularized infill region.
+                svg.draw_outline(new_internal_solid, "red", "magenta", scale_(0.05));
+                svg.Close();  
+            }
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
+            // Trim the internal & internalvoid by the shell.
+            // Enforce some overlap with the other infill regions.
+            shell = offset(shell, - 0.25f * min_perimeter_infill_spacing);
             Slic3r::ExPolygons new_internal = diff_ex(
                 to_polygons(layerm->fill_surfaces.filter_by_type(stInternal)),
                 shell,
@@ -445,13 +475,6 @@ PrintObject::discover_vertical_shells()
                 to_polygons(layerm->fill_surfaces.filter_by_type(stInternalVoid)),
                 shell,
                 false
-            );
-            // Add shells tstInternalVoido internal & internalvoid.
-            const SurfaceType surfaceTypesInternal[] = { stInternal, stInternalVoid };
-            Slic3r::ExPolygons new_internal_solid = intersection_ex(
-                to_polygons(layerm->fill_surfaces.filter_by_types(surfaceTypesInternal, 2)),
-                shell,
-                true
             );
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
