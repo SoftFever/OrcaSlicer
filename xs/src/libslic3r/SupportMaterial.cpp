@@ -1171,8 +1171,13 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         infill_pattern = ipHoneycomb;
         break;
     }
+#if SLIC3R_CPPVER >= 11
+    std::unique_ptr<Fill> filler_interface = std::unique_ptr<Fill>(Fill::new_from_type(ipRectilinear));
+    std::unique_ptr<Fill> filler_support   = std::unique_ptr<Fill>(Fill::new_from_type(infill_pattern));
+#else
     std::auto_ptr<Fill> filler_interface = std::auto_ptr<Fill>(Fill::new_from_type(ipRectilinear));
     std::auto_ptr<Fill> filler_support   = std::auto_ptr<Fill>(Fill::new_from_type(infill_pattern));
+#endif
     {
         BoundingBox bbox_object = object.bounding_box();
         filler_interface->set_bounding_box(bbox_object);

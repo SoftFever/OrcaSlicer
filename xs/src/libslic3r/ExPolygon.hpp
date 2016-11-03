@@ -104,12 +104,12 @@ inline void polygons_append(Polygons &dst, const ExPolygons &src)
 }
 
 #if SLIC3R_CPPVER >= 11
-inline void polygons_append(Polygons &dst, ExPolygons &&src) 
+inline void polygons_append(Polygons &dst, ExPolygons &&src)
 { 
     dst.reserve(dst.size() + number_polygons(src));
-    for (ExPolygons::const_iterator it = expolys.begin(); it != expolys.end(); ++ it) {
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it) {
         dst.push_back(std::move(it->contour));
-        std::move(std::begin(it->contour), std::end(it->contour), std::back_inserter(dst));
+        std::move(std::begin(it->holes), std::end(it->holes), std::back_inserter(dst));
     }
 }
 #endif
