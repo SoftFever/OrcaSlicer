@@ -26,7 +26,8 @@
     bool is_infill();
     bool is_solid_infill();
     bool is_bridge();
-    Polygons polygons_covered();
+    Polygons polygons_covered_by_width();
+    Polygons polygons_covered_by_spacing();
 %{
 
 ExtrusionPath*

@@ -283,7 +283,7 @@ PerimeterGenerator::process()
                     and use zigzag).  */
                 //FIXME Vojtech: This grows by a rounded extrusion width, not by line spacing,
                 // therefore it may cover the area, but no the volume.
-                last = diff(last, gap_fill.polygons_covered());
+                last = diff(last, gap_fill.polygons_covered_by_width(10.f));
             }
         }
 

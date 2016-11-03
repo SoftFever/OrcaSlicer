@@ -3,6 +3,7 @@
 #include "ExPolygonCollection.hpp"
 #include "ClipperUtils.hpp"
 #include "Extruder.hpp"
+#include "Flow.hpp"
 #include <cmath>
 #include <limits>
 #include <sstream>
@@ -55,12 +56,17 @@ ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCo
     }
 }
 
-Polygons
-ExtrusionPath::polygons_covered() const
+void ExtrusionPath::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
 {
-    Polygons pp;
-    offset(this->polyline, &pp, +scale_(this->width/2));
-    return pp;
+    offset(this->polyline, &out, scale_(this->width/2) + scaled_epsilon);
+}
+
+void ExtrusionPath::polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const
+{
+    // Instantiating the Flow class to get the line spacing.
+    // Don't know the nozzle diameter, setting to zero. It shall not matter it shall be optimized out by the compiler.
+    Flow flow(this->width, this->height, 0.f, this->is_bridge());
+    offset(this->polyline, &out, 0.5f * flow.scaled_spacing() + scaled_epsilon);
 }
 
 bool
@@ -168,8 +174,10 @@ ExtrusionLoop::split_at(const Point &point)
     }
     
     // now split path_idx in two parts
-    ExtrusionPath p1(this->paths[path_idx].role), p2(this->paths[path_idx].role);
-    this->paths[path_idx].polyline.split_at(p, &p1.polyline, &p2.polyline);
+    const ExtrusionPath &path = this->paths[path_idx];
+    ExtrusionPath p1(path.role, path.mm3_per_mm, path.width, path.height);
+    ExtrusionPath p2(path.role, path.mm3_per_mm, path.width, path.height);
+    path.polyline.split_at(p, &p1.polyline, &p2.polyline);
     
     if (this->paths.size() == 1) {
         if (! p1.polyline.is_valid())
@@ -223,13 +231,16 @@ ExtrusionLoop::has_overhang_point(const Point &point) const
     return false;
 }
 
-Polygons
-ExtrusionLoop::polygons_covered() const
+void ExtrusionLoop::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
 {
-    Polygons pp;
     for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        polygons_append(pp, path->polygons_covered());
-    return pp;
+        path->polygons_covered_by_width(out, scaled_epsilon);
+}
+
+void ExtrusionLoop::polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const
+{
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
+        path->polygons_covered_by_spacing(out, scaled_epsilon);
 }
 
 double

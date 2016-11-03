@@ -72,24 +72,6 @@ ExtrusionEntityCollection::reverse()
     std::reverse(this->entities.begin(), this->entities.end());
 }
 
-Point
-ExtrusionEntityCollection::first_point() const
-{
-    return this->entities.front()->first_point();
-}
-
-Point
-ExtrusionEntityCollection::last_point() const
-{
-    return this->entities.back()->last_point();
-}
-
-void
-ExtrusionEntityCollection::append(const ExtrusionEntity &entity)
-{
-    this->entities.push_back(entity.clone());
-}
-
 void
 ExtrusionEntityCollection::append(const ExtrusionEntitiesPtr &entities)
 {
@@ -180,13 +162,16 @@ ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCo
     }
 }
 
-Polygons
-ExtrusionEntityCollection::polygons_covered() const
+void ExtrusionEntityCollection::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
 {
-    Polygons pp;
     for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it)
-        polygons_append(pp, (*it)->polygons_covered());
-    return pp;
+        (*it)->polygons_covered_by_width(out, scaled_epsilon);
+}
+
+void ExtrusionEntityCollection::polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const
+{
+    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it)
+        (*it)->polygons_covered_by_spacing(out, scaled_epsilon);
 }
 
 /* Recursively count paths and loops contained in this collection */
@@ -230,15 +215,9 @@ ExtrusionEntityCollection::flatten() const
 double
 ExtrusionEntityCollection::min_mm3_per_mm() const
 {
-    double min_mm3_per_mm = 0;
-    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
-        double mm3_per_mm = (*it)->min_mm3_per_mm();
-        if (min_mm3_per_mm == 0) {
-            min_mm3_per_mm = mm3_per_mm;
-        } else {
-            min_mm3_per_mm = fmin(min_mm3_per_mm, mm3_per_mm);
-        }
-    }
+    double min_mm3_per_mm = std::numeric_limits<double>::max();
+    for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it)
+        min_mm3_per_mm = std::min(min_mm3_per_mm, (*it)->min_mm3_per_mm());
     return min_mm3_per_mm;
 }
 

@@ -8,7 +8,7 @@ namespace Slic3r {
 
 class ExtrusionEntityCollection : public ExtrusionEntity
 {
-    public:
+public:
     ExtrusionEntityCollection* clone() const;
     ExtrusionEntitiesPtr entities;     // we own these entities
     std::vector<size_t> orig_indices;  // handy for XS
@@ -20,18 +20,12 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     ~ExtrusionEntityCollection() { clear(); }
     operator ExtrusionPaths() const;
     
-    bool is_collection() const {
-        return true;
-    };
-    bool can_reverse() const {
-        return !this->no_sort;
-    };
-    bool empty() const {
-        return this->entities.empty();
-    };
+    bool is_collection() const { return true; };
+    bool can_reverse() const { return !this->no_sort; };
+    bool empty() const { return this->entities.empty(); };
     void clear();
     void swap (ExtrusionEntityCollection &c);
-    void append(const ExtrusionEntity &entity);
+    void append(const ExtrusionEntity &entity) { this->entities.push_back(entity.clone()); }
     void append(const ExtrusionEntitiesPtr &entities);
     void append(const ExtrusionPaths &paths);
     void replace(size_t i, const ExtrusionEntity &entity);
@@ -40,9 +34,19 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     void chained_path(ExtrusionEntityCollection* retval, bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
     void chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
     void reverse();
-    Point first_point() const;
-    Point last_point() const;
-    Polygons polygons_covered() const;
+    Point first_point() const { return this->entities.front()->first_point(); }
+    Point last_point() const { return this->entities.back()->last_point(); }
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    virtual void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
+    virtual void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const;
+    Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
+    Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     size_t items_count() const;
     void flatten(ExtrusionEntityCollection* retval) const;
     ExtrusionEntityCollection flatten() const;
@@ -51,6 +55,10 @@ class ExtrusionEntityCollection : public ExtrusionEntity
         CONFESS("Calling as_polyline() on a ExtrusionEntityCollection");
         return Polyline();
     };
+    virtual double length() const {
+        CONFESS("Calling length() on a ExtrusionEntityCollection");
+        return 0.;        
+    }
 };
 
 }

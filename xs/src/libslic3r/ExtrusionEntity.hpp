@@ -45,12 +45,21 @@ public:
     virtual void reverse() = 0;
     virtual Point first_point() const = 0;
     virtual Point last_point() const = 0;
-    // Produce a list of 2D polygons covered by the extruded path.
-    virtual Polygons polygons_covered() const = 0;
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    virtual void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const = 0;
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
+    virtual void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const = 0;
+    Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
+    Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     virtual double min_mm3_per_mm() const = 0;
     virtual Polyline as_polyline() const = 0;
-    virtual double length() const { return 0; };
+    virtual double length() const = 0;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -103,8 +112,17 @@ public:
         return this->role == erBridgeInfill
             || this->role == erOverhangPerimeter;
     }
-    // Produce a list of 2D polygons covered by the extruded path.
-    Polygons polygons_covered() const;
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
+    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const;
+    Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
+    Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const { return this->mm3_per_mm; }
     Polyline as_polyline() const { return this->polyline; }
@@ -160,8 +178,17 @@ class ExtrusionLoop : public ExtrusionEntity
             || this->paths.front().role == erSolidInfill
             || this->paths.front().role == erTopSolidInfill;
     }
-    // Produce a list of 2D polygons covered by the extruded path.
-    Polygons polygons_covered() const;
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
+    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const;
+    Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
+    Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const;
     Polyline as_polyline() const { return this->polygon().split_at_first_point(); }
