@@ -38,7 +38,7 @@
         %code{% RETVAL = THIS->entities.empty(); %};
     std::vector<size_t> orig_indices()
         %code{% RETVAL = THIS->orig_indices; %};
-    Polygons grow();
+    Polygons polygons_covered();
 %{
 
 SV*

@@ -42,7 +42,7 @@ class ExtrusionEntityCollection : public ExtrusionEntity
     void reverse();
     Point first_point() const;
     Point last_point() const;
-    Polygons grow() const;
+    Polygons polygons_covered() const;
     size_t items_count() const;
     void flatten(ExtrusionEntityCollection* retval) const;
     ExtrusionEntityCollection flatten() const;

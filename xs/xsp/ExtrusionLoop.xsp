@@ -30,7 +30,7 @@
     bool is_perimeter();
     bool is_infill();
     bool is_solid_infill();
-    Polygons grow();
+    Polygons polygons_covered();
 %{
 
 SV*
