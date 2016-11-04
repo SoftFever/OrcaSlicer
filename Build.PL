@@ -44,7 +44,7 @@ if ($gui) {
     %recommends = qw(
     Growl::GNTP                     0.15
     Wx::GLCanvas                    0
-    OpenGL                          0
+    OpenGL                          <0.70
     LWP::UserAgent                  0
     Net::Bonjour                    0
     );
