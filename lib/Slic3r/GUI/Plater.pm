@@ -965,9 +965,7 @@ sub arrange {
     $self->pause_background_process;
     
     my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
-    eval {
-        $self->{model}->arrange_objects($self->GetFrame->config->min_object_distance, $bb);
-    };
+    my $success = $self->{model}->arrange_objects($self->GetFrame->config->min_object_distance, $bb);
     # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     # when parts don't fit in print bed
     

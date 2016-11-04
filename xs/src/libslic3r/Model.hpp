@@ -64,8 +64,9 @@ public:
     void translate(coordf_t x, coordf_t y, coordf_t z);
     TriangleMesh mesh() const;
     TriangleMesh raw_mesh() const;
-    Pointfs _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb = NULL) const;
-    void arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb, Pointfs &out) const;
+    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    // Croaks if the duplicated objects do not fit the print bed.
     void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
     void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
     void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);

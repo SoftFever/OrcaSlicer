@@ -26,7 +26,11 @@ double deg2rad(double angle);
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 
 double linint(double value, double oldmin, double oldmax, double newmin, double newmax);
-Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box);
+bool arrange(
+    // input
+    size_t num_parts, const Pointf &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box, 
+    // output
+    Pointfs &positions);
 
 class MedialAxis {
     public:

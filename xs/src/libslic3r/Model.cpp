@@ -215,21 +215,22 @@ Model::raw_mesh() const
     return mesh;
 }
 
-Pointfs
-Model::_arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb) const
+bool
+Model::_arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb, Pointfs &out) const
 {
     // we supply unscaled data to arrange()
     return Slic3r::Geometry::arrange(
         sizes.size(),               // number of parts
         BoundingBoxf(sizes).max,    // width and height of a single cell
         dist,                       // distance between cells
-        bb                          // bounding box of the area to fill
+        bb,                         // bounding box of the area to fill
+        out                         // output positions
     );
 }
 
 /*  arrange objects preserving their instance count
     but altering their instance positions */
-void
+bool
 Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
 {
     // get the (transformed) size of each instance so that we take
@@ -241,7 +242,9 @@ Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
         }
     }
     
-    Pointfs positions = this->_arrange(instance_sizes, dist, bb);
+    Pointfs positions;
+    if (! this->_arrange(instance_sizes, dist, bb, positions))
+        return false;
     
     for (ModelObjectPtrs::const_iterator o = this->objects.begin(); o != this->objects.end(); ++o) {
         for (ModelInstancePtrs::const_iterator i = (*o)->instances.begin(); i != (*o)->instances.end(); ++i) {
@@ -250,6 +253,7 @@ Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
         }
         (*o)->invalidate_bounding_box();
     }
+    return true;
 }
 
 /*  duplicate the entire model preserving instance relative positions */
@@ -257,7 +261,9 @@ void
 Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
 {
     Pointfs model_sizes(copies_num-1, this->bounding_box().size());
-    Pointfs positions = this->_arrange(model_sizes, dist, bb);
+    Pointfs positions;
+    if (! this->_arrange(model_sizes, dist, bb, positions))
+        CONFESS("Cannot duplicate part as the resulting objects would not fit on the print bed.\n");
     
     // note that this will leave the object count unaltered
     

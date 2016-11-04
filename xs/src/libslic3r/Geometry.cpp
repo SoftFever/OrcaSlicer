@@ -424,9 +424,12 @@ class ArrangeItemIndex {
     ArrangeItem item;
     ArrangeItemIndex(coordf_t _index, ArrangeItem _item) : index(_index), item(_item) {};
 };
-Pointfs
-arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const BoundingBoxf* bb)
+
+bool
+arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const BoundingBoxf* bb, Pointfs &positions)
 {
+    positions.clear();
+
     Pointf part = part_size;
 
     // use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
@@ -446,7 +449,7 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
     size_t cellw = floor((area.x + dist) / part.x);
     size_t cellh = floor((area.y + dist) / part.y);
     if (total_parts > (cellw * cellh))
-        CONFESS(PRINTF_ZU " parts won't fit in your print area!\n", total_parts);
+        return false;
     
     // total space used by cells
     Pointf cells(cellw * part.x, cellh * part.y);
@@ -527,7 +530,6 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
         }
     }
     // now we actually place objects into cells, positioned such that the left and bottom borders are at 0
-    Pointfs positions;
     for (size_t i = 1; i <= total_parts; ++i) {
         ArrangeItemIndex c = cellsorder.front();
         cellsorder.erase(cellsorder.begin());
@@ -544,7 +546,7 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
         }
     }
     
-    return positions;
+    return true;
 }
 #endif
 

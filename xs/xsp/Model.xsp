@@ -66,8 +66,7 @@
     ModelObjectPtrs* objects()
         %code%{ RETVAL = &THIS->objects; %};
     
-    Pointfs _arrange(Pointfs sizes, double dist, BoundingBoxf* bb = NULL);
-    void arrange_objects(double dist, BoundingBoxf* bb = NULL);
+    bool arrange_objects(double dist, BoundingBoxf* bb = NULL);
     void duplicate(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
     void duplicate_objects(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
     void duplicate_objects_grid(unsigned int x, unsigned int y, double dist);
