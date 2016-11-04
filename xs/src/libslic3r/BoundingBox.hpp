@@ -21,7 +21,8 @@ class BoundingBoxBase
     bool defined;
     
     BoundingBoxBase() : defined(false) {};
-    BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) : min(pmin), max(pmax) {}
+    BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) : 
+        min(pmin), max(pmax), defined(pmin.x < pmax.x && pmin.y < pmax.y) {}
     BoundingBoxBase(const std::vector<PointClass> &points);
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
@@ -41,7 +42,9 @@ class BoundingBox3Base : public BoundingBoxBase<PointClass>
 {
     public:
     BoundingBox3Base() : BoundingBoxBase<PointClass>() {};
-    BoundingBox3Base(const PointClass &pmin, const PointClass &pmax) : BoundingBoxBase<PointClass>(pmin, pmax) {}
+    BoundingBox3Base(const PointClass &pmin, const PointClass &pmax) : 
+        BoundingBoxBase<PointClass>(pmin, pmax) 
+        { if (pmin.z >= pmax.z) defined = false; }
     BoundingBox3Base(const std::vector<PointClass> &points);
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
@@ -102,13 +105,13 @@ inline bool operator!=(const BoundingBoxBase<VT> &bb1, const BoundingBoxBase<VT>
 template<typename VT>
 inline bool empty(const BoundingBoxBase<VT> &bb)
 {
-    return ! bb.defined || bb.min.x > bb.max.x || bb.min.y > bb.max.y;
+    return ! bb.defined || bb.min.x >= bb.max.x || bb.min.y >= bb.max.y;
 }
 
 template<typename VT>
 inline bool empty(const BoundingBox3Base<VT> &bb)
 {
-    return ! bb.defined || bb.min.x > bb.max.x || bb.min.y > bb.max.y || bb.min.z > bb.max.z;
+    return ! bb.defined || bb.min.x >= bb.max.x || bb.min.y >= bb.max.y || bb.min.z >= bb.max.z;
 }
 
 } // namespace Slic3r
