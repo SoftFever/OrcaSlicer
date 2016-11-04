@@ -96,24 +96,6 @@ inline Polygons to_polygons(const SurfacesPtr &src)
     return polygons;
 }
 
-#if SLIC3R_CPPVER >= 11
-inline Polygons to_polygons(SurfacesPtr &&src)
-{
-    size_t num = 0;
-    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it)
-        num += (*it)->expolygon.holes.size() + 1;
-    Polygons polygons;
-    polygons.reserve(num);
-    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it) {
-        polygons.push_back(std::move((*it)->expolygon.contour));
-        for (Polygons::const_iterator ith = (*it)->expolygon.holes.begin(); ith != (*it)->expolygon.holes.end(); ++ith) {
-            polygons.push_back(std::move(*ith));
-        }
-    }
-    return polygons;
-}
-#endif
-
 // Count a nuber of polygons stored inside the vector of expolygons.
 // Useful for allocating space for polygons when converting expolygons to polygons.
 inline size_t number_polygons(const Surfaces &surfaces)
