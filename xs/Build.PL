@@ -172,7 +172,7 @@ if ($ENV{SLIC3R_GUI}) {
             push @LIBS, qw(-lopengl32);
         }
     } else {
-        push @LIBS, qw(-lgl -lglu);
+        push @LIBS, qw(-lGL -lGLU);
     }
 }
 
