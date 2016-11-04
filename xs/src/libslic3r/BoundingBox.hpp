@@ -44,7 +44,7 @@ class BoundingBox3Base : public BoundingBoxBase<PointClass>
     BoundingBox3Base() : BoundingBoxBase<PointClass>() {};
     BoundingBox3Base(const PointClass &pmin, const PointClass &pmax) : 
         BoundingBoxBase<PointClass>(pmin, pmax) 
-        { if (pmin.z >= pmax.z) defined = false; }
+        { if (pmin.z >= pmax.z) BoundingBoxBase<PointClass>::defined = false; }
     BoundingBox3Base(const std::vector<PointClass> &points);
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
