@@ -219,14 +219,8 @@ _constant()
         %code%{ RETVAL = THIS->apply_config(*config); %};
     bool has_infinite_skirt();
     bool has_skirt();
-    void validate()
-        %code%{
-            try {
-                THIS->validate();
-            } catch (PrintValidationException &e) {
-                croak("%s\n", e.what());
-            }
-        %};
+    std::string _validate()
+        %code%{ RETVAL = THIS->validate(); %};
     Clone<BoundingBox> bounding_box();
     Clone<BoundingBox> total_bounding_box();
     double skirt_first_layer_height();

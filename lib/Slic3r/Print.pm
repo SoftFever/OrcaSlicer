@@ -450,4 +450,13 @@ sub expanded_output_filepath {
     return $self->placeholder_parser->process($path);
 }
 
+# Wrapper around the C++ Slic3r::Print::validate()
+# to produce a Perl exception without a hang-up on some Strawberry perls.
+sub validate
+{
+    my $self = shift;
+    my $err = $self->_validate;
+    die $err . "\n" if (defined($err) && $err ne '');
+}
+
 1;

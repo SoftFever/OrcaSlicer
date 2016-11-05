@@ -577,7 +577,7 @@ bool Print::has_skirt() const
         || this->has_infinite_skirt();
 }
 
-void
+std::string
 Print::validate() const
 {
     if (this->config.complete_objects) {
@@ -619,7 +619,7 @@ Print::validate() const
                     Polygon p = convex_hull;
                     p.translate(*copy);
                     if (intersects(a, p))
-                        throw PrintValidationException("Some objects are too close; your extruder will collide with them.");
+                        return "Some objects are too close; your extruder will collide with them.";
                     
                     union_(a, p, &a);
                 }
@@ -638,7 +638,7 @@ Print::validate() const
             // it will be printed as last one so its height doesn't matter
             object_height.pop_back();
             if (!object_height.empty() && object_height.back() > scale_(this->config.extruder_clearance_height.value))
-                throw PrintValidationException("Some objects are too tall and cannot be printed without extruder collisions.");
+                return "Some objects are too tall and cannot be printed without extruder collisions.";
         }
     } // end if (this->config.complete_objects)
     
@@ -646,16 +646,16 @@ Print::validate() const
         size_t total_copies_count = 0;
         FOREACH_OBJECT(this, i_object) total_copies_count += (*i_object)->copies().size();
         if (total_copies_count > 1)
-            throw PrintValidationException("The Spiral Vase option can only be used when printing a single object.");
+            return "The Spiral Vase option can only be used when printing a single object.";
         if (this->regions.size() > 1)
-            throw PrintValidationException("The Spiral Vase option can only be used when printing single material objects.");
+            return "The Spiral Vase option can only be used when printing single material objects.";
     }
     
     {
         // find the smallest nozzle diameter
         std::set<size_t> extruders = this->extruders();
         if (extruders.empty())
-            throw PrintValidationException("The supplied settings will cause an empty print.");
+            return "The supplied settings will cause an empty print.";
         
         std::set<double> nozzle_diameters;
         for (std::set<size_t>::iterator it = extruders.begin(); it != extruders.end(); ++it)
@@ -679,13 +679,15 @@ Print::validate() const
                 first_layer_min_nozzle_diameter = min_nozzle_diameter;
             }
             if (first_layer_height > first_layer_min_nozzle_diameter)
-                throw PrintValidationException("First layer height can't be greater than nozzle diameter");
+                return "First layer height can't be greater than nozzle diameter";
             
             // validate layer_height
             if (object->config.layer_height.value > min_nozzle_diameter)
-                throw PrintValidationException("Layer height can't be greater than nozzle diameter");
+                return "Layer height can't be greater than nozzle diameter";
         }
     }
+
+    return std::string();
 }
 
 // the bounding box of objects placed in copies position

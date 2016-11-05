@@ -4,7 +4,7 @@
 #include "libslic3r.h"
 #include <set>
 #include <vector>
-#include <stdexcept>
+#include <string>
 #include "BoundingBox.hpp"
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
@@ -27,11 +27,6 @@ enum PrintStep {
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
     posInfill, posSupportMaterial,
-};
-
-class PrintValidationException : public std::runtime_error {
-    public:
-    PrintValidationException(const std::string &error) : std::runtime_error(error) {};
 };
 
 // To be instantiated over PrintStep or PrintObjectStep enums.
@@ -203,7 +198,8 @@ class Print
     bool apply_config(DynamicPrintConfig config);
     bool has_infinite_skirt() const;
     bool has_skirt() const;
-    void validate() const;
+    // Returns an empty string if valid, otherwise returns an error message.
+    std::string validate() const;
     BoundingBox bounding_box() const;
     BoundingBox total_bounding_box() const;
     double skirt_first_layer_height() const;
