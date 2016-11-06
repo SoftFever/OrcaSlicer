@@ -798,11 +798,12 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         scale_(- (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing),
         scale_(- 0.5 * this->spacing));
     if (poly_with_offset.n_contours_inner == 0) {
+        // Not a single infill line fits.
         //FIXME maybe one shall trigger the gap fill here?
         return true;
     }
 
-    BoundingBox bounding_box = poly_with_offset.bounding_box_outer();
+    BoundingBox bounding_box = poly_with_offset.bounding_box_src();
 
     // define flow spacing according to requested density
     bool full_infill = params.density > 0.9999f;
@@ -823,7 +824,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     }
 
     // Intersect a set of euqally spaced vertical lines wiht expolygon.
-    size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + SCALED_EPSILON) / line_spacing;
+    // n_vlines = ceil(bbox_width / line_spacing)
+    size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + line_spacing - 1) / line_spacing;
     coord_t x0 = bounding_box.min.x + line_spacing / 2;
 
 #ifdef SLIC3R_DEBUG
