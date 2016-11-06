@@ -28,4 +28,12 @@ FORK_NAME()
         RETVAL = newSVpv(SLIC3R_FORK_NAME, 0);
     OUTPUT: RETVAL
 
+void
+xspp_test_croak_hangs_on_strawberry()
+    CODE:
+    	try {
+    		throw 1;
+    	} catch (...) {
+    		croak("xspp_test_croak_hangs_on_strawberry: exception catched\n");
+    	}
 %}

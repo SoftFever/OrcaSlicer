@@ -166,6 +166,7 @@ t/18_motionplanner.t
 t/19_model.t
 t/20_print.t
 t/21_gcode.t
+t/22_exception.t
 xsp/BoundingBox.xsp
 xsp/BridgeDetector.xsp
 xsp/Clipper.xsp
