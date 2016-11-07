@@ -55,9 +55,19 @@ Slic3r::Polygons offset(const Slic3r::Polygons &polygons, const float delta,
 void offset(const Slic3r::ExPolygon &expolygon, ClipperLib::Paths* retval, const float delta,
     double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
     double miterLimit = 3);
+void offset(const Slic3r::ExPolygons &expolygons, ClipperLib::Paths* retval, const float delta,
+    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
+    double miterLimit = 3);
 Slic3r::Polygons offset(const Slic3r::ExPolygon &expolygon, const float delta,
     double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
     double miterLimit = 3);
+Slic3r::Polygons offset(const Slic3r::ExPolygons &expolygons, const float delta,
+    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
+    double miterLimit = 3);
+Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygon &expolygon, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit);
+Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygons &expolygons, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit);
 
 // offset Polylines
 void offset(const Slic3r::Polylines &polylines, ClipperLib::Paths* retval, const float delta,

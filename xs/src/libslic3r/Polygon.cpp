@@ -35,16 +35,9 @@ Polygon::last_point() const
     return this->points.front();  // last point == first point for polygons
 }
 
-Lines
-Polygon::lines() const
+Lines Polygon::lines() const
 {
-    Lines lines;
-    lines.reserve(this->points.size());
-    for (Points::const_iterator it = this->points.begin(); it != this->points.end()-1; ++it) {
-        lines.push_back(Line(*it, *(it + 1)));
-    }
-    lines.push_back(Line(this->points.back(), this->points.front()));
-    return lines;
+    return to_lines(*this);
 }
 
 Polyline
@@ -312,9 +305,25 @@ BoundingBox get_extents(const Polygons &polygons)
 {
     BoundingBox bb;
     if (! polygons.empty()) {
-        bb = polygons.front().bounding_box();
+        bb = get_extents(polygons.front());
         for (size_t i = 1; i < polygons.size(); ++ i)
-            bb.merge(polygons[i]);
+            bb.merge(get_extents(polygons[i]));
+    }
+    return bb;
+}
+
+BoundingBox get_extents_rotated(const Polygon &poly, double angle) 
+{ 
+    return get_extents_rotated(poly.points, angle);
+}
+
+BoundingBox get_extents_rotated(const Polygons &polygons, double angle)
+{
+    BoundingBox bb;
+    if (! polygons.empty()) {
+        bb = get_extents_rotated(polygons.front().points, angle);
+        for (size_t i = 1; i < polygons.size(); ++ i)
+            bb.merge(get_extents_rotated(polygons[i].points, angle));
     }
     return bb;
 }

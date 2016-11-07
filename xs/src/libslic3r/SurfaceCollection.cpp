@@ -49,23 +49,16 @@ SurfaceCollection::group(std::vector<SurfacesPtr> *retval)
     for (Surfaces::iterator it = this->surfaces.begin(); it != this->surfaces.end(); ++it) {
         // find a group with the same properties
         SurfacesPtr* group = NULL;
-        for (std::vector<SurfacesPtr>::iterator git = retval->begin(); git != retval->end(); ++git) {
-            Surface* gkey = git->front();
-            if (   gkey->surface_type      == it->surface_type
-                && gkey->thickness         == it->thickness
-                && gkey->thickness_layers  == it->thickness_layers
-                && gkey->bridge_angle      == it->bridge_angle) {
+        for (std::vector<SurfacesPtr>::iterator git = retval->begin(); git != retval->end(); ++git)
+            if (! git->empty() && surfaces_could_merge(*git->front(), *it)) {
                 group = &*git;
                 break;
             }
-        }
-        
         // if no group with these properties exists, add one
         if (group == NULL) {
             retval->resize(retval->size() + 1);
             group = &retval->back();
         }
-        
         // append surface to group
         group->push_back(&*it);
     }

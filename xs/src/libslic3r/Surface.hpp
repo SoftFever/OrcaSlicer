@@ -56,6 +56,7 @@ public:
 #endif
     operator Polygons() const;
     double area() const;
+    bool empty() const { return expolygon.empty(); }
     bool is_solid() const;
     bool is_external() const;
     bool is_internal() const;
@@ -168,6 +169,10 @@ inline void surfaces_append(Surfaces &dst, const ExPolygons &src, const Surface 
     for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
         dst.push_back(Surface(surfaceTempl, *it));
 }
+inline void surfaces_append(Surfaces &dst, const Surfaces &src) 
+{ 
+    dst.insert(dst.end(), src.begin(), src.end());
+}
 
 #if SLIC3R_CPPVER >= 11
 inline void surfaces_append(Surfaces &dst, ExPolygons &&src, SurfaceType surfaceType) 
@@ -182,11 +187,27 @@ inline void surfaces_append(Surfaces &dst, ExPolygons &&src, const Surface &surf
     for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
         dst.push_back(Surface(surfaceTempl, std::move(*it)));
 }
+inline void surfaces_append(Surfaces &dst, Surfaces &&src) 
+{ 
+    if (dst.empty())
+        dst = std::move(src);
+    else
+        std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+}
 #endif
 
 extern BoundingBox get_extents(const Surface &surface);
 extern BoundingBox get_extents(const Surfaces &surfaces);
 extern BoundingBox get_extents(const SurfacesPtr &surfaces);
+
+inline bool surfaces_could_merge(const Surface &s1, const Surface &s2)
+{
+    return 
+        s1.surface_type      == s2.surface_type     &&
+        s1.thickness         == s2.thickness        &&
+        s1.thickness_layers  == s2.thickness_layers &&
+        s1.bridge_angle      == s2.bridge_angle;
+}
 
 class SVG;
 

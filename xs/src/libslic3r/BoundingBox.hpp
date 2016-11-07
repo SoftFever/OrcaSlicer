@@ -70,6 +70,8 @@ class BoundingBox : public BoundingBoxBase<Point>
     BoundingBox(const Point &pmin, const Point &pmax) : BoundingBoxBase<Point>(pmin, pmax) {};
     BoundingBox(const Points &points) : BoundingBoxBase<Point>(points) {};
     BoundingBox(const Lines &lines);
+
+    friend BoundingBox get_extents_rotated(const Points &points, double angle);
 };
 
 /*

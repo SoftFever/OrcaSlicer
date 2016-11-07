@@ -50,6 +50,8 @@ class Polygon : public MultiPoint {
 
 extern BoundingBox get_extents(const Polygon &poly);
 extern BoundingBox get_extents(const Polygons &polygons);
+extern BoundingBox get_extents_rotated(const Polygon &poly, double angle);
+extern BoundingBox get_extents_rotated(const Polygons &polygons, double angle);
 
 // Remove sticks (tentacles with zero area) from the polygon.
 extern bool        remove_sticks(Polygon &poly);
@@ -70,7 +72,70 @@ inline void        polygons_append(Polygons &dst, Polygons &&src)
         std::move(std::begin(src), std::end(src), std::back_inserter(dst));
 }
 #endif
+
+inline void polygons_rotate(Polygons &polys, double angle)
+{
+    for (Polygons::iterator p = polys.begin(); p != polys.end(); ++p)
+        p->rotate(angle);
 }
+
+inline Lines to_lines(const Polygon &poly) 
+{
+    Lines lines;
+    lines.reserve(poly.points.size());
+    for (Points::const_iterator it = poly.points.begin(); it != poly.points.end()-1; ++it)
+        lines.push_back(Line(*it, *(it + 1)));
+    lines.push_back(Line(poly.points.back(), poly.points.front()));
+    return lines;
+}
+
+inline Lines to_lines(const Polygons &polys) 
+{
+    size_t n_lines = 0;
+    for (size_t i = 0; i < polys.size(); ++ i)
+        n_lines += polys[i].points.size();
+    Lines lines;
+    lines.reserve(n_lines);
+    for (size_t i = 0; i < polys.size(); ++ i) {
+        const Polygon &poly = polys[i];
+        for (Points::const_iterator it = poly.points.begin(); it != poly.points.end()-1; ++it)
+            lines.push_back(Line(*it, *(it + 1)));
+        lines.push_back(Line(poly.points.back(), poly.points.front()));
+    }
+    return lines;
+}
+
+inline Polylines to_polylines(const Polygons &polys)
+{
+    Polylines polylines;
+    polylines.assign(polys.size(), Polyline());
+    size_t idx = 0;
+    for (Polygons::const_iterator it = polys.begin(); it != polys.end(); ++ it) {
+        Polyline &pl = polylines[idx ++];
+        pl.points = it->points;
+        pl.points.push_back(it->points.front());
+    }
+    assert(idx == polylines.size());
+    return polylines;
+}
+
+#if SLIC3R_CPPVER >= 11
+inline Polylines to_polylines(Polygons &&polys)
+{
+    Polylines polylines;
+    polylines.assign(polys.size(), Polyline());
+    size_t idx = 0;
+    for (Polygons::const_iterator it = polys.begin(); it != polys.end(); ++ it) {
+        Polyline &pl = polylines[idx ++];
+        pl.points = std::move(it->points);
+        pl.points.push_back(it->points.front());
+    }
+    assert(idx == polylines.size());
+    return polylines;
+}
+#endif
+
+} // Slic3r
 
 // start Boost
 #include <boost/polygon/polygon.hpp>

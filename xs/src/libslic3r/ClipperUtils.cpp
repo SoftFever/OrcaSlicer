@@ -314,6 +314,113 @@ Slic3r::Polygons offset(const Slic3r::ExPolygon &expolygon, const float delta,
     return retval;
 }
 
+Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygon &expolygon, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    ClipperLib::Paths output;
+    offset(expolygon, &output, delta, scale, joinType, miterLimit);
+    
+    // convert into ExPolygons
+    Slic3r::ExPolygons retval;
+    ClipperPaths_to_Slic3rExPolygons(output, &retval);
+    return retval;
+}
+
+// This is a safe variant of the polygon offset, tailored for a single ExPolygon:
+// a single polygon with multiple non-overlapping holes.
+// Each contour and hole is offsetted separately, then the holes are subtracted from the outer contours.
+void offset(const Slic3r::ExPolygons &expolygons, ClipperLib::Paths* retval, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+//    printf("new ExPolygon offset\n");
+    const float delta_scaled = float(delta * scale);
+    ClipperLib::Paths contours;
+    ClipperLib::Paths holes;
+    contours.reserve(expolygons.size());
+    {
+        size_t n_holes = 0;
+        for (size_t i = 0; i < expolygons.size(); ++ i)
+            n_holes += expolygons[i].holes.size();
+        holes.reserve(n_holes);
+    }
+
+    for (Slic3r::ExPolygons::const_iterator it_expoly = expolygons.begin(); it_expoly != expolygons.end(); ++ it_expoly) {
+        // 1) Offset the outer contour.
+        {
+            ClipperLib::Path input;
+            Slic3rMultiPoint_to_ClipperPath(it_expoly->contour, &input);
+            scaleClipperPolygon(input, scale);
+            ClipperLib::ClipperOffset co;
+            if (joinType == jtRound)
+                co.ArcTolerance = miterLimit;
+            else
+                co.MiterLimit = miterLimit;
+            co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
+            ClipperLib::Paths out;
+            co.Execute(out, delta_scaled);
+            contours.insert(contours.end(), out.begin(), out.end());
+        }
+
+        // 2) Offset the holes one by one, collect the results.
+        {
+            for (Polygons::const_iterator it_hole = it_expoly->holes.begin(); it_hole != it_expoly->holes.end(); ++ it_hole) {
+                ClipperLib::Path input;
+                Slic3rMultiPoint_to_ClipperPath_reversed(*it_hole, &input);
+                scaleClipperPolygon(input, scale);
+                ClipperLib::ClipperOffset co;
+                if (joinType == jtRound)
+                    co.ArcTolerance = miterLimit;
+                else
+                    co.MiterLimit = miterLimit;
+                co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
+                ClipperLib::Paths out;
+                co.Execute(out, - delta_scaled);
+                holes.insert(holes.end(), out.begin(), out.end());
+            }
+        }
+    }
+
+    // 3) Subtract holes from the contours.
+    ClipperLib::Paths output;
+    {
+        ClipperLib::Clipper clipper;
+        clipper.Clear();
+        clipper.AddPaths(contours, ClipperLib::ptSubject, true);
+        clipper.AddPaths(holes, ClipperLib::ptClip, true);
+        clipper.Execute(ClipperLib::ctDifference, *retval, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+    }
+    
+    // 4) Unscale the output.
+    scaleClipperPolygons(*retval, 1/scale);
+}
+
+Slic3r::Polygons offset(const Slic3r::ExPolygons &expolygons, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    ClipperLib::Paths output;
+    offset(expolygons, &output, delta, scale, joinType, miterLimit);
+    
+    // convert into ExPolygons
+    Slic3r::Polygons retval;
+    ClipperPaths_to_Slic3rMultiPoints(output, &retval);
+    return retval;
+}
+
+Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygons &expolygons, const float delta,
+    double scale, ClipperLib::JoinType joinType, double miterLimit)
+{
+    // perform offset
+    ClipperLib::Paths output;
+    offset(expolygons, &output, delta, scale, joinType, miterLimit);
+    
+    // convert into ExPolygons
+    Slic3r::ExPolygons retval;
+    ClipperPaths_to_Slic3rExPolygons(output, &retval);
+    return retval;
+}
+
 Slic3r::ExPolygons
 offset_ex(const Slic3r::Polygons &polygons, const float delta,
     double scale, ClipperLib::JoinType joinType, double miterLimit)

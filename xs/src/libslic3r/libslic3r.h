@@ -60,10 +60,13 @@ void confess_at(const char *file, int line, const char *func, const char *pat, .
 // For example, could optimized functions with move semantics be used?
 #if __cplusplus==201402L
 	#define SLIC3R_CPPVER 14
+	#define STDMOVE(WHAT) std::move(WHAT)
 #elif __cplusplus==201103L
 	#define SLIC3R_CPPVER 11
+	#define STDMOVE(WHAT) std::move(WHAT)
 #else
 	#define SLIC3R_CPPVER 0
+	#define STDMOVE(WHAT) (WHAT)
 #endif
 
 #define SLIC3R_DEBUG_OUT_PATH_PREFIX "out/"

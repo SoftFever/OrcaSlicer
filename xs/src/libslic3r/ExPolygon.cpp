@@ -26,24 +26,12 @@ ExPolygon::operator Points() const
 
 ExPolygon::operator Polygons() const
 {
-    Polygons polygons;
-    polygons.reserve(this->holes.size() + 1);
-    polygons.push_back(this->contour);
-    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
-        polygons.push_back(*it);
-    }
-    return polygons;
+    return to_polygons(*this);
 }
 
 ExPolygon::operator Polylines() const
 {
-    Polylines polylines;
-    polylines.reserve(this->holes.size() + 1);
-    polylines.push_back((Polyline)this->contour);
-    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
-        polylines.push_back((Polyline)*it);
-    }
-    return polylines;
+    return to_polylines(*this);
 }
 
 void
@@ -579,6 +567,22 @@ BoundingBox get_extents(const ExPolygons &expolygons)
         bbox = get_extents(expolygons.front());
         for (size_t i = 1; i < expolygons.size(); ++ i)
             bbox.merge(get_extents(expolygons[i]));
+    }
+    return bbox;
+}
+
+BoundingBox get_extents_rotated(const ExPolygon &expolygon, double angle)
+{
+    return get_extents_rotated(expolygon.contour, angle);
+}
+
+BoundingBox get_extents_rotated(const ExPolygons &expolygons, double angle)
+{
+    BoundingBox bbox;
+    if (! expolygons.empty()) {
+        bbox = get_extents_rotated(expolygons.front().contour, angle);
+        for (size_t i = 1; i < expolygons.size(); ++ i)
+            bbox.merge(get_extents_rotated(expolygons[i].contour, angle));
     }
     return bbox;
 }

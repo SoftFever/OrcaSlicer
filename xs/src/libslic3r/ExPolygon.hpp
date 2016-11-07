@@ -25,6 +25,7 @@ class ExPolygon
     void rotate(double angle);
     void rotate(double angle, const Point &center);
     double area() const;
+    bool empty() const { return contour.points.empty(); }
     bool is_valid() const;
 
     // Contains the line / polyline / polylines etc COMPLETELY.
@@ -57,32 +58,6 @@ class ExPolygon
     std::string dump_perl() const;
 };
 
-inline Polygons to_polygons(const ExPolygons &src)
-{
-    Polygons polygons;
-    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
-        polygons.push_back(it->contour);
-        for (Polygons::const_iterator ith = it->holes.begin(); ith != it->holes.end(); ++ith) {
-            polygons.push_back(*ith);
-        }
-    }
-    return polygons;
-}
-
-#if SLIC3R_CPPVER >= 11
-inline Polygons to_polygons(ExPolygons &&src)
-{
-    Polygons polygons;
-    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
-        polygons.push_back(std::move(it->contour));
-        for (Polygons::const_iterator ith = it->holes.begin(); ith != it->holes.end(); ++ith) {
-            polygons.push_back(std::move(*ith));
-        }
-    }
-    return polygons;
-}
-#endif
-
 // Count a nuber of polygons stored inside the vector of expolygons.
 // Useful for allocating space for polygons when converting expolygons to polygons.
 inline size_t number_polygons(const ExPolygons &expolys)
@@ -93,7 +68,164 @@ inline size_t number_polygons(const ExPolygons &expolys)
     return n_polygons;
 }
 
-// Append a vector of ExPolygons at the end of another vector of polygons.
+inline Lines to_lines(const ExPolygon &src) 
+{
+    size_t n_lines = src.contour.points.size();
+    for (size_t i = 0; i < src.holes.size(); ++ i)
+        n_lines += src.holes[i].points.size();
+    Lines lines;
+    lines.reserve(n_lines);
+    for (size_t i = 0; i <= src.holes.size(); ++ i) {
+        const Polygon &poly = (i == 0) ? src.contour : src.holes[i - 1];
+        for (Points::const_iterator it = poly.points.begin(); it != poly.points.end()-1; ++it)
+            lines.push_back(Line(*it, *(it + 1)));
+        lines.push_back(Line(poly.points.back(), poly.points.front()));
+    }
+    return lines;
+}
+
+inline Lines to_lines(const ExPolygons &src) 
+{
+    size_t n_lines = 0;
+    for (ExPolygons::const_iterator it_expoly = src.begin(); it_expoly != src.end(); ++ it_expoly) {
+        n_lines += it_expoly->contour.points.size();
+        for (size_t i = 0; i < it_expoly->holes.size(); ++ i)
+            n_lines += it_expoly->holes[i].points.size();
+    }
+    Lines lines;
+    lines.reserve(n_lines);
+    for (ExPolygons::const_iterator it_expoly = src.begin(); it_expoly != src.end(); ++ it_expoly) {
+        for (size_t i = 0; i <= it_expoly->holes.size(); ++ i) {
+            const Points &points = ((i == 0) ? it_expoly->contour : it_expoly->holes[i - 1]).points;
+            for (Points::const_iterator it = points.begin(); it != points.end()-1; ++it)
+                lines.push_back(Line(*it, *(it + 1)));
+            lines.push_back(Line(points.back(), points.front()));
+        }
+    }
+    return lines;
+}
+
+inline Polylines to_polylines(const ExPolygon &src)
+{
+    Polylines polylines;
+    polylines.assign(src.holes.size() + 1, Polyline());
+    size_t idx = 0;
+    Polyline &pl = polylines[idx ++];
+    pl.points = src.contour.points;
+    pl.points.push_back(pl.points.front());
+    for (Polygons::const_iterator ith = src.holes.begin(); ith != src.holes.end(); ++ith) {
+        Polyline &pl = polylines[idx ++];
+        pl.points = ith->points;
+        pl.points.push_back(ith->points.front());
+    }
+    assert(idx == polylines.size());
+    return polylines;
+}
+
+inline Polylines to_polylines(const ExPolygons &src)
+{
+    Polylines polylines;
+    polylines.assign(number_polygons(src), Polyline());
+    size_t idx = 0;
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
+        Polyline &pl = polylines[idx ++];
+        pl.points = it->contour.points;
+        pl.points.push_back(pl.points.front());
+        for (Polygons::const_iterator ith = it->holes.begin(); ith != it->holes.end(); ++ith) {
+            Polyline &pl = polylines[idx ++];
+            pl.points = ith->points;
+            pl.points.push_back(ith->points.front());
+        }
+    }
+    assert(idx == polylines.size());
+    return polylines;
+}
+
+#if SLIC3R_CPPVER >= 11
+inline Polylines to_polylines(ExPolygon &&src)
+{
+    Polylines polylines;
+    polylines.assign(src.holes.size() + 1, Polyline());
+    size_t idx = 0;
+    Polyline &pl = polylines[idx ++];
+    pl.points = std::move(src.contour.points);
+    pl.points.push_back(pl.points.front());
+    for (Polygons::const_iterator ith = src.holes.begin(); ith != src.holes.end(); ++ith) {
+        Polyline &pl = polylines[idx ++];
+        pl.points = std::move(ith->points);
+        pl.points.push_back(ith->points.front());
+    }
+    assert(idx == polylines.size());
+    return polylines;
+}
+inline Polylines to_polylines(ExPolygons &&src)
+{
+    Polylines polylines;
+    polylines.assign(number_polygons(src), Polyline());
+    size_t idx = 0;
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
+        Polyline &pl = polylines[idx ++];
+        pl.points = std::move(it->contour.points);
+        pl.points.push_back(pl.points.front());
+        for (Polygons::const_iterator ith = it->holes.begin(); ith != it->holes.end(); ++ith) {
+            Polyline &pl = polylines[idx ++];
+            pl.points = std::move(ith->points);
+            pl.points.push_back(ith->points.front());
+        }
+    }
+    assert(idx == polylines.size());
+    return polylines;
+}
+#endif
+
+inline Polygons to_polygons(const ExPolygon &src)
+{
+    Polygons polygons;
+    polygons.reserve(src.holes.size() + 1);
+    polygons.push_back(src.contour);
+    polygons.insert(polygons.end(), src.holes.begin(), src.holes.end());
+    return polygons;
+}
+
+inline Polygons to_polygons(const ExPolygons &src)
+{
+    Polygons polygons;
+    polygons.reserve(number_polygons(src));
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
+        polygons.push_back(it->contour);
+        polygons.insert(polygons.end(), it->holes.begin(), it->holes.end());
+    }
+    return polygons;
+}
+
+#if SLIC3R_CPPVER >= 11
+inline Polygons to_polygons(ExPolygon &&src)
+{
+    Polygons polygons;
+    polygons.reserve(src.holes.size() + 1);
+    polygons.push_back(std::move(src.contour));
+    std::move(std::begin(src.holes), std::end(src.holes), std::back_inserter(polygons));
+    return polygons;
+}
+inline Polygons to_polygons(ExPolygons &&src)
+{
+    Polygons polygons;
+    polygons.reserve(number_polygons(src));
+    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
+        polygons.push_back(std::move(it->contour));
+        std::move(std::begin(it->holes), std::end(it->holes), std::back_inserter(polygons));
+    }
+    return polygons;
+}
+#endif
+
+inline void polygons_append(Polygons &dst, const ExPolygon &src) 
+{ 
+    dst.reserve(dst.size() + src.holes.size() + 1);
+    dst.push_back(src.contour);
+    dst.insert(dst.end(), src.holes.begin(), src.holes.end());
+}
+
 inline void polygons_append(Polygons &dst, const ExPolygons &src) 
 { 
     dst.reserve(dst.size() + number_polygons(src));
@@ -104,6 +236,13 @@ inline void polygons_append(Polygons &dst, const ExPolygons &src)
 }
 
 #if SLIC3R_CPPVER >= 11
+inline void polygons_append(Polygons &dst, ExPolygon &&src)
+{ 
+    dst.reserve(dst.size() + src.holes.size() + 1);
+    dst.push_back(std::move(src.contour));
+    std::move(std::begin(src.holes), std::end(src.holes), std::back_inserter(dst));
+}
+
 inline void polygons_append(Polygons &dst, ExPolygons &&src)
 { 
     dst.reserve(dst.size() + number_polygons(src));
@@ -114,8 +253,24 @@ inline void polygons_append(Polygons &dst, ExPolygons &&src)
 }
 #endif
 
+inline void expolygons_rotate(ExPolygons &expolys, double angle)
+{
+    for (ExPolygons::iterator p = expolys.begin(); p != expolys.end(); ++p)
+        p->rotate(angle);
+}
+
+inline bool expolygons_contain(ExPolygons &expolys, const Point &pt)
+{
+    for (ExPolygons::iterator p = expolys.begin(); p != expolys.end(); ++p)
+        if (p->contains(pt))
+            return true;
+    return false;
+}
+
 extern BoundingBox get_extents(const ExPolygon &expolygon);
 extern BoundingBox get_extents(const ExPolygons &expolygons);
+extern BoundingBox get_extents_rotated(const ExPolygon &poly, double angle);
+extern BoundingBox get_extents_rotated(const ExPolygons &polygons, double angle);
 
 extern bool        remove_sticks(ExPolygon &poly);
 
