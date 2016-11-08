@@ -145,14 +145,15 @@ sub load_print {
         }
         $self->enabled(1);
         $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
-        $self->slider_low->SetRange(0, scalar(@{$self->{layers_z}})-1);
-        $self->slider_high->SetRange(0, scalar(@{$self->{layers_z}})-1);
+        my $num_layers = scalar(@{$self->{layers_z}});
+        $self->slider_low->SetRange(0, $num_layers-1);
+        $self->slider_high->SetRange(0, $num_layers-1);
         $self->slider_low->SetValue(0);
-        if (($z_idx = $self->slider_high->GetValue) <= $#{$self->{layers_z}} && $self->slider_high->GetValue != 0) {
+        if (($z_idx = $self->slider_high->GetValue) < $num_layers && $self->slider_high->GetValue != 0) {
             # use $z_idx
         } else {
-            $self->slider_high->SetValue(scalar(@{$self->{layers_z}})-1);
-            $z_idx = @{$self->{layers_z}} ? -1 : undef;
+            $self->slider_high->SetValue($num_layers-1);
+            $z_idx = $num_layers ? ($num_layers-1) : undef;
         }
         $self->slider_low->Show;
         $self->slider_high->Show;
@@ -184,7 +185,7 @@ sub set_z_range
     return if !$self->enabled;
     $self->{z_label_low}->SetLabel(sprintf '%.2f', $z_low);
     $self->{z_label_high}->SetLabel(sprintf '%.2f', $z_high);
-    $self->canvas->set_toolpaths_range($z_low, $z_high);
+    $self->canvas->set_toolpaths_range($z_low-1e-5, $z_high+1e-5);
     $self->canvas->Refresh if $self->IsShown;
 }
 

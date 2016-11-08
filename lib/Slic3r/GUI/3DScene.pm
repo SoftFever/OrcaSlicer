@@ -978,32 +978,30 @@ sub draw_volumes {
         }
 
         my $qverts_begin = 0;
-        my $qverts_end = defined($volume->qverts) ? $volume->qverts->size() : 0;
+        my $qverts_end   = defined($volume->qverts) ? $volume->qverts->size() : 0;
         my $tverts_begin = 0;
-        my $tverts_end = defined($volume->tverts) ? $volume->tverts->size() : 0;
-        if ($volume->range && $volume->offsets && @{$volume->offsets}) {
+        my $tverts_end   = defined($volume->tverts) ? $volume->tverts->size() : 0;
+        my $n_offsets    = ($volume->range && $volume->offsets) ? scalar(@{$volume->offsets}) : 0;
+        if ($n_offsets) {
             # The Z layer range is specified.
             # First test whether the Z span of this object is not out of ($min_z, $max_z) completely.
             my ($min_z, $max_z) = @{$volume->range};
             next if ($volume->offsets->[0] > $max_z || $volume->offsets->[-3] < $min_z);
             # Then find the lowest layer to be displayed.
             my $i = 0;
-            while ($i < @{$volume->offsets} && $volume->offsets->[$i] < $min_z) {
+            while ($i < $n_offsets && $volume->offsets->[$i] < $min_z) {
                 $i += 3;
             }
             # This shall not happen.
-            next if ($i == @{$volume->offsets});
+            next if ($i == $n_offsets);
             # Remember start of the layer.
-            if ($i >= 3) {
-                # Get end of the preceding layer, which is the start of the current layer.
-                $qverts_begin = $volume->offsets->[$i-2];
-                $tverts_begin = $volume->offsets->[$i-1];
-            }
+            $qverts_begin = $volume->offsets->[$i+1];
+            $tverts_begin = $volume->offsets->[$i+2];
             # Some layers are above $min_z. Which?
-            while ($i < @{$volume->offsets} && $volume->offsets->[$i] <= $max_z) {
+            while ($i < $n_offsets && $volume->offsets->[$i] <= $max_z) {
                 $i += 3;
             }
-            if ($i < @{$volume->offsets}) {
+            if ($i < $n_offsets) {
                 $qverts_end = $volume->offsets->[$i+1];
                 $tverts_end = $volume->offsets->[$i+2];
             }
