@@ -42,6 +42,14 @@ if ($ENV{SLIC3R_GUI})
 #    push @early_includes, qw(slic3r/GUI/wxinit.h);
 }
 
+if ($ENV{SLIC3R_HAS_BROKEN_CROAK})
+{
+    # Some Strawberry Perl builds (mainly the latest 64bit builds) have a broken mechanism
+    # for emiting Perl exception after handling a C++ exception. Perl interpreter
+    # simply hangs. Better to show a message box in that case and stop the application.
+    push @cflags, qw(-DSLIC3R_HAS_BROKEN_CROAK)
+}
+
 # search for Boost in a number of places
 my @boost_include = ();
 if (defined $ENV{BOOST_INCLUDEDIR}) {

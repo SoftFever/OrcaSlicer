@@ -153,4 +153,13 @@ SV* polynode2perl(const ClipperLib::PolyNode& node);
 
 }
 
+#ifdef SLIC3R_HAS_BROKEN_CROAK
+#undef croak
+#ifdef _MSC_VER
+    #define croak(...) confess_at(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#else
+    #define croak(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#endif
+#endif
+
 #endif
