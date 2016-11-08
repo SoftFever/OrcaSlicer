@@ -21,6 +21,9 @@ void confess_at(const char *file, int line, const char *func, const char *format
     vsprintf(dest, format, argptr);
     va_end(argptr);
 
+    char filelinefunc[1024*8];
+    sprintf(filelinefunc, "\r\nin function: %s\r\nfile: %s\r\nline: %d\r\n", func, file, line);
+    strcat(dest, filelinefunc);
     strcat(dest, "\r\n Closing the application.\r\n");
     #ifdef WIN32
     ::MessageBoxA(NULL, dest, "Slic3r Prusa Edition", MB_OK | MB_ICONERROR);
