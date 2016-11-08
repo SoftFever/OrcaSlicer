@@ -99,7 +99,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
 #if 0
-    SurfaceCollection bottom;
+    Surfaces bottom;
     // For all stBottom && stBottomBridge surfaces:
     for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface) {
         if (!surface->is_bottom()) continue;
@@ -112,10 +112,12 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             of very thin (but still working) anchors, the grown expolygon would go beyond them */
         double angle = -1;
         if (lower_layer != NULL) {
+            ExPolygons expolygons;
+            expolygons.push_back(surface->expolygon);
             BridgeDetector bd(
-                surface->expolygon,
+                expolygons,
                 lower_layer->slices,
-                this->flow(frInfill, this->layer()->height, true).scaled_width()
+                this->flow(frInfill, true, this->layer()->height).scaled_width()
             );
             
             #ifdef SLIC3R_DEBUG
@@ -126,8 +128,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 angle = bd.angle;
             
                 if (this->layer()->object()->config.support_material) {
-                    Polygons coverage = bd.coverage();
-                    this->bridged.insert(this->bridged.end(), coverage.begin(), coverage.end());
+                    polygons_append(this->bridged, bd.coverage());
                     this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
                 }
             }
@@ -137,28 +138,30 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             Surface s       = *surface;
             s.expolygon     = *it;
             s.bridge_angle  = angle;
-            bottom.surfaces.push_back(s);
+            bottom.push_back(s);
         }
     }
 #else
     // 1) Collect bottom and bridge surfaces, each of them grown by a fixed 3mm offset
     // for better anchoring.
-    SurfaceCollection bottom;
-    SurfaceCollection bridges;
-    std::vector<BoundingBox> bridge_bboxes;
+    // Bottom surfaces, grown.
+    Surfaces                    bottom;
+    // Bridge surfaces, initialy not grown.
+    Surfaces                    bridges;
+    // Bridge expolygons, grown, to be tested for intersection with other bridge regions.
+    std::vector<Polygons>       bridges_grown;
+    // Bounding boxes of bridges_grown.
+    std::vector<BoundingBox>    bridge_bboxes;
     // For all stBottom && stBottomBridge surfaces:
     for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface) {
-        if (!surface->is_bottom()) continue;
-        // Grown by 3mm.
-        ExPolygons grown = offset_ex(surface->expolygon, +margin);
-        for (ExPolygons::const_iterator it = grown.begin(); it != grown.end(); ++it) {
-            Surface s       = *surface;
-            s.expolygon     = *it;
-            if (surface->surface_type == stBottomBridge) {
-                bridges.surfaces.push_back(s);
-                bridge_bboxes.push_back(get_extents(s));
-            } else
-                bottom.surfaces.push_back(s);
+        if (surface->surface_type == stBottom || lower_layer == NULL) {
+            // Grown by 3mm.
+            surfaces_append(bottom, offset_ex(surface->expolygon, float(margin)), *surface);
+        } else if (surface->surface_type == stBottomBridge) {
+            bridges.push_back(*surface);
+            // Grown by 3mm.
+            bridges_grown.push_back(offset(surface->expolygon, float(margin)));
+            bridge_bboxes.push_back(get_extents(bridges_grown.back()));
         }
     }
 
@@ -169,202 +172,163 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
     }
 #endif
 
-    // 2) Group the bridge surfaces by overlaps.
-    std::vector<size_t> bridge_group(bridges.surfaces.size(), (size_t)-1);
-    size_t n_groups = 0; 
-    for (size_t i = 0; i < bridges.surfaces.size(); ++ i) {
-        // A grup id for this bridge.
-        size_t group_id = (bridge_group[i] == -1) ? (n_groups ++) : bridge_group[i];
-        bridge_group[i] = group_id;
-        // For all possibly overlaping bridges:
-        for (size_t j = i + 1; j < bridges.surfaces.size(); ++ j) {
-            if (! bridge_bboxes[i].overlap(bridge_bboxes[j]))
-                continue;
-            if (! bridges.surfaces[i].expolygon.overlaps(bridges.surfaces[j].expolygon))
-                continue;
-            // The two bridge regions intersect. Give them the same group id.
-            if (bridge_group[j] != -1) {
-                // The j'th bridge has been merged with some other bridge before.
-                size_t group_id_new = bridge_group[j];
-                for (size_t k = 0; k < j; ++ k)
-                    if (bridge_group[k] == group_id)
-                        bridge_group[k] = group_id_new;
-                group_id = group_id_new;
-            }
-            bridge_group[j] = group_id;
-        }
-    }
-
-    // 3) Merge the groups with the same group id.
+    if (lower_layer != NULL)
     {
-        SurfaceCollection bridges_merged;
-        bridges_merged.surfaces.reserve(n_groups);
-        for (size_t group_id = 0; group_id < n_groups; ++ group_id) {
-            size_t n_bridges_merged = 0;
-            size_t idx_last = (size_t)-1;
-            for (size_t i = 0; i < bridges.surfaces.size(); ++ i) {
-                if (bridge_group[i] == group_id) {
-                    ++ n_bridges_merged;
-                    idx_last = i;
+        // 2) Group the bridge surfaces by overlaps.
+        std::vector<size_t> bridge_group(bridges.size(), (size_t)-1);
+        size_t n_groups = 0; 
+        for (size_t i = 0; i < bridges.size(); ++ i) {
+            // A grup id for this bridge.
+            size_t group_id = (bridge_group[i] == -1) ? (n_groups ++) : bridge_group[i];
+            bridge_group[i] = group_id;
+            // For all possibly overlaping bridges:
+            for (size_t j = i + 1; j < bridges.size(); ++ j) {
+                if (! bridge_bboxes[i].overlap(bridge_bboxes[j]))
+                    continue;
+                if (intersection(bridges_grown[i], bridges_grown[j], false).empty())
+                    continue;
+                // The two bridge regions intersect. Give them the same group id.
+                if (bridge_group[j] != -1) {
+                    // The j'th bridge has been merged with some other bridge before.
+                    size_t group_id_new = bridge_group[j];
+                    for (size_t k = i; k < j; ++ k)
+                        if (bridge_group[k] == group_id)
+                            bridge_group[k] = group_id_new;
+                    group_id = group_id_new;
                 }
+                bridge_group[j] = group_id;
             }
-            if (n_bridges_merged == 1)
-                bridges_merged.surfaces.push_back(bridges.surfaces[idx_last]);
-            else if (n_bridges_merged > 1) {
-                Slic3r::Polygons polygons;
-                for (size_t i = 0; i < bridges.surfaces.size(); ++ i) {
+        }
+
+        // 3) Merge the groups with the same group id, detect bridges.
+        {
+            for (size_t group_id = 0; group_id < n_groups; ++ group_id) {
+                size_t n_bridges_merged = 0;
+                size_t idx_last = (size_t)-1;
+                for (size_t i = 0; i < bridges.size(); ++ i) {
+                    if (bridge_group[i] == group_id) {
+                        ++ n_bridges_merged;
+                        idx_last = i;
+                    }
+                }
+                if (n_bridges_merged == 0)
+                    // This group has no regions assigned as these were moved into another group.
+                    continue;
+                // Collect the initial ungrown regions and the grown polygons.
+                ExPolygons  initial;
+                Polygons    grown;
+                for (size_t i = 0; i < bridges.size(); ++ i) {
                     if (bridge_group[i] != group_id)
                         continue;
-                    const Surface &surface = bridges.surfaces[i];
-                    polygons.push_back(surface.expolygon.contour);
-                    for (size_t j = 0; j < surface.expolygon.holes.size(); ++ j)
-                        polygons.push_back(surface.expolygon.holes[j]);
+                    initial.push_back(STDMOVE(bridges[i].expolygon));
+                    polygons_append(grown, bridges_grown[i]);
                 }
-                ExPolygons expp;
+                // detect bridge direction before merging grown surfaces otherwise adjacent bridges
+                // would get merged into a single one while they need different directions
+                // also, supply the original expolygon instead of the grown one, because in case
+                // of very thin (but still working) anchors, the grown expolygon would go beyond them
+                BridgeDetector bd(
+                    initial,
+                    lower_layer->slices,
+                    //FIXME parameters are not correct!
+                    // flow(FlowRole role, bool bridge = false, double width = -1) const;
+                    this->flow(frInfill, true, this->layer()->height).scaled_width()
+                );
+                #ifdef SLIC3R_DEBUG
+                printf("Processing bridge at layer " PRINTF_ZU ":\n", this->layer()->id());
+                #endif
+                if (bd.detect_angle()) {
+                    bridges[idx_last].bridge_angle = bd.angle;
+                    if (this->layer()->object()->config.support_material) {
+                        polygons_append(this->bridged, bd.coverage());
+                        this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
+                    }
+                }
                 // without safety offset, artifacts are generated (GH #2494)
-                union_(polygons, &expp, true);
-                Surface &surface0 = bridges.surfaces[idx_last];
-                surface0.expolygon.clear();
-                for (size_t i = 0; i < expp.size(); ++ i) {
-                    surface0.expolygon = expp[i];
-                    bridges_merged.surfaces.push_back(surface0);
-                }
+                surfaces_append(bottom, union_ex(grown, true), bridges[idx_last]);
             }
         }
-        std::swap(bridges_merged, bridges);
-    }
 
-#if 0
-    {
-        static int iRun = 0;
-        bridges.export_to_svg(debug_out_path("bridges-after-grouping-%d.svg", iRun ++), true);
+    #if 0
+        {
+            static int iRun = 0;
+            bridges.export_to_svg(debug_out_path("bridges-after-grouping-%d.svg", iRun ++), true);
+        }
+    #endif
     }
 #endif
 
-    // 4) Detect bridge directions.
-    if (lower_layer != NULL) {
-        for (size_t i = 0; i < bridges.surfaces.size(); ++ i) {
-            Surface &surface = bridges.surfaces[i];
-            /*  detect bridge direction before merging grown surfaces otherwise adjacent bridges
-                would get merged into a single one while they need different directions
-                also, supply the original expolygon instead of the grown one, because in case
-                of very thin (but still working) anchors, the grown expolygon would go beyond them */
-            BridgeDetector bd(
-                surface.expolygon,
-                lower_layer->slices,
-                //FIXME parameters are not correct!
-                // flow(FlowRole role, bool bridge = false, double width = -1) const;
-                this->flow(frInfill, this->layer()->height, true).scaled_width()
-            );
-            #ifdef SLIC3R_DEBUG
-            printf("Processing bridge at layer " PRINTF_ZU ":\n", this->layer()->id());
-            #endif            
-            if (bd.detect_angle()) {
-                surface.bridge_angle = bd.angle;
-                if (this->layer()->object()->config.support_material) {
-                    Polygons coverage = bd.coverage();
-                    this->bridged.insert(this->bridged.end(), coverage.begin(), coverage.end());
-                    this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
-                }
-            }
+    // Collect top surfaces and internal surfaces.
+    // Collect fill_boundaries: If we're slicing with no infill, we can't extend external surfaces over non-existent infill.
+    Surfaces        top;
+    Surfaces        internal;
+    Polygons        fill_boundaries;
+    // This loop destroys the surfaces (aliasing this->fill_surfaces.surfaces) by moving into top/internal/fill_boundaries!
+    {
+        // bottom_polygons are used to trim inflated top surfaces.
+        const Polygons bottom_polygons = to_polygons(bottom);
+        fill_boundaries.reserve(number_polygons(surfaces));
+        bool has_infill = this->region()->config.fill_density.value > 0.;
+        for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
+            if (surface->surface_type == stTop)
+                // Collect the top surfaces, inflate them and trim them by the bottom surfaces.
+                // This gives the priority to bottom surfaces.
+                surfaces_append(
+                    top,
+                    STDMOVE(diff_ex(offset(surface->expolygon, float(margin)), bottom_polygons)),
+                    *surface); // template
+            bool internal_surface = surface->surface_type != stTop && ! surface->is_bottom();
+            if (has_infill || surface->surface_type != stInternal) {
+                if (internal_surface)
+                    // Make a copy as the following line uses the move semantics.
+                    internal.push_back(*surface);
+                polygons_append(fill_boundaries, STDMOVE(surface->expolygon));
+            } else if (internal_surface)
+                internal.push_back(STDMOVE(*surface));
         }
     }
-    bottom.surfaces.insert(bottom.surfaces.end(), bridges.surfaces.begin(), bridges.surfaces.end());
-#endif
 
-    SurfaceCollection top;
-    for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface) {
-        if (surface->surface_type != stTop) continue;
-        
-        // give priority to bottom surfaces
-        ExPolygons grown = diff_ex(
-            offset(surface->expolygon, +margin),
-            (Polygons)bottom
-        );
-        for (ExPolygons::const_iterator it = grown.begin(); it != grown.end(); ++it) {
-            Surface s   = *surface;
-            s.expolygon = *it;
-            top.surfaces.push_back(s);
+    Surfaces new_surfaces;
+
+    // Merge top and bottom in a single collection.
+    surfaces_append(top, STDMOVE(bottom));
+    // Intersect the grown surfaces with the actual fill boundaries.
+    for (size_t i = 0; i < top.size(); ++ i) {
+        Surface &s1 = top[i];
+        if (s1.empty())
+            continue;
+        Polygons polys;
+        polygons_append(polys, STDMOVE(s1));
+        for (size_t j = i + 1; j < top.size(); ++ j) {
+            Surface &s2 = top[j];
+            if (! s2.empty() && surfaces_could_merge(s1, s2))
+                polygons_append(polys, STDMOVE(s2));
         }
+        surfaces_append(
+            new_surfaces,
+            STDMOVE(intersection_ex(polys, fill_boundaries, true)),
+            s1);
     }
     
-    /*  if we're slicing with no infill, we can't extend external surfaces
-        over non-existent infill */
-    SurfaceCollection fill_boundaries;
-    if (this->region()->config.fill_density.value > 0) {
-        fill_boundaries = SurfaceCollection(surfaces);
-    } else {
-        for (Surfaces::const_iterator it = surfaces.begin(); it != surfaces.end(); ++it) {
-            if (it->surface_type != stInternal)
-                fill_boundaries.surfaces.push_back(*it);
+    // Subtract the new top surfaces from the other non-top surfaces and re-add them.
+    Polygons new_polygons = to_polygons(new_surfaces);
+    for (size_t i = 0; i < internal.size(); ++ i) {
+        Surface &s1 = internal[i];
+        if (s1.empty())
+            continue;
+        Polygons polys;
+        polygons_append(polys, STDMOVE(s1));
+        for (size_t j = i + 1; j < internal.size(); ++ j) {
+            Surface &s2 = internal[j];
+            if (! s2.empty() && surfaces_could_merge(s1, s2))
+                polygons_append(polys, STDMOVE(s2));
         }
+        ExPolygons new_expolys = diff_ex(polys, new_polygons);
+        polygons_append(new_polygons, to_polygons(new_expolys));
+        surfaces_append(new_surfaces, STDMOVE(new_expolys), s1);
     }
     
-    // intersect the grown surfaces with the actual fill boundaries
-    SurfaceCollection new_surfaces;
-    {
-        // merge top and bottom in a single collection
-        SurfaceCollection tb = top;
-        tb.surfaces.insert(tb.surfaces.end(), bottom.surfaces.begin(), bottom.surfaces.end());
-        
-        // group surfaces
-        std::vector<SurfacesPtr> groups;
-        tb.group(&groups);
-        
-        for (std::vector<SurfacesPtr>::const_iterator g = groups.begin(); g != groups.end(); ++g) {
-            Polygons subject;
-            for (SurfacesPtr::const_iterator s = g->begin(); s != g->end(); ++s) {
-                Polygons pp = **s;
-                subject.insert(subject.end(), pp.begin(), pp.end());
-            }
-            
-            ExPolygons expp = intersection_ex(
-                subject,
-                (Polygons)fill_boundaries,
-                true // to ensure adjacent expolygons are unified
-            );
-            
-            for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
-                Surface s = *g->front();
-                s.expolygon = *ex;
-                new_surfaces.surfaces.push_back(s);
-            } 
-        }
-    }
-    
-    /* subtract the new top surfaces from the other non-top surfaces and re-add them */
-    {
-        SurfaceCollection other;
-        for (Surfaces::const_iterator s = surfaces.begin(); s != surfaces.end(); ++s) {
-            if (s->surface_type != stTop && !s->is_bottom())
-                other.surfaces.push_back(*s);
-        }
-        
-        // group surfaces
-        std::vector<SurfacesPtr> groups;
-        other.group(&groups);
-        
-        for (std::vector<SurfacesPtr>::const_iterator g = groups.begin(); g != groups.end(); ++g) {
-            Polygons subject;
-            for (SurfacesPtr::const_iterator s = g->begin(); s != g->end(); ++s) {
-                Polygons pp = **s;
-                subject.insert(subject.end(), pp.begin(), pp.end());
-            }
-            
-            ExPolygons expp = diff_ex(
-                subject,
-                (Polygons)new_surfaces
-            );
-            
-            for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
-                Surface s = *g->front();
-                s.expolygon = *ex;
-                new_surfaces.surfaces.push_back(s);
-            }
-        }
-    }
-    
-    this->fill_surfaces = new_surfaces;
+    this->fill_surfaces.surfaces = STDMOVE(new_surfaces);
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     export_region_fill_surfaces_to_svg_debug("3_process_external_surfaces-final");

@@ -116,9 +116,9 @@ Polygons
 ExPolygonCollection::contours() const
 {
     Polygons contours;
-    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
+    contours.reserve(this->expolygons.size());
+    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it)
         contours.push_back(it->contour);
-    }
     return contours;
 }
 

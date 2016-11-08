@@ -13,6 +13,17 @@
 
 namespace Slic3r {
 
+struct SurfaceGroupAttrib
+{
+    SurfaceGroupAttrib() : is_solid(false), fw(0.f), pattern(-1) {}
+    bool operator==(const SurfaceGroupAttrib &other) const
+        { return is_solid == other.is_solid && fw == other.fw && pattern == other.pattern; }
+    bool    is_solid;
+    float   fw;
+    // pattern is of type InfillPattern, -1 for an unset pattern.
+    int     pattern;
+};
+
 // Generate infills for Slic3r::Layer::Region.
 // The Slic3r::Layer::Region at this point of time may contain
 // surfaces of various types (internal/bridge/top/bottom/solid).
@@ -34,11 +45,11 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
     // in case of bridge surfaces, the ones with defined angle will be attached to the ones
     // without any angle (shouldn't this logic be moved to process_external_surfaces()?)
     {
-        SurfacesPtr surfaces_with_bridge_angle;
-        surfaces_with_bridge_angle.reserve(layerm.fill_surfaces.surfaces.size());
+        Polygons polygons_bridged;
+        polygons_bridged.reserve(layerm.fill_surfaces.surfaces.size());
         for (Surfaces::iterator it = layerm.fill_surfaces.surfaces.begin(); it != layerm.fill_surfaces.surfaces.end(); ++ it)
             if (it->bridge_angle >= 0)
-                surfaces_with_bridge_angle.push_back(&(*it));
+                polygons_append(polygons_bridged, *it);
         
         // group surfaces by distinct properties (equal surface_type, thickness, thickness_layers, bridge_angle)
         // group is of type Slic3r::SurfaceCollection
@@ -50,33 +61,29 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         {
             // cache flow widths and patterns used for all solid groups
             // (we'll use them for comparing compatible groups)
-            std::vector<char>   is_solid(groups.size(), false);
-            std::vector<float>  fw(groups.size(), 0.f);
-            std::vector<int>    pattern(groups.size(), -1);
+            std::vector<SurfaceGroupAttrib> group_attrib(groups.size());
             for (size_t i = 0; i < groups.size(); ++ i) {
                 // we can only merge solid non-bridge surfaces, so discard
                 // non-solid surfaces
                 const Surface &surface = *groups[i].front();
                 if (surface.is_solid() && (!surface.is_bridge() || layerm.layer()->id() == 0)) {
-                    is_solid[i] = true;
-                    fw[i] = (surface.surface_type == stTop) ? top_solid_infill_flow.width : solid_infill_flow.width;
-                    pattern[i] = surface.is_external() ? layerm.region()->config.external_fill_pattern.value : ipRectilinear;
+                    group_attrib[i].is_solid = true;
+                    group_attrib[i].fw = (surface.surface_type == stTop) ? top_solid_infill_flow.width : solid_infill_flow.width;
+                    group_attrib[i].pattern = surface.is_external() ? layerm.region()->config.external_fill_pattern.value : ipRectilinear;
                 }
             }
-            // loop through solid groups
+            // Loop through solid groups, find compatible groups and append them to this one.
             for (size_t i = 0; i < groups.size(); ++ i) {
-                if (is_solid[i]) {
-                    // find compatible groups and append them to this one
-                    for (size_t j = i + 1; j < groups.size(); ++ j) {
-                        if (is_solid[j] && fw[i] == fw[j] && pattern[i] == pattern[j]) {
-                            // groups are compatible, merge them
-                            groups[i].insert(groups[i].end(), groups[j].begin(), groups[j].end());
-                            groups.erase(groups.begin() + j);
-                            is_solid.erase(is_solid.begin() + j);
-                            fw.erase(fw.begin() + j);
-                            pattern.erase(pattern.begin() + j);
-                        }
-                    }
+                if (! group_attrib[i].is_solid)
+                    continue;
+                for (size_t j = i + 1; j < groups.size();) {
+                    if (group_attrib[i] == group_attrib[j]) {
+                        // groups are compatible, merge them
+                        groups[i].insert(groups[i].end(), groups[j].begin(), groups[j].end());
+                        groups.erase(groups.begin() + j);
+                        group_attrib.erase(group_attrib.begin() + j);
+                    } else
+                         ++ j;
                 }
             }
         }
@@ -91,13 +98,12 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
                 // Make a union of polygons defining the infiill regions of a group, use a safety offset.
                 Polygons union_p = union_(to_polygons(*it_group), true);
                 // Subtract surfaces having a defined bridge_angle from any other, use a safety offset.
-                if (! surfaces_with_bridge_angle.empty() && it_group->front()->bridge_angle < 0)
-                    union_p = diff(union_p, to_polygons(surfaces_with_bridge_angle), true);
+                if (! polygons_bridged.empty() && ! is_bridge)
+                    union_p = diff(union_p, polygons_bridged, true);
                 // subtract any other surface already processed
                 //FIXME Vojtech: Because the bridge surfaces came first, they are subtracted twice!
-                ExPolygons union_expolys = diff_ex(union_p, to_polygons(surfaces), true);
-                for (ExPolygons::const_iterator it_expoly = union_expolys.begin(); it_expoly != union_expolys.end(); ++ it_expoly)
-                    surfaces.push_back(Surface(*it_group->front(), *it_expoly));
+                // Using group.front() as a template.
+                surfaces_append(surfaces, diff_ex(union_p, to_polygons(surfaces), true), *group.front());
             }
         }
     }
@@ -154,7 +160,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         bool is_bridge = layerm.layer()->id() > 0 && surface.is_bridge();
         
         if (surface.is_solid()) {
-            density = 100;
+            density = 100.;
             fill_pattern = (surface.is_external() && ! is_bridge) ? 
                 layerm.region()->config.external_fill_pattern.value :
                 ipRectilinear;
@@ -224,7 +230,8 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
         params.density = 0.01 * density;
-        params.dont_adjust = true;
+//        params.dont_adjust = true;
+        params.dont_adjust = false;
         Polylines polylines = f->fill_surface(&surface, params);
         if (polylines.empty())
             continue;
@@ -248,12 +255,9 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
             // Only concentric fills are not sorted.
             collection.no_sort = f->no_sort();
             for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it) {
-                ExtrusionPath *path = new ExtrusionPath(role);
+                ExtrusionPath *path = new ExtrusionPath(role, flow.mm3_per_mm(), flow.width, flow.height);
                 collection.entities.push_back(path);
                 path->polyline.points.swap(it->points);
-                path->mm3_per_mm = flow.mm3_per_mm();
-                path->width      = flow.width,
-                path->height     = flow.height;
             }
         }
     }
@@ -264,14 +268,9 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
     // The path type could be ExtrusionPath, ExtrusionLoop or ExtrusionEntityCollection.
     // Why the paths are unpacked?
     for (ExtrusionEntitiesPtr::iterator thin_fill = layerm.thin_fills.entities.begin(); thin_fill != layerm.thin_fills.entities.end(); ++ thin_fill) {
-    #if 0
-        out.entities.push_back((*thin_fill)->clone());
-        assert(dynamic_cast<ExtrusionEntityCollection*>(out.entities.back()) != NULL);
-    #else
         ExtrusionEntityCollection &collection = *(new ExtrusionEntityCollection());
         out.entities.push_back(&collection);
         collection.entities.push_back((*thin_fill)->clone());
-    #endif
     }
 }
 

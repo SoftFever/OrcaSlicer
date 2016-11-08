@@ -73,7 +73,7 @@ use Slic3r::Test;
     );
     my $lower = [
         Slic3r::ExPolygon->new(
-            Slic3r::Polygon->new_scale([10,10],[10,20],[20,20],[20,30],[0,30],[0,10]),
+            Slic3r::Polygon->new_scale([10,10],[10,20],[20,20],[30,30],[0,30],[0,0]),
         ),
     ];
     $_->translate(scale 20, scale 20) for $bridge, @$lower; # avoid negative coordinates for easier SVG preview
