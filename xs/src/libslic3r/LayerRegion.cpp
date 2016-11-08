@@ -88,6 +88,10 @@ LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection*
     g.process();
 }
 
+//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 3.
+//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 1.5
+#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtSquare, 0.
+
 void
 LayerRegion::process_external_surfaces(const Layer* lower_layer)
 {
@@ -104,7 +108,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
     for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface) {
         if (!surface->is_bottom()) continue;
         
-        ExPolygons grown = offset_ex(surface->expolygon, +margin);
+        ExPolygons grown = offset_ex(surface->expolygon, +margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
         
         /*  detect bridge direction before merging grown surfaces otherwise adjacent bridges
             would get merged into a single one while they need different directions
@@ -156,11 +160,11 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
     for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface) {
         if (surface->surface_type == stBottom || lower_layer == NULL) {
             // Grown by 3mm.
-            surfaces_append(bottom, offset_ex(surface->expolygon, float(margin)), *surface);
+            surfaces_append(bottom, offset_ex(surface->expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS), *surface);
         } else if (surface->surface_type == stBottomBridge) {
             bridges.push_back(*surface);
             // Grown by 3mm.
-            bridges_grown.push_back(offset(surface->expolygon, float(margin)));
+            bridges_grown.push_back(offset(surface->expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS));
             bridge_bboxes.push_back(get_extents(bridges_grown.back()));
         }
     }
@@ -275,7 +279,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 // This gives the priority to bottom surfaces.
                 surfaces_append(
                     top,
-                    STDMOVE(diff_ex(offset(surface->expolygon, float(margin)), bottom_polygons)),
+                    STDMOVE(diff_ex(offset(surface->expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS), bottom_polygons)),
                     *surface); // template
             bool internal_surface = surface->surface_type != stTop && ! surface->is_bottom();
             if (has_infill || surface->surface_type != stInternal) {
