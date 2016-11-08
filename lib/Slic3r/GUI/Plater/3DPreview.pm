@@ -4,11 +4,11 @@ use warnings;
 use utf8;
 
 use Slic3r::Print::State ':steps';
-use Wx qw(:misc :sizer :slider :statictext wxWHITE);
-use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN);
+use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE);
+use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX);
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high));
+__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer));
 
 sub new {
     my $class = shift;
@@ -50,9 +50,13 @@ sub new {
     my $z_label_high = $self->{z_label_high} = Wx::StaticText->new($self, -1, "", wxDefaultPosition,
         [40,-1], wxALIGN_CENTRE_HORIZONTAL);
     $z_label_high->SetFont($Slic3r::GUI::small_font);
+
+    $self->single_layer(0);
+    my $checkbox_singlelayer = Wx::CheckBox->new($self, -1, "1 Layer");
     
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
+    my $vsizer_outer = Wx::BoxSizer->new(wxVERTICAL);
     $vsizer->Add($slider_low, 3, 0, 0);
     $vsizer->Add($z_label_low, 0, 0, 0);
     $hsizer->Add($vsizer, 0, wxEXPAND, 0);
@@ -60,43 +64,46 @@ sub new {
     $vsizer->Add($slider_high, 3, 0, 0);
     $vsizer->Add($z_label_high, 0, 0, 0);
     $hsizer->Add($vsizer, 0, wxEXPAND, 0);
-    
+    $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
+    $vsizer_outer->Add($checkbox_singlelayer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
+
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $sizer->Add($canvas, 1, wxALL | wxEXPAND, 0);
-    $sizer->Add($hsizer, 0, wxTOP | wxBOTTOM | wxEXPAND, 5);
+    $sizer->Add($vsizer_outer, 0, wxTOP | wxBOTTOM | wxEXPAND, 5);
     
-    EVT_SLIDER($self, $slider_low, sub {
-        if ($self->enabled) {
-            my $idx_low  = $slider_low->GetValue;
-            my $idx_high = $slider_high->GetValue;
-            if ($idx_low >= $idx_high) {
-                $idx_high = $idx_low;
-                $self->slider_high->SetValue($idx_high);
-            }
-            $self->set_z_range($self->{layers_z}[$idx_low], $self->{layers_z}[$idx_high]);
-        }
+    EVT_SLIDER($self, $slider_low,  sub {
+        $slider_high->SetValue($slider_low->GetValue) if $self->single_layer;
+        $self->set_z_idx_low ($slider_low ->GetValue)
     });
-    EVT_SLIDER($self, $slider_high, sub {
-        if ($self->enabled) {
-            my $idx_low  = $slider_low->GetValue;
-            my $idx_high = $slider_high->GetValue;
-            if ($idx_low > $idx_high) {
-                $idx_low = $idx_high;
-                $self->slider_low->SetValue($idx_low);
-            }
-            $self->set_z_range($self->{layers_z}[$idx_low], $self->{layers_z}[$idx_high]);
-        }
+    EVT_SLIDER($self, $slider_high, sub { 
+        $slider_low->SetValue($slider_high->GetValue) if $self->single_layer;
+        $self->set_z_idx_high($slider_high->GetValue) 
     });
     EVT_KEY_DOWN($canvas, sub {
         my ($s, $event) = @_;
-        
         my $key = $event->GetKeyCode;
-        if ($key == 85 || $key == 315) {
+        if ($key == ord('U') || $key == WXK_RIGHT) {
             $slider_high->SetValue($slider_high->GetValue + 1);
-            $self->set_z_high($self->{layers_z}[$slider_high->GetValue]);
-        } elsif ($key == 68 || $key == 317) {
+            $slider_low->SetValue($slider_high->GetValue) if ($event->ShiftDown());
+            $self->set_z_idx_high($slider_high->GetValue);
+        } elsif ($key == ord('D') || $key == WXK_LEFT) {
             $slider_high->SetValue($slider_high->GetValue - 1);
-            $self->set_z_high($self->{layers_z}[$slider_high->GetValue]);
+            $slider_low->SetValue($slider_high->GetValue) if ($event->ShiftDown());
+            $self->set_z_idx_high($slider_high->GetValue);
+        } elsif ($key == ord('S')) {
+            $checkbox_singlelayer->SetValue(! $checkbox_singlelayer->GetValue());
+            $self->single_layer($checkbox_singlelayer->GetValue());
+            if ($self->single_layer) {
+                $slider_low->SetValue($slider_high->GetValue);
+                $self->set_z_idx_high($slider_high->GetValue);
+            }
+        }
+    });
+    EVT_CHECKBOX($self, $checkbox_singlelayer, sub {
+        $self->single_layer($checkbox_singlelayer->GetValue());
+        if ($self->single_layer) {
+            $slider_low->SetValue($slider_high->GetValue);
+            $self->set_z_idx_high($slider_high->GetValue);
         }
     });
     
@@ -145,15 +152,14 @@ sub load_print {
         }
         $self->enabled(1);
         $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
-        my $num_layers = scalar(@{$self->{layers_z}});
-        $self->slider_low->SetRange(0, $num_layers-1);
-        $self->slider_high->SetRange(0, $num_layers-1);
+        $self->slider_low->SetRange(0, scalar(@{$self->{layers_z}})-1);
+        $self->slider_high->SetRange(0, scalar(@{$self->{layers_z}})-1);
         $self->slider_low->SetValue(0);
-        if (($z_idx = $self->slider_high->GetValue) < $num_layers && $self->slider_high->GetValue != 0) {
+        if (($z_idx = $self->slider_high->GetValue) <= $#{$self->{layers_z}} && $self->slider_high->GetValue != 0) {
             # use $z_idx
         } else {
-            $self->slider_high->SetValue($num_layers-1);
-            $z_idx = $num_layers ? ($num_layers-1) : undef;
+            $self->slider_high->SetValue(scalar(@{$self->{layers_z}})-1);
+            $z_idx = @{$self->{layers_z}} ? -1 : undef;
         }
         $self->slider_low->Show;
         $self->slider_high->Show;
@@ -185,8 +191,34 @@ sub set_z_range
     return if !$self->enabled;
     $self->{z_label_low}->SetLabel(sprintf '%.2f', $z_low);
     $self->{z_label_high}->SetLabel(sprintf '%.2f', $z_high);
-    $self->canvas->set_toolpaths_range($z_low-1e-5, $z_high+1e-5);
+    $self->canvas->set_toolpaths_range($z_low - 1e-6, $z_high + 1e-6);
     $self->canvas->Refresh if $self->IsShown;
+}
+
+sub set_z_idx_low
+{
+    my ($self, $idx_low) = @_;
+    if ($self->enabled) {
+        my $idx_high = $self->slider_high->GetValue;
+        if ($idx_low >= $idx_high) {
+            $idx_high = $idx_low;
+            $self->slider_high->SetValue($idx_high);
+        }
+        $self->set_z_range($self->{layers_z}[$idx_low], $self->{layers_z}[$idx_high]);
+    }
+}
+
+sub set_z_idx_high
+{
+    my ($self, $idx_high) = @_;
+    if ($self->enabled) {
+        my $idx_low  = $self->slider_low->GetValue;
+        if ($idx_low > $idx_high) {
+            $idx_low = $idx_high;
+            $self->slider_low->SetValue($idx_low);
+        }
+        $self->set_z_range($self->{layers_z}[$idx_low], $self->{layers_z}[$idx_high]);
+    }
 }
 
 sub set_bed_shape {
