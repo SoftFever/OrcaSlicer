@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -23,7 +24,7 @@ void confess_at(const char *file, int line, const char *func, const char *format
     strcat(dest, "\r\n Closing the application.\r\n");
     #ifdef WIN32
     ::MessageBoxA(NULL, dest, "Slic3r Prusa Edition", MB_OK | MB_ICONERROR);
-    #endif;
+    #endif
 
     // Give up.
     printf(dest);
