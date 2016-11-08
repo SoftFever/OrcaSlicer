@@ -15,7 +15,7 @@ BridgeDetector::BridgeDetector(
     lower_slices(_lower_slices),
     spacing(_spacing)
 {
-    this->expolygons_owned.push_back(std::move(_expolygon));
+    this->expolygons_owned.push_back(STDMOVE(_expolygon));
     initialize();
 }
 
