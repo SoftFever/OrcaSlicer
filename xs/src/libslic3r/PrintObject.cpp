@@ -370,6 +370,7 @@ PrintObject::discover_vertical_shells()
                 for (int n = (int)idx_layer - layerm->region()->config.bottom_solid_layers + 1; n < (int)idx_layer + layerm->region()->config.top_solid_layers; ++ n)
                     if (n >= 0 && n < (int)this->layers.size())
                         polygons_append(shell, this->layers[n]->perimeter_expolygons.expolygons);
+                //FIXME Add the top / bottom layerm->slices to the mix!
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 {
                     static size_t idx = 0;

@@ -965,7 +965,11 @@ sub discover_horizontal_shells {
                 # solution so far. Growing the external slices by EXTERNAL_INFILL_MARGIN will put
                 # too much solid infill inside nearly-vertical slopes.
                 my $solid = [
+                    # Surfaces including the area of perimeters. Everything, that is visible from the top / bottom
+                    # (not covered by a layer above / below).
+                    # This does not contain the areas covered by perimeters!
                     (map $_->p, @{$layerm->slices->filter_by_type($type)}),
+                    # Infill areas (slices without the perimeters).
                     (map $_->p, @{$layerm->fill_surfaces->filter_by_type($type)}),
                 ];
                 next if !@$solid;
@@ -1011,20 +1015,28 @@ sub discover_horizontal_shells {
                         # and it's not wanted in a hollow print even if it would make sense when
                         # obeying the solid shell count option strictly (DWIM!)
                         my $margin = $neighbor_layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_width;
+                        my $regularized = offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5);
                         my $too_narrow = diff(
                             $new_internal_solid,
-                            offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
+                            $regularized,
                             1,
                         );
-                        $new_internal_solid = $solid = diff(
+                        # Trim the regularized region by the original region.
+                        $new_internal_solid = $solid = intersection(
                             $new_internal_solid,
-                            $too_narrow,
+                            $regularized,
                         ) if @$too_narrow;
                     }
                     
                     # make sure the new internal solid is wide enough, as it might get collapsed
                     # when spacing is added in Fill.pm
-                    if (0) {
+                    if ($layerm->region->config->ensure_vertical_shell_thickness) {
+                        # The possible thin sickles of top / bottom surfaces on steeply sloping surfaces touch
+                        # the projections of top / bottom perimeters, therefore they will be sufficiently inflated by
+                        # merging them with the projections of the top / bottom perimeters.
+                    } else {
+                        #FIXME Vojtech: Disable this and you will be sorry.
+                        # https://github.com/prusa3d/Slic3r/issues/26 bottom
                         my $margin = 3 * $layerm->flow(FLOW_ROLE_SOLID_INFILL)->scaled_width; # require at least this size
                         # we use a higher miterLimit here to handle areas with acute angles
                         # in those cases, the default miterLimit would cut the corner and we'd
