@@ -587,6 +587,15 @@ BoundingBox get_extents_rotated(const ExPolygons &expolygons, double angle)
     return bbox;
 }
 
+extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons)
+{
+    std::vector<BoundingBox> out;
+    out.reserve(polygons.size());
+    for (ExPolygons::const_iterator it = polygons.begin(); it != polygons.end(); ++ it)
+        out.push_back(get_extents(*it));
+    return out;
+}
+
 bool remove_sticks(ExPolygon &poly)
 {
     return remove_sticks(poly.contour) || remove_sticks(poly.holes);

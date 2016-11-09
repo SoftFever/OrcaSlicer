@@ -271,6 +271,7 @@ extern BoundingBox get_extents(const ExPolygon &expolygon);
 extern BoundingBox get_extents(const ExPolygons &expolygons);
 extern BoundingBox get_extents_rotated(const ExPolygon &poly, double angle);
 extern BoundingBox get_extents_rotated(const ExPolygons &polygons, double angle);
+extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons);
 
 extern bool        remove_sticks(ExPolygon &poly);
 

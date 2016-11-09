@@ -328,6 +328,15 @@ BoundingBox get_extents_rotated(const Polygons &polygons, double angle)
     return bb;
 }
 
+extern std::vector<BoundingBox> get_extents_vector(const Polygons &polygons)
+{
+    std::vector<BoundingBox> out;
+    out.reserve(polygons.size());
+    for (Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++ it)
+        out.push_back(get_extents(*it));
+    return out;
+}
+
 static inline bool is_stick(const Point &p1, const Point &p2, const Point &p3)
 {
     Point v1 = p2 - p1;

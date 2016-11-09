@@ -49,7 +49,7 @@ public:
     // in radians, ccw, 0 = East
     float       angle;
     // In scaled coordinates. Maximum lenght of a perimeter segment connecting two infill lines.
-    // Used by the FillRectilinear2, FillGrid2, FillTriangles and FillCubic.
+    // Used by the FillRectilinear2, FillGrid2, FillTriangles, FillStars and FillCubic.
     // If left to zero, the links will not be limited.
     coord_t     link_max_length;
     // In scaled coordinates. Used by the concentric infill pattern to clip the loops to create extrusion paths.
