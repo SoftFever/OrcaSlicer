@@ -138,6 +138,7 @@ public:
     bool invalidate_all_steps();
     
     bool has_support_material() const;
+    void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();
     void bridge_over_infill();

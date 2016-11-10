@@ -107,6 +107,7 @@ _constant()
     void set_step_started(PrintObjectStep step)
         %code%{ THIS->state.set_started(step); %};
     
+    void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();
     void bridge_over_infill();

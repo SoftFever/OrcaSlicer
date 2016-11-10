@@ -310,6 +310,162 @@ PrintObject::has_support_material() const
         || this->config.support_material_enforce_layers > 0;
 }
 
+// This function analyzes slices of a region (SurfaceCollection slices).
+// Each slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
+// Initially all slices are of type S_TYPE_INTERNAL.
+// Slices are compared against the top / bottom slices and regions and classified to the following groups:
+// S_TYPE_TOP - Part of a region, which is not covered by any upper layer. This surface will be filled with a top solid infill.
+// S_TYPE_BOTTOMBRIDGE - Part of a region, which is not fully supported, but it hangs in the air, or it hangs losely on a support or a raft.
+// S_TYPE_BOTTOM - Part of a region, which is not supported by the same region, but it is supported either by another region, or by a soluble interface layer.
+// S_TYPE_INTERNAL - Part of a region, which is supported by the same region type.
+// If a part of a region is of S_TYPE_BOTTOM and S_TYPE_TOP, the S_TYPE_BOTTOM wins.
+void PrintObject::detect_surfaces_type()
+{
+//    Slic3r::debugf "Detecting solid surfaces...\n";
+    for (int idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
+        // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
+        for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
+            LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
+            layerm->slices_to_fill_surfaces_clipped();
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+            layerm->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-initial");
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+        }
+
+        for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
+            Layer       *layer  = this->layers[idx_layer];
+            LayerRegion *layerm = layer->get_region(idx_region);
+            // comparison happens against the *full* slices (considering all regions)
+            // unless internal shells are requested
+            Layer       *upper_layer = idx_layer + 1 < this->layer_count() ? this->get_layer(idx_layer + 1) : NULL;
+            Layer       *lower_layer = idx_layer > 0 ? this->get_layer(idx_layer - 1) : NULL;
+            // collapse very narrow parts (using the safety offset in the diff is not enough)
+            float        offset = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
+
+            Polygons     layerm_slices_surfaces = to_polygons(layerm->slices.surfaces);
+
+            // find top surfaces (difference between current surfaces
+            // of current layer and upper one)
+            Surfaces top;
+            if (upper_layer) {
+                // Config value $self->config->interface_shells is true, if a support is separated from the object
+                // by a soluble material (for example a PVA plastic).
+                Polygons upper_slices = this->config.interface_shells.value ? 
+                    to_polygons(upper_layer->get_region(idx_region)->slices.surfaces) : 
+                    to_polygons(upper_layer->slices);
+                surfaces_append(top,
+                    offset2_ex(diff(layerm_slices_surfaces, upper_slices, true), -offset, offset),
+                    stTop);
+            } else {
+                // if no upper layer, all surfaces of this one are solid
+                // we clone surfaces because we're going to clear the slices collection
+                top = layerm->slices.surfaces;
+                for (Surfaces::iterator it = top.begin(); it != top.end(); ++ it)
+                    it->surface_type = stTop;
+            }
+            
+            // find bottom surfaces (difference between current surfaces
+            // of current layer and lower one)
+            Surfaces bottom;
+            if (lower_layer) {
+                // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
+                // the support from the print.
+                SurfaceType surface_type_bottom = 
+                    (this->config.support_material.value && this->config.support_material_contact_distance.value == 0) ?
+                    stBottom : stBottomBridge;
+                // Any surface lying on the void is a true bottom bridge (an overhang)
+                surfaces_append(
+                    bottom,
+                    offset2_ex(
+                        diff(layerm_slices_surfaces, to_polygons(lower_layer->slices), true), 
+                        -offset, offset),
+                    surface_type_bottom);
+                // if user requested internal shells, we need to identify surfaces
+                // lying on other slices not belonging to this region
+                //FIXME Vojtech: config.internal_shells or config.interface_shells? Is it some legacy code?
+                // Why shall multiple regions over soluble support be treated specially?
+                if (this->config.interface_shells.value) {
+                    // non-bridging bottom surfaces: any part of this layer lying 
+                    // on something else, excluding those lying on our own region
+                    surfaces_append(
+                        bottom,
+                        offset2_ex(
+                            diff(
+                                intersection(layerm_slices_surfaces, to_polygons(lower_layer->slices)), // supported
+                                to_polygons(lower_layer->get_region(idx_region)->slices.surfaces), 
+                                true), 
+                            -offset, offset),
+                        stBottom);
+                }
+            } else {
+                // if no lower layer, all surfaces of this one are solid
+                // we clone surfaces because we're going to clear the slices collection
+                bottom = layerm->slices.surfaces;
+                // if we have raft layers, consider bottom layer as a bridge
+                // just like any other bottom surface lying on the void
+                SurfaceType surface_type_bottom = 
+                    (this->config.raft_layers.value > 0 && this->config.support_material_contact_distance.value > 0) ?
+                    stBottomBridge : stBottom;
+                for (Surfaces::iterator it = bottom.begin(); it != bottom.end(); ++ it)
+                    it->surface_type = surface_type_bottom;
+            }
+            
+            // now, if the object contained a thin membrane, we could have overlapping bottom
+            // and top surfaces; let's do an intersection to discover them and consider them
+            // as bottom surfaces (to allow for bridge detection)
+            if (! top.empty() && ! bottom.empty()) {
+//                Polygons overlapping = intersection(to_polygons(top), to_polygons(bottom));
+//                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->layer->id, scalar(@$overlapping)
+//                    if $Slic3r::debug;
+                Polygons top_polygons = to_polygons(STDMOVE(top));
+                top.clear();
+                surfaces_append(top,
+#if 0
+                    offset2_ex(diff(top_polygons, to_polygons(bottom), true), -offset, offset),
+#else
+                    diff_ex(top_polygons, to_polygons(bottom), false),
+#endif
+                    stTop);
+            }
+            
+            // save surfaces to layer
+            layerm->slices.surfaces.clear();
+
+            // find internal surfaces (difference between top/bottom surfaces and others)
+            {
+                Polygons topbottom = to_polygons(top);
+                polygons_append(topbottom, to_polygons(bottom));
+                surfaces_append(layerm->slices.surfaces, 
+#if 0
+                    offset2_ex(diff(layerm_slices_surfaces, topbottom, true), -offset, offset),
+#else
+                    diff_ex(layerm_slices_surfaces, topbottom, false),
+#endif
+                    stInternal);
+            }
+
+            surfaces_append(layerm->slices.surfaces, STDMOVE(top));
+            surfaces_append(layerm->slices.surfaces, STDMOVE(bottom));
+            
+//            Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
+//                $layerm->layer->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+            layerm->export_region_slices_to_svg_debug("detect_surfaces_type-final");
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+        } // for each layer of a region
+        
+        // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
+        for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
+            LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
+            layerm->slices_to_fill_surfaces_clipped();
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+            layerm->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-final");
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+        } // for each layer of a region
+    } // for each $self->print->region_count
+}
+
 void
 PrintObject::process_external_surfaces()
 {
@@ -367,10 +523,23 @@ PrintObject::discover_vertical_shells()
                     ++ idx;
                 }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+                SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                 for (int n = (int)idx_layer - layerm->region()->config.bottom_solid_layers + 1; n < (int)idx_layer + layerm->region()->config.top_solid_layers; ++ n)
-                    if (n >= 0 && n < (int)this->layers.size())
-                        polygons_append(shell, this->layers[n]->perimeter_expolygons.expolygons);
-                //FIXME Add the top / bottom layerm->slices to the mix!
+                    if (n >= 0 && n < (int)this->layers.size()) {
+                        Layer       &neighbor_layer = *this->layers[n];
+                        LayerRegion &neighbor_region = *neighbor_layer.get_region(int(idx_region));
+                        polygons_append(shell, neighbor_layer.perimeter_expolygons.expolygons);
+                        if (n > int(idx_layer)) {
+                            // Collect top surfaces.
+                            polygons_append(shell, to_polygons(neighbor_region.slices.filter_by_type(stTop)));
+                            polygons_append(shell, to_polygons(neighbor_region.fill_surfaces.filter_by_type(stTop)));
+                        }
+                        else if (n < int(idx_layer)) {
+                            // Collect bottom and bottom bridge surfaces.
+                            polygons_append(shell, to_polygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)));
+                            polygons_append(shell, to_polygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)));
+                        }
+                    }
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 {
                     static size_t idx = 0;
@@ -430,25 +599,47 @@ PrintObject::discover_vertical_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
             // Trim the shells region by the internal & internal void surfaces.
-            const SurfaceType surfaceTypesInternal[] = { stInternal, stInternalVoid };
+            const SurfaceType surfaceTypesInternal[] = { stInternal, stInternalVoid, stInternalSolid };
             const Polygons    polygonsInternal = to_polygons(layerm->fill_surfaces.filter_by_types(surfaceTypesInternal, 2));
             shell = intersection(shell, polygonsInternal, true);
             if (shell.empty())
                 continue;
 
+            // Append the internal solids, so they will be merged with the new ones.
+            polygons_append(shell, to_polygons(layerm->fill_surfaces.filter_by_type(stInternalSolid)));
+
             // These regions will be filled by a rectilinear full infill. Currently this type of infill
             // only fills regions, which fit at least a single line. To avoid gaps in the sparse infill,
             // make sure that this region does not contain parts narrower than the infill spacing width.
-            float min_perimeter_infill_spacing = float(infill_line_spacing) * 1.05f;
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             Polygons shell_before = shell;
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+#if 1
+            float min_perimeter_infill_spacing = float(infill_line_spacing) * 1.05f;
             // Intentionally inflate a bit more than how much the region has been shrunk, 
             // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
             shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing,
                 CLIPPER_OFFSET_SCALE, ClipperLib::jtSquare);
             if (shell.empty())
                 continue;
+#else
+            // Ensure each region is at least 3x infill line width wide, so it could be filled in.
+//            float margin = float(infill_line_spacing) * 3.f;
+            float margin = float(infill_line_spacing) * 1.5f;
+            // we use a higher miterLimit here to handle areas with acute angles
+            // in those cases, the default miterLimit would cut the corner and we'd
+            // get a triangle in $too_narrow; if we grow it below then the shell
+            // would have a different shape from the external surface and we'd still
+            // have the same angle, so the next shell would be grown even more and so on.
+            Polygons too_narrow = diff(shell, offset2(shell, -margin, margin, CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 5.), true);
+            if (! too_narrow.empty()) {
+                // grow the collapsing parts and add the extra area to  the neighbor layer 
+                // as well as to our original surfaces so that we support this 
+                // additional area in the next shell too
+                // make sure our grown surfaces don't exceed the fill area
+                polygons_append(shell, intersection(offset(too_narrow, margin), polygonsInternal));
+            }
+#endif
             ExPolygons new_internal_solid = intersection_ex(polygonsInternal, shell, false);
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             {
@@ -465,8 +656,6 @@ PrintObject::discover_vertical_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
             // Trim the internal & internalvoid by the shell.
-            // Enforce some overlap with the other infill regions.
-            shell = offset(shell, - 0.25f * min_perimeter_infill_spacing);
             Slic3r::ExPolygons new_internal = diff_ex(
                 to_polygons(layerm->fill_surfaces.filter_by_type(stInternal)),
                 shell,
@@ -489,7 +678,7 @@ PrintObject::discover_vertical_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
             // Assign resulting internal surfaces to layer.
-            const SurfaceType surfaceTypesKeep[] = { stTop, stBottom, stBottomBridge, stInternalSolid };
+            const SurfaceType surfaceTypesKeep[] = { stTop, stBottom, stBottomBridge };
             layerm->fill_surfaces.keep_types(surfaceTypesKeep, sizeof(surfaceTypesKeep)/sizeof(SurfaceType));
             layerm->fill_surfaces.append(stInternal     , new_internal);
             layerm->fill_surfaces.append(stInternalVoid , new_internal_void);

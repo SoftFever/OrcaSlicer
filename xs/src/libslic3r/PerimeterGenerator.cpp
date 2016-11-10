@@ -120,7 +120,11 @@ PerimeterGenerator::process()
                     // from the line width of the infill?
                     coord_t distance = (i == 1) ? ext_pspacing2 : pspacing;
                     
-                    if (this->config->thin_walls) {
+
+                    //FIXME Vojtech: Why there is a special case for the thin walls?
+                    // Gap fill is active all the time anyway and this is not the outer perimeter.
+//                    if (this->config->thin_walls) {
+                    if (false) {
                         offsets = offset2(
                             last,
                             -(distance + min_spacing/2 - 1),

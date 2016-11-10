@@ -76,12 +76,6 @@ Layer::clear_regions()
 }
 
 LayerRegion*
-Layer::get_region(int idx)
-{
-    return this->regions.at(idx);
-}
-
-LayerRegion*
 Layer::add_region(PrintRegion* print_region)
 {
     LayerRegion* region = new LayerRegion(this, print_region);

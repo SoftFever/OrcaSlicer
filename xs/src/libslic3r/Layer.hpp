@@ -61,6 +61,7 @@ class LayerRegion
     
     Flow flow(FlowRole role, bool bridge = false, double width = -1) const;
     void merge_slices();
+    void slices_to_fill_surfaces_clipped();
     void prepare_fill_surfaces();
     void make_perimeters(const SurfaceCollection &slices, SurfaceCollection* perimeter_surfaces, SurfaceCollection* fill_surfaces);
     void process_external_surfaces(const Layer* lower_layer);
@@ -108,7 +109,8 @@ public:
 
 
     size_t region_count() const;
-    LayerRegion* get_region(int idx);
+    const LayerRegion* get_region(int idx) const { return this->regions.at(idx); }
+    LayerRegion* get_region(int idx) { return this->regions.at(idx); }
     LayerRegion* add_region(PrintRegion* print_region);
     
     void make_slices();
