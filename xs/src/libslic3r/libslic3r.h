@@ -10,7 +10,7 @@
 #include <stdarg.h>
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
-#define SLIC3R_VERSION "1.3.0-dev"
+#define SLIC3R_VERSION "1.31.4"
 
 //FIXME This epsilon value is used for many non-related purposes:
 // For a threshold of a squared Euclidean distance,
