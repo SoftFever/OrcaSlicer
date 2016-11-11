@@ -768,6 +768,74 @@ static inline void emit_perimeter_segment_on_vertical_line(
 	out.points.push_back(Point(il.pos, itsct2.pos()));
 }
 
+//TBD: For precise infill, measure the area of a slab spanned by an infill line.
+/*
+static inline float measure_outer_contour_slab(
+    const ExPolygonWithOffset                     &poly_with_offset,
+    const std::vector<SegmentedIntersectionLine>  &segs,
+    size_t                                         i_vline,
+    size_t                                         iIntersection)
+{
+    const SegmentedIntersectionLine &il     = segs[i_vline];
+    const SegmentIntersection       &itsct  = il.intersections[i_vline];
+    const SegmentIntersection       &itsct2 = il.intersections[iIntersection2];
+    const Polygon                   &poly   = poly_with_offset.contour((itsct.iContour);
+    myassert(itsct.is_outer());
+    myassert(itsct2.is_outer());
+    myassert(itsct.type != itsct2.type);
+    myassert(itsct.iContour == itsct2.iContour);
+    if (! itsct.is_outer() || ! itsct2.is_outer() || itsct.type == itsct2.type || itsct.iContour != itsct2.iContour)
+        // Error, return zero area.
+        return 0.f;
+
+    // Find possible connection points on the previous / next vertical line.
+    int iPrev = intersection_on_prev_vertical_line(poly_with_offset, segs, i_vline, itsct.iContour, i_intersection);
+    int iNext = intersection_on_next_vertical_line(poly_with_offset, segs, i_vline, itsct.iContour, i_intersection);
+    // Find possible connection points on the same vertical line.
+    int iAbove = iBelow = -1;
+    // Does the perimeter intersect the current vertical line above intrsctn?
+    for (size_t i = i_intersection + 1; i + 1 < seg.intersections.size(); ++ i)
+        if (seg.intersections[i].iContour == itsct.iContour)
+            { iAbove = i; break; }
+    // Does the perimeter intersect the current vertical line below intrsctn?
+    for (int i = int(i_intersection) - 1; i > 0; -- i)
+        if (seg.intersections[i].iContour == itsct.iContour)
+            { iBelow = i; break; }
+
+    if (iSegAbove != -1 && seg.intersections[iAbove].type == SegmentIntersection::OUTER_HIGH) {
+        // Invalidate iPrev resp. iNext, if the perimeter crosses the current vertical line earlier than iPrev resp. iNext.
+        // The perimeter contour orientation.
+        const Polygon &poly = poly_with_offset.contour(itsct.iContour);
+        {
+            int d_horiz = (iPrev  == -1) ? std::numeric_limits<int>::max() :
+                distance_of_segmens(poly, segs[i_vline-1].intersections[iPrev].iSegment, itsct.iSegment, true);
+            int d_down  = (iBelow == -1) ? std::numeric_limits<int>::max() :
+                distance_of_segmens(poly, iSegBelow, itsct.iSegment, true);
+            int d_up    = (iAbove == -1) ? std::numeric_limits<int>::max() :
+                distance_of_segmens(poly, iSegAbove, itsct.iSegment, true);
+            if (intrsctn_type_prev == INTERSECTION_TYPE_OTHER_VLINE_OK && d_horiz > std::min(d_down, d_up))
+                // The vertical crossing comes eralier than the prev crossing.
+                // Disable the perimeter going back.
+                intrsctn_type_prev = INTERSECTION_TYPE_OTHER_VLINE_NOT_FIRST;
+            if (d_up > std::min(d_horiz, d_down))
+                // The horizontal crossing comes earlier than the vertical crossing.
+                vert_seg_dir_valid_mask &= ~DIR_BACKWARD;
+        }
+        {
+            int d_horiz = (iNext     == -1) ? std::numeric_limits<int>::max() :
+                distance_of_segmens(poly, itsct.iSegment, segs[i_vline+1].intersections[iNext].iSegment, true);
+            int d_down  = (iSegBelow == -1) ? std::numeric_limits<int>::max() :
+                distance_of_segmens(poly, itsct.iSegment, iSegBelow, true);
+            int d_up    = (iSegAbove == -1) ? std::numeric_limits<int>::max() :
+                distance_of_segmens(poly, itsct.iSegment, iSegAbove, true);
+            if (d_up > std::min(d_horiz, d_down))
+                // The horizontal crossing comes earlier than the vertical crossing.
+                vert_seg_dir_valid_mask &= ~DIR_FORWARD;
+        }
+    }
+}
+*/
+
 enum DirectionMask
 {
     DIR_FORWARD  = 1,
@@ -826,7 +894,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     // Intersect a set of euqally spaced vertical lines wiht expolygon.
     // n_vlines = ceil(bbox_width / line_spacing)
     size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + line_spacing - 1) / line_spacing;
-    coord_t x0 = bounding_box.min.x + line_spacing / 2;
+    coord_t x0 = bounding_box.min.x + (line_spacing + SCALED_EPSILON) / 2;
 
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;
@@ -1111,13 +1179,20 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     svg.Close();
 #endif /* SLIC3R_DEBUG */
 
-    // Mark an outer only chord as consumed, so there will be no tiny pieces emitted.
+    // For each outer only chords, measure their maximum distance to the bow of the outer contour.
+    // Mark an outer only chord as consumed, if the distance is low.
     for (size_t i_vline = 0; i_vline < segs.size(); ++ i_vline) {
         SegmentedIntersectionLine &seg = segs[i_vline];
-        for (size_t i = 0; i + 1 < seg.intersections.size(); ++ i) {
-            if (seg.intersections[i].type == SegmentIntersection::OUTER_LOW &&
-                seg.intersections[i+1].type == SegmentIntersection::OUTER_HIGH)
-                seg.intersections[i].consumed_vertical_up = true;
+        for (size_t i_intersection = 0; i_intersection + 1 < seg.intersections.size(); ++ i_intersection) {
+            if (seg.intersections[i_intersection].type == SegmentIntersection::OUTER_LOW &&
+                seg.intersections[i_intersection+1].type == SegmentIntersection::OUTER_HIGH) {
+                bool consumed = false;
+//                if (full_infill) {
+//                        measure_outer_contour_slab(poly_with_offset, segs, i_vline, i_ntersection);
+//                } else
+                    consumed = true;
+                seg.intersections[i_intersection].consumed_vertical_up = consumed;
+            }
         }
     }
 

@@ -97,6 +97,15 @@ inline Polygons to_polygons(const SurfacesPtr &src)
     return polygons;
 }
 
+inline ExPolygons to_expolygons(const SurfacesPtr &src)
+{
+    ExPolygons expolygons;
+    expolygons.reserve(src.size());
+    for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it)
+        expolygons.push_back((*it)->expolygon);
+    return expolygons;
+}
+
 // Count a nuber of polygons stored inside the vector of expolygons.
 // Useful for allocating space for polygons when converting expolygons to polygons.
 inline size_t number_polygons(const Surfaces &surfaces)

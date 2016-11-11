@@ -498,6 +498,7 @@ PrintObject::discover_vertical_shells()
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             ExPolygons shell_ex;
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+            float min_perimeter_infill_spacing = float(infill_line_spacing) * 1.05f;
             if (1)
             {
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -531,13 +532,13 @@ PrintObject::discover_vertical_shells()
                         polygons_append(shell, neighbor_layer.perimeter_expolygons.expolygons);
                         if (n > int(idx_layer)) {
                             // Collect top surfaces.
-                            polygons_append(shell, to_polygons(neighbor_region.slices.filter_by_type(stTop)));
-                            polygons_append(shell, to_polygons(neighbor_region.fill_surfaces.filter_by_type(stTop)));
+                            polygons_append(shell, offset(to_expolygons(neighbor_region.slices.filter_by_type(stTop)), min_perimeter_infill_spacing));
+                            polygons_append(shell, offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing));
                         }
                         else if (n < int(idx_layer)) {
                             // Collect bottom and bottom bridge surfaces.
-                            polygons_append(shell, to_polygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)));
-                            polygons_append(shell, to_polygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)));
+                            polygons_append(shell, offset(to_expolygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing));
+                            polygons_append(shell, offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing));
                         }
                     }
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -615,7 +616,6 @@ PrintObject::discover_vertical_shells()
             Polygons shell_before = shell;
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 #if 1
-            float min_perimeter_infill_spacing = float(infill_line_spacing) * 1.05f;
             // Intentionally inflate a bit more than how much the region has been shrunk, 
             // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
             shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing,

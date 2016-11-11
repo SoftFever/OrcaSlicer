@@ -69,10 +69,10 @@ coord_t Fill::_adjust_solid_spacing(const coord_t width, const coord_t distance)
     assert(width >= 0);
     assert(distance > 0);
     // floor(width / distance)
-    coord_t number_of_intervals = width / distance;
+    coord_t number_of_intervals = (width - EPSILON) / distance;
     coord_t distance_new = (number_of_intervals == 0) ? 
         distance : 
-        (width / number_of_intervals);
+        ((width - EPSILON) / number_of_intervals);
     const coordf_t factor = coordf_t(distance_new) / coordf_t(distance);
     assert(factor > 1. - 1e-5);
     // How much could the extrusion width be increased? By 20%.
