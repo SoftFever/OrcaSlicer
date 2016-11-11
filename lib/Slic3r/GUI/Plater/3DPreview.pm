@@ -52,7 +52,7 @@ sub new {
     $z_label_high->SetFont($Slic3r::GUI::small_font);
 
     $self->single_layer(0);
-    my $checkbox_singlelayer = Wx::CheckBox->new($self, -1, "1 Layer");
+    my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
     
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -134,37 +134,51 @@ sub load_print {
     # we require that there's at least one object and the posSlice step
     # is performed on all of them (this ensures that _shifted_copies was
     # populated and we know the number of layers)
-    if (!$self->print->object_step_done(STEP_SLICE)) {
-        $self->enabled(0);
-        $self->slider_low->Hide;
-        $self->slider_high->Hide;
-        $self->canvas->Refresh;  # clears canvas
-        return;
-    }
-    
-    my $z_idx;
-    {
+    my $n_layers = 0;
+    if ($self->print->object_step_done(STEP_SLICE)) {
         my %z = ();  # z => 1
         foreach my $object (@{$self->{print}->objects}) {
             foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
                 $z{$layer->print_z} = 1;
             }
         }
-        $self->enabled(1);
         $self->{layers_z} = [ sort { $a <=> $b } keys %z ];
-        $self->slider_low->SetRange(0, scalar(@{$self->{layers_z}})-1);
-        $self->slider_high->SetRange(0, scalar(@{$self->{layers_z}})-1);
-        $self->slider_low->SetValue(0);
-        if (($z_idx = $self->slider_high->GetValue) <= $#{$self->{layers_z}} && $self->slider_high->GetValue != 0) {
-            # use $z_idx
-        } else {
-            $self->slider_high->SetValue(scalar(@{$self->{layers_z}})-1);
-            $z_idx = @{$self->{layers_z}} ? -1 : undef;
-        }
-        $self->slider_low->Show;
-        $self->slider_high->Show;
-        $self->Layout;
+        $n_layers = scalar(@{$self->{layers_z}});
     }
+
+    if ($n_layers == 0) {
+        $self->enabled(0);
+        $self->set_z_range(0,0);
+        $self->slider_low->Hide;
+        $self->slider_high->Hide;
+        $self->canvas->Refresh;  # clears canvas
+        return;
+    }
+    
+    my $z_idx_low = $self->slider_low->GetValue;
+    my $z_idx_high = $self->slider_high->GetValue;
+    $self->enabled(1);
+    $self->slider_low->SetRange(0, $n_layers - 1);
+    $self->slider_high->SetRange(0, $n_layers - 1);
+    if ($z_idx_high < $n_layers && ($self->single_layer || $z_idx_high != 0)) {
+        # use $z_idx
+    } else {
+        # Out of range. Disable 'single layer' view.
+        $self->single_layer(0);
+        $self->{checkbox_singlelayer}->SetValue(0);
+        $z_idx_low = 0;
+        $z_idx_high = $n_layers - 1;
+    }
+    if ($self->single_layer) {
+        $z_idx_low = $z_idx_high;
+    } elsif ($z_idx_low > $z_idx_high) {
+        $z_idx_low = 0;
+    }
+    $self->slider_low->SetValue($z_idx_low);
+    $self->slider_high->SetValue($z_idx_high);
+    $self->slider_low->Show;
+    $self->slider_high->Show;
+    $self->Layout;
     
     if ($self->IsShown) {
         # load skirt and brim
@@ -181,7 +195,7 @@ sub load_print {
         $self->_loaded(1);
     }
     
-    $self->set_z_range(0, $self->{layers_z}[$z_idx]);
+    $self->set_z_range($self->{layers_z}[$z_idx_low], $self->{layers_z}[$z_idx_high]);
 }
 
 sub set_z_range
