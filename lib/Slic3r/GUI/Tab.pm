@@ -820,6 +820,35 @@ sub _update {
             $self->load_config($new_conf);
         }
     }
+
+    if ($config->support_material) {
+        # Ask only once.
+        if (! $self->{support_material_overhangs_queried}) {
+            $self->{support_material_overhangs_queried} = 1;
+            if ($config->overhangs != 1) {
+                my $dialog = Wx::MessageDialog->new($self,
+                    "Supports work better, if the following feature is enabled:\n"
+                    . "- Detect bridging perimeters\n"
+                    . "\nShall I adjust those settings for supports?",
+                    'Support Generator', wxICON_WARNING | wxYES | wxNO | wxCANCEL);
+                my $answer = $dialog->ShowModal();
+                my $new_conf = Slic3r::Config->new;
+                if ($answer == wxID_YES) {
+                    # Enable "detect bridging perimeters".
+                    $new_conf->set("overhangs", 1);
+                } elsif ($answer == wxID_NO) {
+                    # Do nothing, leave supports on and "detect bridging perimeters" off.
+                } elsif ($answer == wxID_CANCEL) {
+                    # Disable supports.
+                    $new_conf->set("support_material", 0);
+                    $self->{support_material_overhangs_queried} = 0;
+                }
+                $self->load_config($new_conf);
+            }
+        }
+    } else {
+        $self->{support_material_overhangs_queried} = 0;
+    }
     
     if ($config->fill_density == 100
         && !first { $_ eq $config->fill_pattern } @{$Slic3r::Config::Options->{external_fill_pattern}{values}}) {
