@@ -30,7 +30,9 @@ sub new {
         keep_upper      => 1,
         keep_lower      => 1,
         rotate_lower    => 1,
-        preview         => 1,
+#        preview         => 1,
+# Disabled live preview by default as it is not stable and/or the calculation takes too long for interactive usage.
+        preview         => 0,
     };
     
     my $optgroup;
@@ -258,7 +260,8 @@ sub _update {
         $optgroup->get_field('keep_upper')->toggle(my $have_upper = abs($z - $optgroup->get_option('z')->max) > 0.1);
         $optgroup->get_field('keep_lower')->toggle(my $have_lower = $z > 0.1);
         $optgroup->get_field('rotate_lower')->toggle($z > 0 && $self->{cut_options}{keep_lower});
-        $optgroup->get_field('preview')->toggle($self->{cut_options}{keep_upper} != $self->{cut_options}{keep_lower});
+# Disabled live preview by default as it is not stable and/or the calculation takes too long for interactive usage.
+#        $optgroup->get_field('preview')->toggle($self->{cut_options}{keep_upper} != $self->{cut_options}{keep_lower});
     
         # update cut button
         if (($self->{cut_options}{keep_upper} && $have_upper)
