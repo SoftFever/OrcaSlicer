@@ -24,6 +24,7 @@
 #define __admesh_stl__
 
 #include <stdio.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,11 +34,15 @@ extern "C" {
 #define STL_MIN(A,B) ((A)<(B)? (A):(B))
 #define ABS(X)  ((X) < 0 ? -(X) : (X))
 
+// Size of the binary STL header, free form.
 #define LABEL_SIZE             80
+// Binary STL, length of the "number of faces" counter.
 #define NUM_FACET_SIZE         4
+// Binary STL, sizeof header + number of faces.
 #define HEADER_SIZE            84
 #define STL_MIN_FILE_SIZE      284
 #define ASCII_LINES_PER_FACET  7
+// Comparing an edge by memcmp, 2x3x4 bytes = 24
 #define SIZEOF_EDGE_SORT       24
 
 typedef struct {
@@ -70,14 +75,17 @@ typedef struct {
 } stl_edge;
 
 typedef struct stl_hash_edge {
-  unsigned       key[6];
+  // Key of a hash edge: 2x binary copy of a floating point vertex.
+  uint32_t       key[6];
   int            facet_number;
   int            which_edge;
   struct stl_hash_edge  *next;
 } stl_hash_edge;
 
 typedef struct {
+  // Index of a neighbor facet.
   int   neighbor[3];
+  // Index of an opposite vertex at the neighbor face.
   char  which_vertex_not[3];
 } stl_neighbors;
 
