@@ -29,7 +29,7 @@
     long x_max() %code{% RETVAL = THIS->max.x; %};
     long y_min() %code{% RETVAL = THIS->min.y; %};
     long y_max() %code{% RETVAL = THIS->max.y; %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%d,%d;%d,%d", THIS->min.x, THIS->min.y, THIS->max.x, THIS->max.y); RETVAL = buf; %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld;%ld,%ld", THIS->min.x, THIS->min.y, THIS->max.x, THIS->max.y); RETVAL = buf; %};
   
 %{
 

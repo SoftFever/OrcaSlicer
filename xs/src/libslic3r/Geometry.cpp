@@ -504,7 +504,7 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
                 }
                 cellsorder.insert(cellsorder.begin() + low, ArrangeItemIndex(index, c));
             }
-            ENDSORT: true;
+            ENDSORT: ;
         }
     }
     

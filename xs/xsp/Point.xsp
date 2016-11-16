@@ -49,7 +49,7 @@
         %code{% RETVAL = new Point(THIS->negative()); %};
     bool coincides_with_epsilon(Point* point)
         %code{% RETVAL = THIS->coincides_with_epsilon(*point); %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%d,%d", THIS->x, THIS->y); RETVAL = buf; %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld", THIS->x, THIS->y); RETVAL = buf; %};
 
 %{
 
@@ -87,7 +87,7 @@ Point::coincides_with(point_sv)
         %code{% RETVAL = THIS->y; %};
     long z()
         %code{% RETVAL = THIS->z; %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%d,%d,%d", THIS->x, THIS->y, THIS->z); RETVAL = buf; %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld,%ld", THIS->x, THIS->y, THIS->z); RETVAL = buf; %};
 };
 
 %name{Slic3r::Pointf} class Pointf {
