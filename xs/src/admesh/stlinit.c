@@ -284,6 +284,20 @@ stl_read(stl_file *stl, int first_facet, int first) {
         stl->error = 1;
         return;
       }
+#if 0
+      // Report close to zero vertex coordinates. Due to the nature of the floating point numbers,
+      // close to zero values may be represented with singificantly higher precision than the rest of the vertices.
+      // It may be worth to round these numbers to zero during loading to reduce the number of errors reported
+      // during the STL import.
+      for (size_t j = 0; j < 3; ++ j) {
+        if (facet.vertex[j].x > -1e-12f && facet.vertex[j].x < 1e-12f)
+            printf("stl_read: facet %d.x = %e\r\n", j, facet.vertex[j].x);
+        if (facet.vertex[j].y > -1e-12f && facet.vertex[j].y < 1e-12f)
+            printf("stl_read: facet %d.y = %e\r\n", j, facet.vertex[j].y);
+        if (facet.vertex[j].z > -1e-12f && facet.vertex[j].z < 1e-12f)
+            printf("stl_read: facet %d.z = %e\r\n", j, facet.vertex[j].z);
+      }
+#endif
     } else
       /* Read a single facet from an ASCII .STL file */
     {
@@ -304,6 +318,29 @@ stl_read(stl_file *stl, int first_facet, int first) {
         return;
       }
     }
+
+#if 1
+    {
+      // Positive and negative zeros are possible in the floats, which are considered equal by the FP unit.
+      // When using a memcmp on raw floats, those numbers report to be different.
+      // Unify all +0 and -0 to +0 to make the floats equal under memcmp.
+      uint32_t *f = (uint32_t*)&facet;
+      for (int j = 0; j < 12; ++ j, ++ f) // 3x vertex + normal: 4x3 = 12 floats
+        if (*f == 0x80000000)
+          // Negative zero, switch to positive zero.
+          *f = 0;
+    }
+#else
+    {
+      // Due to the nature of the floating point numbers, close to zero values may be represented with singificantly higher precision 
+      // than the rest of the vertices. Round them to zero.
+      float *f = (float*)&facet;
+      for (int j = 0; j < 12; ++ j, ++ f) // 3x vertex + normal: 4x3 = 12 floats
+        if (*f > -1e-12f && *f < 1e-12f)
+          // Negative zero, switch to positive zero.
+          *f = 0;
+    }
+#endif
     /* Write the facet into memory. */
     stl->facet_start[i] = facet;
 
