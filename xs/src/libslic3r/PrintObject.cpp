@@ -482,12 +482,34 @@ PrintObject::process_external_surfaces()
     }
 }
 
+struct DiscoverVerticalShellsCacheEntry
+{
+    DiscoverVerticalShellsCacheEntry() : valid(false) {}
+    // Collected polygons, offsetted
+    Polygons    slices;
+    Polygons    fill_surfaces;
+    // Is this cache entry valid?
+    bool        valid;
+};
+
 void
 PrintObject::discover_vertical_shells()
 {
+    const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
+
     for (size_t idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
-        if (! this->_print->regions[idx_region]->config.ensure_vertical_shell_thickness.value)
+        const PrintRegion &region = *this->_print->get_region(idx_region);
+        if (! region.config.ensure_vertical_shell_thickness.value)
+            // This region will be handled by discover_horizontal_shells().
             continue;
+        int n_extra_top_layers    = std::max(0, region.config.top_solid_layers.value - 1);
+        int n_extra_bottom_layers = std::max(0, region.config.bottom_solid_layers.value - 1);
+        if (n_extra_top_layers + n_extra_bottom_layers == 0)
+            // Zero or 1 layer, there is no additional vertical wall thickness enforced.
+            continue;
+        // Cyclic buffers of pre-calculated offsetted top/bottom surfaces.
+        std::vector<DiscoverVerticalShellsCacheEntry> cache_top_regions(n_extra_top_layers, DiscoverVerticalShellsCacheEntry());
+        std::vector<DiscoverVerticalShellsCacheEntry> cache_bottom_regions(n_extra_bottom_layers, DiscoverVerticalShellsCacheEntry());
         for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++ idx_layer) {
             Layer       *layer               = this->layers[idx_layer];
             LayerRegion *layerm              = layer->get_region(idx_region);
@@ -505,7 +527,7 @@ PrintObject::discover_vertical_shells()
                 {
                     static size_t idx = 0;
                     SVG svg_cummulative(debug_out_path("discover_vertical_shells-perimeters-before-union-run%d.svg", idx), this->bounding_box());
-                    for (int n = (int)idx_layer - layerm->region()->config.bottom_solid_layers + 1; n < (int)idx_layer + layerm->region()->config.top_solid_layers; ++ n) {
+                    for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n) {
                         if (n < 0 || n >= (int)this->layers.size())
                             continue;
                         ExPolygons &expolys = this->layers[n]->perimeter_expolygons;
@@ -524,21 +546,37 @@ PrintObject::discover_vertical_shells()
                     ++ idx;
                 }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-                SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
-                for (int n = (int)idx_layer - layerm->region()->config.bottom_solid_layers + 1; n < (int)idx_layer + layerm->region()->config.top_solid_layers; ++ n)
+                // Reset the top / bottom inflated regions caches of entries, which are out of the moving window.
+                if (n_extra_top_layers > 0)
+                    cache_top_regions[idx_layer % n_extra_top_layers].valid = false;
+                if (n_extra_bottom_layers > 0 && idx_layer > 0)
+                    cache_bottom_regions[(idx_layer - 1) % n_extra_bottom_layers].valid = false;
+                for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n)
                     if (n >= 0 && n < (int)this->layers.size()) {
                         Layer       &neighbor_layer = *this->layers[n];
                         LayerRegion &neighbor_region = *neighbor_layer.get_region(int(idx_region));
                         polygons_append(shell, neighbor_layer.perimeter_expolygons.expolygons);
                         if (n > int(idx_layer)) {
                             // Collect top surfaces.
-                            polygons_append(shell, offset(to_expolygons(neighbor_region.slices.filter_by_type(stTop)), min_perimeter_infill_spacing));
-                            polygons_append(shell, offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing));
+                            DiscoverVerticalShellsCacheEntry &cache = cache_top_regions[n % n_extra_top_layers];
+                            if (! cache.valid) {
+                                cache.valid = true;
+                                cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_type(stTop)), min_perimeter_infill_spacing);
+                                cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing);
+                            }
+                            polygons_append(shell, cache.slices);
+                            polygons_append(shell, cache.fill_surfaces);
                         }
                         else if (n < int(idx_layer)) {
                             // Collect bottom and bottom bridge surfaces.
-                            polygons_append(shell, offset(to_expolygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing));
-                            polygons_append(shell, offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing));
+                            DiscoverVerticalShellsCacheEntry &cache = cache_bottom_regions[n % n_extra_bottom_layers];
+                            if (! cache.valid) {
+                                cache.valid = true;
+                                cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
+                                cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
+                            }
+                            polygons_append(shell, cache.slices);
+                            polygons_append(shell, cache.fill_surfaces);
                         }
                     }
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
