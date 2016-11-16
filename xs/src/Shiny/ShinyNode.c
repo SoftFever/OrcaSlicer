@@ -22,14 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#if SHINY_IS_COMPILED == TRUE
+
 #include "ShinyNode.h"
 #include "ShinyZone.h"
 #include "ShinyNodeState.h"
 
 #include <memory.h>
-
-
-#if SHINY_IS_COMPILED == TRUE
 
 /*---------------------------------------------------------------------------*/
 
