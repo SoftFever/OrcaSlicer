@@ -24,6 +24,10 @@ if ($mswin) {
     # If <math.h> is included, we want the #defines to be active (M_PI etc.)
     push @cflags, qw(-D_WIN32 -DNOMINMAX -D_USE_MATH_DEFINES);
 }
+if (! $cpp_guess->is_msvc) {
+    # Don't use the version flag on MS Visual Studio, as it starts to recognize them up to 2015 and it uses different syntax.
+    push @cflags, qw(-std=c++11);
+}
 
 my @early_includes = ();
 my @INC  = qw(-Isrc/libslic3r -Isrc/glew/include);
