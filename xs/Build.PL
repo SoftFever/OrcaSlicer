@@ -46,6 +46,12 @@ if ($ENV{SLIC3R_GUI})
 #    push @early_includes, qw(slic3r/GUI/wxinit.h);
 }
 
+if ($ENV{SLIC3R_PROFILE})
+{
+    print "Slic3r will be built with a Shiny invasive profiler\n";
+    push @cflags, qw(-DSLIC3R_PROFILE);
+}
+
 if ($ENV{SLIC3R_HAS_BROKEN_CROAK})
 {
     # Some Strawberry Perl builds (mainly the latest 64bit builds) have a broken mechanism
