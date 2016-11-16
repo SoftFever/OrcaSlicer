@@ -4,6 +4,8 @@
 #include "Geometry.hpp"
 #include "SVG.hpp"
 
+#include <Shiny/Shiny.h>
+
 namespace Slic3r {
 
 PrintObject::PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox)
@@ -495,9 +497,13 @@ struct DiscoverVerticalShellsCacheEntry
 void
 PrintObject::discover_vertical_shells()
 {
+    PROFILE_FUNC();
+
     const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
 
     for (size_t idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
+        PROFILE_BLOCK(discover_vertical_shells_region);
+
         const PrintRegion &region = *this->_print->get_region(idx_region);
         if (! region.config.ensure_vertical_shell_thickness.value)
             // This region will be handled by discover_horizontal_shells().
@@ -510,7 +516,10 @@ PrintObject::discover_vertical_shells()
         // Cyclic buffers of pre-calculated offsetted top/bottom surfaces.
         std::vector<DiscoverVerticalShellsCacheEntry> cache_top_regions(n_extra_top_layers, DiscoverVerticalShellsCacheEntry());
         std::vector<DiscoverVerticalShellsCacheEntry> cache_bottom_regions(n_extra_bottom_layers, DiscoverVerticalShellsCacheEntry());
-        for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++ idx_layer) {
+        for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++ idx_layer) 
+        {
+            PROFILE_BLOCK(discover_vertical_shells_region_layer);
+
             Layer       *layer               = this->layers[idx_layer];
             LayerRegion *layerm              = layer->get_region(idx_region);
             Flow         solid_infill_flow   = layerm->flow(frSolidInfill);
@@ -523,6 +532,7 @@ PrintObject::discover_vertical_shells()
             float min_perimeter_infill_spacing = float(infill_line_spacing) * 1.05f;
             if (1)
             {
+                PROFILE_BLOCK(discover_vertical_shells_region_layer_collect);
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 {
                     static size_t idx = 0;
@@ -578,6 +588,9 @@ PrintObject::discover_vertical_shells()
                             polygons_append(shell, cache.slices);
                             polygons_append(shell, cache.fill_surfaces);
                         }
+                        // Running the union_ using the Clipper library piece by piece is cheaper 
+                        // than running the union_ all at once.
+                        shell = union_(shell, false);
                     }
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 {
@@ -588,7 +601,13 @@ PrintObject::discover_vertical_shells()
                     svg.Close(); 
                 }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-                shell = union_(shell, true);
+#if 0
+                {
+                    PROFILE_BLOCK(discover_vertical_shells_region_layer_shell_);
+//                    shell = union_(shell, true);
+                    shell = union_(shell, false); 
+                }
+#endif
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 shell_ex = union_ex(shell, true);
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
@@ -728,6 +747,10 @@ PrintObject::discover_vertical_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
         } // for each layer
     } // for each region
+
+    // Write the profiler measurements to file
+    PROFILE_UPDATE();
+    PROFILE_OUTPUT(debug_out_path("discover_vertical_shells-profile.txt").c_str());
 }
 
 /* This method applies bridge flow to the first internal solid layer above
