@@ -82,6 +82,9 @@ use constant VIEW_BOTTOM     => [0.0,180.0];
 use constant VIEW_FRONT      => [0.0,90.0];
 use constant VIEW_REAR       => [180.0,90.0];
 
+#use constant GIMBALL_LOCK_THETA_MAX => 150;
+use constant GIMBALL_LOCK_THETA_MAX => 170;
+
 # make OpenGL::Array thread-safe
 {
     no warnings 'redefine';
@@ -254,7 +257,7 @@ sub mouse_event {
                 if (TURNTABLE_MODE) {
                     $self->_sphi($self->_sphi + ($pos->x - $orig->x) * TRACKBALLSIZE);
                     $self->_stheta($self->_stheta - ($pos->y - $orig->y) * TRACKBALLSIZE);        #-
-                    $self->_stheta(150) if $self->_stheta > 150;
+                    $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
                     $self->_stheta(0) if $self->_stheta < 0;
                 } else {
                     my $size = $self->GetClientSize;
@@ -359,7 +362,7 @@ sub select_view {
         $self->_sphi($dirvec->[0]);
         $self->_stheta($dirvec->[1]);
         # Avoid gimball lock.
-        $self->_stheta(150) if $self->_stheta > 150;
+        $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
         $self->_stheta(0) if $self->_stheta < 0;
         # View everything.
         $self->zoom_to_bounding_box($bb);
