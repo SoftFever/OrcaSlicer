@@ -40,11 +40,11 @@ extern "C" {
 #include "ppport.h"
 #undef do_open
 #undef do_close
+#undef bind
 #ifdef _MSC_VER
     // Undef some of the macros set by Perl <xsinit.h>, which cause compilation errors on Win32
     #undef send
     #undef connect
-    #undef bind
 #endif /* _MSC_VER */
 }
 #endif
