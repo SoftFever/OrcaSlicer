@@ -28,8 +28,6 @@ THE SOFTWARE.
 #include "ShinyData.h"
 #include "ShinyTools.h"
 
-#if SHINY_IS_COMPILED == TRUE
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -131,7 +129,5 @@ void ShinyNode_enumerateNodes(const ShinyNode* a_node, T* a_this, void (T::*a_fu
 	if (a_node->nextSibling) ShinyNode_enumerateNodes(a_node->nextSibling, a_this, a_func);
 }
 #endif /* __cplusplus */
-
-#endif /* if SHINY_IS_COMPILED == TRUE */
 
 #endif /* SHINY_NODE_H */

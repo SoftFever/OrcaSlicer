@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#if SHINY_IS_COMPILED == TRUE
+#ifdef SLIC3R_PROFILE
 
 #include "ShinyNodeState.h"
 #include "ShinyNode.h"
@@ -105,4 +105,4 @@ ShinyNode* ShinyNodeState_finishAndGetNextClean(ShinyNodeState *self) {
 	return node->nextSibling;
 }
 
-#endif
+#endif /* SLIC3R_PROFILE */

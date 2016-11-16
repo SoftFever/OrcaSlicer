@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#if SHINY_IS_COMPILED == TRUE
+#ifdef SLIC3R_PROFILE
 
 #include "ShinyTools.h"
 
@@ -110,4 +110,4 @@ float ShinyGetTickInvFreq(void) {
 
 #endif
 
-#endif /* if SHINY_IS_COMPILED == TRUE */
+#endif /* SLIC3R_PROFILE */

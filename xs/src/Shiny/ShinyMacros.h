@@ -25,9 +25,9 @@ THE SOFTWARE.
 #ifndef SHINY_MACROS_H
 #define SHINY_MACROS_H
 
-#include "ShinyManager.h"
+#ifdef SLIC3R_PROFILE
 
-#if SHINY_IS_COMPILED == TRUE
+#include "ShinyManager.h"
 
 /*---------------------------------------------------------------------------*/
 /* public preprocessors */
@@ -254,18 +254,7 @@ THE SOFTWARE.
 
 /*---------------------------------------------------------------------------*/
 
-#else /* if SHINY_IS_COMPILED == TRUE */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-SHINY_INLINE ShinyData GetEmptyData() {
-	ShinyData a = { { 0, 0 }, { 0, 0 }, { 0, 0 } };
-	return a;
-}
-#ifdef __cplusplus
-} /* end of extern "C" */
-#endif
+#else /* SLIC3R_PROFILE */
 
 #define PROFILE_UPDATE()
 #define PROFILE_SET_DAMPING(x)
@@ -285,13 +274,8 @@ SHINY_INLINE ShinyData GetEmptyData() {
 #define PROFILE_SHARED_DEFINE(name)
 #define PROFILE_SHARED_BEGIN(name)
 #define PROFILE_SHARED_BLOCK(name)
-#define PROFILE_GET_SHARED_DATA(name)	ShinyGetEmptyData()
-#define PROFILE_GET_ROOT_DATA()			ShinyGetEmptyData()
-
-#if SHINY_HAS_ENABLED == TRUE
 #define PROFILE_SET_ENABLED(boolean)
-#endif
 
-#endif /* SHINY_IS_COMPILED == TRUE */
+#endif /* SLIC3R_PROFILE */
 
 #endif /* SHINY_MACROS_H */

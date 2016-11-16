@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#ifdef SLIC3R_PROFILE
+
 #include "ShinyOutput.h"
 
 #include <stdio.h>
@@ -34,9 +36,6 @@ THE SOFTWARE.
 #else
 #	define TRAILING		1
 #endif
-
-#if SHINY_IS_COMPILED == TRUE
-
 
 /*---------------------------------------------------------------------------*/
 
@@ -187,4 +186,4 @@ void ShinyPrintZones(char* output, const ShinyZone *a_root) {
 	}
 }
 
-#endif
+#endif /* SLIC3R_PROFILE */

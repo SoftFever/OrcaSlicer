@@ -27,8 +27,6 @@ THE SOFTWARE.
 
 #include "ShinyNode.h"
 
-#if SHINY_IS_COMPILED == TRUE
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,8 +63,5 @@ uint32_t ShinyNodePool_memoryUsageChain(ShinyNodePool *first);
 #if __cplusplus
 } /* end of extern "C" */
 #endif
-
-#endif /* if SHINY_IS_COMPILED == TRUE */
-
 
 #endif /* SHINY_NODE_POOL_H */

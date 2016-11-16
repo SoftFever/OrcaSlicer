@@ -28,8 +28,6 @@ THE SOFTWARE.
 #include "ShinyNode.h"
 #include "ShinyZone.h"
 
-#if SHINY_IS_COMPILED == TRUE
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,7 +64,5 @@ SHINY_INLINE std::string ShinyZonesToString(const ShinyZone *a_root, uint32_t a_
 	return str;
 }
 #endif /* __cplusplus */
-
-#endif /* if SHINY_IS_COMPILED == TRUE */
 
 #endif /* SHINY_OUTPUT_H */

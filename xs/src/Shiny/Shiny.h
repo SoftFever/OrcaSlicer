@@ -28,6 +28,9 @@ THE SOFTWARE.
 /*---------------------------------------------------------------------------*/
 
 #include "ShinyMacros.h"
+
+#ifdef SLIC3R_PROFILE
 #include "ShinyManager.h"
+#endif /* SLIC3R_PROFILE */
 
 #endif /* SHINY_H */

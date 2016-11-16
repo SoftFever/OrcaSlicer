@@ -28,8 +28,6 @@ THE SOFTWARE.
 #include "ShinyData.h"
 #include <memory.h>
 
-#if SHINY_IS_COMPILED == TRUE
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -89,7 +87,5 @@ void ShinyZone_enumerateZones(const ShinyZone* a_zone, T* a_this, void (T::*a_fu
 	if (a_zone->next) ShinyZone_enumerateZones(a_zone->next, a_this, a_func);
 }
 #endif /* __cplusplus */
-
-#endif /* if SHINY_IS_COMPILED == TRUE */
 
 #endif /* SHINY_ZONE_H */

@@ -28,16 +28,6 @@ THE SOFTWARE.
 
 /*---------------------------------------------------------------------------*/
 
-/* SHINY_IS_COMPILED is the master on or off swith at compile time. Define it to TRUE or FALSE before including header Shiny.h or inside ShinyConfig.h. Default is TRUE.
- */
-#if defined(SLIC3R_PROFILE) && defined(WIN32)
-#define SHINY_IS_COMPILED		TRUE
-#else
-#define SHINY_IS_COMPILED		FALSE
-#endif
-
-#define SHINY_STATIC_LINK		TRUE
-
 /* if SHINY_LOOKUP_RATE is defined to TRUE then Shiny will record the success of its hash function. This is useful for debugging. Default is FALSE.
  */
 #ifndef SHINY_LOOKUP_RATE

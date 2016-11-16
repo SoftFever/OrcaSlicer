@@ -27,8 +27,6 @@ THE SOFTWARE.
 
 #include "ShinyNode.h"
 
-#if SHINY_IS_COMPILED == TRUE
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,7 +52,5 @@ ShinyNode* ShinyNodeState_finishAndGetNextClean(ShinyNodeState *self);
 #if __cplusplus
 } /* end of extern "C" */
 #endif
-
-#endif /* if SHINY_IS_COMPILED == TRUE */
 
 #endif /* SHINY_NODE_STATE_H */
