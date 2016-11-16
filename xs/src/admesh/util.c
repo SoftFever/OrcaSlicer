@@ -27,7 +27,7 @@
 
 #include "stl.h"
 
-static void stl_rotate(float *x, float *y, float angle);
+static void stl_rotate(float *x, float *y, const double c, const double s);
 static float get_area(stl_facet *facet);
 static float get_volume(stl_file *stl);
 
@@ -189,13 +189,16 @@ void
 stl_rotate_x(stl_file *stl, float angle) {
   int i;
   int j;
+  double radian_angle = (angle / 180.0) * M_PI;
+  double c = cos(radian_angle);
+  double s = sin(radian_angle);
 
   if (stl->error) return;
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
       stl_rotate(&stl->facet_start[i].vertex[j].y,
-                 &stl->facet_start[i].vertex[j].z, angle);
+                 &stl->facet_start[i].vertex[j].z, c, s);
     }
   }
   stl_get_size(stl);
@@ -206,13 +209,16 @@ void
 stl_rotate_y(stl_file *stl, float angle) {
   int i;
   int j;
+  double radian_angle = (angle / 180.0) * M_PI;
+  double c = cos(radian_angle);
+  double s = sin(radian_angle);
 
   if (stl->error) return;
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
       stl_rotate(&stl->facet_start[i].vertex[j].z,
-                 &stl->facet_start[i].vertex[j].x, angle);
+                 &stl->facet_start[i].vertex[j].x, c, s);
     }
   }
   stl_get_size(stl);
@@ -223,13 +229,16 @@ void
 stl_rotate_z(stl_file *stl, float angle) {
   int i;
   int j;
+  double radian_angle = (angle / 180.0) * M_PI;
+  double c = cos(radian_angle);
+  double s = sin(radian_angle);
 
   if (stl->error) return;
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
       stl_rotate(&stl->facet_start[i].vertex[j].x,
-                 &stl->facet_start[i].vertex[j].y, angle);
+                 &stl->facet_start[i].vertex[j].y, c, s);
     }
   }
   stl_get_size(stl);
@@ -239,17 +248,11 @@ stl_rotate_z(stl_file *stl, float angle) {
 
 
 static void
-stl_rotate(float *x, float *y, float angle) {
-  double r;
-  double theta;
-  double radian_angle;
-
-  radian_angle = (angle / 180.0) * M_PI;
-
-  r = sqrt((*x **x) + (*y **y));
-  theta = atan2(*y, *x);
-  *x = r * cos(theta + radian_angle);
-  *y = r * sin(theta + radian_angle);
+stl_rotate(float *x, float *y, const double c, const double s) {
+  double xold = *x;
+  double yold = *y;
+  *x = float(c * xold - s * yold);
+  *y = float(s * xold + c * yold);
 }
 
 extern void

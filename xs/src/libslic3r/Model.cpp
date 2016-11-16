@@ -473,7 +473,16 @@ ModelObject::invalidate_bounding_box()
 void
 ModelObject::update_bounding_box()
 {
-    this->_bounding_box = this->mesh().bounding_box();
+//    this->_bounding_box = this->mesh().bounding_box();
+    BoundingBoxf3 raw_bbox;
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        if ((*v)->modifier) continue;
+        raw_bbox.merge((*v)->mesh.bounding_box());
+    }
+    BoundingBoxf3 bb;
+    for (ModelInstancePtrs::const_iterator i = this->instances.begin(); i != this->instances.end(); ++i)
+        bb.merge((*i)->transform_bounding_box(raw_bbox));
+    this->_bounding_box = bb;
     this->_bounding_box_valid = true;
 }
 
@@ -509,12 +518,8 @@ ModelObject::raw_bounding_box() const
     BoundingBoxf3 bb;
     for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
         if ((*v)->modifier) continue;
-        TriangleMesh mesh = (*v)->mesh;
-        
         if (this->instances.empty()) CONFESS("Can't call raw_bounding_box() with no instances");
-        this->instances.front()->transform_mesh(&mesh, true);
-        
-        bb.merge(mesh.bounding_box());
+        bb.merge(this->instances.front()->transform_mesh_bounding_box(&(*v)->mesh, true));
     }
     return bb;
 }
@@ -523,9 +528,12 @@ ModelObject::raw_bounding_box() const
 BoundingBoxf3
 ModelObject::instance_bounding_box(size_t instance_idx) const
 {
-    TriangleMesh mesh = this->raw_mesh();
-    this->instances[instance_idx]->transform_mesh(&mesh);
-    return mesh.bounding_box();
+    BoundingBoxf3 bb;
+    for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v) {
+        if ((*v)->modifier) continue;
+        bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(&(*v)->mesh, true));
+    }
+    return bb;
 }
 
 void
@@ -533,7 +541,10 @@ ModelObject::center_around_origin()
 {
     // calculate the displacements needed to 
     // center this object around the origin
-    BoundingBoxf3 bb = this->raw_mesh().bounding_box();
+	BoundingBoxf3 bb;
+	for (ModelVolumePtrs::const_iterator v = this->volumes.begin(); v != this->volumes.end(); ++v)
+		if (! (*v)->modifier)
+			bb.merge((*v)->mesh.bounding_box());
     
     // first align to origin on XYZ
     Vectorf3 vector(-bb.min.x, -bb.min.y, -bb.min.z);
@@ -773,6 +784,63 @@ ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
     mesh->scale(this->scaling_factor);              // scale around mesh origin
     if (!dont_translate)
         mesh->translate(this->offset.x, this->offset.y, 0);
+}
+
+BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const
+{
+    // rotate around mesh origin
+    double c = cos(this->rotation);
+    double s = sin(this->rotation);
+    BoundingBoxf3 bbox;
+    for (int i = 0; i < mesh->stl.stats.number_of_facets; ++ i) {
+        const stl_facet &facet = mesh->stl.facet_start[i];
+        for (int j = 0; j < 3; ++ j) {
+            stl_vertex v = facet.vertex[j];
+            double xold = v.x;
+            double yold = v.y;
+            v.x = float(c * xold - s * yold);
+            v.y = float(s * xold + c * yold);
+            v.x *= float(this->scaling_factor);
+            v.y *= float(this->scaling_factor);
+            v.z *= float(this->scaling_factor);
+            if (!dont_translate) {
+                v.x += this->offset.x;
+                v.y += this->offset.y;
+            }
+            bbox.merge(Pointf3(v.x, v.y, v.z));
+        }
+    }
+    return bbox;
+}
+
+BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
+{
+    // rotate around mesh origin
+    double c = cos(this->rotation);
+    double s = sin(this->rotation);
+    Pointf3 pts[4] = {
+        bbox.min,
+        bbox.max,
+        Pointf3(bbox.min.x, bbox.max.y, bbox.min.z),
+        Pointf3(bbox.max.x, bbox.min.y, bbox.max.z)
+    };
+    BoundingBoxf3 out;
+    for (int i = 0; i < 4; ++ i) {
+        Pointf3 &v = pts[i];
+        double xold = v.x;
+        double yold = v.y;
+        v.x = float(c * xold - s * yold);
+        v.y = float(s * xold + c * yold);
+        v.x *= this->scaling_factor;
+        v.y *= this->scaling_factor;
+        v.z *= this->scaling_factor;
+        if (!dont_translate) {
+            v.x += this->offset.x;
+            v.y += this->offset.y;
+        }
+        out.merge(v);
+    }
+    return out;
 }
 
 void
