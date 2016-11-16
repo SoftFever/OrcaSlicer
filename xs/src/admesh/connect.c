@@ -106,53 +106,42 @@ stl_check_facets_exact(stl_file *stl) {
     }
   }
   stl_free_edges(stl);
+
+#if 0
+  printf("Number of faces: %d, number of manifold edges: %d, number of connected edges: %d, number of unconnected edges: %d\r\n", 
+    stl->stats.number_of_facets, stl->stats.number_of_facets * 3, 
+    stl->stats.connected_edges, stl->stats.number_of_facets * 3 - stl->stats.connected_edges);
+#endif
 }
 
 static void
 stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge,
                     stl_vertex *a, stl_vertex *b) {
 
-  float diff_x;
-  float diff_y;
-  float diff_z;
-  float max_diff;
-
   if (stl->error) return;
 
-  diff_x = ABS(a->x - b->x);
-  diff_y = ABS(a->y - b->y);
-  diff_z = ABS(a->z - b->z);
-  max_diff = STL_MAX(diff_x, diff_y);
-  max_diff = STL_MAX(diff_z, max_diff);
-  stl->stats.shortest_edge = STL_MIN(max_diff, stl->stats.shortest_edge);
+  {
+    float diff_x = ABS(a->x - b->x);
+    float diff_y = ABS(a->y - b->y);
+    float diff_z = ABS(a->z - b->z);
+    float max_diff = STL_MAX(diff_x, diff_y);
+    max_diff = STL_MAX(diff_z, max_diff);
+    stl->stats.shortest_edge = STL_MIN(max_diff, stl->stats.shortest_edge);
+  }
 
-  if(diff_x == max_diff) {
-    if(a->x > b->x) {
-      memcpy(&edge->key[0], a, sizeof(stl_vertex));
-      memcpy(&edge->key[3], b, sizeof(stl_vertex));
-    } else {
-      memcpy(&edge->key[0], b, sizeof(stl_vertex));
-      memcpy(&edge->key[3], a, sizeof(stl_vertex));
-      edge->which_edge += 3; /* this edge is loaded backwards */
-    }
-  } else if(diff_y == max_diff) {
-    if(a->y > b->y) {
-      memcpy(&edge->key[0], a, sizeof(stl_vertex));
-      memcpy(&edge->key[3], b, sizeof(stl_vertex));
-    } else {
-      memcpy(&edge->key[0], b, sizeof(stl_vertex));
-      memcpy(&edge->key[3], a, sizeof(stl_vertex));
-      edge->which_edge += 3; /* this edge is loaded backwards */
-    }
+  // Ensure identical vertex ordering of equal edges.
+  // This method is numerically robust.
+  if ((a->x != b->x) ? 
+        (a->x < b->x) : 
+        ((a->y != b->y) ? 
+            (a->y < b->y) : 
+            (a->z < b->z))) {
+    memcpy(&edge->key[0], a, sizeof(stl_vertex));
+    memcpy(&edge->key[3], b, sizeof(stl_vertex));
   } else {
-    if(a->z > b->z) {
-      memcpy(&edge->key[0], a, sizeof(stl_vertex));
-      memcpy(&edge->key[3], b, sizeof(stl_vertex));
-    } else {
-      memcpy(&edge->key[0], b, sizeof(stl_vertex));
-      memcpy(&edge->key[3], a, sizeof(stl_vertex));
-      edge->which_edge += 3; /* this edge is loaded backwards */
-    }
+    memcpy(&edge->key[0], b, sizeof(stl_vertex));
+    memcpy(&edge->key[3], a, sizeof(stl_vertex));
+    edge->which_edge += 3; /* this edge is loaded backwards */
   }
 }
 
@@ -309,26 +298,17 @@ stl_check_facets_nearby(stl_file *stl, float tolerance) {
 static int
 stl_load_edge_nearby(stl_file *stl, stl_hash_edge *edge,
                      stl_vertex *a, stl_vertex *b, float tolerance) {
-  float diff_x;
-  float diff_y;
-  float diff_z;
-  float max_diff;
-  unsigned vertex1[3];
-  unsigned vertex2[3];
-
-
-  diff_x = ABS(a->x - b->x);
-  diff_y = ABS(a->y - b->y);
-  diff_z = ABS(a->z - b->z);
-  max_diff = STL_MAX(diff_x, diff_y);
-  max_diff = STL_MAX(diff_z, max_diff);
-
-  vertex1[0] = (unsigned)((a->x - stl->stats.min.x) / tolerance);
-  vertex1[1] = (unsigned)((a->y - stl->stats.min.y) / tolerance);
-  vertex1[2] = (unsigned)((a->z - stl->stats.min.z) / tolerance);
-  vertex2[0] = (unsigned)((b->x - stl->stats.min.x) / tolerance);
-  vertex2[1] = (unsigned)((b->y - stl->stats.min.y) / tolerance);
-  vertex2[2] = (unsigned)((b->z - stl->stats.min.z) / tolerance);
+  // Index of a grid cell spaced by tolerance.
+  uint32_t vertex1[3] = {
+    (uint32_t)((a->x - stl->stats.min.x) / tolerance),
+    (uint32_t)((a->y - stl->stats.min.y) / tolerance),
+    (uint32_t)((a->z - stl->stats.min.z) / tolerance)
+  };
+  uint32_t vertex2[3] = {
+    (uint32_t)((b->x - stl->stats.min.x) / tolerance),
+    (uint32_t)((b->y - stl->stats.min.y) / tolerance),
+    (uint32_t)((b->z - stl->stats.min.z) / tolerance)
+  };
 
   if(   (vertex1[0] == vertex2[0])
         && (vertex1[1] == vertex2[1])
@@ -337,33 +317,19 @@ stl_load_edge_nearby(stl_file *stl, stl_hash_edge *edge,
     return 0;
   }
 
-  if(diff_x == max_diff) {
-    if(a->x > b->x) {
-      memcpy(&edge->key[0], vertex1, sizeof(stl_vertex));
-      memcpy(&edge->key[3], vertex2, sizeof(stl_vertex));
-    } else {
-      memcpy(&edge->key[0], vertex2, sizeof(stl_vertex));
-      memcpy(&edge->key[3], vertex1, sizeof(stl_vertex));
-      edge->which_edge += 3; /* this edge is loaded backwards */
-    }
-  } else if(diff_y == max_diff) {
-    if(a->y > b->y) {
-      memcpy(&edge->key[0], vertex1, sizeof(stl_vertex));
-      memcpy(&edge->key[3], vertex2, sizeof(stl_vertex));
-    } else {
-      memcpy(&edge->key[0], vertex2, sizeof(stl_vertex));
-      memcpy(&edge->key[3], vertex1, sizeof(stl_vertex));
-      edge->which_edge += 3; /* this edge is loaded backwards */
-    }
+  // Ensure identical vertex ordering of edges, which vertices land into equal grid cells.
+  // This method is numerically robust.
+  if ((vertex1[0] != vertex2[0]) ? 
+        (vertex1[0] < vertex2[0]) : 
+        ((vertex1[1] != vertex2[1]) ? 
+            (vertex1[1] < vertex2[1]) : 
+            (vertex1[2] < vertex2[2]))) {
+    memcpy(&edge->key[0], vertex1, sizeof(stl_vertex));
+    memcpy(&edge->key[3], vertex2, sizeof(stl_vertex));
   } else {
-    if(a->z > b->z) {
-      memcpy(&edge->key[0], vertex1, sizeof(stl_vertex));
-      memcpy(&edge->key[3], vertex2, sizeof(stl_vertex));
-    } else {
-      memcpy(&edge->key[0], vertex2, sizeof(stl_vertex));
-      memcpy(&edge->key[3], vertex1, sizeof(stl_vertex));
-      edge->which_edge += 3; /* this edge is loaded backwards */
-    }
+    memcpy(&edge->key[0], vertex2, sizeof(stl_vertex));
+    memcpy(&edge->key[3], vertex1, sizeof(stl_vertex));
+    edge->which_edge += 3; /* this edge is loaded backwards */
   }
   return 1;
 }
@@ -564,6 +530,33 @@ stl_change_vertices(stl_file *stl, int facet_num, int vnot,
         next_edge = pivot_vertex;
       }
     }
+#if 0
+    if (stl->facet_start[facet_num].vertex[pivot_vertex].x == new_vertex.x &&
+        stl->facet_start[facet_num].vertex[pivot_vertex].y == new_vertex.y &&
+        stl->facet_start[facet_num].vertex[pivot_vertex].z == new_vertex.z)
+      printf("Changing vertex %f,%f,%f: Same !!!\r\n", 
+        new_vertex.x, new_vertex.y, new_vertex.z);
+    else {
+      if (stl->facet_start[facet_num].vertex[pivot_vertex].x != new_vertex.x)
+        printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n", 
+          stl->facet_start[facet_num].vertex[pivot_vertex].x,
+          *reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex].x),
+          new_vertex.x,
+          *reinterpret_cast<const int*>(&new_vertex.x));
+      if (stl->facet_start[facet_num].vertex[pivot_vertex].y != new_vertex.y)
+        printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n", 
+          stl->facet_start[facet_num].vertex[pivot_vertex].y,
+          *reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex].y),
+          new_vertex.y,
+          *reinterpret_cast<const int*>(&new_vertex.y));
+      if (stl->facet_start[facet_num].vertex[pivot_vertex].z != new_vertex.z)
+        printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n", 
+          stl->facet_start[facet_num].vertex[pivot_vertex].z,
+          *reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex].z),
+          new_vertex.z,
+          *reinterpret_cast<const int*>(&new_vertex.z));
+    }
+#endif
     stl->facet_start[facet_num].vertex[pivot_vertex] = new_vertex;
     vnot = stl->neighbors_start[facet_num].which_vertex_not[next_edge];
     facet_num = stl->neighbors_start[facet_num].neighbor[next_edge];

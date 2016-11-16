@@ -77,7 +77,10 @@ typedef struct {
 typedef struct stl_hash_edge {
   // Key of a hash edge: 2x binary copy of a floating point vertex.
   uint32_t       key[6];
+  // Index of a facet owning this edge.
   int            facet_number;
+  // Index of this edge inside the facet with an index of facet_number.
+  // If this edge is stored backwards, which_edge is increased by 3.
   int            which_edge;
   struct stl_hash_edge  *next;
 } stl_hash_edge;
