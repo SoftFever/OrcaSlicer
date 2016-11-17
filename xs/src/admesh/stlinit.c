@@ -27,10 +27,8 @@
 
 #include "stl.h"
 
-#if !defined(SEEK_SET)
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
+#ifndef SEEK_SET
+#error "SEEK_SET not defined"
 #endif
 
 void
@@ -277,10 +275,7 @@ stl_read(stl_file *stl, int first_facet, int first) {
       /* Read a single facet from a binary .STL file */
     {
       /* we assume little-endian architecture! */
-      if (fread(&facet.normal, sizeof(stl_normal), 1, stl->fp) \
-          + fread(&facet.vertex, sizeof(stl_vertex), 3, stl->fp) \
-          + fread(&facet.extra, sizeof(char), 2, stl->fp) != 6) {
-        perror("Cannot read facet");
+      if (fread(&facet, 1, SIZEOF_STL_FACET, stl->fp) != SIZEOF_STL_FACET) {
         stl->error = 1;
         return;
       }
@@ -343,8 +338,7 @@ stl_read(stl_file *stl, int first_facet, int first) {
     }
 #endif
     /* Write the facet into memory. */
-    stl->facet_start[i] = facet;
-
+    memcpy(stl->facet_start+i, &facet, SIZEOF_STL_FACET);
     stl_facet_stats(stl, facet, first);
     first = 0;
   }

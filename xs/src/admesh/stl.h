@@ -25,6 +25,12 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <boost/predef/detail/endian_compat.h>
+
+#ifndef BOOST_LITTLE_ENDIAN
+#error "admesh works correctly on little endian machines only!"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,11 +57,15 @@ typedef struct {
   float z;
 } stl_vertex;
 
+static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
+
 typedef struct {
   float x;
   float y;
   float z;
 } stl_normal;
+
+static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
 typedef char stl_extra[2];
 
@@ -65,6 +75,11 @@ typedef struct {
   stl_extra  extra;
 } stl_facet;
 #define SIZEOF_STL_FACET       50
+
+static_assert(offsetof(stl_facet, normal) == 0, "stl_facet.normal has correct offset");
+static_assert(offsetof(stl_facet, vertex) == 12, "stl_facet.vertex has correct offset");
+static_assert(offsetof(stl_facet, extra ) == 48, "stl_facet.extra has correct offset");
+static_assert(sizeof(stl_facet) >= SIZEOF_STL_FACET, "size of stl_facet incorrect");
 
 typedef enum {binary, ascii, inmemory} stl_type;
 
@@ -84,6 +99,8 @@ typedef struct stl_hash_edge {
   int            which_edge;
   struct stl_hash_edge  *next;
 } stl_hash_edge;
+
+static_assert(offsetof(stl_hash_edge, facet_number) == SIZEOF_EDGE_SORT, "size of stl_hash_edge.key incorrect");
 
 typedef struct {
   // Index of a neighbor facet.

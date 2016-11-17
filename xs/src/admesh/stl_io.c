@@ -204,63 +204,6 @@ stl_print_neighbors(stl_file *stl, char *file) {
 }
 
 void
-stl_put_little_int(FILE *fp, int value_in) {
-  int new_value;
-  union {
-    int  int_value;
-    char char_value[4];
-  } value;
-
-  value.int_value = value_in;
-
-  new_value  = value.char_value[0] & 0xFF;
-  new_value |= (value.char_value[1] & 0xFF) << 0x08;
-  new_value |= (value.char_value[2] & 0xFF) << 0x10;
-  new_value |= (value.char_value[3] & 0xFF) << 0x18;
-  fwrite(&new_value, sizeof(int), 1, fp);
-}
-
-void
-stl_put_little_float(FILE *fp, float value_in) {
-  int new_value;
-  union {
-    float float_value;
-    char  char_value[4];
-  } value;
-
-  value.float_value = value_in;
-
-  new_value  = value.char_value[0] & 0xFF;
-  new_value |= (value.char_value[1] & 0xFF) << 0x08;
-  new_value |= (value.char_value[2] & 0xFF) << 0x10;
-  new_value |= (value.char_value[3] & 0xFF) << 0x18;
-  fwrite(&new_value, sizeof(int), 1, fp);
-}
-
-void
-stl_write_binary_block(stl_file *stl, FILE *fp)
-{
-  int i;
-  for(i = 0; i < stl->stats.number_of_facets; i++)
-    {
-      stl_put_little_float(fp, stl->facet_start[i].normal.x);
-      stl_put_little_float(fp, stl->facet_start[i].normal.y);
-      stl_put_little_float(fp, stl->facet_start[i].normal.z);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[0].x);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[0].y);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[0].z);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[1].x);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[1].y);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[1].z);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[2].x);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[2].y);
-      stl_put_little_float(fp, stl->facet_start[i].vertex[2].z);
-      fputc(stl->facet_start[i].extra[0], fp);
-      fputc(stl->facet_start[i].extra[1], fp);
-    }
-}
-
-void
 stl_write_binary(stl_file *stl, const char *file, const char *label) {
   FILE      *fp;
   int       i;
@@ -285,11 +228,9 @@ stl_write_binary(stl_file *stl, const char *file, const char *label) {
   for(i = strlen(label); i < LABEL_SIZE; i++) putc(0, fp);
 
   fseek(fp, LABEL_SIZE, SEEK_SET);
-
-  stl_put_little_int(fp, stl->stats.number_of_facets);
-
-  stl_write_binary_block(stl, fp);
-
+  fwrite(&stl->stats.number_of_facets, 4, 1, fp);
+  for(i = 0; i < stl->stats.number_of_facets; i++)
+    fwrite(stl->facet_start + i, SIZEOF_STL_FACET, 1, fp);
   fclose(fp);
 }
 
