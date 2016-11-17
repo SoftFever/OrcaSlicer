@@ -313,7 +313,7 @@ PrintObject::has_support_material() const
 }
 
 // This function analyzes slices of a region (SurfaceCollection slices).
-// Each slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
+// Each region slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
 // Initially all slices are of type S_TYPE_INTERNAL.
 // Slices are compared against the top / bottom slices and regions and classified to the following groups:
 // S_TYPE_TOP - Part of a region, which is not covered by any upper layer. This surface will be filled with a top solid infill.
@@ -325,14 +325,12 @@ void PrintObject::detect_surfaces_type()
 {
 //    Slic3r::debugf "Detecting solid surfaces...\n";
     for (int idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
-        // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
             LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
-            layerm->slices_to_fill_surfaces_clipped();
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             layerm->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-initial");
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
         }
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
         for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
             Layer       *layer  = this->layers[idx_layer];
@@ -526,6 +524,7 @@ PrintObject::discover_vertical_shells()
             coord_t      infill_line_spacing = solid_infill_flow.scaled_spacing(); 
             // Find a union of perimeters below / above this surface to guarantee a minimum shell thickness.
             Polygons shell;
+            Polygons holes;
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             ExPolygons shell_ex;
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
@@ -561,16 +560,31 @@ PrintObject::discover_vertical_shells()
                     cache_top_regions[idx_layer % n_extra_top_layers].valid = false;
                 if (n_extra_bottom_layers > 0 && idx_layer > 0)
                     cache_bottom_regions[(idx_layer - 1) % n_extra_bottom_layers].valid = false;
+                bool hole_first = true;
                 for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n)
                     if (n >= 0 && n < (int)this->layers.size()) {
                         Layer       &neighbor_layer = *this->layers[n];
                         LayerRegion &neighbor_region = *neighbor_layer.get_region(int(idx_region));
-                        polygons_append(shell, neighbor_layer.perimeter_expolygons.expolygons);
+                        Polygons newholes;
+                        for (size_t idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region)
+                            polygons_append(newholes, to_polygons(neighbor_layer.get_region(idx_region)->fill_expolygons));
+                        if (hole_first) {
+                            hole_first = false;
+                            polygons_append(holes, STDMOVE(newholes));
+                        }
+                        else if (! holes.empty()) {
+                            holes = intersection(holes, newholes);
+                        }
+                        size_t n_shell_old = shell.size();
                         if (n > int(idx_layer)) {
                             // Collect top surfaces.
                             DiscoverVerticalShellsCacheEntry &cache = cache_top_regions[n % n_extra_top_layers];
                             if (! cache.valid) {
                                 cache.valid = true;
+                                // neighbor_region.slices contain the source top regions,
+                                // so one would think that they encompass the top fill_surfaces. But the fill_surfaces could have been
+                                // expanded before, therefore they may protrude out of neighbor_region.slices's top surfaces.
+                                //FIXME one should probably use the cummulative top surfaces over all regions here.
                                 cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_type(stTop)), min_perimeter_infill_spacing);
                                 cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing);
                             }
@@ -582,6 +596,7 @@ PrintObject::discover_vertical_shells()
                             DiscoverVerticalShellsCacheEntry &cache = cache_bottom_regions[n % n_extra_bottom_layers];
                             if (! cache.valid) {
                                 cache.valid = true;
+                                //FIXME one should probably use the cummulative top surfaces over all regions here.
                                 cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
                                 cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
                             }
@@ -590,7 +605,8 @@ PrintObject::discover_vertical_shells()
                         }
                         // Running the union_ using the Clipper library piece by piece is cheaper 
                         // than running the union_ all at once.
-                        shell = union_(shell, false);
+                        if (n_shell_old < shell.size())
+                           shell = union_(shell, false);
                     }
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                 {
@@ -613,8 +629,8 @@ PrintObject::discover_vertical_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
             }
 
-            if (shell.empty())
-                continue;
+            //if (shell.empty())
+            //    continue;
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             {
@@ -660,6 +676,7 @@ PrintObject::discover_vertical_shells()
             const SurfaceType surfaceTypesInternal[] = { stInternal, stInternalVoid, stInternalSolid };
             const Polygons    polygonsInternal = to_polygons(layerm->fill_surfaces.filter_by_types(surfaceTypesInternal, 2));
             shell = intersection(shell, polygonsInternal, true);
+            polygons_append(shell, diff(polygonsInternal, holes));
             if (shell.empty())
                 continue;
 

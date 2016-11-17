@@ -58,7 +58,8 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     // in place. However we're now only using its boundaries (which are invariant)
     // so we're safe. This guarantees idempotence of prepare_infill() also in case
     // that combine_infill() turns some fill_surface into VOID surfaces.
-    Polygons fill_boundaries = to_polygons(STDMOVE(this->fill_surfaces));
+//    Polygons fill_boundaries = to_polygons(STDMOVE(this->fill_surfaces));
+    Polygons fill_boundaries = to_polygons(this->fill_expolygons);
     this->fill_surfaces.surfaces.clear();
     for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++ surface)
         surfaces_append(
@@ -68,7 +69,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
 }
 
 void
-LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* perimeter_surfaces, SurfaceCollection* fill_surfaces)
+LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
@@ -85,7 +86,6 @@ LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection*
         // output:
         &this->perimeters,
         &this->thin_fills,
-        perimeter_surfaces, 
         fill_surfaces
     );
     
@@ -367,15 +367,10 @@ LayerRegion::prepare_fill_surfaces()
     
     // if no solid layers are requested, turn top/bottom surfaces to internal
     if (this->region()->config.top_solid_layers == 0) {
-        for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
-            if (surface->surface_type == stTop) {
-                if (this->layer()->object()->config.infill_only_where_needed) {
-                    surface->surface_type = stInternalVoid;
-                } else {
-                    surface->surface_type = stInternal;
-                }
-            }
-        }
+        for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface)
+            if (surface->surface_type == stTop)
+                surface->surface_type = (this->layer()->object()->config.infill_only_where_needed) ? 
+                    stInternalVoid : stInternal;
     }
     if (this->region()->config.bottom_solid_layers == 0) {
         for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {

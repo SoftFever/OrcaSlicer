@@ -52,7 +52,6 @@ public:
     // Outputs:
     ExtrusionEntityCollection* loops;
     ExtrusionEntityCollection* gap_fill;
-    SurfaceCollection* perimeter_surfaces;
     SurfaceCollection* fill_surfaces;
     
     PerimeterGenerator(
@@ -68,15 +67,13 @@ public:
         ExtrusionEntityCollection*  loops,
         // Gaps without the thin walls
         ExtrusionEntityCollection*  gap_fill,
-        // Perimeters including their gap fills
-        SurfaceCollection*          perimeter_surfaces,
         // Infills without the gap fills
         SurfaceCollection*          fill_surfaces)
         : slices(slices), lower_slices(NULL), layer_height(layer_height),
             layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
-            loops(loops), gap_fill(gap_fill), perimeter_surfaces(perimeter_surfaces), fill_surfaces(fill_surfaces),
+            loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
             _ext_mm3_per_mm(-1), _mm3_per_mm(-1), _mm3_per_mm_overhang(-1)
         {};
     void process();

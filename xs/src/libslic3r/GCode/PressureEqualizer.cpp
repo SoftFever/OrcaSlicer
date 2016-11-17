@@ -264,7 +264,7 @@ bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GC
                     if (rate < 40.f) {
                     	printf("Extremely low flow rate: %f. Line %d, Length: %f, extrusion: %f Old position: (%f, %f, %f), new position: (%f, %f, %f)\n", 
                             rate, 
-                            line_idx,
+                            int(line_idx),
                             sqrt(len2), sqrt((diff[3]*diff[3])/len2),
                             m_current_pos[0], m_current_pos[1], m_current_pos[2],
                             new_pos[0], new_pos[1], new_pos[2]);

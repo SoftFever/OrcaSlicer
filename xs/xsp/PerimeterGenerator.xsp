@@ -10,12 +10,12 @@
         StaticPrintConfig* region_config, StaticPrintConfig* object_config, 
         StaticPrintConfig* print_config, ExtrusionEntityCollection* loops, 
         ExtrusionEntityCollection* gap_fill, 
-        SurfaceCollection* perimeter_surfaces, SurfaceCollection* fill_surfaces)
+        SurfaceCollection* fill_surfaces)
         %code{% RETVAL = new PerimeterGenerator(slices, layer_height, *flow,
             dynamic_cast<PrintRegionConfig*>(region_config),
             dynamic_cast<PrintObjectConfig*>(object_config),
             dynamic_cast<PrintConfig*>(print_config),
-            loops, gap_fill, perimeter_surfaces, fill_surfaces); %};
+            loops, gap_fill, fill_surfaces); %};
     ~PerimeterGenerator();
     
     void set_lower_slices(ExPolygonCollection* lower_slices)

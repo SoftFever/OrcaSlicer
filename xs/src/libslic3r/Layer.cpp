@@ -103,8 +103,7 @@ Layer::make_slices()
     } else {
         Polygons slices_p;
         FOREACH_LAYERREGION(this, layerm) {
-            Polygons region_slices_p = (*layerm)->slices;
-            slices_p.insert(slices_p.end(), region_slices_p.begin(), region_slices_p.end());
+            polygons_append(slices_p, to_polygons((*layerm)->slices));
         }
         union_(slices_p, &slices);
     }
@@ -123,9 +122,8 @@ Layer::make_slices()
     Slic3r::Geometry::chained_path(ordering_points, order);
     
     // populate slices vector
-    for (std::vector<Points::size_type>::const_iterator it = order.begin(); it != order.end(); ++it) {
-        this->slices.expolygons.push_back(slices[*it]);
-    }
+    for (std::vector<Points::size_type>::const_iterator it = order.begin(); it != order.end(); ++it)
+        this->slices.expolygons.push_back(STDMOVE(slices[*it]));
 }
 
 void
@@ -200,68 +198,35 @@ Layer::make_perimeters()
         
         if (layerms.size() == 1) {  // optimization
             (*layerm)->fill_surfaces.surfaces.clear();
-            (*layerm)->perimeter_surfaces.surfaces.clear();
-            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->perimeter_surfaces, &(*layerm)->fill_surfaces);
-            this->perimeter_expolygons.expolygons.clear();
-            for (Surfaces::const_iterator it = (*layerm)->perimeter_surfaces.surfaces.begin(); it != (*layerm)->perimeter_surfaces.surfaces.end(); ++ it)
-                this->perimeter_expolygons.expolygons.push_back(it->expolygon);
+            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces);
+            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
         } else {
-            // group slices (surfaces) according to number of extra perimeters
-            std::map<unsigned short,Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
-            for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
-                for (Surfaces::iterator s = (*l)->slices.surfaces.begin(); s != (*l)->slices.surfaces.end(); ++s) {
-                    slices[s->extra_perimeters].push_back(*s);
-                }
-            }
-            
-            // merge the surfaces assigned to each group
             SurfaceCollection new_slices;
-            for (std::map<unsigned short,Surfaces>::const_iterator it = slices.begin(); it != slices.end(); ++it) {
-                ExPolygons expp = union_ex(it->second, true);
-                for (ExPolygons::iterator ex = expp.begin(); ex != expp.end(); ++ex) {
-                    Surface s = it->second.front();  // clone type and extra_perimeters
-                    s.expolygon = *ex;
-                    new_slices.surfaces.push_back(s);
+            {
+                // group slices (surfaces) according to number of extra perimeters
+                std::map<unsigned short,Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
+                for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
+                    for (Surfaces::iterator s = (*l)->slices.surfaces.begin(); s != (*l)->slices.surfaces.end(); ++s) {
+                        slices[s->extra_perimeters].push_back(*s);
+                    }
                 }
+                // merge the surfaces assigned to each group
+                for (std::map<unsigned short,Surfaces>::const_iterator it = slices.begin(); it != slices.end(); ++it)
+                    surfaces_append(new_slices.surfaces, union_ex(it->second, true), it->second.front());
             }
             
             // make perimeters
-            SurfaceCollection perimeter_surfaces;
             SurfaceCollection fill_surfaces;
-            (*layerm)->make_perimeters(new_slices, &perimeter_surfaces, &fill_surfaces);
-            // Copy the perimeter surfaces to the layer's surfaces before splitting them into the regions.
-            this->perimeter_expolygons.expolygons.clear();
-            for (Surfaces::const_iterator it = perimeter_surfaces.surfaces.begin(); it != perimeter_surfaces.surfaces.end(); ++ it)
-                this->perimeter_expolygons.expolygons.push_back(it->expolygon);
+            (*layerm)->make_perimeters(new_slices, &fill_surfaces);
 
             // assign fill_surfaces to each layer
             if (!fill_surfaces.surfaces.empty()) { 
                 for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
                     // Separate the fill surfaces.
-                    ExPolygons expp = intersection_ex(
-                        fill_surfaces,
-                        (*l)->slices
-                    );
+                    ExPolygons expp = intersection_ex(to_polygons(fill_surfaces), (*l)->slices);
+                    (*l)->fill_expolygons = expp;
                     (*l)->fill_surfaces.surfaces.clear();
-                    
-                    for (ExPolygons::iterator ex = expp.begin(); ex != expp.end(); ++ex) {
-                        Surface s = fill_surfaces.surfaces.front();  // clone type and extra_perimeters
-                        s.expolygon = *ex;
-                        (*l)->fill_surfaces.surfaces.push_back(s);
-                    }
-
-                    // Separate the perimeter surfaces.
-                    expp = intersection_ex(
-                        perimeter_surfaces,
-                        (*l)->slices
-                    );
-                    (*l)->perimeter_surfaces.surfaces.clear();
-                    
-                    for (ExPolygons::iterator ex = expp.begin(); ex != expp.end(); ++ex) {
-                        Surface s = fill_surfaces.surfaces.front();  // clone type and extra_perimeters
-                        s.expolygon = *ex; 
-                        (*l)->perimeter_surfaces.surfaces.push_back(s);
-                    }
+                    surfaces_append((*l)->fill_surfaces.surfaces, STDMOVE(expp), fill_surfaces.surfaces.front());
                 }
             }
         }

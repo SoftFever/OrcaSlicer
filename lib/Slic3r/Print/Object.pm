@@ -259,7 +259,7 @@ sub slice {
             }
         }
         
-        # merge all regions' slices to get islands
+        # Merge all regions' slices to get islands, chain them by a shortest path.
         $layer->make_slices;
     }
     
@@ -367,6 +367,9 @@ sub _slice_region {
     return $mesh->slice($z);
 }
 
+# 1) Merges typed region slices into stInternal type.
+# 2) Increases an "extra perimeters" counter at region slices where needed.
+# 3) Generates perimeters, gap fills and fill regions (fill regions of type stInternal).
 sub make_perimeters {
     my $self = shift;
     
@@ -377,7 +380,8 @@ sub make_perimeters {
     $self->set_step_started(STEP_PERIMETERS);
     $self->print->status_cb->(20, "Generating perimeters");
     
-    # merge slices if they were split into types
+    # Merge region slices if they were split into types.
+    # FIXME this is using a safety offset, so the region slices will be slightly bigger with each iteration.
     if ($self->typed_slices) {
         $_->merge_slices for @{$self->layers};
         $self->set_typed_slices(0);
@@ -487,11 +491,12 @@ sub prepare_infill {
     $self->set_step_started(STEP_PREPARE_INFILL);
     $self->print->status_cb->(30, "Preparing infill");
     
-    # this will assign a type (top/bottom/internal) to $layerm->slices
-    # and transform $layerm->fill_surfaces from expolygon 
-    # to typed top/bottom/internal surfaces;
+    # This will assign a type (top/bottom/internal) to $layerm->slices.
+    # Then the classifcation of $layerm->slices is transfered onto 
+    # the $layerm->fill_surfaces by clipping $layerm->fill_surfaces
+    # by the cummulative area of the previous $layerm->fill_surfaces.
     $self->detect_surfaces_type;
-    # Mark the object to have the slices classified (typed, which also means they are split based on whether they are supported, bridging, top layers etc.)
+    # Mark the object to have the region slices classified (typed, which also means they are split based on whether they are supported, bridging, top layers etc.)
     $self->set_typed_slices(1);
     
     # Decide what surfaces are to be filled.
@@ -615,6 +620,7 @@ sub infill {
     );
 
     ### we could free memory now, but this would make this step not idempotent
+    ### Vojtech: Cannot release the fill_surfaces, they are used by the support generator.
     ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
     
     $self->set_step_done(STEP_INFILL);

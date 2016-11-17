@@ -34,7 +34,7 @@ use Slic3r::Test;
             expolygon => $_,
         )) for @$expolygons;
         
-        my ($region_config, $object_config, $print_config, $loops, $gap_fill, $perimeter_surfaces, $fill_surfaces);
+        my ($region_config, $object_config, $print_config, $loops, $gap_fill, $fill_surfaces);
         my $g = Slic3r::Layer::PerimeterGenerator->new(
             # input:
             $slices,
@@ -47,7 +47,6 @@ use Slic3r::Test;
             # output:
             ($loops         = Slic3r::ExtrusionPath::Collection->new),
             ($gap_fill      = Slic3r::ExtrusionPath::Collection->new),
-            ($perimeter_surfaces = Slic3r::Surface::Collection->new),
             ($fill_surfaces = Slic3r::Surface::Collection->new),
         );
         $g->config->apply_dynamic($config);

@@ -97,6 +97,15 @@ inline Polygons to_polygons(const SurfacesPtr &src)
     return polygons;
 }
 
+inline ExPolygons to_expolygons(const Surfaces &src)
+{
+    ExPolygons expolygons;
+    expolygons.reserve(src.size());
+    for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++it)
+        expolygons.push_back(it->expolygon);
+    return expolygons;
+}
+
 inline ExPolygons to_expolygons(const SurfacesPtr &src)
 {
     ExPolygons expolygons;

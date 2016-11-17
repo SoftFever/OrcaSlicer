@@ -246,15 +246,6 @@ PerimeterGenerator::process()
             if (!entities.empty())
                 this->loops->append(entities);
         } // for each loop of an island
-        
-        {
-            //FIXME how about the gaps?
-            // Calculate the region of surface->expolygon covered by the perimeters and their gap fills.
-            // The perimeters will later be used to calculate the object skin.
-            ExPolygons expp = diff_ex((Polygons)surface->expolygon, last, true);
-            for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex)
-                this->perimeter_surfaces->surfaces.push_back(Surface(stPerimeter, *ex));
-        }
 
         // fill gaps
         if (!gaps.empty()) {
@@ -322,15 +313,15 @@ PerimeterGenerator::process()
             
             // collapse too narrow infill areas
             coord_t min_perimeter_infill_spacing = ispacing * (1 - INSET_OVERLAP_TOLERANCE);
-            expp = offset2_ex(
-                pp,
-                -inset -min_perimeter_infill_spacing/2,
-                +min_perimeter_infill_spacing/2
-            );
             
             // append infill areas to fill_surfaces
-            for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex)
-                this->fill_surfaces->surfaces.push_back(Surface(stInternal, *ex));  // use a bogus surface type
+            surfaces_append(
+                this->fill_surfaces->surfaces, 
+                offset2_ex(
+                    pp,
+                    -inset -min_perimeter_infill_spacing/2,
+                    +min_perimeter_infill_spacing/2),
+                stInternal);
         }
     } // for each island
 }
