@@ -22,7 +22,10 @@ sub new {
     
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
     if ($^O eq 'MSWin32') {
-        $self->SetIcon(Wx::Icon->new($Slic3r::var->("Slic3r.ico"), wxBITMAP_TYPE_ICO));
+        # Load the icon either from the exe, or fron the ico file.
+        my $iconfile = $Slic3r::var->('..\slic3r.exe');
+        $iconfile = $Slic3r::var->("Slic3r.ico") unless -f $iconfile;
+        $self->SetIcon(Wx::Icon->new($iconfile, wxBITMAP_TYPE_ICO));
     } else {
         $self->SetIcon(Wx::Icon->new($Slic3r::var->("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));        
     }
