@@ -129,8 +129,19 @@ Layer::make_slices()
 void
 Layer::merge_slices()
 {
-    FOREACH_LAYERREGION(this, layerm) {
-        (*layerm)->merge_slices();
+    if (this->regions.size() == 1) {
+        // Optimization, also more robust. Don't merge classified pieces of layerm->slices,
+        // but use the non-split islands of a layer. For a single region print, these shall be equal.
+        this->regions.front()->slices.surfaces.clear();
+        surfaces_append(this->regions.front()->slices.surfaces, this->slices.expolygons, stInternal);
+    } else {
+        FOREACH_LAYERREGION(this, layerm) {
+            ExPolygons expp;
+            // without safety offset, artifacts are generated (GH #2494)
+            union_(to_polygons(STDMOVE((*layerm)->slices.surfaces)), &expp, true);
+            (*layerm)->slices.surfaces.clear();
+            surfaces_append((*layerm)->slices.surfaces, expp, stInternal);
+        }
     }
 }
 

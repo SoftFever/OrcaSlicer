@@ -41,16 +41,6 @@ LayerRegion::flow(FlowRole role, bool bridge, double width) const
     );
 }
 
-void
-LayerRegion::merge_slices()
-{
-    ExPolygons expp;
-    // without safety offset, artifacts are generated (GH #2494)
-    union_(to_polygons(STDMOVE(this->slices.surfaces)), &expp, true);
-    this->slices.surfaces.clear();
-    surfaces_append(this->slices.surfaces, expp, stInternal);
-}
-
 // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
 void LayerRegion::slices_to_fill_surfaces_clipped()
 {
@@ -126,6 +116,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
     // Internal surfaces, not grown.
     Surfaces                    internal;
     // Areas, where an infill of various types (top, bottom, bottom bride, sparse, void) could be placed.
+    //FIXME if non zero infill, then fill_boundaries could be cheaply initialized from layerm->fill_expolygons.
     Polygons                    fill_boundaries;
 
     // Collect top surfaces and internal surfaces.

@@ -63,7 +63,6 @@ class LayerRegion
     ExtrusionEntityCollection fills;
     
     Flow flow(FlowRole role, bool bridge = false, double width = -1) const;
-    void merge_slices();
     void slices_to_fill_surfaces_clipped();
     void prepare_fill_surfaces();
     void make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces);
