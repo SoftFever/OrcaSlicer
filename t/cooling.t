@@ -2,13 +2,14 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 11;
+plan tests => 12;
 
 BEGIN {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 }
 
+use List::Util qw(first);
 use Slic3r;
 use Slic3r::Test;
 
