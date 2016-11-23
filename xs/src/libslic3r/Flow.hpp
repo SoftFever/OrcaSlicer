@@ -7,8 +7,14 @@
 
 namespace Slic3r {
 
+// Extra spacing of bridge threads, in mm.
 #define BRIDGE_EXTRA_SPACING 0.05
-#define OVERLAP_FACTOR 1.0
+
+// Overlap factor of perimeter lines. Currently no overlap.
+// #define HAS_OVERLAP
+#ifdef HAS_PERIMETER_LINE_OVERLAP
+    #define PERIMETER_LINE_OVERLAP_FACTOR 1.0
+#endif
 
 enum FlowRole {
     frExternalPerimeter,
@@ -22,9 +28,17 @@ enum FlowRole {
 
 class Flow
 {
-    public:
-    float width, height, nozzle_diameter;
-    bool bridge;
+public:
+    // Non bridging flow: Maximum width of an extrusion with semicircles at the ends.
+    // Bridging flow: Bridge thread diameter.
+    float width;
+    // Non bridging flow: Layer height.
+    // Bridging flow: Bridge thread diameter = layer height.
+    float height;
+    // Nozzle diameter is 
+    float nozzle_diameter;
+    // Is it a bridge?
+    bool  bridge;
     
     Flow(float _w, float _h, float _nd, bool _bridge = false)
         : width(_w), height(_h), nozzle_diameter(_nd), bridge(_bridge) {};

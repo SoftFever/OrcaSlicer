@@ -1004,4 +1004,25 @@ void safety_offset(ClipperLib::Paths* paths)
     scaleClipperPolygons(*paths, 1.0/CLIPPER_OFFSET_SCALE);
 }
 
+Polygons top_level_islands(const Slic3r::Polygons &polygons)
+{
+    ClipperLib::Paths input;
+    Slic3rMultiPoints_to_ClipperPaths(polygons, &input);   
+    // init Clipper
+    ClipperLib::Clipper clipper;
+    clipper.Clear();
+    // perform union
+    clipper.AddPaths(input, ClipperLib::ptSubject, true);
+    ClipperLib::PolyTree polytree;
+    clipper.Execute(ClipperLib::ctUnion, polytree, ClipperLib::pftEvenOdd, ClipperLib::pftEvenOdd); 
+    // Convert only the top level islands to the output.
+    Polygons out;
+    out.reserve(polytree.ChildCount());
+    for (int i = 0; i < polytree.ChildCount(); ++i) {
+        out.push_back(Polygon());
+        ClipperPath_to_Slic3rMultiPoint(polytree.Childs[i]->Contour, &out.back());
+    }
+    return out;
 }
+
+} // namespace Slic3r

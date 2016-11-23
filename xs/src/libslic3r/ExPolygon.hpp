@@ -253,6 +253,18 @@ inline void polygons_append(Polygons &dst, ExPolygons &&src)
 }
 #endif
 
+inline void expolygons_append(ExPolygons &dst, const ExPolygons &src) 
+{ 
+    dst.insert(dst.end(), src.begin(), src.end());
+}
+
+#if SLIC3R_CPPVER >= 11
+inline void expolygons_append(ExPolygons &dst, ExPolygons &&src)
+{ 
+    std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+}
+#endif
+
 inline void expolygons_rotate(ExPolygons &expolys, double angle)
 {
     for (ExPolygons::iterator p = expolys.begin(); p != expolys.end(); ++p)

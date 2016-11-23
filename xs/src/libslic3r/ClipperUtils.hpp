@@ -162,6 +162,8 @@ void simplify_polygons(const Slic3r::Polygons &subject, Slic3r::ExPolygons* retv
 
 void safety_offset(ClipperLib::Paths* paths);
 
+Polygons top_level_islands(const Slic3r::Polygons &polygons);
+
 }
 
 #endif
