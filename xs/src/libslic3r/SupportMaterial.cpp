@@ -766,6 +766,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
         // Last top contact layer visited when collecting the projection of contact areas.
         int       contact_idx = int(top_contacts.size()) - 1;
         for (int layer_id = int(object.total_layer_count()) - 2; layer_id >= 0; -- layer_id) {
+            BOOST_LOG_TRIVIAL(trace) << "Support generator - bottom_contact_layers - layer " << layer_id;
             const Layer &layer = *object.get_layer(layer_id);
             Polygons top = collect_region_slices_by_type(layer, stTop);
             if (top.empty())
