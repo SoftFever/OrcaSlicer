@@ -921,17 +921,16 @@ void PrintObjectSupportMaterial::generate_base_layers(
     const MyLayersPtr   &top_contacts,
     MyLayersPtr         &intermediate_layers) const
 {
+#ifdef SLIC3R_DEBUG
+    static int iRun = 0;
+#endif /* SLIC3R_DEBUG */
+
     if (top_contacts.empty())
         // No top contacts -> no intermediate layers will be produced.
         return;
 
     // coordf_t fillet_radius_scaled = scale_(m_object_config->support_material_spacing);
-    //FIXME make configurable:
-    coordf_t overlap_extra_above = 0.01;
-    coordf_t overlap_extra_below = 0.01;
-
     int idx_top_contact_above = int(top_contacts.size()) - 1;
-    int idx_top_contact_overlapping = int(top_contacts.size()) - 1;
     int idx_bottom_contact_overlapping = int(bottom_contacts.size()) - 1;
     for (int idx_intermediate = int(intermediate_layers.size()) - 1; idx_intermediate >= 0; -- idx_intermediate)
     {
@@ -943,10 +942,10 @@ void PrintObjectSupportMaterial::generate_base_layers(
         // Find a top_contact layer touching the layer_intermediate from above, if any, and collect its polygons into polygons_new.
         while (idx_top_contact_above >= 0 && top_contacts[idx_top_contact_above]->bottom_z > layer_intermediate.print_z + EPSILON)
             -- idx_top_contact_above;
-		if (idx_top_contact_above >= 0 && idx_top_contact_above + 1 < top_contacts.size() && top_contacts[idx_top_contact_above + 1]->print_z > layer_intermediate.print_z)
-            polygons_append(polygons_new, top_contacts[idx_top_contact_above + 1]->polygons);
+		if (idx_top_contact_above >= 0 && top_contacts[idx_top_contact_above]->print_z > layer_intermediate.print_z)
+            polygons_append(polygons_new, top_contacts[idx_top_contact_above]->polygons);
  
-        // Add polygons from the intermediate layer above.
+        // Add polygons projected from the intermediate layer above.
         if (idx_intermediate + 1 < int(intermediate_layers.size()))
             polygons_append(polygons_new, intermediate_layers[idx_intermediate+1]->polygons);
 
@@ -954,34 +953,45 @@ void PrintObjectSupportMaterial::generate_base_layers(
         Polygons polygons_trimming;
 
         // Find the first top_contact layer intersecting with this layer.
+        int idx_top_contact_overlapping = idx_top_contact_above;
         while (idx_top_contact_overlapping >= 0 && 
-               top_contacts[idx_top_contact_overlapping]->bottom_z > layer_intermediate.print_z + overlap_extra_above - EPSILON)
+               top_contacts[idx_top_contact_overlapping]->bottom_z > layer_intermediate.print_z - EPSILON)
             -- idx_top_contact_overlapping;
         // Collect all the top_contact layer intersecting with this layer.
-        for (int i = idx_top_contact_overlapping; i >= 0; -- i) {
-			MyLayer &layer_top_overlapping = *top_contacts[i];
-            if (layer_top_overlapping.print_z < layer_intermediate.bottom_z - overlap_extra_below)
+        for (; idx_top_contact_overlapping >= 0; -- idx_top_contact_overlapping) {
+			MyLayer &layer_top_overlapping = *top_contacts[idx_top_contact_overlapping];
+            if (layer_top_overlapping.print_z < layer_intermediate.bottom_z + EPSILON)
                 break;
             polygons_append(polygons_trimming, layer_top_overlapping.polygons);
         }
 
         // Find the first bottom_contact layer intersecting with this layer.
         while (idx_bottom_contact_overlapping >= 0 && 
-            bottom_contacts[idx_bottom_contact_overlapping]->bottom_z > layer_intermediate.print_z + overlap_extra_above - EPSILON)
+            bottom_contacts[idx_bottom_contact_overlapping]->bottom_z > layer_intermediate.print_z - EPSILON)
             -- idx_bottom_contact_overlapping;
         // Collect all the top_contact layer intersecting with this layer.
         for (int i = idx_bottom_contact_overlapping; i >= 0; -- i) {
             MyLayer &layer_bottom_overlapping = *bottom_contacts[idx_bottom_contact_overlapping];
-            if (layer_bottom_overlapping.print_z < layer_intermediate.print_z - layer_intermediate.height - overlap_extra_below)
-                break;
+            if (layer_bottom_overlapping.print_z < layer_intermediate.print_z - layer_intermediate.height - EPSILON)
+                break; 
             polygons_append(polygons_trimming, layer_bottom_overlapping.polygons);
         }
 
+#ifdef SLIC3R_DEBUG
+        {
+            BoundingBox bbox = get_extents(polygons_new);
+            bbox.merge(get_extents(polygons_trimming));
+            ::Slic3r::SVG svg(debug_out_path("support-intermediate-layers-raw-%d-%lf.svg", iRun, layer_intermediate.print_z), bbox);
+            svg.draw(union_ex(polygons_new, false), "blue", 0.5f);
+            svg.draw(union_ex(polygons_trimming, true), "red", 0.5f);
+        }
+#endif /* SLIC3R_DEBUG */
+
         // Trim the polygons, store them.
         if (polygons_trimming.empty())
-            layer_intermediate.polygons.swap(polygons_new);
+            layer_intermediate.polygons = std::move(polygons_new);
         else
-            layer_intermediate.polygons = diff(
+			layer_intermediate.polygons = diff(
                 polygons_new,
                 polygons_trimming,
                 true); // safety offset to merge the touching source polygons
@@ -1005,9 +1015,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
     }
 
 #ifdef SLIC3R_DEBUG
-    static int iRun = 0;
-    iRun ++;
-    for (MyLayersPtr::const_iterator it = top_contacts.begin(); it != top_contacts.end(); ++ it) {
+	for (MyLayersPtr::const_iterator it = intermediate_layers.begin(); it != intermediate_layers.end(); ++it) {
         const MyLayer &layer = *(*it);
         ::Slic3r::SVG svg(debug_out_path("support-intermediate-layers-untrimmed-%d-%lf.svg", iRun, layer.print_z), get_extents(layer.polygons));
         Slic3r::ExPolygons expolys = union_ex(layer.polygons, false);
@@ -1015,15 +1023,16 @@ void PrintObjectSupportMaterial::generate_base_layers(
     }
 #endif /* SLIC3R_DEBUG */
 
-    //FIXME This could be parallelized.
+    //FIXME This could be trivially parallelized.
     const coordf_t gap_extra_above = 0.1f;
     const coordf_t gap_extra_below = 0.1f;
     const coord_t  gap_xy_scaled = m_support_material_flow.scaled_width();
     size_t idx_object_layer_overlapping = 0;
-    // For all intermediate layers:
+    // For all intermediate support layers:
     for (MyLayersPtr::iterator it_layer = intermediate_layers.begin(); it_layer != intermediate_layers.end(); ++ it_layer) {
         MyLayer &layer_intermediate = *(*it_layer);
         if (layer_intermediate.polygons.empty())
+            // Empty support layer, nothing to trim.
             continue;
         // Find the overlapping object layers including the extra above / below gap.
         while (idx_object_layer_overlapping < object.layer_count() && 
@@ -1033,7 +1042,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
         Polygons polygons_trimming;
         for (int i = idx_object_layer_overlapping; i < object.layer_count(); ++ i) {
             const Layer &object_layer = *object.get_layer(i);
-            if (object_layer.print_z > layer_intermediate.print_z + gap_extra_above - EPSILON)
+            if (object_layer.print_z - object_layer.height > layer_intermediate.print_z + gap_extra_above - EPSILON)
                 break;
             polygons_append(polygons_trimming, (Polygons)object_layer.slices);
         }
@@ -1046,6 +1055,10 @@ void PrintObjectSupportMaterial::generate_base_layers(
             layer_intermediate.polygons,
             offset(polygons_trimming, gap_xy_scaled));
     }
+
+#ifdef SLIC3R_DEBUG
+    ++ iRun;
+#endif /* SLIC3R_DEBUG */
 }
 
 Polygons PrintObjectSupportMaterial::generate_raft_base(
@@ -1471,6 +1484,27 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             base_layer.layer->polygons = diff(base_layer.layer->polygons, islands);
             polygons_append(interface_layer.layer->polygons, intersection(base_layer.layer->polygons, islands));
         }
+
+		// interface and contact infill
+		if (! top_contact_layer.empty()) {
+			//FIXME When paralellizing, each thread shall have its own copy of the fillers.
+			Flow interface_flow(
+				top_contact_layer.layer->bridging ? top_contact_layer.layer->height : m_support_material_interface_flow.width,
+				top_contact_layer.layer->height,
+				m_support_material_interface_flow.nozzle_diameter,
+				top_contact_layer.layer->bridging);
+			filler_interface->angle = interface_angle;
+			filler_interface->spacing = m_support_material_interface_flow.spacing();
+			fill_expolygons_generate_paths(
+				// Destination
+				support_layer.support_fills.entities,
+				// Regions to fill
+				union_ex(top_contact_layer.layer->polygons, true),
+				// Filler and its parameters
+				filler_interface.get(), interface_density,
+				// Extrusion parameters
+				erSupportMaterialInterface, interface_flow);
+		}
 
         // interface and contact infill
         if (! interface_layer.empty()) {
