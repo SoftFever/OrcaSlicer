@@ -770,17 +770,27 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             Polygons top = collect_region_slices_by_type(layer, stTop);
             if (top.empty())
                 continue;
+            size_t projection_size_old = projection.size();
             // Collect projections of all contact areas above or at the same level as this top surface.
             for (; contact_idx >= 0 && top_contacts[contact_idx]->print_z >= layer.print_z; -- contact_idx) {
                 // Contact surfaces are expanded away from the object, trimmed by the object.
-                polygons_append(projection, top_contacts[contact_idx]->polygons);
+                // Use a slight positive offset to overlap the touching regions.
+                polygons_append(projection, offset(top_contacts[contact_idx]->polygons, SCALED_EPSILON));
                 // These are the overhang surfaces. They are touching the object and they are not expanded away from the object.
-                polygons_append(projection, *top_contacts[contact_idx]->aux_polygons);
+                // Use a slight positive offset to overlap the touching regions.
+                polygons_append(projection, offset(*top_contacts[contact_idx]->aux_polygons, SCALED_EPSILON));
+            }
+            if (projection.empty())
+                continue;
+            if (projection_size_old < projection.size()) {
+                // Merge the newly added regions. Don't use the safety offset, the offset has been added already.
+                projection = union_(projection, false);
             }
             // Now find whether any projection of the contact surfaces above layer.print_z not yet supported by any 
             // top surfaces above layer.print_z falls onto this top surface. 
             // touching are the contact surfaces supported exclusively by this top surfaaces.
-            Polygons touching = intersection(top, projection, true); // Do safety offset on the projection surfaces, so they overlap.
+            // Don't use a safety offset as it has been applied during insertion of polygons.
+            Polygons touching = intersection(top, projection, false);
             if (touching.empty())
                 continue;
             // Allocate a new bottom contact layer.
@@ -800,8 +810,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             layer_new.idx_object_layer_below = layer_id;
             layer_new.bridging = ! m_soluble_interface;
             //FIXME how much to inflate the top surface?
-            Polygons poly_new = offset(touching, float(m_support_material_flow.scaled_width()));
-            layer_new.polygons.swap(poly_new);
+            layer_new.polygons = offset(touching, float(m_support_material_flow.scaled_width()));
             // Remove the areas that touched from the projection that will continue on next, lower, top surfaces.
             projection = diff(projection, touching);
         }
