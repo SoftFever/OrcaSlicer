@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cassert>
 #include <memory>
+#include <boost/log/trivial.hpp>
 
 // #define SLIC3R_DEBUG
 
@@ -197,6 +198,8 @@ struct MyLayersPtrCompare
 
 void PrintObjectSupportMaterial::generate(PrintObject &object)
 {
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Start";
+
     coordf_t max_object_layer_height = 0.;
     for (size_t i = 0; i < object.layer_count(); ++ i)
         max_object_layer_height = std::max(max_object_layer_height, object.get_layer(i)->height);
@@ -209,6 +212,8 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // Layer instances will be allocated by std::deque and they will be kept until the end of this function call.
     // The layers will be referenced by various LayersPtr (of type std::vector<Layer*>)
     MyLayerStorage layer_storage;
+
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating top contacts";
 
     // Determine the top contact surfaces of the support, defined as:
     // contact = overhangs - clearance + margin
@@ -232,6 +237,8 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     }
 #endif /* SLIC3R_DEBUG */
 
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating bottom contacts";
+
     // Determine the bottom contact surfaces of the supports over the top surfaces of the object.
     // Depending on whether the support is soluble or not, the contact layer thickness is decided.
     MyLayersPtr bottom_contacts = this->bottom_contact_layers(object, top_contacts, layer_storage);
@@ -245,10 +252,14 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     }
 #endif /* SLIC3R_DEBUG */
 
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Trimming top contacts by bottom contacts";
+
     // Because the top and bottom contacts are thick slabs, they may overlap causing over extrusion 
     // and unwanted strong bonds to the object.
     // Rather trim the top contacts by their overlapping bottom contacts to leave a gap instead of over extruding.
     this->trim_top_contacts_by_bottom_contacts(object, bottom_contacts, top_contacts);
+
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating intermediate layers - indices";
 
     // Generate empty intermediate layers between the top / bottom support contact layers,
     // The layers may or may not be synchronized with the object layers, depending on the configuration.
@@ -256,6 +267,8 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // wastes less material, if there are as little layers as possible, therefore minimizing the material swaps.
     MyLayersPtr intermediate_layers = this->raft_and_intermediate_support_layers(
         object, bottom_contacts, top_contacts, layer_storage, max_object_layer_height);
+
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating base layers";
 
     // Fill in intermediate layers between the top / bottom support contact layers, trimmed by the object.
     this->generate_base_layers(object, bottom_contacts, top_contacts, intermediate_layers);
@@ -268,6 +281,8 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
         svg.draw(expolys);
     }
 #endif /* SLIC3R_DEBUG */
+
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating raft";
 
     // If raft is to be generated, the 1st top_contact layer will contain the 1st object layer silhouette without holes.
     // Add the bottom contacts to the raft, inflate the support bases.
@@ -283,6 +298,8 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     if (m_objectconfig->support_material_pattern.value == smpPillars)
         shape = this->generate_pillars_shape(contact, support_z);
 */
+
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating interfaces";
 
     // Propagate top / bottom contact layers to generate interface layers.
     MyLayersPtr interface_layers = this->generate_interface_layers(
@@ -304,6 +321,8 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
         this->clip_with_shape(base, shape);
     }
 */
+
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating layers";
 
     // Install support layers into the object.
     MyLayersPtr layers_sorted;
@@ -332,8 +351,12 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
         ++ layer_id;
     }
     
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Generating tool paths";
+
     // Generate the actual toolpaths and save them into each layer.
     this->generate_toolpaths(object, raft, bottom_contacts, top_contacts, intermediate_layers, interface_layers);
+
+    BOOST_LOG_TRIVIAL(info) << "Support generator - End";
 }
 
 void collect_region_slices_by_type(const Layer &layer, SurfaceType surface_type, Polygons &out)
