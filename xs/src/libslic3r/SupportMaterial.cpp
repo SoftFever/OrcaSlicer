@@ -10,7 +10,7 @@
 #include <cassert>
 #include <memory>
 
- #define SLIC3R_DEBUG
+// #define SLIC3R_DEBUG
 
 // Make assert active if SLIC3R_DEBUG
 #ifdef SLIC3R_DEBUG
@@ -972,7 +972,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
         // Collect all the top_contact layer intersecting with this layer.
         for (int i = idx_bottom_contact_overlapping; i >= 0; -- i) {
             MyLayer &layer_bottom_overlapping = *bottom_contacts[idx_bottom_contact_overlapping];
-            if (layer_bottom_overlapping.print_z < layer_intermediate.print_z - layer_intermediate.height - EPSILON)
+            if (layer_bottom_overlapping.print_z < layer_intermediate.print_z - layer_intermediate.height + EPSILON)
                 break; 
             polygons_append(polygons_trimming, layer_bottom_overlapping.polygons);
         }
