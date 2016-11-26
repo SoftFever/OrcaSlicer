@@ -1,4 +1,5 @@
 #include "PrintConfig.hpp"
+#include <boost/thread.hpp>
 
 namespace Slic3r {
 
@@ -1291,7 +1292,7 @@ PrintConfigDef::PrintConfigDef()
     def->readonly = true;
     def->min = 1;
     def->max = 16;
-    def->default_value = new ConfigOptionInt(2);
+    def->default_value = new ConfigOptionInt(boost::thread::hardware_concurrency());
 
     def = this->add("toolchange_gcode", coString);
     def->label = "Tool change G-code";
