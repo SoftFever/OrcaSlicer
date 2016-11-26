@@ -910,4 +910,189 @@ PrintObject::bridge_over_infill()
     }
 }
 
+void
+PrintObject::_make_perimeters()
+{
+    if (this->state.is_done(posPerimeters)) return;
+    this->state.set_started(posPerimeters);
+    
+    // merge slices if they were split into types
+    if (this->typed_slices) {
+        FOREACH_LAYER(this, layer_it)
+            (*layer_it)->merge_slices();
+        this->typed_slices = false;
+        this->state.invalidate(posPrepareInfill);
+    }
+    
+    // compare each layer to the one below, and mark those slices needing
+    // one additional inner perimeter, like the top of domed objects-
+    
+    // this algorithm makes sure that at least one perimeter is overlapping
+    // but we don't generate any extra perimeter if fill density is zero, as they would be floating
+    // inside the object - infill_only_where_needed should be the method of choice for printing
+    // hollow objects
+    FOREACH_REGION(this->_print, region_it) {
+        size_t region_id = region_it - this->_print->regions.begin();
+        const PrintRegion &region = **region_it;
+        
+        
+        if (!region.config.extra_perimeters
+            || region.config.perimeters == 0
+            || region.config.fill_density == 0) continue;
+        
+        for (size_t i = 0; i <= (this->layer_count()-2); ++i) {
+            LayerRegion &layerm                     = *this->get_layer(i)->get_region(region_id);
+            const LayerRegion &upper_layerm         = *this->get_layer(i+1)->get_region(region_id);
+            const Polygons upper_layerm_polygons    = upper_layerm.slices;
+            
+            // Filter upper layer polygons in intersection_ppl by their bounding boxes?
+            // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
+            double total_loop_length = 0;
+            for (Polygons::const_iterator it = upper_layerm_polygons.begin(); it != upper_layerm_polygons.end(); ++it)
+                total_loop_length += it->length();
+            
+            const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
+            const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
+            const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
+            const coord_t ext_perimeter_spacing = ext_perimeter_flow.scaled_spacing();
+            
+            for (Surfaces::iterator slice = layerm.slices.surfaces.begin();
+                slice != layerm.slices.surfaces.end(); ++slice) {
+                while (true) {
+                    // compute the total thickness of perimeters
+                    const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
+                        + (region.config.perimeters-1 + region.config.extra_perimeters) * perimeter_spacing;
+                    
+                    // define a critical area where we don't want the upper slice to fall into
+                    // (it should either lay over our perimeters or outside this area)
+                    const coord_t critical_area_depth = perimeter_spacing * 1.5;
+                    const Polygons critical_area = diff(
+                        offset(slice->expolygon, -perimeters_thickness),
+                        offset(slice->expolygon, -(perimeters_thickness + critical_area_depth))
+                    );
+                    
+                    // check whether a portion of the upper slices falls inside the critical area
+                    const Polylines intersection = intersection_pl(
+                        upper_layerm_polygons,
+                        critical_area
+                    );
+                    
+                    // only add an additional loop if at least 30% of the slice loop would benefit from it
+                    {
+                        double total_intersection_length = 0;
+                        for (Polylines::const_iterator it = intersection.begin(); it != intersection.end(); ++it)
+                            total_intersection_length += it->length();
+                        if (total_intersection_length <= total_loop_length*0.3) break;
+                    }
+                    
+                    /*
+                    if (0) {
+                        require "Slic3r/SVG.pm";
+                        Slic3r::SVG::output(
+                            "extra.svg",
+                            no_arrows   => 1,
+                            expolygons  => union_ex($critical_area),
+                            polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
+                        );
+                    }
+                    */
+                    
+                    slice->extra_perimeters++;
+                }
+                
+                #ifdef DEBUG
+                    if (slice->extra_perimeters > 0)
+                        printf("  adding %d more perimeter(s) at layer %zu\n", slice->extra_perimeters, layer->id();
+                #endif
+            }
+        }
+    }
+    
+    {
+        // queue all the layer numbers
+        std::queue<size_t> queue;
+        boost::mutex queue_mutex;
+        for (size_t i = 0; i < this->layer_count(); ++i)
+            queue.push(i);
+    
+        boost::thread_group workers;
+        for (int i = 0; i < this->_print->config.threads; i++)
+            workers.add_thread(new boost::thread(&Slic3r::PrintObject::_make_perimeters_do, this, &queue, &queue_mutex));
+        workers.join_all();
+    }
+    
+    /*
+        simplify slices (both layer and region slices),
+        we only need the max resolution for perimeters
+    ### This makes this method not-idempotent, so we keep it disabled for now.
+    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
+    */
+    
+    this->state.set_done(posPerimeters);
+}
+
+void
+PrintObject::_make_perimeters_do(std::queue<size_t>* queue, boost::mutex* queue_mutex)
+{
+    //std::cout << "THREAD STARTED: " << boost::this_thread::get_id() << std::endl;
+    
+    while (true) {
+        size_t layer_id;
+        {
+            boost::lock_guard<boost::mutex> l(*queue_mutex);
+            if (queue->empty()) return;
+            layer_id = queue->front();
+            queue->pop();
+        }
+        //std::cout << "  Layer " << layer_id << " (" << boost::this_thread::get_id() << ")" << std::endl;
+        this->get_layer(layer_id)->make_perimeters();
+        boost::this_thread::interruption_point();
+    }
+}
+
+void
+PrintObject::_infill()
+{
+    if (this->state.is_done(posInfill)) return;
+    this->state.set_started(posInfill);
+    
+    {
+        // queue all the layer numbers
+        std::queue<size_t> queue;
+        boost::mutex queue_mutex;
+        for (size_t i = 0; i < this->layer_count(); ++i)
+            queue.push(i);
+    
+        boost::thread_group workers;
+        for (int i = 0; i < this->_print->config.threads; i++)
+            workers.add_thread(new boost::thread(&Slic3r::PrintObject::_infill_do, this, &queue, &queue_mutex));
+        workers.join_all();
+    }
+    
+    /*  we could free memory now, but this would make this step not idempotent
+    ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
+    */
+    
+    this->state.set_done(posInfill);
+}
+
+void
+PrintObject::_infill_do(std::queue<size_t>* queue, boost::mutex* queue_mutex)
+{
+    //std::cout << "THREAD STARTED: " << boost::this_thread::get_id() << std::endl;
+    
+    while (true) {
+        size_t layer_id;
+        {
+            boost::lock_guard<boost::mutex> l(*queue_mutex);
+            if (queue->empty()) return;
+            layer_id = queue->front();
+            queue->pop();
+        }
+        //std::cout << "  Layer " << layer_id << " (" << boost::this_thread::get_id() << ")" << std::endl;
+        this->get_layer(layer_id)->make_fills();
+        boost::this_thread::interruption_point();
+    }
+}
+
 }

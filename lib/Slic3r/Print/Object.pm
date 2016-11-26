@@ -371,114 +371,11 @@ sub _slice_region {
 # 2) Increases an "extra perimeters" counter at region slices where needed.
 # 3) Generates perimeters, gap fills and fill regions (fill regions of type stInternal).
 sub make_perimeters {
-    my $self = shift;
+    my ($self) = @_;
     
     # prerequisites
     $self->slice;
-    
-    return if $self->step_done(STEP_PERIMETERS);
-    $self->set_step_started(STEP_PERIMETERS);
-    $self->print->status_cb->(20, "Generating perimeters");
-    
-    # Merge region slices if they were split into types.
-    # FIXME this is using a safety offset, so the region slices will be slightly bigger with each iteration.
-    if ($self->typed_slices) {
-        $_->merge_slices for @{$self->layers};
-        $self->set_typed_slices(0);
-        $self->invalidate_step(STEP_PREPARE_INFILL);
-    }
-    
-    # compare each layer to the one below, and mark those slices needing
-    # one additional inner perimeter, like the top of domed objects-
-    
-    # this algorithm makes sure that at least one perimeter is overlapping
-    # but we don't generate any extra perimeter if fill density is zero, as they would be floating
-    # inside the object - infill_only_where_needed should be the method of choice for printing
-    # hollow objects
-    for my $region_id (0 .. ($self->print->region_count-1)) {
-        my $region = $self->print->regions->[$region_id];
-        my $region_perimeters = $region->config->perimeters;
-        
-        next if !$region->config->extra_perimeters;
-        next if $region_perimeters == 0;
-        next if $region->config->fill_density == 0;
-        
-        for my $i (0 .. ($self->layer_count - 2)) {
-            my $layerm                  = $self->get_layer($i)->get_region($region_id);
-            my $upper_layerm            = $self->get_layer($i+1)->get_region($region_id);
-            my $upper_layerm_polygons   = [ map $_->p, @{$upper_layerm->slices} ];
-            # Filter upper layer polygons in intersection_ppl by their bounding boxes?
-            # my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
-            my $total_loop_length       = sum(map $_->length, @$upper_layerm_polygons) // 0;
-            
-            my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
-            my $ext_perimeter_flow      = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER);
-            my $ext_perimeter_width     = $ext_perimeter_flow->scaled_width;
-            my $ext_perimeter_spacing   = $ext_perimeter_flow->scaled_spacing;
-            
-            foreach my $slice (@{$layerm->slices}) {
-                while (1) {
-                    # compute the total thickness of perimeters
-                    my $perimeters_thickness = $ext_perimeter_width/2 + $ext_perimeter_spacing/2
-                        + ($region_perimeters-1 + $slice->extra_perimeters) * $perimeter_spacing;
-                    
-                    # define a critical area where we don't want the upper slice to fall into
-                    # (it should either lay over our perimeters or outside this area)
-                    my $critical_area_depth = $perimeter_spacing*1.5;
-                    my $critical_area = diff(
-                        offset($slice->expolygon->arrayref, -$perimeters_thickness),
-                        offset($slice->expolygon->arrayref, -($perimeters_thickness + $critical_area_depth)),
-                    );
-                    
-                    # check whether a portion of the upper slices falls inside the critical area
-                    my $intersection = intersection_ppl(
-                        $upper_layerm_polygons,
-                        $critical_area,
-                    );
-                    
-                    # only add an additional loop if at least 30% of the slice loop would benefit from it
-                    my $total_intersection_length = sum(map $_->length, @$intersection) // 0;
-                    last unless $total_intersection_length > $total_loop_length*0.3;
-                    
-                    if (0) {
-                        require "Slic3r/SVG.pm";
-                        Slic3r::SVG::output(
-                            "extra.svg",
-                            no_arrows   => 1,
-                            expolygons  => union_ex($critical_area),
-                            polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
-                        );
-                    }
-                    
-                    $slice->extra_perimeters($slice->extra_perimeters + 1);
-                }
-                Slic3r::debugf "  adding %d more perimeter(s) at layer %d\n",
-                    $slice->extra_perimeters, $layerm->layer->id
-                    if $slice->extra_perimeters > 0;
-            }
-        }
-    }
-    
-    Slic3r::parallelize(
-        threads => $self->print->config->threads,
-        items => sub { 0 .. ($self->layer_count - 1) },
-        thread_cb => sub {
-            my $q = shift;
-            while (defined (my $i = $q->dequeue)) {
-                $self->get_layer($i)->make_perimeters;
-            }
-        },
-        no_threads_cb => sub {
-            $_->make_perimeters for @{$self->layers};
-        },
-    );
-    
-    # simplify slices (both layer and region slices),
-    # we only need the max resolution for perimeters
-    ### This makes this method not-idempotent, so we keep it disabled for now.
-    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
-    
-    $self->set_step_done(STEP_PERIMETERS);
+    $self->_make_perimeters;
 }
 
 sub prepare_infill {
@@ -598,32 +495,7 @@ sub infill {
     
     # prerequisites
     $self->prepare_infill;
-    
-    return if $self->step_done(STEP_INFILL);
-    $self->set_step_started(STEP_INFILL);
-    $self->print->status_cb->(70, "Infilling layers");
-    
-    Slic3r::parallelize(
-        threads => $self->print->config->threads,
-        items => sub { 0..$#{$self->layers} },
-        thread_cb => sub {
-            my $q = shift;
-            while (defined (my $i = $q->dequeue)) {
-                $self->get_layer($i)->make_fills;
-            }
-        },
-        no_threads_cb => sub {
-            foreach my $layer (@{$self->layers}) {
-                $layer->make_fills;
-            }
-        },
-    );
-
-    ### we could free memory now, but this would make this step not idempotent
-    ### Vojtech: Cannot release the fill_surfaces, they are used by the support generator.
-    ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
-    
-    $self->set_step_done(STEP_INFILL);
+    $self->_infill;
 }
 
 sub generate_support_material {

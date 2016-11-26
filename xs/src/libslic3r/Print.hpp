@@ -2,9 +2,11 @@
 #define slic3r_Print_hpp_
 
 #include "libslic3r.h"
+#include <queue>
 #include <set>
-#include <vector>
 #include <string>
+#include <vector>
+#include <boost/thread.hpp>
 #include "BoundingBox.hpp"
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
@@ -142,6 +144,8 @@ public:
     void process_external_surfaces();
     void discover_vertical_shells();
     void bridge_over_infill();
+    void _make_perimeters();
+    void _infill();
     
 private:
     Print* _print;
@@ -151,7 +155,9 @@ private:
     // TODO: call model_object->get_bounding_box() instead of accepting
         // parameter
     PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox);
-    ~PrintObject() {}
+    ~PrintObject();
+    void _make_perimeters_do(std::queue<size_t>* queue, boost::mutex* queue_mutex);
+    void _infill_do(std::queue<size_t>* queue, boost::mutex* queue_mutex);
 };
 
 typedef std::vector<PrintObject*> PrintObjectPtrs;

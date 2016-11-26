@@ -41,8 +41,12 @@ sub size {
 sub process {
     my ($self) = @_;
     
+    $self->status_cb->(20, "Generating perimeters");
     $_->make_perimeters for @{$self->objects};
+    
+    $self->status_cb->(70, "Infilling layers");
     $_->infill for @{$self->objects};
+    
     $_->generate_support_material for @{$self->objects};
     $self->make_skirt;
     $self->make_brim;  # must come after make_skirt

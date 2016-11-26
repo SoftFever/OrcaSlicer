@@ -111,6 +111,8 @@ _constant()
     void process_external_surfaces();
     void discover_vertical_shells();
     void bridge_over_infill();
+    void _make_perimeters();
+    void _infill();
     
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
