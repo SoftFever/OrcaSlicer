@@ -938,7 +938,8 @@ PrintObject::_make_perimeters()
         
         if (!region.config.extra_perimeters
             || region.config.perimeters == 0
-            || region.config.fill_density == 0) continue;
+            || region.config.fill_density == 0
+            || this->layer_count() < 2) continue;
         
         for (size_t i = 0; i <= (this->layer_count()-2); ++i) {
             LayerRegion &layerm                     = *this->get_layer(i)->get_region(region_id);
@@ -1002,7 +1003,7 @@ PrintObject::_make_perimeters()
                 
                 #ifdef DEBUG
                     if (slice->extra_perimeters > 0)
-                        printf("  adding %d more perimeter(s) at layer %zu\n", slice->extra_perimeters, layer->id();
+                        printf("  adding %d more perimeter(s) at layer %zu\n", slice->extra_perimeters, i);
                 #endif
             }
         }
