@@ -4,10 +4,13 @@
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <ostream>
 #include <iostream>
+#include <queue>
 #include <sstream>
 #include <cstdio>
 #include <stdint.h>
 #include <stdarg.h>
+#include <vector>
+#include <boost/thread.hpp>
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
 #define SLIC3R_VERSION "1.31.6"
@@ -39,13 +42,6 @@
 #define SCALED_EPSILON scale_(EPSILON)
 typedef long coord_t;
 typedef double coordf_t;
-
-namespace Slic3r {
-
-enum Axis { X=0, Y, Z };
-
-}
-using namespace Slic3r;
 
 /* Implementation of CONFESS("foo"): */
 #ifdef _MSC_VER
@@ -90,5 +86,55 @@ inline std::string debug_out_path(const char *name, ...)
 
 // Write slices as SVG images into out directory during the 2D processing of the slices.
 // #define SLIC3R_DEBUG_SLICE_PROCESSING
+
+namespace Slic3r {
+
+enum Axis { X=0, Y, Z };
+
+template <class T>
+inline void append_to(std::vector<T> &dst, const std::vector<T> &src)
+{
+    dst.insert(dst.end(), src.begin(), src.end());
+}
+
+template <class T> void
+_parallelize_do(std::queue<T>* queue, boost::mutex* queue_mutex, boost::function<void(T)> func)
+{
+    //std::cout << "THREAD STARTED: " << boost::this_thread::get_id() << std::endl;
+    while (true) {
+        T i;
+        {
+            boost::lock_guard<boost::mutex> l(*queue_mutex);
+            if (queue->empty()) return;
+            i = queue->front();
+            queue->pop();
+        }
+        //std::cout << "  Thread " << boost::this_thread::get_id() << " processing item " << i << std::endl;
+        func(i);
+        boost::this_thread::interruption_point();
+    }
+}
+
+template <class T> void
+parallelize(std::queue<T> queue, boost::function<void(T)> func,
+    int threads_count = boost::thread::hardware_concurrency())
+{
+    boost::mutex queue_mutex;
+    boost::thread_group workers;
+    for (int i = 0; i < threads_count; i++)
+        workers.add_thread(new boost::thread(&_parallelize_do<T>, &queue, &queue_mutex, func));
+    workers.join_all();
+}
+
+template <class T> void
+parallelize(T start, T end, boost::function<void(T)> func,
+    int threads_count = boost::thread::hardware_concurrency())
+{
+    std::queue<T> queue;
+    for (T i = start; i <= end; ++i) queue.push(i);
+    parallelize(queue, func, threads_count);
+}
+
+} // namespace Slic3r
 
 #endif

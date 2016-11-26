@@ -1009,18 +1009,11 @@ PrintObject::_make_perimeters()
         }
     }
     
-    {
-        // queue all the layer numbers
-        std::queue<size_t> queue;
-        boost::mutex queue_mutex;
-        for (size_t i = 0; i < this->layer_count(); ++i)
-            queue.push(i);
-    
-        boost::thread_group workers;
-        for (int i = 0; i < this->_print->config.threads; i++)
-            workers.add_thread(new boost::thread(&Slic3r::PrintObject::_make_perimeters_do, this, &queue, &queue_mutex));
-        workers.join_all();
-    }
+    parallelize<Layer*>(
+        std::queue<Layer*>(std::deque<Layer*>(this->layers.begin(), this->layers.end())),  // cast LayerPtrs to std::queue<Layer*>
+        boost::bind(&Slic3r::Layer::make_perimeters, _1),
+        this->_print->config.threads.value
+    );
     
     /*
         simplify slices (both layer and region slices),
@@ -1033,67 +1026,22 @@ PrintObject::_make_perimeters()
 }
 
 void
-PrintObject::_make_perimeters_do(std::queue<size_t>* queue, boost::mutex* queue_mutex)
-{
-    //std::cout << "THREAD STARTED: " << boost::this_thread::get_id() << std::endl;
-    
-    while (true) {
-        size_t layer_id;
-        {
-            boost::lock_guard<boost::mutex> l(*queue_mutex);
-            if (queue->empty()) return;
-            layer_id = queue->front();
-            queue->pop();
-        }
-        //std::cout << "  Layer " << layer_id << " (" << boost::this_thread::get_id() << ")" << std::endl;
-        this->get_layer(layer_id)->make_perimeters();
-        boost::this_thread::interruption_point();
-    }
-}
-
-void
 PrintObject::_infill()
 {
     if (this->state.is_done(posInfill)) return;
     this->state.set_started(posInfill);
     
-    {
-        // queue all the layer numbers
-        std::queue<size_t> queue;
-        boost::mutex queue_mutex;
-        for (size_t i = 0; i < this->layer_count(); ++i)
-            queue.push(i);
-    
-        boost::thread_group workers;
-        for (int i = 0; i < this->_print->config.threads; i++)
-            workers.add_thread(new boost::thread(&Slic3r::PrintObject::_infill_do, this, &queue, &queue_mutex));
-        workers.join_all();
-    }
+    parallelize<Layer*>(
+        std::queue<Layer*>(std::deque<Layer*>(this->layers.begin(), this->layers.end())),  // cast LayerPtrs to std::queue<Layer*>
+        boost::bind(&Slic3r::Layer::make_fills, _1),
+        this->_print->config.threads.value
+    );
     
     /*  we could free memory now, but this would make this step not idempotent
     ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
     */
     
     this->state.set_done(posInfill);
-}
-
-void
-PrintObject::_infill_do(std::queue<size_t>* queue, boost::mutex* queue_mutex)
-{
-    //std::cout << "THREAD STARTED: " << boost::this_thread::get_id() << std::endl;
-    
-    while (true) {
-        size_t layer_id;
-        {
-            boost::lock_guard<boost::mutex> l(*queue_mutex);
-            if (queue->empty()) return;
-            layer_id = queue->front();
-            queue->pop();
-        }
-        //std::cout << "  Layer " << layer_id << " (" << boost::this_thread::get_id() << ")" << std::endl;
-        this->get_layer(layer_id)->make_fills();
-        boost::this_thread::interruption_point();
-    }
 }
 
 }

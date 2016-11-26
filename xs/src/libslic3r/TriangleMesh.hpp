@@ -3,7 +3,6 @@
 
 #include "libslic3r.h"
 #include <admesh/stl.h>
-#include <queue>
 #include <vector>
 #include <boost/thread.hpp>
 #include "BoundingBox.hpp"
@@ -101,10 +100,8 @@ class TriangleMeshSlicer
     typedef std::vector< std::vector<int> > t_facets_edges;
     t_facets_edges facets_edges;
     stl_vertex* v_scaled_shared;
-    void _slice_do(std::queue<size_t>* queue, boost::mutex* queue_mutex,
-        std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const;
-    void _make_loops_do(std::queue<size_t>* queue, boost::mutex* queue_mutex,
-        std::vector<IntersectionLines>* lines, std::vector<Polygons>* layers) const;
+    void _slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const;
+    void _make_loops_do(size_t i, std::vector<IntersectionLines>* lines, std::vector<Polygons>* layers) const;
     void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const;
     void make_expolygons(const Polygons &loops, ExPolygons* slices) const;
     void make_expolygons_simple(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;

@@ -1292,7 +1292,7 @@ PrintConfigDef::PrintConfigDef()
     def->readonly = true;
     def->min = 1;
     def->max = 16;
-    def->default_value = new ConfigOptionInt(boost::thread::hardware_concurrency());
+    def->default_value = new ConfigOptionInt((boost::thread::hardware_concurrency() == 0) ? 2 : boost::thread::hardware_concurrency());
 
     def = this->add("toolchange_gcode", coString);
     def->label = "Tool change G-code";

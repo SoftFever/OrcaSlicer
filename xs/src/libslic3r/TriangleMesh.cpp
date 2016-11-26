@@ -3,6 +3,7 @@
 #include "Geometry.hpp"
 #include <cmath>
 #include <deque>
+#include <queue>
 #include <set>
 #include <vector>
 #include <map>
@@ -432,83 +433,55 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     */
     
     std::vector<IntersectionLines> lines(z.size());
-    
     {
-        // queue all the facet indices
-        std::queue<size_t> queue;
-        boost::mutex queue_mutex, lines_mutex;
-        for (size_t i = 0; i < this->mesh->stl.stats.number_of_facets; ++i) queue.push(i);
-        
-        boost::thread_group workers;
-        for (int i = 0; i < boost::thread::hardware_concurrency(); i++)
-            workers.add_thread(new boost::thread(&TriangleMeshSlicer::_slice_do, this,
-                &queue, &queue_mutex, &lines, &lines_mutex, z));
-        workers.join_all();
+        boost::mutex lines_mutex;
+        parallelize<int>(
+            0,
+            this->mesh->stl.stats.number_of_facets-1,
+            boost::bind(&TriangleMeshSlicer::_slice_do, this, _1, &lines, &lines_mutex, z)
+        );
     }
     
     // v_scaled_shared could be freed here
     
     // build loops
     layers->resize(z.size());
-    {
-        // queue all the layer numbers
-        std::queue<size_t> queue;
-        boost::mutex queue_mutex;
-        for (size_t i = 0; i < lines.size(); ++i) queue.push(i);
-        
-        // We don't use a mutex for lines because workers are only writing the skip property
-        // and no workers work on the same layer (i.e. item of 'lines').
-        boost::thread_group workers;
-        for (int i = 0; i < boost::thread::hardware_concurrency(); i++)
-            workers.add_thread(new boost::thread(&TriangleMeshSlicer::_make_loops_do, this,
-                &queue, &queue_mutex, &lines, layers));
-        workers.join_all();
-    }
+    parallelize<size_t>(
+        0,
+        lines.size()-1,
+        boost::bind(&TriangleMeshSlicer::_make_loops_do, this, _1, &lines, layers)
+    );
 }
 
 void
-TriangleMeshSlicer::_slice_do(std::queue<size_t>* queue, boost::mutex* queue_mutex,
-    std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const
+TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, 
+    const std::vector<float> &z) const
 {
-    //std::cout << "THREAD STARTED: " << boost::this_thread::get_id() << std::endl;
+    const stl_facet &facet = this->mesh->stl.facet_start[facet_idx];
     
-    while (true) {
-        int facet_idx;
-        {
-            boost::lock_guard<boost::mutex> l(*queue_mutex);
-            if (queue->empty()) return;
-            facet_idx = queue->front();
-            queue->pop();
-        }
-        //std::cout << "  Facet " << facet_idx << " (" << boost::this_thread::get_id() << ")" << std::endl;
-        
-        const stl_facet &facet = this->mesh->stl.facet_start[facet_idx];
-        
-        // find facet extents
-        const float min_z = fminf(facet.vertex[0].z, fminf(facet.vertex[1].z, facet.vertex[2].z));
-        const float max_z = fmaxf(facet.vertex[0].z, fmaxf(facet.vertex[1].z, facet.vertex[2].z));
-        
-        #ifdef SLIC3R_TRIANGLEMESH_DEBUG
-        printf("\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n", facet_idx,
-            facet.vertex[0].x, facet.vertex[0].y, facet.vertex[0].z,
-            facet.vertex[1].x, facet.vertex[1].y, facet.vertex[1].z,
-            facet.vertex[2].x, facet.vertex[2].y, facet.vertex[2].z);
-        printf("z: min = %.2f, max = %.2f\n", min_z, max_z);
-        #endif
-        
-        // find layer extents
-        std::vector<float>::const_iterator min_layer, max_layer;
-        min_layer = std::lower_bound(z.begin(), z.end(), min_z); // first layer whose slice_z is >= min_z
-        max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z) - 1; // last layer whose slice_z is <= max_z
-        #ifdef SLIC3R_TRIANGLEMESH_DEBUG
-        printf("layers: min = %d, max = %d\n", (int)(min_layer - z.begin()), (int)(max_layer - z.begin()));
-        #endif
-        
-        for (std::vector<float>::const_iterator it = min_layer; it != max_layer + 1; ++it) {
-            std::vector<float>::size_type layer_idx = it - z.begin();
-            this->slice_facet(*it / SCALING_FACTOR, facet, facet_idx, min_z, max_z, &(*lines)[layer_idx], lines_mutex);
-        }
-        boost::this_thread::interruption_point();
+    // find facet extents
+    const float min_z = fminf(facet.vertex[0].z, fminf(facet.vertex[1].z, facet.vertex[2].z));
+    const float max_z = fmaxf(facet.vertex[0].z, fmaxf(facet.vertex[1].z, facet.vertex[2].z));
+    
+    #ifdef SLIC3R_DEBUG
+    printf("\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n", facet_idx,
+        facet.vertex[0].x, facet.vertex[0].y, facet.vertex[0].z,
+        facet.vertex[1].x, facet.vertex[1].y, facet.vertex[1].z,
+        facet.vertex[2].x, facet.vertex[2].y, facet.vertex[2].z);
+    printf("z: min = %.2f, max = %.2f\n", min_z, max_z);
+    #endif
+    
+    // find layer extents
+    std::vector<float>::const_iterator min_layer, max_layer;
+    min_layer = std::lower_bound(z.begin(), z.end(), min_z); // first layer whose slice_z is >= min_z
+    max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z) - 1; // last layer whose slice_z is <= max_z
+    #ifdef SLIC3R_DEBUG
+    printf("layers: min = %d, max = %d\n", (int)(min_layer - z.begin()), (int)(max_layer - z.begin()));
+    #endif
+    
+    for (std::vector<float>::const_iterator it = min_layer; it != max_layer + 1; ++it) {
+        std::vector<float>::size_type layer_idx = it - z.begin();
+        this->slice_facet(*it / SCALING_FACTOR, facet, facet_idx, min_z, max_z, &(*lines)[layer_idx], lines_mutex);
     }
 }
 
@@ -653,23 +626,9 @@ TriangleMeshSlicer::slice_facet(float slice_z, const stl_facet &facet, const int
 }
 
 void
-TriangleMeshSlicer::_make_loops_do(std::queue<size_t>* queue, boost::mutex* queue_mutex,
-    std::vector<IntersectionLines>* lines, std::vector<Polygons>* layers) const
+TriangleMeshSlicer::_make_loops_do(size_t i, std::vector<IntersectionLines>* lines, std::vector<Polygons>* layers) const
 {
-    //std::cout << "THREAD STARTED: " << boost::this_thread::get_id() << std::endl;
-    
-    while (true) {
-        size_t layer_id;
-        {
-            boost::lock_guard<boost::mutex> l(*queue_mutex);
-            if (queue->empty()) return;
-            layer_id = queue->front();
-            queue->pop();
-        }
-        //std::cout << "  Layer " << layer_id << " (" << boost::this_thread::get_id() << ")" << std::endl;
-        this->make_loops((*lines)[layer_id], &(*layers)[layer_id]);
-        boost::this_thread::interruption_point();
-    }
+    this->make_loops((*lines)[i], &(*layers)[i]);
 }
 
 void
