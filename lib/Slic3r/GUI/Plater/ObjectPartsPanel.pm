@@ -54,10 +54,12 @@ sub new {
     # buttons
     $self->{btn_load_part} = Wx::Button->new($self, -1, "Load part…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_load_modifier} = Wx::Button->new($self, -1, "Load modifier…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_load_lambda_modifier} = Wx::Button->new($self, -1, "Load generic…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_delete} = Wx::Button->new($self, -1, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     if ($Slic3r::GUI::have_button_icons) {
         $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
+        $self->{btn_load_lambda_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_delete}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_delete.png"), wxBITMAP_TYPE_PNG));
     }
     
@@ -65,9 +67,11 @@ sub new {
     my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $buttons_sizer->Add($self->{btn_load_part}, 0);
     $buttons_sizer->Add($self->{btn_load_modifier}, 0);
+    $buttons_sizer->Add($self->{btn_load_lambda_modifier}, 0);
     $buttons_sizer->Add($self->{btn_delete}, 0);
     $self->{btn_load_part}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_load_modifier}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_load_lambda_modifier}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_delete}->SetFont($Slic3r::GUI::small_font);
     
     # part settings panel
@@ -145,7 +149,7 @@ sub new {
         
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
         $canvas->set_auto_bed_shape;
-        $canvas->SetSize([500,500]);
+        $canvas->SetSize([500,700]);
         $canvas->zoom_to_volumes;
     }
     
@@ -168,6 +172,7 @@ sub new {
     });
     EVT_BUTTON($self, $self->{btn_load_part}, sub { $self->on_btn_load(0) });
     EVT_BUTTON($self, $self->{btn_load_modifier}, sub { $self->on_btn_load(1) });
+    EVT_BUTTON($self, $self->{btn_load_lambda_modifier}, sub { $self->on_btn_lambda(1) });
     EVT_BUTTON($self, $self->{btn_delete}, \&on_btn_delete);
     
     $self->reload_tree;
@@ -325,6 +330,28 @@ sub on_btn_load {
         }
     }
     
+    $self->_parts_changed;
+}
+
+sub on_btn_lambda {
+    my ($self, $is_modifier) = @_;
+    
+    my $dlg = Slic3r::GUI::Plater::LambdaObjectDialog->new($self);
+    $dlg->ShowModal();
+    my $params = $dlg->ObjectParameter;
+    my $name = "lambda-".$params->{"type"};
+
+    my $new_volume = $self->{model_object}->add_volume(mesh => Slic3r::Test::mesh($params->{"type"}, dim=>$params->{"dim"}), material_id=>"generic");
+    $new_volume->set_modifier($is_modifier);
+    $new_volume->set_name($name);
+
+    # apply the same translation we applied to the object
+    $new_volume->mesh->translate(@{$self->{model_object}->origin_translation});
+
+    # set a default extruder value, since user can't add it manually
+    $new_volume->config->set_ifndef('extruder', 0);
+
+    $self->{parts_changed} = 1;
     $self->_parts_changed;
 }
 
