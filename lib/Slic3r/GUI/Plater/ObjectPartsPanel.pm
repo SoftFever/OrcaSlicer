@@ -7,7 +7,7 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename);
-use Wx qw(:misc :sizer :treectrl :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG
+use Wx qw(:misc :sizer :treectrl :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG wxID_CANCEL
     wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED);
 use base 'Wx::Panel';
@@ -337,7 +337,9 @@ sub on_btn_lambda {
     my ($self, $is_modifier) = @_;
     
     my $dlg = Slic3r::GUI::Plater::LambdaObjectDialog->new($self);
-    $dlg->ShowModal();
+    if ($dlg->ShowModal() == wxID_CANCEL) {
+        return;
+    }
     my $params = $dlg->ObjectParameter;
     my $name = "lambda-".$params->{"type"};
 
