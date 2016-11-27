@@ -292,7 +292,7 @@ sub _init_menubar {
     # View menu
     if (!$self->{no_plater}) {
         $self->{viewMenu} = Wx::Menu->new;
-        $self->_append_menu_item($self->{viewMenu}, "Default", 'Default View', sub { $self->select_view('default'); });
+        $self->_append_menu_item($self->{viewMenu}, "Iso"    , 'Iso View'    , sub { $self->select_view('iso'    ); });
         $self->_append_menu_item($self->{viewMenu}, "Top"    , 'Top View'    , sub { $self->select_view('top'    ); });
         $self->_append_menu_item($self->{viewMenu}, "Bottom" , 'Bottom View' , sub { $self->select_view('bottom' ); });
         $self->_append_menu_item($self->{viewMenu}, "Front"  , 'Front View'  , sub { $self->select_view('front'  ); });

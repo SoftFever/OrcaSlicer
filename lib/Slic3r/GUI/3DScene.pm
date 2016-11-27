@@ -74,7 +74,7 @@ use constant SELECTED_COLOR => [0,1,0,1];
 use constant HOVER_COLOR    => [0.4,0.9,0,1];
 
 # phi / theta angles to orient the camera.
-use constant VIEW_DEFAULT    => [45.0,45.0];
+use constant VIEW_ISO        => [45.0,45.0];
 use constant VIEW_LEFT       => [90.0,90.0];
 use constant VIEW_RIGHT      => [-90.0,90.0];
 use constant VIEW_TOP        => [0.0,0.0];
@@ -82,8 +82,7 @@ use constant VIEW_BOTTOM     => [0.0,180.0];
 use constant VIEW_FRONT      => [0.0,90.0];
 use constant VIEW_REAR       => [180.0,90.0];
 
-#use constant GIMBALL_LOCK_THETA_MAX => 150;
-use constant GIMBALL_LOCK_THETA_MAX => 170;
+use constant GIMBAL_LOCK_THETA_MAX => 170;
 
 # make OpenGL::Array thread-safe
 {
@@ -257,7 +256,7 @@ sub mouse_event {
                 if (TURNTABLE_MODE) {
                     $self->_sphi($self->_sphi + ($pos->x - $orig->x) * TRACKBALLSIZE);
                     $self->_stheta($self->_stheta - ($pos->y - $orig->y) * TRACKBALLSIZE);        #-
-                    $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
+                    $self->_stheta(GIMBAL_LOCK_THETA_MAX) if $self->_stheta > GIMBAL_LOCK_THETA_MAX;
                     $self->_stheta(0) if $self->_stheta < 0;
                 } else {
                     my $size = $self->GetClientSize;
@@ -341,8 +340,8 @@ sub select_view {
     if (ref($direction)) {
         $dirvec = $direction;
     } else {
-        if ($direction eq 'default') {
-            $dirvec = VIEW_DEFAULT;
+        if ($direction eq 'iso') {
+            $dirvec = VIEW_ISO;
         } elsif ($direction eq 'left') {
             $dirvec = VIEW_LEFT;
         } elsif ($direction eq 'right') {
@@ -357,18 +356,22 @@ sub select_view {
             $dirvec = VIEW_REAR;
         }
     }
-    my $bb = $self->volumes_bounding_box;
-    if (! $bb->empty) {
-        $self->_sphi($dirvec->[0]);
-        $self->_stheta($dirvec->[1]);
-        # Avoid gimball lock.
-        $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
-        $self->_stheta(0) if $self->_stheta < 0;
-        # View everything.
-        $self->zoom_to_bounding_box($bb);
-        $self->on_viewport_changed->() if $self->on_viewport_changed;
-        $self->Refresh;
-    }
+
+    $self->_sphi($dirvec->[0]);
+    $self->_stheta($dirvec->[1]);
+    
+    # Avoid gimbal lock.
+    $self->_stheta(GIMBAL_LOCK_THETA_MAX) if $self->_stheta > GIMBAL_LOCK_THETA_MAX;
+    $self->_stheta(0) if $self->_stheta < 0;
+    
+    # View everything.
+    $self->volumes_bounding_box->defined
+        ? $self->zoom_to_volumes
+        : $self->zoom_to_bed;
+    
+    $self->on_viewport_changed->() if $self->on_viewport_changed;
+    $self->_dirty(1);
+    $self->Refresh;
 }
 
 sub zoom_to_bounding_box {
@@ -377,7 +380,7 @@ sub zoom_to_bounding_box {
     
     # calculate the zoom factor needed to adjust viewport to
     # bounding box
-    my $max_size = max(@{$bb->size}) * 2;
+    my $max_size = max(@{$bb->size}) * 1.05;
     my $min_viewport_size = min($self->GetSizeWH);
     $self->_zoom($min_viewport_size / $max_size);
     
