@@ -37,6 +37,8 @@
         %code{% RETVAL = THIS->bounding_box().center(); %};
     int facets_count();
     void reset_repair_stats();
+    Clone<TriangleMesh> cube(double x, double y, double z) 
+        %code{% RETVAL = make_cube(x, y, z); %};
 %{
 
 void

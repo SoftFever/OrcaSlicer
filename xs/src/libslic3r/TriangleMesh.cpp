@@ -25,6 +25,48 @@ TriangleMesh::TriangleMesh()
     stl_initialize(&this->stl);
 }
 
+TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Point3>& facets )
+    : repaired(false)
+{
+    stl_initialize(&this->stl);
+    stl_file &stl = this->stl;
+    stl.error = 0;
+    stl.stats.type = inmemory;
+
+    // count facets and allocate memory
+    stl.stats.number_of_facets = facets.size();
+    stl.stats.original_num_facets = stl.stats.number_of_facets;
+    stl_allocate(&stl);
+
+    for (int i = 0; i < stl.stats.number_of_facets; i++) {
+        stl_facet facet;
+        facet.normal.x = 0;
+        facet.normal.y = 0;
+        facet.normal.z = 0;
+
+        const Pointf3& ref_f1 = points[facets[i].x];
+        facet.vertex[0].x = ref_f1.x;
+        facet.vertex[0].y = ref_f1.y;
+        facet.vertex[0].z = ref_f1.z;
+
+        const Pointf3& ref_f2 = points[facets[i].y];
+        facet.vertex[1].x = ref_f2.x;
+        facet.vertex[1].y = ref_f2.y;
+        facet.vertex[1].z = ref_f2.z;
+
+        const Pointf3& ref_f3 = points[facets[i].z];
+        facet.vertex[2].x = ref_f3.x;
+        facet.vertex[2].y = ref_f3.y;
+        facet.vertex[2].z = ref_f3.z;
+        
+        facet.extra[0] = 0;
+        facet.extra[1] = 0;
+
+        stl.facet_start[i] = facet;
+    }
+    stl_get_size(&stl);
+}
+
 TriangleMesh::TriangleMesh(const TriangleMesh &other)
     : stl(other.stl), repaired(other.repaired)
 {
@@ -1099,4 +1141,23 @@ TriangleMeshSlicer::~TriangleMeshSlicer()
     if (this->v_scaled_shared != NULL) free(this->v_scaled_shared);
 }
 
+TriangleMesh make_cube(double x, double y, double z) {
+    Pointf3 pv[8] = { 
+        Pointf3(x, y, 0), Pointf3(x, 0, 0), Pointf3(0, 0, 0), 
+        Pointf3(0, y, 0), Pointf3(x, y, z), Pointf3(0, y, z), 
+        Pointf3(0, 0, z), Pointf3(x, 0, z) 
+    };
+    Point3 fv[12] = { 
+        Point3(0, 1, 2), Point3(0, 2, 3), Point3(4, 5, 6), 
+        Point3(4, 6, 7), Point3(0, 4, 7), Point3(0, 7, 1), 
+        Point3(1, 7, 6), Point3(1, 6, 2), Point3(2, 6, 5), 
+        Point3(2, 5, 3), Point3(4, 0, 3), Point3(4, 3, 5) 
+    };
+
+    std::vector<Point3> facets(&fv[0], &fv[0]+12);
+    Pointf3s vertices(&pv[0], &pv[0]+8);
+
+    TriangleMesh mesh(vertices ,facets);
+    return mesh;
+}
 }

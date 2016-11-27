@@ -21,6 +21,7 @@ class TriangleMesh
 {
     public:
     TriangleMesh();
+    TriangleMesh(const Pointf3s &points, const std::vector<Point3> &facets);
     TriangleMesh(const TriangleMesh &other);
     TriangleMesh& operator= (TriangleMesh other);
     void swap(TriangleMesh &other);
@@ -107,6 +108,8 @@ class TriangleMeshSlicer
     void make_expolygons_simple(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;
     void make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;
 };
+
+TriangleMesh make_cube(double x, double y, double z);
 
 }
 
