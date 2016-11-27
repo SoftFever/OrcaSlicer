@@ -62,14 +62,7 @@ sub new {
     );
     my @options = ("box");
     $self->{type} = Wx::ComboBox->new($self, 1, "box", wxDefaultPosition, wxDefaultSize, \@options, wxCB_READONLY);
-    #my @types = ("box"); 
-    #$optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-    #    opt_id  =>  'type',
-    #    label   =>  'Type',
-    #    type    =>  'select',
-    #    values  =>  \@types,
-    #    default =>  'box',
-    #));
+
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id  =>  0,
         label   =>  'L',
