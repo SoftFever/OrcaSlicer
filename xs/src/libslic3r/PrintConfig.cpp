@@ -1292,8 +1292,12 @@ PrintConfigDef::PrintConfigDef()
     def->readonly = true;
     def->min = 1;
     def->max = 16;
-    def->default_value = new ConfigOptionInt((boost::thread::hardware_concurrency() == 0) ? 2 : boost::thread::hardware_concurrency());
-
+    {
+        int threads = boost::thread::hardware_concurrency();
+        if (threads == 0) threads = 2;
+        def->default_value = new ConfigOptionInt(threads);
+    }
+    
     def = this->add("toolchange_gcode", coString);
     def->label = "Tool change G-code";
     def->tooltip = "This custom code is inserted right before every extruder change. Note that you can use placeholder variables for all Slic3r settings as well as [previous_extruder] and [next_extruder].";

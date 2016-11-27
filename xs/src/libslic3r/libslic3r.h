@@ -4,6 +4,7 @@
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <ostream>
 #include <iostream>
+#include <math.h>
 #include <queue>
 #include <sstream>
 #include <cstdio>
@@ -119,9 +120,10 @@ template <class T> void
 parallelize(std::queue<T> queue, boost::function<void(T)> func,
     int threads_count = boost::thread::hardware_concurrency())
 {
+    if (threads_count == 0) threads_count = 2;
     boost::mutex queue_mutex;
     boost::thread_group workers;
-    for (int i = 0; i < threads_count; i++)
+    for (int i = 0; i < fminf(threads_count, queue.size()); i++)
         workers.add_thread(new boost::thread(&_parallelize_do<T>, &queue, &queue_mutex, func));
     workers.join_all();
 }
