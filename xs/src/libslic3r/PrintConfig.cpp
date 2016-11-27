@@ -1293,7 +1293,7 @@ PrintConfigDef::PrintConfigDef()
     def->min = 1;
     def->max = 16;
     {
-        int threads = boost::thread::hardware_concurrency();
+        unsigned int threads = boost::thread::hardware_concurrency();
         if (threads == 0) threads = 2;
         def->default_value = new ConfigOptionInt(threads);
     }

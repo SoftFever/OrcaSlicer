@@ -218,7 +218,7 @@ sub validate {
     my $self = shift;
     
     # -j, --threads
-    die "Invalid value for --threads\n"
+    die "Invalid value for --threads: " . $self->threads . "\n"
         if $self->threads < 1;
 
     # --layer-height
