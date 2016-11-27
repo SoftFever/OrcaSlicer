@@ -428,6 +428,7 @@ sub _update {
         $self->{last_coords}{z} = $m_z;
     }
 
+    $self->{parts_changed} = 1;
     my @objects = ();
     push @objects, $self->{model_object};
     $self->{canvas}->reset_objects;
