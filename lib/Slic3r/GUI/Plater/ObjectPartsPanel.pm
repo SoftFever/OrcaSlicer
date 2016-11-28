@@ -344,12 +344,12 @@ sub on_btn_lambda {
     my $params = $dlg->ObjectParameter;
     my $type = "".$params->{"type"};
     my $name = "lambda-".$params->{"type"};
-    my $mesh = Slic3r::TriangleMesh->new();
+    my $mesh;
 
     if ($type eq "box") {
-        $mesh = $mesh->cube($params->{"dim"}[0], $params->{"dim"}[1], $params->{"dim"}[2]);
+        $mesh = Slic3r::TriangleMesh::cube($params->{"dim"}[0], $params->{"dim"}[1], $params->{"dim"}[2]);
     } elsif ($type eq "cylinder") {
-        $mesh = $mesh->cylinder($params->{"cyl_r"}, $params->{"cyl_h"});
+        $mesh = Slic3r::TriangleMesh::cylinder($params->{"cyl_r"}, $params->{"cyl_h"});
     } else {
         return;
     }
