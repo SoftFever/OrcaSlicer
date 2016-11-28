@@ -341,16 +341,18 @@ sub on_btn_lambda {
         return;
     }
     my $params = $dlg->ObjectParameter;
+    my $type = "".$params->{"type"};
     my $name = "lambda-".$params->{"type"};
     my $mesh = Slic3r::TriangleMesh->new();
 
     #TODO support non-boxes
-    if ($name eq "box") {
+    if ($type eq "box") {
         $mesh = $mesh->cube($params->{"dim"}[0], $params->{"dim"}[1], $params->{"dim"}[2]);
-    } elsif ($name eq "cylinder") {
+    } elsif ($type eq "cylinder") {
         $mesh = $mesh->cylinder($params->{"dim"}[0], $params->{"dim"}[1]);
+    } else {
+        return;
     }
-
     my $new_volume = $self->{model_object}->add_volume(mesh => $mesh);
     $new_volume->set_modifier($is_modifier);
     $new_volume->set_name($name);
