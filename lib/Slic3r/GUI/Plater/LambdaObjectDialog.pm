@@ -19,8 +19,10 @@ sub new {
     # Note whether the window was already closed, so a pending update is not executed.
     $self->{already_closed} = 0;
     $self->{object_parameters} = { 
-        type => "box",
+        type => "box", 
         dim => [1, 1, 1],
+        cyl_r => 1,
+        cyl_h => 1,
     };
 
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
@@ -44,51 +46,84 @@ sub new {
         $self->Destroy;
     });
     
-    my $optgroup;
-    $optgroup = $self->{optgroup} = Slic3r::GUI::OptionsGroup->new(
+    my $optgroup_box;
+    $optgroup_box = $self->{optgroup_box} = Slic3r::GUI::OptionsGroup->new(
         parent      => $self,
-        title       => 'Add Generic...',
+        title       => 'Add Cube...',
         on_change   => sub {
             # Do validation
             my ($opt_id) = @_;
             if ($opt_id == 0 || $opt_id == 1 || $opt_id == 2) {
-                if (!looks_like_number($optgroup->get_value($opt_id))) {
+                if (!looks_like_number($optgroup_box->get_value($opt_id))) {
                     return 0;
                 }
             }
-            $self->{object_parameters}->{dim}[$opt_id] = $optgroup->get_value($opt_id);
+            $self->{object_parameters}->{dim}[$opt_id] = $optgroup_box->get_value($opt_id);
         },
         label_width => 100,
     );
     my @options = ("box", "cylinder");
     $self->{type} = Wx::ComboBox->new($self, 1, "box", wxDefaultPosition, wxDefaultSize, \@options, wxCB_READONLY);
 
-    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+    $optgroup_box->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id  =>  0,
         label   =>  'L',
         type    =>  'f',
         default =>  '1',
     ));
-    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+    $optgroup_box->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id  =>  1,
         label   =>  'W',
         type    =>  'f',
         default =>  '1',
     ));
-    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+    $optgroup_box->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id  =>  2,
         label   =>  'H',
         type    =>  'f',
         default =>  '1',
     ));
+
+    my $optgroup_cylinder;
+    $optgroup_cylinder = $self->{optgroup_cylinder} = Slic3r::GUI::OptionsGroup->new(
+        parent      => $self,
+        title       => 'Add Cylinder...',
+        on_change   => sub {
+            # Do validation
+            my ($opt_id) = @_;
+            if ($opt_id eq 'cyl_r' || $opt_id eq 'cyl_h') {
+                if (!looks_like_number($optgroup_cylinder->get_value($opt_id))) {
+                    return 0;
+                }
+            }
+            $self->{object_parameters}->{$opt_id} = $optgroup_cylinder->get_value($opt_id);
+        },
+        label_width => 100,
+    );
+
+    $optgroup_cylinder->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id  =>  "cyl_r",
+        label   =>  'Radius',
+        type    =>  'f',
+        default =>  '1',
+    ));
+    $optgroup_cylinder->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id  =>  "cyl_h",
+        label   =>  'Height',
+        type    =>  'f',
+        default =>  '1',
+    ));
     EVT_COMBOBOX($self, 1, sub{ 
         $self->{object_parameters}->{type} = $self->{type}->GetValue();
+        $self->_update_ui;
     });
 
 
-    $optgroup->sizer->Add($self->{type}, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
-    $self->{sizer}->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+    $self->{sizer}->Add($self->{type}, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+    $self->{sizer}->Add($optgroup_box->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+    $self->{sizer}->Add($optgroup_cylinder->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->{sizer}->Add($button_sizer,0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+    $self->_update_ui;
 
     $self->SetSizer($self->{sizer});
     $self->{sizer}->Fit($self);
@@ -103,5 +138,19 @@ sub CanClose {
 sub ObjectParameter {
     my ($self) = @_;
     return $self->{object_parameters};
+}
+
+sub _update_ui {
+    my ($self) = @_;
+    $self->{sizer}->Hide($self->{optgroup_cylinder}->sizer);
+    $self->{sizer}->Hide($self->{optgroup_box}->sizer);
+    if ($self->{type}->GetValue eq "box") {
+        $self->{sizer}->Show($self->{optgroup_box}->sizer);
+    } elsif ($self->{type}->GetValue eq "cylinder") {
+        $self->{sizer}->Show($self->{optgroup_cylinder}->sizer);
+    }
+    $self->{sizer}->Fit($self);
+    $self->{sizer}->SetSizeHints($self);
+    
 }
 1;
