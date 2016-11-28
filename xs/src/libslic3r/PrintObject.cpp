@@ -692,8 +692,7 @@ PrintObject::discover_vertical_shells()
 #if 1
             // Intentionally inflate a bit more than how much the region has been shrunk, 
             // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
-            shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing,
-                CLIPPER_OFFSET_SCALE, ClipperLib::jtSquare);
+            shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
             if (shell.empty())
                 continue;
 #else
@@ -705,7 +704,7 @@ PrintObject::discover_vertical_shells()
             // get a triangle in $too_narrow; if we grow it below then the shell
             // would have a different shape from the external surface and we'd still
             // have the same angle, so the next shell would be grown even more and so on.
-            Polygons too_narrow = diff(shell, offset2(shell, -margin, margin, CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 5.), true);
+            Polygons too_narrow = diff(shell, offset2(shell, -margin, margin, ClipperLib::jtMiter, 5.), true);
             if (! too_narrow.empty()) {
                 // grow the collapsing parts and add the extra area to  the neighbor layer 
                 // as well as to our original surfaces so that we support this 

@@ -14,13 +14,6 @@ using ClipperLib::jtSquare;
 
 namespace Slic3r {
 
-// Factor to convert from coord_t (which is int32) to an int64 type used by the Clipper library.
-//FIXME Vojtech: Better to use a power of 2 coefficient and to use bit shifts for scaling.
-// How about 2^17=131072?
-// By the way, is the scalling needed at all? Cura runs all the computation with a fixed point precision of 1um, while Slic3r scales to 1nm,
-// further scaling by 10e5 brings us to 
-#define CLIPPER_OFFSET_SCALE 100000.0
-
 //-----------------------------------------------------------
 // legacy code from Clipper documentation
 void AddOuterPolyNodeToExPolygons(ClipperLib::PolyNode& polynode, Slic3r::ExPolygons& expolygons);
@@ -40,29 +33,29 @@ void scaleClipperPolygons(ClipperLib::Paths &polygons, const double scale);
 
 // offset Polygons
 void offset(const Slic3r::Polygons &polygons, ClipperLib::Paths* retval, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 void offset(const Slic3r::Polygons &polygons, Slic3r::Polygons* retval, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 Slic3r::Polygons offset(const Slic3r::Polygons &polygons, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
 // This is a safe variant of the polygon offset, tailored for a single ExPolygon:
 // a single polygon with multiple non-overlapping holes.
 // Each contour and hole is offsetted separately, then the holes are subtracted from the outer contours.
 void offset(const Slic3r::ExPolygon &expolygon, ClipperLib::Paths* retval, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter,
     double miterLimit = 3);
 void offset(const Slic3r::ExPolygons &expolygons, ClipperLib::Paths* retval, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter,
     double miterLimit = 3);
 Slic3r::Polygons offset(const Slic3r::ExPolygon &expolygon, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter,
     double miterLimit = 3);
 Slic3r::Polygons offset(const Slic3r::ExPolygons &expolygons, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter,
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter,
     double miterLimit = 3);
 Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygon &expolygon, const float delta,
     double scale, ClipperLib::JoinType joinType, double miterLimit);
@@ -71,36 +64,36 @@ Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygons &expolygons, const float d
 
 // offset Polylines
 void offset(const Slic3r::Polylines &polylines, ClipperLib::Paths* retval, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
+    ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);
 void offset(const Slic3r::Polylines &polylines, Slic3r::Polygons* retval, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
+    ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);
 void offset(const Slic3r::Surface &surface, Slic3r::Surfaces* retval, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
+    ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);
 
 void offset(const Slic3r::Polygons &polygons, Slic3r::ExPolygons* retval, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 Slic3r::ExPolygons offset_ex(const Slic3r::Polygons &polygons, const float delta,
-    double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
 void offset2(const Slic3r::Polygons &polygons, ClipperLib::Paths* retval, const float delta1,
-    const float delta2, double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 void offset2(const Slic3r::Polygons &polygons, Slic3r::Polygons* retval, const float delta1,
-    const float delta2, double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 Slic3r::Polygons offset2(const Slic3r::Polygons &polygons, const float delta1,
-    const float delta2, double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 void offset2(const Slic3r::Polygons &polygons, Slic3r::ExPolygons* retval, const float delta1,
-    const float delta2, double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 Slic3r::ExPolygons offset2_ex(const Slic3r::Polygons &polygons, const float delta1,
-    const float delta2, double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
 
 template <class T>

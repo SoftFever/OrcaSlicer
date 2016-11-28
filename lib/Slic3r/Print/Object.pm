@@ -7,7 +7,7 @@ use List::Util qw(min max sum first);
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y Z PI scale unscale chained_path epsilon);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
-    offset offset_ex offset2 offset2_ex intersection_ppl CLIPPER_OFFSET_SCALE JT_MITER);
+    offset offset_ex offset2 offset2_ex intersection_ppl JT_MITER);
 use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
@@ -863,7 +863,7 @@ sub discover_horizontal_shells {
                         # and it's not wanted in a hollow print even if it would make sense when
                         # obeying the solid shell count option strictly (DWIM!)
                         my $margin = $neighbor_layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_width;
-                        my $regularized = offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5);
+                        my $regularized = offset2($new_internal_solid, -$margin, +$margin, JT_MITER, 5);
                         my $too_narrow = diff(
                             $new_internal_solid,
                             $regularized,
@@ -893,7 +893,7 @@ sub discover_horizontal_shells {
                         # have the same angle, so the next shell would be grown even more and so on.
                         my $too_narrow = diff(
                             $new_internal_solid,
-                            offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
+                            offset2($new_internal_solid, -$margin, +$margin, JT_MITER, 5),
                             1,
                         );
                         

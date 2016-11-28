@@ -610,7 +610,7 @@ Print::validate() const
                 // grow convex hull with the clearance margin
                 {
                     Polygons grown_hull;
-                    offset(convex_hull, &grown_hull, scale_(this->config.extruder_clearance_radius.value)/2, 1, jtRound, scale_(0.1));
+                    offset(convex_hull, &grown_hull, scale_(this->config.extruder_clearance_radius.value)/2, jtRound, scale_(0.1));
                     convex_hull = grown_hull.front();
                 }
                 

@@ -91,9 +91,9 @@ LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection*
     g.process();
 }
 
-//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 3.
-//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 1.5
-#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtSquare, 0.
+//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 3.
+//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 1.5
+#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
 
 void
 LayerRegion::process_external_surfaces(const Layer* lower_layer)
@@ -194,7 +194,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
                         break;
                     }
                 // Grown by 3mm.
-                Polygons polys = offset(bridges[i].expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                Polygons polys = offset(to_polygons(bridges[i].expolygon), float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS);
                 if (idx_island == -1) {
                     printf("Bridge did not fall into the source region!\r\n");
                 } else {

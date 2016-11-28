@@ -372,11 +372,9 @@ public:
         bool sticks_removed = remove_sticks(polygons_src);
 //        if (sticks_removed) printf("Sticks removed!\n");
         polygons_outer = offset(polygons_src, aoffset1,
-            CLIPPER_OFFSET_SCALE,
             ClipperLib::jtMiter,
             mitterLimit);
         polygons_inner = offset(polygons_outer, aoffset2 - aoffset1,
-            CLIPPER_OFFSET_SCALE,
             ClipperLib::jtMiter,
             mitterLimit);
 		// Filter out contours with zero area or small area, contours with 2 points only.

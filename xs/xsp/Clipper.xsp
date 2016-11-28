@@ -16,58 +16,53 @@ _constant()
     JT_MITER        = jtMiter
     JT_ROUND        = jtRound
     JT_SQUARE       = jtSquare
-    CLIPPER_OFFSET_SCALE = CLIPPER_OFFSET_SCALE
   CODE:
     RETVAL = ix;
   OUTPUT: RETVAL
 
 Polygons
-offset(polygons, delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset(polygons, delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta
-    double                  scale
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset(polygons, &RETVAL, delta, scale, joinType, miterLimit);
+        offset(polygons, &RETVAL, delta, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
 ExPolygons
-offset_ex(polygons, delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset_ex(polygons, delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta
-    double                  scale
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset(polygons, &RETVAL, delta, scale, joinType, miterLimit);
+        offset(polygons, &RETVAL, delta, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
 Polygons
-offset2(polygons, delta1, delta2, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset2(polygons, delta1, delta2, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta1
     const float             delta2
-    double                  scale
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset2(polygons, &RETVAL, delta1, delta2, scale, joinType, miterLimit);
+        offset2(polygons, &RETVAL, delta1, delta2, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
 ExPolygons
-offset2_ex(polygons, delta1, delta2, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
+offset2_ex(polygons, delta1, delta2, joinType = ClipperLib::jtMiter, miterLimit = 3)
     Polygons                polygons
     const float             delta1
     const float             delta2
-    double                  scale
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset2(polygons, &RETVAL, delta1, delta2, scale, joinType, miterLimit);
+        offset2(polygons, &RETVAL, delta1, delta2, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
