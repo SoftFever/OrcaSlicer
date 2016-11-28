@@ -10,6 +10,7 @@
 #include <cassert>
 #include <memory>
 #include <boost/log/trivial.hpp>
+#include <unordered_set>
 
 // #define SLIC3R_DEBUG
 
@@ -242,15 +243,6 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // Determine the bottom contact surfaces of the supports over the top surfaces of the object.
     // Depending on whether the support is soluble or not, the contact layer thickness is decided.
     MyLayersPtr bottom_contacts = this->bottom_contact_layers(object, top_contacts, layer_storage);
-
-#ifdef SLIC3R_DEBUG
-    for (MyLayersPtr::const_iterator it = bottom_contacts.begin(); it != bottom_contacts.end(); ++ it) {
-        const MyLayer &layer = *(*it);
-        ::Slic3r::SVG svg(debug_out_path("support-bottom-contacts-%d-%lf.svg", iRun, layer.print_z), get_extents(layer.polygons));
-        Slic3r::ExPolygons expolys = union_ex(layer.polygons, false);
-        svg.draw(expolys);
-    }
-#endif /* SLIC3R_DEBUG */
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Trimming top contacts by bottom contacts";
 
@@ -664,10 +656,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                             offset(
                                 diff_polygons,
                                 SUPPORT_MATERIAL_MARGIN / NUM_MARGIN_STEPS,
-                                CLIPPER_OFFSET_SCALE,
                                 ClipperLib::jtRound,
                                 // round mitter limit
-                                scale_(0.05) * CLIPPER_OFFSET_SCALE),
+                                scale_(0.05)),
                             slices_margin);
                     }
                 }
@@ -753,9 +744,128 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     return contact_out;
 }
 
+struct PointHash {
+    size_t operator()(const Point &pt) const {
+        return std::hash<coord_t>()(pt.x) ^ std::hash<coord_t>()(pt.y);
+    }
+};
+
+typedef std::unordered_set<Point,PointHash> PointHashMap;
+
+void fillet(Polygon &poly, PointHashMap &new_points_hash_map)
+{
+    if (poly.points.size() < 3)
+        // an invalid contour will not be modified.
+        return;
+
+    // Flag describing a contour point.
+    std::vector<char> point_flag(std::vector<char>(poly.points.size(), 0));
+
+    // Does a point belong to new points?
+    for (size_t i = 0; i < poly.points.size(); ++ i)
+        if (new_points_hash_map.find(poly.points[i]) != new_points_hash_map.end())
+            // Mark the point as from the new contour.
+            point_flag[i] = 1;
+
+    // Mark the intersection points between the old and new contours.
+    size_t j = poly.points.size() - 1;
+    bool has_some = false;
+    for (size_t i = 0; i < poly.points.size(); j = i, ++ i)
+        if ((point_flag[i] ^ point_flag[j]) & 1) {
+            point_flag[(point_flag[i] & 1) ? j : i] |= 2;
+            has_some = true;
+        }
+    if (! has_some)
+        return;
+
+    // Mark a range of points around the intersection points.
+    const double rounding_range = scale_(1.5);
+    std::vector<Pointf> pts;
+    pts.reserve(poly.points.size());
+    for (int i = 0; i < int(poly.points.size()); ++ i) {
+        if (point_flag[i] & 2) {
+            point_flag[i] |= 4;
+            // Extend a filetting span left / right from i by an Euclidian distance of rounding_range.
+            double d = 0.f;
+            const Point *pt = &poly.points[i];
+            for (int j = 1; j < int(poly.points.size()); ++ j) {
+                int idx = (i + j) % poly.points.size();
+                const Point *pt2 = &poly.points[idx];
+                d += pt->distance_to(*pt2);
+                if (d > rounding_range)
+                    break;
+                point_flag[idx] |= 4;
+                pt = pt2;
+            }
+            for (int j = 1; j < int(poly.points.size()); ++ j) {
+                int idx = (i + int(poly.points.size()) - j) % poly.points.size();
+                const Point *pt2 = &poly.points[idx];
+                d += pt->distance_to(*pt2);
+                if (d > rounding_range)
+                    break;
+                point_flag[idx] |= 4;
+                pt = pt2;
+            }
+        }
+        pts.push_back(Pointf(poly.points[i].x, poly.points[i].y));
+    }
+
+    //FIXME avoid filetting over long edges. Insert new points into long edges at the ends of the filetting interval.
+
+    // Perform the filetting over the marked vertices.
+    std::vector<Pointf> pts2(pts);
+    double laplacian_weight = 0.5;
+    for (size_t i_round = 0; i_round < 5; ++ i_round) {
+        for (size_t i = 0; i < int(pts.size()); ++ i) {
+            if (point_flag[i] & 4) {
+                size_t prev = (i == 0) ? pts.size() - 1 : i - 1;
+                size_t next = (i + 1 == pts.size()) ? 0 : i + 1;
+                Pointf &p0 = pts[prev];
+                Pointf &p1 = pts[i];
+                Pointf &p2 = pts[next];
+                // Is the point reflex?
+                coordf_t c = cross(p1 - p0, p2 - p1);
+                if (c < 0)
+                    // The point is reflex, perform Laplacian smoothing.
+                    pts2[i] = (1. - laplacian_weight) * pts[i] + (0.5 * laplacian_weight) * (pts[prev] + pts[next]);
+            }
+        }
+        pts.swap(pts2);
+    }
+
+    // Mark vertices representing short edges for removal.
+
+    // Convert the filetted points back, remove points marked for removal.
+    j = 0;
+    for (size_t i = 0; i < poly.points.size(); ++ i) {
+        if (point_flag[i] & 8)
+            // Remove this point.
+            continue;
+        if (point_flag[i] & 4)
+            // Update the point coordinates.
+            poly.points[i] = Point(pts[i].x, pts[i].y);
+        if (j < i)
+            poly.points[j] = poly.points[i];
+        ++ j;
+    }
+    if (j < poly.points.size())
+        poly.points.erase(poly.points.begin() + j, poly.points.end());
+}
+
+void fillet(Polygons &polygons, PointHashMap &new_points_hash_map)
+{
+    for (Polygons::iterator it = polygons.begin(); it != polygons.end(); ++ it)
+        fillet(*it, new_points_hash_map);
+}
+
 PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_contact_layers(
     const PrintObject &object, const MyLayersPtr &top_contacts, MyLayerStorage &layer_storage) const
 {
+#ifdef SLIC3R_DEBUG
+    static int iRun = 0;
+    ++ iRun; 
+#endif /* SLIC3R_DEBUG */
+
     // find object top surfaces
     // we'll use them to clip our support and detect where does it stick
     MyLayersPtr bottom_contacts;
@@ -784,9 +894,30 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             if (projection.empty())
                 continue;
             if (projection_size_old < projection.size()) {
+                // Fill in the new_points hash table with points of new contours.
+                PointHashMap new_points;
+                for (size_t i = projection_size_old; i < projection.size(); ++ i) {
+                    const Polygon &poly = projection[i];
+                    for (size_t j = 0; j < poly.points.size(); ++ j)
+                        new_points.insert(poly.points[j]);
+                }
                 // Merge the newly added regions. Don't use the safety offset, the offset has been added already.
                 projection = union_(projection, false);
+                // Fillet transition between the old and new points.
+                fillet(projection, new_points);
             }
+
+#ifdef SLIC3R_DEBUG
+            {
+                BoundingBox bbox = get_extents(projection);
+                bbox.merge(get_extents(top));
+                ::Slic3r::SVG svg(debug_out_path("support-bottom-layers-raw-%d-%lf.svg", iRun, layer.print_z), bbox);
+                svg.draw(union_ex(top, false), "blue", 0.5f);
+                svg.draw(union_ex(projection, true), "red", 0.5f);
+                svg.draw(layer.slices.expolygons, "green", 0.5f);
+            }
+#endif /* SLIC3R_DEBUG */
+
             // Now find whether any projection of the contact surfaces above layer.print_z not yet supported by any 
             // top surfaces above layer.print_z falls onto this top surface. 
             // touching are the contact surfaces supported exclusively by this top surfaaces.
@@ -812,12 +943,22 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             layer_new.bridging = ! m_soluble_interface;
             //FIXME how much to inflate the top surface?
             layer_new.polygons = offset(touching, float(m_support_material_flow.scaled_width()));
-            // Remove the areas that touched from the projection that will continue on next, lower, top surfaces.
-            projection = diff(projection, touching);
-        }
-    }
+            // Remove the areas that touched from the projection that will continue on next, lower, top surfaces. 
+            // projection = diff(projection, touching);
+            projection = diff(projection, to_polygons(layer.slices.expolygons), true);
 
-	std::reverse(bottom_contacts.begin(), bottom_contacts.end());
+#ifdef SLIC3R_DEBUG
+            {
+                ::Slic3r::SVG svg(debug_out_path("support-bottom-contacts-%d-%lf.svg", iRun, layer_new.print_z), get_extents(layer_new.polygons));
+                Slic3r::ExPolygons expolys = union_ex(layer_new.polygons, false);
+                svg.draw(expolys);
+            }
+#endif /* SLIC3R_DEBUG */
+        }
+
+        std::reverse(bottom_contacts.begin(), bottom_contacts.end());
+    } // if (! m_object_config->support_material_buildplate_only.value && ! top_contacts.empty())
+
     return bottom_contacts;
 }
 
@@ -1038,9 +1179,8 @@ void PrintObjectSupportMaterial::generate_base_layers(
                     $fillet_radius_scaled, 
                     -$fillet_radius_scaled,
                     # Use a geometric offsetting for filleting.
-                    CLIPPER_OFFSET_SCALE,
                     JT_ROUND,
-                    0.2*$fillet_radius_scaled*CLIPPER_OFFSET_SCALE),
+                    0.2*$fillet_radius_scaled),
                 $trim_polygons,
                 false); // don't apply the safety offset.
         }
