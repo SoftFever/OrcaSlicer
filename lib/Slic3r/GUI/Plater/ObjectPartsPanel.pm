@@ -79,8 +79,8 @@ sub new {
     my $settings_sizer = Wx::StaticBoxSizer->new($self->{staticbox} = Wx::StaticBox->new($self, -1, "Part Settings"), wxVERTICAL);
     $settings_sizer->Add($self->{settings_panel}, 1, wxEXPAND | wxALL, 0);
 
-    my $optgroup;
-    $optgroup = $self->{optgroup} = Slic3r::GUI::OptionsGroup->new(
+    my $optgroup_movers;
+    $optgroup_movers = $self->{optgroup_movers} = Slic3r::GUI::OptionsGroup->new(
         parent      => $self,
         title       => 'Move',
         on_change   => sub {
@@ -89,8 +89,8 @@ sub new {
             # genates tens of events for a single value change.
             # Only trigger the recalculation if the value changes
             # or a live preview was activated and the mesh cut is not valid yet.
-            if ($self->{move_options}{$opt_id} != $optgroup->get_value($opt_id)) {
-                $self->{move_options}{$opt_id} = $optgroup->get_value($opt_id);
+            if ($self->{move_options}{$opt_id} != $optgroup_movers->get_value($opt_id)) {
+                $self->{move_options}{$opt_id} = $optgroup_movers->get_value($opt_id);
                 wxTheApp->CallAfter(sub {
                     $self->_update;
                 });
@@ -98,7 +98,7 @@ sub new {
         },
         label_width  => 20,
     );
-    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+    $optgroup_movers->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'x',
         type        => 'slider',
         label       => 'X',
@@ -107,7 +107,7 @@ sub new {
         max         => $self->{model_object}->bounding_box->size->x*4,
         full_width  => 1,
     ));
-    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+    $optgroup_movers->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'y',
         type        => 'slider',
         label       => 'Y',
@@ -116,7 +116,7 @@ sub new {
         max         => $self->{model_object}->bounding_box->size->y*4,
         full_width  => 1,
     ));
-    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+    $optgroup_movers->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'z',
         type        => 'slider',
         label       => 'Z',
@@ -125,14 +125,13 @@ sub new {
         max         => $self->{model_object}->bounding_box->size->z*4,
         full_width  => 1,
     ));
-
-    
+ 
     # left pane with tree
     my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $left_sizer->Add($tree, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
     $left_sizer->Add($buttons_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
     $left_sizer->Add($settings_sizer, 1, wxEXPAND | wxALL, 0);
-    $left_sizer->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+    $left_sizer->Add($optgroup_movers->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     
     # right pane with preview canvas
     my $canvas;
@@ -247,9 +246,9 @@ sub selection_changed {
     $self->{settings_panel}->set_config(undef);
 
     # reset move sliders
-    $self->{optgroup}->set_value("x", 0);
-    $self->{optgroup}->set_value("y", 0);
-    $self->{optgroup}->set_value("z", 0);
+    $self->{optgroup_movers}->set_value("x", 0);
+    $self->{optgroup_movers}->set_value("y", 0);
+    $self->{optgroup_movers}->set_value("z", 0);
     $self->{move_options} = {
         x               => 0,
         y               => 0,
@@ -269,6 +268,7 @@ sub selection_changed {
                 $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
             }
             $self->{btn_delete}->Enable;
+            $self->{optgroup_movers}->enable;
             
             # attach volume config to settings panel
             my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
@@ -281,6 +281,7 @@ sub selection_changed {
             # select nothing in 3D preview
             
             # attach object config to settings panel
+            $self->{optgroup_movers}->disable;
             $self->{staticbox}->SetLabel('Object Settings');
             @opt_keys = (map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new);
             $config = $self->{model_object}->config;
@@ -345,11 +346,10 @@ sub on_btn_lambda {
     my $name = "lambda-".$params->{"type"};
     my $mesh = Slic3r::TriangleMesh->new();
 
-    #TODO support non-boxes
     if ($type eq "box") {
         $mesh = $mesh->cube($params->{"dim"}[0], $params->{"dim"}[1], $params->{"dim"}[2]);
     } elsif ($type eq "cylinder") {
-        $mesh = $mesh->cylinder($params->{"dim"}[0], $params->{"dim"}[1]);
+        $mesh = $mesh->cylinder($params->{"cyl_r"}, $params->{"cyl_h"});
     } else {
         return;
     }
