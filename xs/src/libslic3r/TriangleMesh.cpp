@@ -1140,7 +1140,7 @@ TriangleMeshSlicer::~TriangleMeshSlicer()
 {
     if (this->v_scaled_shared != NULL) free(this->v_scaled_shared);
 }
-
+// Generate the vertex list for a cube solid of arbitrary size in X/Y/Z.
 TriangleMesh make_cube(double x, double y, double z) {
     Pointf3 pv[8] = { 
         Pointf3(x, y, 0), Pointf3(x, 0, 0), Pointf3(0, 0, 0), 
@@ -1157,6 +1157,44 @@ TriangleMesh make_cube(double x, double y, double z) {
     std::vector<Point3> facets(&fv[0], &fv[0]+12);
     Pointf3s vertices(&pv[0], &pv[0]+8);
 
+    TriangleMesh mesh(vertices ,facets);
+    return mesh;
+}
+
+// Generate the mesh for a cylinder and return it, using 
+// the generated angle to calculate the top mesh triangles.
+TriangleMesh make_cylinder(double r, double h, double fa) {
+    Pointf3s vertices;
+    std::vector<Point3> facets;
+
+    // 2 special vertices, top and bottom center, rest are relative to this
+    vertices.push_back(Pointf3(0.0, 0.0, 0.0));
+    vertices.push_back(Pointf3(0.0, 0.0, h));
+
+    // adjust via rounding 
+    double angle = (2*PI / floor(2*PI / fa));
+
+    // for each line along the polygon approximating the top/bottom of the
+    // circle, generate four points and four facets (2 for the wall, 2 for the
+    // top and bottom.
+    // Special case: Last line shares 2 vertices with the first line.
+    unsigned id = 3;
+    vertices.push_back(Pointf3(sin(0) * r , cos(0) * r, 0));
+    vertices.push_back(Pointf3(sin(0) * r , cos(0) * r, h));
+    for (double i = angle; i < 2*PI; i+=angle) {
+        vertices.push_back(Pointf3(sin(i) * r , cos(i) * r, 0));
+        vertices.push_back(Pointf3(sin(i) * r , cos(i) * r, h));
+        id += 2;
+        facets.push_back(Point3(0, id - 1, id - 3));
+        facets.push_back(Point3(1, id, id - 2));
+        facets.push_back(Point3(id, id - 1, id - 3));
+        facets.push_back(Point3(id - 3, id - 2, id));
+    }
+    facets.push_back(Point3(0, 2, id -1));
+    facets.push_back(Point3(1, 3, id));
+    facets.push_back(Point3(id - 1, 2, 3));
+    facets.push_back(Point3(id - 1, 3, id));
+    
     TriangleMesh mesh(vertices ,facets);
     return mesh;
 }

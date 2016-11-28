@@ -39,6 +39,8 @@
     void reset_repair_stats();
     Clone<TriangleMesh> cube(double x, double y, double z) 
         %code{% RETVAL = make_cube(x, y, z); %};
+    Clone<TriangleMesh> cylinder(double r, double h) 
+        %code{% RETVAL = make_cylinder(r, h); %};
 %{
 
 void

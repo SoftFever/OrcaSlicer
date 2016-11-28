@@ -60,7 +60,7 @@ sub new {
         },
         label_width => 100,
     );
-    my @options = ("box");
+    my @options = ("box", "cylinder");
     $self->{type} = Wx::ComboBox->new($self, 1, "box", wxDefaultPosition, wxDefaultSize, \@options, wxCB_READONLY);
 
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(

@@ -342,13 +342,18 @@ sub on_btn_lambda {
     }
     my $params = $dlg->ObjectParameter;
     my $name = "lambda-".$params->{"type"};
+    my $mesh = Slic3r::TriangleMesh->new();
 
-    my $new_volume = $self->{model_object}->add_volume(mesh => Slic3r::Test::mesh($params->{"type"}, dim=>$params->{"dim"}), material_id=>"generic");
+    #TODO support non-boxes
+    if ($name eq "box") {
+        $mesh = $mesh->cube($params->{"dim"}[0], $params->{"dim"}[1], $params->{"dim"}[2]);
+    } elsif ($name eq "cylinder") {
+        $mesh = $mesh->cylinder($params->{"dim"}[0], $params->{"dim"}[1]);
+    }
+
+    my $new_volume = $self->{model_object}->add_volume(mesh => $mesh);
     $new_volume->set_modifier($is_modifier);
     $new_volume->set_name($name);
-
-    # apply the same translation we applied to the object
-    $new_volume->mesh->translate(@{$self->{model_object}->origin_translation});
 
     # set a default extruder value, since user can't add it manually
     $new_volume->config->set_ifndef('extruder', 0);
