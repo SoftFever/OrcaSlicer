@@ -163,7 +163,9 @@ private:
 	// Generate bottom contact layers supporting the top contact layers.
 	// For a soluble interface material synchronize the layer heights with the object, 
 	// otherwise set the layer height to a bridging flow of a support interface nozzle.
-	MyLayersPtr bottom_contact_layers(const PrintObject &object, const MyLayersPtr &top_contacts, MyLayerStorage &layer_storage) const;
+	MyLayersPtr bottom_contact_layers_and_layer_support_areas(
+		const PrintObject &object, const MyLayersPtr &top_contacts, MyLayerStorage &layer_storage,
+		std::vector<Polygons> &layer_support_areas) const;
 
 	// Trim the top_contacts layers with the bottom_contacts layers if they overlap, so there would not be enough vertical space for both of them.
 	void trim_top_contacts_by_bottom_contacts(const PrintObject &object, const MyLayersPtr &bottom_contacts, MyLayersPtr &top_contacts) const;
@@ -180,7 +182,8 @@ private:
 	    const PrintObject   &object,
 	    const MyLayersPtr   &bottom_contacts,
 	    const MyLayersPtr   &top_contacts,
-	    MyLayersPtr         &intermediate_layers) const;
+	    MyLayersPtr         &intermediate_layers,
+	    std::vector<Polygons> &layer_support_areas) const;
 
     Polygons generate_raft_base(
 	    const PrintObject   &object,
