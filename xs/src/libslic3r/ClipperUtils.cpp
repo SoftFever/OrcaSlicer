@@ -1062,8 +1062,12 @@ void safety_offset(ClipperLib::Paths* paths)
 #endif /* CLIPPER_UTILS_DEBUG */
     ClipperLib::Paths out;
     for (size_t i = 0; i < paths->size(); ++ i) {
+        ClipperLib::Path &path = (*paths)[i];
 		co.Clear();
         co.MiterLimit = 2;
+        bool ccw = ClipperLib::Orientation(path);
+        if (! ccw)
+            std::reverse(path.begin(), path.end());
         {
             PROFILE_BLOCK(safety_offset_AddPaths);
             co.AddPath((*paths)[i], ClipperLib::jtMiter, ClipperLib::etClosedPolygon);
@@ -1072,7 +1076,12 @@ void safety_offset(ClipperLib::Paths* paths)
             PROFILE_BLOCK(safety_offset_Execute);
             // offset outside by 10um
             ClipperLib::Paths out_this;
-            co.Execute(out_this, 10.f * float(CLIPPER_OFFSET_SCALE));
+            co.Execute(out_this, ccw ? 10.f * float(CLIPPER_OFFSET_SCALE) : -10.f * float(CLIPPER_OFFSET_SCALE));
+            if (! ccw) {
+                // Reverse the resulting contours once again.
+                for (ClipperLib::Paths::iterator it = out_this.begin(); it != out_this.end(); ++ it)
+                    std::reverse(it->begin(), it->end());
+            }
             if (out.empty())
                 out = std::move(out_this);
             else
