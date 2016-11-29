@@ -70,6 +70,12 @@ inline Point operator+(const Point& point1, const Point& point2) { return Point(
 inline Point operator-(const Point& point1, const Point& point2) { return Point(point1.x - point2.x, point1.y - point2.y); }
 inline Point operator*(double scalar, const Point& point2) { return Point(scalar * point2.x, scalar * point2.y); }
 
+struct PointHash {
+    size_t operator()(const Point &pt) const {
+        return std::hash<coord_t>()(pt.x) ^ std::hash<coord_t>()(pt.y);
+    }
+};
+
 class Point3 : public Point
 {
     public:
@@ -107,6 +113,7 @@ inline Pointf operator-(const Pointf& point1, const Pointf& point2) { return Poi
 inline Pointf operator*(double scalar, const Pointf& point2) { return Pointf(scalar * point2.x, scalar * point2.y); }
 inline Pointf operator*(const Pointf& point2, double scalar) { return Pointf(scalar * point2.x, scalar * point2.y); }
 inline coordf_t cross(const Pointf &v1, const Pointf &v2) { return v1.x * v2.y - v1.y * v2.x; }
+inline coordf_t dot(const Pointf &v1, const Pointf &v2) { return v1.x * v1.y + v2.x * v2.y; }
 
 class Pointf3 : public Pointf
 {
