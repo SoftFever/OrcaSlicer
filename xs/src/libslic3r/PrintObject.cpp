@@ -4,6 +4,8 @@
 #include "Geometry.hpp"
 #include "SVG.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #include <Shiny/Shiny.h>
 
 namespace Slic3r {
@@ -323,7 +325,8 @@ PrintObject::has_support_material() const
 // If a part of a region is of S_TYPE_BOTTOM and S_TYPE_TOP, the S_TYPE_BOTTOM wins.
 void PrintObject::detect_surfaces_type()
 {
-//    Slic3r::debugf "Detecting solid surfaces...\n";
+    BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces...";
+
     for (int idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
@@ -469,6 +472,8 @@ void PrintObject::detect_surfaces_type()
 void
 PrintObject::process_external_surfaces()
 {
+    BOOST_LOG_TRIVIAL(info) << "Processing external surfaces...";
+
     FOREACH_REGION(this->_print, region) {
         size_t region_id = region - this->_print->regions.begin();
         
@@ -496,6 +501,8 @@ void
 PrintObject::discover_vertical_shells()
 {
     PROFILE_FUNC();
+
+    BOOST_LOG_TRIVIAL(info) << "Discovering vertical shells...";
 
     const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
 
@@ -774,6 +781,8 @@ PrintObject::discover_vertical_shells()
 void
 PrintObject::bridge_over_infill()
 {
+    BOOST_LOG_TRIVIAL(info) << "Bridge over infill...";
+
     FOREACH_REGION(this->_print, region) {
         size_t region_id = region - this->_print->regions.begin();
         
