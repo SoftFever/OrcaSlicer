@@ -31,6 +31,7 @@
 #include <ostream>
 #include <iostream>
 #include <sstream>
+#include <libslic3r.h>
 
 #ifdef SLIC3RXS
 extern "C" {
@@ -50,7 +51,6 @@ extern "C" {
 }
 #endif
 
-#include <libslic3r.h>
 #include <ClipperUtils.hpp>
 #include <Config.hpp>
 #include <ExPolygon.hpp>
