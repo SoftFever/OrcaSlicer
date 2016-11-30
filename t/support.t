@@ -28,7 +28,7 @@ use Slic3r::Test;
             interface_flow      => $flow,
             first_layer_flow    => $flow,
         );
-        my $support_z = $support->support_layers_z(\@contact_z, \@top_z, $config->layer_height);
+        my $support_z = $support->support_layers_z($print->print->objects->[0], \@contact_z, \@top_z, $config->layer_height);
         my $expected_top_spacing = $support->contact_distance($config->layer_height, $config->nozzle_diameter->[0]);
         
         is $support_z->[0], $config->first_layer_height,
