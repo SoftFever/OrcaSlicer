@@ -640,7 +640,7 @@ sub generate_toolpaths {
     my $interface_flow  = $self->interface_flow;
     
     # shape of contact area
-    my $contact_loops   = 1;
+    my $contact_loops   = $self->object_config->support_material_interface_contact_loops ? 1 : 0;
     my $circle_radius   = 1.5 * $interface_flow->scaled_width;
     my $circle_distance = 3 * $circle_radius;
     my $circle          = Slic3r::Polygon->new(map [ $circle_radius * cos $_, $circle_radius * sin $_ ],
@@ -704,7 +704,10 @@ sub generate_toolpaths {
             # if no interface layers were requested we treat the contact layer
             # exactly as a generic base layer
             push @$base, @$contact;
-        } elsif (@$contact && $contact_loops > 0) {
+        } elsif ($contact_loops == 0) {
+            # No contact loops, but some interface layers. Print the contact layer as a normal interface layer.
+            push @$interface, @$contact;
+        } elsif (@$contact) {
             # generate the outermost loop
             
             # find centerline of the external loop (or any other kind of extrusions should the loop be skipped)
