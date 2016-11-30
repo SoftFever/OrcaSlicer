@@ -11,6 +11,7 @@ public:
     virtual ~FillConcentric() {}
 
 protected:
+    virtual Fill* clone() const { return new FillConcentric(*this); };
 	virtual void _fill_surface_single(
 	    const FillParams                &params, 
 	    unsigned int                     thickness_layers,

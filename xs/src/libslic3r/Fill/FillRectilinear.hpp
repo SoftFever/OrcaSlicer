@@ -12,6 +12,7 @@ class Surface;
 class FillRectilinear : public Fill
 {
 public:
+    virtual Fill* clone() const { return new FillRectilinear(*this); };
     virtual ~FillRectilinear() {}
 
 protected:

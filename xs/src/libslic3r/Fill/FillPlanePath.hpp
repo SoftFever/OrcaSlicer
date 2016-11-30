@@ -34,6 +34,7 @@ protected:
 class FillArchimedeanChords : public FillPlanePath
 {
 public:
+    virtual Fill* clone() const { return new FillArchimedeanChords(*this); };
     virtual ~FillArchimedeanChords() {}
 
 protected:
@@ -44,6 +45,7 @@ protected:
 class FillHilbertCurve : public FillPlanePath
 {
 public:
+    virtual Fill* clone() const { return new FillHilbertCurve(*this); };
     virtual ~FillHilbertCurve() {}
 
 protected:
@@ -54,6 +56,7 @@ protected:
 class FillOctagramSpiral : public FillPlanePath
 {
 public:
+    virtual Fill* clone() const { return new FillOctagramSpiral(*this); };
     virtual ~FillOctagramSpiral() {}
 
 protected:

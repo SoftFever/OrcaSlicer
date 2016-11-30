@@ -12,6 +12,7 @@ class Surface;
 class FillRectilinear2 : public Fill
 {
 public:
+    virtual Fill* clone() const { return new FillRectilinear2(*this); };
     virtual ~FillRectilinear2() {}
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
@@ -22,6 +23,7 @@ protected:
 class FillGrid2 : public FillRectilinear2
 {
 public:
+    virtual Fill* clone() const { return new FillGrid2(*this); };
     virtual ~FillGrid2() {}
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
@@ -33,6 +35,7 @@ protected:
 class FillTriangles : public FillRectilinear2
 {
 public:
+    virtual Fill* clone() const { return new FillTriangles(*this); };
     virtual ~FillTriangles() {}
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
@@ -44,6 +47,7 @@ protected:
 class FillStars : public FillRectilinear2
 {
 public:
+    virtual Fill* clone() const { return new FillStars(*this); };
     virtual ~FillStars() {}
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 
@@ -55,6 +59,7 @@ protected:
 class FillCubic : public FillRectilinear2
 {
 public:
+    virtual Fill* clone() const { return new FillCubic(*this); };
     virtual ~FillCubic() {}
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
 

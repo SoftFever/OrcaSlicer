@@ -15,6 +15,7 @@ public:
     virtual ~FillHoneycomb() {}
 
 protected:
+    virtual Fill* clone() const { return new FillHoneycomb(*this); };
 	virtual void _fill_surface_single(
 	    const FillParams                &params, 
 	    unsigned int                     thickness_layers,

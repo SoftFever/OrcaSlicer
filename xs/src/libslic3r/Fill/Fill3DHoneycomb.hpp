@@ -12,6 +12,7 @@ namespace Slic3r {
 class Fill3DHoneycomb : public Fill
 {
 public:
+    virtual Fill* clone() const { return new Fill3DHoneycomb(*this); };
     virtual ~Fill3DHoneycomb() {}
 
 	// require bridge flow since most of this pattern hangs in air
