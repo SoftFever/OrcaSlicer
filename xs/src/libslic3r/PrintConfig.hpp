@@ -160,6 +160,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionEnum<SupportMaterialPattern> support_material_pattern;
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
+    ConfigOptionBool                support_material_synchronize_layers;
     ConfigOptionInt                 support_material_threshold;
     ConfigOptionBool                support_material_with_sheath;
     ConfigOptionFloat               xy_size_compensation;
@@ -194,6 +195,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         OPT_PTR(support_material_pattern);
         OPT_PTR(support_material_spacing);
         OPT_PTR(support_material_speed);
+        OPT_PTR(support_material_synchronize_layers);
         OPT_PTR(support_material_threshold);
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);

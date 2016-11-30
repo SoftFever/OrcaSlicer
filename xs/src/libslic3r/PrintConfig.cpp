@@ -1247,6 +1247,13 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(60);
 
+    def = this->add("support_material_synchronize_layers", coBool);
+    def->label = "Synchronize with object layers";
+    def->category = "Support material";
+    def->tooltip = "Synchronize support layers with the object print layers. This is useful with multi-material printers, where the extruder switch is expensive.";
+    def->cli = "support-material-synchronize-layers!";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("support_material_threshold", coInt);
     def->label = "Overhang threshold";
     def->category = "Support material";
