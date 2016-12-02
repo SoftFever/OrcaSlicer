@@ -1,6 +1,13 @@
 ############################################################
 #
-# OpenGL::Shader::Objects - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+# Stripped down from the Perl OpenGL::Shader package by Vojtech Bubnik
+# to only support the GLSL shaders. The original source was not maintained
+# and did not install properly through the CPAN archive, and it was unnecessary
+# complex.
+#
+# Original copyright:
+#
+# Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
 # Author: Bob "grafman" Free - grafman@graphcomp.com
 #
 # This program is free software; you can redistribute it and/or
