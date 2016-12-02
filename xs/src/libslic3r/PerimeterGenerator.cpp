@@ -54,8 +54,7 @@ PerimeterGenerator::process()
     for (Surfaces::const_iterator surface = this->slices->surfaces.begin();
         surface != this->slices->surfaces.end(); ++surface) {
         // detect how many perimeters must be generated for this island
-        signed short loop_number = this->config->perimeters + surface->extra_perimeters;
-        loop_number--;  // 0-indexed loops
+        const int loop_number = this->config->perimeters + surface->extra_perimeters -1;  // 0-indexed loops
         
         Polygons gaps;
         
@@ -67,7 +66,7 @@ PerimeterGenerator::process()
             ThickPolylines thin_walls;
             
             // we loop one time more than needed in order to find gaps after the last perimeter was applied
-            for (signed short i = 0; i <= loop_number+1; ++i) {  // outer loop is 0
+            for (int i = 0; i <= loop_number+1; ++i) {  // outer loop is 0
                 Polygons offsets;
                 if (i == 0) {
                     // the minimum thickness of a single loop is:
@@ -170,16 +169,16 @@ PerimeterGenerator::process()
             }
             
             // nest loops: holes first
-            for (signed short d = 0; d <= loop_number; ++d) {
+            for (int d = 0; d <= loop_number; ++d) {
                 PerimeterGeneratorLoops &holes_d = holes[d];
                 
                 // loop through all holes having depth == d
-                for (signed short i = 0; i < holes_d.size(); ++i) {
+                for (int i = 0; i < (int)holes_d.size(); ++i) {
                     const PerimeterGeneratorLoop &loop = holes_d[i];
                     
                     // find the hole loop that contains this one, if any
-                    for (signed short t = d+1; t <= loop_number; ++t) {
-                        for (signed short j = 0; j < holes[t].size(); ++j) {
+                    for (int t = d+1; t <= loop_number; ++t) {
+                        for (int j = 0; j < (int)holes[t].size(); ++j) {
                             PerimeterGeneratorLoop &candidate_parent = holes[t][j];
                             if (candidate_parent.polygon.contains(loop.polygon.first_point())) {
                                 candidate_parent.children.push_back(loop);
@@ -191,8 +190,8 @@ PerimeterGenerator::process()
                     }
                     
                     // if no hole contains this hole, find the contour loop that contains it
-                    for (signed short t = loop_number; t >= 0; --t) {
-                        for (signed short j = 0; j < contours[t].size(); ++j) {
+                    for (int t = loop_number; t >= 0; --t) {
+                        for (int j = 0; j < (int)contours[t].size(); ++j) {
                             PerimeterGeneratorLoop &candidate_parent = contours[t][j];
                             if (candidate_parent.polygon.contains(loop.polygon.first_point())) {
                                 candidate_parent.children.push_back(loop);
@@ -207,16 +206,16 @@ PerimeterGenerator::process()
             }
         
             // nest contour loops
-            for (signed short d = loop_number; d >= 1; --d) {
+            for (int d = loop_number; d >= 1; --d) {
                 PerimeterGeneratorLoops &contours_d = contours[d];
                 
                 // loop through all contours having depth == d
-                for (signed short i = 0; i < contours_d.size(); ++i) {
+                for (int i = 0; i < (int)contours_d.size(); ++i) {
                     const PerimeterGeneratorLoop &loop = contours_d[i];
                 
                     // find the contour loop that contains it
-                    for (signed short t = d-1; t >= 0; --t) {
-                        for (signed short j = 0; j < contours[t].size(); ++j) {
+                    for (int t = d-1; t >= 0; --t) {
+                        for (int j = 0; j < contours[t].size(); ++j) {
                             PerimeterGeneratorLoop &candidate_parent = contours[t][j];
                             if (candidate_parent.polygon.contains(loop.polygon.first_point())) {
                                 candidate_parent.children.push_back(loop);
@@ -459,7 +458,7 @@ PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRo
         ExtrusionPath path(role);
         ThickLines lines = p->thicklines();
         
-        for (size_t i = 0; i < lines.size(); ++i) {
+        for (int i = 0; i < (int)lines.size(); ++i) {
             const ThickLine& line = lines[i];
             
             const coordf_t line_len = line.length();
