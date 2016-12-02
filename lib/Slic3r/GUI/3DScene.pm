@@ -720,6 +720,13 @@ sub InitGL {
     return if $self->init;
     return unless $self->GetContext;
     $self->init(1);
+
+    my $shader;
+#    $shader = $self->{shader} = new Slic3r::GUI::GLShader;
+    if ($self->{shader}) {
+        my $info = $shader->Load($self->_fragment_shader, $self->_vertex_shader);
+        print $info if $info;
+    }
     
     glClearColor(0, 0, 0, 1);
     glColor3f(1, 0, 0);
@@ -957,6 +964,8 @@ sub draw_volumes {
     # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
     my ($self, $fakecolor) = @_;
     
+    $self->{shader}->Enable if (! $fakecolor && $self->{shader});
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
@@ -1017,15 +1026,33 @@ sub draw_volumes {
         if ($qverts_begin < $qverts_end) {
             glVertexPointer_c(3, GL_FLOAT, 0, $volume->qverts->verts_ptr);
             glNormalPointer_c(GL_FLOAT, 0, $volume->qverts->norms_ptr);
-            glDrawArrays(GL_QUADS, $qverts_begin / 3, ($qverts_end-$qverts_begin) / 3);
+            $qverts_begin /= 3;
+            $qverts_end /= 3;
+            my $nvertices = $qverts_end-$qverts_begin;
+            while ($nvertices > 0) {
+                my $nvertices_this = ($nvertices > 4096) ? 4096 : $nvertices;
+                glDrawArrays(GL_QUADS, $qverts_begin, $nvertices_this);
+                $qverts_begin += $nvertices_this;
+                $nvertices -= $nvertices_this;
+            }
         }
         
         if ($tverts_begin < $tverts_end) {
             glVertexPointer_c(3, GL_FLOAT, 0, $volume->tverts->verts_ptr);
             glNormalPointer_c(GL_FLOAT, 0, $volume->tverts->norms_ptr);
-            glDrawArrays(GL_TRIANGLES, $tverts_begin / 3, ($tverts_end-$tverts_begin) / 3);
+            $tverts_begin /= 3;
+            $tverts_end /= 3;
+            my $nvertices = $tverts_end-$tverts_begin;
+            while ($nvertices > 0) {
+                my $nvertices_this = ($nvertices > 4095) ? 4095 : $nvertices;
+                glDrawArrays(GL_TRIANGLES, $tverts_begin, $nvertices_this);
+                $tverts_begin += $nvertices_this;
+                $nvertices -= $nvertices_this;
+            }
         }
-        
+
+        glVertexPointer_c(3, GL_FLOAT, 0, 0);
+        glNormalPointer_c(GL_FLOAT, 0, 0);        
         glPopMatrix();
     }
     glDisableClientState(GL_NORMAL_ARRAY);
@@ -1036,8 +1063,11 @@ sub draw_volumes {
         glColor3f(0, 0, 0);
         glVertexPointer_p(3, $self->cut_lines_vertices);
         glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
+        glVertexPointer_c(3, GL_FLOAT, 0, 0);
     }
     glDisableClientState(GL_VERTEX_ARRAY);
+
+    $self->{shader}->Disable if (! $fakecolor && $self->{shader});
 }
 
 sub _report_opengl_state
@@ -1067,6 +1097,86 @@ sub _report_opengl_state
     } else {
         printf("OpenGL error nr %d (0x%x): %s\n", $err, $err, $errorstr);
     }
+}
+
+sub _vertex_shader {
+    return <<'VERTEX';
+#version 110
+
+varying float object_z;
+
+void main()
+{
+    vec3 normal, lightDir, viewVector, halfVector;
+    vec4 diffuse, ambient, globalAmbient, specular = vec4(0.0);
+    float NdotL,NdotHV;
+    
+    // First transform the normal into eye space and normalize the result.
+    normal = normalize(gl_NormalMatrix * gl_Normal);
+    
+    // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
+    // Also since we're talking about a directional light, the position field is actually direction.
+    lightDir = normalize(vec3(gl_LightSource[0].position));
+    
+    // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
+    // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
+    NdotL = max(dot(normal, lightDir), 0.0);
+    
+    // Compute the diffuse, ambient and globalAmbient terms.
+//    diffuse = NdotL * (gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse);
+//    ambient = gl_FrontMaterial.ambient * gl_LightSource[0].ambient;
+    diffuse = NdotL * (gl_Color * gl_LightSource[0].diffuse);
+    ambient = gl_Color * gl_LightSource[0].ambient;
+    globalAmbient = gl_LightModel.ambient * gl_FrontMaterial.ambient;
+    
+    // compute the specular term if NdotL is  larger than zero
+    if (NdotL > 0.0) {
+        NdotHV = max(dot(normal, normalize(gl_LightSource[0].halfVector.xyz)),0.0);
+        specular = gl_FrontMaterial.specular * gl_LightSource[0].specular * pow(NdotHV,gl_FrontMaterial.shininess);
+    }
+
+    // Perform the same lighting calculation for the 2nd light source.
+    lightDir = normalize(vec3(gl_LightSource[1].position));
+    NdotL = max(dot(normal, lightDir), 0.0);
+//    diffuse += NdotL * (gl_FrontMaterial.diffuse * gl_LightSource[1].diffuse);
+//    ambient += gl_FrontMaterial.ambient * gl_LightSource[1].ambient;
+    diffuse += NdotL * (gl_Color * gl_LightSource[1].diffuse);
+    ambient += gl_Color * gl_LightSource[1].ambient;
+    
+    // compute the specular term if NdotL is  larger than zero
+    if (NdotL > 0.0) {
+        NdotHV = max(dot(normal, normalize(gl_LightSource[1].halfVector.xyz)),0.0);
+        specular += gl_FrontMaterial.specular * gl_LightSource[1].specular * pow(NdotHV,gl_FrontMaterial.shininess);
+    }
+    
+    gl_FrontColor = globalAmbient + diffuse + ambient + specular;
+    gl_FrontColor.a = 1.;
+    
+    gl_Position = ftransform();  
+    object_z = gl_Vertex.z / gl_Vertex.w;
+} 
+
+VERTEX
+}
+
+sub _fragment_shader {
+    return <<'FRAGMENT';
+#version 110
+#define M_PI 3.1415926535897932384626433832795
+
+varying float object_z;
+
+void main()
+{
+    float layer_height = 0.25;
+    float layer_height2 = 0.5 * layer_height;
+    float layer_center = floor(object_z / layer_height) * layer_height + layer_height2;
+    float intensity = cos(M_PI * 0.7 * (layer_center - object_z) / layer_height);
+    gl_FragColor = gl_Color * intensity;
+    gl_FragColor.a = 1.;
+}
+
+FRAGMENT
 }
 
 # Container for object geometry and selection status.
