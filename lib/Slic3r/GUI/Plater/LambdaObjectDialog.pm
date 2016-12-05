@@ -23,6 +23,7 @@ sub new {
         dim => [1, 1, 1],
         cyl_r => 1,
         cyl_h => 1,
+        cyl_rho => 1.0,
     };
 
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
@@ -62,7 +63,7 @@ sub new {
         },
         label_width => 100,
     );
-    my @options = ("box", "cylinder");
+    my @options = ("box", "cylinder", "sphere");
     $self->{type} = Wx::ComboBox->new($self, 1, "box", wxDefaultPosition, wxDefaultSize, \@options, wxCB_READONLY);
 
     $optgroup_box->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
@@ -113,6 +114,31 @@ sub new {
         type    =>  'f',
         default =>  '1',
     ));
+
+    my $optgroup_sphere;
+    $optgroup_sphere = $self->{optgroup_sphere} = Slic3r::GUI::OptionsGroup->new(
+        parent      => $self,
+        title       => 'Add Cylinder...',
+        on_change   => sub {
+            # Do validation
+            my ($opt_id) = @_;
+            if ($opt_id eq 'cyl_rho') {
+                if (!looks_like_number($optgroup_sphere->get_value($opt_id))) {
+                    return 0;
+                }
+            }
+            $self->{object_parameters}->{$opt_id} = $optgroup_sphere->get_value($opt_id);
+        },
+        label_width => 100,
+    );
+
+    $optgroup_sphere->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id  =>  "cyl_rho",
+        label   =>  'Rho',
+        type    =>  'f',
+        default =>  '1',
+    ));
+
     EVT_COMBOBOX($self, 1, sub{ 
         $self->{object_parameters}->{type} = $self->{type}->GetValue();
         $self->_update_ui;
@@ -122,6 +148,7 @@ sub new {
     $self->{sizer}->Add($self->{type}, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->{sizer}->Add($optgroup_box->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->{sizer}->Add($optgroup_cylinder->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+    $self->{sizer}->Add($optgroup_sphere->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->{sizer}->Add($button_sizer,0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->_update_ui;
 
@@ -144,10 +171,13 @@ sub _update_ui {
     my ($self) = @_;
     $self->{sizer}->Hide($self->{optgroup_cylinder}->sizer);
     $self->{sizer}->Hide($self->{optgroup_box}->sizer);
+    $self->{sizer}->Hide($self->{optgroup_sphere}->sizer);
     if ($self->{type}->GetValue eq "box") {
         $self->{sizer}->Show($self->{optgroup_box}->sizer);
     } elsif ($self->{type}->GetValue eq "cylinder") {
         $self->{sizer}->Show($self->{optgroup_cylinder}->sizer);
+    } elsif ($self->{type}->GetValue eq "sphere") {
+        $self->{sizer}->Show($self->{optgroup_sphere}->sizer);
     }
     $self->{sizer}->Fit($self);
     $self->{sizer}->SetSizeHints($self);

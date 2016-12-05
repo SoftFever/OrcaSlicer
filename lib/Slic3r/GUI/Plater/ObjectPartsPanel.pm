@@ -350,6 +350,8 @@ sub on_btn_lambda {
         $mesh = Slic3r::TriangleMesh::cube($params->{"dim"}[0], $params->{"dim"}[1], $params->{"dim"}[2]);
     } elsif ($type eq "cylinder") {
         $mesh = Slic3r::TriangleMesh::cylinder($params->{"cyl_r"}, $params->{"cyl_h"});
+    } elsif ($type eq "sphere") {
+        $mesh = Slic3r::TriangleMesh::sphere($params->{"cyl_rho"});
     } else {
         return;
     }
