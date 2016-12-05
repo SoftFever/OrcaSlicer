@@ -352,6 +352,10 @@ sub on_btn_lambda {
         $mesh = Slic3r::TriangleMesh::cylinder($params->{"cyl_r"}, $params->{"cyl_h"});
     } elsif ($type eq "sphere") {
         $mesh = Slic3r::TriangleMesh::sphere($params->{"sph_rho"});
+    } elsif ($type eq "slab") {
+        $mesh = Slic3r::TriangleMesh::cube($self->{model_object}->bounding_box->size->x*1.5, $self->{model_object}->bounding_box->size->y*1.5, $params->{"slab_h"});
+        # box sets the base coordinate at 0,0, move to center of plate and move it up to initial_z
+        $mesh->translate(-$self->{model_object}->bounding_box->size->x*1.5/2.0, -$self->{model_object}->bounding_box->size->y*1.5/2.0, $params->{"slab_z"});
     } else {
         return;
     }

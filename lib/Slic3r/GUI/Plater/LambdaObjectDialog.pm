@@ -24,6 +24,8 @@ sub new {
         cyl_r => 1,
         cyl_h => 1,
         sph_rho => 1.0,
+        slab_h => 1.0,
+        slab_z => 0.0,
     };
 
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
@@ -63,7 +65,7 @@ sub new {
         },
         label_width => 100,
     );
-    my @options = ("box", "cylinder", "sphere");
+    my @options = ("box", "slab", "cylinder", "sphere");
     $self->{type} = Wx::ComboBox->new($self, 1, "box", wxDefaultPosition, wxDefaultSize, \@options, wxCB_READONLY);
 
     $optgroup_box->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
@@ -139,6 +141,36 @@ sub new {
         default =>  '1',
     ));
 
+    my $optgroup_slab;
+    $optgroup_slab = $self->{optgroup_slab} = Slic3r::GUI::OptionsGroup->new(
+        parent      => $self,
+        title       => 'Add Slab...',
+        on_change   => sub {
+            # Do validation
+            my ($opt_id) = @_;
+            if ($opt_id eq 'slab_z' || $opt_id eq 'slab_h') {
+                if (!looks_like_number($optgroup_slab->get_value($opt_id))) {
+                    return 0;
+                }
+            }
+            $self->{object_parameters}->{$opt_id} = $optgroup_slab->get_value($opt_id);
+        },
+        label_width => 100,
+    );
+    $optgroup_slab->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id  =>  "slab_h",
+        label   =>  'H',
+        type    =>  'f',
+        default =>  '1',
+    ));
+    $optgroup_slab->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id  =>  "slab_z",
+        label   =>  'Initial Z',
+        type    =>  'f',
+        default =>  '0',
+    ));
+
+
     EVT_COMBOBOX($self, 1, sub{ 
         $self->{object_parameters}->{type} = $self->{type}->GetValue();
         $self->_update_ui;
@@ -149,6 +181,7 @@ sub new {
     $self->{sizer}->Add($optgroup_box->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->{sizer}->Add($optgroup_cylinder->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->{sizer}->Add($optgroup_sphere->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
+    $self->{sizer}->Add($optgroup_slab->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->{sizer}->Add($button_sizer,0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     $self->_update_ui;
 
@@ -170,12 +203,15 @@ sub ObjectParameter {
 sub _update_ui {
     my ($self) = @_;
     $self->{sizer}->Hide($self->{optgroup_cylinder}->sizer);
+    $self->{sizer}->Hide($self->{optgroup_slab}->sizer);
     $self->{sizer}->Hide($self->{optgroup_box}->sizer);
     $self->{sizer}->Hide($self->{optgroup_sphere}->sizer);
     if ($self->{type}->GetValue eq "box") {
         $self->{sizer}->Show($self->{optgroup_box}->sizer);
     } elsif ($self->{type}->GetValue eq "cylinder") {
         $self->{sizer}->Show($self->{optgroup_cylinder}->sizer);
+    } elsif ($self->{type}->GetValue eq "slab") {
+        $self->{sizer}->Show($self->{optgroup_slab}->sizer);
     } elsif ($self->{type}->GetValue eq "sphere") {
         $self->{sizer}->Show($self->{optgroup_sphere}->sizer);
     }
