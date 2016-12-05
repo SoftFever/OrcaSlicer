@@ -1204,4 +1204,84 @@ TriangleMesh make_cylinder(double r, double h, double fa) {
     TriangleMesh mesh(vertices, facets);
     return mesh;
 }
+
+// Generates mesh for a sphere centered about the origin, using the generated angle
+// to determine the granularity. 
+// Default angle is 1 degree.
+TriangleMesh make_sphere(double rho, double fa) {
+    Pointf3s vertices;
+    std::vector<Point3> facets;
+
+    // Algorithm: 
+    // Add points one-by-one to the sphere grid and form facets using relative coordinates.
+    // Sphere is composed effectively of a mesh of stacked circles.
+
+    // adjust via rounding to get an even multiple for any provided angle.
+    double angle = (2*PI / floor(2*PI / fa));
+
+    // Ring to be scaled to generate the steps of the sphere
+    std::vector<double> ring;
+    for (double i = 0; i < 2*PI; i+=angle) {
+        ring.push_back(i);
+    }
+    const size_t steps = ring.size(); 
+    const double increment = (double)(1.0 / (double)steps);
+
+    // special case: first ring connects to 0,0,0
+    // insert and form facets.
+    vertices.push_back(Pointf3(0.0, 0.0, -rho));
+    size_t id = vertices.size();
+    for (size_t i = 0; i < ring.size(); i++) {
+        // Fixed scaling 
+        const double z = -rho + increment*rho*2.0;
+        // radius of the circle for this step.
+        const double r = sqrt(abs(rho*rho - z*z));
+        Pointf3 b(0, r, z);
+        b.rotate(ring[i], Pointf3(0,0,z)); 
+        vertices.push_back(b);
+        if (i == 0) {
+            facets.push_back(Point3(1, 0, ring.size()));
+        } else {
+            facets.push_back(Point3(id, 0, id - 1));
+        }
+        id++;
+    }
+
+    // General case: insert and form facets for each step, joining it to the ring below it.
+    for (size_t s = 2; s < steps - 1; s++) {
+        const double z = -rho + increment*(double)s*2.0*rho;
+        const double r = sqrt(abs(rho*rho - z*z));
+
+        for (size_t i = 0; i < ring.size(); i++) {
+            Pointf3 b(0, r, z);
+            b.rotate(ring[i], Pointf3(0,0,z)); 
+            vertices.push_back(b);
+            if (i == 0) {
+                // wrap around
+                facets.push_back(Point3(id + ring.size() - 1 , id, id - 1)); 
+                facets.push_back(Point3(id, id - ring.size(),  id - 1)); 
+            } else {
+                facets.push_back(Point3(id , id - ring.size(), (id - 1) - ring.size())); 
+                facets.push_back(Point3(id, id - 1 - ring.size() ,  id - 1)); 
+            }
+            id++;
+        } 
+    }
+
+
+    // special case: last ring connects to 0,0,rho*2.0
+    // only form facets.
+    vertices.push_back(Pointf3(0.0, 0.0, rho));
+    for (size_t i = 0; i < ring.size(); i++) {
+        if (i == 0) {
+            // third vertex is on the other side of the ring.
+            facets.push_back(Point3(id, id - ring.size(),  id - 1));
+        } else {
+            facets.push_back(Point3(id, id - ring.size() + i,  id - ring.size() + (i - 1)));
+        }
+    }
+    id++;
+    TriangleMesh mesh(vertices, facets);
+    return mesh;
+}
 }

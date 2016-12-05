@@ -114,6 +114,8 @@ TriangleMesh make_cube(double x, double y, double z);
 // Generate a TriangleMesh of a cylinder
 TriangleMesh make_cylinder(double r, double h, double fa=(2*PI/360));
 
+TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
+
 }
 
 #endif

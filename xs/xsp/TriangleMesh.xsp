@@ -240,6 +240,13 @@ cylinder(double r, double h)
     OUTPUT:
         RETVAL
 
+Clone<TriangleMesh>
+sphere(double rho)
+    CODE:
+        RETVAL = make_sphere(rho);
+    OUTPUT:
+        RETVAL
+
 %}
 };
 
