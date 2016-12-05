@@ -351,7 +351,7 @@ sub on_btn_lambda {
     } elsif ($type eq "cylinder") {
         $mesh = Slic3r::TriangleMesh::cylinder($params->{"cyl_r"}, $params->{"cyl_h"});
     } elsif ($type eq "sphere") {
-        $mesh = Slic3r::TriangleMesh::sphere($params->{"cyl_rho"});
+        $mesh = Slic3r::TriangleMesh::sphere($params->{"sph_rho"});
     } else {
         return;
     }

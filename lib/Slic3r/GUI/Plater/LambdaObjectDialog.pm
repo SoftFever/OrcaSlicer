@@ -23,7 +23,7 @@ sub new {
         dim => [1, 1, 1],
         cyl_r => 1,
         cyl_h => 1,
-        cyl_rho => 1.0,
+        sph_rho => 1.0,
     };
 
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
@@ -118,11 +118,11 @@ sub new {
     my $optgroup_sphere;
     $optgroup_sphere = $self->{optgroup_sphere} = Slic3r::GUI::OptionsGroup->new(
         parent      => $self,
-        title       => 'Add Cylinder...',
+        title       => 'Add Sphere...',
         on_change   => sub {
             # Do validation
             my ($opt_id) = @_;
-            if ($opt_id eq 'cyl_rho') {
+            if ($opt_id eq 'sph_rho') {
                 if (!looks_like_number($optgroup_sphere->get_value($opt_id))) {
                     return 0;
                 }
@@ -133,7 +133,7 @@ sub new {
     );
 
     $optgroup_sphere->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-        opt_id  =>  "cyl_rho",
+        opt_id  =>  "sph_rho",
         label   =>  'Rho',
         type    =>  'f',
         default =>  '1',
