@@ -359,6 +359,7 @@ sub on_btn_lambda {
     } else {
         return;
     }
+    $mesh->repair;
     my $new_volume = $self->{model_object}->add_volume(mesh => $mesh);
     $new_volume->set_modifier($is_modifier);
     $new_volume->set_name($name);
