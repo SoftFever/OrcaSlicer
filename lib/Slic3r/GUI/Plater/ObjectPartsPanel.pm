@@ -268,10 +268,15 @@ sub selection_changed {
                 $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
             }
             $self->{btn_delete}->Enable;
-            $self->{optgroup_movers}->enable;
             
             # attach volume config to settings panel
             my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
+   
+            if ($volume->modifier) {
+                $self->{optgroup_movers}->enable;
+            } else {
+                $self->{optgroup_movers}->disable;
+            }
             $config = $volume->config;
             $self->{staticbox}->SetLabel('Part Settings');
             
