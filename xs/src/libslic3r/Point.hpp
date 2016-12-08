@@ -131,7 +131,7 @@ class Pointf3 : public Pointf
     Vectorf3 vector_to(const Pointf3 &point) const;
 };
 
-}
+} // namespace Slic3r
 
 // start Boost
 #include <boost/version.hpp>
@@ -155,28 +155,28 @@ namespace boost { namespace polygon {
 #endif
 
     template <>
-    struct geometry_concept<Point> { typedef point_concept type; };
+    struct geometry_concept<Slic3r::Point> { typedef point_concept type; };
    
     template <>
-    struct point_traits<Point> {
+    struct point_traits<Slic3r::Point> {
         typedef coord_t coordinate_type;
     
-        static inline coordinate_type get(const Point& point, orientation_2d orient) {
+        static inline coordinate_type get(const Slic3r::Point& point, orientation_2d orient) {
             return (orient == HORIZONTAL) ? point.x : point.y;
         }
     };
     
     template <>
-    struct point_mutable_traits<Point> {
+    struct point_mutable_traits<Slic3r::Point> {
         typedef coord_t coordinate_type;
-        static inline void set(Point& point, orientation_2d orient, coord_t value) {
+        static inline void set(Slic3r::Point& point, orientation_2d orient, coord_t value) {
             if (orient == HORIZONTAL)
                 point.x = value;
             else
                 point.y = value;
         }
-        static inline Point construct(coord_t x_value, coord_t y_value) {
-            Point retval;
+        static inline Slic3r::Point construct(coord_t x_value, coord_t y_value) {
+            Slic3r::Point retval;
             retval.x = x_value;
             retval.y = y_value; 
             return retval;

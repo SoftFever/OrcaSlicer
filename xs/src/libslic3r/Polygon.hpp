@@ -142,40 +142,40 @@ inline Polylines to_polylines(Polygons &&polys)
 #include <boost/polygon/polygon.hpp>
 namespace boost { namespace polygon {
     template <>
-    struct geometry_concept<Polygon>{ typedef polygon_concept type; };
+    struct geometry_concept<Slic3r::Polygon>{ typedef polygon_concept type; };
 
     template <>
-    struct polygon_traits<Polygon> {
+    struct polygon_traits<Slic3r::Polygon> {
         typedef coord_t coordinate_type;
-        typedef Points::const_iterator iterator_type;
-        typedef Point point_type;
+        typedef Slic3r::Points::const_iterator iterator_type;
+        typedef Slic3r::Point point_type;
 
         // Get the begin iterator
-        static inline iterator_type begin_points(const Polygon& t) {
+        static inline iterator_type begin_points(const Slic3r::Polygon& t) {
             return t.points.begin();
         }
 
         // Get the end iterator
-        static inline iterator_type end_points(const Polygon& t) {
+        static inline iterator_type end_points(const Slic3r::Polygon& t) {
             return t.points.end();
         }
 
         // Get the number of sides of the polygon
-        static inline std::size_t size(const Polygon& t) {
+        static inline std::size_t size(const Slic3r::Polygon& t) {
             return t.points.size();
         }
 
         // Get the winding direction of the polygon
-        static inline winding_direction winding(const Polygon& t) {
+        static inline winding_direction winding(const Slic3r::Polygon& t) {
             return unknown_winding;
         }
     };
 
     template <>
-    struct polygon_mutable_traits<Polygon> {
+    struct polygon_mutable_traits<Slic3r::Polygon> {
         // expects stl style iterators
         template <typename iT>
-        static inline Polygon& set_points(Polygon& polygon, iT input_begin, iT input_end) {
+        static inline Slic3r::Polygon& set_points(Slic3r::Polygon& polygon, iT input_begin, iT input_end) {
             polygon.points.clear();
             while (input_begin != input_end) {
                 polygon.points.push_back(Point());
@@ -189,32 +189,32 @@ namespace boost { namespace polygon {
     };
     
     template <>
-    struct geometry_concept<Polygons> { typedef polygon_set_concept type; };
+    struct geometry_concept<Slic3r::Polygons> { typedef polygon_set_concept type; };
 
     //next we map to the concept through traits
     template <>
-    struct polygon_set_traits<Polygons> {
+    struct polygon_set_traits<Slic3r::Polygons> {
         typedef coord_t coordinate_type;
-        typedef Polygons::const_iterator iterator_type;
-        typedef Polygons operator_arg_type;
+        typedef Slic3r::Polygons::const_iterator iterator_type;
+        typedef Slic3r::Polygons operator_arg_type;
 
-        static inline iterator_type begin(const Polygons& polygon_set) {
+        static inline iterator_type begin(const Slic3r::Polygons& polygon_set) {
             return polygon_set.begin();
         }
 
-        static inline iterator_type end(const Polygons& polygon_set) {
+        static inline iterator_type end(const Slic3r::Polygons& polygon_set) {
             return polygon_set.end();
         }
 
         //don't worry about these, just return false from them
-        static inline bool clean(const Polygons& polygon_set) { return false; }
-        static inline bool sorted(const Polygons& polygon_set) { return false; }
+        static inline bool clean(const Slic3r::Polygons& polygon_set) { return false; }
+        static inline bool sorted(const Slic3r::Polygons& polygon_set) { return false; }
     };
 
     template <>
-    struct polygon_set_mutable_traits<Polygons> {
+    struct polygon_set_mutable_traits<Slic3r::Polygons> {
         template <typename input_iterator_type>
-        static inline void set(Polygons& polygons, input_iterator_type input_begin, input_iterator_type input_end) {
+        static inline void set(Slic3r::Polygons& polygons, input_iterator_type input_begin, input_iterator_type input_end) {
           polygons.assign(input_begin, input_end);
         }
     };
