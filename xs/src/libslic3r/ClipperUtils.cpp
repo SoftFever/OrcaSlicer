@@ -709,7 +709,7 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
     PolyTreeToExPolygons(polytree, retval);
 }
 
-void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
+void _clipper_pl(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
     const Slic3r::Polygons &clip, Slic3r::Polylines* retval, bool safety_offset_)
 {
     PROFILE_FUNC();
@@ -723,7 +723,7 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject,
     ClipperPaths_to_Slic3rMultiPoints(output, retval);
 }
 
-void _clipper(ClipperLib::ClipType clipType, const Slic3r::Lines &subject, 
+void _clipper_ln(ClipperLib::ClipType clipType, const Slic3r::Lines &subject, 
     const Slic3r::Polygons &clip, Slic3r::Lines* retval, bool safety_offset_)
 {
     // convert Lines to Polylines
@@ -733,7 +733,7 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Lines &subject,
         polylines.push_back(*line);
     
     // perform operation
-    _clipper(clipType, polylines, clip, &polylines, safety_offset_);
+    _clipper_pl(clipType, polylines, clip, &polylines, safety_offset_);
     
     // convert Polylines to Lines
     for (Slic3r::Polylines::const_iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
@@ -750,7 +750,7 @@ void _clipper(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject,
         polylines.push_back(*polygon);  // implicit call to split_at_first_point()
     
     // perform clipping
-    _clipper(clipType, polylines, clip, retval, safety_offset_);
+    _clipper_pl(clipType, polylines, clip, retval, safety_offset_);
     
     /* If the split_at_first_point() call above happens to split the polygon inside the clipping area
        we would get two consecutive polylines instead of a single one, so we go through them in order
@@ -796,8 +796,6 @@ void diff(const SubjectType &subject, const Slic3r::Polygons &clip, ResultType* 
 template void diff<Slic3r::Polygons, Slic3r::ExPolygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons* retval, bool safety_offset_);
 template void diff<Slic3r::Polygons, Slic3r::Polygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polygons* retval, bool safety_offset_);
 template void diff<Slic3r::Polygons, Slic3r::Polylines>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polylines* retval, bool safety_offset_);
-template void diff<Slic3r::Polylines, Slic3r::Polylines>(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines* retval, bool safety_offset_);
-template void diff<Slic3r::Lines, Slic3r::Lines>(const Slic3r::Lines &subject, const Slic3r::Polygons &clip, Slic3r::Lines* retval, bool safety_offset_);
 
 template <class SubjectType, class ResultType>
 void diff(const SubjectType &subject, const Slic3r::ExPolygons &clip, ResultType* retval, bool safety_offset_)
@@ -850,8 +848,6 @@ void intersection(const SubjectType &subject, const Slic3r::Polygons &clip, Resu
 template void intersection<Slic3r::Polygons, Slic3r::ExPolygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::ExPolygons* retval, bool safety_offset_);
 template void intersection<Slic3r::Polygons, Slic3r::Polygons>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polygons* retval, bool safety_offset_);
 template void intersection<Slic3r::Polygons, Slic3r::Polylines>(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, Slic3r::Polylines* retval, bool safety_offset_);
-template void intersection<Slic3r::Polylines, Slic3r::Polylines>(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, Slic3r::Polylines* retval, bool safety_offset_);
-template void intersection<Slic3r::Lines, Slic3r::Lines>(const Slic3r::Lines &subject, const Slic3r::Polygons &clip, Slic3r::Lines* retval, bool safety_offset_);
 
 template <class SubjectType>
 SubjectType intersection(const SubjectType &subject, const Slic3r::Polygons &clip, bool safety_offset_)

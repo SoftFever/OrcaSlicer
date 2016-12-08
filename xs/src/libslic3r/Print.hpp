@@ -154,7 +154,7 @@ private:
     // TODO: call model_object->get_bounding_box() instead of accepting
         // parameter
     PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox);
-    ~PrintObject();
+    ~PrintObject() {}
 };
 
 typedef std::vector<PrintObject*> PrintObjectPtrs;

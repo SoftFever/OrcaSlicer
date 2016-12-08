@@ -178,7 +178,7 @@ namespace boost { namespace polygon {
         static inline Slic3r::Polygon& set_points(Slic3r::Polygon& polygon, iT input_begin, iT input_end) {
             polygon.points.clear();
             while (input_begin != input_end) {
-                polygon.points.push_back(Point());
+                polygon.points.push_back(Slic3r::Point());
                 boost::polygon::assign(polygon.points.back(), *input_begin);
                 ++input_begin;
             }

@@ -8,7 +8,6 @@
 #include "EdgeGrid.hpp"
 
 #include <cmath>
-#include <cassert>
 #include <memory>
 #include <boost/log/trivial.hpp>
 #include <unordered_set>
@@ -20,6 +19,8 @@
     #undef NDEBUG
     #include "SVG.hpp"
 #endif
+
+#include <cassert>
 
 namespace Slic3r {
 

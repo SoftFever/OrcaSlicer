@@ -974,7 +974,7 @@ PrintObject::_make_perimeters()
                     
                     // check whether a portion of the upper slices falls inside the critical area
                     const Polylines intersection = intersection_pl(
-                        upper_layerm_polygons,
+                        to_polylines(upper_layerm_polygons),
                         critical_area
                     );
                     

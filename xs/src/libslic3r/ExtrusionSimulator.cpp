@@ -803,7 +803,7 @@ void gcode_spread_points(
 				const Cell &cell = cells[i];
 				acc[cell.idx.y()][cell.idx.x()] = (1.f - cell.fraction_covered) * cell.volume + cell.fraction_covered * cell.area * height_avg;
 			}
-		} else if (simulationType == ExtrusionSimulationSpreadExcess) {
+		} else if (simulationType == Slic3r::ExtrusionSimulationSpreadExcess) {
 			// The volume under the circle does not fit.
 			// 1) Fill the underfilled cells and remove them from the list.
 			float volume_borrowed_total = 0.;

@@ -163,4 +163,6 @@ SV* polynode2perl(const ClipperLib::PolyNode& node);
 #endif
 #endif
 
+using namespace Slic3r;
+
 #endif
