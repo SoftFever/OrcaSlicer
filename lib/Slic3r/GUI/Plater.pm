@@ -8,10 +8,11 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
+use LWP::UserAgent;
 use threads::shared qw(shared_clone);
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
     :panel :sizer :toolbar :window wxTheApp :notebook :combobox);
-use Wx::Event qw(EVT_BUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
+use Wx::Event qw(EVT_BUTTON EVT_TOGGLEBUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
     EVT_CHOICE EVT_COMBOBOX EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Panel';
@@ -30,6 +31,7 @@ use constant TB_SCALE   => &Wx::NewId;
 use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_CUT     => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
+use constant TB_LAYER_EDITING => &Wx::NewId;
 
 # package variables to avoid passing lexicals to threads
 our $THUMBNAIL_DONE_EVENT    : shared = Wx::NewEventType;
@@ -94,7 +96,7 @@ sub new {
     
     # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
-        $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{config});
+        $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
         $self->{canvas3D}->set_on_select_object($on_select_object);
         $self->{canvas3D}->set_on_double_click($on_double_click);
@@ -154,6 +156,9 @@ sub new {
         $self->{htoolbar}->AddTool(TB_CUT, "Cut…", Wx::Bitmap->new($Slic3r::var->("package.png"), wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG), '');
+
+        # FIXME add a button for layer editing
+        $self->{htoolbar}->AddCheckTool(TB_LAYER_EDITING, "Layer editing", Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG), '');
     } else {
         my %tbar_buttons = (
             add             => "Add…",
@@ -168,12 +173,15 @@ sub new {
             split           => "Split",
             cut             => "Cut…",
             settings        => "Settings…",
+            layer_editing   => "Layer editing",
         );
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
         for (qw(add remove reset arrange increase decrease rotate45ccw rotate45cw changescale split cut settings)) {
             $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
+        $self->{"btn_layer_editing"} = Wx::ToggleButton->new($self, -1, $tbar_buttons{'layer_editing'}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+        $self->{btoolbar}->Add($self->{"btn_layer_editing"});
     }
 
     $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, wxDefaultSize,
@@ -256,6 +264,7 @@ sub new {
         EVT_TOOL($self, TB_SPLIT, sub { $self->split_object; });
         EVT_TOOL($self, TB_CUT, sub { $_[0]->object_cut_dialog });
         EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
+        EVT_TOOL($self, TB_LAYER_EDITING, sub { $self->on_layer_editing_toggled($self->{htoolbar}->GetToolState(TB_LAYER_EDITING)); });
     } else {
         EVT_BUTTON($self, $self->{btn_add}, sub { $self->add; });
         EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
@@ -269,6 +278,7 @@ sub new {
         EVT_BUTTON($self, $self->{btn_split}, sub { $self->split_object; });
         EVT_BUTTON($self, $self->{btn_cut}, sub { $_[0]->object_cut_dialog });
         EVT_BUTTON($self, $self->{btn_settings}, sub { $_[0]->object_settings_dialog });
+        EVT_TOGGLEBUTTON($self, $self->{btn_layer_editing}, sub { $self->on_layer_editing_toggled($self->{btn_layer_editing}->GetValue); });
     }
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
@@ -462,6 +472,13 @@ sub _on_select_preset {
 	
 	# get new config and generate on_config_change() event for updating plater and other things
 	$self->on_config_change($self->GetFrame->config);
+}
+
+sub on_layer_editing_toggled {
+    my ($self, $new_state) = @_;
+    print "on_layer_editing_toggled $new_state\n";
+    $self->{canvas3D}->layer_editing_enabled($new_state);
+    $self->{canvas3D}->update;
 }
 
 sub GetFrame {
@@ -1481,6 +1498,8 @@ sub on_thumbnail_made {
 # (i.e. when an object is added/removed/moved/rotated/scaled)
 sub update {
     my ($self, $force_autocenter) = @_;
+
+    print "Platter - update\n";
     
     if ($Slic3r::GUI::Settings->{_}{autocenter} || $force_autocenter) {
         $self->{model}->center_instances_around_point($self->bed_centerf);
@@ -1679,7 +1698,7 @@ sub object_list_changed {
     my $have_objects = @{$self->{objects}} ? 1 : 0;
     my $method = $have_objects ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode);
+        for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode layer_editing);
     
     if ($self->{export_gcode_output_file} || $self->{send_gcode_file}) {
         $self->{btn_reslice}->Disable;
@@ -1712,6 +1731,7 @@ sub selection_changed {
     if ($self->{object_info_size}) { # have we already loaded the info pane?
         if ($have_sel) {
             my $model_object = $self->{model}->objects->[$obj_idx];
+            $model_object->print_info;
             my $model_instance = $model_object->instances->[0];
             $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", @{$model_object->instance_bounding_box(0)->size}));
             $self->{object_info_materials}->SetLabel($model_object->materials_count);
