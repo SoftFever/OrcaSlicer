@@ -196,19 +196,6 @@ SurfaceCollection::remove_types(const SurfaceType *types, int ntypes)
         surfaces.erase(surfaces.begin() + j, surfaces.end());
 }
 
-void
-SurfaceCollection::append(const SurfaceCollection &coll)
-{
-    this->surfaces.insert(this->surfaces.end(), coll.surfaces.begin(), coll.surfaces.end());
-}
-
-void 
-SurfaceCollection::append(const SurfaceType surfaceType, const Slic3r::ExPolygons &expoly)
-{
-    for (Slic3r::ExPolygons::const_iterator it = expoly.begin(); it != expoly.end(); ++ it)
-        this->surfaces.push_back(Slic3r::Surface(surfaceType, *it));
-}
-
 void SurfaceCollection::export_to_svg(const char *path, bool show_labels) 
 {
     BoundingBox bbox;
