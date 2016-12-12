@@ -43,10 +43,14 @@ extern "C" {
 #undef do_close
 #undef bind
 #undef seed
+#undef push
+#undef pop
 #ifdef _MSC_VER
     // Undef some of the macros set by Perl <xsinit.h>, which cause compilation errors on Win32
-    #undef send
     #undef connect
+    #undef seek
+    #undef send
+    #undef write
 #endif /* _MSC_VER */
 }
 #endif
