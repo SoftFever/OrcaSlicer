@@ -67,7 +67,7 @@ float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet
 				continue;
 			// compute cusp-height for this facet and store minimum of all heights
 			float normal_z = m_face_normal_z[ordered_id];
-			height = std::min(height, (normal_z == 0) ? 9999 : abs(cusp_value / normal_z));
+			height = std::min(height, (normal_z == 0.f) ? 9999.f : std::abs(cusp_value / normal_z));
 		}
 	}
 
