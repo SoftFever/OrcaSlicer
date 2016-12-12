@@ -18,7 +18,7 @@
 namespace Slic3r
 {
 
-SlicingParameters create_from_config(
+SlicingParameters SlicingParameters::create_from_config(
 	const PrintConfig 		&print_config, 
 	const PrintObjectConfig &object_config,
 	coordf_t				 object_height,
