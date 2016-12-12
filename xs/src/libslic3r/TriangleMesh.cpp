@@ -193,12 +193,17 @@ void TriangleMesh::scale(const Pointf3 &versor)
 
 void TriangleMesh::translate(float x, float y, float z)
 {
+    if (x == 0.f && y == 0.f && z == 0.f)
+        return;
     stl_translate_relative(&(this->stl), x, y, z);
     stl_invalidate_shared_vertices(&this->stl);
 }
 
 void TriangleMesh::rotate(float angle, const Axis &axis)
 {
+    if (angle == 0.f)
+        return;
+
     // admesh uses degrees
     angle = Slic3r::Geometry::rad2deg(angle);
     
@@ -265,6 +270,8 @@ void TriangleMesh::align_to_origin()
 
 void TriangleMesh::rotate(double angle, Point* center)
 {
+    if (angle == 0.)
+        return;
     this->translate(-center->x, -center->y, 0);
     stl_rotate_z(&(this->stl), (float)angle);
     this->translate(+center->x, +center->y, 0);
