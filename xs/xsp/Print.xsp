@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Slicing.hpp"
 #include "libslic3r/PlaceholderParser.hpp"
 %}
 
@@ -58,6 +59,8 @@ _constant()
     Points copies();
     t_layer_height_ranges layer_height_ranges()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
+    std::vector<double> layer_height_profile()
+        %code%{ RETVAL = THIS->layer_height_profile; %};
     Ref<Point3> size()
         %code%{ RETVAL = &THIS->size; %};
     Clone<BoundingBox> bounding_box();
@@ -82,6 +85,8 @@ _constant()
     bool reload_model_instances();
     void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
         %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
+    void set_layer_height_profile(std::vector<double> profile)
+        %code%{ THIS->layer_height_profile = profile; %};
 
     size_t total_layer_count();
     size_t layer_count();
@@ -106,13 +111,31 @@ _constant()
         %code%{ THIS->state.set_done(step); %};
     void set_step_started(PrintObjectStep step)
         %code%{ THIS->state.set_started(step); %};
-    
+
+    void _slice();
     void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();
     void bridge_over_infill();
     void _make_perimeters();
     void _infill();
+
+    void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
+        %code%{ 
+            THIS->update_layer_height_profile(); 
+            adjust_layer_height_profile(
+                THIS->slicing_parameters(), THIS->layer_height_profile, z, layer_thickness_delta, band_width, action);
+        %};
+    
+    int generate_layer_height_texture(void *data, int rows, int cols, bool level_of_detail_2nd_level = true)
+        %code%{ 
+            THIS->update_layer_height_profile();
+            SlicingParameters slicing_params = THIS->slicing_parameters(); 
+            RETVAL = generate_layer_height_texture(
+                slicing_params, 
+                generate_object_layers(slicing_params, THIS->layer_height_profile), 
+                data, rows, cols, level_of_detail_2nd_level); 
+        %};
     
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};

@@ -2,11 +2,22 @@
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
-#include "SVG.hpp"
 
 #include <boost/log/trivial.hpp>
 
 #include <Shiny/Shiny.h>
+
+// #define SLIC3R_DEBUG
+
+// Make assert active if SLIC3R_DEBUG
+#ifdef SLIC3R_DEBUG
+    #undef NDEBUG
+    #define DEBUG
+    #define _DEBUG
+    #include "SVG.hpp"
+    #undef assert 
+    #include <cassert>
+#endif
 
 namespace Slic3r {
 
@@ -760,9 +771,9 @@ PrintObject::discover_vertical_shells()
             // Assign resulting internal surfaces to layer.
             const SurfaceType surfaceTypesKeep[] = { stTop, stBottom, stBottomBridge };
             layerm->fill_surfaces.keep_types(surfaceTypesKeep, sizeof(surfaceTypesKeep)/sizeof(SurfaceType));
-            layerm->fill_surfaces.append(stInternal     , new_internal);
-            layerm->fill_surfaces.append(stInternalVoid , new_internal_void);
-            layerm->fill_surfaces.append(stInternalSolid, new_internal_solid);
+            layerm->fill_surfaces.append(new_internal,       stInternal);
+            layerm->fill_surfaces.append(new_internal_void,  stInternalVoid);
+            layerm->fill_surfaces.append(new_internal_solid, stInternalSolid);
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
             layerm->export_region_slices_to_svg_debug("4_discover_vertical_shells");
@@ -910,6 +921,194 @@ PrintObject::bridge_over_infill()
     }
 }
 
+SlicingParameters PrintObject::slicing_parameters() const
+{
+    return SlicingParameters::create_from_config(
+        this->print()->config, this->config, 
+        unscale(this->size.z), this->print()->object_extruders());
+}
+
+void PrintObject::update_layer_height_profile()
+{
+    if (this->layer_height_profile.empty()) {
+        if (0)
+//        if (this->layer_height_profile.empty())
+            this->layer_height_profile = layer_height_profile_adaptive(this->slicing_parameters(), this->layer_height_ranges,
+                this->model_object()->volumes);
+        else
+            this->layer_height_profile = layer_height_profile_from_ranges(this->slicing_parameters(), this->layer_height_ranges);
+    }
+}
+
+// 1) Decides Z positions of the layers,
+// 2) Initializes layers and their regions
+// 3) Slices the object meshes
+// 4) Slices the modifier meshes and reclassifies the slices of the object meshes by the slices of the modifier meshes
+// 5) Applies size compensation (offsets the slices in XY plane)
+// 6) Replaces bad slices by the slices reconstructed from the upper/lower layer
+// Resulting expolygons of layer regions are marked as Internal.
+//
+// this should be idempotent
+void PrintObject::_slice()
+{
+    SlicingParameters slicing_params = this->slicing_parameters();
+
+    // 1) Initialize layers and their slice heights.
+    std::vector<float> slice_zs;
+    {
+        this->clear_layers();
+        // Object layers (pairs of bottom/top Z coordinate), without the raft.
+        this->update_layer_height_profile();
+        std::vector<coordf_t> object_layers = generate_object_layers(slicing_params, this->layer_height_profile);
+        // Reserve object layers for the raft. Last layer of the raft is the contact layer.
+        int id = int(slicing_params.raft_layers());
+        slice_zs.reserve(object_layers.size());
+        Layer *prev = nullptr;
+        for (size_t i_layer = 0; i_layer < object_layers.size(); i_layer += 2) {
+            coordf_t lo = object_layers[i_layer];
+            coordf_t hi = object_layers[i_layer + 1];
+            coordf_t slice_z = 0.5 * (lo + hi);
+            Layer *layer = this->add_layer(id ++, hi - lo, hi + slicing_params.object_print_z_min, slice_z);
+            slice_zs.push_back(float(slice_z));
+            if (prev != nullptr) {
+                prev->upper_layer = layer;
+                layer->lower_layer = prev;
+            }
+            // Make sure all layers contain layer region objects for all regions.
+            for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id)
+                layer->add_region(this->print()->regions[region_id]);
+            prev = layer;
+        }
+    }
+    
+    if (this->print()->regions.size() == 1) {
+        // Optimized for a single region. Slice the single non-modifier mesh.
+        std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(0, slice_zs, false);
+        for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
+            this->layers[layer_id]->regions.front()->slices.append(std::move(expolygons_by_layer[layer_id]), stInternal);
+    } else {
+        // Slice all non-modifier volumes.
+        for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
+            std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, false);
+            for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
+                this->layers[layer_id]->regions[region_id]->slices.append(std::move(expolygons_by_layer[layer_id]), stInternal);
+        }
+        // Slice all modifier volumes.
+        for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
+            std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, true);
+            // loop through the other regions and 'steal' the slices belonging to this one
+            for (size_t other_region_id = 0; other_region_id < this->print()->regions.size(); ++ other_region_id) {
+                if (region_id == other_region_id)
+                    continue;
+                for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id) {
+                    Layer       *layer = layers[layer_id];
+                    LayerRegion *layerm = layer->regions[region_id];
+                    LayerRegion *other_layerm = layer->regions[other_region_id];
+                    if (layerm == nullptr || other_layerm == nullptr)
+                        continue;
+                    Polygons other_slices = to_polygons(other_layerm->slices);
+                    ExPolygons my_parts = intersection_ex(other_slices, to_polygons(expolygons_by_layer[layer_id]));
+                    if (my_parts.empty())
+                        continue;
+                    // Remove such parts from original region.
+                    other_layerm->slices.set(diff_ex(other_slices, my_parts), stInternal);
+                    // Append new parts to our region.
+                    layerm->slices.append(std::move(my_parts), stInternal);
+                }
+            }
+        }
+    }
+    
+    // remove last layer(s) if empty
+    while (! this->layers.empty()) {
+        const Layer *layer = this->layers.back();
+        for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id)
+            if (layer->regions[region_id] != nullptr && ! layer->regions[region_id]->slices.empty())
+                // Non empty layer.
+                goto end;
+        this->delete_layer(int(this->layers.size()) - 1);
+    }
+end:
+    ;
+
+    for (size_t layer_id = 0; layer_id < layers.size(); ++ layer_id) {
+        Layer *layer = this->layers[layer_id];
+        // apply size compensation
+        if (this->config.xy_size_compensation.value != 0.) {
+            float delta = float(scale_(this->config.xy_size_compensation.value));
+            if (layer->regions.size() == 1) {
+                // single region
+                LayerRegion *layerm = layer->regions.front();
+                layerm->slices.set(offset_ex(to_polygons(std::move(layerm->slices.surfaces)), delta), stInternal);
+            } else {
+                if (delta < 0) {
+                    // multiple regions, shrinking
+                    // we apply the offset to the combined shape, then intersect it
+                    // with the original slices for each region
+                    Polygons region_slices;
+                    for (size_t region_id = 0; region_id < layer->regions.size(); ++ region_id)
+                        polygons_append(region_slices, layer->regions[region_id]->slices.surfaces);
+                    Polygons slices = offset(union_(region_slices), delta);
+                    for (size_t region_id = 0; region_id < layer->regions.size(); ++ region_id) {
+                        LayerRegion *layerm = layer->regions[region_id];
+                        layerm->slices.set(std::move(intersection_ex(slices, to_polygons(std::move(layerm->slices.surfaces)))), stInternal);
+                    }
+                } else {
+                    // multiple regions, growing
+                    // this is an ambiguous case, since it's not clear how to grow regions where they are going to overlap
+                    // so we give priority to the first one and so on
+                    Polygons processed;
+                    for (size_t region_id = 0;; ++ region_id) {
+                        LayerRegion *layerm = layer->regions[region_id];
+                        ExPolygons slices = offset_ex(to_polygons(layerm->slices.surfaces), delta);
+                        if (region_id > 0)
+                            // Trim by the slices of already processed regions.
+                            slices = diff_ex(to_polygons(std::move(slices)), processed);
+                        if (region_id + 1 == layer->regions.size()) {
+                            layerm->slices.set(std::move(slices), stInternal);
+                            break;
+                        }
+                        polygons_append(processed, slices);
+                        layerm->slices.set(std::move(slices), stInternal);
+                    }
+                }
+            }
+        }
+        
+        // Merge all regions' slices to get islands, chain them by a shortest path.
+        layer->make_slices();
+    }
+}
+
+std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::vector<float> &z, bool modifier)
+{
+    std::vector<ExPolygons> layers;
+    assert(region_id < this->region_volumes.size());
+    std::vector<int> &volumes = this->region_volumes[region_id];
+    if (! volumes.empty()) {
+        // Compose mesh.
+        //FIXME better to perform slicing over each volume separately and then to use a Boolean operation to merge them.
+        TriangleMesh mesh;
+        for (std::vector<int>::const_iterator it_volume = volumes.begin(); it_volume != volumes.end(); ++ it_volume) {
+            ModelVolume *volume = this->model_object()->volumes[*it_volume];
+            if (volume->modifier == modifier)
+                mesh.merge(volume->mesh);
+        }
+        if (mesh.stl.stats.number_of_facets > 0) {
+            // transform mesh
+            // we ignore the per-instance transformations currently and only 
+            // consider the first one
+            this->model_object()->instances.front()->transform_mesh(&mesh, true);
+            // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
+            mesh.translate(- unscale(this->_copies_shift.x), - unscale(this->_copies_shift.y), -this->model_object()->bounding_box().min.z);
+            // perform actual slicing
+            TriangleMeshSlicer mslicer(&mesh);
+            mslicer.slice(z, &layers);
+        }
+    }
+    return layers;
+}
+
 void
 PrintObject::_make_perimeters()
 {
@@ -930,7 +1129,7 @@ PrintObject::_make_perimeters()
     // this algorithm makes sure that at least one perimeter is overlapping
     // but we don't generate any extra perimeter if fill density is zero, as they would be floating
     // inside the object - infill_only_where_needed should be the method of choice for printing
-    // hollow objects
+    // hollow objects
     FOREACH_REGION(this->_print, region_it) {
         size_t region_id = region_it - this->_print->regions.begin();
         const PrintRegion &region = **region_it;
@@ -941,7 +1140,7 @@ PrintObject::_make_perimeters()
             || region.config.fill_density == 0
             || this->layer_count() < 2) continue;
         
-        for (size_t i = 0; i <= (this->layer_count()-2); ++i) {
+        for (int i = 0; i < int(this->layer_count()) - 1; ++i) {
             LayerRegion &layerm                     = *this->get_layer(i)->get_region(region_id);
             const LayerRegion &upper_layerm         = *this->get_layer(i+1)->get_region(region_id);
             const Polygons upper_layerm_polygons    = upper_layerm.slices;
@@ -1044,4 +1243,4 @@ PrintObject::_infill()
     this->state.set_done(posInfill);
 }
 
-}
+} // namespace Slic3r
