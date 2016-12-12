@@ -262,9 +262,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 BridgeDetector bd(
                     initial,
                     lower_layer->slices,
-                    //FIXME parameters are not correct!
-                    // flow(FlowRole role, bool bridge = false, double width = -1) const;
-                    this->flow(frInfill, true, this->layer()->height).scaled_width()
+                    this->flow(frInfill, true).scaled_width()
                 );
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer " PRINTF_ZU ":\n", this->layer()->id());
