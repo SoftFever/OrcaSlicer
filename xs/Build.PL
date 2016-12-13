@@ -212,6 +212,10 @@ if ($cpp_guess->is_gcc) {
     }
 }
 
+print "\n";
+print 'With @INC: ', join(', ', map "\"$_\"", @INC), "\n";
+print 'With @LIBS: ', join(', ', map "\"$_\"", @LIBS), "\n";
+
 my $build = Module::Build::WithXSpp->new(
     module_name     => 'Slic3r::XS',
     dist_abstract   => 'XS code for Slic3r',
