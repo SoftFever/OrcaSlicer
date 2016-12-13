@@ -30,8 +30,8 @@ T ClipperPaths_to_Slic3rMultiPoints(const ClipperLib::Paths &input);
 Slic3r::ExPolygons ClipperPaths_to_Slic3rExPolygons(const ClipperLib::Paths &input);
 
 // offset Polygons
-ClipperLib::Paths _offset(ClipperLib::Path &input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit);
-ClipperLib::Paths _offset(ClipperLib::Paths &input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit);
+ClipperLib::Paths _offset(ClipperLib::Path &&input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit);
+ClipperLib::Paths _offset(ClipperLib::Paths &&input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit);
 inline Slic3r::Polygons offset(const Slic3r::Polygon &polygon, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter,  double miterLimit = 3)
     { return ClipperPaths_to_Slic3rMultiPoints<Polygons>(_offset(Slic3rMultiPoint_to_ClipperPath(polygon), ClipperLib::etClosedPolygon, delta, joinType, miterLimit)); }
 inline Slic3r::Polygons offset(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miterLimit = 3)

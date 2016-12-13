@@ -188,7 +188,7 @@ Slic3rMultiPoints_to_ClipperPaths(const T &input)
     return retval;
 }
 
-ClipperLib::Paths _offset(ClipperLib::Paths &input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit)
+ClipperLib::Paths _offset(ClipperLib::Paths &&input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit)
 {
     // scale input
     scaleClipperPolygons(input);
@@ -208,11 +208,11 @@ ClipperLib::Paths _offset(ClipperLib::Paths &input, ClipperLib::EndType endType,
     return retval;
 }
 
-ClipperLib::Paths _offset(ClipperLib::Path &input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit)
+ClipperLib::Paths _offset(ClipperLib::Path &&input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit)
 {
     ClipperLib::Paths paths;
-    paths.push_back(input);
-	return _offset(paths, endType, delta, joinType, miterLimit);
+    paths.push_back(std::move(input));
+	return _offset(std::move(paths), endType, delta, joinType, miterLimit);
 }
 
 // This is a safe variant of the polygon offset, tailored for a single ExPolygon:
