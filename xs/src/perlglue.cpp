@@ -532,7 +532,7 @@ SV*
 polynode2perl(const ClipperLib::PolyNode& node)
 {
     HV* hv = newHV();
-    Slic3r::Polygon p = ClipperPath_to_Slic3rMultiPoint<Slic3r::Polygon>(node.Contour);
+    Slic3r::Polygon p = ClipperPath_to_Slic3rPolygon(node.Contour);
     if (node.IsHole()) {
         (void)hv_stores( hv, "hole", Slic3r::perl_to_SV_clone_ref(p) );
     } else {

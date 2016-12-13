@@ -102,11 +102,11 @@ void AddOuterPolyNodeToExPolygons(ClipperLib::PolyNode& polynode, ExPolygons* ex
 {  
   size_t cnt = expolygons->size();
   expolygons->resize(cnt + 1);
-  (*expolygons)[cnt].contour = ClipperPath_to_Slic3rMultiPoint<Polygon>(polynode.Contour);
+  (*expolygons)[cnt].contour = ClipperPath_to_Slic3rPolygon(polynode.Contour);
   (*expolygons)[cnt].holes.resize(polynode.ChildCount());
   for (int i = 0; i < polynode.ChildCount(); ++i)
   {
-    (*expolygons)[cnt].holes[i] = ClipperPath_to_Slic3rMultiPoint<Polygon>(polynode.Childs[i]->Contour);
+    (*expolygons)[cnt].holes[i] = ClipperPath_to_Slic3rPolygon(polynode.Childs[i]->Contour);
     //Add outer polygons contained by (nested within) holes ...
     for (int j = 0; j < polynode.Childs[i]->ChildCount(); ++j)
       AddOuterPolyNodeToExPolygons(*polynode.Childs[i]->Childs[j], expolygons);
@@ -123,11 +123,17 @@ PolyTreeToExPolygons(ClipperLib::PolyTree& polytree)
 }
 //-----------------------------------------------------------
 
-template <class T>
-T
-ClipperPath_to_Slic3rMultiPoint(const ClipperLib::Path &input)
+Slic3r::Polygon ClipperPath_to_Slic3rPolygon(const ClipperLib::Path &input)
 {
-    T retval;
+    Polygon retval;
+    for (ClipperLib::Path::const_iterator pit = input.begin(); pit != input.end(); ++pit)
+        retval.points.push_back(Point( (*pit).X, (*pit).Y ));
+    return retval;
+}
+
+Slic3r::Polyline ClipperPath_to_Slic3rPolyline(const ClipperLib::Path &input)
+{
+    Polyline retval;
     for (ClipperLib::Path::const_iterator pit = input.begin(); pit != input.end(); ++pit)
         retval.points.push_back(Point( (*pit).X, (*pit).Y ));
     return retval;
@@ -138,7 +144,7 @@ Slic3r::Polygons ClipperPaths_to_Slic3rPolygons(const ClipperLib::Paths &input)
     Slic3r::Polygons retval;
     retval.reserve(input.size());
     for (ClipperLib::Paths::const_iterator it = input.begin(); it != input.end(); ++it)
-        retval.push_back(ClipperPath_to_Slic3rMultiPoint<Slic3r::Polygon>(*it));
+        retval.push_back(ClipperPath_to_Slic3rPolygon(*it));
     return retval;
 }
 
@@ -147,7 +153,7 @@ Slic3r::Polylines ClipperPaths_to_Slic3rPolylines(const ClipperLib::Paths &input
     Slic3r::Polylines retval;
     retval.reserve(input.size());
     for (ClipperLib::Paths::const_iterator it = input.begin(); it != input.end(); ++it)
-        retval.push_back(ClipperPath_to_Slic3rMultiPoint<Slic3r::Polyline>(*it));
+        retval.push_back(ClipperPath_to_Slic3rPolyline(*it));
     return retval;
 }
 
@@ -441,7 +447,7 @@ _clipper_do(const ClipperLib::ClipType clipType, const Polygons &subject,
 }
 
 ClipperLib::PolyTree
-_clipper_do(const ClipperLib::ClipType clipType, const Polylines &subject, 
+_clipper_do_pl(const ClipperLib::ClipType clipType, const Polylines &subject, 
     const Polygons &clip, const ClipperLib::PolyFillType fillType,
     const bool safety_offset_)
 {
@@ -486,7 +492,7 @@ _clipper_pl(ClipperLib::ClipType clipType, const Polylines &subject,
     const Polygons &clip, bool safety_offset_)
 {
     ClipperLib::Paths output;
-    ClipperLib::PolyTreeToPaths(_clipper_do(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_), output);
+    ClipperLib::PolyTreeToPaths(_clipper_do_pl(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_), output);
     return ClipperPaths_to_Slic3rPolylines(output);
 }
 
@@ -598,9 +604,7 @@ traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
     for (ClipperLib::PolyNodes::iterator it = ordered_nodes.begin(); it != ordered_nodes.end(); ++it) {
         // traverse the next depth
         traverse_pt((*it)->Childs, retval);
-        
-        Polygon p = ClipperPath_to_Slic3rMultiPoint<Polygon>((*it)->Contour);
-        retval->push_back(p);
+        retval->push_back(ClipperPath_to_Slic3rPolygon((*it)->Contour));
         if ((*it)->IsHole()) retval->back().reverse();  // ccw
     }
 }
@@ -710,7 +714,7 @@ Polygons top_level_islands(const Slic3r::Polygons &polygons)
     Polygons out;
     out.reserve(polytree.ChildCount());
     for (int i = 0; i < polytree.ChildCount(); ++i)
-        out.push_back(ClipperPath_to_Slic3rMultiPoint<Slic3r::Polygon>(polytree.Childs[i]->Contour));
+        out.push_back(ClipperPath_to_Slic3rPolygon(polytree.Childs[i]->Contour));
     return out;
 }
 

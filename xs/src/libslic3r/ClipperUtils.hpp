@@ -20,11 +20,11 @@ void AddOuterPolyNodeToExPolygons(ClipperLib::PolyNode& polynode, Slic3r::ExPoly
 void PolyTreeToExPolygons(ClipperLib::PolyTree& polytree, Slic3r::ExPolygons& expolygons);
 //-----------------------------------------------------------
 
-template <class T> T ClipperPath_to_Slic3rMultiPoint(const ClipperLib::Path &input);
 ClipperLib::Path   Slic3rMultiPoint_to_ClipperPath(const Slic3r::MultiPoint &input);
 ClipperLib::Paths  Slic3rMultiPoints_to_ClipperPaths(const Polygons &input);
 ClipperLib::Paths  Slic3rMultiPoints_to_ClipperPaths(const Polylines &input);
-Slic3r::Polygon    ClipperPaths_to_Slic3rMultiPoints(const ClipperLib::Paths &input);
+Slic3r::Polygon    ClipperPath_to_Slic3rPolygon(const ClipperLib::Path &input);
+Slic3r::Polyline   ClipperPath_to_Slic3rPolyline(const ClipperLib::Path &input);
 Slic3r::Polygons   ClipperPaths_to_Slic3rPolygons(const ClipperLib::Paths &input);
 Slic3r::Polylines  ClipperPaths_to_Slic3rPolylines(const ClipperLib::Paths &input);
 Slic3r::ExPolygons ClipperPaths_to_Slic3rExPolygons(const ClipperLib::Paths &input);
@@ -68,13 +68,6 @@ Slic3r::Polygons offset2(const Slic3r::Polygons &polygons, const float delta1,
 Slic3r::ExPolygons offset2_ex(const Slic3r::Polygons &polygons, const float delta1,
     const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
-
-template <class T>
-T _clipper_do(ClipperLib::ClipType clipType, const Slic3r::Polygons &subject, 
-    const Slic3r::Polygons &clip, const ClipperLib::PolyFillType fillType, bool safety_offset_ = false);
-
-ClipperLib::PolyTree _clipper_do(ClipperLib::ClipType clipType, const Slic3r::Polylines &subject, 
-    const Slic3r::Polygons &clip, const ClipperLib::PolyFillType fillType, bool safety_offset_ = false);
 
 Slic3r::Polygons _clipper(ClipperLib::ClipType clipType,
     const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
