@@ -463,7 +463,8 @@ ExPolygons
 _clipper_ex(ClipperLib::ClipType clipType, const Polygons &subject, 
     const Polygons &clip, bool safety_offset_)
 {
-    return PolyTreeToExPolygons(_clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_));
+    ClipperLib::PolyTree polytree = _clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_);
+    return PolyTreeToExPolygons(polytree);
 }
 
 Polylines
