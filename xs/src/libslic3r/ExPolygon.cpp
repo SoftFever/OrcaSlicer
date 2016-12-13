@@ -99,9 +99,7 @@ ExPolygon::contains(const Line &line) const
 bool
 ExPolygon::contains(const Polyline &polyline) const
 {
-    Polylines pl_out;
-    diff((Polylines)polyline, *this, &pl_out);
-    return pl_out.empty();
+    return diff_pl((Polylines)polyline, *this).empty();
 }
 
 bool
@@ -115,8 +113,7 @@ ExPolygon::contains(const Polylines &polylines) const
     svg.draw_outline(*this);
     svg.draw(polylines, "blue");
     #endif
-    Polylines pl_out;
-    diff(polylines, *this, &pl_out);
+    Polylines pl_out = diff_pl(polylines, *this);
     #if 0
     svg.draw(pl_out, "red");
     #endif
@@ -162,8 +159,7 @@ ExPolygon::overlaps(const ExPolygon &other) const
     svg.draw_outline(*this);
     svg.draw_outline(other, "blue");
     #endif
-    Polylines pl_out;
-    intersection((Polylines)other, *this, &pl_out);
+    Polylines pl_out = intersection_pl((Polylines)other, *this);
     #if 0
     svg.draw(pl_out, "red");
     #endif
@@ -396,11 +392,8 @@ ExPolygon::get_trapezoids2(Polygons* polygons) const
         poly[3].y = bb.max.y;
         
         // intersect with this expolygon
-        Polygons trapezoids;
-        intersection<Polygons,Polygons>(poly, *this, &trapezoids);
-        
         // append results to return value
-        polygons->insert(polygons->end(), trapezoids.begin(), trapezoids.end());
+        polygons_append(*polygons, intersection(poly, to_polygons(*this)));
     }
 }
 
@@ -434,16 +427,13 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
     // convert polygons
     std::list<TPPLPoly> input;
     
-    Polygons pp = *this;
-    simplify_polygons(pp, &pp, true);
-    ExPolygons expp;
-    union_(pp, &expp);
+    ExPolygons expp = union_ex(simplify_polygons(to_polygons(*this), true));
     
     for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
         // contour
         {
             TPPLPoly p;
-            p.Init(ex->contour.points.size());
+            p.Init(int(ex->contour.points.size()));
             //printf(PRINTF_ZU "\n0\n", ex->contour.points.size());
             for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
                 p[ point-ex->contour.points.begin() ].x = point->x;
@@ -480,8 +470,8 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
         Polygon p;
         p.points.resize(num_points);
         for (long i = 0; i < num_points; ++i) {
-            p.points[i].x = (*poly)[i].x;
-            p.points[i].y = (*poly)[i].y;
+            p.points[i].x = coord_t((*poly)[i].x);
+            p.points[i].y = coord_t((*poly)[i].y);
         }
         polygons->push_back(p);
     }
@@ -490,8 +480,7 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
 void
 ExPolygon::triangulate_p2t(Polygons* polygons) const
 {
-    ExPolygons expp;
-    simplify_polygons(*this, &expp, true);
+    ExPolygons expp = simplify_polygons_ex(*this, true);
     
     for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex) {
         // TODO: prevent duplicate points

@@ -608,20 +608,15 @@ Print::validate() const
                 object->model_object()->instances.front()->transform_polygon(&convex_hull);
                 
                 // grow convex hull with the clearance margin
-                {
-                    Polygons grown_hull;
-                    offset(convex_hull, &grown_hull, scale_(this->config.extruder_clearance_radius.value)/2, jtRound, scale_(0.1));
-                    convex_hull = grown_hull.front();
-                }
+                convex_hull = offset(convex_hull, scale_(this->config.extruder_clearance_radius.value)/2, jtRound, scale_(0.1)).front();
                 
                 // now we check that no instance of convex_hull intersects any of the previously checked object instances
                 for (Points::const_iterator copy = object->_shifted_copies.begin(); copy != object->_shifted_copies.end(); ++copy) {
                     Polygon p = convex_hull;
                     p.translate(*copy);
-                    if (intersects(a, p))
+                    if (! intersection(a, p).empty())
                         return "Some objects are too close; your extruder will collide with them.";
-                    
-                    union_(a, p, &a);
+                    polygons_append(a, p);
                 }
             }
         }

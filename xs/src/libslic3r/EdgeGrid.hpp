@@ -12,8 +12,9 @@
 namespace Slic3r {
 namespace EdgeGrid {
 
-struct Grid
+class Grid
 {
+public:
 	Grid();
 	~Grid();
 

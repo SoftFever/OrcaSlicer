@@ -27,7 +27,7 @@ offset(polygons, delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset(polygons, &RETVAL, delta, joinType, miterLimit);
+        RETVAL = offset(polygons, delta, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
@@ -38,7 +38,7 @@ offset_ex(polygons, delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset(polygons, &RETVAL, delta, joinType, miterLimit);
+        RETVAL = offset_ex(polygons, delta, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
@@ -50,7 +50,7 @@ offset2(polygons, delta1, delta2, joinType = ClipperLib::jtMiter, miterLimit = 3
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset2(polygons, &RETVAL, delta1, delta2, joinType, miterLimit);
+        RETVAL = offset2(polygons, delta1, delta2, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
@@ -62,7 +62,7 @@ offset2_ex(polygons, delta1, delta2, joinType = ClipperLib::jtMiter, miterLimit 
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset2(polygons, &RETVAL, delta1, delta2, joinType, miterLimit);
+        RETVAL = offset2_ex(polygons, delta1, delta2, joinType, miterLimit);
     OUTPUT:
         RETVAL
 
@@ -72,7 +72,7 @@ diff(subject, clip, safety_offset = false)
     Polygons    clip
     bool        safety_offset
     CODE:
-        diff(subject, clip, &RETVAL, safety_offset);
+        RETVAL = diff(subject, clip, safety_offset);
     OUTPUT:
         RETVAL
 
@@ -82,7 +82,7 @@ diff_ex(subject, clip, safety_offset = false)
     Polygons    clip
     bool        safety_offset
     CODE:
-        diff(subject, clip, &RETVAL, safety_offset);
+        RETVAL = diff_ex(subject, clip, safety_offset);
     OUTPUT:
         RETVAL
 
@@ -91,16 +91,7 @@ diff_pl(subject, clip)
     Polylines   subject
     Polygons    clip
     CODE:
-        diff(subject, clip, &RETVAL);
-    OUTPUT:
-        RETVAL
-
-Polylines
-diff_ppl(subject, clip)
-    Polygons    subject
-    Polygons    clip
-    CODE:
-        diff(subject, clip, &RETVAL);
+        RETVAL = diff_pl(subject, clip);
     OUTPUT:
         RETVAL
 
@@ -110,7 +101,7 @@ intersection(subject, clip, safety_offset = false)
     Polygons                    clip
     bool                        safety_offset
     CODE:
-        intersection(subject, clip, &RETVAL, safety_offset);
+        RETVAL = intersection(subject, clip, safety_offset);
     OUTPUT:
         RETVAL
 
@@ -120,7 +111,7 @@ intersection_ex(subject, clip, safety_offset = false)
     Polygons                    clip
     bool                        safety_offset
     CODE:
-        intersection(subject, clip, &RETVAL, safety_offset);
+        RETVAL = intersection_ex(subject, clip, safety_offset);
     OUTPUT:
         RETVAL
 
@@ -129,26 +120,7 @@ intersection_pl(subject, clip)
     Polylines                   subject
     Polygons                    clip
     CODE:
-        intersection(subject, clip, &RETVAL);
-    OUTPUT:
-        RETVAL
-
-Polylines
-intersection_ppl(subject, clip)
-    Polygons                    subject
-    Polygons                    clip
-    CODE:
-        intersection(subject, clip, &RETVAL);
-    OUTPUT:
-        RETVAL
-
-ExPolygons
-xor_ex(subject, clip, safety_offset = false)
-    Polygons                    subject
-    Polygons                    clip
-    bool                        safety_offset
-    CODE:
-        xor_(subject, clip, &RETVAL, safety_offset);
+        RETVAL = intersection_pl(subject, clip);
     OUTPUT:
         RETVAL
 
@@ -157,7 +129,7 @@ union(subject, safety_offset = false)
     Polygons    subject
     bool        safety_offset
     CODE:
-        union_(subject, &RETVAL, safety_offset);
+        RETVAL = union_(subject, safety_offset);
     OUTPUT:
         RETVAL
 
@@ -166,20 +138,7 @@ union_ex(subject, safety_offset = false)
     Polygons                    subject
     bool                        safety_offset
     CODE:
-        union_(subject, &RETVAL, safety_offset);
-    OUTPUT:
-        RETVAL
-
-SV*
-union_pt(subject, safety_offset = false)
-    Polygons                    subject
-    bool                        safety_offset
-    CODE:
-        // perform operation
-        ClipperLib::PolyTree polytree;
-        union_pt(subject, &polytree, safety_offset);
-        
-        RETVAL = polynode_children_2_perl(polytree);
+        RETVAL = union_ex(subject, safety_offset);
     OUTPUT:
         RETVAL
 
@@ -188,7 +147,7 @@ union_pt_chained(subject, safety_offset = false)
     Polygons                    subject
     bool                        safety_offset
     CODE:
-        union_pt_chained(subject, &RETVAL, safety_offset);
+        RETVAL = union_pt_chained(subject, safety_offset);
     OUTPUT:
         RETVAL
 
@@ -196,7 +155,7 @@ Polygons
 simplify_polygons(subject)
     Polygons                    subject
     CODE:
-        simplify_polygons(subject, &RETVAL);
+        RETVAL = simplify_polygons(subject);
     OUTPUT:
         RETVAL
 

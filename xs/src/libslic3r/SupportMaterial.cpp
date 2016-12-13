@@ -575,7 +575,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         // workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
                         for (Polylines::iterator it = overhang_perimeters.begin(); it != overhang_perimeters.end(); ++ it)
                             it->points[0].x += 1;
-                        diff(overhang_perimeters, lower_grown_slices, &overhang_perimeters);
+                        overhang_perimeters = diff_pl(overhang_perimeters, lower_grown_slices);
                         
                         // only consider straight overhangs
                         // only consider overhangs having endpoints inside layer's slices
@@ -588,13 +588,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                             if (it->is_straight()) {
                                 it->extend_start(fw);
                                 it->extend_end(fw);
-                                if (layer.slices.contains(it->first_point()) && layer.slices.contains(it->last_point())) {
+                                if (layer.slices.contains(it->first_point()) && layer.slices.contains(it->last_point()))
                                     // Offset a polyline into a polygon.
-                                    Polylines tmp; tmp.push_back(*it);
-                                    Polygons out;
-                                    offset(tmp, &out, 0.5f * w + 10.f);
-                                    polygons_append(bridged_perimeters, out);
-                                }
+                                    polygons_append(bridged_perimeters, offset(*it, 0.5f * w + 10.f));
                             }
                         }
                         bridged_perimeters = union_(bridged_perimeters);
@@ -611,13 +607,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
                         Polygons unsupported_bridge_polygons;                        
                         for (Polylines::const_iterator it = layerm.unsupported_bridge_edges.polylines.begin(); 
-                            it != layerm.unsupported_bridge_edges.polylines.end(); ++ it) {
+                            it != layerm.unsupported_bridge_edges.polylines.end(); ++ it)
                             // Offset a polyline into a polygon.
-                            Polylines tmp; tmp.push_back(*it);
-                            Polygons out;
-                            offset(tmp, &out, scale_(SUPPORT_MATERIAL_MARGIN));
-                            polygons_append(unsupported_bridge_polygons, out);
-                        }
+                            polygons_append(unsupported_bridge_polygons, offset(*it, scale_(SUPPORT_MATERIAL_MARGIN)));
                         polygons_append(diff_polygons, intersection(unsupported_bridge_polygons, bridges));
                     } else {
                         // just remove bridged areas
@@ -1596,10 +1588,8 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
         // Positions of the loop centers.
         Polygons circles;
         Polygons overhang_with_margin = offset(overhang_polygons, 0.5f * flow.scaled_width());
-        for (Polygons::const_iterator it_contact = top_contact_polygons.begin(); it_contact != top_contact_polygons.end(); ++ it_contact) {
-            Polylines tmp;
-            tmp.push_back(it_contact->split_at_first_point());
-            if (! intersection(tmp, overhang_with_margin).empty()) {
+        for (Polygons::const_iterator it_contact = top_contact_polygons.begin(); it_contact != top_contact_polygons.end(); ++ it_contact)
+            if (! intersection_pl(it_contact->split_at_first_point(), overhang_with_margin).empty()) {
                 external_loops.push_back(*it_contact);
                 Points positions_new = it_contact->equally_spaced_points(circle_distance);
                 for (Points::const_iterator it_center = positions_new.begin(); it_center != positions_new.end(); ++ it_center) {
@@ -1609,7 +1599,6 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
                         circle_new.points[i].translate(*it_center);
                 }
             }
-        }
         // Apply a pattern to the loop.
         loops0 = diff(external_loops, circles);
     }
@@ -1628,7 +1617,7 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
         loop_lines.reserve(loop_polygons.size());
         for (Polygons::const_iterator it = loop_polygons.begin(); it != loop_polygons.end(); ++ it)
             loop_lines.push_back(it->split_at_first_point());
-        loop_lines = intersection(loop_lines, offset(overhang_polygons, scale_(SUPPORT_MATERIAL_MARGIN)));
+        loop_lines = intersection_pl(loop_lines, offset(overhang_polygons, scale_(SUPPORT_MATERIAL_MARGIN)));
     }
     
     // add the contact infill area to the interface area
@@ -1636,9 +1625,7 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
     // extrusions are left inside the circles; however it creates
     // a very large gap between loops and contact_infill_polygons, so maybe another
     // solution should be found to achieve both goals
-    Polygons thick_loop_lines;
-    offset(loop_lines, &thick_loop_lines, float(circle_radius * 1.1));
-    top_contact_layer.layer->polygons = diff(top_contact_layer.layer->polygons, std::move(thick_loop_lines));
+    top_contact_layer.layer->polygons = diff(top_contact_layer.layer->polygons, offset(loop_lines, float(circle_radius * 1.1)));
 
     // Transform loops into ExtrusionPath objects.
     extrusion_entities_append_paths(
@@ -1857,7 +1844,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 // TODO: use brim ordering algorithm
                 Polygons to_infill_polygons = to_polygons(to_infill);
                 // TODO: use offset2_ex()
-                to_infill = offset_ex(to_infill_polygons, - flow.scaled_spacing());
+                to_infill = offset_ex(to_infill, - flow.scaled_spacing());
                 extrusion_entities_append_paths(
                     support_layer.support_fills.entities, 
                     to_polylines(STDMOVE(to_infill_polygons)),

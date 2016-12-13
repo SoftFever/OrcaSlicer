@@ -315,8 +315,7 @@ GCode::change_layer(const Layer &layer)
     
     // avoid computing islands and overhangs if they're not needed
     if (this->config.avoid_crossing_perimeters) {
-        ExPolygons islands;
-        union_(layer.slices, &islands, true);
+        ExPolygons islands = union_ex(layer.slices, true);
         this->avoid_crossing_perimeters.init_layer_mp(islands);
     }
     

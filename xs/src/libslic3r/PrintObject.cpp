@@ -449,7 +449,7 @@ void PrintObject::detect_surfaces_type()
             {
                 Polygons topbottom = to_polygons(top);
                 polygons_append(topbottom, to_polygons(bottom));
-                surfaces_append(layerm->slices.surfaces, 
+                layerm->slices.append(
 #if 0
                     offset2_ex(diff(layerm_slices_surfaces, topbottom, true), -offset, offset),
 #else
@@ -458,8 +458,8 @@ void PrintObject::detect_surfaces_type()
                     stInternal);
             }
 
-            surfaces_append(layerm->slices.surfaces, STDMOVE(top));
-            surfaces_append(layerm->slices.surfaces, STDMOVE(bottom));
+            layerm->slices.append(STDMOVE(top));
+            layerm->slices.append(STDMOVE(bottom));
             
 //            Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
 //                $layerm->layer->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
@@ -865,7 +865,7 @@ PrintObject::bridge_over_infill()
             #endif
             
             // compute the remaning internal solid surfaces as difference
-            ExPolygons not_to_bridge = diff_ex(internal_solid, to_bridge, true);
+            ExPolygons not_to_bridge = diff_ex(internal_solid, to_polygons(to_bridge), true);
             to_bridge = intersection_ex(to_polygons(to_bridge), internal_solid, true);
             
             // build the new collection of fill_surfaces
@@ -1011,7 +1011,7 @@ void PrintObject::_slice()
                     if (my_parts.empty())
                         continue;
                     // Remove such parts from original region.
-                    other_layerm->slices.set(diff_ex(other_slices, my_parts), stInternal);
+                    other_layerm->slices.set(diff_ex(other_slices, to_polygons(my_parts)), stInternal);
                     // Append new parts to our region.
                     layerm->slices.append(std::move(my_parts), stInternal);
                 }
@@ -1039,7 +1039,7 @@ end:
             if (layer->regions.size() == 1) {
                 // single region
                 LayerRegion *layerm = layer->regions.front();
-                layerm->slices.set(offset_ex(to_polygons(std::move(layerm->slices.surfaces)), delta), stInternal);
+                layerm->slices.set(offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), delta), stInternal);
             } else {
                 if (delta < 0) {
                     // multiple regions, shrinking
@@ -1060,7 +1060,7 @@ end:
                     Polygons processed;
                     for (size_t region_id = 0;; ++ region_id) {
                         LayerRegion *layerm = layer->regions[region_id];
-                        ExPolygons slices = offset_ex(to_polygons(layerm->slices.surfaces), delta);
+                        ExPolygons slices = offset_ex(to_expolygons(layerm->slices.surfaces), delta);
                         if (region_id > 0)
                             // Trim by the slices of already processed regions.
                             slices = diff_ex(to_polygons(std::move(slices)), processed);

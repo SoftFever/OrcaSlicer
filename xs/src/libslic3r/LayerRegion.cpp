@@ -52,8 +52,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     Polygons fill_boundaries = to_polygons(this->fill_expolygons);
     this->fill_surfaces.surfaces.clear();
     for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++ surface)
-        surfaces_append(
-            this->fill_surfaces.surfaces,
+        this->fill_surfaces.append(
             intersection_ex(to_polygons(surface->expolygon), fill_boundaries),
             surface->surface_type);
 }

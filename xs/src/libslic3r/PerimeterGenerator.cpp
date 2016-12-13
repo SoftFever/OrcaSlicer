@@ -314,8 +314,7 @@ PerimeterGenerator::process()
             coord_t min_perimeter_infill_spacing = ispacing * (1 - INSET_OVERLAP_TOLERANCE);
             
             // append infill areas to fill_surfaces
-            surfaces_append(
-                this->fill_surfaces->surfaces, 
+            this->fill_surfaces->append(
                 offset2_ex(
                     pp,
                     -inset -min_perimeter_infill_spacing/2,
@@ -353,36 +352,24 @@ PerimeterGenerator::_traverse_loops(const PerimeterGeneratorLoops &loops,
         if (this->config->overhangs && this->layer_id > 0
             && !(this->object_config->support_material && this->object_config->support_material_contact_distance.value == 0)) {
             // get non-overhang paths by intersecting this loop with the grown lower slices
-            {
-                Polylines polylines;
-                intersection((Polygons)loop->polygon, this->_lower_slices_p, &polylines);
-                
-                for (Polylines::const_iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline) {
-                    ExtrusionPath path(role);
-                    path.polyline   = *polyline;
-                    path.mm3_per_mm = is_external ? this->_ext_mm3_per_mm           : this->_mm3_per_mm;
-                    path.width      = is_external ? this->ext_perimeter_flow.width  : this->perimeter_flow.width;
-                    path.height     = this->layer_height;
-                    paths.push_back(path);
-                }
-            }
+            extrusion_paths_append(
+                paths,
+                intersection_pl(loop->polygon, this->_lower_slices_p),
+                role,
+                is_external ? this->_ext_mm3_per_mm           : this->_mm3_per_mm,
+                is_external ? this->ext_perimeter_flow.width  : this->perimeter_flow.width,
+                this->layer_height);
             
             // get overhang paths by checking what parts of this loop fall 
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
-            {
-                Polylines polylines;
-                diff((Polygons)loop->polygon, this->_lower_slices_p, &polylines);
-                
-                for (Polylines::const_iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline) {
-                    ExtrusionPath path(erOverhangPerimeter);
-                    path.polyline   = *polyline;
-                    path.mm3_per_mm = this->_mm3_per_mm_overhang;
-                    path.width      = this->overhang_flow.width;
-                    path.height     = this->overhang_flow.height;
-                    paths.push_back(path);
-                }
-            }
+            extrusion_paths_append(
+                paths,
+                diff_pl(loop->polygon, this->_lower_slices_p),
+                erOverhangPerimeter,
+                this->_mm3_per_mm_overhang,
+                this->overhang_flow.width,
+                this->overhang_flow.height);
             
             // reapply the nearest point search for starting point
             // We allow polyline reversal because Clipper may have randomly

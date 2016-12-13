@@ -194,6 +194,26 @@ class ExtrusionLoop : public ExtrusionEntity
     Polyline as_polyline() const { return this->polygon().split_at_first_point(); }
 };
 
+inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
+{
+    dst.reserve(dst.size() + polylines.size());
+    for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
+        dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
+        dst.back().polyline = *it_polyline;
+    }
+}
+
+#if SLIC3R_CPPVER >= 11
+inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
+{
+    dst.reserve(dst.size() + polylines.size());
+    for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
+        dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
+        dst.back().polyline = std::move(*it_polyline);
+    }
+}
+#endif // SLIC3R_CPPVER >= 11
+
 inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
