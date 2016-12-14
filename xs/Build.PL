@@ -119,12 +119,16 @@ if (defined $ENV{BOOST_LIBRARYDIR}) {
 my $have_boost = 0;
 my @boost_libraries = qw(system thread log);  # we need these
 
-# check without explicit lib path (works on Linux)
-if (!$ENV{SLIC3R_STATIC} && ! $mswin) {
-    $have_boost = 1
-        if check_lib(
-            lib     => [ map "boost_${_}", @boost_libraries ],
-        );
+if (!$ENV{SLIC3R_STATIC}) {
+    # Dynamic linking of boost libraries.
+    push @cflags, qw(-BOOST_LOG_DYN_LINK);
+    if (! $mswin) {
+        # Check without explicit lib path (works on Linux and OSX).
+        $have_boost = 1
+            if check_lib(
+                lib     => [ map "boost_${_}", @boost_libraries ],
+            );
+    }
 }
 
 if ($have_boost) {
