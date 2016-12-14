@@ -120,14 +120,14 @@ my $have_boost = 0;
 my @boost_libraries = qw(system thread log);  # we need these
 
 # check without explicit lib path (works on Linux)
-if (! $mswin) {
+if (!$ENV{SLIC3R_STATIC} && ! $mswin) {
     $have_boost = 1
         if check_lib(
             lib     => [ map "boost_${_}", @boost_libraries ],
         );
 }
 
-if (!$ENV{SLIC3R_STATIC} && $have_boost) {
+if ($have_boost) {
     # The boost library was detected by check_lib on Linux.
     push @LIBS, map "-lboost_${_}", @boost_libraries;
 } else {
@@ -139,7 +139,7 @@ if (!$ENV{SLIC3R_STATIC} && $have_boost) {
         my @files = glob "$path/${lib_prefix}system*$lib_ext";
         next if !@files;
     
-        if ($files[0] =~ /${lib_prefix}system([^.]+)$lib_ext$/) {
+        if ($files[0] =~ /${lib_prefix}system([^.]*)$lib_ext$/) {
             # Suffix contains the version number, the build type etc.
             my $suffix = $1;
             # Verify existence of all required boost libraries at $path.
