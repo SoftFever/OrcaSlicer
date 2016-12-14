@@ -793,7 +793,7 @@ sub InitGL {
 
     my $shader;
     $shader = $self->{shader} = new Slic3r::GUI::GLShader
-        if (defined($ENV{'SLIC3R_EXPERIMENTAL'} && defined($ENV{'SLIC3R_EXPERIMENTAL'} == 1);
+        if (defined($ENV{'SLIC3R_EXPERIMENTAL'}) && $ENV{'SLIC3R_EXPERIMENTAL'} == 1);
     if ($self->{shader}) {
         my $info = $shader->Load($self->_fragment_shader, $self->_vertex_shader);
         print $info if $info;
