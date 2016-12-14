@@ -18,6 +18,9 @@
 package Slic3r::GUI::GLShader;
 use OpenGL(':all');
 
+# Avoid cloning this class by the worker threads.
+sub CLONE_SKIP { 1 }
+
 # Shader constructor
 sub new
 {

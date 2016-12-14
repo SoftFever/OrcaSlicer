@@ -264,7 +264,11 @@ sub new {
         EVT_TOOL($self, TB_SPLIT, sub { $self->split_object; });
         EVT_TOOL($self, TB_CUT, sub { $_[0]->object_cut_dialog });
         EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
-        EVT_TOOL($self, TB_LAYER_EDITING, sub { $self->on_layer_editing_toggled($self->{htoolbar}->GetToolState(TB_LAYER_EDITING)); });
+        EVT_TOOL($self, TB_LAYER_EDITING, sub {
+            my $state = $self->{canvas3D}->layer_editing_enabled;
+            $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, ! $state);
+            $self->on_layer_editing_toggled(! $state);
+        });
     } else {
         EVT_BUTTON($self, $self->{btn_add}, sub { $self->add; });
         EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
@@ -476,7 +480,6 @@ sub _on_select_preset {
 
 sub on_layer_editing_toggled {
     my ($self, $new_state) = @_;
-    print "on_layer_editing_toggled $new_state\n";
     $self->{canvas3D}->layer_editing_enabled($new_state);
     $self->{canvas3D}->update;
 }
