@@ -191,6 +191,12 @@ sub new {
     return $self;
 }
 
+sub Destroy {
+    my ($self) = @_;
+    $self->DestroyGL;
+    return $self->SUPER::Destroy;
+}
+
 sub _first_selected_object_id {
     my ($self) = @_;
     for my $i (0..$#{$self->volumes}) {
@@ -786,7 +792,8 @@ sub InitGL {
     $self->init(1);
 
     my $shader;
-    $shader = $self->{shader} = new Slic3r::GUI::GLShader;
+    $shader = $self->{shader} = new Slic3r::GUI::GLShader
+        if (defined($ENV{'SLIC3R_EXPERIMENTAL'} && defined($ENV{'SLIC3R_EXPERIMENTAL'} == 1);
     if ($self->{shader}) {
         my $info = $shader->Load($self->_fragment_shader, $self->_vertex_shader);
         print $info if $info;
@@ -839,7 +846,14 @@ sub InitGL {
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_MULTISAMPLE);
 }
- 
+
+sub DestroyGL {
+    my $self = shift;
+    if ($self->init && $self->GetContext) {
+        delete $self->{shader};
+    }
+}
+
 sub Render {
     my ($self, $dc) = @_;
     

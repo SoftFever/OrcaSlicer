@@ -11,7 +11,7 @@ use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
 use LWP::UserAgent;
 use threads::shared qw(shared_clone);
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
-    :panel :sizer :toolbar :window wxTheApp :notebook :combobox);
+    :panel :sizer :toolbar :window wxTheApp :notebook :combobox wxNullBitmap);
 use Wx::Event qw(EVT_BUTTON EVT_TOGGLEBUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
     EVT_CHOICE EVT_COMBOBOX EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
@@ -158,7 +158,8 @@ sub new {
         $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG), '');
 
         # FIXME add a button for layer editing
-        $self->{htoolbar}->AddCheckTool(TB_LAYER_EDITING, "Layer editing", Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, 'Layer Editing', Wx::Bitmap->new($Slic3r::var->("delete.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, undef, 'Layer Editing');
+            if (defined($ENV{'SLIC3R_EXPERIMENTAL'} && defined($ENV{'SLIC3R_EXPERIMENTAL'} == 1);
     } else {
         my %tbar_buttons = (
             add             => "Add…",
@@ -180,8 +181,10 @@ sub new {
             $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             $self->{btoolbar}->Add($self->{"btn_$_"});
         }
-        $self->{"btn_layer_editing"} = Wx::ToggleButton->new($self, -1, $tbar_buttons{'layer_editing'}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-        $self->{btoolbar}->Add($self->{"btn_layer_editing"});
+        if (defined($ENV{'SLIC3R_EXPERIMENTAL'} && defined($ENV{'SLIC3R_EXPERIMENTAL'} == 1) {
+            $self->{"btn_layer_editing"} = Wx::ToggleButton->new($self, -1, $tbar_buttons{'layer_editing'}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+            $self->{btoolbar}->Add($self->{"btn_layer_editing"});
+        }
     }
 
     $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, wxDefaultSize,
