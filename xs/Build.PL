@@ -121,7 +121,7 @@ my @boost_libraries = qw(system thread log);  # we need these
 
 if (!$ENV{SLIC3R_STATIC}) {
     # Dynamic linking of boost libraries.
-    push @cflags, qw(-BOOST_LOG_DYN_LINK);
+    push @cflags, qw(-DBOOST_LOG_DYN_LINK);
     if (! $mswin) {
         # Check without explicit lib path (works on Linux and OSX).
         $have_boost = 1
