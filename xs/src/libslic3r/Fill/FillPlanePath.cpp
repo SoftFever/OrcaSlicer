@@ -44,7 +44,7 @@ void FillPlanePath::_fill_surface_single(
                 coord_t(floor(it->x * distance_between_lines + 0.5)), 
                 coord_t(floor(it->y * distance_between_lines + 0.5))));
 //      intersection(polylines_src, offset((Polygons)expolygon, scale_(0.02)), &polylines);
-        intersection(polylines, (Polygons)expolygon, &polylines);
+        polylines = intersection_pl(polylines, to_polygons(expolygon));
 
 /*        
         if (1) {

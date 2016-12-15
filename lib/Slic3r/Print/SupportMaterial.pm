@@ -8,7 +8,7 @@ use Slic3r::ExtrusionPath ':roles';
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(epsilon scale scaled_epsilon PI rad2deg deg2rad convex_hull);
 use Slic3r::Geometry::Clipper qw(offset diff union union_ex intersection offset_ex offset2
-    intersection_pl offset2_ex diff_pl CLIPPER_OFFSET_SCALE JT_MITER JT_ROUND);
+    intersection_pl offset2_ex diff_pl JT_MITER JT_ROUND);
 use Slic3r::Surface ':types';
 
 has 'print_config'      => (is => 'rw', required => 1);
@@ -299,9 +299,8 @@ sub contact_area {
                             offset(
                                 $diff, 
                                 $_,
-                                CLIPPER_OFFSET_SCALE,
                                 JT_ROUND,
-                                scale(0.05)*CLIPPER_OFFSET_SCALE),
+                                scale(0.05)),
                             $slices_margin
                         );
                     }
@@ -584,9 +583,8 @@ sub generate_base_layers {
                         $fillet_radius_scaled, 
                         -$fillet_radius_scaled,
                         # Use a geometric offsetting for filleting.
-                        CLIPPER_OFFSET_SCALE,
                         JT_ROUND,
-                        0.2*$fillet_radius_scaled*CLIPPER_OFFSET_SCALE),
+                        0.2*$fillet_radius_scaled),
                     $trim_polygons,
                     0); # don't apply the safety offset.
             }

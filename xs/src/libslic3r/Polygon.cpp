@@ -112,9 +112,7 @@ double Polygon::area() const
 bool
 Polygon::is_counter_clockwise() const
 {
-    ClipperLib::Path p;
-    Slic3rMultiPoint_to_ClipperPath(*this, &p);
-    return ClipperLib::Orientation(p);
+    return ClipperLib::Orientation(Slic3rMultiPoint_to_ClipperPath(*this));
 }
 
 bool
@@ -190,8 +188,7 @@ Polygon::simplify(double tolerance) const
     
     Polygons pp;
     pp.push_back(p);
-    simplify_polygons(pp, &pp);
-    return pp;
+    return simplify_polygons(pp);
 }
 
 void

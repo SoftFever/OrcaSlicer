@@ -32,6 +32,8 @@ src/libslic3r/ExtrusionEntityCollection.cpp
 src/libslic3r/ExtrusionEntityCollection.hpp
 src/libslic3r/ExtrusionSimulator.cpp
 src/libslic3r/ExtrusionSimulator.hpp
+src/libslic3r/Fill/Fill.cpp
+src/libslic3r/Fill/Fill.hpp
 src/libslic3r/Fill/FillBase.cpp
 src/libslic3r/Fill/FillBase.hpp
 src/libslic3r/Fill/FillConcentric.cpp
@@ -54,6 +56,8 @@ src/libslic3r/GCodeSender.cpp
 src/libslic3r/GCodeSender.hpp
 src/libslic3r/GCodeWriter.cpp
 src/libslic3r/GCodeWriter.hpp
+src/libslic3r/GCode/Analyzer.cpp
+src/libslic3r/GCode/Analyzer.hpp
 src/libslic3r/GCode/PressureEqualizer.cpp
 src/libslic3r/GCode/PressureEqualizer.hpp
 src/libslic3r/Geometry.cpp
@@ -88,6 +92,10 @@ src/libslic3r/PrintConfig.cpp
 src/libslic3r/PrintConfig.hpp
 src/libslic3r/PrintObject.cpp
 src/libslic3r/PrintRegion.cpp
+src/libslic3r/Slicing.cpp
+src/libslic3r/Slicing.hpp
+src/libslic3r/SlicingAdaptive.cpp
+src/libslic3r/SlicingAdaptive.hpp
 src/libslic3r/SupportMaterial.cpp
 src/libslic3r/SupportMaterial.hpp
 src/libslic3r/Surface.cpp
@@ -99,6 +107,7 @@ src/libslic3r/SVG.hpp
 src/libslic3r/TriangleMesh.cpp
 src/libslic3r/TriangleMesh.hpp
 src/libslic3r/utils.cpp
+src/libslic3r/Utils.hpp
 src/perlglue.cpp
 src/poly2tri/common/shapes.cc
 src/poly2tri/common/shapes.h

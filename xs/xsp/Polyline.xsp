@@ -80,13 +80,12 @@ Polyline::rotate(angle, center_sv)
         THIS->rotate(angle, center);
 
 Polygons
-Polyline::grow(delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtSquare, miterLimit = 3)
+Polyline::grow(delta, joinType = ClipperLib::jtSquare, miterLimit = 3)
     const float             delta
-    double                  scale
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset(*THIS, &RETVAL, delta, scale, joinType, miterLimit);
+        RETVAL = offset(*THIS, delta, joinType, miterLimit);
     OUTPUT:
         RETVAL
 

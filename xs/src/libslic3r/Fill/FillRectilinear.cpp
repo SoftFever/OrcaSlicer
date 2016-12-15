@@ -63,7 +63,7 @@ void FillRectilinear::_fill_surface_single(
         pts.push_back(it->a);
         pts.push_back(it->b);
     }
-    Polylines polylines = intersection(polylines_src, offset((Polygons)expolygon, scale_(0.02)), false);
+    Polylines polylines = intersection_pl(polylines_src, offset(to_polygons(expolygon), scale_(0.02)), false);
 
     // FIXME Vojtech: This is only performed for horizontal lines, not for the vertical lines!
     const float INFILL_OVERLAP_OVER_SPACING = 0.3f;

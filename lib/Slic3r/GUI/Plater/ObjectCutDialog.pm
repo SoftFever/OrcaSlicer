@@ -114,7 +114,7 @@ sub new {
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
         $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
-        $canvas->load_object($self->{model_object}, undef, [0]);
+        $canvas->load_object($self->{model_object}, undef, undef, [0]);
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
         $canvas->SetMinSize($canvas->GetSize);
@@ -244,7 +244,7 @@ sub _update {
             }
             
             $self->{canvas}->reset_objects;
-            $self->{canvas}->load_object($_, undef, [0]) for @objects;
+            $self->{canvas}->load_object($_, undef, undef, [0]) for @objects;
             $self->{canvas}->SetCuttingPlane(
                 $self->{cut_options}{z},
                 [@expolygons],

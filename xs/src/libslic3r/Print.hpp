@@ -12,7 +12,7 @@
 #include "Layer.hpp"
 #include "Model.hpp"
 #include "PlaceholderParser.hpp"
-
+#include "Slicing.hpp"
 
 namespace Slic3r {
 
@@ -78,6 +78,10 @@ public:
     std::map< size_t,std::vector<int> > region_volumes;
     PrintObjectConfig config;
     t_layer_height_ranges layer_height_ranges;
+
+    // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
+    // The pairs of <z, layer_height> are packed into a 1D array to simplify handling by the Perl XS.
+    std::vector<coordf_t> layer_height_profile;
     
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
@@ -136,13 +140,26 @@ public:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintObjectStep step);
     bool invalidate_all_steps();
-    
+
+    // Process layer_height_ranges, the raft layers and first layer thickness into layer_height_profile.
+    // The layer_height_profile may be later modified interactively by the user to refine layers at sloping surfaces.
+    void update_layer_height_profile();
+
+    // Collect the slicing parameters, to be used by variable layer thickness algorithm,
+    // by the interactive layer height editor and by the printing process itself.
+    // The slicing parameters are dependent on various configuration values
+    // (layer height, first layer height, raft settings, print nozzle diameter etc).
+    SlicingParameters slicing_parameters() const;
+
+    void _slice();
     bool has_support_material() const;
     void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();
     void bridge_over_infill();
-    
+    void _make_perimeters();
+    void _infill();
+
 private:
     Print* _print;
     ModelObject* _model_object;
@@ -152,6 +169,8 @@ private:
         // parameter
     PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox);
     ~PrintObject() {}
+
+    std::vector<ExPolygons> _slice_region(size_t region_id, const std::vector<float> &z, bool modifier);
 };
 
 typedef std::vector<PrintObject*> PrintObjectPtrs;

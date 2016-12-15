@@ -1,6 +1,7 @@
 #ifndef slic3r_Config_hpp_
 #define slic3r_Config_hpp_
 
+#include <assert.h>
 #include <map>
 #include <climits>
 #include <cstdio>
@@ -73,11 +74,8 @@ class ConfigOptionVector : public ConfigOptionVectorBase
     };
     
     T get_at(size_t i) const {
-        try {
-            return this->values.at(i);
-        } catch (const std::out_of_range& oor) {
-            return this->values.front();
-        }
+        assert(! this->values.empty());
+        return (i < this->values.size()) ? this->values[i] : this->values.front();
     };
 };
 

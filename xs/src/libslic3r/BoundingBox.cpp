@@ -277,4 +277,26 @@ BoundingBoxBase<PointClass>::overlap(const BoundingBoxBase<PointClass> &other) c
 template bool BoundingBoxBase<Point>::overlap(const BoundingBoxBase<Point> &point) const;
 template bool BoundingBoxBase<Pointf>::overlap(const BoundingBoxBase<Pointf> &point) const;
 
+
+// Align a coordinate to a grid. The coordinate may be negative,
+// the aligned value will never be bigger than the original one.
+static inline coord_t _align_to_grid(const coord_t coord, const coord_t spacing) {
+    // Current C++ standard defines the result of integer division to be rounded to zero,
+    // for both positive and negative numbers. Here we want to round down for negative
+    // numbers as well.
+    coord_t aligned = (coord < 0) ?
+            ((coord - spacing + 1) / spacing) * spacing :
+            (coord / spacing) * spacing;
+    assert(aligned <= coord);
+    return aligned;
+}
+
+void BoundingBox::align_to_grid(const coord_t cell_size)
+{
+    if (this->defined) {
+        min.x = _align_to_grid(min.x, cell_size);
+        min.y = _align_to_grid(min.y, cell_size);
+    }
+}
+
 }

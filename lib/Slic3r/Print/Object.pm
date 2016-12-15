@@ -7,7 +7,7 @@ use List::Util qw(min max sum first);
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(X Y Z PI scale unscale chained_path epsilon);
 use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union union_ex 
-    offset offset_ex offset2 offset2_ex intersection_ppl CLIPPER_OFFSET_SCALE JT_MITER);
+    offset offset_ex offset2 offset2_ex JT_MITER);
 use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
@@ -45,223 +45,7 @@ sub slice {
     $self->set_step_started(STEP_SLICE);
     $self->print->status_cb->(10, "Processing triangulated mesh");
     
-    # init layers
-    {
-        $self->clear_layers;
-    
-        # make layers taking custom heights into account
-        my $id      = 0;
-        my $print_z = 0;
-        my $first_object_layer_height   = -1;
-        my $first_object_layer_distance = -1;
-    
-        # add raft layers
-        if ($self->config->raft_layers > 0) {
-            # Reserve object layers for the raft. Last layer of the raft is the contact layer.
-            $id += $self->config->raft_layers;
-        
-            # Raise first object layer Z by the thickness of the raft itself
-            # plus the extra distance required by the support material logic.
-            #FIXME The last raft layer is the contact layer, which shall be printed with a bridging flow for ease of separation. Currently it is not the case.
-            my $first_layer_height = $self->config->get_value('first_layer_height');
-            $print_z += $first_layer_height;
-            
-            # Use as large as possible layer height for the intermediate raft layers.
-            my $support_material_layer_height;
-            {
-                my @nozzle_diameters = (
-                    map $self->print->config->get_at('nozzle_diameter', $_),
-                        $self->config->support_material_extruder-1,
-                        $self->config->support_material_interface_extruder-1,
-                );
-                $support_material_layer_height = 0.75 * min(@nozzle_diameters);
-            }
-            $print_z += $support_material_layer_height * ($self->config->raft_layers - 1);
-        
-            # compute the average of all nozzles used for printing the object
-            #FIXME It is expected, that the 1st layer of the object is printed with a bridging flow over a full raft. Shall it not be vice versa?
-            my $nozzle_diameter;
-            {
-                my @nozzle_diameters = (
-                    map $self->print->config->get_at('nozzle_diameter', $_), @{$self->print->object_extruders}
-                );
-                $nozzle_diameter = sum(@nozzle_diameters)/@nozzle_diameters;
-            }
-            $first_object_layer_distance = $self->_support_material->contact_distance($self->config->layer_height, $nozzle_diameter);
-        
-            # force first layer print_z according to the contact distance
-            # (the loop below will raise print_z by such height)
-            $first_object_layer_height = $first_object_layer_distance - $self->config->support_material_contact_distance;
-        }
-    
-        # loop until we have at least one layer and the max slice_z reaches the object height
-        my $slice_z = 0;
-        my $height  = 0;
-        my $max_z   = unscale($self->size->z);
-        while (($slice_z - $height) <= $max_z) {
-            # assign the default height to the layer according to the general settings
-            $height = ($id == 0)
-                ? $self->config->get_value('first_layer_height')
-                : $self->config->layer_height;
-        
-            # look for an applicable custom range
-            if (my $range = first { $_->[0] <= $slice_z && $_->[1] > $slice_z } @{$self->layer_height_ranges}) {
-                $height = $range->[2];
-        
-                # if user set custom height to zero we should just skip the range and resume slicing over it
-                if ($height == 0) {
-                    $slice_z += $range->[1] - $range->[0];
-                    next;
-                }
-            }
-            
-            if ($first_object_layer_height != -1 && !@{$self->layers}) {
-                $height = $first_object_layer_height;
-                $print_z += ($first_object_layer_distance - $height);
-            }
-            
-            $print_z += $height;
-            $slice_z += $height/2;
-        
-            ### Slic3r::debugf "Layer %d: height = %s; slice_z = %s; print_z = %s\n", $id, $height, $slice_z, $print_z;
-        
-            $self->add_layer($id, $height, $print_z, $slice_z);
-            if ($self->layer_count >= 2) {
-                my $lc = $self->layer_count;
-                $self->get_layer($lc - 2)->set_upper_layer($self->get_layer($lc - 1));
-                $self->get_layer($lc - 1)->set_lower_layer($self->get_layer($lc - 2));
-            }
-            $id++;
-        
-            $slice_z += $height/2;   # add the other half layer
-        }
-    }
-    
-    # make sure all layers contain layer region objects for all regions
-    my $regions_count = $self->print->region_count;
-    foreach my $layer (@{ $self->layers }) {
-        $layer->region($_) for 0 .. ($regions_count-1);
-    }
-    
-    # get array of Z coordinates for slicing
-    my @z = map $_->slice_z, @{$self->layers};
-    
-    # slice all non-modifier volumes
-    for my $region_id (0..($self->region_count - 1)) {
-        my $expolygons_by_layer = $self->_slice_region($region_id, \@z, 0);
-        for my $layer_id (0..$#$expolygons_by_layer) {
-            my $layerm = $self->get_layer($layer_id)->regions->[$region_id];
-            $layerm->slices->clear;
-            foreach my $expolygon (@{ $expolygons_by_layer->[$layer_id] }) {
-                $layerm->slices->append(Slic3r::Surface->new(
-                    expolygon    => $expolygon,
-                    surface_type => S_TYPE_INTERNAL,
-                ));
-            }
-        }
-    }
-    
-    # then slice all modifier volumes
-    if ($self->region_count > 1) {
-        for my $region_id (0..$self->region_count) {
-            my $expolygons_by_layer = $self->_slice_region($region_id, \@z, 1);
-            
-            # loop through the other regions and 'steal' the slices belonging to this one
-            for my $other_region_id (0..$self->region_count) {
-                next if $other_region_id == $region_id;
-                
-                for my $layer_id (0..$#$expolygons_by_layer) {
-                    my $layerm = $self->get_layer($layer_id)->regions->[$region_id];
-                    my $other_layerm = $self->get_layer($layer_id)->regions->[$other_region_id];
-                    next if !defined $other_layerm;
-                    
-                    my $other_slices = [ map $_->p, @{$other_layerm->slices} ];  # Polygons
-                    my $my_parts = intersection_ex(
-                        $other_slices,
-                        [ map @$_, @{ $expolygons_by_layer->[$layer_id] } ],
-                    );
-                    next if !@$my_parts;
-                    
-                    # append new parts to our region
-                    foreach my $expolygon (@$my_parts) {
-                        $layerm->slices->append(Slic3r::Surface->new(
-                            expolygon    => $expolygon,
-                            surface_type => S_TYPE_INTERNAL,
-                        ));
-                    }
-                    
-                    # remove such parts from original region
-                    $other_layerm->slices->clear;
-                    $other_layerm->slices->append(Slic3r::Surface->new(
-                        expolygon    => $_,
-                        surface_type => S_TYPE_INTERNAL,
-                    )) for @{ diff_ex($other_slices, [ map @$_, @$my_parts ]) };
-                }
-            }
-        }
-    }
-    
-    # remove last layer(s) if empty
-    $self->delete_layer($self->layer_count - 1)
-        while $self->layer_count && (!map @{$_->slices}, @{$self->get_layer($self->layer_count - 1)->regions});
-    
-    foreach my $layer (@{ $self->layers }) {
-        # apply size compensation
-        if ($self->config->xy_size_compensation != 0) {
-            my $delta = scale($self->config->xy_size_compensation);
-            if (@{$layer->regions} == 1) {
-                # single region
-                my $layerm = $layer->regions->[0];
-                my $slices = [ map $_->p, @{$layerm->slices} ];
-                $layerm->slices->clear;
-                $layerm->slices->append(Slic3r::Surface->new(
-                    expolygon    => $_,
-                    surface_type => S_TYPE_INTERNAL,
-                )) for @{offset_ex($slices, $delta)};
-            } else {
-                if ($delta < 0) {
-                    # multiple regions, shrinking
-                    # we apply the offset to the combined shape, then intersect it
-                    # with the original slices for each region
-                    my $slices = union([ map $_->p, map @{$_->slices}, @{$layer->regions} ]);
-                    $slices = offset($slices, $delta);
-                    foreach my $layerm (@{$layer->regions}) {
-                        my $this_slices = intersection_ex(
-                            $slices,
-                            [ map $_->p, @{$layerm->slices} ],
-                        );
-                        $layerm->slices->clear;
-                        $layerm->slices->append(Slic3r::Surface->new(
-                            expolygon    => $_,
-                            surface_type => S_TYPE_INTERNAL,
-                        )) for @$this_slices;
-                    }
-                } else {
-                    # multiple regions, growing
-                    # this is an ambiguous case, since it's not clear how to grow regions where they are going to overlap
-                    # so we give priority to the first one and so on
-                    for my $i (0..$#{$layer->regions}) {
-                        my $layerm = $layer->regions->[$i];
-                        my $slices = offset_ex([ map $_->p, @{$layerm->slices} ], $delta);
-                        if ($i > 0) {
-                            $slices = diff_ex(
-                                [ map @$_, @$slices ],
-                                [ map $_->p, map @{$_->slices}, map $layer->regions->[$_], 0..($i-1) ],  # slices of already processed regions
-                            );
-                        }
-                        $layerm->slices->clear;
-                        $layerm->slices->append(Slic3r::Surface->new(
-                            expolygon    => $_,
-                            surface_type => S_TYPE_INTERNAL,
-                        )) for @$slices;
-                    }
-                }
-            }
-        }
-        
-        # Merge all regions' slices to get islands, chain them by a shortest path.
-        $layer->make_slices;
-    }
+    $self->_slice;
     
     # detect slicing errors
     my $warning_thrown = 0;
@@ -334,151 +118,15 @@ sub slice {
     $self->set_step_done(STEP_SLICE);
 }
 
-# called from slice()
-sub _slice_region {
-    my ($self, $region_id, $z, $modifier) = @_;
-
-    return [] if !@{$self->get_region_volumes($region_id)};
-
-    # compose mesh
-    my $mesh;
-    foreach my $volume_id (@{ $self->get_region_volumes($region_id) }) {
-        my $volume = $self->model_object->volumes->[$volume_id];
-        next if $volume->modifier && !$modifier;
-        next if !$volume->modifier && $modifier;
-        
-        if (defined $mesh) {
-            $mesh->merge($volume->mesh);
-        } else {
-            $mesh = $volume->mesh->clone;
-        }
-    }
-    return if !defined $mesh;
-
-    # transform mesh
-    # we ignore the per-instance transformations currently and only 
-    # consider the first one
-    $self->model_object->instances->[0]->transform_mesh($mesh, 1);
-
-    # align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
-    $mesh->translate((map unscale(-$_), @{$self->_copies_shift}), -$self->model_object->bounding_box->z_min);
-    
-    # perform actual slicing
-    return $mesh->slice($z);
-}
-
 # 1) Merges typed region slices into stInternal type.
 # 2) Increases an "extra perimeters" counter at region slices where needed.
 # 3) Generates perimeters, gap fills and fill regions (fill regions of type stInternal).
 sub make_perimeters {
-    my $self = shift;
+    my ($self) = @_;
     
     # prerequisites
     $self->slice;
-    
-    return if $self->step_done(STEP_PERIMETERS);
-    $self->set_step_started(STEP_PERIMETERS);
-    $self->print->status_cb->(20, "Generating perimeters");
-    
-    # Merge region slices if they were split into types.
-    # FIXME this is using a safety offset, so the region slices will be slightly bigger with each iteration.
-    if ($self->typed_slices) {
-        $_->merge_slices for @{$self->layers};
-        $self->set_typed_slices(0);
-        $self->invalidate_step(STEP_PREPARE_INFILL);
-    }
-    
-    # compare each layer to the one below, and mark those slices needing
-    # one additional inner perimeter, like the top of domed objects-
-    
-    # this algorithm makes sure that at least one perimeter is overlapping
-    # but we don't generate any extra perimeter if fill density is zero, as they would be floating
-    # inside the object - infill_only_where_needed should be the method of choice for printing
-    # hollow objects
-    for my $region_id (0 .. ($self->print->region_count-1)) {
-        my $region = $self->print->regions->[$region_id];
-        my $region_perimeters = $region->config->perimeters;
-        
-        next if !$region->config->extra_perimeters;
-        next if $region_perimeters == 0;
-        next if $region->config->fill_density == 0;
-        
-        for my $i (0 .. ($self->layer_count - 2)) {
-            my $layerm                  = $self->get_layer($i)->get_region($region_id);
-            my $upper_layerm            = $self->get_layer($i+1)->get_region($region_id);
-            my $upper_layerm_polygons   = [ map $_->p, @{$upper_layerm->slices} ];
-            # Filter upper layer polygons in intersection_ppl by their bounding boxes?
-            # my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
-            my $total_loop_length       = sum(map $_->length, @$upper_layerm_polygons) // 0;
-            
-            my $perimeter_spacing       = $layerm->flow(FLOW_ROLE_PERIMETER)->scaled_spacing;
-            my $ext_perimeter_flow      = $layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER);
-            my $ext_perimeter_width     = $ext_perimeter_flow->scaled_width;
-            my $ext_perimeter_spacing   = $ext_perimeter_flow->scaled_spacing;
-            
-            foreach my $slice (@{$layerm->slices}) {
-                while (1) {
-                    # compute the total thickness of perimeters
-                    my $perimeters_thickness = $ext_perimeter_width/2 + $ext_perimeter_spacing/2
-                        + ($region_perimeters-1 + $slice->extra_perimeters) * $perimeter_spacing;
-                    
-                    # define a critical area where we don't want the upper slice to fall into
-                    # (it should either lay over our perimeters or outside this area)
-                    my $critical_area_depth = $perimeter_spacing*1.5;
-                    my $critical_area = diff(
-                        offset($slice->expolygon->arrayref, -$perimeters_thickness),
-                        offset($slice->expolygon->arrayref, -($perimeters_thickness + $critical_area_depth)),
-                    );
-                    
-                    # check whether a portion of the upper slices falls inside the critical area
-                    my $intersection = intersection_ppl(
-                        $upper_layerm_polygons,
-                        $critical_area,
-                    );
-                    
-                    # only add an additional loop if at least 30% of the slice loop would benefit from it
-                    my $total_intersection_length = sum(map $_->length, @$intersection) // 0;
-                    last unless $total_intersection_length > $total_loop_length*0.3;
-                    
-                    if (0) {
-                        require "Slic3r/SVG.pm";
-                        Slic3r::SVG::output(
-                            "extra.svg",
-                            no_arrows   => 1,
-                            expolygons  => union_ex($critical_area),
-                            polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
-                        );
-                    }
-                    
-                    $slice->extra_perimeters($slice->extra_perimeters + 1);
-                }
-                Slic3r::debugf "  adding %d more perimeter(s) at layer %d\n",
-                    $slice->extra_perimeters, $layerm->layer->id
-                    if $slice->extra_perimeters > 0;
-            }
-        }
-    }
-    
-    Slic3r::parallelize(
-        threads => $self->print->config->threads,
-        items => sub { 0 .. ($self->layer_count - 1) },
-        thread_cb => sub {
-            my $q = shift;
-            while (defined (my $i = $q->dequeue)) {
-                $self->get_layer($i)->make_perimeters;
-            }
-        },
-        no_threads_cb => sub {
-            $_->make_perimeters for @{$self->layers};
-        },
-    );
-    
-    # simplify slices (both layer and region slices),
-    # we only need the max resolution for perimeters
-    ### This makes this method not-idempotent, so we keep it disabled for now.
-    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
-    
-    $self->set_step_done(STEP_PERIMETERS);
+    $self->_make_perimeters;
 }
 
 sub prepare_infill {
@@ -598,32 +246,7 @@ sub infill {
     
     # prerequisites
     $self->prepare_infill;
-    
-    return if $self->step_done(STEP_INFILL);
-    $self->set_step_started(STEP_INFILL);
-    $self->print->status_cb->(70, "Infilling layers");
-    
-    Slic3r::parallelize(
-        threads => $self->print->config->threads,
-        items => sub { 0..$#{$self->layers} },
-        thread_cb => sub {
-            my $q = shift;
-            while (defined (my $i = $q->dequeue)) {
-                $self->get_layer($i)->make_fills;
-            }
-        },
-        no_threads_cb => sub {
-            foreach my $layer (@{$self->layers}) {
-                $layer->make_fills;
-            }
-        },
-    );
-
-    ### we could free memory now, but this would make this step not idempotent
-    ### Vojtech: Cannot release the fill_surfaces, they are used by the support generator.
-    ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
-    
-    $self->set_step_done(STEP_INFILL);
+    $self->_infill;
 }
 
 sub generate_support_material {
@@ -863,7 +486,7 @@ sub discover_horizontal_shells {
                         # and it's not wanted in a hollow print even if it would make sense when
                         # obeying the solid shell count option strictly (DWIM!)
                         my $margin = $neighbor_layerm->flow(FLOW_ROLE_EXTERNAL_PERIMETER)->scaled_width;
-                        my $regularized = offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5);
+                        my $regularized = offset2($new_internal_solid, -$margin, +$margin, JT_MITER, 5);
                         my $too_narrow = diff(
                             $new_internal_solid,
                             $regularized,
@@ -893,7 +516,7 @@ sub discover_horizontal_shells {
                         # have the same angle, so the next shell would be grown even more and so on.
                         my $too_narrow = diff(
                             $new_internal_solid,
-                            offset2($new_internal_solid, -$margin, +$margin, CLIPPER_OFFSET_SCALE, JT_MITER, 5),
+                            offset2($new_internal_solid, -$margin, +$margin, JT_MITER, 5),
                             1,
                         );
                         
