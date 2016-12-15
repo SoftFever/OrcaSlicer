@@ -142,8 +142,7 @@ if ($have_boost) {
         # Try to find the boost system library.
         my @files = glob "$path/${lib_prefix}system*$lib_ext";
         next if !@files;
-    
-        if ($files[0] =~ /${lib_prefix}system([^.]*)$lib_ext$/) {
+        if ($files[0] =~ /\Q${lib_prefix}system\E([^.]*)\Q$lib_ext\E$/) {
             # Suffix contains the version number, the build type etc.
             my $suffix = $1;
             # Verify existence of all required boost libraries at $path.
