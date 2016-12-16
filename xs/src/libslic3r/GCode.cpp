@@ -1022,15 +1022,6 @@ GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
             /*  skip retraction if travel is contained in an internal slice *and*
                 internal infill is enabled (so that stringing is entirely not visible)  */
             return false;
-        } else if (this->layer->any_bottom_region_slice_contains(travel)
-            && this->layer->upper_layer != NULL
-            && this->layer->upper_layer->slices.contains(travel)
-            && (this->config.bottom_solid_layers.value >= 2 || this->config.fill_density.value > 0)) {
-            /*  skip retraction if travel is contained in an *infilled* bottom slice
-                but only if it's also covered by an *infilled* upper layer's slice
-                so that it's not visible from above (a bottom surface might not have an
-                upper slice in case of a thin membrane)  */
-            return false;
         }
     }
     
