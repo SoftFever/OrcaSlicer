@@ -13,6 +13,7 @@ use Getopt::Long qw(:config no_auto_abbrev);
 use List::Util qw(first);
 use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
+use Slic3r::Geometry qw(deg2rad);
 use Time::HiRes qw(gettimeofday tv_interval);
 $|++;
 binmode STDOUT, ':utf8';
@@ -44,7 +45,7 @@ my %cli_options = ();
         'info'                  => \$opt{info},
         
         'scale=f'               => \$opt{scale},
-        'rotate=i'              => \$opt{rotate},
+        'rotate=f'              => \$opt{rotate},
         'duplicate=i'           => \$opt{duplicate},
         'duplicate-grid=s'      => \$opt{duplicate_grid},
         'print-center=s'        => \$opt{print_center},
@@ -201,7 +202,7 @@ if (@ARGV) {  # slicing from command line
         
         my $sprint = Slic3r::Print::Simple->new(
             scale           => $opt{scale}          // 1,
-            rotate          => $opt{rotate}         // 0,
+            rotate          => deg2rad($opt{rotate} // 0),
             duplicate       => $opt{duplicate}      // 1,
             duplicate_grid  => $opt{duplicate_grid} // [1,1],
             print_center    => $opt{print_center}   // Slic3r::Pointf->new(100,100),
