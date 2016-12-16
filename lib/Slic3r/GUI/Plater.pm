@@ -7,7 +7,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first max);
-use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad);
+use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad rad2deg);
 use LWP::UserAgent;
 use threads::shared qw(shared_clone);
 use Wx qw(:button :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
@@ -892,15 +892,17 @@ sub rotate {
     
     if (!defined $angle) {
         my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
-        $angle = Wx::GetNumberFromUser("", "Enter the rotation angle:", "Rotate around $axis_name axis", $model_instance->rotation, -364, 364, $self);
-        return if !$angle || $angle == -1;
-        $angle = 0 - $angle;  # rotate clockwise (be consistent with button icon)
+        my $default = $axis == Z ? rad2deg($model_instance->rotation) : 0;
+        # Wx::GetNumberFromUser() does not support decimal numbers
+        $angle = Wx::GetTextFromUser("Enter the rotation angle:", "Rotate around $axis_name axis",
+            $default, $self);
+        return if !$angle || $angle !~ /^-?\d*(?:\.\d*)?$/ || $angle == -1;
     }
     
     $self->stop_background_process;
     
     if ($axis == Z) {
-        my $new_angle = $model_instance->rotation + deg2rad($angle);
+        my $new_angle = deg2rad($angle);
         $_->set_rotation($new_angle) for @{ $model_object->instances };
         $object->transform_thumbnail($self->{model}, $obj_idx);
     } else {
@@ -977,15 +979,20 @@ sub changescale {
         my $scale;
         if ($tosize) {
             my $cursize = $object_size->[$axis];
-            my $newsize = Wx::GetNumberFromUser("", "Enter the new size for the selected object:", "Scale along $axis_name",
-                $cursize, 0, $bed_size->[$axis], $self);
-            return if !$newsize || $newsize < 0;
+            # Wx::GetNumberFromUser() does not support decimal numbers
+            my $newsize = Wx::GetTextFromUser(
+                sprintf("Enter the new size for the selected object (print bed: %smm):", $bed_size->[$axis]),
+                "Scale along $axis_name",
+                $cursize, $self);
+            return if !$newsize || $newsize !~ /^\d*(?:\.\d*)?$/ || $newsize < 0;
             $scale = $newsize / $cursize * 100;
         } else {
-            $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", "Scale along $axis_name",
-                100, 0, 100000, $self);
+            # Wx::GetNumberFromUser() does not support decimal numbers
+            $scale = Wx::GetTextFromUser("Enter the scale % for the selected object:",
+                "Scale along $axis_name", 100, $self);
+            $scale =~ s/%$//;
+            return if !$scale || $scale !~ /^\d*(?:\.\d*)?$/ || $scale < 0;
         }
-        return if !$scale || $scale < 0;
         
         # apply Z rotation before scaling
         if ($model_instance->rotation != 0) {
@@ -1002,16 +1009,18 @@ sub changescale {
         my $scale;
         if ($tosize) {
             my $cursize = max(@$object_size);
-            my $newsize = Wx::GetNumberFromUser("", "Enter the new max size for the selected object:", "Scale",
-                $cursize, 0, max(@$bed_size), $self);
-            return if !$newsize || $newsize < 0;
+            # Wx::GetNumberFromUser() does not support decimal numbers
+            my $newsize = Wx::GetTextFromUser("Enter the new max size for the selected object:",
+                "Scale", $cursize, $self);
+            return if !$newsize || $newsize !~ /^\d*(?:\.\d*)?$/ || $newsize < 0;
             $scale = $newsize / $cursize * 100;
         } else {
             # max scale factor should be above 2540 to allow importing files exported in inches
-            $scale = Wx::GetNumberFromUser("", "Enter the scale % for the selected object:", 'Scale',
-                $model_instance->scaling_factor*100, 0, 100000, $self);
+            # Wx::GetNumberFromUser() does not support decimal numbers
+            $scale = Wx::GetTextFromUser("Enter the scale % for the selected object:", 'Scale',
+                $model_instance->scaling_factor*100, $self);
+            return if !$scale || $scale !~ /^\d*(?:\.\d*)?$/ || $scale < 0;
         }
-        return if !$scale || $scale < 0;
     
         $self->{list}->SetItem($obj_idx, 2, "$scale%");
         $scale /= 100;  # turn percent into factor
