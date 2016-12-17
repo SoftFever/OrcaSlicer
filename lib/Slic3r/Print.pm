@@ -394,13 +394,16 @@ sub write_gcode {
     my $self = shift;
     my ($file) = @_;
     
+    my $tempfile;
+    
     # open output gcode file if we weren't supplied a file-handle
     my $fh;
     if (ref $file eq 'IO::Scalar') {
         $fh = $file;
     } else {
-        Slic3r::open(\$fh, ">", $file)
-            or die "Failed to open $file for writing\n";
+        $tempfile = "$file.tmp";
+        Slic3r::open(\$fh, ">", $tempfile)
+            or die "Failed to open $tempfile for writing\n";
         
         # enable UTF-8 output since user might have entered Unicode characters in fields like notes
         binmode $fh, ':utf8';
@@ -414,6 +417,10 @@ sub write_gcode {
     
     # close our gcode file
     close $fh;
+    
+    if ($tempfile) {
+        rename $tempfile, $file;
+    }
 }
 
 # this method will return the supplied input file path after expanding its
