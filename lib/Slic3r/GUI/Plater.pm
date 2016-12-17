@@ -649,6 +649,7 @@ sub load_file {
     my $model = eval { Slic3r::Model->read_from_file($input_file) };
     Slic3r::GUI::show_error($self, $@) if $@;
     
+    my @obj_idx = ();
     if (defined $model) {
         if ($model->looks_like_multipart_object) {
             my $dialog = Wx::MessageDialog->new($self,
@@ -660,11 +661,13 @@ sub load_file {
                 $model->convert_multipart_object;
             }
         }
-        $self->load_model_objects(@{$model->objects});
+        @obj_idx = $self->load_model_objects(@{$model->objects});
         $self->statusbar->SetStatusText("Loaded " . basename($input_file));
     }
     
     $process_dialog->Destroy;
+    
+    return @obj_idx;
 }
 
 sub load_model_objects {
@@ -744,6 +747,8 @@ sub load_model_objects {
     $self->object_list_changed;
     
     $self->schedule_background_process;
+    
+    return @obj_idx;
 }
 
 sub bed_centerf {
@@ -2048,6 +2053,9 @@ sub object_menu {
         $self->object_settings_dialog;
     }, undef, 'cog.png');
     $menu->AppendSeparator();
+    $frame->_append_menu_item($menu, "Reload from Disk", 'Reload the selected file from Disk', sub {
+        $self->reload_from_disk;
+    }, undef, 'arrow_refresh.png');
     $frame->_append_menu_item($menu, "Export object as STL…", 'Export this single object as STL file', sub {
         $self->export_object_stl;
     }, undef, 'brick_go.png');
