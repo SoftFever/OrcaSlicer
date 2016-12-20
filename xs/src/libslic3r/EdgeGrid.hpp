@@ -58,7 +58,7 @@ public:
 	const size_t		cols() const { return m_cols; }
 
 	// For supports: Contours enclosing the rasterized edges.
-	Polygons 			contours_simplified() const;
+	Polygons 			contours_simplified(coord_t offset) const;
 
 protected:
 	struct Cell {

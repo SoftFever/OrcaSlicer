@@ -2,6 +2,7 @@
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include "SupportMaterial.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -1241,6 +1242,12 @@ PrintObject::_infill()
     */
     
     this->state.set_done(posInfill);
+}
+
+void PrintObject::_generate_support_material()
+{
+    PrintObjectSupportMaterial support_material(this, PrintObject::slicing_parameters());
+    support_material.generate(*this);
 }
 
 } // namespace Slic3r

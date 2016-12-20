@@ -377,7 +377,9 @@ sub mouse_event {
         $self->_layer_height_edited(undef);
     } elsif ($e->Moving) {
         $self->_mouse_pos($pos);
-        $self->Refresh;
+        # Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor
+        # hovers over.
+        $self->Refresh if ($self->enable_picking);
     } else {
         $e->Skip();
     }
@@ -1047,9 +1049,10 @@ sub Render {
 
     $self->draw_active_object_annotations;
     
-    glFlush();
- 
     $self->SwapBuffers();
+
+    # Calling glFinish has a performance penalty, but it seems to fix some OpenGL driver hang-up with extremely large scenes.
+    glFinish();
 }
 
 sub draw_volumes {

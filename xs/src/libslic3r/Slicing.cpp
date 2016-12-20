@@ -33,10 +33,18 @@ SlicingParameters SlicingParameters::create_from_config(
 
     SlicingParameters params;
     params.layer_height = object_config.layer_height.value;
+    params.first_print_layer_height = first_layer_height;
     params.first_object_layer_height = first_layer_height;
     params.object_print_z_min = 0.;
     params.object_print_z_max = object_height;
     params.base_raft_layers = object_config.raft_layers.value;
+    params.soluble_interface = soluble_interface;
+
+    if (! soluble_interface) {
+        params.gap_raft_object    = object_config.support_material_contact_distance.value;
+        params.gap_object_support = object_config.support_material_contact_distance.value;
+        params.gap_support_object = object_config.support_material_contact_distance.value;
+    }
 
     if (params.base_raft_layers > 0) {
 		params.interface_raft_layers = (params.base_raft_layers + 1) / 2;
@@ -70,18 +78,21 @@ SlicingParameters SlicingParameters::create_from_config(
     if (params.has_raft()) {
         // Raise first object layer Z by the thickness of the raft itself plus the extra distance required by the support material logic.
         //FIXME The last raft layer is the contact layer, which shall be printed with a bridging flow for ease of separation. Currently it is not the case.
-		coordf_t print_z = first_layer_height + object_config.support_material_contact_distance.value;
 		if (params.raft_layers() == 1) {
+            // There is only the contact layer.
 			params.contact_raft_layer_height = first_layer_height;
+            params.raft_contact_top_z = first_layer_height;
 		} else {
-			print_z +=
-				// Number of the base raft layers is decreased by the first layer, which has already been added to print_z.
-				coordf_t(params.base_raft_layers - 1) * params.base_raft_layer_height +
-				// Number of the interface raft layers is decreased by the contact layer.
-				coordf_t(params.interface_raft_layers - 1) * params.interface_raft_layer_height +
-				params.contact_raft_layer_height;
+            assert(params.base_raft_layers > 0);
+            assert(params.interface_raft_layers > 0);
+            // Number of the base raft layers is decreased by the first layer.
+            params.raft_base_top_z       = first_layer_height + coordf_t(params.base_raft_layers - 1) * params.base_raft_layer_height;
+            // Number of the interface raft layers is decreased by the contact layer.
+            params.raft_interface_top_z  = params.raft_base_top_z + coordf_t(params.interface_raft_layers - 1) * params.interface_raft_layer_height;
+			params.raft_contact_top_z    = params.raft_interface_top_z + params.contact_raft_layer_height;
 		}
-        params.object_print_z_min = print_z;
+        coordf_t print_z = params.raft_contact_top_z + params.gap_raft_object;
+        params.object_print_z_min  = print_z;
         params.object_print_z_max += print_z;
     }
 

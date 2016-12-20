@@ -1222,17 +1222,39 @@ bool EdgeGrid::Grid::signed_distance(const Point &pt, coord_t search_radius, coo
 	return true;
 }
 
-Polygons EdgeGrid::Grid::contours_simplified() const
+Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
 {
 	typedef std::unordered_multimap<Point, int, PointHash> EndPointMapType;
+	// 0) Prepare a binary grid.
+	size_t cell_rows = m_rows + 2;
+	size_t cell_cols = m_cols + 2;
+	std::vector<char> cell_inside(cell_rows * cell_cols, false);
+	for (int r = 0; r < int(cell_rows); ++ r)
+		for (int c = 0; c < int(cell_cols); ++ c)
+			cell_inside[r * cell_cols + c] = cell_inside_or_crossing(r - 1, c - 1);
+	// Fill in empty cells, which have a left / right neighbor filled.
+	// Fill in empty cells, which have the top / bottom neighbor filled.
+	{
+		std::vector<char> cell_inside2(cell_inside);
+		for (int r = 1; r + 1 < int(cell_rows); ++ r) {
+			for (int c = 1; c + 1 < int(cell_cols); ++ c) {
+				int addr = r * cell_cols + c;
+				if ((cell_inside2[addr - 1] && cell_inside2[addr + 1]) ||
+					(cell_inside2[addr - cell_cols] && cell_inside2[addr + cell_cols]))
+					cell_inside[addr] = true;
+			}
+		}
+	}
+
 	// 1) Collect the lines.
 	std::vector<Line> lines;
 	EndPointMapType start_point_to_line_idx;
 	for (int r = 0; r <= int(m_rows); ++ r) {
 		for (int c = 0; c <= int(m_cols); ++ c) {
-			bool left    = cell_inside_or_crossing(r  , c-1);
-			bool top     = cell_inside_or_crossing(r-1, c  );
-			bool current = cell_inside_or_crossing(r  , c  );
+			int  addr    = (r + 1) * cell_cols + c + 1;
+			bool left    = cell_inside[addr - 1];
+			bool top     = cell_inside[addr - cell_cols];
+			bool current = cell_inside[addr];
 			if (left != current) {
 				lines.push_back(
 					left ? 
@@ -1312,7 +1334,6 @@ Polygons EdgeGrid::Grid::contours_simplified() const
 		// Remove collineaer points.
 		Points pts;
 		pts.reserve(poly.points.size());
-		coord_t downscale = 5;
 		for (size_t j = 0; j < poly.points.size(); ++ j) {
 			size_t j0 = (j == 0) ? poly.points.size() - 1 : j - 1;
 			size_t j2 = (j + 1 == poly.points.size()) ? 0 : j + 1;
@@ -1320,8 +1341,8 @@ Polygons EdgeGrid::Grid::contours_simplified() const
 			if (v.x != 0 && v.y != 0) {
 				// This is a corner point. Copy it to the output contour.
 				Point p = poly.points[j];
-				p.y += (v.x < 0) ? downscale : -downscale;
-				p.x += (v.y > 0) ? downscale : -downscale;
+				p.y += (v.x < 0) ? - offset : offset;
+				p.x += (v.y > 0) ? - offset : offset;
 				pts.push_back(p);
 			} 
 		}

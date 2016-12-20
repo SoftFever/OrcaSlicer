@@ -159,6 +159,7 @@ public:
     void bridge_over_infill();
     void _make_perimeters();
     void _infill();
+    void _generate_support_material();
 
 private:
     Print* _print;

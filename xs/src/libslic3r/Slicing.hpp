@@ -53,6 +53,10 @@ struct SlicingParameters
 	// or by the variable layer thickness table.
     coordf_t    layer_height;
 
+    // First layer height of the print, this may be used for the first layer of the raft
+    // or for the first layer of the print.
+    coordf_t    first_print_layer_height;
+
     // Thickness of the first layer. This is either the first print layer thickness if printed without a raft,
     // or a bridging flow thickness if printed over a non-soluble raft,
     // or a normal layer height if printed over a soluble raft.
@@ -60,6 +64,16 @@ struct SlicingParameters
 
     // If the object is printed over a non-soluble raft, the first layer may be printed with a briding flow.
     bool 		first_object_layer_bridging;
+
+    // Soluble interface? (PLA soluble in water, HIPS soluble in lemonen)
+    // otherwise the interface must be broken off.
+    bool        soluble_interface;
+    // Gap when placing object over raft.
+    coordf_t    gap_raft_object;
+    // Gap when placing support over object.
+    coordf_t    gap_object_support;
+    // Gap when placing object over support.
+    coordf_t    gap_support_object;
 
     // Minimum / maximum layer height, to be used for the automatic adaptive layer height algorithm,
     // or by an interactive layer height editor.
@@ -69,6 +83,10 @@ struct SlicingParameters
     // Bottom and top of the printed object.
     // If printed without a raft, object_print_z_min = 0 and object_print_z_max = object height.
     // Otherwise object_print_z_min is equal to the raft height.
+    coordf_t    raft_base_top_z;
+    coordf_t    raft_interface_top_z;
+    coordf_t    raft_contact_top_z;
+    // In case of a soluble interface, object_print_z_min == raft_contact_top_z, otherwise there is a gap between the raft and the 1st object layer.
     coordf_t 	object_print_z_min;
     coordf_t 	object_print_z_max;
 };

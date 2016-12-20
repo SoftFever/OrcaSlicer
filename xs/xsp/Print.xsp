@@ -119,6 +119,7 @@ _constant()
     void bridge_over_infill();
     void _make_perimeters();
     void _infill();
+    void _generate_support_material();
 
     void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
         %code%{ 

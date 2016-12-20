@@ -20,6 +20,7 @@ has 'interface_flow'    => (is => 'rw', required => 1);
 use constant DEBUG_CONTACT_ONLY => 0;
 
 # increment used to reach MARGIN in steps to avoid trespassing thin objects
+use constant MARGIN => 1.5;
 use constant MARGIN_STEP => MARGIN/3;
 
 # generate a tree-like structure to save material

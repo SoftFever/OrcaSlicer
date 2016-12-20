@@ -123,7 +123,7 @@ parallelize(std::queue<T> queue, boost::function<void(T)> func,
     if (threads_count == 0) threads_count = 2;
     boost::mutex queue_mutex;
     boost::thread_group workers;
-    for (int i = 0; i < fminf(threads_count, queue.size()); i++)
+    for (int i = 0; i < std::min(threads_count, int(queue.size())); ++ i)
         workers.add_thread(new boost::thread(&_parallelize_do<T>, &queue, &queue_mutex, func));
     workers.join_all();
 }
