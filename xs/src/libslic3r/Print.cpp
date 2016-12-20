@@ -6,6 +6,8 @@
 #include "Geometry.hpp"
 #include "SupportMaterial.hpp"
 #include <algorithm>
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace Slic3r {
 
@@ -410,6 +412,29 @@ Print::add_model_object(ModelObject* model_object, int idx)
     // apply config to print object
     o->config.apply(this->default_object_config);
     o->config.apply(object_config, true);
+    
+    // update placeholders
+    {
+        // get the first input file name
+        std::string input_file;
+        std::vector<std::string> v_scale;
+        for (const PrintObject *object : this->objects) {
+            const ModelObject &mobj = *object->model_object();
+            v_scale.push_back( boost::lexical_cast<std::string>(mobj.instances[0]->scaling_factor*100) + "%" );
+            if (input_file.empty())
+                input_file = mobj.input_file;
+        }
+        
+        PlaceholderParser &pp = this->placeholder_parser;
+        pp.set("scale", v_scale);
+        if (!input_file.empty()) {
+            // get basename with and without suffix
+            const std::string input_basename = boost::filesystem::path(input_file).filename().string();
+            pp.set("input_filename", input_basename);
+            const std::string input_basename_base = input_basename.substr(0, input_basename.find_last_of("."));
+            pp.set("input_filename_base", input_basename_base);
+        }
+    }
 }
 
 bool
