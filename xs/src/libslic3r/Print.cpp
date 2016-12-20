@@ -998,4 +998,34 @@ void Print::_make_skirt()
     this->skirt.reverse();
 }
 
+std::string
+Print::output_filename()
+{
+    this->placeholder_parser.update_timestamp();
+    return this->placeholder_parser.process(this->config.output_filename_format.value);
+}
+
+std::string
+Print::output_filepath(const std::string &path)
+{
+    // if we were supplied no path, generate an automatic one based on our first object's input file
+    if (path.empty()) {
+        // get the first input file name
+        std::string input_file;
+        FOREACH_OBJECT(this, object) {
+            input_file = (*object)->model_object()->input_file;
+            if (!input_file.empty()) break;
+        }
+        return (boost::filesystem::path(input_file).parent_path() / this->output_filename()).string();
+    }
+    
+    // if we were supplied a directory, use it and append our automatically generated filename
+    boost::filesystem::path p(path);
+    if (boost::filesystem::is_directory(p))
+        return (p / this->output_filename()).string();
+    
+    // if we were supplied a file which is not a directory, use it
+    return path;
+}
+
 }

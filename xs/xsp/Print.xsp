@@ -257,6 +257,8 @@ _constant()
     double max_allowed_layer_height() const;
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object);
+    std::string output_filename();
+    std::string output_filepath(std::string path = "");
     
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig* config)

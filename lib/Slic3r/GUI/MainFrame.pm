@@ -440,7 +440,7 @@ sub quick_slice {
         if ($params{reslice}) {
             $output_file = $qs_last_output_file if defined $qs_last_output_file;
         } elsif ($params{save_as}) {
-            $output_file = $sprint->expanded_output_filepath;
+            $output_file = $sprint->output_filepath;
             $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
                 wxTheApp->output_path(dirname($output_file)),

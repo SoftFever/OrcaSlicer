@@ -13,7 +13,7 @@ use Slic3r::Geometry qw(X Y);
 has '_print' => (
     is      => 'ro',
     default => sub { Slic3r::Print->new },
-    handles => [qw(apply_config extruders expanded_output_filepath
+    handles => [qw(apply_config extruders output_filepath
                     total_used_filament total_extruded_volume
                     placeholder_parser process)],
 );

@@ -253,6 +253,8 @@ class Print
     void auto_assign_extruders(ModelObject* model_object) const;
 
     void _make_skirt();
+    std::string output_filename();
+    std::string output_filepath(const std::string &path);
     
     private:
     void clear_regions();
