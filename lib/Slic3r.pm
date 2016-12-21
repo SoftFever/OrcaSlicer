@@ -65,7 +65,6 @@ use Slic3r::Format::AMF;
 use Slic3r::Format::OBJ;
 use Slic3r::Format::STL;
 use Slic3r::GCode::ArcFitting;
-use Slic3r::GCode::CoolingBuffer;
 use Slic3r::GCode::MotionPlanner;
 use Slic3r::GCode::PressureRegulator;
 use Slic3r::GCode::Reader;

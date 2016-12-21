@@ -164,6 +164,10 @@
 %typemap{Ref<OozePrevention>}{simple};
 %typemap{Clone<OozePrevention>}{simple};
 
+%typemap{CoolingBuffer*};
+%typemap{Ref<CoolingBuffer>}{simple};
+%typemap{Clone<CoolingBuffer>}{simple};
+
 %typemap{GCode*};
 %typemap{Ref<GCode>}{simple};
 %typemap{Clone<GCode>}{simple};

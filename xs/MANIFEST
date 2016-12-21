@@ -52,6 +52,8 @@ src/libslic3r/Flow.cpp
 src/libslic3r/Flow.hpp
 src/libslic3r/GCode.cpp
 src/libslic3r/GCode.hpp
+src/libslic3r/GCode/CoolingBuffer.cpp
+src/libslic3r/GCode/CoolingBuffer.hpp
 src/libslic3r/GCodeSender.cpp
 src/libslic3r/GCodeSender.hpp
 src/libslic3r/GCodeWriter.cpp

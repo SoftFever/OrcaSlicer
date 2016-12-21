@@ -100,10 +100,7 @@ sub BUILD {
         }
     }
     
-    $self->_cooling_buffer(Slic3r::GCode::CoolingBuffer->new(
-        config      => $self->config,
-        gcodegen    => $self->_gcodegen,
-    ));
+    $self->_cooling_buffer(Slic3r::GCode::CoolingBuffer->new($self->_gcodegen));
     
     $self->_spiral_vase(Slic3r::GCode::SpiralVase->new(config => $self->config))
         if $self->config->spiral_vase;

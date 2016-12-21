@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/GCode.hpp"
+#include "libslic3r/GCode/CoolingBuffer.hpp"
 %}
 
 %name{Slic3r::GCode::AvoidCrossingPerimeters} class AvoidCrossingPerimeters {
@@ -68,6 +69,16 @@
         %code{% RETVAL = &(THIS->path); %};
     void set_path(Polyline* value)
         %code{% THIS->path = *value; %};
+};
+
+%name{Slic3r::GCode::CoolingBuffer} class CoolingBuffer {
+    CoolingBuffer(GCode* gcode)
+        %code{% RETVAL = new CoolingBuffer(*gcode); %};
+    ~CoolingBuffer();
+    Ref<GCode> gcodegen();
+    
+    std::string append(std::string gcode, std::string obj_id, size_t layer_id, float print_z);
+    std::string flush();
 };
 
 %name{Slic3r::GCode} class GCode {
