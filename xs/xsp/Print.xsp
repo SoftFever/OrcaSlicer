@@ -125,7 +125,7 @@ _constant()
         %code%{ 
             THIS->update_layer_height_profile(); 
             adjust_layer_height_profile(
-                THIS->slicing_parameters(), THIS->layer_height_profile, z, layer_thickness_delta, band_width, action);
+                THIS->slicing_parameters(), THIS->layer_height_profile, z, layer_thickness_delta, band_width, LayerHeightEditActionType(action));
         %};
     
     int generate_layer_height_texture(void *data, int rows, int cols, bool level_of_detail_2nd_level = true)

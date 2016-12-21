@@ -290,7 +290,7 @@ void adjust_layer_height_profile(
     coordf_t 					 z,
     coordf_t 					 layer_thickness_delta,
     coordf_t 					 band_width,
-    int 						 action)
+    LayerHeightEditActionType    action)
 {
      // Constrain the profile variability by the 1st layer height.
     std::pair<coordf_t, coordf_t> z_span_variable = 
@@ -320,8 +320,10 @@ void adjust_layer_height_profile(
 
     // 2) Is it possible to apply the delta?
     switch (action) {
-        case 0:
-        default:
+        case LAYER_HEIGHT_EDIT_ACTION_DECREASE:
+            layer_thickness_delta = - layer_thickness_delta;
+            // fallthrough
+        case LAYER_HEIGHT_EDIT_ACTION_INCREASE:
             if (layer_thickness_delta > 0) {
                 if (current_layer_height >= slicing_params.max_layer_height - EPSILON)
                     return;
@@ -332,11 +334,15 @@ void adjust_layer_height_profile(
                 layer_thickness_delta = std::max(layer_thickness_delta, slicing_params.min_layer_height - current_layer_height);
             }
             break;
-        case 1:
+        case LAYER_HEIGHT_EDIT_ACTION_REDUCE:
+        case LAYER_HEIGHT_EDIT_ACTION_SMOOTH:
             layer_thickness_delta = std::abs(layer_thickness_delta);
             layer_thickness_delta = std::min(layer_thickness_delta, std::abs(slicing_params.layer_height - current_layer_height));
             if (layer_thickness_delta < EPSILON)
                 return;
+            break;
+        default:
+            assert(false);
             break;
     }
 
@@ -354,6 +360,7 @@ void adjust_layer_height_profile(
 	assert(i >= 0 && i + 1 < layer_height_profile.size());
 	profile_new.insert(profile_new.end(), layer_height_profile.begin(), layer_height_profile.begin() + i + 2);
     coordf_t zz = lo;
+    size_t i_resampled_start = profile_new.size();
     while (zz < hi) {
         size_t next = i + 2;
         coordf_t z1 = layer_height_profile[i];
@@ -368,11 +375,11 @@ void adjust_layer_height_profile(
         coordf_t weight = std::abs(zz - z) < 0.5 * band_width ? (0.5 + 0.5 * cos(2. * M_PI * (zz - z) / band_width)) : 0.;
         coordf_t height_new = height;
         switch (action) {
-            case 0:
-            default:
+            case LAYER_HEIGHT_EDIT_ACTION_INCREASE:
+            case LAYER_HEIGHT_EDIT_ACTION_DECREASE:
                 height += weight * layer_thickness_delta;
                 break;
-            case 1:
+            case LAYER_HEIGHT_EDIT_ACTION_REDUCE:
             {
                 coordf_t delta = height - slicing_params.layer_height;
                 coordf_t step  = weight * layer_thickness_delta;
@@ -382,6 +389,14 @@ void adjust_layer_height_profile(
                 height += step;
                 break;
             }
+            case LAYER_HEIGHT_EDIT_ACTION_SMOOTH:
+            {
+                // Don't modify the profile during resampling process, do it at the next step.
+                break;
+            }
+            default:
+                assert(false);
+                break;
         }
         // Avoid entering a too short segment.
         if (profile_new[profile_new.size() - 2] + EPSILON < zz) {
@@ -396,14 +411,34 @@ void adjust_layer_height_profile(
     }
 
     i += 2;
+    assert(i > 0);
+    size_t i_resampled_end = profile_new.size();
 	if (i < layer_height_profile.size()) {
-        if (profile_new[profile_new.size() - 2] + z_step < layer_height_profile[i]) {
-            profile_new.push_back(profile_new[profile_new.size() - 2] + z_step);
-            profile_new.push_back(layer_height_profile[i + 1]);
-        }
+        assert(zz >= layer_height_profile[i - 2]);
+        assert(zz <= layer_height_profile[i]);
+//        profile_new.push_back(zz);
+//        profile_new.push_back(layer_height_profile[i + 1]);
 		profile_new.insert(profile_new.end(), layer_height_profile.begin() + i, layer_height_profile.end());
     }
     layer_height_profile = std::move(profile_new);
+
+    if (action == LAYER_HEIGHT_EDIT_ACTION_SMOOTH) {
+        size_t n_rounds = 6;
+        for (size_t i_round = 0; i_round < n_rounds; ++ i_round) {
+            profile_new = layer_height_profile;
+            for (size_t i = i_resampled_start; i < i_resampled_end; i += 2) {
+                coordf_t zz = profile_new[i];
+                coordf_t t = std::abs(zz - z) < 0.5 * band_width ? (0.25 + 0.25 * cos(2. * M_PI * (zz - z) / band_width)) : 0.;
+                assert(t >= 0. && t <= 0.5000001);
+                if (i == 0)
+                    layer_height_profile[i + 1] = (1. - t) * profile_new[i + 1] + t * profile_new[i + 3];
+                else if (i + 1 == profile_new.size())
+                    layer_height_profile[i + 1] = (1. - t) * profile_new[i + 1] + t * profile_new[i - 1];
+                else
+                    layer_height_profile[i + 1] = (1. - t) * profile_new[i + 1] + 0.5 * t * (profile_new[i - 1] + profile_new[i + 3]);
+            }
+        }
+    }
 
 	assert(layer_height_profile.size() > 2);
 	assert(layer_height_profile.size() % 2 == 0);

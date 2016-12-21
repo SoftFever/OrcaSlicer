@@ -19,7 +19,8 @@ package Slic3r::GUI::3DScene::Base;
 use strict;
 use warnings;
 
-use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS);
+use Wx qw(:timer);
+use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_TIMER);
 # must load OpenGL *before* Wx::GLCanvas
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
@@ -143,6 +144,10 @@ sub new {
     $self->{layer_preview_z_texture_width} = 512;
     $self->{layer_preview_z_texture_height} = 512;
     $self->{layer_height_edit_band_width} = 2.;
+    $self->{layer_height_edit_strength} = 0.005;
+    $self->{layer_height_edit_last_object_id} = -1;
+    $self->{layer_height_edit_last_z} = 0.;
+    $self->{layer_height_edit_last_action} = 0;
     
     $self->reset_objects;
     
@@ -157,42 +162,24 @@ sub new {
         $self->Resize( $self->GetSizeWH );
         $self->Refresh;
     });
-    EVT_MOUSEWHEEL($self, sub {
-        my ($self, $e) = @_;
-        
-        # Calculate the zoom delta and apply it to the current zoom factor
-        my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
-        $zoom = max(min($zoom, 4), -4);
-        $zoom /= 10;
-        $self->_zoom($self->_zoom / (1-$zoom));
-        
-        # In order to zoom around the mouse point we need to translate
-        # the camera target
-        my $size = Slic3r::Pointf->new($self->GetSizeWH);
-        my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
-        $self->_camera_target->translate(
-            # ($pos - $size/2) represents the vector from the viewport center
-            # to the mouse point. By multiplying it by $zoom we get the new,
-            # transformed, length of such vector.
-            # Since we want that point to stay fixed, we move our camera target
-            # in the opposite direction by the delta of the length of such vector
-            # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
-            # $self->_camera_target is expressed in terms of model units.
-            -($pos->x - $size->x/2) * ($zoom) / $self->_zoom,
-            -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
-            0,
-        ) if 0;
-        $self->on_viewport_changed->() if $self->on_viewport_changed;
-        $self->_dirty(1);
-        $self->Refresh;
-    });
+    EVT_MOUSEWHEEL($self, \&mouse_wheel_event);
     EVT_MOUSE_EVENTS($self, \&mouse_event);
+    
+    $self->{layer_height_edit_timer_id} = &Wx::NewId();
+    $self->{layer_height_edit_timer} = Wx::Timer->new($self, $self->{layer_height_edit_timer_id});
+    EVT_TIMER($self, $self->{layer_height_edit_timer_id}, sub {
+        my ($self, $event) = @_;
+        return if ! $self->_layer_height_edited;
+        return if $self->{layer_height_edit_last_object_id} == -1;
+        $self->_variable_layer_thickness_action(undef, 1);
+    });
     
     return $self;
 }
 
 sub Destroy {
     my ($self) = @_;
+    $self->{layer_height_edit_timer}->Stop;
     $self->DestroyGL;
     return $self->SUPER::Destroy;
 }
@@ -207,43 +194,74 @@ sub _first_selected_object_id {
     return -1;
 }
 
+# Returns an array with (left, top, right, bottom) of the variable layer thickness bar on the screen.
+sub _variable_layer_thickness_bar_rect {
+    my ($self) = @_;
+    my ($cw, $ch) = $self->GetSizeWH;
+    my $bar_width = 70;
+    return ($cw - $bar_width, 0, $cw, $ch);
+}
+
+sub _variable_layer_thickness_bar_rect_mouse_inside {
+   my ($self, $mouse_evt) = @_;
+   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect;
+   return $mouse_evt->GetX >= $bar_left && $mouse_evt->GetX <= $bar_right && $mouse_evt->GetY >= $bar_top && $mouse_evt->GetY <= $bar_bottom;
+}
+
+sub _variable_layer_thickness_bar_mouse_cursor_z {
+   my ($self, $object_idx, $mouse_evt) = @_;
+   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect;
+   return unscale($self->{print}->get_object($object_idx)->size->z) * ($bar_bottom - $mouse_evt->GetY - 1.) / ($bar_bottom - $bar_top);
+}
+
+sub _variable_layer_thickness_action {
+    my ($self, $mouse_event, $do_modification) = @_;
+    # A volume is selected. Test, whether hovering over a layer thickness bar.
+    if (defined($mouse_event)) {
+        $self->{layer_height_edit_last_z} = $self->_variable_layer_thickness_bar_mouse_cursor_z($self->{layer_height_edit_last_object_id}, $mouse_event);
+        $self->{layer_height_edit_last_action} = $mouse_event->ShiftDown ? ($mouse_event->RightIsDown ? 3 : 2) : ($mouse_event->RightIsDown ? 0 : 1);
+    }
+    if ($self->{layer_height_edit_last_object_id} != -1) {
+        $self->{print}->get_object($self->{layer_height_edit_last_object_id})->adjust_layer_height_profile(
+            $self->{layer_height_edit_last_z},
+            $self->{layer_height_edit_strength},
+            $self->{layer_height_edit_band_width}, 
+            $self->{layer_height_edit_last_action});
+        $self->{print}->get_object($self->{layer_height_edit_last_object_id})->generate_layer_height_texture(
+            $self->volumes->[$self->{layer_height_edit_last_object_id}]->layer_height_texture_data->ptr,
+            $self->{layer_preview_z_texture_height},
+            $self->{layer_preview_z_texture_width});
+        $self->Refresh;
+        # Automatic action on mouse down with the same coordinate.
+        $self->{layer_height_edit_timer}->Start(100, wxTIMER_CONTINUOUS);
+    }
+}
+
 sub mouse_event {
     my ($self, $e) = @_;
     
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
+    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id : -1;
+
     if ($e->Entering && &Wx::wxMSW) {
         # wxMSW needs focus in order to catch mouse wheel events
         $self->SetFocus;
     } elsif ($e->LeftDClick) {
-        $self->on_double_click->()
-            if $self->on_double_click;
+        if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+        } elsif ($self->on_double_click) {
+            $self->on_double_click->();
+        }
     } elsif ($e->LeftDown || $e->RightDown) {
         # If user pressed left or right button we first check whether this happened
         # on a volume or not.
         my $volume_idx = $self->_hover_volume_idx // -1;
         $self->_layer_height_edited(0);
-        if ($self->layer_editing_enabled && $self->{print}) {
-            my $object_idx_selected = $self->_first_selected_object_id;
-            if ($object_idx_selected != -1) {
-                # A volume is selected. Test, whether hovering over a layer thickness bar.
-                my ($cw, $ch) = $self->GetSizeWH;
-                my $bar_width = 70;
-                if ($e->GetX >= $cw - $bar_width) {
-                    # Start editing the layer height.
-                    $self->_layer_height_edited(1);
-                    my $z = unscale($self->{print}->get_object($object_idx_selected)->size->z) * ($ch - $e->GetY - 1.) / ($ch - 1);
-#                    print "Modifying height profile at $z\n";
-#                    $self->{print}->get_object($object_idx_selected)->adjust_layer_height_profile($z, $e->RightDown ? - 0.05 : 0.05, 2., 0);
-                    $self->{print}->get_object($object_idx_selected)->generate_layer_height_texture(
-                        $self->volumes->[$object_idx_selected]->layer_height_texture_data->ptr,
-                        $self->{layer_preview_z_texture_height},
-                        $self->{layer_preview_z_texture_width});
-                    $self->Refresh;
-                }
-            }
-        }
-
-        if (! $self->_layer_height_edited) {
+        if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+            # A volume is selected and the mouse is hovering over a layer thickness bar.
+            # Start editing the layer height.
+            $self->_layer_height_edited(1);
+            $self->_variable_layer_thickness_action($e, 1);
+        } else {
             # Select volume in this 3D canvas.
             # Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             # during the scene manipulation.
@@ -304,21 +322,8 @@ sub mouse_event {
         $self->_dragged(1);
         $self->Refresh;
     } elsif ($e->Dragging) {
-        if ($self->_layer_height_edited) {
-            my $object_idx_selected = $self->_first_selected_object_id;
-            if ($object_idx_selected != -1) {
-                # A volume is selected. Test, whether hovering over a layer thickness bar.
-                my ($cw, $ch) = $self->GetSizeWH;
-                my $z = unscale($self->{print}->get_object($object_idx_selected)->size->z) * ($ch - $e->GetY - 1.) / ($ch - 1);
-#                print "Modifying height profile at $z\n";
-                my $strength = 0.005;
-                $self->{print}->get_object($object_idx_selected)->adjust_layer_height_profile($z, $e->RightIsDown ? - $strength : $strength, 2., $e->ShiftDown ? 1 : 0);
-                $self->{print}->get_object($object_idx_selected)->generate_layer_height_texture(
-                    $self->volumes->[$object_idx_selected]->layer_height_texture_data->ptr,
-                    $self->{layer_preview_z_texture_height},
-                    $self->{layer_preview_z_texture_width});
-                $self->Refresh;
-            }
+        if ($self->_layer_height_edited && $object_idx_selected != -1) {
+            $self->_variable_layer_thickness_action($e, 0);
         } elsif ($e->LeftIsDown) {
             # if dragging over blank area with left button, rotate
             if (defined $self->_drag_start_pos) {
@@ -375,6 +380,7 @@ sub mouse_event {
         $self->_drag_start_xy(undef);
         $self->_dragged(undef);
         $self->_layer_height_edited(undef);
+        $self->{layer_height_edit_timer}->Stop;
     } elsif ($e->Moving) {
         $self->_mouse_pos($pos);
         # Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor
@@ -383,6 +389,49 @@ sub mouse_event {
     } else {
         $e->Skip();
     }
+}
+
+sub mouse_wheel_event {
+    my ($self, $e) = @_;
+    
+    if ($self->layer_editing_enabled && $self->{print}) {
+        my $object_idx_selected = $self->_first_selected_object_id;
+        if ($object_idx_selected != -1) {
+            # A volume is selected. Test, whether hovering over a layer thickness bar.
+            if ($self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+                # Adjust the width of the selection.
+                $self->{layer_height_edit_band_width} = max(min($self->{layer_height_edit_band_width} * (1 + 0.1 * $e->GetWheelRotation() / $e->GetWheelDelta()), 10.), 1.5);
+                $self->Refresh;
+                return;
+            }
+        }
+    }
+
+    # Calculate the zoom delta and apply it to the current zoom factor
+    my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
+    $zoom = max(min($zoom, 4), -4);
+    $zoom /= 10;
+    $self->_zoom($self->_zoom / (1-$zoom));
+    
+    # In order to zoom around the mouse point we need to translate
+    # the camera target
+    my $size = Slic3r::Pointf->new($self->GetSizeWH);
+    my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
+    $self->_camera_target->translate(
+        # ($pos - $size/2) represents the vector from the viewport center
+        # to the mouse point. By multiplying it by $zoom we get the new,
+        # transformed, length of such vector.
+        # Since we want that point to stay fixed, we move our camera target
+        # in the opposite direction by the delta of the length of such vector
+        # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
+        # $self->_camera_target is expressed in terms of model units.
+        -($pos->x - $size->x/2) * ($zoom) / $self->_zoom,
+        -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
+        0,
+    ) if 0;
+    $self->on_viewport_changed->() if $self->on_viewport_changed;
+    $self->_dirty(1);
+    $self->Refresh;
 }
 
 # Reset selection.
@@ -1084,14 +1133,17 @@ sub draw_volumes {
             my $z_to_texture_row_id             = $self->{shader}->Map('z_to_texture_row');
             my $z_texture_row_to_normalized_id  = $self->{shader}->Map('z_texture_row_to_normalized');
             my $z_cursor_id                     = $self->{shader}->Map('z_cursor');
+            my $z_cursor_band_width_id          = $self->{shader}->Map('z_cursor_band_width');
             die if ! defined($z_to_texture_row_id);
             die if ! defined($z_texture_row_to_normalized_id);
             die if ! defined($z_cursor_id);
+            die if ! defined($z_cursor_band_width_id);
             my $ncells = $volume->{layer_height_texture_cells};
             my $z_max = $volume->{bounding_box}->z_max;
             glUniform1fARB($z_to_texture_row_id, ($ncells - 1) / ($self->{layer_preview_z_texture_width} * $z_max));
             glUniform1fARB($z_texture_row_to_normalized_id, 1. / $self->{layer_preview_z_texture_height});
             glUniform1fARB($z_cursor_id, $z_max * $z_cursor_relative);
+            glUniform1fARB($z_cursor_band_width_id, $self->{layer_height_edit_band_width});
             glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
 #            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_LEVEL, 0);
 #            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
@@ -1421,7 +1473,7 @@ void main()
     float z_texture_col = object_z_row - z_texture_row;
 //    float z_blend = 0.5 + 0.5 * cos(min(M_PI, abs(M_PI * (object_z - z_cursor) / 3.)));
 //    float z_blend = 0.5 * cos(min(M_PI, abs(M_PI * (object_z - z_cursor)))) + 0.5;
-    float z_blend = 0.25 * cos(min(M_PI, abs(M_PI * (object_z - z_cursor)))) + 0.25;
+    float z_blend = 0.25 * cos(min(M_PI, abs(M_PI * (object_z - z_cursor) * 1.8 / z_cursor_band_width))) + 0.25;
     // Scale z_texture_row to normalized coordinates.
     // Sample the Z texture.
     gl_FragColor = 
