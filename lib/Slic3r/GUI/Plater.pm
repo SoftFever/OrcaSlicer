@@ -1489,6 +1489,40 @@ sub export_stl {
     $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
 
+sub reload_from_disk {
+    my ($self) = @_;
+    
+    my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    
+    my $model_object = $self->{model}->objects->[$obj_idx];
+    return if !$model_object->input_file
+        || !-e $model_object->input_file;
+    
+    my @new_obj_idx = $self->load_file($model_object->input_file);
+    return if !@new_obj_idx;
+    
+    foreach my $new_obj_idx (@new_obj_idx) {
+        my $o = $self->{model}->objects->[$new_obj_idx];
+        $o->clear_instances;
+        $o->add_instance($_) for @{$model_object->instances};
+        
+        if ($o->volumes_count == $model_object->volumes_count) {
+            for my $i (0..($o->volumes_count-1)) {
+                $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
+            }
+        }
+    }
+    
+    $self->remove($obj_idx);
+    
+    # Trigger thumbnail generation again, because the remove() method altered
+    # object indexes before background thumbnail generation called its completion
+    # event, so the on_thumbnail_made callback is called with the wrong $obj_idx.
+    # When porting to C++ we'll probably have cleaner ways to do this.
+    $self->make_thumbnail($_-1) for @new_obj_idx;
+}
+
 sub export_object_stl {
     my $self = shift;
     
