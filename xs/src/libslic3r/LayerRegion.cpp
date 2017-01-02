@@ -302,8 +302,10 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             polygons_append(polys, STDMOVE(s1));
             for (size_t j = i + 1; j < top.size(); ++ j) {
                 Surface &s2 = top[j];
-                if (! s2.empty() && surfaces_could_merge(s1, s2))
+                if (! s2.empty() && surfaces_could_merge(s1, s2)) {
                     polygons_append(polys, STDMOVE(s2));
+                    s2.clear();
+                }
             }
             if (s1.surface_type == stTop)
                 // Trim the top surfaces by the bottom surfaces. This gives the priority to the bottom surfaces.
@@ -326,8 +328,10 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
         polygons_append(polys, STDMOVE(s1));
         for (size_t j = i + 1; j < internal.size(); ++ j) {
             Surface &s2 = internal[j];
-            if (! s2.empty() && surfaces_could_merge(s1, s2))
+            if (! s2.empty() && surfaces_could_merge(s1, s2)) {
                 polygons_append(polys, STDMOVE(s2));
+                s2.clear();
+            }
         }
         ExPolygons new_expolys = diff_ex(polys, new_polygons);
         polygons_append(new_polygons, to_polygons(new_expolys));
