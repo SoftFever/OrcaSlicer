@@ -46,6 +46,7 @@ sub generate {
     # We now know the upper and lower boundaries for our support material object
     # (@$contact_z and @$top_z), so we can generate intermediate layers.
     my $support_z = $self->support_layers_z(
+        $object,
         [ sort keys %$contact ],
         [ sort keys %$top ],
         max(map $_->height, @{$object->layers})
@@ -384,7 +385,7 @@ sub object_top {
 }
 
 sub support_layers_z {
-    my ($self, $contact_z, $top_z, $max_object_layer_height) = @_;
+    my ($self, $object, $contact_z, $top_z, $max_object_layer_height) = @_;
     
     # quick table to check whether a given Z is a top surface
     my %top = map { $_ => 1 } @$top_z;
@@ -397,13 +398,18 @@ sub support_layers_z {
     my $contact_distance = $self->contact_distance($support_material_height, $nozzle_diameter);
     
     # initialize known, fixed, support layers
-    my @z = sort { $a <=> $b }
-        @$contact_z,
-        # TODO: why we have this?
-        # Vojtech: To detect the bottom interface layers by finding a Z value in the $top_z.
-        @$top_z,
-        # Top surfaces of the bottom interface layers.
-        (map $_ + $contact_distance, @$top_z);
+    my @z = @$contact_z;
+    my $synchronize = $self->object_config->support_material_synchronize_layers;
+    if (! $synchronize) {
+        push @z, 
+            # TODO: why we have this?
+            # Vojtech: To detect the bottom interface layers by finding a Z value in the $top_z.
+            @$top_z;
+        push @z,
+            # Top surfaces of the bottom interface layers.
+            (map $_ + $contact_distance, @$top_z);
+    }
+    @z = sort { $a <=> $b } @z;
     
     # enforce first layer height
     my $first_layer_height = $self->object_config->get_value('first_layer_height');
@@ -423,23 +429,29 @@ sub support_layers_z {
             1..($self->object_config->raft_layers - 2);
     }
     
-    # create other layers (skip raft layers as they're already done and use thicker layers)
-    for (my $i = $#z; $i >= $self->object_config->raft_layers; $i--) {
-        my $target_height = $support_material_height;
-        if ($i > 0 && $top{ $z[$i-1] }) {
-            # Bridge flow?
-            #FIXME We want to enforce not only the bridge flow height, but also the interface gap!
-            # This will introduce an additional layer if the gap is set to an extreme value!
-            $target_height = $nozzle_diameter;
-        }
-        
-        # enforce first layer height
-        #FIXME better to split the layers regularly, than to bite a constant height one at a time, 
-        # and then be left with a very thin layer at the end.
-        if (($i == 0 && $z[$i] > $target_height + $first_layer_height)
-            || ($z[$i] - $z[$i-1] > $target_height + Slic3r::Geometry::epsilon)) {
-            splice @z, $i, 0, ($z[$i] - $target_height);
-            $i++;
+    if ($synchronize) {
+        @z = splice @z, $self->object_config->raft_layers;
+#            if ($self->object_config->raft_layers > scalar(@z));
+        push @z, map $_->print_z, @{$object->layers};
+    } else {
+        # create other layers (skip raft layers as they're already done and use thicker layers)
+        for (my $i = $#z; $i >= $self->object_config->raft_layers; $i--) {
+            my $target_height = $support_material_height;
+            if ($i > 0 && $top{ $z[$i-1] }) {
+                # Bridge flow?
+                #FIXME We want to enforce not only the bridge flow height, but also the interface gap!
+                # This will introduce an additional layer if the gap is set to an extreme value!
+                $target_height = $nozzle_diameter;
+            }
+            
+            # enforce first layer height
+            #FIXME better to split the layers regularly, than to bite a constant height one at a time, 
+            # and then be left with a very thin layer at the end.
+            if (($i == 0 && $z[$i] > $target_height + $first_layer_height)
+                || ($z[$i] - $z[$i-1] > $target_height + Slic3r::Geometry::epsilon)) {
+                splice @z, $i, 0, ($z[$i] - $target_height);
+                $i++;
+            }
         }
     }
     
@@ -627,7 +639,7 @@ sub generate_toolpaths {
     my $interface_flow  = $self->interface_flow;
     
     # shape of contact area
-    my $contact_loops   = 1;
+    my $contact_loops   = $self->object_config->support_material_interface_contact_loops ? 1 : 0;
     my $circle_radius   = 1.5 * $interface_flow->scaled_width;
     my $circle_distance = 3 * $circle_radius;
     my $circle          = Slic3r::Polygon->new(map [ $circle_radius * cos $_, $circle_radius * sin $_ ],
@@ -691,7 +703,10 @@ sub generate_toolpaths {
             # if no interface layers were requested we treat the contact layer
             # exactly as a generic base layer
             push @$base, @$contact;
-        } elsif (@$contact && $contact_loops > 0) {
+        } elsif ($contact_loops == 0) {
+            # No contact loops, but some interface layers. Print the contact layer as a normal interface layer.
+            push @$interface, @$contact;
+        } elsif (@$contact) {
             # generate the outermost loop
             
             # find centerline of the external loop (or any other kind of extrusions should the loop be skipped)

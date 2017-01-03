@@ -532,8 +532,8 @@ sub build {
         brim_width
         support_material support_material_threshold support_material_enforce_layers
         raft_layers
-        support_material_pattern support_material_with_sheath support_material_spacing support_material_angle
-        support_material_interface_layers support_material_interface_spacing
+        support_material_pattern support_material_with_sheath support_material_spacing support_material_synchronize_layers support_material_angle
+        support_material_interface_layers support_material_interface_spacing support_material_interface_contact_loops
         support_material_contact_distance support_material_buildplate_only dont_support_bridges
         notes
         complete_objects extruder_clearance_radius extruder_clearance_height
@@ -646,8 +646,10 @@ sub build {
             $optgroup->append_single_option_line('support_material_angle');
             $optgroup->append_single_option_line('support_material_interface_layers');
             $optgroup->append_single_option_line('support_material_interface_spacing');
+            $optgroup->append_single_option_line('support_material_interface_contact_loops');
             $optgroup->append_single_option_line('support_material_buildplate_only');
             $optgroup->append_single_option_line('dont_support_bridges');
+            $optgroup->append_single_option_line('support_material_synchronize_layers');
         }
     }
     
@@ -910,12 +912,12 @@ sub _update {
     my $have_support_interface = $config->support_material_interface_layers > 0;
     $self->get_field($_)->toggle($have_support_material)
         for qw(support_material_threshold support_material_pattern support_material_with_sheath
-            support_material_spacing support_material_angle
+            support_material_spacing support_material_synchronize_layers support_material_angle
             support_material_interface_layers dont_support_bridges
             support_material_extrusion_width support_material_contact_distance);
     $self->get_field($_)->toggle($have_support_material && $have_support_interface)
         for qw(support_material_interface_spacing support_material_interface_extruder
-            support_material_interface_speed);
+            support_material_interface_speed support_material_interface_contact_loops);
     
     $self->get_field('perimeter_extrusion_width')->toggle($have_perimeters || $have_skirt || $have_brim);
     $self->get_field('support_material_extruder')->toggle($have_support_material || $have_skirt);

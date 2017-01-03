@@ -1178,6 +1178,13 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "support-material-extrusion-width=s";
     def->default_value = new ConfigOptionFloatOrPercent(0, false);
 
+    def = this->add("support_material_interface_contact_loops", coBool);
+    def->label = "Interface circles";
+    def->category = "Support material";
+    def->tooltip = "Cover the top most interface layer with contact loops";
+    def->cli = "support-material-interface-contact-loops!";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("support_material_interface_extruder", coInt);
     def->label = "Support material/raft interface extruder";
     def->category = "Extruders";
@@ -1247,6 +1254,13 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "support-material-speed=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(60);
+
+    def = this->add("support_material_synchronize_layers", coBool);
+    def->label = "Synchronize with object layers";
+    def->category = "Support material";
+    def->tooltip = "Synchronize support layers with the object print layers. This is useful with multi-material printers, where the extruder switch is expensive.";
+    def->cli = "support-material-synchronize-layers!";
+    def->default_value = new ConfigOptionBool(false);
 
     def = this->add("support_material_threshold", coInt);
     def->label = "Overhang threshold";
