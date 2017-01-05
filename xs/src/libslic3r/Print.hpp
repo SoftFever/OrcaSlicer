@@ -206,7 +206,8 @@ class Print
     bool reload_model_instances();
 
     // methods for handling regions
-    PrintRegion* get_region(size_t idx);
+    PrintRegion* get_region(size_t idx) { return regions.at(idx); }
+    const PrintRegion* get_region(size_t idx) const  { return regions.at(idx); }
     PrintRegion* add_region();
     
     // methods for handling state

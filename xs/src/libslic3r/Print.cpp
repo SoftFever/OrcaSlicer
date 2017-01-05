@@ -134,12 +134,6 @@ Print::clear_regions()
 }
 
 PrintRegion*
-Print::get_region(size_t idx)
-{
-    return regions.at(idx);
-}
-
-PrintRegion*
 Print::add_region()
 {
     PrintRegion *region = new PrintRegion(this);
