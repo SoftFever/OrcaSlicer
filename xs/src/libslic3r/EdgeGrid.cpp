@@ -839,6 +839,8 @@ void EdgeGrid::Grid::calculate_sdf()
 	}
 
 #if 0
+	static int iRun = 0;
+	++ iRun;
 //#ifdef SLIC3R_GUI
 	{ 
 		wxImage img(ncols, nrows);
@@ -862,7 +864,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("unsigned_df.png"), wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("unsigned_df-%d.png", iRun), wxBITMAP_TYPE_PNG);
 	}
 	{
 		wxImage img(ncols, nrows);
@@ -895,7 +897,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df.png"), wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df-%d.png", iRun), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 
@@ -1020,7 +1022,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df-signs.png"), wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df-signs-%d.png", iRun), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 
@@ -1049,7 +1051,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df2.png"), wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df2-%d.png", iRun), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 }
@@ -1364,17 +1366,18 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
 	++iRun;
     
     const coord_t search_radius = grid.resolution() * 2;
-	const coord_t display_blend_radius = grid.resolution() * 5;
+	const coord_t display_blend_radius = grid.resolution() * 2;
 	for (coord_t r = 0; r < h; ++r) {
     	for (coord_t c = 0; c < w; ++ c) {
 			unsigned char *pxl = data + (((h - r - 1) * w) + c) * 3;
 			Point pt(c * resolution + bbox.min.x, r * resolution + bbox.min.y);
 			coordf_t min_dist;
-			bool on_segment;
-//			if (grid.signed_distance_edges(pt, search_radius, min_dist, &on_segment)) {
+			bool on_segment = true;
+			#if 0
+			if (grid.signed_distance_edges(pt, search_radius, min_dist, &on_segment)) {
+			#else
 			if (grid.signed_distance(pt, search_radius, min_dist)) {
-				//FIXME
-				on_segment = true;
+			#endif
 				float s = 255 * std::abs(min_dist) / float(display_blend_radius);
 				int is = std::max(0, std::min(255, int(floor(s + 0.5f))));
 				if (min_dist < 0) {
@@ -1383,9 +1386,9 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
 						pxl[1] = 255 - is;
 						pxl[2] = 255 - is;
 					} else {
-						pxl[0] = 128;
-						pxl[1] = 128;
-						pxl[2] = 255 - is;						
+						pxl[0] = 255;
+						pxl[1] = 0;
+						pxl[2] = 255 - is;
 					}
 				}
 				else {
