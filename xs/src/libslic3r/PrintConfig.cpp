@@ -1121,12 +1121,16 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "support-material!";
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("support_material_xy_spacing", coFloat);
-    def->label = "Extra separation between part and support (mm)";
+    def = this->add("support_material_xy_spacing", coFloatOrPercent);
+    def->label = "XY separation between an object and its support";
     def->category = "Support material";
-    def->tooltip = "Add offset to support material separation (0 is 1 extrusion width).";
-    def->cli = "support-material-xy-spacing=f";
-    def->default_value = new ConfigOptionFloat(0.0);
+    def->tooltip = "XY separation between an object and its support. If expressed as percentage (for example 50%), it will be calculated over external perimeter width.";
+    def->sidetext = "mm or %";
+    def->cli = "support-material-xy-spacing=s";
+    def->ratio_over = "external_perimeter_extrusion_width";
+    def->min = 0;
+    // Default is half the external perimeter width.
+    def->default_value = new ConfigOptionFloatOrPercent(50, true);
 
     def = this->add("support_material_angle", coInt);
     def->label = "Pattern angle";
