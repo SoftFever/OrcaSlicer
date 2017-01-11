@@ -35,7 +35,7 @@ namespace Slic3r {
 //#define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 1.5
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
 
-
+#ifdef SLIC3R_DEBUG
 const char* support_surface_type_to_color_name(const PrintObjectSupportMaterial::SupporLayerType surface_type)
 {
     switch (surface_type) {
@@ -101,6 +101,7 @@ void export_print_z_polygons_to_svg(const char *path, PrintObjectSupportMaterial
     export_support_surface_type_legend_to_svg(svg, legend_pos);
     svg.Close();
 }
+#endif /* SLIC3R_DEBUG */
 
 PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object, const SlicingParameters &slicing_params) :
     m_object                (object),
