@@ -947,7 +947,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 
 	assert(extremes.front().z() > m_slicing_params.raft_interface_top_z && extremes.front().z() >= m_slicing_params.first_print_layer_height);
 
-    bool synchronize = m_slicing_params.soluble_interface || this->synchronize_layers();
+//    bool synchronize = m_slicing_params.soluble_interface || this->synchronize_layers();
+    bool synchronize = this->synchronize_layers();
 
     // Generate intermediate layers.
     // The first intermediate layer is the same as the 1st layer if there is no raft,
