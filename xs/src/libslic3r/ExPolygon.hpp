@@ -18,6 +18,9 @@ public:
     ExPolygon(const ExPolygon &other) : contour(other.contour), holes(other.holes) {}
     ExPolygon(ExPolygon &&other) : contour(std::move(other.contour)), holes(std::move(other.holes)) {}
 
+    ExPolygon& operator=(const ExPolygon &other) { contour = other.contour; holes = other.holes; return *this; }
+    ExPolygon& operator=(ExPolygon &&other) { contour = std::move(other.contour); holes = std::move(other.holes); return *this; }
+
     Polygon contour;
     Polygons holes;
 
