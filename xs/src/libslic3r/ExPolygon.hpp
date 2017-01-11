@@ -13,9 +13,14 @@ typedef std::vector<ExPolygon> ExPolygons;
 
 class ExPolygon
 {
-    public:
+public:
+    ExPolygon() {}
+    ExPolygon(const ExPolygon &other) : contour(other.contour), holes(other.holes) {}
+    ExPolygon(ExPolygon &&other) : contour(std::move(other.contour)), holes(std::move(other.holes)) {}
+
     Polygon contour;
     Polygons holes;
+
     operator Points() const;
     operator Polygons() const;
     operator Polylines() const;
