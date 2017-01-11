@@ -152,7 +152,7 @@ public:
 protected:
     SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z);
-    virtual ~SupportLayer();
+    virtual ~SupportLayer() {}
 };
 
 

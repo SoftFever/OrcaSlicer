@@ -313,9 +313,4 @@ SupportLayer::SupportLayer(size_t id, PrintObject *object, coordf_t height,
 {
 }
 
-SupportLayer::~SupportLayer()
-{
-}
-
-
 }

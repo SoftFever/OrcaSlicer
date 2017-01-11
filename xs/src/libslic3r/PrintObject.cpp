@@ -133,8 +133,12 @@ PrintObject::layer_count() const
 void
 PrintObject::clear_layers()
 {
-    for (int i = this->layers.size()-1; i >= 0; --i)
-        this->delete_layer(i);
+    for (size_t i = 0; i < this->layers.size(); ++ i) {
+        Layer *layer = this->layers[i];
+        layer->upper_layer = layer->lower_layer = nullptr;
+        delete layer;
+    }
+    this->layers.clear();
 }
 
 Layer*
@@ -162,8 +166,12 @@ PrintObject::support_layer_count() const
 void
 PrintObject::clear_support_layers()
 {
-    for (int i = this->support_layers.size()-1; i >= 0; --i)
-        this->delete_support_layer(i);
+    for (size_t i = 0; i < this->support_layers.size(); ++ i) {
+        Layer *layer = this->support_layers[i];
+        layer->upper_layer = layer->lower_layer = nullptr;
+        delete layer;
+    }
+    this->support_layers.clear();
 }
 
 SupportLayer*
