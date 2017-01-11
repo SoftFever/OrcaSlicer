@@ -988,7 +988,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
                 intermediate_layers.push_back(&layer_new);
                 continue;
             }
-        } else if (extr1z + step < this->first_layer_height()) {
+        } else if (extr1z + step > this->first_layer_height()) {
             MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
             layer_new.bottom_z   = extr1z;
             layer_new.print_z    = extr1z = this->first_layer_height();
