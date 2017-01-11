@@ -35,6 +35,73 @@ namespace Slic3r {
 //#define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 1.5
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
 
+
+const char* support_surface_type_to_color_name(const PrintObjectSupportMaterial::SupporLayerType surface_type)
+{
+    switch (surface_type) {
+        case PrintObjectSupportMaterial::sltTopContact:     return "rgb(255,0,0)"; // "red";
+        case PrintObjectSupportMaterial::sltTopInterface:   return "rgb(0,255,0)"; // "green";
+        case PrintObjectSupportMaterial::sltBase:           return "rgb(0,0,255)"; // "blue";
+        case PrintObjectSupportMaterial::sltBottomInterface:return "rgb(255,255,128)"; // yellow 
+        case PrintObjectSupportMaterial::sltBottomContact:  return "rgb(255,0,255)"; // magenta
+        case PrintObjectSupportMaterial::sltRaftInterface:  return "rgb(0,255,255)";
+        case PrintObjectSupportMaterial::sltRaftBase:       return "rgb(128,128,128)";
+        case PrintObjectSupportMaterial::sltUnknown:        return "rgb(128,0,0)"; // maroon
+        default:                                            return "rgb(64,64,64)";
+    };
+}
+
+Point export_support_surface_type_legend_to_svg_box_size()
+{
+    return Point(scale_(1.+10.*8.), scale_(3.)); 
+}
+
+void export_support_surface_type_legend_to_svg(SVG &svg, const Point &pos)
+{
+    // 1st row
+    coord_t pos_x0 = pos.x + scale_(1.);
+    coord_t pos_x = pos_x0;
+    coord_t pos_y = pos.y + scale_(1.5);
+    coord_t step_x = scale_(10.);
+    svg.draw_legend(Point(pos_x, pos_y), "top contact"    , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltTopContact));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "top iface"      , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltTopInterface));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "base"           , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltBase));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "bottom iface"   , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltBottomInterface));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "bottom contact" , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltBottomContact));
+    // 2nd row
+    pos_x = pos_x0;
+    pos_y = pos.y+scale_(2.8);
+    svg.draw_legend(Point(pos_x, pos_y), "raft interface" , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltRaftInterface));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "raft base"      , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltRaftBase));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "unknown"        , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltUnknown));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "intermediate"   , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltIntermediate));
+}
+
+void export_print_z_polygons_to_svg(const char *path, PrintObjectSupportMaterial::MyLayer ** const layers, size_t n_layers)
+{
+    BoundingBox bbox;
+    for (int i = 0; i < n_layers; ++ i)
+        bbox.merge(get_extents(layers[i]->polygons));
+    Point legend_size = export_support_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min.x, bbox.max.y);
+    bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (int i = 0; i < n_layers; ++ i)
+        svg.draw(union_ex(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type), transparency);
+    for (int i = 0; i < n_layers; ++ i)
+        svg.draw(to_lines(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type));
+    export_support_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close();
+}
+
 PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object, const SlicingParameters &slicing_params) :
     m_object                (object),
     m_print_config          (&object->print()->config),
@@ -251,13 +318,22 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // Sort the layers lexicographically by a raising print_z and a decreasing height.
     std::sort(layers_sorted.begin(), layers_sorted.end(), MyLayersPtrCompare());
     int layer_id = 0;
+    assert(object.support_layers.empty());
     for (int i = 0; i < int(layers_sorted.size());) {
-        // Find the last layer with the same print_z, find the minimum layer height of all.
+        // Find the last layer with roughly the same print_z, find the minimum layer height of all.
+		// Due to the floating point inaccuracies, the print_z may not be the same even if in theory they should.
         int j = i + 1;
-        coordf_t height_min = layers_sorted[i]->height;
-        for (; j < layers_sorted.size() && layers_sorted[i]->print_z == layers_sorted[j]->print_z; ++ j) 
-            height_min = std::min(height_min, layers_sorted[j]->height);
-        object.add_support_layer(layer_id, height_min, layers_sorted[i]->print_z);
+		coordf_t zmax = layers_sorted[i]->print_z + EPSILON;
+		for (; j < layers_sorted.size() && layers_sorted[j]->print_z <= zmax; ++j) ;
+		// Assign an average print_z to the set of layers with nearly equal print_z.
+		coordf_t zavg = 0.5 * (layers_sorted[i]->print_z + layers_sorted[j - 1]->print_z);
+		coordf_t height_min = layers_sorted[i]->height;
+		for (int u = i; u < j; ++u) {
+			MyLayer &layer = *layers_sorted[u];
+			layer.print_z = zavg;
+			height_min = std::min(height_min, layer.height);
+		}
+		object.add_support_layer(layer_id, height_min, zavg);
         if (layer_id > 0) {
             // Inter-link the support layers into a linked list.
             SupportLayer *sl1 = object.support_layers[object.support_layer_count()-2];
@@ -265,6 +341,9 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
             sl1->upper_layer = sl2;
             sl2->lower_layer = sl1;
         }
+#ifdef SLIC3R_DEBUG
+        export_print_z_polygons_to_svg(debug_out_path("support-%d-%lf.svg", iRun, zavg).c_str(), layers_sorted.data() + i, j - i);
+#endif
         i = j;
         ++ layer_id;
     }
@@ -639,7 +718,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             // Store the overhang polygons as the aux_polygons.
             // The overhang polygons are used in the path generator for planning of the contact loops.
             // if (this->has_contact_loops())
-                new_layer.aux_polygons = new Polygons(std::move(overhang_polygons));
+            new_layer.aux_polygons = new Polygons(std::move(overhang_polygons));
             contact_out.push_back(&new_layer);
 
             if (0) { 
@@ -901,7 +980,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
                 extr2.layer->bottom_z = extr2z = this->first_layer_height();
                 extr2.layer->height = extr2.layer->print_z - extr2.layer->bottom_z;
                 // 2) Insert a new intermediate layer.
-                MyLayer &layer_new = layer_allocate(layer_storage, stlIntermediate);
+                MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
                 layer_new.bottom_z   = extr1z;
                 layer_new.print_z    = this->first_layer_height();
                 layer_new.height     = layer_new.print_z - layer_new.bottom_z;
@@ -909,7 +988,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
                 continue;
             }
         } else if (extr1z + step < this->first_layer_height()) {
-            MyLayer &layer_new = layer_allocate(layer_storage, stlIntermediate);
+            MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
             layer_new.bottom_z   = extr1z;
             layer_new.print_z    = extr1z = this->first_layer_height();
             layer_new.height     = layer_new.print_z - layer_new.bottom_z;
@@ -933,7 +1012,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         }
         // Take the largest allowed step in the Z axis until extr2z_large_steps is reached.
         for (size_t i = 0; i < n_layers_extra; ++ i) {
-            MyLayer &layer_new = layer_allocate(layer_storage, stlIntermediate);
+            MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
 			if (i + 1 == n_layers_extra) {
 				// Last intermediate layer added. Align the last entered layer with extr2z_large_steps exactly.
 				layer_new.bottom_z = (i == 0) ? extr1z : intermediate_layers.back()->print_z;
@@ -1051,6 +1130,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
                 polygons_new,
                 polygons_trimming,
                 true); // safety offset to merge the touching source polygons
+        layer_intermediate.layer_type = sltBase;
 
 /*
         if (0) {
@@ -1515,8 +1595,11 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     // Insert the raft base layers.
     size_t support_layer_id = 0;
     for (; support_layer_id < size_t(std::max(0, int(m_slicing_params.raft_layers()) - 1)); ++ support_layer_id) {
-        SupportLayer &support_layer = *object.support_layers[support_layer_id];
         assert(support_layer_id < raft_layers.size());
+        SupportLayer &support_layer = *object.support_layers[support_layer_id];
+        assert(support_layer.support_fills.entities.empty());
+        assert(support_layer.support_interface_fills.entities.empty());
+        assert(support_layer.support_islands.expolygons.empty());
         MyLayer      &raft_layer    = *raft_layers[support_layer_id];
         //FIXME When paralellizing, each thread shall have its own copy of the fillers.
         Fill *filler = filler_support.get();
@@ -1635,9 +1718,10 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         if (! interface_layer.empty() && ! base_layer.empty()) {
             // turn base support into interface when it's contained in our holes
             // (this way we get wider interface anchoring)
+            //FIXME one wants to fill in the inner most holes of the interfaces, not all the holes.
             Polygons islands = top_level_islands(interface_layer.layer->polygons);
-            base_layer.layer->polygons = diff(base_layer.layer->polygons, islands);
             polygons_append(interface_layer.layer->polygons, intersection(base_layer.layer->polygons, islands));
+            base_layer.layer->polygons = diff(base_layer.layer->polygons, islands);
         }
 
 		// interface and contact infill

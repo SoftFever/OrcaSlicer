@@ -42,7 +42,7 @@ public:
 		// Top contact layer directly supporting an overhang. To be printed with a support interface material.
 		sltTopContact,
 		// Some undecided type yet. It will turn into sltBase first, then it may turn into sltBottomInterface or sltTopInterface.
-		stlIntermediate,
+		sltIntermediate,
 	};
 
 	// A support layer type used internally by the SupportMaterial class. This class carries a much more detailed
