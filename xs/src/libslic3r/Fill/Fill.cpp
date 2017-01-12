@@ -246,22 +246,21 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
             flow = Flow::new_from_spacing(f->spacing, flow.nozzle_diameter, h, is_bridge || f->use_bridge_flow());
         }
 
-        // save into layer
-        {
-            ExtrusionRole role = is_bridge ? erBridgeInfill :
-                (surface.is_solid() ? ((surface.surface_type == stTop) ? erTopSolidInfill : erSolidInfill) : erInternalInfill);
-            ExtrusionEntityCollection &collection = *(new ExtrusionEntityCollection());
-            out.entities.push_back(&collection);
-            // Only concentric fills are not sorted.
-            collection.no_sort = f->no_sort();
-            for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it) {
-                ExtrusionPath *path = new ExtrusionPath(role, flow.mm3_per_mm(), flow.width, flow.height);
-                collection.entities.push_back(path);
-                path->polyline.points.swap(it->points);
-            }
-        }
+        // Save into layer.
+        auto *eec = new ExtrusionEntityCollection();
+        out.entities.push_back(eec);
+        // Only concentric fills are not sorted.
+        eec->no_sort = f->no_sort();
+        extrusion_entities_append_paths(
+            eec->entities, STDMOVE(polylines),
+            is_bridge ?
+                erBridgeInfill :
+                (surface.is_solid() ?
+                    ((surface.surface_type == stTop) ? erTopSolidInfill : erSolidInfill) :
+                    erInternalInfill),
+            flow.mm3_per_mm(), flow.width, flow.height);
     }
-    
+
     // add thin fill regions
     // thin_fills are of C++ Slic3r::ExtrusionEntityCollection, perl type Slic3r::ExtrusionPath::Collection
     // Unpacks the collection, creates multiple collections per path.

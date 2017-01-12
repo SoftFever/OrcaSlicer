@@ -372,11 +372,9 @@ public:
         bool sticks_removed = remove_sticks(polygons_src);
 //        if (sticks_removed) printf("Sticks removed!\n");
         polygons_outer = offset(polygons_src, aoffset1,
-            CLIPPER_OFFSET_SCALE,
             ClipperLib::jtMiter,
             mitterLimit);
         polygons_inner = offset(polygons_outer, aoffset2 - aoffset1,
-            CLIPPER_OFFSET_SCALE,
             ClipperLib::jtMiter,
             mitterLimit);
 		// Filter out contours with zero area or small area, contours with 2 points only.
@@ -884,7 +882,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         Point refpt = rotate_vector.second.rotated(- rotate_vector.first);
         // _align_to_grid will not work correctly with positive pattern_shift.
         coord_t pattern_shift_scaled = coord_t(scale_(pattern_shift)) % line_spacing;
-        refpt.x -= (pattern_shift_scaled > 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
+        refpt.x -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
         bounding_box.merge(_align_to_grid(
             bounding_box.min, 
             Point(line_spacing, line_spacing), 
@@ -894,7 +892,9 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     // Intersect a set of euqally spaced vertical lines wiht expolygon.
     // n_vlines = ceil(bbox_width / line_spacing)
     size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + line_spacing - 1) / line_spacing;
-    coord_t x0 = bounding_box.min.x + (line_spacing + SCALED_EPSILON) / 2;
+	coord_t x0 = bounding_box.min.x;
+	if (full_infill)
+		x0 += (line_spacing + SCALED_EPSILON) / 2;
 
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;

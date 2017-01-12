@@ -40,14 +40,17 @@ Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, bool 
 /* This method returns the centerline spacing between two adjacent extrusions 
    having the same extrusion width (and other properties). */
 float
-Flow::spacing() const {
-    if (this->bridge) {
+Flow::spacing() const 
+{
+#ifdef HAS_PERIMETER_LINE_OVERLAP
+    if (this->bridge)
         return this->width + BRIDGE_EXTRA_SPACING;
-    }
-    
     // rectangle with semicircles at the ends
     float min_flow_spacing = this->width - this->height * (1 - PI/4.0);
-    return this->width - OVERLAP_FACTOR * (this->width - min_flow_spacing);
+    return this->width - PERIMETER_LINE_OVERLAP_FACTOR * (this->width - min_flow_spacing);
+#else
+    return this->bridge ? (this->width + BRIDGE_EXTRA_SPACING) : (this->width - this->height * (1 - PI/4.0));
+#endif
 }
 
 /* This method returns the centerline spacing between an extrusion using this
@@ -57,23 +60,17 @@ float
 Flow::spacing(const Flow &other) const {
     assert(this->height == other.height);
     assert(this->bridge == other.bridge);
-    
-    if (this->bridge) {
-        return this->width/2 + other.width/2 + BRIDGE_EXTRA_SPACING;
-    }
-    
-    return this->spacing()/2 + other.spacing()/2;
+    return this->bridge ? 
+        0.5f * this->width + 0.5f * other.width + BRIDGE_EXTRA_SPACING :
+        0.5f * this->spacing() + 0.5f * other.spacing();
 }
 
 /* This method returns extrusion volume per head move unit. */
-double
-Flow::mm3_per_mm() const {
-    if (this->bridge) {
-        return (this->width * this->width) * PI/4.0;
-    }
-    
-    // rectangle with semicircles at the ends
-    return this->width * this->height + (this->height*this->height) / 4.0 * (PI-4.0);
+double Flow::mm3_per_mm() const 
+{
+    return this->bridge ?
+        (this->width * this->width) * PI/4.0 :
+        this->width * this->height + (this->height * this->height) / 4.0 * (PI-4.0);
 }
 
 /* This static method returns bridge width for a given nozzle diameter. */
@@ -85,8 +82,7 @@ float Flow::_bridge_width(float nozzle_diameter, float bridge_flow_ratio) {
 }
 
 /* This static method returns a sane extrusion width default. */
-float
-Flow::_auto_width(FlowRole role, float nozzle_diameter, float height) {
+float Flow::_auto_width(FlowRole role, float nozzle_diameter, float height) {
     // here we calculate a sane default by matching the flow speed (at the nozzle) and the feed rate
     // shape: rectangle with semicircles at the ends
     float width = ((nozzle_diameter*nozzle_diameter) * PI + (height*height) * (4.0 - PI)) / (4.0 * height);
@@ -106,14 +102,15 @@ Flow::_auto_width(FlowRole role, float nozzle_diameter, float height) {
 }
 
 /* This static method returns the extrusion width value corresponding to the supplied centerline spacing. */
-float
-Flow::_width_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge) {
-    if (bridge) {
-        return spacing - BRIDGE_EXTRA_SPACING;
-    }
-    
-    // rectangle with semicircles at the ends
-    return spacing + OVERLAP_FACTOR * height * (1 - PI/4.0);
+float Flow::_width_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge) 
+{
+    return bridge ? 
+        (spacing - BRIDGE_EXTRA_SPACING) : 
+#ifdef HAS_PERIMETER_LINE_OVERLAP
+        (spacing + PERIMETER_LINE_OVERLAP_FACTOR * height * (1 - PI/4.0));
+#else
+        (spacing + height * (1 - PI/4.0));
+#endif
 }
 
 }

@@ -2,6 +2,7 @@
 %package{Slic3r::XS};
 
 #include <xsinit.h>
+#include "Utils.hpp"
 
 %{
 
@@ -27,6 +28,12 @@ FORK_NAME()
     CODE:
         RETVAL = newSVpv(SLIC3R_FORK_NAME, 0);
     OUTPUT: RETVAL
+
+void
+set_logging_level(level)
+    unsigned int level;
+    CODE:
+        Slic3r::set_logging_level(level);
 
 void
 xspp_test_croak_hangs_on_strawberry()

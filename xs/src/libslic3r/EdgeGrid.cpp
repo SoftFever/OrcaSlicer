@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <vector>
 #include <float.h>
+#include <unordered_map>
 
 #ifdef SLIC3R_GUI
 #include <wx/image.h>
@@ -109,7 +110,6 @@ void EdgeGrid::Grid::create(const ExPolygonCollection &expolygons, coord_t resol
 void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 {
 	// 1) Measure the bounding box.
-	m_bbox.defined = false;
 	for (size_t i = 0; i < m_contours.size(); ++ i) {
 		const Slic3r::Points &pts = *m_contours[i];
 		for (size_t j = 0; j < pts.size(); ++ j)
@@ -839,6 +839,8 @@ void EdgeGrid::Grid::calculate_sdf()
 	}
 
 #if 0
+	static int iRun = 0;
+	++ iRun;
 //#ifdef SLIC3R_GUI
 	{ 
 		wxImage img(ncols, nrows);
@@ -862,7 +864,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("unsigned_df.png"), wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("unsigned_df-%d.png", iRun), wxBITMAP_TYPE_PNG);
 	}
 	{
 		wxImage img(ncols, nrows);
@@ -895,7 +897,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df.png"), wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df-%d.png", iRun), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 
@@ -1020,7 +1022,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df-signs.png"), wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df-signs-%d.png", iRun), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 
@@ -1049,7 +1051,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				}
 			}
 		}
-		img.SaveFile(debug_out_path("signed_df2.png"), wxBITMAP_TYPE_PNG);
+		img.SaveFile(debug_out_path("signed_df2-%d.png", iRun), wxBITMAP_TYPE_PNG);
 	}
 #endif /* SLIC3R_GUI */
 }
@@ -1118,7 +1120,7 @@ float EdgeGrid::Grid::signed_distance_bilinear(const Point &pt) const
 
 	return f;
 }
-
+ 
 bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radius, coordf_t &result_min_dist, bool *pon_segment) const {
 	BoundingBox bbox;
 	bbox.min = bbox.max = Point(pt.x - m_bbox.min.x, pt.y - m_bbox.min.y);
@@ -1222,6 +1224,135 @@ bool EdgeGrid::Grid::signed_distance(const Point &pt, coord_t search_radius, coo
 	return true;
 }
 
+Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
+{
+	typedef std::unordered_multimap<Point, int, PointHash> EndPointMapType;
+	// 0) Prepare a binary grid.
+	size_t cell_rows = m_rows + 2;
+	size_t cell_cols = m_cols + 2;
+	std::vector<char> cell_inside(cell_rows * cell_cols, false);
+	for (int r = 0; r < int(cell_rows); ++ r)
+		for (int c = 0; c < int(cell_cols); ++ c)
+			cell_inside[r * cell_cols + c] = cell_inside_or_crossing(r - 1, c - 1);
+	// Fill in empty cells, which have a left / right neighbor filled.
+	// Fill in empty cells, which have the top / bottom neighbor filled.
+	{
+		std::vector<char> cell_inside2(cell_inside);
+		for (int r = 1; r + 1 < int(cell_rows); ++ r) {
+			for (int c = 1; c + 1 < int(cell_cols); ++ c) {
+				int addr = r * cell_cols + c;
+				if ((cell_inside2[addr - 1] && cell_inside2[addr + 1]) ||
+					(cell_inside2[addr - cell_cols] && cell_inside2[addr + cell_cols]))
+					cell_inside[addr] = true;
+			}
+		}
+	}
+
+	// 1) Collect the lines.
+	std::vector<Line> lines;
+	EndPointMapType start_point_to_line_idx;
+	for (int r = 0; r <= int(m_rows); ++ r) {
+		for (int c = 0; c <= int(m_cols); ++ c) {
+			int  addr    = (r + 1) * cell_cols + c + 1;
+			bool left    = cell_inside[addr - 1];
+			bool top     = cell_inside[addr - cell_cols];
+			bool current = cell_inside[addr];
+			if (left != current) {
+				lines.push_back(
+					left ? 
+						Line(Point(c, r+1), Point(c, r  )) : 
+						Line(Point(c, r  ), Point(c, r+1)));
+				start_point_to_line_idx.insert(std::pair<Point, int>(lines.back().a, int(lines.size()) - 1));
+			}
+			if (top != current) {
+				lines.push_back(
+					top ? 
+						Line(Point(c  , r), Point(c+1, r)) :
+						Line(Point(c+1, r), Point(c  , r))); 
+				start_point_to_line_idx.insert(std::pair<Point, int>(lines.back().a, int(lines.size()) - 1));
+			}
+		}
+	}
+
+	// 2) Chain the lines.
+	std::vector<char> line_processed(lines.size(), false);
+	Polygons out;
+	for (int i_candidate = 0; i_candidate < int(lines.size()); ++ i_candidate) {
+		if (line_processed[i_candidate])
+			continue;
+		Polygon poly;
+		line_processed[i_candidate] = true;
+		poly.points.push_back(lines[i_candidate].b);
+		int i_line_current = i_candidate;
+		for (;;) {
+			std::pair<EndPointMapType::iterator,EndPointMapType::iterator> line_range = 
+				start_point_to_line_idx.equal_range(lines[i_line_current].b);
+			// The interval has to be non empty, there shall be at least one line continuing the current one.
+			assert(line_range.first != line_range.second);
+			int i_next = -1;
+			for (EndPointMapType::iterator it = line_range.first; it != line_range.second; ++ it) {
+				if (it->second == i_candidate) {
+					// closing the loop.
+					goto end_of_poly;
+				}
+				if (line_processed[it->second])
+					continue;
+				if (i_next == -1) {
+					i_next = it->second;
+				} else {
+					// This is a corner, where two lines meet exactly. Pick the line, which encloses a smallest angle with
+					// the current edge.
+					const Line &line_current = lines[i_line_current];
+					const Line &line_next = lines[it->second];
+					const Vector v1 = line_current.vector();
+					const Vector v2 = line_next.vector();
+					int64_t cross = int64_t(v1.x) * int64_t(v2.y) - int64_t(v2.x) * int64_t(v1.y);
+					if (cross > 0) {
+						// This has to be a convex right angle. There is no better next line.
+						i_next = it->second;
+						break;
+					}
+				}
+			}
+			line_processed[i_next] = true;
+			i_line_current = i_next;
+			poly.points.push_back(lines[i_line_current].b);
+		}
+	end_of_poly:
+		out.push_back(std::move(poly));
+	}
+
+	// 3) Scale the polygons back into world, shrink slightly and remove collinear points.
+	for (size_t i = 0; i < out.size(); ++ i) {
+		Polygon &poly = out[i];
+		for (size_t j = 0; j < poly.points.size(); ++ j) {
+			Point &p = poly.points[j];
+			p.x *= m_resolution;
+			p.y *= m_resolution;
+			p.x += m_bbox.min.x;
+			p.y += m_bbox.min.y;
+		}
+		// Shrink the contour slightly, so if the same contour gets discretized and simplified again, one will get the same result.
+		// Remove collineaer points.
+		Points pts;
+		pts.reserve(poly.points.size());
+		for (size_t j = 0; j < poly.points.size(); ++ j) {
+			size_t j0 = (j == 0) ? poly.points.size() - 1 : j - 1;
+			size_t j2 = (j + 1 == poly.points.size()) ? 0 : j + 1;
+			Point  v  = poly.points[j2] - poly.points[j0];
+			if (v.x != 0 && v.y != 0) {
+				// This is a corner point. Copy it to the output contour.
+				Point p = poly.points[j];
+				p.y += (v.x < 0) ? - offset : offset;
+				p.x += (v.y > 0) ? - offset : offset;
+				pts.push_back(p);
+			} 
+		}
+		poly.points = std::move(pts);
+	}
+	return out;
+}
+
 #ifdef SLIC3R_GUI
 void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path)
 {
@@ -1235,17 +1366,18 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
 	++iRun;
     
     const coord_t search_radius = grid.resolution() * 2;
-	const coord_t display_blend_radius = grid.resolution() * 5;
+	const coord_t display_blend_radius = grid.resolution() * 2;
 	for (coord_t r = 0; r < h; ++r) {
     	for (coord_t c = 0; c < w; ++ c) {
 			unsigned char *pxl = data + (((h - r - 1) * w) + c) * 3;
 			Point pt(c * resolution + bbox.min.x, r * resolution + bbox.min.y);
 			coordf_t min_dist;
-			bool on_segment;
-//			if (grid.signed_distance_edges(pt, search_radius, min_dist, &on_segment)) {
+			bool on_segment = true;
+			#if 0
+			if (grid.signed_distance_edges(pt, search_radius, min_dist, &on_segment)) {
+			#else
 			if (grid.signed_distance(pt, search_radius, min_dist)) {
-				//FIXME
-				on_segment = true;
+			#endif
 				float s = 255 * std::abs(min_dist) / float(display_blend_radius);
 				int is = std::max(0, std::min(255, int(floor(s + 0.5f))));
 				if (min_dist < 0) {
@@ -1254,9 +1386,9 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
 						pxl[1] = 255 - is;
 						pxl[2] = 255 - is;
 					} else {
-						pxl[0] = 128;
-						pxl[1] = 128;
-						pxl[2] = 255 - is;						
+						pxl[0] = 255;
+						pxl[1] = 0;
+						pxl[2] = 255 - is;
 					}
 				}
 				else {

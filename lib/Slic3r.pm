@@ -18,6 +18,8 @@ sub debugf {
     printf @_ if $debug;
 }
 
+our $loglevel = 0;
+
 # load threads before Moo as required by it
 our $have_threads;
 BEGIN {
@@ -103,6 +105,10 @@ my @threads : shared = ();
 my $pause_sema = Thread::Semaphore->new;
 my $parallel_sema;
 my $paused = 0;
+
+# Set the logging level at the Slic3r XS module.
+$Slic3r::loglevel = (defined($ENV{'SLIC3R_LOGLEVEL'}) && $ENV{'SLIC3R_LOGLEVEL'} =~ /^[1-9]/) ? $ENV{'SLIC3R_LOGLEVEL'} : 0;
+set_logging_level($Slic3r::loglevel);
 
 sub spawn_thread {
     my ($cb) = @_;

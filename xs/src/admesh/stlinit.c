@@ -43,23 +43,8 @@ stl_open(stl_file *stl, char *file) {
 
 void
 stl_initialize(stl_file *stl) {
-  stl->error = 0;
-  stl->stats.degenerate_facets = 0;
-  stl->stats.edges_fixed  = 0;
-  stl->stats.facets_added = 0;
-  stl->stats.facets_removed = 0;
-  stl->stats.facets_reversed = 0;
-  stl->stats.normals_fixed = 0;
-  stl->stats.number_of_parts = 0;
-  stl->stats.original_num_facets = 0;
-  stl->stats.number_of_facets = 0;
-  stl->stats.facets_malloced = 0;
+  memset(stl, 0, sizeof(stl_file));
   stl->stats.volume = -1.0;
-
-  stl->neighbors_start = NULL;
-  stl->facet_start = NULL;
-  stl->v_indices = NULL;
-  stl->v_shared = NULL;
 }
 
 void
@@ -270,6 +255,7 @@ stl_read(stl_file *stl, int first_facet, int first) {
     rewind(stl->fp);
   }
 
+  char normal_buf[3][32];
   for(i = first_facet; i < stl->stats.number_of_facets; i++) {
     if(stl->stats.type == binary)
       /* Read a single facet from a binary .STL file */
@@ -287,17 +273,25 @@ stl_read(stl_file *stl, int first_facet, int first) {
       fscanf(stl->fp, "endsolid\n");
       fscanf(stl->fp, "solid%*[^\n]\n");  // name might contain spaces so %*s doesn't work and it also can be empty (just "solid")
       
-      if((fscanf(stl->fp, " facet normal %f %f %f\n", &facet.normal.x, &facet.normal.y, &facet.normal.z) + \
-          fscanf(stl->fp, " outer loop\n") + \
-          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[0].x, &facet.vertex[0].y,  &facet.vertex[0].z) + \
-          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[1].x, &facet.vertex[1].y,  &facet.vertex[1].z) + \
-          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[2].x, &facet.vertex[2].y,  &facet.vertex[2].z) + \
-          fscanf(stl->fp, " endloop\n") + \
+      if((fscanf(stl->fp, " facet normal %31s %31s %31s\n", normal_buf[0], normal_buf[1], normal_buf[2]) +
+          fscanf(stl->fp, " outer loop\n") +
+          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[0].x, &facet.vertex[0].y,  &facet.vertex[0].z) +
+          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[1].x, &facet.vertex[1].y,  &facet.vertex[1].z) +
+          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[2].x, &facet.vertex[2].y,  &facet.vertex[2].z) +
+          fscanf(stl->fp, " endloop\n") +
           fscanf(stl->fp, " endfacet\n")) != 12) {
         perror("Something is syntactically very wrong with this ASCII STL!");
         stl->error = 1;
         return;
       }
+      // The facet normal has been parsed as a single string as to workaround for not a numbers in the normal definition.
+	  if (sscanf(normal_buf[0], "%f", &facet.normal.x) != 1 ||
+		  sscanf(normal_buf[1], "%f", &facet.normal.y) != 1 ||
+		  sscanf(normal_buf[2], "%f", &facet.normal.z) != 1) {
+		  // Normal was mangled. Maybe denormals or "not a number" were stored?
+		  // Just reset the normal and silently ignore it.
+		  memset(&facet.normal, 0, sizeof(facet.normal));
+	  }
     }
 
 #if 0

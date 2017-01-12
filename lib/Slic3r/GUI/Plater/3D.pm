@@ -12,7 +12,7 @@ use base qw(Slic3r::GUI::3DScene Class::Accessor);
 
 sub new {
     my $class = shift;
-    my ($parent, $objects, $model, $config) = @_;
+    my ($parent, $objects, $model, $print, $config) = @_;
     
     my $self = $class->SUPER::new($parent);
     $self->enable_picking(1);
@@ -22,6 +22,7 @@ sub new {
     
     $self->{objects}            = $objects;
     $self->{model}              = $model;
+    $self->{print}              = $print;
     $self->{config}             = $config;
     $self->{on_select_object}   = sub {};
     $self->{on_instances_moved} = sub {};
@@ -31,7 +32,7 @@ sub new {
         
         my $obj_idx = undef;
         if ($volume_idx != -1) {
-            $obj_idx = $self->object_idx($volume_idx);
+            $obj_idx = $self->volumes->[$volume_idx]->object_idx;
         }
         $self->{on_select_object}->($obj_idx)
             if $self->{on_select_object};
@@ -42,8 +43,8 @@ sub new {
         my %done = ();  # prevent moving instances twice
         foreach my $volume_idx (@volume_idxs) {
             my $volume = $self->volumes->[$volume_idx];
-            my $obj_idx = $self->object_idx($volume_idx);
-            my $instance_idx = $self->instance_idx($volume_idx);
+            my $obj_idx = $volume->object_idx;
+            my $instance_idx = $volume->instance_idx;
             next if $done{"${obj_idx}_${instance_idx}"};
             $done{"${obj_idx}_${instance_idx}"} = 1;
             
@@ -89,7 +90,7 @@ sub update {
     $self->update_bed_size;
     
     foreach my $obj_idx (0..$#{$self->{model}->objects}) {
-        my @volume_idxs = $self->load_object($self->{model}, $obj_idx);
+        my @volume_idxs = $self->load_object($self->{model}, $self->{print}, $obj_idx);
         
         if ($self->{objects}[$obj_idx]->selected) {
             $self->select_volume($_) for @volume_idxs;

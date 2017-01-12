@@ -57,6 +57,7 @@ public:
     operator Polygons() const;
     double area() const;
     bool empty() const { return expolygon.empty(); }
+    void clear() { expolygon.clear(); }
     bool is_solid() const;
     bool is_external() const;
     bool is_internal() const;

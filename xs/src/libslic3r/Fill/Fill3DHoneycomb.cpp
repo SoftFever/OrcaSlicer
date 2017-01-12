@@ -168,7 +168,7 @@ void Fill3DHoneycomb::_fill_surface_single(
         it->translate(bb.min.x, bb.min.y);
 
     // clip pattern to boundaries
-    intersection(polylines, (Polygons)expolygon, &polylines);
+    polylines = intersection_pl(polylines, (Polygons)expolygon);
 
     // connect lines
     if (! params.dont_connect && ! polylines.empty()) { // prevent calling leftmost_point() on empty collections

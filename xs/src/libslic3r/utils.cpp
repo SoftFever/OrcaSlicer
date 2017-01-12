@@ -1,3 +1,30 @@
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+
+namespace Slic3r {
+
+static boost::log::trivial::severity_level logSeverity = boost::log::trivial::fatal;
+
+void set_logging_level(unsigned int level)
+{
+    switch (level) {
+    case 0: logSeverity = boost::log::trivial::fatal; break;
+    case 1: logSeverity = boost::log::trivial::error; break;
+    case 2: logSeverity = boost::log::trivial::warning; break;
+    case 3: logSeverity = boost::log::trivial::info; break;
+    case 4: logSeverity = boost::log::trivial::debug; break;
+    default: logSeverity = boost::log::trivial::trace; break;
+    }
+
+    boost::log::core::get()->set_filter
+    (
+        boost::log::trivial::severity >= logSeverity
+    );
+}
+
+} // namespace Slic3r
+
 #ifdef SLIC3R_HAS_BROKEN_CROAK
 
 // Some Strawberry Perl builds (mainly the latest 64bit builds) have a broken mechanism

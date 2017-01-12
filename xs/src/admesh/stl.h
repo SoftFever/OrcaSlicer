@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <boost/predef/detail/endian_compat.h>
+#include <boost/detail/endian.hpp>
 
 #ifndef BOOST_LITTLE_ENDIAN
 #error "admesh works correctly on little endian machines only!"

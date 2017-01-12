@@ -117,17 +117,21 @@ if (defined $ENV{BOOST_LIBRARYDIR}) {
 
 # In order to generate the -l switches we need to know how Boost libraries are named
 my $have_boost = 0;
-my @boost_libraries = qw(system thread);  # we need these
+my @boost_libraries = qw(system thread log);  # we need these
 
-# check without explicit lib path (works on Linux)
-if (! $mswin) {
-    $have_boost = 1
-        if check_lib(
-            lib     => [ map "boost_${_}", @boost_libraries ],
-        );
+if (!$ENV{SLIC3R_STATIC}) {
+    # Dynamic linking of boost libraries.
+    push @cflags, qw(-DBOOST_LOG_DYN_LINK);
+    if (! $mswin) {
+        # Check without explicit lib path (works on Linux and OSX).
+        $have_boost = 1
+            if check_lib(
+                lib     => [ map "boost_${_}", @boost_libraries ],
+            );
+    }
 }
 
-if (!$ENV{SLIC3R_STATIC} && $have_boost) {
+if ($have_boost) {
     # The boost library was detected by check_lib on Linux.
     push @LIBS, map "-lboost_${_}", @boost_libraries;
 } else {
@@ -138,8 +142,7 @@ if (!$ENV{SLIC3R_STATIC} && $have_boost) {
         # Try to find the boost system library.
         my @files = glob "$path/${lib_prefix}system*$lib_ext";
         next if !@files;
-    
-        if ($files[0] =~ /${lib_prefix}system([^.]+)$lib_ext$/) {
+        if ($files[0] =~ /\Q${lib_prefix}system\E([^.]*)\Q$lib_ext\E$/) {
             # Suffix contains the version number, the build type etc.
             my $suffix = $1;
             # Verify existence of all required boost libraries at $path.
@@ -211,6 +214,10 @@ if ($cpp_guess->is_gcc) {
         push @cflags, qw(-fno-inline-small-functions);
     }
 }
+
+print "\n";
+print 'With @INC: ', join(', ', map "\"$_\"", @INC), "\n";
+print 'With @LIBS: ', join(', ', map "\"$_\"", @LIBS), "\n";
 
 my $build = Module::Build::WithXSpp->new(
     module_name     => 'Slic3r::XS',

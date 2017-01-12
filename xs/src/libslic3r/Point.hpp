@@ -36,7 +36,7 @@ class Point
     static Point new_scale(coordf_t x, coordf_t y) {
         return Point(scale_(x), scale_(y));
     };
-    bool operator==(const Point& rhs) const;
+    bool operator==(const Point& rhs) const { return this->x == rhs.x && this->y == rhs.y; }
     std::string wkt() const;
     std::string dump_perl() const;
     void scale(double factor);
@@ -69,6 +69,12 @@ class Point
 inline Point operator+(const Point& point1, const Point& point2) { return Point(point1.x + point2.x, point1.y + point2.y); }
 inline Point operator-(const Point& point1, const Point& point2) { return Point(point1.x - point2.x, point1.y - point2.y); }
 inline Point operator*(double scalar, const Point& point2) { return Point(scalar * point2.x, scalar * point2.y); }
+
+struct PointHash {
+    size_t operator()(const Point &pt) const {
+        return std::hash<coord_t>()(pt.x) ^ std::hash<coord_t>()(pt.y);
+    }
+};
 
 class Point3 : public Point
 {
@@ -105,6 +111,9 @@ class Pointf
 inline Pointf operator+(const Pointf& point1, const Pointf& point2) { return Pointf(point1.x + point2.x, point1.y + point2.y); }
 inline Pointf operator-(const Pointf& point1, const Pointf& point2) { return Pointf(point1.x - point2.x, point1.y - point2.y); }
 inline Pointf operator*(double scalar, const Pointf& point2) { return Pointf(scalar * point2.x, scalar * point2.y); }
+inline Pointf operator*(const Pointf& point2, double scalar) { return Pointf(scalar * point2.x, scalar * point2.y); }
+inline coordf_t cross(const Pointf &v1, const Pointf &v2) { return v1.x * v2.y - v1.y * v2.x; }
+inline coordf_t dot(const Pointf &v1, const Pointf &v2) { return v1.x * v1.y + v2.x * v2.y; }
 
 class Pointf3 : public Pointf
 {
@@ -122,7 +131,7 @@ class Pointf3 : public Pointf
     Vectorf3 vector_to(const Pointf3 &point) const;
 };
 
-}
+} // namespace Slic3r
 
 // start Boost
 #include <boost/version.hpp>
@@ -146,28 +155,28 @@ namespace boost { namespace polygon {
 #endif
 
     template <>
-    struct geometry_concept<Point> { typedef point_concept type; };
+    struct geometry_concept<Slic3r::Point> { typedef point_concept type; };
    
     template <>
-    struct point_traits<Point> {
+    struct point_traits<Slic3r::Point> {
         typedef coord_t coordinate_type;
     
-        static inline coordinate_type get(const Point& point, orientation_2d orient) {
+        static inline coordinate_type get(const Slic3r::Point& point, orientation_2d orient) {
             return (orient == HORIZONTAL) ? point.x : point.y;
         }
     };
     
     template <>
-    struct point_mutable_traits<Point> {
+    struct point_mutable_traits<Slic3r::Point> {
         typedef coord_t coordinate_type;
-        static inline void set(Point& point, orientation_2d orient, coord_t value) {
+        static inline void set(Slic3r::Point& point, orientation_2d orient, coord_t value) {
             if (orient == HORIZONTAL)
                 point.x = value;
             else
                 point.y = value;
         }
-        static inline Point construct(coord_t x_value, coord_t y_value) {
-            Point retval;
+        static inline Slic3r::Point construct(coord_t x_value, coord_t y_value) {
+            Slic3r::Point retval;
             retval.x = x_value;
             retval.y = y_value; 
             return retval;

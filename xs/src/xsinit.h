@@ -31,6 +31,7 @@
 #include <ostream>
 #include <iostream>
 #include <sstream>
+#include <libslic3r.h>
 
 #ifdef SLIC3RXS
 extern "C" {
@@ -42,15 +43,18 @@ extern "C" {
 #undef do_close
 #undef bind
 #undef seed
+#undef push
+#undef pop
 #ifdef _MSC_VER
     // Undef some of the macros set by Perl <xsinit.h>, which cause compilation errors on Win32
-    #undef send
     #undef connect
+    #undef seek
+    #undef send
+    #undef write
 #endif /* _MSC_VER */
 }
 #endif
 
-#include <libslic3r.h>
 #include <ClipperUtils.hpp>
 #include <Config.hpp>
 #include <ExPolygon.hpp>
@@ -162,5 +166,7 @@ SV* polynode2perl(const ClipperLib::PolyNode& node);
     #define croak(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
 #endif
 #endif
+
+using namespace Slic3r;
 
 #endif

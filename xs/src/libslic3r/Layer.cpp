@@ -105,7 +105,7 @@ Layer::make_slices()
         FOREACH_LAYERREGION(this, layerm) {
             polygons_append(slices_p, to_polygons((*layerm)->slices));
         }
-        union_(slices_p, &slices);
+        slices = union_ex(slices_p);
     }
     
     this->slices.expolygons.clear();
@@ -132,15 +132,11 @@ Layer::merge_slices()
     if (this->regions.size() == 1) {
         // Optimization, also more robust. Don't merge classified pieces of layerm->slices,
         // but use the non-split islands of a layer. For a single region print, these shall be equal.
-        this->regions.front()->slices.surfaces.clear();
-        surfaces_append(this->regions.front()->slices.surfaces, this->slices.expolygons, stInternal);
+        this->regions.front()->slices.set(this->slices.expolygons, stInternal);
     } else {
         FOREACH_LAYERREGION(this, layerm) {
-            ExPolygons expp;
             // without safety offset, artifacts are generated (GH #2494)
-            union_(to_polygons(STDMOVE((*layerm)->slices.surfaces)), &expp, true);
-            (*layerm)->slices.surfaces.clear();
-            surfaces_append((*layerm)->slices.surfaces, expp, stInternal);
+            (*layerm)->slices.set(union_ex(to_polygons(STDMOVE((*layerm)->slices.surfaces)), true), stInternal);
         }
     }
 }
@@ -223,7 +219,7 @@ Layer::make_perimeters()
                 }
                 // merge the surfaces assigned to each group
                 for (std::map<unsigned short,Surfaces>::const_iterator it = slices.begin(); it != slices.end(); ++it)
-                    surfaces_append(new_slices.surfaces, union_ex(it->second, true), it->second.front());
+                    new_slices.append(union_ex(it->second, true), it->second.front());
             }
             
             // make perimeters
@@ -236,8 +232,7 @@ Layer::make_perimeters()
                     // Separate the fill surfaces.
                     ExPolygons expp = intersection_ex(to_polygons(fill_surfaces), (*l)->slices);
                     (*l)->fill_expolygons = expp;
-                    (*l)->fill_surfaces.surfaces.clear();
-                    surfaces_append((*l)->fill_surfaces.surfaces, STDMOVE(expp), fill_surfaces.surfaces.front());
+                    (*l)->fill_surfaces.set(STDMOVE(expp), fill_surfaces.surfaces.front());
                 }
             }
         }
@@ -317,10 +312,5 @@ SupportLayer::SupportLayer(size_t id, PrintObject *object, coordf_t height,
 :   Layer(id, object, height, print_z, slice_z)
 {
 }
-
-SupportLayer::~SupportLayer()
-{
-}
-
 
 }

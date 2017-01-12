@@ -11,9 +11,6 @@
 
 namespace Slic3r {
 
-typedef std::pair<coordf_t,coordf_t> t_layer_height_range;
-typedef std::map<t_layer_height_range,coordf_t> t_layer_height_ranges;
-
 class Layer;
 class PrintRegion;
 class PrintObject;
@@ -155,7 +152,7 @@ public:
 protected:
     SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z);
-    virtual ~SupportLayer();
+    virtual ~SupportLayer() {}
 };
 
 

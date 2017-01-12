@@ -12,10 +12,13 @@
 namespace Slic3r {
 namespace EdgeGrid {
 
-struct Grid
+class Grid
 {
+public:
 	Grid();
 	~Grid();
+
+	void set_bbox(const BoundingBox &bbox) { m_bbox = bbox; }
 
 	void create(const Polygons &polygons, coord_t resolution);
 	void create(const ExPolygon &expoly, coord_t resolution);
@@ -54,6 +57,9 @@ struct Grid
 	const size_t		rows() const { return m_rows; }
 	const size_t		cols() const { return m_cols; }
 
+	// For supports: Contours enclosing the rasterized edges.
+	Polygons 			contours_simplified(coord_t offset) const;
+
 protected:
 	struct Cell {
 		Cell() : begin(0), end(0) {}
@@ -65,6 +71,18 @@ protected:
 #if 0
 	bool line_cell_intersect(const Point &p1, const Point &p2, const Cell &cell);
 #endif
+	bool cell_inside_or_crossing(int r, int c) const
+	{
+		if (r < 0 || r >= m_rows ||
+			c < 0 || c >= m_cols)
+			// The cell is outside the domain. Hoping that the contours were correctly oriented, so
+			// there is a CCW outmost contour so the out of domain cells are outside.
+			return false;
+		const Cell &cell = m_cells[r * m_cols + c];
+		return 
+			(cell.begin < cell.end) || 
+			(! m_signed_distance_field.empty() && m_signed_distance_field[r * (m_cols + 1) + c] <= 0.f);
+	}
 
 	// Bounding box around the contours.
 	BoundingBox 								m_bbox;

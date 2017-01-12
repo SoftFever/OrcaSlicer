@@ -1,4 +1,5 @@
 #include "PrintConfig.hpp"
+#include <boost/thread.hpp>
 
 namespace Slic3r {
 
@@ -1120,6 +1121,17 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "support-material!";
     def->default_value = new ConfigOptionBool(false);
 
+    def = this->add("support_material_xy_spacing", coFloatOrPercent);
+    def->label = "XY separation between an object and its support";
+    def->category = "Support material";
+    def->tooltip = "XY separation between an object and its support. If expressed as percentage (for example 50%), it will be calculated over external perimeter width.";
+    def->sidetext = "mm or %";
+    def->cli = "support-material-xy-spacing=s";
+    def->ratio_over = "external_perimeter_extrusion_width";
+    def->min = 0;
+    // Default is half the external perimeter width.
+    def->default_value = new ConfigOptionFloatOrPercent(50, true);
+
     def = this->add("support_material_angle", coInt);
     def->label = "Pattern angle";
     def->category = "Support material";
@@ -1176,6 +1188,13 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "mm or % (leave 0 for default)";
     def->cli = "support-material-extrusion-width=s";
     def->default_value = new ConfigOptionFloatOrPercent(0, false);
+
+    def = this->add("support_material_interface_contact_loops", coBool);
+    def->label = "Interface circles";
+    def->category = "Support material";
+    def->tooltip = "Cover the top most interface layer with contact loops";
+    def->cli = "support-material-interface-contact-loops!";
+    def->default_value = new ConfigOptionBool(true);
 
     def = this->add("support_material_interface_extruder", coInt);
     def->label = "Support material/raft interface extruder";
@@ -1247,6 +1266,13 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(60);
 
+    def = this->add("support_material_synchronize_layers", coBool);
+    def->label = "Synchronize with object layers";
+    def->category = "Support material";
+    def->tooltip = "Synchronize support layers with the object print layers. This is useful with multi-material printers, where the extruder switch is expensive.";
+    def->cli = "support-material-synchronize-layers!";
+    def->default_value = new ConfigOptionBool(false);
+
     def = this->add("support_material_threshold", coInt);
     def->label = "Overhang threshold";
     def->category = "Support material";
@@ -1290,9 +1316,11 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "threads|j=i";
     def->readonly = true;
     def->min = 1;
-    def->max = 16;
-    def->default_value = new ConfigOptionInt(2);
-
+    {
+        unsigned int threads = boost::thread::hardware_concurrency();
+        def->default_value = new ConfigOptionInt(threads > 0 ? threads : 2);
+    }
+    
     def = this->add("toolchange_gcode", coString);
     def->label = "Tool change G-code";
     def->tooltip = "This custom code is inserted right before every extruder change. Note that you can use placeholder variables for all Slic3r settings as well as [previous_extruder] and [next_extruder].";

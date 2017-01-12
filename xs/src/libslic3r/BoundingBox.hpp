@@ -65,6 +65,9 @@ class BoundingBox : public BoundingBoxBase<Point>
     BoundingBox rotated(double angle, const Point &center) const;
     void rotate(double angle) { (*this) = this->rotated(angle); }
     void rotate(double angle, const Point &center) { (*this) = this->rotated(angle, center); }
+    // Align the min corner to a grid of cell_size x cell_size cells,
+    // to encompass the original bounding box.
+    void align_to_grid(const coord_t cell_size);
     
     BoundingBox() : BoundingBoxBase<Point>() {};
     BoundingBox(const Point &pmin, const Point &pmax) : BoundingBoxBase<Point>(pmin, pmax) {};
