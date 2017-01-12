@@ -12,12 +12,6 @@ Point::Point(double x, double y)
     this->y = lrint(y);
 }
 
-bool
-Point::operator==(const Point& rhs) const
-{
-    return this->coincides_with(rhs);
-}
-
 std::string
 Point::wkt() const
 {

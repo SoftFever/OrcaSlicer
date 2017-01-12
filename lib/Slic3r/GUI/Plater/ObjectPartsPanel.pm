@@ -22,6 +22,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     
     my $object = $self->{model_object} = $params{model_object};
+    my $print_object = $self->{print_object} = $params{print_object};
     
     # create TreeCtrl
     my $tree = $self->{tree} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [300, 100], 
@@ -82,7 +83,7 @@ sub new {
             $self->reload_tree($canvas->volume_idx($volume_idx));
         });
         
-        $canvas->load_object($self->{model_object}, undef, [0]);
+        $canvas->load_object($self->{model_object}, undef, undef, [0]);
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
         $canvas->zoom_to_volumes;

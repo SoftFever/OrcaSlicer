@@ -30,7 +30,8 @@
     long y_min() %code{% RETVAL = THIS->min.y; %};
     long y_max() %code{% RETVAL = THIS->max.y; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld;%ld,%ld", THIS->min.x, THIS->min.y, THIS->max.x, THIS->max.y); RETVAL = buf; %};
-  
+    bool defined() %code{% RETVAL = THIS->defined; %};
+
 %{
 
 BoundingBox*
@@ -69,7 +70,8 @@ new_from_points(CLASS, points)
     void set_y_min(double val) %code{% THIS->min.y = val; %};
     void set_y_max(double val) %code{% THIS->max.y = val; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf;%lf,%lf", THIS->min.x, THIS->min.y, THIS->max.x, THIS->max.y); RETVAL = buf; %};
-
+    bool defined() %code{% RETVAL = THIS->defined; %};
+    
 %{
 
 BoundingBoxf*
@@ -106,4 +108,5 @@ new_from_points(CLASS, points)
     double z_min() %code{% RETVAL = THIS->min.z; %};
     double z_max() %code{% RETVAL = THIS->max.z; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf,%lf;%lf,%lf,%lf", THIS->min.x, THIS->min.y, THIS->min.z, THIS->max.x, THIS->max.y, THIS->max.z); RETVAL = buf; %};
+    bool defined() %code{% RETVAL = THIS->defined; %};
 };

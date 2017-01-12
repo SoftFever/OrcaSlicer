@@ -83,13 +83,12 @@ Surface::polygons()
         RETVAL
 
 Surfaces
-Surface::offset(delta, scale = CLIPPER_OFFSET_SCALE, joinType = ClipperLib::jtMiter, miterLimit = 3)
+Surface::offset(delta, joinType = ClipperLib::jtMiter, miterLimit = 3)
     const float             delta
-    double                  scale
     ClipperLib::JoinType    joinType
     double                  miterLimit
     CODE:
-        offset(*THIS, &RETVAL, delta, scale, joinType, miterLimit);
+        surfaces_append(RETVAL, offset_ex(THIS->expolygon, delta, joinType, miterLimit), *THIS);
     OUTPUT:
         RETVAL
 

@@ -52,8 +52,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     Polygons fill_boundaries = to_polygons(this->fill_expolygons);
     this->fill_surfaces.surfaces.clear();
     for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++ surface)
-        surfaces_append(
-            this->fill_surfaces.surfaces,
+        this->fill_surfaces.append(
             intersection_ex(to_polygons(surface->expolygon), fill_boundaries),
             surface->surface_type);
 }
@@ -91,9 +90,9 @@ LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection*
     g.process();
 }
 
-//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 3.
-//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtMiter, 1.5
-#define EXTERNAL_SURFACES_OFFSET_PARAMETERS CLIPPER_OFFSET_SCALE, ClipperLib::jtSquare, 0.
+//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 3.
+//#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 1.5
+#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
 
 void
 LayerRegion::process_external_surfaces(const Layer* lower_layer)
@@ -194,7 +193,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
                         break;
                     }
                 // Grown by 3mm.
-                Polygons polys = offset(bridges[i].expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                Polygons polys = offset(to_polygons(bridges[i].expolygon), float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS);
                 if (idx_island == -1) {
                     printf("Bridge did not fall into the source region!\r\n");
                 } else {
@@ -262,9 +261,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 BridgeDetector bd(
                     initial,
                     lower_layer->slices,
-                    //FIXME parameters are not correct!
-                    // flow(FlowRole role, bool bridge = false, double width = -1) const;
-                    this->flow(frInfill, true, this->layer()->height).scaled_width()
+                    this->flow(frInfill, true).scaled_width()
                 );
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer " PRINTF_ZU ":\n", this->layer()->id());
@@ -305,8 +302,10 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             polygons_append(polys, STDMOVE(s1));
             for (size_t j = i + 1; j < top.size(); ++ j) {
                 Surface &s2 = top[j];
-                if (! s2.empty() && surfaces_could_merge(s1, s2))
+                if (! s2.empty() && surfaces_could_merge(s1, s2)) {
                     polygons_append(polys, STDMOVE(s2));
+                    s2.clear();
+                }
             }
             if (s1.surface_type == stTop)
                 // Trim the top surfaces by the bottom surfaces. This gives the priority to the bottom surfaces.
@@ -329,8 +328,10 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
         polygons_append(polys, STDMOVE(s1));
         for (size_t j = i + 1; j < internal.size(); ++ j) {
             Surface &s2 = internal[j];
-            if (! s2.empty() && surfaces_could_merge(s1, s2))
+            if (! s2.empty() && surfaces_could_merge(s1, s2)) {
                 polygons_append(polys, STDMOVE(s2));
+                s2.clear();
+            }
         }
         ExPolygons new_expolys = diff_ex(polys, new_polygons);
         polygons_append(new_polygons, to_polygons(new_expolys));

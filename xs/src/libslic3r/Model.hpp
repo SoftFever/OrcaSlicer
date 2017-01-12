@@ -6,6 +6,7 @@
 #include "Layer.hpp"
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
+#include "Slicing.hpp"
 #include <map>
 #include <string>
 #include <utility>

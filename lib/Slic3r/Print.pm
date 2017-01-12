@@ -41,8 +41,12 @@ sub size {
 sub process {
     my ($self) = @_;
     
+    $self->status_cb->(20, "Generating perimeters");
     $_->make_perimeters for @{$self->objects};
+    
+    $self->status_cb->(70, "Infilling layers");
     $_->infill for @{$self->objects};
+    
     $_->generate_support_material for @{$self->objects};
     $self->make_skirt;
     $self->make_brim;  # must come after make_skirt
@@ -276,7 +280,7 @@ sub make_skirt {
     my $distance = scale max($self->config->skirt_distance, $self->config->brim_width);
     for (my $i = $skirts; $i > 0; $i--) {
         $distance += scale $spacing;
-        my $loop = offset([$convex_hull], $distance, 1, JT_ROUND, scale(0.1))->[0];
+        my $loop = offset([$convex_hull], $distance, JT_ROUND, scale(0.1))->[0];
         my $eloop = Slic3r::ExtrusionLoop->new_from_paths(
             Slic3r::ExtrusionPath->new(
                 polyline        => Slic3r::Polygon->new(@$loop)->split_at_first_point,
@@ -369,7 +373,7 @@ sub make_brim {
         # -0.5 because islands are not represented by their centerlines
         # (first offset more, then step back - reverse order than the one used for 
         # perimeters because here we're offsetting outwards)
-        push @loops, @{offset2(\@islands, ($i + 0.5) * $flow->scaled_spacing, -1.0 * $flow->scaled_spacing, 100000, JT_SQUARE)};
+        push @loops, @{offset2(\@islands, ($i + 0.5) * $flow->scaled_spacing, -1.0 * $flow->scaled_spacing, JT_SQUARE)};
     }
     
     $self->brim->append(map Slic3r::ExtrusionLoop->new_from_paths(

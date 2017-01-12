@@ -76,20 +76,20 @@ class Linef3
     void scale(double factor);
 };
 
-}
+} // namespace Slic3r
 
 // start Boost
 #include <boost/polygon/polygon.hpp>
 namespace boost { namespace polygon {
     template <>
-    struct geometry_concept<Line> { typedef segment_concept type; };
+    struct geometry_concept<Slic3r::Line> { typedef segment_concept type; };
 
     template <>
-    struct segment_traits<Line> {
+    struct segment_traits<Slic3r::Line> {
         typedef coord_t coordinate_type;
-        typedef Point point_type;
+        typedef Slic3r::Point point_type;
     
-        static inline point_type get(const Line& line, direction_1d dir) {
+        static inline point_type get(const Slic3r::Line& line, direction_1d dir) {
             return dir.to_int() ? line.b : line.a;
         }
     };

@@ -153,17 +153,35 @@ private:
     PolyNode* GetNextSiblingUp() const;
     void AddChild(PolyNode& child);
     friend class Clipper; //to access Index
-    friend class ClipperOffset; 
+    friend class ClipperOffset;
+    friend class PolyTree; //to implement the PolyTree::move operator
 };
 
 class PolyTree: public PolyNode
 { 
 public:
-    ~PolyTree(){Clear();};
+    PolyTree() {}
+    PolyTree(PolyTree &&src) { *this = std::move(src); }
+    virtual ~PolyTree(){Clear();};
+    PolyTree& operator=(PolyTree &&src) { 
+        AllNodes   = std::move(src.AllNodes);
+        Contour    = std::move(src.Contour);
+        Childs     = std::move(src.Childs);
+        Parent     = nullptr;
+        Index      = src.Index;
+        m_IsOpen   = src.m_IsOpen;
+        m_jointype = src.m_jointype;
+        m_endtype  = src.m_endtype;
+        for (size_t i = 0; i < Childs.size(); ++ i)
+          Childs[i]->Parent = this;
+        return *this; 
+    }
     PolyNode* GetFirst() const;
     void Clear();
     int Total() const;
 private:
+    PolyTree(const PolyTree &src) = delete;
+    PolyTree& operator=(const PolyTree &src) = delete;
     PolyNodes AllNodes;
     friend class Clipper; //to access AllNodes
 };

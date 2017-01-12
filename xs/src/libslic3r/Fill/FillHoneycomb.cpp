@@ -93,7 +93,7 @@ void FillHoneycomb::_fill_surface_single(
             Polylines p;
             for (Polygons::iterator it = polygons.begin(); it != polygons.end(); ++ it)
                 p.push_back((Polyline)(*it));
-            intersection(p, (Polygons)expolygon, &paths);
+            paths = intersection_pl(p, to_polygons(expolygon));
         }
 
         // connect paths
@@ -122,7 +122,7 @@ void FillHoneycomb::_fill_surface_single(
         }
         
         // clip paths again to prevent connection segments from crossing the expolygon boundaries
-        intersection(paths, to_polygons(offset_ex(expolygon, SCALED_EPSILON)), &paths);
+        paths = intersection_pl(paths, to_polygons(offset_ex(expolygon, SCALED_EPSILON)));
         // Move the polylines to the output, avoid a deep copy.
         size_t j = polylines_out.size();
         polylines_out.resize(j + paths.size(), Polyline());

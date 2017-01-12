@@ -173,7 +173,7 @@ sub repaint {
             
             # if sequential printing is enabled and we have more than one object, draw clearance area
             if ($self->{config}->complete_objects && (map @{$_->instances}, @{$self->{model}->objects}) > 1) {
-                my ($clearance) = @{offset([$thumbnail->convex_hull], (scale($self->{config}->extruder_clearance_radius) / 2), 1, JT_ROUND, scale(0.1))};
+                my ($clearance) = @{offset([$thumbnail->convex_hull], (scale($self->{config}->extruder_clearance_radius) / 2), JT_ROUND, scale(0.1))};
                 $dc->SetPen($self->{clearance_pen});
                 $dc->SetBrush($self->{transparent_brush});
                 $dc->DrawPolygon($self->scaled_points_to_pixel($clearance, 1), 0, 0);
@@ -185,7 +185,7 @@ sub repaint {
     if (@{$self->{objects}} && $self->{config}->skirts) {
         my @points = map @{$_->contour}, map @$_, map @{$_->instance_thumbnails}, @{$self->{objects}};
         if (@points >= 3) {
-            my ($convex_hull) = @{offset([convex_hull(\@points)], scale max($self->{config}->brim_width + $self->{config}->skirt_distance), 1, JT_ROUND, scale(0.1))};
+            my ($convex_hull) = @{offset([convex_hull(\@points)], scale max($self->{config}->brim_width + $self->{config}->skirt_distance), JT_ROUND, scale(0.1))};
             $dc->SetPen($self->{skirt_pen});
             $dc->SetBrush($self->{transparent_brush});
             $dc->DrawPolygon($self->scaled_points_to_pixel($convex_hull, 1), 0, 0);

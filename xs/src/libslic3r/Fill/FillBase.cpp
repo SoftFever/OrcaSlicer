@@ -45,8 +45,7 @@ Fill* Fill::new_from_type(const std::string &type)
 Polylines Fill::fill_surface(const Surface *surface, const FillParams &params)
 {
     // Perform offset.
-    Slic3r::ExPolygons expp;
-    offset(surface->expolygon, &expp, -0.5*scale_(this->spacing));
+    Slic3r::ExPolygons expp = offset_ex(surface->expolygon, float(-0.5*scale_(this->spacing)));
     // Create the infills for each of the regions.
     Polylines polylines_out;
     for (size_t i = 0; i < expp.size(); ++ i)

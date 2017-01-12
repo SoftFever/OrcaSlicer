@@ -40,13 +40,13 @@ void BridgeDetector::initialize()
     this->angle = -1.;
 
     // Outset our bridge by an arbitrary amout; we'll use this outer margin for detecting anchors.
-    Polygons grown = offset(this->expolygons, float(this->spacing));
+    Polygons grown = offset(to_polygons(this->expolygons), float(this->spacing));
     
     // Detect possible anchoring edges of this bridging region.
     // Detect what edges lie on lower slices by turning bridge contour and holes
     // into polylines and then clipping them with each lower slice's contour.
     // Currently _edges are only used to set a candidate direction of the bridge (see bridge_direction_candidates()).
-    intersection(to_polylines(grown), this->lower_slices.contours(), &this->_edges);
+    this->_edges = intersection_pl(to_polylines(grown), this->lower_slices.contours());
     
     #ifdef SLIC3R_DEBUG
     printf("  bridge has " PRINTF_ZU " support(s)\n", this->_edges.size());
@@ -117,7 +117,7 @@ BridgeDetector::detect_angle()
         double total_length = 0;
         double max_length = 0;
         {
-            Lines clipped_lines = intersection(lines, clip_area);
+            Lines clipped_lines = intersection_ln(lines, clip_area);
             for (size_t i = 0; i < clipped_lines.size(); ++i) {
                 const Line &line = clipped_lines[i];
                 if (expolygons_contain(this->_anchor_regions, line.a) && expolygons_contain(this->_anchor_regions, line.b)) {
@@ -203,76 +203,72 @@ std::vector<double> BridgeDetector::bridge_direction_candidates() const
     return angles;
 }
 
-void
-BridgeDetector::coverage(double angle, Polygons* coverage) const
+Polygons BridgeDetector::coverage(double angle) const
 {
-    if (angle == -1) angle = this->angle;
-    if (angle == -1) return;
+    if (angle == -1)
+        angle = this->angle;
 
-    // Get anchors, convert them to Polygons and rotate them.
-    Polygons anchors = to_polygons(this->_anchor_regions);
-    polygons_rotate(anchors, PI/2.0 - angle);
-    
     Polygons covered;
-    for (ExPolygons::const_iterator it_expoly = this->expolygons.begin(); it_expoly != this->expolygons.end(); ++ it_expoly)
-    {
-        // Clone our expolygon and rotate it so that we work with vertical lines.
-        ExPolygon expolygon = *it_expoly;
-        expolygon.rotate(PI/2.0 - angle);
+
+    if (angle != -1) {
+
+        // Get anchors, convert them to Polygons and rotate them.
+        Polygons anchors = to_polygons(this->_anchor_regions);
+        polygons_rotate(anchors, PI/2.0 - angle);
         
-        /*  Outset the bridge expolygon by half the amount we used for detecting anchors;
-            we'll use this one to generate our trapezoids and be sure that their vertices
-            are inside the anchors and not on their contours leading to false negatives. */
-        ExPolygons grown = offset_ex(expolygon, 0.5f * float(this->spacing));
-        
-        // Compute trapezoids according to a vertical orientation
-        Polygons trapezoids;
-        for (ExPolygons::const_iterator it = grown.begin(); it != grown.end(); ++it)
-            it->get_trapezoids2(&trapezoids, PI/2.0);
-        
-        for (Polygons::iterator trapezoid = trapezoids.begin(); trapezoid != trapezoids.end(); ++trapezoid) {
-            Lines supported = intersection(trapezoid->lines(), anchors);
-            size_t n_supported = 0;
-            // not nice, we need a more robust non-numeric check
-            for (size_t i = 0; i < supported.size(); ++i)
-                if (supported[i].length() >= this->spacing)
-                    ++ n_supported;
-            if (n_supported >= 2) 
-                covered.push_back(STDMOVE(*trapezoid));
+        for (ExPolygons::const_iterator it_expoly = this->expolygons.begin(); it_expoly != this->expolygons.end(); ++ it_expoly)
+        {
+            // Clone our expolygon and rotate it so that we work with vertical lines.
+            ExPolygon expolygon = *it_expoly;
+            expolygon.rotate(PI/2.0 - angle);
+            
+            /*  Outset the bridge expolygon by half the amount we used for detecting anchors;
+                we'll use this one to generate our trapezoids and be sure that their vertices
+                are inside the anchors and not on their contours leading to false negatives. */
+            ExPolygons grown = offset_ex(expolygon, 0.5f * float(this->spacing));
+            
+            // Compute trapezoids according to a vertical orientation
+            Polygons trapezoids;
+            for (ExPolygons::const_iterator it = grown.begin(); it != grown.end(); ++it)
+                it->get_trapezoids2(&trapezoids, PI/2.0);
+            
+            for (Polygons::iterator trapezoid = trapezoids.begin(); trapezoid != trapezoids.end(); ++trapezoid) {
+                Lines supported = intersection_ln(trapezoid->lines(), anchors);
+                size_t n_supported = 0;
+                // not nice, we need a more robust non-numeric check
+                for (size_t i = 0; i < supported.size(); ++i)
+                    if (supported[i].length() >= this->spacing)
+                        ++ n_supported;
+                if (n_supported >= 2) 
+                    covered.push_back(STDMOVE(*trapezoid));
+            }
         }
+
+        // Unite the trapezoids before rotation, as the rotation creates tiny gaps and intersections between the trapezoids
+        // instead of exact overlaps.
+        covered = union_(covered);
+
+        // Intersect trapezoids with actual bridge area to remove extra margins and append it to result.
+        polygons_rotate(covered, -(PI/2.0 - angle));
+    	covered = intersection(covered, to_polygons(this->expolygons));
+
+        /*
+        if (0) {
+            my @lines = map @{$_->lines}, @$trapezoids;
+            $_->rotate(-(PI/2 - $angle), [0,0]) for @lines;
+            
+            require "Slic3r/SVG.pm";
+            Slic3r::SVG::output(
+                "coverage_" . rad2deg($angle) . ".svg",
+                expolygons          => [$self->expolygon],
+                green_expolygons    => $self->_anchor_regions,
+                red_expolygons      => $coverage,
+                lines               => \@lines,
+            );
+        }
+        */
     }
-
-    // Unite the trapezoids before rotation, as the rotation creates tiny gaps and intersections between the trapezoids
-    // instead of exact overlaps.
-    covered = union_(covered);
-
-    // Intersect trapezoids with actual bridge area to remove extra margins and append it to result.
-    polygons_rotate(covered, -(PI/2.0 - angle));
-    intersection(covered, to_polygons(this->expolygons), coverage);
-
-    /*
-    if (0) {
-        my @lines = map @{$_->lines}, @$trapezoids;
-        $_->rotate(-(PI/2 - $angle), [0,0]) for @lines;
-        
-        require "Slic3r/SVG.pm";
-        Slic3r::SVG::output(
-            "coverage_" . rad2deg($angle) . ".svg",
-            expolygons          => [$self->expolygon],
-            green_expolygons    => $self->_anchor_regions,
-            red_expolygons      => $coverage,
-            lines               => \@lines,
-        );
-    }
-    */
-}
-
-Polygons
-BridgeDetector::coverage(double angle) const
-{
-    Polygons pp;
-    this->coverage(angle, &pp);
-    return pp;
+    return covered;
 }
 
 /*  This method returns the bridge edges (as polylines) that are not supported
@@ -288,9 +284,7 @@ BridgeDetector::unsupported_edges(double angle, Polylines* unsupported) const
 
     for (ExPolygons::const_iterator it_expoly = this->expolygons.begin(); it_expoly != this->expolygons.end(); ++ it_expoly) {    
         // get unsupported bridge edges (both contour and holes)
-        Polylines unuspported_polylines;
-        diff(to_polylines(*it_expoly), grown_lower, &unuspported_polylines);
-        Lines unsupported_lines = to_lines(unuspported_polylines);
+        Lines unsupported_lines = to_lines(diff_pl(to_polylines(*it_expoly), grown_lower));
         /*  Split into individual segments and filter out edges parallel to the bridging angle
             TODO: angle tolerance should probably be based on segment length and flow width,
             so that we build supports whenever there's a chance that at least one or two bridge

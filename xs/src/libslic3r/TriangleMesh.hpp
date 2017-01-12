@@ -4,6 +4,7 @@
 #include "libslic3r.h"
 #include <admesh/stl.h>
 #include <vector>
+#include <boost/thread.hpp>
 #include "BoundingBox.hpp"
 #include "Line.hpp"
 #include "Point.hpp"
@@ -88,19 +89,23 @@ class TriangleMeshSlicer
     TriangleMesh* mesh;
     TriangleMeshSlicer(TriangleMesh* _mesh);
     ~TriangleMeshSlicer();
-    void slice(const std::vector<float> &z, std::vector<Polygons>* layers);
-    void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers);
-    void slice_facet(float slice_z, const stl_facet &facet, const int &facet_idx, const float &min_z, const float &max_z, std::vector<IntersectionLine>* lines) const;
-    void cut(float z, TriangleMesh* upper, TriangleMesh* lower);
+    void slice(const std::vector<float> &z, std::vector<Polygons>* layers) const;
+    void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers) const;
+    void slice_facet(float slice_z, const stl_facet &facet, const int &facet_idx,
+        const float &min_z, const float &max_z, std::vector<IntersectionLine>* lines,
+        boost::mutex* lines_mutex = NULL) const;
+    void cut(float z, TriangleMesh* upper, TriangleMesh* lower) const;
     
     private:
     typedef std::vector< std::vector<int> > t_facets_edges;
     t_facets_edges facets_edges;
     stl_vertex* v_scaled_shared;
-    void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops);
-    void make_expolygons(const Polygons &loops, ExPolygons* slices);
-    void make_expolygons_simple(std::vector<IntersectionLine> &lines, ExPolygons* slices);
-    void make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices);
+    void _slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const;
+    void _make_loops_do(size_t i, std::vector<IntersectionLines>* lines, std::vector<Polygons>* layers) const;
+    void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const;
+    void make_expolygons(const Polygons &loops, ExPolygons* slices) const;
+    void make_expolygons_simple(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;
+    void make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;
 };
 
 }

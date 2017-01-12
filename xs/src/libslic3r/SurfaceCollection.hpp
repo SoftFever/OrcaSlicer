@@ -28,8 +28,27 @@ class SurfaceCollection
     void remove_type(const SurfaceType type);
     void remove_types(const SurfaceType *types, int ntypes);
     void filter_by_type(SurfaceType type, Polygons* polygons);
-    void append(const SurfaceCollection &coll);
-    void append(const SurfaceType surfaceType, const ExPolygons &expoly);
+
+    void clear() { surfaces.clear(); }
+    bool empty() const { return surfaces.empty(); }
+
+    void set(const SurfaceCollection &coll) { surfaces = coll.surfaces; }
+    void set(SurfaceCollection &&coll) { surfaces = std::move(coll.surfaces); }
+    void set(const ExPolygons &src, SurfaceType surfaceType) { clear(); this->append(src, surfaceType); }
+    void set(const ExPolygons &src, const Surface &surfaceTempl) { clear(); this->append(src, surfaceTempl); }
+    void set(const Surfaces &src) { clear(); this->append(src); }
+    void set(ExPolygons &&src, SurfaceType surfaceType) { clear(); this->append(std::move(src), surfaceType); }
+    void set(ExPolygons &&src, const Surface &surfaceTempl) { clear(); this->append(std::move(src), surfaceTempl); }
+    void set(Surfaces &&src) { clear(); this->append(std::move(src)); }
+
+    void append(const SurfaceCollection &coll) { this->append(coll.surfaces); }
+    void append(SurfaceCollection &&coll) { this->append(std::move(coll.surfaces)); }
+    void append(const ExPolygons &src, SurfaceType surfaceType) { surfaces_append(this->surfaces, src, surfaceType); }
+    void append(const ExPolygons &src, const Surface &surfaceTempl) { surfaces_append(this->surfaces, src, surfaceTempl); }
+    void append(const Surfaces &src) { surfaces_append(this->surfaces, src); }
+    void append(ExPolygons &&src, SurfaceType surfaceType) { surfaces_append(this->surfaces, std::move(src), surfaceType); }
+    void append(ExPolygons &&src, const Surface &surfaceTempl) { surfaces_append(this->surfaces, std::move(src), surfaceTempl); }
+    void append(Surfaces &&src) { surfaces_append(this->surfaces, std::move(src)); }
 
     // For debugging purposes:
     void export_to_svg(const char *path, bool show_labels);

@@ -42,6 +42,11 @@ sub new {
     $self->_init_tabpanel;
     $self->_init_menubar;
     
+    # set default tooltip timer in msec
+    # SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
+    # (SetAutoPop is not available on GTK.)
+    eval { Wx::ToolTip::SetAutoPop(32767) };
+    
     # initialize status bar
     $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($self, -1);
     $self->{statusbar}->SetStatusText("Version $Slic3r::VERSION - Remember to check for updates at http://github.com/prusa3d/slic3r/releases");
@@ -292,7 +297,7 @@ sub _init_menubar {
     # View menu
     if (!$self->{no_plater}) {
         $self->{viewMenu} = Wx::Menu->new;
-        $self->_append_menu_item($self->{viewMenu}, "Default", 'Default View', sub { $self->select_view('default'); });
+        $self->_append_menu_item($self->{viewMenu}, "Iso"    , 'Iso View'    , sub { $self->select_view('iso'    ); });
         $self->_append_menu_item($self->{viewMenu}, "Top"    , 'Top View'    , sub { $self->select_view('top'    ); });
         $self->_append_menu_item($self->{viewMenu}, "Bottom" , 'Bottom View' , sub { $self->select_view('bottom' ); });
         $self->_append_menu_item($self->{viewMenu}, "Front"  , 'Front View'  , sub { $self->select_view('front'  ); });

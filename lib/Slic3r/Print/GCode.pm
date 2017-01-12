@@ -262,7 +262,10 @@ sub export {
                     $gcodegen->avoid_crossing_perimeters->set_disable_once(1);
                 }
                 
-                my @layers = sort { $a->print_z <=> $b->print_z } @{$object->layers}, @{$object->support_layers};
+                # Order layers by print_z, support layers preceding the object layers.
+                my @layers = sort 
+                    { ($a->print_z == $b->print_z) ? ($a->isa('Slic3r::Layer::Support') ? -1 : 0) : $a->print_z <=> $b->print_z }
+                    @{$object->layers}, @{$object->support_layers};
                 for my $layer (@layers) {
                     # if we are printing the bottom layer of an object, and we have already finished
                     # another one, set first layer temperatures. this happens before the Z move
@@ -289,7 +292,8 @@ sub export {
         my %layers = ();  # print_z => [ [layers], [layers], [layers] ]  by obj_idx
         foreach my $obj_idx (0 .. ($self->print->object_count - 1)) {
             my $object = $self->objects->[$obj_idx];
-            foreach my $layer (@{$object->layers}, @{$object->support_layers}) {
+            # Collect the object layers by z, support layers first, object layers second.
+            foreach my $layer (@{$object->support_layers}, @{$object->layers}) {
                 $layers{ $layer->print_z } ||= [];
                 $layers{ $layer->print_z }[$obj_idx] ||= [];
                 push @{$layers{ $layer->print_z }[$obj_idx]}, $layer;

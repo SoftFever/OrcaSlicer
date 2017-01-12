@@ -3,6 +3,7 @@
 
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
+#include "Slicing.hpp"
 
 namespace Slic3r {
 
@@ -20,19 +21,33 @@ class PrintObjectConfig;
 class PrintObjectSupportMaterial
 {
 public:
+	// Support layer type to be used by MyLayer. This type carries a much more detailed information
+	// about the support layer type than the final support layers stored in a PrintObject.
 	enum SupporLayerType {
 		sltUnknown = 0,
-		sltRaft,
-		stlFirstLayer,
+		// Ratft base layer, to be printed with the support material.
+		sltRaftBase,
+		// Raft interface layer, to be printed with the support interface material. 
+		sltRaftInterface,
+		// Bottom contact layer placed over a top surface of an object. To be printed with a support interface material.
 		sltBottomContact,
+		// Dense interface layer, to be printed with the support interface material.
+		// This layer is separated from an object by an sltBottomContact layer.
 		sltBottomInterface,
+		// Sparse base support layer, to be printed with a support material.
 		sltBase,
+		// Dense interface layer, to be printed with the support interface material.
+		// This layer is separated from an object with sltTopContact layer.
 		sltTopInterface,
+		// Top contact layer directly supporting an overhang. To be printed with a support interface material.
 		sltTopContact,
-		// Some undecided type yet. It will turn into stlBase first, then it may turn into stlBottomInterface or stlTopInterface.
-		stlIntermediate,
+		// Some undecided type yet. It will turn into sltBase first, then it may turn into sltBottomInterface or sltTopInterface.
+		sltIntermediate,
 	};
 
+	// A support layer type used internally by the SupportMaterial class. This class carries a much more detailed
+	// information about the support layer than the layers stored in the PrintObject, mainly
+	// the MyLayer is aware of the bridging flow and the interface gaps between the object and the support.
 	class MyLayer
 	{
 	public:
@@ -57,6 +72,7 @@ public:
 			return print_z == layer2.print_z && height == layer2.height && bridging == layer2.bridging;
 		}
 
+		// Order the layers by lexicographically by an increasing print_z and a decreasing layer height.
 		bool operator<(const MyLayer &layer2) const {
 			if (print_z < layer2.print_z) {
 				return true;
@@ -72,12 +88,12 @@ public:
 		}
 
 		SupporLayerType layer_type;
-		// Z used for printing in unscaled coordinates
+		// Z used for printing, in unscaled coordinates.
 		coordf_t print_z;
-		// Bottom height of this layer. For soluble layers, bottom_z + height = print_z,
+		// Bottom Z of this layer. For soluble layers, bottom_z + height = print_z,
 		// otherwise bottom_z + gap + height = print_z.
 		coordf_t bottom_z;
-		// layer height in unscaled coordinates
+		// Layer height in unscaled coordinates.
     	coordf_t height;
     	// Index of a PrintObject layer_id supported by this layer. This will be set for top contact layers.
     	// If this is not a contact layer, it will be set to size_t(-1).
@@ -91,63 +107,31 @@ public:
     	// Polygons to be filled by the support pattern.
     	Polygons polygons;
     	// Currently for the contact layers only: Overhangs are stored here.
+    	// MyLayer owns the aux_polygons, they are freed by the destructor.
     	Polygons *aux_polygons;
 	};
 
-	struct LayerExtreme
-	{
-		LayerExtreme(MyLayer *alayer, bool ais_top) : layer(alayer), is_top(ais_top) {}
-		MyLayer 	*layer;
-		// top or bottom extreme
-		bool   		 is_top;
-
-		coordf_t	z() const { return is_top ? layer->print_z : layer->print_z - layer->height; }
-
-		bool operator<(const LayerExtreme &other) const { return z() < other.z(); }
-	};
-
-/*
-	struct LayerPrintZ_Hash {
-		size_t operator()(const MyLayer &layer) const { 
-			return std::hash<double>()(layer.print_z)^std::hash<double>()(layer.height)^size_t(layer.bridging);
-		}
-	};
-*/
-
-	typedef std::vector<MyLayer*> 				MyLayersPtr;
+	// Layers are allocated and owned by a deque. Once a layer is allocated, it is maintained
+	// up to the end of a generate() method. The layer storage may be replaced by an allocator class in the future, 
+	// which would allocate layers by multiple chunks.
 	typedef std::deque<MyLayer> 				MyLayerStorage;
+	typedef std::vector<MyLayer*> 				MyLayersPtr;
 
 public:
-	PrintObjectSupportMaterial(const PrintObject *object);
+	PrintObjectSupportMaterial(const PrintObject *object, const SlicingParameters &slicing_params);
 
 	// Height of the 1st layer is user configured as it is important for the print
 	// to stick to he print bed.
 	coordf_t	first_layer_height() 		const { return m_object_config->first_layer_height.value; }
 
 	// Is raft enabled?
-	bool 		has_raft() 					const { return m_has_raft; }
+	bool 		has_raft() 					const { return m_slicing_params.has_raft(); }
 	// Has any support?
 	bool 		has_support()				const { return m_object_config->support_material.value; }
+	bool 		build_plate_only() 			const { return this->has_support() && m_object_config->support_material_buildplate_only.value; }
 
-	// How many raft layers are there below the 1st object layer?
-	// The 1st object layer_id will be offsetted by this number.
-	size_t 		num_raft_layers() 			const { return m_object_config->raft_layers.value; }
-	// num_raft_layers() == num_raft_base_layers() + num_raft_interface_layers() + num_raft_contact_layers().
-	size_t 		num_raft_base_layers() 		const { return m_num_base_raft_layers; }
-	size_t 		num_raft_interface_layers() const { return m_num_interface_raft_layers; }
-	size_t 		num_raft_contact_layers() 	const { return m_num_contact_raft_layers; }
-
-	coordf_t 	raft_height() 			    const { return m_raft_height; }
-	coordf_t    raft_base_height() 			const { return m_raft_base_height; }
-	coordf_t	raft_interface_height() 	const { return m_raft_interface_height; }
-	coordf_t	raft_contact_height() 		const { return m_raft_contact_height; }
-	bool 		raft_bridging() 			const { return m_raft_contact_layer_bridging; }
-
-	// 1st layer of the object will be printed depeding on the raft settings.
-	coordf_t 	first_object_layer_print_z() 	const { return m_object_1st_layer_print_z; }
-	coordf_t 	first_object_layer_height() 	const { return m_object_1st_layer_height; }
-	coordf_t 	first_object_layer_gap() 		const { return m_object_1st_layer_gap; }
-	bool 		first_object_layer_bridging() 	const { return m_object_1st_layer_bridging; }
+	bool 		synchronize_layers()		const { return m_object_config->support_material_synchronize_layers.value; }
+	bool 		has_contact_loops() 		const { return m_object_config->support_material_interface_contact_loops.value; }
 
 	// Generate support material for the object.
 	// New support layers will be added to the object,
@@ -163,7 +147,9 @@ private:
 	// Generate bottom contact layers supporting the top contact layers.
 	// For a soluble interface material synchronize the layer heights with the object, 
 	// otherwise set the layer height to a bridging flow of a support interface nozzle.
-	MyLayersPtr bottom_contact_layers(const PrintObject &object, const MyLayersPtr &top_contacts, MyLayerStorage &layer_storage) const;
+	MyLayersPtr bottom_contact_layers_and_layer_support_areas(
+		const PrintObject &object, const MyLayersPtr &top_contacts, MyLayerStorage &layer_storage,
+		std::vector<Polygons> &layer_support_areas) const;
 
 	// Trim the top_contacts layers with the bottom_contacts layers if they overlap, so there would not be enough vertical space for both of them.
 	void trim_top_contacts_by_bottom_contacts(const PrintObject &object, const MyLayersPtr &bottom_contacts, MyLayersPtr &top_contacts) const;
@@ -176,23 +162,38 @@ private:
 	    MyLayerStorage	 	&layer_storage,
 	    const coordf_t       max_object_layer_height) const;
 
+	// Fill in the base layers with polygons.
 	void generate_base_layers(
 	    const PrintObject   &object,
 	    const MyLayersPtr   &bottom_contacts,
 	    const MyLayersPtr   &top_contacts,
-	    MyLayersPtr         &intermediate_layers) const;
+	    MyLayersPtr         &intermediate_layers,
+	    std::vector<Polygons> &layer_support_areas) const;
 
-    Polygons generate_raft_base(
+	// Generate raft layers, also expand the 1st support layer
+	// in case there is no raft layer to improve support adhesion.
+    MyLayersPtr generate_raft_base(
 	    const PrintObject   &object,
-	    const MyLayersPtr   &bottom_contacts,
-	    MyLayersPtr         &intermediate_layers) const;
+	    const MyLayersPtr   &top_contacts,
+	    MyLayersPtr         &intermediate_layers,
+	    MyLayerStorage	 	&layer_storage) const;
 
+    // Turn some of the base layers into interface layers.
 	MyLayersPtr generate_interface_layers(
 	    const PrintObject   &object,
 	    const MyLayersPtr   &bottom_contacts,
 	    const MyLayersPtr   &top_contacts,
 	    MyLayersPtr         &intermediate_layers,
 	    MyLayerStorage      &layer_storage) const;
+
+	// Trim support layers by an object to leave a defined gap between
+	// the support volume and the object.
+	void trim_support_layers_by_object(
+	    const PrintObject   &object,
+	    MyLayersPtr         &support_layers,
+	    const coordf_t       gap_extra_above,
+	    const coordf_t       gap_extra_below,
+	    const coordf_t       gap_xy) const;
 
 /*
 	void generate_pillars_shape();
@@ -202,59 +203,28 @@ private:
 	// Produce the actual G-code.
 	void generate_toolpaths(
         const PrintObject   &object,
-        const Polygons 		&raft,
+        const MyLayersPtr 	&raft_layers,
         const MyLayersPtr   &bottom_contacts,
         const MyLayersPtr   &top_contacts,
         const MyLayersPtr   &intermediate_layers,
         const MyLayersPtr   &interface_layers) const;
 
+	// Following objects are not owned by SupportMaterial class.
 	const PrintObject 		*m_object;
 	const PrintConfig 		*m_print_config;
 	const PrintObjectConfig *m_object_config;
+	// Pre-calculated parameters shared between the object slicer and the support generator,
+	// carrying information on a raft, 1st layer height, 1st object layer height, gap between the raft and object etc.
+	SlicingParameters	     m_slicing_params;
 
 	Flow 			 	 m_first_layer_flow;
 	Flow 			 	 m_support_material_flow;
 	Flow 			 	 m_support_material_interface_flow;
-	bool 			 	 m_soluble_interface;
 
-	Flow 				 m_support_material_raft_base_flow;
-	Flow 				 m_support_material_raft_interface_flow;
-	Flow 				 m_support_material_raft_contact_flow;
-
-	bool 				 m_has_raft;
-	size_t 				 m_num_base_raft_layers;
-	size_t 				 m_num_interface_raft_layers;
-	size_t 				 m_num_contact_raft_layers;
-	// If set, the raft contact layer is laid with round strings, which are easily detachable
-	// from both the below and above layes.
-	// Otherwise a normal flow is used and the strings are squashed against the layer below, 
-	// creating a firm bond with the layer below and making the interface top surface flat.
-	coordf_t 			 m_raft_height;
-	coordf_t 			 m_raft_base_height;
-	coordf_t			 m_raft_interface_height;
-	coordf_t			 m_raft_contact_height;
-	bool 				 m_raft_contact_layer_bridging;
-
-	coordf_t 			 m_object_1st_layer_print_z;
-	coordf_t			 m_object_1st_layer_height;
-	coordf_t 			 m_object_1st_layer_gap;
-	bool 				 m_object_1st_layer_bridging;
-
-    coordf_t 			 m_object_layer_height_max;
     coordf_t 			 m_support_layer_height_min;
 	coordf_t		 	 m_support_layer_height_max;
-	coordf_t		 	 m_support_interface_layer_height_max;
 
-	coordf_t  			 m_gap_extra_above;
-	coordf_t 			 m_gap_extra_below;
-	coordf_t 			 m_gap_xy;
-
-	// If enabled, the support layers will be synchronized with object layers.
-	// This does not prevent the support layers to be combined.
-	bool 				 m_synchronize_support_layers_with_object;
-	// If disabled and m_synchronize_support_layers_with_object,
-	// the support layers will be synchronized with the object layers exactly, no layer will be combined.
-	bool 				 m_combine_support_layers;
+	coordf_t			 m_gap_xy;
 };
 
 } // namespace Slic3r

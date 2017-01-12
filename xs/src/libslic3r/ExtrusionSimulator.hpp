@@ -13,7 +13,7 @@ enum ExtrusionSimulationType
     ExtrusionSimulationDontSpread,
     ExtrisopmSimulationSpreadNotOverfilled,
     ExtrusionSimulationSpreadFull,
-    ExtrusionSimulationSpreadExcess,
+    ExtrusionSimulationSpreadExcess
 };
 
 // An opaque class, to keep the boost stuff away from the header.
