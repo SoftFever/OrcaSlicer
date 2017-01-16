@@ -263,9 +263,9 @@ public:
             return pos_p < other.pos_p;
         } else {
             // None of the nominators is zero.
-            char sign1 = (pos_p > 0) ? 1 : -1;
-            char sign2 = (other.pos_p > 0) ? 1 : -1;
-            char signs = sign1 * sign2;
+            int sign1 = (pos_p > 0) ? 1 : -1;
+            int sign2 = (other.pos_p > 0) ? 1 : -1;
+            int signs = sign1 * sign2;
             assert(signs == 1 || signs == -1);
             if (signs < 0) {
                 // The nominators have different signs.
