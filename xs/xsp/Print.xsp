@@ -276,5 +276,26 @@ Print::total_extruded_volume(...)
     OUTPUT:
         RETVAL
 
+
+double
+Print::total_weight(...)
+    CODE:
+        if (items > 1) {
+            THIS->total_weight = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->total_weight;
+    OUTPUT:
+        RETVAL
+
+double
+Print::total_cost(...)
+    CODE:
+        if (items > 1) {
+            THIS->total_cost = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->total_cost;
+    OUTPUT:
+        RETVAL
+
 %}
 };

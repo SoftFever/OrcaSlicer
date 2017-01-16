@@ -268,6 +268,8 @@ sub generate_support_material {
     }
     
     $self->set_step_done(STEP_SUPPORTMATERIAL);
+    my $stats = "Weight: %.1fg, Cost: %.1f" , $self->print->total_weight, $self->print->total_cost;
+    $self->print->status_cb->(85, $stats);
 }
 
 # Idempotence of this method is guaranteed by the fact that we don't remove things from

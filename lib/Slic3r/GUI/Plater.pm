@@ -1343,6 +1343,7 @@ sub on_export_completed {
         } else {
             $message = "G-code file exported to " . $self->{export_gcode_output_file};
         }
+        $message .= sprintf(" Cost: %.2f" , $self->{print}->total_cost);
     } else {
         $message = "Export failed";
     }
