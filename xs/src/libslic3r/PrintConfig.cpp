@@ -335,6 +335,30 @@ PrintConfigDef::PrintConfigDef()
         opt->values.push_back(3);
         def->default_value = opt;
     }
+
+    def = this->add("filament_density", coFloats);
+    def->label = "Density";
+    def->tooltip = "Enter your filament density here. This is only for statistical information. A decent way is to weigh a known length of filament and compute the ratio of the length to volume.";
+    def->sidetext = "g/mm^3";
+    def->cli = "filament-density=f@";
+    def->min = 0;
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
+        def->default_value = opt;
+    }
+
+    def = this->add("filament_cost", coFloats);
+    def->label = "Cost";
+    def->tooltip = "Enter your filament cost per kg here. This is only for statistical information.";
+    def->sidetext = "money/kg";
+    def->cli = "filament-cost=f@";
+    def->min = 0;
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
+        def->default_value = opt;
+    }
     
     def = this->add("filament_settings_id", coString);
     def->default_value = new ConfigOptionString("");

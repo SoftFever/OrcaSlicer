@@ -321,17 +321,33 @@ sub export {
     $self->print->clear_filament_stats;
     $self->print->total_used_filament(0);
     $self->print->total_extruded_volume(0);
+    my $total_filament_weight = 0.0;
+    my $total_filament_cost = 0.0;
     foreach my $extruder (@{$gcodegen->writer->extruders}) {
         my $used_filament = $extruder->used_filament;
         my $extruded_volume = $extruder->extruded_volume;
+        my $filament_weight = $extruded_volume * $extruder->filament_density;
+        my $filament_cost = $filament_weight * ($extruder->filament_cost / 1000);
         $self->print->set_filament_stats($extruder->id, $used_filament);
         
         printf $fh "; filament used = %.1fmm (%.1fcm3)\n",
             $used_filament, $extruded_volume/1000;
+        if ($filament_weight > 0) {
+            $total_filament_weight += $filament_weight;
+            printf $fh "; filament used = %.1fg\n",
+                   $filament_weight;
+            if ($filament_cost > 0) {
+                $total_filament_cost += $filament_cost;
+                printf $fh "; filament cost = %.1f\n",
+                       $filament_cost;
+            }
+        }
         
         $self->print->total_used_filament($self->print->total_used_filament + $used_filament);
         $self->print->total_extruded_volume($self->print->total_extruded_volume + $extruded_volume);
     }
+    printf $fh "; total filament cost = %.1f\n",
+           $total_filament_cost;
     
     # append full config
     print $fh "\n";

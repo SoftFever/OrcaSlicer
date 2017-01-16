@@ -299,6 +299,8 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionString              extrusion_axis;
     ConfigOptionFloats              extrusion_multiplier;
     ConfigOptionFloats              filament_diameter;
+    ConfigOptionFloats              filament_density;
+    ConfigOptionFloats              filament_cost;
     ConfigOptionFloats              filament_max_volumetric_speed;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
@@ -334,6 +336,8 @@ class GCodeConfig : public virtual StaticPrintConfig
         OPT_PTR(extrusion_axis);
         OPT_PTR(extrusion_multiplier);
         OPT_PTR(filament_diameter);
+        OPT_PTR(filament_density);
+        OPT_PTR(filament_cost);
         OPT_PTR(filament_max_volumetric_speed);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);

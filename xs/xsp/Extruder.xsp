@@ -42,6 +42,8 @@
         %code%{ RETVAL = THIS->retract_speed_mm_min; %};
     
     double filament_diameter();
+    double filament_density();
+    double filament_cost();
     double extrusion_multiplier();
     double retract_length();
     double retract_lift();

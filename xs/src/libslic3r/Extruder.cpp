@@ -112,6 +112,18 @@ Extruder::filament_diameter() const
 }
 
 double
+Extruder::filament_density() const
+{
+    return this->config->filament_density.get_at(this->id);
+}
+
+double
+Extruder::filament_cost() const
+{
+    return this->config->filament_cost.get_at(this->id);
+}
+
+double
 Extruder::extrusion_multiplier() const
 {
     return this->config->extrusion_multiplier.get_at(this->id);

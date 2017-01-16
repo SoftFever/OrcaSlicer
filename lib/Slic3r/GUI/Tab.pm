@@ -962,7 +962,7 @@ sub build {
     my $self = shift;
     
     $self->init_config_options(qw(
-        filament_colour filament_diameter filament_notes filament_max_volumetric_speed extrusion_multiplier
+        filament_colour filament_diameter filament_notes filament_max_volumetric_speed extrusion_multiplier filament_density filament_cost
         temperature first_layer_temperature bed_temperature first_layer_bed_temperature
         fan_always_on cooling
         min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers
@@ -977,6 +977,8 @@ sub build {
             $optgroup->append_single_option_line('filament_colour', 0);
             $optgroup->append_single_option_line('filament_diameter', 0);
             $optgroup->append_single_option_line('extrusion_multiplier', 0);
+            $optgroup->append_single_option_line('filament_density', 0);
+            $optgroup->append_single_option_line('filament_cost', 0);
         }
     
         {

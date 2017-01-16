@@ -29,6 +29,8 @@ class Extruder
     double used_filament() const;
     
     double filament_diameter() const;
+    double filament_density() const;
+    double filament_cost() const;
     double extrusion_multiplier() const;
     double retract_length() const;
     double retract_lift() const;
