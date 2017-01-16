@@ -20,6 +20,7 @@
     #include "SVG.hpp"
 #endif
 
+// #undef NDEBUG
 #include <cassert>
 
 namespace Slic3r {
@@ -958,6 +959,17 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
     for (size_t idx_extreme = 0; idx_extreme < extremes.size(); ++ idx_extreme) {
         LayerExtreme *extr1  = (idx_extreme == 0) ? NULL : &extremes[idx_extreme-1];
         coordf_t      extr1z = (extr1 == NULL) ? m_slicing_params.raft_interface_top_z : extr1->z();
+		assert(extremes[idx_extreme].z() > extr1z);
+		if (extr1z == 0.) {
+			// This layer interval starts with the 1st layer. Print the 1st layer using the prescribed 1st layer thickness.
+			assert(intermediate_layers.empty());
+			MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
+			layer_new.bottom_z = 0.;
+			layer_new.print_z = extr1z = this->first_layer_height();
+			layer_new.height = extr1z;
+			intermediate_layers.push_back(&layer_new);
+			// Continue printing the other layers up to extr2z.
+		}
         LayerExtreme &extr2  = extremes[idx_extreme];
         coordf_t      extr2z = extr2.z();
         coordf_t      dist   = extr2z - extr1z;
@@ -968,7 +980,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         size_t        n_layers_extra = size_t(ceil(dist / m_support_layer_height_max));
         assert(n_layers_extra > 0);
         coordf_t      step   = dist / coordf_t(n_layers_extra);
-        if (! synchronize && extr2.layer->layer_type == sltTopContact) {
+		if (! synchronize && ! m_slicing_params.soluble_interface && extr2.layer->layer_type == sltTopContact) {
             // This is a top interface layer, which does not have a height assigned yet. Do it now.
             assert(extr2.layer->height == 0.);
             extr2.layer->height = step;
@@ -986,19 +998,10 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
                 layer_new.bottom_z   = extr1z;
                 layer_new.print_z    = this->first_layer_height();
                 layer_new.height     = layer_new.print_z - layer_new.bottom_z;
+				assert(intermediate_layers.empty() || intermediate_layers.back()->print_z <= layer_new.print_z);
                 intermediate_layers.push_back(&layer_new);
                 continue;
             }
-        } else if (extr1z + step > this->first_layer_height()) {
-            MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
-            layer_new.bottom_z   = extr1z;
-            layer_new.print_z    = extr1z = this->first_layer_height();
-            layer_new.height     = layer_new.print_z - layer_new.bottom_z;
-            intermediate_layers.push_back(&layer_new);
-            dist = extr2z - extr1z;
-            assert(dist >= 0.);
-            n_layers_extra = size_t(ceil(dist / m_support_layer_height_max));
-            step = dist / coordf_t(n_layers_extra);
         }
         coordf_t extr2z_large_steps = extr2z;
         if (synchronize) {
@@ -1027,7 +1030,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 				layer_new.bottom_z = extr1z + i * step;
 				layer_new.print_z = layer_new.bottom_z + step;
 			}
-            intermediate_layers.push_back(&layer_new);
+			assert(intermediate_layers.empty() || intermediate_layers.back()->print_z <= layer_new.print_z);
+			intermediate_layers.push_back(&layer_new);
         }
         if (synchronize) {
             // Emit support layers synchronized with object layers.
@@ -1073,6 +1077,8 @@ void PrintObjectSupportMaterial::generate_base_layers(
         BOOST_LOG_TRIVIAL(trace) << "Support generator - generate_base_layers - creating layer " << 
             idx_intermediate << " of " << intermediate_layers.size();
         MyLayer &layer_intermediate = *intermediate_layers[idx_intermediate];
+		// Layers must be sorted by print_z. 
+		assert(idx_intermediate == 0 || layer_intermediate.print_z >= intermediate_layers[idx_intermediate - 1]->print_z);
 
         // Find a top_contact layer touching the layer_intermediate from above, if any, and collect its polygons into polygons_new.
         while (idx_top_contact_above >= 0 && top_contacts[idx_top_contact_above]->bottom_z > layer_intermediate.print_z + EPSILON)
@@ -1093,7 +1099,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
         int idx_top_contact_overlapping = idx_top_contact_above;
         while (idx_top_contact_overlapping >= 0 && 
                top_contacts[idx_top_contact_overlapping]->bottom_z > layer_intermediate.print_z - EPSILON)
-            -- idx_top_contact_overlapping;
+            -- idx_top_contact_overlapping; 
         // Collect all the top_contact layer intersecting with this layer.
         for (; idx_top_contact_overlapping >= 0; -- idx_top_contact_overlapping) {
 			MyLayer &layer_top_overlapping = *top_contacts[idx_top_contact_overlapping];
@@ -1120,8 +1126,10 @@ void PrintObjectSupportMaterial::generate_base_layers(
             bbox.merge(get_extents(polygons_trimming));
             ::Slic3r::SVG svg(debug_out_path("support-intermediate-layers-raw-%d-%lf.svg", iRun, layer_intermediate.print_z), bbox);
             svg.draw(union_ex(polygons_new, false), "blue", 0.5f);
-            svg.draw(union_ex(polygons_trimming, true), "red", 0.5f);
-        }
+			svg.draw(to_lines(polygons_new), "blue");
+			svg.draw(union_ex(polygons_trimming, true), "red", 0.5f);
+			svg.draw(to_lines(polygons_trimming), "red");
+		}
 #endif /* SLIC3R_DEBUG */
 
         // Trim the polygons, store them.
