@@ -10,7 +10,7 @@
 #include <cmath>
 #include <memory>
 #include <boost/log/trivial.hpp>
-#include <unordered_set>
+#include <unordered_map>
 
 // #define SLIC3R_DEBUG
 
@@ -98,7 +98,7 @@ void export_print_z_polygons_to_svg(const char *path, PrintObjectSupportMaterial
     for (int i = 0; i < n_layers; ++ i)
         svg.draw(union_ex(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type), transparency);
     for (int i = 0; i < n_layers; ++ i)
-        svg.draw(to_lines(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type));
+        svg.draw(to_polylines(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type));
     export_support_surface_type_legend_to_svg(svg, legend_pos);
     svg.Close();
 }
@@ -302,6 +302,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating layers";
 
+// For debugging purposes, one may want to show only some of the support extrusions.
 //    raft_layers.clear();
 //    bottom_contacts.clear();
 //    top_contacts.clear();
@@ -1126,9 +1127,9 @@ void PrintObjectSupportMaterial::generate_base_layers(
             bbox.merge(get_extents(polygons_trimming));
             ::Slic3r::SVG svg(debug_out_path("support-intermediate-layers-raw-%d-%lf.svg", iRun, layer_intermediate.print_z), bbox);
             svg.draw(union_ex(polygons_new, false), "blue", 0.5f);
-			svg.draw(to_lines(polygons_new), "blue");
+			svg.draw(to_polylines(polygons_new), "blue");
 			svg.draw(union_ex(polygons_trimming, true), "red", 0.5f);
-			svg.draw(to_lines(polygons_trimming), "red");
+			svg.draw(to_polylines(polygons_trimming), "red");
 		}
 #endif /* SLIC3R_DEBUG */
 
@@ -1536,6 +1537,260 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
         erSupportMaterialInterface, flow.mm3_per_mm(), flow.width, flow.height);
 }
 
+#ifdef SLIC3R_DEBUG
+static std::string dbg_index_to_color(int idx)
+{
+    if (idx < 0)
+        return "yellow";
+    idx = idx % 3;
+    switch (idx) {
+        case 0: return "red";
+        case 1: return "green";
+        default: return "blue";
+    }
+}
+#endif /* SLIC3R_DEBUG */
+
+// When extruding a bottom interface layer over an object, the bottom interface layer is extruded in a thin air, therefore
+// it is being extruded with a bridging flow to not shrink excessively (the die swell effect).
+// Tiny extrusions are better avoided and it is always better to anchor the thread to an existing support structure if possible.
+// Therefore the bottom interface spots are expanded a bit. The expanded regions may overlap with another bottom interface layers,
+// leading to over extrusion, where they overlap. The over extrusion is better avoided as it often makes the interface layers
+// to stick too firmly to the object.
+void modulate_extrusion_by_overlapping_layers(
+    // Extrusions generated for this_layer.
+    ExtrusionEntitiesPtr                               &extrusions_in_out,
+	const PrintObjectSupportMaterial::MyLayer		   &this_layer,
+    // Multiple layers overlapping with this_layer, sorted bottom up.
+    const PrintObjectSupportMaterial::MyLayer * const  *overlapping_layers,
+    const size_t                                        n_overlaping_layers)
+{
+    if (n_overlaping_layers == 0 || extrusions_in_out.empty())
+        // The extrusions do not overlap with any other extrusion.
+        return;
+
+    // Get the initial extrusion parameters.
+    ExtrusionPath *extrusion_path_template = dynamic_cast<ExtrusionPath*>(extrusions_in_out.front());
+    assert(extrusion_path_template != nullptr);
+    ExtrusionRole extrusion_role  = extrusion_path_template->role;
+    float         extrusion_width = extrusion_path_template->width;
+
+    struct ExtrusionPathFragment
+    {
+        ExtrusionPathFragment() : mm3_per_mm(-1), width(-1), height(-1) {};
+        ExtrusionPathFragment(double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height) {};
+
+        Polylines       polylines;
+        double          mm3_per_mm;
+        float           width;
+        float           height;
+    };
+
+    // Split the extrusions by the overlapping layers, reduce their extrusion rate.
+    // The last path_fragment is from this_layer.
+    std::vector<ExtrusionPathFragment> path_fragments(
+        n_overlaping_layers + 1, 
+        ExtrusionPathFragment(extrusion_path_template->mm3_per_mm, extrusion_path_template->width, extrusion_path_template->height));
+    // Don't use it, it will be released.
+    extrusion_path_template = nullptr;
+
+#ifdef SLIC3R_DEBUG
+    static int iRun = 0;
+    ++ iRun;
+    BoundingBox bbox;
+    for (size_t i_overlapping_layer = 0; i_overlapping_layer < n_overlaping_layers; ++ i_overlapping_layer) {
+        const PrintObjectSupportMaterial::MyLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
+        bbox.merge(get_extents(overlapping_layer.polygons));
+    }
+    for (ExtrusionEntitiesPtr::const_iterator it = extrusions_in_out.begin(); it != extrusions_in_out.end(); ++ it) {
+        ExtrusionPath *path = dynamic_cast<ExtrusionPath*>(*it);
+        assert(path != nullptr);
+        bbox.merge(get_extents(path->polyline));
+    }
+    SVG svg(debug_out_path("support-fragments-%d-%lf.svg", iRun, this_layer.print_z).c_str(), bbox);
+    const float transparency = 0.5f;
+    // Filled polygons for the overlapping regions.
+    svg.draw(union_ex(this_layer.polygons), dbg_index_to_color(-1), transparency);
+    for (size_t i_overlapping_layer = 0; i_overlapping_layer < n_overlaping_layers; ++ i_overlapping_layer) {
+        const PrintObjectSupportMaterial::MyLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
+        svg.draw(union_ex(overlapping_layer.polygons), dbg_index_to_color(int(i_overlapping_layer)), transparency);
+    }
+    // Contours of the overlapping regions.
+    svg.draw(to_polylines(this_layer.polygons), dbg_index_to_color(-1), scale_(0.2));
+    for (size_t i_overlapping_layer = 0; i_overlapping_layer < n_overlaping_layers; ++ i_overlapping_layer) {
+        const PrintObjectSupportMaterial::MyLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
+        svg.draw(to_polylines(overlapping_layer.polygons), dbg_index_to_color(int(i_overlapping_layer)), scale_(0.1));
+    }
+    // Fill extrusion, the source.
+    for (ExtrusionEntitiesPtr::const_iterator it = extrusions_in_out.begin(); it != extrusions_in_out.end(); ++ it) {
+        ExtrusionPath *path = dynamic_cast<ExtrusionPath*>(*it);
+        svg.draw(path->polyline, "magenta", scale_(0.2));
+    }
+#endif /* SLIC3R_DEBUG */
+
+    // End points of the original paths.
+    std::vector<std::pair<Point, Point>> path_ends;
+    // Collect the paths of this_layer.
+    {
+        Polylines &polylines = path_fragments.back().polylines;
+        for (ExtrusionEntitiesPtr::const_iterator it = extrusions_in_out.begin(); it != extrusions_in_out.end(); ++ it) {
+            ExtrusionPath *path = dynamic_cast<ExtrusionPath*>(*it);
+            assert(path != nullptr);
+            polylines.emplace_back(Polyline(std::move(path->polyline)));
+            path_ends.emplace_back(std::pair<Point, Point>(polylines.back().points.front(), polylines.back().points.back()));
+        }
+    }
+    // Destroy the original extrusion paths, their polylines were moved to path_fragments already.
+    // This will be the destination for the new paths.
+    extrusions_in_out.clear();
+
+    // Fragment the path segments by overlapping layers. The overlapping layers are sorted by an increasing print_z.
+    // Trim by the highest overlapping layer first.
+    for (int i_overlapping_layer = int(n_overlaping_layers) - 1; i_overlapping_layer >= 0; -- i_overlapping_layer) {
+        const PrintObjectSupportMaterial::MyLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
+        ExtrusionPathFragment &frag = path_fragments[i_overlapping_layer];
+        Polygons polygons_trimming = offset(union_ex(overlapping_layer.polygons), scale_(0.5*extrusion_width));
+        frag.polylines = intersection_pl(path_fragments.back().polylines, polygons_trimming, false);
+        path_fragments.back().polylines = diff_pl(path_fragments.back().polylines, polygons_trimming, false);
+		// Clipper seems to reverse the polylines resulting from the difference operation. Revert the reversion.
+		for (auto it = path_fragments.back().polylines.begin(); it != path_fragments.back().polylines.end(); ++it)
+			std::reverse(it->points.begin(), it->points.end());
+        // Adjust the extrusion parameters for a reduced layer height and a non-bridging flow (nozzle_dmr = -1, does not matter).
+		assert(this_layer.print_z > overlapping_layer.print_z);
+		frag.height = float(this_layer.print_z - overlapping_layer.print_z);
+        frag.mm3_per_mm = Flow(frag.width, frag.height, -1.f, false).mm3_per_mm();
+#ifdef SLIC3R_DEBUG
+        svg.draw(frag.polylines, dbg_index_to_color(i_overlapping_layer), scale_(0.1));
+#endif /* SLIC3R_DEBUG */
+    }
+
+#ifdef SLIC3R_DEBUG
+    svg.draw(path_fragments.back().polylines, dbg_index_to_color(-1), scale_(0.1));
+    svg.Close();
+#endif /* SLIC3R_DEBUG */
+
+    // Now chain the split segments using hashing and a nearly exact match, maintaining the order of segments.
+    // Create a single ExtrusionPath or ExtrusionEntityCollection per source ExtrusionPath.
+    // Map of fragment start/end points to a pair of <i_overlapping_layer, i_polyline_in_layer>
+    // Because a non-exact matching is used for the end points, a multi-map is used.
+    // As the clipper library may reverse the order of some clipped paths, store both ends into the map.
+    struct ExtrusionPathFragmentEnd
+    {
+        ExtrusionPathFragmentEnd(size_t alayer_idx, size_t apolyline_idx, bool ais_start) :
+            layer_idx(alayer_idx), polyline_idx(apolyline_idx), is_start(ais_start) {}
+        size_t layer_idx;
+        size_t polyline_idx;
+        bool   is_start;
+    };
+    std::unordered_multimap<Point, ExtrusionPathFragmentEnd, PointHash> map_fragment_starts;
+    for (size_t i_overlapping_layer = 0; i_overlapping_layer <= n_overlaping_layers; ++ i_overlapping_layer) {
+        const Polylines &polylines = path_fragments[i_overlapping_layer].polylines;
+        for (size_t i_polyline = 0; i_polyline < polylines.size(); ++ i_polyline) {
+            // Map a starting point of a polyline to a pair of <layer, polyline>
+            if (polylines[i_polyline].points.size() >= 2) {
+                const Point &pt_start = polylines[i_polyline].points.front();
+                const Point &pt_end   = polylines[i_polyline].points.back();
+                map_fragment_starts.emplace(
+                    std::make_pair(Point(pt_start.x>>4, pt_start.y>>4), 
+                    ExtrusionPathFragmentEnd(i_overlapping_layer, i_polyline, true)));
+                map_fragment_starts.emplace(
+                    std::make_pair(Point(pt_end.x>>4, pt_end.y>>4), 
+                    ExtrusionPathFragmentEnd(i_overlapping_layer, i_polyline, false)));
+            }
+        }
+    }
+
+    // For each source path:
+    for (size_t i_path = 0; i_path < path_ends.size(); ++ i_path) {
+        const Point &pt_start = path_ends[i_path].first;
+        const Point &pt_end   = path_ends[i_path].second;
+        Point pt_current = pt_start;
+        // Find a chain of fragments with the original / reduced print height.
+        ExtrusionEntityCollection eec;
+        for (;;) {
+            // Iterate over 4 closest grid cells around pt_current,
+            // find the closest start point inside these cells to pt_current.
+            ExtrusionPathFragmentEnd fragment_end_min(size_t(-1), size_t(-1), false);
+            double                   dist_min = std::numeric_limits<double>::max();
+            // Round pt_current to a closest grid_cell corner.
+            Point grid_corner((pt_current.x+8)>>4, (pt_current.y+8)>>4);
+            // For four neighbors of grid_corner:
+            for (coord_t neighbor_y = -1; neighbor_y < 1; ++ neighbor_y) {
+                for (coord_t neighbor_x = -1; neighbor_x < 1; ++ neighbor_x) {
+                    // Range of fragment starts around grid_corner, close to pt_current.
+                    auto range = map_fragment_starts.equal_range(Point(grid_corner.x + neighbor_x, grid_corner.y + neighbor_y));
+                    // Find the fragment start closest to the current 
+                    for (auto it = range.first; it != range.second; ++it) {
+                        const ExtrusionPathFragmentEnd &fragment_end = it->second;
+                        const Polyline                 &polyline     = path_fragments[fragment_end.layer_idx].polylines[fragment_end.polyline_idx];
+                        if (polyline.points.empty())
+                            // This segment has been consumed.
+                            continue;
+                        const Point                    &pt           = fragment_end.is_start ? polyline.points.front() : polyline.points.back();
+                        const double                    d2           = pt_current.distance_to_sq(pt);
+                        if (d2 < dist_min) {
+							dist_min = d2;
+                            fragment_end_min = fragment_end;
+                        }
+                    }
+                }
+            }
+            if (dist_min == std::numeric_limits<double>::max()) {
+                // New fragment connecting to pt_current was not found.
+                // Verify that the last point found is close to the original end point of the unfragmented path.
+                const double d2 = pt_end.distance_to_sq(pt_current);
+                assert(d2 < 4 * 4);
+                // End of the path.
+                break;
+            }
+            // Fragment to consume.
+            ExtrusionPathFragment &frag = path_fragments[fragment_end_min.layer_idx];
+            Polyline              &frag_polyline = frag.polylines[fragment_end_min.polyline_idx];
+            // Path to append the fragment to.
+            ExtrusionPath         *path = eec.entities.empty() ? nullptr : dynamic_cast<ExtrusionPath*>(eec.entities.back());
+            if (path != nullptr) {
+                // Verify whether the path is compatible with the current fragment. It shall not be if the path was not split errorneously by the Clipper library.
+                assert(path->height != frag.height || path->mm3_per_mm != frag.mm3_per_mm);
+                if (path->height != frag.height || path->mm3_per_mm != frag.mm3_per_mm)
+                    path = nullptr;
+            }
+            if (path == nullptr) {
+                // Allocate a new path.
+                path = new ExtrusionPath(extrusion_role, frag.mm3_per_mm, frag.width, frag.height);
+                eec.entities.push_back(path);
+            }
+            // The Clipper library may flip the order of the clipped polylines arbitrarily.
+            // Reverse the source polyline, if connecting to the end.
+            if (! fragment_end_min.is_start)
+                frag_polyline.reverse();
+            // Enforce exact overlap of the end points of successive fragments.
+			frag_polyline.points.front() = pt_current;
+            // Don't repeat the first point.
+            if (! path->polyline.points.empty())
+                path->polyline.points.pop_back();
+            // Consume the fragment's polyline, remove it from the input fragments, so it will be ignored the next time.
+            path->polyline.append(std::move(frag_polyline));
+            frag_polyline.points.clear();
+            pt_current = path->polyline.points.back();
+            if (pt_current == pt_end) {
+                // End of the path.
+                break;
+            }
+        }
+        if (! eec.empty()) {
+            if (eec.entities.size() == 1) {
+                // This path was not fragmented.
+                extrusions_in_out.push_back(eec.entities.front());
+                eec.entities.pop_back();
+            } else {
+                // This path was fragmented. Copy the collection as a whole object, so the order inside the collection will not be changed
+                // during the chaining of extrusions_in_out.
+                extrusions_in_out.push_back(new ExtrusionEntityCollection(std::move(eec)));
+            }
+        }
+    }
+}
+
 void PrintObjectSupportMaterial::generate_toolpaths(
     const PrintObject   &object,
     const MyLayersPtr   &raft_layers,
@@ -1847,13 +2102,29 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             filler_interface->spacing = m_support_material_interface_flow.spacing();
             fill_expolygons_generate_paths(
                 // Destination
-                support_layer.support_fills.entities, 
+                bottom_contact_layer.extrusions, 
                 // Regions to fill
                 union_ex(bottom_contact_layer.layer->polygons, true), 
                 // Filler and its parameters
                 filler_interface.get(), interface_density,
                 // Extrusion parameters
                 erSupportMaterial, interface_flow);
+            // The bottom contact layer has been inflated to anchor the support better. It may be possible, that there is a bottom
+            // contact layer below this bottom contact layer overlapping with this one, leading to over-extrusion.
+            // Mitigate the over-extrusion by modulating the extrusion rate over these regions.
+            assert(bottom_contact_layer.layer->bridging);
+            //FIXME When printing a briging path, what is an equivalent height of the squished extrudate of the same width?
+            int idx_bottom_contact_non_overlapping = int(idx_layer_bottom_contact) - 1;
+            for (; idx_bottom_contact_non_overlapping >= 0; -- idx_bottom_contact_non_overlapping)
+                if (bottom_contacts[idx_bottom_contact_non_overlapping]->print_z < 
+                    bottom_contact_layer.layer->print_z - bottom_contact_layer.layer->height + EPSILON)
+                    break;
+            ++ idx_bottom_contact_non_overlapping;
+            modulate_extrusion_by_overlapping_layers(
+                bottom_contact_layer.extrusions, 
+				*bottom_contact_layer.layer,
+                bottom_contacts.data() + idx_bottom_contact_non_overlapping, 
+                idx_layer_bottom_contact - idx_bottom_contact_non_overlapping);
         }
 
         // Collect the support areas with this print_z into islands, as there is no need
