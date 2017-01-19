@@ -130,24 +130,6 @@ MultiPoint::remove_duplicate_points()
     return false;
 }
 
-void
-MultiPoint::append(const Point &point)
-{
-    this->points.push_back(point);
-}
-
-void
-MultiPoint::append(const Points &points)
-{
-    this->append(points.begin(), points.end());
-}
-
-void
-MultiPoint::append(const Points::const_iterator &begin, const Points::const_iterator &end)
-{
-    this->points.insert(this->points.end(), begin, end);
-}
-
 bool
 MultiPoint::intersection(const Line& line, Point* intersection) const
 {

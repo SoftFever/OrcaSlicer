@@ -15,7 +15,36 @@ typedef std::vector<Polyline> Polylines;
 typedef std::vector<ThickPolyline> ThickPolylines;
 
 class Polyline : public MultiPoint {
-    public:
+public:
+    Polyline() {};
+    Polyline(const Polyline &other) : MultiPoint(other.points) {}
+    Polyline(Polyline &&other) : MultiPoint(std::move(other.points)) {}
+    Polyline& operator=(const Polyline &other) { points = other.points; return *this; }
+    Polyline& operator=(Polyline &&other) { points = std::move(other.points); return *this; }
+    
+    void append(const Point &point) { this->points.push_back(point); }
+    void append(const Points &src) { this->append(src.begin(), src.end()); }
+    void append(const Points::const_iterator &begin, const Points::const_iterator &end) { this->points.insert(this->points.end(), begin, end); }
+    void append(Points &&src)
+    {
+        if (this->points.empty())
+            this->points = std::move(src);
+        else
+            std::move(std::begin(src), std::end(src), std::back_inserter(this->points));
+    }
+    void append(const Polyline &src) 
+    { 
+        points.insert(points.end(), src.points.begin(), src.points.end());
+    }
+
+    void append(Polyline &&src) 
+    {
+        if (this->points.empty())
+            this->points = std::move(src.points);
+        else
+            std::move(std::begin(src.points), std::end(src.points), std::back_inserter(this->points));
+    }
+
     operator Polylines() const;
     operator Line() const;
     Point last_point() const;
@@ -61,6 +90,19 @@ inline Lines to_lines(const Polylines &polys)
             lines.push_back(Line(*it, *(it + 1)));
     }
     return lines;
+}
+
+inline void polylines_append(Polylines &dst, const Polylines &src) 
+{ 
+    dst.insert(dst.end(), src.begin(), src.end());
+}
+
+inline void polylines_append(Polylines &dst, Polylines &&src) 
+{
+    if (dst.empty())
+        dst = std::move(src);
+    else
+        std::move(std::begin(src), std::end(src), std::back_inserter(dst));
 }
 
 class ThickPolyline : public Polyline {

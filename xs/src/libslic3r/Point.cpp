@@ -174,14 +174,6 @@ Point::nearest_waypoint(const Points &points, const Point &dest, Point* point) c
     return true;
 }
 
-double
-Point::distance_to(const Point &point) const
-{
-    double dx = ((double)point.x - this->x);
-    double dy = ((double)point.y - this->y);
-    return sqrt(dx*dx + dy*dy);
-}
-
 /* distance to the closest point of line */
 double
 Point::distance_to(const Line &line) const

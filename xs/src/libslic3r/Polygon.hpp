@@ -14,14 +14,19 @@ class Polygon;
 typedef std::vector<Polygon> Polygons;
 
 class Polygon : public MultiPoint {
-    public:
+public:
     operator Polygons() const;
     operator Polyline() const;
     Point& operator[](Points::size_type idx);
     const Point& operator[](Points::size_type idx) const;
     
-    Polygon() {};
-    explicit Polygon(const Points &points): MultiPoint(points) {};
+    Polygon() {}
+    explicit Polygon(const Points &points): MultiPoint(points) {}
+    Polygon(const Polygon &other) : MultiPoint(other.points) {}
+    Polygon(Polygon &&other) : MultiPoint(std::move(other.points)) {}
+    Polygon& operator=(const Polygon &other) { points = other.points; return *this; }
+    Polygon& operator=(Polygon &&other) { points = std::move(other.points); return *this; }
+
     Point last_point() const;
     virtual Lines lines() const;
     Polyline split_at_vertex(const Point &point) const;

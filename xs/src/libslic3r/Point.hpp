@@ -54,7 +54,8 @@ class Point
     size_t nearest_waypoint_index(const Points &points, const Point &point) const;
     bool nearest_point(const Points &points, Point* point) const;
     bool nearest_waypoint(const Points &points, const Point &dest, Point* point) const;
-    double distance_to(const Point &point) const;
+    double distance_to(const Point &point) const { return sqrt(distance_to_sq(point)); }
+    double distance_to_sq(const Point &point) const { double dx = double(point.x - this->x); double dy = double(point.y - this->y); return dx*dx + dy*dy; }
     double distance_to(const Line &line) const;
     double perp_distance_to(const Line &line) const;
     double ccw(const Point &p1, const Point &p2) const;
