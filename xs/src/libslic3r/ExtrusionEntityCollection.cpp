@@ -5,12 +5,6 @@
 
 namespace Slic3r {
 
-ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionEntityCollection& collection)
-    : orig_indices(collection.orig_indices), no_sort(collection.no_sort)
-{
-    this->append(collection.entities);
-}
-
 ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths)
     : no_sort(false)
 {
