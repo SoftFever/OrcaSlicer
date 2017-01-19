@@ -104,6 +104,10 @@ ExtrusionEntityCollection*              O_OBJECT_SLIC3R
 Ref<ExtrusionEntityCollection>          O_OBJECT_SLIC3R_T
 Clone<ExtrusionEntityCollection>        O_OBJECT_SLIC3R_T
 
+ExtrusionMultiPath*        O_OBJECT_SLIC3R
+Ref<ExtrusionMultiPath>    O_OBJECT_SLIC3R_T
+Clone<ExtrusionMultiPath>  O_OBJECT_SLIC3R_T
+
 ExtrusionPath*             O_OBJECT_SLIC3R
 Ref<ExtrusionPath>         O_OBJECT_SLIC3R_T
 Clone<ExtrusionPath>       O_OBJECT_SLIC3R_T

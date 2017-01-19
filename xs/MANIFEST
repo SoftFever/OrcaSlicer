@@ -185,6 +185,7 @@ xsp/ExPolygonCollection.xsp
 xsp/Extruder.xsp
 xsp/ExtrusionEntityCollection.xsp
 xsp/ExtrusionLoop.xsp
+xsp/ExtrusionMultiPath.xsp
 xsp/ExtrusionPath.xsp
 xsp/ExtrusionSimulator.xsp
 xsp/Filler.xsp

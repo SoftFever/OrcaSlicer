@@ -63,6 +63,62 @@ void ExtrusionPath::polygons_covered_by_spacing(Polygons &out, const float scale
     polygons_append(out, offset(this->polyline, 0.5f * float(flow.scaled_spacing()) + scaled_epsilon));
 }
 
+void ExtrusionMultiPath::reverse()
+{
+    for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path)
+        path->reverse();
+    std::reverse(this->paths.begin(), this->paths.end());
+}
+
+double ExtrusionMultiPath::length() const
+{
+    double len = 0;
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
+        len += path->polyline.length();
+    return len;
+}
+
+void ExtrusionMultiPath::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
+{
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
+        path->polygons_covered_by_width(out, scaled_epsilon);
+}
+
+void ExtrusionMultiPath::polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const
+{
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
+        path->polygons_covered_by_spacing(out, scaled_epsilon);
+}
+
+double ExtrusionMultiPath::min_mm3_per_mm() const
+{
+    double min_mm3_per_mm = std::numeric_limits<double>::max();
+    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
+        min_mm3_per_mm = std::min(min_mm3_per_mm, path->mm3_per_mm);
+    return min_mm3_per_mm;
+}
+
+Polyline ExtrusionMultiPath::as_polyline() const
+{
+    size_t len = 0;
+    for (size_t i_path = 0; i_path < paths.size(); ++ i_path) {
+        assert(! paths[i_path].polyline.points.empty());
+        assert(i_path == 0 || paths[i_path - 1].polyline.points.back() == paths[i_path].polyline.points.front());
+        len += paths[i_path].polyline.points.size();
+    }
+    // The connecting points between the segments are equal.
+    len -= paths.size() - 1;
+
+    Polyline out;
+    if (len > 0) {
+        out.points.reserve(len);
+        out.points.push_back(paths.front().polyline.points.front());
+        for (size_t i_path = 0; i_path < paths.size(); ++ i_path)
+            out.points.insert(out.points.end(), paths[i_path].polyline.points.begin() + 1, paths[i_path].polyline.points.end());
+    }
+    return out;
+}
+
 bool
 ExtrusionLoop::make_clockwise()
 {

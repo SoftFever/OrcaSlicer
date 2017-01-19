@@ -78,6 +78,9 @@
 %typemap{ExtrusionEntityCollection*};
 %typemap{Ref<ExtrusionEntityCollection>}{simple};
 %typemap{Clone<ExtrusionEntityCollection>}{simple};
+%typemap{ExtrusionMultiPath*};
+%typemap{Ref<ExtrusionMultiPath>}{simple};
+%typemap{Clone<ExtrusionMultiPath>}{simple};
 %typemap{ExtrusionPath*};
 %typemap{Ref<ExtrusionPath>}{simple};
 %typemap{Clone<ExtrusionPath>}{simple};

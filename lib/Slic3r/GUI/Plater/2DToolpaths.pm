@@ -488,7 +488,7 @@ sub Render {
 sub _draw {
     my ($self, $object, $print_z, $path) = @_;
     
-    my @paths = $path->isa('Slic3r::ExtrusionLoop')
+    my @paths = ($path->isa('Slic3r::ExtrusionLoop') || $path->isa('Slic3r::ExtrusionMultiPath'))
         ? @$path
         : ($path);
     
@@ -546,7 +546,7 @@ sub _simulate_extrusion {
                     push @extrusions, @$_ for @{$layerm->fills};
                 }
                 foreach my $extrusion_entity (@extrusions) {
-                    my @paths = $extrusion_entity->isa('Slic3r::ExtrusionLoop')
+                    my @paths = ($extrusion_entity->isa('Slic3r::ExtrusionLoop') || $extrusion_entity->isa('Slic3r::ExtrusionMultiPath'))
                         ? @$extrusion_entity
                         : ($extrusion_entity);
                     foreach my $path (@paths) {

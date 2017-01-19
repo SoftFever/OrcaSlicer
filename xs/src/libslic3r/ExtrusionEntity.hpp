@@ -133,6 +133,55 @@ public:
 
 typedef std::vector<ExtrusionPath> ExtrusionPaths;
 
+// Single continuous extrusion path, possibly with varying extrusion thickness, extrusion height or bridging / non bridging.
+class ExtrusionMultiPath : public ExtrusionEntity
+{
+public:
+    ExtrusionPaths paths;
+    
+    ExtrusionMultiPath() {};
+    ExtrusionMultiPath(const ExtrusionPaths &paths) : paths(paths) {};
+    ExtrusionMultiPath(const ExtrusionPath &path) { this->paths.push_back(path); }
+    bool is_loop() const { return false; }
+    bool can_reverse() const { return true; }
+    ExtrusionMultiPath* clone() const { return new ExtrusionMultiPath(*this); }
+    void reverse();
+    Point first_point() const { return this->paths.front().polyline.points.front(); }
+    Point last_point() const { return this->paths.back().polyline.points.back(); }
+    virtual double length() const;
+    bool is_perimeter() const {
+        return this->paths.front().role == erPerimeter
+            || this->paths.front().role == erExternalPerimeter
+            || this->paths.front().role == erOverhangPerimeter;
+    }
+    bool is_infill() const {
+        return this->paths.front().role == erBridgeInfill
+            || this->paths.front().role == erInternalInfill
+            || this->paths.front().role == erSolidInfill
+            || this->paths.front().role == erTopSolidInfill;
+    }
+    bool is_solid_infill() const {
+        return this->paths.front().role == erBridgeInfill
+            || this->paths.front().role == erSolidInfill
+            || this->paths.front().role == erTopSolidInfill;
+    }
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
+    // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
+    // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
+    // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
+    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const;
+    Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
+    Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
+        { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
+    // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
+    double min_mm3_per_mm() const;
+    Polyline as_polyline() const;
+};
+
+// Single continuous extrusion loop, possibly with varying extrusion thickness, extrusion height or bridging / non bridging.
 class ExtrusionLoop : public ExtrusionEntity
 {
     public:

@@ -107,6 +107,11 @@ sub new_from_paths {
     return $loop;
 }
 
+package Slic3r::ExtrusionMultiPath;
+use overload
+    '@{}' => sub { $_[0]->arrayref },
+    'fallback' => 1;
+
 package Slic3r::ExtrusionPath;
 use overload
     '@{}' => sub { $_[0]->arrayref },

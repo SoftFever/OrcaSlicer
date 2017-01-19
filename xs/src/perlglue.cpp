@@ -6,6 +6,7 @@ namespace Slic3r {
 REGISTER_CLASS(ExPolygon, "ExPolygon");
 REGISTER_CLASS(ExPolygonCollection, "ExPolygon::Collection");
 REGISTER_CLASS(Extruder, "Extruder");
+REGISTER_CLASS(ExtrusionMultiPath, "ExtrusionMultiPath");
 REGISTER_CLASS(ExtrusionPath, "ExtrusionPath");
 REGISTER_CLASS(ExtrusionLoop, "ExtrusionLoop");
 // there is no ExtrusionLoop::Collection or ExtrusionEntity::Collection

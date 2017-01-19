@@ -767,10 +767,32 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
 }
 
 std::string
+GCode::extrude(ExtrusionMultiPath multipath, std::string description, double speed)
+{
+    // extrude along the path
+    std::string gcode;
+    for (ExtrusionPaths::const_iterator path = multipath.paths.begin(); path != multipath.paths.end(); ++path)
+//    description += ExtrusionLoopRole2String(loop.role);
+//    description += ExtrusionRole2String(path->role);
+        gcode += this->_extrude(*path, description, speed);
+    
+    // reset acceleration
+    gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
+  
+//FIXME perform wipe on multi paths?  
+//    if (this->wipe.enable)
+//        this->wipe.path = paths.front().polyline;  // TODO: don't limit wipe to last path
+    
+    return gcode;
+}
+
+std::string
 GCode::extrude(const ExtrusionEntity &entity, std::string description, double speed)
 {
     if (const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(&entity)) {
         return this->extrude(*path, description, speed);
+    } else if (const ExtrusionMultiPath* multipath = dynamic_cast<const ExtrusionMultiPath*>(&entity)) {
+        return this->extrude(*multipath, description, speed);
     } else if (const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(&entity)) {
         return this->extrude(*loop, description, speed);
     } else {
