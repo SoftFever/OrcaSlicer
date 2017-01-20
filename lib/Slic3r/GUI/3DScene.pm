@@ -1969,7 +1969,8 @@ sub _extrusionentity_to_verts {
         $lines   = [];
         $widths  = [];
         $heights = [];
-        $closed  = 1;
+        # $entity is either of type Slic3r::ExtrusionLoop or Slic3r::ExtrusionMultiPath.
+        $closed  = $entity->isa('Slic3r::ExtrusionLoop') ? 1 : 0;
         foreach my $path (@$entity) {
             my $polyline = $path->polyline->clone;
             $polyline->remove_duplicate_points;
