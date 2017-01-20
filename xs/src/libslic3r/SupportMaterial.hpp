@@ -59,13 +59,16 @@ public:
 			idx_object_layer_above(size_t(-1)),
 			idx_object_layer_below(size_t(-1)),
 			bridging(false),
-			aux_polygons(NULL)
+			contact_polygons(nullptr),
+			overhang_polygons(nullptr)
 			{}
 
 		~MyLayer() 
 		{
-			delete aux_polygons;
-			aux_polygons = NULL;
+			delete contact_polygons;
+			contact_polygons = nullptr;
+			delete overhang_polygons;
+			overhang_polygons = nullptr;
 		}
 
 		bool operator==(const MyLayer &layer2) const {
@@ -106,9 +109,10 @@ public:
 
     	// Polygons to be filled by the support pattern.
     	Polygons polygons;
-    	// Currently for the contact layers only: Overhangs are stored here.
-    	// MyLayer owns the aux_polygons, they are freed by the destructor.
-    	Polygons *aux_polygons;
+    	// Currently for the contact layers only.
+    	// MyLayer owns the contact_polygons and overhang_polygons, they are freed by the destructor.
+    	Polygons *contact_polygons;
+    	Polygons *overhang_polygons;
 	};
 
 	// Layers are allocated and owned by a deque. Once a layer is allocated, it is maintained
