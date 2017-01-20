@@ -143,16 +143,15 @@ inline void polygons_append(Polygons &dst, const Surfaces &src)
     }
 }
 
-#if SLIC3R_CPPVER >= 11
 inline void polygons_append(Polygons &dst, Surfaces &&src) 
 { 
     dst.reserve(dst.size() + number_polygons(src));
-    for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++ it) {
+    for (Surfaces::iterator it = src.begin(); it != src.end(); ++ it) {
         dst.push_back(std::move(it->expolygon.contour));
         std::move(std::begin(it->expolygon.holes), std::end(it->expolygon.holes), std::back_inserter(dst));
+        it->expolygon.holes.clear();
     }
 }
-#endif
 
 // Append a vector of Surfaces at the end of another vector of polygons.
 inline void polygons_append(Polygons &dst, const SurfacesPtr &src) 
@@ -164,16 +163,15 @@ inline void polygons_append(Polygons &dst, const SurfacesPtr &src)
     }
 }
 
-#if SLIC3R_CPPVER >= 11
 inline void polygons_append(Polygons &dst, SurfacesPtr &&src) 
 { 
     dst.reserve(dst.size() + number_polygons(src));
     for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++ it) {
         dst.push_back(std::move((*it)->expolygon.contour));
         std::move(std::begin((*it)->expolygon.holes), std::end((*it)->expolygon.holes), std::back_inserter(dst));
+        (*it)->expolygon.holes.clear();
     }
 }
-#endif
 
 // Append a vector of Surfaces at the end of another vector of polygons.
 inline void surfaces_append(Surfaces &dst, const ExPolygons &src, SurfaceType surfaceType) 
@@ -193,27 +191,30 @@ inline void surfaces_append(Surfaces &dst, const Surfaces &src)
     dst.insert(dst.end(), src.begin(), src.end());
 }
 
-#if SLIC3R_CPPVER >= 11
 inline void surfaces_append(Surfaces &dst, ExPolygons &&src, SurfaceType surfaceType) 
 { 
     dst.reserve(dst.size() + src.size());
     for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
         dst.push_back(Surface(surfaceType, std::move(*it)));
+    src.clear();
 }
+
 inline void surfaces_append(Surfaces &dst, ExPolygons &&src, const Surface &surfaceTempl) 
 { 
     dst.reserve(dst.size() + number_polygons(src));
     for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
         dst.push_back(Surface(surfaceTempl, std::move(*it)));
+    src.clear();
 }
 inline void surfaces_append(Surfaces &dst, Surfaces &&src) 
 { 
-    if (dst.empty())
+    if (dst.empty()) {
         dst = std::move(src);
-    else
+    } else {
         std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+        src.clear();
+    }
 }
-#endif
 
 extern BoundingBox get_extents(const Surface &surface);
 extern BoundingBox get_extents(const Surfaces &surfaces);

@@ -27,10 +27,12 @@ public:
     void append(const Points::const_iterator &begin, const Points::const_iterator &end) { this->points.insert(this->points.end(), begin, end); }
     void append(Points &&src)
     {
-        if (this->points.empty())
+        if (this->points.empty()) {
             this->points = std::move(src);
-        else
-            std::move(std::begin(src), std::end(src), std::back_inserter(this->points));
+        } else {
+            this->points.insert(this->points.end(), src.begin(), src.end());
+            src.clear();
+        }
     }
     void append(const Polyline &src) 
     { 
@@ -39,10 +41,12 @@ public:
 
     void append(Polyline &&src) 
     {
-        if (this->points.empty())
+        if (this->points.empty()) {
             this->points = std::move(src.points);
-        else
-            std::move(std::begin(src.points), std::end(src.points), std::back_inserter(this->points));
+        } else {
+            this->points.insert(this->points.end(), src.points.begin(), src.points.end());
+            src.points.clear();
+        }
     }
 
     operator Polylines() const;
@@ -99,10 +103,12 @@ inline void polylines_append(Polylines &dst, const Polylines &src)
 
 inline void polylines_append(Polylines &dst, Polylines &&src) 
 {
-    if (dst.empty())
+    if (dst.empty()) {
         dst = std::move(src);
-    else
+    } else {
         std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+        src.clear();
+    }
 }
 
 class ThickPolyline : public Polyline {

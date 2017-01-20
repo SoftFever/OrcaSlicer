@@ -67,20 +67,6 @@ ExtrusionEntityCollection::reverse()
 }
 
 void
-ExtrusionEntityCollection::append(const ExtrusionEntitiesPtr &entities)
-{
-    for (ExtrusionEntitiesPtr::const_iterator ptr = entities.begin(); ptr != entities.end(); ++ptr)
-        this->append(**ptr);
-}
-
-void
-ExtrusionEntityCollection::append(const ExtrusionPaths &paths)
-{
-    for (ExtrusionPaths::const_iterator path = paths.begin(); path != paths.end(); ++path)
-        this->append(*path);
-}
-
-void
 ExtrusionEntityCollection::replace(size_t i, const ExtrusionEntity &entity)
 {
     delete this->entities[i];

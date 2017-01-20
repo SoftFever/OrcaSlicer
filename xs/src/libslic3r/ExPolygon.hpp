@@ -206,26 +206,27 @@ inline Polygons to_polygons(const ExPolygons &src)
     return polygons;
 }
 
-#if SLIC3R_CPPVER >= 11
 inline Polygons to_polygons(ExPolygon &&src)
 {
     Polygons polygons;
     polygons.reserve(src.holes.size() + 1);
     polygons.push_back(std::move(src.contour));
     std::move(std::begin(src.holes), std::end(src.holes), std::back_inserter(polygons));
+    src.holes.clear();
     return polygons;
 }
+
 inline Polygons to_polygons(ExPolygons &&src)
 {
     Polygons polygons;
     polygons.reserve(number_polygons(src));
-    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++it) {
+    for (ExPolygons::iterator it = src.begin(); it != src.end(); ++it) {
         polygons.push_back(std::move(it->contour));
         std::move(std::begin(it->holes), std::end(it->holes), std::back_inserter(polygons));
+        it->holes.clear();
     }
     return polygons;
 }
-#endif
 
 inline void polygons_append(Polygons &dst, const ExPolygon &src) 
 { 
@@ -243,35 +244,38 @@ inline void polygons_append(Polygons &dst, const ExPolygons &src)
     }
 }
 
-#if SLIC3R_CPPVER >= 11
 inline void polygons_append(Polygons &dst, ExPolygon &&src)
 { 
     dst.reserve(dst.size() + src.holes.size() + 1);
     dst.push_back(std::move(src.contour));
     std::move(std::begin(src.holes), std::end(src.holes), std::back_inserter(dst));
+    src.holes.clear();
 }
 
 inline void polygons_append(Polygons &dst, ExPolygons &&src)
 { 
     dst.reserve(dst.size() + number_polygons(src));
-    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it) {
+    for (ExPolygons::iterator it = src.begin(); it != src.end(); ++ it) {
         dst.push_back(std::move(it->contour));
         std::move(std::begin(it->holes), std::end(it->holes), std::back_inserter(dst));
+        it->holes.clear();
     }
 }
-#endif
 
 inline void expolygons_append(ExPolygons &dst, const ExPolygons &src) 
 { 
     dst.insert(dst.end(), src.begin(), src.end());
 }
 
-#if SLIC3R_CPPVER >= 11
 inline void expolygons_append(ExPolygons &dst, ExPolygons &&src)
 { 
-    std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+    if (dst.empty()) {
+        dst = std::move(src);
+    } else {
+        std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+        src.clear();
+    }
 }
-#endif
 
 inline void expolygons_rotate(ExPolygons &expolys, double angle)
 {

@@ -47,10 +47,12 @@ class MultiPoint
     void append(const Points::const_iterator &begin, const Points::const_iterator &end) { this->points.insert(this->points.end(), begin, end); }
     void append(Points &&src)
     {
-        if (this->points.empty())
+        if (this->points.empty()) {
             this->points = std::move(src);
-        else
-            std::move(std::begin(src), std::end(src), std::back_inserter(this->points));
+        } else {
+            this->points.insert(this->points.end(), src.begin(), src.end());
+            src.clear();
+        }
     }
 
     bool intersection(const Line& line, Point* intersection) const;

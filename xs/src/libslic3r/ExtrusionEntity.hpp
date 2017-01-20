@@ -78,7 +78,12 @@ public:
     
     ExtrusionPath(ExtrusionRole role) : role(role), mm3_per_mm(-1), width(-1), height(-1) {};
     ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : role(role), mm3_per_mm(mm3_per_mm), width(width), height(height) {};
+    ExtrusionPath(ExtrusionPath &&rhs) : role(rhs.role), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), polyline(std::move(rhs.polyline)) {}
 //    ExtrusionPath(ExtrusionRole role, const Flow &flow) : role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height) {};
+
+    ExtrusionPath& operator=(const ExtrusionPath &rhs) { this->role = rhs.role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->polyline = rhs.polyline; return *this; }
+    ExtrusionPath& operator=(ExtrusionPath &&rhs) { this->role = rhs.role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->polyline = std::move(rhs.polyline); return *this; }
+
     ExtrusionPath* clone() const { return new ExtrusionPath (*this); }
     void reverse() { this->polyline.reverse(); }
     Point first_point() const { return this->polyline.points.front(); }
@@ -140,8 +145,14 @@ public:
     ExtrusionPaths paths;
     
     ExtrusionMultiPath() {};
+    ExtrusionMultiPath(const ExtrusionMultiPath &rhs) : paths(rhs.paths) {}
+    ExtrusionMultiPath(ExtrusionMultiPath &&rhs) : paths(std::move(rhs.paths)) {}
     ExtrusionMultiPath(const ExtrusionPaths &paths) : paths(paths) {};
     ExtrusionMultiPath(const ExtrusionPath &path) { this->paths.push_back(path); }
+
+    ExtrusionMultiPath& operator=(const ExtrusionMultiPath &rhs) { this->paths = rhs.paths; return *this; }
+    ExtrusionMultiPath& operator=(ExtrusionMultiPath &&rhs) { this->paths = std::move(rhs.paths); return *this; }
+
     bool is_loop() const { return false; }
     bool can_reverse() const { return true; }
     ExtrusionMultiPath* clone() const { return new ExtrusionMultiPath(*this); }

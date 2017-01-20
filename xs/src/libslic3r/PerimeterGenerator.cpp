@@ -374,7 +374,7 @@ PerimeterGenerator::_traverse_loops(const PerimeterGeneratorLoops &loops,
             // reapply the nearest point search for starting point
             // We allow polyline reversal because Clipper may have randomly
             // reversed polylines during clipping.
-            paths = ExtrusionEntityCollection(paths).chained_path();
+            paths = (ExtrusionPaths)ExtrusionEntityCollection(paths).chained_path();
         } else {
             ExtrusionPath path(role);
             path.polyline   = loop->polygon.split_at_first_point();

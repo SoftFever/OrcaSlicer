@@ -16,12 +16,12 @@ public:
     ExtrusionEntityCollection(): no_sort(false) {};
     ExtrusionEntityCollection(const ExtrusionEntityCollection &other) : orig_indices(other.orig_indices), no_sort(other.no_sort) { this->append(other.entities); }
     ExtrusionEntityCollection(ExtrusionEntityCollection &&other) : entities(std::move(other.entities)), orig_indices(std::move(other.orig_indices)), no_sort(other.no_sort) {}
-    ExtrusionEntityCollection(const ExtrusionPaths &paths);
+    explicit ExtrusionEntityCollection(const ExtrusionPaths &paths);
     ExtrusionEntityCollection& operator=(const ExtrusionEntityCollection &other);
     ExtrusionEntityCollection& operator=(ExtrusionEntityCollection &&other) 
         { this->entities = std::move(other.entities); this->orig_indices = std::move(other.orig_indices); this->no_sort = other.no_sort; return *this; }
     ~ExtrusionEntityCollection() { clear(); }
-    operator ExtrusionPaths() const;
+    explicit operator ExtrusionPaths() const;
     
     bool is_collection() const { return true; };
     bool can_reverse() const { return !this->no_sort; };
@@ -29,8 +29,24 @@ public:
     void clear();
     void swap (ExtrusionEntityCollection &c);
     void append(const ExtrusionEntity &entity) { this->entities.push_back(entity.clone()); }
-    void append(const ExtrusionEntitiesPtr &entities);
-    void append(const ExtrusionPaths &paths);
+    void append(const ExtrusionEntitiesPtr &entities) { 
+        this->entities.reserve(this->entities.size() + entities.size());
+        for (ExtrusionEntitiesPtr::const_iterator ptr = entities.begin(); ptr != entities.end(); ++ptr)
+            this->entities.push_back((*ptr)->clone());
+    }
+    void append(ExtrusionEntitiesPtr &&src) {
+        if (entities.empty())
+            entities = std::move(src);
+        else {
+            std::move(std::begin(src), std::end(src), std::back_inserter(entities));
+            src.clear();
+        }
+    }
+    void append(const ExtrusionPaths &paths) { 
+        this->entities.reserve(this->entities.size() + paths.size());
+        for (ExtrusionPaths::const_iterator path = paths.begin(); path != paths.end(); ++path)
+            this->entities.push_back(path->clone());
+    }
     void replace(size_t i, const ExtrusionEntity &entity);
     void remove(size_t i);
     ExtrusionEntityCollection chained_path(bool no_reverse = false, std::vector<size_t>* orig_indices = NULL) const;
