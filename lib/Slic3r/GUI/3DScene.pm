@@ -1021,7 +1021,7 @@ sub Render {
         glEnableClientState(GL_VERTEX_ARRAY);
         glColor4f(0.8, 0.6, 0.5, 0.4);
         glNormal3d(0,0,1);
-        glVertexPointer_p(3, $self->bed_triangles);
+        glVertexPointer_c(3, GL_FLOAT, 0, $self->bed_triangles->ptr());
         glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
         glDisableClientState(GL_VERTEX_ARRAY);
         
@@ -1033,7 +1033,7 @@ sub Render {
         glLineWidth(3);
         glColor4f(0.2, 0.2, 0.2, 0.4);
         glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer_p(3, $self->bed_grid_lines);
+        glVertexPointer_c(3, GL_FLOAT, 0, $self->bed_grid_lines->ptr());
         glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
         glDisableClientState(GL_VERTEX_ARRAY);
         
@@ -1259,7 +1259,7 @@ sub draw_volumes {
     if (defined $self->cutting_plane_z) {
         glLineWidth(2);
         glColor3f(0, 0, 0);
-        glVertexPointer_p(3, $self->cut_lines_vertices);
+        glVertexPointer_c(3, GL_FLOAT, 0, $self->cut_lines_vertices->ptr());
         glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
         glVertexPointer_c(3, GL_FLOAT, 0, 0);
     }
