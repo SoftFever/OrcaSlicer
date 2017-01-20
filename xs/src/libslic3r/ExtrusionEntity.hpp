@@ -78,6 +78,7 @@ public:
     
     ExtrusionPath(ExtrusionRole role) : role(role), mm3_per_mm(-1), width(-1), height(-1) {};
     ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : role(role), mm3_per_mm(mm3_per_mm), width(width), height(height) {};
+    ExtrusionPath(const ExtrusionPath &rhs) : role(rhs.role), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), polyline(rhs.polyline) {}
     ExtrusionPath(ExtrusionPath &&rhs) : role(rhs.role), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), polyline(std::move(rhs.polyline)) {}
 //    ExtrusionPath(ExtrusionRole role, const Flow &flow) : role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height) {};
 
