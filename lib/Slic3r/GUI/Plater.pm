@@ -412,6 +412,34 @@ sub new {
                 }
             }
         }
+
+        my $print_info_sizer;
+        {
+            my $box = Wx::StaticBox->new($self, -1, "Sliced Info");
+            $print_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
+            $print_info_sizer->SetMinSize([350,-1]);
+            my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
+            $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
+            $grid_sizer->AddGrowableCol(1, 1);
+            $grid_sizer->AddGrowableCol(3, 1);
+            $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
+            my @info = (
+                fil_mm3 => "Used Filament (mm^3)",
+                fil_g   => "Used Filament (g)",
+                cost    => "Cost",
+            );
+            while (my $field = shift @info) {
+                my $label = shift @info;
+                my $text = Wx::StaticText->new($self, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+                $text->SetFont($Slic3r::GUI::small_font);
+                $grid_sizer->Add($text, 0);
+                
+                $self->{"print_info_$field"} = Wx::StaticText->new($self, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                $self->{"print_info_$field"}->SetFont($Slic3r::GUI::small_font);
+                $grid_sizer->Add($self->{"print_info_$field"}, 0);
+            }
+            
+        }
         
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $self->{buttons_sizer} = $buttons_sizer;
@@ -427,6 +455,7 @@ sub new {
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $right_sizer->Add($self->{list}, 1, wxEXPAND, 5);
         $right_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
+        $right_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
         
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
@@ -1343,7 +1372,6 @@ sub on_export_completed {
         } else {
             $message = "G-code file exported to " . $self->{export_gcode_output_file};
         }
-        $message .= sprintf(" Cost: %.2f" , $self->{print}->total_cost);
     } else {
         $message = "Export failed";
     }
@@ -1356,6 +1384,9 @@ sub on_export_completed {
     $self->send_gcode if $send_gcode;
     $self->{print_file} = undef;
     $self->{send_gcode_file} = undef;
+    $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
+    $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
+    $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
     
     # this updates buttons status
     $self->object_list_changed;
