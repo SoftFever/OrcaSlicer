@@ -83,12 +83,15 @@ public:
 			 	if (height > layer2.height)
 			 		return true;
 			 	else if (height == layer2.height) {
-			 	 	return bridging < layer2.bridging;
+			 		// Bridging layers first.
+			 	 	return bridging && ! layer2.bridging;
 			 	} else
 			 		return false;
 			} else
 				return false;
 		}
+
+		coordf_t bottom_print_z() const { return print_z - height; }
 
 		SupporLayerType layer_type;
 		// Z used for printing, in unscaled coordinates.
