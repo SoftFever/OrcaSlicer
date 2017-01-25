@@ -326,7 +326,7 @@ sub export {
     foreach my $extruder (@{$gcodegen->writer->extruders}) {
         my $used_filament = $extruder->used_filament;
         my $extruded_volume = $extruder->extruded_volume;
-        my $filament_weight = $extruded_volume * $extruder->filament_density;
+        my $filament_weight = $extruded_volume * $extruder->filament_density / 1000;
         my $filament_cost = $filament_weight * ($extruder->filament_cost / 1000);
         $self->print->set_filament_stats($extruder->id, $used_filament);
         
