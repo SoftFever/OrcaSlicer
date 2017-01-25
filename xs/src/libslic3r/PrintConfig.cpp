@@ -1190,11 +1190,11 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloatOrPercent(0, false);
 
     def = this->add("support_material_interface_contact_loops", coBool);
-    def->label = "Interface circles";
+    def->label = "Interface loops";
     def->category = "Support material";
-    def->tooltip = "Cover the top most interface layer with contact loops";
+    def->tooltip = "Cover the top contact layer of the supports with loops. Disabled by default.";
     def->cli = "support-material-interface-contact-loops!";
-    def->default_value = new ConfigOptionBool(true);
+    def->default_value = new ConfigOptionBool(false);
 
     def = this->add("support_material_interface_extruder", coInt);
     def->label = "Support material/raft interface extruder";
