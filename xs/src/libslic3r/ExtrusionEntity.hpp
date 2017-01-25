@@ -259,43 +259,49 @@ inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, Ex
 {
     dst.reserve(dst.size() + polylines.size());
     for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
-        dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
-        dst.back().polyline = *it_polyline;
+        if (it_polyline->is_valid()) {
+            dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
+            dst.back().polyline = *it_polyline;
+        }
     }
 }
 
-#if SLIC3R_CPPVER >= 11
 inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
     for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
-        dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
-        dst.back().polyline = std::move(*it_polyline);
+        if (it_polyline->is_valid()) {
+            dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
+            dst.back().polyline = std::move(*it_polyline);
+        }
     }
+    polylines.clear();
 }
-#endif // SLIC3R_CPPVER >= 11
 
 inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
     for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
-        ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
-        dst.push_back(extrusion_path);
-        extrusion_path->polyline = *it_polyline;
+        if (it_polyline->is_valid()) {
+            ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
+            dst.push_back(extrusion_path);
+            extrusion_path->polyline = *it_polyline;
+        }
     }
 }
 
-#if SLIC3R_CPPVER >= 11
 inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
     for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
-        ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
-        dst.push_back(extrusion_path);
-        extrusion_path->polyline = std::move(*it_polyline);
+        if (it_polyline->is_valid()) {
+            ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
+            dst.push_back(extrusion_path);
+            extrusion_path->polyline = std::move(*it_polyline);
+        }
     }
+    polylines.clear();
 }
-#endif // SLIC3R_CPPVER >= 11
 
 }
 
