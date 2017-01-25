@@ -111,6 +111,8 @@ inline void polylines_append(Polylines &dst, Polylines &&src)
     }
 }
 
+bool remove_degenerate(Polylines &polylines);
+
 class ThickPolyline : public Polyline {
     public:
     std::vector<coordf_t> width;
