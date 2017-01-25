@@ -21,6 +21,8 @@
     bool is_solid_infill();
     Polygons polygons_covered_by_width();
     Polygons polygons_covered_by_spacing();
+    Clone<Polyline> polyline()
+        %code{% RETVAL = THIS->as_polyline(); %};
 %{
 
 SV*
