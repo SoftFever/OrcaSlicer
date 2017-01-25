@@ -6,6 +6,7 @@
 #include <math.h>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 
 namespace Slic3r {
 
@@ -71,10 +72,103 @@ inline Point operator+(const Point& point1, const Point& point2) { return Point(
 inline Point operator-(const Point& point1, const Point& point2) { return Point(point1.x - point2.x, point1.y - point2.y); }
 inline Point operator*(double scalar, const Point& point2) { return Point(scalar * point2.x, scalar * point2.y); }
 
+// To be used by std::unordered_map, std::unordered_multimap and friends.
 struct PointHash {
     size_t operator()(const Point &pt) const {
         return std::hash<coord_t>()(pt.x) ^ std::hash<coord_t>()(pt.y);
     }
+};
+
+// A generic class to search for a closest Point in a given radius.
+// It uses std::unordered_multimap to implement an efficient 2D spatial hashing.
+// The PointAccessor has to return const Point*.
+// If a nullptr is returned, it is ignored by the query.
+template<typename ValueType, typename PointAccessor> class ClosestPointInRadiusLookup
+{
+public:
+    ClosestPointInRadiusLookup(coord_t search_radius, PointAccessor point_accessor = PointAccessor()) : 
+		m_search_radius(search_radius), m_point_accessor(point_accessor), m_grid_log2(0)
+    {
+        // Resolution of a grid, twice the search radius + some epsilon.
+		coord_t gridres = 2 * m_search_radius + 4;
+        m_grid_resolution = gridres;
+        assert(m_grid_resolution > 0);
+        assert(m_grid_resolution < (coord_t(1) << 30));
+		// Compute m_grid_log2 = log2(m_grid_resolution)
+		if (m_grid_resolution > 32767) {
+			m_grid_resolution >>= 16;
+			m_grid_log2 += 16;
+		}
+		if (m_grid_resolution > 127) {
+			m_grid_resolution >>= 8;
+			m_grid_log2 += 8;
+		}
+		if (m_grid_resolution > 7) {
+			m_grid_resolution >>= 4;
+			m_grid_log2 += 4;
+		}
+		if (m_grid_resolution > 1) {
+			m_grid_resolution >>= 2;
+			m_grid_log2 += 2;
+		}
+		if (m_grid_resolution > 0)
+			++ m_grid_log2;
+		m_grid_resolution = 1 << m_grid_log2;
+		assert(m_grid_resolution >= gridres);
+		assert(gridres > m_grid_resolution / 2);
+    }
+
+    void insert(const ValueType &value) {
+        const Point *pt = m_point_accessor(value);
+        if (pt != nullptr)
+            m_map.emplace(std::make_pair(Point(pt->x>>m_grid_log2, pt->y>>m_grid_log2), value));
+    }
+
+    void insert(ValueType &&value) {
+        const Point *pt = m_point_accessor(value);
+        if (pt != nullptr)
+            m_map.emplace(std::make_pair(Point(pt->x>>m_grid_log2, pt->y>>m_grid_log2), std::move(value)));
+    }
+
+    // Return a pair of <ValueType*, distance_squared>
+    std::pair<const ValueType*, double> find(const Point &pt) {
+        // Iterate over 4 closest grid cells around pt,
+        // find the closest start point inside these cells to pt.
+        const ValueType *value_min = nullptr;
+        double           dist_min = std::numeric_limits<double>::max();
+        // Round pt to a closest grid_cell corner.
+        Point            grid_corner((pt.x+(m_grid_resolution>>1))>>m_grid_log2, (pt.y+(m_grid_resolution>>1))>>m_grid_log2);
+        // For four neighbors of grid_corner:
+        for (coord_t neighbor_y = -1; neighbor_y < 1; ++ neighbor_y) {
+            for (coord_t neighbor_x = -1; neighbor_x < 1; ++ neighbor_x) {
+                // Range of fragment starts around grid_corner, close to pt.
+                auto range = m_map.equal_range(Point(grid_corner.x + neighbor_x, grid_corner.y + neighbor_y));
+                // Find the map entry closest to pt.
+                for (auto it = range.first; it != range.second; ++it) {
+                    const ValueType &value = it->second;
+                    const Point *pt2 = m_point_accessor(value);
+                    if (pt2 != nullptr) {
+                        const double d2 = pt.distance_to_sq(*pt2);
+                        if (d2 < dist_min) {
+                            dist_min = d2;
+                            value_min = &value;
+                        }
+                    }
+                }
+            }
+        }
+        return (value_min != nullptr && dist_min < coordf_t(m_search_radius * m_search_radius)) ? 
+            std::make_pair(value_min, dist_min) : 
+            std::make_pair(nullptr, std::numeric_limits<double>::max());
+    }
+
+private:
+    typedef typename std::unordered_multimap<Point, ValueType, PointHash> map_type;
+    PointAccessor m_point_accessor;
+    map_type m_map;
+    coord_t  m_search_radius;
+    coord_t  m_grid_resolution;
+    coord_t  m_grid_log2;
 };
 
 class Point3 : public Point
@@ -114,7 +208,8 @@ inline Pointf operator-(const Pointf& point1, const Pointf& point2) { return Poi
 inline Pointf operator*(double scalar, const Pointf& point2) { return Pointf(scalar * point2.x, scalar * point2.y); }
 inline Pointf operator*(const Pointf& point2, double scalar) { return Pointf(scalar * point2.x, scalar * point2.y); }
 inline coordf_t cross(const Pointf &v1, const Pointf &v2) { return v1.x * v2.y - v1.y * v2.x; }
-inline coordf_t dot(const Pointf &v1, const Pointf &v2) { return v1.x * v1.y + v2.x * v2.y; }
+inline coordf_t dot(const Pointf &v1, const Pointf &v2) { return v1.x * v2.x + v1.y * v2.y; }
+inline coordf_t dot(const Pointf &v) { return v.x * v.x + v.y * v.y; }
 
 class Pointf3 : public Pointf
 {
