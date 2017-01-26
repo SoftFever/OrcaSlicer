@@ -38,8 +38,8 @@ sub process {
         } elsif ($info->{extruding} && $info->{dist_XY} > 0) {
             # This is a print move.
             my $F = $args->{F} // $reader->F;
-            if ($F != $self->_last_print_F) {
-                # We are setting a (potentially) new speed, so we calculate the new advance amount.
+            if ($F != $self->_last_print_F || ($F == $self->_last_print_F && $self->_advance == 0)) {
+                # We are setting a (potentially) new speed or a discharge event happend since the last speed change, so we calculate the new advance amount.
             
                 # First calculate relative flow rate (mm of filament over mm of travel)
                 my $rel_flow_rate = $info->{dist_E} / $info->{dist_XY};
@@ -56,6 +56,7 @@ sub process {
                         $self->_extrusion_axis, $new_E, $self->_unretract_speed;
                     $new_gcode .= sprintf "G92 %s%.5f ; restore E\n", $self->_extrusion_axis, $reader->E
                         if !$self->config->use_relative_e_distances;
+					$new_gcode .= sprintf "G1 F%.3f ; restore F\n", $F;
                     $self->_advance($new_advance);
                 }
                 
@@ -63,7 +64,7 @@ sub process {
             }
         } elsif (($info->{retracting} || $cmd eq 'G10') && $self->_advance != 0) {
             # We need to bring pressure to zero when retracting.
-            $new_gcode .= $self->_discharge($args->{F});
+            $new_gcode .= $self->_discharge($args->{F}, $args->{F} // $reader->F);
         }
         
         $new_gcode .= "$info->{raw}\n";
@@ -77,7 +78,7 @@ sub process {
 }
 
 sub _discharge {
-    my ($self, $F) = @_;
+    my ($self, $F, $oldSpeed) = @_;
     
     my $new_E = ($self->config->use_relative_e_distances ? 0 : $self->reader->E) - $self->_advance;
     my $gcode = sprintf "G1 %s%.5f F%.3f ; pressure discharge\n",
