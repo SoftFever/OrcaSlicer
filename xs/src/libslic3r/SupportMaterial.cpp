@@ -861,8 +861,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             // top surfaces above layer.print_z falls onto this top surface. 
             // Touching are the contact surfaces supported exclusively by this top surfaces.
             // Don't use a safety offset as it has been applied during insertion of polygons.
+            Polygons touching;
             if (! top.empty()) {
-                Polygons touching = intersection(top, projection, false);
+                touching = intersection(top, projection, false);
                 if (! touching.empty()) {
                     // Allocate a new bottom contact layer.
                     MyLayer &layer_new = layer_allocate(layer_storage, sltBottomContact);
@@ -887,8 +888,22 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                         debug_out_path("support-bottom-contacts-%d-%lf.svg", iRun, layer_new.print_z), 
                         union_ex(layer_new.polygons, false));
         #endif /* SLIC3R_DEBUG */
+                    // Trim the already created base layers above the current layer intersecting with the bottom contacts layer.
+                    touching = offset(touching, float(SCALED_EPSILON));
+                    for (int layer_id_above = layer_id + 1; layer_id_above < int(object.total_layer_count()); ++ layer_id_above) {
+                        const Layer &layer_above = *object.layers[layer_id_above];
+                        if (layer_above.print_z > layer_new.print_z + EPSILON)
+                            break; 
+                        if (! layer_support_areas[layer_id_above].empty())
+                            layer_support_areas[layer_id_above] = diff(layer_support_areas[layer_id_above], touching);
+                    }
                 }
             } // ! top.empty()
+
+            // Remove the areas that touched from the projection that will continue on next, lower, top surfaces.
+//            Polygons trimming = union_(to_polygons(layer.slices.expolygons), touching, true);
+            Polygons trimming = offset(layer.slices.expolygons, float(SCALED_EPSILON));
+            projection = diff(projection, trimming, false);
 
             remove_sticks(projection);
             remove_degenerate(projection);
@@ -926,13 +941,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             // to allow a placement of suppot zig-zag snake along the grid lines.
             layer_support_areas[layer_id] = diff(
                 grid.contours_simplified(m_support_material_flow.scaled_spacing()/2 + 25), 
-                to_polygons(layer.slices.expolygons),
-                true);
+                trimming,
+                false);
 
-            // Remove the areas that touched from the projection that will continue on next, lower, top surfaces.
-            // projection = diff(projection, touching);
-            projection = diff(projection_simplified, to_polygons(layer.slices.expolygons), true);
-//            layer_support_areas[layer_id] = projection;
+            // Trim the base layer by the object layer.
+            projection = diff(projection_simplified, trimming, false);
         }
         std::reverse(bottom_contacts.begin(), bottom_contacts.end());
     } // ! top_contacts.empty()
