@@ -1101,36 +1101,55 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             size_t iSegment = sil.intersections[i].iSegment;
             size_t iPrev    = ((iSegment == 0) ? contour.size() : iSegment) - 1;
             coord_t dir = contour[iSegment].x - contour[iPrev].x;
-            // bool ccw = poly_with_offset.is_contour_ccw(iContour);
-            // bool low = (dir > 0) == ccw;
             bool low = dir > 0;
             sil.intersections[i].type = poly_with_offset.is_contour_outer(iContour) ? 
                 (low ? SegmentIntersection::OUTER_LOW : SegmentIntersection::OUTER_HIGH) :
                 (low ? SegmentIntersection::INNER_LOW : SegmentIntersection::INNER_HIGH);
-            if (j > 0 &&
-           		sil.intersections[i].pos()    == sil.intersections[j-1].pos() &&
-                sil.intersections[i].iContour == sil.intersections[j-1].iContour) {
-                if (sil.intersections[i].type == sil.intersections[j-1].type) {
-                    // This has to be a corner point crossing the vertical line.
-                    // Remove the second intersection point.
-    #ifdef SLIC3R_DEBUG
+            if (j > 0 && sil.intersections[i].iContour == sil.intersections[j-1].iContour) {
+                // Two successive intersection points on a vertical line with the same contour. This may be a special case.
+                if (sil.intersections[i].pos() == sil.intersections[j-1].pos()) {
+                    // Two successive segments meet exactly at the vertical line.
+        #ifdef SLIC3R_DEBUG
+                    // Verify that the segments of sil.intersections[i] and sil.intersections[j-1] are adjoint.
                     size_t iSegment2 = sil.intersections[j-1].iSegment;
                     size_t iPrev2    = ((iSegment2 == 0) ? contour.size() : iSegment2) - 1;
                     myassert(iSegment == iPrev2 || iSegment2 == iPrev);
-    #endif /* SLIC3R_DEBUG */
+        #endif /* SLIC3R_DEBUG */
+                    if (sil.intersections[i].type == sil.intersections[j-1].type) {
+                        // Two successive segments of the same direction (both to the right or both to the left)
+                        // meet exactly at the vertical line.
+                        // Remove the second intersection point.
+                    } else {
+                        // This is a loop returning to the same point.
+                        // It may as well be a vertex of a loop touching this vertical line.
+                        // Remove both the lines.
+                        -- j;
+                    }
+                } else if (sil.intersections[i].type == sil.intersections[j-1].type) {
+                    // Two non successive segments of the same direction (both to the right or both to the left)
+                    // meet exactly at the vertical line. That means there is a Z shaped path, where the center segment
+                    // of the Z shaped path is aligned with this vertical line.
+                    // Remove one of the intersection points while maximizing the vertical segment length.
+                    if (low) {
+                        // Remove the second intersection point, keep the first intersection point.
+                    } else {
+                        // Remove the first intersection point, keep the second intersection point.
+                        sil.intersections[j-1] = sil.intersections[i];
+                    }
                 } else {
-                    // This is a loop returning to the same point.
-                    // It may as well be a vertex of a loop touching this vertical line.
-                    // Remove both the lines.
-                    -- j;
+                    // Vertical line intersects a contour segment at a general position (not at one of its end points).
+                    // or the contour just touches this vertical line with a vertical segment or a sequence of vertical segments.
+                    // Keep both intersection points.
+                    if (j < i)
+                        sil.intersections[j] = sil.intersections[i];
+                    ++ j;
                 }
             } else {
+                // Vertical line intersects a contour segment at a general position (not at one of its end points).
                 if (j < i)
                     sil.intersections[j] = sil.intersections[i];
                 ++ j;
             }
-            //FIXME solve a degenerate case, where there is a vertical segment on this vertical line and the contour
-            // follows from left to right or vice versa, leading to low,low or high,high intersections.
         }
         // Shrink the list of intersections, if any of the intersection was removed during the classification.
         if (j < sil.intersections.size())
