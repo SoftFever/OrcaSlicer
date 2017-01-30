@@ -13,18 +13,6 @@
 
 namespace Slic3r {
 
-Extruder*
-GCodeWriter::extruder()
-{
-    return this->_extruder;
-}
-
-std::string
-GCodeWriter::extrusion_axis() const
-{
-    return this->_extrusion_axis;
-}
-
 void
 GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
@@ -35,9 +23,8 @@ GCodeWriter::apply_print_config(const PrintConfig &print_config)
 void
 GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
 {
-    for (std::vector<unsigned int>::const_iterator i = extruder_ids.begin(); i != extruder_ids.end(); ++i) {
+    for (std::vector<unsigned int>::const_iterator i = extruder_ids.begin(); i != extruder_ids.end(); ++i)
         this->extruders.insert( std::pair<unsigned int,Extruder>(*i, Extruder(*i, &this->config)) );
-    }
     
     /*  we enable support for multiple extruder if any extruder greater than 0 is used
         (even if prints only uses that one) since we need to output Tx commands
@@ -521,12 +508,6 @@ GCodeWriter::unlift()
         this->_lifted = 0;
     }
     return gcode;
-}
-
-Pointf3
-GCodeWriter::get_position() const
-{
-    return this->_pos;
 }
 
 }
