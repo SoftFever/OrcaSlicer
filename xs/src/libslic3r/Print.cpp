@@ -323,12 +323,25 @@ std::set<size_t>
 Print::support_material_extruders() const
 {
     std::set<size_t> extruders;
-    
+    bool support_uses_current_extruder = false;
+
     FOREACH_OBJECT(this, object) {
         if ((*object)->has_support_material()) {
-            extruders.insert((*object)->config.support_material_extruder - 1);
-            extruders.insert((*object)->config.support_material_interface_extruder - 1);
+            if ((*object)->config.support_material_extruder == 0)
+                support_uses_current_extruder = true;
+            else
+                extruders.insert((*object)->config.support_material_extruder - 1);
+            if ((*object)->config.support_material_interface_extruder == 0)
+                support_uses_current_extruder = true;
+            else
+                extruders.insert((*object)->config.support_material_interface_extruder - 1);
         }
+    }
+
+    if (support_uses_current_extruder) {
+        // Add all object extruders to the support extruders as it is not know which one will be used to print supports.
+        std::set<size_t> object_extruders = this->object_extruders();
+        extruders.insert(object_extruders.begin(), object_extruders.end());
     }
     
     return extruders;
@@ -653,6 +666,17 @@ Print::validate() const
         
         FOREACH_OBJECT(this, i_object) {
             PrintObject* object = *i_object;
+
+            if ((object->config.support_material_extruder == -1 || object->config.support_material_interface_extruder == -1) &&
+                (object->config.raft_layers > 0 || object->config.support_material.value)) {
+                // The object has some form of support and either support_material_extruder or support_material_interface_extruder
+                // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
+                // are of the same diameter.
+                if (nozzle_diameters.size() > 1)
+                    return "Printing with multiple extruders of differing nozzle diameters. "
+                           "If support is to be printed with the current extruder (support_material_extruder == 0 or support_material_interface_extruder == 0), ", 
+                           "all nozzles have to be of the same diameter.";
+            }
             
             // validate first_layer_height
             double first_layer_height = object->config.get_abs_value("first_layer_height");
@@ -662,7 +686,9 @@ Print::validate() const
                 size_t first_layer_extruder = object->config.raft_layers == 1
                     ? object->config.support_material_interface_extruder-1
                     : object->config.support_material_extruder-1;
-                first_layer_min_nozzle_diameter = this->config.nozzle_diameter.get_at(first_layer_extruder);
+                first_layer_min_nozzle_diameter = (first_layer_extruder == size_t(-1)) ? 
+                    min_nozzle_diameter : 
+                    this->config.nozzle_diameter.get_at(first_layer_extruder);
             } else {
                 // if we don't have raft layers, any nozzle diameter is potentially used in first layer
                 first_layer_min_nozzle_diameter = min_nozzle_diameter;

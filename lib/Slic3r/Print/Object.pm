@@ -150,6 +150,7 @@ sub prepare_infill {
     # Decide what surfaces are to be filled.
     # Here the S_TYPE_TOP / S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is turned to just S_TYPE_INTERNAL if zero top / bottom infill layers are configured.
     # Also tiny S_TYPE_INTERNAL surfaces are turned to S_TYPE_INTERNAL_SOLID.
+#    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces...";
     $_->prepare_fill_surfaces for map @{$_->regions}, @{$self->layers};
 
     # this will detect bridges and reverse bridges
@@ -262,28 +263,8 @@ sub generate_support_material {
     
     if (($self->config->support_material || $self->config->raft_layers > 0) && scalar(@{$self->layers}) > 1) {
         $self->print->status_cb->(85, "Generating support material");    
-        if (0) {
-            # Old supports, Perl implementation.
-            my $first_layer_flow = Slic3r::Flow->new_from_width(
-                width               => ($self->print->config->first_layer_extrusion_width || $self->config->support_material_extrusion_width),
-                role                => FLOW_ROLE_SUPPORT_MATERIAL,
-                nozzle_diameter     => $self->print->config->nozzle_diameter->[ $self->config->support_material_extruder-1 ]
-                                        // $self->print->config->nozzle_diameter->[0],
-                layer_height        => $self->config->get_abs_value('first_layer_height'),
-                bridge_flow_ratio   => 0,
-            );            
-            my $support_material = Slic3r::Print::SupportMaterial->new(
-                print_config        => $self->print->config,
-                object_config       => $self->config,
-                first_layer_flow    => $first_layer_flow,
-                flow                => $self->support_material_flow,
-                interface_flow      => $self->support_material_flow(FLOW_ROLE_SUPPORT_MATERIAL_INTERFACE),
-            );
-            $support_material->generate($self);
-        } else {
-            # New supports, C++ implementation.
-            $self->_generate_support_material;
-        }
+        # New supports, C++ implementation.
+        $self->_generate_support_material;
     }
     
     $self->set_step_done(STEP_SUPPORTMATERIAL);
@@ -727,6 +708,8 @@ sub _simplify_slices {
     }
 }
 
+# Used by t/support.t and by GCode.pm to export support line width as a comment.
+# To be removed.
 sub support_material_flow {
     my ($self, $role) = @_;
     

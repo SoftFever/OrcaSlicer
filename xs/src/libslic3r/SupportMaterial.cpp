@@ -150,6 +150,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         frSupportMaterial, 
         // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
         (object->config.support_material_extrusion_width.value > 0) ? object->config.support_material_extrusion_width : object->config.extrusion_width,
+        // if object->config.support_material_extruder == 0 (which means to not trigger tool change, but use the current extruder instead), get_at will return the 0th component.
         float(object->print()->config.nozzle_diameter.get_at(object->config.support_material_extruder-1)),
         float(slicing_params.layer_height),
         false)), 
@@ -157,6 +158,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         frSupportMaterialInterface,
         // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
         (object->config.support_material_extrusion_width > 0) ? object->config.support_material_extrusion_width : object->config.extrusion_width,
+        // if object->config.support_material_interface_extruder == 0 (which means to not trigger tool change, but use the current extruder instead), get_at will return the 0th component.
         float(object->print()->config.nozzle_diameter.get_at(object->config.support_material_interface_extruder-1)),
         float(slicing_params.layer_height),
         false)),
@@ -636,7 +638,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
                 #ifdef SLIC3R_DEBUG
                 Slic3r::SVG::export_expolygons(
-                    debug_out_path("support-top-contacts-filtered-run%d-layer%d-region%d.svg", iRun, layer_id, it_layerm - layer.regions.begin()),
+                    debug_out_path("support-top-contacts-filtered-run%d-layer%d-region%d-z%f.svg", iRun, layer_id, it_layerm - layer.regions.begin(), layer.print_z),
                     union_ex(diff_polygons, false));
                 #endif /* SLIC3R_DEBUG */
 
@@ -758,7 +760,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                 bbox.align_to_grid(grid_resolution);
                 grid.set_bbox(bbox);
                 grid.create(contact_polygons, grid_resolution);
-                grid.calculate_sdf();
+                grid.calculate_sdf();                
                 // Extract a bounding contour from the grid, trim by the object.
                 // 1) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
                 new_layer.polygons = diff(
@@ -772,6 +774,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                     false));
             }
 #endif
+            // Even after the contact layer was expanded into a grid, some of the contact islands may be too tiny to be extruded.
+            // Remove those tiny islands from new_layer.polygons and new_layer.contact_polygons.
+            
 
             // Store the overhang polygons.
             // The overhang polygons are used in the path generator for planning of the contact loops.
@@ -2182,33 +2187,20 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         MyLayerExtruded top_contact_layer;
         MyLayerExtruded base_layer;
         MyLayerExtruded interface_layer;
-        MyLayerExtrudedPtrs mylayers;
-
         // Increment the layer indices to find a layer at support_layer.print_z.
         for (; idx_layer_bottom_contact < bottom_contacts    .size() && bottom_contacts    [idx_layer_bottom_contact]->print_z < support_layer.print_z - EPSILON; ++ idx_layer_bottom_contact) ;
         for (; idx_layer_top_contact    < top_contacts       .size() && top_contacts       [idx_layer_top_contact   ]->print_z < support_layer.print_z - EPSILON; ++ idx_layer_top_contact   ) ;
         for (; idx_layer_intermediate   < intermediate_layers.size() && intermediate_layers[idx_layer_intermediate  ]->print_z < support_layer.print_z - EPSILON; ++ idx_layer_intermediate  ) ;
         for (; idx_layer_inteface       < interface_layers   .size() && interface_layers   [idx_layer_inteface      ]->print_z < support_layer.print_z - EPSILON; ++ idx_layer_inteface      ) ;
         // Copy polygons from the layers.
-        mylayers.reserve(4);
-        if (idx_layer_bottom_contact < bottom_contacts.size() && bottom_contacts[idx_layer_bottom_contact]->print_z < support_layer.print_z + EPSILON) {
+        if (idx_layer_bottom_contact < bottom_contacts.size() && bottom_contacts[idx_layer_bottom_contact]->print_z < support_layer.print_z + EPSILON)
             bottom_contact_layer.layer = bottom_contacts[idx_layer_bottom_contact];
-            mylayers.push_back(&bottom_contact_layer);
-        }
-        if (idx_layer_top_contact < top_contacts.size() && top_contacts[idx_layer_top_contact]->print_z < support_layer.print_z + EPSILON) {
+        if (idx_layer_top_contact < top_contacts.size() && top_contacts[idx_layer_top_contact]->print_z < support_layer.print_z + EPSILON)
             top_contact_layer.layer = top_contacts[idx_layer_top_contact];
-            mylayers.push_back(&top_contact_layer);
-        }
-        if (idx_layer_inteface < interface_layers.size() && interface_layers[idx_layer_inteface]->print_z < support_layer.print_z + EPSILON) {
+        if (idx_layer_inteface < interface_layers.size() && interface_layers[idx_layer_inteface]->print_z < support_layer.print_z + EPSILON)
             interface_layer.layer = interface_layers[idx_layer_inteface];
-            mylayers.push_back(&interface_layer);
-        }
-        if (idx_layer_intermediate < intermediate_layers.size() && intermediate_layers[idx_layer_intermediate]->print_z < support_layer.print_z + EPSILON) {
+        if (idx_layer_intermediate < intermediate_layers.size() && intermediate_layers[idx_layer_intermediate]->print_z < support_layer.print_z + EPSILON)
             base_layer.layer = intermediate_layers[idx_layer_intermediate];
-            mylayers.push_back(&base_layer);
-        }
-        // Sort the layers with the same print_z coordinate by their heights, thickest first.
-        std::sort(mylayers.begin(), mylayers.end(), [](const MyLayerExtruded *p1, const MyLayerExtruded *p2) { return p1->layer->height > p2->layer->height; });
 
         if (m_object_config->support_material_interface_layers == 0) {
             // If no interface layers were requested, we treat the contact layer exactly as a generic base layer.
@@ -2316,6 +2308,18 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 erSupportMaterial, flow);
         }
 
+        MyLayerExtrudedPtrs mylayers;
+        mylayers.reserve(4);
+        if (! bottom_contact_layer.empty())
+            mylayers.push_back(&bottom_contact_layer);
+        if (! top_contact_layer.empty())
+            mylayers.push_back(&top_contact_layer);
+        if (! interface_layer.empty())
+            mylayers.push_back(&interface_layer);
+        if (! base_layer.empty())
+            mylayers.push_back(&base_layer);
+        // Sort the layers with the same print_z coordinate by their heights, thickest first.
+        std::sort(mylayers.begin(), mylayers.end(), [](const MyLayerExtruded *p1, const MyLayerExtruded *p2) { return p1->layer->height > p2->layer->height; });
         // Collect the support areas with this print_z into islands, as there is no need
         // for retraction over these islands.
         Polygons polys;

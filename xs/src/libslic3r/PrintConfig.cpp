@@ -1176,9 +1176,9 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("support_material_extruder", coInt);
     def->label = "Support material/raft/skirt extruder";
     def->category = "Extruders";
-    def->tooltip = "The extruder to use when printing support material, raft and skirt.";
+    def->tooltip = "The extruder to use when printing support material, raft and skirt (1+, 0 to use the current extruder to minimize tool changes).";
     def->cli = "support-material-extruder=i";
-    def->min = 1;
+    def->min = 0;
     def->default_value = new ConfigOptionInt(1);
 
     def = this->add("support_material_extrusion_width", coFloatOrPercent);
@@ -1199,9 +1199,9 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("support_material_interface_extruder", coInt);
     def->label = "Support material/raft interface extruder";
     def->category = "Extruders";
-    def->tooltip = "The extruder to use when printing support material interface. This affects raft too.";
+    def->tooltip = "The extruder to use when printing support material interface (1+, 0 to use the current extruder to minimize tool changes). This affects raft too.";
     def->cli = "support-material-interface-extruder=i";
-    def->min = 1;
+    def->min = 0;
     def->default_value = new ConfigOptionInt(1);
 
     def = this->add("support_material_interface_layers", coInt);
