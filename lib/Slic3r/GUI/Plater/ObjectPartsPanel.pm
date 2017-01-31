@@ -78,9 +78,8 @@ sub new {
         
         $canvas->on_select(sub {
             my ($volume_idx) = @_;
-            
             # convert scene volume to model object volume
-            $self->reload_tree($canvas->volume_idx($volume_idx));
+            $self->reload_tree(($volume_idx == -1) ? undef : $canvas->volumes->[$volume_idx]->volume_idx);
         });
         
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
