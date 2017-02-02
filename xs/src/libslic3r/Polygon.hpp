@@ -59,6 +59,13 @@ extern BoundingBox get_extents_rotated(const Polygon &poly, double angle);
 extern BoundingBox get_extents_rotated(const Polygons &polygons, double angle);
 extern std::vector<BoundingBox> get_extents_vector(const Polygons &polygons);
 
+inline double total_length(const Polygons &polylines) {
+    double total = 0;
+    for (Polygons::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
+        total += it->length();
+    return total;
+}
+
 // Remove sticks (tentacles with zero area) from the polygon.
 extern bool        remove_sticks(Polygon &poly);
 extern bool        remove_sticks(Polygons &polys);

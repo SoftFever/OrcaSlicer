@@ -69,6 +69,13 @@ public:
 extern BoundingBox get_extents(const Polyline &polyline);
 extern BoundingBox get_extents(const Polylines &polylines);
 
+inline double total_length(const Polylines &polylines) {
+    double total = 0;
+    for (Polylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
+        total += it->length();
+    return total;
+}
+
 inline Lines to_lines(const Polyline &poly) 
 {
     Lines lines;

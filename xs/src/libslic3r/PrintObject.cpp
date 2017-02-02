@@ -1168,10 +1168,7 @@ PrintObject::_make_perimeters()
             
             // Filter upper layer polygons in intersection_ppl by their bounding boxes?
             // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
-            double total_loop_length = 0;
-            for (Polygons::const_iterator it = upper_layerm_polygons.begin(); it != upper_layerm_polygons.end(); ++it)
-                total_loop_length += it->length();
-            
+            const double total_loop_length      = total_length(upper_layerm_polygons);
             const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
             const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
             const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
@@ -1199,12 +1196,8 @@ PrintObject::_make_perimeters()
                     );
                     
                     // only add an additional loop if at least 30% of the slice loop would benefit from it
-                    {
-                        double total_intersection_length = 0;
-                        for (Polylines::const_iterator it = intersection.begin(); it != intersection.end(); ++it)
-                            total_intersection_length += it->length();
-                        if (total_intersection_length <= total_loop_length*0.3) break;
-                    }
+                    if (total_length(intersection) <=  total_loop_length*0.3)
+                        break;
                     
                     /*
                     if (0) {
