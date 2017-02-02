@@ -218,7 +218,7 @@ class ExtrusionLoop : public ExtrusionEntity
     Polygon polygon() const;
     virtual double length() const;
     bool split_at_vertex(const Point &point);
-    void split_at(const Point &point);
+    void split_at(const Point &point, bool prefer_non_overhang);
     void clip_end(double distance, ExtrusionPaths* paths) const;
     // Test, whether the point is extruded by a bridging flow.
     // This used to be used to avoid placing seams on overhangs, but now the EdgeGrid is used instead.

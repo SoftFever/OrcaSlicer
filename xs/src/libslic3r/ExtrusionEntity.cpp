@@ -204,22 +204,38 @@ ExtrusionLoop::split_at_vertex(const Point &point)
     return false;
 }
 
-void
-ExtrusionLoop::split_at(const Point &point)
+// Splitting an extrusion loop, possibly made of multiple segments, some of the segments may be bridging.
+void ExtrusionLoop::split_at(const Point &point, bool prefer_non_overhang)
 {
-    if (this->paths.empty()) return;
+    if (this->paths.empty())
+        return;
     
-    // find the closest path and closest point belonging to that path
+    // Find the closest path and closest point belonging to that path. Avoid overhangs, if asked for.
     size_t path_idx = 0;
-    Point p = this->paths.front().first_point();
-    double min = point.distance_to(p);
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
-        Point p_tmp = point.projection_onto(path->polyline);
-        double dist = point.distance_to(p_tmp);
-        if (dist < min) {
-            p = p_tmp;
-            min = dist;
-            path_idx = path - this->paths.begin();
+    Point  p;
+    {
+        double min = std::numeric_limits<double>::max();
+        Point  p_non_overhang;
+        size_t path_idx_non_overhang = 0;
+        double min_non_overhang = std::numeric_limits<double>::max();
+        for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
+            Point p_tmp = point.projection_onto(path->polyline);
+            double dist = point.distance_to(p_tmp);
+            if (dist < min) {
+                p = p_tmp;
+                min = dist;
+                path_idx = path - this->paths.begin();
+            } 
+            if (prefer_non_overhang && ! path->is_bridge() && dist < min_non_overhang) {
+                p_non_overhang = p_tmp;
+                min_non_overhang = dist;
+                path_idx_non_overhang = path - this->paths.begin();
+            }
+        }
+        if (prefer_non_overhang && min_non_overhang != std::numeric_limits<double>::max()) {
+            // Only apply the non-overhang point if there is one.
+            path_idx = path_idx_non_overhang;
+            p        = p_non_overhang;
         }
     }
     

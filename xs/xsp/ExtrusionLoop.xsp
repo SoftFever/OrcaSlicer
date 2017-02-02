@@ -21,8 +21,8 @@
     double length();
     bool split_at_vertex(Point* point)
         %code{% RETVAL = THIS->split_at_vertex(*point); %};
-    void split_at(Point* point)
-        %code{% THIS->split_at(*point); %};
+    void split_at(Point* point, int prefer_non_overhang = 0)
+        %code{% THIS->split_at(*point, prefer_non_overhang != 0); %};
     ExtrusionPaths clip_end(double distance)
         %code{% THIS->clip_end(distance, &RETVAL); %};
     bool has_overhang_point(Point* point)

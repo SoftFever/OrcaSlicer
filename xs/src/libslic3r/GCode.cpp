@@ -571,7 +571,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     // or randomize if requested
     Point last_pos = this->last_pos();
     if (this->config.spiral_vase) {
-        loop.split_at(last_pos);
+        loop.split_at(last_pos, false);
     } else if (seam_position == spNearest || seam_position == spAligned) {
         Polygon        polygon    = loop.polygon();
         const coordf_t nozzle_dmr = EXTRUDER_CONFIG(nozzle_diameter);
@@ -682,7 +682,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         // Split the loop at the point with a minium penalty.
         if (!loop.split_at_vertex(polygon.points[idx_min]))
             // The point is not in the original loop. Insert it.
-            loop.split_at(polygon.points[idx_min]);
+            loop.split_at(polygon.points[idx_min], true);
 
     } else if (seam_position == spRandom) {
         if (loop.role == elrContourInternalPerimeter) {
@@ -696,7 +696,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
             last_pos = Point(polygon.bounding_box().max.x, centroid.y);
             last_pos.rotate(fmod((float)rand()/16.0, 2.0*PI), centroid);
         }
-        loop.split_at(last_pos);
+        loop.split_at(last_pos, true);
     }
     
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
