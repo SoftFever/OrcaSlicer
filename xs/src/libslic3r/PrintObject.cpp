@@ -1161,7 +1161,7 @@ PrintObject::_make_perimeters()
             || region.config.fill_density == 0
             || this->layer_count() < 2) continue;
         
-        for (int i = 0; i < int(this->layer_count()) - 1; ++i) {
+        for (size_t i = 0; i < this->layer_count() - 1; ++ i) {
             LayerRegion &layerm                     = *this->get_layer(i)->get_region(region_id);
             const LayerRegion &upper_layerm         = *this->get_layer(i+1)->get_region(region_id);
             const Polygons upper_layerm_polygons    = upper_layerm.slices;
@@ -1182,7 +1182,7 @@ PrintObject::_make_perimeters()
                 while (true) {
                     // compute the total thickness of perimeters
                     const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
-                        + (region.config.perimeters-1 + region.config.extra_perimeters) * perimeter_spacing;
+                        + (region.config.perimeters-1 + slice->extra_perimeters) * perimeter_spacing;
                     
                     // define a critical area where we don't want the upper slice to fall into
                     // (it should either lay over our perimeters or outside this area)
