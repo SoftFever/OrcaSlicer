@@ -141,8 +141,10 @@ sub new {
     $self->_camera_distance(0.);
 
     # Size of a layer height texture, used by a shader to color map the object print layers.
-    $self->{layer_preview_z_texture_width} = 512;
-    $self->{layer_preview_z_texture_height} = 512;
+    $self->layer_editing_enabled(0);
+    # 512x512 bitmaps are supported everywhere, but that may not be sufficent for super large print volumes.
+    $self->{layer_preview_z_texture_width} = 1024;
+    $self->{layer_preview_z_texture_height} = 1024;
     $self->{layer_height_edit_band_width} = 2.;
     $self->{layer_height_edit_strength} = 0.005;
     $self->{layer_height_edit_last_object_id} = -1;
@@ -842,20 +844,15 @@ sub InitGL {
     return unless $self->GetContext;
     $self->init(1);
 
-    my $shader;
-    $shader = $self->{shader} = new Slic3r::GUI::GLShader
-        if (defined($ENV{'SLIC3R_EXPERIMENTAL'}) && $ENV{'SLIC3R_EXPERIMENTAL'} == 1);
-    if ($self->{shader}) {
-        my $info = $shader->Load($self->_fragment_shader, $self->_vertex_shader);
-        print $info if $info;
-
-        ($self->{layer_preview_z_texture_id}) = glGenTextures_p(1);
-        glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
+    my $shader = $self->{shader} = new Slic3r::GUI::GLShader;
+    my $info = $shader->Load($self->_fragment_shader, $self->_vertex_shader);
+#    print $info if $info;
+    ($self->{layer_preview_z_texture_id}) = glGenTextures_p(1);
+    glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     glClearColor(0, 0, 0, 1);
     glColor3f(1, 0, 0);
