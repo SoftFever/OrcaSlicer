@@ -38,6 +38,7 @@ sub size {
     return $self->bounding_box->size;
 }
 
+# Slicing process, running at a background thread.
 sub process {
     my ($self) = @_;
     

@@ -20,8 +20,10 @@ sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    # C++ class Slic3r::DynamicPrintConfig, initially empty.
     $self->{default_config} = Slic3r::Config->new;
     $self->{config} = Slic3r::Config->new;
+    # On change callback.
     $self->{on_change} = $params{on_change};
     $self->{fixed_options} = {};
     

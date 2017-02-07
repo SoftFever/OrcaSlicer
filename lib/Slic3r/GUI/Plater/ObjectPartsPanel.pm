@@ -21,8 +21,10 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     
-    my $object = $self->{model_object} = $params{model_object};
-    my $print_object = $self->{print_object} = $params{print_object};
+    # C++ type Slic3r::ModelObject
+    $self->{model_object} = $params{model_object};
+    # Not set, not used.
+    # $self->{print_object} = $params{print_object};
     
     # create TreeCtrl
     my $tree = $self->{tree} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [300, 100], 

@@ -11,6 +11,9 @@ use Wx qw(:dialog :id :misc :sizer :systemsettings :notebook wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Dialog';
 
+# Called with
+# %params{object} of a Perl type Slic3r::GUI::Plater::Object
+# %params{model_object} of a C++ type Slic3r::ModelObject
 sub new {
     my $class = shift;
     my ($parent, %params) = @_;
@@ -59,6 +62,7 @@ use base 'Wx::Panel';
 
 sub model_object {
     my ($self) = @_;
+    # $self->GetParent->GetParent is of type Slic3r::GUI::Plater::ObjectSettingsDialog
     return $self->GetParent->GetParent->{model_object};
 }
 

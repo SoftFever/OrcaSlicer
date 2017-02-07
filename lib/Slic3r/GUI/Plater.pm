@@ -54,7 +54,9 @@ sub new {
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width
         serial_port serial_speed octoprint_host octoprint_apikey
     ));
+    # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;
+    # C++ Slic3r::Print with Perl extensions in Slic3r/Print.pm
     $self->{print} = Slic3r::Print->new;
     # List of Perl objects Slic3r::GUI::Plater::Object, representing a 2D preview of the platter.
     $self->{objects} = [];
@@ -498,7 +500,7 @@ sub update_ui_from_settings
     }
 }
 
-# Update presets (Print settings, Filament, Printer) from their respective tabs.
+# Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
 # Called by 
 #       Slic3r::GUI::Tab::Print::_on_presets_changed
 #       Slic3r::GUI::Tab::Filament::_on_presets_changed

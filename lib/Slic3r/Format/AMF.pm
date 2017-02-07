@@ -61,6 +61,8 @@ sub write_file {
         if ($object->name) {
             printf $fh qq{    <metadata type=\"name\">%s</metadata>\n}, $object->name;
         }
+        #FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
+        #FIXME Store the layer height profile.
         
         printf $fh qq{    <mesh>\n};
         printf $fh qq{      <vertices>\n};

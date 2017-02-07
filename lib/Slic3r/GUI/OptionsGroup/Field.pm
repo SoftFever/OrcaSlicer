@@ -1,12 +1,17 @@
+# An input field class prototype.
 package Slic3r::GUI::OptionsGroup::Field;
 use Moo;
 
 # This is a base class for option fields.
 
 has 'parent'                => (is => 'ro', required => 1);
-has 'option'                => (is => 'ro', required => 1);     # Slic3r::GUI::OptionsGroup::Option
+# Slic3r::GUI::OptionsGroup::Option
+has 'option'                => (is => 'ro', required => 1);
+# On change callback
 has 'on_change'             => (is => 'rw', default => sub { sub {} });
 has 'on_kill_focus'         => (is => 'rw', default => sub { sub {} });
+# If set, the callback $self->on_change is not called.
+# This is used to avoid recursive invocation of the field change/update by wxWidgets.
 has 'disable_change_event'  => (is => 'rw', default => sub { 0 });
 
 # This method should not fire the on_change event

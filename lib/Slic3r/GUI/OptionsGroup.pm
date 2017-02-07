@@ -389,6 +389,7 @@ sub append_single_option_line {
     return $self->append_line($self->create_single_option_line($option, $opt_index));
 }
 
+# Initialize UI components with the config values.
 sub reload_config {
     my ($self) = @_;
     

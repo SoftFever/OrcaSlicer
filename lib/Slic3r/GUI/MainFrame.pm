@@ -132,9 +132,9 @@ sub _init_tabpanel {
         $tab = $self->{options_tabs}{$tab_name} = ($class_prefix . ucfirst $tab_name)->new(
             $panel, 
             no_controller => $self->{no_controller});
+        # Callback to be executed after any of the configuration fields (Perl class Slic3r::GUI::OptionsGroup::Field) change their value.
         $tab->on_value_change(sub {
-            my ($opt_key, $value) = @_;
-            
+            my ($opt_key, $value) = @_;            
             my $config = $tab->config;
             if ($self->{plater}) {
                 $self->{plater}->on_config_change($config); # propagate config change events to the plater
@@ -158,6 +158,7 @@ sub _init_tabpanel {
         # a preset changes at Slic3r::GUI::Tab.
         $tab->on_presets_changed(sub {
             if ($self->{plater}) {
+                # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
                 $self->{plater}->update_presets($tab_name, @_);
                 $self->{plater}->on_config_change($tab->config);
                 if ($self->{controller}) {
