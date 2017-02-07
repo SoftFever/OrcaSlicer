@@ -212,9 +212,9 @@ sub _update_shape {
         my $rect_origin = $self->{optgroups}[SHAPE_RECTANGULAR]->get_value('rect_origin');
         my ($x, $y) = @$rect_size;
         return if !looks_like_number($x) || !looks_like_number($y);  # empty strings or '-' or other things
-        return if !$x || !$y;
+        return if !$x || !$y or $x == 0 or $y == 0;
         my ($x0, $y0) = (0,0);
-        my ($x1, $y1) = ($x,$y);
+        my ($x1, $y1) = ($x ,$y);
         {
             my ($dx, $dy) = @$rect_origin;
             return if !looks_like_number($dx) || !looks_like_number($dy);  # empty strings or '-' or other things
@@ -231,7 +231,7 @@ sub _update_shape {
         ]);
     } elsif ($page_idx == SHAPE_CIRCULAR) {
         my $diameter = $self->{optgroups}[SHAPE_CIRCULAR]->get_value('diameter');
-        return if !$diameter;
+        return if !$diameter or $diameter == 0;
         my $r = $diameter/2;
         my $twopi = 2*PI;
         my $edges = 60;
