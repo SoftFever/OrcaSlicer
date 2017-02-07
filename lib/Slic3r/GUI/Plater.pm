@@ -158,7 +158,7 @@ sub new {
         $self->{htoolbar}->AddTool(TB_CUT, "Cut…", Wx::Bitmap->new($Slic3r::var->("package.png"), wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
         $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, 'Layer Editing', Wx::Bitmap->new($Slic3r::var->("delete.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, undef, 'Layer Editing');
+        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, 'Layer Editing', Wx::Bitmap->new($Slic3r::var->("variable_layer_height.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, undef, 'Layer Editing');
     } else {
         my %tbar_buttons = (
             add             => "Add…",
