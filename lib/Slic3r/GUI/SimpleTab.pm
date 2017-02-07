@@ -70,12 +70,18 @@ sub load_config {
     my $self = shift;
     my ($config) = @_;
     
+    my %keys_modified = ();
     foreach my $opt_key (@{$self->{config}->get_keys}) {
-        next unless $config->has($opt_key);
-        $self->{config}->set($opt_key, $config->get($opt_key));
+        if ($config->has($opt_key)) {
+            if ($self->{config}->serialize($opt_key) ne $config->serialize($opt_key)) {
+                $self->{config}->set($opt_key, $config->get($opt_key));
+                $keys_modified{$opt_key} = 1;
+            }
+        }
     }
+    # Initialize UI components with the config values.
     $_->reload_config for @{$self->{optgroups}};
-    $self->_update;
+    $self->_update(\%keys_modified);
 }
 
 sub load_presets {}
@@ -93,10 +99,9 @@ sub on_presets_changed {}
 
 # propagate event to the parent
 sub _on_value_change {
-    my $self = shift;
-    
-    $self->{on_value_change}->(@_) if $self->{on_value_change};
-    $self->_update;
+    my ($self, $key, $value) = @_;
+    $self->{on_value_change}->($key, $value) if $self->{on_value_change};
+    $self->_update({ $key => 1 });
 }
 
 sub get_field {
@@ -179,7 +184,8 @@ sub build {
 }
 
 sub _update {
-    my ($self) = @_;
+    # $keys_modified is a reference to hash with modified keys set to 1, unmodified keys missing.
+    my ($self, $keys_modified) = @_;
     
     my $config = $self->{config};
     
