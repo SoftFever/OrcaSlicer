@@ -63,10 +63,12 @@ our @cb;
 
 our $Settings = {
     _ => {
-        mode => 'simple',
+        # Simple mode is very limited, rather start with the expert mode.
+        mode => 'expert',
         version_check => 1,
         autocenter => 1,
-        background_processing => 1,
+        # Disable background processing by default as it is not stable.
+        background_processing => 0,
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
         # By default, Prusa has the controller hidden.
         no_controller => 1,
