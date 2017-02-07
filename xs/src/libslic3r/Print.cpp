@@ -8,43 +8,6 @@
 
 namespace Slic3r {
 
-template <class StepClass>
-bool
-PrintState<StepClass>::is_started(StepClass step) const
-{
-    return this->started.find(step) != this->started.end();
-}
-
-template <class StepClass>
-bool
-PrintState<StepClass>::is_done(StepClass step) const
-{
-    return this->done.find(step) != this->done.end();
-}
-
-template <class StepClass>
-void
-PrintState<StepClass>::set_started(StepClass step)
-{
-    this->started.insert(step);
-}
-
-template <class StepClass>
-void
-PrintState<StepClass>::set_done(StepClass step)
-{
-    this->done.insert(step);
-}
-
-template <class StepClass>
-bool
-PrintState<StepClass>::invalidate(StepClass step)
-{
-    bool invalidated = this->started.erase(step) > 0;
-    this->done.erase(step);
-    return invalidated;
-}
-
 template class PrintState<PrintStep>;
 template class PrintState<PrintObjectStep>;
 

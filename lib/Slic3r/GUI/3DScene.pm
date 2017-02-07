@@ -19,7 +19,7 @@ package Slic3r::GUI::3DScene::Base;
 use strict;
 use warnings;
 
-use Wx qw(:timer);
+use Wx qw(:timer :bitmap);
 use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_TIMER);
 # must load OpenGL *before* Wx::GLCanvas
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
@@ -173,7 +173,7 @@ sub new {
         my ($self, $event) = @_;
         return if ! $self->_layer_height_edited;
         return if $self->{layer_height_edit_last_object_id} == -1;
-        $self->_variable_layer_thickness_action(undef, 1);
+        $self->_variable_layer_thickness_action(undef);
     });
     
     return $self;
@@ -262,7 +262,7 @@ sub mouse_event {
             # A volume is selected and the mouse is hovering over a layer thickness bar.
             # Start editing the layer height.
             $self->_layer_height_edited(1);
-            $self->_variable_layer_thickness_action($e, 1);
+            $self->_variable_layer_thickness_action($e);
         } else {
             # Select volume in this 3D canvas.
             # Don't deselect a volume if layer editing is enabled. We want the object to stay selected
@@ -325,7 +325,7 @@ sub mouse_event {
         $self->Refresh;
     } elsif ($e->Dragging) {
         if ($self->_layer_height_edited && $object_idx_selected != -1) {
-            $self->_variable_layer_thickness_action($e, 0);
+            $self->_variable_layer_thickness_action($e);
         } elsif ($e->LeftIsDown) {
             # if dragging over blank area with left button, rotate
             if (defined $self->_drag_start_pos) {
@@ -1125,7 +1125,16 @@ sub draw_volumes {
         my $volume = $self->volumes->[$volume_idx];
 
         my $shader_active = 0;
-        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{shader} && $volume->{layer_height_texture_data} && $volume->{layer_height_texture_cells}) {
+        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{shader} && $volume->{layer_height_texture_data}) {
+            my $print_object = $self->{print}->get_object(int($volume->select_group_id / 1000000));
+            if (! defined($volume->{layer_height_texture_cells}) || $print_object->update_layer_height_profile) {
+                # Layer height profile was invalid before, now filled in with default data from layer height configuration
+                # and possibly from the layer height modifiers. Update the height texture.
+                $volume->{layer_height_texture_cells} = $print_object->generate_layer_height_texture(
+                    $volume->{layer_height_texture_data}->ptr,
+                    $self->{layer_preview_z_texture_height},
+                    $self->{layer_preview_z_texture_width});
+            }
             $self->{shader}->Enable;
             my $z_to_texture_row_id             = $self->{shader}->Map('z_to_texture_row');
             my $z_texture_row_to_normalized_id  = $self->{shader}->Map('z_texture_row_to_normalized');
@@ -1263,6 +1272,45 @@ sub draw_volumes {
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+sub _variable_layer_thickness_load_overlay_image {
+    my ($self) = @_;
+
+    if (! $self->{layer_preview_annotation}->{loaded}) {
+        # Load a PNG with an alpha channel.
+        my $img = Wx::Image->new;
+        $img->LoadFile($Slic3r::var->("variable_layer_height_tooltip.png"), wxBITMAP_TYPE_PNG);
+        # Get RGB & alpha raw data from wxImage, interleave them into a Perl array.
+        my @rgb = unpack 'C*', $img->GetData();
+        my @alpha = unpack 'C*', $img->GetAlpha();
+        my $n_pixels = int(@alpha);
+        my @data = (0)x($n_pixels * 4);
+        for (my $i = 0; $i < $n_pixels; $i += 1) {
+            $data[$i*4  ] = $rgb[$i*3];
+            $data[$i*4+1] = $rgb[$i*3+1];
+            $data[$i*4+2] = $rgb[$i*3+2];
+            $data[$i*4+3] = $alpha[$i];
+        }
+        # Initialize a raw bitmap data.
+        my $params = $self->{layer_preview_annotation} = {
+            loaded => 1,
+            valid  => $n_pixels > 0,
+            width  => $img->GetWidth, 
+            height => $img->GetHeight,
+            data   => OpenGL::Array->new_list(GL_UNSIGNED_BYTE, @data),
+            texture_id => glGenTextures_p(1)
+        };
+        # Create and initialize a texture with the raw data.
+        glBindTexture(GL_TEXTURE_2D, $params->{texture_id});
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+        glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $params->{width}, $params->{height}, 0, GL_RGBA, GL_UNSIGNED_BYTE, $params->{data}->ptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    return $self->{layer_preview_annotation}->{valid};
+}
+
 sub draw_active_object_annotations {
     # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
     my ($self) = @_;
@@ -1323,6 +1371,28 @@ sub draw_active_object_annotations {
     glEnd();
     glBindTexture(GL_TEXTURE_2D, 0);
     $self->{shader}->Disable;
+
+    # Paint the tooltip.
+    if ($self->_variable_layer_thickness_load_overlay_image) {
+        glColor4f(1.,1.,1.,1.);
+        glDisable(GL_LIGHTING);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_annotation}->{texture_id});
+        glBegin(GL_QUADS);
+        my $gap = 10/$self->_zoom;
+        my ($l, $r, $t, $b) = ($bar_left - $self->{layer_preview_annotation}->{width}/$self->_zoom - $gap, $bar_left - $gap, $bar_bottom + $self->{layer_preview_annotation}->{height}/$self->_zoom + $gap, $bar_bottom + $gap);
+        glTexCoord2d(0.,1.); glVertex3f($l, $b, 0);
+        glTexCoord2d(1.,1.); glVertex3f($r, $b, 0);
+        glTexCoord2d(1.,0.); glVertex3f($r, $t, 0);
+        glTexCoord2d(0.,0.); glVertex3f($l, $t, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
+        glEnable(GL_LIGHTING);
+    }
 
     # Paint the graph.
     my $object_idx = int($volume->select_group_id / 1000000);
@@ -1593,11 +1663,6 @@ sub load_object {
     if ($print && $obj_idx < $print->object_count) {
         # Generate the layer height texture. Allocate data for the 0th and 1st mipmap levels.
         $layer_height_texture_data = OpenGL::Array->new($self->{layer_preview_z_texture_width}*$self->{layer_preview_z_texture_height}*5, GL_UNSIGNED_BYTE);
-#        $print->get_object($obj_idx)->update_layer_height_profile_from_ranges();
-        $layer_height_texture_cells = $print->get_object($obj_idx)->generate_layer_height_texture(
-            $layer_height_texture_data->ptr,
-            $self->{layer_preview_z_texture_height},
-            $self->{layer_preview_z_texture_width});
     }
     
     my @volumes_idx = ();

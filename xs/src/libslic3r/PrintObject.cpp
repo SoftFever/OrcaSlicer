@@ -49,6 +49,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     
     this->reload_model_instances();
     this->layer_height_ranges = model_object->layer_height_ranges;
+    this->layer_height_profile = model_object->layer_height_profile;
 }
 
 bool
@@ -949,8 +950,9 @@ SlicingParameters PrintObject::slicing_parameters() const
         unscale(this->size.z), this->print()->object_extruders());
 }
 
-void PrintObject::update_layer_height_profile()
+bool PrintObject::update_layer_height_profile()
 {
+    bool updated = false;
     if (this->layer_height_profile.empty()) {
         if (0)
 //        if (this->layer_height_profile.empty())
@@ -958,7 +960,9 @@ void PrintObject::update_layer_height_profile()
                 this->model_object()->volumes);
         else
             this->layer_height_profile = layer_height_profile_from_ranges(this->slicing_parameters(), this->layer_height_ranges);
+        updated = true;
     }
+    return updated;
 }
 
 // 1) Decides Z positions of the layers,

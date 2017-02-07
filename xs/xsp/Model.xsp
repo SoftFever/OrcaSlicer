@@ -4,6 +4,7 @@
 #include <xsinit.h>
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Slicing.hpp"
 %}
 
 %name{Slic3r::Model} class Model {
@@ -168,6 +169,7 @@ ModelMaterial::attributes()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     void set_layer_height_ranges(t_layer_height_ranges ranges)
         %code%{ THIS->layer_height_ranges = ranges; %};
+
 
     Ref<Pointf3> origin_translation()
         %code%{ RETVAL = &THIS->origin_translation; %};

@@ -33,14 +33,18 @@ enum PrintObjectStep {
 template <class StepType>
 class PrintState
 {
-    public:
+public:
     std::set<StepType> started, done;
     
-    bool is_started(StepType step) const;
-    bool is_done(StepType step) const;
-    void set_started(StepType step);
-    void set_done(StepType step);
-    bool invalidate(StepType step);
+    bool is_started(StepType step) const { return this->started.find(step) != this->started.end(); }
+    bool is_done(StepType step) const { return this->done.find(step) != this->done.end(); }
+    void set_started(StepType step) { this->started.insert(step); }
+    void set_done(StepType step) { this->done.insert(step); }
+    bool invalidate(StepType step) {
+        bool invalidated = this->started.erase(step) > 0;
+        this->done.erase(step);
+        return invalidated;
+    }
 };
 
 // A PrintRegion object represents a group of volumes to print
@@ -143,7 +147,7 @@ public:
 
     // Process layer_height_ranges, the raft layers and first layer thickness into layer_height_profile.
     // The layer_height_profile may be later modified interactively by the user to refine layers at sloping surfaces.
-    void update_layer_height_profile();
+    bool update_layer_height_profile();
 
     // Collect the slicing parameters, to be used by variable layer thickness algorithm,
     // by the interactive layer height editor and by the printing process itself.
