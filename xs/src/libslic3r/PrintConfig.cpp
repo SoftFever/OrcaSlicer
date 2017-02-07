@@ -618,6 +618,18 @@ PrintConfigDef::PrintConfigDef()
     def->max = 100;
     def->default_value = new ConfigOptionInt(100);
 
+    def = this->add("max_layer_height", coFloats);
+    def->label = "Max";
+    def->tooltip = "This is the highest printable layer height for this extruder, used to cap the variable layer height and support layer height. Maximum recommended layer height is 75% of the extrusion width to achieve reasonable inter-layer adhesion. If set to 0, layer height is limited to 75% of the nozzle diameter.";
+    def->sidetext = "mm";
+    def->cli = "max-layer-height=f@";
+    def->min = 0;
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
+        def->default_value = opt;
+    }
+
     def = this->add("max_print_speed", coFloat);
     def->label = "Max print speed";
     def->tooltip = "When setting other speed settings to 0 Slic3r will autocalculate the optimal speed in order to keep constant extruder pressure. This experimental setting is used to set the highest print speed you want to allow.";
@@ -660,6 +672,18 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->max = 100;
     def->default_value = new ConfigOptionInt(35);
+
+    def = this->add("min_layer_height", coFloats);
+    def->label = "Min";
+    def->tooltip = "This is the lowest printable layer height for this extruder and limits the resolution for variable layer height. Typical values are between 0.05 mm and 0.1 mm.";
+    def->sidetext = "mm";
+    def->cli = "min-layer-height=f@";
+    def->min = 0;
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0.07);
+        def->default_value = opt;
+    }
 
     def = this->add("min_print_speed", coFloat);
     def->label = "Min print speed";
@@ -942,11 +966,11 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("random");
     def->enum_values.push_back("nearest");
     def->enum_values.push_back("aligned");
-//    def->enum_values.push_back("preferred");
+    def->enum_values.push_back("rear");
     def->enum_labels.push_back("Random");
     def->enum_labels.push_back("Nearest");
     def->enum_labels.push_back("Aligned");
-//    def->enum_labels.push_back("Preferred Direction");
+    def->enum_labels.push_back("Rear"); 
     def->default_value = new ConfigOptionEnum<SeamPosition>(spAligned);
 
 #if 0

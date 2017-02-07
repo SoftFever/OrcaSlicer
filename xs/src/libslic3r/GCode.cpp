@@ -565,31 +565,42 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     bool was_clockwise = loop.make_counter_clockwise();
     
     SeamPosition seam_position = this->config.seam_position;
-    if (loop.role == elrSkirt) seam_position = spNearest;
+    if (loop.role == elrSkirt) 
+        seam_position = spNearest;
     
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
     if (this->config.spiral_vase) {
         loop.split_at(last_pos, false);
-    } else if (seam_position == spNearest || seam_position == spAligned) {
+    } else if (seam_position == spNearest || seam_position == spAligned || seam_position == spRear) {
         Polygon        polygon    = loop.polygon();
         const coordf_t nozzle_dmr = EXTRUDER_CONFIG(nozzle_diameter);
         const coord_t  nozzle_r   = scale_(0.5*nozzle_dmr);
 
         // Retrieve the last start position for this object.
         float last_pos_weight = 1.f;
-        if (seam_position == spAligned && this->layer != NULL && this->_seam_position.count(this->layer->object()) > 0) {
-            last_pos = this->_seam_position[this->layer->object()];
+        switch (seam_position) {
+        case spAligned:
+            // Seam is aligned to the seam at the preceding layer.
+            if (this->layer != NULL && this->_seam_position.count(this->layer->object()) > 0) {
+                last_pos = this->_seam_position[this->layer->object()];
+                last_pos_weight = 5.f;
+            }
+            break;
+        case spRear:
+            last_pos = this->layer->object()->bounding_box().center();
+            last_pos.y += coord_t(3. * this->layer->object()->bounding_box().radius());
             last_pos_weight = 5.f;
+            break;
         }
 
         // Insert a projection of last_pos into the polygon.
-		size_t last_pos_proj_idx;
-		{
-			Points::iterator it = project_point_to_polygon_and_insert(polygon, last_pos, 0.1 * nozzle_r);
-			last_pos_proj_idx = it - polygon.points.begin();
-		}
+        size_t last_pos_proj_idx;
+        {
+            Points::iterator it = project_point_to_polygon_and_insert(polygon, last_pos, 0.1 * nozzle_r);
+            last_pos_proj_idx = it - polygon.points.begin();
+        }
         Point last_pos_proj = polygon.points[last_pos_proj_idx];
         // Parametrize the polygon by its length.
         std::vector<float> lengths = polygon_parameter_by_length(polygon);
@@ -661,8 +672,8 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         {
             static int iRun = 0;
             SVG svg(debug_out_path("GCode_extrude_loop-%d.svg", iRun ++));
-			if (this->layer->lower_layer != NULL)
-				svg.draw(this->layer->lower_layer->slices.expolygons);
+            if (this->layer->lower_layer != NULL)
+                svg.draw(this->layer->lower_layer->slices.expolygons);
             for (size_t i = 0; i < loop.paths.size(); ++ i)
                 svg.draw(loop.paths[i].as_polyline(), "red");
             Polylines polylines;
@@ -673,9 +684,9 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
             coord_t delta = scale_(0.5*nozzle_dmr);
             Slic3r::offset(polylines, &polygons, delta);
 //            for (size_t i = 0; i < polygons.size(); ++ i) svg.draw((Polyline)polygons[i], "blue");
-			svg.draw(last_pos, "green", 3);
-			svg.draw(polygon.points[idx_min], "yellow", 3);
-			svg.Close();
+            svg.draw(last_pos, "green", 3);
+            svg.draw(polygon.points[idx_min], "yellow", 3);
+            svg.Close();
         }
         #endif
 
@@ -696,6 +707,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
             last_pos = Point(polygon.bounding_box().max.x, centroid.y);
             last_pos.rotate(fmod((float)rand()/16.0, 2.0*PI), centroid);
         }
+        // Find the closest point, avoid overhangs.
         loop.split_at(last_pos, true);
     }
     

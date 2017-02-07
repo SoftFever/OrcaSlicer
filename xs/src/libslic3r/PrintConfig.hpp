@@ -39,7 +39,7 @@ enum SupportMaterialPattern {
 };
 
 enum SeamPosition {
-    spRandom, spNearest, spAligned //, spPreferred
+    spRandom, spNearest, spAligned, spRear
 };
 
 template<> inline t_config_enum_values ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
@@ -85,7 +85,7 @@ template<> inline t_config_enum_values ConfigOptionEnum<SeamPosition>::get_enum_
     keys_map["random"]              = spRandom;
     keys_map["nearest"]             = spNearest;
     keys_map["aligned"]             = spAligned;
-//    keys_map["preferred"]           = spPreferred;
+    keys_map["rear"]                = spRear;
     return keys_map;
 }
 
@@ -404,7 +404,9 @@ class PrintConfig : public GCodeConfig
     ConfigOptionFloat               infill_acceleration;
     ConfigOptionBool                infill_first;
     ConfigOptionInt                 max_fan_speed;
+    ConfigOptionFloats              max_layer_height;
     ConfigOptionInt                 min_fan_speed;
+    ConfigOptionFloats              min_layer_height;
     ConfigOptionFloat               min_print_speed;
     ConfigOptionFloat               min_skirt_length;
     ConfigOptionString              notes;
@@ -461,7 +463,9 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(infill_acceleration);
         OPT_PTR(infill_first);
         OPT_PTR(max_fan_speed);
+        OPT_PTR(max_layer_height);
         OPT_PTR(min_fan_speed);
+        OPT_PTR(min_layer_height);
         OPT_PTR(min_print_speed);
         OPT_PTR(min_skirt_length);
         OPT_PTR(notes);
