@@ -413,8 +413,11 @@ sub _get_config_value {
     my ($self, $opt_key, $opt_index, $deserialize) = @_;
     
     if ($deserialize) {
+        # Want to edit a vector value (currently only multi-strings) in a single edit box.
+        # Aggregate the strings the old way.
+        # Currently used for the post_process config value only.
         die "Can't deserialize option indexed value" if $opt_index != -1;
-        return $self->config->serialize($opt_key);
+        return join(';', @{$self->config->get($opt_key)});
     } else {
         return $opt_index == -1
             ? $self->config->get($opt_key)
@@ -433,7 +436,10 @@ sub _on_change {
         my $field_value = $self->get_value($opt_id);
         if ($option->gui_flags =~ /\bserialized\b/) {
             die "Can't set serialized option indexed value" if $opt_index != -1;
-            $self->config->set_deserialize($opt_key, $field_value);
+            # Split a string to multiple strings by a semi-colon. This is the old way of storing multi-string values.
+            # Currently used for the post_process config value only.
+            my @values = split /;/, $field_value;
+            $self->config->set($opt_key, \@values);
         } else {
             if ($opt_index == -1) {
                 $self->config->set($opt_key, $field_value);
