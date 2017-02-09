@@ -1,3 +1,5 @@
+#include <limits>
+
 #include "Slicing.hpp"
 #include "SlicingAdaptive.hpp"
 #include "PrintConfig.hpp"
@@ -67,7 +69,7 @@ SlicingParameters SlicingParameters::create_from_config(
 
     // Miniumum/maximum of the minimum layer height over all extruders.
     params.min_layer_height = MIN_LAYER_HEIGHT;
-    params.max_layer_height = FLT_MAX;
+    params.max_layer_height = std::numeric_limits<double>::max();
     if (object_config.support_material.value || params.base_raft_layers > 0) {
         // Has some form of support. Add the support layers to the minimum / maximum layer height limits.
         params.min_layer_height = std::max(
@@ -144,15 +146,6 @@ SlicingParameters SlicingParameters::create_from_config(
         coordf_t print_z = params.raft_contact_top_z + params.gap_raft_object;
         params.object_print_z_min  = print_z;
         params.object_print_z_max += print_z;
-    }
-
-    // Calculate the maximum layer height as 0.75 from the minimum nozzle diameter.
-    if (! object_extruders.empty()) {
-        coordf_t min_object_extruder_dmr = 1000000.;
-        for (std::set<size_t>::const_iterator it_extruder = object_extruders.begin(); it_extruder != object_extruders.end(); ++ it_extruder)
-            min_object_extruder_dmr = std::min(min_object_extruder_dmr, print_config.nozzle_diameter.get_at(*it_extruder));
-        // Allow excessive maximum layer height higher than 0.75 * min_object_extruder_dmr 
-        params.max_layer_height = std::max(std::max(params.layer_height, first_layer_height), 0.75 * min_object_extruder_dmr);
     }
 
     return params;
