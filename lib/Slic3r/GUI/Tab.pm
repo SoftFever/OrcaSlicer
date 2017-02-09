@@ -1434,7 +1434,7 @@ sub _build_extruder_pages {
             $optgroup->append_single_option_line('nozzle_diameter', $extruder_idx);
         }
         {
-            my $optgroup = $page->new_optgroup('Limits');
+            my $optgroup = $page->new_optgroup('Layer height limits');
             $optgroup->append_single_option_line($_, $extruder_idx)
                 for qw(min_layer_height max_layer_height);
         }
