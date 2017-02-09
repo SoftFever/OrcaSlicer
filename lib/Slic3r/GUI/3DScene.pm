@@ -513,7 +513,7 @@ sub select_view {
     if (ref($direction)) {
         $dirvec = $direction;
     } else {
-        if ($direction eq 'default') {
+        if ($direction eq 'iso') {
             $dirvec = VIEW_DEFAULT;
         } elsif ($direction eq 'left') {
             $dirvec = VIEW_LEFT;
