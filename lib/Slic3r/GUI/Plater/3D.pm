@@ -83,6 +83,11 @@ sub set_on_instances_moved {
     $self->{on_instances_moved} = $cb;
 }
 
+sub set_on_model_update {
+    my ($self, $cb) = @_;
+    $self->on_model_update($cb);
+}
+
 sub update {
     my ($self) = @_;
     

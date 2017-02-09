@@ -329,8 +329,10 @@ ModelMaterial::apply(const t_model_material_attributes &attributes)
 }
 
 
-ModelObject::ModelObject(Model *model)
-    : model(model), _bounding_box_valid(false)
+ModelObject::ModelObject(Model *model) : 
+    model(model), 
+    _bounding_box_valid(false),
+    layer_height_profile_valid(false)
 {}
 
 ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes)
@@ -340,6 +342,8 @@ ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volum
     volumes(),
     config(other.config),
     layer_height_ranges(other.layer_height_ranges),
+    layer_height_profile(other.layer_height_profile),
+    layer_height_profile_valid(other.layer_height_profile_valid),
     origin_translation(other.origin_translation),
     _bounding_box(other._bounding_box),
     _bounding_box_valid(other._bounding_box_valid),
@@ -356,7 +360,7 @@ ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volum
         this->add_instance(**i);
 }
 
-ModelObject& ModelObject::operator= (ModelObject other)
+ModelObject& ModelObject::operator=(ModelObject other)
 {
     this->swap(other);
     return *this;
@@ -370,6 +374,8 @@ ModelObject::swap(ModelObject &other)
     std::swap(this->volumes,                other.volumes);
     std::swap(this->config,                 other.config);
     std::swap(this->layer_height_ranges,    other.layer_height_ranges);
+    std::swap(this->layer_height_profile,   other.layer_height_profile);
+    std::swap(this->layer_height_profile_valid,    other.layer_height_profile_valid);
     std::swap(this->origin_translation,     other.origin_translation);
     std::swap(this->_bounding_box,          other._bounding_box);
     std::swap(this->_bounding_box_valid,    other._bounding_box_valid);

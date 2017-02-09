@@ -29,7 +29,8 @@ namespace Slic3r {
 PrintObject::PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox)
 :   typed_slices(false),
     _print(print),
-    _model_object(model_object)
+    _model_object(model_object),
+    layer_height_profile_valid(false)
 {
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
     {
@@ -216,8 +217,11 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             steps.insert(posPerimeters);
         } else if (*opt_key == "layer_height"
             || *opt_key == "first_layer_height"
-            || *opt_key == "xy_size_compensation"
             || *opt_key == "raft_layers") {
+            steps.insert(posSlice);
+			this->reset_layer_height_profile();
+		}
+		else if (*opt_key == "xy_size_compensation") {
             steps.insert(posSlice);
         } else if (*opt_key == "support_material"
             || *opt_key == "support_material_angle"
@@ -283,7 +287,8 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             // these options only affect G-code export, so nothing to invalidate
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
-            return this->invalidate_all_steps();
+			this->reset_layer_height_profile();
+			return this->invalidate_all_steps();
         }
     }
     
@@ -950,19 +955,47 @@ SlicingParameters PrintObject::slicing_parameters() const
         unscale(this->size.z), this->print()->object_extruders());
 }
 
-bool PrintObject::update_layer_height_profile()
+bool PrintObject::update_layer_height_profile(std::vector<coordf_t> &layer_height_profile) const
 {
     bool updated = false;
-    if (this->layer_height_profile.empty()) {
+
+    // If the layer height profile is not set, try to use the one stored at the ModelObject.
+    if (layer_height_profile.empty() && layer_height_profile.data() != this->model_object()->layer_height_profile.data()) {
+        layer_height_profile = this->model_object()->layer_height_profile;
+        updated = true;
+    }
+
+    // Verify the layer_height_profile.
+    SlicingParameters slicing_params = this->slicing_parameters();
+    if (! layer_height_profile.empty() && 
+            // Must not be of even length.
+            ((layer_height_profile.size() & 1) != 0 || 
+            // Last entry must be at the top of the object.
+             std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_params.object_print_z_height()) > 1e-3))
+        layer_height_profile.clear();
+
+    if (layer_height_profile.empty()) {
         if (0)
 //        if (this->layer_height_profile.empty())
-            this->layer_height_profile = layer_height_profile_adaptive(this->slicing_parameters(), this->layer_height_ranges,
+            layer_height_profile = layer_height_profile_adaptive(slicing_params, this->layer_height_ranges,
                 this->model_object()->volumes);
         else
-            this->layer_height_profile = layer_height_profile_from_ranges(this->slicing_parameters(), this->layer_height_ranges);
+            layer_height_profile = layer_height_profile_from_ranges(slicing_params, this->layer_height_ranges);
         updated = true;
     }
     return updated;
+}
+
+// This must be called from the main thread as it modifies the layer_height_profile.
+bool PrintObject::update_layer_height_profile()
+{
+    // If the layer height profile has been marked as invalid for some reason (modified at the UI level 
+    // or invalidated due to the slicing parameters), clear it now.
+    if (! this->layer_height_profile_valid) { 
+        this->layer_height_profile.clear();
+        this->layer_height_profile_valid = true;
+    }
+    return this->update_layer_height_profile(this->layer_height_profile);
 }
 
 // 1) Decides Z positions of the layers,
@@ -1265,6 +1298,15 @@ void PrintObject::_generate_support_material()
 {
     PrintObjectSupportMaterial support_material(this, PrintObject::slicing_parameters());
     support_material.generate(*this);
+}
+
+void PrintObject::reset_layer_height_profile()
+{
+    // Reset the layer_heigth_profile.
+    this->layer_height_profile.clear();
+    // Reset the source layer_height_profile if it exists at the ModelObject.
+    this->model_object()->layer_height_profile.clear();
+    this->model_object()->layer_height_profile_valid = false;
 }
 
 } // namespace Slic3r

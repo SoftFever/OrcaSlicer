@@ -120,23 +120,39 @@ _constant()
     void _infill();
     void _generate_support_material();
 
-    bool update_layer_height_profile();
+    std::vector<double> get_layer_height_min_max()
+        %code%{ 
+            SlicingParameters slicing_params = THIS->slicing_parameters();
+            RETVAL.push_back(slicing_params.min_layer_height);
+            RETVAL.push_back(slicing_params.max_layer_height);
+            RETVAL.push_back(slicing_params.first_print_layer_height);
+            RETVAL.push_back(slicing_params.first_object_layer_height);
+            RETVAL.push_back(slicing_params.layer_height);
+        %};
 
     void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
-        %code%{ 
-            THIS->update_layer_height_profile(); 
+        %code%{
+            THIS->update_layer_height_profile(THIS->model_object()->layer_height_profile);
             adjust_layer_height_profile(
-                THIS->slicing_parameters(), THIS->layer_height_profile, z, layer_thickness_delta, band_width, LayerHeightEditActionType(action));
+                THIS->slicing_parameters(), THIS->model_object()->layer_height_profile, z, layer_thickness_delta, band_width, LayerHeightEditActionType(action));
+            THIS->model_object()->layer_height_profile_valid = true;
+            THIS->layer_height_profile_valid = false;
         %};
+
+    void reset_layer_height_profile();
     
-    int generate_layer_height_texture(void *data, int rows, int cols, bool level_of_detail_2nd_level = true)
+    int generate_layer_height_texture(void *data, int rows, int cols, bool force = true)
         %code%{ 
-            THIS->update_layer_height_profile();
-            SlicingParameters slicing_params = THIS->slicing_parameters(); 
-            RETVAL = generate_layer_height_texture(
-                slicing_params, 
-                generate_object_layers(slicing_params, THIS->layer_height_profile), 
-                data, rows, cols, level_of_detail_2nd_level); 
+            force |= THIS->update_layer_height_profile(THIS->model_object()->layer_height_profile);
+            if (force) {
+                SlicingParameters slicing_params = THIS->slicing_parameters(); 
+                bool level_of_detail_2nd_level = true;
+                RETVAL = generate_layer_height_texture(
+                    slicing_params, 
+                    generate_object_layers(slicing_params, THIS->model_object()->layer_height_profile), 
+                    data, rows, cols, level_of_detail_2nd_level); 
+            } else
+                RETVAL = 0;
         %};
     
     int ptr()

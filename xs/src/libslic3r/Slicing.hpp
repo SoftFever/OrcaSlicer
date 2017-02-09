@@ -52,6 +52,11 @@ struct SlicingParameters
 	// The regular layer height, applied for all but the first layer, if not overridden by layer ranges
 	// or by the variable layer thickness table.
     coordf_t    layer_height;
+    // Minimum / maximum layer height, to be used for the automatic adaptive layer height algorithm,
+    // or by an interactive layer height editor.
+    coordf_t    min_layer_height;
+    coordf_t    max_layer_height;
+    coordf_t    max_suport_layer_height;
 
     // First layer height of the print, this may be used for the first layer of the raft
     // or for the first layer of the print.
@@ -74,11 +79,6 @@ struct SlicingParameters
     coordf_t    gap_object_support;
     // Gap when placing object over support.
     coordf_t    gap_support_object;
-
-    // Minimum / maximum layer height, to be used for the automatic adaptive layer height algorithm,
-    // or by an interactive layer height editor.
-    coordf_t    min_layer_height;
-    coordf_t    max_layer_height;
 
     // Bottom and top of the printed object.
     // If printed without a raft, object_print_z_min = 0 and object_print_z_max = object height.

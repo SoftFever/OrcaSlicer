@@ -98,7 +98,10 @@ sub end_element {
         $self->{_material} = undef;
     } elsif ($data->{LocalName} eq 'metadata') {
         my $value = $self->{_metadata_value};
-        if ($self->{_metadata_type} =~ /^slic3r\.(.+)/) {
+        if ($self->{_metadata_type} eq 'slic3r.layer_height_profile') {
+            my @layer_height_profile = split(';', $value);
+            $self->{_object}->set_layer_height_profile(\@layer_height_profile) if ($self->{_object});
+        } elsif ($self->{_metadata_type} =~ /^slic3r\.(.+)/) {
             my $opt_key = $1;
             if (exists $Slic3r::Config::Options->{$opt_key}) {
                 my $config;
@@ -114,10 +117,9 @@ sub end_element {
             } elsif ($opt_key eq 'modifier' && $self->{_volume}) {
                 $self->{_volume}->set_modifier($value);
             }
-        } elsif ($self->{_metadata_type} eq 'name' && $self->{_volume}) {
-            $self->{_volume}->set_name($value);
-        } elsif ($self->{_metadata_type} eq 'name' && $self->{_object}) {
-            $self->{_object}->set_name($value);
+        } elsif ($self->{_metadata_type} eq 'name') {
+            my $obj = $self->{_volume} // $self->{_object};
+            $obj->set_name($value) if $obj;
         } elsif ($self->{_material}) {
             $self->{_material}->set_attribute($self->{_metadata_type}, $value);
         }

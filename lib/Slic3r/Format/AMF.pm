@@ -61,8 +61,13 @@ sub write_file {
         if ($object->name) {
             printf $fh qq{    <metadata type=\"name\">%s</metadata>\n}, $object->name;
         }
+        my $layer_height_profile = $object->layer_height_profile();
+        my $layer_height_profile_pts = int(@{$layer_height_profile});
+        if ($layer_height_profile_pts >= 4 && $layer_height_profile_pts % 2 == 0) {
+            # Store the layer height profile as a single semicolon separated list.
+            print $fh '    <metadata type="slic3r.layer_height_profile">', join(';', @{$layer_height_profile}), "</metadata>\n";
+        }
         #FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
-        #FIXME Store the layer height profile.
         
         printf $fh qq{    <mesh>\n};
         printf $fh qq{      <vertices>\n};

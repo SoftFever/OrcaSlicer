@@ -104,6 +104,12 @@ sub new {
         $self->{canvas3D}->set_on_double_click($on_double_click);
         $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+        $self->{canvas3D}->set_on_model_update(sub {
+            if ($Slic3r::GUI::Settings->{_}{background_processing}) {
+                $self->{apply_config_timer}->Stop if defined $self->{apply_config_timer};
+                $self->async_apply_config();
+            }
+        });
         $self->{canvas3D}->on_viewport_changed(sub {
             $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
         });
@@ -651,10 +657,9 @@ sub load_model_objects {
     my @obj_idx = ();
     foreach my $model_object (@model_objects) {
         my $o = $self->{model}->add_object($model_object);
-        
-        push @{ $self->{objects} }, Slic3r::GUI::Plater::Object->new(
-            name => basename($model_object->input_file),
-        );
+        my $object_name = $model_object->name;
+        $object_name = basename($model_object->input_file) if ($object_name eq '');
+        push @{ $self->{objects} }, Slic3r::GUI::Plater::Object->new(name => $object_name);
         push @obj_idx, $#{ $self->{objects} };
     
         if ($model_object->instances_count == 0) {
@@ -1088,6 +1093,9 @@ sub async_apply_config {
     
     # apply new config
     my $invalidated = $self->{print}->apply_config($self->GetFrame->config);
+
+#    $self->{canvas3D}->Refresh if ($invalidated && $self->{canvas3D}->layer_editing_enabled);
+    $self->{canvas3D}->Refresh if ($self->{canvas3D}->layer_editing_enabled);
     
     return if !$Slic3r::GUI::Settings->{_}{background_processing};
     
@@ -1200,7 +1208,10 @@ sub reslice {
     my ($self) = @_;
     # Don't reslice if export of G-code or sending to OctoPrint is running.
     if ($Slic3r::have_threads && ! defined($self->{export_gcode_output_file}) && ! defined($self->{send_gcode_file})) {
+        # Stop the background processing threads, stop the async update timer.
         $self->stop_background_process;
+        # Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
+        $self->async_apply_config;
         $self->statusbar->SetCancelCallback(sub {
             $self->stop_background_process;
             $self->statusbar->SetStatusText("Slicing cancelled");
@@ -1534,8 +1545,6 @@ sub on_thumbnail_made {
 sub update {
     my ($self, $force_autocenter) = @_;
 
-    print "Platter - update\n";
-    
     if ($Slic3r::GUI::Settings->{_}{autocenter} || $force_autocenter) {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }

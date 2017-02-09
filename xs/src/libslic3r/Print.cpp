@@ -371,7 +371,7 @@ Print::add_model_object(ModelObject* model_object, int idx)
             this->objects[idx] = o = new PrintObject(this, model_object, bb);
         } else {
             o = new PrintObject(this, model_object, bb);
-            objects.push_back(o);
+            this->objects.push_back(o);
     
             // invalidate steps
             this->invalidate_step(psSkirt);
@@ -528,8 +528,26 @@ Print::apply_config(DynamicPrintConfig config)
         this->clear_objects();
         for (ModelObjectPtrs::iterator it = model_objects.begin(); it != model_objects.end(); ++it) {
             this->add_model_object(*it);
+            // Update layer_height_profile from the main thread as it may pull the data from the associated ModelObject.
+            this->objects.back()->update_layer_height_profile();
         }
         invalidated = true;
+    } else {
+        // Check validity of the layer height profiles.
+        FOREACH_OBJECT(this, o) {
+            if (! (*o)->layer_height_profile_valid) {
+                // The layer_height_profile is not valid for some reason (updated by the user or invalidated due to some option change).
+                // Start slicing of this object from scratch.
+                (*o)->invalidate_all_steps();
+                // Following line sets the layer_height_profile_valid flag.
+                (*o)->update_layer_height_profile();
+                invalidated = true;
+            } else if (! step_done(posSlice)) {
+                // Update layer_height_profile from the main thread as it may pull the data from the associated ModelObject.
+                // Only update if the slicing was not finished yet.
+                (*o)->update_layer_height_profile();
+            }
+        }
     }
     
     return invalidated;
