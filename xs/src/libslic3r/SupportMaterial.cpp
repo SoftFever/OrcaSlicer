@@ -164,8 +164,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         false)),
  
     // 50 mirons layer
-    m_support_layer_height_min  (0.05),
-    m_support_layer_height_max  (0.)
+    m_support_layer_height_min  (0.05)
 {
     if (m_object_config->support_material_interface_layers.value == 0) {
         // No interface layers allowed, print everything with the base support pattern.
@@ -214,10 +213,6 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     coordf_t max_object_layer_height = 0.;
     for (size_t i = 0; i < object.layer_count(); ++ i)
         max_object_layer_height = std::max(max_object_layer_height, object.layers[i]->height);
-
-    if (m_support_layer_height_max == 0)
-        m_support_layer_height_max = std::max(max_object_layer_height, 0.75 * m_support_material_flow.nozzle_diameter);
-//  m_support_interface_layer_height_max = std::max(max_object_layer_height, 0.75 * m_support_material_interface_flow.nozzle_diameter);
 
     // Layer instances will be allocated by std::deque and they will be kept until the end of this function call.
     // The layers will be referenced by various LayersPtr (of type std::vector<Layer*>)
@@ -362,21 +357,26 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 		// Assign an average print_z to the set of layers with nearly equal print_z.
 		coordf_t zavg = 0.5 * (layers_sorted[i]->print_z + layers_sorted[j - 1]->print_z);
 		coordf_t height_min = layers_sorted[i]->height;
+		bool     empty = true;
 		for (int u = i; u < j; ++u) {
 			MyLayer &layer = *layers_sorted[u];
+			if (!layer.polygons.empty())
+				empty = false;
 			layer.print_z = zavg;
 			height_min = std::min(height_min, layer.height);
 		}
-		object.add_support_layer(layer_id, height_min, zavg);
-        if (layer_id > 0) {
-            // Inter-link the support layers into a linked list.
-            SupportLayer *sl1 = object.support_layers[object.support_layer_count()-2];
-            SupportLayer *sl2 = object.support_layers.back();
-            sl1->upper_layer = sl2;
-            sl2->lower_layer = sl1;
-        }
-        i = j;
-        ++ layer_id;
+		if (! empty) {
+			object.add_support_layer(layer_id, height_min, zavg);
+			if (layer_id > 0) {
+				// Inter-link the support layers into a linked list.
+				SupportLayer *sl1 = object.support_layers[object.support_layer_count() - 2];
+				SupportLayer *sl2 = object.support_layers.back();
+				sl1->upper_layer = sl2;
+				sl2->lower_layer = sl1;
+			}
+			++layer_id;
+		}
+		i = j;
     }
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Generating tool paths";
@@ -392,16 +392,21 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
             // Due to the floating point inaccuracies, the print_z may not be the same even if in theory they should.
             int j = i + 1;
             coordf_t zmax = layers_sorted[i]->print_z + EPSILON;
-            for (; j < layers_sorted.size() && layers_sorted[j]->print_z <= zmax; ++j) ;
-            export_print_z_polygons_to_svg(
-                debug_out_path("support-%d-%lf.svg", iRun, layers_sorted[i]->print_z).c_str(), 
-                layers_sorted.data() + i, j - i);
-            export_print_z_polygons_and_extrusions_to_svg(
-                debug_out_path("support-w-fills-%d-%lf.svg", iRun, layers_sorted[i]->print_z).c_str(), 
-                layers_sorted.data() + i, j - i, 
-                *object.support_layers[layer_id]);
-            i = j;
-            ++ layer_id;
+			bool empty = true;
+			for (; j < layers_sorted.size() && layers_sorted[j]->print_z <= zmax; ++j)
+				if (!layers_sorted[j]->polygons.empty())
+					empty = false;
+			if (!empty) {
+				export_print_z_polygons_to_svg(
+					debug_out_path("support-%d-%lf.svg", iRun, layers_sorted[i]->print_z).c_str(),
+					layers_sorted.data() + i, j - i);
+				export_print_z_polygons_and_extrusions_to_svg(
+					debug_out_path("support-w-fills-%d-%lf.svg", iRun, layers_sorted[i]->print_z).c_str(),
+					layers_sorted.data() + i, j - i,
+					*object.support_layers[layer_id]);
+				++layer_id;
+			}
+			i = j;
         }
     }
 #endif /* SLIC3R_DEBUG */
@@ -721,7 +726,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                             // This is a feasible support layer height.
                             new_layer.bottom_z = layer_below->print_z;
                             new_layer.height = new_layer.print_z - new_layer.bottom_z;
-                            assert(new_layer.height <= m_support_layer_height_max);
+                            assert(new_layer.height <= m_slicing_params.max_suport_layer_height);
                             break;
                         }                        
                     }
@@ -1053,7 +1058,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 		if (dist == 0.)
 			continue;
         // Insert intermediate layers.
-        size_t        n_layers_extra = size_t(ceil(dist / m_support_layer_height_max));
+        size_t        n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height)); 
         assert(n_layers_extra > 0);
         coordf_t      step   = dist / coordf_t(n_layers_extra);
 		if (! synchronize && ! m_slicing_params.soluble_interface && extr2.layer->layer_type == sltTopContact) {
@@ -1082,12 +1087,12 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         coordf_t extr2z_large_steps = extr2z;
         if (synchronize) {
             // Synchronize support layers with the object layers.
-            if (object.layers.front()->print_z - extr1z > m_support_layer_height_max) {
+            if (object.layers.front()->print_z - extr1z > m_slicing_params.max_suport_layer_height) {
                 // Generate the initial couple of layers before reaching the 1st object layer print_z level.
                 extr2z_large_steps = object.layers.front()->print_z;
                 dist = extr2z_large_steps - extr1z;
                 assert(dist >= 0.);
-                n_layers_extra = size_t(ceil(dist / m_support_layer_height_max));
+                n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height));
                 step = dist / coordf_t(n_layers_extra);
             }
         }
