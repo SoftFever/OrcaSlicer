@@ -1653,7 +1653,7 @@ has 'layer_height_texture_cells'  => (is => 'rw');
 
 sub object_idx {
     my ($self) = @_;
-    return $self->composite_id / 1000000;
+    return int($self->composite_id / 1000000);
 }
 
 sub volume_idx {
