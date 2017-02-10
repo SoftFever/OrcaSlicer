@@ -51,7 +51,7 @@ sub new {
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config->new_from_defaults(qw(
-        bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width
+        bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
         serial_port serial_speed octoprint_host octoprint_apikey
     ));
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
@@ -1634,6 +1634,15 @@ sub on_config_change {
                 $self->{btn_send_gcode}->Hide;
             }
             $self->Layout;
+        } elsif ($opt_key eq 'variable_layer_height') {
+            if ($config->get('variable_layer_height') != 1) {
+                $self->{"btn_layer_editing"}->Disable;
+                $self->{"btn_layer_editing"}->SetValue(0);
+                $self->{canvas3D}->layer_editing_enabled(0);
+                $self->{canvas3D}->update;
+            } else {
+                $self->{"btn_layer_editing"}->Enable;
+            }
         }
     }
     
@@ -1743,6 +1752,7 @@ sub object_list_changed {
     my $method = $have_objects ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode layer_editing);
+    $self->{"btn_layer_editing"}->Disable if (! $self->{config}->variable_layer_height);
     
     if ($self->{export_gcode_output_file} || $self->{send_gcode_file}) {
         $self->{btn_reslice}->Disable;
