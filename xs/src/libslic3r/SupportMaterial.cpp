@@ -749,7 +749,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             // Don't want to print a layer below the first layer height as it may not stick well.
             //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
             // and it may actually make sense to do it with a thinner layer than the first layer height.
-            if (new_layer.print_z < this->first_layer_height() + m_support_layer_height_min)
+            if (new_layer.print_z < m_slicing_params.first_print_layer_height + m_support_layer_height_min)
                 continue;
 
 #if 0
@@ -1046,7 +1046,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 			assert(intermediate_layers.empty());
 			MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
 			layer_new.bottom_z = 0.;
-			layer_new.print_z = extr1z = this->first_layer_height();
+			layer_new.print_z = extr1z = m_slicing_params.first_print_layer_height;
 			layer_new.height = extr1z;
 			intermediate_layers.push_back(&layer_new);
 			// Continue printing the other layers up to extr2z.
@@ -1067,17 +1067,17 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
             extr2.layer->height = step;
             extr2.layer->bottom_z = extr2z = extr2.layer->print_z - step;
             -- n_layers_extra;
-            if (extr2.layer->bottom_z < this->first_layer_height()) {
+            if (extr2.layer->bottom_z < m_slicing_params.first_print_layer_height) {
                 // Split the span into two layers: the top layer up to the first layer height, 
                 // and the new intermediate layer below.
                 // 1) Adjust the bottom of this top layer.
                 assert(n_layers_extra == 0);
-                extr2.layer->bottom_z = extr2z = this->first_layer_height();
+                extr2.layer->bottom_z = extr2z = m_slicing_params.first_print_layer_height;
                 extr2.layer->height = extr2.layer->print_z - extr2.layer->bottom_z;
                 // 2) Insert a new intermediate layer.
                 MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
                 layer_new.bottom_z   = extr1z;
-                layer_new.print_z    = this->first_layer_height();
+                layer_new.print_z    = m_slicing_params.first_print_layer_height;
                 layer_new.height     = layer_new.print_z - layer_new.bottom_z;
 				assert(intermediate_layers.empty() || intermediate_layers.back()->print_z <= layer_new.print_z);
                 intermediate_layers.push_back(&layer_new);

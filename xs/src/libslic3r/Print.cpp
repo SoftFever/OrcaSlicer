@@ -655,7 +655,7 @@ Print::validate() const
                 // are of the same diameter.
                 if (nozzle_diameters.size() > 1)
                     return "Printing with multiple extruders of differing nozzle diameters. "
-                           "If support is to be printed with the current extruder (support_material_extruder == 0 or support_material_interface_extruder == 0), ", 
+                           "If support is to be printed with the current extruder (support_material_extruder == 0 or support_material_interface_extruder == 0), "
                            "all nozzles have to be of the same diameter.";
             }
             
