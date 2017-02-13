@@ -419,7 +419,13 @@ sub write_gcode {
     close $fh;
     
     if ($tempfile) {
-        rename $tempfile, $file;
+        my $i;
+        for ($i = 0; $i < 5; $i += 1)  {
+            last if (rename $tempfile, $file);
+            # Wait for 1/4 seconds and try to rename once again.
+            select(undef, undef, undef, 0.25);
+        }
+        Slic3r::debugf "Faild t remove the output G-code file from $tempfile to $file. Is $tempfile locked?\n" if ($i == 5);
     }
 }
 
