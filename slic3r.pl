@@ -497,6 +497,9 @@ $j
     --dont-arrange      Don't arrange the objects on the build plate. The model coordinates
                         define the absolute positions on the build plate. 
                         The option --print-center will be ignored.
+    --clip_multipart_objects When printing multi-material objects, this settings will make slic3r to clip the overlapping 
+                        object parts one by the other (2nd part will be clipped by the 1st, 3rd part will be clipped 
+                        by the 1st and 2nd etc). (default: $config->{clip_multipart_objects})";
     --xy-size-compensation
                         Grow/shrink objects by the configured absolute distance (mm, default: $config->{xy_size_compensation})
    

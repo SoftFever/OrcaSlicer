@@ -107,6 +107,16 @@ inline ExPolygons to_expolygons(const Surfaces &src)
     return expolygons;
 }
 
+inline ExPolygons to_expolygons(Surfaces &&src)
+{
+	ExPolygons expolygons;
+	expolygons.reserve(src.size());
+	for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++it)
+		expolygons.emplace_back(ExPolygon(std::move(it->expolygon)));
+	src.clear();
+	return expolygons;
+}
+
 inline ExPolygons to_expolygons(const SurfacesPtr &src)
 {
     ExPolygons expolygons;

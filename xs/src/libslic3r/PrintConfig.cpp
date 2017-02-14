@@ -96,6 +96,12 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
 
+    def = this->add("clip_multipart_objects", coBool);
+    def->label = "Clip multi-part objects";
+    def->tooltip = "When printing multi-material objects, this settings will make slic3r to clip the overlapping object parts one by the other (2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).";
+    def->cli = "clip-multipart-objects!";
+    def->default_value = new ConfigOptionBool(false);
+
     def = this->add("complete_objects", coBool);
     def->label = "Complete individual objects";
     def->tooltip = "When printing multiple objects or copies, this feature will complete each object before moving onto next one (and starting it from its bottom layer). This feature is useful to avoid the risk of ruined prints. Slic3r should warn and prevent you from extruder collisions, but beware.";

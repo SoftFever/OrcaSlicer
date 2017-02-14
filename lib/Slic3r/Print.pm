@@ -425,7 +425,7 @@ sub write_gcode {
             # Wait for 1/4 seconds and try to rename once again.
             select(undef, undef, undef, 0.25);
         }
-        Slic3r::debugf "Faild to remove the output G-code file from $tempfile to $file. Is $tempfile locked?\n" if ($i == 5);
+        Slic3r::debugf "Failed to remove the output G-code file from $tempfile to $file. Is $tempfile locked?\n" if ($i == 5);
     }
 }
 

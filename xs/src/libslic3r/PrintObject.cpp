@@ -221,7 +221,8 @@ PrintObject::invalidate_state_by_config_options(const std::vector<t_config_optio
             steps.insert(posSlice);
 			this->reset_layer_height_profile();
 		}
-		else if (*opt_key == "xy_size_compensation") {
+		else if (*opt_key == "clip_multipart_objects" 
+            || *opt_key == "xy_size_compensation") {
             steps.insert(posSlice);
         } else if (*opt_key == "support_material"
             || *opt_key == "support_material_angle"
@@ -1091,48 +1092,34 @@ end:
 
     for (size_t layer_id = 0; layer_id < layers.size(); ++ layer_id) {
         Layer *layer = this->layers[layer_id];
-        // apply size compensation
-        if (this->config.xy_size_compensation.value != 0.) {
-            float delta = float(scale_(this->config.xy_size_compensation.value));
-            if (layer->regions.size() == 1) {
-                // single region
+        // Apply size compensation and perform clipping of multi-part objects.
+        float delta = float(scale_(this->config.xy_size_compensation.value));
+        bool  scale = delta != 0.f;
+        bool  clip  = this->config.clip_multipart_objects.value || delta > 0.f;
+        if (layer->regions.size() == 1) {
+            if (scale) {
+                // Single region, growing or shrinking.
                 LayerRegion *layerm = layer->regions.front();
                 layerm->slices.set(offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), delta), stInternal);
-            } else {
-                if (delta < 0) {
-                    // multiple regions, shrinking
-                    // we apply the offset to the combined shape, then intersect it
-                    // with the original slices for each region
-                    Polygons region_slices;
-                    for (size_t region_id = 0; region_id < layer->regions.size(); ++ region_id)
-                        polygons_append(region_slices, layer->regions[region_id]->slices.surfaces);
-                    Polygons slices = offset(union_(region_slices), delta);
-                    for (size_t region_id = 0; region_id < layer->regions.size(); ++ region_id) {
-                        LayerRegion *layerm = layer->regions[region_id];
-                        layerm->slices.set(std::move(intersection_ex(slices, to_polygons(std::move(layerm->slices.surfaces)))), stInternal);
-                    }
-                } else {
-                    // multiple regions, growing
-                    // this is an ambiguous case, since it's not clear how to grow regions where they are going to overlap
-                    // so we give priority to the first one and so on
-                    Polygons processed;
-                    for (size_t region_id = 0;; ++ region_id) {
-                        LayerRegion *layerm = layer->regions[region_id];
-                        ExPolygons slices = offset_ex(to_expolygons(layerm->slices.surfaces), delta);
-                        if (region_id > 0)
-                            // Trim by the slices of already processed regions.
-                            slices = diff_ex(to_polygons(std::move(slices)), processed);
-                        if (region_id + 1 == layer->regions.size()) {
-                            layerm->slices.set(std::move(slices), stInternal);
-                            break;
-                        }
-                        polygons_append(processed, slices);
-                        layerm->slices.set(std::move(slices), stInternal);
-                    }
-                }
+            }
+        } else if (scale || clip) {
+            // Multiple regions, growing, shrinking or just clipping one region by the other.
+            // When clipping the regions, priority is given to the first regions.
+            Polygons processed;
+			for (size_t region_id = 0; region_id < layer->regions.size(); ++ region_id) {
+                LayerRegion *layerm = layer->regions[region_id];
+				ExPolygons slices = to_expolygons(std::move(layerm->slices.surfaces));
+				if (scale)
+					slices = offset_ex(slices, delta);
+                if (region_id > 0 && clip) 
+                    // Trim by the slices of already processed regions.
+                    slices = diff_ex(to_polygons(std::move(slices)), processed);
+                if (clip && region_id + 1 < layer->regions.size())
+                    // Collect the already processed regions to trim the to be processed regions.
+                    polygons_append(processed, slices);
+                layerm->slices.set(std::move(slices), stInternal);
             }
         }
-        
         // Merge all regions' slices to get islands, chain them by a shortest path.
         layer->make_slices();
     }
