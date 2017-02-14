@@ -178,8 +178,9 @@ private:
     MyLayersPtr generate_raft_base(
 	    const PrintObject   &object,
 	    const MyLayersPtr   &top_contacts,
-	    MyLayersPtr         &intermediate_layers,
-	    MyLayerStorage	 	&layer_storage) const;
+	    const MyLayersPtr   &interface_layers,
+	    const MyLayersPtr   &base_layers,
+	    MyLayerStorage      &layer_storage) const;
 
     // Turn some of the base layers into interface layers.
 	MyLayersPtr generate_interface_layers(

@@ -290,26 +290,19 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // top contacts over the bottom contacts.
     this->trim_top_contacts_by_bottom_contacts(object, bottom_contacts, top_contacts);
 
-    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating raft";
-
-    // If raft is to be generated, the 1st top_contact layer will contain the 1st object layer silhouette with holes filled.
-    // There is also a 1st intermediate layer containing bases of support columns.
-    // Inflate the bases of the support columns and create the raft base under the object.
-    MyLayersPtr raft_layers = this->generate_raft_base(object, top_contacts, intermediate_layers, layer_storage);
-
-/*
-    // If we wanted to apply some special logic to the first support layers lying on
-    // object's top surfaces this is the place to detect them
-    LayersSet shape;
-    if (m_objectconfig->support_material_pattern.value == smpPillars)
-        shape = this->generate_pillars_shape(contact, support_z);
-*/
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating interfaces";
 
     // Propagate top / bottom contact layers to generate interface layers.
     MyLayersPtr interface_layers = this->generate_interface_layers(
         object, bottom_contacts, top_contacts, intermediate_layers, layer_storage);
+
+    BOOST_LOG_TRIVIAL(info) << "Support generator - Creating raft";
+
+    // If raft is to be generated, the 1st top_contact layer will contain the 1st object layer silhouette with holes filled.
+    // There is also a 1st intermediate layer containing bases of support columns.
+    // Inflate the bases of the support columns and create the raft base under the object.
+    MyLayersPtr raft_layers = this->generate_raft_base(object, top_contacts, interface_layers, intermediate_layers, layer_storage);
 
 #ifdef SLIC3R_DEBUG
     for (MyLayersPtr::const_iterator it = interface_layers.begin(); it != interface_layers.end(); ++ it)
@@ -697,7 +690,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                     0.;
                 new_layer.print_z = layer.print_z - layer.height;
                 new_layer.bottom_z = new_layer.print_z - new_layer.height;
-            } else {
+			} else {
                 // Contact layer will be printed with a normal flow, but
                 // it will support layers printed with a bridging flow.
                 //FIXME Probably printing with the bridge flow? How about the unsupported perimeters? Are they printed with the bridging flow?
@@ -716,7 +709,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                 new_layer.print_z  = layer.print_z - nozzle_dmr - m_object_config->support_material_contact_distance;
                 new_layer.bottom_z = new_layer.print_z;
                 new_layer.height   = 0.;
-                if (this->synchronize_layers()) {
+				if (layer_id == 0) {
+                    // This is a raft contact layer sitting directly on the print bed.
+					new_layer.bottom_z = m_slicing_params.raft_interface_top_z; 
+					new_layer.height   = m_slicing_params.contact_raft_layer_height;
+				} else if (this->synchronize_layers()) {
                     // Align bottom of this layer with a top of the closest object layer
                     // while not trespassing into the 1st layer and keeping the support layer thickness bounded.
                     int layer_id_below = int(layer_id) - 1;
@@ -749,7 +746,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             // Don't want to print a layer below the first layer height as it may not stick well.
             //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
             // and it may actually make sense to do it with a thinner layer than the first layer height.
-            if (new_layer.print_z < m_slicing_params.first_print_layer_height + m_support_layer_height_min)
+			if (new_layer.print_z < m_slicing_params.first_print_layer_height - EPSILON)
+				// This contact layer is below the first layer height, therefore not printable. Don't support this surface.
                 continue;
 
 #if 0
@@ -1027,7 +1025,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         return intermediate_layers;
     std::sort(extremes.begin(), extremes.end());
 
-	assert(extremes.front().z() > m_slicing_params.raft_interface_top_z && extremes.front().z() >= m_slicing_params.first_print_layer_height);
+	assert(extremes.front().z() > m_slicing_params.raft_interface_top_z - EPSILON && (m_slicing_params.raft_layers() == 1 || extremes.front().z() > m_slicing_params.first_print_layer_height - EPSILON));
 
 //    bool synchronize = m_slicing_params.soluble_interface || this->synchronize_layers();
     bool synchronize = this->synchronize_layers();
@@ -1038,10 +1036,15 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
     // Intermediate layers are always printed with a normal etrusion flow (non-bridging).
     size_t idx_layer_object = 0;
     for (size_t idx_extreme = 0; idx_extreme < extremes.size(); ++ idx_extreme) {
-        LayerExtreme *extr1  = (idx_extreme == 0) ? NULL : &extremes[idx_extreme-1];
+		LayerExtreme &extr2 = extremes[idx_extreme];
+		coordf_t      extr2z = extr2.z();
+		if (std::abs(extr2z - m_slicing_params.raft_interface_top_z) < EPSILON)
+			// This is a raft contact layer.
+			continue;
+		LayerExtreme *extr1 = (idx_extreme == 0) ? NULL : &extremes[idx_extreme - 1];
         coordf_t      extr1z = (extr1 == NULL) ? m_slicing_params.raft_interface_top_z : extr1->z();
-		assert(extremes[idx_extreme].z() > extr1z);
-		if (extr1z == 0.) {
+		assert(extr2z > extr1z + EPSILON);
+		if (std::abs(extr1z) < EPSILON) {
 			// This layer interval starts with the 1st layer. Print the 1st layer using the prescribed 1st layer thickness.
 			assert(intermediate_layers.empty());
 			MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
@@ -1051,8 +1054,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 			intermediate_layers.push_back(&layer_new);
 			// Continue printing the other layers up to extr2z.
 		}
-        LayerExtreme &extr2  = extremes[idx_extreme];
-        coordf_t      extr2z = extr2.z();
         coordf_t      dist   = extr2z - extr1z;
         assert(dist >= 0.);
 		if (dist == 0.)
@@ -1316,38 +1317,49 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
 PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raft_base(
     const PrintObject   &object,
     const MyLayersPtr   &top_contacts,
-    MyLayersPtr         &intermediate_layers,
+    const MyLayersPtr   &interface_layers,
+    const MyLayersPtr   &base_layers,
     MyLayerStorage      &layer_storage) const
 {
-    // Areas covered by the raft, supporting the raft interface and the support columns.
-    Polygons raft_polygons;
     // How much to inflate the support columns to be stable. This also applies to the 1st layer, if no raft layers are to be printed.
-    const float inflate_factor = scale_(3.);
-    MyLayer *contacts      = top_contacts.empty() ? nullptr : top_contacts.front();
-    MyLayer *columns_base  = intermediate_layers.empty() ? nullptr : intermediate_layers.front();
+    const float inflate_factor_fine      = float(scale_(0.5));
+    const float inflate_factor_1st_layer = float(scale_(3.)) - inflate_factor_fine;
+    MyLayer       *contacts      = top_contacts    .empty() ? nullptr : top_contacts    .front();
+    MyLayer       *interfaces    = interface_layers.empty() ? nullptr : interface_layers.front();
+    MyLayer       *columns_base  = base_layers     .empty() ? nullptr : base_layers     .front();
 	if (contacts != nullptr && contacts->print_z > m_slicing_params.raft_contact_top_z + EPSILON)
 		// This is not the raft contact layer.
 		contacts = nullptr;
+    if (interfaces != nullptr && interfaces->bottom_print_z() > m_slicing_params.raft_interface_top_z + EPSILON)
+        // This is not the raft column base layer.
+        interfaces = nullptr;
+    if (columns_base != nullptr && columns_base->bottom_print_z() > m_slicing_params.raft_interface_top_z + EPSILON)
+        // This is not the raft interface layer.
+        columns_base = nullptr;
 
+    Polygons interface_polygons;
+    if (contacts != nullptr && ! contacts->polygons.empty())
+        polygons_append(interface_polygons, offset(contacts->polygons, inflate_factor_fine, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+    if (interfaces != nullptr && ! interfaces->polygons.empty())
+        polygons_append(interface_polygons, offset(interfaces->polygons, inflate_factor_fine, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+ 
 	// Output vector.
     MyLayersPtr raft_layers;
 
-    // Expand the 1st intermediate layer, which contains the bases of the support columns.
-	Polygons base;
-	if (columns_base != nullptr) {
-		base = offset(columns_base->polygons, inflate_factor);
-		// Modify the 1st intermediate layer with the expanded support columns.
-		columns_base->polygons = diff(
-			base,
-			offset(m_object->layers.front()->slices.expolygons, scale_(m_gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS));
-		if (contacts != nullptr)
-			columns_base->polygons = diff(columns_base->polygons, contacts->polygons);
-	}
-    if (m_slicing_params.has_raft() && contacts != nullptr) {
-        // Merge the untrimmed columns base with the expanded raft interface, to be used for the support base and interface.
-        base = union_(base, offset(contacts->polygons, inflate_factor, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-    }
-	if (m_slicing_params.has_raft() && m_slicing_params.raft_layers() > 1 && ! base.empty()) {
+	if (m_slicing_params.raft_layers() > 1) {
+        Polygons base;
+        Polygons columns;
+        if (columns_base != nullptr) {
+            base = columns_base->polygons;
+            columns = base;
+            if (! interface_polygons.empty())
+                // Trim the 1st layer columns with the inflated interface polygons.
+                columns = diff(columns, interface_polygons);
+        }
+        if (! interface_polygons.empty()) {
+            // Merge the untrimmed columns base with the expanded raft interface, to be used for the support base and interface.
+            base = union_(base, interface_polygons); 
+        }
         // Do not add the raft contact layer, only add the raft layers below the contact layer.
         // Insert the 1st layer.
         {
@@ -1356,7 +1368,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
             new_layer.print_z = m_slicing_params.first_print_layer_height;
             new_layer.height  = m_slicing_params.first_print_layer_height;
             new_layer.bottom_z = 0.;
-			new_layer.polygons = base;
+			new_layer.polygons = offset(base, inflate_factor_1st_layer);
         }
         // Insert the base layers.
         for (size_t i = 1; i < m_slicing_params.base_raft_layers; ++ i) {
@@ -1376,8 +1388,17 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
 			new_layer.print_z = print_z + m_slicing_params.interface_raft_layer_height;
             new_layer.height  = m_slicing_params.interface_raft_layer_height;
 			new_layer.bottom_z = print_z;
-			new_layer.polygons = base;
+			new_layer.polygons = interface_polygons;
+            //FIXME misusing contact_polygons for support columns.
+            new_layer.contact_polygons = new Polygons(columns);
 		}
+    } else if (columns_base != nullptr) {
+        // Expand the bases of the support columns in the 1st layer.
+        columns_base->polygons = diff(
+            offset(columns_base->polygons, inflate_factor_1st_layer),
+            offset(m_object->layers.front()->slices.expolygons, scale_(m_gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+        if (contacts != nullptr)
+            columns_base->polygons = diff(columns_base->polygons, interface_polygons);
     }
 
     return raft_layers;
@@ -2079,15 +2100,27 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     LoopInterfaceProcessor loop_interface_processor(1.5 * m_support_material_interface_flow.scaled_width());
     loop_interface_processor.n_contact_loops = this->has_contact_loops() ? 1 : 0;
 
+    float    base_angle         = float(Geometry::deg2rad(m_object_config->support_material_angle));
+    float    interface_angle    = float(Geometry::deg2rad(m_object_config->support_material_angle + 90.));
+    coordf_t interface_spacing  = m_object_config->support_material_interface_spacing.value + m_support_material_interface_flow.spacing();
+    coordf_t interface_density  = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
+    coordf_t support_spacing    = m_object_config->support_material_spacing.value + m_support_material_flow.spacing();
+    coordf_t support_density    = std::min(1., m_support_material_flow.spacing() / support_spacing);
+    if (m_object_config->support_material_interface_layers.value == 0) {
+        // No interface layers allowed, print everything with the base support pattern.
+        interface_spacing = support_spacing;
+        interface_density = support_density;
+    }
+
     // Prepare fillers.
     SupportMaterialPattern  support_pattern = m_object_config->support_material_pattern;
     bool                    with_sheath     = m_object_config->support_material_with_sheath;
     InfillPattern           infill_pattern;
-    std::vector<double>     angles;
-    angles.push_back(Geometry::deg2rad(m_object_config->support_material_angle));
+    std::vector<float>      angles;
+    angles.push_back(base_angle);
     switch (support_pattern) {
     case smpRectilinearGrid:
-        angles.push_back(angles[0] + Geometry::deg2rad(90.));
+        angles.push_back(interface_angle);
         // fall through
     case smpRectilinear:
         infill_pattern = ipRectilinear;
@@ -2106,19 +2139,35 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         filler_support->set_bounding_box(bbox_object);
     }
 
-    coordf_t interface_angle    = Geometry::deg2rad(m_object_config->support_material_angle + 90.);
-    coordf_t interface_spacing  = m_object_config->support_material_interface_spacing.value + m_support_material_interface_flow.spacing();
-    coordf_t interface_density  = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
-    coordf_t support_spacing    = m_object_config->support_material_spacing.value + m_support_material_flow.spacing();
-    coordf_t support_density    = std::min(1., m_support_material_flow.spacing() / support_spacing);
-    if (m_object_config->support_material_interface_layers.value == 0) {
-        // No interface layers allowed, print everything with the base support pattern.
-        interface_spacing = support_spacing;
-        interface_density = support_density;
-    }
-
 //    const coordf_t link_max_length_factor = 3.;
     const coordf_t link_max_length_factor = 0.;
+
+    float raft_angle_1st_layer  = 0.f;
+    float raft_angle_base       = 0.f;
+    float raft_angle_interface  = 0.f;
+    if (m_slicing_params.base_raft_layers > 1) {
+        // There are all raft layer types (1st layer, base, interface & contact layers) available.
+        raft_angle_1st_layer  = interface_angle;
+        raft_angle_base       = base_angle;
+        raft_angle_interface  = interface_angle;
+    } else if (m_slicing_params.base_raft_layers == 1 || m_slicing_params.interface_raft_layers > 1) {
+        // 1st layer, interface & contact layers available.
+        raft_angle_1st_layer  = base_angle;
+        if (this->has_support())
+            // Print 1st layer at 45 degrees from both the interface and base angles as both can land on the 1st layer.
+            raft_angle_1st_layer += 0.7854f;
+        raft_angle_interface  = interface_angle;
+    } else if (m_slicing_params.interface_raft_layers == 1) {
+        // Only the contact raft layer is non-empty, which will be printed as the 1st layer.
+		assert(m_slicing_params.base_raft_layers == 0);
+		assert(m_slicing_params.interface_raft_layers == 1);
+		assert(m_slicing_params.raft_layers() == 1 && raft_layers.size() == 0);
+    } else {
+        // No raft.
+        assert(m_slicing_params.base_raft_layers == 0);
+        assert(m_slicing_params.interface_raft_layers == 0);
+        assert(m_slicing_params.raft_layers() == 0 && raft_layers.size() == 0);
+    }
 
     //FIXME Parallelize the support generator.
     // Insert the raft base layers.
@@ -2130,52 +2179,79 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         assert(support_layer.support_interface_fills.entities.empty());
         assert(support_layer.support_islands.expolygons.empty());
         MyLayer      &raft_layer    = *raft_layers[support_layer_id];
+
+        // Print the support base below the support columns, or the support base for the support columns plus the contacts.
+        if (support_layer_id > 0) {
+            Polygons to_infill_polygons = (support_layer_id < m_slicing_params.base_raft_layers) ? 
+                raft_layer.polygons :
+                //FIXME misusing contact_polygons for support columns.
+                ((raft_layer.contact_polygons == nullptr) ? Polygons() : *raft_layer.contact_polygons);
+            if (! to_infill_polygons.empty()) {
+                Flow flow(m_support_material_flow.width, raft_layer.height, m_support_material_flow.nozzle_diameter, raft_layer.bridging);
+                // find centerline of the external loop/extrusions
+                ExPolygons to_infill = (support_layer_id == 0 || ! with_sheath) ?
+                    // union_ex(base_polygons, true) :
+                    offset2_ex(to_infill_polygons, SCALED_EPSILON, - SCALED_EPSILON) :
+                    offset2_ex(to_infill_polygons, SCALED_EPSILON, - SCALED_EPSILON - 0.5*flow.scaled_width());            
+                if (! to_infill.empty() && with_sheath) {
+                    // Draw a perimeter all around the support infill. This makes the support stable, but difficult to remove.
+                    // TODO: use brim ordering algorithm
+                    to_infill_polygons = to_polygons(to_infill);
+                    // TODO: use offset2_ex()
+                    to_infill = offset_ex(to_infill, - flow.scaled_spacing());
+                    extrusion_entities_append_paths(
+                        support_layer.support_fills.entities, 
+                        to_polylines(STDMOVE(to_infill_polygons)),
+                        erSupportMaterial, flow.mm3_per_mm(), flow.width, flow.height);
+                }
+                if (! to_infill.empty()) {
+                    // We don't use $base_flow->spacing because we need a constant spacing
+                    // value that guarantees that all layers are correctly aligned.
+                    Fill *filler    = filler_support.get();
+                    filler->angle   = raft_angle_base;
+                    filler->spacing = m_support_material_flow.spacing();
+                    filler->link_max_length = scale_(filler->spacing * link_max_length_factor / support_density);
+                    fill_expolygons_generate_paths(
+                        // Destination
+                        support_layer.support_fills.entities, 
+                        // Regions to fill
+                        STDMOVE(to_infill), 
+                        // Filler and its parameters
+                        filler, support_density,
+                        // Extrusion parameters
+                        erSupportMaterial, flow);
+                }
+            }
+        }
+
         //FIXME When paralellizing, each thread shall have its own copy of the fillers.
-        Fill *filler = filler_support.get();
-        filler->angle = 0.;
-        // We don't use $base_flow->spacing because we need a constant spacing
-        // value that guarantees that all layers are correctly aligned.
-        Flow flow(m_support_material_flow.width, raft_layer.height, m_support_material_flow.nozzle_diameter, raft_layer.bridging);
-        filler->spacing = m_support_material_flow.spacing();
-        filler->link_max_length = scale_(filler->spacing * link_max_length_factor / support_density);
-        float density = support_density;
-        // find centerline of the external loop/extrusions
-        ExPolygons to_infill = (support_layer_id == 0 || ! with_sheath) ?
-            // union_ex(base_polygons, true) :
-            offset2_ex(raft_layer.polygons, SCALED_EPSILON, - SCALED_EPSILON) :
-            offset2_ex(raft_layer.polygons, SCALED_EPSILON, - SCALED_EPSILON - 0.5*flow.scaled_width());
+        Fill *filler = filler_interface.get();
+        Flow  flow = m_first_layer_flow;
+        float density = 0.f;
         if (support_layer_id == 0) {
             // Base flange.
-            filler = filler_interface.get();
-            filler->angle = Geometry::deg2rad(m_object_config->support_material_angle + 90.);
-            density = 0.5f;
-            flow = m_first_layer_flow;
-            // use the proper spacing for first layer as we don't need to align
-            // its pattern to the other layers
-            //FIXME When paralellizing, each thread shall have its own copy of the fillers.
-            filler->spacing = flow.spacing();
-            filler->link_max_length = scale_(filler->spacing * link_max_length_factor / density);
-        } else if (with_sheath) {
-            // Draw a perimeter all around the support infill. This makes the support stable, but difficult to remove.
-            // TODO: use brim ordering algorithm
-            Polygons to_infill_polygons = to_polygons(to_infill);
-            // TODO: use offset2_ex()
-            to_infill = offset_ex(to_infill, - flow.scaled_spacing());
-            extrusion_entities_append_paths(
-                support_layer.support_fills.entities, 
-                to_polylines(STDMOVE(to_infill_polygons)),
-                erSupportMaterial, flow.mm3_per_mm(), flow.width, flow.height);
-        }
+            filler->angle = raft_angle_1st_layer;
+            filler->spacing = m_first_layer_flow.spacing();
+            density       = 0.5f;
+        } else if (support_layer_id >= m_slicing_params.base_raft_layers) {
+            filler->angle = raft_angle_interface;
+            // We don't use $base_flow->spacing because we need a constant spacing
+            // value that guarantees that all layers are correctly aligned.
+            filler->spacing = m_support_material_flow.spacing();
+            flow          = Flow(m_support_material_interface_flow.width, raft_layer.height, m_support_material_flow.nozzle_diameter, raft_layer.bridging);
+            density       = interface_density;
+        } else
+            continue;
+        filler->link_max_length = scale_(filler->spacing * link_max_length_factor / density);
         fill_expolygons_generate_paths(
             // Destination
             support_layer.support_fills.entities, 
             // Regions to fill
-            STDMOVE(to_infill), 
+            offset2_ex(raft_layer.polygons, SCALED_EPSILON, - SCALED_EPSILON),
             // Filler and its parameters
             filler, density,
             // Extrusion parameters
-            erSupportMaterial, flow);
-
+            (support_layer_id < m_slicing_params.base_raft_layers) ? erSupportMaterial : erSupportMaterialInterface, flow);
     }
 
     // Indices of the 1st layer in their respective container at the support layer height.
@@ -2237,16 +2313,17 @@ void PrintObjectSupportMaterial::generate_toolpaths(
 
 		// Top and bottom contacts, interface layers.
         for (size_t i = 0; i < 3; ++ i) {
-            MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? interface_layer : bottom_contact_layer);
+            MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? bottom_contact_layer : interface_layer);
             if (layer_ex.empty() || layer_ex.polygons_to_extrude().empty())
                 continue;
 			//FIXME When paralellizing, each thread shall have its own copy of the fillers.
+            bool interface_as_base = (&layer_ex == &interface_layer) && m_object_config->support_material_interface_layers.value == 0;
 			Flow interface_flow(
-				layer_ex.layer->bridging ? layer_ex.layer->height : m_support_material_interface_flow.width,
+				layer_ex.layer->bridging ? layer_ex.layer->height : (interface_as_base ? m_support_material_flow.width : m_support_material_interface_flow.width),
 				layer_ex.layer->height,
 				m_support_material_interface_flow.nozzle_diameter,
 				layer_ex.layer->bridging);
-			filler_interface->angle = (i == 2 && m_object_config->support_material_interface_layers.value == 0) ?
+			filler_interface->angle = interface_as_base ?
                     // If zero interface layers are configured, use the same angle as for the base layers.
                     angles[support_layer_id % angles.size()] :
                     // Use interface angle for the interface layers.
@@ -2281,7 +2358,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 offset2_ex(base_layer.polygons_to_extrude(), SCALED_EPSILON, - SCALED_EPSILON) :
                 offset2_ex(base_layer.polygons_to_extrude(), SCALED_EPSILON, - SCALED_EPSILON - 0.5*flow.scaled_width());
             if (base_layer.layer->bottom_z < EPSILON) {
-                // Base flange.
+                // Base flange (the 1st layer).
                 filler = filler_interface.get();
                 filler->angle = Geometry::deg2rad(m_object_config->support_material_angle + 90.);
                 density = 0.5f;
