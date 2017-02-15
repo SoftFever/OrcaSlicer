@@ -268,7 +268,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     MyLayersPtr intermediate_layers = this->raft_and_intermediate_support_layers(
         object, bottom_contacts, top_contacts, layer_storage, max_object_layer_height);
 
-    this->trim_support_layers_by_object(object, top_contacts, m_support_layer_height_min, 0., m_gap_xy);
+	this->trim_support_layers_by_object(object, top_contacts, m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min, 0., m_gap_xy);
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating base layers";
 
@@ -683,13 +683,17 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             new_layer.idx_object_layer_above = layer_id;
             if (m_slicing_params.soluble_interface) {
                 // Align the contact surface height with a layer immediately below the supported layer.
-                new_layer.height = layer_below ? 
-                    // Interface layer will be synchronized with the object.
-                    object.layers[layer_id-1]->height : 
-                    // Don't know the thickness of the raft layer yet.
-                    0.;
-                new_layer.print_z = layer.print_z - layer.height;
-                new_layer.bottom_z = new_layer.print_z - new_layer.height;
+				new_layer.print_z = layer.print_z - layer.height;
+				if (layer_id == 0) {
+					// This is a raft contact layer sitting directly on the print bed.
+                    new_layer.height   = m_slicing_params.contact_raft_layer_height;
+					new_layer.bottom_z = m_slicing_params.raft_interface_top_z;
+				} else {
+					// Interface layer will be synchronized with the object.
+					assert(layer_below != nullptr);
+					new_layer.height = object.layers[layer_id - 1]->height;
+					new_layer.bottom_z = new_layer.print_z - new_layer.height;
+				}
 			} else {
                 // Contact layer will be printed with a normal flow, but
                 // it will support layers printed with a bridging flow.
@@ -958,7 +962,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
         std::reverse(bottom_contacts.begin(), bottom_contacts.end());
     } // ! top_contacts.empty()
 
-    trim_support_layers_by_object(object, bottom_contacts, m_support_layer_height_min, 0., m_gap_xy);
+    trim_support_layers_by_object(object, bottom_contacts,  m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min, 0., m_gap_xy);
 
     return bottom_contacts;
 }
@@ -1269,7 +1273,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
     ++ iRun;
 #endif /* SLIC3R_DEBUG */
 
-    trim_support_layers_by_object(object, intermediate_layers, m_support_layer_height_min, m_support_layer_height_min, m_gap_xy);
+    trim_support_layers_by_object(object, intermediate_layers,  m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min,  m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min, m_gap_xy);
 }
 
 void PrintObjectSupportMaterial::trim_support_layers_by_object(
@@ -1288,8 +1292,8 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
             (it_layer - support_layers.begin()) << " of " << support_layers.size();
 
         MyLayer &support_layer = *(*it_layer);
-        if (support_layer.polygons.empty())
-            // Empty support layer, nothing to trim.
+        if (support_layer.polygons.empty() || support_layer.print_z < m_slicing_params.raft_contact_top_z + EPSILON)
+            // Empty support layer or a raft layer, nothing to trim.
             continue;
         // Find the overlapping object layers including the extra above / below gap.
         while (idx_object_layer_overlapping < object.layer_count() && 
