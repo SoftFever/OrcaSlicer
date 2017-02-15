@@ -108,6 +108,9 @@ sub new {
             if ($Slic3r::GUI::Settings->{_}{background_processing}) {
                 $self->{apply_config_timer}->Stop if defined $self->{apply_config_timer};
                 $self->async_apply_config();
+            } else {
+                # Hide the print info box, it is no more valid.
+                $self->{"print_info_box_show"}->(0);
             }
         });
         $self->{canvas3D}->on_viewport_changed(sub {
@@ -462,7 +465,16 @@ sub new {
         $right_sizer->Add($self->{list}, 1, wxEXPAND, 5);
         $right_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
         $right_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
-        
+        # Callback for showing / hiding the print info box.
+        $self->{"print_info_box_show"} = sub {
+            if ($right_sizer->IsShown(4) != $_[0]) { 
+                $right_sizer->Show(4, $_[0]); 
+                $self->Layout
+            }
+        };
+        # Show the box initially, let it be shown after the slicing is finished.
+        $self->{"print_info_box_show"}->(0);
+
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
         $hsizer->Add($right_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
@@ -1096,7 +1108,10 @@ sub async_apply_config {
 
 #    $self->{canvas3D}->Refresh if ($invalidated && $self->{canvas3D}->layer_editing_enabled);
     $self->{canvas3D}->Refresh if ($self->{canvas3D}->layer_editing_enabled);
-    
+
+    # Hide the slicing results if the current slicing status is no more valid.    
+    $self->{"print_info_box_show"}->(0) if $invalidated;
+
     return if !$Slic3r::GUI::Settings->{_}{background_processing};
     
     if ($invalidated) {
@@ -1398,7 +1413,8 @@ sub on_export_completed {
     $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
     $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
     $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
-    
+    $self->{"print_info_box_show"}->(1);
+
     # this updates buttons status
     $self->object_list_changed;
 }
