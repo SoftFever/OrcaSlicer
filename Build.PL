@@ -44,7 +44,6 @@ if ($gui) {
     %recommends = qw(
     Growl::GNTP                     0.15
     Wx::GLCanvas                    0
-    OpenGL                          <0.70
     LWP::UserAgent                  0
     Net::Bonjour                    0
     );
@@ -123,7 +122,7 @@ EOF
         
         # temporary workaround for upstream bug in test
         push @cmd, '--notest'
-            if $module =~ /^(?:OpenGL|Math::PlanePath|Test::Harness)$/;
+            if $module =~ /^(?:OpenGL|Test::Harness)$/;
         
         push @cmd, "$module~$version";
         if ($module eq 'XML::SAX::ExpatXS' && $^O eq 'MSWin32') {
