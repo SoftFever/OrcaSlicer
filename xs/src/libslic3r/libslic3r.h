@@ -11,8 +11,6 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <vector>
-#include <iterator>
-#include <utility>
 #include <boost/thread.hpp>
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
@@ -145,7 +143,7 @@ void append(std::vector<T>& dest, const std::vector<T>& src)
     if (dest.empty())
         dest = src;
     else
-        dest.insert(std::end(dest), std::cbegin(src), std::cend(src));
+        dest.insert(dest.end(), src.begin(), src.end());
 }
 
 template <typename T>
@@ -154,9 +152,7 @@ void append(std::vector<T>& dest, std::vector<T>&& src)
     if (dest.empty())
         dest = std::move(src);
     else
-        dest.insert(std::end(dest),
-            std::make_move_iterator(std::begin(src)),
-            std::make_move_iterator(std::end(src)));
+        std::move(std::begin(src), std::end(src), std::back_inserter(dest));
     src.clear();
     src.shrink_to_fit();
 }
