@@ -386,7 +386,8 @@ void adjust_layer_height_profile(
 
     // 3) Densify the profile inside z +- band_width/2, remove duplicate Zs from the height profile inside the band.
 	coordf_t lo = std::max(z_span_variable.first,  z - 0.5 * band_width);
-	coordf_t hi = std::min(z_span_variable.second, z + 0.5 * band_width);
+    // Do not limit the upper side of the band, so that the modifications to the top point of the profile will be allowed.
+    coordf_t hi = z + 0.5 * band_width;
     coordf_t z_step = 0.1;
     size_t idx = 0;
     while (idx < layer_height_profile.size() && layer_height_profile[idx] < lo)
@@ -436,12 +437,25 @@ void adjust_layer_height_profile(
                 assert(false);
                 break;
         }
+        height = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, height);
+        if (zz == z_span_variable.second) {
+            // This is the last point of the profile.
+            if (profile_new[profile_new.size() - 2] + EPSILON > zz) {
+                profile_new.pop_back();
+                profile_new.pop_back();
+            }
+            profile_new.push_back(zz);
+            profile_new.push_back(height);
+			idx = layer_height_profile.size();
+            break;
+        }
         // Avoid entering a too short segment.
         if (profile_new[profile_new.size() - 2] + EPSILON < zz) {
             profile_new.push_back(zz);
-            profile_new.push_back(clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, height));
+            profile_new.push_back(height);
         }
-        zz += z_step;
+        // Limit zz to the object height, so the next iteration the last profile point will be set.
+		zz = std::min(zz + z_step, z_span_variable.second);
         idx = next;
         while (idx < layer_height_profile.size() && layer_height_profile[idx] < zz)
             idx += 2;
@@ -456,12 +470,16 @@ void adjust_layer_height_profile(
         assert(zz <= layer_height_profile[idx]);
 		profile_new.insert(profile_new.end(), layer_height_profile.begin() + idx, layer_height_profile.end());
 	}
-	else if (profile_new[profile_new.size() - 2] + 0.5 * EPSILON < slicing_params.object_print_z_height()) {
+	else if (profile_new[profile_new.size() - 2] + 0.5 * EPSILON < z_span_variable.second) { 
 		profile_new.insert(profile_new.end(), layer_height_profile.end() - 2, layer_height_profile.end());
 	}
     layer_height_profile = std::move(profile_new);
 
     if (action == LAYER_HEIGHT_EDIT_ACTION_SMOOTH) {
+        if (i_resampled_start == 0)
+            ++ i_resampled_start;
+		if (i_resampled_end == layer_height_profile.size())
+			i_resampled_end -= 2;
         size_t n_rounds = 6;
         for (size_t i_round = 0; i_round < n_rounds; ++ i_round) {
             profile_new = layer_height_profile;
