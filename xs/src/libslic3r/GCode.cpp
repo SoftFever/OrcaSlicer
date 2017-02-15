@@ -190,6 +190,8 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
             /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
                 due to rounding (TODO: test and/or better math for this)  */
             double dE = length * (segment_length / wipe_dist) * 0.95;
+            //FIXME one shall not generate the unnecessary G1 Fxxx commands, here wipe_speed is a constant inside this cycle.
+            // Is it here for the cooling markers? Or should it be outside of the cycle?
             gcode += gcodegen.writer.set_speed(wipe_speed*60, "", gcodegen.enable_cooling_markers ? ";_WIPE" : "");
             gcode += gcodegen.writer.extrude_to_xy(
                 gcodegen.point_to_gcode(line->b),
@@ -730,10 +732,12 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     
     // extrude along the path
     std::string gcode;
-    for (ExtrusionPaths::const_iterator path = paths.begin(); path != paths.end(); ++path)
+    for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
 //    description += ExtrusionLoopRole2String(loop.role);
 //    description += ExtrusionRole2String(path->role);
+        path->simplify(SCALED_RESOLUTION);
         gcode += this->_extrude(*path, description, speed);
+    }
     
     // reset acceleration
     gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
@@ -783,18 +787,18 @@ GCode::extrude(ExtrusionMultiPath multipath, std::string description, double spe
 {
     // extrude along the path
     std::string gcode;
-    for (ExtrusionPaths::const_iterator path = multipath.paths.begin(); path != multipath.paths.end(); ++path)
+    for (ExtrusionPaths::iterator path = multipath.paths.begin(); path != multipath.paths.end(); ++path) {
 //    description += ExtrusionLoopRole2String(loop.role);
 //    description += ExtrusionRole2String(path->role);
+        path->simplify(SCALED_RESOLUTION);
         gcode += this->_extrude(*path, description, speed);
-    
+    }
+    if (this->wipe.enable) {
+        this->wipe.path = std::move(multipath.paths.back().polyline);  // TODO: don't limit wipe to last path
+        this->wipe.path.reverse();
+    }
     // reset acceleration
     gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
-  
-//FIXME perform wipe on multi paths?  
-//    if (this->wipe.enable)
-//        this->wipe.path = paths.front().polyline;  // TODO: don't limit wipe to last path
-    
     return gcode;
 }
 
@@ -814,22 +818,23 @@ GCode::extrude(const ExtrusionEntity &entity, std::string description, double sp
 }
 
 std::string
-GCode::extrude(const ExtrusionPath &path, std::string description, double speed)
+GCode::extrude(ExtrusionPath path, std::string description, double speed)
 {
 //    description += ExtrusionRole2String(path.role);
+    path.simplify(SCALED_RESOLUTION);
     std::string gcode = this->_extrude(path, description, speed);
-    
+    if (this->wipe.enable) {
+        this->wipe.path = std::move(path.polyline);
+        this->wipe.path.reverse();
+    }    
     // reset acceleration
     gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
-    
     return gcode;
 }
 
 std::string
-GCode::_extrude(ExtrusionPath path, std::string description, double speed)
+GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
 {
-    path.simplify(SCALED_RESOLUTION);
-    
     std::string gcode;
     
     // go to first point of extrusion path
@@ -933,10 +938,6 @@ GCode::_extrude(ExtrusionPath path, std::string description, double speed)
                 comment
             );
         }
-    }
-    if (this->wipe.enable) {
-        this->wipe.path = path.polyline;
-        this->wipe.path.reverse();
     }
     if (path.is_bridge() && this->enable_cooling_markers)
         gcode += ";_BRIDGE_FAN_END\n";

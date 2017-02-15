@@ -100,17 +100,17 @@ double ExtrusionMultiPath::min_mm3_per_mm() const
 
 Polyline ExtrusionMultiPath::as_polyline() const
 {
-    size_t len = 0;
-    for (size_t i_path = 0; i_path < paths.size(); ++ i_path) {
-        assert(! paths[i_path].polyline.points.empty());
-        assert(i_path == 0 || paths[i_path - 1].polyline.points.back() == paths[i_path].polyline.points.front());
-        len += paths[i_path].polyline.points.size();
-    }
-    // The connecting points between the segments are equal.
-    len -= paths.size() - 1;
-
     Polyline out;
-    if (len > 0) {
+    if (! paths.empty()) {
+        size_t len = 0;
+        for (size_t i_path = 0; i_path < paths.size(); ++ i_path) {
+            assert(! paths[i_path].polyline.points.empty());
+            assert(i_path == 0 || paths[i_path - 1].polyline.points.back() == paths[i_path].polyline.points.front());
+            len += paths[i_path].polyline.points.size();
+        }
+        // The connecting points between the segments are equal.
+        len -= paths.size() - 1;
+        assert(len > 0);
         out.points.reserve(len);
         out.points.push_back(paths.front().polyline.points.front());
         for (size_t i_path = 0; i_path < paths.size(); ++ i_path)
