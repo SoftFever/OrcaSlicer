@@ -270,6 +270,8 @@ _constant()
     double skirt_first_layer_height();
     Clone<Flow> brim_flow();
     Clone<Flow> skirt_flow();
+
+    void _make_skirt();
 %{
 
 double

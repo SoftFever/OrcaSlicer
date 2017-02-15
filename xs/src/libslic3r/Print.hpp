@@ -251,6 +251,8 @@ class Print
     double max_allowed_layer_height() const;
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object) const;
+
+    void _make_skirt();
     
     private:
     void clear_regions();

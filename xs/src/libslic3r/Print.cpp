@@ -1,6 +1,7 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
+#include "Extruder.hpp"
 #include "Flow.hpp"
 #include "Geometry.hpp"
 #include "SupportMaterial.hpp"
@@ -839,9 +840,137 @@ Print::auto_assign_extruders(ModelObject* model_object) const
             //FIXME Vojtech: This assigns an extruder ID even to a modifier volume, if it has a material assigned.
             size_t extruder_id = (v - model_object->volumes.begin()) + 1;
             if (!(*v)->config.has("extruder"))
-                (*v)->config.opt<ConfigOptionInt>("extruder", true)->value = extruder_id;
+                (*v)->config.opt<ConfigOptionInt>("extruder", true)->value = int(extruder_id);
         }
     }
+}
+
+
+void Print::_make_skirt()
+{
+    // First off we need to decide how tall the skirt must be.
+    // The skirt_height option from config is expressed in layers, but our
+    // object might have different layer heights, so we need to find the print_z
+    // of the highest layer involved.
+    // Note that unless has_infinite_skirt() == true
+    // the actual skirt might not reach this $skirt_height_z value since the print
+    // order of objects on each layer is not guaranteed and will not generally
+    // include the thickest object first. It is just guaranteed that a skirt is
+    // prepended to the first 'n' layers (with 'n' = skirt_height).
+    // $skirt_height_z in this case is the highest possible skirt height for safety.
+    coordf_t skirt_height_z = 0.;
+    for (const PrintObject *object : this->objects) {
+        size_t skirt_layers = this->has_infinite_skirt() ? 
+            object->layer_count() : 
+            std::min(size_t(this->config.skirt_height.value), object->layer_count());
+        skirt_height_z = std::max(skirt_height_z, object->layers[skirt_layers-1]->print_z);
+    }
+    
+    // Collect points from all layers contained in skirt height.
+    Points points;
+    for (const PrintObject *object : this->objects) {
+        Points object_points;
+        // Get object layers up to skirt_height_z.
+        for (const Layer *layer : object->layers) {
+            if (layer->print_z > skirt_height_z)
+                break;
+            for (const ExPolygon &expoly : layer->slices.expolygons)
+                // Collect the outer contour points only, ignore holes for the calculation of the convex hull.
+                append(object_points, expoly.contour.points);
+        }
+        // Get support layers up to skirt_height_z.
+        for (const SupportLayer *layer : object->support_layers) {
+            if (layer->print_z > skirt_height_z)
+                break;
+            for (const ExtrusionEntity *extrusion_entity : layer->support_fills.entities)
+                append(object_points, extrusion_entity->as_polyline().points);
+            for (const ExtrusionEntity *extrusion_entity : layer->support_interface_fills.entities)
+                append(object_points, extrusion_entity->as_polyline().points);
+        }
+        // Repeat points for each object copy.
+        for (const Point &shift : object->_shifted_copies) {
+            Points copy_points = object_points;
+            for (Point &pt : copy_points)
+                pt.translate(shift);
+            append(points, copy_points);
+        }
+    }
+
+    if (points.size() < 3)
+        // At least three points required for a convex hull.
+        return;
+    
+    Polygon convex_hull = Slic3r::Geometry::convex_hull(points);
+    
+    // Skirt may be printed on several layers, having distinct layer heights,
+    // but loops must be aligned so can't vary width/spacing
+    // TODO: use each extruder's own flow
+    double first_layer_height = this->skirt_first_layer_height();
+    Flow   flow = this->skirt_flow();
+    float  spacing = flow.spacing();
+    double mm3_per_mm = flow.mm3_per_mm();
+    
+    std::vector<size_t> extruders;
+    std::vector<double> extruders_e_per_mm;
+    {
+        auto set_extruders = this->extruders();
+        extruders.reserve(set_extruders.size());
+        extruders_e_per_mm.reserve(set_extruders.size());
+        for (auto &extruder_id : set_extruders) {
+            extruders.push_back(extruder_id);
+            GCodeConfig config;
+            config.apply(this->config, true);
+            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &config).e_per_mm(mm3_per_mm));
+        }
+    }
+
+    // Number of skirt loops per skirt layer.
+    int n_skirts = this->config.skirts.value;
+    if (this->has_infinite_skirt() && n_skirts == 0)
+        n_skirts = 1;
+
+    // Initial offset of the brim inner edge from the object (possible with a support & raft).
+    // The skirt will touch the brim if the brim is extruded.
+    coord_t distance = scale_(std::max(this->config.skirt_distance.value, this->config.brim_width.value));
+    // Draw outlines from outside to inside.
+    // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
+    std::vector<coordf_t> extruded_length(extruders.size(), 0.);
+    for (int i = n_skirts, extruder_idx = 0; i > 0; -- i) {
+        // Offset the skirt outside.
+        distance += coord_t(scale_(spacing));
+        // Generate the skirt centerline.
+        Polygon loop = offset(convex_hull, distance, ClipperLib::jtRound, scale_(0.1)).front();
+        // Extrude the skirt loop.
+        ExtrusionLoop eloop(elrSkirt);
+        eloop.paths.emplace_back(ExtrusionPath(
+            ExtrusionPath(
+                erSkirt,
+                mm3_per_mm,         // this will be overridden at G-code export time
+                flow.width,
+                first_layer_height  // this will be overridden at G-code export time
+            )));
+        eloop.paths.back().polyline = loop.split_at_first_point();
+        this->skirt.append(eloop);
+        if (this->config.min_skirt_length.value > 0) {
+            // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
+            extruded_length[extruder_idx] += unscale(loop.length()) * extruders_e_per_mm[extruder_idx];
+            if (extruded_length[extruder_idx] < this->config.min_skirt_length.value) {
+                // Not extruded enough yet with the current extruder. Add another loop.
+                if (i == 1)
+                    ++ i;
+            } else {
+                assert(extruded_length[extruder_idx] >= this->config.min_skirt_length.value);
+                // Enough extruded with the current extruder. Extrude with the next one,
+                // until the prescribed number of skirt loops is extruded.
+                if (extruder_idx + 1 < extruders.size())
+                    ++ extruder_idx;
+            }
+        } else {
+            // The skirt lenght is not limited, extrude the skirt with the 1st extruder only.
+        }
+    }
+    // Brims were generated inside out, reverse to print the outmost contour first.
+    this->skirt.reverse();
 }
 
 }
