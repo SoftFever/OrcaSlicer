@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <vector>
+#include <iterator>
+#include <utility>
 #include <boost/thread.hpp>
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
@@ -135,6 +137,28 @@ parallelize(T start, T end, boost::function<void(T)> func,
     std::queue<T> queue;
     for (T i = start; i <= end; ++i) queue.push(i);
     parallelize(queue, func, threads_count);
+}
+
+template <typename T>
+void append(std::vector<T>& dest, const std::vector<T>& src)
+{
+    if (dest.empty())
+        dest = src;
+    else
+        dest.insert(std::end(dest), std::cbegin(src), std::cend(src));
+}
+
+template <typename T>
+void append(std::vector<T>& dest, std::vector<T>&& src)
+{
+    if (dest.empty())
+        dest = std::move(src);
+    else
+        dest.insert(std::end(dest),
+            std::make_move_iterator(std::begin(src)),
+            std::make_move_iterator(std::end(src)));
+    src.clear();
+    src.shrink_to_fit();
 }
 
 } // namespace Slic3r
