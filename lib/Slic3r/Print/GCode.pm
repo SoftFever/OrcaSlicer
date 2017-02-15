@@ -423,11 +423,17 @@ sub process_layer {
         $gcode .= $pp->process($self->print->config->layer_gcode) . "\n";
     }
     
-    # extrude skirt along raft layers and normal object layers
-    # (not along interlaced support material layers)
-    if (((values %{$self->_skirt_done}) < $self->print->config->skirt_height || $self->print->has_infinite_skirt)
+    # Extrude skirt at the print_z of the raft layers and normal object layers
+    # not at the print_z of the interlaced support material layers.
+    #FIXME this will print the support 1st, skirt 2nd and an object 3rd 
+    # if they are at the same print_z, it is not the 1st print layer and the support is printed before object.
+    if (
+        # Not enough skirt layers printed yer
+        ((values %{$self->_skirt_done}) < $self->print->config->skirt_height || $self->print->has_infinite_skirt)
+        # This print_z has not been extruded yet
         && !$self->_skirt_done->{$layer->print_z}
-        && (!$layer->isa('Slic3r::Layer::Support') || $layer->id < $object->config->raft_layers)) {
+        # and this layer is the 1st layer, or it is an object layer, or it is a raft layer.
+        && ($layer->id == 0 || !$layer->isa('Slic3r::Layer::Support') || $layer->id < $object->config->raft_layers)) {
         $self->_gcodegen->set_origin(Slic3r::Pointf->new(0,0));
         $self->_gcodegen->avoid_crossing_perimeters->set_use_external_mp(1);
         my @extruder_ids = map { $_->id } @{$self->_gcodegen->writer->extruders};
