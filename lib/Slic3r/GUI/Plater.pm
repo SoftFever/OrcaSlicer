@@ -1787,12 +1787,10 @@ sub object_list_changed {
         $self->{"btn_layer_editing"}->Disable if (! $self->{config}->variable_layer_height);
     }
 
-    if ($self->{export_gcode_output_file} || $self->{send_gcode_file}) {
-        $self->{btn_reslice}->Disable;
-        $self->{btn_export_gcode}->Disable;
-        $self->{btn_print}->Disable;
-        $self->{btn_send_gcode}->Disable;
-    }
+    my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
+    my $method = ($have_objects && ! $export_in_progress) ? 'Enable' : 'Disable';
+    $self->{"btn_$_"}->$method
+        for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
 }
 
 sub selection_changed {
