@@ -61,7 +61,6 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _drag_start_xy
                               _dragged
 
-                              layer_editing_enabled
                               _layer_height_edited
 
                               _camera_type
@@ -188,6 +187,28 @@ sub Destroy {
     $self->{layer_height_edit_timer}->Stop;
     $self->DestroyGL;
     return $self->SUPER::Destroy;
+}
+
+sub layer_editing_enabled {
+    my ($self, $value) = @_;
+    if (@_ == 2) {
+        $self->{layer_editing_enabled} = $value;
+        if ($value && ! $self->{layer_editing_initialized}) {
+            # Enabling the layer editing for the first time. This triggers compilation of the necessary OpenGL shaders.
+            # If compilation fails, the compile log is printed into the console.
+            $self->{layer_editing_initialized} = 1;
+            my $shader = $self->{shader} = new Slic3r::GUI::GLShader;
+            my $info = $shader->Load($self->_fragment_shader, $self->_vertex_shader);
+            print $info if $info;
+            ($self->{layer_preview_z_texture_id}) = glGenTextures_p(1);
+            glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+    }
+    return $self->{layer_editing_enabled};
 }
 
 sub _first_selected_object_id {
@@ -892,16 +913,6 @@ sub InitGL {
     return if $self->init;
     return unless $self->GetContext;
     $self->init(1);
-
-    my $shader = $self->{shader} = new Slic3r::GUI::GLShader;
-    my $info = $shader->Load($self->_fragment_shader, $self->_vertex_shader);
-#    print $info if $info;
-    ($self->{layer_preview_z_texture_id}) = glGenTextures_p(1);
-    glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-    glBindTexture(GL_TEXTURE_2D, 0);
 
     glClearColor(0, 0, 0, 1);
     glColor3f(1, 0, 0);
