@@ -84,6 +84,8 @@ sub _discharge {
         $self->_extrusion_axis, $new_E, $F // $self->_unretract_speed;
     $gcode .= sprintf "G92 %s%.5f ; restore E\n", $self->_extrusion_axis, $self->reader->E
         if !$self->config->use_relative_e_distances;
+    $gcode .= sprintf "G1 F%.3f ; restore F\n", $oldSpeed 
+        if $oldSpeed;
     $self->_advance(0);
     
     return $gcode;
