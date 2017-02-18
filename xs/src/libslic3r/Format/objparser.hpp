@@ -1,8 +1,8 @@
 #ifndef slic3r_Format_objparser_hpp_
 #define slic3r_Format_objparser_hpp_
 
+#include <string>
 #include <vector>
-#include <deque>
 
 namespace ObjParser {
 
