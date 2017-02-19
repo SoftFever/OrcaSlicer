@@ -528,6 +528,16 @@ sub _on_select_preset {
 sub on_layer_editing_toggled {
     my ($self, $new_state) = @_;
     $self->{canvas3D}->layer_editing_enabled($new_state);
+    if ($new_state && ! $self->{canvas3D}->layer_editing_enabled) {
+        # Initialization of the OpenGL shaders failed. Disable the tool.
+        if ($self->{htoolbar}) {
+            $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0);
+            $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 0);
+        } else {
+            $self->{"btn_layer_editing"}->Disable;
+            $self->{"btn_layer_editing"}->SetValue(0);
+        }
+    }
     $self->{canvas3D}->update;
 }
 
@@ -1661,7 +1671,8 @@ sub on_config_change {
                 }
                 $self->{canvas3D}->layer_editing_enabled(0);
                 $self->{canvas3D}->update;
-            } else {
+            } elsif ($self->{canvas3D}->layer_editing_allowed) {
+                # Want to allow the layer editing, but do it only if the OpenGL supports it.
                 if ($self->{htoolbar}) {
                     $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 1);
                 } else {
@@ -1774,17 +1785,18 @@ sub object_list_changed {
         
     # Enable/disable buttons depending on whether there are any objects on the platter.
     my $have_objects = @{$self->{objects}} ? 1 : 0;
+    my $variable_layer_height_allowed = $self->{config}->variable_layer_height && $self->{canvas3D}->layer_editing_allowed;
     if ($self->{htoolbar}) {
         # On OSX or Linux
         $self->{htoolbar}->EnableTool($_, $have_objects)
             for (TB_RESET, TB_ARRANGE, TB_LAYER_EDITING);
-        $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0) if (! $self->{config}->variable_layer_height);
+        $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0) if (! $variable_layer_height_allowed);
     } else {
         # On MSW
         my $method = $have_objects ? 'Enable' : 'Disable';
         $self->{"btn_$_"}->$method
             for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode layer_editing);
-        $self->{"btn_layer_editing"}->Disable if (! $self->{config}->variable_layer_height);
+        $self->{"btn_layer_editing"}->Disable if (! $variable_layer_height_allowed);
     }
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
