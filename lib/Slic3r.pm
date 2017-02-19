@@ -8,9 +8,11 @@ package Slic3r;
 
 use strict;
 use warnings;
+use Config;
 require v5.10;
 
 our $VERSION = VERSION();
+our $BUILD = BUILD();
 our $FORK_NAME = FORK_NAME();
 
 our $debug = 0;
@@ -339,6 +341,74 @@ sub decode_path {
 sub open {
     my ($fh, $mode, $filename) = @_;
     return CORE::open $$fh, $mode, encode_path($filename);
+}
+
+sub tags {
+    my ($format) = @_;
+    $format //= '';
+    my %tags;
+    # End of line
+    $tags{eol}     = ($format eq 'html') ? '<br>'   : "\n";
+    # Heading
+    $tags{h2start} = ($format eq 'html') ? '<h2>'   : '';
+    $tags{h2end}   = ($format eq 'html') ? '</h2>'  : '';
+    # Bold font
+    $tags{bstart}  = ($format eq 'html') ? '<b>'    : '';
+    $tags{bend}    = ($format eq 'html') ? '</b>'   : '';
+    # Verbatim
+    $tags{vstart}  = ($format eq 'html') ? '<pre>'  : '';
+    $tags{vend}    = ($format eq 'html') ? '</pre>' : '';
+    return %tags;
+}
+
+sub slic3r_info
+{
+    my (%params) = @_;
+    my %tag = Slic3r::tags($params{format});
+    my $out = '';
+    $out .= "$tag{bstart}$Slic3r::FORK_NAME$tag{bend}$tag{eol}";
+    $out .= "$tag{bstart}Version: $tag{bend}$Slic3r::VERSION$tag{eol}";
+    $out .= "$tag{bstart}Build:   $tag{bend}$Slic3r::BUILD$tag{eol}";
+    return $out;
+}
+
+sub copyright_info
+{
+    my (%params) = @_;
+    my %tag = Slic3r::tags($params{format});
+    my $out =
+        'Copyright &copy; 2016 Vojtech Bubnik, Prusa Research. <br />' .
+        'Copyright &copy; 2011-2016 Alessandro Ranellucci. <br />' .
+        '<a href="http://slic3r.org/">Slic3r</a> is licensed under the ' .
+        '<a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License, version 3</a>.' .
+        '<br /><br /><br />' .
+        'Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Y. Sapir, Mike Sheldrake and numerous others. ' .
+        'Manual by Gary Hodgson. Inspired by the RepRap community. <br />' .
+        'Slic3r logo designed by Corey Daniels, <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icon Set</a> designed by Mark James. ';
+    return $out;
+}
+
+sub system_info
+{
+    my (%params) = @_;
+    my %tag = Slic3r::tags($params{format});
+
+    my $out = '';
+    $out .= "$tag{bstart}Operating System:    $tag{bend}$Config{osname}$tag{eol}";
+    $out .= "$tag{bstart}System Architecture: $tag{bend}$Config{archname}$tag{eol}";        
+    if ($^O eq 'MSWin32') {
+        $out .= "$tag{bstart}Windows Version: $tag{bend}" . `ver` . $tag{eol};
+    } else {
+        # Hopefully some kind of unix / linux.
+        $out .= "$tag{bstart}System Version: $tag{bend}" . `uname -a` . $tag{eol};
+    }
+    $out .= $tag{vstart} . Config::myconfig . $tag{vend};
+    $out .= "  $tag{bstart}\@INC:$tag{bend}$tag{eol}$tag{vstart}";
+    foreach my $i (@INC) {
+        $out .= "    $i\n";
+    }
+    $out .= "$tag{vend}";
+    return $out;
 }
 
 # this package declaration prevents an ugly fatal warning to be emitted when

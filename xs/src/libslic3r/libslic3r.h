@@ -15,6 +15,7 @@
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
 #define SLIC3R_VERSION "1.31.6"
+#define SLIC3R_BUILD "UNKNOWN"
 
 //FIXME This epsilon value is used for many non-related purposes:
 // For a threshold of a squared Euclidean distance,

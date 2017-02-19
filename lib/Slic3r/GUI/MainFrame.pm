@@ -331,6 +331,12 @@ sub _init_menubar {
             Wx::LaunchDefaultBrowser('http://manual.slic3r.org/');
         });
         $helpMenu->AppendSeparator();
+        $self->_append_menu_item($helpMenu, "System Info", 'Show system information', sub {
+            wxTheApp->system_info;
+        });
+        $self->_append_menu_item($helpMenu, "Report an Issue", 'Report an issue on the Slic3r Prusa Edition', sub {
+            Wx::LaunchDefaultBrowser('http://github.com/prusa3d/slic3r/issues/new');
+        });
         $self->_append_menu_item($helpMenu, "&About Slic3r", 'Show about dialog', sub {
             wxTheApp->about;
         });

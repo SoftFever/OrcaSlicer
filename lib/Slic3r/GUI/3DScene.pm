@@ -1492,6 +1492,49 @@ sub draw_active_object_annotations {
     glEnable(GL_DEPTH_TEST);
 }
 
+sub opengl_info
+{
+    my ($self, %params) = @_;
+    my %tag = Slic3r::tags($params{format});
+
+    my $gl_version       = glGetString(GL_VERSION);
+    my $gl_vendor        = glGetString(GL_VENDOR);
+    my $gl_renderer      = glGetString(GL_RENDERER);
+    my $glsl_version_ARB = glGetString(GL_SHADING_LANGUAGE_VERSION_ARB) // '';
+    my $glsl_version     = glGetString(GL_SHADING_LANGUAGE_VERSION) // $glsl_version_ARB;
+    $glsl_version .= 'ARB(' . $glsl_version_ARB . ')' if ($glsl_version_ARB ne '' && $glsl_version ne $glsl_version_ARB);
+
+    my $out = '';
+    $out .= "$tag{h2start}OpenGL installation$tag{h2end}$tag{eol}";
+    $out .= "  $tag{bstart}Using POGL$tag{bend} v$OpenGL::BUILD_VERSION$tag{eol}";
+    $out .= "  $tag{bstart}GL version:   $tag{bend}${gl_version}$tag{eol}";
+    $out .= "  $tag{bstart}vendor:       $tag{bend}${gl_vendor}$tag{eol}";
+    $out .= "  $tag{bstart}renderer:     $tag{bend}${gl_renderer}$tag{eol}";
+    $out .= "  $tag{bstart}GLSL version: $tag{bend}${glsl_version}$tag{eol}";
+
+    # Check for required OpenGL extensions
+    $out .= "$tag{h2start}Required extensions (* implemented):$tag{h2end}$tag{eol}";
+    my @extensions_required = qw(GL_ARB_shader_objects GL_ARB_fragment_shader GL_ARB_vertex_shader GL_ARB_shading_language_100);
+    foreach my $ext (sort @extensions_required) {
+        my $stat = glpCheckExtension($ext);
+        $out .= sprintf("%s ${ext}$tag{eol}", $stat?' ':'*');
+        $out .= sprintf("    ${stat}$tag{eol}") if ($stat && $stat !~ m|^$ext |);
+    }
+    # Check for other OpenGL extensions
+    $out .= "$tag{h2start}Installed extensions (* implemented in the module):$tag{h2end}$tag{eol}";
+    my $extensions = glGetString(GL_EXTENSIONS);
+    my @extensions = split(' ',$extensions);
+    foreach my $ext (sort @extensions) {
+        if(! grep(/^$extensions$/, @extensions_required)) {
+            my $stat = glpCheckExtension($ext);
+            $out .= sprintf("%s ${ext}$tag{eol}", $stat?' ':'*');
+            $out .= sprintf("    ${stat}$tag{eol}") if ($stat && $stat !~ m|^$ext |);
+        }
+    }
+
+    return $out;
+}
+
 sub _report_opengl_state
 {
     my ($self, $comment) = @_;

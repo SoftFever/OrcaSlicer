@@ -32,6 +32,7 @@ use Slic3r::GUI::Projector;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SimpleTab;
+use Slic3r::GUI::SystemInfo;
 use Slic3r::GUI::Tab;
 
 our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
@@ -216,6 +217,31 @@ sub about {
     my ($self) = @_;
     
     my $about = Slic3r::GUI::AboutDialog->new(undef);
+    $about->ShowModal;
+    $about->Destroy;
+}
+
+sub system_info {
+    my ($self) = @_;
+
+    my $slic3r_info = Slic3r::slic3r_info(format => 'html');
+    my $copyright_info = Slic3r::copyright_info(format => 'html');
+    my $system_info = Slic3r::system_info(format => 'html');
+    my $opengl_info;
+    my $opengl_info_txt = '';
+    if (defined($self->{mainframe}) && defined($self->{mainframe}->{plater}) &&
+        defined($self->{mainframe}->{plater}->{canvas3D})) {
+        $opengl_info = $self->{mainframe}->{plater}->{canvas3D}->opengl_info(format => 'html');
+        $opengl_info_txt = $self->{mainframe}->{plater}->{canvas3D}->opengl_info;
+    }
+    my $about = Slic3r::GUI::SystemInfo->new(
+        parent      => undef, 
+        slic3r_info => $slic3r_info,
+#        copyright_info => $copyright_info,
+        system_info => $system_info, 
+        opengl_info => $opengl_info,
+        text_info => Slic3r::slic3r_info . Slic3r::system_info . $opengl_info_txt,
+    );
     $about->ShowModal;
     $about->Destroy;
 }
