@@ -30,11 +30,11 @@ sub new {
         '</html>';
     my $html = $self->{html} = Wx::HtmlWindow->new($self, -1, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     my $font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-#    my $size = &Wx::wxMSW ? 8 : 10;
-#    $html->SetFonts($font->GetFaceName, $font->GetFaceName, [$size, $size, $size, $size, $size, $size, $size]);
-    $html->SetBorders(2);
+    my $size = &Wx::wxMSW ? 8 : 10;
+    $html->SetFonts($font->GetFaceName, $font->GetFaceName, [$size * 1.5, $size * 1.4, $size * 1.3, $size, $size, $size, $size]);
+    $html->SetBorders(10);
     $html->SetPage($text);
-    $vsizer->Add($html, 1, wxEXPAND | wxALIGN_LEFT | wxRIGHT | wxBOTTOM, 20);
+    $vsizer->Add($html, 1, wxEXPAND | wxALIGN_LEFT | wxRIGHT | wxBOTTOM, 0);
     EVT_HTML_LINK_CLICKED($self, $html, \&link_clicked);
     
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
@@ -47,7 +47,7 @@ sub new {
         $self->Close;
     });
 #    $vsizer->Add($buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
-    $vsizer->Add($buttons, 0, wxEXPAND | wxALL, 3);
+    $vsizer->Add($buttons, 0, wxEXPAND | wxALL, 5);
     
     return $self;
 }

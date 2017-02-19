@@ -350,8 +350,8 @@ sub tags {
     # End of line
     $tags{eol}     = ($format eq 'html') ? '<br>'   : "\n";
     # Heading
-    $tags{h2start} = ($format eq 'html') ? '<h2>'   : '';
-    $tags{h2end}   = ($format eq 'html') ? '</h2>'  : '';
+    $tags{h2start} = ($format eq 'html') ? '<b>'   : '';
+    $tags{h2end}   = ($format eq 'html') ? '</b>'  : '';
     # Bold font
     $tags{bstart}  = ($format eq 'html') ? '<b>'    : '';
     $tags{bend}    = ($format eq 'html') ? '</b>'   : '';

@@ -44,12 +44,10 @@ sub new
         my $glsl_version     = glGetString(GL_SHADING_LANGUAGE_VERSION) // $glsl_version_ARB;
         $glsl_version .= 'ARB(' . $glsl_version_ARB . ')' if ($glsl_version_ARB ne '' && $glsl_version ne $glsl_version_ARB);
         my $out = '';
-        if ($^O eq 'MSWin32') {
-            if ($gl_vendor eq 'Microsoft Corporation' && $renderer eq 'GDI Generic') {
-                $out .= "Windows is using a software OpenGL renderer.\n";
-                $out .= "You are either connected over remote desktop,\n";
-                $out .= "or a hardware acceleration is not available.\n";
-            }
+        if ($^O eq 'MSWin32' && $gl_vendor eq 'Microsoft Corporation' && $gl_renderer eq 'GDI Generic') {
+            $out .= "Windows is using a software OpenGL renderer.\n";
+            $out .= "You are either connected over remote desktop,\n";
+            $out .= "or a hardware acceleration is not available.\n";
         }
         $out .= "GL version:   ${gl_version}\n";
         $out .= "vendor:       ${gl_vendor}\n";
