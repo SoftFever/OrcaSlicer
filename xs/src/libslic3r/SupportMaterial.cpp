@@ -1051,9 +1051,10 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 		if (std::abs(extr1z) < EPSILON) {
 			// This layer interval starts with the 1st layer. Print the 1st layer using the prescribed 1st layer thickness.
 			assert(intermediate_layers.empty());
+			assert(extr2z > m_slicing_params.first_print_layer_height - EPSILON);
 			MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
 			layer_new.bottom_z = 0.;
-			layer_new.print_z = extr1z = m_slicing_params.first_print_layer_height;
+			layer_new.print_z = extr1z = std::min(extr2z, m_slicing_params.first_print_layer_height);
 			layer_new.height = extr1z;
 			intermediate_layers.push_back(&layer_new);
 			// Continue printing the other layers up to extr2z.
