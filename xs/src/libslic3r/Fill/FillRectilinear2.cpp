@@ -1611,7 +1611,7 @@ Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &
     Polylines polylines_out;
     if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
         ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0.5 * this->spacing / params2.density, polylines_out)) {
+        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0., polylines_out)) {
         printf("FillTriangles::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
@@ -1625,7 +1625,7 @@ Polylines FillStars::fill_surface(const Surface *surface, const FillParams &para
     Polylines polylines_out;
     if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
         ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0., polylines_out)) {
+        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0.5 * this->spacing / params2.density, polylines_out)) {
         printf("FillStars::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
