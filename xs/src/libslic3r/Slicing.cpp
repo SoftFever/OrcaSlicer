@@ -572,6 +572,7 @@ int generate_layer_height_texture(
 {
 // https://github.com/aschn/gnuplot-colorbrewer
     std::vector<Point3> palette_raw;
+#if 0
     palette_raw.push_back(Point3(0x0B2, 0x018, 0x02B));
     palette_raw.push_back(Point3(0x0D6, 0x060, 0x04D));
     palette_raw.push_back(Point3(0x0F4, 0x0A5, 0x082));
@@ -580,6 +581,16 @@ int generate_layer_height_texture(
     palette_raw.push_back(Point3(0x092, 0x0C5, 0x0DE));
     palette_raw.push_back(Point3(0x043, 0x093, 0x0C3));
     palette_raw.push_back(Point3(0x021, 0x066, 0x0AC));
+#else
+    palette_raw.push_back(Point3(0x01A, 0x098, 0x050));
+    palette_raw.push_back(Point3(0x066, 0x0BD, 0x063));
+    palette_raw.push_back(Point3(0x0A6, 0x0D9, 0x06A));
+    palette_raw.push_back(Point3(0x0D9, 0x0F1, 0x0EB));
+    palette_raw.push_back(Point3(0x0FE, 0x0E6, 0x0EB));
+    palette_raw.push_back(Point3(0x0FD, 0x0AE, 0x061));
+    palette_raw.push_back(Point3(0x0F4, 0x06D, 0x043));
+    palette_raw.push_back(Point3(0x0D7, 0x030, 0x027));
+#endif
 
     // Clear the main texture and the 2nd LOD level.
     memset(data, 0, rows * cols * 5);
@@ -607,7 +618,7 @@ int generate_layer_height_texture(
         int cell_first = clamp(0, ncells-1, int(ceil(lo * z_to_cell)));
         int cell_last  = clamp(0, ncells-1, int(floor(hi * z_to_cell)));
         for (int cell = cell_first; cell <= cell_last; ++ cell) {
-            coordf_t idxf = (0.5 * hscale + (h - slicing_params.layer_height)) * coordf_t(palette_raw.size()) / hscale;
+            coordf_t idxf = (0.5 * hscale + (h - slicing_params.layer_height)) * coordf_t(palette_raw.size()-1) / hscale;
             int idx1 = clamp(0, int(palette_raw.size() - 1), int(floor(idxf)));
             int idx2 = std::min(int(palette_raw.size() - 1), idx1 + 1);
 			coordf_t t = idxf - coordf_t(idx1);
