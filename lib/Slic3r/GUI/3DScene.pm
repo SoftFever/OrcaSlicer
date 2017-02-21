@@ -608,7 +608,8 @@ sub zoom_to_bounding_box {
     # bounding box
     my $max_size = max(@{$bb->size}) * 2;
     my $min_viewport_size = min($self->GetSizeWH);
-    $self->_zoom($min_viewport_size / $max_size);
+    # only re-zoom if we have a valid bounding box, avoid a divide by 0 error.
+    $self->_zoom($min_viewport_size / $max_size) if ($max_size != 0);
     
     # center view around bounding box center
     $self->_camera_target($bb->center);
