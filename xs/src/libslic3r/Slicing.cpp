@@ -657,7 +657,7 @@ int generate_layer_height_texture(
             cell_first = clamp(0, ncells1-1, int(ceil(lo * z_to_cell1))); 
             cell_last  = clamp(0, ncells1-1, int(floor(hi * z_to_cell1)));
             for (int cell = cell_first; cell <= cell_last; ++ cell) {
-                coordf_t idxf = (0.5 * hscale + (h - slicing_params.layer_height)) * coordf_t(palette_raw.size()) / hscale;
+                coordf_t idxf = (0.5 * hscale + (h - slicing_params.layer_height)) * coordf_t(palette_raw.size()-1) / hscale;
                 int idx1 = clamp(0, int(palette_raw.size() - 1), int(floor(idxf)));
                 int idx2 = std::min(int(palette_raw.size() - 1), idx1 + 1);
     			coordf_t t = idxf - coordf_t(idx1);

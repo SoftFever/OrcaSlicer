@@ -1700,8 +1700,8 @@ void main()
     float lod           = clamp(0.5 * log2(max(dx_vtc*dx_vtc, dy_vtc*dy_vtc)), 0., 1.);
     // Sample the Z texture. Texture coordinates are normalized to <0, 1>.
     vec4 color       =
-        (1. - lod) * texture2DLod(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row + 0.5    )), 0.) +
-        lod        * texture2DLod(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row * 2. + 1.)), 1.);
+        (1. - lod) * texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row + 0.5    )), -10000.) +
+        lod        * texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row * 2. + 1.)),  10000.);
     // Mix the final color.
     gl_FragColor = 
         vec4(intensity_specular, intensity_specular, intensity_specular, 1.) + 
