@@ -68,9 +68,8 @@ CoolingBuffer::flush()
     
     if (gg.config.cooling) {
         #ifdef SLIC3R_DEBUG
-        printf("Layer %zu estimated printing time: %f seconds\n", layer_id, elapsed);
-        #endif
-        
+        printf("Layer %zu estimated printing time: %f seconds\n", this->_layer_id, elapsed);
+        #endif        
         if (elapsed < (float)gg.config.slowdown_below_layer_time) {
             // Layer time very short. Enable the fan to a full throttle and slow down the print
             // (stretch the layer print time to slowdown_below_layer_time).
