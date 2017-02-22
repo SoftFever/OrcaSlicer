@@ -587,7 +587,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
             // Seam is aligned to the seam at the preceding layer.
             if (this->layer != NULL && this->_seam_position.count(this->layer->object()) > 0) {
                 last_pos = this->_seam_position[this->layer->object()];
-                last_pos_weight = 5.f;
+                last_pos_weight = 1.f;
             }
             break;
         case spRear:
@@ -668,6 +668,25 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
 
         // Find a point with a minimum penalty.
         size_t idx_min = std::min_element(penalties.begin(), penalties.end()) - penalties.begin();
+
+        // if (seam_position == spAligned)
+        // For all (aligned, nearest, rear) seams:
+        {
+            // Very likely the weight of idx_min is very close to the weight of last_pos_proj_idx.
+            // In that case use last_pos_proj_idx instead.
+            float penalty_aligned  = penalties[last_pos_proj_idx];
+            float penalty_min      = penalties[idx_min];
+            float penalty_diff_abs = std::abs(penalty_min - penalty_aligned);
+            float penalty_max      = std::max(penalty_min, penalty_aligned);
+            float penalty_diff_rel = (penalty_max == 0.f) ? 0.f : penalty_diff_abs / penalty_max;
+            // printf("Align seams, penalty aligned: %f, min: %f, diff abs: %f, diff rel: %f\n", penalty_aligned, penalty_min, penalty_diff_abs, penalty_diff_rel);
+            if (penalty_diff_rel < 0.05) {
+                // Penalty of the aligned point is very close to the minimum penalty.
+                // Align the seams as accurately as possible.
+                idx_min = last_pos_proj_idx;
+            }
+            this->_seam_position[this->layer->object()] = polygon.points[idx_min];
+        }
 
         // Export the contour into a SVG file.
         #if 0
