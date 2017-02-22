@@ -449,7 +449,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("Hilbert Curve");
     def->enum_labels.push_back("Archimedean Chords");
     def->enum_labels.push_back("Octagram Spiral");
-    def->default_value = new ConfigOptionEnum<InfillPattern>(ipHoneycomb);
+    def->default_value = new ConfigOptionEnum<InfillPattern>(ipStars);
 
     def = this->add("first_layer_acceleration", coFloat);
     def->label = "First layer";
@@ -605,7 +605,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "mm or %";
     def->cli = "infill-overlap=s";
     def->ratio_over = "perimeter_extrusion_width";
-    def->default_value = new ConfigOptionFloatOrPercent(15, true);
+    def->default_value = new ConfigOptionFloatOrPercent(55, true);
 
     def = this->add("infill_speed", coFloat);
     def->label = "Infill";
