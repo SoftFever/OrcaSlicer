@@ -142,6 +142,8 @@ ModelMaterial::attributes()
     void clear_volumes();
     int volumes_count()
         %code%{ RETVAL = THIS->volumes.size(); %};
+    Ref<ModelVolume> get_volume(int idx)
+        %code%{ RETVAL = THIS->volumes.at(idx); %};
 
     %name{_add_instance} Ref<ModelInstance> add_instance();
     Ref<ModelInstance> _add_instance_clone(ModelInstance* other)
