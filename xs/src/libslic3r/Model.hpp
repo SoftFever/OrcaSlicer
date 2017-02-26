@@ -48,6 +48,8 @@ public:
     void swap(Model &other);
     ~Model();
     ModelObject* add_object();
+    ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
+    ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
     ModelObject* add_object(const ModelObject &other, bool copy_volumes = true);
     void delete_object(size_t idx);
     void clear_objects();
@@ -135,6 +137,7 @@ public:
     Model* get_model() const { return this->model; };
     
     ModelVolume* add_volume(const TriangleMesh &mesh);
+    ModelVolume* add_volume(TriangleMesh &&mesh);
     ModelVolume* add_volume(const ModelVolume &volume);
     void delete_volume(size_t idx);
     void clear_volumes();
@@ -206,6 +209,7 @@ private:
     t_model_material_id _material_id;
     
     ModelVolume(ModelObject *object, const TriangleMesh &mesh);
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh);
     ModelVolume(ModelObject *object, const ModelVolume &other);
 };
 

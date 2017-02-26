@@ -45,6 +45,32 @@ Model::add_object()
 }
 
 ModelObject*
+Model::add_object(const char *name, const char *path, const TriangleMesh &mesh)
+{
+    ModelObject* new_object = new ModelObject(this);
+    this->objects.push_back(new_object);
+    new_object->name = name;
+    new_object->input_file = path;
+    ModelVolume *new_volume = new_object->add_volume(mesh);
+    new_volume->name = name;
+    new_object->invalidate_bounding_box();
+    return new_object;
+}
+
+ModelObject*
+Model::add_object(const char *name, const char *path, TriangleMesh &&mesh)
+{
+    ModelObject* new_object = new ModelObject(this);
+    this->objects.push_back(new_object);
+    new_object->name = name;
+    new_object->input_file = path;
+    ModelVolume *new_volume = new_object->add_volume(std::move(mesh));
+    new_volume->name = name;
+    new_object->invalidate_bounding_box();
+    return new_object;
+}
+
+ModelObject*
 Model::add_object(const ModelObject &other, bool copy_volumes)
 {
     ModelObject* new_object = new ModelObject(this, other, copy_volumes);
@@ -397,6 +423,15 @@ ModelObject::add_volume(const TriangleMesh &mesh)
 }
 
 ModelVolume*
+ModelObject::add_volume(TriangleMesh &&mesh)
+{
+    ModelVolume* v = new ModelVolume(this, std::move(mesh));
+    this->volumes.push_back(v);
+    this->invalidate_bounding_box();
+    return v;
+}
+
+ModelVolume*
 ModelObject::add_volume(const ModelVolume &other)
 {
     ModelVolume* v = new ModelVolume(this, other);
@@ -672,10 +707,35 @@ ModelObject::cut(coordf_t z, Model* model) const
             upper->add_volume(*volume);
             lower->add_volume(*volume);
         } else {
-            TriangleMeshSlicer tms(&volume->mesh);
             TriangleMesh upper_mesh, lower_mesh;
             // TODO: shouldn't we use object bounding box instead of per-volume bb?
-            tms.cut(z + volume->mesh.bounding_box().min.z, &upper_mesh, &lower_mesh);
+            coordf_t cut_z = z + volume->mesh.bounding_box().min.z;
+            if (false) {
+//            if (volume->mesh.has_multiple_patches()) {
+                // Cutting algorithm does not work on intersecting meshes.
+                // As we are not sure whether the meshes don't intersect,
+                // we rather split the mesh into multiple non-intersecting pieces.
+                TriangleMeshPtrs meshptrs = volume->mesh.split();
+                for (TriangleMeshPtrs::iterator mesh = meshptrs.begin(); mesh != meshptrs.end(); ++mesh) {
+                    printf("Cutting mesh patch %d of %d\n", size_t(mesh - meshptrs.begin()));
+                    (*mesh)->repair();
+                    TriangleMeshSlicer tms(*mesh);
+                    if (mesh == meshptrs.begin()) {
+                        tms.cut(cut_z, &upper_mesh, &lower_mesh);
+                    } else {
+                        TriangleMesh upper_mesh_this, lower_mesh_this;
+                        tms.cut(cut_z, &upper_mesh_this, &lower_mesh_this);
+                        upper_mesh.merge(upper_mesh_this);
+                        lower_mesh.merge(lower_mesh_this);
+                    }
+                    delete *mesh;
+                }
+            } else {
+                printf("Cutting mesh patch\n");
+                TriangleMeshSlicer tms(&volume->mesh);
+                tms.cut(cut_z, &upper_mesh, &lower_mesh);
+            }
+
             upper_mesh.repair();
             lower_mesh.repair();
             upper_mesh.reset_repair_stats();
@@ -730,6 +790,10 @@ ModelObject::split(ModelObjectPtrs* new_objects)
 
 ModelVolume::ModelVolume(ModelObject* object, const TriangleMesh &mesh)
 :   mesh(mesh), modifier(false), object(object)
+{}
+
+ModelVolume::ModelVolume(ModelObject* object, TriangleMesh &&mesh)
+:   mesh(std::move(mesh)), modifier(false), object(object)
 {}
 
 ModelVolume::ModelVolume(ModelObject* object, const ModelVolume &other)
