@@ -1,6 +1,7 @@
 # extends C++ class Slic3r::Model
 package Slic3r::Model;
 
+use File::Basename qw(basename);
 use List::Util qw(first max any);
 use Slic3r::Geometry qw(X Y Z move_points);
 
@@ -8,9 +9,10 @@ sub read_from_file {
     my $class = shift;
     my ($input_file) = @_;
     
-    my $model = $input_file =~ /\.stl$/i            ? Slic3r::Format::STL->read_file($input_file)
-              : $input_file =~ /\.obj$/i            ? Slic3r::Format::OBJ->read_file($input_file)
-              : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Format::AMF->read_file($input_file)
+    my $model = $input_file =~ /\.stl$/i            ? Slic3r::Model->load_stl(Slic3r::encode_path($input_file), basename($input_file))
+              : $input_file =~ /\.obj$/i            ? Slic3r::Model->load_obj(Slic3r::encode_path($input_file), basename($input_file))
+              : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Model->load_amf(Slic3r::encode_path($input_file))
+              : $input_file =~ /\.prus$/i           ? Slic3r::Model->load_prus(Slic3r::encode_path($input_file))
               : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
     
     die "The supplied file couldn't be read because it's empty.\n"

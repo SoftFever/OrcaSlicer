@@ -25,7 +25,7 @@ my %opt = ();
 }
 
 {
-    my $model = Slic3r::Format::STL->read_file($ARGV[0]);
+    my $model = Slic3r::Model->load_stl(Slic3r::encode_path($ARGV[0]), basename($ARGV[0]));
     my $basename = $ARGV[0];
     $basename =~ s/\.stl$//i;
     

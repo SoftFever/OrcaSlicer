@@ -25,7 +25,7 @@ my %opt = ();
 }
 
 {
-    my @models = map Slic3r::Format::STL->read_file($_), @ARGV;
+    my @models = map Slic3r::Model->load_stl(Slic3r::encode_path($_), basename($_)), @ARGV;
     my $output_file = $ARGV[0];
     $output_file =~ s/\.stl$/.amf.xml/i;
     

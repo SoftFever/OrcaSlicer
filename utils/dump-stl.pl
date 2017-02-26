@@ -12,12 +12,13 @@ BEGIN {
 
 use Slic3r;
 use Slic3r::Test;
+use File::Basename qw(basename);
 $|++;
 
 $ARGV[0] or usage(1);
 
 if (-e $ARGV[0]) {
-    my $model = Slic3r::Format::STL->read_file($ARGV[0]);
+    my $model = Slic3r::Model->load_stl(Slic3r::encode_path($ARGV[0]), basename($ARGV[0]));
     $model->objects->[0]->add_instance(offset => Slic3r::Pointf->new(0,0));
     my $mesh = $model->mesh;
     $mesh->repair;
