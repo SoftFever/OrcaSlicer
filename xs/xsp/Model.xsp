@@ -5,6 +5,10 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Slicing.hpp"
+#include "libslic3r/Format/AMF.hpp"
+#include "libslic3r/Format/OBJ.hpp"
+#include "libslic3r/Format/PRUS.hpp"
+#include "libslic3r/Format/STL.hpp"
 %}
 
 %name{Slic3r::Model} class Model {
@@ -71,8 +75,68 @@
     void duplicate(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
     void duplicate_objects(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
     void duplicate_objects_grid(unsigned int x, unsigned int y, double dist);
-};
 
+%{
+
+Model*
+load_stl(CLASS, path, object_name)
+    char*           CLASS;
+    char*           path;
+    char*           object_name;
+    CODE:
+        RETVAL = new Model();
+        if (! load_stl(path, RETVAL, object_name)) {
+            delete RETVAL;
+            RETVAL = NULL;
+        }
+    OUTPUT:
+        RETVAL
+
+Model*
+load_obj(CLASS, path, object_name)
+    char*           CLASS;
+    char*           path;
+    char*           object_name;
+    CODE:
+        RETVAL = new Model();
+        if (! load_obj(path, RETVAL, object_name)) {
+            delete RETVAL;
+            RETVAL = NULL;
+        }
+    OUTPUT:
+        RETVAL
+
+Model*
+load_amf(CLASS, path)
+    char*           CLASS;
+    char*           path;
+    CODE:
+        RETVAL = new Model();
+        if (! load_amf(path, RETVAL)) {
+            delete RETVAL;
+            RETVAL = NULL;
+        }
+    OUTPUT:
+        RETVAL
+
+Model*
+load_prus(CLASS, path)
+    char*           CLASS;
+    char*           path;
+    CODE:
+#ifdef SLIC3R_PRUS
+        RETVAL = new Model();
+        if (! load_prus(path, RETVAL)) {
+            delete RETVAL;
+            RETVAL = NULL;
+        }
+#endif
+    OUTPUT:
+        RETVAL
+
+%}
+
+};
 
 %name{Slic3r::Model::Material} class ModelMaterial {
     Ref<Model> model()

@@ -50,6 +50,16 @@ src/libslic3r/Fill/FillRectilinear2.cpp
 src/libslic3r/Fill/FillRectilinear2.hpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Flow.hpp
+src/libslic3r/Format/AMF.cpp
+src/libslic3r/Format/AMF.hpp
+src/libslic3r/Format/OBJ.cpp
+src/libslic3r/Format/OBJ.hpp
+src/libslic3r/Format/objparser.cpp
+src/libslic3r/Format/objparser.hpp
+src/libslic3r/Format/PRUS.cpp
+src/libslic3r/Format/PRUS.hpp
+src/libslic3r/Format/STL.cpp
+src/libslic3r/Format/STL.hpp
 src/libslic3r/GCode.cpp
 src/libslic3r/GCode.hpp
 src/libslic3r/GCode/CoolingBuffer.cpp
@@ -67,7 +77,6 @@ src/libslic3r/Geometry.hpp
 src/libslic3r/Layer.cpp
 src/libslic3r/Layer.hpp
 src/libslic3r/LayerRegion.cpp
-src/libslic3r/LayerRegionFill.cpp
 src/libslic3r/libslic3r.h
 src/libslic3r/Line.cpp
 src/libslic3r/Line.hpp

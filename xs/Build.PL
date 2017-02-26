@@ -33,14 +33,15 @@ my @early_includes = ();
 my @INC  = qw(-Isrc/libslic3r -Isrc/glew/include);
 my @LIBS = $cpp_guess->is_msvc ? qw(-LIBPATH:src/libslic3r) : qw(-Lsrc/libslic3r);
 
-if ($ENV{SLIC3R_GUI}) 
+if ($ENV{SLIC3R_GUI} || $ENV{SLIC3R_PRUS})
 {
     print "Slic3r will be built with GUI support\n";
     require Alien::wxWidgets;
     Alien::wxWidgets->load;
     push @INC, Alien::wxWidgets->include_path;
-    push @cflags, qw(-DSLIC3R_GUI -DUNICODE), Alien::wxWidgets->defines, Alien::wxWidgets->c_flags;
-    my $alienwx_libraries = Alien::wxWidgets->libraries(qw(gl html));
+    push @cflags, qw(-DSLIC3R_GUI) if $ENV{SLIC3R_GUI};
+    push @cflags, qw(-DSLIC3R_PRUS -DUNICODE), Alien::wxWidgets->defines, Alien::wxWidgets->c_flags;
+    my $alienwx_libraries = Alien::wxWidgets->libraries($ENV{SLIC3R_GUI} ? qw(gl html) : qw(base));
     $alienwx_libraries =~ s/-L/-LIBPATH:/g if ($cpp_guess->is_msvc);
     push @ldflags, Alien::wxWidgets->link_flags, $alienwx_libraries;
 #    push @early_includes, qw(slic3r/GUI/wxinit.h);
@@ -216,6 +217,8 @@ if ($cpp_guess->is_gcc) {
 }
 
 print "\n";
+print 'With @cflags: ', join(', ', map "\"$_\"", @cflags), "\n";
+print 'With @ldflags: ', join(', ', map "\"$_\"", @ldflags), "\n";
 print 'With @INC: ', join(', ', map "\"$_\"", @INC), "\n";
 print 'With @LIBS: ', join(', ', map "\"$_\"", @LIBS), "\n";
 
