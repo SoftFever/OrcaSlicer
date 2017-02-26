@@ -19,16 +19,18 @@ typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
 
 class TriangleMesh
 {
-    public:
+public:
     TriangleMesh();
     TriangleMesh(const Pointf3s &points, const std::vector<Point3> &facets);
     TriangleMesh(const TriangleMesh &other);
+    TriangleMesh(TriangleMesh &&other);
     TriangleMesh& operator= (TriangleMesh other);
+    TriangleMesh& operator= (TriangleMesh &&other);
     void swap(TriangleMesh &other);
     ~TriangleMesh();
-    void ReadSTLFile(char* input_file);
-    void write_ascii(char* output_file);
-    void write_binary(char* output_file);
+    void ReadSTLFile(const char* input_file);
+    void write_ascii(const char* output_file);
+    void write_binary(const char* output_file);
     void repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
@@ -52,32 +54,60 @@ class TriangleMesh
     void reset_repair_stats();
     bool needed_repair() const;
     size_t facets_count() const;
+
+    // Returns true, if there are two and more connected patches in the mesh.
+    // Returns false, if one or zero connected patch is in the mesh.
+    bool has_multiple_patches() const;
+
+    // Count disconnected triangle patches.
+    size_t number_of_patches() const;
+
     stl_file stl;
     bool repaired;
     
-    private:
+private:
     void require_shared_vertices();
     friend class TriangleMeshSlicer;
 };
 
-enum FacetEdgeType { feNone, feTop, feBottom, feHorizontal };
+enum FacetEdgeType { 
+    // A general case, the cutting plane intersect a face at two different edges.
+    feNone,
+    // Two vertices are aligned with the cutting plane, the third vertex is below the cutting plane.
+    feTop,
+    // Two vertices are aligned with the cutting plane, the third vertex is above the cutting plane.
+    feBottom,
+    // All three vertices of a face are aligned with the cutting plane.
+    feHorizontal
+};
 
 class IntersectionPoint : public Point
 {
-    public:
-    int point_id;
-    int edge_id;
+public:
     IntersectionPoint() : point_id(-1), edge_id(-1) {};
+    // Inherits coord_t x, y
+    // Where is this intersection point located? On mesh vertex or mesh edge?
+    // Only one of the following will be set, the other will remain set to -1.
+    // Index of the mesh vertex.
+    int point_id;
+    // Index of the mesh edge.
+    int edge_id;
 };
 
 class IntersectionLine : public Line
 {
-    public:
+public:
+    // Inherits Point a, b
+    // For each line end point, either {a,b}_id or {a,b}edge_a_id is set, the other is left to -1.
+    // Vertex indices of the line end points.
     int             a_id;
     int             b_id;
+    // Source mesh edges of the line end points.
     int             edge_a_id;
     int             edge_b_id;
+    // feNone, feTop, feBottom, feHorizontal
     FacetEdgeType   edge_type;
+    // Used by TriangleMeshSlicer::make_loops() to skip duplicate edges.
     bool            skip;
     IntersectionLine() : a_id(-1), b_id(-1), edge_a_id(-1), edge_b_id(-1), edge_type(feNone), skip(false) {};
 };
@@ -86,21 +116,21 @@ typedef std::vector<IntersectionLine*> IntersectionLinePtrs;
 
 class TriangleMeshSlicer
 {
-    public:
-    TriangleMesh* mesh;
+public:
     TriangleMeshSlicer(TriangleMesh* _mesh);
-    ~TriangleMeshSlicer();
     void slice(const std::vector<float> &z, std::vector<Polygons>* layers) const;
     void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers) const;
-    void slice_facet(float slice_z, const stl_facet &facet, const int &facet_idx,
-        const float &min_z, const float &max_z, std::vector<IntersectionLine>* lines,
-        boost::mutex* lines_mutex = NULL) const;
+    bool slice_facet(float slice_z, const stl_facet &facet, const int facet_idx,
+        const float min_z, const float max_z, IntersectionLine *line_out) const;
     void cut(float z, TriangleMesh* upper, TriangleMesh* lower) const;
     
-    private:
-    typedef std::vector< std::vector<int> > t_facets_edges;
-    t_facets_edges facets_edges;
-    stl_vertex* v_scaled_shared;
+private:
+    const TriangleMesh      *mesh;
+    // Map from a facet to an edge index.
+    std::vector<int>         facets_edges;
+    // Scaled copy of this->mesh->stl.v_shared
+    std::vector<stl_vertex>  v_scaled_shared;
+
     void _slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const;
     void _make_loops_do(size_t i, std::vector<IntersectionLines>* lines, std::vector<Polygons>* layers) const;
     void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const;
