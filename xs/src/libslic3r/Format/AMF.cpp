@@ -521,7 +521,7 @@ bool store_amf(const char *path, Model *model)
         for (const auto &attr : material.second->attributes)
              fprintf(file, "    <metadata type=\"%s\">%s</metadata>\n", attr.first.c_str(), attr.second.c_str());
         for (const std::string &key : material.second->config.keys())
-             fprintf(file, "    <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), material.second->config.serialize(key));
+             fprintf(file, "    <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), material.second->config.serialize(key).c_str());
         fprintf(file, "  </material>\n");
     }
     std::string instances;
@@ -529,7 +529,7 @@ bool store_amf(const char *path, Model *model)
         ModelObject *object = model->objects[object_id];
         fprintf(file, "  <object id=\"%d\">\n", object_id);
         for (const std::string &key : object->config.keys())
-             fprintf(file, "    <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), object->config.serialize(key));
+             fprintf(file, "    <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), object->config.serialize(key).c_str());
         if (! object->name.empty())
             fprintf(file, "    <metadata type=\"name\">%s</metadata>\n", object->name.c_str());
         std::vector<double> layer_height_profile = object->layer_height_profile_valid ? object->layer_height_profile : std::vector<double>();
@@ -573,7 +573,7 @@ bool store_amf(const char *path, Model *model)
             else
                 fprintf(file, "      <volume materialid=\"%s\">\n", volume->material_id().c_str());
             for (const std::string &key : volume->config.keys())
-                fprintf(file, "        <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), volume->config.serialize(key));
+                fprintf(file, "        <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), volume->config.serialize(key).c_str());
             if (! volume->name.empty())
                 fprintf(file, "        <metadata type=\"name\">%s</metadata>\n", volume->name.c_str());
             if (volume->modifier)
