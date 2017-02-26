@@ -82,6 +82,16 @@ stl_check_facets_exact(stl_file *stl) {
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     facet = stl->facet_start[i];
+    // Positive and negative zeros are possible in the floats, which are considered equal by the FP unit.
+    // When using a memcmp on raw floats, those numbers report to be different.
+    // Unify all +0 and -0 to +0 to make the floats equal under memcmp.
+    {
+      uint32_t *f = (uint32_t*)&facet;
+      for (int j = 0; j < 12; ++ j, ++ f) // 3x vertex + normal: 4x3 = 12 floats
+        if (*f == 0x80000000)
+            // Negative zero, switch to positive zero.
+            *f = 0;
+    }
 
     /* If any two of the three vertices are found to be exactally the same, call them degenerate and remove the facet. */
     if(   !memcmp(&facet.vertex[0], &facet.vertex[1],
@@ -278,6 +288,16 @@ stl_check_facets_nearby(stl_file *stl, float tolerance) {
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     facet = stl->facet_start[i];
+    // Positive and negative zeros are possible in the floats, which are considered equal by the FP unit.
+    // When using a memcmp on raw floats, those numbers report to be different.
+    // Unify all +0 and -0 to +0 to make the floats equal under memcmp.
+    {
+      uint32_t *f = (uint32_t*)&facet;
+      for (int j = 0; j < 12; ++ j, ++ f) // 3x vertex + normal: 4x3 = 12 floats
+        if (*f == 0x80000000)
+            // Negative zero, switch to positive zero.
+            *f = 0;
+    }
     for(j = 0; j < 3; j++) {
       if(stl->neighbors_start[i].neighbor[j] == -1) {
         edge[j].facet_number = i;

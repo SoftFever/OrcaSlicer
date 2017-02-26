@@ -163,7 +163,7 @@ typedef struct {
 } stl_file;
 
 
-extern void stl_open(stl_file *stl, char *file);
+extern void stl_open(stl_file *stl, const char *file);
 extern void stl_close(stl_file *stl);
 extern void stl_stats_out(stl_file *stl, FILE *file, char *input_file);
 extern void stl_print_edges(stl_file *stl, FILE *file);
@@ -196,6 +196,7 @@ extern void stl_rotate_z(stl_file *stl, float angle);
 extern void stl_mirror_xy(stl_file *stl);
 extern void stl_mirror_yz(stl_file *stl);
 extern void stl_mirror_xz(stl_file *stl);
+extern void stl_transform(stl_file *stl, float *trafo3x4);
 extern void stl_open_merge(stl_file *stl, char *file);
 extern void stl_invalidate_shared_vertices(stl_file *stl);
 extern void stl_generate_shared_vertices(stl_file *stl);
@@ -210,7 +211,7 @@ extern void stl_calculate_volume(stl_file *stl);
 extern void stl_repair(stl_file *stl, int fixall_flag, int exact_flag, int tolerance_flag, float tolerance, int increment_flag, float increment, int nearby_flag, int iterations, int remove_unconnected_flag, int fill_holes_flag, int normal_directions_flag, int normal_values_flag, int reverse_all_flag, int verbose_flag);
 
 extern void stl_initialize(stl_file *stl);
-extern void stl_count_facets(stl_file *stl, char *file);
+extern void stl_count_facets(stl_file *stl, const char *file);
 extern void stl_allocate(stl_file *stl);
 extern void stl_read(stl_file *stl, int first_facet, int first);
 extern void stl_facet_stats(stl_file *stl, stl_facet facet, int first);

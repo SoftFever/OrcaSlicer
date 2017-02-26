@@ -32,7 +32,7 @@
 #endif
 
 void
-stl_open(stl_file *stl, char *file) {
+stl_open(stl_file *stl, const char *file) {
   stl_initialize(stl);
   stl_count_facets(stl, file);
   stl_allocate(stl);
@@ -48,7 +48,7 @@ stl_initialize(stl_file *stl) {
 }
 
 void
-stl_count_facets(stl_file *stl, char *file) {
+stl_count_facets(stl_file *stl, const char *file) {
   long           file_size;
   int            header_num_facets;
   int            num_facets;
@@ -307,29 +307,6 @@ stl_read(stl_file *stl, int first_facet, int first) {
         if (facet.vertex[j].z > -1e-12f && facet.vertex[j].z < 1e-12f)
             printf("stl_read: facet %d.z = %e\r\n", j, facet.vertex[j].z);
       }
-#endif
-
-#if 1
-    {
-      // Positive and negative zeros are possible in the floats, which are considered equal by the FP unit.
-      // When using a memcmp on raw floats, those numbers report to be different.
-      // Unify all +0 and -0 to +0 to make the floats equal under memcmp.
-      uint32_t *f = (uint32_t*)&facet;
-      for (int j = 0; j < 12; ++ j, ++ f) // 3x vertex + normal: 4x3 = 12 floats
-        if (*f == 0x80000000)
-          // Negative zero, switch to positive zero.
-          *f = 0;
-    }
-#else
-    {
-      // Due to the nature of the floating point numbers, close to zero values may be represented with singificantly higher precision 
-      // than the rest of the vertices. Round them to zero.
-      float *f = (float*)&facet;
-      for (int j = 0; j < 12; ++ j, ++ f) // 3x vertex + normal: 4x3 = 12 floats
-        if (*f > -1e-12f && *f < 1e-12f)
-          // Negative zero, switch to positive zero.
-          *f = 0;
-    }
 #endif
     /* Write the facet into memory. */
     memcpy(stl->facet_start+i, &facet, SIZEOF_STL_FACET);
