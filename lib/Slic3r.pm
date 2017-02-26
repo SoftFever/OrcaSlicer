@@ -62,7 +62,6 @@ use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
 use Slic3r::Flow;
 use Slic3r::Format::AMF;
-use Slic3r::Format::OBJ;
 use Slic3r::Format::STL;
 use Slic3r::GCode::ArcFitting;
 use Slic3r::GCode::MotionPlanner;

@@ -25,7 +25,7 @@ my %opt = ();
 }
 
 {
-    my $model = Slic3r::Format::AMF->read_file($ARGV[0]);
+    my $model = Slic3r::Model->load_amf(Slic3r::encode_path($ARGV[0]));
     my $output_file = $ARGV[0];
     $output_file =~ s/\.amf(?:\.xml)?$/\.stl/i;
     

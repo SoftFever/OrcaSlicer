@@ -3,27 +3,6 @@ use Moo;
 
 use Slic3r::Geometry qw(X Y Z);
 
-sub read_file {
-    my $self = shift;
-    my ($file) = @_;
-    
-    eval qq{
-    	require Slic3r::Format::AMF::Parser;
-    	use XML::SAX::ParserFactory;
-    	1;
-    } or die "AMF parsing requires XML::SAX\n";
-    
-    Slic3r::open(\my $fh, '<', $file) or die "Failed to open $file\n";
-    
-    my $model = Slic3r::Model->new;
-    XML::SAX::ParserFactory
-        ->parser(Handler => Slic3r::Format::AMF::Parser->new(_model => $model))
-        ->parse_file($fh);
-    close $fh;
-    
-    return $model;
-}
-
 sub write_file {
     my $self = shift;
     my ($file, $model, %params) = @_;
