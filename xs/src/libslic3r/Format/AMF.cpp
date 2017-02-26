@@ -485,7 +485,7 @@ bool load_amf(const char *path, Model *model)
         }
         int done = feof(pFile);
         if (XML_Parse(parser, buff, len, done) == XML_STATUS_ERROR) {
-            printf("AMF parser: Parse error at line %u:\n%s\n",
+            printf("AMF parser: Parse error at line %ul:\n%s\n",
                   XML_GetCurrentLineNumber(parser),
                   XML_ErrorString(XML_GetErrorCode(parser)));
             break;
@@ -527,7 +527,7 @@ bool store_amf(const char *path, Model *model)
     std::string instances;
     for (size_t object_id = 0; object_id < model->objects.size(); ++ object_id) {
         ModelObject *object = model->objects[object_id];
-        fprintf(file, "  <object id=\"%d\">\n", object_id);
+        fprintf(file, "  <object id=\"" PRINTF_ZU "\">\n", object_id);
         for (const std::string &key : object->config.keys())
              fprintf(file, "    <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), object->config.serialize(key).c_str());
         if (! object->name.empty())
@@ -556,9 +556,9 @@ bool store_amf(const char *path, Model *model)
             for (size_t i = 0; i < stl.stats.shared_vertices; ++ i) {
                 fprintf(file, "         <vertex>\n");
                 fprintf(file, "           <coordinates>\n");
-                fprintf(file, "             <x>%s</x>\n", stl.v_shared[i].x);
-                fprintf(file, "             <y>%s</y>\n", stl.v_shared[i].x);
-                fprintf(file, "             <z>%s</z>\n", stl.v_shared[i].x);
+                fprintf(file, "             <x>%f</x>\n", stl.v_shared[i].x);
+                fprintf(file, "             <y>%f</y>\n", stl.v_shared[i].y);
+                fprintf(file, "             <z>%f</z>\n", stl.v_shared[i].z);
                 fprintf(file, "           </coordinates>\n");
                 fprintf(file, "         </vertex>\n");
             }
@@ -592,10 +592,10 @@ bool store_amf(const char *path, Model *model)
             for (ModelInstance *instance : object->instances) {
                 char buf[512];
                 sprintf(buf,
-                    "    <instance objectid=\"%d\">\n"
-                    "      <deltax>%s</deltax>\n"
-                    "      <deltay>%s</deltay>\n"
-                    "      <rz>%s</rz>\n"
+                    "    <instance objectid=\"" PRINTF_ZU "\">\n"
+                    "      <deltax>%lf</deltax>\n"
+                    "      <deltay>%lf</deltay>\n"
+                    "      <rz>%lf</rz>\n"
                     "    </instance>\n",
                     object_id,
                     instance->offset.x,
