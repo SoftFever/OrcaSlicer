@@ -538,7 +538,7 @@ bool store_amf(const char *path, Model *model)
             fprintf(file, "    <metadata type=\"slic3r.layer_height_profile\">");
             fprintf(file, "%f", layer_height_profile.front());
             for (size_t i = 1; i < layer_height_profile.size(); ++ i)
-                fprintf(file, ",%f", layer_height_profile[i]);
+                fprintf(file, ";%f", layer_height_profile[i]);
             fprintf(file, "\n    </metadata>\n");
         }
         //FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
@@ -581,7 +581,7 @@ bool store_amf(const char *path, Model *model)
             for (int i = 0; i < volume->mesh.stl.stats.number_of_facets; ++ i) {
                 fprintf(file, "        <triangle>\n");
                 for (int j = 0; j < 3; ++ j)
-                    fprintf(file, "          <v%d>%d</v%d>\n", j, volume->mesh.stl.v_indices[i].vertex[j] + vertices_offset, j);
+                    fprintf(file, "          <v%d>%d</v%d>\n", j+1, volume->mesh.stl.v_indices[i].vertex[j] + vertices_offset, j+1);
                 fprintf(file, "        </triangle>\n");
             }
             fprintf(file, "      </volume>\n");
@@ -599,7 +599,7 @@ bool store_amf(const char *path, Model *model)
                     "    </instance>\n",
                     object_id,
                     instance->offset.x,
-                    instance->offset.x,
+                    instance->offset.y,
                     instance->rotation);
                 //FIXME missing instance->scaling_factor
                 instances.append(buf);
