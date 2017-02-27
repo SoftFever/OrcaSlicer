@@ -1499,7 +1499,7 @@ sub export_stl {
     return if !@{$self->{objects}};
         
     my $output_file = $self->_get_export_file('STL') or return;
-    Slic3r::Format::STL->write_file($output_file, $self->{model}, binary => 1);
+    $self->{model}->store_stl(Slic3r::encode_path($output_file), 1);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
 
@@ -1546,7 +1546,7 @@ sub export_object_stl {
     my $model_object = $self->{model}->objects->[$obj_idx];
         
     my $output_file = $self->_get_export_file('STL') or return;
-    Slic3r::Format::STL->write_file($output_file, $model_object->mesh, binary => 1);
+    $model_object->mesh->write_binary(Slic3r::encode_path($output_file));
     $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
 
@@ -1556,7 +1556,7 @@ sub export_amf {
     return if !@{$self->{objects}};
         
     my $output_file = $self->_get_export_file('AMF') or return;
-    Slic3r::Format::AMF->write_file($output_file, $self->{model});
+    $self->{model}->store_amf(Slic3r::encode_path($output_file));
     $self->statusbar->SetStatusText("AMF file exported to $output_file");
 }
 

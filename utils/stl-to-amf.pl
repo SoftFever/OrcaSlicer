@@ -53,7 +53,7 @@ my %opt = ();
     }
     
     printf "Writing to %s\n", basename($output_file);
-    Slic3r::Format::AMF->write_file($output_file, $new_model);
+    $new_model->store_amf(Slic3r::encode_path($output_file));
 }
 
 

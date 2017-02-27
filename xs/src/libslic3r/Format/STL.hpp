@@ -10,7 +10,7 @@ class ModelObject;
 extern bool load_stl(const char *path, Model *model, const char *object_name = nullptr);
 
 extern bool store_stl(const char *path, TriangleMesh *mesh, bool binary);
-extern bool store_stl(const char *path, ModelObject *model_object);
+extern bool store_stl(const char *path, ModelObject *model_object, bool binary);
 
 }; // namespace Slic3r
 

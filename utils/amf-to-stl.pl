@@ -30,7 +30,7 @@ my %opt = ();
     $output_file =~ s/\.amf(?:\.xml)?$/\.stl/i;
     
     printf "Writing to %s\n", basename($output_file);
-    Slic3r::Format::STL->write_file($output_file, $model, binary => !$opt{ascii});
+    $model->store_stl(Slic3r::encode_path($output_file), binary => !$opt{ascii});
 }
 
 

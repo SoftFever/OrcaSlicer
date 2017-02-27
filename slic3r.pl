@@ -172,7 +172,7 @@ if (@ARGV) {  # slicing from command line
             foreach my $new_mesh (@{$mesh->split}) {
                 my $output_file = sprintf '%s_%02d.stl', $file, ++$part_count;
                 printf "Writing to %s\n", basename($output_file);
-                Slic3r::Format::STL->write_file($output_file, $new_mesh, binary => 1);
+                $new_mesh->write_binary(Slic3r::encode_path($output_file));
             }
         }
         exit;

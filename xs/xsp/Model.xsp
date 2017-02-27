@@ -76,6 +76,11 @@
     void duplicate_objects(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
     void duplicate_objects_grid(unsigned int x, unsigned int y, double dist);
 
+    bool store_stl(char *path, bool binary)
+        %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
+    bool store_amf(char *path)
+        %code%{ RETVAL = Slic3r::store_amf(path, THIS); %};
+
 %{
 
 Model*

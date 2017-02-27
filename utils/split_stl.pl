@@ -43,7 +43,7 @@ my %opt = ();
         
         my $output_file = sprintf '%s_%02d.stl', $basename, ++$part_count;
         printf "Writing to %s\n", basename($output_file);
-        Slic3r::Format::STL->write_file($output_file, $new_model, binary => !$opt{ascii});
+        $new_model->store_stl(Slic3r::encode_path($output_file), !$opt{ascii});
     }
 }
 

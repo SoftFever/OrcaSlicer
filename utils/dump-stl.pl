@@ -27,7 +27,7 @@ if (-e $ARGV[0]) {
     exit 0;
 } elsif ((my $model = Slic3r::Test::model($ARGV[0]))) {
     $ARGV[1] or die "Missing writeable destination as second argument\n";
-    Slic3r::Format::STL->write_file($ARGV[1], $model);
+    $model->store_stl(Slic3r::encode_path($ARGV[1]), 1);
     printf "Model $ARGV[0] written to $ARGV[1]\n";
     exit 0;
 } else {
