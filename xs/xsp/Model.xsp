@@ -135,6 +135,8 @@ load_prus(CLASS, path)
             delete RETVAL;
             RETVAL = NULL;
         }
+#else
+        RETVAL = nullptr;
 #endif
     OUTPUT:
         RETVAL
