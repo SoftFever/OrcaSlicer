@@ -1008,6 +1008,8 @@ sub changescale {
         my $versor = [1,1,1];
         $versor->[$axis] = $scale/100;
         $model_object->scale_xyz(Slic3r::Pointf3->new(@$versor));
+        #FIXME Scale the layer height profile when $axis == Z?
+        #FIXME Scale the layer height ranges $axis == Z?
         # object was already aligned to Z = 0, so no need to realign it
         $self->make_thumbnail($obj_idx);
     } else {
@@ -1031,6 +1033,7 @@ sub changescale {
         $scale /= 100;  # turn percent into factor
         
         my $variation = $scale / $model_instance->scaling_factor;
+        #FIXME Scale the layer height profile?
         foreach my $range (@{ $model_object->layer_height_ranges }) {
             $range->[0] *= $variation;
             $range->[1] *= $variation;
