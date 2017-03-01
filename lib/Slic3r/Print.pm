@@ -104,11 +104,11 @@ sub export_gcode {
         if ($tempfile) {
             my $i;
             for ($i = 0; $i < 5; $i += 1)  {
-                last if (rename Slic3r::encode_path($tempfile), Slic3r::encode_path($file));
+                last if (rename Slic3r::encode_path($tempfile), Slic3r::encode_path($output_file));
                 # Wait for 1/4 seconds and try to rename once again.
                 select(undef, undef, undef, 0.25);
             }
-            Slic3r::debugf "Failed to remove the output G-code file from $tempfile to $file. Is $tempfile locked?\n" if ($i == 5);
+            Slic3r::debugf "Failed to remove the output G-code file from $tempfile to $output_file. Is $tempfile locked?\n" if ($i == 5);
         } 
     }
     
