@@ -221,17 +221,11 @@ struct IntersectNode;
 struct LocalMinimum;
 struct OutPt;
 struct OutRec;
-struct Join {
-  Join(OutPt *OutPt1, OutPt *OutPt2, IntPoint OffPt) :
-    OutPt1(OutPt1), OutPt2(OutPt2), OffPt(OffPt) {}
-  OutPt    *OutPt1;
-  OutPt    *OutPt2;
-  IntPoint  OffPt;
-};
+struct Join;
 
 typedef std::vector < OutRec* > PolyOutList;
 typedef std::vector < TEdge* > EdgeList;
-typedef std::vector < Join > JoinList;
+typedef std::vector < Join* > JoinList;
 typedef std::vector < IntersectNode* > IntersectList;
 
 //------------------------------------------------------------------------------
@@ -248,11 +242,10 @@ public:
   bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
   virtual void Clear();
   IntRect GetBounds();
-  // By default, when three or more vertices are collinear in input polygons (subject or clip), the Clipper object removes the 'inner' vertices before clipping.
-  // When enabled the PreserveCollinear property prevents this default behavior to allow these inner vertices to appear in the solution.
   bool PreserveCollinear() const {return m_PreserveCollinear;};
   void PreserveCollinear(bool value) {m_PreserveCollinear = value;};
 protected:
+  void DisposeLocalMinimaList();
   TEdge* AddBoundsToLML(TEdge *e, bool IsClosed);
   void PopLocalMinima();
   virtual void Reset();
@@ -260,17 +253,13 @@ protected:
   TEdge* DescendToMin(TEdge *&E);
   void AscendToMax(TEdge *&E, bool Appending, bool IsClosed);
 
-  // Local minima (Y, left edge, right edge) sorted by ascending Y.
-  std::vector<LocalMinimum> m_MinimaList;
+  typedef std::vector<LocalMinimum> MinimaList;
+  MinimaList::iterator m_CurrentLM;
+  MinimaList           m_MinimaList;
 
-  // True if the input polygons have abs values higher than loRange, but lower than hiRange.
-  // False if the input polygons have abs values lower or equal to loRange.
   bool              m_UseFullRange;
-  // A vector of edges per each input path.
   EdgeList          m_edges;
-  // Don't remove intermediate vertices of a collinear sequence of points.
   bool             m_PreserveCollinear;
-  // Is any of the paths inserted by AddPath() or AddPaths() open?
   bool             m_HasOpenPaths;
 };
 //------------------------------------------------------------------------------
@@ -311,16 +300,16 @@ private:
   JoinList         m_GhostJoins;
   IntersectList    m_IntersectList;
   ClipType         m_ClipType;
-  // A priority queue (a binary heap) of Y coordinates.
-  std::priority_queue<cInt> m_Scanbeam;
+  typedef std::priority_queue<cInt> ScanbeamList;
+  ScanbeamList     m_Scanbeam;
   typedef std::list<cInt> MaximaList;
   MaximaList       m_Maxima;
   TEdge           *m_ActiveEdges;
   TEdge           *m_SortedEdges;
+  bool             m_ExecuteLocked;
   PolyFillType     m_ClipFillType;
   PolyFillType     m_SubjFillType;
   bool             m_ReverseOutput;
-  // Does the result go to a PolyTree or Paths?
   bool             m_UsingPolyTree; 
   bool             m_StrictSimple;
 #ifdef use_xyz
@@ -329,6 +318,7 @@ private:
   void SetWindingCount(TEdge& edge) const;
   bool IsEvenOddFillType(const TEdge& edge) const;
   bool IsEvenOddAltFillType(const TEdge& edge) const;
+  void InsertScanbeam(const cInt Y);
   cInt PopScanbeam();
   void InsertLocalMinimaIntoAEL(const cInt botY);
   void InsertEdgeIntoAEL(TEdge *edge, TEdge* startEdge);
@@ -365,8 +355,13 @@ private:
   bool FixupIntersectionOrder();
   void FixupOutPolygon(OutRec &outrec);
   void FixupOutPolyline(OutRec &outrec);
+  bool IsHole(TEdge *e);
   bool FindOwnerFromSplitRecs(OutRec &outRec, OutRec *&currOrfl);
   void FixHoleLinkage(OutRec &outrec);
+  void AddJoin(OutPt *op1, OutPt *op2, const IntPoint &offPt);
+  void ClearJoins();
+  void ClearGhostJoins();
+  void AddGhostJoin(OutPt *op, const IntPoint &offPt);
   bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
   void JoinCommonEdges();
   void DoSimplePolygons();
