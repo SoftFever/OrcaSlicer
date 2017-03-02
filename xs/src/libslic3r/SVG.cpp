@@ -345,4 +345,28 @@ void SVG::export_expolygons(const char *path, const BoundingBox &bbox, const Sli
     svg.Close();
 }
 
+void SVG::export_expolygons(const char *path, const std::vector<std::pair<Slic3r::ExPolygons, ExPolygonAttributes>> &expolygons_with_attributes)
+{
+    if (expolygons_with_attributes.empty())
+        return;
+
+    BoundingBox bbox = get_extents(expolygons_with_attributes.front().first);
+    for (size_t i = 0; i < expolygons_with_attributes.size(); ++ i)
+        bbox.merge(get_extents(expolygons_with_attributes[i].first));
+
+    SVG svg(path, bbox);
+    for (const auto &exp_with_attr : expolygons_with_attributes)
+        svg.draw(exp_with_attr.first, exp_with_attr.second.color_fill, exp_with_attr.second.fill_opacity);
+    for (const auto &exp_with_attr : expolygons_with_attributes) {
+        std::string color_contour = exp_with_attr.second.color_contour;
+        if (color_contour.empty())
+            color_contour = exp_with_attr.second.color_fill;
+        std::string color_holes = exp_with_attr.second.color_holes;
+        if (color_holes.empty())
+            color_holes = color_contour;
+        svg.draw_outline(exp_with_attr.first, color_contour, color_holes, exp_with_attr.second.outline_width);
+    }
+    svg.Close();
+}
+
 }

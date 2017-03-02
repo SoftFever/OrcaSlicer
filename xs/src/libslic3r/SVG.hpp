@@ -93,6 +93,34 @@ public:
         { export_expolygons(path, get_extents(expolygons), expolygons, stroke_outer, stroke_holes, stroke_width); }
     static void export_expolygons(const std::string &path, const Slic3r::ExPolygons &expolygons, std::string stroke_outer = "black", std::string stroke_holes = "blue", coordf_t stroke_width = 0) 
         { export_expolygons(path.c_str(), get_extents(expolygons), expolygons, stroke_outer, stroke_holes, stroke_width); }
+
+    struct ExPolygonAttributes
+    {
+        ExPolygonAttributes() : ExPolygonAttributes("gray", "black", "blue") {}
+        ExPolygonAttributes(const std::string &color) :
+            ExPolygonAttributes(color, color, color) {}
+
+        ExPolygonAttributes(
+            const std::string &color_fill, 
+            const std::string &color_contour,
+            const std::string &color_holes,
+            const coord_t      outline_width = scale_(0.05),
+            const float        fill_opacity  = 0.5f) :
+            color_fill      (color_fill),
+            color_contour   (color_contour),
+            color_holes     (color_holes),
+            outline_width   (outline_width),
+            fill_opacity    (fill_opacity) 
+            {}
+
+        std::string     color_fill;
+        std::string     color_contour;
+        std::string     color_holes;
+        coord_t         outline_width;
+        float           fill_opacity;
+    };
+
+    static void export_expolygons(const char *path, const std::vector<std::pair<Slic3r::ExPolygons, ExPolygonAttributes>> &expolygons_with_attributes);
 };
 
 }
