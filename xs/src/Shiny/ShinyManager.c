@@ -73,7 +73,7 @@ ShinyManager Shiny_instance = {
 		/* name = */ "<unprofiled>",
 		/* data = */ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
 	},
-	/* damping = */ 0.9f,
+	/* damping = */ 0.f, // Damping disabled, every PROFILE_UPDATE will be performed from scratch. Original value: 0.9f
 	/* _initialized = */ FALSE,
 	/* _firstUpdate = */ TRUE
 };
