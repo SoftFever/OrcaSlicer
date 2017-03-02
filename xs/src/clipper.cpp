@@ -285,12 +285,6 @@ inline Int128 Int128Mul (long64 lhs, long64 rhs)
 // Miscellaneous global functions
 //------------------------------------------------------------------------------
 
-inline bool Orientation(const Path &poly)
-{
-    return Area(poly) >= 0;
-}
-//------------------------------------------------------------------------------
-
 double Area(const Path &poly)
 {
   int size = (int)poly.size();
