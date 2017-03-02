@@ -10,6 +10,8 @@
 #include <string>
 #include <map>
 
+#include <boost/log/trivial.hpp>
+
 namespace Slic3r {
 
 LayerRegion::LayerRegion(Layer *layer, PrintRegion *region)
@@ -50,11 +52,18 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     // that combine_infill() turns some fill_surface into VOID surfaces.
 //    Polygons fill_boundaries = to_polygons(STDMOVE(this->fill_surfaces));
     Polygons fill_boundaries = to_polygons(this->fill_expolygons);
+    // Collect polygons per surface type.
+    std::vector<Polygons> polygons_by_surface;
+    polygons_by_surface.assign(size_t(stCount), Polygons());
+    for (Surface &surface : this->slices.surfaces)
+        polygons_append(polygons_by_surface[(size_t)surface.surface_type], surface.expolygon);
+    // Trim surfaces by the fill_boundaries.
     this->fill_surfaces.surfaces.clear();
-    for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++ surface)
-        this->fill_surfaces.append(
-            intersection_ex(to_polygons(surface->expolygon), fill_boundaries),
-            surface->surface_type);
+    for (size_t surface_type = 0; surface_type < size_t(stCount); ++ surface_type) {
+        const Polygons &polygons = polygons_by_surface[surface_type];
+        if (! polygons.empty())
+            this->fill_surfaces.append(intersection_ex(polygons, fill_boundaries), SurfaceType(surface_type));
+    }
 }
 
 void
@@ -233,6 +242,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
 
         // 3) Merge the groups with the same group id, detect bridges.
         {
+			BOOST_LOG_TRIVIAL(trace) << "Processing external surface, detecting bridges. layer" << this->layer()->print_z << ", bridge groups: " << n_groups;
             for (size_t group_id = 0; group_id < n_groups; ++ group_id) {
                 size_t n_bridges_merged = 0;
                 size_t idx_last = (size_t)-1;
@@ -278,7 +288,8 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
             }
 
             fill_boundaries = STDMOVE(to_polygons(fill_boundaries_ex));
-        }
+			BOOST_LOG_TRIVIAL(trace) << "Processing external surface, detecting bridges - done";
+		}
 
     #if 0
         {
