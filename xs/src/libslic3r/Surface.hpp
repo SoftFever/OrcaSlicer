@@ -23,7 +23,10 @@ enum SurfaceType {
     // or if sparse infill layers get combined into a single layer.
     stInternalVoid,
     // Inner/outer perimeters.
-    stPerimeter
+    stPerimeter,
+    // Last surface type, if the SurfaceType is used as an index into a vector.
+    stLast,
+    stCount = stLast + 1
 };
 
 class Surface
