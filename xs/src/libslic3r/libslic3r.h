@@ -121,12 +121,20 @@ template <class T> void
 parallelize(std::queue<T> queue, boost::function<void(T)> func,
     int threads_count = boost::thread::hardware_concurrency())
 {
-    if (threads_count == 0) threads_count = 2;
+#ifdef SLIC3R_PROFILE
+    while (! queue.empty()) {
+        func(queue.front());
+        queue.pop();
+    }
+#else
+    if (threads_count == 0)
+        threads_count = 2;
     boost::mutex queue_mutex;
     boost::thread_group workers;
     for (int i = 0; i < std::min(threads_count, int(queue.size())); ++ i)
         workers.add_thread(new boost::thread(&_parallelize_do<T>, &queue, &queue_mutex, func));
     workers.join_all();
+#endif
 }
 
 template <class T> void
