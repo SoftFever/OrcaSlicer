@@ -186,8 +186,8 @@ private:
     friend class Clipper; //to access AllNodes
 };
 
-bool Orientation(const Path &poly);
 double Area(const Path &poly);
+inline bool Orientation(const Path &poly) { return Area(poly) >= 0; }
 int PointInPolygon(const IntPoint &pt, const Path &path);
 
 void SimplifyPolygon(const Path &in_poly, Paths &out_polys, PolyFillType fillType = pftEvenOdd);
