@@ -488,6 +488,44 @@ _clipper_do(const ClipperLib::ClipType clipType, const Polygons &subject,
     return retval;
 }
 
+// Fix of #117: A large fractal pyramid takes ages to slice
+// The Clipper library has difficulties processing overlapping polygons.
+// Namely, the function Clipper::JoinCommonEdges() has potentially a terrible time complexity if the output
+// of the operation is of the PolyTree type.
+// This function implmenets a following workaround:
+// 1) Peform the Clipper operation with the output to Paths. This method handles overlaps in a reasonable time.
+// 2) Run Clipper Union once again to extract the PolyTree from the result of 1).
+inline ClipperLib::PolyTree _clipper_do_polytree2(const ClipperLib::ClipType clipType, const Polygons &subject, 
+    const Polygons &clip, const ClipperLib::PolyFillType fillType, const bool safety_offset_)
+{
+    // read input
+    ClipperLib::Paths input_subject = Slic3rMultiPoints_to_ClipperPaths(subject);
+    ClipperLib::Paths input_clip    = Slic3rMultiPoints_to_ClipperPaths(clip);
+    
+    // perform safety offset
+    if (safety_offset_) {
+        if (clipType == ClipperLib::ctUnion) {
+            safety_offset(&input_subject);
+        } else {
+            safety_offset(&input_clip);
+        }
+    }
+    
+    ClipperLib::Clipper clipper;
+    clipper.AddPaths(input_subject, ClipperLib::ptSubject, true);
+    clipper.AddPaths(input_clip,    ClipperLib::ptClip,    true);
+    // Perform the operation with the output to input_subject.
+    // This pass does not generate a PolyTree, which is a very expensive operation with the current Clipper library
+    // if there are overapping edges.
+    clipper.Execute(clipType, input_subject, fillType, fillType);
+    // Perform an additional Union operation to generate the PolyTree ordering.
+    clipper.Clear();
+    clipper.AddPaths(input_subject, ClipperLib::ptSubject, true);
+    ClipperLib::PolyTree retval;
+    clipper.Execute(ClipperLib::ctUnion, retval, fillType, fillType);
+    return retval;
+}
+
 ClipperLib::PolyTree
 _clipper_do_pl(const ClipperLib::ClipType clipType, const Polylines &subject, 
     const Polygons &clip, const ClipperLib::PolyFillType fillType,
@@ -525,7 +563,7 @@ ExPolygons
 _clipper_ex(ClipperLib::ClipType clipType, const Polygons &subject, 
     const Polygons &clip, bool safety_offset_)
 {
-    ClipperLib::PolyTree polytree = _clipper_do<ClipperLib::PolyTree>(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_);
+    ClipperLib::PolyTree polytree = _clipper_do_polytree2(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_);
     return PolyTreeToExPolygons(polytree);
 }
 
