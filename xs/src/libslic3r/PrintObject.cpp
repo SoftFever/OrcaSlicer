@@ -4,6 +4,7 @@
 #include "Geometry.hpp"
 #include "SupportMaterial.hpp"
 
+#include <utility>
 #include <boost/log/trivial.hpp>
 
 #include <Shiny/Shiny.h>
@@ -362,6 +363,7 @@ void PrintObject::detect_surfaces_type()
     BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces...";
 
     for (int idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
+        BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region;
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
             LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
@@ -372,6 +374,7 @@ void PrintObject::detect_surfaces_type()
         for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
             Layer       *layer  = this->layers[idx_layer];
             LayerRegion *layerm = layer->get_region(idx_region);
+            BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region << " and layer " << layer->print_z;
             // comparison happens against the *full* slices (considering all regions)
             // unless internal shells are requested
             Layer       *upper_layer = idx_layer + 1 < this->layer_count() ? this->get_layer(idx_layer + 1) : NULL;
@@ -464,6 +467,17 @@ void PrintObject::detect_surfaces_type()
 #endif
                     stTop);
             }
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+            {
+                static int iRun = 0;
+                std::vector<std::pair<Slic3r::ExPolygons, SVG::ExPolygonAttributes>> expolygons_with_attributes;
+                expolygons_with_attributes.emplace_back(std::make_pair(union_ex(top),                           SVG::ExPolygonAttributes("green")));
+                expolygons_with_attributes.emplace_back(std::make_pair(union_ex(bottom),                        SVG::ExPolygonAttributes("brown")));
+                expolygons_with_attributes.emplace_back(std::make_pair(to_expolygons(layerm->slices.surfaces),  SVG::ExPolygonAttributes("black")));
+                SVG::export_expolygons(debug_out_path("1_detect_surfaces_type_%d_region%d-layer_%f.svg", iRun ++, idx_region, layer->print_z).c_str(), expolygons_with_attributes);
+            }
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
             
             // save surfaces to layer
             layerm->slices.surfaces.clear();
@@ -515,7 +529,7 @@ PrintObject::process_external_surfaces()
             const Layer* lower_layer = (layer_it == this->layers.begin())
                 ? NULL
                 : *(layer_it-1);
-            
+            BOOST_LOG_TRIVIAL(trace) << "Processing external surface, layer" << (*layer_it)->print_z;
             (*layer_it)->get_region(region_id)->process_external_surfaces(lower_layer);
         }
     }
@@ -1010,6 +1024,8 @@ bool PrintObject::update_layer_height_profile()
 // this should be idempotent
 void PrintObject::_slice()
 {
+    BOOST_LOG_TRIVIAL(info) << "Slicing objects...";
+
     SlicingParameters slicing_params = this->slicing_parameters();
 
     // 1) Initialize layers and their slice heights.
@@ -1127,6 +1143,8 @@ end:
 
 std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::vector<float> &z, bool modifier)
 {
+    BOOST_LOG_TRIVIAL(trace) << "Slicing region " << region_id;
+
     std::vector<ExPolygons> layers;
     assert(region_id < this->region_volumes.size());
     std::vector<int> &volumes = this->region_volumes[region_id];
@@ -1159,6 +1177,8 @@ PrintObject::_make_perimeters()
 {
     if (this->state.is_done(posPerimeters)) return;
     this->state.set_started(posPerimeters);
+
+    BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
     
     // merge slices if they were split into types
     if (this->typed_slices) {
@@ -1177,6 +1197,7 @@ PrintObject::_make_perimeters()
     // hollow objects
     FOREACH_REGION(this->_print, region_it) {
         size_t region_id = region_it - this->_print->regions.begin();
+        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for region " << region_id;
         const PrintRegion &region = **region_it;
         
         
