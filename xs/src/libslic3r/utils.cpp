@@ -4,7 +4,7 @@
 
 namespace Slic3r {
 
-static boost::log::trivial::severity_level logSeverity = boost::log::trivial::fatal;
+static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
 
 void set_logging_level(unsigned int level)
 {
@@ -28,6 +28,11 @@ void set_logging_level(unsigned int level)
         boost::log::trivial::severity >= logSeverity
     );
 }
+
+// Force set_logging_level(<=error) after loading of the DLL.
+static struct SetLoggingLevelOnInit {
+    SetLoggingLevelOnInit() { set_logging_level(1); }
+} g_SetLoggingLevelOnInit;
 
 void trace(unsigned int level, const char *message)
 {
