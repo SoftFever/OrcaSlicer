@@ -154,6 +154,8 @@ TriangleMesh::repair() {
     
     // admesh fails when repairing empty meshes
     if (this->stl.stats.number_of_facets == 0) return;
+
+    BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() started";
     
     // checking exact
     stl_check_facets_exact(&stl);
@@ -204,6 +206,8 @@ TriangleMesh::repair() {
     stl_verify_neighbors(&stl);
     
     this->repaired = true;
+
+    BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() finished";
 }
 
 void
@@ -537,8 +541,14 @@ TriangleMesh::bounding_box() const
 void
 TriangleMesh::require_shared_vertices()
 {
-    if (!this->repaired) this->repair();
-    if (this->stl.v_shared == NULL) stl_generate_shared_vertices(&(this->stl));
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - start";
+    if (!this->repaired) 
+        this->repair();
+    if (this->stl.v_shared == NULL) {
+        BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - stl_generate_shared_vertices";
+        stl_generate_shared_vertices(&(this->stl));
+    }
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - end";
 }
 
 
