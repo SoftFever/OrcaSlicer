@@ -65,14 +65,6 @@ static int const Skip = -2;        //edge that would otherwise close a path
 #define TOLERANCE (1.0e-20)
 #define NEAR_ZERO(val) (((val) > -TOLERANCE) && ((val) < TOLERANCE))
 
-// Point of an output polygon.
-struct OutPt {
-  int       Idx;
-  IntPoint  Pt;
-  OutPt    *Next;
-  OutPt    *Prev;
-};
-
 // Output polygon.
 struct OutRec {
   int       Idx;
@@ -568,19 +560,6 @@ void ReversePolyPtLinks(OutPt *pp)
     pp1->Prev = pp2;
     pp1 = pp2;
   } while( pp1 != pp );
-}
-//------------------------------------------------------------------------------
-
-void DisposeOutPts(OutPt*& pp)
-{
-  if (pp == 0) return;
-    pp->Prev->Next = 0;
-  while( pp )
-  {
-    OutPt *tmpPp = pp;
-    pp = pp->Next;
-    delete tmpPp;
-  }
 }
 //------------------------------------------------------------------------------
 
@@ -1219,11 +1198,14 @@ IntRect ClipperBase::GetBounds()
 // TClipper methods ...
 //------------------------------------------------------------------------------
 
-Clipper::Clipper(int initOptions) : ClipperBase() //constructor
+Clipper::Clipper(int initOptions) : 
+  ClipperBase(),
+  m_OutPtsFree(nullptr),
+  m_OutPtsChunkSize(32),
+  m_OutPtsChunkLast(32),
+  m_ActiveEdges(nullptr),
+  m_SortedEdges(nullptr)
 {
-  m_ActiveEdges = 0;
-  m_SortedEdges = 0;
-  m_UseFullRange = false;
   m_ReverseOutput = ((initOptions & ioReverseSolution) != 0);
   m_StrictSimple = ((initOptions & ioStrictlySimple) != 0);
   m_PreserveCollinear = ((initOptions & ioPreserveCollinear) != 0);
@@ -1351,12 +1333,32 @@ bool Clipper::ExecuteInternal()
 }
 //------------------------------------------------------------------------------
 
-void Clipper::DisposeAllOutRecs(){
-  for (OutRec *outRec : m_PolyOuts) {
-    if (outRec->Pts)
-      DisposeOutPts(outRec->Pts);
-    delete outRec;
+OutPt* Clipper::AllocateOutPt()
+{
+  OutPt *pt;
+  if (m_OutPtsFree) {
+    // Recycle some of the already released points.
+    pt = m_OutPtsFree;
+    m_OutPtsFree = pt->Next;
+  } else if (m_OutPtsChunkLast < m_OutPtsChunkSize) {
+    // Get a point from the last chunk.
+    pt = m_OutPts.back() + (m_OutPtsChunkLast ++);
+  } else {
+    // The last chunk is full. Allocate a new one.
+    m_OutPts.push_back(new OutPt[m_OutPtsChunkSize]);
+    m_OutPtsChunkLast = 1;
+    pt = m_OutPts.back();
   }
+  return pt;
+}
+
+void Clipper::DisposeAllOutRecs()
+{
+  for (OutPt *pts : m_OutPts)
+    delete[] pts;
+  m_OutPts.clear();
+  m_OutPtsFree = nullptr;
+  m_OutPtsChunkLast = m_OutPtsChunkSize;
   m_PolyOuts.clear();
 }
 //------------------------------------------------------------------------------
@@ -2156,7 +2158,7 @@ OutPt* Clipper::AddOutPt(TEdge *e, const IntPoint &pt)
   {
     OutRec *outRec = CreateOutRec();
     outRec->IsOpen = (e->WindDelta == 0);
-    OutPt* newOp = new OutPt;
+    OutPt* newOp = this->AllocateOutPt();
     outRec->Pts = newOp;
     newOp->Idx = outRec->Idx;
     newOp->Pt = pt;
@@ -2176,7 +2178,7 @@ OutPt* Clipper::AddOutPt(TEdge *e, const IntPoint &pt)
 	if (ToFront && (pt == op->Pt)) return op;
     else if (!ToFront && (pt == op->Prev->Pt)) return op->Prev;
 
-    OutPt* newOp = new OutPt;
+    OutPt* newOp = this->AllocateOutPt();
     newOp->Idx = outRec->Idx;
     newOp->Pt = pt;
     newOp->Next = op;
@@ -2843,14 +2845,14 @@ void Clipper::FixupOutPolyline(OutRec &outrec)
       OutPt *tmpPP = pp->Prev;
       tmpPP->Next = pp->Next;
       pp->Next->Prev = tmpPP;
-      delete pp;
+      this->DisposeOutPt(pp);
       pp = tmpPP;
     }
   }
 
   if (pp == pp->Prev)
   {
-    DisposeOutPts(pp);
+    this->DisposeOutPts(pp);
     outrec.Pts = 0;
     return;
   }
@@ -2871,7 +2873,7 @@ void Clipper::FixupOutPolygon(OutRec &outrec)
         if (pp->Prev == pp || pp->Prev == pp->Next)
         {
             // Empty loop or a stick. Release the polygon.
-            DisposeOutPts(pp);
+            this->DisposeOutPts(pp);
             outrec.Pts = nullptr;
             return;
         }
@@ -2886,7 +2888,7 @@ void Clipper::FixupOutPolygon(OutRec &outrec)
             pp->Prev->Next = pp->Next;
             pp->Next->Prev = pp->Prev;
             pp = pp->Prev;
-            delete tmp;
+            this->DisposeOutPt(tmp);
         }
         else if (pp == lastOK) break;
         else
@@ -3063,9 +3065,9 @@ void Clipper::InsertEdgeIntoAEL(TEdge *edge, TEdge* startEdge)
 }
 //----------------------------------------------------------------------
 
-OutPt* DupOutPt(OutPt* outPt, bool InsertAfter)
+OutPt* Clipper::DupOutPt(OutPt* outPt, bool InsertAfter)
 {
-  OutPt* result = new OutPt;
+  OutPt* result = this->AllocateOutPt();
   result->Pt = outPt->Pt;
   result->Idx = outPt->Idx;
   if (InsertAfter)
@@ -3086,7 +3088,7 @@ OutPt* DupOutPt(OutPt* outPt, bool InsertAfter)
 }
 //------------------------------------------------------------------------------
 
-bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
+bool Clipper::JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
   const IntPoint &Pt, bool DiscardLeft)
 {
   Direction Dir1 = (op1->Pt.X > op1b->Pt.X ? dRightToLeft : dLeftToRight);
@@ -3104,12 +3106,12 @@ bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
       op1->Next->Pt.X >= op1->Pt.X && op1->Next->Pt.Y == Pt.Y)  
         op1 = op1->Next;
     if (DiscardLeft && (op1->Pt.X != Pt.X)) op1 = op1->Next;
-    op1b = DupOutPt(op1, !DiscardLeft);
+    op1b = this->DupOutPt(op1, !DiscardLeft);
     if (op1b->Pt != Pt) 
     {
       op1 = op1b;
       op1->Pt = Pt;
-      op1b = DupOutPt(op1, !DiscardLeft);
+      op1b = this->DupOutPt(op1, !DiscardLeft);
     }
   } 
   else
@@ -3118,12 +3120,12 @@ bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
       op1->Next->Pt.X <= op1->Pt.X && op1->Next->Pt.Y == Pt.Y) 
         op1 = op1->Next;
     if (!DiscardLeft && (op1->Pt.X != Pt.X)) op1 = op1->Next;
-    op1b = DupOutPt(op1, DiscardLeft);
+    op1b = this->DupOutPt(op1, DiscardLeft);
     if (op1b->Pt != Pt)
     {
       op1 = op1b;
       op1->Pt = Pt;
-      op1b = DupOutPt(op1, DiscardLeft);
+      op1b = this->DupOutPt(op1, DiscardLeft);
     }
   }
 
@@ -3133,12 +3135,12 @@ bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
       op2->Next->Pt.X >= op2->Pt.X && op2->Next->Pt.Y == Pt.Y)
         op2 = op2->Next;
     if (DiscardLeft && (op2->Pt.X != Pt.X)) op2 = op2->Next;
-    op2b = DupOutPt(op2, !DiscardLeft);
+    op2b = this->DupOutPt(op2, !DiscardLeft);
     if (op2b->Pt != Pt)
     {
       op2 = op2b;
       op2->Pt = Pt;
-      op2b = DupOutPt(op2, !DiscardLeft);
+      op2b = this->DupOutPt(op2, !DiscardLeft);
     };
   } else
   {
@@ -3146,12 +3148,12 @@ bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
       op2->Next->Pt.X <= op2->Pt.X && op2->Next->Pt.Y == Pt.Y) 
         op2 = op2->Next;
     if (!DiscardLeft && (op2->Pt.X != Pt.X)) op2 = op2->Next;
-    op2b = DupOutPt(op2, DiscardLeft);
+    op2b = this->DupOutPt(op2, DiscardLeft);
     if (op2b->Pt != Pt)
     {
       op2 = op2b;
       op2->Pt = Pt;
-      op2b = DupOutPt(op2, DiscardLeft);
+      op2b = this->DupOutPt(op2, DiscardLeft);
     };
   };
 
@@ -3203,8 +3205,8 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
     if (reverse1 == reverse2) return false;
     if (reverse1)
     {
-      op1b = DupOutPt(op1, false);
-      op2b = DupOutPt(op2, true);
+      op1b = this->DupOutPt(op1, false);
+      op2b = this->DupOutPt(op2, true);
       op1->Prev = op2;
       op2->Next = op1;
       op1b->Next = op2b;
@@ -3214,8 +3216,8 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       return true;
     } else
     {
-      op1b = DupOutPt(op1, true);
-      op2b = DupOutPt(op2, false);
+      op1b = this->DupOutPt(op1, true);
+      op2b = this->DupOutPt(op2, false);
       op1->Next = op2;
       op2->Prev = op1;
       op1b->Prev = op2b;
@@ -3307,8 +3309,8 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
 
     if (Reverse1)
     {
-      op1b = DupOutPt(op1, false);
-      op2b = DupOutPt(op2, true);
+      op1b = this->DupOutPt(op1, false);
+      op2b = this->DupOutPt(op2, true);
       op1->Prev = op2;
       op2->Next = op1;
       op1b->Next = op2b;
@@ -3318,8 +3320,8 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       return true;
     } else
     {
-      op1b = DupOutPt(op1, true);
-      op2b = DupOutPt(op2, false);
+      op1b = this->DupOutPt(op1, true);
+      op2b = this->DupOutPt(op2, false);
       op1->Next = op2;
       op2->Prev = op1;
       op1b->Prev = op2b;

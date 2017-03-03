@@ -261,7 +261,20 @@ enum EdgeSide { esLeft = 1, esRight = 2};
     TEdge        *RightBound;
   };
 
-  struct OutPt;
+  // Point of an output polygon.
+  // 36B on 64bit system with not use_int32 and not use_xyz.
+  struct OutPt {
+    // 4B
+    int       Idx;
+    // 8B (if use_int32 and not use_xyz) or 16B (if not use_int32 and not use_xyz)
+    // or 12B (if use_int32 and use_xyz) or 24B (if not use_int32 and use_xyz)
+    IntPoint  Pt;
+    // 4B on 32bit system, 8B on 64bit system
+    OutPt    *Next;
+    // 4B on 32bit system, 8B on 64bit system
+    OutPt    *Prev;
+  };
+
   struct OutRec;
   struct Join {
     Join(OutPt *OutPt1, OutPt *OutPt2, IntPoint OffPt) :
@@ -318,6 +331,7 @@ class Clipper : public virtual ClipperBase
 public:
   Clipper(int initOptions = 0);
   ~Clipper() { Clear(); }
+  void Clear() { ClipperBase::Clear(); DisposeAllOutRecs(); }
   bool Execute(ClipType clipType,
       Paths &solution,
       PolyFillType fillType = pftEvenOdd) 
@@ -346,25 +360,34 @@ protected:
   void Reset();
   virtual bool ExecuteInternal();
 private:
-  std::vector<OutRec*> m_PolyOuts;
-  std::vector<Join> m_Joins;
-  std::vector<Join> m_GhostJoins;
+  
+  // Output polygons.
+  std::vector<OutRec*>  m_PolyOuts;
+  // Output points, allocated by a continuous sets of m_OutPtsChunkSize.
+  std::vector<OutPt*>   m_OutPts;
+  // List of free output points, to be used before taking a point from m_OutPts or allocating a new chunk.
+  OutPt                *m_OutPtsFree;
+  size_t                m_OutPtsChunkSize;
+  size_t                m_OutPtsChunkLast;
+
+  std::vector<Join>     m_Joins;
+  std::vector<Join>     m_GhostJoins;
   std::vector<IntersectNode> m_IntersectList;
-  ClipType         m_ClipType;
+  ClipType              m_ClipType;
   // A priority queue (a binary heap) of Y coordinates.
   std::priority_queue<cInt> m_Scanbeam;
   // Maxima are collected by ProcessEdgesAtTopOfScanbeam(), consumed by ProcessHorizontal().
-  std::vector<cInt> m_Maxima;
-  TEdge           *m_ActiveEdges;
-  TEdge           *m_SortedEdges;
-  PolyFillType     m_ClipFillType;
-  PolyFillType     m_SubjFillType;
-  bool             m_ReverseOutput;
+  std::vector<cInt>     m_Maxima;
+  TEdge                *m_ActiveEdges;
+  TEdge                *m_SortedEdges;
+  PolyFillType          m_ClipFillType;
+  PolyFillType          m_SubjFillType;
+  bool                  m_ReverseOutput;
   // Does the result go to a PolyTree or Paths?
-  bool             m_UsingPolyTree; 
-  bool             m_StrictSimple;
+  bool                  m_UsingPolyTree; 
+  bool                  m_StrictSimple;
 #ifdef use_xyz
-  ZFillCallback   m_ZFill; //custom callback 
+  ZFillCallback         m_ZFill; //custom callback 
 #endif
   void SetWindingCount(TEdge& edge) const;
   bool IsEvenOddFillType(const TEdge& edge) const 
@@ -393,6 +416,11 @@ private:
   OutRec* CreateOutRec();
   OutPt* AddOutPt(TEdge *e, const IntPoint &pt);
   OutPt* GetLastOutPt(TEdge *e);
+  OutPt* AllocateOutPt();
+  OutPt* DupOutPt(OutPt* outPt, bool InsertAfter);
+  // Add the point to a list of free points.
+  void DisposeOutPt(OutPt *pt) { pt->Next = m_OutPtsFree; m_OutPtsFree = pt; }
+  void DisposeOutPts(OutPt*& pp) { if (pp != nullptr) { pp->Prev->Next = m_OutPtsFree; m_OutPtsFree = pp; } }
   void DisposeAllOutRecs();
   bool ProcessIntersections(const cInt topY);
   void BuildIntersectList(const cInt topY);
@@ -406,6 +434,7 @@ private:
   bool FindOwnerFromSplitRecs(OutRec &outRec, OutRec *&currOrfl);
   void FixHoleLinkage(OutRec &outrec);
   bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
+  bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b, const IntPoint &Pt, bool DiscardLeft);
   void JoinCommonEdges();
   void DoSimplePolygons();
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec) const;
