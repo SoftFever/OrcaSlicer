@@ -4,6 +4,7 @@
 namespace Slic3r {
 
 extern void set_logging_level(unsigned int level);
+extern void trace(unsigned int level, const char *message);
 
 } // namespace Slic3r
 

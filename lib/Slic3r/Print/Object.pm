@@ -126,6 +126,8 @@ sub make_perimeters {
     
     # prerequisites
     $self->slice;
+
+    $self->print->status_cb->(20, "Generating perimeters");
     $self->_make_perimeters;
 }
 

@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <math.h>
 
+#include <boost/log/trivial.hpp>
+
 #if 0
     #define DEBUG
     #define _DEBUG
@@ -543,6 +545,7 @@ TriangleMesh::require_shared_vertices()
 TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) : 
     mesh(_mesh)
 {
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::constructor";
     _mesh->require_shared_vertices();
     facets_edges.assign(_mesh->stl.stats.number_of_facets * 3, -1);
     v_scaled_shared.assign(_mesh->stl.v_shared, _mesh->stl.v_shared + _mesh->stl.stats.shared_vertices);
@@ -593,6 +596,8 @@ TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) :
 void
 TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* layers) const
 {
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::slice";
+
     /*
        This method gets called with a list of unscaled Z coordinates and outputs
        a vector pointer having the same number of items as the original list.
@@ -620,6 +625,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
         type is float.
     */
     
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::_slice_do";
     std::vector<IntersectionLines> lines(z.size());
     {
         boost::mutex lines_mutex;
@@ -633,12 +639,14 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     // v_scaled_shared could be freed here
     
     // build loops
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::_make_loops_do";
     layers->resize(z.size());
     parallelize<size_t>(
         0,
         lines.size()-1,
         boost::bind(&TriangleMeshSlicer::_make_loops_do, this, _1, &lines, layers)
     );
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::slice finished";
 }
 
 void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, 

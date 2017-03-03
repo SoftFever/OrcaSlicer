@@ -42,6 +42,13 @@ set_logging_level(level)
         Slic3r::set_logging_level(level);
 
 void
+trace(level, message)
+    unsigned int level;
+    char        *message;
+    CODE:
+        Slic3r::trace(level, message);
+
+void
 xspp_test_croak_hangs_on_strawberry()
     CODE:
     	try {

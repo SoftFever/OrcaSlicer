@@ -42,7 +42,7 @@ sub size {
 sub process {
     my ($self) = @_;
     
-    $self->status_cb->(20, "Generating perimeters");
+    Slic3r::trace(3, "Staring the slicing process.");
     $_->make_perimeters for @{$self->objects};
     
     $self->status_cb->(70, "Infilling layers");
@@ -67,6 +67,7 @@ sub process {
         eval "use Slic3r::Test::SectionCut";
         Slic3r::Test::SectionCut->new(print => $self)->export_svg("section_cut.svg");
     }
+    Slic3r::trace(3, "Slicing process finished.")
 }
 
 sub export_gcode {

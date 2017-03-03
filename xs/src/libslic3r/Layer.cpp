@@ -5,6 +5,8 @@
 #include "Fill/Fill.hpp"
 #include "SVG.hpp"
 
+#include <boost/log/trivial.hpp>
+
 namespace Slic3r {
 
 Layer::Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
@@ -170,9 +172,7 @@ template bool Layer::any_bottom_region_slice_contains<Polyline>(const Polyline &
 void
 Layer::make_perimeters()
 {
-    #ifdef SLIC3R_DEBUG
-    printf("Making perimeters for layer " PRINTF_ZU "\n", this->id());
-    #endif
+    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
     
     // keep track of regions whose perimeters we have already generated
     std::set<size_t> done;
@@ -180,6 +180,7 @@ Layer::make_perimeters()
     FOREACH_LAYERREGION(this, layerm) {
         size_t region_id = layerm - this->regions.begin();
         if (done.find(region_id) != done.end()) continue;
+        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
         done.insert(region_id);
         const PrintRegionConfig &config = (*layerm)->region()->config;
         
@@ -237,6 +238,7 @@ Layer::make_perimeters()
             }
         }
     }
+    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
 }
 
 void Layer::make_fills()

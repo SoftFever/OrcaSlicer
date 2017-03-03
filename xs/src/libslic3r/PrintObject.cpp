@@ -363,7 +363,7 @@ void PrintObject::detect_surfaces_type()
     BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces...";
 
     for (int idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
-        BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region;
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region;
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
             LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
@@ -825,8 +825,8 @@ PrintObject::discover_vertical_shells()
     } // for each region
 
     // Write the profiler measurements to file
-    PROFILE_UPDATE();
-    PROFILE_OUTPUT(debug_out_path("discover_vertical_shells-profile.txt").c_str());
+//    PROFILE_UPDATE();
+//    PROFILE_OUTPUT(debug_out_path("discover_vertical_shells-profile.txt").c_str());
 }
 
 /* This method applies bridge flow to the first internal solid layer above
@@ -1143,7 +1143,7 @@ end:
 
 std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::vector<float> &z, bool modifier)
 {
-    BOOST_LOG_TRIVIAL(trace) << "Slicing region " << region_id;
+    BOOST_LOG_TRIVIAL(debug) << "Slicing region " << region_id;
 
     std::vector<ExPolygons> layers;
     assert(region_id < this->region_volumes.size());
@@ -1197,7 +1197,6 @@ PrintObject::_make_perimeters()
     // hollow objects
     FOREACH_REGION(this->_print, region_it) {
         size_t region_id = region_it - this->_print->regions.begin();
-        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for region " << region_id;
         const PrintRegion &region = **region_it;
         
         
@@ -1206,6 +1205,7 @@ PrintObject::_make_perimeters()
             || region.config.fill_density == 0
             || this->layer_count() < 2) continue;
         
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id;
         for (size_t i = 0; i < this->layer_count() - 1; ++ i) {
             LayerRegion &layerm                     = *this->get_layer(i)->get_region(region_id);
             const LayerRegion &upper_layerm         = *this->get_layer(i+1)->get_region(region_id);
@@ -1267,6 +1267,7 @@ PrintObject::_make_perimeters()
         }
     }
     
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel";
     parallelize<Layer*>(
         std::queue<Layer*>(std::deque<Layer*>(this->layers.begin(), this->layers.end())),  // cast LayerPtrs to std::queue<Layer*>
         boost::bind(&Slic3r::Layer::make_perimeters, _1),
@@ -1289,6 +1290,7 @@ PrintObject::_infill()
     if (this->state.is_done(posInfill)) return;
     this->state.set_started(posInfill);
     
+    BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel";
     parallelize<Layer*>(
         std::queue<Layer*>(std::deque<Layer*>(this->layers.begin(), this->layers.end())),  // cast LayerPtrs to std::queue<Layer*>
         boost::bind(&Slic3r::Layer::make_fills, _1),
