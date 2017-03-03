@@ -291,6 +291,7 @@ public:
   bool PreserveCollinear() const {return m_PreserveCollinear;};
   void PreserveCollinear(bool value) {m_PreserveCollinear = value;};
 protected:
+  bool AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, bool Closed, TEdge* edges);
   TEdge* AddBoundsToLML(TEdge *e, bool IsClosed);
   virtual void Reset();
   TEdge* ProcessBound(TEdge* E, bool IsClockwise);

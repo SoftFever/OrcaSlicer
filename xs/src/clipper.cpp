@@ -898,6 +898,72 @@ TEdge* ClipperBase::ProcessBound(TEdge* E, bool NextIsForward)
 bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
 {
   PROFILE_FUNC();
+  // Remove duplicate end point from a closed input path.
+  // Remove duplicate points from the end of the input path.
+  int highI = (int)pg.size() -1;
+  if (Closed) 
+    while (highI > 0 && (pg[highI] == pg[0])) 
+      --highI;
+  while (highI > 0 && (pg[highI] == pg[highI -1])) 
+    --highI;
+  if ((Closed && highI < 2) || (!Closed && highI < 1))
+    return false;
+
+  // Allocate a new edge array.
+  std::vector<TEdge> edges(highI + 1);
+  // Fill in the edge array.
+  bool result = AddPathInternal(pg, highI, PolyTyp, Closed, edges.data());
+  if (result)
+    // Success, remember the edge array.
+    m_edges.emplace_back(std::move(edges));
+  return result;
+}
+
+bool ClipperBase::AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed)
+{
+  PROFILE_FUNC();
+  std::vector<int> num_edges(ppg.size(), 0);
+  int num_edges_total = 0;
+  for (size_t i = 0; i < ppg.size(); ++ i) {
+    const Path &pg = ppg[i];
+    // Remove duplicate end point from a closed input path.
+    // Remove duplicate points from the end of the input path.
+    int highI = (int)pg.size() -1;
+    if (Closed) 
+      while (highI > 0 && (pg[highI] == pg[0])) 
+        --highI;
+    while (highI > 0 && (pg[highI] == pg[highI -1])) 
+      --highI;
+    if ((Closed && highI < 2) || (!Closed && highI < 1))
+      highI = -1;
+    num_edges[i] = highI + 1;
+    num_edges_total += highI + 1;
+  }
+  if (num_edges_total == 0)
+    return false;
+
+  // Allocate a new edge array.
+  std::vector<TEdge> edges(num_edges_total);
+  // Fill in the edge array.
+  bool result = false;
+  TEdge *p_edge = edges.data();
+  for (Paths::size_type i = 0; i < ppg.size(); ++i)
+    if (num_edges[i]) {
+      bool res = AddPathInternal(ppg[i], num_edges[i] - 1, PolyTyp, Closed, p_edge);
+      if (res) {
+        p_edge += num_edges[i];
+        result = true;
+      }
+    }
+  if (result)
+    // At least some edges were generated. Remember the edge array.
+    m_edges.emplace_back(std::move(edges));
+  return result;
+}
+
+bool ClipperBase::AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, bool Closed, TEdge* edges)
+{
+  PROFILE_FUNC();
 #ifdef use_lines
   if (!Closed && PolyTyp == ptClip)
     throw clipperException("AddPath: Open paths must be subject.");
@@ -906,15 +972,7 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
     throw clipperException("AddPath: Open paths have been disabled.");
 #endif
 
-  // Remove duplicate end point from a closed input path.
-  // Remove duplicate points from the end of the input path.
-  int highI = (int)pg.size() -1;
-  if (Closed) while (highI > 0 && (pg[highI] == pg[0])) --highI;
-  while (highI > 0 && (pg[highI] == pg[highI -1])) --highI;
-  if ((Closed && highI < 2) || (!Closed && highI < 1)) return false;
-
-  //create a new edge array ...
-  std::vector<TEdge> edges(highI + 1);
+  assert(highI >= 0 && highI < pg.size());
 
   //1. Basic (first) edge initialization ...
   try
@@ -1018,11 +1076,9 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
       E = E->Next;
     }
     m_MinimaList.push_back(locMin);
-    m_edges.emplace_back(std::move(edges));
 	  return true;
   }
 
-  m_edges.emplace_back(std::move(edges));
   bool leftBoundIsForward;
   TEdge* EMin = 0;
 
@@ -1076,16 +1132,6 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
     if (!leftBoundIsForward) E = E2;
   }
   return true;
-}
-//------------------------------------------------------------------------------
-
-bool ClipperBase::AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed)
-{
-  PROFILE_FUNC();
-  bool result = false;
-  for (Paths::size_type i = 0; i < ppg.size(); ++i)
-    if (AddPath(ppg[i], PolyTyp, Closed)) result = true;
-  return result;
 }
 //------------------------------------------------------------------------------
 
