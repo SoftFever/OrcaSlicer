@@ -7,7 +7,6 @@
 #include <set>
 #include <vector>
 #include <map>
-#include <unordered_map>
 #include <utility>
 #include <algorithm>
 #include <math.h>
@@ -555,7 +554,6 @@ TriangleMesh::require_shared_vertices()
 TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) : 
     mesh(_mesh)
 {
-    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::constructor";
     _mesh->require_shared_vertices();
     facets_edges.assign(_mesh->stl.stats.number_of_facets * 3, -1);
     v_scaled_shared.assign(_mesh->stl.v_shared, _mesh->stl.v_shared + _mesh->stl.stats.shared_vertices);
@@ -566,40 +564,75 @@ TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) :
         this->v_scaled_shared[i].z /= float(SCALING_FACTOR);
     }
 
-    // build a table to map a facet_idx to its three edge indices
-    // a_id,b_id => edge_idx
-    struct pairhash {
-        std::size_t operator()(const std::pair<int, int> &x) const 
-            { return std::hash<int>()(x.first) ^ std::hash<int>()(x.second); }
+    // Create a mapping from triangle edge into face.
+    struct EdgeToFace {
+        // Index of the 1st vertex of the triangle edge. vertex_low <= vertex_high.
+        int  vertex_low;
+        // Index of the 2nd vertex of the triangle edge.
+        int  vertex_high;
+        // Index of a triangular face.
+        int  face;
+        // Index of edge in the face, starting with 1. Negative indices if the edge was stored reverse in (vertex_low, vertex_high).
+        int  face_edge;
+        bool operator==(const EdgeToFace &other) { return vertex_low == other.vertex_low && vertex_high == other.vertex_high; }
+        bool operator<(const EdgeToFace &other) { return vertex_low < other.vertex_low || (vertex_low == other.vertex_low && vertex_high < other.vertex_high); }
     };
-    std::unordered_map<std::pair<int, int>, int, pairhash>  edges_map;
-    int                                                     num_edges = 0;
-    for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx) {
+    std::vector<EdgeToFace> edges_map;
+    edges_map.assign(this->mesh->stl.stats.number_of_facets * 3, EdgeToFace());
+    for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx)
         for (int i = 0; i < 3; ++ i) {
-            // Vertex indices of th ith edge of facet_idx.
-            int a_id = this->mesh->stl.v_indices[facet_idx].vertex[i];
-            int b_id = this->mesh->stl.v_indices[facet_idx].vertex[(i + 1) % 3];
-            int edge_idx;
-            auto my_edge = edges_map.find(std::make_pair(b_id, a_id));
-            if (my_edge == edges_map.end()) {
-                /* admesh can assign the same edge ID to more than two facets (which is 
-                   still topologically correct), so we have to search for a duplicate of 
-                   this edge too in case it was already seen in this orientation */
-                my_edge = edges_map.find(std::make_pair(a_id, b_id));
-                if (my_edge != edges_map.end()) {
-                    edge_idx = my_edge->second;
-                } else {
-                    // edge isn't listed in table, so we insert it
-                    edges_map[std::make_pair(a_id, b_id)] = edge_idx = num_edges ++;
-                }
-            } else
-                edge_idx = my_edge->second;
-            this->facets_edges[facet_idx * 3 + i] = edge_idx;
-
-            #ifdef SLIC3R_TRIANGLEMESH_DEBUG
-            printf("  [facet %d, edge %d] a_id = %d, b_id = %d   --> edge %d\n", facet_idx, i, a_id, b_id, edge_idx);
-            #endif
+            EdgeToFace &e2f = edges_map[facet_idx*3+i];
+            e2f.vertex_low  = this->mesh->stl.v_indices[facet_idx].vertex[i];
+            e2f.vertex_high = this->mesh->stl.v_indices[facet_idx].vertex[(i + 1) % 3];
+            e2f.face        = facet_idx;
+            // 1 based indexing, to be always strictly positive.
+            e2f.face_edge   = i + 1;
+            if (e2f.vertex_low > e2f.vertex_high) {
+                // Sort the vertices
+                std::swap(e2f.vertex_low, e2f.vertex_high);
+                // and make the face_edge negative to indicate a flipped edge.
+                e2f.face_edge = - e2f.face_edge;
+            }
         }
+    std::sort(edges_map.begin(), edges_map.end());
+
+    // Assign a unique common edge id to touching triangle edges.
+    int num_edges = 0;
+    for (size_t i = 0; i < edges_map.size(); ++ i) {
+        EdgeToFace &edge_i = edges_map[i];
+        if (edge_i.face == -1)
+            // This edge has been connected to some neighbor already.
+            continue;
+        // Unconnected edge. Find its neighbor with the correct orientation.
+        size_t j;
+        bool found = false;
+        for (j = i + 1; j < edges_map.size() && edge_i == edges_map[j]; ++ j)
+            if (edge_i.face_edge * edges_map[j].face_edge < 0 && edges_map[j].face != -1) {
+                // Faces touching with opposite oriented edges and none of the edges is connected yet.
+                found = true;
+                break;
+            }
+        if (! found) {
+            //FIXME Vojtech: Trying to find an edge with equal orientation. This smells.
+            // admesh can assign the same edge ID to more than two facets (which is 
+            // still topologically correct), so we have to search for a duplicate of 
+            // this edge too in case it was already seen in this orientation
+            for (j = i + 1; j < edges_map.size() && edge_i == edges_map[j]; ++ j)
+                if (edges_map[j].face != -1) {
+                    // Faces touching with equally oriented edges and none of the edges is connected yet.
+                    found = true;
+                    break;
+                }
+        }
+        // Assign an edge index to the 1st face.
+		this->facets_edges[edge_i.face * 3 + std::abs(edge_i.face_edge) - 1] = num_edges;
+        if (found) {
+            EdgeToFace &edge_j = edges_map[j];
+			this->facets_edges[edge_j.face * 3 + std::abs(edge_j.face_edge) - 1] = num_edges;
+			// Mark the edge as connected.
+			edge_j.face = -1;
+		}
+        ++ num_edges;
     }
 }
 
