@@ -574,8 +574,8 @@ TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) :
         int  face;
         // Index of edge in the face, starting with 1. Negative indices if the edge was stored reverse in (vertex_low, vertex_high).
         int  face_edge;
-        bool operator==(const EdgeToFace &other) { return vertex_low == other.vertex_low && vertex_high == other.vertex_high; }
-        bool operator<(const EdgeToFace &other) { return vertex_low < other.vertex_low || (vertex_low == other.vertex_low && vertex_high < other.vertex_high); }
+        bool operator==(const EdgeToFace &other) const { return vertex_low == other.vertex_low && vertex_high == other.vertex_high; }
+        bool operator<(const EdgeToFace &other) const { return vertex_low < other.vertex_low || (vertex_low == other.vertex_low && vertex_high < other.vertex_high); }
     };
     std::vector<EdgeToFace> edges_map;
     edges_map.assign(this->mesh->stl.stats.number_of_facets * 3, EdgeToFace());
