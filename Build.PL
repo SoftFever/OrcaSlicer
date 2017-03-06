@@ -109,11 +109,6 @@ EOF
     # make sure our cpanm is updated (old ones don't support the ~ syntax)
     system $cpanm, @cpanm_args, 'App::cpanminus';
     
-    # install the Windows-compatible Math::Libm
-    if ($^O eq 'MSWin32' && !eval "use Math::Libm; 1") {
-        system $cpanm, @cpanm_args, 'https://github.com/alexrj/Math-Libm/tarball/master';
-    }
-    
     my %modules = (%prereqs, %recommends);
     foreach my $module (sort keys %modules) {
         my $version = $modules{$module};
