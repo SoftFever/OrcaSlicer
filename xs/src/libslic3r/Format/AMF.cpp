@@ -99,11 +99,12 @@ struct AMFParserContext
         NODE_TYPE_DELTAX,               // amf/constellation/instance/deltax
         NODE_TYPE_DELTAY,               // amf/constellation/instance/deltay
         NODE_TYPE_RZ,                   // amf/constellation/instance/rz
+        NODE_TYPE_SCALE,                // amf/constellation/instance/scale
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
     };
 
     struct Instance {
-        Instance() : deltax_set(false), deltay_set(false), rz_set(false) {}
+        Instance() : deltax_set(false), deltay_set(false), rz_set(false), scale_set(false) {}
         // Shift in the X axis.
         float deltax;
         bool  deltax_set;
@@ -113,6 +114,9 @@ struct AMFParserContext
         // Rotation around the Z axis.
         float rz;
         bool  rz_set;
+        // Scaling factor
+        float scale;
+        bool  scale_set;
     };
 
     struct Object {
@@ -222,6 +226,8 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 node_type_new = NODE_TYPE_DELTAY;
             else if (strcmp(name, "rz") == 0)
                 node_type_new = NODE_TYPE_RZ;
+            else if (strcmp(name, "scale") == 0)
+                node_type_new = NODE_TYPE_SCALE;
         }
         break;
     case 4:
@@ -278,7 +284,7 @@ void AMFParserContext::characters(const XML_Char *s, int len)
     {
         switch (m_path.size()) {
         case 4:
-            if (m_path.back() == NODE_TYPE_DELTAX || m_path.back() == NODE_TYPE_DELTAY || m_path.back() == NODE_TYPE_RZ)
+            if (m_path.back() == NODE_TYPE_DELTAX || m_path.back() == NODE_TYPE_DELTAY || m_path.back() == NODE_TYPE_RZ || m_path.back() == NODE_TYPE_SCALE)
                 m_value[0].append(s, len);
             break;
         case 6:
@@ -322,6 +328,12 @@ void AMFParserContext::endElement(const char *name)
         assert(m_instance);
         m_instance->rz = float(atof(m_value[0].c_str()));
         m_instance->rz_set = true;
+        m_value[0].clear();
+        break;
+    case NODE_TYPE_SCALE:
+        assert(m_instance);
+        m_instance->scale = float(atof(m_value[0].c_str()));
+        m_instance->scale_set = true;
         m_value[0].clear();
         break;
 
@@ -451,6 +463,7 @@ void AMFParserContext::endDocument()
                 mi->offset.x = instance.deltax;
                 mi->offset.y = instance.deltay;
                 mi->rotation = instance.rz_set ? instance.rz : 0.f;
+                mi->scaling_factor = instance.scale_set ? instance.scale : 1.f;
             }
     }
 }
@@ -596,11 +609,13 @@ bool store_amf(const char *path, Model *model)
                     "      <deltax>%lf</deltax>\n"
                     "      <deltay>%lf</deltay>\n"
                     "      <rz>%lf</rz>\n"
+                    "      <scale>%lf</scale>\n"
                     "    </instance>\n",
                     object_id,
                     instance->offset.x,
                     instance->offset.y,
-                    instance->rotation);
+                    instance->rotation,
+                    instance->scaling_factor);
                 //FIXME missing instance->scaling_factor
                 instances.append(buf);
             }
