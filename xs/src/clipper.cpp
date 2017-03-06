@@ -2657,7 +2657,7 @@ bool Clipper::FixupIntersectionOrder()
   //Now it's crucial that intersections are made only between adjacent edges,
   //so to ensure this the order of intersections may need adjusting ...
   CopyAELToSEL();
-  std::sort(m_IntersectList.begin(), m_IntersectList.end(), [](IntersectNode &node1, IntersectNode &node2) { return node2.Pt.Y < node1.Pt.Y; });
+  std::sort(m_IntersectList.begin(), m_IntersectList.end(), [](const IntersectNode &node1, const IntersectNode &node2) { return node2.Pt.Y < node1.Pt.Y; });
 
   size_t cnt = m_IntersectList.size();
   for (size_t i = 0; i < cnt; ++i) 
