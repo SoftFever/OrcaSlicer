@@ -526,15 +526,19 @@ PrintObject::process_external_surfaces()
     BOOST_LOG_TRIVIAL(info) << "Processing external surfaces...";
 
     FOREACH_REGION(this->_print, region) {
-        size_t region_id = region - this->_print->regions.begin();
+        int region_id = int(region - this->_print->regions.begin());
         
-        FOREACH_LAYER(this, layer_it) {
-            const Layer* lower_layer = (layer_it == this->layers.begin())
-                ? NULL
-                : *(layer_it-1);
-            BOOST_LOG_TRIVIAL(trace) << "Processing external surface, layer" << (*layer_it)->print_z;
-            (*layer_it)->get_region(region_id)->process_external_surfaces(lower_layer);
-        }
+        BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, this->layers.size()),
+            [this, region_id](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    // BOOST_LOG_TRIVIAL(trace) << "Processing external surface, layer" << this->layers[layer_idx]->print_z;
+                    this->layers[layer_idx]->get_region(region_id)->process_external_surfaces((layer_idx == 0) ? NULL : this->layers[layer_idx - 1]);
+                }
+            }
+        );
+        BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - end";
     }
 }
 

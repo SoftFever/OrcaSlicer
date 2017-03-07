@@ -14,22 +14,6 @@
 
 namespace Slic3r {
 
-LayerRegion::LayerRegion(Layer *layer, PrintRegion *region)
-:   _layer(layer),
-    _region(region)
-{
-}
-
-LayerRegion::~LayerRegion()
-{
-}
-
-Layer*
-LayerRegion::layer()
-{
-    return this->_layer;
-}
-
 Flow
 LayerRegion::flow(FlowRole role, bool bridge, double width) const
 {
@@ -134,26 +118,26 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
         // bottom_polygons are used to trim inflated top surfaces.
         fill_boundaries.reserve(number_polygons(surfaces));
         bool has_infill = this->region()->config.fill_density.value > 0.;
-        for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
-            if (surface->surface_type == stTop) {
+        for (const Surface &surface : this->fill_surfaces.surfaces) {
+            if (surface.surface_type == stTop) {
                 // Collect the top surfaces, inflate them and trim them by the bottom surfaces.
                 // This gives the priority to bottom surfaces.
-                surfaces_append(top, offset_ex(surface->expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS), *surface);
-            } else if (surface->surface_type == stBottom || (surface->surface_type == stBottomBridge && lower_layer == NULL)) {
+                surfaces_append(top, offset_ex(surface.expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
+            } else if (surface.surface_type == stBottom || (surface.surface_type == stBottomBridge && lower_layer == NULL)) {
                 // Grown by 3mm.
-                surfaces_append(bottom, offset_ex(surface->expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS), *surface);
-            } else if (surface->surface_type == stBottomBridge) {
-                if (! surface->empty())
-                    bridges.push_back(*surface);
+                surfaces_append(bottom, offset_ex(surface.expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
+            } else if (surface.surface_type == stBottomBridge) {
+                if (! surface.empty())
+                    bridges.push_back(surface);
             }
-            bool internal_surface = surface->surface_type != stTop && ! surface->is_bottom();
-            if (has_infill || surface->surface_type != stInternal) {
+            bool internal_surface = surface.surface_type != stTop && ! surface.is_bottom();
+            if (has_infill || surface.surface_type != stInternal) {
                 if (internal_surface)
                     // Make a copy as the following line uses the move semantics.
-                    internal.push_back(*surface);
-                polygons_append(fill_boundaries, STDMOVE(surface->expolygon));
+                    internal.push_back(surface);
+                polygons_append(fill_boundaries, STDMOVE(surface.expolygon));
             } else if (internal_surface)
-                internal.push_back(STDMOVE(*surface));
+                internal.push_back(STDMOVE(surface));
         }
     }
 

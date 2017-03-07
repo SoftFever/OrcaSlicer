@@ -22,7 +22,8 @@ class LayerRegion
     friend class Layer;
 
     public:
-    Layer* layer();
+    Layer* layer() { return this->_layer; }
+    const Layer* layer() const { return this->_layer; }
     PrintRegion* region() { return this->_region; }
     const PrintRegion* region() const { return this->_region; }
 
@@ -76,8 +77,8 @@ class LayerRegion
     Layer *_layer;
     PrintRegion *_region;
 
-    LayerRegion(Layer *layer, PrintRegion *region);
-    ~LayerRegion();
+    LayerRegion(Layer *layer, PrintRegion *region) : _layer(layer), _region(region) {}
+    ~LayerRegion() {}
 };
 
 
