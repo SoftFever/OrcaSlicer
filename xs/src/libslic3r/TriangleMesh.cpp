@@ -641,7 +641,7 @@ TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) :
 void
 TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* layers) const
 {
-    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::slice";
+    BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::slice";
 
     /*
        This method gets called with a list of unscaled Z coordinates and outputs
@@ -670,7 +670,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
         type is float.
     */
     
-    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::_slice_do";
+    BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::_slice_do";
     std::vector<IntersectionLines> lines(z.size());
     {
         boost::mutex lines_mutex;
@@ -686,7 +686,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     // v_scaled_shared could be freed here
     
     // build loops
-    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::_make_loops_do";
+    BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::_make_loops_do";
     layers->resize(z.size());
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, lines.size()),
@@ -695,7 +695,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
                 this->make_loops(lines[line_idx], &(*layers)[line_idx]);
         }
     );
-    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::slice finished";
+    BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::slice finished";
 }
 
 void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, 
