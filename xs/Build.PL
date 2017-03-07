@@ -8,8 +8,8 @@ use ExtUtils::CppGuess;
 use Module::Build::WithXSpp;
 
 my $cpp_guess = ExtUtils::CppGuess->new;
-my $lib_ext = ${$cpp_guess}{config}{lib_ext};
 my $mswin = $^O eq 'MSWin32';
+my $lib_ext = $ENV{SLIC3R_STATIC} ? ($mswin ? '.lib' : '.a') : ${$cpp_guess}{config}{lib_ext};
 
 # Library paths to search for boost, thread building blocks and such.
 # On Windows, there is really no standard. On Unices, this is a bit better.
@@ -271,7 +271,7 @@ if ($have_tbb) {
             }
             push @INC, (map " -I$_", @tbb_include);  # TODO: only use the one related to the chosen lib path
             if ($ENV{SLIC3R_STATIC} || $cpp_guess->is_msvc) {
-                push @LIBS, map "${path}/${_}_static.lib", @tbb_libraries;
+                push @LIBS, map "${path}/${_}_static${suffix}", @tbb_libraries;
             } else {
                 push @LIBS, " -L$path", (map " -l$_$suffix", @tbb_libraries);
             }
