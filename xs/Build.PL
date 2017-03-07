@@ -271,7 +271,8 @@ if ($have_tbb) {
             }
             push @INC, (map " -I$_", @tbb_include);  # TODO: only use the one related to the chosen lib path
             if ($ENV{SLIC3R_STATIC} || $cpp_guess->is_msvc) {
-                push @LIBS, map "${path}/${_}_static${lib_ext}", @tbb_libraries;
+                my $lib_prefix = $cpp_guess->is_msvc ? '' : 'lib';
+                push @LIBS, map "${path}/${lib_prefix}${_}_static${lib_ext}", @tbb_libraries;
             } else {
                 push @LIBS, " -L$path", (map " -l$_$suffix", @tbb_libraries);
             }
