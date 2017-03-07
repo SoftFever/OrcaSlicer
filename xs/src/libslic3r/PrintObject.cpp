@@ -365,8 +365,10 @@ void PrintObject::detect_surfaces_type()
 {
     BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces...";
 
+    bool interface_shells = this->config.interface_shells.value;
+
     for (int idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
-        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region;
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - start";
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
             LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
@@ -374,140 +376,158 @@ void PrintObject::detect_surfaces_type()
         }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-        for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
-            Layer       *layer  = this->layers[idx_layer];
-            LayerRegion *layerm = layer->get_region(idx_region);
-            BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region << " and layer " << layer->print_z;
-            // comparison happens against the *full* slices (considering all regions)
-            // unless internal shells are requested
-            Layer       *upper_layer = idx_layer + 1 < this->layer_count() ? this->get_layer(idx_layer + 1) : NULL;
-            Layer       *lower_layer = idx_layer > 0 ? this->get_layer(idx_layer - 1) : NULL;
-            // collapse very narrow parts (using the safety offset in the diff is not enough)
-            float        offset = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
+        std::vector<Surfaces> surfaces_new;
+        if (interface_shells)
+            surfaces_new.assign(this->layers.size(), Surfaces());
 
-            Polygons     layerm_slices_surfaces = to_polygons(layerm->slices.surfaces);
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, this->layers.size()),
+            [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
+                for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                    // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region << " and layer " << layer->print_z;
+                    Layer       *layer  = this->layers[idx_layer];
+                    LayerRegion *layerm = layer->get_region(idx_region);
+                    // comparison happens against the *full* slices (considering all regions)
+                    // unless internal shells are requested
+                    Layer       *upper_layer = idx_layer + 1 < this->layer_count() ? this->get_layer(idx_layer + 1) : NULL;
+                    Layer       *lower_layer = idx_layer > 0 ? this->get_layer(idx_layer - 1) : NULL;
+                    // collapse very narrow parts (using the safety offset in the diff is not enough)
+                    float        offset = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
 
-            // find top surfaces (difference between current surfaces
-            // of current layer and upper one)
-            Surfaces top;
-            if (upper_layer) {
-                // Config value $self->config->interface_shells is true, if a support is separated from the object
-                // by a soluble material (for example a PVA plastic).
-                Polygons upper_slices = this->config.interface_shells.value ? 
-                    to_polygons(upper_layer->get_region(idx_region)->slices.surfaces) : 
-                    to_polygons(upper_layer->slices);
-                surfaces_append(top,
-                    offset2_ex(diff(layerm_slices_surfaces, upper_slices, true), -offset, offset),
-                    stTop);
-            } else {
-                // if no upper layer, all surfaces of this one are solid
-                // we clone surfaces because we're going to clear the slices collection
-                top = layerm->slices.surfaces;
-                for (Surfaces::iterator it = top.begin(); it != top.end(); ++ it)
-                    it->surface_type = stTop;
-            }
-            
-            // find bottom surfaces (difference between current surfaces
-            // of current layer and lower one)
-            Surfaces bottom;
-            if (lower_layer) {
-                // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
-                // the support from the print.
-                SurfaceType surface_type_bottom = 
-                    (this->config.support_material.value && this->config.support_material_contact_distance.value == 0) ?
-                    stBottom : stBottomBridge;
-                // Any surface lying on the void is a true bottom bridge (an overhang)
-                surfaces_append(
-                    bottom,
-                    offset2_ex(
-                        diff(layerm_slices_surfaces, to_polygons(lower_layer->slices), true), 
-                        -offset, offset),
-                    surface_type_bottom);
-                // if user requested internal shells, we need to identify surfaces
-                // lying on other slices not belonging to this region
-                //FIXME Vojtech: config.internal_shells or config.interface_shells? Is it some legacy code?
-                // Why shall multiple regions over soluble support be treated specially?
-                if (this->config.interface_shells.value) {
-                    // non-bridging bottom surfaces: any part of this layer lying 
-                    // on something else, excluding those lying on our own region
-                    surfaces_append(
-                        bottom,
-                        offset2_ex(
-                            diff(
-                                intersection(layerm_slices_surfaces, to_polygons(lower_layer->slices)), // supported
-                                to_polygons(lower_layer->get_region(idx_region)->slices.surfaces), 
-                                true), 
-                            -offset, offset),
-                        stBottom);
+                    Polygons     layerm_slices_surfaces = to_polygons(layerm->slices.surfaces);
+
+                    // find top surfaces (difference between current surfaces
+                    // of current layer and upper one)
+                    Surfaces top;
+                    if (upper_layer) {
+                        // Config value $self->config->interface_shells is true, if a support is separated from the object
+                        // by a soluble material (for example a PVA plastic).
+                        Polygons upper_slices = interface_shells ? 
+                            to_polygons(upper_layer->get_region(idx_region)->slices.surfaces) : 
+                            to_polygons(upper_layer->slices);
+                        surfaces_append(top,
+                            offset2_ex(diff(layerm_slices_surfaces, upper_slices, true), -offset, offset),
+                            stTop);
+                    } else {
+                        // if no upper layer, all surfaces of this one are solid
+                        // we clone surfaces because we're going to clear the slices collection
+                        top = layerm->slices.surfaces;
+                        for (Surfaces::iterator it = top.begin(); it != top.end(); ++ it)
+                            it->surface_type = stTop;
+                    }
+                    
+                    // find bottom surfaces (difference between current surfaces
+                    // of current layer and lower one)
+                    Surfaces bottom;
+                    if (lower_layer) {
+                        // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
+                        // the support from the print.
+                        SurfaceType surface_type_bottom = 
+                            (this->config.support_material.value && this->config.support_material_contact_distance.value == 0) ?
+                            stBottom : stBottomBridge;
+                        // Any surface lying on the void is a true bottom bridge (an overhang)
+                        surfaces_append(
+                            bottom,
+                            offset2_ex(
+                                diff(layerm_slices_surfaces, to_polygons(lower_layer->slices), true), 
+                                -offset, offset),
+                            surface_type_bottom);
+                        // if user requested internal shells, we need to identify surfaces
+                        // lying on other slices not belonging to this region
+                        //FIXME Vojtech: config.internal_shells or config.interface_shells? Is it some legacy code?
+                        // Why shall multiple regions over soluble support be treated specially?
+                        if (interface_shells) {
+                            // non-bridging bottom surfaces: any part of this layer lying 
+                            // on something else, excluding those lying on our own region
+                            surfaces_append(
+                                bottom,
+                                offset2_ex(
+                                    diff(
+                                        intersection(layerm_slices_surfaces, to_polygons(lower_layer->slices)), // supported
+                                        to_polygons(lower_layer->get_region(idx_region)->slices.surfaces), 
+                                        true), 
+                                    -offset, offset),
+                                stBottom);
+                        }
+                    } else {
+                        // if no lower layer, all surfaces of this one are solid
+                        // we clone surfaces because we're going to clear the slices collection
+                        bottom = layerm->slices.surfaces;
+                        // if we have raft layers, consider bottom layer as a bridge
+                        // just like any other bottom surface lying on the void
+                        SurfaceType surface_type_bottom = 
+                            (this->config.raft_layers.value > 0 && this->config.support_material_contact_distance.value > 0) ?
+                            stBottomBridge : stBottom;
+                        for (Surfaces::iterator it = bottom.begin(); it != bottom.end(); ++ it)
+                            it->surface_type = surface_type_bottom;
+                    }
+                    
+                    // now, if the object contained a thin membrane, we could have overlapping bottom
+                    // and top surfaces; let's do an intersection to discover them and consider them
+                    // as bottom surfaces (to allow for bridge detection)
+                    if (! top.empty() && ! bottom.empty()) {
+        //                Polygons overlapping = intersection(to_polygons(top), to_polygons(bottom));
+        //                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->layer->id, scalar(@$overlapping)
+        //                    if $Slic3r::debug;
+                        Polygons top_polygons = to_polygons(std::move(top));
+                        top.clear();
+                        surfaces_append(top,
+        #if 0
+                            offset2_ex(diff(top_polygons, to_polygons(bottom), true), -offset, offset),
+        #else
+                            diff_ex(top_polygons, to_polygons(bottom), false),
+        #endif
+                            stTop);
+                    }
+
+        #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+                    {
+                        static int iRun = 0;
+                        std::vector<std::pair<Slic3r::ExPolygons, SVG::ExPolygonAttributes>> expolygons_with_attributes;
+                        expolygons_with_attributes.emplace_back(std::make_pair(union_ex(top),                           SVG::ExPolygonAttributes("green")));
+                        expolygons_with_attributes.emplace_back(std::make_pair(union_ex(bottom),                        SVG::ExPolygonAttributes("brown")));
+                        expolygons_with_attributes.emplace_back(std::make_pair(to_expolygons(layerm->slices.surfaces),  SVG::ExPolygonAttributes("black")));
+                        SVG::export_expolygons(debug_out_path("1_detect_surfaces_type_%d_region%d-layer_%f.svg", iRun ++, idx_region, layer->print_z).c_str(), expolygons_with_attributes);
+                    }
+        #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+                    
+                    // save surfaces to layer
+                    Surfaces &surfaces_out = interface_shells ? surfaces_new[idx_layer] : layerm->slices.surfaces;
+                    surfaces_out.clear();
+
+                    // find internal surfaces (difference between top/bottom surfaces and others)
+                    {
+                        Polygons topbottom = to_polygons(top);
+                        polygons_append(topbottom, to_polygons(bottom));
+                        surfaces_append(surfaces_out,
+        #if 0
+                            offset2_ex(diff(layerm_slices_surfaces, topbottom, true), -offset, offset),
+        #else
+                            diff_ex(layerm_slices_surfaces, topbottom, false),
+        #endif
+                            stInternal);
+                    }
+
+                    surfaces_append(surfaces_out, std::move(top));
+                    surfaces_append(surfaces_out, std::move(bottom));
+                    
+        //            Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
+        //                $layerm->layer->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
+
+        #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+                    layerm->export_region_slices_to_svg_debug("detect_surfaces_type-final");
+        #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                 }
-            } else {
-                // if no lower layer, all surfaces of this one are solid
-                // we clone surfaces because we're going to clear the slices collection
-                bottom = layerm->slices.surfaces;
-                // if we have raft layers, consider bottom layer as a bridge
-                // just like any other bottom surface lying on the void
-                SurfaceType surface_type_bottom = 
-                    (this->config.raft_layers.value > 0 && this->config.support_material_contact_distance.value > 0) ?
-                    stBottomBridge : stBottom;
-                for (Surfaces::iterator it = bottom.begin(); it != bottom.end(); ++ it)
-                    it->surface_type = surface_type_bottom;
             }
-            
-            // now, if the object contained a thin membrane, we could have overlapping bottom
-            // and top surfaces; let's do an intersection to discover them and consider them
-            // as bottom surfaces (to allow for bridge detection)
-            if (! top.empty() && ! bottom.empty()) {
-//                Polygons overlapping = intersection(to_polygons(top), to_polygons(bottom));
-//                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->layer->id, scalar(@$overlapping)
-//                    if $Slic3r::debug;
-                Polygons top_polygons = to_polygons(STDMOVE(top));
-                top.clear();
-                surfaces_append(top,
-#if 0
-                    offset2_ex(diff(top_polygons, to_polygons(bottom), true), -offset, offset),
-#else
-                    diff_ex(top_polygons, to_polygons(bottom), false),
-#endif
-                    stTop);
-            }
+        ); // for each layer of a region
 
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            {
-                static int iRun = 0;
-                std::vector<std::pair<Slic3r::ExPolygons, SVG::ExPolygonAttributes>> expolygons_with_attributes;
-                expolygons_with_attributes.emplace_back(std::make_pair(union_ex(top),                           SVG::ExPolygonAttributes("green")));
-                expolygons_with_attributes.emplace_back(std::make_pair(union_ex(bottom),                        SVG::ExPolygonAttributes("brown")));
-                expolygons_with_attributes.emplace_back(std::make_pair(to_expolygons(layerm->slices.surfaces),  SVG::ExPolygonAttributes("black")));
-                SVG::export_expolygons(debug_out_path("1_detect_surfaces_type_%d_region%d-layer_%f.svg", iRun ++, idx_region, layer->print_z).c_str(), expolygons_with_attributes);
-            }
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-            
-            // save surfaces to layer
-            layerm->slices.surfaces.clear();
+        if (interface_shells) {
+            // Move surfaces_new to layerm->slices.surfaces
+            for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++ idx_layer)
+                this->layers[idx_layer]->get_region(idx_region)->slices.surfaces = std::move(surfaces_new[idx_layer]);
+        }
 
-            // find internal surfaces (difference between top/bottom surfaces and others)
-            {
-                Polygons topbottom = to_polygons(top);
-                polygons_append(topbottom, to_polygons(bottom));
-                layerm->slices.append(
-#if 0
-                    offset2_ex(diff(layerm_slices_surfaces, topbottom, true), -offset, offset),
-#else
-                    diff_ex(layerm_slices_surfaces, topbottom, false),
-#endif
-                    stInternal);
-            }
-
-            layerm->slices.append(STDMOVE(top));
-            layerm->slices.append(STDMOVE(bottom));
-            
-//            Slic3r::debugf "  layer %d has %d bottom, %d top and %d internal surfaces\n",
-//                $layerm->layer->id, scalar(@bottom), scalar(@top), scalar(@internal) if $Slic3r::debug;
-
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            layerm->export_region_slices_to_svg_debug("detect_surfaces_type-final");
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-        } // for each layer of a region
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - end";
         
         // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
         for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
@@ -642,7 +662,7 @@ PrintObject::discover_vertical_shells()
                             polygons_append(newholes, to_polygons(neighbor_layer.regions[idx_region]->fill_expolygons));
                         if (hole_first) {
                             hole_first = false;
-                            polygons_append(holes, STDMOVE(newholes));
+                            polygons_append(holes, std::move(newholes));
                         }
                         else if (! holes.empty()) {
                             holes = intersection(holes, newholes);
