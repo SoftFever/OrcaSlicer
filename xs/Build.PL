@@ -9,7 +9,7 @@ use Module::Build::WithXSpp;
 
 my $cpp_guess = ExtUtils::CppGuess->new;
 my $mswin = $^O eq 'MSWin32';
-my $lib_ext = $ENV{SLIC3R_STATIC} ? ($mswin ? '.lib' : '.a') : ${$cpp_guess}{config}{lib_ext};
+my $lib_ext = $ENV{SLIC3R_STATIC} ? ($cpp_guess->is_msvc ? '.lib' : '.a') : ${$cpp_guess}{config}{lib_ext};
 
 # Library paths to search for boost, thread building blocks and such.
 # On Windows, there is really no standard. On Unices, this is a bit better.
