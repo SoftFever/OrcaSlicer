@@ -14,7 +14,7 @@
 #include <boost/thread.hpp>
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
-#define SLIC3R_VERSION "1.31.6"
+#define SLIC3R_VERSION "1.33.8.devel"
 #define SLIC3R_BUILD "UNKNOWN"
 
 //FIXME This epsilon value is used for many non-related purposes:
@@ -97,53 +97,6 @@ template <class T>
 inline void append_to(std::vector<T> &dst, const std::vector<T> &src)
 {
     dst.insert(dst.end(), src.begin(), src.end());
-}
-
-template <class T> void
-_parallelize_do(std::queue<T>* queue, boost::mutex* queue_mutex, boost::function<void(T)> func)
-{
-    //std::cout << "THREAD STARTED: " << boost::this_thread::get_id() << std::endl;
-    while (true) {
-        T i;
-        {
-            boost::lock_guard<boost::mutex> l(*queue_mutex);
-            if (queue->empty()) return;
-            i = queue->front();
-            queue->pop();
-        }
-        //std::cout << "  Thread " << boost::this_thread::get_id() << " processing item " << i << std::endl;
-        func(i);
-        boost::this_thread::interruption_point();
-    }
-}
-
-template <class T> void
-parallelize(std::queue<T> queue, boost::function<void(T)> func,
-    int threads_count = boost::thread::hardware_concurrency())
-{
-#ifdef SLIC3R_PROFILE
-    while (! queue.empty()) {
-        func(queue.front());
-        queue.pop();
-    }
-#else
-    if (threads_count == 0)
-        threads_count = 2;
-    boost::mutex queue_mutex;
-    boost::thread_group workers;
-    for (int i = 0; i < std::min(threads_count, int(queue.size())); ++ i)
-        workers.add_thread(new boost::thread(&_parallelize_do<T>, &queue, &queue_mutex, func));
-    workers.join_all();
-#endif
-}
-
-template <class T> void
-parallelize(T start, T end, boost::function<void(T)> func,
-    int threads_count = boost::thread::hardware_concurrency())
-{
-    std::queue<T> queue;
-    for (T i = start; i <= end; ++i) queue.push(i);
-    parallelize(queue, func, threads_count);
 }
 
 template <typename T>

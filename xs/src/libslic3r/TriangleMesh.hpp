@@ -132,7 +132,6 @@ private:
     std::vector<stl_vertex>  v_scaled_shared;
 
     void _slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const;
-    void _make_loops_do(size_t i, std::vector<IntersectionLines>* lines, std::vector<Polygons>* layers) const;
     void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const;
     void make_expolygons(const Polygons &loops, ExPolygons* slices) const;
     void make_expolygons_simple(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;

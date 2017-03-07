@@ -13,6 +13,8 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <tbb/parallel_for.h>
+
 #if 0
     #define DEBUG
     #define _DEBUG
@@ -672,10 +674,12 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     std::vector<IntersectionLines> lines(z.size());
     {
         boost::mutex lines_mutex;
-        parallelize<int>(
-            0,
-            this->mesh->stl.stats.number_of_facets-1,
-            boost::bind(&TriangleMeshSlicer::_slice_do, this, _1, &lines, &lines_mutex, z)
+        tbb::parallel_for(
+            tbb::blocked_range<int>(0,this->mesh->stl.stats.number_of_facets),
+            [&lines, &lines_mutex, &z, this](const tbb::blocked_range<int>& range) {
+                for (int facet_idx = range.begin(); facet_idx < range.end(); ++ facet_idx)
+                    this->_slice_do(facet_idx, &lines, &lines_mutex, z);
+            }
         );
     }
     
@@ -684,10 +688,12 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     // build loops
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::_make_loops_do";
     layers->resize(z.size());
-    parallelize<size_t>(
-        0,
-        lines.size()-1,
-        boost::bind(&TriangleMeshSlicer::_make_loops_do, this, _1, &lines, layers)
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, lines.size()),
+        [&lines, &layers, this](const tbb::blocked_range<size_t>& range) {
+            for (size_t line_idx = range.begin(); line_idx < range.end(); ++ line_idx)
+                this->make_loops(lines[line_idx], &(*layers)[line_idx]);
+        }
     );
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::slice finished";
 }
@@ -871,12 +877,6 @@ bool TriangleMeshSlicer::slice_facet(
         return true;
     }
     return false;
-}
-
-void
-TriangleMeshSlicer::_make_loops_do(size_t i, std::vector<IntersectionLines>* lines, std::vector<Polygons>* layers) const
-{
-    this->make_loops((*lines)[i], &(*layers)[i]);
 }
 
 void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const

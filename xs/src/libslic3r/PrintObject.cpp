@@ -7,6 +7,9 @@
 #include <utility>
 #include <boost/log/trivial.hpp>
 
+#include <tbb/parallel_for.h>
+#include <tbb/atomic.h>
+
 #include <Shiny/Shiny.h>
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -632,7 +635,7 @@ PrintObject::discover_vertical_shells()
                         LayerRegion &neighbor_region = *neighbor_layer.get_region(int(idx_region));
                         Polygons newholes;
                         for (size_t idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region)
-                            polygons_append(newholes, to_polygons(neighbor_layer.get_region(idx_region)->fill_expolygons));
+                            polygons_append(newholes, to_polygons(neighbor_layer.regions[idx_region]->fill_expolygons));
                         if (hole_first) {
                             hole_first = false;
                             polygons_append(holes, STDMOVE(newholes));
@@ -1267,13 +1270,16 @@ PrintObject::_make_perimeters()
         }
     }
     
-    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel";
-    parallelize<Layer*>(
-        std::queue<Layer*>(std::deque<Layer*>(this->layers.begin(), this->layers.end())),  // cast LayerPtrs to std::queue<Layer*>
-        boost::bind(&Slic3r::Layer::make_perimeters, _1),
-        this->_print->config.threads.value
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, this->layers.size()),
+        [this](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
+                this->layers[layer_idx]->make_perimeters();
+        }
     );
-    
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
+
     /*
         simplify slices (both layer and region slices),
         we only need the max resolution for perimeters
@@ -1290,13 +1296,16 @@ PrintObject::_infill()
     if (this->state.is_done(posInfill)) return;
     this->state.set_started(posInfill);
     
-    BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel";
-    parallelize<Layer*>(
-        std::queue<Layer*>(std::deque<Layer*>(this->layers.begin(), this->layers.end())),  // cast LayerPtrs to std::queue<Layer*>
-        boost::bind(&Slic3r::Layer::make_fills, _1),
-        this->_print->config.threads.value
+    BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, this->layers.size()),
+        [this](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
+                this->layers[layer_idx]->make_fills();
+        }
     );
-    
+    BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - end";
+
     /*  we could free memory now, but this would make this step not idempotent
     ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
     */

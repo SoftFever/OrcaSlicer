@@ -1029,6 +1029,7 @@ GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
     
     if (role == erSupportMaterial) {
         const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(this->layer);
+        //FIXME support_layer->support_islands.contains should use some search structure!
         if (support_layer != NULL && support_layer->support_islands.contains(travel)) {
             // skip retraction if this is a travel move inside a support material island
             return false;
