@@ -1356,6 +1356,8 @@ void Clipper::DisposeAllOutRecs()
 {
   for (OutPt *pts : m_OutPts)
     delete[] pts;
+  for (OutRec *rec : m_PolyOuts)
+    delete rec;
   m_OutPts.clear();
   m_OutPtsFree = nullptr;
   m_OutPtsChunkLast = m_OutPtsChunkSize;

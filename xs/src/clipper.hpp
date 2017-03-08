@@ -294,10 +294,10 @@ class ClipperBase
 {
 public:
   ClipperBase() : m_UseFullRange(false), m_HasOpenPaths(false) {}
-  virtual ~ClipperBase() { Clear(); }
+  ~ClipperBase() { Clear(); }
   bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
   bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
-  virtual void Clear();
+  void Clear();
   IntRect GetBounds();
   // By default, when three or more vertices are collinear in input polygons (subject or clip), the Clipper object removes the 'inner' vertices before clipping.
   // When enabled the PreserveCollinear property prevents this default behavior to allow these inner vertices to appear in the solution.
@@ -306,7 +306,7 @@ public:
 protected:
   bool AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, bool Closed, TEdge* edges);
   TEdge* AddBoundsToLML(TEdge *e, bool IsClosed);
-  virtual void Reset();
+  void Reset();
   TEdge* ProcessBound(TEdge* E, bool IsClockwise);
   TEdge* DescendToMin(TEdge *&E);
   void AscendToMax(TEdge *&E, bool Appending, bool IsClosed);
@@ -326,7 +326,7 @@ protected:
 };
 //------------------------------------------------------------------------------
 
-class Clipper : public virtual ClipperBase
+class Clipper : public ClipperBase
 {
 public:
   Clipper(int initOptions = 0);
