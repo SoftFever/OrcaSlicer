@@ -168,6 +168,7 @@ public:
     SlicingParameters slicing_parameters() const;
 
     void _slice();
+    std::string _fix_slicing_errors();
     bool has_support_material() const;
     void detect_surfaces_type();
     void process_external_surfaces();

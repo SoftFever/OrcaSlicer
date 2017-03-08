@@ -1133,6 +1133,7 @@ void PrintObject::_slice()
 end:
     ;
 
+    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - make_slices in parallel - begin";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, this->layers.size()),
         [this](const tbb::blocked_range<size_t>& range) {
@@ -1170,6 +1171,7 @@ end:
                 layer->make_slices();
             }
         });
+    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - make_slices in parallel - end";
 }
 
 std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::vector<float> &z, bool modifier)
@@ -1201,6 +1203,85 @@ std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::
         }
     }
     return layers;
+}
+
+std::string PrintObject::_fix_slicing_errors()
+{
+    // Collect layers with slicing errors.
+    // These layers will be fixed in parallel.
+    std::vector<size_t> buggy_layers;
+    buggy_layers.reserve(this->layers.size());
+    for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++ idx_layer)
+        if (this->layers[idx_layer]->slicing_errors)
+            buggy_layers.push_back(idx_layer);
+
+    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - begin";
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, buggy_layers.size()),
+        [this, &buggy_layers](const tbb::blocked_range<size_t>& range) {
+            for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
+                size_t idx_layer = buggy_layers[buggy_layer_idx];
+                Layer *layer     = this->layers[idx_layer];
+                assert(layer->slicing_errors);
+                // Try to repair the layer surfaces by merging all contours and all holes from neighbor layers.
+                // BOOST_LOG_TRIVIAL(trace) << "Attempting to repair layer" << idx_layer;
+                for (size_t region_id = 0; region_id < layer->regions.size(); ++ region_id) {
+                    LayerRegion *layerm = layer->regions[region_id];
+                    // Find the first valid layer below / above the current layer.
+                    const Surfaces *upper_surfaces = nullptr;
+                    const Surfaces *lower_surfaces = nullptr;
+                    for (size_t j = idx_layer + 1; j < this->layers.size(); ++ j)
+                        if (! this->layers[j]->slicing_errors) {
+                            upper_surfaces = &this->layers[j]->regions[region_id]->slices.surfaces;
+                            break;
+                        }
+                    for (int j = int(idx_layer) - 1; j >= 0; -- j)
+                        if (! this->layers[j]->slicing_errors) {
+                            lower_surfaces = &this->layers[j]->regions[region_id]->slices.surfaces;
+                            break;
+                        }
+                    // Collect outer contours and holes from the valid layers above & below.
+                    Polygons outer;
+                    outer.reserve(
+                        ((upper_surfaces == nullptr) ? 0 : upper_surfaces->size()) + 
+                        ((lower_surfaces == nullptr) ? 0 : lower_surfaces->size()));
+                    size_t num_holes = 0;
+                    if (upper_surfaces)
+                        for (const auto &surface : *upper_surfaces) {
+                            outer.push_back(surface.expolygon.contour);
+                            num_holes += surface.expolygon.holes.size();
+                        }
+                    if (lower_surfaces)
+                        for (const auto &surface : *lower_surfaces) {
+                            outer.push_back(surface.expolygon.contour);
+                            num_holes += surface.expolygon.holes.size();
+                        }
+                    Polygons holes;
+                    holes.reserve(num_holes);
+                    if (upper_surfaces)
+                        for (const auto &surface : *upper_surfaces)
+                            polygons_append(holes, surface.expolygon.holes);
+                    if (lower_surfaces)
+                        for (const auto &surface : *lower_surfaces)
+                            polygons_append(holes, surface.expolygon.holes);
+                    layerm->slices.set(diff_ex(union_(outer), holes, false), stInternal);
+                }
+                // Update layer slices after repairing the single regions.
+                layer->make_slices();
+            }
+        });
+    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - end";
+
+    // remove empty layers from bottom
+    while (! this->layers.empty() && this->layers.front()->slices.expolygons.empty()) {
+        this->delete_layer(0);
+        for (size_t i = 0; i < this->layers.size(); ++ i)
+            this->layers[i]->set_id(this->layers[i]->id() - 1);
+    }
+
+    return buggy_layers.empty() ? "" :
+        "The model has overlapping or self-intersecting facets. I tried to repair it, "
+        "however you might want to check the results or repair the input file and retry.\n";
 }
 
 void
