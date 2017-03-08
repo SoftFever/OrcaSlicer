@@ -1133,39 +1133,43 @@ void PrintObject::_slice()
 end:
     ;
 
-    for (size_t layer_id = 0; layer_id < layers.size(); ++ layer_id) {
-        Layer *layer = this->layers[layer_id];
-        // Apply size compensation and perform clipping of multi-part objects.
-        float delta = float(scale_(this->config.xy_size_compensation.value));
-        bool  scale = delta != 0.f;
-        bool  clip  = this->config.clip_multipart_objects.value || delta > 0.f;
-        if (layer->regions.size() == 1) {
-            if (scale) {
-                // Single region, growing or shrinking.
-                LayerRegion *layerm = layer->regions.front();
-                layerm->slices.set(offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), delta), stInternal);
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, this->layers.size()),
+        [this](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
+                Layer *layer = this->layers[layer_id];
+                // Apply size compensation and perform clipping of multi-part objects.
+                float delta = float(scale_(this->config.xy_size_compensation.value));
+                bool  scale = delta != 0.f;
+                bool  clip  = this->config.clip_multipart_objects.value || delta > 0.f;
+                if (layer->regions.size() == 1) {
+                    if (scale) {
+                        // Single region, growing or shrinking.
+                        LayerRegion *layerm = layer->regions.front();
+                        layerm->slices.set(offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), delta), stInternal);
+                    }
+                } else if (scale || clip) {
+                    // Multiple regions, growing, shrinking or just clipping one region by the other.
+                    // When clipping the regions, priority is given to the first regions.
+                    Polygons processed;
+        			for (size_t region_id = 0; region_id < layer->regions.size(); ++ region_id) {
+                        LayerRegion *layerm = layer->regions[region_id];
+        				ExPolygons slices = to_expolygons(std::move(layerm->slices.surfaces));
+        				if (scale)
+        					slices = offset_ex(slices, delta);
+                        if (region_id > 0 && clip) 
+                            // Trim by the slices of already processed regions.
+                            slices = diff_ex(to_polygons(std::move(slices)), processed);
+                        if (clip && region_id + 1 < layer->regions.size())
+                            // Collect the already processed regions to trim the to be processed regions.
+                            polygons_append(processed, slices);
+                        layerm->slices.set(std::move(slices), stInternal);
+                    }
+                }
+                // Merge all regions' slices to get islands, chain them by a shortest path.
+                layer->make_slices();
             }
-        } else if (scale || clip) {
-            // Multiple regions, growing, shrinking or just clipping one region by the other.
-            // When clipping the regions, priority is given to the first regions.
-            Polygons processed;
-			for (size_t region_id = 0; region_id < layer->regions.size(); ++ region_id) {
-                LayerRegion *layerm = layer->regions[region_id];
-				ExPolygons slices = to_expolygons(std::move(layerm->slices.surfaces));
-				if (scale)
-					slices = offset_ex(slices, delta);
-                if (region_id > 0 && clip) 
-                    // Trim by the slices of already processed regions.
-                    slices = diff_ex(to_polygons(std::move(slices)), processed);
-                if (clip && region_id + 1 < layer->regions.size())
-                    // Collect the already processed regions to trim the to be processed regions.
-                    polygons_append(processed, slices);
-                layerm->slices.set(std::move(slices), stInternal);
-            }
-        }
-        // Merge all regions' slices to get islands, chain them by a shortest path.
-        layer->make_slices();
-    }
+        });
 }
 
 std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::vector<float> &z, bool modifier)
