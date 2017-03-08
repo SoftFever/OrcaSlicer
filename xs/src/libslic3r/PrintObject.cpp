@@ -564,12 +564,11 @@ PrintObject::process_external_surfaces()
 
 struct DiscoverVerticalShellsCacheEntry
 {
-    DiscoverVerticalShellsCacheEntry() : valid(false) {}
     // Collected polygons, offsetted
-    Polygons    slices;
-    Polygons    fill_surfaces;
-    // Is this cache entry valid?
-    bool        valid;
+    Polygons    top_slices;
+    Polygons    top_fill_surfaces;
+    Polygons    bottom_slices;
+    Polygons    bottom_fill_surfaces;
 };
 
 void
@@ -592,18 +591,32 @@ PrintObject::discover_vertical_shells()
             // Zero or 1 layer, there is no additional vertical wall thickness enforced.
             continue;
 
-        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - start : cache top / bottom";
         //FIXME Improve the heuristics for a grain size.
         size_t grain_size = std::max(this->layers.size() / 16, size_t(1));
+        std::vector<DiscoverVerticalShellsCacheEntry> cache_top_botom_regions(this->layers.size(), DiscoverVerticalShellsCacheEntry());
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, this->layers.size(), grain_size),
-            [this, idx_region, n_extra_top_layers, n_extra_bottom_layers](const tbb::blocked_range<size_t>& range) {
+            [this, idx_region, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
+                for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                    LayerRegion &layerm                       = *this->layers[idx_layer]->regions[idx_region];
+                    float        min_perimeter_infill_spacing = float(layerm.flow(frSolidInfill).scaled_spacing()) * 1.05f;
+                    // Top surfaces.
+                    auto &cache = cache_top_botom_regions[idx_layer];
+                    cache.top_slices = offset(to_expolygons(layerm.slices.filter_by_type(stTop)), min_perimeter_infill_spacing);
+                    cache.top_fill_surfaces = offset(to_expolygons(layerm.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing);
+                    // Bottom surfaces.
+                    const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
+                    cache.bottom_slices = offset(to_expolygons(layerm.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
+                    cache.bottom_fill_surfaces = offset(to_expolygons(layerm.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
+                }
+            });
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - start : ensure vertical wall thickness";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, this->layers.size(), grain_size),
+            [this, idx_region, n_extra_top_layers, n_extra_bottom_layers, &cache_top_botom_regions]
+            (const tbb::blocked_range<size_t>& range) {
                 // printf("discover_vertical_shells from %d to %d\n", range.begin(), range.end());
-                // Cyclic buffers of pre-calculated offsetted top/bottom surfaces.
-                //FIXME these caches could be maintained per thread of the thread loop.
-                std::vector<DiscoverVerticalShellsCacheEntry> cache_top_regions(n_extra_top_layers, DiscoverVerticalShellsCacheEntry());
-                std::vector<DiscoverVerticalShellsCacheEntry> cache_bottom_regions(n_extra_bottom_layers, DiscoverVerticalShellsCacheEntry());
-                const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     PROFILE_BLOCK(discover_vertical_shells_region_layer);
 
@@ -655,10 +668,6 @@ PrintObject::discover_vertical_shells()
                         }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                         // Reset the top / bottom inflated regions caches of entries, which are out of the moving window.
-                        if (n_extra_top_layers > 0)
-                            cache_top_regions[idx_layer % n_extra_top_layers].valid = false;
-                        if (n_extra_bottom_layers > 0 && idx_layer > 0)
-                            cache_bottom_regions[(idx_layer - 1) % n_extra_bottom_layers].valid = false;
                         bool hole_first = true;
                         for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n)
                             if (n >= 0 && n < (int)this->layers.size()) {
@@ -675,32 +684,16 @@ PrintObject::discover_vertical_shells()
                                     holes = intersection(holes, newholes);
                                 }
                                 size_t n_shell_old = shell.size();
+                                const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[n];
                                 if (n > int(idx_layer)) {
                                     // Collect top surfaces.
-                                    DiscoverVerticalShellsCacheEntry &cache = cache_top_regions[n % n_extra_top_layers];
-                                    if (! cache.valid) {
-                                        cache.valid = true;
-                                        // neighbor_region.slices contain the source top regions,
-                                        // so one would think that they encompass the top fill_surfaces. But the fill_surfaces could have been
-                                        // expanded before, therefore they may protrude out of neighbor_region.slices's top surfaces.
-                                        //FIXME one should probably use the cummulative top surfaces over all regions here.
-                                        cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_type(stTop)), min_perimeter_infill_spacing);
-                                        cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing);
-                                    }
-                                    polygons_append(shell, cache.slices);
-                                    polygons_append(shell, cache.fill_surfaces);
+                                    polygons_append(shell, cache.top_slices);
+                                    polygons_append(shell, cache.top_fill_surfaces);
                                 }
                                 else if (n < int(idx_layer)) {
                                     // Collect bottom and bottom bridge surfaces.
-                                    DiscoverVerticalShellsCacheEntry &cache = cache_bottom_regions[n % n_extra_bottom_layers];
-                                    if (! cache.valid) {
-                                        cache.valid = true;
-                                        //FIXME one should probably use the cummulative top surfaces over all regions here.
-                                        cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
-                                        cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
-                                    }
-                                    polygons_append(shell, cache.slices);
-                                    polygons_append(shell, cache.fill_surfaces);
+                                    polygons_append(shell, cache.bottom_slices);
+                                    polygons_append(shell, cache.bottom_fill_surfaces);
                                 }
                                 // Running the union_ using the Clipper library piece by piece is cheaper 
                                 // than running the union_ all at once.
