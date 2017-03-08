@@ -39,6 +39,12 @@ public:
     double          bridge_angle;       // in radians, ccw, 0 = East, only 0+ (negative means undefined)
     unsigned short  extra_perimeters;
     
+    Surface(const Slic3r::Surface &rhs)
+        : surface_type(rhs.surface_type), expolygon(rhs.expolygon),
+            thickness(rhs.thickness), thickness_layers(rhs.thickness_layers), 
+            bridge_angle(rhs.bridge_angle), extra_perimeters(rhs.extra_perimeters)
+        {};
+
     Surface(SurfaceType _surface_type, const ExPolygon &_expolygon)
         : surface_type(_surface_type), expolygon(_expolygon),
             thickness(-1), thickness_layers(1), bridge_angle(-1), extra_perimeters(0)
@@ -63,6 +69,17 @@ public:
             bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
         {};
 
+    Surface& operator=(const Surface &rhs)
+    {
+        surface_type     = rhs.surface_type;
+        expolygon        = rhs.expolygon;
+        thickness        = rhs.thickness;
+        thickness_layers = rhs.thickness_layers;
+        bridge_angle     = rhs.bridge_angle;
+        extra_perimeters = rhs.extra_perimeters;
+        return *this;
+    }
+
     Surface& operator=(Surface &&rhs)
     {
         surface_type     = rhs.surface_type;
@@ -71,6 +88,7 @@ public:
         thickness_layers = rhs.thickness_layers;
         bridge_angle     = rhs.bridge_angle;
         extra_perimeters = rhs.extra_perimeters;
+        return *this;
     }
 
     operator Polygons() const;
