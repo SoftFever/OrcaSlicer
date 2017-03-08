@@ -51,7 +51,7 @@ sub slice {
     warn $warning if (defined($warning) && $warning ne '');
 
     # simplify slices if required
-    $self->_simplify_slices(scale($self->print->config->resolution));
+    $self->_simplify_slices(scale($self->print->config->resolution))
         if ($self->print->config->resolution);
     
     die "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
