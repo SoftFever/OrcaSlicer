@@ -1121,7 +1121,7 @@ void PrintObject::_slice()
         }
     }
     
-    // remove last layer(s) if empty
+    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - removing top empty layers";
     while (! this->layers.empty()) {
         const Layer *layer = this->layers.back();
         for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id)
@@ -1282,6 +1282,25 @@ std::string PrintObject::_fix_slicing_errors()
     return buggy_layers.empty() ? "" :
         "The model has overlapping or self-intersecting facets. I tried to repair it, "
         "however you might want to check the results or repair the input file and retry.\n";
+}
+
+// Simplify the sliced model, if "resolution" configuration parameter > 0.
+// The simplification is problematic, because it simplifies the slices independent from each other,
+// which makes the simplified discretization visible on the object surface.
+void PrintObject::_simplify_slices(double distance)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - begin";
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, this->layers.size()),
+        [this, distance](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                Layer *layer = this->layers[layer_idx];
+                for (size_t region_idx = 0; region_idx < layer->regions.size(); ++ region_idx)
+                    layer->regions[region_idx]->slices.simplify(distance);
+                layer->slices.simplify(distance);
+            }
+        });
+    BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - end";
 }
 
 void

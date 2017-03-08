@@ -169,6 +169,7 @@ public:
 
     void _slice();
     std::string _fix_slicing_errors();
+    void _simplify_slices(double distance);
     bool has_support_material() const;
     void detect_surfaces_type();
     void process_external_surfaces();

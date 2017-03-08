@@ -113,6 +113,7 @@ _constant()
 
     void _slice();
     std::string _fix_slicing_errors();
+    void _simplify_slices(double distance);
     void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();

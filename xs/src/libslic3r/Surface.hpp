@@ -45,18 +45,34 @@ public:
         {};
     Surface(const Surface &other, const ExPolygon &_expolygon)
         : surface_type(other.surface_type), expolygon(_expolygon),
-            thickness(other.thickness), thickness_layers(other.thickness_layers), bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
+            thickness(other.thickness), thickness_layers(other.thickness_layers), 
+            bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
         {};
-#if SLIC3R_CPPVER >= 11
+    Surface(Surface &&rhs)
+        : surface_type(rhs.surface_type), expolygon(std::move(rhs.expolygon)),
+            thickness(rhs.thickness), thickness_layers(rhs.thickness_layers), 
+            bridge_angle(rhs.bridge_angle), extra_perimeters(rhs.extra_perimeters)
+        {};
     Surface(SurfaceType _surface_type, const ExPolygon &&_expolygon)
         : surface_type(_surface_type), expolygon(std::move(_expolygon)),
             thickness(-1), thickness_layers(1), bridge_angle(-1), extra_perimeters(0)
         {};
     Surface(const Surface &other, const ExPolygon &&_expolygon)
         : surface_type(other.surface_type), expolygon(std::move(_expolygon)),
-            thickness(other.thickness), thickness_layers(other.thickness_layers), bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
+            thickness(other.thickness), thickness_layers(other.thickness_layers), 
+            bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
         {};
-#endif
+
+    Surface& operator=(Surface &&rhs)
+    {
+        surface_type     = rhs.surface_type;
+        expolygon        = std::move(rhs.expolygon);
+        thickness        = rhs.thickness;
+        thickness_layers = rhs.thickness_layers;
+        bridge_angle     = rhs.bridge_angle;
+        extra_perimeters = rhs.extra_perimeters;
+    }
+
     operator Polygons() const;
     double area() const;
     bool empty() const { return expolygon.empty(); }
@@ -79,9 +95,9 @@ inline Polygons to_polygons(const Surfaces &src)
     Polygons polygons;
     polygons.reserve(num);
     for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++it) {
-        polygons.push_back(it->expolygon.contour);
+        polygons.emplace_back(it->expolygon.contour);
         for (Polygons::const_iterator ith = it->expolygon.holes.begin(); ith != it->expolygon.holes.end(); ++ith)
-            polygons.push_back(*ith);
+            polygons.emplace_back(*ith);
     }
     return polygons;
 }
@@ -94,9 +110,9 @@ inline Polygons to_polygons(const SurfacesPtr &src)
     Polygons polygons;
     polygons.reserve(num);
     for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it) {
-        polygons.push_back((*it)->expolygon.contour);
+        polygons.emplace_back((*it)->expolygon.contour);
         for (Polygons::const_iterator ith = (*it)->expolygon.holes.begin(); ith != (*it)->expolygon.holes.end(); ++ith)
-            polygons.push_back(*ith);
+            polygons.emplace_back(*ith);
     }
     return polygons;
 }
@@ -106,7 +122,7 @@ inline ExPolygons to_expolygons(const Surfaces &src)
     ExPolygons expolygons;
     expolygons.reserve(src.size());
     for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++it)
-        expolygons.push_back(it->expolygon);
+        expolygons.emplace_back(it->expolygon);
     return expolygons;
 }
 
@@ -125,7 +141,7 @@ inline ExPolygons to_expolygons(const SurfacesPtr &src)
     ExPolygons expolygons;
     expolygons.reserve(src.size());
     for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++it)
-        expolygons.push_back((*it)->expolygon);
+        expolygons.emplace_back((*it)->expolygon);
     return expolygons;
 }
 
@@ -151,7 +167,7 @@ inline void polygons_append(Polygons &dst, const Surfaces &src)
 { 
     dst.reserve(dst.size() + number_polygons(src));
     for (Surfaces::const_iterator it = src.begin(); it != src.end(); ++ it) {
-        dst.push_back(it->expolygon.contour);
+        dst.emplace_back(it->expolygon.contour);
         dst.insert(dst.end(), it->expolygon.holes.begin(), it->expolygon.holes.end());
     }
 }
@@ -160,7 +176,7 @@ inline void polygons_append(Polygons &dst, Surfaces &&src)
 { 
     dst.reserve(dst.size() + number_polygons(src));
     for (Surfaces::iterator it = src.begin(); it != src.end(); ++ it) {
-        dst.push_back(std::move(it->expolygon.contour));
+        dst.emplace_back(std::move(it->expolygon.contour));
         std::move(std::begin(it->expolygon.holes), std::end(it->expolygon.holes), std::back_inserter(dst));
         it->expolygon.holes.clear();
     }
@@ -171,7 +187,7 @@ inline void polygons_append(Polygons &dst, const SurfacesPtr &src)
 { 
     dst.reserve(dst.size() + number_polygons(src));
     for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++ it) {
-        dst.push_back((*it)->expolygon.contour);
+        dst.emplace_back((*it)->expolygon.contour);
         dst.insert(dst.end(), (*it)->expolygon.holes.begin(), (*it)->expolygon.holes.end());
     }
 }
@@ -180,7 +196,7 @@ inline void polygons_append(Polygons &dst, SurfacesPtr &&src)
 { 
     dst.reserve(dst.size() + number_polygons(src));
     for (SurfacesPtr::const_iterator it = src.begin(); it != src.end(); ++ it) {
-        dst.push_back(std::move((*it)->expolygon.contour));
+        dst.emplace_back(std::move((*it)->expolygon.contour));
         std::move(std::begin((*it)->expolygon.holes), std::end((*it)->expolygon.holes), std::back_inserter(dst));
         (*it)->expolygon.holes.clear();
     }
@@ -190,14 +206,14 @@ inline void polygons_append(Polygons &dst, SurfacesPtr &&src)
 inline void surfaces_append(Surfaces &dst, const ExPolygons &src, SurfaceType surfaceType) 
 { 
     dst.reserve(dst.size() + src.size());
-    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
-        dst.push_back(Surface(surfaceType, *it));
+    for (const ExPolygon &expoly : src)
+        dst.emplace_back(Surface(surfaceType, expoly));
 }
 inline void surfaces_append(Surfaces &dst, const ExPolygons &src, const Surface &surfaceTempl) 
 { 
     dst.reserve(dst.size() + number_polygons(src));
-    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
-        dst.push_back(Surface(surfaceTempl, *it));
+    for (const ExPolygon &expoly : src)
+        dst.emplace_back(Surface(surfaceTempl, expoly));
 }
 inline void surfaces_append(Surfaces &dst, const Surfaces &src) 
 { 
@@ -207,8 +223,8 @@ inline void surfaces_append(Surfaces &dst, const Surfaces &src)
 inline void surfaces_append(Surfaces &dst, ExPolygons &&src, SurfaceType surfaceType) 
 { 
     dst.reserve(dst.size() + src.size());
-    for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
-        dst.push_back(Surface(surfaceType, std::move(*it)));
+    for (ExPolygon &expoly : src)
+        dst.emplace_back(Surface(surfaceType, std::move(expoly)));
     src.clear();
 }
 
@@ -216,9 +232,10 @@ inline void surfaces_append(Surfaces &dst, ExPolygons &&src, const Surface &surf
 { 
     dst.reserve(dst.size() + number_polygons(src));
     for (ExPolygons::const_iterator it = src.begin(); it != src.end(); ++ it)
-        dst.push_back(Surface(surfaceTempl, std::move(*it)));
+        dst.emplace_back(Surface(surfaceTempl, std::move(*it)));
     src.clear();
 }
+
 inline void surfaces_append(Surfaces &dst, Surfaces &&src) 
 { 
     if (dst.empty()) {
