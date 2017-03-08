@@ -1092,22 +1092,23 @@ void PrintObject::_slice()
         }
     }
     
-    if (this->print()->regions.size() == 1) {
-        // Optimized for a single region. Slice the single non-modifier mesh.
-        std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(0, slice_zs, false);
+    // Slice all non-modifier volumes.
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
+        BOOST_LOG_TRIVIAL(debug) << "Slicing objects - region " << region_id;
+        std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, false);
+        BOOST_LOG_TRIVIAL(debug) << "Slicing objects - append slices " << region_id << " start";
         for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
-            this->layers[layer_id]->regions.front()->slices.append(std::move(expolygons_by_layer[layer_id]), stInternal);
-    } else {
-        // Slice all non-modifier volumes.
+            this->layers[layer_id]->regions[region_id]->slices.append(std::move(expolygons_by_layer[layer_id]), stInternal);
+        BOOST_LOG_TRIVIAL(debug) << "Slicing objects - append slices " << region_id << " end";
+    }
+
+    // Slice all modifier volumes.
+    if (this->print()->regions.size() > 1) {
         for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
-            std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, false);
-            for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
-                this->layers[layer_id]->regions[region_id]->slices.append(std::move(expolygons_by_layer[layer_id]), stInternal);
-        }
-        // Slice all modifier volumes.
-        for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
+            BOOST_LOG_TRIVIAL(debug) << "Slicing modifier volumes - region " << region_id;
             std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, true);
             // loop through the other regions and 'steal' the slices belonging to this one
+            BOOST_LOG_TRIVIAL(debug) << "Slicing modifier volumes - stealing " << region_id << " start";
             for (size_t other_region_id = 0; other_region_id < this->print()->regions.size(); ++ other_region_id) {
                 if (region_id == other_region_id)
                     continue;
@@ -1127,6 +1128,7 @@ void PrintObject::_slice()
                     layerm->slices.append(std::move(my_parts), stInternal);
                 }
             }
+            BOOST_LOG_TRIVIAL(debug) << "Slicing modifier volumes - stealing " << region_id << " end";
         }
     }
     
@@ -1185,8 +1187,6 @@ end:
 
 std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::vector<float> &z, bool modifier)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Slicing region " << region_id;
-
     std::vector<ExPolygons> layers;
     assert(region_id < this->region_volumes.size());
     std::vector<int> &volumes = this->region_volumes[region_id];
