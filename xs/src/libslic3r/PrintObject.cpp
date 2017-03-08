@@ -1336,70 +1336,65 @@ PrintObject::_make_perimeters()
         if (!region.config.extra_perimeters
             || region.config.perimeters == 0
             || region.config.fill_density == 0
-            || this->layer_count() < 2) continue;
+            || this->layer_count() < 2)
+            continue;
         
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id;
-        for (size_t i = 0; i < this->layer_count() - 1; ++ i) {
-            LayerRegion &layerm                     = *this->get_layer(i)->get_region(region_id);
-            const LayerRegion &upper_layerm         = *this->get_layer(i+1)->get_region(region_id);
-            const Polygons upper_layerm_polygons    = upper_layerm.slices;
-            
-            // Filter upper layer polygons in intersection_ppl by their bounding boxes?
-            // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
-            const double total_loop_length      = total_length(upper_layerm_polygons);
-            const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
-            const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
-            const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
-            const coord_t ext_perimeter_spacing = ext_perimeter_flow.scaled_spacing();
-            
-            for (Surfaces::iterator slice = layerm.slices.surfaces.begin();
-                slice != layerm.slices.surfaces.end(); ++slice) {
-                while (true) {
-                    // compute the total thickness of perimeters
-                    const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
-                        + (region.config.perimeters-1 + slice->extra_perimeters) * perimeter_spacing;
-                    
-                    // define a critical area where we don't want the upper slice to fall into
-                    // (it should either lay over our perimeters or outside this area)
-                    const coord_t critical_area_depth = perimeter_spacing * 1.5;
-                    const Polygons critical_area = diff(
-                        offset(slice->expolygon, -perimeters_thickness),
-                        offset(slice->expolygon, -(perimeters_thickness + critical_area_depth))
-                    );
-                    
-                    // check whether a portion of the upper slices falls inside the critical area
-                    const Polylines intersection = intersection_pl(
-                        to_polylines(upper_layerm_polygons),
-                        critical_area
-                    );
-                    
-                    // only add an additional loop if at least 30% of the slice loop would benefit from it
-                    if (total_length(intersection) <=  total_loop_length*0.3)
-                        break;
-                    
-                    /*
-                    if (0) {
-                        require "Slic3r/SVG.pm";
-                        Slic3r::SVG::output(
-                            "extra.svg",
-                            no_arrows   => 1,
-                            expolygons  => union_ex($critical_area),
-                            polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
-                        );
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, this->layers.size() - 1),
+            [this, &region, region_id](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    LayerRegion &layerm                     = *this->layers[layer_idx]->regions[region_id];
+                    const LayerRegion &upper_layerm         = *this->layers[layer_idx+1]->regions[region_id];
+                    const Polygons upper_layerm_polygons    = upper_layerm.slices;
+                    // Filter upper layer polygons in intersection_ppl by their bounding boxes?
+                    // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
+                    const double total_loop_length      = total_length(upper_layerm_polygons);
+                    const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
+                    const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
+                    const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
+                    const coord_t ext_perimeter_spacing = ext_perimeter_flow.scaled_spacing();
+
+                    for (Surface &slice : layerm.slices.surfaces) {
+                        for (;;) {
+                            // compute the total thickness of perimeters
+                            const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
+                                + (region.config.perimeters-1 + slice.extra_perimeters) * perimeter_spacing;
+                            // define a critical area where we don't want the upper slice to fall into
+                            // (it should either lay over our perimeters or outside this area)
+                            const coord_t critical_area_depth = coord_t(perimeter_spacing * 1.5);
+                            const Polygons critical_area = diff(
+                                offset(slice.expolygon, float(- perimeters_thickness)),
+                                offset(slice.expolygon, float(- perimeters_thickness - critical_area_depth))
+                            );
+                            // check whether a portion of the upper slices falls inside the critical area
+                            const Polylines intersection = intersection_pl(to_polylines(upper_layerm_polygons), critical_area);
+                            // only add an additional loop if at least 30% of the slice loop would benefit from it
+                            if (total_length(intersection) <=  total_loop_length*0.3)
+                                break;
+                            /*
+                            if (0) {
+                                require "Slic3r/SVG.pm";
+                                Slic3r::SVG::output(
+                                    "extra.svg",
+                                    no_arrows   => 1,
+                                    expolygons  => union_ex($critical_area),
+                                    polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
+                                );
+                            }
+                            */
+                            ++ slice.extra_perimeters;
+                        }
+                        #ifdef DEBUG
+                            if (slice.extra_perimeters > 0)
+                                printf("  adding %d more perimeter(s) at layer %zu\n", slice.extra_perimeters, i);
+                        #endif
                     }
-                    */
-                    
-                    slice->extra_perimeters++;
                 }
-                
-                #ifdef DEBUG
-                    if (slice->extra_perimeters > 0)
-                        printf("  adding %d more perimeter(s) at layer %zu\n", slice->extra_perimeters, i);
-                #endif
-            }
-        }
+            });
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
     }
-    
+
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, this->layers.size()),
