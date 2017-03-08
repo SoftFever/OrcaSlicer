@@ -759,15 +759,19 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
     std::vector<Polygons> layers_p;
     this->slice(z, &layers_p);
     
-    layers->resize(z.size());
-    for (std::vector<Polygons>::const_iterator loops = layers_p.begin(); loops != layers_p.end(); ++loops) {
-        #ifdef SLIC3R_TRIANGLEMESH_DEBUG
-        size_t layer_id = loops - layers_p.begin();
-        printf("Layer " PRINTF_ZU " (slice_z = %.2f):\n", layer_id, z[layer_id]);
-        #endif
-        
-        this->make_expolygons(*loops, &(*layers)[ loops - layers_p.begin() ]);
-    }
+	BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::make_expolygons in parallel - start";
+	layers->resize(z.size());
+	tbb::parallel_for(
+		tbb::blocked_range<size_t>(0, z.size()),
+		[&layers_p, layers, this](const tbb::blocked_range<size_t>& range) {
+    		for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
+#ifdef SLIC3R_TRIANGLEMESH_DEBUG
+    			printf("Layer " PRINTF_ZU " (slice_z = %.2f):\n", layer_id, z[layer_id]);
+#endif
+    			this->make_expolygons(layers_p[layer_id], &(*layers)[layer_id]);
+    		}
+    	});
+	BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::make_expolygons in parallel - end";
 }
 
 // Return true, if the facet has been sliced and line_out has been filled.
