@@ -689,7 +689,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::_make_loops_do";
     layers->resize(z.size());
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, lines.size()),
+        tbb::blocked_range<size_t>(0, z.size()),
         [&lines, &layers, this](const tbb::blocked_range<size_t>& range) {
             for (size_t line_idx = range.begin(); line_idx < range.end(); ++ line_idx)
                 this->make_loops(lines[line_idx], &(*layers)[line_idx]);
@@ -914,18 +914,23 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                 }
         }
     
-    // build a map of lines by edge_a_id and a_id
-    //FIXME replace the vectors of vectors by vectors of indices to a continuous memory.
-    std::vector<IntersectionLinePtrs> by_edge_a_id(this->mesh->stl.stats.number_of_facets * 3);
-    std::vector<IntersectionLinePtrs> by_a_id(this->mesh->stl.stats.shared_vertices);
+    // Build a map of lines by edge_a_id and a_id.
+    std::vector<IntersectionLine*> by_edge_a_id;
+    std::vector<IntersectionLine*> by_a_id;
+    by_edge_a_id.reserve(lines.size());
+    by_a_id.reserve(lines.size());
     for (IntersectionLines::iterator line = lines.begin(); line != lines.end(); ++ line) {
         if (! line->skip) {
             if (line->edge_a_id != -1)
-                by_edge_a_id[line->edge_a_id].push_back(&(*line));
+                by_edge_a_id.push_back(&(*line)); // [line->edge_a_id].push_back();
             if (line->a_id != -1) 
-                by_a_id[line->a_id].push_back(&(*line));
+                by_a_id.push_back(&(*line)); // [line->a_id].push_back(&(*line));
         }
     }
+    auto by_edge_lower = [](const IntersectionLine* il1, const IntersectionLine *il2) { return il1->edge_a_id < il2->edge_a_id; };
+    auto by_vertex_lower = [](const IntersectionLine* il1, const IntersectionLine *il2) { return il1->a_id < il2->a_id; };
+    std::sort(by_edge_a_id.begin(), by_edge_a_id.end(), by_edge_lower);
+    std::sort(by_a_id.begin(), by_a_id.end(), by_vertex_lower);
 
     IntersectionLines::iterator it_line_seed = lines.begin();
     CYCLE: while (1) {
@@ -949,24 +954,33 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
             first_line->a.x, first_line->a.y, first_line->b.x, first_line->b.y);
         */
         
+        IntersectionLine key;
         for (;;) {
             // find a line starting where last one finishes
             IntersectionLine* next_line = nullptr;
             if (last_line->edge_b_id != -1) {
-                IntersectionLinePtrs &candidates = by_edge_a_id[last_line->edge_b_id];
-                for (IntersectionLinePtrs::iterator lineptr = candidates.begin(); lineptr != candidates.end(); ++ lineptr)
-                    if (! (*lineptr)->skip) {
-                        next_line = *lineptr;
-                        break;
-                    }
+                key.edge_a_id = last_line->edge_b_id;
+                auto it_begin = std::lower_bound(by_edge_a_id.begin(), by_edge_a_id.end(), &key, by_edge_lower);
+                if (it_begin != by_edge_a_id.end()) {
+                    auto it_end = std::upper_bound(it_begin, by_edge_a_id.end(), &key, by_edge_lower);
+                    for (auto it_line = it_begin; it_line != it_end; ++ it_line)
+                        if (! (*it_line)->skip) {
+                            next_line = *it_line;
+                            break;
+                        }
+                }
             }
             if (next_line == nullptr && last_line->b_id != -1) {
-                IntersectionLinePtrs &candidates = by_a_id[last_line->b_id];
-                for (IntersectionLinePtrs::iterator lineptr = candidates.begin(); lineptr != candidates.end(); ++ lineptr)
-                    if (! (*lineptr)->skip) {
-                        next_line = *lineptr;
-                        break;
-                    }
+                key.a_id = last_line->b_id;
+                auto it_begin = std::lower_bound(by_a_id.begin(), by_a_id.end(), &key, by_vertex_lower);
+                if (it_begin != by_a_id.end()) {
+                    auto it_end = std::upper_bound(it_begin, by_a_id.end(), &key, by_vertex_lower);
+                    for (auto it_line = it_begin; it_line != it_end; ++ it_line)
+                        if (! (*it_line)->skip) {
+                            next_line = *it_line;
+                            break;
+                        }
+                }
             }
             if (next_line == nullptr) {
                 // check whether we closed this loop
