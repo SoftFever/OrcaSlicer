@@ -579,8 +579,6 @@ PrintObject::discover_vertical_shells()
 
     BOOST_LOG_TRIVIAL(info) << "Discovering vertical shells...";
 
-    const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
-
     for (size_t idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region) {
         PROFILE_BLOCK(discover_vertical_shells_region);
 
@@ -593,254 +591,265 @@ PrintObject::discover_vertical_shells()
         if (n_extra_top_layers + n_extra_bottom_layers == 0)
             // Zero or 1 layer, there is no additional vertical wall thickness enforced.
             continue;
-        // Cyclic buffers of pre-calculated offsetted top/bottom surfaces.
-        std::vector<DiscoverVerticalShellsCacheEntry> cache_top_regions(n_extra_top_layers, DiscoverVerticalShellsCacheEntry());
-        std::vector<DiscoverVerticalShellsCacheEntry> cache_bottom_regions(n_extra_bottom_layers, DiscoverVerticalShellsCacheEntry());
-        for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++ idx_layer) 
-        {
-            PROFILE_BLOCK(discover_vertical_shells_region_layer);
+
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - start";
+        //FIXME Improve the heuristics for a grain size.
+        size_t grain_size = std::max(this->layers.size() / 16, size_t(1));
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, this->layers.size(), grain_size),
+            [this, idx_region, n_extra_top_layers, n_extra_bottom_layers](const tbb::blocked_range<size_t>& range) {
+                // printf("discover_vertical_shells from %d to %d\n", range.begin(), range.end());
+                // Cyclic buffers of pre-calculated offsetted top/bottom surfaces.
+                //FIXME these caches could be maintained per thread of the thread loop.
+                std::vector<DiscoverVerticalShellsCacheEntry> cache_top_regions(n_extra_top_layers, DiscoverVerticalShellsCacheEntry());
+                std::vector<DiscoverVerticalShellsCacheEntry> cache_bottom_regions(n_extra_bottom_layers, DiscoverVerticalShellsCacheEntry());
+                const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
+                for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                    PROFILE_BLOCK(discover_vertical_shells_region_layer);
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-			static size_t debug_idx = 0;
-			++ debug_idx;
+        			static size_t debug_idx = 0;
+        			++ debug_idx;
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-            Layer       *layer               = this->layers[idx_layer];
-            LayerRegion *layerm              = layer->get_region(idx_region);
+                    Layer       *layer               = this->layers[idx_layer];
+                    LayerRegion *layerm              = layer->regions[idx_region];
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            layerm->export_region_slices_to_svg_debug("4_discover_vertical_shells-initial");
-            layerm->export_region_fill_surfaces_to_svg_debug("4_discover_vertical_shells-initial");
+                    layerm->export_region_slices_to_svg_debug("4_discover_vertical_shells-initial");
+                    layerm->export_region_fill_surfaces_to_svg_debug("4_discover_vertical_shells-initial");
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-            Flow         solid_infill_flow   = layerm->flow(frSolidInfill);
-            coord_t      infill_line_spacing = solid_infill_flow.scaled_spacing(); 
-            // Find a union of perimeters below / above this surface to guarantee a minimum shell thickness.
-            Polygons shell;
-            Polygons holes;
+                    Flow         solid_infill_flow   = layerm->flow(frSolidInfill);
+                    coord_t      infill_line_spacing = solid_infill_flow.scaled_spacing(); 
+                    // Find a union of perimeters below / above this surface to guarantee a minimum shell thickness.
+                    Polygons shell;
+                    Polygons holes;
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            ExPolygons shell_ex;
+                    ExPolygons shell_ex;
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-            float min_perimeter_infill_spacing = float(infill_line_spacing) * 1.05f;
-            if (1)
-            {
-                PROFILE_BLOCK(discover_vertical_shells_region_layer_collect);
+                    float min_perimeter_infill_spacing = float(infill_line_spacing) * 1.05f;
+                    if (1)
+                    {
+                        PROFILE_BLOCK(discover_vertical_shells_region_layer_collect);
 #if 0
 // #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-                {
-					Slic3r::SVG svg_cummulative(debug_out_path("discover_vertical_shells-perimeters-before-union-run%d.svg", debug_idx), this->bounding_box());
-                    for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n) {
-                        if (n < 0 || n >= (int)this->layers.size())
-                            continue;
-                        ExPolygons &expolys = this->layers[n]->perimeter_expolygons;
-                        for (size_t i = 0; i < expolys.size(); ++ i) {
-							Slic3r::SVG svg(debug_out_path("discover_vertical_shells-perimeters-before-union-run%d-layer%d-expoly%d.svg", debug_idx, n, i), get_extents(expolys[i]));
-                            svg.draw(expolys[i]);
-                            svg.draw_outline(expolys[i].contour, "black", scale_(0.05));
-                            svg.draw_outline(expolys[i].holes, "blue", scale_(0.05));
-                            svg.Close();
+                        {
+        					Slic3r::SVG svg_cummulative(debug_out_path("discover_vertical_shells-perimeters-before-union-run%d.svg", debug_idx), this->bounding_box());
+                            for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n) {
+                                if (n < 0 || n >= (int)this->layers.size())
+                                    continue;
+                                ExPolygons &expolys = this->layers[n]->perimeter_expolygons;
+                                for (size_t i = 0; i < expolys.size(); ++ i) {
+        							Slic3r::SVG svg(debug_out_path("discover_vertical_shells-perimeters-before-union-run%d-layer%d-expoly%d.svg", debug_idx, n, i), get_extents(expolys[i]));
+                                    svg.draw(expolys[i]);
+                                    svg.draw_outline(expolys[i].contour, "black", scale_(0.05));
+                                    svg.draw_outline(expolys[i].holes, "blue", scale_(0.05));
+                                    svg.Close();
 
-                            svg_cummulative.draw(expolys[i]);
-                            svg_cummulative.draw_outline(expolys[i].contour, "black", scale_(0.05));
-                            svg_cummulative.draw_outline(expolys[i].holes, "blue", scale_(0.05));
+                                    svg_cummulative.draw(expolys[i]);
+                                    svg_cummulative.draw_outline(expolys[i].contour, "black", scale_(0.05));
+                                    svg_cummulative.draw_outline(expolys[i].holes, "blue", scale_(0.05));
+                                }
+                            }
                         }
-                    }
-                }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-                // Reset the top / bottom inflated regions caches of entries, which are out of the moving window.
-                if (n_extra_top_layers > 0)
-                    cache_top_regions[idx_layer % n_extra_top_layers].valid = false;
-                if (n_extra_bottom_layers > 0 && idx_layer > 0)
-                    cache_bottom_regions[(idx_layer - 1) % n_extra_bottom_layers].valid = false;
-                bool hole_first = true;
-                for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n)
-                    if (n >= 0 && n < (int)this->layers.size()) {
-                        Layer       &neighbor_layer = *this->layers[n];
-                        LayerRegion &neighbor_region = *neighbor_layer.get_region(int(idx_region));
-                        Polygons newholes;
-                        for (size_t idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region)
-                            polygons_append(newholes, to_polygons(neighbor_layer.regions[idx_region]->fill_expolygons));
-                        if (hole_first) {
-                            hole_first = false;
-                            polygons_append(holes, std::move(newholes));
-                        }
-                        else if (! holes.empty()) {
-                            holes = intersection(holes, newholes);
-                        }
-                        size_t n_shell_old = shell.size();
-                        if (n > int(idx_layer)) {
-                            // Collect top surfaces.
-                            DiscoverVerticalShellsCacheEntry &cache = cache_top_regions[n % n_extra_top_layers];
-                            if (! cache.valid) {
-                                cache.valid = true;
-                                // neighbor_region.slices contain the source top regions,
-                                // so one would think that they encompass the top fill_surfaces. But the fill_surfaces could have been
-                                // expanded before, therefore they may protrude out of neighbor_region.slices's top surfaces.
-                                //FIXME one should probably use the cummulative top surfaces over all regions here.
-                                cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_type(stTop)), min_perimeter_infill_spacing);
-                                cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing);
+                        // Reset the top / bottom inflated regions caches of entries, which are out of the moving window.
+                        if (n_extra_top_layers > 0)
+                            cache_top_regions[idx_layer % n_extra_top_layers].valid = false;
+                        if (n_extra_bottom_layers > 0 && idx_layer > 0)
+                            cache_bottom_regions[(idx_layer - 1) % n_extra_bottom_layers].valid = false;
+                        bool hole_first = true;
+                        for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n)
+                            if (n >= 0 && n < (int)this->layers.size()) {
+                                Layer       &neighbor_layer = *this->layers[n];
+                                LayerRegion &neighbor_region = *neighbor_layer.get_region(int(idx_region));
+                                Polygons newholes;
+                                for (size_t idx_region = 0; idx_region < this->_print->regions.size(); ++ idx_region)
+                                    polygons_append(newholes, to_polygons(neighbor_layer.regions[idx_region]->fill_expolygons));
+                                if (hole_first) {
+                                    hole_first = false;
+                                    polygons_append(holes, std::move(newholes));
+                                }
+                                else if (! holes.empty()) {
+                                    holes = intersection(holes, newholes);
+                                }
+                                size_t n_shell_old = shell.size();
+                                if (n > int(idx_layer)) {
+                                    // Collect top surfaces.
+                                    DiscoverVerticalShellsCacheEntry &cache = cache_top_regions[n % n_extra_top_layers];
+                                    if (! cache.valid) {
+                                        cache.valid = true;
+                                        // neighbor_region.slices contain the source top regions,
+                                        // so one would think that they encompass the top fill_surfaces. But the fill_surfaces could have been
+                                        // expanded before, therefore they may protrude out of neighbor_region.slices's top surfaces.
+                                        //FIXME one should probably use the cummulative top surfaces over all regions here.
+                                        cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_type(stTop)), min_perimeter_infill_spacing);
+                                        cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_type(stTop)), min_perimeter_infill_spacing);
+                                    }
+                                    polygons_append(shell, cache.slices);
+                                    polygons_append(shell, cache.fill_surfaces);
+                                }
+                                else if (n < int(idx_layer)) {
+                                    // Collect bottom and bottom bridge surfaces.
+                                    DiscoverVerticalShellsCacheEntry &cache = cache_bottom_regions[n % n_extra_bottom_layers];
+                                    if (! cache.valid) {
+                                        cache.valid = true;
+                                        //FIXME one should probably use the cummulative top surfaces over all regions here.
+                                        cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
+                                        cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
+                                    }
+                                    polygons_append(shell, cache.slices);
+                                    polygons_append(shell, cache.fill_surfaces);
+                                }
+                                // Running the union_ using the Clipper library piece by piece is cheaper 
+                                // than running the union_ all at once.
+                                if (n_shell_old < shell.size())
+                                   shell = union_(shell, false);
                             }
-                            polygons_append(shell, cache.slices);
-                            polygons_append(shell, cache.fill_surfaces);
-                        }
-                        else if (n < int(idx_layer)) {
-                            // Collect bottom and bottom bridge surfaces.
-                            DiscoverVerticalShellsCacheEntry &cache = cache_bottom_regions[n % n_extra_bottom_layers];
-                            if (! cache.valid) {
-                                cache.valid = true;
-                                //FIXME one should probably use the cummulative top surfaces over all regions here.
-                                cache.slices = offset(to_expolygons(neighbor_region.slices.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
-                                cache.fill_surfaces = offset(to_expolygons(neighbor_region.fill_surfaces.filter_by_types(surfaces_bottom, 2)), min_perimeter_infill_spacing);
-                            }
-                            polygons_append(shell, cache.slices);
-                            polygons_append(shell, cache.fill_surfaces);
-                        }
-                        // Running the union_ using the Clipper library piece by piece is cheaper 
-                        // than running the union_ all at once.
-                        if (n_shell_old < shell.size())
-                           shell = union_(shell, false);
-                    }
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-                {
-					Slic3r::SVG svg(debug_out_path("discover_vertical_shells-perimeters-before-union-%d.svg", debug_idx), get_extents(shell));
-                    svg.draw(shell);
-                    svg.draw_outline(shell, "black", scale_(0.05));
-                    svg.Close(); 
-                }
+                        {
+        					Slic3r::SVG svg(debug_out_path("discover_vertical_shells-perimeters-before-union-%d.svg", debug_idx), get_extents(shell));
+                            svg.draw(shell);
+                            svg.draw_outline(shell, "black", scale_(0.05));
+                            svg.Close(); 
+                        }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 #if 0
-                {
-                    PROFILE_BLOCK(discover_vertical_shells_region_layer_shell_);
-//                    shell = union_(shell, true);
-                    shell = union_(shell, false); 
-                }
+                        {
+                            PROFILE_BLOCK(discover_vertical_shells_region_layer_shell_);
+        //                    shell = union_(shell, true);
+                            shell = union_(shell, false); 
+                        }
 #endif
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-                shell_ex = union_ex(shell, true);
+                        shell_ex = union_ex(shell, true);
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-            }
+                    }
 
-            //if (shell.empty())
-            //    continue;
+                    //if (shell.empty())
+                    //    continue;
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            {
-                Slic3r::SVG svg(debug_out_path("discover_vertical_shells-perimeters-after-union-%d.svg", debug_idx), get_extents(shell));
-                svg.draw(shell_ex);
-                svg.draw_outline(shell_ex, "black", "blue", scale_(0.05));
-                svg.Close();  
-            }
+                    {
+                        Slic3r::SVG svg(debug_out_path("discover_vertical_shells-perimeters-after-union-%d.svg", debug_idx), get_extents(shell));
+                        svg.draw(shell_ex);
+                        svg.draw_outline(shell_ex, "black", "blue", scale_(0.05));
+                        svg.Close();  
+                    }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            {
-                Slic3r::SVG svg(debug_out_path("discover_vertical_shells-internal-wshell-%d.svg", debug_idx), get_extents(shell));
-                svg.draw(layerm->fill_surfaces.filter_by_type(stInternal), "yellow", 0.5);
-                svg.draw_outline(layerm->fill_surfaces.filter_by_type(stInternal), "black", "blue", scale_(0.05));
-                svg.draw(shell_ex, "blue", 0.5);
-                svg.draw_outline(shell_ex, "black", "blue", scale_(0.05));
-                svg.Close();
-            } 
-            {
-                Slic3r::SVG svg(debug_out_path("discover_vertical_shells-internalvoid-wshell-%d.svg", debug_idx), get_extents(shell));
-                svg.draw(layerm->fill_surfaces.filter_by_type(stInternalVoid), "yellow", 0.5);
-                svg.draw_outline(layerm->fill_surfaces.filter_by_type(stInternalVoid), "black", "blue", scale_(0.05));
-                svg.draw(shell_ex, "blue", 0.5);
-                svg.draw_outline(shell_ex, "black", "blue", scale_(0.05));
-                svg.Close();
-            } 
-            {
-                Slic3r::SVG svg(debug_out_path("discover_vertical_shells-internalvoid-wshell-%d.svg", debug_idx), get_extents(shell));
-                svg.draw(layerm->fill_surfaces.filter_by_type(stInternalVoid), "yellow", 0.5);
-                svg.draw_outline(layerm->fill_surfaces.filter_by_type(stInternalVoid), "black", "blue", scale_(0.05));
-                svg.draw(shell_ex, "blue", 0.5);
-                svg.draw_outline(shell_ex, "black", "blue", scale_(0.05)); 
-                svg.Close();
-            } 
+                    {
+                        Slic3r::SVG svg(debug_out_path("discover_vertical_shells-internal-wshell-%d.svg", debug_idx), get_extents(shell));
+                        svg.draw(layerm->fill_surfaces.filter_by_type(stInternal), "yellow", 0.5);
+                        svg.draw_outline(layerm->fill_surfaces.filter_by_type(stInternal), "black", "blue", scale_(0.05));
+                        svg.draw(shell_ex, "blue", 0.5);
+                        svg.draw_outline(shell_ex, "black", "blue", scale_(0.05));
+                        svg.Close();
+                    } 
+                    {
+                        Slic3r::SVG svg(debug_out_path("discover_vertical_shells-internalvoid-wshell-%d.svg", debug_idx), get_extents(shell));
+                        svg.draw(layerm->fill_surfaces.filter_by_type(stInternalVoid), "yellow", 0.5);
+                        svg.draw_outline(layerm->fill_surfaces.filter_by_type(stInternalVoid), "black", "blue", scale_(0.05));
+                        svg.draw(shell_ex, "blue", 0.5);
+                        svg.draw_outline(shell_ex, "black", "blue", scale_(0.05));
+                        svg.Close();
+                    } 
+                    {
+                        Slic3r::SVG svg(debug_out_path("discover_vertical_shells-internalvoid-wshell-%d.svg", debug_idx), get_extents(shell));
+                        svg.draw(layerm->fill_surfaces.filter_by_type(stInternalVoid), "yellow", 0.5);
+                        svg.draw_outline(layerm->fill_surfaces.filter_by_type(stInternalVoid), "black", "blue", scale_(0.05));
+                        svg.draw(shell_ex, "blue", 0.5);
+                        svg.draw_outline(shell_ex, "black", "blue", scale_(0.05)); 
+                        svg.Close();
+                    } 
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-            // Trim the shells region by the internal & internal void surfaces.
-            const SurfaceType surfaceTypesInternal[] = { stInternal, stInternalVoid, stInternalSolid };
-            const Polygons    polygonsInternal = to_polygons(layerm->fill_surfaces.filter_by_types(surfaceTypesInternal, 3));
-            shell = intersection(shell, polygonsInternal, true);
-            polygons_append(shell, diff(polygonsInternal, holes));
-            if (shell.empty())
-                continue;
+                    // Trim the shells region by the internal & internal void surfaces.
+                    const SurfaceType surfaceTypesInternal[] = { stInternal, stInternalVoid, stInternalSolid };
+                    const Polygons    polygonsInternal = to_polygons(layerm->fill_surfaces.filter_by_types(surfaceTypesInternal, 3));
+                    shell = intersection(shell, polygonsInternal, true);
+                    polygons_append(shell, diff(polygonsInternal, holes));
+                    if (shell.empty())
+                        continue;
 
-            // Append the internal solids, so they will be merged with the new ones.
-            polygons_append(shell, to_polygons(layerm->fill_surfaces.filter_by_type(stInternalSolid)));
+                    // Append the internal solids, so they will be merged with the new ones.
+                    polygons_append(shell, to_polygons(layerm->fill_surfaces.filter_by_type(stInternalSolid)));
 
-            // These regions will be filled by a rectilinear full infill. Currently this type of infill
-            // only fills regions, which fit at least a single line. To avoid gaps in the sparse infill,
-            // make sure that this region does not contain parts narrower than the infill spacing width.
+                    // These regions will be filled by a rectilinear full infill. Currently this type of infill
+                    // only fills regions, which fit at least a single line. To avoid gaps in the sparse infill,
+                    // make sure that this region does not contain parts narrower than the infill spacing width.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            Polygons shell_before = shell;
+                    Polygons shell_before = shell;
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 #if 1
-            // Intentionally inflate a bit more than how much the region has been shrunk, 
-            // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
-            shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
-            if (shell.empty())
-                continue;
+                    // Intentionally inflate a bit more than how much the region has been shrunk, 
+                    // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
+                    shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
+                    if (shell.empty())
+                        continue;
 #else
-            // Ensure each region is at least 3x infill line width wide, so it could be filled in.
-//            float margin = float(infill_line_spacing) * 3.f;
-            float margin = float(infill_line_spacing) * 1.5f;
-            // we use a higher miterLimit here to handle areas with acute angles
-            // in those cases, the default miterLimit would cut the corner and we'd
-            // get a triangle in $too_narrow; if we grow it below then the shell
-            // would have a different shape from the external surface and we'd still
-            // have the same angle, so the next shell would be grown even more and so on.
-            Polygons too_narrow = diff(shell, offset2(shell, -margin, margin, ClipperLib::jtMiter, 5.), true);
-            if (! too_narrow.empty()) {
-                // grow the collapsing parts and add the extra area to  the neighbor layer 
-                // as well as to our original surfaces so that we support this 
-                // additional area in the next shell too
-                // make sure our grown surfaces don't exceed the fill area
-                polygons_append(shell, intersection(offset(too_narrow, margin), polygonsInternal));
-            }
+                    // Ensure each region is at least 3x infill line width wide, so it could be filled in.
+        //            float margin = float(infill_line_spacing) * 3.f;
+                    float margin = float(infill_line_spacing) * 1.5f;
+                    // we use a higher miterLimit here to handle areas with acute angles
+                    // in those cases, the default miterLimit would cut the corner and we'd
+                    // get a triangle in $too_narrow; if we grow it below then the shell
+                    // would have a different shape from the external surface and we'd still
+                    // have the same angle, so the next shell would be grown even more and so on.
+                    Polygons too_narrow = diff(shell, offset2(shell, -margin, margin, ClipperLib::jtMiter, 5.), true);
+                    if (! too_narrow.empty()) {
+                        // grow the collapsing parts and add the extra area to  the neighbor layer 
+                        // as well as to our original surfaces so that we support this 
+                        // additional area in the next shell too
+                        // make sure our grown surfaces don't exceed the fill area
+                        polygons_append(shell, intersection(offset(too_narrow, margin), polygonsInternal));
+                    }
 #endif
-            ExPolygons new_internal_solid = intersection_ex(polygonsInternal, shell, false);
+                    ExPolygons new_internal_solid = intersection_ex(polygonsInternal, shell, false);
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            {
-                Slic3r::SVG svg(debug_out_path("discover_vertical_shells-regularized-%d.svg", debug_idx), get_extents(shell_before));
-                // Source shell.
-                svg.draw(union_ex(shell_before, true));
-                // Shell trimmed to the internal surfaces.
-                svg.draw_outline(union_ex(shell, true), "black", "blue", scale_(0.05));
-                // Regularized infill region.
-                svg.draw_outline(new_internal_solid, "red", "magenta", scale_(0.05));
-                svg.Close();  
-            }
+                    {
+                        Slic3r::SVG svg(debug_out_path("discover_vertical_shells-regularized-%d.svg", debug_idx), get_extents(shell_before));
+                        // Source shell.
+                        svg.draw(union_ex(shell_before, true));
+                        // Shell trimmed to the internal surfaces.
+                        svg.draw_outline(union_ex(shell, true), "black", "blue", scale_(0.05));
+                        // Regularized infill region.
+                        svg.draw_outline(new_internal_solid, "red", "magenta", scale_(0.05));
+                        svg.Close();  
+                    }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-            // Trim the internal & internalvoid by the shell.
-            Slic3r::ExPolygons new_internal = diff_ex(
-                to_polygons(layerm->fill_surfaces.filter_by_type(stInternal)),
-                shell,
-                false
-            );
-            Slic3r::ExPolygons new_internal_void = diff_ex(
-                to_polygons(layerm->fill_surfaces.filter_by_type(stInternalVoid)),
-                shell,
-                false
-            );
+                    // Trim the internal & internalvoid by the shell.
+                    Slic3r::ExPolygons new_internal = diff_ex(
+                        to_polygons(layerm->fill_surfaces.filter_by_type(stInternal)),
+                        shell,
+                        false
+                    );
+                    Slic3r::ExPolygons new_internal_void = diff_ex(
+                        to_polygons(layerm->fill_surfaces.filter_by_type(stInternalVoid)),
+                        shell,
+                        false
+                    );
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            {
-                SVG::export_expolygons(debug_out_path("discover_vertical_shells-new_internal-%d.svg", debug_idx), get_extents(shell), new_internal, "black", "blue", scale_(0.05));
-				SVG::export_expolygons(debug_out_path("discover_vertical_shells-new_internal_void-%d.svg", debug_idx), get_extents(shell), new_internal_void, "black", "blue", scale_(0.05));
-				SVG::export_expolygons(debug_out_path("discover_vertical_shells-new_internal_solid-%d.svg", debug_idx), get_extents(shell), new_internal_solid, "black", "blue", scale_(0.05));
-            }
+                    {
+                        SVG::export_expolygons(debug_out_path("discover_vertical_shells-new_internal-%d.svg", debug_idx), get_extents(shell), new_internal, "black", "blue", scale_(0.05));
+        				SVG::export_expolygons(debug_out_path("discover_vertical_shells-new_internal_void-%d.svg", debug_idx), get_extents(shell), new_internal_void, "black", "blue", scale_(0.05));
+        				SVG::export_expolygons(debug_out_path("discover_vertical_shells-new_internal_solid-%d.svg", debug_idx), get_extents(shell), new_internal_solid, "black", "blue", scale_(0.05));
+                    }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-            // Assign resulting internal surfaces to layer.
-            const SurfaceType surfaceTypesKeep[] = { stTop, stBottom, stBottomBridge };
-            layerm->fill_surfaces.keep_types(surfaceTypesKeep, sizeof(surfaceTypesKeep)/sizeof(SurfaceType));
-            layerm->fill_surfaces.append(new_internal,       stInternal);
-            layerm->fill_surfaces.append(new_internal_void,  stInternalVoid);
-            layerm->fill_surfaces.append(new_internal_solid, stInternalSolid);
-        } // for each layer
+                    // Assign resulting internal surfaces to layer.
+                    const SurfaceType surfaceTypesKeep[] = { stTop, stBottom, stBottomBridge };
+                    layerm->fill_surfaces.keep_types(surfaceTypesKeep, sizeof(surfaceTypesKeep)/sizeof(SurfaceType));
+                    layerm->fill_surfaces.append(new_internal,       stInternal);
+                    layerm->fill_surfaces.append(new_internal_void,  stInternalVoid);
+                    layerm->fill_surfaces.append(new_internal_solid, stInternalSolid);
+                } // for each layer
+            }); 
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - end";
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
 		for (size_t idx_layer = 0; idx_layer < this->layers.size(); ++idx_layer) {
