@@ -527,16 +527,20 @@ void PrintObject::detect_surfaces_type()
                 this->layers[idx_layer]->get_region(idx_region)->slices.surfaces = std::move(surfaces_new[idx_layer]);
         }
 
-        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - end";
-        
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " - clipping in parallel - start";
         // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
-        for (int idx_layer = 0; idx_layer < int(this->layer_count()); ++ idx_layer) {
-            LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
-            layerm->slices_to_fill_surfaces_clipped();
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, this->layers.size()),
+            [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
+                for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                    LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
+                    layerm->slices_to_fill_surfaces_clipped();
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-            layerm->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-final");
+                    layerm->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-final");
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-        } // for each layer of a region
+                } // for each layer of a region
+            });
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " - clipping in parallel - end";
     } // for each $self->print->region_count
 }
 
