@@ -198,7 +198,7 @@ typedef std::vector<PrintRegion*> PrintRegionPtrs;
 // The complete print tray with possibly multiple objects.
 class Print
 {
-    public:
+public:
     PrintConfig config;
     PrintObjectConfig default_object_config;
     PrintRegionConfig default_region_config;
@@ -218,7 +218,9 @@ class Print
     
     // methods for handling objects
     void clear_objects();
-    PrintObject* get_object(size_t idx);
+    PrintObject* get_object(size_t idx) { return objects.at(idx); }
+    const PrintObject* get_object(size_t idx) const { return objects.at(idx); }
+
     void delete_object(size_t idx);
     void reload_object(size_t idx);
     bool reload_model_instances();
@@ -258,7 +260,7 @@ class Print
     std::string output_filename();
     std::string output_filepath(const std::string &path);
     
-    private:
+private:
     void clear_regions();
     void delete_region(size_t idx);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);

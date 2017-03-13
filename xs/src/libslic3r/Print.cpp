@@ -36,12 +36,6 @@ Print::clear_objects()
     this->clear_regions();
 }
 
-PrintObject*
-Print::get_object(size_t idx)
-{
-    return objects.at(idx);
-}
-
 void
 Print::delete_object(size_t idx)
 {

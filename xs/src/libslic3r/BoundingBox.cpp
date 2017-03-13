@@ -204,23 +204,6 @@ BoundingBox3Base<PointClass>::radius() const
 template double BoundingBox3Base<Pointf3>::radius() const;
 
 template <class PointClass> void
-BoundingBoxBase<PointClass>::translate(coordf_t x, coordf_t y)
-{
-    this->min.translate(x, y);
-    this->max.translate(x, y);
-}
-template void BoundingBoxBase<Point>::translate(coordf_t x, coordf_t y);
-template void BoundingBoxBase<Pointf>::translate(coordf_t x, coordf_t y);
-
-template <class PointClass> void
-BoundingBox3Base<PointClass>::translate(coordf_t x, coordf_t y, coordf_t z)
-{
-    this->min.translate(x, y, z);
-    this->max.translate(x, y, z);
-}
-template void BoundingBox3Base<Pointf3>::translate(coordf_t x, coordf_t y, coordf_t z);
-
-template <class PointClass> void
 BoundingBoxBase<PointClass>::offset(coordf_t delta)
 {
     this->min.translate(-delta, -delta);
@@ -258,25 +241,6 @@ BoundingBox3Base<PointClass>::center() const
     );
 }
 template Pointf3 BoundingBox3Base<Pointf3>::center() const;
-
-template <class PointClass> bool
-BoundingBoxBase<PointClass>::contains(const PointClass &point) const
-{
-    return point.x >= this->min.x && point.x <= this->max.x
-        && point.y >= this->min.y && point.y <= this->max.y;
-}
-template bool BoundingBoxBase<Point>::contains(const Point &point) const;
-template bool BoundingBoxBase<Pointf>::contains(const Pointf &point) const;
-
-template <class PointClass> bool
-BoundingBoxBase<PointClass>::overlap(const BoundingBoxBase<PointClass> &other) const
-{
-    return ! (this->max.x < other.min.x || this->min.x > other.max.x ||
-              this->max.y < other.min.y || this->min.y > other.max.y);
-}
-template bool BoundingBoxBase<Point>::overlap(const BoundingBoxBase<Point> &point) const;
-template bool BoundingBoxBase<Pointf>::overlap(const BoundingBoxBase<Pointf> &point) const;
-
 
 // Align a coordinate to a grid. The coordinate may be negative,
 // the aligned value will never be bigger than the original one.

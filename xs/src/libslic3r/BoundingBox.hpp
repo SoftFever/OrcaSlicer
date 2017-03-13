@@ -30,11 +30,18 @@ class BoundingBoxBase
     void scale(double factor);
     PointClass size() const;
     double radius() const;
-    void translate(coordf_t x, coordf_t y);
+    void translate(coordf_t x, coordf_t y) { this->min.translate(x, y); this->max.translate(x, y); }
+    void translate(const Pointf &pos) { this->translate(pos.x, pos.y); }
     void offset(coordf_t delta);
     PointClass center() const;
-    bool contains(const PointClass &point) const;
-    bool overlap(const BoundingBoxBase<PointClass> &other) const;
+    bool contains(const PointClass &point) const {
+        return point.x >= this->min.x && point.x <= this->max.x
+            && point.y >= this->min.y && point.y <= this->max.y;
+    }
+    bool overlap(const BoundingBoxBase<PointClass> &other) const {
+        return ! (this->max.x < other.min.x || this->min.x > other.max.x ||
+                  this->max.y < other.min.y || this->min.y > other.max.y);
+    }
 };
 
 template <class PointClass>
@@ -51,7 +58,8 @@ class BoundingBox3Base : public BoundingBoxBase<PointClass>
     void merge(const BoundingBox3Base<PointClass> &bb);
     PointClass size() const;
     double radius() const;
-    void translate(coordf_t x, coordf_t y, coordf_t z);
+    void translate(coordf_t x, coordf_t y, coordf_t z) { this->min.translate(x, y, z); this->max.translate(x, y, z); }
+    void translate(const Pointf3 &pos) { this->translate(pos.x, pos.y, pos.z); }
     void offset(coordf_t delta);
     PointClass center() const;
 };
