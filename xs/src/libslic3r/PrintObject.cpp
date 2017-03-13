@@ -942,18 +942,12 @@ PrintObject::bridge_over_infill()
             // compute the remaning internal solid surfaces as difference
             ExPolygons not_to_bridge = diff_ex(internal_solid, to_polygons(to_bridge), true);
             to_bridge = intersection_ex(to_polygons(to_bridge), internal_solid, true);
-            
             // build the new collection of fill_surfaces
-            {
-                layerm->fill_surfaces.remove_type(stInternalSolid);
-
-                for (ExPolygons::const_iterator ex = to_bridge.begin(); ex != to_bridge.end(); ++ex)
-                    layerm->fill_surfaces.surfaces.push_back(Surface(stInternalBridge, *ex));
-                
-                for (ExPolygons::const_iterator ex = not_to_bridge.begin(); ex != not_to_bridge.end(); ++ex)
-                    layerm->fill_surfaces.surfaces.push_back(Surface(stInternalSolid, *ex));
-            }
-            
+            layerm->fill_surfaces.remove_type(stInternalSolid);
+            for (ExPolygon &ex : to_bridge)
+                layerm->fill_surfaces.surfaces.push_back(Surface(stInternalBridge, ex));
+            for (ExPolygon &ex : not_to_bridge)
+                layerm->fill_surfaces.surfaces.push_back(Surface(stInternalSolid, ex));            
             /*
             # exclude infill from the layers below if needed
             # see discussion at https://github.com/alexrj/Slic3r/issues/240
