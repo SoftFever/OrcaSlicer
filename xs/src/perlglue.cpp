@@ -60,7 +60,8 @@ REGISTER_CLASS(Surface, "Surface");
 REGISTER_CLASS(SurfaceCollection, "Surface::Collection");
 REGISTER_CLASS(PrintObjectSupportMaterial, "Print::SupportMaterial2");
 REGISTER_CLASS(TriangleMesh, "TriangleMesh");
-REGISTER_CLASS(GLVertexArray, "GUI::_3DScene::GLVertexArray");
+REGISTER_CLASS(GLVolume, "GUI::_3DScene::GLVolume");
+REGISTER_CLASS(GLVolumeCollection, "GUI::_3DScene::GLVolume::Collection");
 
 SV*
 ConfigBase__as_hash(ConfigBase* THIS) {

@@ -3,26 +3,101 @@
 #include <xsinit.h>
 #include "slic3r/GUI/3DScene.hpp"
 
-%name{Slic3r::GUI::_3DScene::GLVertexArray} class GLVertexArray {
-    GLVertexArray();
-    ~GLVertexArray();
-    void load_mesh(TriangleMesh* mesh) const
-        %code%{ THIS->load_mesh(*mesh); %};
-    size_t size() const
-        %code%{ RETVAL = THIS->verts.size(); %};
-    void* verts_ptr() const
-        %code%{ RETVAL = THIS->verts.empty() ? 0 : &THIS->verts.front(); %};
-    void* norms_ptr() const
-        %code%{ RETVAL = THIS->verts.empty() ? 0 : &THIS->norms.front(); %};
+%name{Slic3r::GUI::_3DScene::GLVolume} class GLVolume {
+    GLVolume();
+    ~GLVolume();
+
+    std::vector<double> color()
+        %code%{ RETVAL.reserve(4); RETVAL.push_back(THIS->color[0]); RETVAL.push_back(THIS->color[1]); RETVAL.push_back(THIS->color[2]); RETVAL.push_back(THIS->color[3]); %};
+    int                 composite_id()
+        %code%{ RETVAL = THIS->composite_id; %};
+    int                 select_group_id()
+        %code%{ RETVAL = THIS->select_group_id; %};
+    int                 drag_group_id()
+        %code%{ RETVAL = THIS->drag_group_id; %};
+    int                 selected()
+        %code%{ RETVAL = THIS->selected; %};
+    void                set_selected(int i)
+        %code%{ THIS->selected = i; %};
+    int                 hover()
+        %code%{ RETVAL = THIS->hover; %};
+    void                set_hover(int i)
+        %code%{ THIS->hover = i; %};
+
+    int                 object_idx() const;
+    int                 volume_idx() const;
+    int                 instance_idx() const;
+    bool                empty() const;
+    Clone<Pointf3>      origin() const
+        %code%{ RETVAL = THIS->origin; %};
+    Clone<BoundingBoxf3> bounding_box() const
+        %code%{ RETVAL = THIS->bounding_box; %};
+    Clone<BoundingBoxf3> transformed_bounding_box() const;
+
+    void*               qverts_to_render_ptr();
+    void*               qnorms_to_render_ptr();
+    int                 qverts_to_render_cnt();
+    void*               tverts_to_render_ptr();
+    void*               tnorms_to_render_ptr();
+    int                 tverts_to_render_cnt();
+
+    bool                has_layer_height_texture();
+    int                 layer_height_texture_width();
+    int                 layer_height_texture_height();
+    int                 layer_height_texture_cells();
+    void*               layer_height_texture_data_ptr_level0();
+    void*               layer_height_texture_data_ptr_level1();
+    double              layer_height_texture_z_to_row_id() const; 
+    void                generate_layer_height_texture(PrintObject *print_object, bool force);
+};
+
+
+%name{Slic3r::GUI::_3DScene::GLVolume::Collection} class GLVolumeCollection {
+    GLVolumeCollection();
+    ~GLVolumeCollection();
+
+    std::vector<int> load_object(ModelObject *object, int obj_idx, std::vector<int> instance_idxs, std::string color_by, std::string select_by, std::string drag_by);
+
+    void erase()
+        %code{% THIS->clear(); %};
+
+    int count()
+        %code{% RETVAL = THIS->volumes.size(); %};
+    
+    void set_range(double low, double high);
+%{
+
+SV*
+GLVolumeCollection::arrayref()
+    CODE:
+        AV* av = newAV();
+        av_fill(av, THIS->volumes.size()-1);
+        int i = 0;
+        for (GLVolume *v : THIS->volumes) {
+            av_store(av, i++, perl_to_SV_ref(*v));
+        }
+        RETVAL = newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
+%}
 };
 
 %package{Slic3r::GUI::_3DScene};
 %{
 
 void
-_extrusionentity_to_verts_do(Lines lines, std::vector<double> widths, std::vector<double> heights, bool closed, double top_z, Point* copy, GLVertexArray* qverts, GLVertexArray* tverts)
+_load_print_toolpaths(print, volumes)
+        Print               *print;
+        GLVolumeCollection  *volumes;
     CODE:
-        _3DScene::_extrusionentity_to_verts_do(lines, widths, heights, closed,
-            top_z, *copy, qverts, tverts);
+        _3DScene::_load_print_toolpaths(print, volumes);
+
+void 
+_load_print_object_toolpaths(print_object, volumes)
+        PrintObject        *print_object;
+        GLVolumeCollection *volumes;
+    CODE:
+        _3DScene::_load_print_object_toolpaths(print_object, volumes);
 
 %}

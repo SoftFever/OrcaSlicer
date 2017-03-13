@@ -26,13 +26,6 @@ sub status_cb {
     return $status_cb // sub {};
 }
 
-# this value is not supposed to be compared with $layer->id
-# since they have different semantics
-sub total_layer_count {
-    my $self = shift;
-    return max(map $_->total_layer_count, @{$self->objects});
-}
-
 sub size {
     my $self = shift;
     return $self->bounding_box->size;

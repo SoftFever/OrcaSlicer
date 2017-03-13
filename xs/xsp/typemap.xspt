@@ -211,7 +211,10 @@
 %typemap{ModelInstancePtrs*};
 %typemap{Ref<ModelInstancePtrs>}{simple};
 %typemap{Clone<ModelInstancePtrs>}{simple};
-%typemap{GLVertexArray*};
+%typemap{GLVolume*};
+%typemap{Ref<GLVolume>}{simple};
+%typemap{GLVolumeCollection*};
+%typemap{Ref<GLVolumeCollection>}{simple};
 
 %typemap{PrintRegionPtrs*};
 %typemap{PrintObjectPtrs*};

@@ -593,7 +593,7 @@ int generate_layer_height_texture(
 #endif
 
     // Clear the main texture and the 2nd LOD level.
-    memset(data, 0, rows * cols * 5);
+//	memset(data, 0, rows * cols * (level_of_detail_2nd_level ? 5 : 4));
     // 2nd LOD level data start
     unsigned char *data1 = reinterpret_cast<unsigned char*>(data) + rows * cols * 4;
     int ncells  = std::min((cols-1) * rows, int(ceil(16. * (slicing_params.object_print_z_height() / slicing_params.min_layer_height))));

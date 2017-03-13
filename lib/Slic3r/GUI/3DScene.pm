@@ -1,12 +1,8 @@
 # Implements pure perl packages
 #
 # Slic3r::GUI::3DScene::Base;
-# Slic3r::GUI::3DScene::Volume;
 # Slic3r::GUI::3DScene;
 #
-# It uses static methods of a C++ class Slic3r::GUI::_3DScene::GLVertexArray
-# for efficient building of vertex arrays for OpenGL rendering.
-# 
 # Slic3r::GUI::Plater::3D derives from Slic3r::GUI::3DScene,
 # Slic3r::GUI::Plater::3DPreview, Slic3r::GUI::Plater::3DToolpaths, 
 # Slic3r::GUI::Plater::ObjectCutDialog and Slic3r::GUI::Plater::ObjectPartsPanel
@@ -136,18 +132,17 @@ sub new {
     $self->_stheta(45);
     $self->_sphi(45);
     $self->_zoom(1);
-    
+
+    # Collection of GLVolume objects
+    $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
+
     # 3D point in model space
     $self->_camera_type('ortho');
 #    $self->_camera_type('perspective');
     $self->_camera_target(Slic3r::Pointf3->new(0,0,0));
     $self->_camera_distance(0.);
 
-    # Size of a layer height texture, used by a shader to color map the object print layers.
     $self->layer_editing_enabled(0);
-    # 512x512 bitmaps are supported everywhere, but that may not be sufficent for super large print volumes.
-    $self->{layer_preview_z_texture_width} = 1024;
-    $self->{layer_preview_z_texture_height} = 1024;
     $self->{layer_height_edit_band_width} = 2.;
     $self->{layer_height_edit_strength} = 0.005;
     $self->{layer_height_edit_last_object_id} = -1;
@@ -327,10 +322,8 @@ sub _variable_layer_thickness_action {
             $self->{layer_height_edit_strength},
             $self->{layer_height_edit_band_width}, 
             $self->{layer_height_edit_last_action});
-        $self->{print}->get_object($self->{layer_height_edit_last_object_id})->generate_layer_height_texture(
-            $self->volumes->[$self->{layer_height_edit_last_object_id}]->layer_height_texture_data->ptr,
-            $self->{layer_preview_z_texture_height},
-            $self->{layer_preview_z_texture_width});
+        $self->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
+            $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
         $self->Refresh;
         # Automatic action on mouse down with the same coordinate.
         $self->{layer_height_edit_timer}->Start(100, wxTIMER_CONTINUOUS);
@@ -545,8 +538,7 @@ sub mouse_wheel_event {
 # Reset selection.
 sub reset_objects {
     my ($self) = @_;
-    
-    $self->volumes([]);
+    $self->volumes->erase;
     $self->_dirty(1);
 }
 
@@ -724,13 +716,12 @@ sub set_bed_shape {
 
 sub deselect_volumes {
     my ($self) = @_;
-    $_->selected(0) for @{$self->volumes};
+    $_->set_selected(0) for @{$self->volumes};
 }
 
 sub select_volume {
     my ($self, $volume_idx) = @_;
-    
-    $self->volumes->[$volume_idx]->selected(1)
+    $self->volumes->[$volume_idx]->set_selected(1)
         if $volume_idx != -1;
 }
 
@@ -1053,14 +1044,14 @@ sub Render {
             my $col = [ glReadPixels_p($pos->x, $self->GetSize->GetHeight - $pos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
             my $volume_idx = $col->[0] + $col->[1]*256 + $col->[2]*256*256;
             $self->_hover_volume_idx(undef);
-            $_->hover(0) for @{$self->volumes};
+            $_->set_hover(0) for @{$self->volumes};
             if ($volume_idx <= $#{$self->volumes}) {
                 $self->_hover_volume_idx($volume_idx);
                 
-                $self->volumes->[$volume_idx]->hover(1);
+                $self->volumes->[$volume_idx]->set_hover(1);
                 my $group_id = $self->volumes->[$volume_idx]->select_group_id;
                 if ($group_id != -1) {
-                    $_->hover(1) for grep { $_->select_group_id == $group_id } @{$self->volumes};
+                    $_->set_hover(1) for grep { $_->select_group_id == $group_id } @{$self->volumes};
                 }
                 
                 $self->on_hover->($volume_idx) if $self->on_hover;
@@ -1213,17 +1204,10 @@ sub draw_volumes {
         my $volume = $self->volumes->[$volume_idx];
 
         my $shader_active = 0;
-        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{shader} && $volume->{layer_height_texture_data}) {
-            my $print_object = $self->{print}->get_object(int($volume->select_group_id / 1000000));
-            {
-                # Update the height texture if the ModelObject::layer_height_texture is invalid.
-                my $ncells = $print_object->generate_layer_height_texture(
-                    $volume->{layer_height_texture_data}->ptr,
-                    $self->{layer_preview_z_texture_height},
-                    $self->{layer_preview_z_texture_width},
-                    !defined($volume->{layer_height_texture_cells}));
-                $volume->{layer_height_texture_cells} = $ncells if $ncells > 0;
-            }
+        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{shader} && $volume->has_layer_height_texture) {
+            # Update the height texture if the ModelObject::layer_height_texture is invalid.
+            $volume->generate_layer_height_texture(
+                $self->{print}->get_object(int($volume->select_group_id / 1000000)), 0);
             $self->{shader}->Enable;
             my $z_to_texture_row_id             = $self->{shader}->Map('z_to_texture_row');
             my $z_texture_row_to_normalized_id  = $self->{shader}->Map('z_texture_row_to_normalized');
@@ -1233,35 +1217,23 @@ sub draw_volumes {
             die if ! defined($z_texture_row_to_normalized_id);
             die if ! defined($z_cursor_id);
             die if ! defined($z_cursor_band_width_id);
-            my $ncells = $volume->{layer_height_texture_cells};
-            my $z_max = $volume->{bounding_box}->z_max;
-            glUniform1fARB($z_to_texture_row_id, ($ncells - 1) / ($self->{layer_preview_z_texture_width} * $z_max));
-            glUniform1fARB($z_texture_row_to_normalized_id, 1. / $self->{layer_preview_z_texture_height});
-            glUniform1fARB($z_cursor_id, $z_max * $z_cursor_relative);
+            glUniform1fARB($z_to_texture_row_id, $volume->layer_height_texture_z_to_row_id);
+            glUniform1fARB($z_texture_row_to_normalized_id, 1. / $volume->layer_height_texture_height);
+            glUniform1fARB($z_cursor_id, $volume->bounding_box->z_max * $z_cursor_relative);
             glUniform1fARB($z_cursor_band_width_id, $self->{layer_height_edit_band_width});
             glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
 #            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_LEVEL, 0);
 #            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-            if (1) {
-                glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $self->{layer_preview_z_texture_width}, $self->{layer_preview_z_texture_height}, 
-                    0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-                glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $self->{layer_preview_z_texture_width} / 2, $self->{layer_preview_z_texture_height} / 2,
-                    0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+            glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
+                0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+            glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
+                0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 #                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #                glPixelStorei(GL_UNPACK_ROW_LENGTH, $self->{layer_preview_z_texture_width});
-                glTexSubImage2D_c(GL_TEXTURE_2D, 0, 0, 0, $self->{layer_preview_z_texture_width}, $self->{layer_preview_z_texture_height},
-                    GL_RGBA, GL_UNSIGNED_BYTE, $volume->{layer_height_texture_data}->ptr);
-                glTexSubImage2D_c(GL_TEXTURE_2D, 1, 0, 0, $self->{layer_preview_z_texture_width} / 2, $self->{layer_preview_z_texture_height} / 2,
-                    GL_RGBA, GL_UNSIGNED_BYTE, $volume->{layer_height_texture_data}->offset($self->{layer_preview_z_texture_width} * $self->{layer_preview_z_texture_height} * 4));
-            } else {
-                glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $self->{layer_preview_z_texture_width}, $self->{layer_preview_z_texture_height}, 
-                    0, GL_RGBA, GL_UNSIGNED_BYTE, $volume->{layer_height_texture_data}->ptr);
-                glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $self->{layer_preview_z_texture_width}/2, $self->{layer_preview_z_texture_height}/2, 
-                    0, GL_RGBA, GL_UNSIGNED_BYTE, $volume->{layer_height_texture_data}->ptr + $self->{layer_preview_z_texture_width} * $self->{layer_preview_z_texture_height} * 4);
-            }
-
-#            my $nlines = ceil($ncells / ($self->{layer_preview_z_texture_width} - 1));
-
+            glTexSubImage2D_c(GL_TEXTURE_2D, 0, 0, 0, $volume->layer_height_texture_width, $volume->layer_height_texture_height,
+                GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level0);
+            glTexSubImage2D_c(GL_TEXTURE_2D, 1, 0, 0, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
+                GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level1);
             $shader_active = 1;
         } elsif ($fakecolor) {
             # Object picking mode. Render the object with a color encoding the object index.
@@ -1277,68 +1249,21 @@ sub draw_volumes {
             glColor4f(@{ $volume->color });
         }
 
-        my $qverts_begin = 0;
-        my $qverts_end   = defined($volume->qverts) ? $volume->qverts->size() : 0;
-        my $tverts_begin = 0;
-        my $tverts_end   = defined($volume->tverts) ? $volume->tverts->size() : 0;
-        my $n_offsets    = ($volume->range && $volume->offsets) ? scalar(@{$volume->offsets}) : 0;
-        if ($n_offsets) {
-            # The Z layer range is specified.
-            # First test whether the Z span of this object is not out of ($min_z, $max_z) completely.
-            my ($min_z, $max_z) = @{$volume->range};
-            next if ($volume->offsets->[0] > $max_z || $volume->offsets->[-3] < $min_z);
-            # Then find the lowest layer to be displayed.
-            my $i = 0;
-            while ($i < $n_offsets && $volume->offsets->[$i] < $min_z) {
-                $i += 3;
-            }
-            # This shall not happen.
-            next if ($i == $n_offsets);
-            # Remember start of the layer.
-            $qverts_begin = $volume->offsets->[$i+1];
-            $tverts_begin = $volume->offsets->[$i+2];
-            # Some layers are above $min_z. Which?
-            while ($i < $n_offsets && $volume->offsets->[$i] <= $max_z) {
-                $i += 3;
-            }
-            if ($i < $n_offsets) {
-                $qverts_end = $volume->offsets->[$i+1];
-                $tverts_end = $volume->offsets->[$i+2];
-            }
-        }
-        
         glPushMatrix();
         glTranslatef(@{$volume->origin});
-
         glCullFace(GL_BACK);
-        if ($qverts_begin < $qverts_end) {
-            glVertexPointer_c(3, GL_FLOAT, 0, $volume->qverts->verts_ptr);
-            glNormalPointer_c(GL_FLOAT, 0, $volume->qverts->norms_ptr);
-            $qverts_begin /= 3;
-            $qverts_end /= 3;
-            my $nvertices = $qverts_end-$qverts_begin;
-            while ($nvertices > 0) {
-                my $nvertices_this = ($nvertices > 4096) ? 4096 : $nvertices;
-                glDrawArrays(GL_QUADS, $qverts_begin, $nvertices_this);
-                $qverts_begin += $nvertices_this;
-                $nvertices -= $nvertices_this;
-            }
+        my $qverts_cnt = $volume->qverts_to_render_cnt;
+        if ($qverts_cnt) {
+            glVertexPointer_c(3, GL_FLOAT, 0, $volume->qverts_to_render_ptr);
+            glNormalPointer_c(GL_FLOAT, 0, $volume->qnorms_to_render_ptr);
+            glDrawArrays(GL_QUADS, 0, $qverts_cnt / 3);
         }
-        
-        if ($tverts_begin < $tverts_end) {
-            glVertexPointer_c(3, GL_FLOAT, 0, $volume->tverts->verts_ptr);
-            glNormalPointer_c(GL_FLOAT, 0, $volume->tverts->norms_ptr);
-            $tverts_begin /= 3;
-            $tverts_end /= 3;
-            my $nvertices = $tverts_end-$tverts_begin;
-            while ($nvertices > 0) {
-                my $nvertices_this = ($nvertices > 4095) ? 4095 : $nvertices;
-                glDrawArrays(GL_TRIANGLES, $tverts_begin, $nvertices_this);
-                $tverts_begin += $nvertices_this;
-                $nvertices -= $nvertices_this;
-            }
+        my $tverts_cnt = $volume->tverts_to_render_cnt;
+        if ($tverts_cnt) {
+            glVertexPointer_c(3, GL_FLOAT, 0, $volume->tverts_to_render_ptr);
+            glNormalPointer_c(GL_FLOAT, 0, $volume->tnorms_to_render_ptr);
+            glDrawArrays(GL_TRIANGLES, 0, $tverts_cnt / 3);
         }
-
         glVertexPointer_c(3, GL_FLOAT, 0, 0);
         glNormalPointer_c(GL_FLOAT, 0, 0);
         glPopMatrix();
@@ -1369,7 +1294,6 @@ sub _load_image_set_texture {
     # Get RGB & alpha raw data from wxImage, interleave them into a Perl array.
     my @rgb = unpack 'C*', $img->GetData();
     my @alpha = $img->HasAlpha ? unpack 'C*', $img->GetAlpha() : (255) x (int(@rgb) / 3);
-#    my @alpha = unpack 'C*', $img->GetAlpha();
     my $n_pixels = int(@alpha);
     my @data = (0)x($n_pixels * 4);
     for (my $i = 0; $i < $n_pixels; $i += 1) {
@@ -1441,7 +1365,7 @@ sub draw_active_object_annotations {
     my $volume;
     foreach my $volume_idx (0..$#{$self->volumes}) {
         my $v = $self->volumes->[$volume_idx];
-        if ($v->selected && $v->{layer_height_texture_data} && $v->{layer_height_texture_cells}) {
+        if ($v->selected && $v->has_layer_height_texture) {
             $volume = $v;
             last;
         }
@@ -1458,20 +1382,18 @@ sub draw_active_object_annotations {
     my $z_to_texture_row_id             = $self->{shader}->Map('z_to_texture_row');
     my $z_texture_row_to_normalized_id  = $self->{shader}->Map('z_texture_row_to_normalized');
     my $z_cursor_id                     = $self->{shader}->Map('z_cursor');
-    my $ncells                          = $volume->{layer_height_texture_cells};
-    my $z_max                           = $volume->{bounding_box}->z_max;
-    glUniform1fARB($z_to_texture_row_id, ($ncells - 1) / ($self->{layer_preview_z_texture_width} * $z_max));
-    glUniform1fARB($z_texture_row_to_normalized_id, 1. / $self->{layer_preview_z_texture_height});
-    glUniform1fARB($z_cursor_id, $z_max * $z_cursor_relative);
+    glUniform1fARB($z_to_texture_row_id, $volume->layer_height_texture_z_to_row_id);
+    glUniform1fARB($z_texture_row_to_normalized_id, 1. / $volume->layer_height_texture_height);
+    glUniform1fARB($z_cursor_id, $volume->bounding_box->z_max * $z_cursor_relative);
     glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
-    glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $self->{layer_preview_z_texture_width}, $self->{layer_preview_z_texture_height}, 
+    glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
         0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $self->{layer_preview_z_texture_width} / 2, $self->{layer_preview_z_texture_height} / 2,
+    glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
         0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glTexSubImage2D_c(GL_TEXTURE_2D, 0, 0, 0, $self->{layer_preview_z_texture_width}, $self->{layer_preview_z_texture_height},
-        GL_RGBA, GL_UNSIGNED_BYTE, $volume->{layer_height_texture_data}->ptr);
-    glTexSubImage2D_c(GL_TEXTURE_2D, 1, 0, 0, $self->{layer_preview_z_texture_width} / 2, $self->{layer_preview_z_texture_height} / 2,
-        GL_RGBA, GL_UNSIGNED_BYTE, $volume->{layer_height_texture_data}->offset($self->{layer_preview_z_texture_width} * $self->{layer_preview_z_texture_height} * 4));
+    glTexSubImage2D_c(GL_TEXTURE_2D, 0, 0, 0, $volume->layer_height_texture_width, $volume->layer_height_texture_height,
+        GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level0);
+    glTexSubImage2D_c(GL_TEXTURE_2D, 1, 0, 0, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
+        GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level1);
     
     # Render the color bar.
     glDisable(GL_DEPTH_TEST);
@@ -1483,8 +1405,8 @@ sub draw_active_object_annotations {
     glBegin(GL_QUADS);
     glVertex3f($bar_left,  $bar_bottom, 0);
     glVertex3f($bar_right, $bar_bottom, 0);
-    glVertex3f($bar_right, $bar_top, $volume->{bounding_box}->z_max);
-    glVertex3f($bar_left,  $bar_top, $volume->{bounding_box}->z_max);
+    glVertex3f($bar_right, $bar_top, $volume->bounding_box->z_max);
+    glVertex3f($bar_left,  $bar_top, $volume->bounding_box->z_max);
     glEnd();
     glBindTexture(GL_TEXTURE_2D, 0);
     $self->{shader}->Disable;
@@ -1715,65 +1637,6 @@ void main()
 FRAGMENT
 }
 
-# Container for object geometry and selection status.
-package Slic3r::GUI::3DScene::Volume;
-use Moo;
-
-has 'bounding_box'      => (is => 'ro', required => 1);
-has 'origin'            => (is => 'rw', default => sub { Slic3r::Pointf3->new(0,0,0) });
-has 'color'             => (is => 'ro', required => 1);
-# An ID containing the object ID, volume ID and instance ID.
-has 'composite_id'      => (is => 'rw', default => sub { -1 });
-# An ID for group selection. It may be the same for all meshes of all object instances, or for just a single object instance.
-has 'select_group_id'   => (is => 'rw', default => sub { -1 });
-# An ID for group dragging. It may be the same for all meshes of all object instances, or for just a single object instance.
-has 'drag_group_id'     => (is => 'rw', default => sub { -1 });
-# Boolean: Is this object selected?
-has 'selected'          => (is => 'rw', default => sub { 0 });
-# Boolean: Is mouse over this object?
-has 'hover'             => (is => 'rw', default => sub { 0 });
-# Vector of two values: a span in the Z axis. Meaningful for a display of layers.
-has 'range'             => (is => 'rw');
-
-# Geometric data.
-# Quads: GLVertexArray object: C++ class maintaining an std::vector<float> for coords and normals.
-has 'qverts'            => (is => 'rw');  
-# Triangles: GLVertexArray object
-has 'tverts'            => (is => 'rw');
-# If the qverts or tverts contain thick extrusions, then offsets keeps pointers of the starts
-# of the extrusions per layer.
-# The offsets stores tripples of (z_top, qverts_idx, tverts_idx) in a linear array.
-has 'offsets'           => (is => 'rw');
-
-# RGBA texture along the Z axis of an object, to visualize layers by stripes colored by their height.
-has 'layer_height_texture_data'   => (is => 'rw');
-# Number of texture cells.
-has 'layer_height_texture_cells'  => (is => 'rw');
-
-sub object_idx {
-    my ($self) = @_;
-    return int($self->composite_id / 1000000);
-}
-
-sub volume_idx {
-    my ($self) = @_;
-    return ($self->composite_id / 1000) % 1000;
-}
-
-sub instance_idx {
-    my ($self) = @_;
-    return $self->composite_id % 1000;
-}
-
-sub transformed_bounding_box {
-    my ($self) = @_;
-    
-    my $bb = $self->bounding_box;
-    $bb->translate(@{$self->origin});
-    return $bb;
-}
-
-
 # The 3D canvas to display objects and tool paths.
 package Slic3r::GUI::3DScene;
 use base qw(Slic3r::GUI::3DScene::Base);
@@ -1782,9 +1645,6 @@ use OpenGL qw(:glconstants :gluconstants :glufunctions);
 use List::Util qw(first min max);
 use Slic3r::Geometry qw(scale unscale epsilon);
 use Slic3r::Print::State ':steps';
-
-# Perimeter: yellow, Infill: redish, Suport: greenish, last: blueish, 
-use constant COLORS => [ [1,1,0,1], [1,0.5,0.5,1], [0.5,1,0.5,1], [0.5,0.5,1,1] ];
 
 __PACKAGE__->mk_accessors(qw(
     color_by
@@ -1816,177 +1676,17 @@ sub load_object {
     }
     
     $instance_idxs ||= [0..$#{$model_object->instances}];
-
-    # Object will have a single common layer height texture for all volumes.
-    my $layer_height_texture_data;
-    my $layer_height_texture_cells;
-    if ($print && $obj_idx < $print->object_count) {
-        # Generate the layer height texture. Allocate data for the 0th and 1st mipmap levels.
-        $layer_height_texture_data = OpenGL::Array->new($self->{layer_preview_z_texture_width}*$self->{layer_preview_z_texture_height}*5, GL_UNSIGNED_BYTE);
-    }
-    
-    my @volumes_idx = ();
-    foreach my $volume_idx (0..$#{$model_object->volumes}) {
-        my $volume = $model_object->volumes->[$volume_idx];
-        foreach my $instance_idx (@$instance_idxs) {
-            my $instance = $model_object->instances->[$instance_idx];
-            my $mesh = $volume->mesh->clone;
-            $instance->transform_mesh($mesh);
-            
-            my $color_idx;
-            if ($self->color_by eq 'volume') {
-                $color_idx = $volume_idx;
-            } elsif ($self->color_by eq 'object') {
-                $color_idx = $obj_idx;
-            }
-        
-            # Using the colors 'yellowish', 'greenish', 'blueish' for both the extrusion paths
-            # and the volumes of a single multi-color object.
-            #FIXME so for 4 or more color print, there will be only 3 colors displayed, which will
-            # not correspond to the color of the filament.
-            my $color = [ @{COLORS->[ $color_idx % scalar(@{&COLORS}) ]} ];
-            $color->[3] = $volume->modifier ? 0.5 : 1;
-            push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
-                bounding_box    => $mesh->bounding_box,
-                color           => $color,
-            );
-            $v->composite_id($obj_idx*1000000 + $volume_idx*1000 + $instance_idx);
-            if ($self->select_by eq 'object') {
-                $v->select_group_id($obj_idx*1000000);
-            } elsif ($self->select_by eq 'volume') {
-                $v->select_group_id($obj_idx*1000000 + $volume_idx*1000);
-            } elsif ($self->select_by eq 'instance') {
-                $v->select_group_id($v->composite_id);
-            }
-            if ($self->drag_by eq 'object') {
-                $v->drag_group_id($obj_idx*1000);
-            } elsif ($self->drag_by eq 'instance') {
-                $v->drag_group_id($obj_idx*1000 + $instance_idx);
-            }
-            push @volumes_idx, my $scene_volume_idx = $#{$self->volumes};
-            
-            my $verts = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            $verts->load_mesh($mesh);
-            $v->tverts($verts);
-
-            if (! $volume->modifier) {
-                $v->layer_height_texture_data($layer_height_texture_data);
-                $v->layer_height_texture_cells($layer_height_texture_cells);
-            }
-        }
-    }
-    
-    return @volumes_idx;
-}
-
-# Called possibly by utils/view-toolpaths.pl, likely broken.
-sub load_print_object_slices {
-    my ($self, $object) = @_;
-    
-    my @verts = ();
-    my @norms = ();
-    my @quad_verts = ();
-    my @quad_norms = ();
-    foreach my $layer (@{$object->layers}) {
-        my $gap = 0;
-        my $top_z = $layer->print_z;
-        my $bottom_z = $layer->print_z - $layer->height + $gap;
-    
-        foreach my $copy (@{ $object->_shifted_copies }) {
-            {
-                my @expolygons = map $_->clone, @{$layer->slices};
-                $_->translate(@$copy) for @expolygons;
-                $self->_expolygons_to_verts(\@expolygons, $layer->print_z, \@verts, \@norms);
-            }
-            foreach my $slice (@{$layer->slices}) {
-                foreach my $polygon (@$slice) {
-                    foreach my $line (@{$polygon->lines}) {
-                        $line->translate(@$copy);
-                        
-                        push @quad_norms, (0,0,-1), (0,0,-1);
-                        push @quad_verts, (map unscale($_), @{$line->a}), $bottom_z;
-                        push @quad_verts, (map unscale($_), @{$line->b}), $bottom_z;
-                        push @quad_norms, (0,0,1), (0,0,1);
-                        push @quad_verts, (map unscale($_), @{$line->b}), $top_z;
-                        push @quad_verts, (map unscale($_), @{$line->a}), $top_z;
-                        
-                        # We'll use this for the middle normal when using 4 quads:
-                        #my $xy_normal = $line->normal;
-                        #$_xynormal->scale(1/$line->length);
-                    }
-                }
-            }
-        }
-    }
-    
-    my $obb = $object->bounding_box;
-    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->min_point}, 0));
-    $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$obb->max_point}, $object->size->z));
-    
-    push @{$self->volumes}, my $v = Slic3r::GUI::3DScene::Volume->new(
-        bounding_box    => $bb,
-        color           => COLORS->[0],
-        verts           => OpenGL::Array->new_list(GL_FLOAT, @verts),
-        norms           => OpenGL::Array->new_list(GL_FLOAT, @norms),
-        quad_verts      => OpenGL::Array->new_list(GL_FLOAT, @quad_verts),
-        quad_norms      => OpenGL::Array->new_list(GL_FLOAT, @quad_norms),
-    );
+    my $volume_indices = $self->volumes->load_object($model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by);
+    return @{$volume_indices};
 }
 
 # Create 3D thick extrusion lines for a skirt and brim.
 # Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes.
 sub load_print_toolpaths {
     my ($self, $print) = @_;
-    
-    return if !$print->step_done(STEP_SKIRT);
-    return if !$print->step_done(STEP_BRIM);
-    return if !$print->has_skirt && $print->config->brim_width == 0;
-    
-    my $qverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    my $tverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    my $offsets = [];  # triples stored in a linear array, sorted by print_z: print_z, qverts, tverts
-    
-    my $skirt_height = 0;  # number of layers
-    if ($print->has_infinite_skirt) {
-        $skirt_height = $print->total_layer_count;
-    } else {
-        $skirt_height = min($print->config->skirt_height, $print->total_layer_count);
-    }
-    $skirt_height ||= 1 if $print->config->brim_width > 0;
-    
-    # get first $skirt_height layers (maybe this should be moved to a PrintObject method?)
-    my $object0 = $print->get_object(0);
-    my @layers = ();
-    push @layers, map $object0->get_layer($_-1), 1..min($skirt_height, $object0->layer_count);
-    push @layers, map $object0->get_support_layer($_-1), 1..min($skirt_height, $object0->support_layer_count);
-    @layers = sort { $a->print_z <=> $b->print_z } @layers;
-    @layers = @layers[0..($skirt_height-1)];
-    
-    foreach my $i (0..($skirt_height-1)) {
-        my $top_z = $layers[$i]->print_z;
-        push @$offsets, ($top_z, $qverts->size, $tverts->size);
-        
-        if ($i == 0) {
-            $self->_extrusionentity_to_verts($print->brim, $top_z, Slic3r::Point->new(0,0), $qverts, $tverts);
-        }
-        
-        $self->_extrusionentity_to_verts($print->skirt, $top_z, Slic3r::Point->new(0,0), $qverts, $tverts);
-    }
 
-    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    {
-        my $pbb = $print->bounding_box;
-        $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$pbb->min_point}));
-        $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$pbb->max_point}));
-    }
-    push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-        bounding_box    => $bb,
-        color           => COLORS->[2],
-        qverts          => $qverts,
-        tverts          => $tverts,
-        offsets         => $offsets,
-    );
+    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes)
+        if ($print->step_done(STEP_SKIRT) && $print->step_done(STEP_BRIM));
 }
 
 # Create 3D thick extrusion lines for object forming extrusions.
@@ -1994,225 +1694,13 @@ sub load_print_toolpaths {
 # one for perimeters, one for infill and one for supports.
 sub load_print_object_toolpaths {
     my ($self, $object) = @_;
-    
-    my $perim_qverts    = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    my $perim_tverts    = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    my $infill_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    my $infill_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    my $support_qverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    my $support_tverts  = Slic3r::GUI::_3DScene::GLVertexArray->new;
-    
-    my $perim_offsets   = [];  # triples of (print_z, qverts, tverts), stored linearly, sorted by print_z
-    my $infill_offsets  = [];
-    my $support_offsets = [];
-    
-    # order layers by print_z
-    my @layers = sort { $a->print_z <=> $b->print_z }
-        @{$object->layers}, @{$object->support_layers};
-    
-    # Bounding box of the object and its copies.
-    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    {
-        my $obb = $object->bounding_box;
-        foreach my $copy (@{ $object->_shifted_copies }) {
-            my $cbb = $obb->clone;
-            $cbb->translate(@$copy);
-            $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$cbb->min_point}, 0));
-            $bb->merge_point(Slic3r::Pointf3->new_unscale(@{$cbb->max_point}, $object->size->z));
-        }
-    }
 
-    # Maximum size of an allocation block: 32MB / sizeof(float)
-    my $alloc_size_max = 32 * 1048576 / 4;
-    
-    foreach my $layer (@layers) {
-        my $top_z = $layer->print_z;
-        
-        push @$perim_offsets, ($top_z, $perim_qverts->size, $perim_tverts->size)
-            if (!@$perim_offsets || $perim_offsets->[-3] != $top_z);
-        push @$infill_offsets, ($top_z, $infill_qverts->size, $infill_tverts->size)
-            if (!@$infill_offsets || $infill_offsets->[-3] != $top_z);
-        push @$support_offsets, ($top_z, $support_qverts->size, $support_tverts->size)
-            if (!@$support_offsets || $support_offsets->[-3] != $top_z);
-
-        foreach my $copy (@{ $object->_shifted_copies }) {
-            foreach my $layerm (@{$layer->regions}) {
-                if ($object->step_done(STEP_PERIMETERS)) {
-                    $self->_extrusionentity_to_verts($layerm->perimeters, $top_z, $copy,
-                        $perim_qverts, $perim_tverts);
-                }
-                
-                if ($object->step_done(STEP_INFILL)) {
-                    $self->_extrusionentity_to_verts($layerm->fills, $top_z, $copy,
-                        $infill_qverts, $infill_tverts);
-                }
-            }
-            
-            if ($layer->isa('Slic3r::Layer::Support') && $object->step_done(STEP_SUPPORTMATERIAL)) {
-                $self->_extrusionentity_to_verts($layer->support_fills, $top_z, $copy,
-                    $support_qverts, $support_tverts);
-                
-                $self->_extrusionentity_to_verts($layer->support_interface_fills, $top_z, $copy,
-                    $support_qverts, $support_tverts);
-            }
-        }
-
-        if ($perim_qverts->size() > $alloc_size_max || $perim_tverts->size() > $alloc_size_max) {
-            # Store the vertex arrays and restart their containers.
-            push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-                bounding_box    => $bb,
-                color           => COLORS->[0],
-                qverts          => $perim_qverts,
-                tverts          => $perim_tverts,
-                offsets         => $perim_offsets,
-            );
-            $perim_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            $perim_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            $perim_offsets  = [];
-        }
-
-        if ($infill_qverts->size() > $alloc_size_max || $infill_tverts->size() > $alloc_size_max) {
-            # Store the vertex arrays and restart their containers.
-            push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-                bounding_box    => $bb,
-                color           => COLORS->[1],
-                qverts          => $infill_qverts,
-                tverts          => $infill_tverts,
-                offsets         => $infill_offsets,
-            );
-            $infill_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            $infill_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            $infill_offsets  = [];
-        }
-
-        if ($support_qverts->size() > $alloc_size_max || $support_tverts->size() > $alloc_size_max) {
-            # Store the vertex arrays and restart their containers.
-            push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-                bounding_box    => $bb,
-                color           => COLORS->[2],
-                qverts          => $support_qverts,
-                tverts          => $support_tverts,
-                offsets         => $support_offsets,
-            );
-            $support_qverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            $support_tverts   = Slic3r::GUI::_3DScene::GLVertexArray->new;
-            $support_offsets  = [];
-        }
-    }
-
-    if ($perim_qverts->size() > 0 || $perim_tverts->size() > 0) {
-        push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-            bounding_box    => $bb,
-            color           => COLORS->[0],
-            qverts          => $perim_qverts,
-            tverts          => $perim_tverts,
-            offsets         => $perim_offsets,
-        );
-    }
-    
-    if ($infill_qverts->size() > 0 || $infill_tverts->size() > 0) {
-        push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-            bounding_box    => $bb,
-            color           => COLORS->[1],
-            qverts          => $infill_qverts,
-            tverts          => $infill_tverts,
-            offsets         => $infill_offsets,
-        );
-    }
-    
-    if ($support_qverts->size() > 0 || $support_tverts->size() > 0) {
-        push @{$self->volumes}, Slic3r::GUI::3DScene::Volume->new(
-            bounding_box    => $bb,
-            color           => COLORS->[2],
-            qverts          => $support_qverts,
-            tverts          => $support_tverts,
-            offsets         => $support_offsets,
-        );
-    }
+    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes);
 }
 
 sub set_toolpaths_range {
     my ($self, $min_z, $max_z) = @_;
-    
-    foreach my $volume (@{$self->volumes}) {
-        $volume->range([ $min_z, $max_z ]);
-    }
-}
-
-# called by load_print_object_slices, probably not used.
-sub _expolygons_to_verts {
-    my ($self, $expolygons, $z, $verts, $norms) = @_;
-    
-    my $tess = gluNewTess();
-    gluTessCallback($tess, GLU_TESS_BEGIN,     'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_END,       'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_VERTEX, sub {
-        my ($x, $y, $z) = @_;
-        push @$verts, $x, $y, $z;
-        push @$norms, (0,0,1), (0,0,1), (0,0,1);
-    });
-    gluTessCallback($tess, GLU_TESS_COMBINE,   'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_ERROR,     'DEFAULT');
-    gluTessCallback($tess, GLU_TESS_EDGE_FLAG, 'DEFAULT');
-    
-    foreach my $expolygon (@$expolygons) {
-        gluTessBeginPolygon($tess);
-        foreach my $polygon (@$expolygon) {
-            gluTessBeginContour($tess);
-            gluTessVertex_p($tess, (map unscale($_), @$_), $z) for @$polygon;
-            gluTessEndContour($tess);
-        }
-        gluTessEndPolygon($tess);
-    }
-    
-    gluDeleteTess($tess);
-}
-
-# Fill in the $qverts and $tverts with quads and triangles
-# for the extrusion $entity.
-sub _extrusionentity_to_verts {
-    my ($self, $entity, $top_z, $copy, $qverts, $tverts) = @_;
-    
-    my ($lines, $widths, $heights, $closed);
-    if ($entity->isa('Slic3r::ExtrusionPath::Collection')) {
-        $self->_extrusionentity_to_verts($_, $top_z, $copy, $qverts, $tverts)
-            for @$entity;
-        return;
-    } elsif ($entity->isa('Slic3r::ExtrusionPath')) {
-        my $polyline = $entity->polyline->clone;
-        $polyline->remove_duplicate_points;
-        $polyline->translate(@$copy);
-        $lines = $polyline->lines;
-        $widths = [ map $entity->width, 0..$#$lines ];
-        $heights = [ map $entity->height, 0..$#$lines ];
-        $closed = 0;
-    } else {
-        $lines   = [];
-        $widths  = [];
-        $heights = [];
-        # $entity is either of type Slic3r::ExtrusionLoop or Slic3r::ExtrusionMultiPath.
-        $closed  = $entity->isa('Slic3r::ExtrusionLoop') ? 1 : 0;
-        foreach my $path (@$entity) {
-            my $polyline = $path->polyline->clone;
-            $polyline->remove_duplicate_points;
-            $polyline->translate(@$copy);
-            my $path_lines = $polyline->lines;
-            push @$lines, @$path_lines;
-            push @$widths, map $path->width, 0..$#$path_lines;
-            push @$heights, map $path->height, 0..$#$path_lines;
-        }
-    }
-    # Calling the C++ implementation Slic3r::_3DScene::_extrusionentity_to_verts_do()
-    # This adds new vertices to the $qverts and $tverts.
-    Slic3r::GUI::_3DScene::_extrusionentity_to_verts_do($lines, $widths, $heights,
-        $closed, 
-        # Top height of the extrusion.
-        $top_z, 
-        # $copy is not used here.
-        $copy,
-        # GLVertexArray object: C++ class maintaining an std::vector<float> for coords and normals.
-        $qverts,
-        $tverts);
+    $self->volumes->set_range($min_z, $max_z);
 }
 
 1;
