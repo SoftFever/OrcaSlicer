@@ -30,6 +30,8 @@
     bool                empty() const;
     Clone<Pointf3>      origin() const
         %code%{ RETVAL = THIS->origin; %};
+    void                translate(double x, double y, double z)
+        %code%{ THIS->origin.translate(x, y, z); %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
     Clone<BoundingBoxf3> transformed_bounding_box() const;
@@ -87,17 +89,19 @@ GLVolumeCollection::arrayref()
 %{
 
 void
-_load_print_toolpaths(print, volumes)
+_load_print_toolpaths(print, volumes, use_VBOs)
         Print               *print;
         GLVolumeCollection  *volumes;
+        bool                 use_VBOs;
     CODE:
-        _3DScene::_load_print_toolpaths(print, volumes);
+        _3DScene::_load_print_toolpaths(print, volumes, use_VBOs);
 
 void 
-_load_print_object_toolpaths(print_object, volumes)
+_load_print_object_toolpaths(print_object, volumes, use_VBOs)
         PrintObject        *print_object;
         GLVolumeCollection *volumes;
+        bool                 use_VBOs;
     CODE:
-        _3DScene::_load_print_object_toolpaths(print_object, volumes);
+        _3DScene::_load_print_object_toolpaths(print_object, volumes, use_VBOs);
 
 %}

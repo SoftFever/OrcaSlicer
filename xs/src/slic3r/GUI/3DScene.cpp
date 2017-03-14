@@ -178,22 +178,23 @@ static void thick_lines_to_verts(
     Vectorf3 prev_xy_left_normal, prev_xy_right_normal;
     
     // loop once more in case of closed loops
-    bool first_done = false;
-    for (size_t i = 0; i <= lines.size(); ++i) {
-        if (i == lines.size()) i = 0;
+    for (size_t ii = 0; ii <= lines.size(); ++ ii) {
+        size_t i = ii; 
+        if (ii == lines.size()) {
+            if (! closed)
+                break;
+            i = 0;
+        }
         
-        const Line &line = lines.at(i);
-        if (i == 0 && first_done && !closed) break;
-        
+        const Line &line = lines[i];
         double len = line.length();
         double unscaled_len = unscale(len);
-        
-        double bottom_z = top_z - heights.at(i);
+        double bottom_z = top_z - heights[i];
         double middle_z = (top_z + bottom_z) / 2;
         double dist = widths.at(i)/2;  // scaled
         
         Vectorf v = Vectorf::new_unscale(line.vector());
-        v.scale(1/unscaled_len);
+        v.scale(1. / unscaled_len);
         
         Pointf a = Pointf::new_unscale(line.a);
         Pointf b = Pointf::new_unscale(line.b);
@@ -209,11 +210,11 @@ static void thick_lines_to_verts(
         // calculate new XY normals
         Vector n = line.normal();
         Vectorf3 xy_right_normal = Vectorf3::new_unscale(n.x, n.y, 0);
-        xy_right_normal.scale(1/unscaled_len);
+        xy_right_normal.scale(1.f / unscaled_len);
         Vectorf3 xy_left_normal = xy_right_normal;
-        xy_left_normal.scale(-1);
+        xy_left_normal.scale(-1.f);
         
-        if (first_done) {
+        if (ii > 0) {
             // if we're making a ccw turn, draw the triangles on the right side, otherwise draw them on the left side
             double ccw = line.b.ccw(prev_line);
             if (ccw > EPSILON) {
@@ -228,7 +229,7 @@ static void thick_lines_to_verts(
                     volume.tverts.push_vert(a1.x, a1.y, middle_z);
             
                     // normal going upwards
-                    volume.tverts.push_norm(0,0,1);
+                    volume.tverts.push_norm(0.f, 0.f, 1.f);
                     volume.tverts.push_vert(a.x, a.y, top_z);
                 }
                 // bottom-right vertex triangle between previous line and this one
@@ -238,7 +239,7 @@ static void thick_lines_to_verts(
                     volume.tverts.push_vert(prev_b1.x, prev_b1.y, middle_z);
             
                     // normal going downwards
-                    volume.tverts.push_norm(0,0,-1);
+                    volume.tverts.push_norm(0.f, 0.f, -1.f);
                     volume.tverts.push_vert(a.x, a.y, bottom_z);
             
                     // use the normal going to the right calculated for this line
@@ -253,7 +254,7 @@ static void thick_lines_to_verts(
                     volume.tverts.push_vert(prev_b2.x, prev_b2.y, middle_z);
             
                     // normal going upwards
-                    volume.tverts.push_norm(0,0,1);
+                    volume.tverts.push_norm(0.f, 0.f, 1.f);
                     volume.tverts.push_vert(a.x, a.y, top_z);
             
                     // use the normal going to the right calculated for this line
@@ -271,14 +272,15 @@ static void thick_lines_to_verts(
                     volume.tverts.push_vert(a2.x, a2.y, middle_z);
             
                     // normal going downwards
-                    volume.tverts.push_norm(0,0,-1);
+                    volume.tverts.push_norm(0.f, 0.f, -1.f);
                     volume.tverts.push_vert(a.x, a.y, bottom_z);
                 }
             }
         }
         
         // if this was the extra iteration we were only interested in the triangles
-        if (first_done && i == 0) break;
+        if (ii == lines.size())
+            break;
         
         prev_line = line;
         prev_b1 = b1;
@@ -286,7 +288,7 @@ static void thick_lines_to_verts(
         prev_xy_right_normal = xy_right_normal;
         prev_xy_left_normal  = xy_left_normal;
         
-        if (!closed) {
+        if (! closed) {
             // terminate open paths with caps
             if (i == 0) {
                 // normal pointing downwards
@@ -306,7 +308,7 @@ static void thick_lines_to_verts(
                 volume.qverts.push_vert(a2.x, a2.y, middle_z);
             }
             // we don't use 'else' because both cases are true if we have only one line
-            if (i == lines.size()-1) {
+            if (i + 1 == lines.size()) {
                 // normal pointing downwards
                 volume.qverts.push_norm(0,0,-1);
                 volume.qverts.push_vert(b.x, b.y, bottom_z);
@@ -379,8 +381,230 @@ static void thick_lines_to_verts(
             volume.qverts.push_vert(b.x, b.y, bottom_z);
             volume.qverts.push_vert(a.x, a.y, bottom_z);
         }
+    }
+}
+
+// caller is responsible for supplying NO lines with zero length
+static void thick_lines_to_VBOs(
+    const Lines                 &lines, 
+    const std::vector<double>   &widths,
+    const std::vector<double>   &heights, 
+    bool                         closed,
+    double                       top_z,
+    GLVolume                    &volume)
+{
+    assert(! lines.empty());
+    if (lines.empty())
+        return;
+    
+    Line prev_line;
+    Pointf prev_b1, prev_b2;
+    Vectorf3 prev_xy_left_normal, prev_xy_right_normal;
+    
+    // loop once more in case of closed loops
+    for (size_t ii = 0; ii <= lines.size(); ++ ii) {
+        size_t i = ii;
+        if (ii == lines.size()) {
+            if (! closed)
+                break;
+            i = 0;
+        }
         
-        first_done = true;
+        const Line &line = lines[i];
+        double len = line.length();
+        double unscaled_len = unscale(len);
+        double bottom_z = top_z - heights[i];
+        double middle_z = (top_z + bottom_z) / 2;
+        double dist = widths.at(i)/2;  // scaled
+        
+        Vectorf v = Vectorf::new_unscale(line.vector());
+        v.scale(1. / unscaled_len);
+        
+        Pointf a = Pointf::new_unscale(line.a);
+        Pointf b = Pointf::new_unscale(line.b);
+        Pointf a1 = a;
+        Pointf a2 = a;
+        a1.translate(+dist*v.y, -dist*v.x);
+        a2.translate(-dist*v.y, +dist*v.x);
+        Pointf b1 = b;
+        Pointf b2 = b;
+        b1.translate(+dist*v.y, -dist*v.x);
+        b2.translate(-dist*v.y, +dist*v.x);
+        
+        // calculate new XY normals
+        Vector n = line.normal();
+        Vectorf3 xy_right_normal = Vectorf3::new_unscale(n.x, n.y, 0);
+        xy_right_normal.scale(1.f / unscaled_len);
+        Vectorf3 xy_left_normal = xy_right_normal;
+        xy_left_normal.scale(-1.f);
+        
+        if (ii > 0) {
+            // if we're making a ccw turn, draw the triangles on the right side, otherwise draw them on the left side
+            double ccw = line.b.ccw(prev_line);
+            if (ccw > EPSILON) {
+                // top-right vertex triangle between previous line and this one
+                {
+                    // use the normal going to the right calculated for the previous line
+                    volume.tverts.push_norm(prev_xy_right_normal);
+                    volume.tverts.push_vert(prev_b1.x, prev_b1.y, middle_z);
+            
+                    // use the normal going to the right calculated for this line
+                    volume.tverts.push_norm(xy_right_normal);
+                    volume.tverts.push_vert(a1.x, a1.y, middle_z);
+            
+                    // normal going upwards
+                    volume.tverts.push_norm(0.f, 0.f, 1.f);
+                    volume.tverts.push_vert(a.x, a.y, top_z);
+                }
+                // bottom-right vertex triangle between previous line and this one
+                {
+                    // use the normal going to the right calculated for the previous line
+                    volume.tverts.push_norm(prev_xy_right_normal);
+                    volume.tverts.push_vert(prev_b1.x, prev_b1.y, middle_z);
+            
+                    // normal going downwards
+                    volume.tverts.push_norm(0.f, 0.f, -1.f);
+                    volume.tverts.push_vert(a.x, a.y, bottom_z);
+            
+                    // use the normal going to the right calculated for this line
+                    volume.tverts.push_norm(xy_right_normal);
+                    volume.tverts.push_vert(a1.x, a1.y, middle_z);
+                }
+            } else if (ccw < -EPSILON) {
+                // top-left vertex triangle between previous line and this one
+                {
+                    // use the normal going to the left calculated for the previous line
+                    volume.tverts.push_norm(prev_xy_left_normal);
+                    volume.tverts.push_vert(prev_b2.x, prev_b2.y, middle_z);
+            
+                    // normal going upwards
+                    volume.tverts.push_norm(0.f, 0.f, 1.f);
+                    volume.tverts.push_vert(a.x, a.y, top_z);
+            
+                    // use the normal going to the right calculated for this line
+                    volume.tverts.push_norm(xy_left_normal);
+                    volume.tverts.push_vert(a2.x, a2.y, middle_z);
+                }
+                // bottom-left vertex triangle between previous line and this one
+                {
+                    // use the normal going to the left calculated for the previous line
+                    volume.tverts.push_norm(prev_xy_left_normal);
+                    volume.tverts.push_vert(prev_b2.x, prev_b2.y, middle_z);
+            
+                    // use the normal going to the right calculated for this line
+                    volume.tverts.push_norm(xy_left_normal);
+                    volume.tverts.push_vert(a2.x, a2.y, middle_z);
+            
+                    // normal going downwards
+                    volume.tverts.push_norm(0.f, 0.f, -1.f);
+                    volume.tverts.push_vert(a.x, a.y, bottom_z);
+                }
+            }
+        }
+        
+        // if this was the extra iteration we were only interested in the triangles
+        if (ii == lines.size())
+            break;
+        
+        prev_line = line;
+        prev_b1 = b1;
+        prev_b2 = b2;
+        prev_xy_right_normal = xy_right_normal;
+        prev_xy_left_normal  = xy_left_normal;
+        
+        if (! closed) {
+            // terminate open paths with caps
+            if (i == 0) {
+                // normal pointing downwards
+                volume.qverts.push_norm(0,0,-1);
+                volume.qverts.push_vert(a.x, a.y, bottom_z);
+            
+                // normal pointing to the right
+                volume.qverts.push_norm(xy_right_normal);
+                volume.qverts.push_vert(a1.x, a1.y, middle_z);
+            
+                // normal pointing upwards
+                volume.qverts.push_norm(0,0,1);
+                volume.qverts.push_vert(a.x, a.y, top_z);
+            
+                // normal pointing to the left
+                volume.qverts.push_norm(xy_left_normal);
+                volume.qverts.push_vert(a2.x, a2.y, middle_z);
+            }
+            // we don't use 'else' because both cases are true if we have only one line
+            if (i + 1 == lines.size()) {
+                // normal pointing downwards
+                volume.qverts.push_norm(0,0,-1);
+                volume.qverts.push_vert(b.x, b.y, bottom_z);
+            
+                // normal pointing to the left
+                volume.qverts.push_norm(xy_left_normal);
+                volume.qverts.push_vert(b2.x, b2.y, middle_z);
+            
+                // normal pointing upwards
+                volume.qverts.push_norm(0,0,1);
+                volume.qverts.push_vert(b.x, b.y, top_z);
+            
+                // normal pointing to the right
+                volume.qverts.push_norm(xy_right_normal);
+                volume.qverts.push_vert(b1.x, b1.y, middle_z);
+            }
+        }
+        
+        // bottom-right face
+        {
+            // normal going downwards
+            volume.qverts.push_norm(0,0,-1);
+            volume.qverts.push_norm(0,0,-1);
+            volume.qverts.push_vert(a.x, a.y, bottom_z);
+            volume.qverts.push_vert(b.x, b.y, bottom_z);
+            
+            volume.qverts.push_norm(xy_right_normal);
+            volume.qverts.push_norm(xy_right_normal);
+            volume.qverts.push_vert(b1.x, b1.y, middle_z);
+            volume.qverts.push_vert(a1.x, a1.y, middle_z);
+        }
+        
+        // top-right face
+        {
+            volume.qverts.push_norm(xy_right_normal);
+            volume.qverts.push_norm(xy_right_normal);
+            volume.qverts.push_vert(a1.x, a1.y, middle_z);
+            volume.qverts.push_vert(b1.x, b1.y, middle_z);
+            
+            // normal going upwards
+            volume.qverts.push_norm(0,0,1);
+            volume.qverts.push_norm(0,0,1);
+            volume.qverts.push_vert(b.x, b.y, top_z);
+            volume.qverts.push_vert(a.x, a.y, top_z);
+        }
+         
+        // top-left face
+        {
+            volume.qverts.push_norm(0,0,1);
+            volume.qverts.push_norm(0,0,1);
+            volume.qverts.push_vert(a.x, a.y, top_z);
+            volume.qverts.push_vert(b.x, b.y, top_z);
+            
+            volume.qverts.push_norm(xy_left_normal);
+            volume.qverts.push_norm(xy_left_normal);
+            volume.qverts.push_vert(b2.x, b2.y, middle_z);
+            volume.qverts.push_vert(a2.x, a2.y, middle_z);
+        }
+        
+        // bottom-left face
+        {
+            volume.qverts.push_norm(xy_left_normal);
+            volume.qverts.push_norm(xy_left_normal);
+            volume.qverts.push_vert(a2.x, a2.y, middle_z);
+            volume.qverts.push_vert(b2.x, b2.y, middle_z);
+            
+            // normal going downwards
+            volume.qverts.push_norm(0,0,-1);
+            volume.qverts.push_norm(0,0,-1);
+            volume.qverts.push_vert(b.x, b.y, bottom_z);
+            volume.qverts.push_vert(a.x, a.y, bottom_z);
+        }
     }
 }
 
@@ -469,7 +693,10 @@ static void extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity, fl
 
 // Create 3D thick extrusion lines for a skirt and brim.
 // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
-void _3DScene::_load_print_toolpaths(const Print *print, GLVolumeCollection *volumes)
+void _3DScene::_load_print_toolpaths(
+    const Print         *print, 
+    GLVolumeCollection  *volumes,
+    bool                 use_VBOs)
 {
     if (! print->has_skirt() && print->config.brim_width.value == 0)
         return;
@@ -520,7 +747,8 @@ void _3DScene::_load_print_toolpaths(const Print *print, GLVolumeCollection *vol
 // one for perimeters, one for infill and one for supports.
 void _3DScene::_load_print_object_toolpaths(
     const PrintObject   *print_object,
-    GLVolumeCollection  *volumes)
+    GLVolumeCollection  *volumes,
+    bool                 use_VBOs)
 {
     struct Ctxt
     {

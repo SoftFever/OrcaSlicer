@@ -148,6 +148,8 @@ sub new {
     $self->{layer_height_edit_last_object_id} = -1;
     $self->{layer_height_edit_last_z} = 0.;
     $self->{layer_height_edit_last_action} = 0;
+
+    $self->{use_VBOs} = 0;
     
     $self->reset_objects;
     
@@ -415,7 +417,7 @@ sub mouse_event {
         }
         
         # apply new temporary volume origin and ignore Z
-        $_->origin->translate($vector->x, $vector->y, 0) for @volumes; #,,
+        $_->translate($vector->x, $vector->y, 0) for @volumes; #,,
         $self->_drag_start_pos($cur_pos);
         $self->_dragged(1);
         $self->Refresh;
@@ -1685,7 +1687,8 @@ sub load_object {
 sub load_print_toolpaths {
     my ($self, $print) = @_;
 
-    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes)
+    $self->GetContext if ($self->{use_VBOs});
+    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $self->{use_VBOs})
         if ($print->step_done(STEP_SKIRT) && $print->step_done(STEP_BRIM));
 }
 
@@ -1695,7 +1698,8 @@ sub load_print_toolpaths {
 sub load_print_object_toolpaths {
     my ($self, $object) = @_;
 
-    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes);
+    $self->GetContext if ($self->{use_VBOs});
+    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $self->{use_VBOs});
 }
 
 sub set_toolpaths_range {

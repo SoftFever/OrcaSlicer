@@ -237,7 +237,7 @@ sub selection_changed {
     
     # deselect all meshes
     if ($self->{canvas}) {
-        $_->selected(0) for @{$self->{canvas}->volumes};
+        $_->set_selected(0) for @{$self->{canvas}->volumes};
     }
     
     # disable things as if nothing is selected
@@ -265,7 +265,7 @@ sub selection_changed {
         if ($itemData->{type} eq 'volume') {
             # select volume in 3D preview
             if ($self->{canvas}) {
-                $self->{canvas}->volumes->[ $itemData->{volume_id} ]{selected} = 1;
+                $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
             }
             $self->{btn_delete}->Enable;
             

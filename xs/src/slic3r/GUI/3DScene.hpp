@@ -103,7 +103,10 @@ public:
         selected(false),
         hover(false),
         qverts_range(0, size_t(-1)),
-        tverts_range(0, size_t(-1))
+        tverts_range(0, size_t(-1)),
+        name_vertex_buffer(0),
+        name_normal_buffer(0),
+        name_index_buffer(0)
     {
         color[0] = r;
         color[1] = g;
@@ -144,10 +147,17 @@ public:
     // Triangle vertices.
     GLVertexArray               tverts;
     std::pair<size_t, size_t>   tverts_range;
+    // OpenGL buffers for vertices and their normals.
+    int                         name_vertex_buffer;
+    int                         name_normal_buffer;
+    // OpenGL buffer of the indices.
+    int                         name_index_buffer;
+    // Triangle indices for the vertex buffer object.
+    std::vector<size_t>         triangle_indices;
     // If the qverts or tverts contain thick extrusions, then offsets keeps pointers of the starts
     // of the extrusions per layer.
-    // The offsets stores tripples of (z_top, qverts_idx, tverts_idx) in a linear array.
     std::vector<coordf_t>       print_zs;
+    // Offset into qverts & tverts, or offsets into indices stored into an OpenGL name_index_buffer.
     std::vector<size_t>         offsets;
 
     int object_idx() const { return this->composite_id / 1000000; }
@@ -164,6 +174,8 @@ public:
     void*               tverts_to_render_ptr() { return tverts.verts.data() + tverts_range.first; }
     void*               tnorms_to_render_ptr() { return tverts.norms.data() + tverts_range.first; }
     size_t              tverts_to_render_cnt() { return std::min(tverts.verts.size(), tverts_range.second - tverts_range.first); }
+
+    void                render_VBOs() const;
 
     std::shared_ptr<GLTexture>  layer_height_texture;
 
@@ -209,6 +221,7 @@ public:
     void clear() { for (auto *v : volumes) delete v; volumes.clear(); }
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
+    void render_VBOs() const { for (GLVolume *vol : this->volumes) vol->render_VBOs(); }
 };
 
 class _3DScene
@@ -216,11 +229,13 @@ class _3DScene
 public:
     static void _load_print_toolpaths(
         const Print         *print,
-        GLVolumeCollection  *volumes);
+        GLVolumeCollection  *volumes,
+        bool                 use_VBOs);
 
     static void _load_print_object_toolpaths(
         const PrintObject   *print_object,
-        GLVolumeCollection  *volumes);
+        GLVolumeCollection  *volumes,
+        bool                 use_VBOs);
 };
 
 }
