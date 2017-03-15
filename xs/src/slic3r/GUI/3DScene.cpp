@@ -648,7 +648,7 @@ void _3DScene::_load_print_object_toolpaths(
                         // Clear the buffers, but keep them pre-allocated.
                         vol_new.indexed_vertex_array.clear();
                         // Just make sure that clear did not clear the reserved memory.
-                        vol_new.indexed_vertex_array.reserve(ctx.alloc_size_reserve());
+                        vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
                     }
                 }
             }
