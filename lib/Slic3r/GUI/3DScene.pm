@@ -1254,20 +1254,54 @@ sub draw_volumes {
         glPushMatrix();
         glTranslatef(@{$volume->origin});
         glCullFace(GL_BACK);
+    if (1) {
         if ($volume->indexed) {
             my $quads_cnt = $volume->indexed_quads_to_render_cnt;
             my $triangles_cnt = $volume->indexed_triangles_to_render_cnt;
             if ($quads_cnt + $triangles_cnt > 0) {
-                glInterleavedArrays_c(GL_N3F_V3F, 0, $volume->triangles_to_render_ptr);
-                glDrawElements_c(GL_QUADS,     $quads_cnt,     GL_UNSIGNED_INT, $volume->quad_indices_to_render_ptr    ) if ($quads_cnt);
-                glDrawElements_c(GL_TRIANGLES, $triangles_cnt, GL_UNSIGNED_INT, $volume->triangle_indices_to_render_ptr) if ($triangles_cnt);
-                glInterleavedArrays_c(GL_N3F_V3F, 0, 0);
+                if ($self->{use_VBOs}) {
+                    my ($name_geometry, $name_triangle_indices, $name_quad_indices) = glGenBuffersARB_p(3);
+                    glBindBufferARB(GL_ARRAY_BUFFER_ARB, $name_geometry);
+                    glBufferDataARB_c(GL_ARRAY_BUFFER_ARB, $volume->geometry_size, $volume->triangles_to_render_ptr, GL_STATIC_DRAW_ARB);
+                    glInterleavedArrays_c(GL_N3F_V3F, 0, 0);
+                    if ($quads_cnt) {
+                        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, $name_quad_indices);
+                        glBufferDataARB_c(GL_ELEMENT_ARRAY_BUFFER_ARB, $volume->indexed_quads_cnt * 4, $volume->quad_indices_ptr, GL_STATIC_DRAW_ARB);
+                        glDrawElements_c(GL_QUADS, $quads_cnt, GL_UNSIGNED_INT, $volume->quad_indices_to_render_offset * 4);
+                    }
+                    if ($triangles_cnt) {
+                        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, $name_triangle_indices);
+                        glBufferDataARB_c(GL_ELEMENT_ARRAY_BUFFER_ARB, $volume->indexed_triangles_cnt * 4, $volume->triangle_indices_ptr, GL_STATIC_DRAW_ARB);
+                        glDrawElements_c(GL_TRIANGLES, $triangles_cnt, GL_UNSIGNED_INT, $volume->triangle_indices_to_render_offset * 4);
+                    }
+                    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+                    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+                    glDeleteBuffersARB_p(($name_geometry, $name_triangle_indices, $name_quad_indices));
+                } else {
+                    glInterleavedArrays_c(GL_N3F_V3F, 0, $volume->triangles_to_render_ptr);
+                    glDrawElements_c(GL_QUADS,     $quads_cnt,     GL_UNSIGNED_INT, $volume->quad_indices_ptr     + $volume->quad_indices_to_render_offset     * 4)
+                        if ($quads_cnt);
+                    glDrawElements_c(GL_TRIANGLES, $triangles_cnt, GL_UNSIGNED_INT, $volume->triangle_indices_ptr + $volume->triangle_indices_to_render_offset * 4)
+                        if ($triangles_cnt);
+                    glInterleavedArrays_c(GL_N3F_V3F, 0, 0);
+                }
             }
         } elsif (! $volume->empty) {
-            glInterleavedArrays_c(GL_N3F_V3F, 0, $volume->triangles_to_render_ptr);
-            glDrawArrays(GL_TRIANGLES, 0, $volume->triangles_to_render_cnt);
-            glInterleavedArrays_c(GL_N3F_V3F, 0, 0);
+            if ($self->{use_VBOs}) {
+                my ($name_geometry) = glGenBuffersARB_p(1);
+                glBindBufferARB(GL_ARRAY_BUFFER_ARB, $name_geometry);
+                glBufferDataARB_c(GL_ARRAY_BUFFER_ARB, $volume->triangles_to_render_cnt * 6 * 4, $volume->triangles_to_render_ptr, GL_STATIC_DRAW_ARB);
+                glInterleavedArrays_c(GL_N3F_V3F, 0, 0);
+                glDrawArrays(GL_TRIANGLES, 0, $volume->triangles_to_render_cnt);
+                glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+                glDeleteBuffersARB_p(($name_geometry));
+            } else {
+                glInterleavedArrays_c(GL_N3F_V3F, 0, $volume->triangles_to_render_ptr);
+                glDrawArrays(GL_TRIANGLES, 0, $volume->triangles_to_render_cnt);
+                glInterleavedArrays_c(GL_N3F_V3F, 0, 0);
+            }
         }
+    }
         glPopMatrix();
 
         if ($shader_active) {

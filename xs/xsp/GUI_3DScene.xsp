@@ -40,10 +40,15 @@
 
     void*               triangles_to_render_ptr();
     size_t              triangles_to_render_cnt();
-    void*               triangle_indices_to_render_ptr();
-    void*               quad_indices_to_render_ptr();
-    size_t              indexed_triangles_to_render_cnt();
-    size_t              indexed_quads_to_render_cnt();
+    size_t              geometry_size() const;
+    void*               triangle_indices_ptr();
+    void*               quad_indices_ptr();
+    size_t              indexed_triangles_cnt();
+    size_t              indexed_quads_cnt();
+    size_t              triangle_indices_to_render_offset() const;
+    size_t              quad_indices_to_render_offset() const;
+    size_t              indexed_triangles_to_render_cnt() const;
+    size_t              indexed_quads_to_render_cnt() const;
 
     bool                has_layer_height_texture();
     int                 layer_height_texture_width();

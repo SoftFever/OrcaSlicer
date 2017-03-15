@@ -18,6 +18,32 @@ class ModelObject;
 class GLIndexedVertexArray {
 public:
     GLIndexedVertexArray() {}
+    GLIndexedVertexArray(const GLIndexedVertexArray &rhs) :
+        vertices_and_normals_interleaved(rhs.vertices_and_normals_interleaved),
+        triangle_indices(rhs.triangle_indices),
+        quad_indices(rhs.quad_indices)
+        {}
+    GLIndexedVertexArray(GLIndexedVertexArray &&rhs) :
+        vertices_and_normals_interleaved(std::move(rhs.vertices_and_normals_interleaved)),
+        triangle_indices(std::move(rhs.triangle_indices)),
+        quad_indices(std::move(rhs.quad_indices))
+        {}
+
+    GLIndexedVertexArray& operator=(const GLIndexedVertexArray &rhs)
+    {
+        this->vertices_and_normals_interleaved = rhs.vertices_and_normals_interleaved;
+        this->triangle_indices                 = rhs.triangle_indices;
+        this->quad_indices                     = rhs.quad_indices;
+        return *this;
+    }
+
+    GLIndexedVertexArray& operator=(GLIndexedVertexArray &&rhs) 
+    {
+        this->vertices_and_normals_interleaved = std::move(rhs.vertices_and_normals_interleaved);
+        this->triangle_indices                 = std::move(rhs.triangle_indices);
+        this->quad_indices                     = std::move(rhs.quad_indices);
+        return *this;
+    }
 
     // Vertices and their normals, interleaved to be used by void glInterleavedArrays(GL_N3F_V3F, 0, x)
     std::vector<float> vertices_and_normals_interleaved;
@@ -51,6 +77,12 @@ public:
 
     // Is this object indexed, or is it just a set of triangles?
     bool indexed() const { return ! this->empty() && (! this->triangle_indices.empty() || ! this->quad_indices.empty()); }
+
+    void clear() {
+        this->vertices_and_normals_interleaved.clear();
+        this->triangle_indices.clear();
+        this->quad_indices.clear(); 
+    }
 
     // Shrink the internal storage to tighly fit the data stored.
     void shrink_to_fit() { 
@@ -173,14 +205,19 @@ public:
     // Non-indexed interleaved vertices & normals, likely forming triangles.
     void*               triangles_to_render_ptr() { return indexed_vertex_array.vertices_and_normals_interleaved.data(); }
     size_t              triangles_to_render_cnt() { return indexed_vertex_array.vertices_and_normals_interleaved.size() / (3 * 2); }
-    // Indexed triangles & quads.
-    void*               triangle_indices_to_render_ptr() { return indexed_vertex_array.triangle_indices.data() + tverts_range.first; }
-    void*               quad_indices_to_render_ptr() { return indexed_vertex_array.quad_indices.data() + qverts_range.first; }
-    size_t              indexed_triangles_to_render_cnt() { return std::min(indexed_vertex_array.triangle_indices.size(), tverts_range.second - tverts_range.first); }
-    size_t              indexed_quads_to_render_cnt() { return std::min(indexed_vertex_array.quad_indices.size(), qverts_range.second - qverts_range.first); }
+    // Indexed triangles & quads, complete set for storing into a vertex buffer.
+    size_t              geometry_size() const { return indexed_vertex_array.vertices_and_normals_interleaved.size() * 4; }
+    void*               triangle_indices_ptr() { return indexed_vertex_array.triangle_indices.data(); }
+    void*               quad_indices_ptr() { return indexed_vertex_array.quad_indices.data(); }
+    size_t              indexed_triangles_cnt() { return indexed_vertex_array.triangle_indices.size(); }
+    size_t              indexed_quads_cnt() { return indexed_vertex_array.quad_indices.size(); }
+    // Indexed triangles & quads, to be painted in an immediate mode.
+    size_t              triangle_indices_to_render_offset() const { return tverts_range.first; }
+    size_t              quad_indices_to_render_offset() const { return qverts_range.first; }
+    size_t              indexed_triangles_to_render_cnt() const { return std::min(indexed_vertex_array.triangle_indices.size(), tverts_range.second - tverts_range.first); }
+    size_t              indexed_quads_to_render_cnt() const { return std::min(indexed_vertex_array.quad_indices.size(), qverts_range.second - qverts_range.first); }
 
     void                render_VBOs() const;
-
 
     /************************************************ Layer height texture ****************************************************/
     std::shared_ptr<GLTexture>  layer_height_texture;
@@ -228,6 +265,10 @@ public:
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
     void render_VBOs() const { for (GLVolume *vol : this->volumes) vol->render_VBOs(); }
+
+private:
+    GLVolumeCollection(const GLVolumeCollection &other);
+    GLVolumeCollection& operator=(const GLVolumeCollection &);
 };
 
 class _3DScene

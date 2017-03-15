@@ -594,7 +594,7 @@ void _3DScene::_load_print_object_toolpaths(
 
     //FIXME Improve the heuristics for a grain size.
     size_t grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
-    std::vector<GLVolumeCollection> volumes_per_thread(ctxt.layers.size(), GLVolumeCollection());
+    std::vector<GLVolumeCollection> volumes_per_thread(ctxt.layers.size());
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
         [&ctxt, &volumes_per_thread](const tbb::blocked_range<size_t>& range) {
@@ -636,17 +636,24 @@ void _3DScene::_load_print_object_toolpaths(
                 for (size_t i = 0; i < 3; ++ i) {
                     GLVolume &vol = *volumes[vols[i]];
                     if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
-                        // Shrink the old vectors to preserve memory.
-                        vol.indexed_vertex_array.shrink_to_fit();
-                        // Store the vertex arrays and restart their containers.
+                        // Store the vertex arrays and restart their containers, 
                         vols[i] = volumes.size();
                         volumes.emplace_back(new GLVolume(vol.color));
                         GLVolume &vol_new = *volumes.back();
                         vol_new.bounding_box = ctxt.bbox;
-                        vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
+                        // Assign the large pre-allocated buffers to the new GLVolume.
+                        vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
+                        // Copy the content back to the old GLVolume.
+                        vol.indexed_vertex_array = vol_new.indexed_vertex_array;
+                        // Clear the buffers, but keep them pre-allocated.
+                        vol_new.indexed_vertex_array.clear();
+                        // Just make sure that clear did not clear the reserved memory.
+                        vol_new.indexed_vertex_array.reserve(ctx.alloc_size_reserve());
                     }
                 }
             }
+            for (size_t i = 0; i < 3; ++ i)
+                volumes[vols[i]]->indexed_vertex_array.shrink_to_fit();
             while (! volumes.empty() && volumes.back()->empty()) {
                 delete volumes.back();
                 volumes.pop_back();
@@ -665,7 +672,7 @@ void _3DScene::_load_print_object_toolpaths(
         volume_ptr += v.volumes.size();
         v.volumes.clear();
     }
- 
+  
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end"; 
 }
 
