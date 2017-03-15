@@ -13,64 +13,66 @@ class PrintObject;
 class Model;
 class ModelObject;
 
-class GLVertexArray {
+// A container for interleaved arrays of 3D vertices and normals,
+// possibly indexed by triangles and / or quads.
+class GLIndexedVertexArray {
 public:
-    GLVertexArray() {}
-    GLVertexArray(const GLVertexArray &rhs) : verts(rhs.verts), norms(rhs.norms) {}
-    GLVertexArray(GLVertexArray &&rhs) : verts(std::move(rhs.verts)), norms(std::move(rhs.norms)) {}
+    GLIndexedVertexArray() {}
 
-    GLVertexArray& operator=(const GLVertexArray &rhs) { verts = rhs.verts; norms = rhs.norms; return *this; }
-    GLVertexArray& operator=(GLVertexArray &&rhs) { verts = std::move(rhs.verts); norms = std::move(rhs.norms); return *this; }
+    // Vertices and their normals, interleaved to be used by void glInterleavedArrays(GL_N3F_V3F, 0, x)
+    std::vector<float> vertices_and_normals_interleaved;
+    std::vector<int>   triangle_indices;
+    std::vector<int>   quad_indices;
 
-    std::vector<float> verts, norms;
-    
-    void reserve(size_t len) {
-        this->verts.reserve(len);
-        this->norms.reserve(len);
-    };
-    void reserve_more(size_t len) {
-        len += this->verts.size();
-        this->reserve(len);
-    };
-    void push_vert(const Pointf3 &point) {
-        this->verts.push_back(point.x);
-        this->verts.push_back(point.y);
-        this->verts.push_back(point.z);
-    };
-    void push_vert(float x, float y, float z) {
-        this->verts.push_back(x);
-        this->verts.push_back(y);
-        this->verts.push_back(z);
-    };
-    void push_norm(const Pointf3 &point) {
-        this->norms.push_back(point.x);
-        this->norms.push_back(point.y);
-        this->norms.push_back(point.z);
-    };
-    void push_norm(float x, float y, float z) {
-        this->norms.push_back(x);
-        this->norms.push_back(y);
-        this->norms.push_back(z);
-    };
-    void load_mesh(const TriangleMesh &mesh);
+    void load_mesh_flat_shading(const TriangleMesh &mesh);
 
-    size_t size() const { return verts.size(); }
-    bool empty() const { return verts.empty(); }
-    void shrink_to_fit() { this->verts.shrink_to_fit(); this->norms.shrink_to_fit(); }
+    inline void reserve(size_t sz) {
+        this->vertices_and_normals_interleaved.reserve(sz * 6);
+        this->triangle_indices.reserve(sz * 3);
+        this->quad_indices.reserve(sz * 4);
+    }
+
+    inline void push_geometry(float x, float y, float z, float nx, float ny, float nz) {
+        this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 6);
+        this->vertices_and_normals_interleaved.push_back(nx);
+        this->vertices_and_normals_interleaved.push_back(ny);
+        this->vertices_and_normals_interleaved.push_back(nz);
+        this->vertices_and_normals_interleaved.push_back(x);
+        this->vertices_and_normals_interleaved.push_back(y);
+        this->vertices_and_normals_interleaved.push_back(z);
+    };
+
+    inline void push_geometry(double x, double y, double z, double nx, double ny, double nz) {
+        push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
+    }
+
+    // Is there any geometry data stored?
+    bool empty() const { return vertices_and_normals_interleaved.empty(); }
+
+    // Is this object indexed, or is it just a set of triangles?
+    bool indexed() const { return ! this->empty() && (! this->triangle_indices.empty() || ! this->quad_indices.empty()); }
+
+    // Shrink the internal storage to tighly fit the data stored.
+    void shrink_to_fit() { 
+        this->vertices_and_normals_interleaved.shrink_to_fit();
+        this->triangle_indices.shrink_to_fit();
+        this->quad_indices.shrink_to_fit(); 
+    }
 
     BoundingBoxf3 bounding_box() const {
         BoundingBoxf3 bbox;
-        if (! this->verts.empty()) {
-            bbox.min.x = bbox.max.x = this->verts[0];
-            bbox.min.y = bbox.max.y = this->verts[1];
-            bbox.min.z = bbox.max.z = this->verts[2];
-            for (size_t i = 3; i < this->verts.size(); i += 3) {
-                bbox.min.x = std::min<coordf_t>(bbox.min.x, this->verts[i + 0]);
-                bbox.min.y = std::min<coordf_t>(bbox.min.y, this->verts[i + 1]);
-                bbox.min.z = std::min<coordf_t>(bbox.min.z, this->verts[i + 2]);
-                bbox.max.x = std::max<coordf_t>(bbox.max.x, this->verts[i + 0]);
-                bbox.max.y = std::max<coordf_t>(bbox.max.y, this->verts[i + 1]);
-                bbox.max.z = std::max<coordf_t>(bbox.max.z, this->verts[i + 2]);
+        if (! this->vertices_and_normals_interleaved.empty()) {
+            bbox.min.x = bbox.max.x = this->vertices_and_normals_interleaved[3];
+            bbox.min.y = bbox.max.y = this->vertices_and_normals_interleaved[4];
+            bbox.min.z = bbox.max.z = this->vertices_and_normals_interleaved[5];
+            for (size_t i = 9; i < this->vertices_and_normals_interleaved.size(); i += 6) {
+                const float *verts = this->vertices_and_normals_interleaved.data() + i;
+                bbox.min.x = std::min<coordf_t>(bbox.min.x, verts[0]);
+                bbox.min.y = std::min<coordf_t>(bbox.min.y, verts[1]);
+                bbox.min.z = std::min<coordf_t>(bbox.min.z, verts[2]);
+                bbox.max.x = std::max<coordf_t>(bbox.max.x, verts[0]);
+                bbox.max.y = std::max<coordf_t>(bbox.max.y, verts[1]);
+                bbox.max.z = std::max<coordf_t>(bbox.max.z, verts[2]);
             }
         }
         return bbox;
@@ -116,7 +118,7 @@ public:
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
 
     std::vector<int> load_object(
-        const ModelObject       *model_object, 
+        const ModelObject        *model_object, 
         const std::vector<int>   &instance_idxs,
         const std::string        &color_by,
         const std::string        &select_by,
@@ -140,43 +142,47 @@ public:
     // Boolean: Is mouse over this object?
     bool                hover;
 
-    // Geometric data.
-    // Quad vertices.
-    GLVertexArray               qverts;
-    std::pair<size_t, size_t>   qverts_range;
-    // Triangle vertices.
-    GLVertexArray               tverts;
+    // Interleaved triangles & normals with indexed triangles & quads.
+    GLIndexedVertexArray        indexed_vertex_array;
+    // Ranges of triangle and quad indices to be rendered.
     std::pair<size_t, size_t>   tverts_range;
-    // OpenGL buffers for vertices and their normals.
-    int                         name_vertex_buffer;
-    int                         name_normal_buffer;
-    // OpenGL buffer of the indices.
-    int                         name_index_buffer;
-    // Triangle indices for the vertex buffer object.
-    std::vector<size_t>         triangle_indices;
+    std::pair<size_t, size_t>   qverts_range;
+
     // If the qverts or tverts contain thick extrusions, then offsets keeps pointers of the starts
     // of the extrusions per layer.
     std::vector<coordf_t>       print_zs;
     // Offset into qverts & tverts, or offsets into indices stored into an OpenGL name_index_buffer.
     std::vector<size_t>         offsets;
 
-    int object_idx() const { return this->composite_id / 1000000; }
-    int volume_idx() const { return (this->composite_id / 1000) % 1000; }
-    int instance_idx() const { return this->composite_id % 1000; }
-    BoundingBoxf3 transformed_bounding_box() const { BoundingBoxf3 bb = this->bounding_box; bb.translate(this->origin); return bb; }
-    bool empty() const { return qverts.size() < 4 && tverts.size() < 3; }
+    // OpenGL buffers for vertices and their normals.
+    int                         name_vertex_buffer;
+    int                         name_normal_buffer;
+    // OpenGL buffer of the indices.
+    int                         name_index_buffer;
 
-    void set_range(coordf_t low, coordf_t high);
+    int                 object_idx() const { return this->composite_id / 1000000; }
+    int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
+    int                 instance_idx() const { return this->composite_id % 1000; }
+    BoundingBoxf3       transformed_bounding_box() const { BoundingBoxf3 bb = this->bounding_box; bb.translate(this->origin); return bb; }
 
-    void*               qverts_to_render_ptr() { return qverts.verts.data() + qverts_range.first; }
-    void*               qnorms_to_render_ptr() { return qverts.norms.data() + qverts_range.first; }
-    size_t              qverts_to_render_cnt() { return std::min(qverts.verts.size(), qverts_range.second - qverts_range.first); }
-    void*               tverts_to_render_ptr() { return tverts.verts.data() + tverts_range.first; }
-    void*               tnorms_to_render_ptr() { return tverts.norms.data() + tverts_range.first; }
-    size_t              tverts_to_render_cnt() { return std::min(tverts.verts.size(), tverts_range.second - tverts_range.first); }
+    bool                empty() const { return this->indexed_vertex_array.empty(); }
+    bool                indexed() const { return this->indexed_vertex_array.indexed(); }
+
+    void                set_range(coordf_t low, coordf_t high);
+
+    // Non-indexed interleaved vertices & normals, likely forming triangles.
+    void*               triangles_to_render_ptr() { return indexed_vertex_array.vertices_and_normals_interleaved.data(); }
+    size_t              triangles_to_render_cnt() { return indexed_vertex_array.vertices_and_normals_interleaved.size() / (3 * 2); }
+    // Indexed triangles & quads.
+    void*               triangle_indices_to_render_ptr() { return indexed_vertex_array.triangle_indices.data() + tverts_range.first; }
+    void*               quad_indices_to_render_ptr() { return indexed_vertex_array.quad_indices.data() + qverts_range.first; }
+    size_t              indexed_triangles_to_render_cnt() { return std::min(indexed_vertex_array.triangle_indices.size(), tverts_range.second - tverts_range.first); }
+    size_t              indexed_quads_to_render_cnt() { return std::min(indexed_vertex_array.quad_indices.size(), qverts_range.second - qverts_range.first); }
 
     void                render_VBOs() const;
 
+
+    /************************************************ Layer height texture ****************************************************/
     std::shared_ptr<GLTexture>  layer_height_texture;
 
     bool                has_layer_height_texture() const 

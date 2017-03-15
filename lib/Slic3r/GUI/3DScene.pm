@@ -1254,20 +1254,20 @@ sub draw_volumes {
         glPushMatrix();
         glTranslatef(@{$volume->origin});
         glCullFace(GL_BACK);
-        my $qverts_cnt = $volume->qverts_to_render_cnt;
-        if ($qverts_cnt) {
-            glVertexPointer_c(3, GL_FLOAT, 0, $volume->qverts_to_render_ptr);
-            glNormalPointer_c(GL_FLOAT, 0, $volume->qnorms_to_render_ptr);
-            glDrawArrays(GL_QUADS, 0, $qverts_cnt / 3);
+        if ($volume->indexed) {
+            my $quads_cnt = $volume->indexed_quads_to_render_cnt;
+            my $triangles_cnt = $volume->indexed_triangles_to_render_cnt;
+            if ($quads_cnt + $triangles_cnt > 0) {
+                glInterleavedArrays_c(GL_N3F_V3F, 0, $volume->triangles_to_render_ptr);
+                glDrawElements_c(GL_QUADS,     $quads_cnt,     GL_UNSIGNED_INT, $volume->quad_indices_to_render_ptr    ) if ($quads_cnt);
+                glDrawElements_c(GL_TRIANGLES, $triangles_cnt, GL_UNSIGNED_INT, $volume->triangle_indices_to_render_ptr) if ($triangles_cnt);
+                glInterleavedArrays_c(GL_N3F_V3F, 0, 0);
+            }
+        } elsif (! $volume->empty) {
+            glInterleavedArrays_c(GL_N3F_V3F, 0, $volume->triangles_to_render_ptr);
+            glDrawArrays(GL_TRIANGLES, 0, $volume->triangles_to_render_cnt);
+            glInterleavedArrays_c(GL_N3F_V3F, 0, 0);
         }
-        my $tverts_cnt = $volume->tverts_to_render_cnt;
-        if ($tverts_cnt) {
-            glVertexPointer_c(3, GL_FLOAT, 0, $volume->tverts_to_render_ptr);
-            glNormalPointer_c(GL_FLOAT, 0, $volume->tnorms_to_render_ptr);
-            glDrawArrays(GL_TRIANGLES, 0, $tverts_cnt / 3);
-        }
-        glVertexPointer_c(3, GL_FLOAT, 0, 0);
-        glNormalPointer_c(GL_FLOAT, 0, 0);
         glPopMatrix();
 
         if ($shader_active) {

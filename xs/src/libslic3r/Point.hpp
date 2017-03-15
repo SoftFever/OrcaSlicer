@@ -210,6 +210,8 @@ inline Pointf operator*(const Pointf& point2, double scalar) { return Pointf(sca
 inline coordf_t cross(const Pointf &v1, const Pointf &v2) { return v1.x * v2.y - v1.y * v2.x; }
 inline coordf_t dot(const Pointf &v1, const Pointf &v2) { return v1.x * v2.x + v1.y * v2.y; }
 inline coordf_t dot(const Pointf &v) { return v.x * v.x + v.y * v.y; }
+inline double length(const Vectorf &v) { return sqrt(dot(v)); }
+inline double l2(const Vectorf &v) { return dot(v); }
 
 class Pointf3 : public Pointf
 {

@@ -27,7 +27,6 @@
     int                 object_idx() const;
     int                 volume_idx() const;
     int                 instance_idx() const;
-    bool                empty() const;
     Clone<Pointf3>      origin() const
         %code%{ RETVAL = THIS->origin; %};
     void                translate(double x, double y, double z)
@@ -36,12 +35,15 @@
         %code%{ RETVAL = THIS->bounding_box; %};
     Clone<BoundingBoxf3> transformed_bounding_box() const;
 
-    void*               qverts_to_render_ptr();
-    void*               qnorms_to_render_ptr();
-    int                 qverts_to_render_cnt();
-    void*               tverts_to_render_ptr();
-    void*               tnorms_to_render_ptr();
-    int                 tverts_to_render_cnt();
+    bool                empty() const;
+    bool                indexed() const;
+
+    void*               triangles_to_render_ptr();
+    size_t              triangles_to_render_cnt();
+    void*               triangle_indices_to_render_ptr();
+    void*               quad_indices_to_render_ptr();
+    size_t              indexed_triangles_to_render_cnt();
+    size_t              indexed_quads_to_render_cnt();
 
     bool                has_layer_height_texture();
     int                 layer_height_texture_width();

@@ -13,6 +13,48 @@ using boost::polygon::voronoi_diagram;
 
 namespace Slic3r { namespace Geometry {
 
+inline bool ray_ray_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
+{
+    double denom = v1.x * v2.y - v2.x * v1.y;
+    if (std::abs(denom) < EPSILON)
+        return false;
+    double t = (v2.x * (p1.y - p2.y) - v2.y * (p1.x - p2.x)) / denom;
+    res.x = p1.x + t * v1.x;
+    res.y = p1.y + t * v1.y;
+    return true;
+}
+
+inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
+{
+    double denom = v1.x * v2.y - v2.x * v1.y;
+    if (std::abs(denom) < EPSILON)
+        // Lines are collinear.
+        return false;
+    double s12_x = p1.x - p2.x;
+    double s12_y = p1.y - p2.y;
+    double s_numer = v1.x * s12_y - v1.y * s12_x;
+    bool   denom_is_positive = false;
+    if (denom < 0.) {
+        denom_is_positive = true;
+        denom   = - denom;
+        s_numer = - s_numer;
+    }
+    if (s_numer < 0.)
+        // Intersection outside of the 1st segment.
+        return false;
+    double t_numer = v2.x * s12_y - v2.y * s12_x;
+    if (! denom_is_positive)
+        t_numer = - t_numer;
+    if (t_numer < 0. || s_numer > denom || t_numer > denom)
+        // Intersection outside of the 1st or 2nd segment.
+        return false;
+    // Intersection inside both of the segments.
+    double t = t_numer / denom;
+    res.x = p1.x + t * v1.x;
+    res.y = p1.y + t * v1.y;
+    return true;
+}
+
 Polygon convex_hull(Points points);
 Polygon convex_hull(const Polygons &polygons);
 void chained_path(const Points &points, std::vector<Points::size_type> &retval, Point start_near);
