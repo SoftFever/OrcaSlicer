@@ -305,6 +305,8 @@ if ($ENV{SLIC3R_GUI}) {
         } else {
             push @LIBS, qw(-lopengl32);
         }
+    } elsif ($^O eq 'darwin') {
+        push @LIBS, qw(-framework OpenGL);
     } else {
         push @LIBS, qw(-lGL -lGLU);
     }
