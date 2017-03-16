@@ -1,3 +1,5 @@
+#include <GL/glew.h>
+
 #include "3DScene.hpp"
 
 #include "../../libslic3r/libslic3r.h"
@@ -21,6 +23,10 @@ namespace Slic3r {
 
 void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
 {
+    assert(triangle_indices.empty() && vertices_and_normals_interleaved_size == 0);
+    assert(quad_indices.empty() && triangle_indices_size == 0);
+    assert(vertices_and_normals_interleaved.size() % 6 == 0 && quad_indices_size == vertices_and_normals_interleaved.size());
+
     this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
     
     for (int i = 0; i < mesh.stl.stats.number_of_facets; ++ i) {
@@ -28,6 +34,130 @@ void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
         for (int j = 0; j < 3; ++ j)
             this->push_geometry(facet.vertex[j].x, facet.vertex[j].y, facet.vertex[j].z, facet.normal.x, facet.normal.y, facet.normal.z);
     }
+
+    vertices_and_normals_interleaved_size = this->vertices_and_normals_interleaved.size();
+}
+
+void GLIndexedVertexArray::finalize_geometry(bool use_VBOs)
+{
+    assert(this->vertices_and_normals_interleaved_VBO_id == 0);
+    assert(this->triangle_indices_VBO_id == 0);
+    assert(this->quad_indices_VBO_id == 0);
+
+    this->setup_sizes();
+
+    if (use_VBOs) {
+        if (! empty()) {
+            glGenBuffers(1, &this->vertices_and_normals_interleaved_VBO_id);
+            glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id);
+            glBufferData(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved.size() * 4, this->vertices_and_normals_interleaved.data(), GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            this->vertices_and_normals_interleaved.clear();
+        }
+        if (! this->triangle_indices.empty()) {
+            glGenBuffers(1, &this->triangle_indices_VBO_id);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices.size() * 4, this->triangle_indices.data(), GL_STATIC_DRAW);
+            this->triangle_indices.clear();
+        }
+        if (! this->quad_indices.empty()) {
+            glGenBuffers(1, &this->quad_indices_VBO_id);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices.size() * 4, this->quad_indices.data(), GL_STATIC_DRAW);
+            this->quad_indices.clear();
+        }
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+    this->shrink_to_fit();
+}
+
+void GLIndexedVertexArray::release_geometry()
+{
+    if (this->vertices_and_normals_interleaved_VBO_id)
+        glDeleteBuffers(1, &this->vertices_and_normals_interleaved_VBO_id);
+    if (this->triangle_indices_VBO_id)
+        glDeleteBuffers(1, &this->triangle_indices_VBO_id);
+    if (this->quad_indices_VBO_id)
+        glDeleteBuffers(1, &this->quad_indices_VBO_id);
+    this->clear();
+    this->shrink_to_fit();
+}
+
+void GLIndexedVertexArray::render() const
+{
+    if (this->indexed()) {
+        if (this->vertices_and_normals_interleaved_VBO_id) {
+            // Render using the Vertex Buffer Objects.
+            glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id);
+            glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
+            if (this->triangle_indices_size > 0) {
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id);
+                glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_size), GL_UNSIGNED_INT, nullptr);
+            }
+            if (this->quad_indices_size > 0) {
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id);
+                glDrawElements(GL_QUADS, GLsizei(this->quad_indices_size), GL_UNSIGNED_INT, nullptr);
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        } else {
+            // Render in an immediate mode.
+            glInterleavedArrays(GL_N3F_V3F, 0, this->vertices_and_normals_interleaved.data());
+            // Due to issues with the Intel drivers, rather limit the amount of vertices processed per draw command.
+            if (! this->triangle_indices.empty())
+                glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_size), GL_UNSIGNED_INT, this->triangle_indices.data());
+            if (! this->quad_indices.empty())
+                glDrawElements(GL_QUADS, GLsizei(this->quad_indices_size), GL_UNSIGNED_INT, this->quad_indices.data());
+        }
+    } else {
+        if (this->vertices_and_normals_interleaved_VBO_id) {
+            // Render using the Vertex Buffer Objects.
+            glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id);
+            glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
+            glDrawArrays(GL_TRIANGLES, 0, GLsizei(this->vertices_and_normals_interleaved_size / 6));
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        } else {
+            // Render in an immediate mode.
+            glInterleavedArrays(GL_N3F_V3F, 0, this->vertices_and_normals_interleaved.data());
+            glDrawArrays(GL_TRIANGLES, 0, GLsizei(this->vertices_and_normals_interleaved_size / 6));
+        }
+    }
+
+    glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
+}
+
+void GLIndexedVertexArray::render(
+    const std::pair<size_t, size_t> &tverts_range,
+    const std::pair<size_t, size_t> &qverts_range) const 
+{
+    assert(this->indexed());
+    if (! this->indexed())
+        return;
+
+    if (this->vertices_and_normals_interleaved_VBO_id) {
+        // Render using the Vertex Buffer Objects.
+        glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id);
+        glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
+        if (this->triangle_indices_size > 0) {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id);
+            glDrawElements(GL_TRIANGLES, GLsizei(std::min(this->triangle_indices_size, tverts_range.second - tverts_range.first)), GL_UNSIGNED_INT, (const void*)(tverts_range.first * 4));
+        }
+        if (this->quad_indices_size > 0) {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id);
+            glDrawElements(GL_QUADS, GLsizei(std::min(this->quad_indices_size, qverts_range.second - qverts_range.first)), GL_UNSIGNED_INT, (const void*)(qverts_range.first * 4));
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    } else {
+        // Render in an immediate mode.
+        glInterleavedArrays(GL_N3F_V3F, 0, this->vertices_and_normals_interleaved.data());
+        if (! this->triangle_indices.empty())
+            glDrawElements(GL_TRIANGLES, GLsizei(std::min(this->triangle_indices_size, tverts_range.second - tverts_range.first)), GL_UNSIGNED_INT, (const void*)(this->triangle_indices.data() + tverts_range.first));
+        if (! this->quad_indices.empty())
+            glDrawElements(GL_QUADS, GLsizei(std::min(this->quad_indices_size, qverts_range.second - qverts_range.first)), GL_UNSIGNED_INT, (const void*)(this->quad_indices.data() + qverts_range.first));
+    }
+
+    glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
 }
 
 void GLVolume::set_range(double min_z, double max_z)
@@ -63,6 +193,18 @@ void GLVolume::set_range(double min_z, double max_z)
             }
         }
     }
+}
+
+void GLVolume::render() const
+{
+    glCullFace(GL_BACK);
+    glPushMatrix();
+    glTranslated(this->origin.x, this->origin.y, this->origin.z);
+    if (this->indexed_vertex_array.indexed())
+        this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+    else
+        this->indexed_vertex_array.render();
+    glPopMatrix();
 }
 
 void GLVolume::generate_layer_height_texture(PrintObject *print_object, bool force)
@@ -235,7 +377,6 @@ static void thick_lines_to_indexed_vertex_array(
             idx_a[BOTTOM] = idx_prev[BOTTOM];
         }
 
-        bool sharp = true;
         if (ii == 0) {
             // Start of the 1st line segment.
             idx_a[LEFT ] = idx_last ++;
@@ -490,6 +631,11 @@ static void extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity, fl
     }
 }
 
+void _3DScene::_glew_init()
+{ 
+    glewInit();
+}
+
 // Create 3D thick extrusion lines for a skirt and brim.
 // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
 void _3DScene::_load_print_toolpaths(
@@ -539,6 +685,7 @@ void _3DScene::_load_print_toolpaths(
     auto bb = print->bounding_box();
     volume.bounding_box.merge(Pointf3(unscale(bb.min.x), unscale(bb.min.y), 0.f));
     volume.bounding_box.merge(Pointf3(unscale(bb.max.x), unscale(bb.max.y), 0.f));
+    volume.indexed_vertex_array.finalize_geometry(use_VBOs);
 }
 
 // Create 3D thick extrusion lines for object forming extrusions.
@@ -559,8 +706,10 @@ void _3DScene::_load_print_object_toolpaths(
         bool                         has_infill;
         bool                         has_support;
 
-//        static const size_t          alloc_size_max    () { return 32 * 1048576 / 4; }
-        static const size_t          alloc_size_max    () { return 4 * 1048576 / 4; }
+        // Number of vertices (each vertex is 6x4=24 bytes long)
+        static const size_t          alloc_size_max    () { return 131072; } // 3.15MB
+//        static const size_t          alloc_size_max    () { return 65536; } // 1.57MB 
+//        static const size_t          alloc_size_max    () { return 32768; } // 786kB
         static const size_t          alloc_size_reserve() { return alloc_size_max() * 2; }
 
         static const float*          color_perimeters  () { static float color[4] = { 1.0f, 1.0f, 0.0f, 1.f }; return color; } // yellow
@@ -672,6 +821,8 @@ void _3DScene::_load_print_object_toolpaths(
         volume_ptr += v.volumes.size();
         v.volumes.clear();
     }
+    for (GLVolume *v : volumes->volumes)
+        v->indexed_vertex_array.finalize_geometry(use_VBOs);
   
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end"; 
 }

@@ -940,7 +940,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                 ::Slic3r::SVG svg(debug_out_path("support-bottom-contacts-simplified-%d-%d.svg", iRun, layer_id), bbox);
                 svg.draw(union_ex(projection, false), "blue", 0.5);
                 svg.draw(union_ex(projection_simplified, false), "red", 0.5);
-    #ifdef SLIC3R_GUI
+    #if 0
                 bbox.min.x -= scale_(5.f);
                 bbox.min.y -= scale_(5.f);
                 bbox.max.x += scale_(5.f);
@@ -1593,12 +1593,12 @@ struct MyLayerExtruded
     }
 
     // The source layer. It carries the height and extrusion type (bridging / non bridging, extrusion height).
-    PrintObjectSupportMaterial::MyLayer *layer;
+    PrintObjectSupportMaterial::MyLayer  *layer;
     // Collect extrusions. They will be exported sorted by the bottom height.
-    ExtrusionEntitiesPtr                 extrusions;
+    ExtrusionEntitiesPtr                  extrusions;
     // In case the extrusions are non-empty, m_polygons_to_extrude may contain the rest areas yet to be filled by additional support.
     // This is useful mainly for the loop interfaces, which are generated before the zig-zag infills.
-    Polygons                            *m_polygons_to_extrude;
+    Polygons                             *m_polygons_to_extrude;
 };
 
 typedef std::vector<MyLayerExtruded*> MyLayerExtrudedPtrs;

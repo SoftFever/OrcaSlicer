@@ -38,17 +38,7 @@
     bool                empty() const;
     bool                indexed() const;
 
-    void*               triangles_to_render_ptr();
-    size_t              triangles_to_render_cnt();
-    size_t              geometry_size() const;
-    void*               triangle_indices_ptr();
-    void*               quad_indices_ptr();
-    size_t              indexed_triangles_cnt();
-    size_t              indexed_quads_cnt();
-    size_t              triangle_indices_to_render_offset() const;
-    size_t              quad_indices_to_render_offset() const;
-    size_t              indexed_triangles_to_render_cnt() const;
-    size_t              indexed_quads_to_render_cnt() const;
+    void                render() const;
 
     bool                has_layer_height_texture();
     int                 layer_height_texture_width();
@@ -72,8 +62,10 @@
 
     int count()
         %code{% RETVAL = THIS->volumes.size(); %};
-    
+
     void set_range(double low, double high);
+
+    void release_geometry();    
 %{
 
 SV*
@@ -94,6 +86,12 @@ GLVolumeCollection::arrayref()
 
 %package{Slic3r::GUI::_3DScene};
 %{
+
+
+void
+_glew_init()
+    CODE:
+        _3DScene::_glew_init();
 
 void
 _load_print_toolpaths(print, volumes, use_VBOs)
