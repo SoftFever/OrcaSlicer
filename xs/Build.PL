@@ -43,6 +43,8 @@ my @early_includes = ();
 my @INC  = qw(-Isrc/libslic3r -Isrc/glew/include);
 my @LIBS = $cpp_guess->is_msvc ? qw(-LIBPATH:src/libslic3r) : qw(-Lsrc/libslic3r);
 
+$ENV{SLIC3R_GUI} = 1 if $ENV{SLIC3R_NOGUI} != 1;
+
 if ($ENV{SLIC3R_GUI} || $ENV{SLIC3R_PRUS})
 {
     print "Slic3r will be built with GUI support\n";
