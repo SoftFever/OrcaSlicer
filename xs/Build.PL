@@ -187,7 +187,7 @@ path through the BOOST_DIR environment variable:
 
     BOOST_DIR=/path/to/boost perl Build.PL
 
-Or you may specify BOOST_INCLUDEPATH and BOOST_LIBRARYPATH separatly, which
+Or you may specify BOOST_INCLUDEDIR and BOOST_LIBRARYDIR separatly, which
 is handy, if you have built Boost libraries with mutliple settings.
 
 EOF
@@ -292,7 +292,7 @@ through the TBB_DIR environment variable:
 
     TBB_DIR=/path/to/TBB perl Build.PL
 
-Or you may specify TBB_INCLUDEPATH and TBB_LIBRARYPATH separatly, which
+Or you may specify TBB_INCLUDEDIR and TBB_LIBRARYDIR separatly, which
 is handy, if you have built the Thread Building Blocks libraries with mutliple settings.
 
 EOF
