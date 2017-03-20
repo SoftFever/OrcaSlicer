@@ -247,6 +247,9 @@ sub new {
     );
 }
 
+package Slic3r::GUI::_3DScene::GLShader;
+sub CLONE_SKIP { 1 }
+
 package Slic3r::GUI::_3DScene::GLVolume::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref },

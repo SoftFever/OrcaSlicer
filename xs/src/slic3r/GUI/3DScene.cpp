@@ -34,8 +34,6 @@ void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
         for (int j = 0; j < 3; ++ j)
             this->push_geometry(facet.vertex[j].x, facet.vertex[j].y, facet.vertex[j].z, facet.normal.x, facet.normal.y, facet.normal.z);
     }
-
-    vertices_and_normals_interleaved_size = this->vertices_and_normals_interleaved.size();
 }
 
 void GLIndexedVertexArray::finalize_geometry(bool use_VBOs)
@@ -85,11 +83,20 @@ void GLIndexedVertexArray::release_geometry()
 
 void GLIndexedVertexArray::render() const
 {
+    if (this->vertices_and_normals_interleaved_VBO_id) {
+        glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id);
+        glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float)));
+        glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
+    } else {
+        glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), this->vertices_and_normals_interleaved.data() + 3);
+        glNormalPointer(GL_FLOAT, 6 * sizeof(float), this->vertices_and_normals_interleaved.data());
+    }
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+
     if (this->indexed()) {
         if (this->vertices_and_normals_interleaved_VBO_id) {
             // Render using the Vertex Buffer Objects.
-            glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id);
-            glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
             if (this->triangle_indices_size > 0) {
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id);
                 glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_size), GL_UNSIGNED_INT, nullptr);
@@ -98,32 +105,21 @@ void GLIndexedVertexArray::render() const
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id);
                 glDrawElements(GL_QUADS, GLsizei(this->quad_indices_size), GL_UNSIGNED_INT, nullptr);
             }
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         } else {
             // Render in an immediate mode.
-            glInterleavedArrays(GL_N3F_V3F, 0, this->vertices_and_normals_interleaved.data());
-            // Due to issues with the Intel drivers, rather limit the amount of vertices processed per draw command.
             if (! this->triangle_indices.empty())
                 glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_size), GL_UNSIGNED_INT, this->triangle_indices.data());
             if (! this->quad_indices.empty())
                 glDrawElements(GL_QUADS, GLsizei(this->quad_indices_size), GL_UNSIGNED_INT, this->quad_indices.data());
         }
-    } else {
-        if (this->vertices_and_normals_interleaved_VBO_id) {
-            // Render using the Vertex Buffer Objects.
-            glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id);
-            glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
-            glDrawArrays(GL_TRIANGLES, 0, GLsizei(this->vertices_and_normals_interleaved_size / 6));
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        } else {
-            // Render in an immediate mode.
-            glInterleavedArrays(GL_N3F_V3F, 0, this->vertices_and_normals_interleaved.data());
-            glDrawArrays(GL_TRIANGLES, 0, GLsizei(this->vertices_and_normals_interleaved_size / 6));
-        }
-    }
+    } else
+        glDrawArrays(GL_TRIANGLES, 0, GLsizei(this->vertices_and_normals_interleaved_size / 6));
 
-    glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
+    if (this->vertices_and_normals_interleaved_VBO_id)
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
 }
 
 void GLIndexedVertexArray::render(
@@ -137,7 +133,10 @@ void GLIndexedVertexArray::render(
     if (this->vertices_and_normals_interleaved_VBO_id) {
         // Render using the Vertex Buffer Objects.
         glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id);
-        glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
+        glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float)));
+        glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
         if (this->triangle_indices_size > 0) {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id);
             glDrawElements(GL_TRIANGLES, GLsizei(std::min(this->triangle_indices_size, tverts_range.second - tverts_range.first)), GL_UNSIGNED_INT, (const void*)(tverts_range.first * 4));
@@ -150,22 +149,26 @@ void GLIndexedVertexArray::render(
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     } else {
         // Render in an immediate mode.
-        glInterleavedArrays(GL_N3F_V3F, 0, this->vertices_and_normals_interleaved.data());
+        glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), this->vertices_and_normals_interleaved.data() + 3);
+        glNormalPointer(GL_FLOAT, 6 * sizeof(float), this->vertices_and_normals_interleaved.data());
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
         if (! this->triangle_indices.empty())
             glDrawElements(GL_TRIANGLES, GLsizei(std::min(this->triangle_indices_size, tverts_range.second - tverts_range.first)), GL_UNSIGNED_INT, (const void*)(this->triangle_indices.data() + tverts_range.first));
         if (! this->quad_indices.empty())
             glDrawElements(GL_QUADS, GLsizei(std::min(this->quad_indices_size, qverts_range.second - qverts_range.first)), GL_UNSIGNED_INT, (const void*)(this->quad_indices.data() + qverts_range.first));
     }
 
-    glInterleavedArrays(GL_N3F_V3F, 0, nullptr);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
 }
 
 void GLVolume::set_range(double min_z, double max_z)
 {
     this->qverts_range.first  = 0;
-    this->qverts_range.second = this->indexed_vertex_array.quad_indices.size();
+    this->qverts_range.second = this->indexed_vertex_array.quad_indices_size;
     this->tverts_range.first  = 0;
-    this->tverts_range.second = this->indexed_vertex_array.triangle_indices.size();
+    this->tverts_range.second = this->indexed_vertex_array.triangle_indices_size;
     if (! this->print_zs.empty()) {
         // The Z layer range is specified.
         // First test whether the Z span of this object is not out of (min_z, max_z) completely.
@@ -246,7 +249,8 @@ std::vector<int> GLVolumeCollection::load_object(
     const std::vector<int>  &instance_idxs,
     const std::string       &color_by,
     const std::string       &select_by,
-    const std::string       &drag_by)
+    const std::string       &drag_by,
+    bool                     use_VBOs)
 {
     static float colors[4][4] = {
         { 1.0f, 1.0f, 0.0f, 1.f }, 
@@ -272,7 +276,9 @@ std::vector<int> GLVolumeCollection::load_object(
             this->volumes.emplace_back(new GLVolume(color));
             GLVolume &v = *this->volumes.back();
 			v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+            // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
             v.bounding_box = v.indexed_vertex_array.bounding_box();
+            v.indexed_vertex_array.finalize_geometry(use_VBOs);
             v.composite_id = obj_idx * 1000000 + volume_idx * 1000 + instance_idx;
             if (select_by == "object")
                 v.select_group_id = obj_idx * 1000000;
@@ -290,6 +296,74 @@ std::vector<int> GLVolumeCollection::load_object(
     }
     
     return volumes_idx; 
+}
+
+void GLVolumeCollection::render_VBOs() const
+{
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glCullFace(GL_BACK);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+ 
+    GLint current_program_id;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
+    GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
+
+    for (GLVolume *volume : this->volumes) {
+        if (! volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
+            continue;
+        GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
+        GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
+        if (n_triangles + n_quads == 0)
+            continue;
+        if (color_id >= 0)
+            glUniform4fv(color_id, 1, (const GLfloat*)volume->color);
+        else
+            glColor4f(volume->color[0], volume->color[1], volume->color[2], volume->color[3]);            
+        glBindBuffer(GL_ARRAY_BUFFER, volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
+        glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float)));
+        glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
+        if (n_triangles > 0) {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.triangle_indices_VBO_id);
+            glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, (const void*)(volume->tverts_range.first * 4));
+        }
+        if (n_quads > 0) {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.quad_indices_VBO_id);
+            glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, (const void*)(volume->qverts_range.first * 4));
+        }
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+//    glDisable(GL_BLEND);
+}
+
+void GLVolumeCollection::render_legacy() const
+{
+    glCullFace(GL_BACK);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+ 
+    for (GLVolume *volume : this->volumes) {
+        assert(! volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
+        GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
+        GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
+        if (n_triangles + n_quads == 0)
+            continue;
+        glColor4f(volume->color[0], volume->color[1], volume->color[2], volume->color[3]);
+        glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), volume->indexed_vertex_array.vertices_and_normals_interleaved.data() + 3);
+        glNormalPointer(GL_FLOAT, 6 * sizeof(float), volume->indexed_vertex_array.vertices_and_normals_interleaved.data());
+        if (n_triangles > 0)
+            glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, volume->indexed_vertex_array.triangle_indices.data() + volume->tverts_range.first);
+        if (n_quads > 0)
+            glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, volume->indexed_vertex_array.quad_indices.data() + volume->qverts_range.first);
+    }
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
 }
 
 // caller is responsible for supplying NO lines with zero length

@@ -14,7 +14,6 @@ use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Controller;
 use Slic3r::GUI::Controller::ManualControlDialog;
 use Slic3r::GUI::Controller::PrinterPanel;
-use Slic3r::GUI::GLShader;
 use Slic3r::GUI::MainFrame;
 use Slic3r::GUI::Notifier;
 use Slic3r::GUI::Plater;

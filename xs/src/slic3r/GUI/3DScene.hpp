@@ -189,10 +189,7 @@ public:
         selected(false),
         hover(false),
         qverts_range(0, size_t(-1)),
-        tverts_range(0, size_t(-1)),
-        name_vertex_buffer(0),
-        name_normal_buffer(0),
-        name_index_buffer(0)
+        tverts_range(0, size_t(-1))
     {
         color[0] = r;
         color[1] = g;
@@ -237,12 +234,6 @@ public:
     std::vector<coordf_t>       print_zs;
     // Offset into qverts & tverts, or offsets into indices stored into an OpenGL name_index_buffer.
     std::vector<size_t>         offsets;
-
-    // OpenGL buffers for vertices and their normals.
-    int                         name_vertex_buffer;
-    int                         name_normal_buffer;
-    // OpenGL buffer of the indices.
-    int                         name_index_buffer;
 
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
@@ -296,8 +287,12 @@ public:
         const std::vector<int>  &instance_idxs,
         const std::string       &color_by,
         const std::string       &select_by,
-        const std::string       &drag_by);
+        const std::string       &drag_by,
+        bool                     use_VBOs);
 
+    // Render the volumes by OpenGL.
+    void render_VBOs() const;
+    void render_legacy() const;
     // Release the geometry data assigned to the volumes.
     // If OpenGL VBOs were allocated, an OpenGL context has to be active to release them.
     void release_geometry() { for (auto *v : volumes) v->release_geometry(); }

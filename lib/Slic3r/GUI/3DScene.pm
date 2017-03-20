@@ -149,8 +149,6 @@ sub new {
     $self->{layer_height_edit_last_z} = 0.;
     $self->{layer_height_edit_last_action} = 0;
 
-    $self->{use_VBOs} = 0;
-    
     $self->reset_objects;
     
     EVT_PAINT($self, sub {
@@ -194,28 +192,23 @@ sub layer_editing_enabled {
             if (! $self->{layer_editing_initialized}) {
                 # Enabling the layer editing for the first time. This triggers compilation of the necessary OpenGL shaders.
                 # If compilation fails, a message box is shown with the error codes.
-                my $shader = $self->{shader} = new Slic3r::GUI::GLShader;
+                my $shader = new Slic3r::GUI::_3DScene::GLShader;
                 my $error_message;
-                if (ref($shader)) {
-                    my $info = $shader->Load($self->_fragment_shader, $self->_vertex_shader);
-                    if (defined($info)) {
-                        # Compilation or linking of the shaders failed.
-                        $error_message = "Cannot compile an OpenGL Shader, therefore the Variable Layer Editing will be disabled.\n\n" 
-                            . $info;
-                    } else {
-                        ($self->{layer_preview_z_texture_id}) = glGenTextures_p(1);
-                        glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-                        glBindTexture(GL_TEXTURE_2D, 0);
-                    }
+                if (! $shader->load($self->_fragment_shader_variable_layer_height, $self->_vertex_shader_variable_layer_height)) {
+                    # Compilation or linking of the shaders failed.
+                    $error_message = "Cannot compile an OpenGL Shader, therefore the Variable Layer Editing will be disabled.\n\n" 
+                        . $shader->last_error;
+                    $shader = undef;
                 } else {
-                    # Cannot initialize the Shader object, some of the OpenGL capabilities are missing.
-                    $error_message = "Cannot instantiate an OpenGL Shader, therefore the Variable Layer Editing will be disabled.\n\n" 
-                        . $shader;
+                    $self->{layer_height_edit_shader} = $shader;
+                    ($self->{layer_preview_z_texture_id}) = glGenTextures_p(1);
+                    glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+                    glBindTexture(GL_TEXTURE_2D, 0);
                 }
                 if (defined($error_message)) {
                     # Don't enable the layer editing tool.
@@ -361,6 +354,7 @@ sub mouse_event {
             # Index 2 means no editing, just wait for mouse up event.
             $self->_layer_height_edited(2);
             $self->Refresh;
+            $self->Update;
         } else {
             # Select volume in this 3D canvas.
             # Don't deselect a volume if layer editing is enabled. We want the object to stay selected
@@ -380,6 +374,7 @@ sub mouse_event {
                 }
                 
                 $self->Refresh;
+                $self->Update;
             }
             
             # propagate event through callback
@@ -421,6 +416,7 @@ sub mouse_event {
         $self->_drag_start_pos($cur_pos);
         $self->_dragged(1);
         $self->Refresh;
+        $self->Update;
     } elsif ($e->Dragging) {
         if ($self->_layer_height_edited && $object_idx_selected != -1) {
             $self->_variable_layer_thickness_action($e) if ($self->_layer_height_edited == 1);
@@ -445,6 +441,7 @@ sub mouse_event {
                 }
                 $self->on_viewport_changed->() if $self->on_viewport_changed;
                 $self->Refresh;
+                $self->Update;
             }
             $self->_drag_start_pos($pos);
         } elsif ($e->MiddleIsDown || $e->RightIsDown) {
@@ -459,6 +456,7 @@ sub mouse_event {
                 );
                 $self->on_viewport_changed->() if $self->on_viewport_changed;
                 $self->Refresh;
+                $self->Update;
             }
             $self->_drag_start_xy($pos);
         }
@@ -488,7 +486,10 @@ sub mouse_event {
         $self->_mouse_pos($pos);
         # Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor
         # hovers over.
-        $self->Refresh if ($self->enable_picking);
+        if ($self->enable_picking) {
+            $self->Update;
+            $self->Refresh;
+        }
     } else {
         $e->Skip();
     }
@@ -540,8 +541,8 @@ sub mouse_wheel_event {
 # Reset selection.
 sub reset_objects {
     my ($self) = @_;
-    if ($self->{use_VBOs}) {
-        $self->GetContext;
+    if ($self->GetContext) {
+        $self->SetCurrent($self->GetContext);
         $self->volumes->release_geometry;
     }
     $self->volumes->erase;
@@ -898,6 +899,24 @@ sub SetCurrent {
     }
 }
 
+sub UseVBOs {
+    my ($self) = @_;
+
+    if (! defined ($self->{use_VBOs})) {
+        # Don't use VBOs if anything fails.
+        $self->{use_VBOs} = 0;
+        if ($self->GetContext) {
+            $self->SetCurrent($self->GetContext);
+            my @gl_version = split(/\./, glGetString(GL_VERSION));
+            $self->{use_VBOs} = int($gl_version[0]) >= 2;
+            # print "InitGL $self OpenGL major: $gl_version[0], minor: $gl_version[1]. Use VBOs: ", $self->{use_VBOs}, "\n";
+        }
+        #FIXME 
+        $self->{use_VBOs} = 0;
+    }
+    return $self->{use_VBOs};
+}
+
 sub Resize {
     my ($self, $x, $y) = @_;
  
@@ -948,10 +967,6 @@ sub InitGL {
     return unless $self->GetContext;
     $self->init(1);
 
-    my @gl_version = split(/\./, glGetString(GL_VERSION));
-    $self->{use_VBOs} = int($gl_version[0]) >= 2;
-#    print "OpenGL major: $gl_version[0], minor: $gl_version[1]. Use VBOs: ", $self->{use_VBOs}, "\n";
-
     glClearColor(0, 0, 0, 1);
     glColor3f(1, 0, 0);
     glEnable(GL_DEPTH_TEST);
@@ -982,10 +997,10 @@ sub InitGL {
     # Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
     glShadeModel(GL_SMOOTH);
     
-    glMaterialfv_p(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, 0.5, 0.3, 0.3, 1);
-    glMaterialfv_p(GL_FRONT_AND_BACK, GL_SPECULAR, 1, 1, 1, 1);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50);
-    glMaterialfv_p(GL_FRONT_AND_BACK, GL_EMISSION, 0.1, 0, 0, 0.9);
+#    glMaterialfv_p(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, 0.5, 0.3, 0.3, 1);
+#    glMaterialfv_p(GL_FRONT_AND_BACK, GL_SPECULAR, 1, 1, 1, 1);
+#    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50);
+#    glMaterialfv_p(GL_FRONT_AND_BACK, GL_EMISSION, 0.1, 0, 0, 0.9);
     
     # A handy trick -- have surface material mirror the color.
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
@@ -993,12 +1008,31 @@ sub InitGL {
     glEnable(GL_MULTISAMPLE);
 
     Slic3r::GUI::_3DScene::_glew_init;
+
+    if ($self->UseVBOs) {
+        my $shader = new Slic3r::GUI::_3DScene::GLShader;
+        if (! $shader->load($self->_fragment_shader_Gouraud, $self->_vertex_shader_Gouraud)) {
+#        if (! $shader->load($self->_fragment_shader_Phong, $self->_vertex_shader_Phong)) {
+            print "Compilaton of path shader failed: \n" . $shader->last_error . "\n";
+            $shader = undef;
+        } else {
+            $self->{plain_shader} = $shader;
+        }
+    }
 }
 
 sub DestroyGL {
     my $self = shift;
-    if ($self->init && $self->GetContext) {
-        delete $self->{shader};
+    if ($self->GetContext) {
+        $self->SetCurrent($self->GetContext);
+        if ($self->{plain_shader}) {
+            $self->{plain_shader}->release;
+            delete $self->{plain_shader};
+        }
+        if ($self->{layer_height_edit_shader}) {
+            $self->{layer_height_edit_shader}->release;
+            delete $self->{layer_height_edit_shader};
+        }
         $self->volumes->release_geometry;
     }
 }
@@ -1173,7 +1207,15 @@ sub Render {
     glEnable(GL_LIGHTING);
     
     # draw objects
-    $self->draw_volumes;
+    if ($self->enable_picking) {
+        $self->draw_volumes;
+    } elsif ($self->UseVBOs) {
+        $self->{plain_shader}->enable if $self->{plain_shader};
+        $self->volumes->render_VBOs;
+        $self->{plain_shader}->disable;
+    } else {
+        $self->volumes->render_legacy;
+    }
 
     # draw cutting plane
     if (defined $self->cutting_plane_z) {
@@ -1199,7 +1241,7 @@ sub Render {
     $self->SwapBuffers();
 
     # Calling glFinish has a performance penalty, but it seems to fix some OpenGL driver hang-up with extremely large scenes.
-    glFinish();
+#    glFinish();
 }
 
 sub draw_volumes {
@@ -1217,23 +1259,15 @@ sub draw_volumes {
         my $volume = $self->volumes->[$volume_idx];
 
         my $shader_active = 0;
-        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{shader} && $volume->has_layer_height_texture) {
+        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{layer_height_edit_shader} && $volume->has_layer_height_texture) {
             # Update the height texture if the ModelObject::layer_height_texture is invalid.
             $volume->generate_layer_height_texture(
                 $self->{print}->get_object(int($volume->select_group_id / 1000000)), 0);
-            $self->{shader}->Enable;
-            my $z_to_texture_row_id             = $self->{shader}->Map('z_to_texture_row');
-            my $z_texture_row_to_normalized_id  = $self->{shader}->Map('z_texture_row_to_normalized');
-            my $z_cursor_id                     = $self->{shader}->Map('z_cursor');
-            my $z_cursor_band_width_id          = $self->{shader}->Map('z_cursor_band_width');
-            die if ! defined($z_to_texture_row_id);
-            die if ! defined($z_texture_row_to_normalized_id);
-            die if ! defined($z_cursor_id);
-            die if ! defined($z_cursor_band_width_id);
-            glUniform1fARB($z_to_texture_row_id, $volume->layer_height_texture_z_to_row_id);
-            glUniform1fARB($z_texture_row_to_normalized_id, 1. / $volume->layer_height_texture_height);
-            glUniform1fARB($z_cursor_id, $volume->bounding_box->z_max * $z_cursor_relative);
-            glUniform1fARB($z_cursor_band_width_id, $self->{layer_height_edit_band_width});
+            $self->{layer_height_edit_shader}->enable;
+            $self->{layer_height_edit_shader}->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
+            $self->{layer_height_edit_shader}->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
+            $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $volume->bounding_box->z_max * $z_cursor_relative);
+            $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
             glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
 #            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_LEVEL, 0);
 #            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
@@ -1266,7 +1300,7 @@ sub draw_volumes {
 
         if ($shader_active) {
             glBindTexture(GL_TEXTURE_2D, 0);
-            $self->{shader}->Disable;
+            $self->{layer_height_edit_shader}->disable;
         }
     }
     glDisableClientState(GL_NORMAL_ARRAY);
@@ -1356,7 +1390,7 @@ sub draw_active_object_annotations {
     # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
     my ($self) = @_;
 
-    return if (! $self->{shader} || ! $self->layer_editing_enabled);
+    return if (! $self->{layer_height_edit_shader} || ! $self->layer_editing_enabled);
 
     my $volume;
     foreach my $volume_idx (0..$#{$self->volumes}) {
@@ -1374,13 +1408,11 @@ sub draw_active_object_annotations {
     my ($reset_left, $reset_bottom, $reset_right, $reset_top) = $self->_variable_layer_thickness_reset_rect_viewport;
     my $z_cursor_relative = $self->_variable_layer_thickness_bar_mouse_cursor_z_relative;
 
-    $self->{shader}->Enable;
-    my $z_to_texture_row_id             = $self->{shader}->Map('z_to_texture_row');
-    my $z_texture_row_to_normalized_id  = $self->{shader}->Map('z_texture_row_to_normalized');
-    my $z_cursor_id                     = $self->{shader}->Map('z_cursor');
-    glUniform1fARB($z_to_texture_row_id, $volume->layer_height_texture_z_to_row_id);
-    glUniform1fARB($z_texture_row_to_normalized_id, 1. / $volume->layer_height_texture_height);
-    glUniform1fARB($z_cursor_id, $volume->bounding_box->z_max * $z_cursor_relative);
+    $self->{layer_height_edit_shader}->enable;
+    $self->{layer_height_edit_shader}->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
+    $self->{layer_height_edit_shader}->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
+    $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $volume->bounding_box->z_max * $z_cursor_relative);
+    $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
     glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
     glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
         0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -1405,7 +1437,7 @@ sub draw_active_object_annotations {
     glVertex3f($bar_left,  $bar_top, $volume->bounding_box->z_max);
     glEnd();
     glBindTexture(GL_TEXTURE_2D, 0);
-    $self->{shader}->Disable;
+    $self->{layer_height_edit_shader}->disable;
 
     # Paint the tooltip.
     if ($self->_variable_layer_thickness_load_overlay_image) {
@@ -1455,9 +1487,7 @@ sub opengl_info
     my $gl_version       = glGetString(GL_VERSION);
     my $gl_vendor        = glGetString(GL_VENDOR);
     my $gl_renderer      = glGetString(GL_RENDERER);
-    my $glsl_version_ARB = glGetString(GL_SHADING_LANGUAGE_VERSION_ARB) // '';
-    my $glsl_version     = glGetString(GL_SHADING_LANGUAGE_VERSION) // $glsl_version_ARB;
-    $glsl_version .= 'ARB(' . $glsl_version_ARB . ')' if ($glsl_version_ARB ne '' && $glsl_version ne $glsl_version_ARB);
+    my $glsl_version     = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
     my $out = '';
     $out .= "$tag{h2start}OpenGL installation$tag{h2end}$tag{eol}";
@@ -1467,24 +1497,14 @@ sub opengl_info
     $out .= "  $tag{bstart}renderer:     $tag{bend}${gl_renderer}$tag{eol}";
     $out .= "  $tag{bstart}GLSL version: $tag{bend}${glsl_version}$tag{eol}";
 
-    # Check for required OpenGL extensions
-    $out .= "$tag{h2start}Required extensions (* implemented):$tag{h2end}$tag{eol}";
-    my @extensions_required = qw(GL_ARB_shader_objects GL_ARB_fragment_shader GL_ARB_vertex_shader GL_ARB_shading_language_100);
-    foreach my $ext (sort @extensions_required) {
-        my $stat = glpCheckExtension($ext);
-        $out .= sprintf("%s ${ext}$tag{eol}", $stat?' ':'*');
-        $out .= sprintf("    ${stat}$tag{eol}") if ($stat && $stat !~ m|^$ext |);
-    }
     # Check for other OpenGL extensions
     $out .= "$tag{h2start}Installed extensions (* implemented in the module):$tag{h2end}$tag{eol}";
     my $extensions = glGetString(GL_EXTENSIONS);
     my @extensions = split(' ',$extensions);
     foreach my $ext (sort @extensions) {
-        if(! grep(/^$extensions$/, @extensions_required)) {
-            my $stat = glpCheckExtension($ext);
-            $out .= sprintf("%s ${ext}$tag{eol}", $stat?' ':'*');
-            $out .= sprintf("    ${stat}$tag{eol}") if ($stat && $stat !~ m|^$ext |);
-        }
+        my $stat = glpCheckExtension($ext);
+        $out .= sprintf("%s ${ext}$tag{eol}", $stat?' ':'*');
+        $out .= sprintf("    ${stat}$tag{eol}") if ($stat && $stat !~ m|^$ext |);
     }
 
     return $out;
@@ -1519,17 +1539,167 @@ sub _report_opengl_state
     }
 }
 
-sub _vertex_shader {
+sub _vertex_shader_Gouraud {
+    return <<'VERTEX';
+#version 110
+
+#define INTENSITY_CORRECTION 0.7
+
+#define LIGHT_TOP_DIR        -0.6/1.31, 0.6/1.31, 1./1.31
+#define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
+#define LIGHT_TOP_SPECULAR   (0.5 * INTENSITY_CORRECTION)
+#define LIGHT_TOP_SHININESS  50.
+
+#define LIGHT_FRONT_DIR      1./1.43, 0.2/1.43, 1./1.43
+#define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
+#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
+#define LIGHT_FRONT_SHININESS 50.
+
+#define INTENSITY_AMBIENT    0.3
+
+varying float intensity_specular;
+varying float intensity_tainted;
+
+void main()
+{
+    vec3 eye, normal, lightDir, viewVector, halfVector;
+    float NdotL, NdotHV;
+
+    eye = vec3(0., 0., 1.);
+
+    // First transform the normal into eye space and normalize the result.
+    normal = normalize(gl_NormalMatrix * gl_Normal);
+    
+    // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
+    // Also since we're talking about a directional light, the position field is actually direction.
+    lightDir = vec3(LIGHT_TOP_DIR);
+    halfVector = normalize(lightDir + eye);
+    
+    // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
+    // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
+    NdotL = max(dot(normal, lightDir), 0.0);
+
+    intensity_tainted = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
+    intensity_specular = 0.;
+
+    if (NdotL > 0.0)
+        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
+
+    // Perform the same lighting calculation for the 2nd light source.
+    lightDir = vec3(LIGHT_FRONT_DIR);
+//    halfVector = normalize(lightDir + eye);
+    NdotL = max(dot(normal, lightDir), 0.0);
+    intensity_tainted += NdotL * LIGHT_FRONT_DIFFUSE;
+
+    // compute the specular term if NdotL is larger than zero
+//    if (NdotL > 0.0)
+//        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_FRONT_SHININESS);
+
+    gl_Position = ftransform();
+} 
+
+VERTEX
+}
+
+sub _fragment_shader_Gouraud {
+    return <<'FRAGMENT';
+#version 110
+
+varying float intensity_specular;
+varying float intensity_tainted;
+
+uniform vec4 uniform_color;
+
+void main()
+{
+    gl_FragColor = 
+        vec4(intensity_specular, intensity_specular, intensity_specular, 0.) + uniform_color * intensity_tainted;
+    gl_FragColor.a = uniform_color.a;
+}
+
+FRAGMENT
+}
+
+sub _vertex_shader_Phong {
+    return <<'VERTEX';
+#version 110
+
+varying vec3 normal;
+varying vec3 eye;
+void main(void)  
+{
+   eye    = normalize(vec3(gl_ModelViewMatrix * gl_Vertex));
+   normal = normalize(gl_NormalMatrix * gl_Normal);
+   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}
+VERTEX
+}
+
+sub _fragment_shader_Phong {
+    return <<'FRAGMENT';
+#version 110
+
+#define INTENSITY_CORRECTION 0.7
+
+#define LIGHT_TOP_DIR        -0.6/1.31, 0.6/1.31, 1./1.31
+#define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
+#define LIGHT_TOP_SPECULAR   (0.5 * INTENSITY_CORRECTION)
+//#define LIGHT_TOP_SHININESS  50.
+#define LIGHT_TOP_SHININESS  10.
+
+#define LIGHT_FRONT_DIR      1./1.43, 0.2/1.43, 1./1.43
+#define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
+#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
+#define LIGHT_FRONT_SHININESS 50.
+
+#define INTENSITY_AMBIENT    0.0
+
+varying vec3 normal;
+varying vec3 eye;
+uniform vec4 uniform_color;
+void main() {
+ 
+    float intensity_specular = 0.;
+    float intensity_tainted  = 0.;
+    float intensity = max(dot(normal,vec3(LIGHT_TOP_DIR)), 0.0);
+    // if the vertex is lit compute the specular color
+    if (intensity > 0.0) {
+        intensity_tainted = LIGHT_TOP_DIFFUSE * intensity;
+        // compute the half vector
+        vec3 h = normalize(vec3(LIGHT_TOP_DIR) + eye);  
+        // compute the specular term into spec
+        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(h, normal), 0.0), LIGHT_TOP_SHININESS);
+    }
+    intensity = max(dot(normal,vec3(LIGHT_FRONT_DIR)), 0.0);
+    // if the vertex is lit compute the specular color
+    if (intensity > 0.0) {
+        intensity_tainted += LIGHT_FRONT_DIFFUSE * intensity;
+        // compute the half vector
+//        vec3 h = normalize(vec3(LIGHT_FRONT_DIR) + eye);
+        // compute the specular term into spec
+//        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(h,normal), 0.0), LIGHT_FRONT_SHININESS);
+    }
+    gl_FragColor = max(
+        vec4(intensity_specular, intensity_specular, intensity_specular, 0.) + uniform_color * intensity_tainted, 
+        INTENSITY_AMBIENT * uniform_color);
+    gl_FragColor.a = uniform_color.a;
+}
+FRAGMENT
+}
+
+sub _vertex_shader_variable_layer_height {
     return <<'VERTEX';
 #version 110
 
 #define LIGHT_TOP_DIR        0., 1., 0.
 #define LIGHT_TOP_DIFFUSE    0.2
 #define LIGHT_TOP_SPECULAR   0.3
+#define LIGHT_TOP_SHININESS  50.
 
 #define LIGHT_FRONT_DIR      0., 0., 1.
 #define LIGHT_FRONT_DIFFUSE  0.5
 #define LIGHT_FRONT_SPECULAR 0.3
+#define LIGHT_FRONT_SHININESS 50.
 
 #define INTENSITY_AMBIENT    0.1
 
@@ -1562,7 +1732,7 @@ void main()
     intensity_specular = 0.;
 
 //    if (NdotL > 0.0)
-//        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), gl_FrontMaterial.shininess);
+//        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
 
     // Perform the same lighting calculation for the 2nd light source.
     lightDir = vec3(LIGHT_FRONT_DIR);
@@ -1572,7 +1742,7 @@ void main()
     
     // compute the specular term if NdotL is larger than zero
     if (NdotL > 0.0)
-        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(normal, halfVector), 0.0), gl_FrontMaterial.shininess);
+        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_FRONT_SHININESS);
 
     // Scaled to widths of the Z texture.
     object_z = gl_Vertex.z / gl_Vertex.w;
@@ -1583,7 +1753,7 @@ void main()
 VERTEX
 }
 
-sub _fragment_shader {
+sub _fragment_shader_variable_layer_height {
     return <<'FRAGMENT';
 #version 110
 
@@ -1662,6 +1832,8 @@ sub new {
 sub load_object {
     my ($self, $model, $print, $obj_idx, $instance_idxs) = @_;
     
+    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+
     my $model_object;
     if ($model->isa('Slic3r::Model::Object')) {
         $model_object = $model;
@@ -1672,7 +1844,9 @@ sub load_object {
     }
     
     $instance_idxs ||= [0..$#{$model_object->instances}];
-    my $volume_indices = $self->volumes->load_object($model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by);
+    my $volume_indices = $self->volumes->load_object(
+        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by,
+        $self->UseVBOs);
     return @{$volume_indices};
 }
 
@@ -1681,8 +1855,8 @@ sub load_object {
 sub load_print_toolpaths {
     my ($self, $print) = @_;
 
-    $self->GetContext if ($self->{use_VBOs});
-    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $self->{use_VBOs})
+    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $self->UseVBOs)
         if ($print->step_done(STEP_SKIRT) && $print->step_done(STEP_BRIM));
 }
 
@@ -1692,8 +1866,8 @@ sub load_print_toolpaths {
 sub load_print_object_toolpaths {
     my ($self, $object) = @_;
 
-    $self->GetContext if ($self->{use_VBOs});
-    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $self->{use_VBOs});
+    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $self->UseVBOs);
 }
 
 sub set_toolpaths_range {
