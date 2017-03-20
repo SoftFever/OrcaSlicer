@@ -192,6 +192,7 @@ sub layer_editing_enabled {
             if (! $self->{layer_editing_initialized}) {
                 # Enabling the layer editing for the first time. This triggers compilation of the necessary OpenGL shaders.
                 # If compilation fails, a message box is shown with the error codes.
+                $self->SetCurrent($self->GetContext);
                 my $shader = new Slic3r::GUI::_3DScene::GLShader;
                 my $error_message;
                 if (! $shader->load($self->_fragment_shader_variable_layer_height, $self->_vertex_shader_variable_layer_height)) {
