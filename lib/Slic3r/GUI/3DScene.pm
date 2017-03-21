@@ -912,8 +912,6 @@ sub UseVBOs {
             $self->{use_VBOs} = int($gl_version[0]) >= 2;
             # print "InitGL $self OpenGL major: $gl_version[0], minor: $gl_version[1]. Use VBOs: ", $self->{use_VBOs}, "\n";
         }
-        #FIXME 
-        $self->{use_VBOs} = 0;
     }
     return $self->{use_VBOs};
 }
