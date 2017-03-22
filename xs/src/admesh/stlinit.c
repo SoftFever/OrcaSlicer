@@ -272,18 +272,26 @@ stl_read(stl_file *stl, int first_facet, int first) {
       // (in this order, otherwise it won't work when they are paired in the middle of a file)
       fscanf(stl->fp, "endsolid\n");
       fscanf(stl->fp, "solid%*[^\n]\n");  // name might contain spaces so %*s doesn't work and it also can be empty (just "solid")
-      
-      if((fscanf(stl->fp, " facet normal %31s %31s %31s\n", normal_buf[0], normal_buf[1], normal_buf[2]) +
-          fscanf(stl->fp, " outer loop\n") +
-          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[0].x, &facet.vertex[0].y,  &facet.vertex[0].z) +
-          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[1].x, &facet.vertex[1].y,  &facet.vertex[1].z) +
-          fscanf(stl->fp, " vertex %f %f %f\n", &facet.vertex[2].x, &facet.vertex[2].y,  &facet.vertex[2].z) +
-          fscanf(stl->fp, " endloop\n") +
-          fscanf(stl->fp, " endfacet\n")) != 12) {
+
+      int res_normal     = fscanf(stl->fp, " facet normal %31s %31s %31s", normal_buf[0], normal_buf[1], normal_buf[2]);
+      assert(res_normal == 3);
+      int res_outer_loop = fscanf(stl->fp, " outer loop");
+      assert(res_outer_loop == 0);
+      int res_vertex1    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[0].x, &facet.vertex[0].y, &facet.vertex[0].z);
+      assert(res_vertex1 == 3);
+      int res_vertex2    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[1].x, &facet.vertex[1].y, &facet.vertex[1].z);
+      assert(res_vertex2 == 3);
+      int res_vertex3    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[2].x, &facet.vertex[2].y, &facet.vertex[2].z);
+      assert(res_vertex3 == 3);
+      int res_endloop    = fscanf(stl->fp, " endloop");
+      assert(res_endloop == 0);
+      int res_endfacet   = fscanf(stl->fp, " endfacet");
+      if (res_normal != 3 || res_outer_loop != 0 || res_vertex1 != 3 || res_vertex2 != 3 || res_vertex3 != 3 || res_endloop != 0 || res_endfacet != 0) {
         perror("Something is syntactically very wrong with this ASCII STL!");
         stl->error = 1;
         return;
       }
+
       // The facet normal has been parsed as a single string as to workaround for not a numbers in the normal definition.
 	  if (sscanf(normal_buf[0], "%f", &facet.normal.x) != 1 ||
 		  sscanf(normal_buf[1], "%f", &facet.normal.y) != 1 ||
