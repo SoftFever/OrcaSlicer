@@ -119,6 +119,14 @@ void append(std::vector<T>& dest, std::vector<T>&& src)
     src.shrink_to_fit();
 }
 
+template <typename T>
+void remove_nulls(std::vector<T*> &vec)
+{
+	vec.erase(
+    	std::remove_if(vec.begin(), vec.end(), [](const T *ptr) { return ptr == nullptr; }),
+    	vec.end());
+}
+
 } // namespace Slic3r
 
 #endif

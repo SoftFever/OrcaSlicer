@@ -317,12 +317,6 @@ rad2deg_dir(double angle)
     return rad2deg(angle);
 }
 
-double
-deg2rad(double angle)
-{
-    return PI * angle / 180.0;
-}
-
 void
 simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
 {
@@ -334,7 +328,7 @@ simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
         p.points.pop_back();
         pp.push_back(p);
     }
-    Slic3r::simplify_polygons(pp, retval);
+    *retval = Slic3r::simplify_polygons(pp);
 }
 
 double

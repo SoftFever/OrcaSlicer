@@ -15,13 +15,12 @@ class Layer;
 class PrintRegion;
 class PrintObject;
 
-
 // TODO: make stuff private
 class LayerRegion
 {
     friend class Layer;
 
-    public:
+public:
     Layer* layer() { return this->_layer; }
     const Layer* layer() const { return this->_layer; }
     PrintRegion* region() { return this->_region; }
@@ -88,10 +87,10 @@ class Layer {
     friend class PrintObject;
 
 public:
-    size_t id() const;
-    void set_id(size_t id);
-    PrintObject* object();
-    const PrintObject* object() const;
+    size_t id() const { return this->_id; }
+    void set_id(size_t id) { this->_id = id; }
+    PrintObject* object() { return this->_object; }
+    const PrintObject* object() const { return this->_object; }
 
     Layer *upper_layer;
     Layer *lower_layer;
@@ -107,7 +106,7 @@ public:
     // order will be recovered by the G-code generator.
     ExPolygonCollection slices;
 
-    size_t region_count() const;
+    size_t region_count() const { return this->regions.size(); }
     const LayerRegion* get_region(int idx) const { return this->regions.at(idx); }
     LayerRegion* get_region(int idx) { return this->regions.at(idx); }
     LayerRegion* add_region(PrintRegion* print_region);
@@ -128,7 +127,6 @@ public:
 protected:
     size_t _id;     // sequential number of layer, 0-based
     PrintObject *_object;
-
 
     Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z);

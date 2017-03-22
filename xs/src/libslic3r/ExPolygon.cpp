@@ -198,7 +198,7 @@ ExPolygon::simplify_p(double tolerance) const
         p.points.pop_back();
         pp.push_back(p);
     }
-    simplify_polygons(pp, &pp);
+    pp = simplify_polygons(pp);
     return pp;
 }
 

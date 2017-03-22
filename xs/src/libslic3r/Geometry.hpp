@@ -64,7 +64,7 @@ bool directions_parallel(double angle1, double angle2, double max_diff = 0);
 template<class T> bool contains(const std::vector<T> &vector, const Point &point);
 double rad2deg(double angle);
 double rad2deg_dir(double angle);
-double deg2rad(double angle);
+template<typename T> T deg2rad(T angle) { return T(PI) * angle / T(180.0); }
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 
 double linint(double value, double oldmin, double oldmax, double newmin, double newmax);

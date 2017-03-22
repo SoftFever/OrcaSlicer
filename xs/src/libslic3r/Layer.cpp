@@ -13,12 +13,10 @@ Layer::Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
         coordf_t slice_z)
 :   upper_layer(NULL),
     lower_layer(NULL),
-    regions(),
     slicing_errors(false),
     slice_z(slice_z),
     print_z(print_z),
     height(height),
-    slices(),
     _id(id),
     _object(object)
 {
@@ -36,37 +34,6 @@ Layer::~Layer()
     }
 
     this->clear_regions();
-}
-
-size_t
-Layer::id() const
-{
-    return this->_id;
-}
-
-void
-Layer::set_id(size_t id)
-{
-    this->_id = id;
-}
-
-PrintObject*
-Layer::object()
-{
-    return this->_object;
-}
-
-const PrintObject*
-Layer::object() const
-{
-    return this->_object;
-}
-
-
-size_t
-Layer::region_count() const
-{
-    return this->regions.size();
 }
 
 void
