@@ -18,6 +18,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
+#include <tbb/spin_mutex.h>
 
 namespace Slic3r {
 
@@ -356,10 +357,17 @@ void GLVolumeCollection::render_legacy() const
         glColor4f(volume->color[0], volume->color[1], volume->color[2], volume->color[3]);
         glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), volume->indexed_vertex_array.vertices_and_normals_interleaved.data() + 3);
         glNormalPointer(GL_FLOAT, 6 * sizeof(float), volume->indexed_vertex_array.vertices_and_normals_interleaved.data());
+        bool has_offset = volume->origin.x != 0 || volume->origin.y != 0 || volume->origin.z != 0;
+        if (has_offset) {
+            glPushMatrix();
+            glTranslated(volume->origin.x, volume->origin.y, volume->origin.z);
+        }
         if (n_triangles > 0)
             glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, volume->indexed_vertex_array.triangle_indices.data() + volume->tverts_range.first);
         if (n_quads > 0)
             glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, volume->indexed_vertex_array.quad_indices.data() + volume->qverts_range.first);
+        if (has_offset)
+            glPushMatrix();
     }
 
     glDisableClientState(GL_VERTEX_ARRAY);
@@ -816,25 +824,30 @@ void _3DScene::_load_print_object_toolpaths(
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.
-    size_t grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
+    size_t          grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
+    tbb::spin_mutex new_volume_mutex;
+    auto            new_volume = [volumes, &new_volume_mutex](const float *color) -> GLVolume* {
+        auto *volume = new GLVolume(color);
+        new_volume_mutex.lock();
+        volumes->volumes.emplace_back(volume);
+        new_volume_mutex.unlock();
+        return volume;
+    };
+    const size_t   volumes_cnt_initial = volumes->volumes.size();
     std::vector<GLVolumeCollection> volumes_per_thread(ctxt.layers.size());
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
-        [&ctxt, &volumes_per_thread](const tbb::blocked_range<size_t>& range) {
-            std::vector<GLVolume*> &volumes = volumes_per_thread[range.begin()].volumes;
-            volumes.emplace_back(new GLVolume(ctxt.color_perimeters()));
-            volumes.emplace_back(new GLVolume(ctxt.color_infill()));
-            volumes.emplace_back(new GLVolume(ctxt.color_support()));
-            size_t vols[3] = { 0, 1, 2 };
+        [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
+            GLVolume* vols[3] = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_perimeters()) };
             for (size_t i = 0; i < 3; ++ i) {
-                GLVolume &volume = *volumes[i];
+                GLVolume &volume = *vols[i];
                 volume.bounding_box = ctxt.bbox;
                 volume.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
             }
             for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                 const Layer *layer = ctxt.layers[idx_layer];
                 for (size_t i = 0; i < 3; ++ i) {
-                    GLVolume &vol = *volumes[vols[i]];
+                    GLVolume &vol = *vols[i];
                     if (vol.print_zs.empty() || vol.print_zs.back() != layer->print_z) {
                         vol.print_zs.push_back(layer->print_z);
                         vol.offsets.push_back(vol.indexed_vertex_array.quad_indices.size());
@@ -844,25 +857,24 @@ void _3DScene::_load_print_object_toolpaths(
                 for (const Point &copy: *ctxt.shifted_copies) {
                     for (const LayerRegion *layerm : layer->regions) {
                         if (ctxt.has_perimeters)
-                            extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy, *volumes[vols[0]]);
+                            extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy, *vols[0]);
                         if (ctxt.has_infill)
-                            extrusionentity_to_verts(layerm->fills, float(layer->print_z), copy, *volumes[vols[1]]);
+                            extrusionentity_to_verts(layerm->fills, float(layer->print_z), copy, *vols[1]);
                     }
                     if (ctxt.has_support) {
                         const SupportLayer *support_layer = dynamic_cast<const SupportLayer*>(layer);
                         if (support_layer) {
-                            extrusionentity_to_verts(support_layer->support_fills, float(layer->print_z), copy, *volumes[vols[2]]);
-                            extrusionentity_to_verts(support_layer->support_interface_fills, float(layer->print_z), copy, *volumes[vols[2]]);
+                            extrusionentity_to_verts(support_layer->support_fills, float(layer->print_z), copy, *vols[2]);
+                            extrusionentity_to_verts(support_layer->support_interface_fills, float(layer->print_z), copy, *vols[2]);
                         }
                     }
                 }
                 for (size_t i = 0; i < 3; ++ i) {
-                    GLVolume &vol = *volumes[vols[i]];
+                    GLVolume &vol = *vols[i];
                     if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
                         // Store the vertex arrays and restart their containers, 
-                        vols[i] = volumes.size();
-                        volumes.emplace_back(new GLVolume(vol.color));
-                        GLVolume &vol_new = *volumes.back();
+                        vols[i] = new_volume(vol.color);
+                        GLVolume &vol_new = *vols[i];
                         vol_new.bounding_box = ctxt.bbox;
                         // Assign the large pre-allocated buffers to the new GLVolume.
                         vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
@@ -876,27 +888,17 @@ void _3DScene::_load_print_object_toolpaths(
                 }
             }
             for (size_t i = 0; i < 3; ++ i)
-                volumes[vols[i]]->indexed_vertex_array.shrink_to_fit();
-            while (! volumes.empty() && volumes.back()->empty()) {
-                delete volumes.back();
-                volumes.pop_back();
-            }
+                vols[i]->indexed_vertex_array.shrink_to_fit();
         });
 
-    BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - merging results";
-
-    size_t volume_ptr  = volumes->volumes.size();
-    size_t num_volumes = volume_ptr;
-    for (const GLVolumeCollection &v : volumes_per_thread)
-        num_volumes += v.volumes.size();
-    volumes->volumes.resize(num_volumes, nullptr);
-    for (GLVolumeCollection &v : volumes_per_thread) {
-        memcpy(volumes->volumes.data() + volume_ptr, v.volumes.data(), v.volumes.size() * sizeof(void*));
-        volume_ptr += v.volumes.size();
-        v.volumes.clear();
-    }
-    for (GLVolume *v : volumes->volumes)
-        v->indexed_vertex_array.finalize_geometry(use_VBOs);
+    BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - finalizing results";
+    // Remove empty volumes from the newly added volumes.
+    volumes->volumes.erase(
+        std::remove_if(volumes->volumes.begin() + volumes_cnt_initial, volumes->volumes.end(), 
+            [](const GLVolume *volume) { return volume->empty(); }),
+        volumes->volumes.end());
+    for (size_t i = volumes_cnt_initial; i < volumes->volumes.size(); ++ i)
+        volumes->volumes[i]->indexed_vertex_array.finalize_geometry(use_VBOs);
   
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end"; 
 }
