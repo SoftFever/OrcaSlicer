@@ -267,8 +267,8 @@ sub new {
         EVT_TOOL($self, TB_ARRANGE, sub { $self->arrange; });
         EVT_TOOL($self, TB_MORE, sub { $self->increase; });
         EVT_TOOL($self, TB_FEWER, sub { $self->decrease; });
-        EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45) });
-        EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45) });
+        EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45, Z, 'relative') });
+        EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45, Z, 'relative') });
         EVT_TOOL($self, TB_SCALE, sub { $self->changescale(undef); });
         EVT_TOOL($self, TB_SPLIT, sub { $self->split_object; });
         EVT_TOOL($self, TB_CUT, sub { $_[0]->object_cut_dialog });
@@ -285,8 +285,8 @@ sub new {
         EVT_BUTTON($self, $self->{btn_arrange}, sub { $self->arrange; });
         EVT_BUTTON($self, $self->{btn_increase}, sub { $self->increase; });
         EVT_BUTTON($self, $self->{btn_decrease}, sub { $self->decrease; });
-        EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45) });
-        EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45) });
+        EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45, Z, 'relative') });
+        EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45, Z, 'relative') });
         EVT_BUTTON($self, $self->{btn_changescale}, sub { $self->changescale(undef); });
         EVT_BUTTON($self, $self->{btn_split}, sub { $self->split_object; });
         EVT_BUTTON($self, $self->{btn_cut}, sub { $_[0]->object_cut_dialog });
@@ -881,10 +881,11 @@ sub set_number_of_copies {
 
 sub rotate {
     my $self = shift;
-    my ($angle, $axis) = @_;
-    
-    # angle is in degrees
-    $axis //= Z;
+    my ($angle, $axis, $relative_key) = @_;
+    $relative_key //= 'absolute'; # relative or absolute coordinates
+    $axis //= Z; # angle is in degrees
+
+    my $relative = $relative_key eq 'relative';    
     
     my ($obj_idx, $object) = $self->selected_object;
     return if !defined $obj_idx;
@@ -899,16 +900,22 @@ sub rotate {
         my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
         my $default = $axis == Z ? rad2deg($model_instance->rotation) : 0;
         # Wx::GetNumberFromUser() does not support decimal numbers
-        $angle = Wx::GetTextFromUser("Enter the rotation angle:", "Rotate around $axis_name axis",
-            $default, $self);
-        return if !$angle || $angle !~ /^-?\d*(?:\.\d*)?$/ || $angle == -1;
+        for (;;) {
+            $angle = Wx::GetTextFromUser("Enter the rotation angle:", "Rotate around $axis_name axis", $default, $self);
+            $angle =~ s/,/./;
+            # Validate a numeric value.
+            return if $angle eq '';
+            last if ($angle =~ /^-?\d*(?:\.\d*)?$/);
+            Wx::MessageBox("Invalid rotation angle entered: $angle\nNot a numeric value.", "Slic3r Error", wxOK | wxICON_EXCLAMATION, $self);
+            $default = $angle;
+        }
     }
     
     $self->stop_background_process;
     
     if ($axis == Z) {
         my $new_angle = deg2rad($angle);
-        $_->set_rotation($new_angle) for @{ $model_object->instances };
+        $_->set_rotation(($relative ? $_->rotation : 0.) + $new_angle) for @{ $model_object->instances };
         $object->transform_thumbnail($self->{model}, $obj_idx);
     } else {
         # rotation around X and Y needs to be performed on mesh
@@ -1981,10 +1988,10 @@ sub object_menu {
     }, undef, 'textfield.png');
     $menu->AppendSeparator();
     $frame->_append_menu_item($menu, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {
-        $self->rotate(-45);
+        $self->rotate(-45, Z, 'relative');
     }, undef, 'arrow_rotate_clockwise.png');
     $frame->_append_menu_item($menu, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise', sub {
-        $self->rotate(+45);
+        $self->rotate(+45, Z, 'relative');
     }, undef, 'arrow_rotate_anticlockwise.png');
     
     my $rotateMenu = Wx::Menu->new;
