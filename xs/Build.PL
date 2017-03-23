@@ -7,6 +7,9 @@ use Devel::CheckLib;
 use ExtUtils::CppGuess;
 use Module::Build::WithXSpp;
 
+# Link boost & TBB statically by default on Windows & OSX.
+$ENV{SLIC3R_STATIC} = 1 if ($^O eq 'MSWin32' || $^O eq 'darwin') && (! defined($ENV{SLIC3R_DYNAMIC}) || $ENV{SLIC3R_DYNAMIC} != 1);
+
 my $cpp_guess = ExtUtils::CppGuess->new;
 my $mswin = $^O eq 'MSWin32';
 my $lib_ext = $ENV{SLIC3R_STATIC} ? ($cpp_guess->is_msvc ? '.lib' : '.a') : ${$cpp_guess}{config}{lib_ext};
@@ -43,7 +46,7 @@ my @early_includes = ();
 my @INC  = qw(-Isrc/libslic3r -Isrc/glew/include);
 my @LIBS = $cpp_guess->is_msvc ? qw(-LIBPATH:src/libslic3r) : qw(-Lsrc/libslic3r);
 
-$ENV{SLIC3R_GUI} = 1 if $ENV{SLIC3R_NOGUI} != 1;
+$ENV{SLIC3R_GUI} = 1 if ! defined($ENV{SLIC3R_NOGUI}) || $ENV{SLIC3R_NOGUI} != 1;
 
 if ($ENV{SLIC3R_GUI} || $ENV{SLIC3R_PRUS})
 {
