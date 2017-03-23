@@ -838,7 +838,7 @@ void _3DScene::_load_print_object_toolpaths(
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
-            GLVolume* vols[3] = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_perimeters()) };
+            GLVolume* vols[3] = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_infill()), new_volume(ctxt.color_support()) };
             for (size_t i = 0; i < 3; ++ i) {
                 GLVolume &volume = *vols[i];
                 volume.bounding_box = ctxt.bbox;
