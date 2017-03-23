@@ -2,8 +2,11 @@ _Q: Oh cool, a new RepRap slicer?_
 
 A: Yes.
 
-Slic3r [![Build Status](https://travis-ci.org/alexrj/Slic3r.svg?branch=master)](https://travis-ci.org/alexrj/Slic3r) [![Build status](https://ci.appveyor.com/api/projects/status/8iqmeat6cj158vo6?svg=true)](https://ci.appveyor.com/project/lordofhyphens/slic3r)
+Slic3r
 ======
+Prebuilt Windows, OSX and Linux binaries are available through the [git releases page](https://github.com/prusa3d/Slic3r/releases).
+
+<img width=256 src=https://cloud.githubusercontent.com/assets/31754/22719818/09998c92-ed6d-11e6-9fa0-09de638f3a36.png />
 
 Slic3r takes 3D models (STL, OBJ, AMF) and converts them into G-code instructions for 
 3D printers. It's compatible with any modern printer based on the RepRap toolchain,
@@ -52,22 +55,16 @@ Other major features are:
 
 ### How to install?
 
-You can just download a precompiled package from [slic3r.org](http://slic3r.org/);
+You can download a precompiled package from [slic3r.org](http://slic3r.org/);
 it will run without the need for any dependency.
 
-If you want to compile the source yourself just do the following (checkout
-[slic3r.org](http://slic3r.org/download) for more details):
-
-```
-$ git clone https://github.com/alexrj/Slic3r.git
-$ cd Slic3r
-$ perl Build.PL --sudo
-$ perl Build.PL --sudo --gui
-$ ./slic3r.pl
-```
+If you want to compile the source yourself follow the instructions on one of these wiki pages: 
+* [Linux](https://github.com/alexrj/Slic3r/wiki/Running-Slic3r-from-git-on-GNU-Linux)
+* [Windows](https://github.com/prusa3d/Slic3r/wiki/How-to-compile-Slic3r-Prusa-Edition-on-MS-Windows)
+* [Mac OSX](https://github.com/alexrj/Slic3r/wiki/Running-Slic3r-from-git-on-OS-X)
 
 ### Can I help?
-=======
+
 Sure! You can do the following to find things that are available to help with:
 * [Pull Request Milestone](https://github.com/alexrj/Slic3r/milestone/31)
     * Please comment in the related github issue that you are working on it so that other people know. 
@@ -77,9 +74,7 @@ Sure! You can do the following to find things that are available to help with:
 * You can also find me (rarely) in #reprap and in #slic3r on [FreeNode](https://webchat.freenode.net) with the nickname _Sound_. Another contributor, _LoH_, is also in both channels.
 * Add an [issue](https://github.com/alexrj/Slic3r/issues) to the github tracker if it isn't already present.
 
-Sure! Drop me a line at aar@cpan.org. You can also 
-find me in #reprap and in #slic3r on FreeNode with the nickname _Sound_.
-Before sending patches and pull requests contact me to discuss your proposed
+Before sending patches and pull requests contact me (preferably through opening a github issue or commenting on an existing, related, issue) to discuss your proposed
 changes: this way we'll ensure nobody wastes their time and no conflicts arise
 in development.
 
@@ -149,6 +144,8 @@ The author of the Silk icon set is Mark James.
         --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                             by all firmwares)
         --gcode-comments    Make G-code verbose by adding comments (default: no)
+        --vibration-limit   Limit the frequency of moves on X and Y axes (Hz, set zero to disable;
+                            default: 0)
         --pressure-advance  Adjust pressure using the experimental advance algorithm (K constant,
                             set zero to disable; default: 0)
     
@@ -247,7 +244,6 @@ The author of the Silk icon set is Mark James.
     
        Quality options (slower slicing):
         --extra-perimeters  Add more perimeters when needed (default: yes)
-        --ensure_vertical_shell_thickness  Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers). (default: no)
         --avoid-crossing-perimeters Optimize travel moves so that no perimeters are crossed (default: no)
         --thin-walls        Detect single-width walls (default: yes)
         --overhangs         Experimental option to use bridge flow, speed and fan for overhangs
