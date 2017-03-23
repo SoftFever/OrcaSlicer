@@ -193,6 +193,11 @@ path through the BOOST_DIR environment variable:
 Or you may specify BOOST_INCLUDEDIR and BOOST_LIBRARYDIR separatly, which
 is handy, if you have built Boost libraries with mutliple settings.
 
+Following boost libraries are needed by Slic3r Prusa Edition: system, filesystem, thread, log.
+
+On Debian, you need to run
+sudo apt-get install libboost-thread-dev libboost-system-dev libboost-filesystem-dev libboost-log-dev
+
 EOF
 
 # Search for the Intel Thread Building Blocks.
