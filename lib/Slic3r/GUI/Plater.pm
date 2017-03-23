@@ -879,9 +879,30 @@ sub set_number_of_copies {
     }
 }
 
+sub _get_number_from_user {
+    my ($self, $title, $prompt_message, $error_message, $default, $only_positive) = @_;
+    for (;;) {
+        my $value = Wx::GetTextFromUser($prompt_message, $title, $default, $self);
+        # Accept both dashes and dots as a decimal separator.
+        $value =~ s/,/./;
+        # If scaling value is being entered, remove the trailing percent sign.
+        $value =~ s/%$// if $only_positive;
+        # User canceled the selection, return undef.
+        return if $value eq '';
+        # Validate a numeric value.
+        return $value if ($value =~ /^-?\d*(?:\.\d*)?$/) && (! $only_positive || $value > 0);
+        Wx::MessageBox(
+            $error_message . 
+            (($only_positive && $value <= 0) ? 
+                ": $value\nNon-positive value." : 
+                ": $value\nNot a numeric value."), 
+            "Slic3r Error", wxOK | wxICON_EXCLAMATION, $self);
+        $default = $value;
+    }
+}
+
 sub rotate {
-    my $self = shift;
-    my ($angle, $axis, $relative_key) = @_;
+    my ($self, $angle, $axis, $relative_key) = @_;
     $relative_key //= 'absolute'; # relative or absolute coordinates
     $axis //= Z; # angle is in degrees
 
@@ -899,16 +920,8 @@ sub rotate {
     if (!defined $angle) {
         my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
         my $default = $axis == Z ? rad2deg($model_instance->rotation) : 0;
-        # Wx::GetNumberFromUser() does not support decimal numbers
-        for (;;) {
-            $angle = Wx::GetTextFromUser("Enter the rotation angle:", "Rotate around $axis_name axis", $default, $self);
-            $angle =~ s/,/./;
-            # Validate a numeric value.
-            return if $angle eq '';
-            last if ($angle =~ /^-?\d*(?:\.\d*)?$/);
-            Wx::MessageBox("Invalid rotation angle entered: $angle\nNot a numeric value.", "Slic3r Error", wxOK | wxICON_EXCLAMATION, $self);
-            $default = $angle;
-        }
+        $angle = $self->_get_number_from_user("Enter the rotation angle:", "Rotate around $axis_name axis", "Invalid rotation angle entered", $default);
+        return if $angle eq '';
     }
     
     $self->stop_background_process;
@@ -991,19 +1004,14 @@ sub changescale {
         my $scale;
         if ($tosize) {
             my $cursize = $object_size->[$axis];
-            # Wx::GetNumberFromUser() does not support decimal numbers
-            my $newsize = Wx::GetTextFromUser(
-                sprintf("Enter the new size for the selected object (print bed: %smm):", $bed_size->[$axis]),
-                "Scale along $axis_name",
-                $cursize, $self);
-            return if !$newsize || $newsize !~ /^\d*(?:\.\d*)?$/ || $newsize < 0;
+            my $newsize = $self->_get_number_from_user(
+                sprintf('Enter the new size for the selected object (print bed: %smm):', $bed_size->[$axis]), 
+                "Scale along $axis_name", 'Invalid scaling value entered', $cursize, 1);
+            return if $newsize eq '';
             $scale = $newsize / $cursize * 100;
         } else {
-            # Wx::GetNumberFromUser() does not support decimal numbers
-            $scale = Wx::GetTextFromUser("Enter the scale % for the selected object:",
-                "Scale along $axis_name", 100, $self);
-            $scale =~ s/%$//;
-            return if !$scale || $scale !~ /^\d*(?:\.\d*)?$/ || $scale < 0;
+            $scale = $self->_get_number_from_user('Enter the scale % for the selected object:', "Scale along $axis_name", 'Invalid scaling value entered', 100, 1);
+            return if $scale eq '';
         }
         
         # apply Z rotation before scaling
@@ -1023,17 +1031,13 @@ sub changescale {
         my $scale;
         if ($tosize) {
             my $cursize = max(@$object_size);
-            # Wx::GetNumberFromUser() does not support decimal numbers
-            my $newsize = Wx::GetTextFromUser("Enter the new max size for the selected object:",
-                "Scale", $cursize, $self);
-            return if !$newsize || $newsize !~ /^\d*(?:\.\d*)?$/ || $newsize < 0;
-            $scale = $newsize / $cursize * 100;
+            my $newsize = $self->_get_number_from_user('Enter the new max size for the selected object:', 'Scale', 'Invalid scaling value entered', $cursize, 1);
+            return if $newsize eq '';
+            $scale = $model_instance->scaling_factor * $newsize / $cursize * 100;
         } else {
             # max scale factor should be above 2540 to allow importing files exported in inches
-            # Wx::GetNumberFromUser() does not support decimal numbers
-            $scale = Wx::GetTextFromUser("Enter the scale % for the selected object:", 'Scale',
-                $model_instance->scaling_factor*100, $self);
-            return if !$scale || $scale !~ /^\d*(?:\.\d*)?$/ || $scale < 0;
+            $scale = $self->_get_number_from_user('Enter the scale % for the selected object:', 'Scale', 'Invalid scaling value entered', $model_instance->scaling_factor*100, 1);
+            return if $scale eq '';
         }
     
         $self->{list}->SetItem($obj_idx, 2, "$scale%");
