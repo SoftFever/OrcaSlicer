@@ -958,7 +958,12 @@ void Print::_make_skirt()
         // Offset the skirt outside.
         distance += coord_t(scale_(spacing));
         // Generate the skirt centerline.
-        Polygon loop = offset(convex_hull, distance, ClipperLib::jtRound, scale_(0.1)).front();
+        Polygon loop;
+        {
+            Polygons loops = offset(convex_hull, distance, ClipperLib::jtRound, scale_(0.1));
+            Geometry::simplify_polygons(loops, scale_(0.05), &loops);
+            loop = loops.front();
+        }
         // Extrude the skirt loop.
         ExtrusionLoop eloop(elrSkirt);
         eloop.paths.emplace_back(ExtrusionPath(
