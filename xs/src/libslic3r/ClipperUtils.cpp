@@ -9,15 +9,6 @@
 
 #include <Shiny/Shiny.h>
 
-// Factor to convert from coord_t (which is int32) to an int64 type used by the Clipper library
-// for general offsetting (the offset(), offset2(), offset_ex() functions) and for the safety offset,
-// which is optionally executed by other functions (union, intersection, diff).
-// By the way, is the scalling for offset needed at all?
-#define CLIPPER_OFFSET_POWER_OF_2 17
-// 2^17=131072
-#define CLIPPER_OFFSET_SCALE (1 << CLIPPER_OFFSET_POWER_OF_2)
-#define CLIPPER_OFFSET_SCALE_ROUNDING_DELTA ((1 << (CLIPPER_OFFSET_POWER_OF_2 - 1)) - 1)
-
 namespace Slic3r {
 
 #ifdef CLIPPER_UTILS_DEBUG
