@@ -747,44 +747,51 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         new_layer.height   = 0.;
         				if (layer_id == 0) {
                             // This is a raft contact layer sitting directly on the print bed.
+                            assert(this->has_raft());
         					new_layer.bottom_z = m_slicing_params.raft_interface_top_z; 
         					new_layer.height   = m_slicing_params.contact_raft_layer_height;
-        				} else if (this->synchronize_layers()) {
-                            // Align bottom of this layer with a top of the closest object layer
-                            // while not trespassing into the 1st layer and keeping the support layer thickness bounded.
-                            int layer_id_below = int(layer_id) - 1;
-                            for (; layer_id_below >= 0; -- layer_id_below) {
-                                layer_below = object.layers[layer_id_below];
-                                if (layer_below->print_z <= new_layer.print_z - m_support_layer_height_min) {
-                                    // This is a feasible support layer height.
-                                    new_layer.bottom_z = layer_below->print_z;
-                                    new_layer.height = new_layer.print_z - new_layer.bottom_z;
-                                    assert(new_layer.height <= m_slicing_params.max_suport_layer_height);
-                                    break;
-                                }                        
-                            }
-                            if (layer_id_below == -1) {
-                                // Could not align with any of the top surfaces of object layers.
-                                if (this->has_raft()) {
-                                    // If having a raft, all the other layers will be aligned one with the other.
-                                } else {
-                                    // Give up, ignore this layer.
-                                    continue;
+        				} else {
+                            // Ignore this contact area if it's too low.
+                            // Don't want to print a layer below the first layer height as it may not stick well.
+                            //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
+                            // and it may actually make sense to do it with a thinner layer than the first layer height.
+                            if (new_layer.print_z < m_slicing_params.first_print_layer_height - EPSILON) {
+                                // This contact layer is below the first layer height, therefore not printable. Don't support this surface.
+                                continue;
+                            } else if (new_layer.print_z < m_slicing_params.first_print_layer_height + EPSILON) {
+                                // Align the layer with the 1st layer height.
+                                new_layer.print_z  = m_slicing_params.first_print_layer_height;
+                                new_layer.bottom_z = 0;
+                                new_layer.height   = m_slicing_params.first_print_layer_height;
+                            } else if (this->synchronize_layers()) {
+                                // Align bottom of this layer with a top of the closest object layer
+                                // while not trespassing into the 1st layer and keeping the support layer thickness bounded.
+                                int layer_id_below = int(layer_id) - 1;
+                                for (; layer_id_below >= 0; -- layer_id_below) {
+                                    layer_below = object.layers[layer_id_below];
+                                    if (layer_below->print_z <= new_layer.print_z - m_support_layer_height_min) {
+                                        // This is a feasible support layer height.
+                                        new_layer.bottom_z = layer_below->print_z;
+                                        new_layer.height = new_layer.print_z - new_layer.bottom_z;
+                                        assert(new_layer.height <= m_slicing_params.max_suport_layer_height);
+                                        break;
+                                    }                        
                                 }
+                                if (layer_id_below == -1) {
+                                    // Could not align with any of the top surfaces of object layers.
+                                    if (this->has_raft()) {
+                                        // If having a raft, all the other layers will be aligned one with the other.
+                                    } else {
+                                        // Give up, ignore this layer.
+                                        continue;
+                                    }
+                                }
+                            } else {
+                                // Don't know the height of the top contact layer yet. The top contact layer is printed with a normal flow and 
+                                // its height will be set adaptively later on.
                             }
-                        } else {
-                            // Don't know the height of the top contact layer yet. The top contact layer is printed with a normal flow and 
-                            // its height will be set adaptively later on.
                         }
                     }
-
-                    // Ignore this contact area if it's too low.
-                    // Don't want to print a layer below the first layer height as it may not stick well.
-                    //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
-                    // and it may actually make sense to do it with a thinner layer than the first layer height.
-        			if (new_layer.print_z < m_slicing_params.first_print_layer_height - EPSILON)
-        				// This contact layer is below the first layer height, therefore not printable. Don't support this surface.
-                        continue;
 
         #if 0
                     new_layer.polygons = std::move(contact_polygons);
@@ -1138,7 +1145,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         return intermediate_layers;
     std::sort(extremes.begin(), extremes.end());
 
-	assert(extremes.front().z() > m_slicing_params.raft_interface_top_z - EPSILON && (m_slicing_params.raft_layers() == 1 || extremes.front().z() > m_slicing_params.first_print_layer_height - EPSILON));
+	assert(extremes.empty() || 
+		(extremes.front().z() > m_slicing_params.raft_interface_top_z - EPSILON && 
+		  (m_slicing_params.raft_layers() == 1 || // only raft contact layer
+		   extremes.front().layer->layer_type == sltTopContact || // first extreme is a top contact layer
+		   extremes.front().z() > m_slicing_params.first_print_layer_height - EPSILON)));
 
 //    bool synchronize = m_slicing_params.soluble_interface || this->synchronize_layers();
     bool synchronize = this->synchronize_layers();
@@ -1151,20 +1162,33 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
     for (size_t idx_extreme = 0; idx_extreme < extremes.size(); ++ idx_extreme) {
 		LayerExtreme &extr2 = extremes[idx_extreme];
 		coordf_t      extr2z = extr2.z();
-		if (std::abs(extr2z - m_slicing_params.raft_interface_top_z) < EPSILON)
-			// This is a raft contact layer.
+		if (std::abs(extr2z - m_slicing_params.raft_interface_top_z) < EPSILON) {
+			// This is a raft contact layer, its height has been decided in this->top_contact_layers().
+            assert(extr2.layer->layer_type == sltTopContact);
 			continue;
-		LayerExtreme *extr1 = (idx_extreme == 0) ? NULL : &extremes[idx_extreme - 1];
-        coordf_t      extr1z = (extr1 == NULL) ? m_slicing_params.raft_interface_top_z : extr1->z();
+        }
+        if (std::abs(extr2z - m_slicing_params.first_print_layer_height) < EPSILON) {
+            // This is a 1st layer supporting some of the early object print layers, its height has been decided in this->top_contact_layers().
+            assert(extr2.layer->layer_type == sltTopContact);
+            continue;
+        }
+        assert(extr2z >= m_slicing_params.raft_interface_top_z + EPSILON);
+        assert(extr2z >= m_slicing_params.first_print_layer_height + EPSILON);
+		LayerExtreme *extr1  = (idx_extreme == 0) ? nullptr : &extremes[idx_extreme - 1];
+        // Fuse a support layer firmly to the raft top interface (not to the raft contacts).
+        coordf_t      extr1z = (extr1 == nullptr) ? m_slicing_params.raft_interface_top_z : extr1->z();
 		assert(extr2z > extr1z + EPSILON);
 		if (std::abs(extr1z) < EPSILON) {
 			// This layer interval starts with the 1st layer. Print the 1st layer using the prescribed 1st layer thickness.
-			assert(intermediate_layers.empty());
-			assert(extr2z > m_slicing_params.first_print_layer_height - EPSILON);
+            assert(! m_slicing_params.has_raft());
+            assert(intermediate_layers.empty() || intermediate_layers.back()->print_z <= m_slicing_params.first_print_layer_height);
+            // At this point only layers above first_print_layer_heigth + EPSILON are expected as the other cases were captured earlier.
+			assert(extr2z >= m_slicing_params.first_print_layer_height + EPSILON);
+			// Generate a new intermediate layer.
 			MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
 			layer_new.bottom_z = 0.;
-			layer_new.print_z = extr1z = std::min(extr2z, m_slicing_params.first_print_layer_height);
-			layer_new.height = extr1z;
+			layer_new.print_z  = extr1z = m_slicing_params.first_print_layer_height;
+			layer_new.height   = extr1z;
 			intermediate_layers.push_back(&layer_new);
 			// Continue printing the other layers up to extr2z.
 		}
@@ -1179,25 +1203,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 		if (! synchronize && ! m_slicing_params.soluble_interface && extr2.layer->layer_type == sltTopContact) {
             // This is a top interface layer, which does not have a height assigned yet. Do it now.
             assert(extr2.layer->height == 0.);
+            assert(extr1z > m_slicing_params.first_print_layer_height - EPSILON);
             extr2.layer->height = step;
             extr2.layer->bottom_z = extr2z = extr2.layer->print_z - step;
-            -- n_layers_extra;
-            if (extr2.layer->bottom_z < m_slicing_params.first_print_layer_height) {
-                // Split the span into two layers: the top layer up to the first layer height, 
-                // and the new intermediate layer below.
-                // 1) Adjust the bottom of this top layer.
-                assert(n_layers_extra == 0);
-                extr2.layer->bottom_z = extr2z = m_slicing_params.first_print_layer_height;
-                extr2.layer->height = extr2.layer->print_z - extr2.layer->bottom_z;
-                // 2) Insert a new intermediate layer.
-                MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
-                layer_new.bottom_z   = extr1z;
-                layer_new.print_z    = m_slicing_params.first_print_layer_height;
-                layer_new.height     = layer_new.print_z - layer_new.bottom_z;
-				assert(intermediate_layers.empty() || intermediate_layers.back()->print_z <= layer_new.print_z);
-                intermediate_layers.push_back(&layer_new);
+            if (-- n_layers_extra == 0)
                 continue;
-            }
         }
         coordf_t extr2z_large_steps = extr2z;
         if (synchronize) {
