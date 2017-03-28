@@ -53,17 +53,18 @@ class PrintRegion
 {
     friend class Print;
 
-    public:
+public:
     PrintRegionConfig config;
 
-    Print* print();
+    Print* print() { return this->_print; }
     Flow flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const;
+    coordf_t nozzle_dmr_avg(const PrintConfig &print_config) const;
 
-    private:
+private:
     Print* _print;
     
-    PrintRegion(Print* print);
-    ~PrintRegion();
+    PrintRegion(Print* print) : _print(print) {}
+    ~PrintRegion() {}
 };
 
 

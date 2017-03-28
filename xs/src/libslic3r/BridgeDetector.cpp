@@ -15,7 +15,7 @@ BridgeDetector::BridgeDetector(
     lower_slices(_lower_slices),
     spacing(_spacing)
 {
-    this->expolygons_owned.push_back(STDMOVE(_expolygon));
+    this->expolygons_owned.push_back(std::move(_expolygon));
     initialize();
 }
 
@@ -211,49 +211,40 @@ Polygons BridgeDetector::coverage(double angle) const
     Polygons covered;
 
     if (angle != -1) {
-
         // Get anchors, convert them to Polygons and rotate them.
         Polygons anchors = to_polygons(this->_anchor_regions);
         polygons_rotate(anchors, PI/2.0 - angle);
         
-        for (ExPolygons::const_iterator it_expoly = this->expolygons.begin(); it_expoly != this->expolygons.end(); ++ it_expoly)
-        {
+        for (ExPolygon expolygon : this->expolygons) {
             // Clone our expolygon and rotate it so that we work with vertical lines.
-            ExPolygon expolygon = *it_expoly;
-            expolygon.rotate(PI/2.0 - angle);
-            
-            /*  Outset the bridge expolygon by half the amount we used for detecting anchors;
-                we'll use this one to generate our trapezoids and be sure that their vertices
-                are inside the anchors and not on their contours leading to false negatives. */
-            ExPolygons grown = offset_ex(expolygon, 0.5f * float(this->spacing));
-            
-            // Compute trapezoids according to a vertical orientation
-            Polygons trapezoids;
-            for (ExPolygons::const_iterator it = grown.begin(); it != grown.end(); ++it)
-                it->get_trapezoids2(&trapezoids, PI/2.0);
-            
-            for (Polygons::iterator trapezoid = trapezoids.begin(); trapezoid != trapezoids.end(); ++trapezoid) {
-                Lines supported = intersection_ln(trapezoid->lines(), anchors);
-                size_t n_supported = 0;
-                // not nice, we need a more robust non-numeric check
-                for (size_t i = 0; i < supported.size(); ++i)
-                    if (supported[i].length() >= this->spacing)
-                        ++ n_supported;
-                if (n_supported >= 2) 
-                    covered.push_back(STDMOVE(*trapezoid));
+            expolygon.rotate(PI/2.0 - angle);            
+            // Outset the bridge expolygon by half the amount we used for detecting anchors;
+            // we'll use this one to generate our trapezoids and be sure that their vertices
+            // are inside the anchors and not on their contours leading to false negatives.
+            for (ExPolygon &expoly : offset_ex(expolygon, 0.5f * float(this->spacing))) {
+                // Compute trapezoids according to a vertical orientation
+                Polygons trapezoids;
+                expoly.get_trapezoids2(&trapezoids, PI/2.0);
+                for (const Polygon &trapezoid : trapezoids) {
+                    // not nice, we need a more robust non-numeric check
+                    size_t n_supported = 0;
+                    for (const Line &supported_line : intersection_ln(trapezoid.lines(), anchors))
+                        if (supported_line.length() >= this->spacing)
+                            ++ n_supported;
+                    if (n_supported >= 2) 
+                        covered.push_back(std::move(trapezoid));
+                }
             }
         }
 
         // Unite the trapezoids before rotation, as the rotation creates tiny gaps and intersections between the trapezoids
         // instead of exact overlaps.
         covered = union_(covered);
-
         // Intersect trapezoids with actual bridge area to remove extra margins and append it to result.
         polygons_rotate(covered, -(PI/2.0 - angle));
     	covered = intersection(covered, to_polygons(this->expolygons));
-
-        /*
-        if (0) {
+#if 0
+        {
             my @lines = map @{$_->lines}, @$trapezoids;
             $_->rotate(-(PI/2 - $angle), [0,0]) for @lines;
             
@@ -266,7 +257,7 @@ Polygons BridgeDetector::coverage(double angle) const
                 lines               => \@lines,
             );
         }
-        */
+#endif
     }
     return covered;
 }

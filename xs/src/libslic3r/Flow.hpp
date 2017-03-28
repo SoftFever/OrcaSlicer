@@ -45,15 +45,9 @@ public:
     float spacing() const;
     float spacing(const Flow &other) const;
     double mm3_per_mm() const;
-    coord_t scaled_width() const {
-        return scale_(this->width);
-    };
-    coord_t scaled_spacing() const {
-        return scale_(this->spacing());
-    };
-    coord_t scaled_spacing(const Flow &other) const {
-        return scale_(this->spacing(other));
-    };
+    coord_t scaled_width() const { return coord_t(scale_(this->width)); };
+    coord_t scaled_spacing() const { return coord_t(scale_(this->spacing())); };
+    coord_t scaled_spacing(const Flow &other) const { return coord_t(scale_(this->spacing(other))); };
     
     static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio);
     static Flow new_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge);

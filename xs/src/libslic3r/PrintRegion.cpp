@@ -2,21 +2,6 @@
 
 namespace Slic3r {
 
-PrintRegion::PrintRegion(Print* print)
-    : _print(print)
-{
-}
-
-PrintRegion::~PrintRegion()
-{
-}
-
-Print*
-PrintRegion::print()
-{
-    return this->_print;
-}
-
 Flow
 PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const
 {
@@ -63,6 +48,13 @@ PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool first_la
     double nozzle_diameter = this->_print->config.nozzle_diameter.get_at(extruder-1);
     
     return Flow::new_from_config_width(role, config_width, nozzle_diameter, layer_height, bridge ? (float)this->config.bridge_flow_ratio : 0.0);
+}
+
+coordf_t PrintRegion::nozzle_dmr_avg(const PrintConfig &print_config) const
+{
+    return (print_config.nozzle_diameter.get_at(this->config.perimeter_extruder.value    - 1) + 
+            print_config.nozzle_diameter.get_at(this->config.infill_extruder.value       - 1) + 
+            print_config.nozzle_diameter.get_at(this->config.solid_infill_extruder.value - 1)) / 3.;
 }
 
 }
