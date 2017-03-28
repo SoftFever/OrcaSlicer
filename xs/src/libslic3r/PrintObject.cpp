@@ -431,12 +431,38 @@ void PrintObject::detect_surfaces_type()
                     // Find bottom surfaces (difference between current surfaces of current layer and lower one).
                     Surfaces bottom;
                     if (lower_layer) {
+#if 0
+                        //FIXME Why is this branch failing t\multi.t ?
                         Polygons lower_slices = interface_shells ? 
                             to_polygons(lower_layer->get_region(idx_region)->slices.surfaces) : 
                             to_polygons(lower_layer->slices);
                         surfaces_append(bottom,
                             offset2_ex(diff(layerm_slices_surfaces, lower_slices, true), -offset, offset),
                             surface_type_bottom_other);
+#else
+                        // Any surface lying on the void is a true bottom bridge (an overhang)
+                        surfaces_append(
+                            bottom,
+                            offset2_ex(
+                                diff(layerm_slices_surfaces, to_polygons(lower_layer->slices), true), 
+                                -offset, offset),
+                            surface_type_bottom_other);
+                        // if user requested internal shells, we need to identify surfaces
+                        // lying on other slices not belonging to this region
+                        if (interface_shells) {
+                            // non-bridging bottom surfaces: any part of this layer lying 
+                            // on something else, excluding those lying on our own region
+                            surfaces_append(
+                                bottom,
+                                offset2_ex(
+                                    diff(
+                                        intersection(layerm_slices_surfaces, to_polygons(lower_layer->slices)), // supported
+                                        to_polygons(lower_layer->get_region(idx_region)->slices.surfaces), 
+                                        true), 
+                                    -offset, offset),
+                                stBottom);
+                        }
+#endif
                     } else {
                         // if no lower layer, all surfaces of this one are solid
                         // we clone surfaces because we're going to clear the slices collection
