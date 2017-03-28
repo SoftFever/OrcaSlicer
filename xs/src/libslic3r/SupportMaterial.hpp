@@ -91,7 +91,12 @@ public:
 				return false;
 		}
 
+		// For the bridging flow, bottom_print_z will be above bottom_z to account for the vertical separation.
+		// For the non-bridging flow, bottom_print_z will be equal to bottom_z.
 		coordf_t bottom_print_z() const { return print_z - height; }
+
+		// To sort the extremes of top / bottom interface layers.
+		coordf_t extreme_z() const { return (this->layer_type == sltTopContact) ? this->bottom_z : this->print_z; }
 
 		SupporLayerType layer_type;
 		// Z used for printing, in unscaled coordinates.

@@ -20,8 +20,7 @@
 // #define SLIC3R_DEBUG
 
 // Make assert active if SLIC3R_DEBUG
-//#ifdef SLIC3R_DEBUG
-#if 1
+#ifdef SLIC3R_DEBUG
     #define DEBUG
     #define _DEBUG
     #undef NDEBUG
@@ -171,9 +170,13 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         float(slicing_params.layer_height),
         false)),
  
-    // 50 mirons layer
-    m_support_layer_height_min  (0.05)
+    m_support_layer_height_min  (0.01)
 {
+    // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
+    m_support_layer_height_min = 1000000.;
+    for (auto lh : m_print_config->min_layer_height.values)
+        m_support_layer_height_min = std::min(m_support_layer_height_min, std::max(0.01, lh));
+
     if (m_object_config->support_material_interface_layers.value == 0) {
         // No interface layers allowed, print everything with the base support pattern.
         m_support_material_interface_flow = m_support_material_flow;
@@ -602,8 +605,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                     // Collect perimeters of this layer.
                                     // TODO: split_at_first_point() could split a bridge mid-way
                                     Polylines overhang_perimeters;
-                                    for (ExtrusionEntitiesPtr::const_iterator it_island = layerm.perimeters.entities.begin(); it_island != layerm.perimeters.entities.end(); ++ it_island) {
-                                        const ExtrusionEntityCollection *island = dynamic_cast<ExtrusionEntityCollection*>(*it_island);
+                                    for (ExtrusionEntity* extrusion_entity : layerm.perimeters.entities) {
+                                        const ExtrusionEntityCollection *island = dynamic_cast<ExtrusionEntityCollection*>(extrusion_entity);
                                         assert(island != NULL);
                                         for (size_t i = 0; i < island->entities.size(); ++ i) {
                                             ExtrusionEntity *entity = island->entities[i];
@@ -615,8 +618,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                     }
                                     
                                     // workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
-                                    for (Polylines::iterator it = overhang_perimeters.begin(); it != overhang_perimeters.end(); ++ it)
-                                        it->points[0].x += 1;
+                                    for (Polyline &polyline : overhang_perimeters)
+                                        polyline.points[0].x += 1;
                                     // Trim the perimeters of this layer by the lower layer to get the unsupported pieces of perimeters.
                                     overhang_perimeters = diff_pl(overhang_perimeters, lower_grown_slices);
                                     
@@ -627,23 +630,23 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                     // so we take the largest value and also apply safety offset to be ensure no gaps
                                     // are left in between
                                     float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
-                                    for (Polylines::iterator it = overhang_perimeters.begin(); it != overhang_perimeters.end(); ++ it) {
-                                        if (it->is_straight()) {
+                                    for (Polyline &polyline : overhang_perimeters)
+                                        if (polyline.is_straight()) {
                                             // This is a bridge 
-                                            it->extend_start(fw);
-                                            it->extend_end(fw);
-                                            if (layer.slices.contains(it->first_point()) && layer.slices.contains(it->last_point()))
-                                                // Offset a polyline into a polygon.
-                                                polygons_append(bridged_perimeters, offset(*it, 0.5f * w + 10.f));
+                                            polyline.extend_start(fw);
+                                            polyline.extend_end(fw);
+                                            // Is the straight perimeter segment supported at both sides?
+                                            if (layer.slices.contains(polyline.first_point()) && layer.slices.contains(polyline.last_point()))
+                                                // Offset a polyline into a thick line.
+                                                polygons_append(bridged_perimeters, offset(polyline, 0.5f * w + 10.f));
                                         }
-                                    }
                                     bridged_perimeters = union_(bridged_perimeters);
                                 }
                                 // remove the entire bridges and only support the unsupported edges
                                 Polygons bridges;
-                                for (Surfaces::const_iterator it = layerm.fill_surfaces.surfaces.begin(); it != layerm.fill_surfaces.surfaces.end(); ++ it)
-                                    if (it->surface_type == stBottomBridge && it->bridge_angle != -1)
-                                        polygons_append(bridges, it->expolygon);
+                                for (const Surface &surface : layerm.fill_surfaces.surfaces)
+                                    if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
+                                        polygons_append(bridges, surface.expolygon);
                                 diff_polygons = diff(diff_polygons, bridges, true);
                                 polygons_append(bridges, bridged_perimeters);
                                 polygons_append(diff_polygons, 
@@ -733,15 +736,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         // In the future we may switch to a normal extrusion flow for the supported bridges.
                         // Get the average nozzle diameter used on this layer.
                         coordf_t nozzle_dmr = 0.;
-                        size_t   n_nozzle_dmrs = 0;
-                        for (LayerRegionPtrs::const_iterator it_region_ptr = layer.regions.begin(); it_region_ptr != layer.regions.end(); ++ it_region_ptr) {
-                            const PrintRegion &region = *(*it_region_ptr)->region();
-                            nozzle_dmr += m_print_config->nozzle_diameter.get_at(region.config.perimeter_extruder.value - 1);
-                            nozzle_dmr += m_print_config->nozzle_diameter.get_at(region.config.infill_extruder.value - 1);
-                            nozzle_dmr += m_print_config->nozzle_diameter.get_at(region.config.solid_infill_extruder.value - 1);
-                            n_nozzle_dmrs += 3;
-                        }
-                        nozzle_dmr /= coordf_t(n_nozzle_dmrs);
+                        for (const LayerRegion *region : layer.regions)
+                            nozzle_dmr += region->region()->nozzle_dmr_avg(*m_print_config);
+                        nozzle_dmr /= coordf_t(layer.regions.size());
                         new_layer.print_z  = layer.print_z - nozzle_dmr - m_object_config->support_material_contact_distance;
                         new_layer.bottom_z = new_layer.print_z;
                         new_layer.height   = 0.;
@@ -899,7 +896,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             // Top surfaces of this layer, to be used to stop the surface volume from growing down.
             tbb::task_group task_group;
             if (! m_object_config->support_material_buildplate_only)
-                task_group.run([this, &object, &layer, layer_id, &layer_storage, &layer_support_areas, &bottom_contacts, &projection_raw] {
+                task_group.run([this, &object, &top_contacts, contact_idx, &layer, layer_id, &layer_storage, &layer_support_areas, &bottom_contacts, &projection_raw] {
                     Polygons top = collect_region_slices_by_type(layer, stTop);
         #ifdef SLIC3R_DEBUG
                     {
@@ -938,9 +935,36 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                             layer_new.bridging = ! m_slicing_params.soluble_interface;
                             //FIXME how much to inflate the top surface?
                             layer_new.polygons = offset(touching, float(m_support_material_flow.scaled_width()), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                            if (! m_slicing_params.soluble_interface) {
+                                // Walk the top surfaces, snap the top of the new bottom surface to the closest top of the top surface,
+                                // so there will be no support surfaces generated with thickness lower than m_support_layer_height_min.
+                                for (size_t top_idx = size_t(std::max<int>(0, contact_idx)); 
+									top_idx < top_contacts.size() && top_contacts[top_idx]->print_z < layer_new.print_z + this->m_support_layer_height_min; 
+									++ top_idx) {
+                                    if (top_contacts[top_idx]->print_z > layer_new.print_z - this->m_support_layer_height_min) {
+                                        // A top layer has been found, which is close to the new bottom layer.
+                                        coordf_t diff = layer_new.print_z - top_contacts[top_idx]->print_z;
+										assert(std::abs(diff) <= this->m_support_layer_height_min);
+                                        if (diff > 0.) {
+                                            // The top contact layer is below this layer. Make the bridging layer thinner to align with the existing top layer.
+                                            assert(diff < layer_new.height + EPSILON);
+											assert(layer_new.height - diff >= this->m_support_layer_height_min - EPSILON);
+                                            layer_new.print_z  = top_contacts[top_idx]->print_z;
+                                            layer_new.height  -= diff;
+                                        } else {
+                                            // The top contact layer is above this layer. One may either make this layer thicker or thinner.
+                                            // By making the layer thicker, one will decrease the number of discrete layers with the price of extruding a bit too thick bridges.
+                                            // By making the layer thinner, one adds one more discrete layer.
+                                            layer_new.print_z  = top_contacts[top_idx]->print_z;
+                                            layer_new.height  -= diff;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
                 #ifdef SLIC3R_DEBUG
                             Slic3r::SVG::export_expolygons(
-                                debug_out_path("support-bottom-contacts-%d-%lf.svg", iRun, layer_new.print_z), 
+                                debug_out_path("support-bottom-contacts-%d-%lf.svg", iRun, layer_new.print_z),
                                 union_ex(layer_new.polygons, false));
                 #endif /* SLIC3R_DEBUG */
                             // Trim the already created base layers above the current layer intersecting with the bottom contacts layer.
@@ -1108,21 +1132,6 @@ void PrintObjectSupportMaterial::trim_top_contacts_by_bottom_contacts(
         });
 }
 
-// A helper for sorting the top / bottom contact layers by their contact with the touching support layer:
-// Top contact surfaces (those supporting overhangs) are sorted by their bottom print Z,
-// bottom contact surfaces (those supported by top object surfaces) are sorted by their top print Z.
-struct LayerExtreme
-{
-    LayerExtreme(PrintObjectSupportMaterial::MyLayer *alayer, bool ais_top) : layer(alayer), is_top(ais_top) {}
-    PrintObjectSupportMaterial::MyLayer  *layer;
-    // top or bottom extreme
-    bool         is_top;
-
-    coordf_t    z() const { return is_top ? layer->print_z : layer->print_z - layer->height; }
-
-    bool operator<(const LayerExtreme &other) const { return z() < other.z(); }
-};
-
 PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_support_layers(
     const PrintObject   &object,
     const MyLayersPtr   &bottom_contacts,
@@ -1132,27 +1141,45 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
     MyLayersPtr intermediate_layers;
 
     // Collect and sort the extremes (bottoms of the top contacts and tops of the bottom contacts).
-    std::vector<LayerExtreme> extremes;
+    MyLayersPtr extremes;
     extremes.reserve(top_contacts.size() + bottom_contacts.size());
     for (size_t i = 0; i < top_contacts.size(); ++ i)
         // Bottoms of the top contact layers. In case of non-soluble supports,
         // the top contact layer thickness is not known yet.
-        extremes.push_back(LayerExtreme(top_contacts[i], false));
+        extremes.push_back(top_contacts[i]);
     for (size_t i = 0; i < bottom_contacts.size(); ++ i)
         // Tops of the bottom contact layers.
-        extremes.push_back(LayerExtreme(bottom_contacts[i], true));
+        extremes.push_back(bottom_contacts[i]);
     if (extremes.empty())
         return intermediate_layers;
-    std::sort(extremes.begin(), extremes.end());
+
+    auto layer_extreme_lower = [](const MyLayer *l1, const MyLayer *l2) {
+        coordf_t z1 = l1->extreme_z();
+        coordf_t z2 = l2->extreme_z();
+        // If the layers are aligned, return the top contact surface first.
+        return z1 < z2 || (z1 == z2 && l1->layer_type == PrintObjectSupportMaterial::sltTopContact && l2->layer_type == PrintObjectSupportMaterial::sltBottomContact);
+    };
+    std::sort(extremes.begin(), extremes.end(), layer_extreme_lower);
 
 	assert(extremes.empty() || 
-		(extremes.front().z() > m_slicing_params.raft_interface_top_z - EPSILON && 
+		(extremes.front()->extreme_z() > m_slicing_params.raft_interface_top_z - EPSILON && 
 		  (m_slicing_params.raft_layers() == 1 || // only raft contact layer
-		   extremes.front().layer->layer_type == sltTopContact || // first extreme is a top contact layer
-		   extremes.front().z() > m_slicing_params.first_print_layer_height - EPSILON)));
+		   extremes.front()->layer_type == sltTopContact || // first extreme is a top contact layer
+		   extremes.front()->extreme_z() > m_slicing_params.first_print_layer_height - EPSILON)));
 
 //    bool synchronize = m_slicing_params.soluble_interface || this->synchronize_layers();
     bool synchronize = this->synchronize_layers();
+
+#ifdef _DEBUG
+    // Verify that the extremes are separated by m_support_layer_height_min.
+    for (size_t i = 1; i < extremes.size(); ++ i) {
+        assert(extremes[i]->extreme_z() - extremes[i-1]->extreme_z() == 0. ||
+               extremes[i]->extreme_z() - extremes[i-1]->extreme_z() > this->m_support_layer_height_min - EPSILON);
+        assert(extremes[i]->extreme_z() - extremes[i-1]->extreme_z() > 0. ||
+			   extremes[i]->layer_type == extremes[i-1]->layer_type ||
+			   (extremes[i]->layer_type == sltBottomContact && extremes[i - 1]->layer_type == sltTopContact));
+    }
+#endif
 
     // Generate intermediate layers.
     // The first intermediate layer is the same as the 1st layer if there is no raft,
@@ -1160,24 +1187,25 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
     // Intermediate layers are always printed with a normal etrusion flow (non-bridging).
     size_t idx_layer_object = 0;
     for (size_t idx_extreme = 0; idx_extreme < extremes.size(); ++ idx_extreme) {
-		LayerExtreme &extr2 = extremes[idx_extreme];
-		coordf_t      extr2z = extr2.z();
+		MyLayer      *extr2  = extremes[idx_extreme];
+		coordf_t      extr2z = extr2->extreme_z();
 		if (std::abs(extr2z - m_slicing_params.raft_interface_top_z) < EPSILON) {
 			// This is a raft contact layer, its height has been decided in this->top_contact_layers().
-            assert(extr2.layer->layer_type == sltTopContact);
+            assert(extr2->layer_type == sltTopContact);
 			continue;
         }
         if (std::abs(extr2z - m_slicing_params.first_print_layer_height) < EPSILON) {
             // This is a 1st layer supporting some of the early object print layers, its height has been decided in this->top_contact_layers().
-            assert(extr2.layer->layer_type == sltTopContact);
+            assert(extr2->layer_type == sltTopContact);
             continue;
         }
         assert(extr2z >= m_slicing_params.raft_interface_top_z + EPSILON);
         assert(extr2z >= m_slicing_params.first_print_layer_height + EPSILON);
-		LayerExtreme *extr1  = (idx_extreme == 0) ? nullptr : &extremes[idx_extreme - 1];
+		MyLayer      *extr1  = (idx_extreme == 0) ? nullptr : extremes[idx_extreme - 1];
         // Fuse a support layer firmly to the raft top interface (not to the raft contacts).
-        coordf_t      extr1z = (extr1 == nullptr) ? m_slicing_params.raft_interface_top_z : extr1->z();
-		assert(extr2z > extr1z + EPSILON);
+        coordf_t      extr1z = (extr1 == nullptr) ? m_slicing_params.raft_interface_top_z : extr1->extreme_z();
+		assert(extr2z >= extr1z);
+        assert(extr2z > extr1z || (extr1 != nullptr && extr2->layer_type == sltBottomContact));
 		if (std::abs(extr1z) < EPSILON) {
 			// This layer interval starts with the 1st layer. Print the 1st layer using the prescribed 1st layer thickness.
             assert(! m_slicing_params.has_raft());
@@ -1196,16 +1224,18 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         assert(dist >= 0.);
 		if (dist == 0.)
 			continue;
+        // The new layers shall be at least m_support_layer_height_min thick.
+        assert(dist >= m_support_layer_height_min - EPSILON);
         // Insert intermediate layers.
         size_t        n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height)); 
         assert(n_layers_extra > 0);
         coordf_t      step   = dist / coordf_t(n_layers_extra);
-		if (! synchronize && ! m_slicing_params.soluble_interface && extr2.layer->layer_type == sltTopContact) {
+		if (! synchronize && ! m_slicing_params.soluble_interface && extr2->layer_type == sltTopContact) {
             // This is a top interface layer, which does not have a height assigned yet. Do it now.
-            assert(extr2.layer->height == 0.);
+            assert(extr2->height == 0.);
             assert(extr1z > m_slicing_params.first_print_layer_height - EPSILON);
-            extr2.layer->height = step;
-            extr2.layer->bottom_z = extr2z = extr2.layer->print_z - step;
+            extr2->height = step;
+            extr2->bottom_z = extr2z = extr2->print_z - step;
             if (-- n_layers_extra == 0)
                 continue;
         }
@@ -1440,13 +1470,29 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                     [z_threshold](const Layer *layer){ return layer->print_z >= z_threshold; });
                 // Collect all the object layers intersecting with this layer.
                 Polygons polygons_trimming;
-                for (size_t i = idx_object_layer_overlapping; i < object.layers.size(); ++ i) {
+                size_t i = idx_object_layer_overlapping;
+                for (; i < object.layers.size(); ++ i) {
                     const Layer &object_layer = *object.layers[i];
                     if (object_layer.print_z - object_layer.height > support_layer.print_z + gap_extra_above - EPSILON)
                         break;
                     polygons_append(polygons_trimming, (Polygons)object_layer.slices);
                 }
-
+                if (! this->m_slicing_params.soluble_interface) {
+                    // Collect all bottom surfaces, which will be extruded with a bridging flow.
+                    for (; i < object.layers.size(); ++ i) {
+                        const Layer &object_layer = *object.layers[i];
+                        bool some_region_overlaps = false;
+                        for (LayerRegion* region : object_layer.regions) {
+                            coordf_t nozzle_dmr = region->region()->nozzle_dmr_avg(*this->m_print_config);
+                            if (object_layer.print_z - nozzle_dmr > support_layer.print_z + gap_extra_above - EPSILON)
+                                break;
+                            some_region_overlaps = true;
+                            polygons_append(polygons_trimming, to_polygons(region->slices.filter_by_type(stBottomBridge)));
+                        }
+                        if (! some_region_overlaps)
+                            break;
+                    }
+                }
                 // $layer->slices contains the full shape of layer, thus including
                 // perimeter's width. $support contains the full shape of support
                 // material, thus including the width of its foremost extrusion.
@@ -2526,7 +2572,11 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 filler->angle = angles[support_layer_id % angles.size()];
                 // We don't use $base_flow->spacing because we need a constant spacing
                 // value that guarantees that all layers are correctly aligned.
-                Flow flow(float(m_support_material_flow.width), float(base_layer.layer->height), m_support_material_flow.nozzle_diameter, base_layer.layer->bridging);
+                Flow flow(
+                    float(base_layer.layer->bridging ? base_layer.layer->height : m_support_material_flow.width), 
+                    float(base_layer.layer->height), 
+                    m_support_material_flow.nozzle_diameter, 
+                    base_layer.layer->bridging);
                 filler->spacing = m_support_material_flow.spacing();
                 filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / support_density));
                 float density = float(support_density);
