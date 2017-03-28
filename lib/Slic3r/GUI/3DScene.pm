@@ -33,6 +33,7 @@ use Slic3r::Geometry qw(PI);
 __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               enable_picking
                               enable_moving
+                              use_plain_shader
                               on_viewport_changed
                               on_hover
                               on_select
@@ -132,6 +133,7 @@ sub new {
     $self->_stheta(45);
     $self->_sphi(45);
     $self->_zoom(1);
+    $self->use_plain_shader(0);
 
     # Collection of GLVolume objects
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
@@ -1206,7 +1208,7 @@ sub Render {
     glEnable(GL_LIGHTING);
     
     # draw objects
-    if ($self->enable_picking) {
+    if (! $self->use_plain_shader) {
         $self->draw_volumes;
     } elsif ($self->UseVBOs) {
         $self->{plain_shader}->enable if $self->{plain_shader};
