@@ -70,8 +70,10 @@ sub make_perimeters {
     # prerequisites
     $self->slice;
 
-    $self->print->status_cb->(20, "Generating perimeters");
-    $self->_make_perimeters;
+    if (! $self->step_done(STEP_PERIMETERS)) {
+        $self->print->status_cb->(20, "Generating perimeters");
+        $self->_make_perimeters;
+    }
 }
 
 sub prepare_infill {
