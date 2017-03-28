@@ -512,20 +512,12 @@ static void thick_lines_to_indexed_vertex_array(
                 idx_a[RIGHT] = idx_prev[RIGHT];
             } else if (cross(v_prev, v) > 0.) {
                 // Right turn. Fill in the right turn wedge.
-                volume.triangle_indices.push_back(idx_prev[RIGHT]);
-                volume.triangle_indices.push_back(idx_a   [RIGHT]);
-                volume.triangle_indices.push_back(idx_prev[TOP]);
-                volume.triangle_indices.push_back(idx_prev[RIGHT]);
-                volume.triangle_indices.push_back(idx_prev[BOTTOM]);
-                volume.triangle_indices.push_back(idx_a   [RIGHT]);
+                volume.push_triangle(idx_prev[RIGHT], idx_a   [RIGHT],  idx_prev[TOP]   );
+                volume.push_triangle(idx_prev[RIGHT], idx_prev[BOTTOM], idx_a   [RIGHT] );
             } else {
                 // Left turn. Fill in the left turn wedge.
-                volume.triangle_indices.push_back(idx_prev[LEFT]);
-                volume.triangle_indices.push_back(idx_prev[TOP]);
-                volume.triangle_indices.push_back(idx_a   [LEFT]);
-                volume.triangle_indices.push_back(idx_prev[LEFT]);
-                volume.triangle_indices.push_back(idx_a   [LEFT]);
-                volume.triangle_indices.push_back(idx_prev[BOTTOM]);
+                volume.push_triangle(idx_prev[LEFT],  idx_prev[TOP],    idx_a   [LEFT]  );
+                volume.push_triangle(idx_prev[LEFT],  idx_a   [LEFT],   idx_prev[BOTTOM]);
             }
             if (ii == lines.size()) {
                 if (! sharp) {
@@ -575,42 +567,22 @@ static void thick_lines_to_indexed_vertex_array(
 
         if (! closed) {
             // Terminate open paths with caps.
-            if (i == 0) {
-                volume.quad_indices.push_back(idx_a[BOTTOM]);
-                volume.quad_indices.push_back(idx_a[RIGHT]);
-                volume.quad_indices.push_back(idx_a[TOP]);
-                volume.quad_indices.push_back(idx_a[LEFT]);
-            }
+            if (i == 0)
+                volume.push_quad(idx_a[BOTTOM], idx_a[RIGHT], idx_a[TOP], idx_a[LEFT]);
             // We don't use 'else' because both cases are true if we have only one line.
-            if (i + 1 == lines.size()) {
-                volume.quad_indices.push_back(idx_b[BOTTOM]);
-                volume.quad_indices.push_back(idx_b[LEFT]);
-                volume.quad_indices.push_back(idx_b[TOP]);
-                volume.quad_indices.push_back(idx_b[RIGHT]);
-            }
+            if (i + 1 == lines.size())
+                volume.push_quad(idx_b[BOTTOM], idx_b[LEFT], idx_b[TOP], idx_b[RIGHT]);
         }
         
         // Add quads for a straight hollow tube-like segment.
         // bottom-right face
-        volume.quad_indices.push_back(idx_a[BOTTOM]);
-        volume.quad_indices.push_back(idx_b[BOTTOM]);
-        volume.quad_indices.push_back(idx_b[RIGHT]);
-        volume.quad_indices.push_back(idx_a[RIGHT]);
+        volume.push_quad(idx_a[BOTTOM], idx_b[BOTTOM], idx_b[RIGHT], idx_a[RIGHT]);
         // top-right face
-        volume.quad_indices.push_back(idx_a[RIGHT]);
-        volume.quad_indices.push_back(idx_b[RIGHT]);
-        volume.quad_indices.push_back(idx_b[TOP]);
-        volume.quad_indices.push_back(idx_a[TOP]);
+        volume.push_quad(idx_a[RIGHT], idx_b[RIGHT], idx_b[TOP], idx_a[TOP]);
         // top-left face
-        volume.quad_indices.push_back(idx_a[TOP]);
-        volume.quad_indices.push_back(idx_b[TOP]);
-        volume.quad_indices.push_back(idx_b[LEFT]);
-        volume.quad_indices.push_back(idx_a[LEFT]);
+        volume.push_quad(idx_a[TOP], idx_b[TOP], idx_b[LEFT], idx_a[LEFT]);
         // bottom-left face
-        volume.quad_indices.push_back(idx_a[LEFT]);
-        volume.quad_indices.push_back(idx_b[LEFT]);
-        volume.quad_indices.push_back(idx_b[BOTTOM]);
-        volume.quad_indices.push_back(idx_a[BOTTOM]);
+        volume.push_quad(idx_a[LEFT], idx_b[LEFT], idx_b[BOTTOM], idx_a[BOTTOM]);
     }
 
 #undef LEFT

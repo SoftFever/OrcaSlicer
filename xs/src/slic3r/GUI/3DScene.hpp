@@ -5,6 +5,7 @@
 #include "../../libslic3r/Point.hpp"
 #include "../../libslic3r/Line.hpp"
 #include "../../libslic3r/TriangleMesh.hpp"
+#include "../../libslic3r/Utils.hpp"
 
 namespace Slic3r {
 
@@ -91,7 +92,8 @@ public:
     }
 
     inline void push_geometry(float x, float y, float z, float nx, float ny, float nz) {
-        this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 6);
+        if (this->vertices_and_normals_interleaved.size() + 6 > this->vertices_and_normals_interleaved.capacity())
+            this->vertices_and_normals_interleaved.reserve(next_highest_power_of_2(this->vertices_and_normals_interleaved.size() + 6));
         this->vertices_and_normals_interleaved.push_back(nx);
         this->vertices_and_normals_interleaved.push_back(ny);
         this->vertices_and_normals_interleaved.push_back(nz);
@@ -103,6 +105,23 @@ public:
     inline void push_geometry(double x, double y, double z, double nx, double ny, double nz) {
         push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
     }
+
+    inline void push_triangle(int idx1, int idx2, int idx3) {
+        if (this->triangle_indices.size() + 3 > this->vertices_and_normals_interleaved.capacity())
+            this->triangle_indices.reserve(next_highest_power_of_2(this->triangle_indices.size() + 3));
+        this->triangle_indices.push_back(idx1);
+        this->triangle_indices.push_back(idx2);
+        this->triangle_indices.push_back(idx3);
+    };
+
+    inline void push_quad(int idx1, int idx2, int idx3, int idx4) {
+        if (this->quad_indices.size() + 4 > this->vertices_and_normals_interleaved.capacity())
+            this->quad_indices.reserve(next_highest_power_of_2(this->quad_indices.size() + 4));
+        this->quad_indices.push_back(idx1);
+        this->quad_indices.push_back(idx2);
+        this->quad_indices.push_back(idx3);
+        this->quad_indices.push_back(idx4);
+    };
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
