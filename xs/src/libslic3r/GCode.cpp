@@ -261,13 +261,11 @@ GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)
     
     // enable wipe path generation if any extruder has wipe enabled
     this->wipe.enable = false;
-    for (std::vector<unsigned int>::const_iterator it = extruder_ids.begin();
-        it != extruder_ids.end(); ++it) {
-        if (this->config.wipe.get_at(*it)) {
+    for (auto id : extruder_ids)
+        if (this->config.wipe.get_at(id)) {
             this->wipe.enable = true;
             break;
         }
-    }
 }
 
 void
@@ -1001,7 +999,11 @@ GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
     
     // generate G-code for the travel move
     std::string gcode;
-    if (needs_retraction) gcode += this->retract();
+    if (needs_retraction)
+        gcode += this->retract();
+    else
+        // Reset the wipe path when traveling, so one would not wipe along an old path.
+        this->wipe.reset_path();
     
     // use G1 because we rely on paths being straight (G0 may make round paths)
     Lines lines = travel.lines();
@@ -1098,6 +1100,9 @@ GCode::set_extruder(unsigned int extruder_id)
     
     // prepend retraction on the current extruder
     std::string gcode = this->retract(true);
+
+    // Always reset the extrusion path, even if the tool change retract is set to zero.
+    this->wipe.reset_path();
     
     // append custom toolchange G-code
     if (this->writer.extruder() != NULL && !this->config.toolchange_gcode.value.empty()) {
