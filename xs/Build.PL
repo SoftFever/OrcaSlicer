@@ -43,7 +43,7 @@ if (! $cpp_guess->is_msvc) {
 }
 
 my @early_includes = ();
-my @INC  = qw(-Isrc/libslic3r -Isrc/glew/include);
+my @INC  = qw(-Isrc/libslic3r -Isrc/glew/include -Isrc/eigen);
 my @LIBS = $cpp_guess->is_msvc ? qw(-LIBPATH:src/libslic3r) : qw(-Lsrc/libslic3r);
 
 $ENV{SLIC3R_GUI} = 1 if ! defined($ENV{SLIC3R_NOGUI}) || $ENV{SLIC3R_NOGUI} != 1;
