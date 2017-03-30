@@ -906,13 +906,16 @@ sub UseVBOs {
     my ($self) = @_;
 
     if (! defined ($self->{use_VBOs})) {
+        # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
+        # first when an OpenGL widget is shown for the first time. How ugly.
+        return 0 if (! $self->init && $^O eq 'linux');
         # Don't use VBOs if anything fails.
         $self->{use_VBOs} = 0;
         if ($self->GetContext) {
             $self->SetCurrent($self->GetContext);
             my @gl_version = split(/\./, glGetString(GL_VERSION));
             $self->{use_VBOs} = int($gl_version[0]) >= 2;
-            # print "InitGL $self OpenGL major: $gl_version[0], minor: $gl_version[1]. Use VBOs: ", $self->{use_VBOs}, "\n";
+            # print "UseVBOs $self OpenGL major: $gl_version[0], minor: $gl_version[1]. Use VBOs: ", $self->{use_VBOs}, "\n";
         }
     }
     return $self->{use_VBOs};
@@ -967,6 +970,13 @@ sub InitGL {
     return if $self->init;
     return unless $self->GetContext;
     $self->init(1);
+
+    # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
+    # first when an OpenGL widget is shown for the first time. How ugly.
+    # In that case the volumes are wainting to be moved to Vertex Buffer Objects
+    # after the OpenGL context is being initialized.
+    $self->volumes->finalize_geometry(1) 
+        if ($^O eq 'linux' && $self->UseVBOs);
 
     glClearColor(0, 0, 0, 1);
     glColor3f(1, 0, 0);

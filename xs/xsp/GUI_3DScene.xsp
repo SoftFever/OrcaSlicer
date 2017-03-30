@@ -87,6 +87,7 @@
 
     void render_VBOs() const;
     void render_legacy() const;
+    void finalize_geometry(bool use_VBOs);
     void release_geometry();
 %{
 

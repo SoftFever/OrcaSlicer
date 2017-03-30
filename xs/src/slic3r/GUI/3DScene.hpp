@@ -264,6 +264,7 @@ public:
 
     void                set_range(coordf_t low, coordf_t high);
     void                render() const;
+    void                finalize_geometry(bool use_VBOs) { this->indexed_vertex_array.finalize_geometry(use_VBOs); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
     /************************************************ Layer height texture ****************************************************/
@@ -312,6 +313,11 @@ public:
     // Render the volumes by OpenGL.
     void render_VBOs() const;
     void render_legacy() const;
+
+    // Finalize the initialization of the geometry & indices,
+    // upload the geometry and indices to OpenGL VBO objects
+    // and shrink the allocated data, possibly relasing it if it has been loaded into the VBOs.
+    void finalize_geometry(bool use_VBOs) { for (auto *v : volumes) v->finalize_geometry(use_VBOs); }
     // Release the geometry data assigned to the volumes.
     // If OpenGL VBOs were allocated, an OpenGL context has to be active to release them.
     void release_geometry() { for (auto *v : volumes) v->release_geometry(); }
