@@ -15,17 +15,24 @@ GLShader::~GLShader()
     assert(shader_program_id == 0);
 }
 
+// A safe wrapper around glGetString to report a "N/A" string in case glGetString returns nullptr.
+inline std::string gl_get_string_safe(GLenum param)
+{
+    const char *value = (const char*)glGetString(param);
+    return std::string(value ? value : "N/A");
+}
+
 bool GLShader::load(const char *fragment_shader, const char *vertex_shader)
 {
-    std::string gl_version = (const char*)glGetString(GL_VERSION);
+    std::string gl_version = gl_get_string_safe(GL_VERSION);
     int major = atoi(gl_version.c_str());
     //int minor = atoi(gl_version.c_str() + gl_version.find('.') + 1);
     if (major < 2) {
         // Cannot create a shader object on OpenGL 1.x.
         // Form an error message.
-        std::string gl_vendor    = (const char*)glGetString(GL_VENDOR);
-        std::string gl_renderer  = (const char*)glGetString(GL_RENDERER);
-        std::string glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+        std::string gl_vendor    = gl_get_string_safe(GL_VENDOR);
+        std::string gl_renderer  = gl_get_string_safe(GL_RENDERER);
+        std::string glsl_version = gl_get_string_safe(GL_SHADING_LANGUAGE_VERSION);
         last_error = "Your computer does not support OpenGL shaders.\n";
 #ifdef _WIN32
         if (gl_vendor == "Microsoft Corporation" && gl_renderer == "GDI Generic") {
