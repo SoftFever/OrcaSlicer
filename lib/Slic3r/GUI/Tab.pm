@@ -822,6 +822,7 @@ sub _update {
             . "- no top solid layers\n"
             . "- 0% fill density\n"
             . "- no support material\n"
+            . "- no ensure_vertical_shell_thickness\n"
             . "\nShall I adjust those settings in order to enable Spiral Vase?",
             'Spiral Vase', wxICON_WARNING | wxYES | wxNO);
         if ($dialog->ShowModal() == wxID_YES) {
@@ -830,6 +831,7 @@ sub _update {
             $new_conf->set("top_solid_layers", 0);
             $new_conf->set("fill_density", 0);
             $new_conf->set("support_material", 0);
+            $new_conf->set("ensure_vertical_shell_thickness", 0);
             $self->load_config($new_conf);
         } else {
             my $new_conf = Slic3r::Config->new;
