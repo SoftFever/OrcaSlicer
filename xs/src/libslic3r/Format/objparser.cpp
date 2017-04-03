@@ -346,8 +346,8 @@ bool objparse(const char *path, ObjData &data)
 	}
 	::fclose(pFile);
 
-	printf("vertices: %d\r\n", data.vertices.size() / 4);
-	printf("coords: %d\r\n", data.coordinates.size());
+	// printf("vertices: %d\r\n", data.vertices.size() / 4);
+	// printf("coords: %d\r\n", data.coordinates.size());
 	return true;
 }
 
