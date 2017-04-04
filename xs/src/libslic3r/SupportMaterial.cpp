@@ -1230,6 +1230,24 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         size_t        n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height)); 
         assert(n_layers_extra > 0);
         coordf_t      step   = dist / coordf_t(n_layers_extra);
+        if (! synchronize && extr1 != nullptr && extr1->layer_type == sltTopContact &&
+            extr1->print_z + this->m_support_layer_height_min > extr1->bottom_z + step) {
+            // The bottom extreme is a bottom of a top surface. Ensure that the gap 
+            // between the 1st intermediate layer print_z and extr1->print_z is not too small.
+            assert(extr1->bottom_z + this->m_support_layer_height_min < extr1->print_z + EPSILON);
+            // Generate the first intermediate layer.
+            MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
+            layer_new.bottom_z = extr1->bottom_z;
+            layer_new.print_z  = extr1z = extr1->print_z;
+            layer_new.height   = extr1->height;
+            intermediate_layers.push_back(&layer_new);
+			dist = extr2z - extr1z;
+            n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height));
+            if (n_layers_extra == 0)
+                continue;
+            // Continue printing the other layers up to extr2z.
+            step = dist / coordf_t(n_layers_extra);
+        }
 		if (! synchronize && ! m_slicing_params.soluble_interface && extr2->layer_type == sltTopContact) {
             // This is a top interface layer, which does not have a height assigned yet. Do it now.
             assert(extr2->height == 0.);
