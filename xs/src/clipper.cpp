@@ -595,7 +595,8 @@ void InitEdge2(TEdge& e, PolyType Pt)
 }
 //------------------------------------------------------------------------------
 
-TEdge* RemoveEdge(TEdge* e)
+// Called from ClipperBase::AddPathInternal() to remove collinear and duplicate points.
+inline TEdge* RemoveEdge(TEdge* e)
 {
   //removes e from double_linked_list (but without removing from memory)
   e->Prev->Next = e->Next;
@@ -3486,14 +3487,6 @@ DoublePoint GetUnitNormal(const IntPoint &pt1, const IntPoint &pt2)
 // ClipperOffset class
 //------------------------------------------------------------------------------
 
-ClipperOffset::ClipperOffset(double miterLimit, double arcTolerance)
-{
-  this->MiterLimit = miterLimit;
-  this->ArcTolerance = arcTolerance;
-  m_lowest.X = -1;
-}
-//------------------------------------------------------------------------------
-
 void ClipperOffset::Clear()
 {
   for (int i = 0; i < m_polyNodes.ChildCount(); ++i)
@@ -3512,20 +3505,39 @@ void ClipperOffset::AddPath(const Path& path, JoinType joinType, EndType endType
   newNode->m_endtype = endType;
 
   //strip duplicate points from path and also get index to the lowest point ...
+  bool   has_shortest_edge_length = ShortestEdgeLength > 0.;
+  double shortest_edge_length2 = has_shortest_edge_length ? ShortestEdgeLength * ShortestEdgeLength : 0.;
   if (endType == etClosedLine || endType == etClosedPolygon)
-    while (highI > 0 && path[0] == path[highI]) highI--;
+    for (; highI > 0; -- highI) {
+      bool same = false;
+      if (has_shortest_edge_length) {
+        double dx = double(path[highI].X - path[0].X);
+        double dy = double(path[highI].Y - path[0].Y);
+        same = dx*dx + dy*dy < shortest_edge_length2;
+      } else
+        same = path[0] == path[highI];
+      if (! same)
+        break;
+    }
   newNode->Contour.reserve(highI + 1);
   newNode->Contour.push_back(path[0]);
   int j = 0, k = 0;
-  for (int i = 1; i <= highI; i++)
-    if (newNode->Contour[j] != path[i])
-    {
-      j++;
-      newNode->Contour.push_back(path[i]);
-      if (path[i].Y > newNode->Contour[k].Y ||
-        (path[i].Y == newNode->Contour[k].Y &&
-        path[i].X < newNode->Contour[k].X)) k = j;
-    }
+  for (int i = 1; i <= highI; i++) {
+    bool same = false;
+    if (has_shortest_edge_length) {
+      double dx = double(path[i].X - newNode->Contour[j].X);
+      double dy = double(path[i].Y - newNode->Contour[j].Y);
+      same = dx*dx + dy*dy < shortest_edge_length2;
+    } else
+      same = newNode->Contour[j] == path[i];
+    if (same)
+      continue;
+    j++;
+    newNode->Contour.push_back(path[i]);
+    if (path[i].Y > newNode->Contour[k].Y ||
+      (path[i].Y == newNode->Contour[k].Y &&
+      path[i].X < newNode->Contour[k].X)) k = j;
+  }
   if (endType == etClosedPolygon && j < 2)
   {
     delete newNode;
@@ -3550,8 +3562,8 @@ void ClipperOffset::AddPath(const Path& path, JoinType joinType, EndType endType
 
 void ClipperOffset::AddPaths(const Paths& paths, JoinType joinType, EndType endType)
 {
-  for (Paths::size_type i = 0; i < paths.size(); ++i)
-    AddPath(paths[i], joinType, endType);
+  for (const Path &path : paths)
+    AddPath(path, joinType, endType);
 }
 //------------------------------------------------------------------------------
 

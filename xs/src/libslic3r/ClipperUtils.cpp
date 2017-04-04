@@ -9,6 +9,8 @@
 
 #include <Shiny/Shiny.h>
 
+#define CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR (0.005f)
+
 namespace Slic3r {
 
 #ifdef CLIPPER_UTILS_DEBUG
@@ -210,9 +212,11 @@ ClipperLib::Paths _offset(ClipperLib::Paths &&input, ClipperLib::EndType endType
         co.ArcTolerance = miterLimit;
     else
         co.MiterLimit = miterLimit;
+    float delta_scaled = delta * float(CLIPPER_OFFSET_SCALE);
+    co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
     co.AddPaths(input, joinType, endType);
     ClipperLib::Paths retval;
-    co.Execute(retval, delta * float(CLIPPER_OFFSET_SCALE));
+    co.Execute(retval, delta_scaled);
     
     // unscale output
     unscaleClipperPolygons(retval);
@@ -244,6 +248,7 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygon &expolygon, const float delta,
             co.ArcTolerance = miterLimit * double(CLIPPER_OFFSET_SCALE);
         else
             co.MiterLimit = miterLimit;
+        co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
         co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
         co.Execute(contours, delta_scaled);
     }
@@ -260,6 +265,7 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygon &expolygon, const float delta,
                 co.ArcTolerance = miterLimit * double(CLIPPER_OFFSET_SCALE);
             else
                 co.MiterLimit = miterLimit;
+            co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
             co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
             ClipperLib::Paths out;
             co.Execute(out, - delta_scaled);
@@ -308,6 +314,7 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygons &expolygons, const float delt
                 co.ArcTolerance = miterLimit * double(CLIPPER_OFFSET_SCALE);
             else
                 co.MiterLimit = miterLimit;
+            co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
             co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
             co.Execute(contours, delta_scaled);
         }
@@ -331,6 +338,7 @@ ClipperLib::Paths _offset(const Slic3r::ExPolygons &expolygons, const float delt
                         co.ArcTolerance = miterLimit * double(CLIPPER_OFFSET_SCALE);
                     else
                         co.MiterLimit = miterLimit;
+                    co.ShortestEdgeLength = double(std::abs(delta_scaled * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
                     co.AddPath(input, joinType, ClipperLib::etClosedPolygon);
                     ClipperLib::Paths out;
                     co.Execute(out, - delta_scaled);
@@ -408,17 +416,20 @@ _offset2(const Polygons &polygons, const float delta1, const float delta2,
     } else {
         co.MiterLimit = miterLimit;
     }
+    float delta_scaled1 = delta1 * float(CLIPPER_OFFSET_SCALE);
+    float delta_scaled2 = delta2 * float(CLIPPER_OFFSET_SCALE);
+    co.ShortestEdgeLength = double(std::max(std::abs(delta_scaled1), std::abs(delta_scaled2)) * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR);
     
     // perform first offset
     ClipperLib::Paths output1;
     co.AddPaths(input, joinType, ClipperLib::etClosedPolygon);
-    co.Execute(output1, delta1 * float(CLIPPER_OFFSET_SCALE));
+    co.Execute(output1, delta_scaled1);
     
     // perform second offset
     co.Clear();
     co.AddPaths(output1, joinType, ClipperLib::etClosedPolygon);
     ClipperLib::Paths retval;
-    co.Execute(retval, delta2 * float(CLIPPER_OFFSET_SCALE));
+    co.Execute(retval, delta_scaled2);
     
     // unscale output
     unscaleClipperPolygons(retval);
