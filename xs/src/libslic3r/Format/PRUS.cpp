@@ -6,6 +6,8 @@
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 
+#include <Eigen/Geometry>
+
 #include "../libslic3r.h"
 #include "../Model.hpp"
 
@@ -28,6 +30,8 @@ struct StlHeader
     char        comment[80];
     uint32_t    nTriangles;
 };
+
+static_assert(sizeof(StlHeader) == 84, "StlHeader size not correct");
 
 // Buffered line reader for the wxInputStream.
 class LineReader
@@ -89,7 +93,7 @@ public:
         }
     }
 
-    int next_line_scanf(char *format, ...)
+    int next_line_scanf(const char *format, ...)
     {
         const char *line = next_line();
         if (line == nullptr)
@@ -147,8 +151,13 @@ bool load_prus(const char *path, Model *model)
             char model_name_tag[1024];
             sprintf(model_name_tag, "<model name=\"%s\">", name_utf8.data());
             const char *model_xml = strstr(scene_xml_data.data(), model_name_tag);
-            float trafo[3][4] = { 0 };
-            bool  trafo_set = false;
+            const char *zero_tag  = "<zero>";
+			const char *zero_xml  = strstr(scene_xml_data.data(), zero_tag);
+            float  trafo[3][4] = { 0 };
+            double instance_rotation = 0.;
+            double instance_scaling_factor = 1.f;
+            Pointf instance_offset(0., 0.); 
+            bool   trafo_set = false;
             if (model_xml != nullptr) {
                 model_xml += strlen(model_name_tag);
                 const char *position_tag = "<position>";
@@ -157,27 +166,37 @@ bool load_prus(const char *path, Model *model)
                 const char *rotation_xml = strstr(model_xml, rotation_tag);
                 const char *scale_tag    = "<scale>";
                 const char *scale_xml    = strstr(model_xml, scale_tag);
-                float position[3], rotation[3][3], scale[3][3];
-                if (position_xml != nullptr && rotation_xml != nullptr && scale_xml != nullptr &&
+                float position[3], rotation[3], scale[3], zero[3];
+                if (position_xml != nullptr && rotation_xml != nullptr && scale_xml != nullptr && zero_xml != nullptr &&
                     sscanf(position_xml+strlen(position_tag), 
                         "[%f, %f, %f]", position, position+1, position+2) == 3 &&
                     sscanf(rotation_xml+strlen(rotation_tag), 
-                        "[[%f, %f, %f], [%f, %f, %f], [%f, %f, %f]]", 
-                        rotation[0], rotation[0]+1, rotation[0]+2, 
-                        rotation[1], rotation[1]+1, rotation[1]+2, 
-                        rotation[2], rotation[2]+1, rotation[2]+2) == 9 &&
-                    sscanf(scale_xml+strlen(scale_tag), 
-                        "[[%f, %f, %f], [%f, %f, %f], [%f, %f, %f]]", 
-                        scale[0], scale[0]+1, scale[0]+2, 
-                        scale[1], scale[1]+1, scale[1]+2, 
-                        scale[2], scale[2]+1, scale[2]+2) == 9) {
-                    for (size_t r = 0; r < 3; ++ r) {
-                        for (size_t c = 0; c < 3; ++ c) {
-                            for (size_t i = 0; i < 3; ++ i)
-                                trafo[r][c] += rotation[r][i]*scale[i][c];
-                        }
-                        trafo[r][3] = position[r];
+                        "[%f, %f, %f]", rotation, rotation+1, rotation+2) == 3 &&
+                    sscanf(scale_xml+strlen(scale_tag),
+                        "[%f, %f, %f]", scale, scale+1, scale+2) == 3 &&
+                    sscanf(zero_xml+strlen(zero_tag), 
+                        "[%f, %f, %f]", zero, zero+1, zero+2) == 3) {
+                    if (scale[0] == scale[1] && scale[1] == scale[2]) {
+                        instance_scaling_factor = scale[0];
+                        scale[0] = scale[1] = scale[2] = 1.;
                     }
+                    if (rotation[0] == 0. && rotation[1] == 0.) {
+                        instance_rotation = - rotation[2];
+                        rotation[2] = 0.;
+                    }
+                    Eigen::Matrix3f mat_rot, mat_scale, mat_trafo;
+                    mat_rot = Eigen::AngleAxisf(-rotation[2], Eigen::Vector3f::UnitZ()) * 
+                              Eigen::AngleAxisf(-rotation[1], Eigen::Vector3f::UnitY()) *
+                              Eigen::AngleAxisf(-rotation[0], Eigen::Vector3f::UnitX());
+                    mat_scale = Eigen::Scaling(scale[0], scale[1], scale[2]);
+                    mat_trafo = mat_rot * mat_scale;
+                    for (size_t r = 0; r < 3; ++ r) {
+                        for (size_t c = 0; c < 3; ++ c)
+                            trafo[r][c] += mat_trafo(r, c);
+                    }
+                    instance_offset.x = position[0] - zero[0];
+                    instance_offset.y = position[1] - zero[1];
+                    trafo[2][3] = position[2] / instance_scaling_factor;
                     trafo_set = true;
                 }
             }
@@ -197,15 +216,27 @@ bool load_prus(const char *path, Model *model)
 						stl.stats.number_of_facets = header.nTriangles;
 						stl.stats.original_num_facets = header.nTriangles;
 						stl_allocate(&stl);
-						if (zip.ReadAll((void*)stl.facet_start, 50 * header.nTriangles)) {
+						if (header.nTriangles > 0 && zip.ReadAll((void*)stl.facet_start, 50 * header.nTriangles)) {
+							if (sizeof(stl_facet) > SIZEOF_STL_FACET) {
+                                // The stl.facet_start is not packed tightly. Unpack the array of stl_facets.
+                                unsigned char *data = (unsigned char*)stl.facet_start;
+                                for (size_t i = header.nTriangles - 1; i > 0; -- i)
+                                    memmove(data + i * sizeof(stl_facet), data + i * SIZEOF_STL_FACET, SIZEOF_STL_FACET);
+                            }
 							// All the faces have been read.
 							stl_get_size(&stl);
 							mesh.repair();
 							// Transform the model.
 							stl_transform(&stl, &trafo[0][0]);
+							if (std::abs(stl.stats.min.z) < EPSILON)
+								stl.stats.min.z = 0.;
 							// Add a mesh to a model.
 							if (mesh.facets_count() > 0) {
-                                model->add_object(name_utf8.data(), path, std::move(mesh));
+                                ModelObject *object = model->add_object(name_utf8.data(), path, std::move(mesh));
+                                ModelInstance *instance     = object->add_instance();
+                                instance->rotation          = instance_rotation;
+                                instance->scaling_factor    = instance_scaling_factor;
+                                instance->offset            = instance_offset;
 								++ num_models;
 							}
 						}

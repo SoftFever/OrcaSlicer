@@ -2113,7 +2113,7 @@ sub OnDropFiles {
     @_ = ();
     
     # only accept STL, OBJ and AMF files
-    return 0 if grep !/\.(?:stl|obj|amf(?:\.xml)?|prus)$/i, @$filenames;
+    return 0 if grep !/\.(?:stl|obj|amf(?:\.xml)?|prusa)$/i, @$filenames;
     
     $self->{window}->load_file($_) for @$filenames;
 }

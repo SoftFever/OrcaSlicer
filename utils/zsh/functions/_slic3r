@@ -111,7 +111,7 @@ _arguments -S \
     '--support-material-extrusion-width[specify extrusion width for support material]:support material extrusion width in mm or % of --layer-height' \
     '--bridge-flow-ratio[specify multiplier for extrusion when bridging]:bridge extrusion multiplier' \
     \
-    '*:input file:_files -g "*.(#i)(stl|obj|amf|xml|prus)(-.)"'
+    '*:input file:_files -g "*.(#i)(stl|obj|amf|xml|prusa)(-.)"'
 
 # Local Variables: ***
 # mode:sh ***
