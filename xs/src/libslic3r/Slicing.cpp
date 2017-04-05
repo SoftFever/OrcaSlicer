@@ -516,6 +516,8 @@ std::vector<coordf_t> generate_object_layers(
 	const SlicingParameters 	&slicing_params,
 	const std::vector<coordf_t> &layer_height_profile)
 {
+    assert(! layer_height_profile.empty());
+
     coordf_t print_z = 0;
     coordf_t height  = 0;
 
@@ -572,16 +574,6 @@ int generate_layer_height_texture(
 {
 // https://github.com/aschn/gnuplot-colorbrewer
     std::vector<Point3> palette_raw;
-#if 0
-    palette_raw.push_back(Point3(0x0B2, 0x018, 0x02B));
-    palette_raw.push_back(Point3(0x0D6, 0x060, 0x04D));
-    palette_raw.push_back(Point3(0x0F4, 0x0A5, 0x082));
-    palette_raw.push_back(Point3(0x0FD, 0x0DB, 0x0C7));
-    palette_raw.push_back(Point3(0x0D1, 0x0E5, 0x0F0));
-    palette_raw.push_back(Point3(0x092, 0x0C5, 0x0DE));
-    palette_raw.push_back(Point3(0x043, 0x093, 0x0C3));
-    palette_raw.push_back(Point3(0x021, 0x066, 0x0AC));
-#else
     palette_raw.push_back(Point3(0x01A, 0x098, 0x050));
     palette_raw.push_back(Point3(0x066, 0x0BD, 0x063));
     palette_raw.push_back(Point3(0x0A6, 0x0D9, 0x06A));
@@ -590,7 +582,6 @@ int generate_layer_height_texture(
     palette_raw.push_back(Point3(0x0FD, 0x0AE, 0x061));
     palette_raw.push_back(Point3(0x0F4, 0x06D, 0x043));
     palette_raw.push_back(Point3(0x0D7, 0x030, 0x027));
-#endif
 
     // Clear the main texture and the 2nd LOD level.
 //	memset(data, 0, rows * cols * (level_of_detail_2nd_level ? 5 : 4));
@@ -602,7 +593,6 @@ int generate_layer_height_texture(
     coordf_t z_to_cell = coordf_t(ncells-1) / slicing_params.object_print_z_height();
     coordf_t cell_to_z = slicing_params.object_print_z_height() / coordf_t(ncells-1);
     coordf_t z_to_cell1 = coordf_t(ncells1-1) / slicing_params.object_print_z_height();
-    coordf_t cell_to_z1 = slicing_params.object_print_z_height() / coordf_t(ncells1-1);
     // for color scaling
 	coordf_t hscale = 2.f * std::max(slicing_params.max_layer_height - slicing_params.layer_height, slicing_params.layer_height - slicing_params.min_layer_height);
 	if (hscale == 0)
@@ -624,26 +614,23 @@ int generate_layer_height_texture(
 			coordf_t t = idxf - coordf_t(idx1);
             const Point3 &color1 = palette_raw[idx1];
             const Point3 &color2 = palette_raw[idx2];
-
             coordf_t z = cell_to_z * coordf_t(cell);
 			assert(z >= lo && z <= hi);
             // Intensity profile to visualize the layers.
             coordf_t intensity = cos(M_PI * 0.7 * (mid - z) / h);
-
             // Color mapping from layer height to RGB.
             Pointf3 color(
                 intensity * lerp(coordf_t(color1.x), coordf_t(color2.x), t), 
                 intensity * lerp(coordf_t(color1.y), coordf_t(color2.y), t),
                 intensity * lerp(coordf_t(color1.z), coordf_t(color2.z), t));
-
             int row = cell / (cols - 1);
             int col = cell - row * (cols - 1);
 			assert(row >= 0 && row < rows);
 			assert(col >= 0 && col < cols);
             unsigned char *ptr = (unsigned char*)data + (row * cols + col) * 4;
-            ptr[0] = clamp<int>(0, 255, int(floor(color.x + 0.5)));
-            ptr[1] = clamp<int>(0, 255, int(floor(color.y + 0.5)));
-            ptr[2] = clamp<int>(0, 255, int(floor(color.z + 0.5)));
+            ptr[0] = (unsigned char)clamp<int>(0, 255, int(floor(color.x + 0.5)));
+            ptr[1] = (unsigned char)clamp<int>(0, 255, int(floor(color.y + 0.5)));
+            ptr[2] = (unsigned char)clamp<int>(0, 255, int(floor(color.z + 0.5)));
             ptr[3] = 255;
             if (col == 0 && row > 0) {
                 // Duplicate the first value in a row as a last value of the preceding row.
@@ -663,24 +650,19 @@ int generate_layer_height_texture(
     			coordf_t t = idxf - coordf_t(idx1);
                 const Point3 &color1 = palette_raw[idx1];
                 const Point3 &color2 = palette_raw[idx2];
-
-                coordf_t z = cell_to_z1 * coordf_t(cell);
-                assert(z >= lo - EPSILON && z <= hi + EPSILON);
-
                 // Color mapping from layer height to RGB.
                 Pointf3 color(
                     lerp(coordf_t(color1.x), coordf_t(color2.x), t), 
                     lerp(coordf_t(color1.y), coordf_t(color2.y), t),
                     lerp(coordf_t(color1.z), coordf_t(color2.z), t));
-
                 int row = cell / (cols1 - 1);
                 int col = cell - row * (cols1 - 1);
     			assert(row >= 0 && row < rows/2);
     			assert(col >= 0 && col < cols/2);
                 unsigned char *ptr = data1 + (row * cols1 + col) * 4;
-                ptr[0] = clamp<int>(0, 255, int(floor(color.x + 0.5)));
-                ptr[1] = clamp<int>(0, 255, int(floor(color.y + 0.5)));
-                ptr[2] = clamp<int>(0, 255, int(floor(color.z + 0.5)));
+                ptr[0] = (unsigned char)clamp<int>(0, 255, int(floor(color.x + 0.5)));
+                ptr[1] = (unsigned char)clamp<int>(0, 255, int(floor(color.y + 0.5)));
+                ptr[2] = (unsigned char)clamp<int>(0, 255, int(floor(color.z + 0.5)));
                 ptr[3] = 255;
                 if (col == 0 && row > 0) {
                     // Duplicate the first value in a row as a last value of the preceding row.
