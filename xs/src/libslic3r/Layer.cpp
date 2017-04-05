@@ -83,16 +83,16 @@ Layer::make_slices()
     // prepare ordering points
     Points ordering_points;
     ordering_points.reserve(slices.size());
-    for (ExPolygons::const_iterator ex = slices.begin(); ex != slices.end(); ++ex)
-        ordering_points.push_back(ex->contour.first_point());
+    for (const ExPolygon &ex : slices)
+        ordering_points.push_back(ex.contour.first_point());
     
     // sort slices
     std::vector<Points::size_type> order;
     Slic3r::Geometry::chained_path(ordering_points, order);
     
     // populate slices vector
-    for (std::vector<Points::size_type>::const_iterator it = order.begin(); it != order.end(); ++it)
-        this->slices.expolygons.push_back(STDMOVE(slices[*it]));
+    for (size_t i : order)
+        this->slices.expolygons.push_back(STDMOVE(slices[i]));
 }
 
 void
