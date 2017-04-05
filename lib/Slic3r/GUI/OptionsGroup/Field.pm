@@ -547,13 +547,17 @@ sub BUILD {
     $sizer->Add($textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
     
     EVT_SLIDER($self->parent, $slider, sub {
-        $self->_update_textctrl;
-        $self->_on_change($self->option->opt_id);
+        if (! $self->disable_change_event) {
+            $self->textctrl->SetLabel($self->get_value);
+            $self->_on_change($self->option->opt_id);
+        }
     });
     EVT_TEXT($self->parent, $textctrl, sub {
         my $value = $textctrl->GetValue;
         if ($value =~ /^-?\d+(\.\d*)?$/) {
-            $self->set_value($value);
+            $self->disable_change_event(1);
+            $self->slider->SetValue($value*$self->scale);
+            $self->disable_change_event(0);
             $self->_on_change($self->option->opt_id);
         }
     });
@@ -567,18 +571,13 @@ sub set_value {
     
     $self->disable_change_event(1);
     $self->slider->SetValue($value*$self->scale);
-    $self->_update_textctrl;
+    $self->textctrl->SetLabel($self->get_value);
     $self->disable_change_event(0);
 }
 
 sub get_value {
     my ($self) = @_;
     return $self->slider->GetValue/$self->scale;
-}
-
-sub _update_textctrl {
-    my ($self) = @_;
-    $self->textctrl->SetLabel($self->get_value);
 }
 
 sub enable {
