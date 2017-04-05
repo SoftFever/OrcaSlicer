@@ -297,30 +297,22 @@ PerimeterGenerator::process()
             // two or more loops
             inset += pspacing/2;
         }
-        
         // only apply infill overlap if we actually have one perimeter
         if (inset > 0)
             inset -= this->config->get_abs_value("infill_overlap", inset + ispacing/2);
-        
-        {
-            ExPolygons expp = union_ex(last);
-            
-            // simplify infill contours according to resolution
-            Polygons pp;
-            for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex)
-                ex->simplify_p(SCALED_RESOLUTION, &pp);
-            
-            // collapse too narrow infill areas
-            coord_t min_perimeter_infill_spacing = ispacing * (1 - INSET_OVERLAP_TOLERANCE);
-            
-            // append infill areas to fill_surfaces
-            this->fill_surfaces->append(
-                offset2_ex(
-                    pp,
-                    -inset -min_perimeter_infill_spacing/2,
-                    +min_perimeter_infill_spacing/2),
-                stInternal);
-        }
+        // simplify infill contours according to resolution
+        Polygons pp;
+        for (ExPolygon &ex : union_ex(last))
+            ex.simplify_p(SCALED_RESOLUTION, &pp);
+        // collapse too narrow infill areas
+        coord_t min_perimeter_infill_spacing = ispacing * (1 - INSET_OVERLAP_TOLERANCE);
+        // append infill areas to fill_surfaces
+        this->fill_surfaces->append(
+            offset2_ex(
+                pp,
+                -inset -min_perimeter_infill_spacing/2,
+                +min_perimeter_infill_spacing/2),
+            stInternal);
     } // for each island
 }
 
