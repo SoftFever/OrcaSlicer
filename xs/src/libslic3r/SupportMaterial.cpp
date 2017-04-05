@@ -473,6 +473,158 @@ Polygons collect_slices_outer(const Layer &layer)
     return out;
 }
 
+class SupportGridPattern
+{
+public:
+    SupportGridPattern(const Polygons &support_polygons, const Polygons &trimming_polygons, coordf_t support_spacing) :
+        m_support_polygons(support_polygons), m_trimming_polygons(trimming_polygons), m_support_spacing(support_spacing)
+    {
+        // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
+        coord_t grid_resolution = coord_t(scale_(m_support_spacing));
+        BoundingBox bbox = get_extents(m_support_polygons);
+        bbox.offset(20);
+        bbox.align_to_grid(grid_resolution);
+        m_grid.set_bbox(bbox);
+        m_grid.create(m_support_polygons, grid_resolution);
+        m_grid.calculate_sdf();
+        // Extract a bounding contour from the grid, trim by the object.
+        m_island_samples = island_samples(m_support_polygons);
+    }
+
+    // Extract polygons from the grid, offsetted by offset_in_grid,
+    // and trim the extracted polygons by trimming_polygons.
+    // Trimming by the trimming_polygons may split the extracted polygons into pieces.
+    // Remove all the pieces, which do not contain any of the island_samples.
+    Polygons extract_support(const coord_t offset_in_grid)
+    {
+        // Generate islands, so each island may be tested for overlap with m_island_samples.
+        ExPolygons islands = diff_ex(
+            m_grid.contours_simplified(offset_in_grid),
+            m_trimming_polygons, false);
+
+        // Extract polygons, which contain some of the m_island_samples.
+        Polygons out;
+        std::vector<std::pair<Point,bool>> samples_inside;
+
+        for (ExPolygon &island : islands) {
+            BoundingBox bbox = get_extents(island.contour);
+            auto it_lower = std::lower_bound(m_island_samples.begin(), m_island_samples.end(), bbox.min - Point(1, 1));
+            auto it_upper = std::upper_bound(m_island_samples.begin(), m_island_samples.end(), bbox.max + Point(1, 1));
+            samples_inside.clear();
+            for (auto it = it_lower; it != it_upper; ++ it)
+                if (bbox.contains(*it))
+                    samples_inside.push_back(std::make_pair(*it, false));
+            if (! samples_inside.empty()) {
+                // For all samples_inside count the boundary crossing.
+                for (size_t i_contour = 0; i_contour <= island.holes.size(); ++ i_contour) {
+                    Polygon &contour = (i_contour == 0) ? island.contour : island.holes[i_contour - 1];
+                    Points::const_iterator i = contour.points.begin();
+                    Points::const_iterator j = contour.points.end() - 1;
+                    for (; i != contour.points.end(); j = i ++) {
+                        //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point.y well.
+                        // Does the ray with y == point.y intersect this line segment?
+                        for (auto &sample_inside : samples_inside) {
+                            if ((i->y > sample_inside.first.y) != (j->y > sample_inside.first.y)) {
+                                double x1 = (double)sample_inside.first.x;
+                                double x2 = (double)i->x + (double)(j->x - i->x) * (double)(sample_inside.first.y - i->y) / (double)(j->y - i->y);
+                                if (x1 < x2)
+                                    sample_inside.second = !sample_inside.second;
+                            }
+                        }
+                    }
+                }
+                // If any of the sample is inside this island, add this island to the output.
+                for (auto &sample_inside : samples_inside)
+                    if (sample_inside.second) {
+                        polygons_append(out, std::move(island));
+                        island.clear();
+                        break;
+                    }
+            }
+        }
+
+    #ifdef SLIC3R_DEBUG
+        static int iRun = 0;
+        ++iRun;
+        BoundingBox bbox = get_extents(m_trimming_polygons);
+        if (! islands.empty())
+            bbox.merge(get_extents(islands));
+        if (!out.empty())
+            bbox.merge(get_extents(out));
+        SVG svg(debug_out_path("extract_support_from_grid_trimmed-%d.svg", iRun).c_str(), bbox);
+        svg.draw(islands, "red", 0.5f);
+        svg.draw(union_ex(out), "green", 0.5f);
+        svg.draw(union_ex(m_support_polygons), "blue", 0.5f);
+        svg.draw_outline(islands, "red", "red", scale_(0.05));
+        svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
+        svg.draw_outline(union_ex(m_support_polygons), "blue", "blue", scale_(0.05));
+        for (const Point &pt : m_island_samples)
+            svg.draw(pt, "black", coord_t(scale_(0.15)));
+        svg.Close();
+    #endif /* SLIC3R_DEBUG */
+
+        return out;
+    }
+
+private:
+    // Get some internal point of an expolygon, to be used as a representative
+    // sample to test, whether this island is inside another island.
+    static Point island_sample(const ExPolygon &expoly)
+    {
+        // Find the lowest point lexicographically.
+        const Point *pt_min = &expoly.contour.points.front();
+        for (size_t i = 1; i < expoly.contour.points.size(); ++ i)
+            if (expoly.contour.points[i] < *pt_min)
+                pt_min = &expoly.contour.points[i];
+
+        // Lowest corner will always be convex, in worst case denegenerate with zero angle.
+        const Point &p1 = (pt_min == &expoly.contour.points.front()) ? expoly.contour.points.back() : *(pt_min - 1);
+        const Point &p2 = *pt_min;
+        const Point &p3 = (pt_min == &expoly.contour.points.back()) ? expoly.contour.points.front() : *(pt_min + 1);
+
+        Vector v  = (p3 - p2) + (p1 - p2);
+        double l2 = double(v.x)*double(v.x)+double(v.y)*double(v.y);
+        if (l2 == 0.)
+            return p2;
+        double coef = 20. / sqrt(l2);
+        return Point(p2.x + coef * v.x, p2.y + coef * v.y);
+    }
+
+    static Points island_samples(const ExPolygons &expolygons)
+    {
+        Points pts;
+        pts.reserve(expolygons.size());
+        for (const ExPolygon &expoly : expolygons)
+            if (expoly.contour.points.size() > 2) {
+                #if 0
+                    pts.push_back(island_sample(expoly));
+                #else 
+                    Polygons polygons = offset(expoly, - 20.f);
+                    for (const Polygon &poly : polygons)
+                        if (! poly.points.empty()) {
+                            pts.push_back(poly.points.front());
+                            break;
+                        }
+                #endif
+            }
+        // Sort the points lexicographically, so a binary search could be used to locate points inside a bounding box.
+        std::sort(pts.begin(), pts.end());
+        return pts;
+    } 
+
+    static Points island_samples(const Polygons &polygons)
+    {
+        return island_samples(union_ex(polygons));
+    }
+
+    const Polygons         &m_support_polygons;
+    const Polygons         &m_trimming_polygons;
+    coordf_t                m_support_spacing;
+
+    Slic3r::EdgeGrid::Grid  m_grid;
+    Points                  m_island_samples;
+};
+
 // Generate top contact layers supporting overhangs.
 // For a soluble interface material synchronize the layer heights with the object, otherwise leave the layer height undefined.
 // If supports over bed surface only are requested, don't generate contact layers over an object.
@@ -790,49 +942,26 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         }
                     }
 
-        #if 0
-                    new_layer.polygons = std::move(contact_polygons);
-        #else
-                    {
-                        // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
-                        Slic3r::EdgeGrid::Grid grid;
-                        coordf_t support_spacing = m_object_config->support_material_spacing.value + m_support_material_flow.spacing();
-                        coord_t grid_resolution = coord_t(scale_(support_spacing)); // scale_(1.5f);
-                        BoundingBox bbox = get_extents(contact_polygons);
-                        bbox.offset(20);
-                        bbox.align_to_grid(grid_resolution);
-                        grid.set_bbox(bbox);
-                        grid.create(contact_polygons, grid_resolution);
-                        grid.calculate_sdf();                
-                        // Extract a bounding contour from the grid, trim by the object.
-                        // 1) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
-                        new_layer.polygons = diff(
-                            grid.contours_simplified(m_support_material_flow.scaled_spacing()/2 + 5),
-                            slices_margin_cached,
-                            true); 
-                        // 2) Contact polygons will be projected down. To keep the interface and base layers to grow, return a contour a tiny bit smaller than the grid cells.
-                        new_layer.contact_polygons = new Polygons(diff(
-                            grid.contours_simplified(-3),
-                            slices_margin_cached,
-                            false));
-                    }
-        #endif
+                    SupportGridPattern support_grid_pattern(
+                        // Support islands, to be stretched into a grid.
+                        contact_polygons, 
+                        // Trimming polygons, to trim the stretched support islands.
+                        slices_margin_cached,
+                        // How much to offset the extracted contour outside of the grid.
+                        m_object_config->support_material_spacing.value + m_support_material_flow.spacing());
+                    // 1) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
+                    new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5);
+                    // 2) Contact polygons will be projected down. To keep the interface and base layers to grow, return a contour a tiny bit smaller than the grid cells.
+                    new_layer.contact_polygons = new Polygons(support_grid_pattern.extract_support(-3));
+
                     // Even after the contact layer was expanded into a grid, some of the contact islands may be too tiny to be extruded.
                     // Remove those tiny islands from new_layer.polygons and new_layer.contact_polygons.
                     
-
                     // Store the overhang polygons.
                     // The overhang polygons are used in the path generator for planning of the contact loops.
                     // if (this->has_contact_loops())
                     new_layer.overhang_polygons = new Polygons(std::move(overhang_polygons));
                     contact_out[layer_id] = &new_layer;
-#if 0
-                        // Slic3r::SVG::output("out\\contact_" . $contact_z . ".svg",
-                        //     green_expolygons => union_ex($buildplate_only_top_surfaces),
-                        //     blue_expolygons  => union_ex(\@contact),
-                        //     red_expolygons   => union_ex(\@overhang),
-                        // );
-#endif
                 }
             }
         });
@@ -988,52 +1117,26 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                 projection = diff(projection_raw, trimming, false);
                 remove_sticks(projection);
                 remove_degenerate(projection);
-
-                // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
-                Slic3r::EdgeGrid::Grid grid;
-                coordf_t support_spacing = m_object_config->support_material_spacing.value + m_support_material_flow.spacing();
-                coord_t grid_resolution = coord_t(scale_(support_spacing));
-                BoundingBox bbox = get_extents(projection);
-                bbox.offset(20);
-                bbox.align_to_grid(grid_resolution);
-    			grid.set_bbox(bbox);
-    			grid.create(projection, grid_resolution);
-                grid.calculate_sdf();
-
+                SupportGridPattern support_grid_pattern(
+                    // Support islands, to be stretched into a grid.
+                    projection, 
+                    // Trimming polygons, to trim the stretched support islands.
+                    trimming,
+                    // How much to offset the extracted contour outside of the grid.
+                    m_object_config->support_material_spacing.value + m_support_material_flow.spacing());
                 tbb::task_group task_group_inner;
-                // Cache the slice of a support volume. The support volume is expanded by 1/2 of support material flow spacing
+                // 1) Cache the slice of a support volume. The support volume is expanded by 1/2 of support material flow spacing
                 // to allow a placement of suppot zig-zag snake along the grid lines.
-                task_group_inner.run([this, &grid, &trimming, &layer_support_area] {
-                    layer_support_area = diff(
-                        grid.contours_simplified(m_support_material_flow.scaled_spacing()/2 + 25), 
-                        trimming,
-                        false);
+				task_group_inner.run([this, &support_grid_pattern, &layer_support_area] {
+                    layer_support_area = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 25);
                 });
-
-                task_group_inner.run([&projection, &grid, &trimming, layer_id] {
-                    // Extract a bounding contour from the grid.
-                    Polygons projection_simplified = grid.contours_simplified(-5);
-        #ifdef SLIC3R_DEBUG
-                    {
-                        BoundingBox bbox = get_extents(projection);
-                        bbox.merge(get_extents(projection_simplified));
-                        ::Slic3r::SVG svg(debug_out_path("support-bottom-contacts-simplified-%d-%d.svg", iRun, layer_id), bbox);
-                        svg.draw(union_ex(projection, false), "blue", 0.5);
-                        svg.draw(union_ex(projection_simplified, false), "red", 0.5);
-            #if 0
-                        bbox.min.x -= scale_(5.f);
-                        bbox.min.y -= scale_(5.f);
-                        bbox.max.x += scale_(5.f);
-                        bbox.max.y += scale_(5.f);
-                        EdgeGrid::save_png(grid, bbox, scale_(0.1f), debug_out_path("support-bottom-contacts-df-%d-%d.png", iRun, layer_id).c_str());
-            #endif /* SLIC3R_GUI */
-                    }
-        #endif /* SLIC3R_DEBUG */
-                    // Trim the base layer by the object layer.
-                    projection = diff(projection_simplified, trimming, false);
+                // 2) Support polygons will be projected down. To keep the interface and base layers from growing, return a contour a tiny bit smaller than the grid cells.
+                Polygons projection_new;
+				task_group_inner.run([&projection_new, &support_grid_pattern] {
+                    projection_new = support_grid_pattern.extract_support(-5);
                 });
-
                 task_group_inner.wait();
+                projection = std::move(projection_new);
             });
             task_group.wait();
         }
