@@ -696,6 +696,22 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
         }
     );
     BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::slice finished";
+
+#ifdef SLIC3R_DEBUG
+    {
+        static int iRun = 0;
+        for (size_t i = 0; i < z.size(); ++ i) {
+            Polygons &polygons = (*layers)[i];
+            SVG::export_expolygons(debug_out_path("slice_%d_%d.svg", iRun, i).c_str(), union_ex(polygons, true));
+            for (Polygon &poly : polygons) {
+                for (size_t i = 1; i < poly.points.size(); ++ i)
+                    assert(poly.points[i-1] != poly.points[i]);
+                assert(poly.points.front() != poly.points.back());
+            }
+        }
+        ++ iRun;
+    }
+#endif
 }
 
 void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, 
