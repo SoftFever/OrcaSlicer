@@ -19,7 +19,7 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, "Settings for " . $params{object}->name, wxDefaultPosition, [700,500], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
     $self->{$_} = $params{$_} for keys %params;
-    
+
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
     $self->{tabpanel}->AddPage($self->{parts} = Slic3r::GUI::Plater::ObjectPartsPanel->new($self->{tabpanel}, model_object => $params{model_object}), "Parts");
     $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}), "Layers");
@@ -80,7 +80,7 @@ sub new {
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     
     {
-        my $label = Wx::StaticText->new($self, -1, "You can use this section to override the default layer height for parts of this object. Set layer height to zero to skip portions of the input file.",
+        my $label = Wx::StaticText->new($self, -1, "You can use this section to override the default layer height for parts of this object.",
             wxDefaultPosition, [-1, 40]);
         $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
         $sizer->Add($label, 0, wxEXPAND | wxALL, 10);
@@ -112,7 +112,7 @@ sub new {
         my $value = $grid->GetCellValue($event->GetRow, $event->GetCol);
         $value =~ s/,/./g;
         $value =~ s/[^0-9.]//g;
-        $grid->SetCellValue($event->GetRow, $event->GetCol, $value);
+        $grid->SetCellValue($event->GetRow, $event->GetCol, ($event->GetCol == 2) ? $self->_clamp_layer_height($value) : $value);
         
         # if there's no empty row, let's append one
         for my $i (0 .. $grid->GetNumberRows) {
@@ -134,6 +134,34 @@ sub new {
     $sizer->SetSizeHints($self);
     
     return $self;
+}
+
+sub _clamp_layer_height
+{
+    my ($self, $value) = @_;
+    # $self->GetParent->GetParent is of type Slic3r::GUI::Plater::ObjectSettingsDialog
+    my $config            = $self->GetParent->GetParent->{config};
+    if ($value =~ /^[0-9,.E]+$/) {
+        # Looks like a number. Validate the layer height.
+        my $nozzle_dmrs       = $config->get('nozzle_diameter');
+        my $min_layer_heights = $config->get('min_layer_height');
+        my $max_layer_heights = $config->get('max_layer_height');
+        my $min_layer_height  = 1000.;
+        my $max_layer_height  = 0.;
+        my $max_nozzle_dmr    = 0.;
+        for (my $i = 0; $i < int(@{$nozzle_dmrs}); $i += 1) {
+            $min_layer_height = $min_layer_heights->[$i] if ($min_layer_heights->[$i] < $min_layer_height);
+            $max_layer_height = $max_layer_heights->[$i] if ($max_layer_heights->[$i] > $max_layer_height);
+            $max_nozzle_dmr   = $nozzle_dmrs      ->[$i] if ($nozzle_dmrs      ->[$i] > $max_nozzle_dmr  );
+        }
+        $min_layer_height = 0.005 if ($min_layer_height < 0.005);
+        $max_layer_height = $max_nozzle_dmr if ($max_layer_height > $max_nozzle_dmr);
+        return ($value < $min_layer_height) ? $min_layer_height :
+               ($value > $max_layer_height) ? $max_layer_height : $value;
+    } else {
+        # If an invalid numeric value has been entered, use the default layer height.
+        return $config->get('layer_height');
+    }
 }
 
 sub CanClose {

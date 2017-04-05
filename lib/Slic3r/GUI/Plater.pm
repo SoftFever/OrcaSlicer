@@ -1819,6 +1819,7 @@ sub object_settings_dialog {
     my $dlg = Slic3r::GUI::Plater::ObjectSettingsDialog->new($self,
 		object          => $self->{objects}[$obj_idx],
 		model_object    => $model_object,
+        config          => $self->GetFrame->config,
 	);
 	$self->pause_background_process;
 	$dlg->ShowModal;
