@@ -7,6 +7,7 @@
 #include <utility>
 #include <boost/log/trivial.hpp>
 
+#include <tbb/task_scheduler_init.h>
 #include <tbb/parallel_for.h>
 #include <tbb/atomic.h>
 
@@ -1054,6 +1055,12 @@ void PrintObject::_slice()
 {
     BOOST_LOG_TRIVIAL(info) << "Slicing objects...";
 
+#if 0
+    // Disable parallelization for debugging purposes.
+    static tbb::task_scheduler_init *tbb_init = nullptr;
+    tbb_init = new tbb::task_scheduler_init(1);
+#endif
+
     SlicingParameters slicing_params = this->slicing_parameters();
 
     // 1) Initialize layers and their slice heights.
@@ -1386,7 +1393,7 @@ PrintObject::_make_perimeters()
                         }
                         #ifdef DEBUG
                             if (slice.extra_perimeters > 0)
-                                printf("  adding %d more perimeter(s) at layer %zu\n", slice.extra_perimeters, i);
+                                printf("  adding %d more perimeter(s) at layer %zu\n", slice.extra_perimeters, layer_idx);
                         #endif
                     }
                 }
