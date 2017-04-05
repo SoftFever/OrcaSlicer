@@ -553,9 +553,9 @@ BoundingBox get_extents(const ExPolygons &expolygons)
 {
     BoundingBox bbox;
     if (! expolygons.empty()) {
-        bbox = get_extents(expolygons.front());
-        for (size_t i = 1; i < expolygons.size(); ++ i)
-            bbox.merge(get_extents(expolygons[i]));
+        for (size_t i = 0; i < expolygons.size(); ++ i)
+			if (! expolygons[i].contour.points.empty())
+				bbox.merge(get_extents(expolygons[i]));
     }
     return bbox;
 }
