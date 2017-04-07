@@ -131,7 +131,7 @@ void export_print_z_polygons_and_extrusions_to_svg(
 
     Polygons polygons_support, polygons_interface;
     support_layer.support_fills.polygons_covered_by_width(polygons_support, SCALED_EPSILON);
-    support_layer.support_interface_fills.polygons_covered_by_width(polygons_interface, SCALED_EPSILON);
+//    support_layer.support_interface_fills.polygons_covered_by_width(polygons_interface, SCALED_EPSILON);
     svg.draw(union_ex(polygons_support), "brown");
     svg.draw(union_ex(polygons_interface), "black");
 
@@ -192,6 +192,16 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         external_perimeter_width = std::max(external_perimeter_width, width);
     }
     m_gap_xy = m_object_config->support_material_xy_spacing.get_abs_value(external_perimeter_width);
+
+    m_can_merge_support_regions = m_object_config->support_material_extruder.value == m_object_config->support_material_interface_extruder.value;
+    if (! m_can_merge_support_regions && (m_object_config->support_material_extruder.value == 0 || m_object_config->support_material_interface_extruder.value == 0)) {
+        // One of the support extruders is of "don't care" type.
+        auto object_extruders = m_object->print()->object_extruders();
+        if (object_extruders.size() == 1 &&
+            *object_extruders.begin() == std::max(m_object_config->support_material_extruder.value, m_object_config->support_material_interface_extruder.value))
+            // Object is printed with the same extruder as the support.
+            m_can_merge_support_regions = true;
+    }
 }
 
 // Using the std::deque as an allocator.
@@ -836,7 +846,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         // on the other side of the object (if it's very thin).
                         {
                             //FIMXE 1) Make the offset configurable, 2) Make the Z span configurable.
-                            float slices_margin_offset = float(0.5*fw);
+                            float slices_margin_offset = float(scale_(m_gap_xy)); 
                             if (slices_margin_cached_offset != slices_margin_offset) {
                                 slices_margin_cached_offset = slices_margin_offset;
                                 slices_margin_cached = offset(lower_layer.slices.expolygons, slices_margin_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS);
@@ -913,28 +923,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 new_layer.bottom_z = 0;
                                 new_layer.height   = m_slicing_params.first_print_layer_height;
                             } else if (this->synchronize_layers()) {
-                                // Align bottom of this layer with a top of the closest object layer
-                                // while not trespassing into the 1st layer and keeping the support layer thickness bounded.
-                                int layer_id_below = int(layer_id) - 1;
-                                for (; layer_id_below >= 0; -- layer_id_below) {
-                                    layer_below = object.layers[layer_id_below];
-                                    if (layer_below->print_z <= new_layer.print_z - m_support_layer_height_min) {
-                                        // This is a feasible support layer height.
-                                        new_layer.bottom_z = layer_below->print_z;
-                                        new_layer.height = new_layer.print_z - new_layer.bottom_z;
-                                        assert(new_layer.height <= m_slicing_params.max_suport_layer_height);
-                                        break;
-                                    }                        
-                                }
-                                if (layer_id_below == -1) {
-                                    // Could not align with any of the top surfaces of object layers.
-                                    if (this->has_raft()) {
-                                        // If having a raft, all the other layers will be aligned one with the other.
-                                    } else {
-                                        // Give up, ignore this layer.
-                                        continue;
-                                    }
-                                }
+                                // Don't do anything special for the top contact surfaces in regard to synchronizing the layers.
+                                // Bottom contact surfaces will be synchronized though.
                             } else {
                                 // Don't know the height of the top contact layer yet. The top contact layer is printed with a normal flow and 
                                 // its height will be set adaptively later on.
@@ -1298,8 +1288,17 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 			continue;
         }
         if (std::abs(extr2z - m_slicing_params.first_print_layer_height) < EPSILON) {
-            // This is a 1st layer supporting some of the early object print layers, its height has been decided in this->top_contact_layers().
+            // This is a bottom of a synchronized (or soluble) top contact layer, its height has been decided in this->top_contact_layers().
             assert(extr2->layer_type == sltTopContact);
+			assert(extr2->bottom_z == m_slicing_params.first_print_layer_height);
+			assert(extr2->print_z >= m_slicing_params.first_print_layer_height + this->m_support_layer_height_min - EPSILON);
+			if (intermediate_layers.empty() || intermediate_layers.back()->print_z < m_slicing_params.first_print_layer_height) {
+				MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
+				layer_new.bottom_z = 0.;
+				layer_new.print_z  = m_slicing_params.first_print_layer_height;
+				layer_new.height   = m_slicing_params.first_print_layer_height;
+				intermediate_layers.push_back(&layer_new);
+			}
             continue;
         }
         assert(extr2z >= m_slicing_params.raft_interface_top_z + EPSILON);
@@ -1633,12 +1632,12 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
     MyLayerStorage      &layer_storage) const
 {
     // How much to inflate the support columns to be stable. This also applies to the 1st layer, if no raft layers are to be printed.
-    const float inflate_factor_fine      = float(scale_(0.5));
+    const float inflate_factor_fine      = float(scale_((m_slicing_params.raft_layers() > 1) ? 0.5 : EPSILON));
     const float inflate_factor_1st_layer = float(scale_(3.)) - inflate_factor_fine;
     MyLayer       *contacts      = top_contacts    .empty() ? nullptr : top_contacts    .front();
     MyLayer       *interfaces    = interface_layers.empty() ? nullptr : interface_layers.front();
     MyLayer       *columns_base  = base_layers     .empty() ? nullptr : base_layers     .front();
-	if (contacts != nullptr && contacts->print_z > m_slicing_params.raft_contact_top_z + EPSILON)
+	if (contacts != nullptr && contacts->print_z > std::max(m_slicing_params.first_print_layer_height, m_slicing_params.raft_contact_top_z) + EPSILON)
 		// This is not the raft contact layer.
 		contacts = nullptr;
     if (interfaces != nullptr && interfaces->bottom_print_z() > m_slicing_params.raft_interface_top_z + EPSILON)
@@ -2181,7 +2180,7 @@ void modulate_extrusion_by_overlapping_layers(
     // Get the initial extrusion parameters.
     ExtrusionPath *extrusion_path_template = dynamic_cast<ExtrusionPath*>(extrusions_in_out.front());
     assert(extrusion_path_template != nullptr);
-    ExtrusionRole extrusion_role  = extrusion_path_template->role;
+    ExtrusionRole extrusion_role  = extrusion_path_template->role();
     float         extrusion_width = extrusion_path_template->width;
 
     struct ExtrusionPathFragment
@@ -2491,8 +2490,6 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             assert(support_layer_id < raft_layers.size());
             SupportLayer &support_layer = *object.support_layers[support_layer_id];
             assert(support_layer.support_fills.entities.empty());
-            assert(support_layer.support_interface_fills.entities.empty());
-            assert(support_layer.support_islands.expolygons.empty());
             MyLayer      &raft_layer    = *raft_layers[support_layer_id];
 
             std::unique_ptr<Fill> filler_interface = std::unique_ptr<Fill>(Fill::new_from_type(ipRectilinear));
@@ -2587,6 +2584,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         std::vector<LayerCacheItem>     overlaps;
     };
     std::vector<LayerCache>             layer_caches(object.support_layers.size(), LayerCache());
+
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, object.support_layers.size()),
         [this, &object, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &layer_caches, &loop_interface_processor, 
             infill_pattern, &bbox_object, support_density, interface_density, interface_angle, &angles, link_max_length_factor, with_sheath]
@@ -2630,14 +2628,16 @@ void PrintObjectSupportMaterial::generate_toolpaths(
 
             if (m_object_config->support_material_interface_layers == 0) {
                 // If no interface layers were requested, we treat the contact layer exactly as a generic base layer.
-    			if (base_layer.could_merge(top_contact_layer)) 
-    				base_layer.merge(std::move(top_contact_layer));
-    			else if (base_layer.empty() && !top_contact_layer.empty() && !top_contact_layer.layer->bridging)
-    				std::swap(base_layer, top_contact_layer);
-                if (base_layer.could_merge(bottom_contact_layer))
-                    base_layer.merge(std::move(bottom_contact_layer));
-                else if (base_layer.empty() && !bottom_contact_layer.empty() && !bottom_contact_layer.layer->bridging)
-                    std::swap(base_layer, bottom_contact_layer);
+                if (m_can_merge_support_regions) {
+        			if (base_layer.could_merge(top_contact_layer)) 
+        				base_layer.merge(std::move(top_contact_layer));
+        			else if (base_layer.empty() && !top_contact_layer.empty() && !top_contact_layer.layer->bridging)
+        				std::swap(base_layer, top_contact_layer);
+                    if (base_layer.could_merge(bottom_contact_layer))
+                        base_layer.merge(std::move(bottom_contact_layer));
+                    else if (base_layer.empty() && !bottom_contact_layer.empty() && !bottom_contact_layer.layer->bridging)
+                        std::swap(base_layer, bottom_contact_layer);
+                }
             } else {
                 loop_interface_processor.generate(top_contact_layer, m_support_material_interface_flow);
                 // If no loops are allowed, we treat the contact layer exactly as a generic interface layer.
