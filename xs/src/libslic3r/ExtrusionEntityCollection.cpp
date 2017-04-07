@@ -22,7 +22,7 @@ ExtrusionEntityCollection& ExtrusionEntityCollection::operator= (const Extrusion
 }
 
 void
-ExtrusionEntityCollection::swap (ExtrusionEntityCollection &c)
+ExtrusionEntityCollection::swap(ExtrusionEntityCollection &c)
 {
     std::swap(this->entities, c.entities);
     std::swap(this->orig_indices, c.orig_indices);
@@ -81,22 +81,22 @@ ExtrusionEntityCollection::remove(size_t i)
 }
 
 ExtrusionEntityCollection
-ExtrusionEntityCollection::chained_path(bool no_reverse, std::vector<size_t>* orig_indices) const
+ExtrusionEntityCollection::chained_path(bool no_reverse, ExtrusionRole role) const
 {
     ExtrusionEntityCollection coll;
-    this->chained_path(&coll, no_reverse, orig_indices);
+    this->chained_path(&coll, no_reverse, role);
     return coll;
 }
 
 void
-ExtrusionEntityCollection::chained_path(ExtrusionEntityCollection* retval, bool no_reverse, std::vector<size_t>* orig_indices) const
+ExtrusionEntityCollection::chained_path(ExtrusionEntityCollection* retval, bool no_reverse, ExtrusionRole role, std::vector<size_t>* orig_indices) const
 {
     if (this->entities.empty()) return;
-    this->chained_path_from(this->entities.front()->first_point(), retval, no_reverse, orig_indices);
+    this->chained_path_from(this->entities.front()->first_point(), retval, no_reverse, role, orig_indices);
 }
 
 void
-ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse, std::vector<size_t>* orig_indices) const
+ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse, ExtrusionRole role, std::vector<size_t>* orig_indices) const
 {
     if (this->no_sort) {
         *retval = *this;
@@ -110,6 +110,15 @@ ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCo
     
     ExtrusionEntitiesPtr my_paths;
     for (ExtrusionEntitiesPtr::const_iterator it = this->entities.begin(); it != this->entities.end(); ++it) {
+        if (role != erMixed) {
+            // The caller wants only paths with a specific extrusion role.
+            auto role2 = (*it)->role();
+            if (role != role2) {
+                // This extrusion entity does not match the role asked.
+                assert(role2 != erMixed);
+                continue;
+            }
+        }
         ExtrusionEntity* entity = (*it)->clone();
         my_paths.push_back(entity);
         if (orig_indices != NULL) indices_map[entity] = it - this->entities.begin();

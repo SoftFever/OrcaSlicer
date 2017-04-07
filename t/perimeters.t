@@ -65,7 +65,7 @@ use Slic3r::Test;
             $expected{external}, 'expected number of external loops';
         is_deeply [ map { ($_->role == EXTR_ROLE_EXTERNAL_PERIMETER) || 0 } map @$_, @loops ],
             $expected{ext_order}, 'expected external order';
-        is scalar(grep $_->role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER, @loops),
+        is scalar(grep $_->loop_role == EXTRL_ROLE_CONTOUR_INTERNAL_PERIMETER, @loops),
             $expected{cinternal}, 'expected number of internal contour loops';
         is scalar(grep $_->polygon->is_counter_clockwise, @loops),
             $expected{ccw}, 'expected number of ccw loops';

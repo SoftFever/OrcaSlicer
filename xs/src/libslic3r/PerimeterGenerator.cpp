@@ -391,7 +391,7 @@ PerimeterGenerator::_traverse_loops(const PerimeterGeneratorLoops &loops,
     // sort entities into a new collection using a nearest-neighbor search,
     // preserving the original indices which are useful for detecting thin walls
     ExtrusionEntityCollection sorted_coll;
-    coll.chained_path(&sorted_coll, false, &sorted_coll.orig_indices);
+    coll.chained_path(&sorted_coll, false, erMixed, &sorted_coll.orig_indices);
     
     // traverse children and build the final collection
     ExtrusionEntityCollection entities;

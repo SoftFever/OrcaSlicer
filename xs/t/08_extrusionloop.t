@@ -5,7 +5,7 @@ use warnings;
 
 use List::Util qw(sum);
 use Slic3r::XS;
-use Test::More tests => 48;
+use Test::More tests => 47;
 
 {
     my $square = [
@@ -35,8 +35,6 @@ use Test::More tests => 48;
         my $path = $loop->[0];
         isa_ok $path, 'Slic3r::ExtrusionPath::Ref';
         is $path->role, Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER, 'role';
-        $path->role(Slic3r::ExtrusionPath::EXTR_ROLE_FILL);
-        is $path->role, Slic3r::ExtrusionPath::EXTR_ROLE_FILL, 'modify role';
     }
 
     $loop->split_at_vertex($square_p->[2]);

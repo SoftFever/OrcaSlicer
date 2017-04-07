@@ -354,6 +354,7 @@ static inline const char* ExtrusionRole2String(const ExtrusionRole role)
     case erSkirt:                       return "erSkirt";
     case erSupportMaterial:             return "erSupportMaterial";
     case erSupportMaterialInterface:    return "erSupportMaterialInterface";
+    case erMixed:                       return "erMixed";
     default:                            return "erInvalid";
     };
 }
@@ -565,7 +566,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     bool was_clockwise = loop.make_counter_clockwise();
     
     SeamPosition seam_position = this->config.seam_position;
-    if (loop.role == elrSkirt) 
+    if (loop.loop_role() == elrSkirt) 
         seam_position = spNearest;
     
     // find the point of the loop that is closest to the current extruder position
@@ -715,7 +716,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
             loop.split_at(polygon.points[idx_min], true);
 
     } else if (seam_position == spRandom) {
-        if (loop.role == elrContourInternalPerimeter) {
+        if (loop.loop_role() == elrContourInternalPerimeter) {
             // This loop does not contain any other loop. Set a random position.
             // The other loops will get a seam close to the random point chosen
             // on the inner most contour.
@@ -750,7 +751,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     // extrude along the path
     std::string gcode;
     for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
-//    description += ExtrusionLoopRole2String(loop.role);
+//    description += ExtrusionLoopRole2String(loop.loop_role());
 //    description += ExtrusionRole2String(path->role);
         path->simplify(SCALED_RESOLUTION);
         gcode += this->_extrude(*path, description, speed);
@@ -763,7 +764,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         this->wipe.path = paths.front().polyline;  // TODO: don't limit wipe to last path
     
     // make a little move inwards before leaving loop
-    if (paths.back().role == erExternalPerimeter && this->layer != NULL && this->config.perimeters > 1) {
+    if (paths.back().role() == erExternalPerimeter && this->layer != NULL && this->config.perimeters > 1) {
         // detect angle between last and first segment
         // the side depends on the original winding order of the polygon (left for contours, right for holes)
         Point a = paths.front().polyline.points[1];  // second point
@@ -805,7 +806,7 @@ GCode::extrude(ExtrusionMultiPath multipath, std::string description, double spe
     // extrude along the path
     std::string gcode;
     for (ExtrusionPaths::iterator path = multipath.paths.begin(); path != multipath.paths.end(); ++path) {
-//    description += ExtrusionLoopRole2String(loop.role);
+//    description += ExtrusionLoopRole2String(loop.loop_role());
 //    description += ExtrusionRole2String(path->role);
         path->simplify(SCALED_RESOLUTION);
         gcode += this->_extrude(*path, description, speed);
@@ -837,7 +838,7 @@ GCode::extrude(const ExtrusionEntity &entity, std::string description, double sp
 std::string
 GCode::extrude(ExtrusionPath path, std::string description, double speed)
 {
-//    description += ExtrusionRole2String(path.role);
+//    description += ExtrusionRole2String(path.role());
     path.simplify(SCALED_RESOLUTION);
     std::string gcode = this->_extrude(path, description, speed);
     if (this->wipe.enable) {
@@ -846,6 +847,40 @@ GCode::extrude(ExtrusionPath path, std::string description, double speed)
     }    
     // reset acceleration
     gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
+    return gcode;
+}
+
+std::string GCode::extrude_support(const ExtrusionEntityCollection *support_fills, unsigned int extruder_id)
+{
+    std::string gcode;
+    if (! support_fills->entities.empty()) {
+        const char   *support_label            = "support material";
+        const char   *support_interface_label  = "support material interface";
+        const double  support_speed            = this->config.get_abs_value("support_material_speed");
+        const double  support_interface_speed  = this->config.get_abs_value("support_material_interface_speed");
+        // Only trigger extruder change if the extruder is not set to zero,
+		// but make sure the extruder is initialized.
+        // Extruder ID zero means "does not matter", extrude with the current extruder.
+		if (this->writer.extruder() == nullptr && extruder_id == 0)
+			extruder_id = 1;
+        if (extruder_id > 0)
+            gcode += this->set_extruder(extruder_id - 1);
+        for (const ExtrusionEntity *ee : support_fills->entities) {
+            ExtrusionRole role = ee->role();
+            assert(role == erSupportMaterial || role == erSupportMaterialInterface);
+            const char  *label = (role == erSupportMaterial) ? support_label : support_interface_label;
+            const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
+            const ExtrusionPath *path = dynamic_cast<const ExtrusionPath*>(ee);
+            if (path)
+                gcode += this->extrude(*path, label, speed);
+            else {
+                const ExtrusionMultiPath *multipath = dynamic_cast<const ExtrusionMultiPath*>(ee);
+                assert(multipath != nullptr);
+                if (multipath)
+                    gcode += this->extrude(*multipath, label, speed);
+            }
+        }
+    }
     return gcode;
 }
 
@@ -858,7 +893,7 @@ GCode::_extrude(const ExtrusionPath &path, std::string description, double speed
     if (!this->_last_pos_defined || !this->_last_pos.coincides_with(path.first_point())) {
         gcode += this->travel_to(
             path.first_point(),
-            path.role,
+            path.role(),
             "move to first " + description + " point"
         );
     }
@@ -889,19 +924,19 @@ GCode::_extrude(const ExtrusionPath &path, std::string description, double speed
     
     // set speed
     if (speed == -1) {
-        if (path.role == erPerimeter) {
+        if (path.role() == erPerimeter) {
             speed = this->config.get_abs_value("perimeter_speed");
-        } else if (path.role == erExternalPerimeter) {
+        } else if (path.role() == erExternalPerimeter) {
             speed = this->config.get_abs_value("external_perimeter_speed");
-        } else if (path.role == erOverhangPerimeter || path.role == erBridgeInfill) {
+        } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill) {
             speed = this->config.get_abs_value("bridge_speed");
-        } else if (path.role == erInternalInfill) {
+        } else if (path.role() == erInternalInfill) {
             speed = this->config.get_abs_value("infill_speed");
-        } else if (path.role == erSolidInfill) {
+        } else if (path.role() == erSolidInfill) {
             speed = this->config.get_abs_value("solid_infill_speed");
-        } else if (path.role == erTopSolidInfill) {
+        } else if (path.role() == erTopSolidInfill) {
             speed = this->config.get_abs_value("top_solid_infill_speed");
-        } else if (path.role == erGapFill) {
+        } else if (path.role() == erGapFill) {
             speed = this->config.get_abs_value("gap_fill_speed");
         } else {
             CONFESS("Invalid speed");
@@ -931,10 +966,10 @@ GCode::_extrude(const ExtrusionPath &path, std::string description, double speed
     
     // extrude arc or line
     if (this->enable_extrusion_role_markers || this->enable_analyzer_markers) {
-        if (path.role != this->_last_extrusion_role) {
-            this->_last_extrusion_role = path.role;
+        if (path.role() != this->_last_extrusion_role) {
+            this->_last_extrusion_role = path.role();
             char buf[32];
-            sprintf(buf, ";_EXTRUSION_ROLE:%d\n", int(path.role));
+            sprintf(buf, ";_EXTRUSION_ROLE:%d\n", int(path.role()));
             gcode += buf;
         }
     }

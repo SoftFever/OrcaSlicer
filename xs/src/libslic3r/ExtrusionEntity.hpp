@@ -25,6 +25,8 @@ enum ExtrusionRole {
     erSkirt,
     erSupportMaterial,
     erSupportMaterialInterface,
+    // Extrusion role for a collection with multiple extrusion roles.
+    erMixed,
 };
 
 /* Special flags describing loop */
@@ -37,6 +39,7 @@ enum ExtrusionLoopRole {
 class ExtrusionEntity
 {
 public:
+    virtual ExtrusionRole role() const = 0;
     virtual bool is_collection() const { return false; }
     virtual bool is_loop() const { return false; }
     virtual bool can_reverse() const { return true; }
@@ -68,7 +71,6 @@ class ExtrusionPath : public ExtrusionEntity
 {
 public:
     Polyline polyline;
-    ExtrusionRole role;
     // Volumetric velocity. mm^3 of plastic per mm of linear head motion. Used by the G-code generator.
     double mm3_per_mm;
     // Width of the extrusion, used for visualization purposes.
@@ -76,14 +78,14 @@ public:
     // Height of the extrusion, used for visualization purposed.
     float height;
     
-    ExtrusionPath(ExtrusionRole role) : role(role), mm3_per_mm(-1), width(-1), height(-1) {};
-    ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : role(role), mm3_per_mm(mm3_per_mm), width(width), height(height) {};
-    ExtrusionPath(const ExtrusionPath &rhs) : role(rhs.role), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), polyline(rhs.polyline) {}
-    ExtrusionPath(ExtrusionPath &&rhs) : role(rhs.role), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), polyline(std::move(rhs.polyline)) {}
-//    ExtrusionPath(ExtrusionRole role, const Flow &flow) : role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height) {};
+    ExtrusionPath(ExtrusionRole role) : m_role(role), mm3_per_mm(-1), width(-1), height(-1) {};
+    ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : m_role(role), mm3_per_mm(mm3_per_mm), width(width), height(height) {};
+    ExtrusionPath(const ExtrusionPath &rhs) : m_role(rhs.m_role), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), polyline(rhs.polyline) {}
+    ExtrusionPath(ExtrusionPath &&rhs) : m_role(rhs.m_role), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), polyline(std::move(rhs.polyline)) {}
+//    ExtrusionPath(ExtrusionRole role, const Flow &flow) : m_role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height) {};
 
-    ExtrusionPath& operator=(const ExtrusionPath &rhs) { this->role = rhs.role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->polyline = rhs.polyline; return *this; }
-    ExtrusionPath& operator=(ExtrusionPath &&rhs) { this->role = rhs.role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->polyline = std::move(rhs.polyline); return *this; }
+    ExtrusionPath& operator=(const ExtrusionPath &rhs) { this->m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->polyline = rhs.polyline; return *this; }
+    ExtrusionPath& operator=(ExtrusionPath &&rhs) { this->m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->polyline = std::move(rhs.polyline); return *this; }
 
     ExtrusionPath* clone() const { return new ExtrusionPath (*this); }
     void reverse() { this->polyline.reverse(); }
@@ -98,25 +100,26 @@ public:
     void clip_end(double distance);
     void simplify(double tolerance);
     virtual double length() const;
+    virtual ExtrusionRole role() const { return m_role; }
     bool is_perimeter() const {
-        return this->role == erPerimeter
-            || this->role == erExternalPerimeter
-            || this->role == erOverhangPerimeter;
+        return this->m_role == erPerimeter
+            || this->m_role == erExternalPerimeter
+            || this->m_role == erOverhangPerimeter;
     }
     bool is_infill() const {
-        return this->role == erBridgeInfill
-            || this->role == erInternalInfill
-            || this->role == erSolidInfill
-            || this->role == erTopSolidInfill;
+        return this->m_role == erBridgeInfill
+            || this->m_role == erInternalInfill
+            || this->m_role == erSolidInfill
+            || this->m_role == erTopSolidInfill;
     }
     bool is_solid_infill() const {
-        return this->role == erBridgeInfill
-            || this->role == erSolidInfill
-            || this->role == erTopSolidInfill;
+        return this->m_role == erBridgeInfill
+            || this->m_role == erSolidInfill
+            || this->m_role == erTopSolidInfill;
     }
     bool is_bridge() const {
-        return this->role == erBridgeInfill
-            || this->role == erOverhangPerimeter;
+        return this->m_role == erBridgeInfill
+            || this->m_role == erOverhangPerimeter;
     }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
@@ -133,8 +136,10 @@ public:
     double min_mm3_per_mm() const { return this->mm3_per_mm; }
     Polyline as_polyline() const { return this->polyline; }
 
-    private:
+private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
+
+    ExtrusionRole m_role;
 };
 
 typedef std::vector<ExtrusionPath> ExtrusionPaths;
@@ -161,21 +166,22 @@ public:
     Point first_point() const { return this->paths.front().polyline.points.front(); }
     Point last_point() const { return this->paths.back().polyline.points.back(); }
     virtual double length() const;
+    virtual ExtrusionRole role() const { return this->paths.empty() ? erNone : this->paths.front().role(); }
     bool is_perimeter() const {
-        return this->paths.front().role == erPerimeter
-            || this->paths.front().role == erExternalPerimeter
-            || this->paths.front().role == erOverhangPerimeter;
+        return this->paths.front().role() == erPerimeter
+            || this->paths.front().role() == erExternalPerimeter
+            || this->paths.front().role() == erOverhangPerimeter;
     }
     bool is_infill() const {
-        return this->paths.front().role == erBridgeInfill
-            || this->paths.front().role == erInternalInfill
-            || this->paths.front().role == erSolidInfill
-            || this->paths.front().role == erTopSolidInfill;
+        return this->paths.front().role() == erBridgeInfill
+            || this->paths.front().role() == erInternalInfill
+            || this->paths.front().role() == erSolidInfill
+            || this->paths.front().role() == erTopSolidInfill;
     }
     bool is_solid_infill() const {
-        return this->paths.front().role == erBridgeInfill
-            || this->paths.front().role == erSolidInfill
-            || this->paths.front().role == erTopSolidInfill;
+        return this->paths.front().role() == erBridgeInfill
+            || this->paths.front().role() == erSolidInfill
+            || this->paths.front().role() == erTopSolidInfill;
     }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
@@ -196,15 +202,14 @@ public:
 // Single continuous extrusion loop, possibly with varying extrusion thickness, extrusion height or bridging / non bridging.
 class ExtrusionLoop : public ExtrusionEntity
 {
-    public:
+public:
     ExtrusionPaths paths;
-    ExtrusionLoopRole role;
     
-    ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : role(role) {};
+    ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : m_loop_role(role) {};
     ExtrusionLoop(const ExtrusionPaths &paths, ExtrusionLoopRole role = elrDefault)
-        : paths(paths), role(role) {};
+        : paths(paths), m_loop_role(role) {};
     ExtrusionLoop(const ExtrusionPath &path, ExtrusionLoopRole role = elrDefault)
-        : role(role) {
+        : m_loop_role(role) {
         this->paths.push_back(path);
     };
     bool is_loop() const { return true; }
@@ -223,21 +228,23 @@ class ExtrusionLoop : public ExtrusionEntity
     // Test, whether the point is extruded by a bridging flow.
     // This used to be used to avoid placing seams on overhangs, but now the EdgeGrid is used instead.
     bool has_overhang_point(const Point &point) const;
+    virtual ExtrusionRole role() const { return this->paths.empty() ? erNone : this->paths.front().role(); }
+    ExtrusionLoopRole     loop_role() const { return m_loop_role; }
     bool is_perimeter() const {
-        return this->paths.front().role == erPerimeter
-            || this->paths.front().role == erExternalPerimeter
-            || this->paths.front().role == erOverhangPerimeter;
+        return this->paths.front().role() == erPerimeter
+            || this->paths.front().role() == erExternalPerimeter
+            || this->paths.front().role() == erOverhangPerimeter;
     }
     bool is_infill() const {
-        return this->paths.front().role == erBridgeInfill
-            || this->paths.front().role == erInternalInfill
-            || this->paths.front().role == erSolidInfill
-            || this->paths.front().role == erTopSolidInfill;
+        return this->paths.front().role() == erBridgeInfill
+            || this->paths.front().role() == erInternalInfill
+            || this->paths.front().role() == erSolidInfill
+            || this->paths.front().role() == erTopSolidInfill;
     }
     bool is_solid_infill() const {
-        return this->paths.front().role == erBridgeInfill
-            || this->paths.front().role == erSolidInfill
-            || this->paths.front().role == erTopSolidInfill;
+        return this->paths.front().role() == erBridgeInfill
+            || this->paths.front().role() == erSolidInfill
+            || this->paths.front().role() == erTopSolidInfill;
     }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
@@ -253,6 +260,9 @@ class ExtrusionLoop : public ExtrusionEntity
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const;
     Polyline as_polyline() const { return this->polygon().split_at_first_point(); }
+
+private:
+    ExtrusionLoopRole m_loop_role;
 };
 
 inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)

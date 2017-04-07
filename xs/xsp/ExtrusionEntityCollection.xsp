@@ -12,15 +12,15 @@
         %code{% RETVAL = THIS->clone(); %};
     void reverse();
     void clear();
-    ExtrusionEntityCollection* chained_path(bool no_reverse)
+    ExtrusionEntityCollection* chained_path(bool no_reverse, ExtrusionRole role = erMixed)
         %code{%
             RETVAL = new ExtrusionEntityCollection();
-            THIS->chained_path(RETVAL, no_reverse);
+            THIS->chained_path(RETVAL, no_reverse, role);
         %};
-    ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse)
+    ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse, ExtrusionRole role = erMixed)
         %code{%
             RETVAL = new ExtrusionEntityCollection();
-            THIS->chained_path_from(*start_near, RETVAL, no_reverse);
+            THIS->chained_path_from(*start_near, RETVAL, no_reverse, role);
         %};
     Clone<Point> first_point();
     Clone<Point> last_point();
@@ -97,14 +97,6 @@ ExtrusionEntityCollection::no_sort(...)
             THIS->no_sort = SvTRUE(ST(1));
         }
         RETVAL = THIS->no_sort;
-    OUTPUT:
-        RETVAL
-
-ExtrusionEntityCollection*
-ExtrusionEntityCollection::chained_path_indices(bool no_reverse)
-    CODE:
-        RETVAL = new ExtrusionEntityCollection();
-        THIS->chained_path(RETVAL, no_reverse, &RETVAL->orig_indices);
     OUTPUT:
         RETVAL
 

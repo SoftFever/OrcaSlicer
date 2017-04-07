@@ -903,8 +903,6 @@ void Print::_make_skirt()
                 break;
             for (const ExtrusionEntity *extrusion_entity : layer->support_fills.entities)
                 append(object_points, extrusion_entity->as_polyline().points);
-            for (const ExtrusionEntity *extrusion_entity : layer->support_interface_fills.entities)
-                append(object_points, extrusion_entity->as_polyline().points);
         }
         // Repeat points for each object copy.
         for (const Point &shift : object->_shifted_copies) {

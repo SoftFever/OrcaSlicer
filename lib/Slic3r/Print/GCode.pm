@@ -73,7 +73,6 @@ sub BUILD {
                     || $object->config->get_abs_value('support_material_interface_speed') == 0) {
                     foreach my $layer (@{$object->support_layers}) {
                         push @mm3_per_mm, $layer->support_fills->min_mm3_per_mm;
-                        push @mm3_per_mm, $layer->support_interface_fills->min_mm3_per_mm;
                     }
                 }
             }
@@ -497,30 +496,31 @@ sub process_layer {
         
         # extrude support material before other things because it might use a lower Z
         # and also because we avoid travelling on other things when printing it
-        if ($layer->isa('Slic3r::Layer::Support')) {
-            if ($layer->support_interface_fills->count > 0) {
+        if ($layer->isa('Slic3r::Layer::Support') && $layer->support_fills->count > 0) {
+            if ($object->config->support_material_extruder == $object->config->support_material_interface_extruder) {
+                # Both the support and the support interface are printed with the same extruder, therefore
+                # the interface may be interleaved with the support base.
                 # Don't change extruder if the extruder is set to 0. Use the current extruder instead.
-                $gcode .= $self->_gcodegen->set_extruder($object->config->support_material_interface_extruder-1)
-                    if ($object->config->support_material_interface_extruder > 0);
-                for my $path (@{$layer->support_interface_fills->chained_path_from($self->_gcodegen->last_pos, 0)}) {
-                    if ($path->isa('Slic3r::ExtrusionMultiPath')) {
-                        $gcode .= $self->_gcodegen->extrude_multipath($path, 'support material interface', $object->config->get_abs_value('support_material_interface_speed'));
-                    } else {
-                        $gcode .= $self->_gcodegen->extrude_path($path, 'support material interface', $object->config->get_abs_value('support_material_interface_speed'));
-                    }
-                }
-            }
-            if ($layer->support_fills->count > 0) {
-                # Don't change extruder if the extruder is set to 0. Use the current extruder instead.
-                $gcode .= $self->_gcodegen->set_extruder($object->config->support_material_extruder-1)
-                    if ($object->config->support_material_extruder > 0);
-                for my $path (@{$layer->support_fills->chained_path_from($self->_gcodegen->last_pos, 0)}) {
-                    if ($path->isa('Slic3r::ExtrusionMultiPath')) {
-                        $gcode .= $self->_gcodegen->extrude_multipath($path, 'support material', $object->config->get_abs_value('support_material_speed'));
-                    } else {
-                        $gcode .= $self->_gcodegen->extrude_path($path, 'support material', $object->config->get_abs_value('support_material_speed'));
-                    }
-                }
+                $gcode .= $self->_gcodegen->extrude_support(
+                    $layer->support_fills->chained_path_from($self->_gcodegen->last_pos, 0),
+                    $object->config->support_material_extruder);
+            } else {
+                # Extrude the support base before support interface for two reasons.
+                # 1) Support base may be extruded with the current extruder (extruder ID 0)
+                #    and the support interface may be printed with the solube material,
+                #    then one wants to avoid the base being printed with the soluble material.
+                # 2) It is likely better to print the interface after the base as the interface is
+                #    often printed by bridges and it is convenient to have the base printed already,
+                #    so the bridges may stick to it.
+                $gcode .= $self->_gcodegen->extrude_support(
+                    $layer->support_fills->chained_path_from(
+                        $self->_gcodegen->last_pos, 0, EXTR_ROLE_SUPPORTMATERIAL),
+                    $object->config->support_material_extruder);
+                # Extrude the support interface.
+                $gcode .= $self->_gcodegen->extrude_support(
+                    $layer->support_fills->chained_path_from(
+                        $self->_gcodegen->last_pos, 0, EXTR_ROLE_SUPPORTMATERIAL_INTERFACE),
+                    $object->config->support_material_interface_extruder);
             }
         }
         

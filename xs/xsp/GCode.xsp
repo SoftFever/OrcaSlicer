@@ -181,6 +181,7 @@
         %code{% RETVAL = THIS->extrude(*multipath, description, speed); %};
     %name{extrude_path} std::string extrude(ExtrusionPath* path, std::string description = "", double speed = -1)
         %code{% RETVAL = THIS->extrude(*path, description, speed); %};
+    std::string extrude_support(ExtrusionEntityCollection *support_fills, unsigned int extruder_id);
     std::string travel_to(Point* point, ExtrusionRole role, std::string comment)
         %code{% RETVAL = THIS->travel_to(*point, role, comment); %};
     bool needs_retraction(Polyline* travel, ExtrusionRole role = erNone)

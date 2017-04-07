@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Slic3r::XS;
-use Test::More tests => 8;
+use Test::More tests => 7;
 
 my $points = [
     [100, 100],
@@ -34,7 +34,5 @@ ok $path->first_point->coincides_with($path->polyline->[0]), 'first_point';
 $path = $path->clone;
 
 is $path->role, Slic3r::ExtrusionPath::EXTR_ROLE_EXTERNAL_PERIMETER, 'role';
-$path->role(Slic3r::ExtrusionPath::EXTR_ROLE_FILL);
-is $path->role, Slic3r::ExtrusionPath::EXTR_ROLE_FILL, 'modify role';
 
 __END__

@@ -63,7 +63,7 @@ sub export_svg {
     # plot support material
     $self->_svg_style->{'stroke'}   = '#12EF00';
     $self->_svg_style->{'fill'}     = '#22FF00';
-    $self->_plot_group(sub { $_[0]->isa('Slic3r::Layer::Support') ? ($_[0]->support_fills, $_[0]->support_interface_fills) : () });
+    $self->_plot_group(sub { $_[0]->isa('Slic3r::Layer::Support') ? ($_[0]->support_fills) : () });
     
     Slic3r::open(\my $fh, '>', $filename);
     print $fh $svg->xmlify;

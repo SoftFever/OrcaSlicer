@@ -27,6 +27,8 @@
         %code{% THIS->clip_end(distance, &RETVAL); %};
     bool has_overhang_point(Point* point)
         %code{% RETVAL = THIS->has_overhang_point(*point); %};
+    ExtrusionRole role() const;
+    ExtrusionLoopRole loop_role() const;
     bool is_perimeter();
     bool is_infill();
     bool is_solid_infill();
@@ -43,16 +45,6 @@ ExtrusionLoop::arrayref()
             av_store(av, it - THIS->paths.begin(), perl_to_SV_ref(*it));
         }
         RETVAL = newRV_noinc((SV*)av);
-    OUTPUT:
-        RETVAL
-
-ExtrusionLoopRole
-ExtrusionLoop::role(...)
-    CODE:
-        if (items > 1) {
-            THIS->role = (ExtrusionLoopRole)SvUV(ST(1));
-        }
-        RETVAL = THIS->role;
     OUTPUT:
         RETVAL
 

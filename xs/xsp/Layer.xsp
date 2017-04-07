@@ -110,9 +110,6 @@
         %code%{ RETVAL = &THIS->support_islands; %};
     Ref<ExtrusionEntityCollection> support_fills()
         %code%{ RETVAL = &THIS->support_fills; %};
-    Ref<ExtrusionEntityCollection> support_interface_fills()
-        %code%{ RETVAL = &THIS->support_interface_fills; %};
-
 
     // copies of some Layer methods, because the parameter wrapper code
     // gets confused about getting a Layer::Support instead of a Layer

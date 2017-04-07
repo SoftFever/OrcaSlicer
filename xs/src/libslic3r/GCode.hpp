@@ -123,6 +123,7 @@ class GCode {
     std::string extrude(ExtrusionLoop loop, std::string description = "", double speed = -1);
     std::string extrude(ExtrusionMultiPath multipath, std::string description = "", double speed = -1);
     std::string extrude(ExtrusionPath path, std::string description = "", double speed = -1);
+    std::string extrude_support(const ExtrusionEntityCollection *support_fills, unsigned int extruder_id);
     std::string travel_to(const Point &point, ExtrusionRole role, std::string comment);
     bool needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
     std::string retract(bool toolchange = false);

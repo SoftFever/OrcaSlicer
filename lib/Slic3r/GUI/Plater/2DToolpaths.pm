@@ -475,7 +475,6 @@ sub Render {
             if ($layer->isa('Slic3r::Layer::Support')) {
                 $self->color([0, 0, 0]);
                 $self->_draw($object, $print_z, $_) for @{$layer->support_fills};
-                $self->_draw($object, $print_z, $_) for @{$layer->support_interface_fills};
             }
         }
     }

@@ -143,10 +143,8 @@ class SupportLayer : public Layer {
 public:
     // Polygons covered by the supports: base, interface and contact areas.
     ExPolygonCollection support_islands;
-    // Extrusion paths for the support base.
+    // Extrusion paths for the support base and for the support interface and contacts.
     ExtrusionEntityCollection support_fills;
-    // Extrusion paths for the support interface and contacts.
-    ExtrusionEntityCollection support_interface_fills;
 
 protected:
     SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,

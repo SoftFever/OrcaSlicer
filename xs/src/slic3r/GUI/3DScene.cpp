@@ -835,10 +835,8 @@ void _3DScene::_load_print_object_toolpaths(
                     }
                     if (ctxt.has_support) {
                         const SupportLayer *support_layer = dynamic_cast<const SupportLayer*>(layer);
-                        if (support_layer) {
+                        if (support_layer)
                             extrusionentity_to_verts(support_layer->support_fills, float(layer->print_z), copy, *vols[2]);
-                            extrusionentity_to_verts(support_layer->support_interface_fills, float(layer->print_z), copy, *vols[2]);
-                        }
                     }
                 }
                 for (size_t i = 0; i < 3; ++ i) {
