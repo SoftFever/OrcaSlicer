@@ -922,9 +922,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 new_layer.print_z  = m_slicing_params.first_print_layer_height;
                                 new_layer.bottom_z = 0;
                                 new_layer.height   = m_slicing_params.first_print_layer_height;
-                            } else if (this->synchronize_layers()) {
-                                // Don't do anything special for the top contact surfaces in regard to synchronizing the layers.
-                                // Bottom contact surfaces will be synchronized though.
                             } else {
                                 // Don't know the height of the top contact layer yet. The top contact layer is printed with a normal flow and 
                                 // its height will be set adaptively later on.
@@ -1260,7 +1257,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 		   extremes.front()->layer_type == sltTopContact || // first extreme is a top contact layer
 		   extremes.front()->extreme_z() > m_slicing_params.first_print_layer_height - EPSILON)));
 
-//    bool synchronize = m_slicing_params.soluble_interface || this->synchronize_layers();
     bool synchronize = this->synchronize_layers();
 
 #ifdef _DEBUG
@@ -1328,73 +1324,70 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
 			continue;
         // The new layers shall be at least m_support_layer_height_min thick.
         assert(dist >= m_support_layer_height_min - EPSILON);
-        // Insert intermediate layers.
-        size_t        n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height)); 
-        assert(n_layers_extra > 0);
-        coordf_t      step   = dist / coordf_t(n_layers_extra);
-        if (! synchronize && extr1 != nullptr && extr1->layer_type == sltTopContact &&
-            extr1->print_z + this->m_support_layer_height_min > extr1->bottom_z + step) {
-            // The bottom extreme is a bottom of a top surface. Ensure that the gap 
-            // between the 1st intermediate layer print_z and extr1->print_z is not too small.
-            assert(extr1->bottom_z + this->m_support_layer_height_min < extr1->print_z + EPSILON);
-            // Generate the first intermediate layer.
-            MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
-            layer_new.bottom_z = extr1->bottom_z;
-            layer_new.print_z  = extr1z = extr1->print_z;
-            layer_new.height   = extr1->height;
-            intermediate_layers.push_back(&layer_new);
-			dist = extr2z - extr1z;
-            n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height));
-            if (n_layers_extra == 0)
-                continue;
-            // Continue printing the other layers up to extr2z.
-            step = dist / coordf_t(n_layers_extra);
-        }
-		if (! synchronize && ! m_slicing_params.soluble_interface && extr2->layer_type == sltTopContact) {
-            // This is a top interface layer, which does not have a height assigned yet. Do it now.
-            assert(extr2->height == 0.);
-            assert(extr1z > m_slicing_params.first_print_layer_height - EPSILON);
-            extr2->height = step;
-            extr2->bottom_z = extr2z = extr2->print_z - step;
-            if (-- n_layers_extra == 0)
-                continue;
-        }
-        coordf_t extr2z_large_steps = extr2z;
         if (synchronize) {
-            // Synchronize support layers with the object layers.
-            if (object.layers.front()->print_z - extr1z > m_slicing_params.max_suport_layer_height) {
-                // Generate the initial couple of layers before reaching the 1st object layer print_z level.
-                extr2z_large_steps = object.layers.front()->print_z;
-                dist = extr2z_large_steps - extr1z;
-                assert(dist >= 0.);
+            // Emit support layers synchronized with the object layers.
+            // Find the first object layer, which has its print_z in this support Z range.
+            while (idx_layer_object < object.layers.size() && object.layers[idx_layer_object]->print_z < extr1z + EPSILON)
+                ++ idx_layer_object;
+            // Emit all intermediate support layers synchronized with object layers up to extr2z.
+            for (; idx_layer_object < object.layers.size() && object.layers[idx_layer_object]->print_z < extr2z + EPSILON; ++ idx_layer_object) {
+                MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
+                layer_new.print_z  = object.layers[idx_layer_object]->print_z;
+                layer_new.height   = object.layers[idx_layer_object]->height;
+                layer_new.bottom_z = layer_new.print_z - layer_new.height;
+                assert(intermediate_layers.empty() || intermediate_layers.back()->print_z < layer_new.print_z + EPSILON);
+                intermediate_layers.push_back(&layer_new);
+            }
+        } else {
+            // Insert intermediate layers.
+            size_t        n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height)); 
+            assert(n_layers_extra > 0);
+            coordf_t      step   = dist / coordf_t(n_layers_extra);
+            if (extr1 != nullptr && extr1->layer_type == sltTopContact &&
+                extr1->print_z + this->m_support_layer_height_min > extr1->bottom_z + step) {
+                // The bottom extreme is a bottom of a top surface. Ensure that the gap 
+                // between the 1st intermediate layer print_z and extr1->print_z is not too small.
+                assert(extr1->bottom_z + this->m_support_layer_height_min < extr1->print_z + EPSILON);
+                // Generate the first intermediate layer.
+                MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
+                layer_new.bottom_z = extr1->bottom_z;
+                layer_new.print_z  = extr1z = extr1->print_z;
+                layer_new.height   = extr1->height;
+                intermediate_layers.push_back(&layer_new);
+    			dist = extr2z - extr1z;
                 n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height));
+                if (n_layers_extra == 0)
+                    continue;
+                // Continue printing the other layers up to extr2z.
                 step = dist / coordf_t(n_layers_extra);
             }
-        }
-        // Take the largest allowed step in the Z axis until extr2z_large_steps is reached.
-        for (size_t i = 0; i < n_layers_extra; ++ i) {
-            MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
-			if (i + 1 == n_layers_extra) {
-				// Last intermediate layer added. Align the last entered layer with extr2z_large_steps exactly.
-				layer_new.bottom_z = (i == 0) ? extr1z : intermediate_layers.back()->print_z;
-				layer_new.print_z = extr2z_large_steps;
-				layer_new.height = layer_new.print_z - layer_new.bottom_z;
-			}
-			else {
-				// Intermediate layer, not the last added.
-				layer_new.height = step;
-				layer_new.bottom_z = extr1z + i * step;
-				layer_new.print_z = layer_new.bottom_z + step;
-			}
-			assert(intermediate_layers.empty() || intermediate_layers.back()->print_z <= layer_new.print_z);
-			intermediate_layers.push_back(&layer_new);
-        }
-        if (synchronize) {
-            // Emit support layers synchronized with object layers.
-            extr1z = extr2z_large_steps;
-            while (extr1z < extr2z) {
-                //while (idx_layer_object < object.layers.size() && object.layers[idx_layer_object].print_z < extr1z)
-                // idx_layer_object
+    		if (! m_slicing_params.soluble_interface && extr2->layer_type == sltTopContact) {
+                // This is a top interface layer, which does not have a height assigned yet. Do it now.
+                assert(extr2->height == 0.);
+                assert(extr1z > m_slicing_params.first_print_layer_height - EPSILON);
+                extr2->height = step;
+                extr2->bottom_z = extr2z = extr2->print_z - step;
+                if (-- n_layers_extra == 0)
+                    continue;
+            }
+            coordf_t extr2z_large_steps = extr2z;
+            // Take the largest allowed step in the Z axis until extr2z_large_steps is reached.
+            for (size_t i = 0; i < n_layers_extra; ++ i) {
+                MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
+    			if (i + 1 == n_layers_extra) {
+    				// Last intermediate layer added. Align the last entered layer with extr2z_large_steps exactly.
+    				layer_new.bottom_z = (i == 0) ? extr1z : intermediate_layers.back()->print_z;
+    				layer_new.print_z = extr2z_large_steps;
+    				layer_new.height = layer_new.print_z - layer_new.bottom_z;
+    			}
+    			else {
+    				// Intermediate layer, not the last added.
+    				layer_new.height = step;
+    				layer_new.bottom_z = extr1z + i * step;
+    				layer_new.print_z = layer_new.bottom_z + step;
+    			}
+    			assert(intermediate_layers.empty() || intermediate_layers.back()->print_z <= layer_new.print_z);
+    			intermediate_layers.push_back(&layer_new);
             }
         }
     }
