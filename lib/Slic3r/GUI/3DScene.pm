@@ -1470,11 +1470,13 @@ sub draw_active_object_annotations {
     my $max_z = unscale($print_object->size->z);
     my $profile = $print_object->model_object->layer_height_profile;
     my $layer_height = $print_object->config->get('layer_height');
+    my $layer_heights_max = $print_object->print->config->get('max_layer_height');
+    my $layer_height_max = my $max = max(@{$layer_heights_max}) * 1.12;
     # Baseline
     glColor3f(0., 0., 0.);
     glBegin(GL_LINE_STRIP);
-    glVertex2f($bar_left + $layer_height * ($bar_right - $bar_left) / 0.45,  $bar_bottom);
-    glVertex2f($bar_left + $layer_height * ($bar_right - $bar_left) / 0.45,  $bar_top);
+    glVertex2f($bar_left + $layer_height * ($bar_right - $bar_left) / $layer_height_max,  $bar_bottom);
+    glVertex2f($bar_left + $layer_height * ($bar_right - $bar_left) / $layer_height_max,  $bar_top);
     glEnd();
     # Curve
     glColor3f(0., 0., 1.);
@@ -1482,7 +1484,7 @@ sub draw_active_object_annotations {
     for (my $i = 0; $i < int(@{$profile}); $i += 2) {
         my $z = $profile->[$i];
         my $h = $profile->[$i+1];
-        glVertex3f($bar_left + $h * ($bar_right - $bar_left) / 0.45,  $bar_bottom + $z * ($bar_top - $bar_bottom) / $max_z, $z);
+        glVertex3f($bar_left + $h * ($bar_right - $bar_left) / $layer_height_max,  $bar_bottom + $z * ($bar_top - $bar_bottom) / $max_z, $z);
     }
     glEnd();
     # Revert the matrices.
