@@ -273,7 +273,7 @@ stl_read(stl_file *stl, int first_facet, int first) {
       // (in this order, otherwise it won't work when they are paired in the middle of a file)
       fscanf(stl->fp, "endsolid\n");
       fscanf(stl->fp, "solid%*[^\n]\n");  // name might contain spaces so %*s doesn't work and it also can be empty (just "solid")
-
+      // Leading space in the fscanf format skips all leading white spaces including numerous new lines and tabs.
       int res_normal     = fscanf(stl->fp, " facet normal %31s %31s %31s", normal_buf[0], normal_buf[1], normal_buf[2]);
       assert(res_normal == 3);
       int res_outer_loop = fscanf(stl->fp, " outer loop");
@@ -286,7 +286,8 @@ stl_read(stl_file *stl, int first_facet, int first) {
       assert(res_vertex3 == 3);
       int res_endloop    = fscanf(stl->fp, " endloop");
       assert(res_endloop == 0);
-      int res_endfacet   = fscanf(stl->fp, " endfacet");
+      // There is a leading and trailing white space around endfacet to eat up all leading and trailing white spaces including numerous tabs and new lines.
+      int res_endfacet   = fscanf(stl->fp, " endfacet ");
       if (res_normal != 3 || res_outer_loop != 0 || res_vertex1 != 3 || res_vertex2 != 3 || res_vertex3 != 3 || res_endloop != 0 || res_endfacet != 0) {
         perror("Something is syntactically very wrong with this ASCII STL!");
         stl->error = 1;
