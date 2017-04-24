@@ -155,6 +155,7 @@ sub _clamp_layer_height
             $max_nozzle_dmr   = $nozzle_dmrs      ->[$i] if ($nozzle_dmrs      ->[$i] > $max_nozzle_dmr  );
         }
         $min_layer_height = 0.005 if ($min_layer_height < 0.005);
+        $max_layer_height = $max_nozzle_dmr * 0.75 if ($max_layer_height == 0.);
         $max_layer_height = $max_nozzle_dmr if ($max_layer_height > $max_nozzle_dmr);
         return ($value < $min_layer_height) ? $min_layer_height :
                ($value > $max_layer_height) ? $max_layer_height : $value;
