@@ -514,12 +514,6 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(20);
 
-    def = this->add("gcode_arcs", coBool);
-    def->label = "Use native G-code arcs";
-    def->tooltip = "This experimental feature tries to detect arcs from segments and generates G2/G3 arc commands instead of multiple straight G1 commands.";
-    def->cli = "gcode-arcs!";
-    def->default_value = new ConfigOptionBool(0);
-
     def = this->add("gcode_comments", coBool);
     def->label = "Verbose G-code";
     def->tooltip = "Enable this to get a commented G-code file, with each line explained by a descriptive text. If you print from SD card, the additional weight of the file could make your firmware slow down.";
@@ -852,13 +846,6 @@ PrintConfigDef::PrintConfigDef()
     
     def = this->add("printer_settings_id", coString);
     def->default_value = new ConfigOptionString("");
-
-    def = this->add("pressure_advance", coFloat);
-    def->label = "Pressure advance";
-    def->tooltip = "When set to a non-zero value, this experimental option enables pressure regulation. It's the K constant for the advance algorithm that pushes more or less filament upon speed changes. It's useful for Bowden-tube extruders. Reasonable values are in range 0-10.";
-    def->cli = "pressure-advance=f";
-    def->min = 0;
-    def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("raft_layers", coInt);
     def->label = "Raft layers";

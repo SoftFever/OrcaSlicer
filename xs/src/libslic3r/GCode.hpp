@@ -41,26 +41,26 @@ class AvoidCrossingPerimeters {
 };
 
 class OozePrevention {
-    public:
+public:
     bool enable;
     Points standby_points;
     
-    OozePrevention();
+    OozePrevention() : enable(false) {}
     std::string pre_toolchange(GCode &gcodegen);
     std::string post_toolchange(GCode &gcodegen);
     
-    private:
+private:
     int _get_temp(GCode &gcodegen);
 };
 
 class Wipe {
-    public:
+public:
     bool enable;
     Polyline path;
     
-    Wipe();
-    bool has_path();
-    void reset_path();
+    Wipe() : enable(false) {}
+    bool has_path() const { return !this->path.points.empty(); }
+    void reset_path() { this->path = Polyline(); }
     std::string wipe(GCode &gcodegen, bool toolchange = false);
 };
 

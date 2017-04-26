@@ -1,3 +1,6 @@
+# Helper module to parse and interpret a G-code file,
+# invoking a callback for each move extracted from the G-code.
+# Currently used by the automatic tests only.
 package Slic3r::GCode::Reader;
 use Moo;
 

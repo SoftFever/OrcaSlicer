@@ -4,6 +4,7 @@
 #include <xsinit.h>
 #include "libslic3r/GCode.hpp"
 #include "libslic3r/GCode/CoolingBuffer.hpp"
+#include "libslic3r/GCode/SpiralVase.hpp"
 %}
 
 %name{Slic3r::GCode::AvoidCrossingPerimeters} class AvoidCrossingPerimeters {
@@ -79,6 +80,18 @@
     
     std::string append(std::string gcode, std::string obj_id, size_t layer_id, float print_z);
     std::string flush();
+};
+
+%name{Slic3r::GCode::SpiralVase} class SpiralVase {
+    SpiralVase(StaticPrintConfig* config)
+        %code{% RETVAL = new SpiralVase(*dynamic_cast<PrintConfig*>(config)); %};
+    ~SpiralVase();
+    
+    bool enable()
+        %code{% RETVAL = THIS->enable; %};
+    void set_enable(bool enable)
+        %code{% THIS->enable = enable; %};
+    std::string process_layer(std::string gcode);
 };
 
 %name{Slic3r::GCode} class GCode {

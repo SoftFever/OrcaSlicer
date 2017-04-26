@@ -7,11 +7,10 @@ has 'fh'        => (is => 'ro', required => 1);
 has '_gcodegen'                      => (is => 'rw');
 has '_cooling_buffer'                => (is => 'rw');
 has '_spiral_vase'                   => (is => 'rw');
-has '_arc_fitting'                   => (is => 'rw');
-has '_pressure_regulator'            => (is => 'rw');
 has '_pressure_equalizer'            => (is => 'rw');
 has '_skirt_done'                    => (is => 'rw', default => sub { {} });  # print_z => 1
 has '_brim_done'                     => (is => 'rw');
+# Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
 has '_second_layer_things_done'      => (is => 'rw');
 has '_last_obj_copy'                 => (is => 'rw');
 
@@ -101,15 +100,9 @@ sub BUILD {
     
     $self->_cooling_buffer(Slic3r::GCode::CoolingBuffer->new($self->_gcodegen));
     
-    $self->_spiral_vase(Slic3r::GCode::SpiralVase->new(config => $self->config))
+    $self->_spiral_vase(Slic3r::GCode::SpiralVase->new($self->config))
         if $self->config->spiral_vase;
     
-    $self->_arc_fitting(Slic3r::GCode::ArcFitting->new(config => $self->config))
-        if $self->config->gcode_arcs;
-    
-    $self->_pressure_regulator(Slic3r::GCode::PressureRegulator->new(config => $self->config))
-        if $self->config->pressure_advance > 0;
-
     $self->_pressure_equalizer(Slic3r::GCode::PressureEqualizer->new($self->config))
         if ($self->config->max_volumetric_extrusion_rate_slope_positive > 0 ||
             $self->config->max_volumetric_extrusion_rate_slope_negative > 0);
@@ -168,9 +161,9 @@ sub export {
     }
     
     # set extruder(s) temperature before and after start G-code
-    $self->_print_first_layer_temperature(0);
+    $self->_print_first_layer_extruder_temperatures(0);
     printf $fh "%s\n", $gcodegen->placeholder_parser->process($self->config->start_gcode);
-    $self->_print_first_layer_temperature(1);
+    $self->_print_first_layer_extruder_temperatures(1);
     
     # set other general things
     print $fh $gcodegen->preamble;
@@ -269,12 +262,15 @@ sub export {
                     if ($layer->id == 0 && $finished_objects > 0) {
                         printf $fh $gcodegen->writer->set_bed_temperature($self->config->first_layer_bed_temperature),
                             if $self->config->first_layer_bed_temperature;
-                        $self->_print_first_layer_temperature(0);
+                        # Set first layer extruder 
+                        $self->_print_first_layer_extruder_temperatures(0);
                     }
                     $self->process_layer($layer, [$copy]);
                 }
                 $self->flush_filters;
                 $finished_objects++;
+                # Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
+                # Reset it when starting another object from 1st layer.
                 $self->_second_layer_things_done(0);
             }
         }
@@ -355,9 +351,13 @@ sub export {
     }
 }
 
-sub _print_first_layer_temperature {
+# Write 1st layer extruder temperatures into the G-code.
+# Only do that if the start G-code does not already contain any M-code controlling an extruder temperature.
+# FIXME this does not work correctly for multi-extruder, single heater configuration as it emits multiple preheat commands for the same heater.
+# M104 - Set Extruder Temperature
+# M109 - Set Extruder Temperature and Wait
+sub _print_first_layer_extruder_temperatures {
     my ($self, $wait) = @_;
-    
     return if $self->config->start_gcode =~ /M(?:109|104)/i;
     for my $t (@{$self->print->extruders}) {
         my $temp = $self->config->get_at('first_layer_temperature', $t);
@@ -381,7 +381,7 @@ sub process_layer {
     
     # check whether we're going to apply spiralvase logic
     if (defined $self->_spiral_vase) {
-        $self->_spiral_vase->enable(
+        $self->_spiral_vase->set_enable(
             ($layer->id > 0 || $self->print->config->brim_width == 0)
                 && ($layer->id >= $self->print->config->skirt_height && !$self->print->has_infinite_skirt)
                 && !defined(first { $_->region->config->bottom_solid_layers > $layer->id } @{$layer->regions})
@@ -394,6 +394,8 @@ sub process_layer {
     $self->_gcodegen->set_enable_loop_clipping(!defined $self->_spiral_vase || !$self->_spiral_vase->enable);
     
     if (!$self->_second_layer_things_done && $layer->id == 1) {
+        # Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
+        # first_layer_temperature vs. temperature settings.
         for my $extruder (@{$self->_gcodegen->writer->extruders}) {
             my $temperature = $self->config->get_at('temperature', $extruder->id);
             $gcode .= $self->_gcodegen->writer->set_temperature($temperature, 0, $extruder->id)
@@ -401,6 +403,7 @@ sub process_layer {
         }
         $gcode .= $self->_gcodegen->writer->set_bed_temperature($self->print->config->bed_temperature)
             if $self->print->config->bed_temperature && $self->print->config->bed_temperature != $self->print->config->first_layer_bed_temperature;
+        # Mark the temperature transition from 1st to 2nd layer to be finished.
         $self->_second_layer_things_done(1);
     }
     
@@ -697,22 +700,12 @@ sub filter {
     my ($self, $gcode, $flush) = @_;
     $flush //= 0;
     
-    # apply pressure regulation if enabled;
-    # this depends on actual speeds
-    $gcode = $self->_pressure_regulator->process($gcode, $flush)
-        if defined $self->_pressure_regulator;
-
     # apply pressure equalization if enabled;
 #    print "G-code before filter:\n", $gcode;
     $gcode = $self->_pressure_equalizer->process($gcode, $flush)
         if defined $self->_pressure_equalizer;
 #    print "G-code after filter:\n", $gcode;
 
-    # apply arc fitting if enabled;
-    # this does not depend on speeds but changes G1 XY commands into G2/G2 IJ
-    $gcode = $self->_arc_fitting->process($gcode)
-        if defined $self->_arc_fitting;
-    
     return $gcode;
 }
 

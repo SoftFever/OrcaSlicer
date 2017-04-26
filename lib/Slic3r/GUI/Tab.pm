@@ -1135,7 +1135,7 @@ sub build {
         gcode_flavor use_relative_e_distances
         serial_port serial_speed
         octoprint_host octoprint_apikey
-        use_firmware_retraction pressure_advance
+        use_firmware_retraction
         use_volumetric_e variable_layer_height
         start_gcode end_gcode before_layer_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
@@ -1340,7 +1340,6 @@ sub build {
             $optgroup->append_single_option_line('use_relative_e_distances');
             $optgroup->append_single_option_line('use_firmware_retraction');
             $optgroup->append_single_option_line('use_volumetric_e');
-            $optgroup->append_single_option_line('pressure_advance');
             $optgroup->append_single_option_line('variable_layer_height');
         }
     }

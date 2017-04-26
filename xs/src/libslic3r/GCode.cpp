@@ -78,11 +78,6 @@ AvoidCrossingPerimeters::travel_to(GCode &gcodegen, Point point)
     }
 }
 
-OozePrevention::OozePrevention()
-    : enable(false)
-{
-}
-
 std::string
 OozePrevention::pre_toolchange(GCode &gcodegen)
 {
@@ -114,16 +109,11 @@ OozePrevention::pre_toolchange(GCode &gcodegen)
     return gcode;
 }
 
-std::string
-OozePrevention::post_toolchange(GCode &gcodegen)
+std::string OozePrevention::post_toolchange(GCode &gcodegen)
 {
-    std::string gcode;
-    
-    if (gcodegen.config.standby_temperature_delta.value != 0) {
-        gcode += gcodegen.writer.set_temperature(this->_get_temp(gcodegen), true);
-    }
-    
-    return gcode;
+    return (gcodegen.config.standby_temperature_delta.value != 0) ?
+        gcodegen.writer.set_temperature(this->_get_temp(gcodegen), true) :
+        std::string();
 }
 
 int
@@ -132,23 +122,6 @@ OozePrevention::_get_temp(GCode &gcodegen)
     return (gcodegen.layer != NULL && gcodegen.layer->id() == 0)
         ? gcodegen.config.first_layer_temperature.get_at(gcodegen.writer.extruder()->id)
         : gcodegen.config.temperature.get_at(gcodegen.writer.extruder()->id);
-}
-
-Wipe::Wipe()
-    : enable(false)
-{
-}
-
-bool
-Wipe::has_path()
-{
-    return !this->path.points.empty();
-}
-
-void
-Wipe::reset_path()
-{
-    this->path = Polyline();
 }
 
 std::string

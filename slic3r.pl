@@ -307,8 +307,6 @@ $j
     --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
                         by all firmwares)
     --gcode-comments    Make G-code verbose by adding comments (default: no)
-    --pressure-advance  Adjust pressure using the experimental advance algorithm (K constant,
-                        set zero to disable; default: $config->{pressure_advance})
     
   Filament options:
     --filament-diameter Diameter in mm of your raw filament (default: $config->{filament_diameter}->[0])

@@ -313,7 +313,6 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionFloat               max_volumetric_speed;
     ConfigOptionFloat               max_volumetric_extrusion_rate_slope_positive;
     ConfigOptionFloat               max_volumetric_extrusion_rate_slope_negative;
-    ConfigOptionFloat               pressure_advance;
     ConfigOptionFloats              retract_length;
     ConfigOptionFloats              retract_length_toolchange;
     ConfigOptionFloats              retract_lift;
@@ -351,7 +350,6 @@ class GCodeConfig : public virtual StaticPrintConfig
         OPT_PTR(max_volumetric_speed);
         OPT_PTR(max_volumetric_extrusion_rate_slope_positive);
         OPT_PTR(max_volumetric_extrusion_rate_slope_negative);
-        OPT_PTR(pressure_advance);
         OPT_PTR(retract_length);
         OPT_PTR(retract_length_toolchange);
         OPT_PTR(retract_lift);
@@ -409,7 +407,6 @@ class PrintConfig : public GCodeConfig
     ConfigOptionFloatOrPercent      first_layer_extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_speed;
     ConfigOptionInts                first_layer_temperature;
-    ConfigOptionBool                gcode_arcs;
     ConfigOptionFloat               infill_acceleration;
     ConfigOptionBool                infill_first;
     ConfigOptionInt                 max_fan_speed;
@@ -468,7 +465,6 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(first_layer_extrusion_width);
         OPT_PTR(first_layer_speed);
         OPT_PTR(first_layer_temperature);
-        OPT_PTR(gcode_arcs);
         OPT_PTR(infill_acceleration);
         OPT_PTR(infill_first);
         OPT_PTR(max_fan_speed);
