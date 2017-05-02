@@ -81,9 +81,9 @@ our $Settings = {
 
 our $have_button_icons = &Wx::wxVERSION_STRING =~ m" (?:2\.9\.[1-9]|3\.)";
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-$small_font->SetPointSize(11) if !&Wx::wxMSW;
+$small_font->SetPointSize(11) if &Wx::wxMAC;
 our $small_bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-$small_bold_font->SetPointSize(11) if !&Wx::wxMSW;
+$small_bold_font->SetPointSize(11) if &Wx::wxMAC;
 $small_bold_font->SetWeight(wxFONTWEIGHT_BOLD);
 our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
