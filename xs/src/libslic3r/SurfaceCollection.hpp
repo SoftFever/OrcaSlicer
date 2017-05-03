@@ -9,7 +9,7 @@ namespace Slic3r {
 
 class SurfaceCollection
 {
-    public:
+public:
     Surfaces surfaces;
     
     SurfaceCollection() {};

@@ -1,4 +1,5 @@
 #include "SpiralVase.hpp"
+#include "GCode.hpp"
 #include <sstream>
 
 namespace Slic3r {

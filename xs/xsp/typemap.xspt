@@ -105,9 +105,6 @@
 %typemap{GCodeSender*};
 %typemap{Ref<GCodeSender>}{simple};
 %typemap{Clone<GCodeSender>}{simple};
-%typemap{GCodePressureEqualizer*};
-%typemap{Ref<GCodePressureEqualizer>}{simple};
-%typemap{Clone<GCodePressureEqualizer>}{simple};
 %typemap{BridgeDetector*};
 %typemap{Ref<BridgeDetector>}{simple};
 %typemap{Clone<BridgeDetector>}{simple};
@@ -151,18 +148,6 @@
 %typemap{PlaceholderParser*};
 %typemap{Ref<PlaceholderParser>}{simple};
 %typemap{Clone<PlaceholderParser>}{simple};
-
-%typemap{AvoidCrossingPerimeters*};
-%typemap{Ref<AvoidCrossingPerimeters>}{simple};
-%typemap{Clone<AvoidCrossingPerimeters>}{simple};
-
-%typemap{Wipe*};
-%typemap{Ref<Wipe>}{simple};
-%typemap{Clone<Wipe>}{simple};
-
-%typemap{OozePrevention*};
-%typemap{Ref<OozePrevention>}{simple};
-%typemap{Clone<OozePrevention>}{simple};
 
 %typemap{CoolingBuffer*};
 %typemap{Ref<CoolingBuffer>}{simple};

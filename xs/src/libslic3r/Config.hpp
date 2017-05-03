@@ -34,7 +34,7 @@ class ConfigOption {
     virtual int getInt() const { return 0; };
     virtual double getFloat() const { return 0; };
     virtual bool getBool() const { return false; };
-    virtual void setInt(int val) {};
+    virtual void setInt(int /* val */) { };
     friend bool operator== (const ConfigOption &a, const ConfigOption &b);
     friend bool operator!= (const ConfigOption &a, const ConfigOption &b);
 };
@@ -142,7 +142,7 @@ class ConfigOptionInt : public ConfigOptionSingle<int>
 {
     public:
     ConfigOptionInt() : ConfigOptionSingle<int>(0) {};
-    ConfigOptionInt(double _value) : ConfigOptionSingle<int>(_value) {};
+    ConfigOptionInt(double _value) : ConfigOptionSingle<int>(int(floor(_value + 0.5))) {};
     
     int getInt() const { return this->value; };
     void setInt(int val) { this->value = val; };

@@ -117,7 +117,7 @@ public:
     ModelObject*        model_object()          { return this->_model_object; }
     const ModelObject*  model_object() const    { return this->_model_object; }
 
-    Points copies() const { return this->_copies; }
+    const Points& copies() const { return this->_copies; }
     bool add_copy(const Pointf &point);
     bool delete_last_copy();
     bool delete_all_copies();
@@ -249,9 +249,9 @@ public:
     Flow brim_flow() const;
     Flow skirt_flow() const;
     
-    std::set<size_t> object_extruders() const;
-    std::set<size_t> support_material_extruders() const;
-    std::set<size_t> extruders() const;
+    std::vector<unsigned int> object_extruders() const;
+    std::vector<unsigned int> support_material_extruders() const;
+    std::vector<unsigned int> extruders() const;
     void _simplify_slices(double distance);
     double max_allowed_layer_height() const;
     bool has_support_material() const;

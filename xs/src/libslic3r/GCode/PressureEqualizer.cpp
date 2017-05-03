@@ -9,17 +9,17 @@
 
 namespace Slic3r {
 
-GCodePressureEqualizer::GCodePressureEqualizer(const Slic3r::GCodeConfig *config) : 
+PressureEqualizer::PressureEqualizer(const Slic3r::GCodeConfig *config) : 
     m_config(config)
 {
     reset();
 }
 
-GCodePressureEqualizer::~GCodePressureEqualizer()
+PressureEqualizer::~PressureEqualizer()
 {
 }
 
-void GCodePressureEqualizer::reset()
+void PressureEqualizer::reset()
 {
     circular_buffer_pos     = 0;
     circular_buffer_size    = 100;
@@ -69,7 +69,7 @@ void GCodePressureEqualizer::reset()
     line_idx = 0;
 }
 
-const char* GCodePressureEqualizer::process(const char *szGCode, bool flush)
+const char* PressureEqualizer::process(const char *szGCode, bool flush)
 {
     // Reset length of the output_buffer.
     output_buffer_length = 0;
@@ -147,7 +147,7 @@ static inline int parse_int(const char *&line)
     char *endptr = NULL;
     long result = strtol(line, &endptr, 10);
     if (endptr == NULL || !is_ws_or_eol(*endptr))
-        throw std::runtime_error("GCodePressureEqualizer: Error parsing an int");
+        throw std::runtime_error("PressureEqualizer: Error parsing an int");
     line = endptr;
     return int(result);
 };
@@ -159,13 +159,13 @@ static inline float parse_float(const char *&line)
     char *endptr = NULL;
     float result = strtof(line, &endptr);
     if (endptr == NULL || !is_ws_or_eol(*endptr))
-        throw std::runtime_error("GCodePressureEqualizer: Error parsing a float");
+        throw std::runtime_error("PressureEqualizer: Error parsing a float");
     line = endptr;
     return result;
 };
 
 #define EXTRUSION_ROLE_TAG ";_EXTRUSION_ROLE:"
-bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GCodeLine &buf)
+bool PressureEqualizer::process_line(const char *line, const size_t len, GCodeLine &buf)
 {
     if (strncmp(line, EXTRUSION_ROLE_TAG, strlen(EXTRUSION_ROLE_TAG)) == 0) {
         line += strlen(EXTRUSION_ROLE_TAG);
@@ -228,7 +228,7 @@ bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GC
                     assert(false);
                 }
                 if (i == -1)
-                    throw std::runtime_error(std::string("GCodePressureEqualizer: Invalid axis for G0/G1: ") + axis);
+                    throw std::runtime_error(std::string("GCode::PressureEqualizer: Invalid axis for G0/G1: ") + axis);
                 buf.pos_provided[i] = true;
                 new_pos[i] = parse_float(line);
                 if (i == 3 && m_config->use_relative_e_distances.value)
@@ -297,7 +297,7 @@ bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GC
                     set = true;
                     break;
                 default:
-                    throw std::runtime_error(std::string("GCodePressureEqualizer: Incorrect axis in a G92 G-code: ") + axis);
+                    throw std::runtime_error(std::string("GCode::PressureEqualizer: Incorrect axis in a G92 G-code: ") + axis);
                 }
                 eatws(line);
             }
@@ -355,7 +355,7 @@ bool GCodePressureEqualizer::process_line(const char *line, const size_t len, GC
 	return true;
 }
 
-void GCodePressureEqualizer::output_gcode_line(GCodeLine &line)
+void PressureEqualizer::output_gcode_line(GCodeLine &line)
 {
     if (! line.modified) {
         push_to_output(line.raw.data(), line.raw_length, true);
@@ -453,7 +453,7 @@ void GCodePressureEqualizer::output_gcode_line(GCodeLine &line)
     }
 }
 
-void GCodePressureEqualizer::adjust_volumetric_rate()
+void PressureEqualizer::adjust_volumetric_rate()
 {
     if (circular_buffer_items < 2)
         return;
@@ -563,7 +563,7 @@ void GCodePressureEqualizer::adjust_volumetric_rate()
     }
 }
 
-void GCodePressureEqualizer::push_axis_to_output(const char axis, const float value, bool add_eol)
+void PressureEqualizer::push_axis_to_output(const char axis, const float value, bool add_eol)
 {
     char buf[2048];
     int len = sprintf(buf, 
@@ -572,7 +572,7 @@ void GCodePressureEqualizer::push_axis_to_output(const char axis, const float va
     push_to_output(buf, len, add_eol);
 }
 
-void GCodePressureEqualizer::push_to_output(const char *text, const size_t len, bool add_eol)
+void PressureEqualizer::push_to_output(const char *text, const size_t len, bool add_eol)
 {
     // New length of the output buffer content.
     size_t len_new = output_buffer_length + len + 1;
@@ -604,7 +604,7 @@ void GCodePressureEqualizer::push_to_output(const char *text, const size_t len, 
     output_buffer[output_buffer_length] = 0;
 }
 
-void GCodePressureEqualizer::push_line_to_output(const GCodeLine &line, const float new_feedrate, const char *comment)
+void PressureEqualizer::push_line_to_output(const GCodeLine &line, const float new_feedrate, const char *comment)
 {
     push_to_output("G1", 2, false);
     for (char i = 0; i < 3; ++ i)

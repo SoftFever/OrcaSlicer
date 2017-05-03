@@ -304,8 +304,6 @@ $j
     --use-relative-e-distances Enable this to get relative E values (default: no)
     --use-firmware-retraction  Enable firmware-controlled retraction using G10/G11 (default: no)
     --use-volumetric-e  Express E in cubic millimeters and prepend M200 (default: no)
-    --gcode-arcs        Use G2/G3 commands for native arcs (experimental, not supported
-                        by all firmwares)
     --gcode-comments    Make G-code verbose by adding comments (default: no)
     
   Filament options:

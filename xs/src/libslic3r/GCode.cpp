@@ -1,9 +1,16 @@
 #include "GCode.hpp"
 #include "ExtrusionEntity.hpp"
 #include "EdgeGrid.hpp"
+#include "Geometry.hpp"
+
 #include <algorithm>
 #include <cstdlib>
 #include <math.h>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/find.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
+#include <boost/foreach.hpp>
 
 #include "SVG.hpp"
 
@@ -57,7 +64,7 @@ AvoidCrossingPerimeters::travel_to(GCode &gcodegen, Point point)
     if (this->use_external_mp || this->use_external_mp_once) {
         // get current origin set in gcodegen
         // (the one that will be used to translate the G-code coordinates by)
-        Point scaled_origin = Point::new_scale(gcodegen.origin.x, gcodegen.origin.y);
+        Point scaled_origin = Point::new_scale(gcodegen.origin().x, gcodegen.origin().y);
         
         // represent last_pos in absolute G-code coordinates
         Point last_pos = gcodegen.last_pos();
@@ -78,15 +85,14 @@ AvoidCrossingPerimeters::travel_to(GCode &gcodegen, Point point)
     }
 }
 
-std::string
-OozePrevention::pre_toolchange(GCode &gcodegen)
+std::string OozePrevention::pre_toolchange(GCode &gcodegen)
 {
     std::string gcode;
     
     // move to the nearest standby point
     if (!this->standby_points.empty()) {
         // get current position in print coordinates
-        Pointf3 writer_pos = gcodegen.writer.get_position();
+        Pointf3 writer_pos = gcodegen.writer().get_position();
         Point pos = Point::new_scale(writer_pos.x, writer_pos.y);
         
         // find standby point
@@ -96,14 +102,14 @@ OozePrevention::pre_toolchange(GCode &gcodegen)
         /*  We don't call gcodegen.travel_to() because we don't need retraction (it was already
             triggered by the caller) nor avoid_crossing_perimeters and also because the coordinates
             of the destination point must not be transformed by origin nor current extruder offset.  */
-        gcode += gcodegen.writer.travel_to_xy(Pointf::new_unscale(standby_point), 
+        gcode += gcodegen.writer().travel_to_xy(Pointf::new_unscale(standby_point), 
             "move to standby position");
     }
     
-    if (gcodegen.config.standby_temperature_delta.value != 0) {
+    if (gcodegen.config().standby_temperature_delta.value != 0) {
         // we assume that heating is always slower than cooling, so no need to block
-        gcode += gcodegen.writer.set_temperature
-            (this->_get_temp(gcodegen) + gcodegen.config.standby_temperature_delta.value, false);
+        gcode += gcodegen.writer().set_temperature
+            (this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value, false);
     }
     
     return gcode;
@@ -111,17 +117,17 @@ OozePrevention::pre_toolchange(GCode &gcodegen)
 
 std::string OozePrevention::post_toolchange(GCode &gcodegen)
 {
-    return (gcodegen.config.standby_temperature_delta.value != 0) ?
-        gcodegen.writer.set_temperature(this->_get_temp(gcodegen), true) :
+    return (gcodegen.config().standby_temperature_delta.value != 0) ?
+        gcodegen.writer().set_temperature(this->_get_temp(gcodegen), true) :
         std::string();
 }
 
 int
 OozePrevention::_get_temp(GCode &gcodegen)
 {
-    return (gcodegen.layer != NULL && gcodegen.layer->id() == 0)
-        ? gcodegen.config.first_layer_temperature.get_at(gcodegen.writer.extruder()->id)
-        : gcodegen.config.temperature.get_at(gcodegen.writer.extruder()->id);
+    return (gcodegen.layer() != NULL && gcodegen.layer()->id() == 0)
+        ? gcodegen.config().first_layer_temperature.get_at(gcodegen.writer().extruder()->id)
+        : gcodegen.config().temperature.get_at(gcodegen.writer().extruder()->id);
 }
 
 std::string
@@ -131,18 +137,18 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
     
     /*  Reduce feedrate a bit; travel speed is often too high to move on existing material.
         Too fast = ripping of existing material; too slow = short wipe path, thus more blob.  */
-    double wipe_speed = gcodegen.writer.config.travel_speed.value * 0.8;
+    double wipe_speed = gcodegen.writer().config.travel_speed.value * 0.8;
     
     // get the retraction length
     double length = toolchange
-        ? gcodegen.writer.extruder()->retract_length_toolchange()
-        : gcodegen.writer.extruder()->retract_length();
+        ? gcodegen.writer().extruder()->retract_length_toolchange()
+        : gcodegen.writer().extruder()->retract_length();
     
     if (length > 0) {
         /*  Calculate how long we need to travel in order to consume the required
             amount of retraction. In other words, how far do we move in XY at wipe_speed
             for the time needed to consume retract_length at retract_speed?  */
-        double wipe_dist = scale_(length / gcodegen.writer.extruder()->retract_speed() * wipe_speed);
+        double wipe_dist = scale_(length / gcodegen.writer().extruder()->retract_speed() * wipe_speed);
     
         /*  Take the stored wipe path and replace first point with the current actual position
             (they might be different, for example, in case of loop clipping).  */
@@ -165,15 +171,15 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
             double dE = length * (segment_length / wipe_dist) * 0.95;
             //FIXME one shall not generate the unnecessary G1 Fxxx commands, here wipe_speed is a constant inside this cycle.
             // Is it here for the cooling markers? Or should it be outside of the cycle?
-            gcode += gcodegen.writer.set_speed(wipe_speed*60, "", gcodegen.enable_cooling_markers ? ";_WIPE" : "");
-            gcode += gcodegen.writer.extrude_to_xy(
+            gcode += gcodegen.writer().set_speed(wipe_speed*60, "", gcodegen.enable_cooling_markers() ? ";_WIPE" : "");
+            gcode += gcodegen.writer().extrude_to_xy(
                 gcodegen.point_to_gcode(line->b),
                 -dE,
                 "wipe and retract"
             );
             retracted += dE;
         }
-        gcodegen.writer.extruder()->retracted += retracted;
+        gcodegen.writer().extruder()->retracted += retracted;
         
         // prevent wiping again on same path
         this->reset_path();
@@ -182,132 +188,720 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
     return gcode;
 }
 
-#define EXTRUDER_CONFIG(OPT) this->config.OPT.get_at(this->writer.extruder()->id)
+#define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id)
 
-GCode::GCode()
-    : placeholder_parser(NULL), enable_loop_clipping(true), 
-        enable_cooling_markers(false), enable_extrusion_role_markers(false), enable_analyzer_markers(false),
-        layer_count(0),
-        layer_index(-1), layer(NULL), first_layer(false), elapsed_time(0.0), volumetric_speed(0),
-        _last_pos_defined(false),
-        _lower_layer_edge_grid(NULL),
-        _last_extrusion_role(erNone)
+inline void write(FILE *file, const std::string &what)
 {
+    fwrite(what.data(), 1, what.size(), file);
 }
 
-GCode::~GCode()
+inline void writeln(FILE *file, const std::string &what)
 {
-    delete _lower_layer_edge_grid;
-    _lower_layer_edge_grid = NULL;
+    write(file, what);
+    fprintf(file, "\n");
 }
 
-const Point&
-GCode::last_pos() const
+bool GCode::do_export(FILE *file, Print &print)
 {
-    return this->_last_pos;
+    // How many times will be change_layer() called?
+    // change_layer() in turn increments the progress bar status.
+    m_layer_count = 0;
+    for (auto object : print.objects)
+        // if sequential printing is not enable, all copies of the same object share the same layer change command(s)
+        m_layer_count += (unsigned int)((print.config.complete_objects.value ? object->copies().size() : 1) * object->total_layer_count());
+
+    m_enable_cooling_markers = true;
+    this->apply_print_config(print.config);
+    this->set_extruders(print.extruders());
+    
+    // Initialize autospeed.
+    {
+        // get the minimum cross-section used in the print
+        std::vector<double> mm3_per_mm;
+        for (auto object : print.objects) {
+            for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
+                auto region = print.regions[region_id];
+                for (auto layer : object->layers) {
+                    auto layerm = layer->regions[region_id];
+                    if (region->config.get_abs_value("perimeter_speed"          ) == 0 || 
+                        region->config.get_abs_value("small_perimeter_speed"    ) == 0 || 
+                        region->config.get_abs_value("external_perimeter_speed" ) == 0 || 
+                        region->config.get_abs_value("bridge_speed"             ) == 0)
+                        mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
+                    if (region->config.get_abs_value("infill_speed"             ) == 0 || 
+                        region->config.get_abs_value("solid_infill_speed"       ) == 0 || 
+                        region->config.get_abs_value("top_solid_infill_speed"   ) == 0 || 
+                        region->config.get_abs_value("bridge_speed"             ) == 0)
+                        mm3_per_mm.push_back(layerm->fills.min_mm3_per_mm());
+                }
+            }
+            if (object->config.get_abs_value("support_material_speed"           ) == 0 || 
+                object->config.get_abs_value("support_material_interface_speed" ) == 0)
+                for (auto layer : object->support_layers)
+                    mm3_per_mm.push_back(layer->support_fills.min_mm3_per_mm());
+        }
+        // filter out 0-width segments
+        mm3_per_mm.erase(std::remove_if(mm3_per_mm.begin(), mm3_per_mm.end(), [](double v) { return v < 0.000001; }), mm3_per_mm.end());
+        if (! mm3_per_mm.empty()) {
+            // In order to honor max_print_speed we need to find a target volumetric
+            // speed that we can use throughout the print. So we define this target 
+            // volumetric speed as the volumetric speed produced by printing the 
+            // smallest cross-section at the maximum speed: any larger cross-section
+            // will need slower feedrates.
+            m_volumetric_speed = *std::min_element(mm3_per_mm.begin(), mm3_per_mm.end()) * print.config.max_print_speed.value;
+            // limit such volumetric speed with max_volumetric_speed if set
+            if (print.config.max_volumetric_speed.value > 0)
+                m_volumetric_speed = std::min(m_volumetric_speed, print.config.max_volumetric_speed.value);
+        }
+    }
+    
+    m_cooling_buffer = std::make_unique<CoolingBuffer>(*this);
+    if (print.config.spiral_vase.value)
+        m_spiral_vase = std::make_unique<SpiralVase>(print.config);
+    if (print.config.max_volumetric_extrusion_rate_slope_positive.value > 0 ||
+        print.config.max_volumetric_extrusion_rate_slope_negative.value > 0)
+        m_pressure_equalizer = std::make_unique<PressureEqualizer>(&print.config);
+    m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
+
+    // Write information on the generator.
+    {
+        const auto now = boost::posix_time::second_clock::local_time();
+        const auto date = now.date();
+        fprintf(file, "; generated by Slic3r %s on %04d-%02d-%02d at %02d:%02d:%02d\n\n",
+            SLIC3R_VERSION,
+            // Local date in an ANSII format.
+            int(now.date().year()), int(now.date().month()), int(now.date().day()),
+            int(now.time_of_day().hours()), int(now.time_of_day().minutes()), int(now.time_of_day().seconds()));
+    }
+    // Write notes (content of the Print Settings tab -> Notes)
+    {
+        std::list<std::string> lines;
+        boost::split(lines, print.config.notes.value, boost::is_any_of("\n"), boost::token_compress_off);
+        for (auto line : lines) {
+            // Remove the trailing '\r' from the '\r\n' sequence.
+            if (! line.empty() && line.back() == '\r')
+                line.pop_back();
+            fprintf(file, "; %s\n", line.c_str());
+        }
+        if (! lines.empty())
+            fprintf(file, "\n");
+    }
+    // Write some terse information on the slicing parameters.
+    {
+        const PrintObject *first_object = print.objects.front();
+        const double       layer_height = first_object->config.layer_height.value;
+        for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
+            auto region = print.regions[region_id];
+            fprintf(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(frExternalPerimeter, layer_height, false, false, -1., *first_object).width);
+            fprintf(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(frPerimeter,         layer_height, false, false, -1., *first_object).width);
+            fprintf(file, "; infill extrusion width = %.2fmm\n",              region->flow(frInfill,            layer_height, false, false, -1., *first_object).width);
+            fprintf(file, "; solid infill extrusion width = %.2fmm\n",        region->flow(frSolidInfill,       layer_height, false, false, -1., *first_object).width);
+            fprintf(file, "; top infill extrusion width = %.2fmm\n",          region->flow(frTopSolidInfill,    layer_height, false, false, -1., *first_object).width);
+            if (print.has_support_material())
+                fprintf(file, "; support material extrusion width = %.2fmm\n", support_material_flow(first_object).width);
+            if (print.config.first_layer_extrusion_width.value > 0)
+                fprintf(file, "; first layer extrusion width = %.2fmm\n",   region->flow(frPerimeter, layer_height, false, true, -1., *first_object).width);
+            fprintf(file, "\n");
+        }
+    }
+    
+    // Prepare the helper object for replacing placeholders in custom G-code and output filename.
+    m_placeholder_parser = print.placeholder_parser;
+    m_placeholder_parser.update_timestamp();
+    
+    // Disable fan.
+    if (print.config.cooling.value && print.config.disable_fan_first_layers.value)
+        write(file, m_writer.set_fan(0, true));
+    
+    // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
+    if (print.config.first_layer_bed_temperature.value > 0 &&
+        boost::ifind_first(print.config.start_gcode.value, std::string("M140")).empty() &&
+        boost::ifind_first(print.config.start_gcode.value, std::string("M190")).empty())
+        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.value, true));
+    
+    // Set extruder(s) temperature before and after start G-code.
+    this->_print_first_layer_extruder_temperatures(file, print, false);
+    fprintf(file, "%s\n", m_placeholder_parser.process(print.config.start_gcode.value).c_str());
+    this->_print_first_layer_extruder_temperatures(file, print, true);
+    
+    // Set other general things.
+    write(file, this->preamble());
+    
+    // Initialize a motion planner for object-to-object travel moves.
+    if (print.config.avoid_crossing_perimeters.value) {
+        //coord_t distance_from_objects = coord_t(scale_(1.)); 
+        // Compute the offsetted convex hull for each object and repeat it for each copy.
+        Polygons islands_p;
+        for (const PrintObject *object : print.objects) {
+            // Discard objects only containing thin walls (offset would fail on an empty polygon).
+            Polygons polygons;
+            for (const Layer *layer : object->layers)
+                for (const ExPolygon &expoly : layer->slices.expolygons)
+                    polygons.push_back(expoly.contour);
+            if (! polygons.empty()) {
+                // Translate convex hull for each object copy and append it to the islands array.
+                for (const Point &copy : object->_shifted_copies)
+                    for (Polygon poly : polygons) {
+                        poly.translate(copy);
+                        islands_p.emplace_back(std::move(poly));
+                    }
+            }
+        }
+        m_avoid_crossing_perimeters.init_external_mp(union_ex(islands_p));
+    }
+    
+    // Calculate wiping points if needed
+    if (print.config.ooze_prevention.value) {
+        Points skirt_points;
+        for (const ExtrusionEntity *ee : print.skirt.entities)
+            for (const ExtrusionPath &path : dynamic_cast<const ExtrusionLoop*>(ee)->paths)
+                append(skirt_points, path.polyline.points);
+        if (! skirt_points.empty()) {
+            Polygon outer_skirt = Slic3r::Geometry::convex_hull(skirt_points);
+            Polygons skirts;
+            for (unsigned int extruder_id : print.extruders()) {
+                const Pointf &extruder_offset = print.config.extruder_offset.get_at(extruder_id);
+                Polygon s(outer_skirt);
+                s.translate(-scale_(extruder_offset.x), -scale_(extruder_offset.y));
+                skirts.emplace_back(std::move(s));
+            }
+            m_ooze_prevention.enable = true;
+            m_ooze_prevention.standby_points =
+                offset(Slic3r::Geometry::convex_hull(skirts), scale_(3.f)).front().equally_spaced_points(scale_(10.));
+#if 0
+                require "Slic3r/SVG.pm";
+                Slic3r::SVG::output(
+                    "ooze_prevention.svg",
+                    red_polygons    => \@skirts,
+                    polygons        => [$outer_skirt],
+                    points          => $gcodegen->ooze_prevention->standby_points,
+                );
+#endif
+        }
+    }
+    
+    // Set initial extruder only after custom start G-code.
+    write(file, this->set_extruder(print.extruders().front()));
+    
+    // Do all objects for each layer.
+    if (print.config.complete_objects.value) {
+        // Print objects from the smallest to the tallest to avoid collisions
+        // when moving onto next object starting point.
+        std::vector<PrintObject*> objects(print.objects);
+        std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size.z < po2->size.z; });        
+        size_t finished_objects = 0;
+        for (PrintObject *object : objects) {
+            for (const Point &copy : object->_shifted_copies) {
+                Points copies;
+                copies.push_back(copy);
+                // Move to the origin position for the copy we're going to print.
+                // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
+                if (finished_objects > 0) {
+                    this->set_origin(unscale(copy.x), unscale(copy.y));
+                    m_enable_cooling_markers = false; // we're not filtering these moves through CoolingBuffer
+                    m_avoid_crossing_perimeters.use_external_mp_once = true;
+                    write(file, this->retract());
+                    write(file, this->travel_to(Point(0, 0), erNone, "move to origin position for next object"));
+                    m_enable_cooling_markers = true;
+                    // Disable motion planner when traveling to first object point.
+                    m_avoid_crossing_perimeters.disable_once = true;
+                }
+                
+                // Order layers by print_z, support layers preceding the object layers.
+                std::vector<Layer*> layers(object->layers);
+                layers.insert(layers.end(), object->support_layers.begin(), object->support_layers.end());
+                std::sort(layers.begin(), layers.end(), [](const Layer *l1, const Layer *l2) 
+                    { return (l1->print_z == l2->print_z) ? dynamic_cast<const SupportLayer*>(l1) != nullptr : l1->print_z < l2->print_z; });
+                for (Layer *layer : layers) {
+                    // Ff we are printing the bottom layer of an object, and we have already finished
+                    // another one, set first layer temperatures. This happens before the Z move
+                    // is triggered, so machine has more time to reach such temperatures.
+                    if (layer->id() == 0 && finished_objects > 0) {
+                        if (print.config.first_layer_bed_temperature.value > 0)
+                            write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature));
+                        // Set first layer extruder.
+                        this->_print_first_layer_extruder_temperatures(file, print, false);
+                    }
+                    this->process_layer(file, print, *layer, copies);
+                }
+                write(file, this->filter(m_cooling_buffer->flush(), true));
+                ++ finished_objects;
+                // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
+                // Reset it when starting another object from 1st layer.
+                m_second_layer_things_done = false;
+            }
+        }
+    } else {
+        // Order objects using a nearest neighbor search.
+        std::vector<size_t> object_indices;
+        Points object_reference_points;
+        for (PrintObject *object : print.objects)
+            object_reference_points.push_back(object->_shifted_copies.front());
+        Slic3r::Geometry::chained_path(object_reference_points, object_indices);        
+        // Sort layers by Z.
+        // All extrusion moves with the same top layer height are extruded uninterrupted,
+        // object extrusion moves are performed first, then the support.
+        std::map<coordf_t, std::vector<LayerPtrs>> layers; // print_z => [ [layers], [layers], [layers] ]  by obj_idx
+        for (size_t obj_idx = 0; obj_idx < print.objects.size(); ++ obj_idx) {
+            PrintObject *object = print.objects[obj_idx];
+            // Collect the object layers by z, support layers first, object layers second.
+            LayerPtrs object_layers(object->support_layers.begin(), object->support_layers.end());
+            append(object_layers, object->layers);
+            for (Layer *layer : object_layers) {
+                std::vector<LayerPtrs> &object_layers_at_printz = layers[layer->print_z];
+                if (object_layers_at_printz.empty())
+                    object_layers_at_printz.resize(print.objects.size(), LayerPtrs());
+                object_layers_at_printz[obj_idx].push_back(layer);
+            }
+        }
+        for (auto &layer : layers)
+            for (size_t obj_idx : object_indices)
+                for (Layer *l : layer.second[obj_idx])
+                    this->process_layer(file, print, *l, l->object()->_shifted_copies);
+        write(file, this->filter(m_cooling_buffer->flush(), true));
+    }
+
+    // write end commands to file
+    write(file, this->retract());   // TODO: process this retract through PressureRegulator in order to discharge fully
+    write(file, m_writer.set_fan(false));
+    writeln(file, m_placeholder_parser.process(print.config.end_gcode));
+    write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
+    write(file, m_writer.postamble());
+    
+    // get filament stats
+    print.filament_stats.clear();
+    print.total_used_filament    = 0.;
+    print.total_extruded_volume  = 0.;
+    print.total_weight           = 0.;
+    print.total_cost             = 0.;
+    for (const Extruder &extruder : m_writer.extruders) {
+        double used_filament   = extruder.used_filament();
+        double extruded_volume = extruder.extruded_volume();
+        double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
+        double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
+        print.filament_stats.insert(std::pair<size_t,float>(extruder.id, used_filament));
+        fprintf(file, "; filament used = %.1lfmm (%.1lfcm3)\n", used_filament, extruded_volume * 0.001);
+        if (filament_weight > 0.) {
+            print.total_weight = print.total_weight + filament_weight;
+            fprintf(file, "; filament used = %.1lf\n", filament_weight);
+            if (filament_cost > 0.) {
+                print.total_cost = print.total_cost + filament_cost;
+                fprintf(file, "; filament cost = %.1lf\n", filament_cost);
+            }
+        }
+        print.total_used_filament   = print.total_used_filament + used_filament;
+        print.total_extruded_volume = print.total_extruded_volume + extruded_volume;
+    }
+    fprintf(file, "; total filament cost = %.1lf\n", print.total_cost);
+
+    // Append full config.
+    fprintf(file, "\n");
+    for (const std::string &key : print.config.keys())
+        fprintf(file, "; %s = %s\n", key.c_str(), print.config.serialize(key).c_str());
+    for (const std::string &key : print.default_object_config.keys())
+        fprintf(file, "; %s = %s\n", key.c_str(), print.default_object_config.serialize(key).c_str());
+
+    return true;
 }
 
-void
-GCode::set_last_pos(const Point &pos)
+// Write 1st layer extruder temperatures into the G-code.
+// Only do that if the start G-code does not already contain any M-code controlling an extruder temperature.
+// FIXME this does not work correctly for multi-extruder, single heater configuration as it emits multiple preheat commands for the same heater.
+// M104 - Set Extruder Temperature
+// M109 - Set Extruder Temperature and Wait
+void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, bool wait)
 {
-    this->_last_pos = pos;
-    this->_last_pos_defined = true;
+    if (boost::ifind_first(print.config.start_gcode.value, std::string("M104")).empty() &&
+        boost::ifind_first(print.config.start_gcode.value, std::string("M109")).empty()) {
+        for (unsigned int tool_id : print.extruders()) {
+            int temp = print.config.first_layer_temperature.get_at(tool_id);
+            if (print.config.ooze_prevention.value)
+                temp += print.config.standby_temperature_delta.value;
+            if (temp > 0)
+                write(file, m_writer.set_temperature(temp, wait, tool_id));
+        }
+    }
 }
 
-bool
-GCode::last_pos_defined() const
+// Called per object's layer.
+// First a $gcode string is collected,
+// then filtered and finally written to a file $fh.
+//FIXME If printing multiple objects at once, this incorrectly applies cooling logic to a single object's layer instead
+// of all the objects printed.
+void GCode::process_layer(FILE *file, const Print &print, const Layer &layer, const Points &object_copies)
 {
-    return this->_last_pos_defined;
+    std::string gcode;
+    
+    const PrintObject &object = *layer.object();
+    m_config.apply(object.config, true);
+
+    const SupportLayer *support_layer = dynamic_cast<const SupportLayer*>(&layer);
+    
+    // Check whether it is possible to apply the spiral vase logic for this layer.
+    if (m_spiral_vase) {
+        bool enable = (layer.id() > 0 || print.config.brim_width.value == 0.) && (layer.id() >= print.config.skirt_height.value && ! print.has_infinite_skirt());
+        if (enable) {
+            for (const LayerRegion *layer_region : layer.regions)
+                if (layer_region->region()->config.bottom_solid_layers.value > layer.id() ||
+                    layer_region->perimeters.items_count() > 1 ||
+                    layer_region->fills.items_count() > 0) {
+                    enable = false;
+                    break;
+                }
+        }
+        m_spiral_vase->enable = enable;
+    }
+
+    // If we're going to apply spiralvase to this layer, disable loop clipping
+    m_enable_loop_clipping = (! m_spiral_vase || ! m_spiral_vase->enable);
+    
+    if (! m_second_layer_things_done && layer.id() == 1) {
+        // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
+        // first_layer_temperature vs. temperature settings.
+        for (const Extruder &extruder : m_writer.extruders) {
+            int temperature = print.config.temperature.get_at(extruder.id);
+            if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id))
+                gcode += m_writer.set_temperature(temperature, false, extruder.id);
+        }
+        if (print.config.bed_temperature.value > 0 && print.config.bed_temperature != print.config.first_layer_bed_temperature.value)
+            gcode += m_writer.set_bed_temperature(print.config.bed_temperature);
+        // Mark the temperature transition from 1st to 2nd layer to be finished.
+        m_second_layer_things_done = true;
+    }
+    
+    // Set new layer - this will change Z and force a retraction if retract_layer_change is enabled.
+    if (! print.config.before_layer_gcode.value.empty()) {
+        PlaceholderParser pp(m_placeholder_parser);
+        pp.set("layer_num", m_layer_index + 1);
+        pp.set("layer_z",   layer.print_z);
+        gcode += pp.process(print.config.before_layer_gcode.value) + "\n";
+    }
+    gcode += this->change_layer(layer);  // this will increase m_layer_index
+    if (! print.config.layer_gcode.value.empty()) {
+        PlaceholderParser pp(m_placeholder_parser);
+        pp.set("layer_num", m_layer_index);
+        pp.set("layer_z",   layer.print_z);
+        gcode += pp.process(print.config.layer_gcode.value) + "\n";
+    }
+    
+    // Extrude skirt at the print_z of the raft layers and normal object layers
+    // not at the print_z of the interlaced support material layers.
+    //FIXME this will print the support 1st, skirt 2nd and an object 3rd 
+    // if they are at the same print_z, it is not the 1st print layer and the support is printed before object.
+    if (// Not enough skirt layers printed yer
+        (m_skirt_done.size() < print.config.skirt_height.value || print.has_infinite_skirt()) &&
+        // This print_z has not been extruded yet
+        m_skirt_done.find(layer.print_z) == m_skirt_done.end() &&
+        // and this layer is the 1st layer, or it is an object layer, or it is a raft layer.
+        (layer.id() == 0 || support_layer == nullptr || layer.id() < object.config.raft_layers.value)) {
+        this->set_origin(0.,0.);
+        m_avoid_crossing_perimeters.use_external_mp = true;
+        std::vector<unsigned int> extruder_ids = m_writer.extruder_ids();
+        gcode += this->set_extruder(extruder_ids.front());
+        // Skip skirt if we have a large brim.
+        if (layer.id() < print.config.skirt_height.value || print.has_infinite_skirt()) {
+            Flow skirt_flow = print.skirt_flow();
+            // Distribute skirt loops across all extruders.
+            for (size_t i = 0; i < print.skirt.entities.size(); ++ i) {
+                // When printing layers > 0 ignore 'min_skirt_length' and 
+                // just use the 'skirts' setting; also just use the current extruder.
+                if (layer.id() > 0 && i >= print.config.skirts)
+                    break;
+                unsigned int extruder_id = extruder_ids[(i / extruder_ids.size()) % extruder_ids.size()];
+                if (layer.id() == 0)
+                    gcode += this->set_extruder(extruder_id);
+                // Adjust flow according to this layer's layer height.
+                ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(print.skirt.entities[i]);
+                Flow layer_skirt_flow(skirt_flow);
+                layer_skirt_flow.height = (float)layer.height;
+                double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
+                for (ExtrusionPath &path : loop.paths) {
+                    path.height     = (float)layer.height;
+                    path.mm3_per_mm = mm3_per_mm;
+                }                
+                gcode += this->extrude(loop, "skirt", object.config.support_material_speed.value);
+            }
+        }
+        m_skirt_done.insert(layer.print_z);
+        m_avoid_crossing_perimeters.use_external_mp = false;
+        // Allow a straight travel move to the first object point if this is the first layer (but don't in next layers).
+        if (layer.id() == 0)
+            m_avoid_crossing_perimeters.disable_once = true;
+    }
+    
+    // extrude brim
+    if (! m_brim_done) {
+        gcode += this->set_extruder(print.regions.front()->config.perimeter_extruder.value - 1);
+        this->set_origin(0.f, 0.f);
+        m_avoid_crossing_perimeters.use_external_mp = true;
+        for (const ExtrusionEntity *ee : print.brim.entities)
+            gcode += this->extrude(*dynamic_cast<const ExtrusionLoop*>(ee), "brim", object.config.support_material_speed.value);
+        m_brim_done = true;
+        m_avoid_crossing_perimeters.use_external_mp = false;
+        // Allow a straight travel move to the first object point.
+        m_avoid_crossing_perimeters.disable_once = true;
+    }
+    
+    for (const Point &copy : object_copies) {
+        // When starting a new object, use the external motion planner for the first travel move.
+        if (m_last_obj_copy != copy)
+            m_avoid_crossing_perimeters.use_external_mp_once = true;
+        m_last_obj_copy = copy;
+        this->set_origin(unscale(copy.x), unscale(copy.y));        
+        // Extrude support material before other things because it might use a lower Z
+        // and also because we avoid travelling on other things when printing it.
+        if (support_layer != nullptr) {
+			if (support_layer->support_fills.entities.size() > 0) {
+				if (object.config.support_material_extruder.value == object.config.support_material_interface_extruder.value) {
+					// Both the support and the support interface are printed with the same extruder, therefore
+					// the interface may be interleaved with the support base.
+					// Don't change extruder if the extruder is set to 0. Use the current extruder instead.
+					gcode += this->extrude_support(
+						support_layer->support_fills.chained_path_from(m_last_pos, false),
+						object.config.support_material_extruder);
+				} else {
+					// Extrude the support base before support interface for two reasons.
+					// 1) Support base may be extruded with the current extruder (extruder ID 0)
+					//    and the support interface may be printed with the solube material,
+					//    then one wants to avoid the base being printed with the soluble material.
+					// 2) It is likely better to print the interface after the base as the interface is
+					//    often printed by bridges and it is convenient to have the base printed already,
+					//    so the bridges may stick to it.
+					gcode += this->extrude_support(
+						support_layer->support_fills.chained_path_from(m_last_pos, false, erSupportMaterial),
+						object.config.support_material_extruder);
+					// Extrude the support interface.
+					gcode += this->extrude_support(
+						support_layer->support_fills.chained_path_from(m_last_pos, false, erSupportMaterialInterface),
+						object.config.support_material_interface_extruder);
+				}
+			}
+			continue;
+        }
+        
+        // We now define a strategy for building perimeters and fills. The separation 
+        // between regions doesn't matter in terms of printing order, as we follow 
+        // another logic instead:
+        // - we group all extrusions by extruder so that we minimize toolchanges
+        // - we start from the last used extruder
+        // - for each extruder, we group extrusions by island
+        // - for each island, we extrude perimeters first, unless user set the infill_first
+        //   option
+        // (Still, we have to keep track of regions because we need to apply their config)
+        
+        // group extrusions by extruder and then by island
+        std::map<unsigned int, std::vector<ByExtruder>> by_extruder;
+
+        size_t n_slices = layer.slices.expolygons.size();
+        std::vector<BoundingBox> layer_surface_bboxes;
+        layer_surface_bboxes.reserve(n_slices);
+        for (const ExPolygon &expoly : layer.slices.expolygons)
+            layer_surface_bboxes.push_back(get_extents(expoly.contour));
+        auto point_inside_surface = [&layer, &layer_surface_bboxes](const size_t i, const Point &point) { 
+            const BoundingBox &bbox = layer_surface_bboxes[i];
+            return point.x >= bbox.min.x && point.x < bbox.max.x &&
+                   point.y >= bbox.min.y && point.y < bbox.max.y &&
+                   layer.slices.expolygons[i].contour.contains(point);
+        };
+
+        for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
+            const LayerRegion *layerm = layer.regions[region_id];
+            if (layerm == nullptr)
+                continue;
+            const PrintRegion &region = *print.regions[region_id];
+            
+            // process perimeters
+            for (const ExtrusionEntity *ee : layerm->perimeters.entities) {
+                // perimeter_coll represents perimeter extrusions of a single island.
+                const auto *perimeter_coll = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+                if (perimeter_coll->entities.empty())
+                    // This shouldn't happen but first_point() would fail.
+                    continue;
+                // Init by_extruder item only if we actually use the extruder.
+                std::vector<ByExtruder> &byex = by_extruder[std::max<int>(region.config.perimeter_extruder.value - 1, 0)];
+                if (byex.empty())
+                    byex.assign(n_slices, ByExtruder());
+                for (size_t i = 0; i <= n_slices; ++ i)
+                    if (// perimeter_coll->first_point does not fit inside any slice
+                        i == n_slices ||
+                        // perimeter_coll->first_point fits inside ith slice
+                        point_inside_surface(i, perimeter_coll->first_point())) {
+                        if (byex[i].by_region.empty())
+                            byex[i].by_region.assign(print.regions.size(), ByExtruder::ToExtrude());
+                        byex[i].by_region[region_id].perimeters.append(perimeter_coll->entities);
+                        break;
+                    }
+            }
+            
+            // process infill
+            // layerm->fills is a collection of Slic3r::ExtrusionPath::Collection objects (C++ class ExtrusionEntityCollection), 
+            // each one containing the ExtrusionPath objects of a certain infill "group" (also called "surface"
+            // throughout the code). We can redefine the order of such Collections but we have to 
+            // do each one completely at once.
+            for (const ExtrusionEntity *ee : layerm->fills.entities) {
+                // fill represents infill extrusions of a single island.
+                const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+                if (fill->entities.empty())
+                    // This shouldn't happen but first_point() would fail.
+                    continue;
+                // init by_extruder item only if we actually use the extruder
+                int extruder_id = std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1);
+                // Init by_extruder item only if we actually use the extruder.
+                std::vector<ByExtruder> &byex = by_extruder[extruder_id];
+                if (byex.empty())
+                    byex.assign(n_slices, ByExtruder());
+                for (size_t i = 0; i <= n_slices; ++i)
+                    if (// fill->first_point does not fit inside any slice
+                        i == n_slices ||
+                        // fill->first_point fits inside ith slice
+                        point_inside_surface(i, fill->first_point())) {
+                        if (byex[i].by_region.empty())
+                            byex[i].by_region.assign(print.regions.size(), ByExtruder::ToExtrude());
+                        byex[i].by_region[region_id].infills.append(fill->entities);
+                        break;
+                    }
+            }
+        } // for regions
+
+        // Tweak extruder ordering to save toolchanges.
+        std::vector<unsigned int> extruders;
+        extruders.reserve(by_extruder.size());
+        for (const auto &ex : by_extruder)
+            extruders.push_back(ex.first);
+        // Reorder the extruders, so that the last used extruder is at the front.
+        for (size_t i = 1; i < extruders.size(); ++ i)
+            if (extruders[i] == m_writer.extruder()->id) {
+                // Move the last extruder to the front.
+                memmove(extruders.data() + 1, extruders.data(), i);
+                extruders.front() = m_writer.extruder()->id;
+                break;
+            }
+        // Extrude the perimeters & infill ordered by the extruders.
+        for (unsigned int extruder_id : extruders) {
+            gcode += this->set_extruder(extruder_id);
+            for (const ByExtruder &island : by_extruder[extruder_id]) {
+                if (print.config.infill_first) {
+                    gcode += this->extrude_infill(print, island.by_region);
+                    gcode += this->extrude_perimeters(print, island.by_region);
+                } else {
+                    gcode += this->extrude_perimeters(print, island.by_region);
+                    gcode += this->extrude_infill(print, island.by_region);
+                }
+            }
+        }
+    } // for object copies
+
+    // Apply spiral vase post-processing if this layer contains suitable geometry
+    // (we must feed all the G-code into the post-processor, including the first 
+    // bottom non-spiral layers otherwise it will mess with positions)
+    // we apply spiral vase at this stage because it requires a full layer.
+    if (m_spiral_vase)
+        gcode = m_spiral_vase->process_layer(gcode);
+    // Apply cooling logic; this may alter speeds.
+    if (m_cooling_buffer)
+        gcode = m_cooling_buffer->append(
+            gcode, 
+            // Index of the current layer's object
+            //FIXME add an index into the objects?
+            std::find(print.objects.begin(), print.objects.end(), layer.object()) - print.objects.begin(),
+            layer.id(),
+            // Differentiate normal layers from the support layers for the purpose of layer cooling time.
+            support_layer != nullptr);
+    write(file, this->filter(std::move(gcode), false));
 }
 
-void
-GCode::apply_print_config(const PrintConfig &print_config)
+std::string GCode::filter(std::string &&gcode, bool flush)
 {
-    this->writer.apply_print_config(print_config);
-    this->config.apply(print_config);
+    // apply pressure equalization if enabled;
+    // printf("G-code before filter:\n%s\n", gcode.c_str());
+    std::string out = m_pressure_equalizer ? 
+        m_pressure_equalizer->process(gcode.c_str(), flush) :
+        std::move(gcode);
+    // printf("G-code after filter:\n%s\n", out.c_str());
+    return out;
 }
 
-void
-GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)
+void GCode::apply_print_config(const PrintConfig &print_config)
 {
-    this->writer.set_extruders(extruder_ids);
+    m_writer.apply_print_config(print_config);
+    m_config.apply(print_config);
+}
+
+void GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)
+{
+    m_writer.set_extruders(extruder_ids);
     
     // enable wipe path generation if any extruder has wipe enabled
-    this->wipe.enable = false;
+    m_wipe.enable = false;
     for (auto id : extruder_ids)
-        if (this->config.wipe.get_at(id)) {
-            this->wipe.enable = true;
+        if (m_config.wipe.get_at(id)) {
+            m_wipe.enable = true;
             break;
         }
 }
 
-void
-GCode::set_origin(const Pointf &pointf)
+void GCode::set_origin(const Pointf &pointf)
 {    
     // if origin increases (goes towards right), last_pos decreases because it goes towards left
     const Point translate(
-        scale_(this->origin.x - pointf.x),
-        scale_(this->origin.y - pointf.y)
+        scale_(m_origin.x - pointf.x),
+        scale_(m_origin.y - pointf.y)
     );
-    this->_last_pos.translate(translate);
-    this->wipe.path.translate(translate);
-    this->origin = pointf;
+    m_last_pos.translate(translate);
+    m_wipe.path.translate(translate);
+    m_origin = pointf;
 }
 
-std::string
-GCode::preamble()
+std::string GCode::preamble()
 {
-    std::string gcode = this->writer.preamble();
+    std::string gcode = m_writer.preamble();
     
     /*  Perform a *silent* move to z_offset: we need this to initialize the Z
         position of our writer object so that any initial lift taking place
         before the first layer change will raise the extruder from the correct
         initial Z instead of 0.  */
-    this->writer.travel_to_z(this->config.z_offset.value);
+    m_writer.travel_to_z(m_config.z_offset.value);
     
     return gcode;
 }
 
-std::string
-GCode::change_layer(const Layer &layer)
+std::string GCode::change_layer(const Layer &layer)
 {
-    this->layer = &layer;
-    this->layer_index++;
-    this->first_layer = (layer.id() == 0);
-    delete this->_lower_layer_edge_grid;
-    this->_lower_layer_edge_grid = NULL;
+    m_layer = &layer;
+    m_layer_index++;
+    m_first_layer = (layer.id() == 0);
+    m_lower_layer_edge_grid.release();
 
     std::string gcode;
 
-    if (enable_analyzer_markers) {
+    if (m_enable_analyzer_markers) {
         // Store the binary pointer to the layer object directly into the G-code to be accessed by the GCodeAnalyzer.
         char buf[64];
-        sprintf(buf, ";_LAYEROBJ:%p\n", this->layer);
+        sprintf(buf, ";_LAYEROBJ:%p\n", m_layer);
         gcode += buf;
     }
     
     // avoid computing islands and overhangs if they're not needed
-    if (this->config.avoid_crossing_perimeters) {
+    if (m_config.avoid_crossing_perimeters) {
         ExPolygons islands = union_ex(layer.slices, true);
-        this->avoid_crossing_perimeters.init_layer_mp(islands);
+        m_avoid_crossing_perimeters.init_layer_mp(islands);
     }
     
-    if (this->layer_count > 0) {
-        gcode += this->writer.update_progress(this->layer_index, this->layer_count);
-    }
+    if (m_layer_count > 0)
+        gcode += m_writer.update_progress(m_layer_index, m_layer_count);
     
-    coordf_t z = layer.print_z + this->config.z_offset.value;  // in unscaled coordinates
-    if (EXTRUDER_CONFIG(retract_layer_change) && this->writer.will_move_z(z)) {
+    coordf_t z = layer.print_z + m_config.z_offset.value;  // in unscaled coordinates
+    if (EXTRUDER_CONFIG(retract_layer_change) && m_writer.will_move_z(z)) {
         gcode += this->retract();
     }
     {
         std::ostringstream comment;
-        comment << "move to next layer (" << this->layer_index << ")";
-        gcode += this->writer.travel_to_z(z, comment.str());
+        comment << "move to next layer (" << m_layer_index << ")";
+        gcode += m_writer.travel_to_z(z, comment.str());
     }
     
     // forget last wiping path as wiping after raising Z is pointless
-    this->wipe.reset_path();
+    m_wipe.reset_path();
     
     return gcode;
 }
@@ -348,7 +942,7 @@ static inline float bspline_kernel(float x)
 {
     x = std::abs(x);
 	if (x < 1.f) {
-		return 1.f - (3. / 2.) * x * x + (3.f / 4.f) * x * x * x;
+		return 1.f - (3.f / 2.f) * x * x + (3.f / 4.f) * x * x * x;
 	}
 	else if (x < 2.f) {
 		x -= 1.f;
@@ -448,8 +1042,8 @@ std::vector<float> polygon_parameter_by_length(const Polygon &polygon)
     // Parametrize the polygon by its length.
     std::vector<float> lengths(polygon.points.size()+1, 0.);
     for (size_t i = 1; i < polygon.points.size(); ++ i)
-        lengths[i] = lengths[i-1] + polygon.points[i].distance_to(polygon.points[i-1]);
-    lengths.back() = lengths[lengths.size()-2] + polygon.points.front().distance_to(polygon.points.back());
+        lengths[i] = lengths[i-1] + float(polygon.points[i].distance_to(polygon.points[i-1]));
+    lengths.back() = lengths[lengths.size()-2] + float(polygon.points.front().distance_to(polygon.points.back()));
     return lengths;
 }
 
@@ -508,28 +1102,27 @@ std::vector<float> polygon_angles_at_vertices(const Polygon &polygon, const std:
     return angles;
 }
 
-std::string
-GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
+std::string GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
 {
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
 
-    if (this->layer->lower_layer != NULL) {
-        if (this->_lower_layer_edge_grid == NULL) {
+    if (m_layer->lower_layer != NULL) {
+        if (! this->m_lower_layer_edge_grid) {
             // Create the distance field for a layer below.
             const coord_t distance_field_resolution = scale_(1.f);
-            this->_lower_layer_edge_grid = new EdgeGrid::Grid();
-            this->_lower_layer_edge_grid->create(this->layer->lower_layer->slices, distance_field_resolution);
-            this->_lower_layer_edge_grid->calculate_sdf();
+            this->m_lower_layer_edge_grid = std::make_unique<EdgeGrid::Grid>();
+            this->m_lower_layer_edge_grid->create(m_layer->lower_layer->slices, distance_field_resolution);
+            this->m_lower_layer_edge_grid->calculate_sdf();
             #if 0
             {
                 static int iRun = 0;
-                BoundingBox bbox = this->_lower_layer_edge_grid->bbox();
+                BoundingBox bbox = this->m_lower_layer_edge_grid->bbox();
                 bbox.min.x -= scale_(5.f);
                 bbox.min.y -= scale_(5.f);
                 bbox.max.x += scale_(5.f);
                 bbox.max.y += scale_(5.f);
-                EdgeGrid::save_png(*this->_lower_layer_edge_grid, bbox, scale_(0.1f), debug_out_path("GCode_extrude_loop_edge_grid-%d.png", iRun++));
+                EdgeGrid::save_png(*this->m_lower_layer_edge_grid, bbox, scale_(0.1f), debug_out_path("GCode_extrude_loop_edge_grid-%d.png", iRun++));
             }
             #endif
         }
@@ -538,14 +1131,14 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     // extrude all loops ccw
     bool was_clockwise = loop.make_counter_clockwise();
     
-    SeamPosition seam_position = this->config.seam_position;
+    SeamPosition seam_position = m_config.seam_position;
     if (loop.loop_role() == elrSkirt) 
         seam_position = spNearest;
     
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
-    if (this->config.spiral_vase) {
+    if (m_config.spiral_vase) {
         loop.split_at(last_pos, false);
     } else if (seam_position == spNearest || seam_position == spAligned || seam_position == spRear) {
         Polygon        polygon    = loop.polygon();
@@ -557,14 +1150,14 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         switch (seam_position) {
         case spAligned:
             // Seam is aligned to the seam at the preceding layer.
-            if (this->layer != NULL && this->_seam_position.count(this->layer->object()) > 0) {
-                last_pos = this->_seam_position[this->layer->object()];
+            if (m_layer != NULL && m_seam_position.count(m_layer->object()) > 0) {
+                last_pos = m_seam_position[m_layer->object()];
                 last_pos_weight = 1.f;
             }
             break;
         case spRear:
-            last_pos = this->layer->object()->bounding_box().center();
-            last_pos.y += coord_t(3. * this->layer->object()->bounding_box().radius());
+            last_pos = m_layer->object()->bounding_box().center();
+            last_pos.y += coord_t(3. * m_layer->object()->bounding_box().radius());
             last_pos_weight = 5.f;
             break;
         }
@@ -620,7 +1213,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         }
 
         // Penalty for overhangs.
-        if (this->_lower_layer_edge_grid) {
+        if (m_lower_layer_edge_grid) {
             // Use the edge grid distance field structure over the lower layer to calculate overhangs.
             coord_t nozzle_r = scale_(0.5*nozzle_dmr);
             coord_t search_r = scale_(0.8*nozzle_dmr);
@@ -630,8 +1223,8 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
                 // Signed distance is positive outside the object, negative inside the object.
                 // The point is considered at an overhang, if it is more than nozzle radius
                 // outside of the lower layer contour.
-                bool found = this->_lower_layer_edge_grid->signed_distance(p, search_r, dist);
-                // If the approximate Signed Distance Field was initialized over this->_lower_layer_edge_grid,
+                bool found = m_lower_layer_edge_grid->signed_distance(p, search_r, dist);
+                // If the approximate Signed Distance Field was initialized over m_lower_layer_edge_grid,
                 // then the signed distnace shall always be known.
                 assert(found);
                 penalties[i] += extrudate_overlap_penalty(nozzle_r, penaltyOverhangHalf, dist);
@@ -657,7 +1250,7 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
                 // Align the seams as accurately as possible.
                 idx_min = last_pos_proj_idx;
             }
-            this->_seam_position[this->layer->object()] = polygon.points[idx_min];
+            m_seam_position[m_layer->object()] = polygon.points[idx_min];
         }
 
         // Export the contour into a SVG file.
@@ -665,8 +1258,8 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         {
             static int iRun = 0;
             SVG svg(debug_out_path("GCode_extrude_loop-%d.svg", iRun ++));
-            if (this->layer->lower_layer != NULL)
-                svg.draw(this->layer->lower_layer->slices.expolygons);
+            if (m_layer->lower_layer != NULL)
+                svg.draw(m_layer->lower_layer->slices.expolygons);
             for (size_t i = 0; i < loop.paths.size(); ++ i)
                 svg.draw(loop.paths[i].as_polyline(), "red");
             Polylines polylines;
@@ -707,19 +1300,18 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case
-    double clip_length = this->enable_loop_clipping
-        ? scale_(EXTRUDER_CONFIG(nozzle_diameter)) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER
-        : 0;
-    
+    double clip_length = m_enable_loop_clipping ? 
+        scale_(EXTRUDER_CONFIG(nozzle_diameter)) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER : 
+        0;
+
     // get paths
     ExtrusionPaths paths;
     loop.clip_end(clip_length, &paths);
     if (paths.empty()) return "";
     
     // apply the small perimeter speed
-    if (paths.front().is_perimeter() && loop.length() <= SMALL_PERIMETER_LENGTH) {
-        if (speed == -1) speed = this->config.get_abs_value("small_perimeter_speed");
-    }
+    if (is_perimeter(paths.front().role()) && loop.length() <= SMALL_PERIMETER_LENGTH && speed == -1)
+        speed = m_config.small_perimeter_speed.get_abs_value(m_config.perimeter_speed);
     
     // extrude along the path
     std::string gcode;
@@ -731,13 +1323,13 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
     }
     
     // reset acceleration
-    gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
+    gcode += m_writer.set_acceleration(m_config.default_acceleration.value);
     
-    if (this->wipe.enable)
-        this->wipe.path = paths.front().polyline;  // TODO: don't limit wipe to last path
+    if (m_wipe.enable)
+        m_wipe.path = paths.front().polyline;  // TODO: don't limit wipe to last path
     
     // make a little move inwards before leaving loop
-    if (paths.back().role() == erExternalPerimeter && this->layer != NULL && this->config.perimeters > 1) {
+    if (paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.perimeters.value > 1) {
         // detect angle between last and first segment
         // the side depends on the original winding order of the polygon (left for contours, right for holes)
         Point a = paths.front().polyline.points[1];  // second point
@@ -767,14 +1359,13 @@ GCode::extrude(ExtrusionLoop loop, std::string description, double speed)
         point.rotate(angle, first_segment.a);
         
         // generate the travel move
-        gcode += this->writer.travel_to_xy(this->point_to_gcode(point), "move inwards before travel");
+        gcode += m_writer.travel_to_xy(this->point_to_gcode(point), "move inwards before travel");
     }
     
     return gcode;
 }
 
-std::string
-GCode::extrude(ExtrusionMultiPath multipath, std::string description, double speed)
+std::string GCode::extrude(ExtrusionMultiPath multipath, std::string description, double speed)
 {
     // extrude along the path
     std::string gcode;
@@ -784,17 +1375,16 @@ GCode::extrude(ExtrusionMultiPath multipath, std::string description, double spe
         path->simplify(SCALED_RESOLUTION);
         gcode += this->_extrude(*path, description, speed);
     }
-    if (this->wipe.enable) {
-        this->wipe.path = std::move(multipath.paths.back().polyline);  // TODO: don't limit wipe to last path
-        this->wipe.path.reverse();
+    if (m_wipe.enable) {
+        m_wipe.path = std::move(multipath.paths.back().polyline);  // TODO: don't limit wipe to last path
+        m_wipe.path.reverse();
     }
     // reset acceleration
-    gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
+    gcode += m_writer.set_acceleration(m_config.default_acceleration.value);
     return gcode;
 }
 
-std::string
-GCode::extrude(const ExtrusionEntity &entity, std::string description, double speed)
+std::string GCode::extrude(const ExtrusionEntity &entity, std::string description, double speed)
 {
     if (const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(&entity)) {
         return this->extrude(*path, description, speed);
@@ -808,37 +1398,68 @@ GCode::extrude(const ExtrusionEntity &entity, std::string description, double sp
     }
 }
 
-std::string
-GCode::extrude(ExtrusionPath path, std::string description, double speed)
+std::string GCode::extrude(ExtrusionPath path, std::string description, double speed)
 {
 //    description += ExtrusionRole2String(path.role());
     path.simplify(SCALED_RESOLUTION);
     std::string gcode = this->_extrude(path, description, speed);
-    if (this->wipe.enable) {
-        this->wipe.path = std::move(path.polyline);
-        this->wipe.path.reverse();
+    if (m_wipe.enable) {
+        m_wipe.path = std::move(path.polyline);
+        m_wipe.path.reverse();
     }    
     // reset acceleration
-    gcode += this->writer.set_acceleration(this->config.default_acceleration.value);
+    gcode += m_writer.set_acceleration(m_config.default_acceleration.value);
     return gcode;
 }
 
-std::string GCode::extrude_support(const ExtrusionEntityCollection *support_fills, unsigned int extruder_id)
+// Extrude perimeters: Decide where to put seams (hide or align seams).
+std::string GCode::extrude_perimeters(const Print &print, const std::vector<ByExtruder::ToExtrude> &by_region)
 {
     std::string gcode;
-    if (! support_fills->entities.empty()) {
+    for (const ByExtruder::ToExtrude &region : by_region) {
+        m_config.apply(print.regions[&region - &by_region.front()]->config);
+        for (ExtrusionEntity *ee : region.perimeters.entities)
+            gcode += this->extrude(*ee, "perimeter");
+    }
+    return gcode;
+}
+
+// Chain the paths hierarchically by a greedy algorithm to minimize a travel distance.
+std::string GCode::extrude_infill(const Print &print, const std::vector<ByExtruder::ToExtrude> &by_region)
+{
+    std::string gcode;
+    for (const ByExtruder::ToExtrude &region : by_region) {
+        m_config.apply(print.regions[&region - &by_region.front()]->config);
+		ExtrusionEntityCollection chained = region.infills.chained_path_from(m_last_pos, false);
+        for (ExtrusionEntity *fill : chained.entities) {
+            auto *eec = dynamic_cast<ExtrusionEntityCollection*>(fill);
+            if (eec) {
+				ExtrusionEntityCollection chained2 = eec->chained_path_from(m_last_pos, false);
+				for (ExtrusionEntity *ee : chained2.entities)
+                    gcode += this->extrude(*ee, "infill");
+            } else
+                gcode += this->extrude(*fill, "infill");
+        }
+    }
+    return gcode;
+}
+
+std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fills, unsigned int extruder_id)
+{
+    std::string gcode;
+    if (! support_fills.entities.empty()) {
         const char   *support_label            = "support material";
         const char   *support_interface_label  = "support material interface";
-        const double  support_speed            = this->config.get_abs_value("support_material_speed");
-        const double  support_interface_speed  = this->config.get_abs_value("support_material_interface_speed");
+        const double  support_speed            = m_config.support_material_speed.value;
+        const double  support_interface_speed  = m_config.support_material_interface_speed.get_abs_value(support_speed);
         // Only trigger extruder change if the extruder is not set to zero,
 		// but make sure the extruder is initialized.
         // Extruder ID zero means "does not matter", extrude with the current extruder.
-		if (this->writer.extruder() == nullptr && extruder_id == 0)
+		if (m_writer.extruder() == nullptr && extruder_id == 0)
 			extruder_id = 1;
         if (extruder_id > 0)
             gcode += this->set_extruder(extruder_id - 1);
-        for (const ExtrusionEntity *ee : support_fills->entities) {
+        for (const ExtrusionEntity *ee : support_fills.entities) {
             ExtrusionRole role = ee->role();
             assert(role == erSupportMaterial || role == erSupportMaterialInterface);
             const char  *label = (role == erSupportMaterial) ? support_label : support_interface_label;
@@ -863,7 +1484,7 @@ GCode::_extrude(const ExtrusionPath &path, std::string description, double speed
     std::string gcode;
     
     // go to first point of extrusion path
-    if (!this->_last_pos_defined || !this->_last_pos.coincides_with(path.first_point())) {
+    if (!m_last_pos_defined || !m_last_pos.coincides_with(path.first_point())) {
         gcode += this->travel_to(
             path.first_point(),
             path.role(),
@@ -877,55 +1498,55 @@ GCode::_extrude(const ExtrusionPath &path, std::string description, double speed
     // adjust acceleration
     {
         double acceleration;
-        if (this->config.first_layer_acceleration.value > 0 && this->first_layer) {
-            acceleration = this->config.first_layer_acceleration.value;
-        } else if (this->config.perimeter_acceleration.value > 0 && path.is_perimeter()) {
-            acceleration = this->config.perimeter_acceleration.value;
-        } else if (this->config.bridge_acceleration.value > 0 && path.is_bridge()) {
-            acceleration = this->config.bridge_acceleration.value;
-        } else if (this->config.infill_acceleration.value > 0 && path.is_infill()) {
-            acceleration = this->config.infill_acceleration.value;
+        if (m_config.first_layer_acceleration.value > 0 && m_first_layer) {
+            acceleration = m_config.first_layer_acceleration.value;
+        } else if (m_config.perimeter_acceleration.value > 0 && is_perimeter(path.role())) {
+            acceleration = m_config.perimeter_acceleration.value;
+        } else if (m_config.bridge_acceleration.value > 0 && is_bridge(path.role())) {
+            acceleration = m_config.bridge_acceleration.value;
+        } else if (m_config.infill_acceleration.value > 0 && is_infill(path.role())) {
+            acceleration = m_config.infill_acceleration.value;
         } else {
-            acceleration = this->config.default_acceleration.value;
+            acceleration = m_config.default_acceleration.value;
         }
-        gcode += this->writer.set_acceleration(acceleration);
+        gcode += m_writer.set_acceleration(acceleration);
     }
     
     // calculate extrusion length per distance unit
-    double e_per_mm = this->writer.extruder()->e_per_mm3 * path.mm3_per_mm;
-    if (this->writer.extrusion_axis().empty()) e_per_mm = 0;
+    double e_per_mm = m_writer.extruder()->e_per_mm3 * path.mm3_per_mm;
+    if (m_writer.extrusion_axis().empty()) e_per_mm = 0;
     
     // set speed
     if (speed == -1) {
         if (path.role() == erPerimeter) {
-            speed = this->config.get_abs_value("perimeter_speed");
+            speed = m_config.get_abs_value("perimeter_speed");
         } else if (path.role() == erExternalPerimeter) {
-            speed = this->config.get_abs_value("external_perimeter_speed");
+            speed = m_config.get_abs_value("external_perimeter_speed");
         } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill) {
-            speed = this->config.get_abs_value("bridge_speed");
+            speed = m_config.get_abs_value("bridge_speed");
         } else if (path.role() == erInternalInfill) {
-            speed = this->config.get_abs_value("infill_speed");
+            speed = m_config.get_abs_value("infill_speed");
         } else if (path.role() == erSolidInfill) {
-            speed = this->config.get_abs_value("solid_infill_speed");
+            speed = m_config.get_abs_value("solid_infill_speed");
         } else if (path.role() == erTopSolidInfill) {
-            speed = this->config.get_abs_value("top_solid_infill_speed");
+            speed = m_config.get_abs_value("top_solid_infill_speed");
         } else if (path.role() == erGapFill) {
-            speed = this->config.get_abs_value("gap_fill_speed");
+            speed = m_config.get_abs_value("gap_fill_speed");
         } else {
             CONFESS("Invalid speed");
         }
     }
-    if (this->first_layer) {
-        speed = this->config.get_abs_value("first_layer_speed", speed);
+    if (m_first_layer) {
+        speed = m_config.get_abs_value("first_layer_speed", speed);
     }
-    if (this->volumetric_speed != 0 && speed == 0) {
-        speed = this->volumetric_speed / path.mm3_per_mm;
+    if (m_volumetric_speed != 0. && speed == 0) {
+        speed = m_volumetric_speed / path.mm3_per_mm;
     }
-    if (this->config.max_volumetric_speed.value > 0) {
+    if (m_config.max_volumetric_speed.value > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
             speed,
-            this->config.max_volumetric_speed.value / path.mm3_per_mm
+            m_config.max_volumetric_speed.value / path.mm3_per_mm
         );
     }
     if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
@@ -938,39 +1559,39 @@ GCode::_extrude(const ExtrusionPath &path, std::string description, double speed
     double F = speed * 60;  // convert mm/sec to mm/min
     
     // extrude arc or line
-    if (this->enable_extrusion_role_markers || this->enable_analyzer_markers) {
-        if (path.role() != this->_last_extrusion_role) {
-            this->_last_extrusion_role = path.role();
+    if (m_enable_extrusion_role_markers || m_enable_analyzer_markers) {
+        if (path.role() != m_last_extrusion_role) {
+            m_last_extrusion_role = path.role();
             char buf[32];
             sprintf(buf, ";_EXTRUSION_ROLE:%d\n", int(path.role()));
             gcode += buf;
         }
     }
-    if (path.is_bridge() && this->enable_cooling_markers)
+    if (is_bridge(path.role()) && m_enable_cooling_markers)
         gcode += ";_BRIDGE_FAN_START\n";
-    gcode += this->writer.set_speed(F, "", this->enable_cooling_markers ? ";_EXTRUDE_SET_SPEED" : "");
+    gcode += m_writer.set_speed(F, "", m_enable_cooling_markers ? ";_EXTRUDE_SET_SPEED" : "");
     double path_length = 0;
     {
-        std::string comment = this->config.gcode_comments ? description : "";
+        std::string comment = m_config.gcode_comments ? description : "";
         Lines lines = path.polyline.lines();
         for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
             const double line_length = line->length() * SCALING_FACTOR;
             path_length += line_length;
             
-            gcode += this->writer.extrude_to_xy(
+            gcode += m_writer.extrude_to_xy(
                 this->point_to_gcode(line->b),
                 e_per_mm * line_length,
                 comment
             );
         }
     }
-    if (path.is_bridge() && this->enable_cooling_markers)
+    if (is_bridge(path.role()) && m_enable_cooling_markers)
         gcode += ";_BRIDGE_FAN_END\n";
     
     this->set_last_pos(path.last_point());
     
-    if (this->config.cooling)
-        this->elapsed_time += path_length / F * 60;
+    if (m_config.cooling)
+        m_elapsed_time += path_length / F * 60;
     
     return gcode;
 }
@@ -992,18 +1613,18 @@ GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
     // if a retraction would be needed, try to use avoid_crossing_perimeters to plan a
     // multi-hop travel path inside the configuration space
     if (needs_retraction
-        && this->config.avoid_crossing_perimeters
-        && !this->avoid_crossing_perimeters.disable_once) {
-        travel = this->avoid_crossing_perimeters.travel_to(*this, point);
+        && m_config.avoid_crossing_perimeters
+        && ! m_avoid_crossing_perimeters.disable_once) {
+        travel = m_avoid_crossing_perimeters.travel_to(*this, point);
         
         // check again whether the new travel path still needs a retraction
         needs_retraction = this->needs_retraction(travel, role);
-        //if (needs_retraction && this->layer_index > 1) exit(0);
+        //if (needs_retraction && m_layer_index > 1) exit(0);
     }
     
     // Re-allow avoid_crossing_perimeters for the next travel moves
-    this->avoid_crossing_perimeters.disable_once = false;
-    this->avoid_crossing_perimeters.use_external_mp_once = false;
+    m_avoid_crossing_perimeters.disable_once = false;
+    m_avoid_crossing_perimeters.use_external_mp_once = false;
     
     // generate G-code for the travel move
     std::string gcode;
@@ -1011,19 +1632,19 @@ GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
         gcode += this->retract();
     else
         // Reset the wipe path when traveling, so one would not wipe along an old path.
-        this->wipe.reset_path();
+        m_wipe.reset_path();
     
     // use G1 because we rely on paths being straight (G0 may make round paths)
     Lines lines = travel.lines();
     for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line)
-	    gcode += this->writer.travel_to_xy(this->point_to_gcode(line->b), comment);
+	    gcode += m_writer.travel_to_xy(this->point_to_gcode(line->b), comment);
     
     /*  While this makes the estimate more accurate, CoolingBuffer calculates the slowdown
         factor on the whole elapsed time but only alters non-travel moves, thus the resulting
         time is still shorter than the configured threshold. We could create a new 
         elapsed_travel_time but we would still need to account for bridges, retractions, wipe etc.
-    if (this->config.cooling)
-        this->elapsed_time += unscale(travel.length()) / this->config.get_abs_value("travel_speed");
+    if (m_config.cooling)
+        m_elapsed_time += unscale(travel.length()) / m_config.get_abs_value("travel_speed");
     */
 
     return gcode;
@@ -1038,7 +1659,7 @@ GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
     }
     
     if (role == erSupportMaterial) {
-        const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(this->layer);
+        const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(m_layer);
         //FIXME support_layer->support_islands.contains should use some search structure!
         if (support_layer != NULL && support_layer->support_islands.contains(travel)) {
             // skip retraction if this is a travel move inside a support material island
@@ -1046,9 +1667,9 @@ GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
         }
     }
     
-    if (this->config.only_retract_when_crossing_perimeters && this->layer != NULL) {
-        if (this->config.fill_density.value > 0
-            && this->layer->any_internal_region_slice_contains(travel)) {
+    if (m_config.only_retract_when_crossing_perimeters && m_layer != nullptr) {
+        if (m_config.fill_density.value > 0
+            && m_layer->any_internal_region_slice_contains(travel)) {
             /*  skip retraction if travel is contained in an internal slice *and*
                 internal infill is enabled (so that stringing is entirely not visible)  */
             return false;
@@ -1064,23 +1685,22 @@ GCode::retract(bool toolchange)
 {
     std::string gcode;
     
-    if (this->writer.extruder() == NULL)
+    if (m_writer.extruder() == NULL)
         return gcode;
     
     // wipe (if it's enabled for this extruder and we have a stored wipe path)
-    if (EXTRUDER_CONFIG(wipe) && this->wipe.has_path()) {
-        gcode += this->wipe.wipe(*this, toolchange);
-    }
+    if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path())
+        gcode += m_wipe.wipe(*this, toolchange);
     
     /*  The parent class will decide whether we need to perform an actual retraction
         (the extruder might be already retracted fully or partially). We call these 
         methods even if we performed wipe, since this will ensure the entire retraction
         length is honored in case wipe path was too short.  */
-    gcode += toolchange ? this->writer.retract_for_toolchange() : this->writer.retract();
+    gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
     
-    gcode += this->writer.reset_e();
-    if (this->writer.extruder()->retract_length() > 0 || this->config.use_firmware_retraction)
-        gcode += this->writer.lift();
+    gcode += m_writer.reset_e();
+    if (m_writer.extruder()->retract_length() > 0 || m_config.use_firmware_retraction)
+        gcode += m_writer.lift();
     
     return gcode;
 }
@@ -1089,60 +1709,59 @@ std::string
 GCode::unretract()
 {
     std::string gcode;
-    gcode += this->writer.unlift();
-    gcode += this->writer.unretract();
+    gcode += m_writer.unlift();
+    gcode += m_writer.unretract();
     return gcode;
 }
 
 std::string
 GCode::set_extruder(unsigned int extruder_id)
 {
-    this->placeholder_parser->set("current_extruder", extruder_id);
-    if (!this->writer.need_toolchange(extruder_id))
+    m_placeholder_parser.set("current_extruder", extruder_id);
+    if (!m_writer.need_toolchange(extruder_id))
         return "";
     
     // if we are running a single-extruder setup, just set the extruder and return nothing
-    if (!this->writer.multiple_extruders) {
-        return this->writer.toolchange(extruder_id);
+    if (!m_writer.multiple_extruders) {
+        return m_writer.toolchange(extruder_id);
     }
     
     // prepend retraction on the current extruder
     std::string gcode = this->retract(true);
 
     // Always reset the extrusion path, even if the tool change retract is set to zero.
-    this->wipe.reset_path();
+    m_wipe.reset_path();
     
     // append custom toolchange G-code
-    if (this->writer.extruder() != NULL && !this->config.toolchange_gcode.value.empty()) {
-        PlaceholderParser pp = *this->placeholder_parser;
-        pp.set("previous_extruder", this->writer.extruder()->id);
+    if (m_writer.extruder() != NULL && !m_config.toolchange_gcode.value.empty()) {
+        PlaceholderParser pp = m_placeholder_parser;
+        pp.set("previous_extruder", m_writer.extruder()->id);
         pp.set("next_extruder",     extruder_id);
-        gcode += pp.process(this->config.toolchange_gcode.value) + '\n';
+        gcode += pp.process(m_config.toolchange_gcode.value) + '\n';
     }
     
     // if ooze prevention is enabled, park current extruder in the nearest
     // standby point and set it to the standby temperature
-    if (this->ooze_prevention.enable && this->writer.extruder() != NULL)
-        gcode += this->ooze_prevention.pre_toolchange(*this);
+    if (m_ooze_prevention.enable && m_writer.extruder() != NULL)
+        gcode += m_ooze_prevention.pre_toolchange(*this);
     
     // append the toolchange command
-    gcode += this->writer.toolchange(extruder_id);
+    gcode += m_writer.toolchange(extruder_id);
     
     // set the new extruder to the operating temperature
-    if (this->ooze_prevention.enable)
-        gcode += this->ooze_prevention.post_toolchange(*this);
+    if (m_ooze_prevention.enable)
+        gcode += m_ooze_prevention.post_toolchange(*this);
     
     return gcode;
 }
 
 // convert a model-space scaled point into G-code coordinates
-Pointf
-GCode::point_to_gcode(const Point &point)
+Pointf GCode::point_to_gcode(const Point &point) const
 {
     Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return Pointf(
-        unscale(point.x) + this->origin.x - extruder_offset.x,
-        unscale(point.y) + this->origin.y - extruder_offset.y
+        unscale(point.x) + m_origin.x - extruder_offset.x,
+        unscale(point.y) + m_origin.y - extruder_offset.y
     );
 }
 

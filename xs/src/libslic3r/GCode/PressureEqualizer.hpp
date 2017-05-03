@@ -9,11 +9,11 @@ namespace Slic3r {
 
 // Processes a G-code. Finds changes in the volumetric extrusion speed and adjusts the transitions
 // between these paths to limit fast changes in the volumetric extrusion speed.
-class GCodePressureEqualizer
+class PressureEqualizer
 {
 public:
-    GCodePressureEqualizer(const Slic3r::GCodeConfig *config);
-    ~GCodePressureEqualizer();
+    PressureEqualizer(const Slic3r::GCodeConfig *config);
+    ~PressureEqualizer();
 
     void reset();
 

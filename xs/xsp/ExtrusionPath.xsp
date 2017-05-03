@@ -23,10 +23,8 @@
     void simplify(double tolerance);
     double length();
     ExtrusionRole role() const;
-    bool is_perimeter();
-    bool is_infill();
-    bool is_solid_infill();
-    bool is_bridge();
+    bool is_bridge()
+        %code{% RETVAL = is_bridge(THIS->role()); %};
     Polygons polygons_covered_by_width();
     Polygons polygons_covered_by_spacing();
 %{

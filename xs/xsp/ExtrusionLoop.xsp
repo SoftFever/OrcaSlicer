@@ -29,9 +29,6 @@
         %code{% RETVAL = THIS->has_overhang_point(*point); %};
     ExtrusionRole role() const;
     ExtrusionLoopRole loop_role() const;
-    bool is_perimeter();
-    bool is_infill();
-    bool is_solid_infill();
     Polygons polygons_covered_by_width();
     Polygons polygons_covered_by_spacing();
 %{

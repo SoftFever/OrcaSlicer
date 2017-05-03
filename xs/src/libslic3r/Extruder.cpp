@@ -4,12 +4,12 @@ namespace Slic3r {
 
 Extruder::Extruder(unsigned int id, GCodeConfig *config)
 :   id(id),
-    config(config)
+    m_config(config)
 {
     reset();
     
     // cache values that are going to be called often
-    if (config->use_volumetric_e) {
+    if (m_config->use_volumetric_e) {
         this->e_per_mm3 = this->extrusion_multiplier();
     } else {
         this->e_per_mm3 = this->extrusion_multiplier()
@@ -31,7 +31,7 @@ double
 Extruder::extrude(double dE)
 {
     // in case of relative E distances we always reset to 0 before any output
-    if (this->config->use_relative_e_distances)
+    if (m_config->use_relative_e_distances)
         this->E = 0;
 
     this->E += dE;
@@ -50,7 +50,7 @@ double
 Extruder::retract(double length, double restart_extra)
 {
     // in case of relative E distances we always reset to 0 before any output
-    if (this->config->use_relative_e_distances)
+    if (m_config->use_relative_e_distances)
         this->E = 0;
     
     double to_retract = length - this->retracted;
@@ -84,7 +84,7 @@ Extruder::e_per_mm(double mm3_per_mm) const
 double
 Extruder::extruded_volume() const
 {
-    if (this->config->use_volumetric_e) {
+    if (m_config->use_volumetric_e) {
         // Any current amount of retraction should not affect used filament, since
         // it represents empty volume in the nozzle. We add it back to E.
         return this->absolute_E + this->retracted;
@@ -96,7 +96,7 @@ Extruder::extruded_volume() const
 double
 Extruder::used_filament() const
 {
-    if (this->config->use_volumetric_e) {
+    if (m_config->use_volumetric_e) {
         return this->extruded_volume() / (this->filament_diameter() * this->filament_diameter() * PI/4);
     }
     
@@ -108,61 +108,61 @@ Extruder::used_filament() const
 double
 Extruder::filament_diameter() const
 {
-    return this->config->filament_diameter.get_at(this->id);
+    return m_config->filament_diameter.get_at(this->id);
 }
 
 double
 Extruder::filament_density() const
 {
-    return this->config->filament_density.get_at(this->id);
+    return m_config->filament_density.get_at(this->id);
 }
 
 double
 Extruder::filament_cost() const
 {
-    return this->config->filament_cost.get_at(this->id);
+    return m_config->filament_cost.get_at(this->id);
 }
 
 double
 Extruder::extrusion_multiplier() const
 {
-    return this->config->extrusion_multiplier.get_at(this->id);
+    return m_config->extrusion_multiplier.get_at(this->id);
 }
 
 double
 Extruder::retract_length() const
 {
-    return this->config->retract_length.get_at(this->id);
+    return m_config->retract_length.get_at(this->id);
 }
 
 double
 Extruder::retract_lift() const
 {
-    return this->config->retract_lift.get_at(this->id);
+    return m_config->retract_lift.get_at(this->id);
 }
 
 int
 Extruder::retract_speed() const
 {
-    return this->config->retract_speed.get_at(this->id);
+    return m_config->retract_speed.get_at(this->id);
 }
 
 double
 Extruder::retract_restart_extra() const
 {
-    return this->config->retract_restart_extra.get_at(this->id);
+    return m_config->retract_restart_extra.get_at(this->id);
 }
 
 double
 Extruder::retract_length_toolchange() const
 {
-    return this->config->retract_length_toolchange.get_at(this->id);
+    return m_config->retract_length_toolchange.get_at(this->id);
 }
 
 double
 Extruder::retract_restart_extra_toolchange() const
 {
-    return this->config->retract_restart_extra_toolchange.get_at(this->id);
+    return m_config->retract_restart_extra_toolchange.get_at(this->id);
 }
 
 }

@@ -90,7 +90,7 @@ static inline int parse_int(const char *&line)
     char *endptr = NULL;
     long result = strtol(line, &endptr, 10);
     if (endptr == NULL || !is_ws_or_eol(*endptr))
-        throw std::runtime_error("GCodePressureEqualizer: Error parsing an int");
+        throw std::runtime_error("GCodeAnalyzer: Error parsing an int");
     line = endptr;
     return int(result);
 };
@@ -102,7 +102,7 @@ static inline float parse_float(const char *&line)
     char *endptr = NULL;
     float result = strtof(line, &endptr);
     if (endptr == NULL || !is_ws_or_eol(*endptr))
-        throw std::runtime_error("GCodePressureEqualizer: Error parsing a float");
+        throw std::runtime_error("GCodeAnalyzer: Error parsing a float");
     line = endptr;
     return result;
 };
@@ -171,7 +171,7 @@ bool GCodeAnalyzer::process_line(const char *line, const size_t len)
                     assert(false);
                 }
                 if (i == -1)
-                    throw std::runtime_error(std::string("GCodePressureEqualizer: Invalid axis for G0/G1: ") + axis);
+                    throw std::runtime_error(std::string("GCodeAnalyzer: Invalid axis for G0/G1: ") + axis);
                 buf.pos_provided[i] = true;
                 new_pos[i] = parse_float(line);
                 if (i == 3 && m_config->use_relative_e_distances.value)
@@ -235,7 +235,7 @@ bool GCodeAnalyzer::process_line(const char *line, const size_t len)
                     set = true;
                     break;
                 default:
-                    throw std::runtime_error(std::string("GCodePressureEqualizer: Incorrect axis in a G92 G-code: ") + axis);
+                    throw std::runtime_error(std::string("GCodeAnalyzer: Incorrect axis in a G92 G-code: ") + axis);
                 }
                 eatws(line);
             }

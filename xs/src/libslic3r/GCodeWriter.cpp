@@ -23,8 +23,8 @@ GCodeWriter::apply_print_config(const PrintConfig &print_config)
 void
 GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
 {
-    for (std::vector<unsigned int>::const_iterator i = extruder_ids.begin(); i != extruder_ids.end(); ++i)
-        this->extruders.insert( std::pair<unsigned int,Extruder>(*i, Extruder(*i, &this->config)) );
+    for (unsigned int extruder_id : extruder_ids)
+        this->extruders.insert(Extruder(extruder_id, &this->config));
     
     /*  we enable support for multiple extruder if any extruder greater than 0 is used
         (even if prints only uses that one) since we need to output Tx commands
@@ -194,11 +194,12 @@ GCodeWriter::reset_e(bool force)
         || FLAVOR_IS(gcfSailfish))
         return "";
     
-    if (this->_extruder != NULL) {
-        if (this->_extruder->E == 0 && !force) return "";
-        this->_extruder->E = 0;
+    if (this->_extruder != nullptr) {
+        if (this->_extruder->E == 0. && ! force)
+            return "";
+        this->_extruder->E = 0.;
     }
-    
+
     if (!this->_extrusion_axis.empty() && !this->config.use_relative_e_distances) {
         std::ostringstream gcode;
         gcode << "G92 " << this->_extrusion_axis << "0";
@@ -226,25 +227,10 @@ GCodeWriter::update_progress(unsigned int num, unsigned int tot, bool allow_100)
     return gcode.str();
 }
 
-bool
-GCodeWriter::need_toolchange(unsigned int extruder_id) const
-{
-    // return false if this extruder was already selected
-    return (this->_extruder == NULL) || (this->_extruder->id != extruder_id);
-}
-
-std::string
-GCodeWriter::set_extruder(unsigned int extruder_id)
-{
-    if (!this->need_toolchange(extruder_id)) return "";
-    return this->toolchange(extruder_id);
-}
-
-std::string
-GCodeWriter::toolchange(unsigned int extruder_id)
+std::string GCodeWriter::toolchange(unsigned int extruder_id)
 {
     // set the new extruder
-    this->_extruder = &this->extruders.find(extruder_id)->second;
+    this->_extruder = const_cast<Extruder*>(&*this->extruders.find(Extruder::key(extruder_id)));
     
     // return the toolchange command
     // if we are running a single-extruder setup, just set the extruder and return nothing

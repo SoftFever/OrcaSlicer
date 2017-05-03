@@ -1,6 +1,7 @@
 package Slic3r::Test;
 use strict;
 use warnings;
+use Cwd 'abs_path';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -202,10 +203,19 @@ sub gcode {
     
     $print = $print->print if $print->isa('Slic3r::Test::Print');
     
-    my $fh = IO::Scalar->new(\my $gcode);
+    # Write the resulting G-code into a temporary file.
+    my $gcode_temp_path = abs_path($0) . '.gcode.temp';
     $print->process;
-    $print->export_gcode(output_fh => $fh, quiet => 1);
-    $fh->close;
+    $print->export_gcode(output_file => $gcode_temp_path, quiet => 1);
+    # Read the temoprary G-code file.
+    my $gcode;
+    {
+        local $/;
+        open my $fh, '<', $gcode_temp_path or die "Test.pm: can't open $gcode_temp_path: $!";
+        $gcode = <$fh>;
+    }
+    # Remove the temp file.
+    unlink $gcode_temp_path;
     
     return $gcode;
 }

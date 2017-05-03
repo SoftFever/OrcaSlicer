@@ -16,9 +16,6 @@
     void append(ExtrusionPath* path)
         %code{% THIS->paths.push_back(*path); %};
     double length();
-    bool is_perimeter();
-    bool is_infill();
-    bool is_solid_infill();
     Polygons polygons_covered_by_width();
     Polygons polygons_covered_by_spacing();
     Clone<Polyline> polyline()

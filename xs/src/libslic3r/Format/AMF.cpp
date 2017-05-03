@@ -147,6 +147,9 @@ struct AMFParserContext
     Instance                *m_instance;
     // Generic string buffer for vertices, face indices, metadata etc.
     std::string              m_value[3];
+
+private:
+    AMFParserContext& operator=(AMFParserContext&);
 };
 
 void AMFParserContext::startElement(const char *name, const char **atts)
@@ -307,7 +310,7 @@ void AMFParserContext::characters(const XML_Char *s, int len)
     }
 }
 
-void AMFParserContext::endElement(const char *name)
+void AMFParserContext::endElement(const char * /* name */)
 {
     switch (m_path.back()) {
 

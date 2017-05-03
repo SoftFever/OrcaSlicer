@@ -1,6 +1,11 @@
 #ifndef _xsinit_h_
 #define _xsinit_h_
 
+#ifdef _MSC_VER
+// Disable some obnoxious warnings given by Visual Studio with the default warning level 4.
+#pragma warning(disable: 4100 4127 4189 4244 4267 4700 4702 4800)
+#endif
+
 // undef some macros set by Perl which cause compilation errors on Win32
 #undef read
 #undef seekdir

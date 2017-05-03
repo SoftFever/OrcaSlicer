@@ -514,7 +514,6 @@ xsp/Flow.xsp
 xsp/GCode.xsp
 xsp/GCodeSender.xsp
 xsp/GCodeWriter.xsp
-xsp/GCodePressureEqualizer.xsp
 xsp/Geometry.xsp
 xsp/GUI.xsp
 xsp/GUI_3DScene.xsp

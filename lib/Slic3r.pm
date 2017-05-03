@@ -71,7 +71,6 @@ use Slic3r::Point;
 use Slic3r::Polygon;
 use Slic3r::Polyline;
 use Slic3r::Print;
-use Slic3r::Print::GCode;
 use Slic3r::Print::Object;
 use Slic3r::Print::Simple;
 use Slic3r::Surface;
@@ -174,11 +173,8 @@ sub thread_cleanup {
 # Therefore the Filler instances shall be released at the end of the thread.
 #    *Slic3r::Filler::DESTROY                = sub {};
     *Slic3r::GCode::DESTROY                 = sub {};
-    *Slic3r::GCode::AvoidCrossingPerimeters::DESTROY = sub {};
-    *Slic3r::GCode::OozePrevention::DESTROY = sub {};
     *Slic3r::GCode::PlaceholderParser::DESTROY = sub {};
     *Slic3r::GCode::Sender::DESTROY         = sub {};
-    *Slic3r::GCode::Wipe::DESTROY           = sub {};
     *Slic3r::GCode::Writer::DESTROY         = sub {};
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf::DESTROY = sub {};

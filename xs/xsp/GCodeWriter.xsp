@@ -54,9 +54,8 @@ GCodeWriter::extruders()
         AV* av = newAV();
         av_fill(av, THIS->extruders.size()-1);
         int i = 0;
-        for (std::map<unsigned int,Extruder>::iterator it = THIS->extruders.begin(); it != THIS->extruders.end(); ++it) {
-            av_store(av, i++, perl_to_SV_ref(it->second));
-        }
+        for (const Extruder &extruder : THIS->extruders)
+            av_store(av, i++, perl_to_SV_ref(const_cast<Extruder&>(extruder)));
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
         RETVAL

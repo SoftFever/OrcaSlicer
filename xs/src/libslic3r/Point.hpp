@@ -32,7 +32,7 @@ class Point
     coord_t y;
     Point(coord_t _x = 0, coord_t _y = 0): x(_x), y(_y) {};
     Point(int _x, int _y): x(_x), y(_y) {};
-    Point(long long _x, long long _y): x(_x), y(_y) {};  // for Clipper
+    Point(long long _x, long long _y): x(coord_t(_x)), y(coord_t(_y)) {};  // for Clipper
     Point(double x, double y);
     static Point new_scale(coordf_t x, coordf_t y) {
         return Point(scale_(x), scale_(y));

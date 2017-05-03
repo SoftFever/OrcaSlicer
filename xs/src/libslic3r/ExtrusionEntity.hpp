@@ -29,6 +29,33 @@ enum ExtrusionRole {
     erMixed,
 };
 
+inline bool is_perimeter(ExtrusionRole role)
+{
+    return role == erPerimeter
+        || role == erExternalPerimeter
+        || role == erOverhangPerimeter;
+}
+
+inline bool is_infill(ExtrusionRole role)
+{
+    return role == erBridgeInfill
+        || role == erInternalInfill
+        || role == erSolidInfill
+        || role == erTopSolidInfill;
+}
+
+inline bool is_solid_infill(ExtrusionRole role)
+{
+    return role == erBridgeInfill
+        || role == erSolidInfill
+        || role == erTopSolidInfill;
+}
+
+inline bool is_bridge(ExtrusionRole role) {
+    return role == erBridgeInfill
+        || role == erOverhangPerimeter;
+}
+
 /* Special flags describing loop */
 enum ExtrusionLoopRole {
     elrDefault,
@@ -101,26 +128,6 @@ public:
     void simplify(double tolerance);
     virtual double length() const;
     virtual ExtrusionRole role() const { return m_role; }
-    bool is_perimeter() const {
-        return this->m_role == erPerimeter
-            || this->m_role == erExternalPerimeter
-            || this->m_role == erOverhangPerimeter;
-    }
-    bool is_infill() const {
-        return this->m_role == erBridgeInfill
-            || this->m_role == erInternalInfill
-            || this->m_role == erSolidInfill
-            || this->m_role == erTopSolidInfill;
-    }
-    bool is_solid_infill() const {
-        return this->m_role == erBridgeInfill
-            || this->m_role == erSolidInfill
-            || this->m_role == erTopSolidInfill;
-    }
-    bool is_bridge() const {
-        return this->m_role == erBridgeInfill
-            || this->m_role == erOverhangPerimeter;
-    }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
@@ -167,22 +174,6 @@ public:
     Point last_point() const { return this->paths.back().polyline.points.back(); }
     virtual double length() const;
     virtual ExtrusionRole role() const { return this->paths.empty() ? erNone : this->paths.front().role(); }
-    bool is_perimeter() const {
-        return this->paths.front().role() == erPerimeter
-            || this->paths.front().role() == erExternalPerimeter
-            || this->paths.front().role() == erOverhangPerimeter;
-    }
-    bool is_infill() const {
-        return this->paths.front().role() == erBridgeInfill
-            || this->paths.front().role() == erInternalInfill
-            || this->paths.front().role() == erSolidInfill
-            || this->paths.front().role() == erTopSolidInfill;
-    }
-    bool is_solid_infill() const {
-        return this->paths.front().role() == erBridgeInfill
-            || this->paths.front().role() == erSolidInfill
-            || this->paths.front().role() == erTopSolidInfill;
-    }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
@@ -230,22 +221,6 @@ public:
     bool has_overhang_point(const Point &point) const;
     virtual ExtrusionRole role() const { return this->paths.empty() ? erNone : this->paths.front().role(); }
     ExtrusionLoopRole     loop_role() const { return m_loop_role; }
-    bool is_perimeter() const {
-        return this->paths.front().role() == erPerimeter
-            || this->paths.front().role() == erExternalPerimeter
-            || this->paths.front().role() == erOverhangPerimeter;
-    }
-    bool is_infill() const {
-        return this->paths.front().role() == erBridgeInfill
-            || this->paths.front().role() == erInternalInfill
-            || this->paths.front().role() == erSolidInfill
-            || this->paths.front().role() == erTopSolidInfill;
-    }
-    bool is_solid_infill() const {
-        return this->paths.front().role() == erBridgeInfill
-            || this->paths.front().role() == erSolidInfill
-            || this->paths.front().role() == erTopSolidInfill;
-    }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;

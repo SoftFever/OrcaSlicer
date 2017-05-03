@@ -185,25 +185,9 @@ PlaceholderParser*         O_OBJECT_SLIC3R
 Ref<PlaceholderParser>     O_OBJECT_SLIC3R_T
 Clone<PlaceholderParser>   O_OBJECT_SLIC3R_T
 
-AvoidCrossingPerimeters*         O_OBJECT_SLIC3R
-Ref<AvoidCrossingPerimeters>     O_OBJECT_SLIC3R_T
-Clone<AvoidCrossingPerimeters>   O_OBJECT_SLIC3R_T
-
-Wipe*         O_OBJECT_SLIC3R
-Ref<Wipe>     O_OBJECT_SLIC3R_T
-Clone<Wipe>   O_OBJECT_SLIC3R_T
-
-OozePrevention*             O_OBJECT_SLIC3R
-Ref<OozePrevention>         O_OBJECT_SLIC3R_T
-Clone<OozePrevention>       O_OBJECT_SLIC3R_T
-
 CoolingBuffer*             O_OBJECT_SLIC3R
 Ref<CoolingBuffer>         O_OBJECT_SLIC3R_T
 Clone<CoolingBuffer>       O_OBJECT_SLIC3R_T
-
-SpiralVase*                 O_OBJECT_SLIC3R
-Ref<SpiralVase>             O_OBJECT_SLIC3R_T
-Clone<SpiralVase>           O_OBJECT_SLIC3R_T
 
 GCode*                      O_OBJECT_SLIC3R
 Ref<GCode>                  O_OBJECT_SLIC3R_T
@@ -220,10 +204,6 @@ Clone<GCodeSender>         O_OBJECT_SLIC3R_T
 GCodeWriter*               O_OBJECT_SLIC3R
 Ref<GCodeWriter>           O_OBJECT_SLIC3R_T
 Clone<GCodeWriter>         O_OBJECT_SLIC3R_T
-
-GCodePressureEqualizer*    		O_OBJECT_SLIC3R
-Ref<GCodePressureEqualizer>     O_OBJECT_SLIC3R_T
-Clone<GCodePressureEqualizer>   O_OBJECT_SLIC3R_T
 
 BridgeDetector*            O_OBJECT_SLIC3R
 Ref<BridgeDetector>        O_OBJECT_SLIC3R_T

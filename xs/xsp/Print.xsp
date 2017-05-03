@@ -195,30 +195,6 @@ _constant()
     void set_step_started(PrintStep step)
         %code%{ THIS->state.set_started(step); %};
     
-    std::vector<int> object_extruders()
-        %code%{
-            std::set<size_t> extruders = THIS->object_extruders();
-            RETVAL.reserve(extruders.size());
-            for (std::set<size_t>::const_iterator e = extruders.begin(); e != extruders.end(); ++e) {
-                RETVAL.push_back(*e);
-            }
-        %};
-    std::vector<int> support_material_extruders()
-        %code%{
-            std::set<size_t> extruders = THIS->support_material_extruders();
-            RETVAL.reserve(extruders.size());
-            for (std::set<size_t>::const_iterator e = extruders.begin(); e != extruders.end(); ++e) {
-                RETVAL.push_back(*e);
-            }
-        %};
-    std::vector<int> extruders()
-        %code%{
-            std::set<size_t> extruders = THIS->extruders();
-            RETVAL.reserve(extruders.size());
-            for (std::set<size_t>::const_iterator e = extruders.begin(); e != extruders.end(); ++e) {
-                RETVAL.push_back(*e);
-            }
-        %};
     void clear_filament_stats()
         %code%{
             THIS->filament_stats.clear();

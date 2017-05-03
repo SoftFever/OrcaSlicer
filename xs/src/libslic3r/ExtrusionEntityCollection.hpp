@@ -59,6 +59,7 @@ public:
     void remove(size_t i);
     ExtrusionEntityCollection chained_path(bool no_reverse = false, ExtrusionRole role = erMixed) const;
     void chained_path(ExtrusionEntityCollection* retval, bool no_reverse = false, ExtrusionRole role = erMixed, std::vector<size_t>* orig_indices = nullptr) const;
+    ExtrusionEntityCollection chained_path_from(Point start_near, bool no_reverse = false, ExtrusionRole role = erMixed) const;
     void chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse = false, ExtrusionRole role = erMixed, std::vector<size_t>* orig_indices = nullptr) const;
     void reverse();
     Point first_point() const { return this->entities.front()->first_point(); }
@@ -78,6 +79,8 @@ public:
     void flatten(ExtrusionEntityCollection* retval) const;
     ExtrusionEntityCollection flatten() const;
     double min_mm3_per_mm() const;
+
+    // Following methods shall never be called on an ExtrusionEntityCollection.
     Polyline as_polyline() const {
         CONFESS("Calling as_polyline() on a ExtrusionEntityCollection");
         return Polyline();

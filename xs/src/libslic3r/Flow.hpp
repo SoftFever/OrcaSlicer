@@ -7,6 +7,8 @@
 
 namespace Slic3r {
 
+class PrintObject;
+
 // Extra spacing of bridge threads, in mm.
 #define BRIDGE_EXTRA_SPACING 0.05
 
@@ -58,6 +60,10 @@ public:
     static float _width_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge);
     static float _spacing(float width, float nozzle_diameter, float height, float bridge_flow_ratio);
 };
+
+extern Flow support_material_flow(const PrintObject *object, float layer_height = 0.f);
+extern Flow support_material_1st_layer_flow(const PrintObject *object, float layer_height = 0.f);
+extern Flow support_material_interface_flow(const PrintObject *object, float layer_height = 0.f);
 
 }
 

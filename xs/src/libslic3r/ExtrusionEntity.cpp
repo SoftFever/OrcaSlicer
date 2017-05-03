@@ -59,7 +59,7 @@ void ExtrusionPath::polygons_covered_by_spacing(Polygons &out, const float scale
 {
     // Instantiating the Flow class to get the line spacing.
     // Don't know the nozzle diameter, setting to zero. It shall not matter it shall be optimized out by the compiler.
-    Flow flow(this->width, this->height, 0.f, this->is_bridge());
+    Flow flow(this->width, this->height, 0.f, is_bridge(this->role()));
     polygons_append(out, offset(this->polyline, 0.5f * float(flow.scaled_spacing()) + scaled_epsilon));
 }
 
@@ -226,7 +226,7 @@ void ExtrusionLoop::split_at(const Point &point, bool prefer_non_overhang)
                 min = dist;
                 path_idx = path - this->paths.begin();
             } 
-            if (prefer_non_overhang && ! path->is_bridge() && dist < min_non_overhang) {
+            if (prefer_non_overhang && ! is_bridge(path->role()) && dist < min_non_overhang) {
                 p_non_overhang = p_tmp;
                 min_non_overhang = dist;
                 path_idx_non_overhang = path - this->paths.begin();
@@ -291,7 +291,7 @@ ExtrusionLoop::has_overhang_point(const Point &point) const
         if (pos != -1) {
             // point belongs to this path
             // we consider it overhang only if it's not an endpoint
-            return (path->is_bridge() && pos > 0 && pos != (int)(path->polyline.points.size())-1);
+            return (is_bridge(path->role()) && pos > 0 && pos != (int)(path->polyline.points.size())-1);
         }
     }
     return false;

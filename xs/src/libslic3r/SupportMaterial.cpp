@@ -145,32 +145,10 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_print_config          (&object->print()->config),
     m_object_config         (&object->config),
     m_slicing_params        (slicing_params),
-
-    m_first_layer_flow (Flow::new_from_config_width(
-        frSupportMaterial,
-        // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
-        (object->print()->config.first_layer_extrusion_width.value > 0) ? object->print()->config.first_layer_extrusion_width : object->config.support_material_extrusion_width,
-        float(object->print()->config.nozzle_diameter.get_at(object->config.support_material_extruder-1)),
-        float(slicing_params.first_print_layer_height),
-        false)),
-    m_support_material_flow (Flow::new_from_config_width(
-        frSupportMaterial, 
-        // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
-        (object->config.support_material_extrusion_width.value > 0) ? object->config.support_material_extrusion_width : object->config.extrusion_width,
-        // if object->config.support_material_extruder == 0 (which means to not trigger tool change, but use the current extruder instead), get_at will return the 0th component.
-        float(object->print()->config.nozzle_diameter.get_at(object->config.support_material_extruder-1)),
-        float(slicing_params.layer_height),
-        false)), 
-    m_support_material_interface_flow(Flow::new_from_config_width(
-        frSupportMaterialInterface,
-        // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
-        (object->config.support_material_extrusion_width > 0) ? object->config.support_material_extrusion_width : object->config.extrusion_width,
-        // if object->config.support_material_interface_extruder == 0 (which means to not trigger tool change, but use the current extruder instead), get_at will return the 0th component.
-        float(object->print()->config.nozzle_diameter.get_at(object->config.support_material_interface_extruder-1)),
-        float(slicing_params.layer_height),
-        false)),
- 
-    m_support_layer_height_min  (0.01)
+    m_first_layer_flow      (support_material_1st_layer_flow(object, float(slicing_params.first_print_layer_height))),
+    m_support_material_flow (support_material_flow(object, float(slicing_params.layer_height))),
+    m_support_material_interface_flow(support_material_interface_flow(object, float(slicing_params.layer_height))), 
+    m_support_layer_height_min(0.01)
 {
     // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
     m_support_layer_height_min = 1000000.;

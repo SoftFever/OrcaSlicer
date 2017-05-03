@@ -44,7 +44,7 @@ SlicingParameters SlicingParameters::create_from_config(
 	const PrintConfig 		&print_config, 
 	const PrintObjectConfig &object_config,
 	coordf_t				 object_height,
-	const std::set<size_t>  &object_extruders)
+	const std::vector<unsigned int> &object_extruders)
 {
     coordf_t first_layer_height                      = (object_config.first_layer_height.value <= 0) ? 
         object_config.layer_height.value : 
@@ -84,9 +84,9 @@ SlicingParameters SlicingParameters::create_from_config(
         params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, 0));
         params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, 0));
     } else {
-        for (std::set<size_t>::const_iterator it_extruder = object_extruders.begin(); it_extruder != object_extruders.end(); ++ it_extruder) {
-            params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, *it_extruder));
-            params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, *it_extruder));
+        for (unsigned int extruder_id : object_extruders) {
+            params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, extruder_id));
+            params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, extruder_id));
         }
     }
     params.min_layer_height = std::min(params.min_layer_height, params.layer_height);
@@ -113,8 +113,8 @@ SlicingParameters SlicingParameters::create_from_config(
             //FIXME It is expected, that the 1st layer of the object is printed with a bridging flow over a full raft. Shall it not be vice versa?
             coordf_t average_object_extruder_dmr = 0.;
             if (! object_extruders.empty()) {
-                for (std::set<size_t>::const_iterator it_extruder = object_extruders.begin(); it_extruder != object_extruders.end(); ++ it_extruder)
-                    average_object_extruder_dmr += print_config.nozzle_diameter.get_at(*it_extruder);
+                for (unsigned int extruder_id : object_extruders)
+                    average_object_extruder_dmr += print_config.nozzle_diameter.get_at(extruder_id);
                 average_object_extruder_dmr /= coordf_t(object_extruders.size());
             }
             params.first_object_layer_height   = average_object_extruder_dmr;

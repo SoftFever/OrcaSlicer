@@ -95,8 +95,14 @@ ExtrusionEntityCollection::chained_path(ExtrusionEntityCollection* retval, bool 
     this->chained_path_from(this->entities.front()->first_point(), retval, no_reverse, role, orig_indices);
 }
 
-void
-ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse, ExtrusionRole role, std::vector<size_t>* orig_indices) const
+ExtrusionEntityCollection ExtrusionEntityCollection::chained_path_from(Point start_near, bool no_reverse, ExtrusionRole role) const
+{
+    ExtrusionEntityCollection coll;
+    this->chained_path_from(start_near, &coll, no_reverse, role);
+    return coll;
+}
+
+void ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse, ExtrusionRole role, std::vector<size_t>* orig_indices) const
 {
     if (this->no_sort) {
         *retval = *this;
