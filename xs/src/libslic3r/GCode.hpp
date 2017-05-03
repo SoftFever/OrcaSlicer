@@ -15,6 +15,7 @@
 #include "GCode/SpiralVase.hpp"
 #include "EdgeGrid.hpp"
 
+#include <memory>
 #include <string>
 
 namespace Slic3r {
