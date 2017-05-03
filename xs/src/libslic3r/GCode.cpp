@@ -201,6 +201,12 @@ inline void writeln(FILE *file, const std::string &what)
     fprintf(file, "\n");
 }
 
+// Older compilers do not provide a std::make_unique template. Provide a simple one.
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 bool GCode::do_export(FILE *file, Print &print)
 {
     // How many times will be change_layer() called?
@@ -255,12 +261,12 @@ bool GCode::do_export(FILE *file, Print &print)
         }
     }
     
-    m_cooling_buffer = std::make_unique<CoolingBuffer>(*this);
+    m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     if (print.config.spiral_vase.value)
-        m_spiral_vase = std::make_unique<SpiralVase>(print.config);
+        m_spiral_vase = make_unique<SpiralVase>(print.config);
     if (print.config.max_volumetric_extrusion_rate_slope_positive.value > 0 ||
         print.config.max_volumetric_extrusion_rate_slope_negative.value > 0)
-        m_pressure_equalizer = std::make_unique<PressureEqualizer>(&print.config);
+        m_pressure_equalizer = make_unique<PressureEqualizer>(&print.config);
     m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
 
     // Write information on the generator.
@@ -1111,7 +1117,7 @@ std::string GCode::extrude(ExtrusionLoop loop, std::string description, double s
         if (! this->m_lower_layer_edge_grid) {
             // Create the distance field for a layer below.
             const coord_t distance_field_resolution = scale_(1.f);
-            this->m_lower_layer_edge_grid = std::make_unique<EdgeGrid::Grid>();
+            this->m_lower_layer_edge_grid = make_unique<EdgeGrid::Grid>();
             this->m_lower_layer_edge_grid->create(m_layer->lower_layer->slices, distance_field_resolution);
             this->m_lower_layer_edge_grid->calculate_sdf();
             #if 0
