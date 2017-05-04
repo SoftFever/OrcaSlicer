@@ -78,7 +78,7 @@ sub export_gcode {
         # open output gcode file if we weren't supplied a file-handle
         my $tempfile = "$output_file.tmp";
         my $gcode    = Slic3r::GCode->new();
-        my $result   = $gcode->do_export($self, $tempfile);
+        my $result   = $gcode->do_export($self, Slic3r::encode_path($tempfile));
         die $result . "\n" if ($result ne '');
         my $i;
         for ($i = 0; $i < 5; $i += 1)  {
