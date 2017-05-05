@@ -1141,6 +1141,7 @@ sub build {
         nozzle_diameter extruder_offset
         retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
         retract_length_toolchange retract_restart_extra_toolchange
+        printer_notes
     ));
     $self->{config}->set('printer_settings_id', '');
     
@@ -1392,8 +1393,22 @@ sub build {
         }
     }
     
+    {
+        my $page = $self->add_options_page('Notes', 'note.png');
+        {
+            my $optgroup = $page->new_optgroup('Notes',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('printer_notes');
+            $option->full_width(1);
+            $option->height(250);
+            $optgroup->append_single_option_line($option);
+        }
+    }
+
     $self->{extruder_pages} = [];
     $self->_build_extruder_pages;
+
     $self->_update_serial_ports if (!$params{no_controller});
 }
 
@@ -1488,9 +1503,12 @@ sub _build_extruder_pages {
     }
     
     # rebuild page list
+    my @pages_without_extruders = (grep $_->{title} !~ /^Extruder \d+/, @{$self->{pages}});
+    my $page_notes = pop @pages_without_extruders;
     @{$self->{pages}} = (
-        (grep $_->{title} !~ /^Extruder \d+/, @{$self->{pages}}),
+        @pages_without_extruders,
         @{$self->{extruder_pages}}[ 0 .. $self->{extruders_count}-1 ],
+        $page_notes
     );
     $self->update_tree;
 }

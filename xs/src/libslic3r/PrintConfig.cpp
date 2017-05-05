@@ -841,6 +841,15 @@ PrintConfigDef::PrintConfigDef()
     def->full_width = true;
     def->height = 60;
 
+    def = this->add("printer_notes", coString);
+    def->label = "Printer notes";
+    def->tooltip = "You can put your notes regarding the printer here.";
+    def->cli = "printer-notes=s";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 130;
+    def->default_value = new ConfigOptionString("");
+
     def = this->add("print_settings_id", coString);
     def->default_value = new ConfigOptionString("");
     
