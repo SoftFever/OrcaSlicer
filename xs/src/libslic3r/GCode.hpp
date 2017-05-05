@@ -34,15 +34,17 @@ public:
     // we enable it by default for the first travel move in print
     bool disable_once;
     
-    AvoidCrossingPerimeters();
-    ~AvoidCrossingPerimeters();
-    void init_external_mp(const ExPolygons &islands);
-    void init_layer_mp(const ExPolygons &islands);
+    AvoidCrossingPerimeters() : use_external_mp(false), use_external_mp_once(false), disable_once(true) {}
+    ~AvoidCrossingPerimeters() {}
+
+    void init_external_mp(const ExPolygons &islands) { m_external_mp = Slic3r::make_unique<MotionPlanner>(islands); }
+    void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
+
     Polyline travel_to(GCode &gcodegen, Point point);
-    
+
 private:
-    MotionPlanner* _external_mp;
-    MotionPlanner* _layer_mp;
+    std::unique_ptr<MotionPlanner> m_external_mp;
+    std::unique_ptr<MotionPlanner> m_layer_mp;
 };
 
 class OozePrevention {

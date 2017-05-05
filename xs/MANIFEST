@@ -395,6 +395,7 @@ src/libslic3r/MotionPlanner.cpp
 src/libslic3r/MotionPlanner.hpp
 src/libslic3r/MultiPoint.cpp
 src/libslic3r/MultiPoint.hpp
+src/libslic3r/MutablePriorityQueue.hpp
 src/libslic3r/PerimeterGenerator.cpp
 src/libslic3r/PerimeterGenerator.hpp
 src/libslic3r/PlaceholderParser.cpp

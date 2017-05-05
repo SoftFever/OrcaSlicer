@@ -94,8 +94,7 @@ inline T sqr(const T x)
     return x * x;
 }
 
-int
-Point::nearest_point_index(const PointConstPtrs &points) const
+int Point::nearest_point_index(const PointConstPtrs &points) const
 {
     int idx = -1;
     double distance = -1;  // double because long is limited to 2147483647 on some platforms and it's not enough
@@ -121,28 +120,25 @@ Point::nearest_point_index(const PointConstPtrs &points) const
 }
 
 /* This method finds the point that is closest to both this point and the supplied one */
-size_t
-Point::nearest_waypoint_index(const Points &points, const Point &dest) const
+size_t Point::nearest_waypoint_index(const Points &points, const Point &dest) const
 {
-    size_t idx = -1;
-    double distance = -1;  // double because long is limited to 2147483647 on some platforms and it's not enough
-    
-    for (Points::const_iterator p = points.begin(); p != points.end(); ++p) {
-        // distance from this to candidate
-        double d = sqr<double>(this->x - p->x) + sqr<double>(this->y - p->y);
-        
-        // distance from candidate to dest
-        d += sqr<double>(p->x - dest.x) + sqr<double>(p->y - dest.y);
-        
-        // if the total distance is greater than current min distance, ignore it
-        if (distance != -1 && d > distance) continue;
-        
-        idx = p - points.begin();
-        distance = d;
-        
-        if (distance < EPSILON) break;
+    size_t idx = size_t(-1);
+    double d2min = std::numeric_limits<double>::infinity();  // double because long is limited to 2147483647 on some platforms and it's not enough
+
+    for (const Point &p : points) {
+        double d2 =
+            // distance from this to candidate
+            sqr<double>(this->x - p.x) + sqr<double>(this->y - p.y) + 
+            // distance from candidate to dest
+            sqr<double>(p.x - dest.x) + sqr<double>(p.y - dest.y);
+        if (d2 < d2min) {
+            idx      = &p - points.data();
+            d2min = d2;
+            if (d2min < EPSILON)
+                break;
+        }
     }
-    
+
     return idx;
 }
 

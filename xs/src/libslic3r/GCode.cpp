@@ -24,65 +24,16 @@
 #include <assert.h>
 
 namespace Slic3r {
-
-AvoidCrossingPerimeters::AvoidCrossingPerimeters()
-    : use_external_mp(false), use_external_mp_once(false), disable_once(true),
-        _external_mp(NULL), _layer_mp(NULL)
-{
-}
-
-AvoidCrossingPerimeters::~AvoidCrossingPerimeters()
-{
-    if (this->_external_mp != NULL)
-        delete this->_external_mp;
     
-    if (this->_layer_mp != NULL)
-        delete this->_layer_mp;
-}
-
-void
-AvoidCrossingPerimeters::init_external_mp(const ExPolygons &islands)
+Polyline AvoidCrossingPerimeters::travel_to(GCode &gcodegen, Point point) 
 {
-    if (this->_external_mp != NULL)
-        delete this->_external_mp;
-    
-    this->_external_mp = new MotionPlanner(islands);
-}
-
-void
-AvoidCrossingPerimeters::init_layer_mp(const ExPolygons &islands)
-{
-    if (this->_layer_mp != NULL)
-        delete this->_layer_mp;
-    
-    this->_layer_mp = new MotionPlanner(islands);
-}
-
-Polyline
-AvoidCrossingPerimeters::travel_to(GCode &gcodegen, Point point)
-{
-    if (this->use_external_mp || this->use_external_mp_once) {
-        // get current origin set in gcodegen
-        // (the one that will be used to translate the G-code coordinates by)
-        Point scaled_origin = Point::new_scale(gcodegen.origin().x, gcodegen.origin().y);
-        
-        // represent last_pos in absolute G-code coordinates
-        Point last_pos = gcodegen.last_pos();
-        last_pos.translate(scaled_origin);
-        
-        // represent point in absolute G-code coordinates
-        point.translate(scaled_origin);
-        
-        // calculate path
-        Polyline travel = this->_external_mp->shortest_path(last_pos, point);
-        //exit(0);
-        // translate the path back into the shifted coordinate system that gcodegen
-        // is currently using for writing coordinates
-        travel.translate(scaled_origin.negative());
-        return travel;
-    } else {
-        return this->_layer_mp->shortest_path(gcodegen.last_pos(), point);
-    }
+    bool  use_external  = this->use_external_mp || this->use_external_mp_once;
+    Point scaled_origin = use_external ? Point(0, 0) : Point::new_scale(gcodegen.origin().x, gcodegen.origin().y);
+    Polyline result = (use_external ? m_external_mp.get() : m_layer_mp.get())->
+        shortest_path(gcodegen.last_pos() + scaled_origin, point + scaled_origin);
+    if (! use_external)
+        result.translate(scaled_origin.negative());
+    return result;
 }
 
 std::string OozePrevention::pre_toolchange(GCode &gcodegen)
@@ -199,12 +150,6 @@ inline void writeln(FILE *file, const std::string &what)
 {
     write(file, what);
     fprintf(file, "\n");
-}
-
-// Older compilers do not provide a std::make_unique template. Provide a simple one.
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
 bool GCode::do_export(FILE *file, Print &print)
@@ -544,6 +489,7 @@ void GCode::process_layer(FILE *file, const Print &print, const Layer &layer, co
     const SupportLayer *support_layer = dynamic_cast<const SupportLayer*>(&layer);
     
     // Check whether it is possible to apply the spiral vase logic for this layer.
+    // Just a reminder: A spiral vase mode is allowed for a single object, single material print only.
     if (m_spiral_vase) {
         bool enable = (layer.id() > 0 || print.config.brim_width.value == 0.) && (layer.id() >= print.config.skirt_height.value && ! print.has_infinite_skirt());
         if (enable) {
@@ -888,11 +834,9 @@ std::string GCode::change_layer(const Layer &layer)
     }
     
     // avoid computing islands and overhangs if they're not needed
-    if (m_config.avoid_crossing_perimeters) {
-        ExPolygons islands = union_ex(layer.slices, true);
-        m_avoid_crossing_perimeters.init_layer_mp(islands);
-    }
-    
+    if (m_config.avoid_crossing_perimeters)
+        m_avoid_crossing_perimeters.init_layer_mp(union_ex(layer.slices, true));
+
     if (m_layer_count > 0)
         gcode += m_writer.update_progress(m_layer_index, m_layer_count);
     

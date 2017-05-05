@@ -127,6 +127,12 @@ void remove_nulls(std::vector<T*> &vec)
     	vec.end());
 }
 
+// Older compilers do not provide a std::make_unique template. Provide a simple one.
+template<typename T, typename... Args>
+inline std::unique_ptr<T> make_unique(Args&&... args) {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 } // namespace Slic3r
 
 #endif
