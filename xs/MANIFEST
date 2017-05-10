@@ -430,6 +430,8 @@ src/libslic3r/TriangleMesh.cpp
 src/libslic3r/TriangleMesh.hpp
 src/libslic3r/utils.cpp
 src/libslic3r/Utils.hpp
+src/libslic3r/WipeTower.cpp
+src/libslic3r/WipeTower.hpp
 src/perlglue.cpp
 src/poly2tri/common/shapes.cc
 src/poly2tri/common/shapes.h
