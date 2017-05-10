@@ -37,9 +37,15 @@ class Point
     static Point new_scale(coordf_t x, coordf_t y) {
         return Point(scale_(x), scale_(y));
     };
+
     bool operator==(const Point& rhs) const { return this->x == rhs.x && this->y == rhs.y; }
     bool operator!=(const Point& rhs) const { return ! (*this == rhs); }
     bool operator<(const Point& rhs) const { return this->x < rhs.x || (this->x == rhs.x && this->y < rhs.y); }
+
+    Point& operator+=(const Point& rhs) { this->x += rhs.x; this->y += rhs.y; return *this; }
+    Point& operator-=(const Point& rhs) { this->x -= rhs.x; this->y -= rhs.y; return *this; }
+    Point& operator*=(const coord_t& rhs) { this->x *= rhs; this->y *= rhs;   return *this; }
+
     std::string wkt() const;
     std::string dump_perl() const;
     void scale(double factor);
@@ -184,7 +190,7 @@ std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
 
 class Pointf
 {
-    public:
+public:
     coordf_t x;
     coordf_t y;
     explicit Pointf(coordf_t _x = 0, coordf_t _y = 0): x(_x), y(_y) {};
@@ -203,6 +209,10 @@ class Pointf
     void rotate(double angle, const Pointf &center);
     Pointf negative() const;
     Vectorf vector_to(const Pointf &point) const;
+    
+    Pointf& operator+=(const Pointf& rhs) { this->x += rhs.x; this->y += rhs.y; return *this; }
+    Pointf& operator-=(const Pointf& rhs) { this->x -= rhs.x; this->y -= rhs.y; return *this; }
+    Pointf& operator*=(const coordf_t& rhs) { this->x *= rhs; this->y *= rhs;   return *this; }
 };
 
 inline Pointf operator+(const Pointf& point1, const Pointf& point2) { return Pointf(point1.x + point2.x, point1.y + point2.y); }

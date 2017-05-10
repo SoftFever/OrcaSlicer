@@ -81,14 +81,13 @@ public:
         m_layer_count(0),
         m_layer_index(-1), 
         m_layer(nullptr), 
-        m_first_layer(false), 
         m_elapsed_time(0.0), 
         m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
         m_brim_done(false),
         m_second_layer_things_done(false),
-        m_last_obj_copy(Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
+        m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
         {}
     ~GCode() {}
 
@@ -114,34 +113,64 @@ public:
     void            apply_print_config(const PrintConfig &print_config);
 
 private:
-    void            process_layer(FILE *file, const Print &print, const Layer &layer, const Points &object_copies);
+    // Object and support extrusions of the same PrintObject at the same print_z.
+    struct LayerToPrint
+    {
+        LayerToPrint() : object_layer(nullptr), support_layer(nullptr) {}
+        const Layer          *object_layer;
+        const SupportLayer   *support_layer;
+        const Layer*          layer() const { return (object_layer != nullptr) ? object_layer : support_layer; }
+        const PrintObject*    object() const { return (this->layer() != nullptr) ? this->layer()->object() : nullptr; }
+        coordf_t              print_z() const { return this->layer()->print_z; }
+    };
+    void            process_layer(
+        // Write into the output file.
+        FILE                            *file,
+        const Print                     &print,
+        // Set of object & print layers of the same PrintObject and with the same print_z.
+        const std::vector<LayerToPrint> &layers,
+        // If set to size_t(-1), then print all copies of all objects.
+        // Otherwise print a single copy of a single object.
+        const size_t                     single_object_idx = size_t(-1));
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     bool            last_pos_defined() const { return m_last_pos_defined; }
     void            set_extruders(const std::vector<unsigned int> &extruder_ids);
     std::string     preamble();
-    std::string     change_layer(const Layer &layer);
-    std::string     extrude(const ExtrusionEntity &entity, std::string description = "", double speed = -1);
-    std::string     extrude(ExtrusionLoop loop, std::string description = "", double speed = -1);
-    std::string     extrude(ExtrusionMultiPath multipath, std::string description = "", double speed = -1);
-    std::string     extrude(ExtrusionPath path, std::string description = "", double speed = -1);
+    std::string     change_layer(coordf_t print_z);
+    std::string     extrude_entity(const ExtrusionEntity &entity, std::string description = "", double speed = -1.);
+    std::string     extrude_loop(ExtrusionLoop loop, std::string description, double speed = -1., std::unique_ptr<EdgeGrid::Grid> *lower_layer_edge_grid = nullptr);
+    std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
+    std::string     extrude_path(ExtrusionPath path, std::string description = "", double speed = -1.);
 
-    struct ByExtruder
+    // Extruding multiple objects with soluble / non-soluble / combined supports
+    // on a multi-material printer, trying to minimize tool switches.
+    // Following structures sort extrusions by the extruder ID, by an order of objects and object islands.
+    struct ObjectByExtruder
     {
-        struct ToExtrude {
-            ExtrusionEntityCollection perimeters;
-            ExtrusionEntityCollection infills;
+        ObjectByExtruder() : support(nullptr), support_extrusion_role(erNone) {}
+        const ExtrusionEntityCollection  *support;
+        // erSupportMaterial / erSupportMaterialInterface or erMixed.
+        ExtrusionRole                     support_extrusion_role;
+
+        struct Island
+        {
+            struct Region {
+                ExtrusionEntityCollection perimeters;
+                ExtrusionEntityCollection infills;
+            };
+            std::vector<Region> by_region;
         };
-        std::vector<ToExtrude> by_region;
+        std::vector<Island>         islands;
     };
-    std::string     extrude_perimeters(const Print &print, const std::vector<ByExtruder::ToExtrude> &by_region);
-    std::string     extrude_infill(const Print &print, const std::vector<ByExtruder::ToExtrude> &by_region);
-    std::string     extrude_support(const ExtrusionEntityCollection &support_fills, unsigned int extruder_id);
+    std::string     extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, std::unique_ptr<EdgeGrid::Grid> &lower_layer_edge_grid);
+    std::string     extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region);
+    std::string     extrude_support(const ExtrusionEntityCollection &support_fills);
 
     std::string     travel_to(const Point &point, ExtrusionRole role, std::string comment);
     bool            needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
     std::string     retract(bool toolchange = false);
-    std::string     unretract();
+    std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id);
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
@@ -174,10 +203,6 @@ private:
     // In non-sequential mode, all its copies will be printed.
     const Layer*                        m_layer;
     std::map<const PrintObject*,Point>  m_seam_position;
-    // Distance Field structure to 
-    std::unique_ptr<EdgeGrid::Grid>     m_lower_layer_edge_grid;
-    // this flag triggers first layer speeds
-    bool                                m_first_layer;
     // Used by the CoolingBuffer G-code filter to calculate time spent per layer change.
     // This value is not quite precise. First it only accouts for extrusion moves and travel moves,
     // it does not account for wipe, retract / unretract moves.
@@ -195,18 +220,32 @@ private:
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
 
     // Heights at which the skirt has already been extruded.
-    std::set<coordf_t>                  m_skirt_done;
+    std::vector<coordf_t>               m_skirt_done;
     // Has the brim been extruded already? Brim is being extruded only for the first object of a multi-object print.
     bool                                m_brim_done;
     // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
     bool                                m_second_layer_things_done;
-    // Index of a last object copy extruded. -1 for not set yet.
-    Point                               m_last_obj_copy;
+    // Index of a last object copy extruded.
+    std::pair<const PrintObject*, Point> m_last_obj_copy;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
     void _print_first_layer_extruder_temperatures(FILE *file, Print &print, bool wait);
+    // this flag triggers first layer speeds
+    bool                                on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0; }
 
     std::string filter(std::string &&gcode, bool flush);
+
+    friend ObjectByExtruder& object_by_extruder(
+        std::map<unsigned int, std::vector<ObjectByExtruder>> &by_extruder, 
+        unsigned int                                           extruder_id, 
+        size_t                                                 object_idx, 
+        size_t                                                 num_objects);
+    friend std::vector<ObjectByExtruder::Island>& object_islands_by_extruder(
+        std::map<unsigned int, std::vector<ObjectByExtruder>>  &by_extruder, 
+        unsigned int                                            extruder_id, 
+        size_t                                                  object_idx, 
+        size_t                                                  num_objects,
+        size_t                                                  num_islands);
 };
 
 }
