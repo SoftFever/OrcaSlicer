@@ -4,6 +4,10 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef __linux
+#include <strings.h>
+#endif /* __linux */
+
 #ifdef _MSC_VER 
 #define strcasecmp _stricmp
 #endif
