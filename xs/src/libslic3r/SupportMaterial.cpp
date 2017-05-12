@@ -1416,14 +1416,14 @@ void PrintObjectSupportMaterial::generate_base_layers(
 
                 // Find a top_contact layer touching the layer_intermediate from above, if any, and collect its polygons into polygons_new.
                 idx_top_contact_above = idx_lower_or_equal(top_contacts, idx_top_contact_above, 
-                    [&layer_intermediate](const MyLayer *layer){ return layer->bottom_z <= layer_intermediate.print_z + EPSILON; });
+                    [&layer_intermediate](const MyLayer *layer){ return layer->bottom_z <= layer_intermediate.print_z - EPSILON; });
 
                 // New polygons for layer_intermediate.
                 Polygons polygons_new;
 
                 // Use the precomputed layer_support_areas.
                 idx_object_layer_above = std::max(0, idx_lower_or_equal(object.layers, idx_object_layer_above, 
-                    [&layer_intermediate](const Layer *layer){ return layer->print_z <= layer_intermediate.print_z - EPSILON; }));
+                    [&layer_intermediate](const Layer *layer){ return layer->print_z <= layer_intermediate.print_z + EPSILON; }));
                 polygons_new = layer_support_areas[idx_object_layer_above];
 
                 // Polygons to trim polygons_new.
