@@ -2561,11 +2561,11 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             infill_pattern, &bbox_object, support_density, interface_density, interface_angle, &angles, link_max_length_factor, with_sheath]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
-        size_t idx_layer_bottom_contact   = 0;
-        size_t idx_layer_top_contact      = 0;
-        size_t idx_layer_intermediate     = 0;
-        size_t idx_layer_inteface         = 0;
-        std::unique_ptr<Fill> filler_interface = std::unique_ptr<Fill>(Fill::new_from_type(ipRectilinear));
+        size_t idx_layer_bottom_contact   = size_t(-1);
+        size_t idx_layer_top_contact      = size_t(-1);
+        size_t idx_layer_intermediate     = size_t(-1);
+        size_t idx_layer_inteface         = size_t(-1);
+        std::unique_ptr<Fill> filler_interface = std::unique_ptr<Fill>(Fill::new_from_type(m_slicing_params.soluble_interface ? ipConcentric : ipRectilinear));
         std::unique_ptr<Fill> filler_support   = std::unique_ptr<Fill>(Fill::new_from_type(infill_pattern));
         filler_interface->set_bounding_box(bbox_object);
         filler_support->set_bounding_box(bbox_object);
