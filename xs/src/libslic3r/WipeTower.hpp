@@ -8,6 +8,8 @@
 namespace PrusaSingleExtruderMM
 {
 
+class Writer;
+
 class WipeTower
 {
 public:
@@ -27,13 +29,17 @@ public:
 
 	enum wipe_shape
 	{
-		NORMAL   = 1,
-		REVERSED = -1
+		SHAPE_NORMAL   = 1,
+		SHAPE_REVERSED = -1
 	};
 
 	struct xy
 	{
 		xy(float x = 0.f, float y = 0.f) : x(x), y(y) {}
+		xy  operator+(const xy &rhs) const { xy out(*this); out.x += rhs.x; out.y += rhs.y; return out; }
+		xy  operator-(const xy &rhs) const { xy out(*this); out.x -= rhs.x; out.y -= rhs.y; return out; }
+		xy& operator+=(const xy &rhs) { x += rhs.x; y += rhs.y; return *this; }
+		xy& operator-=(const xy &rhs) { x -= rhs.x; y -= rhs.y; return *this; }
 		float x;
 		float y;
 	};
@@ -58,6 +64,7 @@ public:
 
 	// Z height		-- mm
 	void setZ(float z) { m_z_pos = z; }
+	bool is_first_layer() const { return m_z_pos < 0.205f; }
 
 	// _retract - retract value in mm
 	void setRetract(float _retract) { retract = _retract; }
@@ -89,36 +96,40 @@ public:
 		sideOnly			-- set to false -- experimental, draw brim on sides of wipe tower 
 		offset				-- set to 0		-- experimental, offset to replace brim in front / rear of wipe tower
 	*/
-	std::string FirstLayer(bool sideOnly, float offset);	
+	std::string FirstLayer(bool sideOnly = false, float y_offset = 0.f);
 
-	/*
-		Returns gcode for toolchange 
-	
-		tool				-- extruder #   0 - 3
-		current_material	-- filament type currently used to print and loaded in nozzle -- see enum material_type
-		new_material		-- filament type that will be loaded in to the nozzle  -- see enum material_type
-		temperature			-- temperature in Celsius for new filament that will be loaded into the nozzle	
-		shape				-- orientation of purge / wipe shape	-- 0 = normal, 1 = reversed -- enum wipe_shape
-		count				-- total toolchanges done counter ( comment in  header of toolchange only )
-		spaceAvailable		-- space available for toolchange ( purge / load / wipe ) - in mm
-		wipeStartY			-- experimental, don't use, set to 0
-		lastInFile			-- for last toolchange in object set to true to unload filament into cooling tube, for all other set to false
-		colorInit			-- experimental, set to 0
-	*/
+	// Returns gcode for toolchange 
 	std::pair<std::string, WipeTower::xy> Toolchange(
-		int tool, material_type current_material, material_type new_material, int temperature, wipe_shape shape, 
-		int count, float spaceAvailable, float wipeStartY, bool lastInFile, bool colorInit);	
+		// extruder #   0 - 3
+		const int 			tool, 
+		// filament type currently used to print and loaded in nozzle -- see enum material_type
+		const material_type current_material, 
+		// filament type that will be loaded in to the nozzle  -- see enum material_type
+		const material_type new_material, 
+		// temperature in Celsius for new filament that will be loaded into the nozzle	
+		const int 			temperature, 
+		// orientation of purge / wipe shape (NORMAL / REVERSED)
+		const wipe_shape 	shape, 
+		// total toolchanges done counter ( comment in  header of toolchange only )
+		const int 			count, 
+		// space available for toolchange ( purge / load / wipe ) - in mm
+		const float 		spaceAvailable, 
+		// experimental, don't use, set to 0
+		const float 		wipeStartY, 
+		// for last toolchange in object set to true to unload filament into cooling tube, for all other set to false
+		const bool  		lastInFile, 
+		// experimental, set to false
+		const bool 			colorInit = false);
 
 	/*
 		Returns gcode to draw empty pattern in place of a toolchange -> in case there are less toolchanges atm then what is required later 
 
 		order				-- total toolchanges done for current layer
 		total				-- total colors in current z layer including empty ones
-		layer				-- Z height in mm * 100  ( slows down print for first layer )
 		afterToolchange		-- true - ignore some not neccesary moves | false - do whole move from object to wipe tower
 		firstLayerOffset	-- experimental , set to 0
 	*/
-	std::string Perimeter(int order, int total, int layer, bool afterToolchange, int firstLayerOffset);
+	std::string Perimeter(int order, int total, int Layer, bool afterToolchange, int firstLayerOffset = 0);
 
 private:
 	WipeTower();
@@ -133,8 +144,6 @@ private:
 	float m_z_pos;
 	// Maximum number of color changes per layer.
 	int   m_color_changes;
-	// Current y position at the wipe tower.
-	float m_y_position;
 
 	float zHop 				= 0.5f;
 	float retract 			= 4.f;
@@ -149,17 +158,49 @@ private:
 			rd(left + width, bottom         ),
 			ru(left + width, bottom + height) {}
 		box_coordinates(const xy &pos, float width, float height) : box_coordinates(pos.x, pos.y, width, height) {}
+		void expand(const float offset) {
+			ld += xy(- offset, - offset);
+			lu += xy(- offset,   offset);
+			rd += xy(  offset, - offset);
+			ru += xy(  offset,   offset);
+		}
 		xy ld;  // left down
 		xy lu;	// left upper 
 		xy ru;	// right upper
 		xy rd;	// right lower
 	};
 	
-	std::string toolchange_Unload(const box_coordinates &cleaning_box, material_type material, wipe_shape shape, int temperature);
-	std::string toolchange_Change(int tool, material_type current_material, material_type new_material);
-	std::string toolchange_Load(const box_coordinates &cleaning_box, material_type material, wipe_shape shape, bool colorInit);
-	std::string toolchange_Wipe(const box_coordinates &cleaning_box, material_type material, wipe_shape shape);
-	std::string toolchange_Done(const box_coordinates &cleaning_box, material_type material, wipe_shape shape);
+	void toolchange_Unload(
+		Writer				   &writer,
+		const box_coordinates  &cleaning_box, 
+		const material_type	 	material,
+		const wipe_shape 	    shape,
+		const int 				temperature);
+
+	void toolchange_Change(
+		Writer				   &writer,
+		int 					tool,
+		material_type 			current_material,
+		material_type 			new_material);
+	
+	void toolchange_Load(
+		Writer				   &writer,
+		const box_coordinates  &cleaning_box,
+		const material_type 	material,
+		const wipe_shape 		shape,
+		const bool 				colorInit);
+	
+	void toolchange_Wipe(
+		Writer				   &writer,
+		const box_coordinates  &cleaning_box, 
+		const material_type 	material,
+		const wipe_shape 	    shape);
+	
+	void toolchange_Done(
+		Writer				   &writer,
+		const box_coordinates  &cleaning_box, 
+		const material_type 	material, 
+		const wipe_shape 		shape);
 
 	box_coordinates _boxForColor(int order) const;
 };
