@@ -1,6 +1,7 @@
 #include "WipeTower.hpp"
 
 #include <assert.h>
+#include <math.h>
 #include <fstream>
 #include <iostream>
 
