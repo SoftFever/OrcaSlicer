@@ -645,7 +645,7 @@ void GCode::process_layer(
             for (size_t i = 1; i < extruder_ids.size(); ++ i)
                 if (extruder_ids[i] == m_writer.extruder()->id) {
                     // Move the last extruder to the front.
-                    memmove(extruder_ids.data() + 1, extruder_ids.data(), i);
+                    memmove(extruder_ids.data() + 1, extruder_ids.data(), i * sizeof(unsigned int));
                     extruder_ids.front() = m_writer.extruder()->id;
                     break;
                 }
@@ -808,7 +808,7 @@ void GCode::process_layer(
     for (size_t i = 1; i < extruders.size(); ++ i)
         if (extruders[i] == m_writer.extruder()->id) {
             // Move the last extruder to the front.
-            memmove(extruders.data() + 1, extruders.data(), i);
+			memmove(extruders.data() + 1, extruders.data(), i * sizeof(unsigned int));
             extruders.front() = m_writer.extruder()->id;
             break;
         }
