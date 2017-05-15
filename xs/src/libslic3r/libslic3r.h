@@ -100,7 +100,7 @@ inline void append_to(std::vector<T> &dst, const std::vector<T> &src)
 }
 
 template <typename T>
-void append(std::vector<T>& dest, const std::vector<T>& src)
+inline void append(std::vector<T>& dest, const std::vector<T>& src)
 {
     if (dest.empty())
         dest = src;
@@ -109,7 +109,7 @@ void append(std::vector<T>& dest, const std::vector<T>& src)
 }
 
 template <typename T>
-void append(std::vector<T>& dest, std::vector<T>&& src)
+inline void append(std::vector<T>& dest, std::vector<T>&& src)
 {
     if (dest.empty())
         dest = std::move(src);
@@ -120,11 +120,18 @@ void append(std::vector<T>& dest, std::vector<T>&& src)
 }
 
 template <typename T>
-void remove_nulls(std::vector<T*> &vec)
+inline void remove_nulls(std::vector<T*> &vec)
 {
 	vec.erase(
     	std::remove_if(vec.begin(), vec.end(), [](const T *ptr) { return ptr == nullptr; }),
     	vec.end());
+}
+
+template <typename T>
+inline void sort_remove_duplicates(std::vector<T> &vec)
+{
+	std::sort(vec.begin(), vec.end());
+	vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
 }
 
 // Older compilers do not provide a std::make_unique template. Provide a simple one.

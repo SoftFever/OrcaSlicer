@@ -270,8 +270,7 @@ std::vector<unsigned int> Print::object_extruders() const
             extruders.push_back((*region)->config.solid_infill_extruder - 1);
     }
     
-	std::sort(extruders.begin(), extruders.end());
-    extruders.erase(std::unique(extruders.begin(), extruders.end()), extruders.end());
+    sort_remove_duplicates(extruders);
     return extruders;
 }
 
@@ -298,8 +297,7 @@ std::vector<unsigned int> Print::support_material_extruders() const
         // Add all object extruders to the support extruders as it is not know which one will be used to print supports.
         append(extruders, this->object_extruders());
     
-	std::sort(extruders.begin(), extruders.end());
-	extruders.erase(std::unique(extruders.begin(), extruders.end()), extruders.end());
+    sort_remove_duplicates(extruders);
     return extruders;
 }
 
@@ -308,8 +306,7 @@ std::vector<unsigned int> Print::extruders() const
 {
     std::vector<unsigned int> extruders = this->object_extruders();
     append(extruders, this->support_material_extruders());
-	std::sort(extruders.begin(), extruders.end());
-	extruders.erase(std::unique(extruders.begin(), extruders.end()), extruders.end());
+    sort_remove_duplicates(extruders);
     return extruders;
 }
 

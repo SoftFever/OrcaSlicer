@@ -802,8 +802,7 @@ void GCode::process_layer(
         // Merge with the skirt extruders.
         for (const auto &ex : skirt_loops_per_extruder)
             extruders.push_back(ex.first);
-        std::sort(extruders.begin(), extruders.end());
-        extruders.erase(std::unique(extruders.begin(), extruders.end()), extruders.end());
+        sort_remove_duplicates(extruders);
     }
     // Reorder the extruders, so that the last used extruder is at the front.
     for (size_t i = 1; i < extruders.size(); ++ i)
@@ -863,25 +862,28 @@ void GCode::process_layer(
             continue;
         for (const ObjectByExtruder &object_by_extruder : objects_by_extruder_it->second) {
             const size_t       layer_id     = &object_by_extruder - objects_by_extruder_it->second.data();
-            const PrintObject &print_object = *layers[layer_id].object();
+            const PrintObject *print_object = layers[layer_id].object();
+			if (print_object == nullptr)
+				// This layer is empty for this particular object, it has neither object extrusions nor support extrusions at this print_z.
+				continue;
             if (m_enable_analyzer_markers) {
                 // Store the binary pointer to the layer object directly into the G-code to be accessed by the GCodeAnalyzer.
                 char buf[64];
                 sprintf(buf, ";_LAYEROBJ:%p\n", m_layer);
                 gcode += buf;
             }
-            m_config.apply(print_object.config, true);
+            m_config.apply(print_object->config, true);
             m_layer = layers[layer_id].layer();
             if (m_config.avoid_crossing_perimeters)
                 m_avoid_crossing_perimeters.init_layer_mp(union_ex(m_layer->slices, true));
             Points copies;
             if (single_object_idx == size_t(-1)) 
-                copies = print_object._shifted_copies;
+                copies = print_object->_shifted_copies;
             else
-                copies.push_back(print_object._shifted_copies[single_object_idx]);
+                copies.push_back(print_object->_shifted_copies[single_object_idx]);
             for (const Point &copy : copies) {
                 // When starting a new object, use the external motion planner for the first travel move.
-                std::pair<const PrintObject*, Point> this_object_copy(&print_object, copy);
+                std::pair<const PrintObject*, Point> this_object_copy(print_object, copy);
                 if (m_last_obj_copy != this_object_copy)
                     m_avoid_crossing_perimeters.use_external_mp_once = true;
                 m_last_obj_copy = this_object_copy;
@@ -916,12 +918,10 @@ void GCode::process_layer(
 
     // Apply cooling logic; this may alter speeds.
     if (m_cooling_buffer)
-        gcode = m_cooling_buffer->append(
-            gcode, 
-            // Index of the current layer's object
-            //FIXME add an index into the objects?
-            std::find(print.objects.begin(), print.objects.end(), layers.front().object()) - print.objects.begin(),
-            layers.front().layer()->id(), false);
+        //FIXME Update the CoolingBuffer class to ignore the object ID, which does not make sense anymore
+        // once all extrusions of a layer are processed at once.
+        // Update the test cases.
+        gcode = m_cooling_buffer->append(gcode, 0, layer.id(), false);
     write(file, this->filter(std::move(gcode), false));
 }
 
@@ -1481,14 +1481,14 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     return gcode;
 }
 
-std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string description, double speed)
+std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string description, double speed, std::unique_ptr<EdgeGrid::Grid> *lower_layer_edge_grid)
 {
     if (const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(&entity))
         return this->extrude_path(*path, description, speed);
     else if (const ExtrusionMultiPath* multipath = dynamic_cast<const ExtrusionMultiPath*>(&entity))
         return this->extrude_multi_path(*multipath, description, speed);
     else if (const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(&entity))
-        return this->extrude_loop(*loop, description, speed);
+        return this->extrude_loop(*loop, description, speed, lower_layer_edge_grid);
     else {
         CONFESS("Invalid argument supplied to extrude()");
         return "";
@@ -1516,7 +1516,7 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
     for (const ObjectByExtruder::Island::Region &region : by_region) {
         m_config.apply(print.regions[&region - &by_region.front()]->config);
         for (ExtrusionEntity *ee : region.perimeters.entities)
-            gcode += this->extrude_loop(*dynamic_cast<const ExtrusionLoop*>(ee), "perimeter", -1., &lower_layer_edge_grid);
+            gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
     }
     return gcode;
 }
