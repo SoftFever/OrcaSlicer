@@ -13,6 +13,8 @@
 #include "GCode/CoolingBuffer.hpp"
 #include "GCode/PressureEqualizer.hpp"
 #include "GCode/SpiralVase.hpp"
+#include "GCode/ToolOrdering.hpp"
+#include "GCode/WipeTower.hpp"
 #include "EdgeGrid.hpp"
 
 #include <memory>
@@ -129,6 +131,7 @@ private:
         const Print                     &print,
         // Set of object & print layers of the same PrintObject and with the same print_z.
         const std::vector<LayerToPrint> &layers,
+        const ToolOrdering::LayerTools  &layer_tools,
         // If set to size_t(-1), then print all copies of all objects.
         // Otherwise print a single copy of a single object.
         const size_t                     single_object_idx = size_t(-1));
@@ -172,6 +175,7 @@ private:
     std::string     retract(bool toolchange = false);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id);
+    std::string     wipe_tower_tool_change(int extruder_id);
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
@@ -218,6 +222,7 @@ private:
     std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
+    std::unique_ptr<WipeTower>          m_wipe_tower;
 
     // Heights at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;

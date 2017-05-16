@@ -558,6 +558,7 @@ sub build {
         top_infill_extrusion_width support_material_extrusion_width
         infill_overlap bridge_flow_ratio
         clip_multipart_objects xy_size_compensation threads resolution
+        wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe
     ));
     $self->{config}->set('print_settings_id', '');
     
@@ -719,6 +720,14 @@ sub build {
             my $optgroup = $page->new_optgroup('Ooze prevention');
             $optgroup->append_single_option_line('ooze_prevention');
             $optgroup->append_single_option_line('standby_temperature_delta');
+        }
+        {
+            my $optgroup = $page->new_optgroup('Wipe tower');
+            $optgroup->append_single_option_line('wipe_tower');
+            $optgroup->append_single_option_line('wipe_tower_x');
+            $optgroup->append_single_option_line('wipe_tower_y');
+            $optgroup->append_single_option_line('wipe_tower_width');
+            $optgroup->append_single_option_line('wipe_tower_per_color_wipe');
         }
         {
             my $optgroup = $page->new_optgroup('Advanced');
@@ -955,6 +964,10 @@ sub _update {
     my $have_ooze_prevention = $config->ooze_prevention;
     $self->get_field($_)->toggle($have_ooze_prevention)
         for qw(standby_temperature_delta);
+
+    my $have_wipe_tower = $config->wipe_tower;
+    $self->get_field($_)->toggle($have_wipe_tower)
+        for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe);
 }
 
 sub hidden_options { !$Slic3r::have_threads ? qw(threads) : () }
@@ -969,7 +982,7 @@ sub build {
     my $self = shift;
     
     $self->init_config_options(qw(
-        filament_colour filament_diameter filament_notes filament_max_volumetric_speed extrusion_multiplier filament_density filament_cost
+        filament_colour filament_diameter filament_type filament_soluble filament_notes filament_max_volumetric_speed extrusion_multiplier filament_density filament_cost
         temperature first_layer_temperature bed_temperature first_layer_bed_temperature
         fan_always_on cooling
         min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers
@@ -984,6 +997,8 @@ sub build {
             $optgroup->append_single_option_line('filament_colour', 0);
             $optgroup->append_single_option_line('filament_diameter', 0);
             $optgroup->append_single_option_line('extrusion_multiplier', 0);
+            $optgroup->append_single_option_line('filament_type', 0);
+            $optgroup->append_single_option_line('filament_soluble', 0);
             $optgroup->append_single_option_line('filament_density', 0);
             $optgroup->append_single_option_line('filament_cost', 0);
         }
@@ -1137,7 +1152,7 @@ sub build {
         octoprint_host octoprint_apikey
         use_firmware_retraction
         use_volumetric_e variable_layer_height
-        start_gcode end_gcode before_layer_gcode layer_gcode toolchange_gcode
+        single_extruder_multi_material start_gcode end_gcode before_layer_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
         retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
         retract_length_toolchange retract_restart_extra_toolchange
@@ -1198,6 +1213,7 @@ sub build {
                     min         => 1,
                 );
                 $optgroup->append_single_option_line($option);
+                $optgroup->append_single_option_line('single_extruder_multi_material');
             }
             $optgroup->on_change(sub {
                 my ($opt_id) = @_;
@@ -1538,6 +1554,7 @@ sub _update {
     
     my $have_multiple_extruders = $self->{extruders_count} > 1;
     $self->get_field('toolchange_gcode')->toggle($have_multiple_extruders);
+    $self->get_field('single_extruder_multi_material')->toggle($have_multiple_extruders);
     
     for my $i (0 .. ($self->{extruders_count}-1)) {
         my $have_retract_length = $config->get_at('retract_length', $i) > 0;

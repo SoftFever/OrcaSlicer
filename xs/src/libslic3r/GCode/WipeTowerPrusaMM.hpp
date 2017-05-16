@@ -1,0 +1,217 @@
+#ifndef WipeTowerPrusaMM_hpp_
+#define WipeTowerPrusaMM_hpp_
+
+#include <algorithm>
+#include <string>
+#include <utility>
+
+#include "WipeTower.hpp"
+
+namespace Slic3r
+{
+
+namespace PrusaMultiMaterial {
+	class Writer;
+};
+
+class WipeTowerPrusaMM : public WipeTower
+{
+public:
+	enum material_type
+	{
+		INVALID = -1,
+		PLA   = 0,		// E:210C	B:55C
+		ABS   = 1,		// E:255C	B:100C
+		PET   = 2,		// E:240C	B:90C
+		HIPS  = 3,		// E:220C	B:100C
+		FLEX  = 4,		// E:245C	B:80C
+		SCAFF = 5,		// E:215C	B:55C
+		EDGE  = 6,		// E:240C	B:80C
+		NGEN  = 7,		// E:230C	B:80C
+		PVA   = 8	    // E:210C	B:80C
+	};
+
+	// Parse material name into material_type.
+	static material_type parse_material(const char *name);
+
+	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
+	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
+	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
+	// wipe_area	-- space available for one toolchange in mm
+	WipeTowerPrusaMM(float x, float y, float width, float wipe_area) :
+		m_wipe_tower_pos(x, y),
+		m_wipe_tower_width(width),
+		m_wipe_area(wipe_area),
+		m_z_pos(0.f) {
+		for (size_t i = 0; i < 4; ++ i) {
+			// Extruder specific parameters.
+			m_material[i] = PLA;
+			m_temperature[i] = 0;
+			m_first_layer_temperature[i] = 0;
+		}
+	}
+	virtual ~WipeTowerPrusaMM() {}
+
+	// _retract - retract value in mm
+	void set_retract(float retract) { m_retract = retract; }
+	
+	// _zHop - z hop value in mm
+	void set_zhop(float zhop) { m_zhop = zhop; }
+
+	// Set the extruder properties.
+	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp)
+	{
+		m_material[idx] = material;
+		m_temperature[idx] = temp;
+		m_first_layer_temperature[idx] = first_layer_temp;
+	}
+
+	// Switch to a next layer.
+	virtual void set_layer(
+		// Print height of this layer.
+		float  print_z,
+		// Layer height, used to calculate extrusion the rate. 
+		float  layer_height, 
+		// Maximum number of tool changes on this layer or the layers below.
+		size_t max_tool_changes, 
+		// Is this the first layer of the print? In that case print the brim first.
+		bool   is_first_layer,
+		// Is this the last layer of the waste tower?
+		bool   is_last_layer)
+	{
+		m_z_pos 				= print_z;
+		m_max_color_changes 	= max_tool_changes;
+		m_is_first_layer 		= is_first_layer;
+		m_is_last_layer			= is_last_layer;
+		// Start counting the color changes from zero.
+		m_layer_change_in_layer = is_first_layer ? size_t(-1) : 0;
+		m_current_wipe_start_y  = 0.f;
+
+		int layer_idx = int(floor(layer_height * 100) + 0.5f);
+		switch (layer_idx)
+		{
+		case 15:
+			m_extrusion_flow = (float)0.024;
+			break;
+		case 20:
+		default:
+			m_extrusion_flow = (float)0.029;
+			break;
+		}
+	}
+
+	// Return the wipe tower position.
+	virtual const xy& position() const { return m_wipe_tower_pos; }
+	// The wipe tower is finished, there should be no more tool changes or wipe tower prints.
+	virtual bool 	  finished() const { return m_max_color_changes == 0; }
+
+	// Returns gcode for toolchange 
+	virtual std::pair<std::string, xy> tool_change(int new_tool);
+
+	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
+	virtual std::pair<std::string, xy> close_layer();
+
+private:
+	WipeTowerPrusaMM();
+
+	enum wipe_shape
+	{
+		SHAPE_NORMAL   = 1,
+		SHAPE_REVERSED = -1
+	};
+
+	// Left front corner of the wipe tower in mm.
+	xy     m_wipe_tower_pos;
+	// Width of the wipe tower.
+	float  m_wipe_tower_width;
+	// Per color Y span.
+	float  m_wipe_area;
+	// Current Z position.
+	float  m_z_pos 			= 0.f;
+	// Maximum number of color changes per layer.
+	size_t m_max_color_changes = 0;
+	// Is this the 1st layer of the print? If so, print the brim around the waste tower.
+	bool   m_is_first_layer = false;
+	// Is this the last layer of this waste tower?
+	bool   m_is_last_layer  = false;
+
+	// G-code generator parameters.
+	float  m_zhop 			 = 0.5f;
+	float  m_retract		 = 4.f;
+	float  m_perimeter_width = 0.5f;
+	float  m_extrusion_flow  = 0.029f;
+
+	// Extruder specific parameters.
+	material_type 	m_material[4];
+	int  			m_temperature[4];
+	int  			m_first_layer_temperature[4];
+
+	// State of the wiper tower generator.
+	// Layer change counter for the output statistics.
+	unsigned int 	m_layer_change_total = 0;
+	// Layer change counter in this layer. Counting up to m_max_color_changes.
+	unsigned int 	m_layer_change_in_layer = 0;
+	wipe_shape   	m_current_shape = SHAPE_NORMAL;
+	material_type 	m_current_material = PLA;
+	// Current y position at the wipe tower.
+	float 		 	m_current_wipe_start_y = 0.f;
+
+	struct box_coordinates
+	{
+		box_coordinates(float left, float bottom, float width, float height) :
+			ld(left        , bottom         ),
+			lu(left        , bottom + height),
+			rd(left + width, bottom         ),
+			ru(left + width, bottom + height) {}
+		box_coordinates(const xy &pos, float width, float height) : box_coordinates(pos.x, pos.y, width, height) {}
+		void expand(const float offset) {
+			ld += xy(- offset, - offset);
+			lu += xy(- offset,   offset);
+			rd += xy(  offset, - offset);
+			ru += xy(  offset,   offset);
+		}
+		xy ld;  // left down
+		xy lu;	// left upper 
+		xy ru;	// right upper
+		xy rd;	// right lower
+	};
+
+	// Returns gcode for wipe tower brim
+	// sideOnly			-- set to false -- experimental, draw brim on sides of wipe tower 
+	// offset			-- set to 0		-- experimental, offset to replace brim in front / rear of wipe tower
+	std::pair<std::string, WipeTower::xy> toolchange_Brim(size_t tool, bool sideOnly = false, float y_offset = 0.f);
+
+	void toolchange_Unload(
+		PrusaMultiMaterial::Writer &writer,
+		const box_coordinates  &cleaning_box, 
+		const material_type	 	material,
+		const wipe_shape 	    shape,
+		const int 				temperature);
+
+	void toolchange_Change(
+		PrusaMultiMaterial::Writer &writer,
+		int 					tool,
+		material_type 			current_material,
+		material_type 			new_material);
+	
+	void toolchange_Load(
+		PrusaMultiMaterial::Writer &writer,
+		const box_coordinates  &cleaning_box);
+	
+	void toolchange_Wipe(
+		PrusaMultiMaterial::Writer &writer,
+		const box_coordinates  &cleaning_box, 
+		const material_type 	material);
+	
+	void toolchange_Done(
+		PrusaMultiMaterial::Writer &writer,
+		const box_coordinates  &cleaning_box);
+
+	void toolchange_Perimeter();
+
+	box_coordinates _boxForColor(int order) const;
+};
+
+}; // namespace Slic3r
+
+#endif /* WipeTowerPrusaMM_hpp_ */

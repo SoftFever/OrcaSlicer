@@ -2,6 +2,7 @@
 #include "ExtrusionEntity.hpp"
 #include "EdgeGrid.hpp"
 #include "Geometry.hpp"
+#include "GCode/WipeTowerPrusaMM.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -384,6 +385,8 @@ bool GCode::do_export(FILE *file, Print &print)
                     // Set first layer extruder.
                     this->_print_first_layer_extruder_temperatures(file, print, false);
                 }
+                // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
+                std::vector<ToolOrdering::LayerTools> tool_ordering = ToolOrdering::tool_ordering(*object);
                 // Pair the object layers with the support layers by z, extrude them.
                 size_t idx_object_layer  = 0;
                 size_t idx_support_layer = 0;
@@ -401,7 +404,9 @@ bool GCode::do_export(FILE *file, Print &print)
                             -- idx_object_layer;
                         }
                     }
-                    this->process_layer(file, print, layers_to_print, &copy - object->_shifted_copies.data());
+                    auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), ToolOrdering::LayerTools(layer_to_print.layer()->print_z));
+                    assert(it_layer_tools != tool_ordering.end() && it_layer_tools->print_z == layer_to_print.layer()->print_z);
+                    this->process_layer(file, print, layers_to_print, *it_layer_tools, &copy - object->_shifted_copies.data());
                 }
                 write(file, this->filter(m_cooling_buffer->flush(), true));
                 ++ finished_objects;
@@ -437,21 +442,63 @@ bool GCode::do_export(FILE *file, Print &print)
             }
             ++ object_order;
         }
+        // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
+        std::vector<ToolOrdering::LayerTools> tool_ordering = ToolOrdering::tool_ordering(print);
+        // Prusa Multi-Material wipe tower.
+        if (print.config.single_extruder_multi_material.value && print.config.wipe_tower.value && 
+            ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0) {
+            // Initialize the wipe tower.
+            auto *wipe_tower = new WipeTowerPrusaMM(
+                    float(print.config.wipe_tower_x.value), float(print.config.wipe_tower_y.value), 
+                    float(print.config.wipe_tower_width.value), float(print.config.wipe_tower_per_color_wipe.value));
+            //wipe_tower->set_retract();
+            //wipe_tower->set_zhop();
+            //wipe_tower->set_zhop();
+            // Set the extruder & material properties at the wipe tower object.
+            for (size_t i = 0; i < 4; ++ i)
+                wipe_tower->set_extruder(
+                    i, 
+                    WipeTowerPrusaMM::parse_material(print.config.filament_type.get_at(i).c_str()),
+                    print.config.temperature.get_at(i),
+                    print.config.first_layer_temperature.get_at(i));
+            m_wipe_tower.reset(wipe_tower);
+        }
         // Extrude the layers.
-        for (auto &layer : layers)
+        for (auto &layer : layers) {
             // layer.second is of type std::vector<LayerToPrint>,
             // wher the objects are sorted by their sorted order given by object_indices.
-            this->process_layer(file, print, layer.second);
+            auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), ToolOrdering::LayerTools(layer.first));
+            assert(it_layer_tools != tool_ordering.end() && layer.first);
+            if (m_wipe_tower) {
+                bool first_layer = layer.first == layers.begin()->first;
+                auto it_layer_tools_next = it_layer_tools;
+                ++ it_layer_tools_next;
+                m_wipe_tower->set_layer(
+                    layer.first, 
+                    first_layer ? 
+                        print.objects.front()->config.first_layer_height.get_abs_value(print.objects.front()->config.layer_height.value) :
+                        print.objects.front()->config.layer_height.value,
+                    it_layer_tools->wipe_tower_partitions,
+                    first_layer,
+                    it_layer_tools->wipe_tower_partitions == 0 || (it_layer_tools_next == tool_ordering.end() || it_layer_tools_next->wipe_tower_partitions == 0));
+            }
+            this->process_layer(file, print, layer.second, *it_layer_tools, size_t(-1));
+        }
         write(file, this->filter(m_cooling_buffer->flush(), true));
     }
 
     // write end commands to file
-    write(file, this->retract());   // TODO: process this retract through PressureRegulator in order to discharge fully
+    if (m_wipe_tower) {
+        // Unload the current filament over the purge tower.
+        write(file, this->wipe_tower_tool_change(-1));
+        m_wipe_tower.release();
+    } else
+        write(file, this->retract());   // TODO: process this retract through PressureRegulator in order to discharge fully
     write(file, m_writer.set_fan(false));
     writeln(file, m_placeholder_parser.process(print.config.end_gcode));
     write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     write(file, m_writer.postamble());
-    
+
     // get filament stats
     print.filament_stats.clear();
     print.total_used_filament    = 0.;
@@ -543,6 +590,7 @@ void GCode::process_layer(
     const Print                     &print,
     // Set of object & print layers of the same PrintObject and with the same print_z.
     const std::vector<LayerToPrint> &layers,
+    const ToolOrdering::LayerTools  &layer_tools,
     // If set to size_t(-1), then print all copies of all objects.
     // Otherwise print a single copy of a single object.
     const size_t                     single_object_idx)
@@ -562,7 +610,8 @@ void GCode::process_layer(
     }
     const Layer         &layer         = (object_layer != nullptr) ? *object_layer : *support_layer;    
     coordf_t             print_z       = layer.print_z;
-    bool                 first_layer   = print_z < m_config.first_layer_height.get_abs_value(m_config.layer_height.value) + EPSILON;
+    bool                 first_layer   = layer.id() == 0;
+    unsigned int         first_extruder_id = layer_tools.extruders.empty() ? 0 : layer_tools.extruders.front();
 
     // Initialize config with the 1st object to be printed at this layer.
     m_config.apply(layer.object()->config, true);
@@ -620,7 +669,7 @@ void GCode::process_layer(
     if (! m_brim_done)
         // Switch the extruder to the extruder of the perimeters, so the perimeters extruder will be primed
         // by the skirt before the brim is extruded with the same extruder.
-        gcode += this->set_extruder(print.regions.front()->config.perimeter_extruder.value - 1);
+        gcode += this->set_extruder(layer_tools.extruders.front());
     
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
@@ -643,10 +692,10 @@ void GCode::process_layer(
             std::vector<unsigned int> extruder_ids = m_writer.extruder_ids();
             // Reorder the extruders, so that the last used extruder is at the front.
             for (size_t i = 1; i < extruder_ids.size(); ++ i)
-                if (extruder_ids[i] == m_writer.extruder()->id) {
+                if (extruder_ids[i] == first_extruder_id) {
                     // Move the last extruder to the front.
                     memmove(extruder_ids.data() + 1, extruder_ids.data(), i * sizeof(unsigned int));
-                    extruder_ids.front() = m_writer.extruder()->id;
+                    extruder_ids.front() = first_extruder_id;
                     break;
                 }
             size_t n_loops = print.skirt.entities.size();
@@ -668,7 +717,7 @@ void GCode::process_layer(
             }
         } else
             // Extrude all skirts with the current extruder.
-            skirt_loops_per_extruder[m_writer.extruder()->id] = std::pair<size_t, size_t>(0, print.config.skirts.value);
+            skirt_loops_per_extruder[first_extruder_id] = std::pair<size_t, size_t>(0, print.config.skirts.value);
     }
 
     // Group extrusions by an extruder, then by an object, an island and a region.
@@ -684,12 +733,12 @@ void GCode::process_layer(
                 // Don't change extruder if the extruder is set to 0. Use the current extruder instead.
                 bool single_extruder = 
                     (object.config.support_material_extruder.value == object.config.support_material_interface_extruder.value ||
-                    (object.config.support_material_extruder.value == int(m_writer.extruder()->id) && object.config.support_material_interface_extruder.value == 0) ||
-                    (object.config.support_material_interface_extruder.value == int(m_writer.extruder()->id) && object.config.support_material_extruder.value == 0));
+                    (object.config.support_material_extruder.value == int(first_extruder_id) && object.config.support_material_interface_extruder.value == 0) ||
+                    (object.config.support_material_interface_extruder.value == int(first_extruder_id) && object.config.support_material_extruder.value == 0));
                 // Assign an extruder to the base.
                 ObjectByExtruder &obj = object_by_extruder(
                     by_extruder,
-                    (object.config.support_material_extruder == 0) ? m_writer.extruder()->id : (object.config.support_material_extruder - 1),
+                    (object.config.support_material_extruder == 0) ? first_extruder_id : (object.config.support_material_extruder - 1),
                     &layer_to_print - layers.data(),
                     layers.size());
                 obj.support = &support_layer.support_fills;
@@ -697,7 +746,7 @@ void GCode::process_layer(
                 if (! single_extruder) {
                     ObjectByExtruder &obj_interface = object_by_extruder(
                         by_extruder,
-                        (object.config.support_material_interface_extruder == 0) ? m_writer.extruder()->id : (object.config.support_material_interface_extruder - 1),
+                        (object.config.support_material_interface_extruder == 0) ? first_extruder_id : (object.config.support_material_interface_extruder - 1),
                         &layer_to_print - layers.data(),
                         layers.size());
                     obj_interface.support = &support_layer.support_fills;
@@ -793,31 +842,14 @@ void GCode::process_layer(
         }
     } // for objects
 
-    // Tweak extruder ordering to save toolchanges.
-    std::vector<unsigned int> extruders;
-    extruders.reserve(by_extruder.size());
-    for (const auto &ex : by_extruder)
-        extruders.push_back(ex.first);
-    if (extrude_skirt) {
-        // Merge with the skirt extruders.
-        for (const auto &ex : skirt_loops_per_extruder)
-            extruders.push_back(ex.first);
-        sort_remove_duplicates(extruders);
-    }
-    // Reorder the extruders, so that the last used extruder is at the front.
-    for (size_t i = 1; i < extruders.size(); ++ i)
-        if (extruders[i] == m_writer.extruder()->id) {
-            // Move the last extruder to the front.
-			memmove(extruders.data() + 1, extruders.data(), i * sizeof(unsigned int));
-            extruders.front() = m_writer.extruder()->id;
-            break;
-        }
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     std::vector<std::unique_ptr<EdgeGrid::Grid>> lower_layer_edge_grids(layers.size());
-    for (unsigned int extruder_id : extruders)
+    for (unsigned int extruder_id : layer_tools.extruders)
     {
         gcode += this->set_extruder(extruder_id);
-        //FIXME here will come the priming tower call.
+        if (m_wipe_tower && ! m_wipe_tower->finished() && extruder_id == layer_tools.extruders.back())
+            // Last extruder change on the layer or no extruder change at all.
+            m_wipe_tower->close_layer();
 
         if (extrude_skirt) {
             auto loops_it = skirt_loops_per_extruder.find(extruder_id);
@@ -1675,7 +1707,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     this->set_last_pos(path.last_point());
     
     if (m_config.cooling)
-        m_elapsed_time += path_length / F * 60;
+        m_elapsed_time += path_length / F * 60.f;
     
     return gcode;
 }
@@ -1814,18 +1846,36 @@ std::string GCode::set_extruder(unsigned int extruder_id)
         gcode += pp.process(m_config.toolchange_gcode.value) + '\n';
     }
     
-    // if ooze prevention is enabled, park current extruder in the nearest
-    // standby point and set it to the standby temperature
-    if (m_ooze_prevention.enable && m_writer.extruder() != NULL)
-        gcode += m_ooze_prevention.pre_toolchange(*this);
+    if (m_wipe_tower) {
+        assert(! m_wipe_tower->finished());
+        if (! m_wipe_tower->finished())
+            gcode += this->wipe_tower_tool_change(extruder_id);
+    } else {
+        // if ooze prevention is enabled, park current extruder in the nearest
+        // standby point and set it to the standby temperature
+        if (m_ooze_prevention.enable && m_writer.extruder() != NULL)
+            gcode += m_ooze_prevention.pre_toolchange(*this);
+        // append the toolchange command
+        gcode += m_writer.toolchange(extruder_id);
+        // set the new extruder to the operating temperature
+        if (m_ooze_prevention.enable)
+            gcode += m_ooze_prevention.post_toolchange(*this);
+    }
     
-    // append the toolchange command
-    gcode += m_writer.toolchange(extruder_id);
-    
-    // set the new extruder to the operating temperature
-    if (m_ooze_prevention.enable)
-        gcode += m_ooze_prevention.post_toolchange(*this);
-    
+    return gcode;
+}
+
+std::string GCode::wipe_tower_tool_change(int extruder_id)
+{
+    // Move over the wipe tower.
+    std::string gcode = m_writer.travel_to_xy(Pointf3(m_wipe_tower->position().x, m_wipe_tower->position().y));
+    gcode += m_writer.unlift();
+    // Let the tool change be executed by the wipe tower class.
+    std::pair<std::string, WipeTower::xy> code_and_pos = m_wipe_tower->tool_change(extruder_id);
+    // Inform the G-code writer about the changes done behind its back.
+    gcode += code_and_pos.first;
+    // A phony move to the end position at the wipe tower.
+    m_writer.travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
     return gcode;
 }
 

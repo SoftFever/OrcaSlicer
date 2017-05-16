@@ -1,4 +1,4 @@
-#include "WipeTower.hpp"
+#include "WipeTowerPrusaMM.hpp"
 
 #include <assert.h>
 #include <math.h>
@@ -13,8 +13,10 @@
 #define strcasecmp _stricmp
 #endif
 
-namespace PrusaSingleExtruderMM
+namespace Slic3r
 {
+
+namespace PrusaMultiMaterial {
 
 class Writer
 {
@@ -171,18 +173,18 @@ public:
 		return *this;
 	};
 
-	Writer& comment_material(WipeTower::material_type material)
+	Writer& comment_material(WipeTowerPrusaMM::material_type material)
 	{
 		m_gcode += "; material : ";
 		switch (material)
 		{
-		case WipeTower::PVA:
+		case WipeTowerPrusaMM::PVA:
 			m_gcode += "#8 (PVA)";
 			break;
-		case WipeTower::SCAFF:
+		case WipeTowerPrusaMM::SCAFF:
 			m_gcode += "#5 (Scaffold)";
 			break;
-		case WipeTower::FLEX:
+		case WipeTowerPrusaMM::FLEX:
 			m_gcode += "#4 (Flex)";
 			break;
 		default:
@@ -236,6 +238,8 @@ private:
 	}
 };
 
+} // namespace PrusaMultiMaterial
+
 static inline int randi(int lo, int hi)
 {
 	int n = hi - lo + 1;
@@ -244,7 +248,7 @@ static inline int randi(int lo, int hi)
 	return lo + i;
 }
 
-WipeTower::material_type WipeTower::parse_material(const char *name)
+WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *name)
 {
 	if (strcasecmp(name, "PLA") == 0)
 		return PLA;
@@ -267,116 +271,58 @@ WipeTower::material_type WipeTower::parse_material(const char *name)
 	return INVALID;
 }
 
-std::string WipeTower::FirstLayer(bool sideOnly, float y_offset)
+std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool)
 {
-	const box_coordinates wipeTower_box(
-		m_wipe_tower_pos, 
-		m_wipe_tower_width, 
-		m_wipe_area * float(m_color_changes) - perimeterWidth / 2);
+	// Either it is the last tool unload,
+	// or there must be a nonzero wipe tower partitions available.
+	assert(tool < 0 || it_layer_tools->wipe_tower_partitions > 0);
 
-	Writer writer;
-	writer.set_extrusion_flow(extrusion_flow * 1.1f)
-		  // Let the writer know the current Z position as a base for Z-hop.
-		  .set_z(m_z_pos)
-		  .append(
-			";-------------------------------------\n"
-			"; CP WIPE TOWER FIRST LAYER BRIM START\n");
+	if (m_layer_change_in_layer == size_t(-1))
+		// First layer, prime the extruder.
+		return toolchange_Brim(tool);
 
-	// Move with Z hop and prime the extruder 10*perimeterWidth left along the vertical edge of the wipe tower.
-	writer.z_hop(zHop, 7200)
-		  .travel(wipeTower_box.lu - xy(perimeterWidth * 10.f, 0), 6000)
-		  .z_hop(0, 7200)
-		  .extrude_explicit(wipeTower_box.ld - xy(perimeterWidth * 10.f, 0), retract, 2400)
-		  .feedrate(2100);
-
-	if (sideOnly) {
-		float x_offset = 0.f;
-		for (size_t i = 0; i < 4; ++ i, x_offset += perimeterWidth)
-			writer.travel (wipeTower_box.ld + xy(- x_offset,   y_offset))
-				  .extrude(wipeTower_box.lu + xy(- x_offset, - y_offset));
-		writer.travel(wipeTower_box.rd + xy(x_offset, y_offset), 7000)
-			  .feedrate(2100);
-		x_offset = 0.f;
-		for (size_t i = 0; i < 4; ++ i, x_offset += perimeterWidth)
-			writer.travel (wipeTower_box.rd + xy(x_offset,   y_offset))
-				  .extrude(wipeTower_box.ru + xy(x_offset, - y_offset));
-	} else {
-		// Extrude 4 rounds of a brim around the future wipe tower.
-		box_coordinates box(wipeTower_box);
-		box.ld += xy(- perimeterWidth / 2, 0);
-		box.lu += xy(- perimeterWidth / 2, perimeterWidth);
-		box.rd += xy(  perimeterWidth / 2, 0);
-		box.ru += xy(  perimeterWidth / 2, perimeterWidth);
-		for (size_t i = 0; i < 4; ++ i) {
-			writer.travel(box.ld)
-				  .extrude(box.lu) .extrude(box.ru)
-				  .extrude(box.rd) .extrude(box.ld);
-			box.expand(perimeterWidth);
-		}
-	}
-
-	// Move to the front left corner and wipe along the front edge.
-	writer.travel(wipeTower_box.ld, 7000)
-		  .travel(wipeTower_box.rd)
-		  .travel(wipeTower_box.ld)
-		  .append("; CP WIPE TOWER FIRST LAYER BRIM END\n"
-			      ";-----------------------------------\n");
-
-	return writer.gcode();
-}
-
-std::pair<std::string, WipeTower::xy> WipeTower::Toolchange(
-	const int 			tool, 
-	const material_type current_material, 
-	const material_type new_material, 
-	const int 			temperature, 
-	const wipe_shape 	shape, 
-	const int 			count, 
-	const float 		spaceAvailable, 
-	const float 		wipeStartY, 
-	const bool  		lastInFile, 
-	const bool 			colorInit)
-{
 	box_coordinates cleaning_box(
 		m_wipe_tower_pos.x,
-		m_wipe_tower_pos.y + wipeStartY,
+		m_wipe_tower_pos.y + m_current_wipe_start_y,
 		m_wipe_tower_width, 
-		spaceAvailable - perimeterWidth / 2);
+		m_wipe_area - m_perimeter_width / 2);
 
-	Writer writer;
-	writer.set_extrusion_flow(extrusion_flow)
+	PrusaMultiMaterial::Writer writer;
+	writer.set_extrusion_flow(m_extrusion_flow)
 		  .set_z(m_z_pos)
 		  .append(";--------------------\n"
 			 	  "; CP TOOLCHANGE START\n")
-		  .comment_with_value(" toolchange #", count)
-		  .comment_material(current_material)
+		  .comment_with_value(" toolchange #", m_layer_change_total)
+		  .comment_material(m_current_material)
 		  .append(";--------------------\n")
 		  .speed_override(100)
 		  // Lift for a Z hop.
-		  .z_hop(zHop, 7200)
+		  .z_hop(m_zhop, 7200)
 		  // additional retract on move to tower
-		  .retract(retract/2, 3600)
-		  .travel(((shape == SHAPE_NORMAL) ? cleaning_box.ld : cleaning_box.rd) + xy(perimeterWidth, shape * perimeterWidth), 7200)
+		  .retract(m_retract/2, 3600)
+		  .travel(((m_current_shape == SHAPE_NORMAL) ? cleaning_box.ld : cleaning_box.rd) + xy(m_perimeter_width, m_current_shape * m_perimeter_width), 7200)
 		  // Unlift for a Z hop.
 		  .z_hop(0, 7200)
 		  // Additional retract on move to tower.
-		  .deretract(retract/2, 3600)
-		  .deretract(retract, 1500)
+		  .deretract(m_retract/2, 3600)
+		  .deretract(m_retract, 1500)
 		  // Increase extruder current for ramming.
 		  .set_extruder_trimpot(750)
 		  .flush_planner_queue();
 
 	// Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
-	toolchange_Unload(writer, cleaning_box, current_material, shape, temperature);
+	toolchange_Unload(writer, cleaning_box, m_current_material, m_current_shape, 
+		m_is_first_layer ? m_first_layer_temperature[tool]  : m_temperature[tool]);
 
-	if (! lastInFile) {
+	if (tool >= 0) {
+		// This is not the last change.
 		// Change the tool, set a speed override for solube and flex materials.
-		toolchange_Change(writer, tool, current_material, new_material);
-		toolchange_Load(writer, cleaning_box, current_material, shape, colorInit);
+		toolchange_Change(writer, tool, m_current_material, m_material[tool]);
+		toolchange_Load(writer, cleaning_box);
 		// Wipe the newly loaded filament until the end of the assigned wipe area.
-		toolchange_Wipe(writer, cleaning_box, current_material, shape);
+		toolchange_Wipe(writer, cleaning_box, m_current_material);
 		// Draw a perimeter around cleaning_box and wipe.
-		toolchange_Done(writer, cleaning_box, current_material, shape);
+		toolchange_Done(writer, cleaning_box);
 	}
 
 	// Reset the extruder current to a normal value.
@@ -387,20 +333,83 @@ std::pair<std::string, WipeTower::xy> WipeTower::Toolchange(
 	 		      ";------------------\n"
 				  "\n\n");
 
+    ++ m_layer_change_in_layer;
+    m_current_wipe_start_y += m_wipe_area;
+  	m_current_material = m_material[tool];
+	return std::pair<std::string, xy>(writer.gcode(), writer.pos());
+}
+
+std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::toolchange_Brim(size_t tool, bool sideOnly, float y_offset)
+{
+	const box_coordinates wipeTower_box(
+		m_wipe_tower_pos,
+		m_wipe_tower_width,
+		m_wipe_area * float(m_max_color_changes) - m_perimeter_width / 2);
+
+	PrusaMultiMaterial::Writer writer;
+	writer.set_extrusion_flow(m_extrusion_flow * 1.1f)
+		  // Let the writer know the current Z position as a base for Z-hop.
+		  .set_z(m_z_pos)
+		  .append(
+			";-------------------------------------\n"
+			"; CP WIPE TOWER FIRST LAYER BRIM START\n");
+
+	// Move with Z hop and prime the extruder 10*m_perimeter_width left along the vertical edge of the wipe tower.
+	writer.z_hop(m_zhop, 7200)
+		  .travel(wipeTower_box.lu - xy(m_perimeter_width * 10.f, 0), 6000)
+		  .z_hop(0, 7200)
+		  .extrude_explicit(wipeTower_box.ld - xy(m_perimeter_width * 10.f, 0), m_retract, 2400)
+		  .feedrate(2100);
+
+	toolchange_Change(writer, tool, m_current_material, m_material[tool]);
+
+	if (sideOnly) {
+		float x_offset = 0.f;
+		for (size_t i = 0; i < 4; ++ i, x_offset += m_perimeter_width)
+			writer.travel (wipeTower_box.ld + xy(- x_offset,   y_offset))
+				  .extrude(wipeTower_box.lu + xy(- x_offset, - y_offset));
+		writer.travel(wipeTower_box.rd + xy(x_offset, y_offset), 7000)
+			  .feedrate(2100);
+		x_offset = 0.f;
+		for (size_t i = 0; i < 4; ++ i, x_offset += m_perimeter_width)
+			writer.travel (wipeTower_box.rd + xy(x_offset,   y_offset))
+				  .extrude(wipeTower_box.ru + xy(x_offset, - y_offset));
+	} else {
+		// Extrude 4 rounds of a brim around the future wipe tower.
+		box_coordinates box(wipeTower_box);
+		box.ld += xy(- m_perimeter_width / 2, 0);
+		box.lu += xy(- m_perimeter_width / 2, m_perimeter_width);
+		box.rd += xy(  m_perimeter_width / 2, 0);
+		box.ru += xy(  m_perimeter_width / 2, m_perimeter_width);
+		for (size_t i = 0; i < 4; ++ i) {
+			writer.travel(box.ld)
+				  .extrude(box.lu) .extrude(box.ru)
+				  .extrude(box.rd) .extrude(box.ld);
+			box.expand(m_perimeter_width);
+		}
+	}
+
+	// Move to the front left corner and wipe along the front edge.
+	writer.travel(wipeTower_box.ld, 7000)
+		  .travel(wipeTower_box.rd)
+		  .travel(wipeTower_box.ld)
+		  .append("; CP WIPE TOWER FIRST LAYER BRIM END\n"
+			      ";-----------------------------------\n");
+
 	return std::pair<std::string, xy>(writer.gcode(), writer.pos());
 }
 
 // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
-void WipeTower::toolchange_Unload(
-	Writer 				    &writer,
+void WipeTowerPrusaMM::toolchange_Unload(
+	PrusaMultiMaterial::Writer &writer,
 	const box_coordinates 	&cleaning_box,
 	const material_type		 material,
 	const wipe_shape 	     shape,
 	const int 				 temperature)
 {
-	float xl = cleaning_box.ld.x + (perimeterWidth / 2);
-	float xr = cleaning_box.rd.x - (perimeterWidth / 2);
-	float y_step = shape * perimeterWidth;
+	float xl = cleaning_box.ld.x + (m_perimeter_width / 2);
+	float xr = cleaning_box.rd.x - (m_perimeter_width / 2);
+	float y_step = shape * m_perimeter_width;
 
 	writer.append("; CP TOOLCHANGE UNLOAD");
 
@@ -409,20 +418,20 @@ void WipeTower::toolchange_Unload(
 	{
 	case PVA:
    		// ramming          start                    end                  y increment     amount feedrate
-		writer.ram(xl + perimeterWidth * 2, xr - perimeterWidth,     y_step * 1.2f, 3,     4000)
-			  .ram(xr - perimeterWidth,     xl + perimeterWidth,     y_step * 1.5f, 3,     4500)
-			  .ram(xl + perimeterWidth * 2, xr - perimeterWidth * 2, y_step * 1.5f, 3,     4800)
-			  .ram(xr - perimeterWidth,     xl + perimeterWidth,     y_step * 1.5f, 3,     5000);
+		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 1.2f, 3,     4000)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.5f, 3,     4500)
+			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.5f, 3,     4800)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.5f, 3,     5000);
 		break;
 	case SCAFF:
-		writer.ram(xl + perimeterWidth * 2, xr - perimeterWidth,     y_step * 3.f,  3,     4000)
-			  .ram(xr - perimeterWidth,     xl + perimeterWidth,     y_step * 3.f,  4,     4600)
-			  .ram(xl + perimeterWidth * 2, xr - perimeterWidth * 2, y_step * 3.f,  4.5,   5200);
+		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 3.f,  3,     4000)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 3.f,  4,     4600)
+			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 3.f,  4.5,   5200);
 		break;
 	default:
-		writer.ram(xl + perimeterWidth * 2, xr - perimeterWidth,     y_step * 1.2f, 1.6f,  4000)
-			  .ram(xr - perimeterWidth,     xl + perimeterWidth,     y_step * 1.2f, 1.65f, 4600)
-			  .ram(xl + perimeterWidth * 2, xr - perimeterWidth * 2, y_step * 1.2f, 1.74f, 5200);
+		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 1.2f, 1.6f,  4000)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.2f, 1.65f, 4600)
+			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, 1.74f, 5200);
 	}
 
 	// Pull the filament end into a cooling tube.
@@ -462,8 +471,8 @@ void WipeTower::toolchange_Unload(
 }
 
 // Change the tool, set a speed override for solube and flex materials.
-void WipeTower::toolchange_Change(
-	Writer 		   &writer,
+void WipeTowerPrusaMM::toolchange_Change(
+	PrusaMultiMaterial::Writer &writer,
 	const int 		tool, 
 	material_type  /* current_material */, 
 	material_type 	new_material)
@@ -481,15 +490,12 @@ void WipeTower::toolchange_Change(
 	      .flush_planner_queue();
 }
 
-void WipeTower::toolchange_Load(
-	Writer                 &writer,
-	const box_coordinates  &cleaning_box, 
-	const material_type 	/* material */,
-	const wipe_shape 		shape,
-	const bool 				colorInit)
+void WipeTowerPrusaMM::toolchange_Load(
+	PrusaMultiMaterial::Writer &writer,
+	const box_coordinates  &cleaning_box)
 {
-	float xl = cleaning_box.ld.x + perimeterWidth;
-	float xr = cleaning_box.rd.x - perimeterWidth;
+	float xl = cleaning_box.ld.x + m_perimeter_width;
+	float xr = cleaning_box.rd.x - m_perimeter_width;
 
 	writer.append("; CP TOOLCHANGE LOAD\n")
 	// Load the filament while moving left / right,
@@ -501,11 +507,12 @@ void WipeTower::toolchange_Load(
 
 	// Extrude first five lines (just three lines if colorInit is set).
 	writer.extrude(xr, writer.y(), 1600);
+	bool colorInit = false;
 	size_t pass = colorInit ? 1 : 2;
 	for (int i = 0; i < pass; ++ i)
-		writer.travel (xr, writer.y() + shape * perimeterWidth * 0.85f, 2200)
+		writer.travel (xr, writer.y() + m_current_shape * m_perimeter_width * 0.85f, 2200)
 			  .extrude(xl, writer.y())
-			  .travel (xl, writer.y() + shape * perimeterWidth * 0.85f)
+			  .travel (xl, writer.y() + m_current_shape * m_perimeter_width * 0.85f)
 			  .extrude(xr, writer.y());
 
 	// Reset the extruder current to the normal value.
@@ -513,52 +520,49 @@ void WipeTower::toolchange_Load(
 }
 
 // Wipe the newly loaded filament until the end of the assigned wipe area.
-void WipeTower::toolchange_Wipe(
-	Writer                 &writer,
+void WipeTowerPrusaMM::toolchange_Wipe(
+	PrusaMultiMaterial::Writer &writer,
 	const box_coordinates  &cleaning_box,
-	const material_type 	material,
-	const wipe_shape 	    shape)
+	const material_type 	material)
 {
 	// Increase flow on first layer, slow down print.
-	writer.set_extrusion_flow(extrusion_flow * (is_first_layer() ? 1.18f : 1.f))
+	writer.set_extrusion_flow(m_extrusion_flow * (m_is_first_layer ? 1.18f : 1.f))
 		  .append("; CP TOOLCHANGE WIPE\n");
-	float wipe_coeff = is_first_layer() ? 0.5f : 1.f;
-	float xl = cleaning_box.ld.x + 2.f * perimeterWidth;
-	float xr = cleaning_box.rd.x - 2.f * perimeterWidth;
+	float wipe_coeff = m_is_first_layer ? 0.5f : 1.f;
+	float xl = cleaning_box.ld.x + 2.f * m_perimeter_width;
+	float xr = cleaning_box.rd.x - 2.f * m_perimeter_width;
 	// Wipe speed will increase up to 4800.
 	float wipe_speed = 4200;
 	// Y increment per wipe line.
-	float dy = shape * perimeterWidth * 0.7f;
+	float dy = m_current_shape * m_perimeter_width * 0.7f;
 	for (bool p = true; ; p = ! p) {
 		writer.feedrate((wipe_speed = std::min(4800.f, wipe_speed + 50.f)) * wipe_coeff);
 		if (p)
-			writer.extrude(xl - perimeterWidth/2, writer.y() + dy)
-			      .extrude(xr + perimeterWidth,   writer.y());
+			writer.extrude(xl - m_perimeter_width/2, writer.y() + dy)
+			      .extrude(xr + m_perimeter_width,   writer.y());
 		else
-			writer.extrude(xl - perimeterWidth,   writer.y() + dy)
-				  .extrude(xr + perimeterWidth*2, writer.y());
+			writer.extrude(xl - m_perimeter_width,   writer.y() + dy)
+				  .extrude(xr + m_perimeter_width*2, writer.y());
 		writer.feedrate((wipe_speed = std::min(4800.f, wipe_speed + 50.f)) * wipe_coeff)
-			  .extrude(xr + perimeterWidth, writer.y() + dy)
-			  .extrude(xl - perimeterWidth, writer.y());
-		if ((shape == SHAPE_NORMAL) ?
-			(writer.y() > cleaning_box.lu.y - perimeterWidth) :
-			(writer.y() < cleaning_box.ld.y + perimeterWidth))
+			  .extrude(xr + m_perimeter_width, writer.y() + dy)
+			  .extrude(xl - m_perimeter_width, writer.y());
+		if ((m_current_shape == SHAPE_NORMAL) ?
+			(writer.y() > cleaning_box.lu.y - m_perimeter_width) :
+			(writer.y() < cleaning_box.ld.y + m_perimeter_width))
 			// Next wipe line does not fit the cleaning box.
 			break;
 	}
 	// Reset the extrusion flow.
-	writer.set_extrusion_flow(extrusion_flow);
+	writer.set_extrusion_flow(m_extrusion_flow);
 }
 
 // Draw a perimeter around cleaning_box and wipe.
-void WipeTower::toolchange_Done(
-	Writer 					&writer,
-	const box_coordinates 	&cleaning_box,
-	const material_type 	/* material */, 
-	const wipe_shape 		 shape)
+void WipeTowerPrusaMM::toolchange_Done(
+	PrusaMultiMaterial::Writer &writer,
+	const box_coordinates 	&cleaning_box)
 {
 	box_coordinates box = cleaning_box;
-	if (shape == SHAPE_REVERSED) {
+	if (m_current_shape == SHAPE_REVERSED) {
 		std::swap(box.lu, box.ld);
 		std::swap(box.ru, box.rd);
 	}
@@ -572,82 +576,86 @@ void WipeTower::toolchange_Done(
 		  .feedrate(6000);
 }
 
-std::string WipeTower::Perimeter(int order, int total, int Layer, bool afterToolchange, int firstLayerOffset)
+std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::close_layer()
 {
-	Writer writer;
-	writer.set_extrusion_flow(extrusion_flow)
+	PrusaMultiMaterial::Writer writer;
+	writer.set_extrusion_flow(m_extrusion_flow)
 		  .set_z(m_z_pos)
 		  .append(";--------------------\n"
 				  "; CP EMPTY GRID START\n")
-		  .comment_with_value(" layer #", Layer);
+		  .comment_with_value(" layer #", m_layer_change_total ++);
 
 	// Slow down on the 1st layer.
-	float speed_factor = is_first_layer() ? 0.5f : 1.f;
+	float speed_factor = m_is_first_layer ? 0.5f : 1.f;
 
-	box_coordinates _p  = _boxForColor(order);
+	box_coordinates _p  = _boxForColor(m_layer_change_in_layer);
 	{
-		box_coordinates _to = _boxForColor(total);
+		box_coordinates _to = _boxForColor(m_max_color_changes);
+		float firstLayerOffset = 0.f;
 		_p.ld.y += firstLayerOffset;
 		_p.rd.y += firstLayerOffset;
 		_p.lu = _to.lu; _p.ru = _to.ru;
 	}
 
-	if (! afterToolchange)
+	if (m_layer_change_in_layer == 0)
+		// There were no tool changes at all in this layer.
 		// Jump with retract to _p.ld + a random shift in +x.
-		writer.retract(retract * 1.5f, 3600)
-			  .z_hop(zHop, 7200)
+		writer.retract(m_retract * 1.5f, 3600)
+			  .z_hop(m_zhop, 7200)
 			  .travel(_p.ld.x + randi(5, 20), _p.ld.y, 7000)
 			  .z_hop(0, 7200)
-			  .extrude_explicit(_p.ld, retract * 1.5f, 3600);
+			  .extrude_explicit(_p.ld, m_retract * 1.5f, 3600);
 
 	box_coordinates box = _p;
 	writer.extrude(box.lu, 2400 * speed_factor)
 		  .extrude(box.ru)
 		  .extrude(box.rd)
-		  .extrude(box.ld + xy(perimeterWidth / 2, 0));
+		  .extrude(box.ld + xy(m_perimeter_width / 2, 0));
 
-	box.expand(- perimeterWidth / 2);
+	box.expand(- m_perimeter_width / 2);
 	writer.extrude(box.lu, 3200 * speed_factor)
 		  .extrude(box.ru)
 		  .extrude(box.rd)
-		  .extrude(box.ld + xy(perimeterWidth / 2, 0))
-		  .extrude(box.ld + xy(perimeterWidth / 2, perimeterWidth / 2));
+		  .extrude(box.ld + xy(m_perimeter_width / 2, 0))
+		  .extrude(box.ld + xy(m_perimeter_width / 2, m_perimeter_width / 2));
 
-	writer.extrude(_p.ld + xy(perimeterWidth * 3,   perimeterWidth), 2900 * speed_factor)
-	      .extrude(_p.lu + xy(perimeterWidth * 3, - perimeterWidth))
-		  .extrude(_p.lu + xy(perimeterWidth * 6, - perimeterWidth))
-		  .extrude(_p.ld + xy(perimeterWidth * 6,   perimeterWidth));
+	writer.extrude(_p.ld + xy(m_perimeter_width * 3,   m_perimeter_width), 2900 * speed_factor)
+	      .extrude(_p.lu + xy(m_perimeter_width * 3, - m_perimeter_width))
+		  .extrude(_p.lu + xy(m_perimeter_width * 6, - m_perimeter_width))
+		  .extrude(_p.ld + xy(m_perimeter_width * 6,   m_perimeter_width));
 
 	if (_p.lu.y - _p.ld.y > 4) {
 		// Extrude three zig-zags.
 		writer.feedrate(3200 * speed_factor);
-		float step = (m_wipe_tower_width - perimeterWidth * 12.f) / 12.f;
+		float step = (m_wipe_tower_width - m_perimeter_width * 12.f) / 12.f;
 		for (size_t i = 0; i < 3; ++ i) {
-			writer.extrude(writer.x() + step, _p.ld.y + perimeterWidth * 8);
-			writer.extrude(writer.x()       , _p.lu.y - perimeterWidth * 8);
-			writer.extrude(writer.x() + step, _p.lu.y - perimeterWidth    );
-			writer.extrude(writer.x() + step, _p.lu.y - perimeterWidth * 8);
-			writer.extrude(writer.x()       , _p.ld.y + perimeterWidth * 8);
-			writer.extrude(writer.x() + step, _p.ld.y + perimeterWidth    );
+			writer.extrude(writer.x() + step, _p.ld.y + m_perimeter_width * 8);
+			writer.extrude(writer.x()       , _p.lu.y - m_perimeter_width * 8);
+			writer.extrude(writer.x() + step, _p.lu.y - m_perimeter_width    );
+			writer.extrude(writer.x() + step, _p.lu.y - m_perimeter_width * 8);
+			writer.extrude(writer.x()       , _p.ld.y + m_perimeter_width * 8);
+			writer.extrude(writer.x() + step, _p.ld.y + m_perimeter_width    );
 		}
 	}
 
-	writer.extrude(_p.ru + xy(- perimeterWidth * 6, - perimeterWidth), 2900 * speed_factor)
-		  .extrude(_p.ru + xy(- perimeterWidth * 3, - perimeterWidth))
-		  .extrude(_p.rd + xy(- perimeterWidth * 3,   perimeterWidth))
-		  .extrude(_p.rd + xy(- perimeterWidth,       perimeterWidth))
+	// Extrude the perimeter.
+	writer.extrude(_p.ru + xy(- m_perimeter_width * 6, - m_perimeter_width), 2900 * speed_factor)
+		  .extrude(_p.ru + xy(- m_perimeter_width * 3, - m_perimeter_width))
+		  .extrude(_p.rd + xy(- m_perimeter_width * 3,   m_perimeter_width))
+		  .extrude(_p.rd + xy(- m_perimeter_width,       m_perimeter_width))
        	  // Wipe along the front side of the current wiping box.
-		  .travel(_p.ld + xy(  perimeterWidth, perimeterWidth / 2), 7200)
-		  .travel(_p.rd + xy(- perimeterWidth, perimeterWidth / 2))
+		  .travel(_p.ld + xy(  m_perimeter_width, m_perimeter_width / 2), 7200)
+		  .travel(_p.rd + xy(- m_perimeter_width, m_perimeter_width / 2))
 		  .append("; CP EMPTY GRID END\n"
 			      ";------------------\n\n\n\n\n\n\n");
 
-	return writer.gcode();
+	m_current_shape = wipe_shape(- m_current_shape);
+	return std::pair<std::string, xy>(writer.gcode(), writer.pos());
 }
 
-WipeTower::box_coordinates WipeTower::_boxForColor(int order) const
+WipeTowerPrusaMM::box_coordinates WipeTowerPrusaMM::_boxForColor(int order) const
 {
-	return box_coordinates(m_wipe_tower_pos.x, m_wipe_tower_pos.y + m_wipe_area * order - perimeterWidth / 2, m_wipe_tower_width, perimeterWidth);
+	return box_coordinates(m_wipe_tower_pos.x, m_wipe_tower_pos.y + m_wipe_area * order - m_perimeter_width / 2, m_wipe_tower_width, m_perimeter_width);
 }
 
-}; // namespace PrusaSingleExtruderMM
+}; // namespace Slic3r

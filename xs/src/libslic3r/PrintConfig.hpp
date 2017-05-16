@@ -42,6 +42,10 @@ enum SeamPosition {
     spRandom, spNearest, spAligned, spRear
 };
 
+enum FilamentType {
+    ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
+};
+
 template<> inline t_config_enum_values ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
     t_config_enum_values keys_map;
     keys_map["reprap"]          = gcfRepRap;
@@ -88,6 +92,20 @@ template<> inline t_config_enum_values ConfigOptionEnum<SeamPosition>::get_enum_
     keys_map["nearest"]             = spNearest;
     keys_map["aligned"]             = spAligned;
     keys_map["rear"]                = spRear;
+    return keys_map;
+}
+
+template<> inline t_config_enum_values ConfigOptionEnum<FilamentType>::get_enum_values() {
+    t_config_enum_values keys_map;
+    keys_map["PLA"]             = ftPLA;
+    keys_map["ABS"]             = ftABS;
+    keys_map["PET"]             = ftPET;
+    keys_map["HIPS"]            = ftHIPS;
+    keys_map["FLEX"]            = ftFLEX;
+    keys_map["SCAFF"]           = ftSCAFF;
+    keys_map["EDGE"]            = ftEDGE;
+    keys_map["NGEN"]            = ftNGEN;
+    keys_map["PVA"]             = ftPVA;
     return keys_map;
 }
 
@@ -297,13 +315,15 @@ class PrintRegionConfig : public virtual StaticPrintConfig
 // This object is mapped to Perl as Slic3r::Config::GCode.
 class GCodeConfig : public virtual StaticPrintConfig
 {
-    public:
+public:
     ConfigOptionString              before_layer_gcode;
     ConfigOptionString              end_gcode;
     ConfigOptionString              extrusion_axis;
     ConfigOptionFloats              extrusion_multiplier;
     ConfigOptionFloats              filament_diameter;
     ConfigOptionFloats              filament_density;
+    ConfigOptionStrings             filament_type;
+    ConfigOptionBools               filament_soluble;
     ConfigOptionFloats              filament_cost;
     ConfigOptionFloats              filament_max_volumetric_speed;
     ConfigOptionBool                gcode_comments;
@@ -322,6 +342,7 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionFloats              retract_restart_extra_toolchange;
     ConfigOptionFloats              retract_speed;
     ConfigOptionString              start_gcode;
+    ConfigOptionBool                single_extruder_multi_material;
     ConfigOptionString              toolchange_gcode;
     ConfigOptionFloat               travel_speed;
     ConfigOptionBool                use_firmware_retraction;
@@ -341,6 +362,8 @@ class GCodeConfig : public virtual StaticPrintConfig
         OPT_PTR(extrusion_multiplier);
         OPT_PTR(filament_diameter);
         OPT_PTR(filament_density);
+        OPT_PTR(filament_type);
+        OPT_PTR(filament_soluble);
         OPT_PTR(filament_cost);
         OPT_PTR(filament_max_volumetric_speed);
         OPT_PTR(gcode_comments);
@@ -358,6 +381,7 @@ class GCodeConfig : public virtual StaticPrintConfig
         OPT_PTR(retract_restart_extra);
         OPT_PTR(retract_restart_extra_toolchange);
         OPT_PTR(retract_speed);
+        OPT_PTR(single_extruder_multi_material);
         OPT_PTR(start_gcode);
         OPT_PTR(toolchange_gcode);
         OPT_PTR(travel_speed);
@@ -435,6 +459,11 @@ class PrintConfig : public GCodeConfig
     ConfigOptionInts                temperature;
     ConfigOptionInt                 threads;
     ConfigOptionBools               wipe;
+    ConfigOptionBool                wipe_tower;
+    ConfigOptionFloat               wipe_tower_x;
+    ConfigOptionFloat               wipe_tower_y;
+    ConfigOptionFloat               wipe_tower_width;
+    ConfigOptionFloat               wipe_tower_per_color_wipe;
     ConfigOptionFloat               z_offset;
     
     PrintConfig(bool initialize = true) : GCodeConfig(false) {
@@ -494,6 +523,11 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(temperature);
         OPT_PTR(threads);
         OPT_PTR(wipe);
+        OPT_PTR(wipe_tower);
+        OPT_PTR(wipe_tower_x);
+        OPT_PTR(wipe_tower_y);
+        OPT_PTR(wipe_tower_width);
+        OPT_PTR(wipe_tower_per_color_wipe);
         OPT_PTR(z_offset);
         
         // look in parent class
