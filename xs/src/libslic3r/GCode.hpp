@@ -234,7 +234,7 @@ private:
     std::pair<const PrintObject*, Point> m_last_obj_copy;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
-    void _print_first_layer_extruder_temperatures(FILE *file, Print &print, bool wait);
+    void _print_first_layer_extruder_temperatures(FILE *file, Print &print, unsigned int first_printing_extruder_id, bool wait);
     // this flag triggers first layer speeds
     bool                                on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0; }
 

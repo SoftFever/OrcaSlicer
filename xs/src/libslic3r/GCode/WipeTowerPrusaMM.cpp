@@ -98,7 +98,7 @@ public:
 		{ return extrude_explicit(x, m_current_pos.y, e, f); }
 
 	Writer& retract(float e, float f = 0.f)
-		{ return retract(-e, f); }
+		{ return deretract(-e, f); }
 
 	Writer& z_hop(float hop, float f = 0.f) { 
 		m_gcode += std::string("G1") + set_format_Z(m_current_z + hop);
@@ -277,7 +277,7 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool)
 	// or there must be a nonzero wipe tower partitions available.
 	assert(tool < 0 || it_layer_tools->wipe_tower_partitions > 0);
 
-	if (m_layer_change_in_layer == size_t(-1))
+	if (m_layer_change_in_layer == (unsigned int)(-1))
 		// First layer, prime the extruder.
 		return toolchange_Brim(tool);
 

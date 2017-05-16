@@ -312,11 +312,11 @@ bool GCode::do_export(FILE *file, Print &print)
         initial_extruder_id = 0;
 
     // Set extruder(s) temperature before and after start G-code.
-    this->_print_first_layer_extruder_temperatures(file, print, false);
+    this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
     // Let the start-up script prime the 1st printing tool.
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
     fprintf(file, "%s\n", m_placeholder_parser.process(print.config.start_gcode.value).c_str());
-    this->_print_first_layer_extruder_temperatures(file, print, true);
+    this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, true);
     
     // Set other general things.
     write(file, this->preamble());
@@ -414,7 +414,7 @@ bool GCode::do_export(FILE *file, Print &print)
                     if (print.config.first_layer_bed_temperature.value > 0)
                         write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature));
                     // Set first layer extruder.
-                    this->_print_first_layer_extruder_temperatures(file, print, false);
+                    this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
                 }
                 // Pair the object layers with the support layers by z, extrude them.
                 size_t idx_object_layer  = 0;
@@ -567,16 +567,26 @@ bool GCode::do_export(FILE *file, Print &print)
 // FIXME this does not work correctly for multi-extruder, single heater configuration as it emits multiple preheat commands for the same heater.
 // M104 - Set Extruder Temperature
 // M109 - Set Extruder Temperature and Wait
-void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, bool wait)
+void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, unsigned int first_printing_extruder_id, bool wait)
 {
     if (boost::ifind_first(print.config.start_gcode.value, std::string("M104")).empty() &&
         boost::ifind_first(print.config.start_gcode.value, std::string("M109")).empty()) {
-        for (unsigned int tool_id : print.extruders()) {
-            int temp = print.config.first_layer_temperature.get_at(tool_id);
+        if (print.config.single_extruder_multi_material.value) {
+            // Set temperature of the first printing extruder only.
+            int temp = print.config.first_layer_temperature.get_at(first_printing_extruder_id);
             if (print.config.ooze_prevention.value)
                 temp += print.config.standby_temperature_delta.value;
             if (temp > 0)
-                write(file, m_writer.set_temperature(temp, wait, tool_id));
+                write(file, m_writer.set_temperature(temp, wait, first_printing_extruder_id));
+        } else {
+            // Set temperatures of all the printing extruders.
+            for (unsigned int tool_id : print.extruders()) {
+                int temp = print.config.first_layer_temperature.get_at(tool_id);
+                if (print.config.ooze_prevention.value)
+                    temp += print.config.standby_temperature_delta.value;
+                if (temp > 0)
+                    write(file, m_writer.set_temperature(temp, wait, tool_id));
+            }
         }
     }
 }
@@ -668,20 +678,6 @@ void GCode::process_layer(
     
     std::string gcode;
 
-    if (! first_layer && ! m_second_layer_things_done) {
-        // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
-        // first_layer_temperature vs. temperature settings.
-        for (const Extruder &extruder : m_writer.extruders) {
-            int temperature = print.config.temperature.get_at(extruder.id);
-            if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id))
-                gcode += m_writer.set_temperature(temperature, false, extruder.id);
-        }
-        if (print.config.bed_temperature.value > 0 && print.config.bed_temperature != print.config.first_layer_bed_temperature.value)
-            gcode += m_writer.set_bed_temperature(print.config.bed_temperature);
-        // Mark the temperature transition from 1st to 2nd layer to be finished.
-        m_second_layer_things_done = true;
-    }
-    
     // Set new layer - this will change Z and force a retraction if retract_layer_change is enabled.
     if (! print.config.before_layer_gcode.value.empty()) {
         PlaceholderParser pp(m_placeholder_parser);
@@ -698,9 +694,33 @@ void GCode::process_layer(
         gcode += pp.process(print.config.layer_gcode.value) + "\n";
     }
 
-    if (m_wipe_tower && ! m_wipe_tower->finished() && layer.id() == 0 && m_writer.extruder()->id == layer_tools.extruders.front())
-        // Trigger the tool change explicitely to draw the wipe tower brim always.
-        gcode += this->wipe_tower_tool_change(layer_tools.extruders.front());
+    // Trigger the tool change explicitely to draw the wipe tower brim always.
+    bool wipe_tower_extrude_brim_explicit = m_wipe_tower && ! m_wipe_tower->finished() && first_layer && m_writer.extruder()->id == first_extruder_id;
+
+    if (! first_layer && ! m_second_layer_things_done) {
+        // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
+        // first_layer_temperature vs. temperature settings.
+        if (print.config.single_extruder_multi_material.value) {
+            // Switch the extruder before setting the 2nd layer temperature.
+            this->set_extruder(first_extruder_id);
+            int temperature = print.config.temperature.get_at(first_extruder_id);
+            if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(m_writer.extruder()->id))
+                gcode += m_writer.set_temperature(temperature, false, first_extruder_id);
+        } else {
+            for (const Extruder &extruder : m_writer.extruders) {
+                int temperature = print.config.temperature.get_at(extruder.id);
+                if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id))
+                    gcode += m_writer.set_temperature(temperature, false, extruder.id);
+            }
+        }
+        if (print.config.bed_temperature.value > 0 && print.config.bed_temperature != print.config.first_layer_bed_temperature.value)
+            gcode += m_writer.set_bed_temperature(print.config.bed_temperature);
+        // Mark the temperature transition from 1st to 2nd layer to be finished.
+        m_second_layer_things_done = true;
+    }
+
+    if (wipe_tower_extrude_brim_explicit)
+        gcode += this->wipe_tower_tool_change(first_extruder_id);
 
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.

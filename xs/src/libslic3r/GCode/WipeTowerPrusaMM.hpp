@@ -2,6 +2,7 @@
 #define WipeTowerPrusaMM_hpp_
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <utility>
 
@@ -84,10 +85,10 @@ public:
 		m_is_first_layer 		= is_first_layer;
 		m_is_last_layer			= is_last_layer;
 		// Start counting the color changes from zero.
-		m_layer_change_in_layer = is_first_layer ? size_t(-1) : 0;
+		m_layer_change_in_layer = is_first_layer ? (unsigned int)(-1) : 0;
 		m_current_wipe_start_y  = 0.f;
 
-		int layer_idx = int(floor(layer_height * 100) + 0.5f);
+		int layer_idx = int(std::floor(layer_height * 100) + 0.5f);
 		switch (layer_idx)
 		{
 		case 15:
