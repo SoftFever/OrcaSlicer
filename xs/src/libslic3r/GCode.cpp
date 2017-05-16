@@ -292,9 +292,29 @@ bool GCode::do_export(FILE *file, Print &print)
         boost::ifind_first(print.config.start_gcode.value, std::string("M140")).empty() &&
         boost::ifind_first(print.config.start_gcode.value, std::string("M190")).empty())
         write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.value, true));
-    
+
+    // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
+    // For a print by objects, find the 1st printing object.
+    std::vector<ToolOrdering::LayerTools> tool_ordering;
+    unsigned int                          initial_extruder_id = (unsigned int)-1;
+    size_t                                initial_print_object_id = 0;
+    if (print.config.complete_objects.value) {
+        tool_ordering = ToolOrdering::tool_ordering(print, initial_extruder_id);
+        initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
+    } else {
+        for (; initial_print_object_id < print.objects.size() && initial_extruder_id == (unsigned int)-1; ++ initial_print_object_id) {
+            tool_ordering = ToolOrdering::tool_ordering(*print.objects[initial_print_object_id], initial_extruder_id);
+            initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
+        }
+    }
+    if (initial_extruder_id == (unsigned int)-1)
+        // Nothing to print!
+        initial_extruder_id = 0;
+
     // Set extruder(s) temperature before and after start G-code.
     this->_print_first_layer_extruder_temperatures(file, print, false);
+    // Let the start-up script prime the 1st printing tool.
+    m_placeholder_parser.set("initial_tool", initial_extruder_id);
     fprintf(file, "%s\n", m_placeholder_parser.process(print.config.start_gcode.value).c_str());
     this->_print_first_layer_extruder_temperatures(file, print, true);
     
@@ -355,8 +375,8 @@ bool GCode::do_export(FILE *file, Print &print)
     }
     
     // Set initial extruder only after custom start G-code.
-    write(file, this->set_extruder(print.extruders().front()));
-    
+    write(file, this->set_extruder(initial_extruder_id));
+
     // Do all objects for each layer.
     if (print.config.complete_objects.value) {
         // Print objects from the smallest to the tallest to avoid collisions
@@ -364,8 +384,19 @@ bool GCode::do_export(FILE *file, Print &print)
         std::vector<PrintObject*> objects(print.objects);
         std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size.z < po2->size.z; });        
         size_t finished_objects = 0;
-        for (PrintObject *object : objects) {
-            for (const Point &copy : object->_shifted_copies) {
+        for (size_t object_id = initial_print_object_id; object_id < objects.size(); ++ object_id) {
+            const PrintObject &object = *print.objects[object_id];
+            for (const Point &copy : object._shifted_copies) {
+                // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
+                if (object_id != initial_print_object_id || &copy != object._shifted_copies.data()) {
+                    // Don't initialize for the first object and first copy.
+                    tool_ordering = ToolOrdering::tool_ordering(object, initial_extruder_id);
+                    unsigned int new_extruder_id = ToolOrdering::first_extruder(tool_ordering);
+                    if (new_extruder_id == (unsigned int)-1)
+                        // Skip this object.
+                        continue;
+                    initial_extruder_id = new_extruder_id;
+                }
                 this->set_origin(unscale(copy.x), unscale(copy.y));
                 if (finished_objects > 0) {
                     // Move to the origin position for the copy we're going to print.
@@ -385,16 +416,14 @@ bool GCode::do_export(FILE *file, Print &print)
                     // Set first layer extruder.
                     this->_print_first_layer_extruder_temperatures(file, print, false);
                 }
-                // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
-                std::vector<ToolOrdering::LayerTools> tool_ordering = ToolOrdering::tool_ordering(*object);
                 // Pair the object layers with the support layers by z, extrude them.
                 size_t idx_object_layer  = 0;
                 size_t idx_support_layer = 0;
                 std::vector<LayerToPrint> layers_to_print(1, LayerToPrint());
                 LayerToPrint &layer_to_print = layers_to_print.front();
-                while (idx_object_layer < object->layers.size() || idx_support_layer < object->support_layers.size()) {
-                    layer_to_print.object_layer  = (idx_object_layer < object->layers.size()) ? object->layers[idx_object_layer ++] : nullptr;
-                    layer_to_print.support_layer = (idx_support_layer < object->support_layers.size()) ? object->support_layers[idx_support_layer ++] : nullptr;
+                while (idx_object_layer < object.layers.size() || idx_support_layer < object.support_layers.size()) {
+                    layer_to_print.object_layer  = (idx_object_layer < object.layers.size()) ? object.layers[idx_object_layer ++] : nullptr;
+                    layer_to_print.support_layer = (idx_support_layer < object.support_layers.size()) ? object.support_layers[idx_support_layer ++] : nullptr;
                     if (layer_to_print.object_layer && layer_to_print.support_layer) {
                         if (layer_to_print.object_layer->print_z < layer_to_print.support_layer->print_z) {
                             layer_to_print.support_layer = nullptr;
@@ -406,7 +435,7 @@ bool GCode::do_export(FILE *file, Print &print)
                     }
                     auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), ToolOrdering::LayerTools(layer_to_print.layer()->print_z));
                     assert(it_layer_tools != tool_ordering.end() && it_layer_tools->print_z == layer_to_print.layer()->print_z);
-                    this->process_layer(file, print, layers_to_print, *it_layer_tools, &copy - object->_shifted_copies.data());
+                    this->process_layer(file, print, layers_to_print, *it_layer_tools, &copy - object._shifted_copies.data());
                 }
                 write(file, this->filter(m_cooling_buffer->flush(), true));
                 ++ finished_objects;
@@ -442,8 +471,6 @@ bool GCode::do_export(FILE *file, Print &print)
             }
             ++ object_order;
         }
-        // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
-        std::vector<ToolOrdering::LayerTools> tool_ordering = ToolOrdering::tool_ordering(print);
         // Prusa Multi-Material wipe tower.
         if (print.config.single_extruder_multi_material.value && print.config.wipe_tower.value && 
             ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0) {
@@ -596,8 +623,13 @@ void GCode::process_layer(
     const size_t                     single_object_idx)
 {
     assert(! layers.empty());
+    assert(! layer_tools.extruders.empty());
     // Either printing all copies of all objects, or just a single copy of a single object.
     assert(single_object_idx == size_t(-1) || layers.size() == 1);
+
+    if (layer_tools.extruders.empty())
+        // Nothing to extrude.
+        return;
 
     // Extract 1st object_layer and support_layer of this set of layers with an equal print_z.
     const Layer         *object_layer  = nullptr;
@@ -666,11 +698,10 @@ void GCode::process_layer(
         gcode += pp.process(print.config.layer_gcode.value) + "\n";
     }
 
-    if (! m_brim_done)
-        // Switch the extruder to the extruder of the perimeters, so the perimeters extruder will be primed
-        // by the skirt before the brim is extruded with the same extruder.
-        gcode += this->set_extruder(layer_tools.extruders.front());
-    
+    if (m_wipe_tower && ! m_wipe_tower->finished() && layer.id() == 0 && m_writer.extruder()->id == layer_tools.extruders.front())
+        // Trigger the tool change explicitely to draw the wipe tower brim always.
+        gcode += this->wipe_tower_tool_change(layer_tools.extruders.front());
+
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
     bool extrude_skirt = 

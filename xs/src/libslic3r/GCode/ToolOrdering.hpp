@@ -26,11 +26,17 @@ struct LayerTools
 
 // For the use case when each object is printed separately
 // (print.config.complete_objects is true).
-extern std::vector<LayerTools> tool_ordering(PrintObject &object);
+extern std::vector<LayerTools> tool_ordering(const PrintObject &object, unsigned int first_extruder = (unsigned int)-1);
 
 // For the use case when all objects are printed at once.
 // (print.config.complete_objects is false).
-extern std::vector<LayerTools> tool_ordering(const Print &print);
+extern std::vector<LayerTools> tool_ordering(const Print &print, unsigned int first_extruder = (unsigned int)-1);
+
+// Get the first extruder printing the layer_tools, returns -1 if there is no layer printed.
+extern unsigned int			   first_extruder(const std::vector<LayerTools> &layer_tools);
+
+// Get the first extruder printing the layer_tools, returns -1 if there is no layer printed.
+extern unsigned int			   last_extruder(const std::vector<LayerTools> &layer_tools);
 
 } // namespace ToolOrdering
 } // namespace SLic3r

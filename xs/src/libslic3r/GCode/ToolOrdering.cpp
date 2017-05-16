@@ -64,23 +64,29 @@ static void collect_extruders(const PrintObject &object, std::vector<LayerTools>
 }
 
 // Reorder extruders to minimize layer changes.
-static void reorder_extruders(std::vector<LayerTools> &layers)
+static void reorder_extruders(std::vector<LayerTools> &layers, unsigned int last_extruder_id)
 {
     if (layers.empty())
         return;
 
-    // Initialize the last_extruder_id with the first non-zero extruder id used for the print.
-    unsigned int last_extruder_id = 0;
-    for (size_t i = 0; i < layers.size() && last_extruder_id == 0; ++ i) {
-        const LayerTools &lt = layers[i];
-        for (unsigned int extruder_id : lt.extruders)
-            if (extruder_id > 0) {
-                last_extruder_id = extruder_id;
-                break;
-            }
-    }
-    if (last_extruder_id == 0)
-        last_extruder_id = 1;
+    if (last_extruder_id == (unsigned int)-1) {
+        // The initial print extruder has not been decided yet.
+        // Initialize the last_extruder_id with the first non-zero extruder id used for the print.
+        last_extruder_id = 0;
+        for (size_t i = 0; i < layers.size() && last_extruder_id == 0; ++ i) {
+            const LayerTools &lt = layers[i];
+            for (unsigned int extruder_id : lt.extruders)
+                if (extruder_id > 0) {
+                    last_extruder_id = extruder_id;
+                    break;
+                }
+        }
+        if (last_extruder_id == 0)
+            // Nothing to extrude.
+            return;
+    } else
+        // 1 based index
+        ++ last_extruder_id;
 
     for (LayerTools &lt : layers) {
         if (lt.extruders.empty())
@@ -117,14 +123,16 @@ static void fill_wipe_tower_partitions(std::vector<LayerTools> &layers)
         return;
 
     // Count the minimum number of tool changes per layer.
-    for (LayerTools &lt : layers)
-        lt.wipe_tower_partitions = std::max<int>(0, int(layers.front().extruders.size()) - 1);
-
-    // In case a distinct set of tools are used between two layers, there will be an additional tool change at the start of a layer.
-    //FIXME this does not minimize the number of tool changes in worst case.
-    for (size_t i = 1; i < layers.size(); ++ i)
-        if (layers[i-1].extruders.back() != layers[i].extruders.front())
-            ++ layers[i].wipe_tower_partitions;
+    size_t last_extruder = size_t(-1);
+    for (LayerTools &lt : layers) {
+        lt.wipe_tower_partitions = layers.front().extruders.size();
+        if (! lt.extruders.empty()) {
+            if (last_extruder == size_t(-1) || last_extruder == lt.extruders.front())
+                // The first extruder on this layer is equal to the current one, no need to do an initial tool change.
+                -- lt.wipe_tower_partitions;
+            last_extruder = lt.extruders.back();
+        }
+    }
 
     // Propagate the wipe tower partitions down to support the upper partitions by the lower partitions.
     for (int i = int(layers.size()) - 2; i >= 0; -- i)
@@ -133,7 +141,7 @@ static void fill_wipe_tower_partitions(std::vector<LayerTools> &layers)
 
 // For the use case when each object is printed separately
 // (print.config.complete_objects is true).
-std::vector<LayerTools> tool_ordering(PrintObject &object)
+std::vector<LayerTools> tool_ordering(const PrintObject &object, unsigned int first_extruder)
 {
     // Initialize the print layers for just a single object.
     std::vector<LayerTools> layers;
@@ -153,7 +161,7 @@ std::vector<LayerTools> tool_ordering(PrintObject &object)
     collect_extruders(object, layers);
 
     // Reorder the extruders to minimize tool switches.
-    reorder_extruders(layers);
+    reorder_extruders(layers, first_extruder);
 
     fill_wipe_tower_partitions(layers);
     return layers;
@@ -161,7 +169,7 @@ std::vector<LayerTools> tool_ordering(PrintObject &object)
 
 // For the use case when all objects are printed at once.
 // (print.config.complete_objects is false).
-std::vector<LayerTools> tool_ordering(const Print &print)
+std::vector<LayerTools> tool_ordering(const Print &print, unsigned int first_extruder)
 {
     // Initialize the print layers for all objects and all layers. 
     std::vector<LayerTools> layers;
@@ -184,10 +192,26 @@ std::vector<LayerTools> tool_ordering(const Print &print)
         collect_extruders(*object, layers);
 
     // Reorder the extruders to minimize tool switches.
-    reorder_extruders(layers);
+    reorder_extruders(layers, first_extruder);
 
     fill_wipe_tower_partitions(layers);
     return layers;
+}
+
+unsigned int first_extruder(const std::vector<LayerTools> &layer_tools)
+{
+    for (const auto &lt : layer_tools)
+        if (! lt.extruders.empty())
+            return lt.extruders.front();
+    return (unsigned int)-1;
+}
+
+unsigned int last_extruder(const std::vector<LayerTools> &layer_tools)
+{
+    for (auto lt_it = layer_tools.rend(); lt_it != layer_tools.rbegin(); ++ lt_it)
+        if (! lt_it->extruders.empty())
+            return lt_it->extruders.back();
+    return (unsigned int)-1;
 }
 
 } // namespace ToolOrdering
