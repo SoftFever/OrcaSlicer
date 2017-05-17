@@ -909,6 +909,7 @@ void GCode::process_layer(
             // Move over the wipe tower.
             gcode += m_writer.travel_to_xy(Pointf3(m_wipe_tower->position().x, m_wipe_tower->position().y));
             gcode += m_writer.unlift();
+            gcode += m_writer.unretract();
             // Let the tool change be executed by the wipe tower class.
             std::pair<std::string, WipeTower::xy> code_and_pos = m_wipe_tower->finish_layer();
             // Inform the G-code writer about the changes done behind its back.
@@ -1936,6 +1937,7 @@ std::string GCode::wipe_tower_tool_change(int extruder_id)
     // Move over the wipe tower.
     std::string gcode = m_writer.travel_to_xy(Pointf3(m_wipe_tower->position().x, m_wipe_tower->position().y));
     gcode += m_writer.unlift();
+    gcode += m_writer.unretract();
     // Let the tool change be executed by the wipe tower class.
     std::pair<std::string, WipeTower::xy> code_and_pos = m_wipe_tower->tool_change(extruder_id);
     // Inform the G-code writer about the changes done behind its back.
