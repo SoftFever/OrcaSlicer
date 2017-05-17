@@ -125,7 +125,7 @@ static void fill_wipe_tower_partitions(std::vector<LayerTools> &layers)
     // Count the minimum number of tool changes per layer.
     size_t last_extruder = size_t(-1);
     for (LayerTools &lt : layers) {
-        lt.wipe_tower_partitions = layers.front().extruders.size();
+        lt.wipe_tower_partitions = lt.extruders.size();
         if (! lt.extruders.empty()) {
             if (last_extruder == size_t(-1) || last_extruder == lt.extruders.front())
                 // The first extruder on this layer is equal to the current one, no need to do an initial tool change.

@@ -85,8 +85,9 @@ public:
 		m_is_first_layer 		= is_first_layer;
 		m_is_last_layer			= is_last_layer;
 		// Start counting the color changes from zero. Special case: -1 - extrude a brim first.
-		m_layer_change_in_layer = is_first_layer ? (unsigned int)(-1) : 0;
+		m_idx_tool_change_in_layer = is_first_layer ? (unsigned int)(-1) : 0;
 		m_current_wipe_start_y  = 0.f;
+		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
 
 		int layer_idx = int(std::floor(layer_height * 100) + 0.5f);
 		switch (layer_idx)
@@ -111,7 +112,14 @@ public:
 	virtual std::pair<std::string, xy> tool_change(int new_tool);
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
-	virtual std::pair<std::string, xy> close_layer();
+	// Call this method only if layer_finished() is false.
+	virtual std::pair<std::string, xy> finish_layer();
+
+	// Is the current layer finished? A layer is finished if either the wipe tower is finished, or
+	// the wipe tower has been completely covered by the tool change extrusions,
+	// or the rest of the tower has been filled by a sparse infill with the finish_layer() method.
+	virtual bool 					   layer_finished() const
+		{ return m_idx_tool_change_in_layer == m_max_color_changes; }
 
 private:
 	WipeTowerPrusaMM();
@@ -153,9 +161,11 @@ private:
 
 	// State of the wiper tower generator.
 	// Layer change counter for the output statistics.
-	unsigned int 	m_layer_change_total = 0;
+	unsigned int 	m_num_layer_changes = 0;
+	// Tool change change counter for the output statistics.
+	unsigned int 	m_num_tool_changes = 0;
 	// Layer change counter in this layer. Counting up to m_max_color_changes.
-	unsigned int 	m_layer_change_in_layer = 0;
+	unsigned int 	m_idx_tool_change_in_layer = 0;
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
 	material_type 	m_current_material = PLA;
@@ -170,11 +180,22 @@ private:
 			rd(left + width, bottom         ),
 			ru(left + width, bottom + height) {}
 		box_coordinates(const xy &pos, float width, float height) : box_coordinates(pos.x, pos.y, width, height) {}
+		void translate(const xy &shift) {
+			ld += shift; lu += shift;
+			rd += shift; ru += shift;
+		}
+		void translate(const float dx, const float dy) { translate(xy(dx, dy)); }
 		void expand(const float offset) {
 			ld += xy(- offset, - offset);
 			lu += xy(- offset,   offset);
 			rd += xy(  offset, - offset);
 			ru += xy(  offset,   offset);
+		}
+		void expand(const float offset_x, const float offset_y) {
+			ld += xy(- offset_x, - offset_y);
+			lu += xy(- offset_x,   offset_y);
+			rd += xy(  offset_x, - offset_y);
+			ru += xy(  offset_x,   offset_y);
 		}
 		xy ld;  // left down
 		xy lu;	// left upper 
@@ -190,14 +211,12 @@ private:
 	void toolchange_Unload(
 		PrusaMultiMaterial::Writer &writer,
 		const box_coordinates  &cleaning_box, 
-		const material_type	 	material,
-		const wipe_shape 	    shape,
-		const int 				temperature);
+		const material_type	 	current_material,
+		const int 				new_temperature);
 
 	void toolchange_Change(
 		PrusaMultiMaterial::Writer &writer,
-		int 					tool,
-		material_type 			current_material,
+		int 					new_tool,
 		material_type 			new_material);
 	
 	void toolchange_Load(
@@ -206,16 +225,13 @@ private:
 	
 	void toolchange_Wipe(
 		PrusaMultiMaterial::Writer &writer,
-		const box_coordinates  &cleaning_box, 
-		const material_type 	material);
+		const box_coordinates  &cleaning_box);
 	
 	void toolchange_Done(
 		PrusaMultiMaterial::Writer &writer,
 		const box_coordinates  &cleaning_box);
 
 	void toolchange_Perimeter();
-
-	box_coordinates _boxForColor(int order) const;
 };
 
 }; // namespace Slic3r

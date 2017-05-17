@@ -517,6 +517,12 @@ bool GCode::do_export(FILE *file, Print &print)
     // write end commands to file
     if (m_wipe_tower) {
         // Unload the current filament over the purge tower.
+        if (tool_ordering.back().wipe_tower_partitions > 0 && m_wipe_tower->layer_finished()) {
+            // There is not enough space on the wipe tower to purge the nozzle into. Lift Z to the next layer.
+            coordf_t new_print_z = tool_ordering.back().print_z + print.objects.front()->config.layer_height.value;
+            write(file, this->change_layer(new_print_z));
+            m_wipe_tower->set_layer(new_print_z, print.objects.front()->config.layer_height.value, 0, false, true);
+        }
         write(file, this->wipe_tower_tool_change(-1));
         m_wipe_tower.release();
     } else
@@ -898,9 +904,18 @@ void GCode::process_layer(
     for (unsigned int extruder_id : layer_tools.extruders)
     {
         gcode += this->set_extruder(extruder_id);
-        if (m_wipe_tower && ! m_wipe_tower->finished() && extruder_id == layer_tools.extruders.back())
+        if (m_wipe_tower && ! m_wipe_tower->layer_finished() && extruder_id == layer_tools.extruders.back()) {
             // Last extruder change on the layer or no extruder change at all.
-            m_wipe_tower->close_layer();
+            // Move over the wipe tower.
+            gcode += m_writer.travel_to_xy(Pointf3(m_wipe_tower->position().x, m_wipe_tower->position().y));
+            gcode += m_writer.unlift();
+            // Let the tool change be executed by the wipe tower class.
+            std::pair<std::string, WipeTower::xy> code_and_pos = m_wipe_tower->finish_layer();
+            // Inform the G-code writer about the changes done behind its back.
+            gcode += code_and_pos.first;
+            // A phony move to the end position at the wipe tower.
+            m_writer.travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
+        }
 
         if (extrude_skirt) {
             auto loops_it = skirt_loops_per_extruder.find(extruder_id);
@@ -1925,6 +1940,8 @@ std::string GCode::wipe_tower_tool_change(int extruder_id)
     std::pair<std::string, WipeTower::xy> code_and_pos = m_wipe_tower->tool_change(extruder_id);
     // Inform the G-code writer about the changes done behind its back.
     gcode += code_and_pos.first;
+	// Let the m_writer know the current extruder_id, but ignore the generated G-code.
+	m_writer.toolchange(extruder_id);
     // A phony move to the end position at the wipe tower.
     m_writer.travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
     return gcode;
