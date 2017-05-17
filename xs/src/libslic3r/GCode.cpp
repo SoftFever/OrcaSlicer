@@ -299,13 +299,15 @@ bool GCode::do_export(FILE *file, Print &print)
     unsigned int                          initial_extruder_id = (unsigned int)-1;
     size_t                                initial_print_object_id = 0;
     if (print.config.complete_objects.value) {
-        tool_ordering = ToolOrdering::tool_ordering(print, initial_extruder_id);
-        initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
-    } else {
-        for (; initial_print_object_id < print.objects.size() && initial_extruder_id == (unsigned int)-1; ++ initial_print_object_id) {
-            tool_ordering = ToolOrdering::tool_ordering(*print.objects[initial_print_object_id], initial_extruder_id);
-            initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
-        }
+		// Find the 1st printing object, find its tool ordering and the initial extruder ID.
+		for (; initial_print_object_id < print.objects.size() && initial_extruder_id == (unsigned int)-1; ++initial_print_object_id) {
+			tool_ordering = ToolOrdering::tool_ordering(*print.objects[initial_print_object_id], initial_extruder_id);
+			initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
+		}
+	} else {
+		// Find tool ordering for all the objects at once, and the initial extruder ID.
+		tool_ordering = ToolOrdering::tool_ordering(print, initial_extruder_id);
+		initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
     }
     if (initial_extruder_id == (unsigned int)-1)
         // Nothing to print!
