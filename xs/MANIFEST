@@ -381,6 +381,11 @@ src/libslic3r/GCode/PressureEqualizer.cpp
 src/libslic3r/GCode/PressureEqualizer.hpp
 src/libslic3r/GCode/SpiralVase.cpp
 src/libslic3r/GCode/SpiralVase.hpp
+src/libslic3r/GCode/ToolOrdering.cpp
+src/libslic3r/GCode/ToolOrdering.hpp
+src/libslic3r/GCode/WipeTower.hpp
+src/libslic3r/GCode/WipeTowerPrusaMM.cpp
+src/libslic3r/GCode/WipeTowerPrusaMM.hpp
 src/libslic3r/Geometry.cpp
 src/libslic3r/Geometry.hpp
 src/libslic3r/Layer.cpp
@@ -430,8 +435,6 @@ src/libslic3r/TriangleMesh.cpp
 src/libslic3r/TriangleMesh.hpp
 src/libslic3r/utils.cpp
 src/libslic3r/Utils.hpp
-src/libslic3r/WipeTower.cpp
-src/libslic3r/WipeTower.hpp
 src/perlglue.cpp
 src/poly2tri/common/shapes.cc
 src/poly2tri/common/shapes.h

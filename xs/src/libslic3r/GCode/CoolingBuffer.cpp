@@ -9,7 +9,7 @@ namespace Slic3r {
 std::string CoolingBuffer::append(const std::string &gcode, size_t object_id, size_t layer_id, bool is_support)
 {
     std::string out;
-    size_t signature = object_id * 2 + is_support ? 1 : 0;
+    size_t signature = object_id * 2 + (is_support ? 1 : 0);
     if (m_object_ids_visited.find(signature) != m_object_ids_visited.end())
         // For a single print_z, a combination of (object_id, is_support) could repeat once only.
         // If the combination of (object_id, is_support) reappears, this must be for another print_z,
