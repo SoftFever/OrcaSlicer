@@ -302,6 +302,8 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool)
 		m_wipe_area - m_perimeter_width);
 
 	PrusaMultiMaterial::Writer writer;
+	// Scaffold leaks terribly, reduce leaking by a full retract when going to the wipe tower.
+	float initial_retract = ((m_current_material == SCAFF) ? 1.f : 0.5f) * m_retract;
 	writer.set_extrusion_flow(m_extrusion_flow)
 		  .set_z(m_z_pos)
 		  .append(";--------------------\n"
@@ -313,14 +315,14 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool)
 		  // Lift for a Z hop.
 		  .z_hop(m_zhop, 7200)
 		  // Additional retract on move to tower.
-		  .retract(m_retract/2, 3600)
+		  .retract(initial_retract, 3600)
 		  // Move to a starting position, one perimeter width inside the cleaning box.
 		  .travel(((m_current_shape == SHAPE_NORMAL) ? cleaning_box.ld : cleaning_box.lu) + 
 		  		xy(m_perimeter_width, ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_perimeter_width), 7200)
 		  // Unlift for a Z hop.
 		  .z_hop_reset(7200)
 		  // Additional retract on move to tower.
-		  .load(m_retract/2, 3600)
+		  .load(initial_retract, 3600)
 		  .load(m_retract, 1500)
 		  // Increase extruder current for ramming.
 		  .set_extruder_trimpot(750)
@@ -429,8 +431,14 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	// Current extruder position is on the left, one perimeter inside the cleaning box in both X and Y.
 	switch (current_material)
 	{
-	case PVA:
+	case ABS:
    		// ramming          start                    end                  y increment     amount feedrate
+		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 1.2f,  4000)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.2f, 1.6f,  4600)
+			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, 1.8f,  5000)
+			  .ram(xr - m_perimeter_width * 2, xl + m_perimeter_width * 2, y_step * 1.2f, 1.8f,  5000);
+		break;
+	case PVA:
 		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 3,     4000)
 			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.5f, 3,     4500)
 			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.5f, 3,     4800)
@@ -461,9 +469,15 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	if (std::abs(writer.x() - xl) < std::abs(writer.x() - xr))
 		std::swap(xl, xr);
 	// Horizontal cooling moves will be performed at the following Y coordinate:
-	writer.travel(writer.x(), writer.y() + y_step * 0.8f, 7200);
+	writer.travel(xr, writer.y() + y_step * 0.8f, 7200);
 	switch (current_material)
 	{
+	case ABS:
+		writer.cool(xl, xr, 3, -5, 1600)
+			  .cool(xl, xr, 5, -5, 2000)
+			  .cool(xl, xr, 5, -5, 2400)
+			  .cool(xl, xr, 5, -3, 2400);
+		break;
 	case PVA:
 		writer.cool(xl, xr, 3, -5, 1600)
 			  .cool(xl, xr, 5, -5, 2000)
@@ -498,7 +512,7 @@ void WipeTowerPrusaMM::toolchange_Change(
 	// Speed override for the material. Go slow for flex and soluble materials.
 	int speed_override;
 	switch (new_material) {
-	case PVA:   speed_override = 80; break;
+	case PVA:   speed_override = (m_z_pos < 0.80f) ? 60 : 80; break;
 	case SCAFF: speed_override = 35; break;
 	case FLEX:  speed_override = 35; break;
 	default:    speed_override = 100;
