@@ -997,8 +997,6 @@ sub build {
             $optgroup->append_single_option_line('filament_colour', 0);
             $optgroup->append_single_option_line('filament_diameter', 0);
             $optgroup->append_single_option_line('extrusion_multiplier', 0);
-            $optgroup->append_single_option_line('filament_type', 0);
-            $optgroup->append_single_option_line('filament_soluble', 0);
             $optgroup->append_single_option_line('filament_density', 0);
             $optgroup->append_single_option_line('filament_cost', 0);
         }
@@ -1071,7 +1069,11 @@ sub build {
     {
         my $page = $self->add_options_page('Advanced', 'wrench.png');
         {
-            my $optgroup = $page->new_optgroup('Print speed override');
+            my $optgroup = $page->new_optgroup('Filament properties');
+            $optgroup->append_single_option_line('filament_type', 0);
+            $optgroup->append_single_option_line('filament_soluble', 0);
+            
+            $optgroup = $page->new_optgroup('Print speed override');
             $optgroup->append_single_option_line('filament_max_volumetric_speed', 0);
         }
     }

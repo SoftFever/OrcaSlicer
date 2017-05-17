@@ -224,6 +224,9 @@ public:
         const std::string        &select_by,
         const std::string        &drag_by);
 
+    int load_wipe_tower_preview(
+        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs);
+
     // Bounding box of this volume, in unscaled coordinates.
     BoundingBoxf3       bounding_box;
     // Offset of the volume to be rendered.
@@ -309,6 +312,9 @@ public:
         const std::string       &select_by,
         const std::string       &drag_by,
         bool                     use_VBOs);
+
+    int load_wipe_tower_preview(
+        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs);
 
     // Render the volumes by OpenGL.
     void render_VBOs() const;

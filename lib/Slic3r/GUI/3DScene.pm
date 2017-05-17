@@ -240,11 +240,13 @@ sub layer_editing_allowed {
     return ! (defined($self->{layer_editing_initialized}) && $self->{layer_editing_initialized} == 2);
 }
 
-sub _first_selected_object_id {
+sub _first_selected_object_id_for_variable_layer_height_editing {
     my ($self) = @_;
     for my $i (0..$#{$self->volumes}) {
         if ($self->volumes->[$i]->selected) {
-            return int($self->volumes->[$i]->select_group_id / 1000000);
+            my $object_id = int($self->volumes->[$i]->select_group_id / 1000000);
+            # Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
+            return $object_id if $object_id < 10000;
         }
     }
     return -1;
@@ -332,7 +334,7 @@ sub mouse_event {
     my ($self, $e) = @_;
     
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
-    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id : -1;
+    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
 
     if ($e->Entering && &Wx::wxMSW) {
         # wxMSW needs focus in order to catch mouse wheel events
@@ -502,7 +504,7 @@ sub mouse_wheel_event {
     my ($self, $e) = @_;
     
     if ($self->layer_editing_enabled && $self->{print}) {
-        my $object_idx_selected = $self->_first_selected_object_id;
+        my $object_idx_selected = $self->_first_selected_object_id_for_variable_layer_height_editing;
         if ($object_idx_selected != -1) {
             # A volume is selected. Test, whether hovering over a layer thickness bar.
             if ($self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {

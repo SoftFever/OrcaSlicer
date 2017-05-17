@@ -299,6 +299,25 @@ std::vector<int> GLVolumeCollection::load_object(
     return volumes_idx; 
 }
 
+
+int GLVolumeCollection::load_wipe_tower_preview(
+    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs)
+{
+    float color[4] = { 1.0f, 1.0f, 0.0f, 0.5f };
+    this->volumes.emplace_back(new GLVolume(color));
+    GLVolume &v = *this->volumes.back();
+    auto mesh = make_cube(width, depth, height);
+    v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+    v.origin = Pointf3(pos_x, pos_y, 0.);
+    // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
+    v.bounding_box = v.indexed_vertex_array.bounding_box();
+    v.indexed_vertex_array.finalize_geometry(use_VBOs);
+    v.composite_id = obj_idx * 1000000;
+    v.select_group_id = obj_idx * 1000000;
+    v.drag_group_id = obj_idx * 1000;
+    return int(this->volumes.size() - 1);
+}
+
 void GLVolumeCollection::render_VBOs() const
 {
 //    glEnable(GL_BLEND);
@@ -453,18 +472,19 @@ static void thick_lines_to_indexed_vertex_array(
             idx_a[TOP] = idx_prev[TOP];
         }
         if (ii == 0 || bottom_z_different) {
+            // Start of the 1st line segment or a change of the layer thickness while maintaining the print_z.
             idx_a[BOTTOM] = idx_last ++;
             volume.push_geometry(a.x, a.y, bottom_z, 0., 0., -1.);
+            idx_a[LEFT ] = idx_last ++;
+            volume.push_geometry(a2.x, a2.y, middle_z, -xy_right_normal.x, -xy_right_normal.y, -xy_right_normal.z);
+            idx_a[RIGHT] = idx_last ++;
+            volume.push_geometry(a1.x, a1.y, middle_z, xy_right_normal.x, xy_right_normal.y, xy_right_normal.z);
         } else {
             idx_a[BOTTOM] = idx_prev[BOTTOM];
         }
 
         if (ii == 0) {
             // Start of the 1st line segment.
-            idx_a[LEFT ] = idx_last ++;
-            volume.push_geometry(a2.x, a2.y, middle_z, -xy_right_normal.x, -xy_right_normal.y, -xy_right_normal.z);
-            idx_a[RIGHT] = idx_last ++;
-            volume.push_geometry(a1.x, a1.y, middle_z, xy_right_normal.x, xy_right_normal.y, xy_right_normal.z);
             width_initial    = width;
             bottom_z_initial = bottom_z;
             memcpy(idx_initial, idx_a, sizeof(int) * 4);
@@ -721,8 +741,7 @@ void _3DScene::_load_print_toolpaths(
     //FIXME why there are support layers?
     for (size_t i = 0; i < std::min(skirt_height, object0->support_layers.size()); ++ i)
         print_zs.push_back(float(object0->support_layers[i]->print_z));
-    std::sort(print_zs.begin(), print_zs.end());
-    print_zs.erase(std::unique(print_zs.begin(), print_zs.end()), print_zs.end());
+    sort_remove_duplicates(print_zs);
     if (print_zs.size() > skirt_height)
         print_zs.erase(print_zs.begin() + skirt_height, print_zs.end());
     

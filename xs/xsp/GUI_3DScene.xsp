@@ -29,8 +29,7 @@
 
     std::vector<double> color()
         %code%{ RETVAL.reserve(4); RETVAL.push_back(THIS->color[0]); RETVAL.push_back(THIS->color[1]); RETVAL.push_back(THIS->color[2]); RETVAL.push_back(THIS->color[3]); %};
-    int                 composite_id()
-        %code%{ RETVAL = THIS->composite_id; %};
+
     int                 select_group_id()
         %code%{ RETVAL = THIS->select_group_id; %};
     int                 drag_group_id()
@@ -76,6 +75,8 @@
     ~GLVolumeCollection();
 
     std::vector<int> load_object(ModelObject *object, int obj_idx, std::vector<int> instance_idxs, std::string color_by, std::string select_by, std::string drag_by, bool use_VBOs);
+
+    int load_wipe_tower_preview(int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs);
 
     void erase()
         %code{% THIS->clear(); %};
