@@ -84,7 +84,7 @@ public:
 		m_max_color_changes 	= max_tool_changes;
 		m_is_first_layer 		= is_first_layer;
 		m_is_last_layer			= is_last_layer;
-		// Start counting the color changes from zero.
+		// Start counting the color changes from zero. Special case: -1 - extrude a brim first.
 		m_layer_change_in_layer = is_first_layer ? (unsigned int)(-1) : 0;
 		m_current_wipe_start_y  = 0.f;
 
@@ -106,7 +106,8 @@ public:
 	// The wipe tower is finished, there should be no more tool changes or wipe tower prints.
 	virtual bool 	  finished() const { return m_max_color_changes == 0; }
 
-	// Returns gcode for toolchange 
+	// Returns gcode for a toolchange and a final print head position.
+	// On the first layer, extrude a brim around the future wipe tower first.
 	virtual std::pair<std::string, xy> tool_change(int new_tool);
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
@@ -115,6 +116,7 @@ public:
 private:
 	WipeTowerPrusaMM();
 
+	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	enum wipe_shape
 	{
 		SHAPE_NORMAL   = 1,
@@ -139,7 +141,9 @@ private:
 	// G-code generator parameters.
 	float  m_zhop 			 = 0.5f;
 	float  m_retract		 = 4.f;
+	// Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float  m_perimeter_width = 0.5f;
+	// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
 	float  m_extrusion_flow  = 0.029f;
 
 	// Extruder specific parameters.
@@ -152,6 +156,7 @@ private:
 	unsigned int 	m_layer_change_total = 0;
 	// Layer change counter in this layer. Counting up to m_max_color_changes.
 	unsigned int 	m_layer_change_in_layer = 0;
+	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
 	material_type 	m_current_material = PLA;
 	// Current y position at the wipe tower.

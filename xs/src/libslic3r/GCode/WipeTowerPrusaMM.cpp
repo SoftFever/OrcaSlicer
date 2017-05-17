@@ -45,18 +45,19 @@ public:
 	float                y()     const { return m_current_pos.y; }
 	const WipeTower::xy& pos()   const { return m_current_pos; }
 
+	// Extrude with an explicitely provided amount of extrusion.
 	Writer& extrude_explicit(float x, float y, float e, float f = 0.f) 
 	{
 		if (x == m_current_pos.x && y == m_current_pos.y && e == 0.f && (f == 0.f || f == m_current_feedrate))
 			return *this;
-		m_gcode += "G1 ";
+		m_gcode += "G1";
 		if (x != m_current_pos.x)
 			m_gcode += set_format_X(x);
 		if (y != m_current_pos.y)
 			m_gcode += set_format_Y(y);
-		if (e != 0)
+		if (e != 0.f)
 			m_gcode += set_format_E(e);
-		if (f != 0 && f != m_current_feedrate)
+		if (f != 0.f && f != m_current_feedrate)
 			m_gcode += set_format_F(f);
 		m_gcode += "\n";
 		return *this;
@@ -66,13 +67,15 @@ public:
 		{ return extrude_explicit(dest.x, dest.y, e, f); }
 
 	// Travel to a new XY position. f=0 means use the current value.
-	Writer& travel(float x, float y, float f = 0.f) 
-		{ return extrude_explicit(x, y, 0, f); }
+	Writer& travel(float x, float y, float f = 0.f)
+		{ return extrude_explicit(x, y, 0.f, f); }
 
 	Writer& travel(const WipeTower::xy &dest, float f = 0.f) 
 		{ return extrude_explicit(dest.x, dest.y, 0.f, f); }
 
-	Writer& extrude(float x, float y, float f = 0.f) {
+	// Extrude a line from current position to x, y with the extrusion amount given by m_extrusion_flow.
+	Writer& extrude(float x, float y, float f = 0.f)
+	{
 		float dx = x - m_current_pos.x;
 		float dy = y - m_current_pos.y;
 		return extrude_explicit(x, y, sqrt(dx*dx+dy*dy) * m_extrusion_flow, f);
@@ -83,24 +86,29 @@ public:
 
 	Writer& deretract(float e, float f = 0.f)
 	{
-		if (e == 0 && (f == 0 || f == m_current_feedrate))
+		if (e == 0.f && (f == 0.f || f == m_current_feedrate))
 			return *this;
-		m_gcode += "G1 ";
-		if (e != 0)
+		m_gcode += "G1";
+		if (e != 0.f)
 			m_gcode += set_format_E(e);
-		if (f != 0 && f != m_current_feedrate)
+		if (f != 0.f && f != m_current_feedrate)
 			m_gcode += set_format_F(f);
 		m_gcode += "\n";
 		return *this;
 	}
 
+	// Derectract while moving in the X direction.
+	// If |x| > 0, the feed rate relates to the x distance,
+	// otherwise the feed rate relates to the e distance.
 	Writer& deretract_move_x(float x, float e, float f = 0.f)
 		{ return extrude_explicit(x, m_current_pos.y, e, f); }
 
 	Writer& retract(float e, float f = 0.f)
 		{ return deretract(-e, f); }
 
-	Writer& z_hop(float hop, float f = 0.f) { 
+	// Elevate the extruder head above the current print_z position.
+	Writer& z_hop(float hop, float f = 0.f)
+	{ 
 		m_gcode += std::string("G1") + set_format_Z(m_current_z + hop);
 		if (f != 0 && f != m_current_feedrate)
 			m_gcode += set_format_F(f);
@@ -108,14 +116,20 @@ public:
 		return *this;
 	}
 
+	// Lower the extruder head back to the current print_z position.
+	Writer& z_hop_reset(float hop, float f = 0.f) 
+		{ return z_hop(0, f); }
+
 	// Move to x1, +y_increment,
 	// extrude quickly amount e to x2 with feed f.
-	Writer& ram(float x1, float x2, float dy, float e, float f) {
+	Writer& ram(float x1, float x2, float dy, float e, float f)
+	{
 		return  travel(x1, m_current_pos.y + dy, f)
 			   .extrude_explicit(x2, m_current_pos.y, e);
 	}
 
-	Writer& cool(float x1, float x2, float e1, float e2, float f) {
+	Writer& cool(float x1, float x2, float e1, float e2, float f)
+	{
 		return  extrude_explicit(x1, m_current_pos.y, e1, f)
 			   .extrude_explicit(x2, m_current_pos.y, e2);
 	}
@@ -128,7 +142,7 @@ public:
 		return *this;
 	}
 
-	// Set extruder temperature, don't wait.
+	// Set extruder temperature, don't wait by default.
 	Writer& set_extruder_temp(int temperature, bool wait = false)
 	{
 		char buf[128];
@@ -137,8 +151,9 @@ public:
 		return *this;
 	};
 
-	// Set speed factor override percentage
-	Writer& speed_override(int speed) {
+	// Set speed factor override percentage.
+	Writer& speed_override(int speed) 
+	{
 		char buf[128];
 		sprintf(buf, "M220 S%d\n", speed);
 		m_gcode += buf;
@@ -146,7 +161,7 @@ public:
 	};
 
 	// Set digital trimpot motor
-	Writer& set_extruder_trimpot(int current)
+	Writer& set_extruder_trimpot(int current) 
 	{
 		char buf[128];
 		sprintf(buf, "M907 E%d\n", current);
@@ -154,20 +169,22 @@ public:
 		return *this;
 	};
 
-	Writer& flush_planner_queue() { 
+	Writer& flush_planner_queue() 
+	{ 
 		m_gcode += "G4 S0\n"; 
 		return *this;
 	}
 
 	// Reset internal extruder counter.
-	Writer& reset_extruder() { 
-		m_gcode += "G92 E0.0\n";
+	Writer& reset_extruder()
+	{ 
+		m_gcode += "G92 E0\n";
 		return *this;
 	}
 
 	Writer& comment_with_value(const char *comment, int value)
 	{
-		char strvalue[15];
+		char strvalue[64];
 		sprintf(strvalue, "%d", value);
 		m_gcode += std::string(";") + comment + strvalue + "\n";
 		return *this;
@@ -218,9 +235,9 @@ private:
 		return buf;
 	}
 
-	std::string   set_format_Z(float y) {
+	std::string   set_format_Z(float z) {
 		char buf[64];
-		sprintf(buf, " Z%.3f", y);
+		sprintf(buf, " Z%.3f", z);
 		return buf;
 	}
 
@@ -239,14 +256,6 @@ private:
 };
 
 } // namespace PrusaMultiMaterial
-
-static inline int randi(int lo, int hi)
-{
-	int n = hi - lo + 1;
-	int i = rand() % n;
-	if (i < 0) i = -i;
-	return lo + i;
-}
 
 WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *name)
 {
@@ -277,9 +286,12 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool)
 	// or there must be a nonzero wipe tower partitions available.
 	assert(tool < 0 || it_layer_tools->wipe_tower_partitions > 0);
 
-	if (m_layer_change_in_layer == (unsigned int)(-1))
+	if (m_layer_change_in_layer == (unsigned int)(-1)) {
+		// Mark the brim as extruded.
+		m_layer_change_in_layer = 0;
 		// First layer, prime the extruder.
 		return toolchange_Brim(tool);
+	}
 
 	box_coordinates cleaning_box(
 		m_wipe_tower_pos.x,
@@ -302,7 +314,7 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool)
 		  .retract(m_retract/2, 3600)
 		  .travel(((m_current_shape == SHAPE_NORMAL) ? cleaning_box.ld : cleaning_box.rd) + xy(m_perimeter_width, m_current_shape * m_perimeter_width), 7200)
 		  // Unlift for a Z hop.
-		  .z_hop(0, 7200)
+		  .z_hop_reset(7200)
 		  // Additional retract on move to tower.
 		  .deretract(m_retract/2, 3600)
 		  .deretract(m_retract, 1500)
@@ -357,7 +369,7 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::toolchange_Brim(size_t t
 	// Move with Z hop and prime the extruder 10*m_perimeter_width left along the vertical edge of the wipe tower.
 	writer.z_hop(m_zhop, 7200)
 		  .travel(wipeTower_box.lu - xy(m_perimeter_width * 10.f, 0), 6000)
-		  .z_hop(0, 7200)
+		  .z_hop_reset(7200)
 		  .extrude_explicit(wipeTower_box.ld - xy(m_perimeter_width * 10.f, 0), m_retract, 2400)
 		  .feedrate(2100);
 
@@ -537,12 +549,13 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	float dy = m_current_shape * m_perimeter_width * 0.7f;
 	for (bool p = true; ; p = ! p) {
 		writer.feedrate((wipe_speed = std::min(4800.f, wipe_speed + 50.f)) * wipe_coeff);
-		if (p)
-			writer.extrude(xl - m_perimeter_width/2, writer.y() + dy)
-			      .extrude(xr + m_perimeter_width,   writer.y());
-		else
-			writer.extrude(xl - m_perimeter_width,   writer.y() + dy)
-				  .extrude(xr + m_perimeter_width*2, writer.y());
+		if (p) {
+			writer.extrude(xl - m_perimeter_width / 2, writer.y() + dy);
+			writer.extrude(xr + m_perimeter_width, writer.y());
+		} else {
+			writer.extrude(xl - m_perimeter_width, writer.y() + dy);
+			writer.extrude(xr + m_perimeter_width*2, writer.y());
+		}
 		writer.feedrate((wipe_speed = std::min(4800.f, wipe_speed + 50.f)) * wipe_coeff)
 			  .extrude(xr + m_perimeter_width, writer.y() + dy)
 			  .extrude(xl - m_perimeter_width, writer.y());
@@ -602,8 +615,8 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::close_layer()
 		// Jump with retract to _p.ld + a random shift in +x.
 		writer.retract(m_retract * 1.5f, 3600)
 			  .z_hop(m_zhop, 7200)
-			  .travel(_p.ld.x + randi(5, 20), _p.ld.y, 7000)
-			  .z_hop(0, 7200)
+			  .travel(_p.ld.x + 5.f + 15.f * float(rand()) / RAND_MAX, _p.ld.y, 7000)
+			  .z_hop_reset(7200)
 			  .extrude_explicit(_p.ld, m_retract * 1.5f, 3600);
 
 	box_coordinates box = _p;
