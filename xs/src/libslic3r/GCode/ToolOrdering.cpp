@@ -208,7 +208,7 @@ unsigned int first_extruder(const std::vector<LayerTools> &layer_tools)
 
 unsigned int last_extruder(const std::vector<LayerTools> &layer_tools)
 {
-    for (auto lt_it = layer_tools.rend(); lt_it != layer_tools.rbegin(); ++ lt_it)
+    for (auto lt_it = layer_tools.rbegin(); lt_it != layer_tools.rend(); ++ lt_it)
         if (! lt_it->extruders.empty())
             return lt_it->extruders.back();
     return (unsigned int)-1;

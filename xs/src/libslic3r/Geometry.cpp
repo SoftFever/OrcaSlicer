@@ -211,24 +211,27 @@ convex_hull(Points points)
     
     int n = points.size(), k = 0;
     Polygon hull;
-    hull.points.resize(2*n);
 
-    // Build lower hull
-    for (int i = 0; i < n; i++) {
-        while (k >= 2 && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
-        hull.points[k++] = points[i];
+    if (n >= 3) {
+        hull.points.resize(2*n);
+
+        // Build lower hull
+        for (int i = 0; i < n; i++) {
+            while (k >= 2 && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
+            hull.points[k++] = points[i];
+        }
+
+        // Build upper hull
+        for (int i = n-2, t = k+1; i >= 0; i--) {
+            while (k >= t && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
+            hull.points[k++] = points[i];
+        }
+
+        hull.points.resize(k);
+        
+        assert( hull.points.front().coincides_with(hull.points.back()) );
+        hull.points.pop_back();
     }
-
-    // Build upper hull
-    for (int i = n-2, t = k+1; i >= 0; i--) {
-        while (k >= t && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
-        hull.points[k++] = points[i];
-    }
-
-    hull.points.resize(k);
-    
-    assert( hull.points.front().coincides_with(hull.points.back()) );
-    hull.points.pop_back();
     
     return hull;
 }

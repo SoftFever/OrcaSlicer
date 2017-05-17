@@ -297,21 +297,28 @@ bool GCode::do_export(FILE *file, Print &print)
     // For a print by objects, find the 1st printing object.
     std::vector<ToolOrdering::LayerTools> tool_ordering;
     unsigned int                          initial_extruder_id = (unsigned int)-1;
+    unsigned int                          final_extruder_id   = (unsigned int)-1;
     size_t                                initial_print_object_id = 0;
     if (print.config.complete_objects.value) {
 		// Find the 1st printing object, find its tool ordering and the initial extruder ID.
-		for (; initial_print_object_id < print.objects.size() && initial_extruder_id == (unsigned int)-1; ++initial_print_object_id) {
+		for (; initial_print_object_id < print.objects.size(); ++initial_print_object_id) {
 			tool_ordering = ToolOrdering::tool_ordering(*print.objects[initial_print_object_id], initial_extruder_id);
-			initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
+			if ((initial_extruder_id = ToolOrdering::first_extruder(tool_ordering)) != (unsigned int)-1)
+				break;
 		}
 	} else {
 		// Find tool ordering for all the objects at once, and the initial extruder ID.
 		tool_ordering = ToolOrdering::tool_ordering(print, initial_extruder_id);
 		initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
     }
-    if (initial_extruder_id == (unsigned int)-1)
+    if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
         initial_extruder_id = 0;
+        final_extruder_id   = 0;
+    } else {
+        final_extruder_id = ToolOrdering::last_extruder(tool_ordering);
+        assert(final_extruder_id != (unsigned int)-1);
+    }
 
     // Set extruder(s) temperature before and after start G-code.
     this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
@@ -392,12 +399,14 @@ bool GCode::do_export(FILE *file, Print &print)
                 // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
                 if (object_id != initial_print_object_id || &copy != object._shifted_copies.data()) {
                     // Don't initialize for the first object and first copy.
-                    tool_ordering = ToolOrdering::tool_ordering(object, initial_extruder_id);
+                    tool_ordering = ToolOrdering::tool_ordering(object, final_extruder_id);
                     unsigned int new_extruder_id = ToolOrdering::first_extruder(tool_ordering);
                     if (new_extruder_id == (unsigned int)-1)
                         // Skip this object.
                         continue;
                     initial_extruder_id = new_extruder_id;
+                    final_extruder_id   = ToolOrdering::last_extruder(tool_ordering);
+                    assert(final_extruder_id != (unsigned int)-1);
                 }
                 this->set_origin(unscale(copy.x), unscale(copy.y));
                 if (finished_objects > 0) {
