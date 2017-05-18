@@ -140,7 +140,7 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
     return gcode;
 }
 
-WipeTowerIntegration::WipeTowerIntegration(const PrintConfig &print_config)
+WipeTowerIntegration::WipeTowerIntegration(const PrintConfig &print_config) : m_brim_done(false)
 {
     // Initialize the wipe tower.
     auto *wipe_tower = new WipeTowerPrusaMM(
@@ -164,7 +164,7 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
     bool over_wipe_tower = false;
     std::string gcode;
     
-    if (gcodegen.writer().need_toolchange(extruder_id)) {
+    if (! m_brim_done || gcodegen.writer().need_toolchange(extruder_id)) {
         // Move over the wipe tower.
         gcode += this->travel_to(gcodegen, m_impl->tool_change(extruder_id, WipeTower::PURPOSE_MOVE_TO_TOWER).second);
         // Let the tool change be executed by the wipe tower class.
@@ -177,6 +177,7 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
         gcodegen.writer().travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
         gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
         over_wipe_tower = true;
+        m_brim_done = true;
     }
 
     if (finish_layer && ! m_impl->layer_finished()) {

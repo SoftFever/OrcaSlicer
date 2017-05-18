@@ -85,6 +85,7 @@ public:
 private:
     std::string travel_to(GCode &codegen, const WipeTower::xy &dest);
     std::unique_ptr<WipeTower> m_impl;
+    bool                       m_brim_done;
 };
 
 class GCode {
