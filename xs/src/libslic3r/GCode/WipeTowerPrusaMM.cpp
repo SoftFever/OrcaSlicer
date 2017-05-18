@@ -474,7 +474,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 		break;
 	default:
 	{
-		float e = xr - xl * m_extrusion_flow;
+		float e = (xr - xl) * m_extrusion_flow;
 		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 1.6f  * e, 4000)
 			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.2f, 1.65f * e, 4600)
 			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, 1.74f * e, 5200);
