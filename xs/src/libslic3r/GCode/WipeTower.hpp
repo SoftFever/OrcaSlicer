@@ -46,13 +46,19 @@ public:
 		// Is this the last layer of the wipe tower?
 		bool   is_last_layer) = 0;
 
+	enum Purpose {
+		PURPOSE_MOVE_TO_TOWER,
+		PURPOSE_EXTRUDE,
+		PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE,
+	};
+
 	// Returns gcode for toolchange and the end position.
 	// if new_tool == -1, just unload the current filament over the wipe tower.
-	virtual std::pair<std::string, xy> tool_change(int new_tool) = 0;
+	virtual std::pair<std::string, xy> tool_change(int new_tool, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.
-	virtual std::pair<std::string, xy> finish_layer() = 0;
+	virtual std::pair<std::string, xy> finish_layer(Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
 
 	// Is the current layer finished? A layer is finished if either the wipe tower is finished, or
 	// the wipe tower has been completely covered by the tool change extrusions,

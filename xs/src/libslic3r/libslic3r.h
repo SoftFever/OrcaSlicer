@@ -17,6 +17,9 @@
 #define SLIC3R_VERSION "1.33.8.devel"
 #define SLIC3R_BUILD "UNKNOWN"
 
+typedef long coord_t;
+typedef double coordf_t;
+
 //FIXME This epsilon value is used for many non-related purposes:
 // For a threshold of a squared Euclidean distance,
 // for a trheshold in a difference of radians,
@@ -39,12 +42,11 @@
 // 3mm ring around the top / bottom / bridging areas.
 //FIXME This is quite a lot.
 #define EXTERNAL_INFILL_MARGIN 3.
+//FIXME Better to use an inline function with an explicit return type.
+//inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
 #define unscale(val) ((val) * SCALING_FACTOR)
 #define SCALED_EPSILON scale_(EPSILON)
-typedef long coord_t;
-typedef double coordf_t;
-
 /* Implementation of CONFESS("foo"): */
 #ifdef _MSC_VER
 	#define CONFESS(...) confess_at(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)

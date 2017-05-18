@@ -23,12 +23,12 @@ public:
         GCodeLine(GCodeReader* _reader) : reader(_reader) {};
         
         bool has(char arg) const { return this->args.count(arg) > 0; };
-        float get_float(char arg) const { return atof(this->args.at(arg).c_str()); };
-        float new_X() const { return this->has('X') ? atof(this->args.at('X').c_str()) : this->reader->X; };
-        float new_Y() const { return this->has('Y') ? atof(this->args.at('Y').c_str()) : this->reader->Y; };
-        float new_Z() const { return this->has('Z') ? atof(this->args.at('Z').c_str()) : this->reader->Z; };
-        float new_E() const { return this->has('E') ? atof(this->args.at('E').c_str()) : this->reader->E; };
-        float new_F() const { return this->has('F') ? atof(this->args.at('F').c_str()) : this->reader->F; };
+        float get_float(char arg) const { return float(atof(this->args.at(arg).c_str())); };
+        float new_X() const { return this->has('X') ? float(atof(this->args.at('X').c_str())) : this->reader->X; };
+        float new_Y() const { return this->has('Y') ? float(atof(this->args.at('Y').c_str())) : this->reader->Y; };
+        float new_Z() const { return this->has('Z') ? float(atof(this->args.at('Z').c_str())) : this->reader->Z; };
+        float new_E() const { return this->has('E') ? float(atof(this->args.at('E').c_str())) : this->reader->E; };
+        float new_F() const { return this->has('F') ? float(atof(this->args.at('F').c_str())) : this->reader->F; };
         float dist_X() const { return this->new_X() - this->reader->X; };
         float dist_Y() const { return this->new_Y() - this->reader->Y; };
         float dist_Z() const { return this->new_Z() - this->reader->Z; };

@@ -140,6 +140,90 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
     return gcode;
 }
 
+WipeTowerIntegration::WipeTowerIntegration(const PrintConfig &print_config)
+{
+    // Initialize the wipe tower.
+    auto *wipe_tower = new WipeTowerPrusaMM(
+            float(print_config.wipe_tower_x.value), float(print_config.wipe_tower_y.value), 
+            float(print_config.wipe_tower_width.value), float(print_config.wipe_tower_per_color_wipe.value));
+    //wipe_tower->set_retract();
+    //wipe_tower->set_zhop();
+    //wipe_tower->set_zhop();
+    // Set the extruder & material properties at the wipe tower object.
+    for (size_t i = 0; i < 4; ++ i)
+        wipe_tower->set_extruder(
+            i, 
+            WipeTowerPrusaMM::parse_material(print_config.filament_type.get_at(i).c_str()),
+            print_config.temperature.get_at(i),
+            print_config.first_layer_temperature.get_at(i));
+    m_impl.reset(wipe_tower);
+}
+
+std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer)
+{
+    bool over_wipe_tower = false;
+    std::string gcode;
+    
+    if (gcodegen.writer().need_toolchange(extruder_id)) {
+        // Move over the wipe tower.
+        gcode += this->travel_to(gcodegen, m_impl->tool_change(extruder_id, WipeTower::PURPOSE_MOVE_TO_TOWER).second);
+        // Let the tool change be executed by the wipe tower class.
+        std::pair<std::string, WipeTower::xy> code_and_pos = m_impl->tool_change(extruder_id, WipeTower::PURPOSE_EXTRUDE);
+        // Inform the G-code writer about the changes done behind its back.
+        gcode += code_and_pos.first;
+        // Let the m_writer know the current extruder_id, but ignore the generated G-code.
+        gcodegen.writer().toolchange(extruder_id);
+        // A phony move to the end position at the wipe tower.
+        gcodegen.writer().travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
+        gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
+        over_wipe_tower = true;
+    }
+
+    if (finish_layer && ! m_impl->layer_finished()) {
+        // Last extruder change on the layer or no extruder change at all.
+        if (! over_wipe_tower)
+            gcode += this->travel_to(gcodegen, m_impl->finish_layer(WipeTower::PURPOSE_MOVE_TO_TOWER).second);
+        // Let the tool change be executed by the wipe tower class.
+        std::pair<std::string, WipeTower::xy> code_and_pos = m_impl->finish_layer(WipeTower::PURPOSE_EXTRUDE);
+        // Inform the G-code writer about the changes done behind its back.
+        gcode += code_and_pos.first;
+        // A phony move to the end position at the wipe tower.
+        gcodegen.writer().travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
+        gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
+    }
+
+    return gcode;
+}
+
+// Print is finished. Now it remains to unload the filament safely with ramming over the wipe tower.
+std::string WipeTowerIntegration::finalize(GCode &gcodegen, const Print &print, bool current_layer_full)
+{
+    std::string gcode;
+    // Unload the current filament over the purge tower.
+    if (current_layer_full) {
+        // There is not enough space on the wipe tower to purge the nozzle into. Lift Z to the next layer.
+        coordf_t new_print_z = gcodegen.writer().get_position().z + print.objects.front()->config.layer_height.value;
+        gcode += gcodegen.change_layer(new_print_z);
+        m_impl->set_layer(float(new_print_z), float(print.objects.front()->config.layer_height.value), 0, false, true);
+    }
+    gcode += this->tool_change(gcodegen, -1, false);
+    m_impl.release();
+    return gcode;
+}
+
+std::string WipeTowerIntegration::travel_to(GCode &gcodegen, const WipeTower::xy &dest)
+{
+    // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
+    std::string gcode = gcodegen.retract(true);
+    gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
+    gcode += gcodegen.travel_to(
+        Point(scale_(dest.x - gcodegen.origin().x), scale_(dest.y - gcodegen.origin().y)), 
+        erMixed,
+        "Travel to a Wipe Tower");
+    gcode += gcodegen.unretract();
+    return gcode;
+}
+
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id)
 
 inline void write(FILE *file, const std::string &what)
@@ -484,23 +568,8 @@ bool GCode::do_export(FILE *file, Print &print)
         }
         // Prusa Multi-Material wipe tower.
         if (print.config.single_extruder_multi_material.value && print.config.wipe_tower.value && 
-            ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0) {
-            // Initialize the wipe tower.
-            auto *wipe_tower = new WipeTowerPrusaMM(
-                    float(print.config.wipe_tower_x.value), float(print.config.wipe_tower_y.value), 
-                    float(print.config.wipe_tower_width.value), float(print.config.wipe_tower_per_color_wipe.value));
-            //wipe_tower->set_retract();
-            //wipe_tower->set_zhop();
-            //wipe_tower->set_zhop();
-            // Set the extruder & material properties at the wipe tower object.
-            for (size_t i = 0; i < 4; ++ i)
-                wipe_tower->set_extruder(
-                    i, 
-                    WipeTowerPrusaMM::parse_material(print.config.filament_type.get_at(i).c_str()),
-                    print.config.temperature.get_at(i),
-                    print.config.first_layer_temperature.get_at(i));
-            m_wipe_tower.reset(wipe_tower);
-        }
+            ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0)
+            m_wipe_tower.reset(new WipeTowerIntegration(print.config));
         // Extrude the layers.
         for (auto &layer : layers) {
             // layer.second is of type std::vector<LayerToPrint>,
@@ -526,17 +595,9 @@ bool GCode::do_export(FILE *file, Print &print)
     }
 
     // write end commands to file
-    if (m_wipe_tower) {
-        // Unload the current filament over the purge tower.
-        if (tool_ordering.back().wipe_tower_partitions > 0 && m_wipe_tower->layer_finished()) {
-            // There is not enough space on the wipe tower to purge the nozzle into. Lift Z to the next layer.
-            coordf_t new_print_z = tool_ordering.back().print_z + print.objects.front()->config.layer_height.value;
-            write(file, this->change_layer(new_print_z));
-            m_wipe_tower->set_layer(new_print_z, print.objects.front()->config.layer_height.value, 0, false, true);
-        }
-        write(file, this->wipe_tower_tool_change(-1));
-        m_wipe_tower.release();
-    } else
+    if (m_wipe_tower)
+        write(file, m_wipe_tower->finalize(*this, print, tool_ordering.back().wipe_tower_partitions > 0 && m_wipe_tower->layer_finished()));
+    else
         write(file, this->retract());   // TODO: process this retract through PressureRegulator in order to discharge fully
     write(file, m_writer.set_fan(false));
     writeln(file, m_placeholder_parser.process(print.config.end_gcode));
@@ -711,33 +772,22 @@ void GCode::process_layer(
         gcode += pp.process(print.config.layer_gcode.value) + "\n";
     }
 
-    // Trigger the tool change explicitely to draw the wipe tower brim always.
-    bool wipe_tower_extrude_brim_explicit = m_wipe_tower && ! m_wipe_tower->finished() && first_layer && m_writer.extruder()->id == first_extruder_id;
-
     if (! first_layer && ! m_second_layer_things_done) {
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // first_layer_temperature vs. temperature settings.
-        if (print.config.single_extruder_multi_material.value) {
-            // Switch the extruder before setting the 2nd layer temperature.
-            this->set_extruder(first_extruder_id);
-            int temperature = print.config.temperature.get_at(first_extruder_id);
-            if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(m_writer.extruder()->id))
-                gcode += m_writer.set_temperature(temperature, false, first_extruder_id);
-        } else {
-            for (const Extruder &extruder : m_writer.extruders) {
-                int temperature = print.config.temperature.get_at(extruder.id);
-                if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id))
-                    gcode += m_writer.set_temperature(temperature, false, extruder.id);
-            }
+        for (const Extruder &extruder : m_writer.extruders) {
+            if (print.config.single_extruder_multi_material.value && extruder.id != m_writer.extruder()->id)
+                // In single extruder multi material mode, set the temperature for the current extruder only.
+                continue;
+            int temperature = print.config.temperature.get_at(extruder.id);
+            if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id))
+                gcode += m_writer.set_temperature(temperature, false, extruder.id);
         }
         if (print.config.bed_temperature.value > 0 && print.config.bed_temperature != print.config.first_layer_bed_temperature.value)
             gcode += m_writer.set_bed_temperature(print.config.bed_temperature);
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
     }
-
-    if (wipe_tower_extrude_brim_explicit)
-        gcode += this->wipe_tower_tool_change(first_extruder_id);
 
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
@@ -913,21 +963,10 @@ void GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     std::vector<std::unique_ptr<EdgeGrid::Grid>> lower_layer_edge_grids(layers.size());
     for (unsigned int extruder_id : layer_tools.extruders)
-    {
-        gcode += this->set_extruder(extruder_id);
-        if (m_wipe_tower && ! m_wipe_tower->layer_finished() && extruder_id == layer_tools.extruders.back()) {
-            // Last extruder change on the layer or no extruder change at all.
-            // Move over the wipe tower.
-            gcode += m_writer.travel_to_xy(Pointf3(m_wipe_tower->position().x, m_wipe_tower->position().y));
-            gcode += m_writer.unlift();
-            gcode += m_writer.unretract();
-            // Let the tool change be executed by the wipe tower class.
-            std::pair<std::string, WipeTower::xy> code_and_pos = m_wipe_tower->finish_layer();
-            // Inform the G-code writer about the changes done behind its back.
-            gcode += code_and_pos.first;
-            // A phony move to the end position at the wipe tower.
-            m_writer.travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
-        }
+    {   
+        gcode += m_wipe_tower ? 
+            m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back()) :
+            this->set_extruder(extruder_id);
 
         if (extrude_skirt) {
             auto loops_it = skirt_loops_per_extruder.find(extruder_id);
@@ -1317,7 +1356,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (m_layer->lower_layer != nullptr && lower_layer_edge_grid != nullptr) {
         if (! *lower_layer_edge_grid) {
             // Create the distance field for a layer below.
-            const coord_t distance_field_resolution = scale_(1.f);
+            const coord_t distance_field_resolution = coord_t(scale_(1.) + 0.5);
             *lower_layer_edge_grid = make_unique<EdgeGrid::Grid>();
             (*lower_layer_edge_grid)->create(m_layer->lower_layer->slices, distance_field_resolution);
             (*lower_layer_edge_grid)->calculate_sdf();
@@ -1381,7 +1420,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
         // For each polygon point, store a penalty.
         // First calculate the angles, store them as penalties. The angles are caluculated over a minimum arm length of nozzle_r.
-        std::vector<float> penalties = polygon_angles_at_vertices(polygon, lengths, nozzle_r);
+        std::vector<float> penalties = polygon_angles_at_vertices(polygon, lengths, float(nozzle_r));
         // No penalty for reflex points, slight penalty for convex points, high penalty for flat surfaces.
         const float penaltyConvexVertex = 1.f;
         const float penaltyFlatSurface  = 5.f;
@@ -1558,7 +1597,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             paths.front().polyline.points[0],
             paths.front().polyline.points[1]
         );
-        double distance = std::min(
+        double distance = std::min<double>(
             scale_(EXTRUDER_CONFIG(nozzle_diameter)),
             first_segment.length()
         );
@@ -1791,8 +1830,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 }
 
 // This method accepts &point in print coordinates.
-std::string
-GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
+std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
 {    
     /*  Define the travel move as a line between current position and the taget point.
         This is expressed in print coordinates, so it will need to be translated by
@@ -1924,39 +1962,16 @@ std::string GCode::set_extruder(unsigned int extruder_id)
         gcode += pp.process(m_config.toolchange_gcode.value) + '\n';
     }
     
-    if (m_wipe_tower) {
-        assert(! m_wipe_tower->finished());
-        if (! m_wipe_tower->finished())
-            gcode += this->wipe_tower_tool_change(extruder_id);
-    } else {
-        // if ooze prevention is enabled, park current extruder in the nearest
-        // standby point and set it to the standby temperature
-        if (m_ooze_prevention.enable && m_writer.extruder() != NULL)
-            gcode += m_ooze_prevention.pre_toolchange(*this);
-        // append the toolchange command
-        gcode += m_writer.toolchange(extruder_id);
-        // set the new extruder to the operating temperature
-        if (m_ooze_prevention.enable)
-            gcode += m_ooze_prevention.post_toolchange(*this);
-    }
+    // if ooze prevention is enabled, park current extruder in the nearest
+    // standby point and set it to the standby temperature
+    if (m_ooze_prevention.enable && m_writer.extruder() != NULL)
+        gcode += m_ooze_prevention.pre_toolchange(*this);
+    // append the toolchange command
+    gcode += m_writer.toolchange(extruder_id);
+    // set the new extruder to the operating temperature
+    if (m_ooze_prevention.enable)
+        gcode += m_ooze_prevention.post_toolchange(*this);
     
-    return gcode;
-}
-
-std::string GCode::wipe_tower_tool_change(int extruder_id)
-{
-    // Move over the wipe tower.
-    std::string gcode = m_writer.travel_to_xy(Pointf3(m_wipe_tower->position().x, m_wipe_tower->position().y));
-    gcode += m_writer.unlift();
-    gcode += m_writer.unretract();
-    // Let the tool change be executed by the wipe tower class.
-    std::pair<std::string, WipeTower::xy> code_and_pos = m_wipe_tower->tool_change(extruder_id);
-    // Inform the G-code writer about the changes done behind its back.
-    gcode += code_and_pos.first;
-	// Let the m_writer know the current extruder_id, but ignore the generated G-code.
-	m_writer.toolchange(extruder_id);
-    // A phony move to the end position at the wipe tower.
-    m_writer.travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
     return gcode;
 }
 
@@ -1966,8 +1981,16 @@ Pointf GCode::point_to_gcode(const Point &point) const
     Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return Pointf(
         unscale(point.x) + m_origin.x - extruder_offset.x,
-        unscale(point.y) + m_origin.y - extruder_offset.y
-    );
+        unscale(point.y) + m_origin.y - extruder_offset.y);
+}
+
+// convert a model-space scaled point into G-code coordinates
+Point GCode::gcode_to_point(const Pointf &point) const
+{
+    Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
+    return Point(
+        scale_(point.x - m_origin.x + extruder_offset.x),
+        scale_(point.y - m_origin.y + extruder_offset.y));
 }
 
 }

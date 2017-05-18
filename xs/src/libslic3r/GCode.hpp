@@ -73,6 +73,20 @@ public:
     std::string wipe(GCode &gcodegen, bool toolchange = false);
 };
 
+class WipeTowerIntegration {
+public:
+    WipeTowerIntegration(const PrintConfig &config);
+    void set_layer(coordf_t print_z, coordf_t layer_height, size_t max_tool_changes, bool is_first_layer, bool is_last_layer)
+        { m_impl->set_layer(float(print_z), float(layer_height), max_tool_changes, is_first_layer, is_last_layer); }
+    bool layer_finished() const { return m_impl->layer_finished(); }
+    std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
+    std::string finalize(GCode &gcodegen, const Print &print, bool current_layer_full);
+
+private:
+    std::string travel_to(GCode &codegen, const WipeTower::xy &dest);
+    std::unique_ptr<WipeTower> m_impl;
+};
+
 class GCode {
 public:        
     GCode() : 
@@ -101,6 +115,7 @@ public:
     void            set_origin(const coordf_t x, const coordf_t y) { this->set_origin(Pointf(x, y)); }
     const Point&    last_pos() const { return m_last_pos; }
     Pointf          point_to_gcode(const Point &point) const;
+    Point           gcode_to_point(const Pointf &point) const;
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
@@ -114,7 +129,7 @@ public:
     void            set_elapsed_time(float value) { m_elapsed_time = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
-private:
+protected:
     // Object and support extrusions of the same PrintObject at the same print_z.
     struct LayerToPrint
     {
@@ -175,7 +190,6 @@ private:
     std::string     retract(bool toolchange = false);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id);
-    std::string     wipe_tower_tool_change(int extruder_id);
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
@@ -222,7 +236,7 @@ private:
     std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
-    std::unique_ptr<WipeTower>          m_wipe_tower;
+    std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     // Heights at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;
@@ -251,6 +265,8 @@ private:
         size_t                                                  object_idx, 
         size_t                                                  num_objects,
         size_t                                                  num_islands);
+
+    friend class WipeTowerIntegration;
 };
 
 }
