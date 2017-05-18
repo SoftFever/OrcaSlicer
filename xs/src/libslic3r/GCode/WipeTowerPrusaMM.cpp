@@ -334,6 +334,8 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool, Pu
 	}
 
 	if (purpose == PURPOSE_EXTRUDE || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
+		// Increase the extruder driver current to allow fast ramming.
+		writer.set_extruder_trimpot(750);
 		// Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
 		toolchange_Unload(writer, cleaning_box, m_current_material,
 			m_is_first_layer ? m_first_layer_temperature[tool]  : m_temperature[tool]);
