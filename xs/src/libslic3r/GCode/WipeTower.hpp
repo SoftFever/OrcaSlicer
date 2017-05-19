@@ -30,6 +30,9 @@ public:
 	// Return the wipe tower position.
 	virtual const xy& position() const = 0;
 
+	// Return the wipe tower width.
+	virtual float     width() const = 0;
+
 	// The wipe tower is finished, there should be no more tool changes or wipe tower prints.
 	virtual bool 	  finished() const = 0;
 

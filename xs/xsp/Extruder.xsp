@@ -38,8 +38,6 @@
         %code%{ RETVAL = THIS->restart_extra = val; %};
     double e_per_mm3()
         %code%{ RETVAL = THIS->e_per_mm3; %};
-    double retract_speed_mm_min()
-        %code%{ RETVAL = THIS->retract_speed_mm_min; %};
     
     double filament_diameter();
     double filament_density();

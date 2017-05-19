@@ -95,6 +95,13 @@ ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def) {
     } else if (def.type == coPercent) {
         const ConfigOptionPercent* optv = dynamic_cast<const ConfigOptionPercent*>(&opt);
         return newSVnv(optv->value);
+    } else if (def.type == coPercents) {
+        const ConfigOptionPercents* optv = dynamic_cast<const ConfigOptionPercents*>(&opt);
+        AV* av = newAV();
+        av_fill(av, optv->values.size()-1);
+        for (const double &v : optv->values)
+            av_store(av, &v - &optv->values.front(), newSVnv(v));
+        return newRV_noinc((SV*)av);
     } else if (def.type == coInt) {
         const ConfigOptionInt* optv = dynamic_cast<const ConfigOptionInt*>(&opt);
         return newSViv(optv->value);
@@ -148,7 +155,7 @@ ConfigBase__get_at(ConfigBase* THIS, const t_config_option_key &opt_key, size_t 
     if (opt == NULL) return &PL_sv_undef;
     
     const ConfigOptionDef* def = THIS->def->get(opt_key);
-    if (def->type == coFloats) {
+    if (def->type == coFloats || def->type == coPercents) {
         ConfigOptionFloats* optv = dynamic_cast<ConfigOptionFloats*>(opt);
         return newSVnv(optv->get_at(i));
     } else if (def->type == coInts) {
@@ -182,6 +189,17 @@ ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* value)
         optv->value = SvNV(value);
     } else if (def->type == coFloats) {
         ConfigOptionFloats* optv = dynamic_cast<ConfigOptionFloats*>(opt);
+        std::vector<double> values;
+        AV* av = (AV*)SvRV(value);
+        const size_t len = av_len(av)+1;
+        for (size_t i = 0; i < len; i++) {
+            SV** elem = av_fetch(av, i, 0);
+            if (elem == NULL || !looks_like_number(*elem)) return false;
+            values.push_back(SvNV(*elem));
+        }
+        optv->values = values;
+    } else if (def->type == coPercents) {
+        ConfigOptionPercents* optv = dynamic_cast<ConfigOptionPercents*>(opt);
         std::vector<double> values;
         AV* av = (AV*)SvRV(value);
         const size_t len = av_len(av)+1;

@@ -106,7 +106,7 @@ print_config_def()
             const char* opt_type;
             if (optdef->type == coFloat || optdef->type == coFloats || optdef->type == coFloatOrPercent) {
                 opt_type = "f";
-            } else if (optdef->type == coPercent) {
+            } else if (optdef->type == coPercent || optdef->type == coPercents) {
                 opt_type = "percent";
             } else if (optdef->type == coInt || optdef->type == coInts) {
                 opt_type = "i";

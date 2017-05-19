@@ -348,11 +348,24 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool, Pu
 			// Wipe the newly loaded filament until the end of the assigned wipe area.
 			toolchange_Wipe(writer, cleaning_box);
 			// Draw a perimeter around cleaning_box and wipe.
-			toolchange_Done(writer, cleaning_box);
+			box_coordinates box = cleaning_box;
+			if (m_current_shape == SHAPE_REVERSED) {
+				std::swap(box.lu, box.ld);
+				std::swap(box.ru, box.rd);
+			}
+			// Draw a perimeter around cleaning_box.
+			writer.travel(box.lu, 7000)
+				  .extrude(box.ld, 3200).extrude(box.rd)
+				  .extrude(box.ru).extrude(box.lu);
+			// Wipe the nozzle.
+			if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
+				writer.travel(box.ru, 7200)
+			  		  .travel(box.lu);
 		}
 
 		// Reset the extruder current to a normal value.
 		writer.set_extruder_trimpot(550)
+			  .feedrate(6000)
 			  .flush_planner_queue()
 			  .reset_extruder()
 			  .append("; CP TOOLCHANGE END\n"
@@ -423,11 +436,15 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::toolchange_Brim(Purpose 
 			}
 		}
 
-		// Move to the front left corner and wipe along the front edge.
-		writer.travel(wipeTower_box.ld, 7000)
-			  .travel(wipeTower_box.rd)
-			  .travel(wipeTower_box.ld)
-			  .append("; CP WIPE TOWER FIRST LAYER BRIM END\n"
+		// Move to the front left corner.
+		writer.travel(wipeTower_box.ld, 7000);
+
+		if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
+			// Wipe along the front edge.
+			writer.travel(wipeTower_box.rd)
+			      .travel(wipeTower_box.ld);
+			  
+	    writer.append("; CP WIPE TOWER FIRST LAYER BRIM END\n"
 				      ";-----------------------------------\n");
 
 		// Mark the brim as extruded.
@@ -616,26 +633,6 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	writer.set_extrusion_flow(m_extrusion_flow);
 }
 
-// Draw a perimeter around cleaning_box and wipe.
-void WipeTowerPrusaMM::toolchange_Done(
-	PrusaMultiMaterial::Writer &writer,
-	const box_coordinates 	&cleaning_box)
-{
-	box_coordinates box = cleaning_box;
-	if (m_current_shape == SHAPE_REVERSED) {
-		std::swap(box.lu, box.ld);
-		std::swap(box.ru, box.rd);
-	}
-	// Draw a perimeter around cleaning_box.
-	writer.travel(box.lu, 7000)
-		  .extrude(box.ld, 3200).extrude(box.rd)
-		  .extrude(box.ru).extrude(box.lu)
-		  // Wipe the nozzle.
-		  .travel(box.ru, 7200)
-		  .travel(box.lu)
-		  .feedrate(6000);
-}
-
 std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::finish_layer(Purpose purpose)
 {
 	// This should only be called if the layer is not finished yet.
@@ -720,11 +717,16 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::finish_layer(Purpose pur
 		writer.extrude(fill_box.ru + xy(- m_perimeter_width * 6, - m_perimeter_width), 2900 * speed_factor)
 			  .extrude(fill_box.ru + xy(- m_perimeter_width * 3, - m_perimeter_width))
 			  .extrude(fill_box.rd + xy(- m_perimeter_width * 3,   m_perimeter_width))
-			  .extrude(fill_box.rd + xy(- m_perimeter_width,       m_perimeter_width))
-	       	  // Wipe along the front side of the current wiping box.
-			  .travel(fill_box.ld + xy(  m_perimeter_width, m_perimeter_width / 2), 7200)
-			  .travel(fill_box.rd + xy(- m_perimeter_width, m_perimeter_width / 2))
-			  .append("; CP EMPTY GRID END\n"
+			  .extrude(fill_box.rd + xy(- m_perimeter_width,       m_perimeter_width));
+
+		if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
+	       	// Wipe along the front side of the current wiping box.
+			writer.travel(fill_box.ld + xy(  m_perimeter_width, m_perimeter_width / 2), 7200)
+			  	  .travel(fill_box.rd + xy(- m_perimeter_width, m_perimeter_width / 2));
+		else
+			writer.feedrate(7200);
+
+		writer.append("; CP EMPTY GRID END\n"
 				      ";------------------\n\n\n\n\n\n\n");
 
 		// Indicate that this wipe tower layer is fully covered.

@@ -105,6 +105,8 @@ public:
 
 	// Return the wipe tower position.
 	virtual const xy& 				   position() const { return m_wipe_tower_pos; }
+	// Return the wipe tower width.
+	virtual float     				   width()    const { return m_wipe_tower_width; }
 	// The wipe tower is finished, there should be no more tool changes or wipe tower prints.
 	virtual bool 	  				   finished() const { return m_max_color_changes == 0; }
 
@@ -228,10 +230,6 @@ private:
 		PrusaMultiMaterial::Writer &writer,
 		const box_coordinates  &cleaning_box);
 	
-	void toolchange_Done(
-		PrusaMultiMaterial::Writer &writer,
-		const box_coordinates  &cleaning_box);
-
 	void toolchange_Perimeter();
 };
 

@@ -27,6 +27,8 @@ static void collect_extruders(const PrintObject &object, std::vector<LayerTools>
             it_layer->extruders.push_back(extruder_support);
         if (has_interface)
             it_layer->extruders.push_back(extruder_interface);
+        if (has_support || has_interface)
+            it_layer->has_support = true;
     }
     // Collect the object extruders.
     for (auto layer : object.layers) {
@@ -38,9 +40,11 @@ static void collect_extruders(const PrintObject &object, std::vector<LayerTools>
             if (layerm == nullptr)
                 continue;
             const PrintRegion &region = *object.print()->regions[region_id];
-            if (! layerm->perimeters.entities.empty())
+            if (! layerm->perimeters.entities.empty()) {
                 it_layer->extruders.push_back(region.config.perimeter_extruder.value);
-            bool has_infill       = false; 
+                it_layer->has_object = true;
+            }
+            bool has_infill       = false;
             bool has_solid_infill = false;
             for (const ExtrusionEntity *ee : layerm->fills.entities) {
                 // fill represents infill extrusions of a single island.
@@ -55,6 +59,8 @@ static void collect_extruders(const PrintObject &object, std::vector<LayerTools>
                 it_layer->extruders.push_back(region.config.solid_infill_extruder);
             if (has_infill)
                 it_layer->extruders.push_back(region.config.infill_extruder);
+            if (has_solid_infill || has_infill)
+                it_layer->has_object = true;
         }
     }
 
@@ -137,6 +143,10 @@ static void fill_wipe_tower_partitions(std::vector<LayerTools> &layers)
     // Propagate the wipe tower partitions down to support the upper partitions by the lower partitions.
     for (int i = int(layers.size()) - 2; i >= 0; -- i)
         layers[i].wipe_tower_partitions = std::max(layers[i + 1].wipe_tower_partitions, layers[i].wipe_tower_partitions);
+
+    //FIXME this is a hack to get the ball rolling.
+    for (LayerTools &lt : layers)
+        lt.has_wipe_tower = lt.has_object;
 }
 
 // For the use case when each object is printed separately

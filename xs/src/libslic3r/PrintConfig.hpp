@@ -317,6 +317,7 @@ class GCodeConfig : public virtual StaticPrintConfig
 {
 public:
     ConfigOptionString              before_layer_gcode;
+    ConfigOptionFloats              deretract_speed;
     ConfigOptionString              end_gcode;
     ConfigOptionString              extrusion_axis;
     ConfigOptionFloats              extrusion_multiplier;
@@ -333,6 +334,7 @@ public:
     ConfigOptionFloat               max_volumetric_speed;
     ConfigOptionFloat               max_volumetric_extrusion_rate_slope_positive;
     ConfigOptionFloat               max_volumetric_extrusion_rate_slope_negative;
+    ConfigOptionPercents            retract_before_wipe;
     ConfigOptionFloats              retract_length;
     ConfigOptionFloats              retract_length_toolchange;
     ConfigOptionFloats              retract_lift;
@@ -357,6 +359,7 @@ public:
     
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
         OPT_PTR(before_layer_gcode);
+        OPT_PTR(deretract_speed);
         OPT_PTR(end_gcode);
         OPT_PTR(extrusion_axis);
         OPT_PTR(extrusion_multiplier);
@@ -373,6 +376,7 @@ public:
         OPT_PTR(max_volumetric_speed);
         OPT_PTR(max_volumetric_extrusion_rate_slope_positive);
         OPT_PTR(max_volumetric_extrusion_rate_slope_negative);
+        OPT_PTR(retract_before_wipe);
         OPT_PTR(retract_length);
         OPT_PTR(retract_length_toolchange);
         OPT_PTR(retract_lift);

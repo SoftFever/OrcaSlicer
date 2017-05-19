@@ -84,6 +84,7 @@ public:
 
 private:
     std::string travel_to(GCode &codegen, const WipeTower::xy &dest);
+    void        prepare_wipe(GCode &gcodegen, const WipeTower::xy &current_position);
     std::unique_ptr<WipeTower> m_impl;
     bool                       m_brim_done;
 };

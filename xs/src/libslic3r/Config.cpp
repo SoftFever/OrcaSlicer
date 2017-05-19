@@ -376,6 +376,8 @@ DynamicConfig::optptr(const t_config_option_key &opt_key, bool create) {
                 opt = new ConfigOptionStrings ();
             } else if (optdef->type == coPercent) {
                 opt = new ConfigOptionPercent ();
+            } else if (optdef->type == coPercents) {
+                opt = new ConfigOptionPercents ();
             } else if (optdef->type == coFloatOrPercent) {
                 opt = new ConfigOptionFloatOrPercent ();
             } else if (optdef->type == coPoint) {

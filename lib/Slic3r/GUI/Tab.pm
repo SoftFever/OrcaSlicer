@@ -1156,7 +1156,7 @@ sub build {
         use_volumetric_e variable_layer_height
         single_extruder_multi_material start_gcode end_gcode before_layer_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
-        retract_length retract_lift retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe
+        retract_length retract_lift retract_speed deretract_speed retract_before_wipe retract_restart_extra retract_before_travel retract_layer_change wipe
         retract_length_toolchange retract_restart_extra_toolchange
         printer_notes
     ));
@@ -1444,7 +1444,7 @@ sub _extruders_count_changed {
     $self->_on_value_change('extruders_count', $extruders_count);
 }
 
-sub _extruder_options { qw(nozzle_diameter min_layer_height max_layer_height extruder_offset retract_length retract_lift retract_lift_above retract_lift_below retract_speed retract_restart_extra retract_before_travel wipe
+sub _extruder_options { qw(nozzle_diameter min_layer_height max_layer_height extruder_offset retract_length retract_lift retract_lift_above retract_lift_below retract_speed deretract_speed retract_before_wipe retract_restart_extra retract_before_travel wipe
     retract_layer_change retract_length_toolchange retract_restart_extra_toolchange) }
 
 sub _build_extruder_pages {
@@ -1497,7 +1497,7 @@ sub _build_extruder_pages {
             }
             
             $optgroup->append_single_option_line($_, $extruder_idx)
-                for qw(retract_speed retract_restart_extra retract_before_travel retract_layer_change wipe);
+                for qw(retract_speed deretract_speed retract_restart_extra retract_before_travel retract_layer_change wipe retract_before_wipe);
         }
         {
             my $optgroup = $page->new_optgroup('Retraction when tool is disabled (advanced settings for multi-extruder setups)');
@@ -1579,8 +1579,12 @@ sub _update {
         
         # some options only apply when not using firmware retraction
         $self->get_field($_, $i)->toggle($retraction && !$config->use_firmware_retraction)
-            for qw(retract_speed retract_restart_extra wipe);
-        if ($config->use_firmware_retraction && $config->get_at('wipe', $i)) {
+            for qw(retract_speed deretract_speed retract_before_wipe retract_restart_extra wipe);
+
+        my $wipe = $config->get_at('wipe', $i);
+        $self->get_field('retract_before_wipe', $i)->toggle($wipe);
+
+        if ($config->use_firmware_retraction && $wipe) {
             my $dialog = Wx::MessageDialog->new($self,
                 "The Wipe option is not available when using the Firmware Retraction mode.\n"
                 . "\nShall I disable it in order to enable Firmware Retraction?",

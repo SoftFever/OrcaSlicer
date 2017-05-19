@@ -914,6 +914,17 @@ PrintConfigDef::PrintConfigDef()
         opt->values.push_back(2);
         def->default_value = opt;
     }
+
+    def = this->add("retract_before_wipe", coPercents);
+    def->label = "Retract amount before wipe";
+    def->tooltip = "With bowden extruders, it may be wise to do some amount of quick retract before doing the wipe movement.";
+    def->sidetext = "%";
+    def->cli = "retract-before-wipe=s@";
+    {
+        ConfigOptionPercents* opt = new ConfigOptionPercents();
+        opt->values.push_back(0.f);
+        def->default_value = opt;
+    }
     
     def = this->add("retract_layer_change", coBools);
     def->label = "Retract on layer change";
@@ -1007,7 +1018,7 @@ PrintConfigDef::PrintConfigDef()
     }
 
     def = this->add("retract_speed", coFloats);
-    def->label = "Speed";
+    def->label = "Retraction Speed";
     def->full_label = "Retraction Speed";
     def->tooltip = "The speed for retractions (it only applies to the extruder motor).";
     def->sidetext = "mm/s";
@@ -1015,6 +1026,18 @@ PrintConfigDef::PrintConfigDef()
     {
         ConfigOptionFloats* opt = new ConfigOptionFloats();
         opt->values.push_back(40);
+        def->default_value = opt;
+    }
+
+    def = this->add("deretract_speed", coFloats);
+    def->label = "Deretraction Speed";
+    def->full_label = "Deretraction Speed";
+    def->tooltip = "The speed for loading of a filament into extruder after retraction (it only applies to the extruder motor). If left to zero, the retraction speed is used.";
+    def->sidetext = "mm/s";
+    def->cli = "retract-speed=f@";
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0);
         def->default_value = opt;
     }
 

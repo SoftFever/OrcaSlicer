@@ -16,12 +16,17 @@ public:
     double retracted;
     double restart_extra;
     double e_per_mm3;
-    double retract_speed_mm_min;
 
     Extruder(unsigned int id, GCodeConfig *config);
     virtual ~Extruder() {}
 
-    void   reset();
+    void   reset() {
+        this->E = 0;
+        this->absolute_E = 0;
+        this->retracted = 0;
+        this->restart_extra = 0;
+    }
+
     double extrude(double dE);
     double retract(double length, double restart_extra);
     double unretract();
@@ -33,9 +38,11 @@ public:
     double filament_density() const;
     double filament_cost() const;
     double extrusion_multiplier() const;
+    double retract_before_wipe() const;
     double retract_length() const;
     double retract_lift() const;
     int    retract_speed() const;
+    int    deretract_speed() const;
     double retract_restart_extra() const;
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;

@@ -11,14 +11,25 @@ namespace ToolOrdering {
 
 struct LayerTools
 {
-    LayerTools(const coordf_t z) : print_z(z), wipe_tower_partitions(0) {}
+    LayerTools(const coordf_t z) : 
+    	print_z(z), 
+    	has_object(false),
+		has_support(false),
+		has_wipe_tower(false),
+    	wipe_tower_partitions(0) {}
 
     bool operator< (const LayerTools &rhs) const { return print_z <  rhs.print_z; }
     bool operator==(const LayerTools &rhs) const { return print_z == rhs.print_z; }
 
 	coordf_t 					print_z;
+	bool 						has_object;
+	bool						has_support;
 	// Zero based extruder IDs, ordered to minimize tool switches.
 	std::vector<unsigned int> 	extruders;
+	// Will there be anything extruded on this layer for the wipe tower?
+	// Due to the support layers possibly interleaving the object layers,
+	// wipe tower will be disabled for some support only layers.
+	bool 						has_wipe_tower;
 	// Number of wipe tower partitions to support the required number of tool switches
 	// and to support the wipe tower partitions above this one.
     size_t                      wipe_tower_partitions;

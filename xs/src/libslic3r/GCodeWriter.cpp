@@ -384,22 +384,24 @@ GCodeWriter::extrude_to_xyz(const Pointf3 &point, double dE, const std::string &
     return gcode.str();
 }
 
-std::string
-GCodeWriter::retract()
+std::string GCodeWriter::retract(bool before_wipe)
 {
+    double factor = before_wipe ? this->_extruder->retract_before_wipe() : 1.;
+    assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        this->_extruder->retract_length(),
-        this->_extruder->retract_restart_extra(),
+        factor * this->_extruder->retract_length(),
+        factor * this->_extruder->retract_restart_extra(),
         "retract"
     );
 }
 
-std::string
-GCodeWriter::retract_for_toolchange()
+std::string GCodeWriter::retract_for_toolchange(bool before_wipe)
 {
+    double factor = before_wipe ? this->_extruder->retract_before_wipe() : 1.;
+    assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        this->_extruder->retract_length_toolchange(),
-        this->_extruder->retract_restart_extra_toolchange(),
+        factor * this->_extruder->retract_length_toolchange(),
+        factor * this->_extruder->retract_restart_extra_toolchange(),
         "retract for toolchange"
     );
 }
@@ -431,7 +433,7 @@ GCodeWriter::_retract(double length, double restart_extra, const std::string &co
                 gcode << "G10 ; retract\n";
         } else {
             gcode << "G1 " << this->_extrusion_axis << E_NUM(this->_extruder->E)
-                           << " F" << this->_extruder->retract_speed_mm_min;
+                           << " F" << float(this->_extruder->retract_speed() * 60.);
             COMMENT(comment);
             gcode << "\n";
         }
@@ -462,7 +464,7 @@ GCodeWriter::unretract()
         } else {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
             gcode << "G1 " << this->_extrusion_axis << E_NUM(this->_extruder->E)
-                           << " F" << this->_extruder->retract_speed_mm_min;
+                           << " F" << float(this->_extruder->deretract_speed() * 60.);
             if (this->config.gcode_comments) gcode << " ; unretract";
             gcode << "\n";
         }
