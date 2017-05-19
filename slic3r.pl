@@ -442,6 +442,7 @@ $j
    Retraction options:
     --retract-length    Length of retraction in mm when pausing extrusion (default: $config->{retract_length}[0])
     --retract-speed     Speed for retraction in mm/s (default: $config->{retract_speed}[0])
+    --deretract-speed   Speed for deretraction (loading of filament after a retract) in mm/s (default: $config->{retract_speed}[0])
     --retract-restart-extra
                         Additional amount of filament in mm to push after
                         compensating retraction (default: $config->{retract_restart_extra}[0])

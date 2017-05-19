@@ -26,6 +26,7 @@ sub new {
     $self->{config}             = $config;
     $self->{on_select_object}   = sub {};
     $self->{on_instances_moved} = sub {};
+    $self->{on_wipe_tower_moved} = sub {};
     
     $self->on_select(sub {
         my ($volume_idx) = @_;
@@ -36,6 +37,8 @@ sub new {
         my @volume_idxs = @_;
         
         my %done = ();  # prevent moving instances twice
+        my $object_moved;
+        my $wipe_tower_moved;
         foreach my $volume_idx (@volume_idxs) {
             my $volume = $self->volumes->[$volume_idx];
             my $obj_idx = $volume->object_idx;
@@ -50,13 +53,17 @@ sub new {
                     ->offset
                     ->translate($volume->origin->x, $volume->origin->y); #))
                 $model_object->invalidate_bounding_box;
+                $object_moved = 1;
             } elsif ($obj_idx == 1000) {
                 # Move a wipe tower proxy.
+                $wipe_tower_moved = $volume->origin;
             }
         }
         
         $self->{on_instances_moved}->()
-            if $self->{on_instances_moved};
+            if $object_moved && $self->{on_instances_moved};
+        $self->{on_wipe_tower_moved}->($wipe_tower_moved)
+            if $wipe_tower_moved && $self->{on_wipe_tower_moved};
     });
     
     return $self;
@@ -82,6 +89,11 @@ sub set_on_instances_moved {
     $self->{on_instances_moved} = $cb;
 }
 
+sub set_on_wipe_tower_moved {
+    my ($self, $cb) = @_;
+    $self->{on_wipe_tower_moved} = $cb;
+}
+
 sub set_on_model_update {
     my ($self, $cb) = @_;
     $self->on_model_update($cb);
@@ -90,14 +102,6 @@ sub set_on_model_update {
 sub reload_scene {
     my ($self) = @_;
 
-    if (0) {
-        my $i = 1;
-        print STDERR "3D::reload_scene - Stack Trace:\n";
-        while ( (my @call_details = (caller($i++))) ){
-            print STDERR $call_details[1].":".$call_details[2]." in function ".$call_details[3]."\n";
-        }
-    }
-    
     $self->reset_objects;
     $self->update_bed_size;
     
@@ -106,10 +110,6 @@ sub reload_scene {
         if ($self->{objects}[$obj_idx]->selected) {
             $self->select_volume($_) for @volume_idxs;
         }
-    }
-    if (0) {
-        print "Config: $self->{config}\n";
-        $self->{config}->save('d:\temp\cfg.ini');
     }
     if (defined $self->{config}->nozzle_diameter) {
         # Should the wipe tower be visualized?

@@ -107,6 +107,13 @@ sub new {
         $self->{canvas3D}->set_on_double_click($on_double_click);
         $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+        $self->{canvas3D}->set_on_wipe_tower_moved(sub {
+            my ($new_pos_3f) = @_;
+            my $cfg = Slic3r::Config->new;
+            $cfg->set('wipe_tower_x', $new_pos_3f->x);
+            $cfg->set('wipe_tower_y', $new_pos_3f->y);
+            $self->GetFrame->{options_tabs}{print}->load_config($cfg);
+        });
         $self->{canvas3D}->set_on_model_update(sub {
             if ($Slic3r::GUI::Settings->{_}{background_processing}) {
                 $self->{apply_config_timer}->Stop if defined $self->{apply_config_timer};
@@ -1713,8 +1720,7 @@ sub on_config_change {
             $self->{preview3D}->set_bed_shape($self->{config}->bed_shape)
                 if $self->{preview3D};
             $update_scheduled = 1;
-        } elsif ($opt_key =~ '^wipe_tower' || $opt_key == 'single_extruder_multi_material') {
-            #$self->{canvas3D}->reload_scene if $self->{canvas3D};
+        } elsif ($opt_key =~ '^wipe_tower' || $opt_key eq 'single_extruder_multi_material') {
             $update_scheduled = 1;
         } elsif ($opt_key eq 'serial_port') {
             if ($config->get('serial_port')) {

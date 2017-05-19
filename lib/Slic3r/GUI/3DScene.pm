@@ -910,7 +910,10 @@ sub UseVBOs {
     if (! defined ($self->{use_VBOs})) {
         # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
         # first when an OpenGL widget is shown for the first time. How ugly.
-        return 0 if (! $self->init && $^O eq 'linux');
+        # It seems like the wipe tower configuration fills in the VBOs before the window is created.
+        # Therefore it is safer to wait for the first screen refresh on Windows and OSX as well.
+#        return 0 if (! $self->init && $^O eq 'linux');
+        return 0 if (! $self->init);
         # Don't use VBOs if anything fails.
         $self->{use_VBOs} = 0;
         if ($self->GetContext) {

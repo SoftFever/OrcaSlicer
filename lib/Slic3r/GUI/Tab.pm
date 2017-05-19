@@ -390,13 +390,17 @@ sub update_tree {
 sub update_dirty {
     my $self = shift;
     
+    my $list_updated;
     foreach my $i ($self->{default_suppressed}..$#{$self->{presets}}) {
         my $preset = $self->get_preset($i);
-        $self->{presets_choice}->SetString(
-            $i - $self->{default_suppressed}, 
-            ($i == $self->current_preset && $self->is_dirty) ? $preset->name . " (modified)" : $preset->name);
+        my $label  = ($i == $self->current_preset && $self->is_dirty) ? $preset->name . " (modified)" : $preset->name;
+        my $idx    = $i - $self->{default_suppressed};
+        if ($self->{presets_choice}->GetString($idx) ne $label) {
+            $self->{presets_choice}->SetString($idx, $label);
+            $list_updated = 1;
+        }
     }
-    $self->{presets_choice}->SetSelection($self->current_preset - $self->{default_suppressed});  # http://trac.wxwidgets.org/ticket/13769
+    $self->{presets_choice}->SetSelection($self->current_preset - $self->{default_suppressed}) if ($list_updated);  # http://trac.wxwidgets.org/ticket/13769
     $self->_on_presets_changed;
 }
 
@@ -473,11 +477,13 @@ sub load_config {
     foreach my $opt_key (@{$self->{config}->diff($config)}) {
         $self->{config}->set($opt_key, $config->get($opt_key));
         $keys_modified{$opt_key} = 1;
-        $self->update_dirty;
     }
-    # Initialize UI components with the config values.
-    $self->reload_config;
-    $self->_update(\%keys_modified);
+    if (keys(%keys_modified)) {
+        $self->update_dirty;
+        # Initialize UI components with the config values.
+        $self->reload_config;
+        $self->_update(\%keys_modified);
+    }
 }
 
 sub get_preset_config {
@@ -1444,8 +1450,11 @@ sub _extruders_count_changed {
     $self->_on_value_change('extruders_count', $extruders_count);
 }
 
-sub _extruder_options { qw(nozzle_diameter min_layer_height max_layer_height extruder_offset retract_length retract_lift retract_lift_above retract_lift_below retract_speed deretract_speed retract_before_wipe retract_restart_extra retract_before_travel wipe
-    retract_layer_change retract_length_toolchange retract_restart_extra_toolchange) }
+sub _extruder_options { 
+    qw(nozzle_diameter min_layer_height max_layer_height extruder_offset 
+       retract_length retract_lift retract_lift_above retract_lift_below retract_speed deretract_speed 
+       retract_before_wipe retract_restart_extra retract_before_travel wipe
+       retract_layer_change retract_length_toolchange retract_restart_extra_toolchange) }
 
 sub _build_extruder_pages {
     my $self = shift;
