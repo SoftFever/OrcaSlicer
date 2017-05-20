@@ -128,9 +128,9 @@ sub new {
  
     # left pane with tree
     my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $left_sizer->Add($tree, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
+    $left_sizer->Add($tree, 3, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
     $left_sizer->Add($buttons_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 10);
-    $left_sizer->Add($settings_sizer, 1, wxEXPAND | wxALL, 0);
+    $left_sizer->Add($settings_sizer, 5, wxEXPAND | wxALL, 0);
     $left_sizer->Add($optgroup_movers->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
     
     # right pane with preview canvas
