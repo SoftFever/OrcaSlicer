@@ -7,9 +7,9 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename);
-use Wx qw(:misc :sizer :treectrl :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG wxID_CANCEL
+use Wx qw(:misc :sizer :treectrl :button :keycode wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG wxID_CANCEL wxMOD_CONTROL
     wxTheApp);
-use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED);
+use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED EVT_TREE_KEY_DOWN);
 use base 'Wx::Panel';
 
 use constant ICON_OBJECT        => 0;
@@ -39,7 +39,7 @@ sub new {
     # create TreeCtrl
     my $tree = $self->{tree} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [300, 100], 
         wxTR_NO_BUTTONS | wxSUNKEN_BORDER | wxTR_HAS_VARIABLE_ROW_HEIGHT
-        | wxTR_SINGLE | wxTR_NO_BUTTONS);
+        | wxTR_SINGLE);
     {
         $self->{tree_icons} = Wx::ImageList->new(16, 16, 1);
         $tree->AssignImageList($self->{tree_icons});
@@ -56,23 +56,31 @@ sub new {
     $self->{btn_load_modifier} = Wx::Button->new($self, -1, "Load modifier…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_load_lambda_modifier} = Wx::Button->new($self, -1, "Load generic…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_delete} = Wx::Button->new($self, -1, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_move_up} = Wx::Button->new($self, -1, $Slic3r::GUI::have_button_icons ? "" : "Up", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_move_down} = Wx::Button->new($self, -1, $Slic3r::GUI::have_button_icons ? "" : "Down", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     if ($Slic3r::GUI::have_button_icons) {
         $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_load_lambda_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_delete}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_delete.png"), wxBITMAP_TYPE_PNG));
+        $self->{btn_move_up}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_up.png"), wxBITMAP_TYPE_PNG));
+        $self->{btn_move_down}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_down.png"), wxBITMAP_TYPE_PNG));
     }
     
     # buttons sizer
-    my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-    $buttons_sizer->Add($self->{btn_load_part}, 0);
-    $buttons_sizer->Add($self->{btn_load_modifier}, 0);
-    $buttons_sizer->Add($self->{btn_load_lambda_modifier}, 0);
-    $buttons_sizer->Add($self->{btn_delete}, 0);
+    my $buttons_sizer = Wx::GridSizer->new(2, 3);
+    $buttons_sizer->Add($self->{btn_load_part}, 0, wxEXPAND | wxBOTTOM | wxRIGHT, 5);
+    $buttons_sizer->Add($self->{btn_load_modifier}, 0, wxEXPAND | wxBOTTOM | wxRIGHT, 5);
+    $buttons_sizer->Add($self->{btn_load_lambda_modifier}, 0, wxEXPAND | wxBOTTOM, 5);
+    $buttons_sizer->Add($self->{btn_delete}, 0, wxEXPAND | wxRIGHT, 5);
+    $buttons_sizer->Add($self->{btn_move_up}, 0, wxEXPAND | wxRIGHT, 5);
+    $buttons_sizer->Add($self->{btn_move_down}, 0, wxEXPAND, 5);
     $self->{btn_load_part}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_load_modifier}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_load_lambda_modifier}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_delete}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_move_up}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_move_down}->SetFont($Slic3r::GUI::small_font);
     
     # part settings panel
     $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self, on_change => sub { $self->{part_settings_changed} = 1; });
@@ -169,10 +177,13 @@ sub new {
         return if $self->{disable_tree_sel_changed_event};
         $self->selection_changed;
     });
+    EVT_TREE_KEY_DOWN($self, $tree, \&on_tree_key_down);
     EVT_BUTTON($self, $self->{btn_load_part}, sub { $self->on_btn_load(0) });
     EVT_BUTTON($self, $self->{btn_load_modifier}, sub { $self->on_btn_load(1) });
     EVT_BUTTON($self, $self->{btn_load_lambda_modifier}, sub { $self->on_btn_lambda(1) });
     EVT_BUTTON($self, $self->{btn_delete}, \&on_btn_delete);
+    EVT_BUTTON($self, $self->{btn_move_up}, \&on_btn_move_up);
+    EVT_BUTTON($self, $self->{btn_move_down}, \&on_btn_move_down);
     
     $self->reload_tree;
     
@@ -241,7 +252,7 @@ sub selection_changed {
     }
     
     # disable things as if nothing is selected
-    $self->{btn_delete}->Disable;
+    $self->{'btn_' . $_}->Disable for (qw(delete move_up move_down));
     $self->{settings_panel}->disable;
     $self->{settings_panel}->set_config(undef);
 
@@ -268,6 +279,8 @@ sub selection_changed {
                 $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
             }
             $self->{btn_delete}->Enable;
+            $self->{btn_move_up}->Enable if $itemData->{volume_id} > 0;
+            $self->{btn_move_down}->Enable if $itemData->{volume_id} + 1 < $self->{model_object}->volumes_count;
             
             # attach volume config to settings panel
             my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
@@ -374,6 +387,46 @@ sub on_btn_lambda {
 
     $self->{parts_changed} = 1;
     $self->_parts_changed;
+}
+
+sub on_tree_key_down {
+    my ($self, $event) = @_;
+    my $keycode = $event->GetKeyCode;    
+    # Wx >= 0.9911
+    if (defined(&Wx::TreeEvent::GetKeyEvent) && 
+        ($event->GetKeyEvent->GetModifiers & wxMOD_CONTROL)) {
+        if ($keycode == WXK_UP) {
+            $event->Skip;
+            $self->on_btn_move_up;
+        } elsif ($keycode == WXK_DOWN) {
+            $event->Skip;
+            $self->on_btn_move_down;
+        }
+    }
+}
+
+sub on_btn_move_up {
+    my ($self) = @_;
+    my $itemData = $self->get_selection;
+    if ($itemData && $itemData->{type} eq 'volume') {
+        my $volume_id = $itemData->{volume_id};
+        if ($self->{model_object}->move_volume_up($volume_id)) {
+            $self->{parts_changed} = 1;
+            $self->reload_tree($volume_id - 1);
+        }
+    }
+}
+
+sub on_btn_move_down {
+    my ($self) = @_;
+    my $itemData = $self->get_selection;
+    if ($itemData && $itemData->{type} eq 'volume') {
+        my $volume_id = $itemData->{volume_id};
+        if ($self->{model_object}->move_volume_down($volume_id)) {
+            $self->{parts_changed} = 1;
+            $self->reload_tree($volume_id + 1);
+        }
+    }
 }
 
 sub on_btn_delete {
