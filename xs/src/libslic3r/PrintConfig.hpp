@@ -350,6 +350,7 @@ public:
     ConfigOptionBool                use_firmware_retraction;
     ConfigOptionBool                use_relative_e_distances;
     ConfigOptionBool                use_volumetric_e;
+    ConfigOptionBool                set_and_wait_temperatures;
     ConfigOptionBool                variable_layer_height;
     
     GCodeConfig(bool initialize = true) : StaticPrintConfig() {
@@ -392,6 +393,7 @@ public:
         OPT_PTR(use_firmware_retraction);
         OPT_PTR(use_relative_e_distances);
         OPT_PTR(use_volumetric_e);
+        OPT_PTR(set_and_wait_temperatures);
         OPT_PTR(variable_layer_height);
         return NULL;
     };

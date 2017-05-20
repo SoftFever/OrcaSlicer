@@ -398,7 +398,7 @@ bool GCode::do_export(FILE *file, Print &print)
     if (print.config.first_layer_bed_temperature.value > 0 &&
         boost::ifind_first(print.config.start_gcode.value, std::string("M140")).empty() &&
         boost::ifind_first(print.config.start_gcode.value, std::string("M190")).empty())
-        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.value, true));
+        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.value, print.config.set_and_wait_temperatures.value));
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.
