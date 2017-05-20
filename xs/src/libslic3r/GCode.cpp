@@ -173,6 +173,7 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
         // Move over the wipe tower.
         gcode += this->travel_to(gcodegen, m_impl->tool_change(extruder_id, WipeTower::PURPOSE_MOVE_TO_TOWER).second);
         // Let the tool change be executed by the wipe tower class.
+        //FIXME calculate time at the wipe tower and add it to m_elapsed_time
         std::pair<std::string, WipeTower::xy> code_and_pos = m_impl->tool_change(extruder_id, WipeTower::PURPOSE_EXTRUDE);
         // Inform the G-code writer about the changes done behind its back.
         gcode += code_and_pos.first;
@@ -192,6 +193,7 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
         if (! over_wipe_tower)
             gcode += this->travel_to(gcodegen, m_impl->finish_layer(WipeTower::PURPOSE_MOVE_TO_TOWER).second);
         // Let the tool change be executed by the wipe tower class.
+        //FIXME calculate time at the wipe tower and add it to m_elapsed_time
         std::pair<std::string, WipeTower::xy> code_and_pos = m_impl->finish_layer(WipeTower::PURPOSE_EXTRUDE);
         // Inform the G-code writer about the changes done behind its back.
         gcode += code_and_pos.first;

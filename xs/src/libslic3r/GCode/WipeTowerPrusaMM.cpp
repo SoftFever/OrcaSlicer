@@ -124,9 +124,9 @@ public:
 
 	// Move to x1, +y_increment,
 	// extrude quickly amount e to x2 with feed f.
-	Writer& ram(float x1, float x2, float dy, float e, float f)
+	Writer& ram(float x1, float x2, float dy, float e0, float e, float f)
 	{
-		return  travel(x1, m_current_pos.y + dy, f)
+		return  extrude_explicit(x1, m_current_pos.y + dy, e0, f)
 			   .extrude_explicit(x2, m_current_pos.y, e);
 	}
 
@@ -469,33 +469,32 @@ void WipeTowerPrusaMM::toolchange_Unload(
 
 	// Ram the hot material out of the extruder melt zone.
 	// Current extruder position is on the left, one perimeter inside the cleaning box in both X and Y.
+	float e0 = m_perimeter_width * m_extrusion_flow;
+	float e = (xr - xl) * m_extrusion_flow;
 	switch (current_material)
 	{
 	case ABS:
    		// ramming          start                    end                  y increment     amount feedrate
-		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 1.2f,  4000)
-			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.2f, 1.6f,  4600)
-			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, 1.8f,  5000)
-			  .ram(xr - m_perimeter_width * 2, xl + m_perimeter_width * 2, y_step * 1.2f, 1.8f,  5000);
+		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 0,  1.2f * e,  4000)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.2f, e0, 1.6f * e,  4600)
+			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, e0, 1.8f * e,  5000)
+			  .ram(xr - m_perimeter_width * 2, xl + m_perimeter_width * 2, y_step * 1.2f, e0, 1.8f * e,  5000);
 		break;
 	case PVA:
-		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 3,     4000)
-			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.5f, 3,     4500)
-			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.5f, 3,     4800)
-			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.5f, 3,     5000);
+		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 0,  3,     4000)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.5f, 0,  3,     4500)
+			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.5f, 0,  3,     4800)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.5f, 0,  3,     5000);
 		break;
 	case SCAFF:
-		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 2.f,  3,     4000)
-			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 3.f,  4,     4600)
-			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 3.f,  4.5,   5200);
+		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 2.f,  0,  3,     4000)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 3.f,  0,  4,     4600)
+			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 3.f,  0,  4.5,   5200);
 		break;
 	default:
-	{
-		float e = (xr - xl) * m_extrusion_flow;
-		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 1.6f  * e, 4000)
-			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.2f, 1.65f * e, 4600)
-			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, 1.74f * e, 5200);
-	}
+		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 0,  1.6f  * e, 4000)
+			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.2f, e0, 1.65f * e, 4600)
+			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, e0, 1.74f * e, 5200);
 	}
 
 	// Pull the filament end into a cooling tube.
@@ -610,7 +609,7 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	float wipe_speed_inc = 50.f;
 	float wipe_speed_max = 4800.f;
 	// Y increment per wipe line.
-	float dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_perimeter_width * 0.7f;
+	float dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_perimeter_width * 0.8f;
 	for (bool p = true; ; p = ! p) {
 		wipe_speed = std::min(wipe_speed_max, wipe_speed + wipe_speed_inc);
 		if (p) {

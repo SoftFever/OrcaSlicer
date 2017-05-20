@@ -90,14 +90,15 @@ public:
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
 		++ m_num_layer_changes;
 
-		int layer_idx = int(std::floor(layer_height * 100) + 0.5f);
+		int layer_idx = int(std::floor(layer_height * 1000) + 0.5f);
 		switch (layer_idx)
 		{
-		case 15:
-			m_extrusion_flow = (float)0.024;
+		case 150:
+			m_extrusion_flow = (float)0.0218;
 			break;
-		case 20:
+		case 200:
 		default:
+			// Extrusion rate for an extrusion aka perimeter width 0.35mm.
 			m_extrusion_flow = (float)0.029;
 			break;
 		}
