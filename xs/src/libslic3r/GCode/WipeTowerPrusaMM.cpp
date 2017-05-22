@@ -126,8 +126,9 @@ public:
 	// extrude quickly amount e to x2 with feed f.
 	Writer& ram(float x1, float x2, float dy, float e0, float e, float f)
 	{
-		return  extrude_explicit(x1, m_current_pos.y + dy, e0, f)
-			   .extrude_explicit(x2, m_current_pos.y, e);
+		extrude_explicit(x1, m_current_pos.y + dy, e0, f);
+		extrude_explicit(x2, m_current_pos.y, e);
+		return *this;
 	}
 
 	// Let the end of the pulled out filament cool down in the cooling tube
@@ -135,8 +136,9 @@ public:
 	// at the current Y position to spread the leaking material.
 	Writer& cool(float x1, float x2, float e1, float e2, float f)
 	{
-		return  extrude_explicit(x1, m_current_pos.y, e1, f)
-			   .extrude_explicit(x2, m_current_pos.y, e2);
+		extrude_explicit(x1, m_current_pos.y, e1, f);
+		extrude_explicit(x2, m_current_pos.y, e2);
+		return *this;
 	}
 
 	Writer& set_tool(int tool) 
@@ -254,7 +256,7 @@ private:
 
 	std::string   set_format_F(float f) {
 		char buf[64];
-		sprintf(buf, " F%.0f", f);
+		sprintf(buf, " F%d", int(floor(f + 0.5f)));
 		m_current_feedrate = f;
 		return buf;
 	}
@@ -729,7 +731,7 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::finish_layer(Purpose pur
 				      ";------------------\n\n\n\n\n\n\n");
 
 		// Indicate that this wipe tower layer is fully covered.
-	    m_idx_tool_change_in_layer = m_max_color_changes;
+	    m_idx_tool_change_in_layer = (unsigned int)m_max_color_changes;
 	}
 
 	return std::pair<std::string, xy>(writer.gcode(), writer.pos());
