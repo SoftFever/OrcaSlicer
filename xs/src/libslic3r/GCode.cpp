@@ -95,7 +95,9 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
     double length = toolchange
         ? gcodegen.writer().extruder()->retract_length_toolchange()
         : gcodegen.writer().extruder()->retract_length();
-    
+    // Shorten the retraction length by the amount already retracted before wipe.
+    length *= (1. - gcodegen.writer().extruder()->retract_before_wipe());
+
     if (length > 0) {
         /*  Calculate how long we need to travel in order to consume the required
             amount of retraction. In other words, how far do we move in XY at wipe_speed
