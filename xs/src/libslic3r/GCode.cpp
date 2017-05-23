@@ -264,6 +264,81 @@ inline void writeln(FILE *file, const std::string &what)
     fprintf(file, "\n");
 }
 
+// Collect pairs of object_layer + support_layer sorted by print_z.
+// object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
+std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject &object)
+{
+    std::vector<GCode::LayerToPrint> layers_to_print;
+    layers_to_print.reserve(object.layers.size() + object.support_layers.size());
+
+    // Pair the object layers with the support layers by z.
+    size_t idx_object_layer  = 0;
+    size_t idx_support_layer = 0;
+    while (idx_object_layer < object.layers.size() || idx_support_layer < object.support_layers.size()) {
+        LayerToPrint layer_to_print;
+        layer_to_print.object_layer  = (idx_object_layer < object.layers.size()) ? object.layers[idx_object_layer ++] : nullptr;
+        layer_to_print.support_layer = (idx_support_layer < object.support_layers.size()) ? object.support_layers[idx_support_layer ++] : nullptr;
+        if (layer_to_print.object_layer && layer_to_print.support_layer) {
+            if (layer_to_print.object_layer->print_z < layer_to_print.support_layer->print_z - EPSILON) {
+                layer_to_print.support_layer = nullptr;
+                -- idx_support_layer;
+            } else if (layer_to_print.support_layer->print_z < layer_to_print.object_layer->print_z - EPSILON) {
+                layer_to_print.object_layer = nullptr;
+                -- idx_object_layer;
+            }
+        }
+        layers_to_print.emplace_back(layer_to_print);
+    }
+
+    return layers_to_print;
+}
+
+std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collect_layers_to_print(const Print &print)
+{
+    struct OrderingItem {
+        coordf_t    print_z;
+        size_t      object_idx;
+        size_t      layer_idx;
+    };
+    std::vector<std::vector<LayerToPrint>>  per_object(print.objects.size(), std::vector<LayerToPrint>());
+    std::vector<OrderingItem>               ordering;
+    for (size_t i = 0; i < print.objects.size(); ++ i) {
+        per_object[i] = collect_layers_to_print(*print.objects[i]);
+        const LayerToPrint &front = per_object[i].front();
+        OrderingItem ordering_item;
+        ordering_item.object_idx = i;
+        for (const LayerToPrint &ltp : per_object[i]) {
+            ordering_item.print_z = ltp.print_z();
+            ordering_item.layer_idx = &ltp - &front;
+            ordering.emplace_back(ordering_item);
+        }
+    }
+
+    std::sort(ordering.begin(), ordering.end(), [](const OrderingItem &oi1, const OrderingItem &oi2) { return oi1.print_z < oi2.print_z; });
+
+    std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print;
+    // Merge numerically very close Z values.
+    for (size_t i = 0; i < ordering.size();) {
+        // Find the last layer with roughly the same print_z.
+        size_t j = i + 1;
+        coordf_t zmax = ordering[i].print_z + EPSILON;
+        for (; j < ordering.size() && ordering[j].print_z <= zmax; ++ j) ;
+        // Merge into layers_to_print.
+        std::pair<coordf_t, std::vector<LayerToPrint>> merged;
+        // Assign an average print_z to the set of layers with nearly equal print_z.
+        merged.first = 0.5 * (ordering[i].print_z + ordering[j-1].print_z);
+        merged.second.assign(print.objects.size(), LayerToPrint());
+        for (; i < j; ++ i) {
+            const OrderingItem &oi = ordering[i];
+            assert(merged.second[oi.object_idx].layer() == nullptr);
+            merged.second[oi.object_idx] = std::move(per_object[oi.object_idx][oi.layer_idx]);
+        }
+        layers_to_print.emplace_back(std::move(merged));
+    }
+
+    return layers_to_print;
+}
+
 bool GCode::do_export(FILE *file, Print &print)
 {
     // How many times will be change_layer() called?
@@ -539,23 +614,11 @@ bool GCode::do_export(FILE *file, Print &print)
                     this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
                 }
                 // Pair the object layers with the support layers by z, extrude them.
-                size_t idx_object_layer  = 0;
-                size_t idx_support_layer = 0;
-                std::vector<LayerToPrint> layers_to_print(1, LayerToPrint());
-                LayerToPrint &layer_to_print = layers_to_print.front();
-                while (idx_object_layer < object.layers.size() || idx_support_layer < object.support_layers.size()) {
-                    layer_to_print.object_layer  = (idx_object_layer < object.layers.size()) ? object.layers[idx_object_layer ++] : nullptr;
-                    layer_to_print.support_layer = (idx_support_layer < object.support_layers.size()) ? object.support_layers[idx_support_layer ++] : nullptr;
-                    if (layer_to_print.object_layer && layer_to_print.support_layer) {
-                        if (layer_to_print.object_layer->print_z < layer_to_print.support_layer->print_z) {
-                            layer_to_print.support_layer = nullptr;
-                            -- idx_support_layer;
-                        } else if (layer_to_print.support_layer->print_z < layer_to_print.object_layer->print_z) {
-                            layer_to_print.object_layer = nullptr;
-                            -- idx_object_layer;
-                        }
-                    }
-                    this->process_layer(file, print, layers_to_print, tool_ordering.tools_for_layer(layer_to_print.layer()->print_z), &copy - object._shifted_copies.data());
+                std::vector<LayerToPrint> layers_to_print = collect_layers_to_print(object);
+                for (const LayerToPrint &ltp : layers_to_print) {
+                    std::vector<LayerToPrint> lrs;
+                    lrs.emplace_back(std::move(ltp));
+                    this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), &copy - object._shifted_copies.data());
                 }
                 write(file, this->filter(m_cooling_buffer->flush(), true));
                 ++ finished_objects;
@@ -573,35 +636,18 @@ bool GCode::do_export(FILE *file, Print &print)
         Slic3r::Geometry::chained_path(object_reference_points, object_indices);
         // Sort layers by Z.
         // All extrusion moves with the same top layer height are extruded uninterrupted.
-        std::map<coordf_t, std::vector<LayerToPrint>> layers;
-        size_t object_order = 0;
-        for (size_t obj_idx : object_indices) {
-            PrintObject *print_object = print.objects[obj_idx];
-            for (Layer *layer : print_object->layers) {
-                std::vector<LayerToPrint> &object_layers_at_printz = layers[layer->print_z];
-                if (object_layers_at_printz.empty())
-                    object_layers_at_printz.resize(print.objects.size(), LayerToPrint());
-                object_layers_at_printz[object_order].object_layer = layer;
-            }
-            for (SupportLayer *layer : print_object->support_layers) {
-                std::vector<LayerToPrint> &object_layers_at_printz = layers[layer->print_z];
-                if (object_layers_at_printz.empty())
-                    object_layers_at_printz.resize(print.objects.size(), LayerToPrint());
-                object_layers_at_printz[object_order].support_layer = layer;
-            }
-            ++ object_order;
-        }
+        std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
         // Prusa Multi-Material wipe tower.
         if (print.config.single_extruder_multi_material.value && print.config.wipe_tower.value && 
             ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0)
             m_wipe_tower.reset(new WipeTowerIntegration(print.config));
         // Extrude the layers.
-        for (auto &layer : layers) {
+        for (auto &layer : layers_to_print) {
             // layer.second is of type std::vector<LayerToPrint>,
             // wher the objects are sorted by their sorted order given by object_indices.
             const ToolOrdering::LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.first);
             if (layer_tools.has_wipe_tower && m_wipe_tower) {
-                bool first_layer = layer.first == layers.begin()->first;
+                bool first_layer = &layer == layers_to_print.data();
                 m_wipe_tower->set_layer(
                     layer.first, 
                     first_layer ? 

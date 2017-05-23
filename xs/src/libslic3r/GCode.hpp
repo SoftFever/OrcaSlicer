@@ -140,8 +140,10 @@ protected:
         const SupportLayer   *support_layer;
         const Layer*          layer() const { return (object_layer != nullptr) ? object_layer : support_layer; }
         const PrintObject*    object() const { return (this->layer() != nullptr) ? this->layer()->object() : nullptr; }
-        coordf_t              print_z() const { return this->layer()->print_z; }
+        coordf_t              print_z() const { return (object_layer != nullptr && support_layer != nullptr) ? 0.5 * (object_layer->print_z + support_layer->print_z) : this->layer()->print_z; }
     };
+    static std::vector<GCode::LayerToPrint>                            collect_layers_to_print(const PrintObject &object);
+    static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
     void            process_layer(
         // Write into the output file.
         FILE                            *file,
