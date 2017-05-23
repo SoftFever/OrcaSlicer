@@ -406,28 +406,28 @@ bool GCode::do_export(FILE *file, Print &print)
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.
-    std::vector<ToolOrdering::LayerTools> tool_ordering;
-    unsigned int                          initial_extruder_id = (unsigned int)-1;
-    unsigned int                          final_extruder_id   = (unsigned int)-1;
-    size_t                                initial_print_object_id = 0;
+    ToolOrdering tool_ordering;
+    unsigned int initial_extruder_id = (unsigned int)-1;
+    unsigned int final_extruder_id   = (unsigned int)-1;
+    size_t       initial_print_object_id = 0;
     if (print.config.complete_objects.value) {
 		// Find the 1st printing object, find its tool ordering and the initial extruder ID.
 		for (; initial_print_object_id < print.objects.size(); ++initial_print_object_id) {
-			tool_ordering = ToolOrdering::tool_ordering(*print.objects[initial_print_object_id], initial_extruder_id);
-			if ((initial_extruder_id = ToolOrdering::first_extruder(tool_ordering)) != (unsigned int)-1)
+			tool_ordering = ToolOrdering(*print.objects[initial_print_object_id], initial_extruder_id);
+			if ((initial_extruder_id = tool_ordering.first_extruder()) != (unsigned int)-1)
 				break;
 		}
 	} else {
 		// Find tool ordering for all the objects at once, and the initial extruder ID.
-		tool_ordering = ToolOrdering::tool_ordering(print, initial_extruder_id);
-		initial_extruder_id = ToolOrdering::first_extruder(tool_ordering);
+		tool_ordering = ToolOrdering(print, initial_extruder_id);
+		initial_extruder_id = tool_ordering.first_extruder();
     }
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
         initial_extruder_id = 0;
         final_extruder_id   = 0;
     } else {
-        final_extruder_id = ToolOrdering::last_extruder(tool_ordering);
+        final_extruder_id = tool_ordering.last_extruder();
         assert(final_extruder_id != (unsigned int)-1);
     }
 
@@ -510,13 +510,13 @@ bool GCode::do_export(FILE *file, Print &print)
                 // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
                 if (object_id != initial_print_object_id || &copy != object._shifted_copies.data()) {
                     // Don't initialize for the first object and first copy.
-                    tool_ordering = ToolOrdering::tool_ordering(object, final_extruder_id);
-                    unsigned int new_extruder_id = ToolOrdering::first_extruder(tool_ordering);
+                    tool_ordering = ToolOrdering(object, final_extruder_id);
+                    unsigned int new_extruder_id = tool_ordering.first_extruder();
                     if (new_extruder_id == (unsigned int)-1)
                         // Skip this object.
                         continue;
                     initial_extruder_id = new_extruder_id;
-                    final_extruder_id   = ToolOrdering::last_extruder(tool_ordering);
+                    final_extruder_id   = tool_ordering.last_extruder();
                     assert(final_extruder_id != (unsigned int)-1);
                 }
                 this->set_origin(unscale(copy.x), unscale(copy.y));
@@ -555,9 +555,7 @@ bool GCode::do_export(FILE *file, Print &print)
                             -- idx_object_layer;
                         }
                     }
-                    auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), ToolOrdering::LayerTools(layer_to_print.layer()->print_z));
-                    assert(it_layer_tools != tool_ordering.end() && it_layer_tools->print_z == layer_to_print.layer()->print_z);
-                    this->process_layer(file, print, layers_to_print, *it_layer_tools, &copy - object._shifted_copies.data());
+                    this->process_layer(file, print, layers_to_print, tool_ordering.tools_for_layer(layer_to_print.layer()->print_z), &copy - object._shifted_copies.data());
                 }
                 write(file, this->filter(m_cooling_buffer->flush(), true));
                 ++ finished_objects;
@@ -601,22 +599,19 @@ bool GCode::do_export(FILE *file, Print &print)
         for (auto &layer : layers) {
             // layer.second is of type std::vector<LayerToPrint>,
             // wher the objects are sorted by their sorted order given by object_indices.
-            auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), ToolOrdering::LayerTools(layer.first));
-            assert(it_layer_tools != tool_ordering.end() && layer.first);
-            if (it_layer_tools->has_wipe_tower && m_wipe_tower) {
+            const ToolOrdering::LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.first);
+            if (layer_tools.has_wipe_tower && m_wipe_tower) {
                 bool first_layer = layer.first == layers.begin()->first;
-                auto it_layer_tools_next = it_layer_tools;
-                ++ it_layer_tools_next;
                 m_wipe_tower->set_layer(
                     layer.first, 
                     first_layer ? 
                         print.objects.front()->config.first_layer_height.get_abs_value(print.objects.front()->config.layer_height.value) :
                         print.objects.front()->config.layer_height.value,
-                    it_layer_tools->wipe_tower_partitions,
+                    layer_tools.wipe_tower_partitions,
                     first_layer,
-                    it_layer_tools->wipe_tower_partitions == 0 || (it_layer_tools_next == tool_ordering.end() || it_layer_tools_next->wipe_tower_partitions == 0));
+                    layer_tools.wipe_tower_partitions == 0 || (&layer_tools == &tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0));
             }
-            this->process_layer(file, print, layer.second, *it_layer_tools, size_t(-1));
+            this->process_layer(file, print, layer.second, layer_tools, size_t(-1));
         }
         write(file, this->filter(m_cooling_buffer->flush(), true));
     }
