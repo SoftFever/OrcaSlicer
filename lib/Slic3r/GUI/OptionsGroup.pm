@@ -280,6 +280,7 @@ has 'label_tooltip' => (is => 'rw', default => sub { "" });
 has 'sizer'         => (is => 'rw');
 has 'widget'        => (is => 'rw');
 has '_options'      => (is => 'ro', default => sub { [] });
+# Extra UI components after the label and the edit widget of the option.
 has '_extra_widgets' => (is => 'ro', default => sub { [] });
 
 # this method accepts a Slic3r::GUI::OptionsGroup::Option object
@@ -304,6 +305,8 @@ sub get_extra_widgets {
 }
 
 
+# Configuration of an option.
+# This very much reflects the content of the C++ ConfigOptionDef class.
 package Slic3r::GUI::OptionsGroup::Option;
 use Moo;
 
@@ -349,6 +352,8 @@ sub get_option {
     my $opt_id = ($opt_index == -1 ? $opt_key : "${opt_key}#${opt_index}");
     $self->_opt_map->{$opt_id} = [ $opt_key, $opt_index ];
     
+    # Slic3r::Config::Options is a C++ Slic3r::PrintConfigDef exported as a Perl hash of hashes.
+    # The C++ counterpart is a constant singleton.
     my $optdef = $Slic3r::Config::Options->{$opt_key};    # we should access this from $self->config
     my $default_value = $self->_get_config_value($opt_key, $opt_index, $optdef->{gui_flags} =~ /\bserialized\b/);
     
@@ -463,6 +468,8 @@ sub _on_kill_focus {
     $self->reload_config;
 }
 
+# Static text shown among the options.
+# Currently used for the filament cooling legend only.
 package Slic3r::GUI::OptionsGroup::StaticText;
 use Wx qw(:misc :systemsettings);
 use base 'Wx::StaticText';

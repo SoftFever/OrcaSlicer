@@ -8,14 +8,15 @@ use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX);
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer));
+__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer color_by_extruder));
 
 sub new {
     my $class = shift;
-    my ($parent, $print) = @_;
+    my ($parent, $print, $config) = @_;
     
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
-    
+    $self->{config} = $config;
+
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
     $canvas->use_plain_shader(1);
@@ -53,7 +54,9 @@ sub new {
     $z_label_high->SetFont($Slic3r::GUI::small_font);
 
     $self->single_layer(0);
+    $self->color_by_extruder(0);
     my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
+    my $checkbox_color_by_extruder = $self->{checkbox_color_by_extruder} = Wx::CheckBox->new($self, -1, "Tool");
     
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -67,6 +70,7 @@ sub new {
     $hsizer->Add($vsizer, 0, wxEXPAND, 0);
     $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer_outer->Add($checkbox_singlelayer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
+    $vsizer_outer->Add($checkbox_color_by_extruder, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
 
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $sizer->Add($canvas, 1, wxALL | wxEXPAND, 0);
@@ -106,6 +110,10 @@ sub new {
             $slider_low->SetValue($slider_high->GetValue);
             $self->set_z_idx_high($slider_high->GetValue);
         }
+    });
+    EVT_CHECKBOX($self, $checkbox_color_by_extruder, sub {
+        $self->color_by_extruder($checkbox_color_by_extruder->GetValue());
+        $self->reload_print;
     });
     
     $self->SetSizer($sizer);
@@ -180,13 +188,27 @@ sub load_print {
     $self->slider_low->Show;
     $self->slider_high->Show;
     $self->Layout;
-    
+
+    # Collect colors per extruder.
+    # Leave it empty, if the print should be colored by a feature.
+    my @colors = ();
+    if ($self->color_by_extruder) {
+        my @extruder_colors = @{$self->{config}->extruder_colour};
+        my @filament_colors = @{$self->{config}->filament_colour};
+        for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
+            my $color = $extruder_colors[$i];
+            $color = $filament_colors[$i] if ($color !~ m/^#[[:xdigit:]]{6}/);
+            $color = '#FFFFFF' if ($color !~ m/^#[[:xdigit:]]{6}/);
+            push @colors, $color;
+        }
+    }
+
     if ($self->IsShown) {
         # load skirt and brim
-        $self->canvas->load_print_toolpaths($self->print);
+        $self->canvas->load_print_toolpaths($self->print, \@colors);
         
         foreach my $object (@{$self->print->objects}) {
-            $self->canvas->load_print_object_toolpaths($object);
+            $self->canvas->load_print_object_toolpaths($object, \@colors);
             
             # Show the objects in very transparent color.
             #my @volume_ids = $self->canvas->load_object($object->model_object);

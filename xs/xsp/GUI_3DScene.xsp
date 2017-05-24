@@ -118,19 +118,21 @@ _glew_init()
         _3DScene::_glew_init();
 
 void
-_load_print_toolpaths(print, volumes, use_VBOs)
+_load_print_toolpaths(print, volumes, tool_colors, use_VBOs)
         Print               *print;
         GLVolumeCollection  *volumes;
+        std::vector<std::string> tool_colors;
         int                  use_VBOs;
     CODE:
-        _3DScene::_load_print_toolpaths(print, volumes, use_VBOs != 0);
+        _3DScene::_load_print_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
 
 void 
-_load_print_object_toolpaths(print_object, volumes, use_VBOs)
+_load_print_object_toolpaths(print_object, volumes, tool_colors, use_VBOs)
         PrintObject        *print_object;
         GLVolumeCollection *volumes;
+        std::vector<std::string> tool_colors;
         int                 use_VBOs;
     CODE:
-        _3DScene::_load_print_object_toolpaths(print_object, volumes, use_VBOs != 0);
+        _3DScene::_load_print_object_toolpaths(print_object, volumes, tool_colors, use_VBOs != 0);
 
 %}

@@ -413,7 +413,7 @@ public:
 // This object is mapped to Perl as Slic3r::Config::Print.
 class PrintConfig : public GCodeConfig
 {
-    public:
+public:
     ConfigOptionBool                avoid_crossing_perimeters;
     ConfigOptionPoints              bed_shape;
     ConfigOptionInt                 bed_temperature;
@@ -427,6 +427,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionFloat               duplicate_distance;
     ConfigOptionFloat               extruder_clearance_height;
     ConfigOptionFloat               extruder_clearance_radius;
+    ConfigOptionStrings             extruder_colour;
     ConfigOptionPoints              extruder_offset;
     ConfigOptionBool                fan_always_on;
     ConfigOptionInt                 fan_below_layer_time;
@@ -491,6 +492,7 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(duplicate_distance);
         OPT_PTR(extruder_clearance_height);
         OPT_PTR(extruder_clearance_radius);
+        OPT_PTR(extruder_colour);
         OPT_PTR(extruder_offset);
         OPT_PTR(fan_always_on);
         OPT_PTR(fan_below_layer_time);

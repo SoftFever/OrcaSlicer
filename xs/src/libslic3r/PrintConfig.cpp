@@ -243,6 +243,19 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(20);
 
+    def = this->add("extruder_colour", coStrings);
+    def->label = "Extruder Color";
+    def->tooltip = "This is only used in the Slic3r interface as a visual help.";
+    def->cli = "extruder-color=s@";
+    def->gui_type = "color";
+    {
+        ConfigOptionStrings* opt = new ConfigOptionStrings();
+        // Empty string means no color assigned yet.
+//        opt->values.push_back("#FFFFFF");
+        opt->values.push_back("");
+        def->default_value = opt;
+    }
+
     def = this->add("extruder_offset", coPoints);
     def->label = "Extruder offset";
     def->tooltip = "If your firmware doesn't handle the extruder displacement you need the G-code to take it into account. This option lets you specify the displacement of each extruder with respect to the first one. It expects positive coordinates (they will be subtracted from the XY coordinate).";

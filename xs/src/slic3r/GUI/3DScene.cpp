@@ -710,12 +710,40 @@ void _3DScene::_glew_init()
     glewInit();
 }
 
+inline int hex_digit_to_int(const char c)
+{
+    return 
+        (c >= '0' && c <= '9') ? int(c - '0') : 
+        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
+		(c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
+}
+
+inline std::vector<float> parse_colors(const std::vector<std::string> &scolors)
+{
+    std::vector<float> output(scolors.size() * 4, 1.f);
+    for (size_t i = 0; i < scolors.size(); ++ i) {
+        const std::string &scolor = scolors[i];
+        const char        *c      = scolor.data() + 1;
+        if (scolor.size() == 7 && scolor.front() == '#') {
+			for (size_t j = 0; j < 3; ++j) {
+                int digit1 = hex_digit_to_int(*c ++);
+                int digit2 = hex_digit_to_int(*c ++);
+                if (digit1 == -1 || digit2 == -1)
+                    break;
+                output[i * 4 + j] = float(digit1 * 16 + digit2) / 255.f;
+            }
+        }
+    }
+    return output;
+}
+
 // Create 3D thick extrusion lines for a skirt and brim.
 // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
 void _3DScene::_load_print_toolpaths(
-    const Print         *print, 
-    GLVolumeCollection  *volumes,
-    bool                 use_VBOs)
+    const Print                     *print, 
+    GLVolumeCollection              *volumes,
+    const std::vector<std::string>  &tool_colors,
+    bool                             use_VBOs)
 {
     if (! print->has_skirt() && print->config.brim_width.value == 0)
         return;
@@ -765,10 +793,13 @@ void _3DScene::_load_print_toolpaths(
 // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
 // one for perimeters, one for infill and one for supports.
 void _3DScene::_load_print_object_toolpaths(
-    const PrintObject   *print_object,
-    GLVolumeCollection  *volumes,
-    bool                 use_VBOs)
+    const PrintObject              *print_object,
+    GLVolumeCollection             *volumes,
+    const std::vector<std::string> &tool_colors_str,
+    bool                            use_VBOs)
 {
+    std::vector<float> tool_colors = parse_colors(tool_colors_str);
+
     struct Ctxt
     {
         const Points                *shifted_copies;
@@ -778,6 +809,7 @@ void _3DScene::_load_print_object_toolpaths(
         bool                         has_perimeters;
         bool                         has_infill;
         bool                         has_support;
+        const std::vector<float>*    tool_colors;
 
         // Number of vertices (each vertex is 6x4=24 bytes long)
         static const size_t          alloc_size_max    () { return 131072; } // 3.15MB
@@ -788,6 +820,11 @@ void _3DScene::_load_print_object_toolpaths(
         static const float*          color_perimeters  () { static float color[4] = { 1.0f, 1.0f, 0.0f, 1.f }; return color; } // yellow
         static const float*          color_infill      () { static float color[4] = { 1.0f, 0.5f, 0.5f, 1.f }; return color; } // redish
         static const float*          color_support     () { static float color[4] = { 0.5f, 1.0f, 0.5f, 1.f }; return color; } // greenish
+
+        // For cloring by a tool, return a parsed color.
+        bool                         color_by_tool() const { return tool_colors != nullptr; }
+        size_t                       number_tools()  const { return this->color_by_tool() ? tool_colors->size() / 4 : 0; }
+        const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
     } ctxt;
 
     ctxt.shifted_copies = &print_object->_shifted_copies;
@@ -811,6 +848,7 @@ void _3DScene::_load_print_object_toolpaths(
     ctxt.has_perimeters = print_object->state.is_done(posPerimeters);
     ctxt.has_infill     = print_object->state.is_done(posInfill);
     ctxt.has_support    = print_object->state.is_done(posSupportMaterial);
+    ctxt.tool_colors    = tool_colors.empty() ? nullptr : &tool_colors;
     
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start";
 
@@ -829,15 +867,20 @@ void _3DScene::_load_print_object_toolpaths(
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
-            GLVolume* vols[3] = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_infill()), new_volume(ctxt.color_support()) };
-            for (size_t i = 0; i < 3; ++ i) {
+            std::vector<GLVolume*> vols;
+            if (ctxt.color_by_tool()) {
+                for (size_t i = 0; i < ctxt.number_tools(); ++ i)
+                    vols.emplace_back(new_volume(ctxt.color_tool(i)));
+            } else
+                vols = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_infill()), new_volume(ctxt.color_support()) };
+            for (size_t i = 0; i < vols.size(); ++ i) {
                 GLVolume &volume = *vols[i];
                 volume.bounding_box = ctxt.bbox;
                 volume.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
             }
             for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                 const Layer *layer = ctxt.layers[idx_layer];
-                for (size_t i = 0; i < 3; ++ i) {
+                for (size_t i = 0; i < vols.size(); ++ i) {
                     GLVolume &vol = *vols[i];
                     if (vol.print_zs.empty() || vol.print_zs.back() != layer->print_z) {
                         vol.print_zs.push_back(layer->print_z);
@@ -847,18 +890,45 @@ void _3DScene::_load_print_object_toolpaths(
                 }
                 for (const Point &copy: *ctxt.shifted_copies) {
                     for (const LayerRegion *layerm : layer->regions) {
-                        if (ctxt.has_perimeters)
-                            extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy, *vols[0]);
-                        if (ctxt.has_infill)
-                            extrusionentity_to_verts(layerm->fills, float(layer->print_z), copy, *vols[1]);
+                        if (ctxt.has_perimeters) {
+                            int volume_idx = ctxt.color_by_tool() ? 
+                                std::max<int>(layerm->region()->config.perimeter_extruder.value - 1, 0) :
+                                0;
+                            extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy, *vols[volume_idx]);
+                        }
+                        if (ctxt.has_infill) {
+                            for (const ExtrusionEntity *ee : layerm->fills.entities) {
+                                // fill represents infill extrusions of a single island.
+                                const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+                                if (fill->entities.empty())
+                                    // This shouldn't happen but first_point() would fail.
+                                    continue;
+                                int volume_idx = ctxt.color_by_tool() ? 
+                                    std::max<int>(0, 
+                                        (is_solid_infill(fill->entities.front()->role()) ? 
+                                            layerm->region()->config.solid_infill_extruder : 
+                                            layerm->region()->config.infill_extruder) - 1) :
+                                    1;
+                                extrusionentity_to_verts(*fill, float(layer->print_z), copy, *vols[volume_idx]);
+                            }
+                        }
                     }
                     if (ctxt.has_support) {
                         const SupportLayer *support_layer = dynamic_cast<const SupportLayer*>(layer);
-                        if (support_layer)
-                            extrusionentity_to_verts(support_layer->support_fills, float(layer->print_z), copy, *vols[2]);
+                        if (support_layer) {
+                            for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities) {
+                                int volume_idx = ctxt.color_by_tool() ? 
+                                    std::max<int>(0, 
+                                        ((extrusion_entity->role() == erSupportMaterial) ? 
+                                            support_layer->object()->config.support_material_extruder : 
+                                            support_layer->object()->config.support_material_interface_extruder) - 1) :
+                                    2;
+                                extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy, *vols[volume_idx]);
+                            }
+                        }
                     }
                 }
-                for (size_t i = 0; i < 3; ++ i) {
+                for (size_t i = 0; i < vols.size(); ++ i) {
                     GLVolume &vol = *vols[i];
                     if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
                         // Store the vertex arrays and restart their containers, 
@@ -876,7 +946,7 @@ void _3DScene::_load_print_object_toolpaths(
                     }
                 }
             }
-            for (size_t i = 0; i < 3; ++ i)
+            for (size_t i = 0; i < vols.size(); ++ i)
                 vols[i]->indexed_vertex_array.shrink_to_fit();
         });
 

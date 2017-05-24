@@ -142,6 +142,7 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "end_gcode"
             || *opt_key == "extruder_clearance_height"
             || *opt_key == "extruder_clearance_radius"
+            || *opt_key == "extruder_colour"
             || *opt_key == "extruder_offset"
             || *opt_key == "extrusion_axis"
             || *opt_key == "extrusion_multiplier"

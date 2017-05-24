@@ -293,6 +293,9 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     return layers_to_print;
 }
 
+// Prepare for non-sequential printing of multiple objects: Support resp. object layers with nearly identical print_z 
+// will be printed for  all objects at once.
+// Return a list of <print_z, per object LayerToPrint> items.
 std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collect_layers_to_print(const Print &print)
 {
     struct OrderingItem {
@@ -304,11 +307,12 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     std::vector<OrderingItem>               ordering;
     for (size_t i = 0; i < print.objects.size(); ++ i) {
         per_object[i] = collect_layers_to_print(*print.objects[i]);
-        const LayerToPrint &front = per_object[i].front();
         OrderingItem ordering_item;
         ordering_item.object_idx = i;
+        ordering.reserve(ordering.size() + per_object[i].size());
+        const LayerToPrint &front = per_object[i].front();
         for (const LayerToPrint &ltp : per_object[i]) {
-            ordering_item.print_z = ltp.print_z();
+            ordering_item.print_z   = ltp.print_z();
             ordering_item.layer_idx = &ltp - &front;
             ordering.emplace_back(ordering_item);
         }

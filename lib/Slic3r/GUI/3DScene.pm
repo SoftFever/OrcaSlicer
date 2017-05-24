@@ -1871,10 +1871,10 @@ sub load_object {
 # Create 3D thick extrusion lines for a skirt and brim.
 # Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes.
 sub load_print_toolpaths {
-    my ($self, $print) = @_;
+    my ($self, $print, $colors) = @_;
 
     $self->SetCurrent($self->GetContext) if $self->UseVBOs;
-    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $self->UseVBOs)
+    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $colors, $self->UseVBOs)
         if ($print->step_done(STEP_SKIRT) && $print->step_done(STEP_BRIM));
 }
 
@@ -1882,10 +1882,10 @@ sub load_print_toolpaths {
 # Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
 # one for perimeters, one for infill and one for supports.
 sub load_print_object_toolpaths {
-    my ($self, $object) = @_;
+    my ($self, $object, $colors) = @_;
 
     $self->SetCurrent($self->GetContext) if $self->UseVBOs;
-    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $self->UseVBOs);
+    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $colors, $self->UseVBOs);
 }
 
 sub set_toolpaths_range {

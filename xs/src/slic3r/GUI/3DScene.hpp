@@ -344,14 +344,16 @@ public:
     static void _glew_init();
 
     static void _load_print_toolpaths(
-        const Print         *print,
-        GLVolumeCollection  *volumes,
-        bool                 use_VBOs);
+        const Print                     *print,
+        GLVolumeCollection              *volumes,
+        const std::vector<std::string>  &tool_colors,
+        bool                             use_VBOs);
 
     static void _load_print_object_toolpaths(
-        const PrintObject   *print_object,
-        GLVolumeCollection  *volumes,
-        bool                 use_VBOs);
+        const PrintObject               *print_object,
+        GLVolumeCollection              *volumes,
+        const std::vector<std::string>  &tool_colors,
+        bool                             use_VBOs);
 };
 
 }

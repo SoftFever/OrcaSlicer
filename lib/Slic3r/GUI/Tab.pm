@@ -1164,7 +1164,7 @@ sub build {
         nozzle_diameter extruder_offset
         retract_length retract_lift retract_speed deretract_speed retract_before_wipe retract_restart_extra retract_before_travel retract_layer_change wipe
         retract_length_toolchange retract_restart_extra_toolchange
-        printer_notes
+        extruder_colour printer_notes
     ));
     $self->{config}->set('printer_settings_id', '');
     
@@ -1455,7 +1455,7 @@ sub _extruder_options {
     qw(nozzle_diameter min_layer_height max_layer_height extruder_offset 
        retract_length retract_lift retract_lift_above retract_lift_below retract_speed deretract_speed 
        retract_before_wipe retract_restart_extra retract_before_travel wipe
-       retract_layer_change retract_length_toolchange retract_restart_extra_toolchange) }
+       retract_layer_change retract_length_toolchange retract_restart_extra_toolchange extruder_colour) }
 
 sub _build_extruder_pages {
     my $self = shift;
@@ -1513,6 +1513,10 @@ sub _build_extruder_pages {
             my $optgroup = $page->new_optgroup('Retraction when tool is disabled (advanced settings for multi-extruder setups)');
             $optgroup->append_single_option_line($_, $extruder_idx)
                 for qw(retract_length_toolchange retract_restart_extra_toolchange);
+        }
+        {
+            my $optgroup = $page->new_optgroup('Preview');
+            $optgroup->append_single_option_line('extruder_colour', $extruder_idx);
         }
     }
     
@@ -1765,6 +1769,7 @@ sub get_name {
 package Slic3r::GUI::Tab::Preset;
 use Moo;
 
+# The preset represents a "default" set of properties.
 has 'default'   => (is => 'ro', default => sub { 0 });
 has 'external'  => (is => 'ro', default => sub { 0 });
 has 'name'      => (is => 'rw', required => 1);
