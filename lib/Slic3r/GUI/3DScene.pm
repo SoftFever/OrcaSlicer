@@ -1888,6 +1888,15 @@ sub load_print_object_toolpaths {
     Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $colors, $self->UseVBOs);
 }
 
+# Create 3D thick extrusion lines for wipe tower extrusions.
+sub load_wipe_tower_toolpaths {
+    my ($self, $print, $colors) = @_;
+
+    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+    Slic3r::GUI::_3DScene::_load_wipe_tower_toolpaths($print, $self->volumes, $colors, $self->UseVBOs)
+        if ($print->step_done(STEP_WIPE_TOWER));
+}
+
 sub set_toolpaths_range {
     my ($self, $min_z, $max_z) = @_;
     $self->volumes->set_range($min_z, $max_z);

@@ -316,17 +316,21 @@ PrintObject::invalidate_step(PrintObjectStep step)
         this->invalidate_step(posPrepareInfill);
         this->_print->invalidate_step(psSkirt);
         this->_print->invalidate_step(psBrim);
+        this->_print->invalidate_step(psWipeTower);
     } else if (step == posPrepareInfill) {
         this->invalidate_step(posInfill);
     } else if (step == posInfill) {
         this->_print->invalidate_step(psSkirt);
         this->_print->invalidate_step(psBrim);
+        this->_print->invalidate_step(psWipeTower);
     } else if (step == posSlice) {
         this->invalidate_step(posPerimeters);
         this->invalidate_step(posSupportMaterial);
+        this->_print->invalidate_step(psWipeTower);
     } else if (step == posSupportMaterial) {
         this->_print->invalidate_step(psSkirt);
         this->_print->invalidate_step(psBrim);
+        this->_print->invalidate_step(psWipeTower);
     }
     
     return invalidated;
@@ -1055,7 +1059,7 @@ void PrintObject::_slice()
 {
     BOOST_LOG_TRIVIAL(info) << "Slicing objects...";
 
-#if 0
+#if 1
     // Disable parallelization for debugging purposes.
     static tbb::task_scheduler_init *tbb_init = nullptr;
     tbb_init = new tbb::task_scheduler_init(1);

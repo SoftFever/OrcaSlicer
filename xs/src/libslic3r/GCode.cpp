@@ -142,113 +142,77 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
     return gcode;
 }
 
-WipeTowerIntegration::WipeTowerIntegration(const PrintConfig &print_config) : m_brim_done(false)
-{
-    // Initialize the wipe tower.
-    auto *wipe_tower = new WipeTowerPrusaMM(
-            float(print_config.wipe_tower_x.value), float(print_config.wipe_tower_y.value), 
-            float(print_config.wipe_tower_width.value), float(print_config.wipe_tower_per_color_wipe.value));
-    //wipe_tower->set_retract();
-    //wipe_tower->set_zhop();
-    //wipe_tower->set_zhop();
-    // Set the extruder & material properties at the wipe tower object.
-    for (size_t i = 0; i < 4; ++ i)
-        wipe_tower->set_extruder(
-            i, 
-            WipeTowerPrusaMM::parse_material(print_config.filament_type.get_at(i).c_str()),
-            print_config.temperature.get_at(i),
-            print_config.first_layer_temperature.get_at(i));
-    m_impl.reset(wipe_tower);
-}
-
 static inline Point wipe_tower_point_to_object_point(GCode &gcodegen, const WipeTower::xy &wipe_tower_pt)
 {
     return Point(scale_(wipe_tower_pt.x - gcodegen.origin().x), scale_(wipe_tower_pt.y - gcodegen.origin().y));
 }
 
+std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const
+{
+    std::string gcode;
+
+    // Move over the wipe tower.
+    // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
+    gcode += gcodegen.retract(true);
+    gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
+    gcode += gcodegen.travel_to(
+        wipe_tower_point_to_object_point(gcodegen, tcr.start_pos),
+        erMixed,
+        "Travel to a Wipe Tower");
+    gcode += gcodegen.unretract();
+
+    // Let the tool change be executed by the wipe tower class.
+    // Inform the G-code writer about the changes done behind its back.
+    gcode += tcr.gcode;
+    // Accumulate the elapsed time for the correct calculation of layer cooling.
+    //FIXME currently disabled as Slic3r PE needs to be updated to differentiate the moves it could slow down
+    // from the moves it could not.
+//    gcodegen.m_elapsed_time += tcr.elapsed_time;
+    // Let the m_writer know the current extruder_id, but ignore the generated G-code.
+	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
+        gcodegen.writer().toolchange(new_extruder_id);
+    // A phony move to the end position at the wipe tower.
+    gcodegen.writer().travel_to_xy(Pointf(tcr.end_pos.x, tcr.end_pos.y));
+    gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, tcr.end_pos));
+
+    // Prepare a future wipe.
+    gcodegen.m_wipe.path.points.clear();
+    if (new_extruder_id >= 0) {
+        // Start the wipe at the current position.
+        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, tcr.end_pos));
+        // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
+        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, 
+            WipeTower::xy((std::abs(m_left - tcr.end_pos.x) < std::abs(m_right - tcr.end_pos.x)) ? m_right : m_left,
+            tcr.end_pos.y)));
+    }
+
+    // Let the planner know we are traveling between objects.
+    gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
+    return gcode;
+}
+
 std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer)
 {
-    bool over_wipe_tower = false;
     std::string gcode;
-    
-    if (! m_brim_done || gcodegen.writer().need_toolchange(extruder_id)) {
-        // Move over the wipe tower.
-        gcode += this->travel_to(gcodegen, m_impl->tool_change(extruder_id, WipeTower::PURPOSE_MOVE_TO_TOWER).second);
-        // Let the tool change be executed by the wipe tower class.
-        //FIXME calculate time at the wipe tower and add it to m_elapsed_time
-        std::pair<std::string, WipeTower::xy> code_and_pos = m_impl->tool_change(extruder_id, WipeTower::PURPOSE_EXTRUDE);
-        // Inform the G-code writer about the changes done behind its back.
-        gcode += code_and_pos.first;
-        // Let the m_writer know the current extruder_id, but ignore the generated G-code.
-        gcodegen.writer().toolchange(extruder_id);
-        // A phony move to the end position at the wipe tower.
-        gcodegen.writer().travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
-        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, code_and_pos.second));
-        this->prepare_wipe(gcodegen, code_and_pos.second);
-        gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
-        over_wipe_tower = true;
+	assert(m_layer_idx >= 0 && m_layer_idx <= m_tool_changes.size());
+    if (! m_brim_done || gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
+		if (m_layer_idx < m_tool_changes.size()) {
+			assert(m_tool_change_idx < m_tool_changes[m_layer_idx].size());
+			gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id);
+		}
         m_brim_done = true;
     }
-
-    if (finish_layer && ! m_impl->layer_finished()) {
-        // Last extruder change on the layer or no extruder change at all.
-        if (! over_wipe_tower)
-            gcode += this->travel_to(gcodegen, m_impl->finish_layer(WipeTower::PURPOSE_MOVE_TO_TOWER).second);
-        // Let the tool change be executed by the wipe tower class.
-        //FIXME calculate time at the wipe tower and add it to m_elapsed_time
-        std::pair<std::string, WipeTower::xy> code_and_pos = m_impl->finish_layer(WipeTower::PURPOSE_EXTRUDE);
-        // Inform the G-code writer about the changes done behind its back.
-        gcode += code_and_pos.first;
-        // A phony move to the end position at the wipe tower.
-        gcodegen.writer().travel_to_xy(Pointf(code_and_pos.second.x, code_and_pos.second.y));
-        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, code_and_pos.second));
-        this->prepare_wipe(gcodegen, code_and_pos.second);
-        gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
-    }
-
     return gcode;
 }
 
 // Print is finished. Now it remains to unload the filament safely with ramming over the wipe tower.
-std::string WipeTowerIntegration::finalize(GCode &gcodegen, const Print &print, bool current_layer_full)
+std::string WipeTowerIntegration::finalize(GCode &gcodegen)
 {
     std::string gcode;
-    // Unload the current filament over the purge tower.
-    if (current_layer_full) {
-        // There is not enough space on the wipe tower to purge the nozzle into. Lift Z to the next layer.
-        coordf_t new_print_z = gcodegen.writer().get_position().z + print.objects.front()->config.layer_height.value;
-        gcode += gcodegen.change_layer(new_print_z);
-        m_impl->set_layer(float(new_print_z), float(print.objects.front()->config.layer_height.value), 0, false, true);
-    }
-    gcode += this->tool_change(gcodegen, -1, false);
-    m_impl.release();
+    if (std::abs(gcodegen.writer().get_position().z - m_final_purge.print_z) > EPSILON)
+        gcode += gcodegen.change_layer(m_final_purge.print_z);
+    gcode += append_tcr(gcodegen, m_final_purge, -1);
     return gcode;
-}
-
-std::string WipeTowerIntegration::travel_to(GCode &gcodegen, const WipeTower::xy &dest)
-{
-    // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
-    std::string gcode = gcodegen.retract(true);
-    gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
-    gcode += gcodegen.travel_to(
-        wipe_tower_point_to_object_point(gcodegen, dest),
-        erMixed,
-        "Travel to a Wipe Tower");
-    gcode += gcodegen.unretract();
-    return gcode;
-}
-
-void WipeTowerIntegration::prepare_wipe(GCode &gcodegen, const WipeTower::xy &current_position)
-{
-    gcodegen.m_wipe.path.points.clear();
-    // Start the wipe at the current position.
-    gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, current_position));
-    // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
-    float l = m_impl->position().x;
-    float r = l + m_impl->width();
-    gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, 
-        WipeTower::xy((std::abs(l - current_position.x) < std::abs(r - current_position.x)) ? r : l,
-        current_position.y)));
 }
 
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id)
@@ -498,7 +462,10 @@ bool GCode::do_export(FILE *file, Print &print)
 		}
 	} else {
 		// Find tool ordering for all the objects at once, and the initial extruder ID.
-		tool_ordering = ToolOrdering(print, initial_extruder_id);
+        // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
+		tool_ordering = print.m_tool_ordering.empty() ?
+            ToolOrdering(print, initial_extruder_id) :
+            print.m_tool_ordering;
 		initial_extruder_id = tool_ordering.first_extruder();
     }
     if (initial_extruder_id == (unsigned int)-1) {
@@ -642,35 +609,24 @@ bool GCode::do_export(FILE *file, Print &print)
         // All extrusion moves with the same top layer height are extruded uninterrupted.
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
         // Prusa Multi-Material wipe tower.
-        if (print.config.single_extruder_multi_material.value && print.config.wipe_tower.value && 
+        if (print.has_wipe_tower() && 
             ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0)
-            m_wipe_tower.reset(new WipeTowerIntegration(print.config));
+            m_wipe_tower.reset(new WipeTowerIntegration(print.config, print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
         // Extrude the layers.
         for (auto &layer : layers_to_print) {
-            // layer.second is of type std::vector<LayerToPrint>,
-            // wher the objects are sorted by their sorted order given by object_indices.
             const ToolOrdering::LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.first);
-            if (layer_tools.has_wipe_tower && m_wipe_tower) {
-                bool first_layer = &layer == layers_to_print.data();
-                m_wipe_tower->set_layer(
-                    layer.first, 
-                    first_layer ? 
-                        print.objects.front()->config.first_layer_height.get_abs_value(print.objects.front()->config.layer_height.value) :
-                        print.objects.front()->config.layer_height.value,
-                    layer_tools.wipe_tower_partitions,
-                    first_layer,
-                    layer_tools.wipe_tower_partitions == 0 || (&layer_tools == &tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0));
-            }
+            if (m_wipe_tower && layer_tools.has_wipe_tower)
+                m_wipe_tower->next_layer();
             this->process_layer(file, print, layer.second, layer_tools, size_t(-1));
         }
         write(file, this->filter(m_cooling_buffer->flush(), true));
+        if (m_wipe_tower)
+            // Purge the extruder, pull out the active filament.
+            write(file, m_wipe_tower->finalize(*this));
     }
 
     // write end commands to file
-    if (m_wipe_tower)
-        write(file, m_wipe_tower->finalize(*this, print, tool_ordering.back().wipe_tower_partitions > 0 && m_wipe_tower->layer_finished()));
-    else
-        write(file, this->retract());   // TODO: process this retract through PressureRegulator in order to discharge fully
+    write(file, this->retract());
     write(file, m_writer.set_fan(false));
     writeln(file, m_placeholder_parser.process(print.config.end_gcode));
     write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
@@ -1036,7 +992,7 @@ void GCode::process_layer(
     std::vector<std::unique_ptr<EdgeGrid::Grid>> lower_layer_edge_grids(layers.size());
     for (unsigned int extruder_id : layer_tools.extruders)
     {   
-        gcode += (layer_tools.has_wipe_tower && m_wipe_tower) ? 
+        gcode += (layer_tools.has_wipe_tower && m_wipe_tower) ?
             m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back()) :
             this->set_extruder(extruder_id);
 

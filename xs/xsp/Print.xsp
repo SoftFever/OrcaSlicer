@@ -19,6 +19,7 @@ _constant()
     STEP_SUPPORTMATERIAL    = posSupportMaterial
     STEP_SKIRT              = psSkirt
     STEP_BRIM               = psBrim
+    STEP_WIPE_TOWER         = psWipeTower
   PROTOTYPE:
   CODE:
     RETVAL = ix;
@@ -238,6 +239,11 @@ _constant()
     Clone<Flow> skirt_flow();
 
     void _make_skirt();
+
+    bool has_wipe_tower();
+    void _clear_wipe_tower();
+    void _make_wipe_tower();
+
 %{
 
 double

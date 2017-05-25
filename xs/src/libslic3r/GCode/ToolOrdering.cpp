@@ -1,3 +1,4 @@
+#include "Print.hpp"
 #include "ToolOrdering.hpp"
 
 #include <assert.h>

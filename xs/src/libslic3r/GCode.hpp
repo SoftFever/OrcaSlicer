@@ -75,18 +75,36 @@ public:
 
 class WipeTowerIntegration {
 public:
-    WipeTowerIntegration(const PrintConfig &config);
-    void set_layer(coordf_t print_z, coordf_t layer_height, size_t max_tool_changes, bool is_first_layer, bool is_last_layer)
-        { m_impl->set_layer(float(print_z), float(layer_height), max_tool_changes, is_first_layer, is_last_layer); }
-    bool layer_finished() const { return m_impl->layer_finished(); }
+    WipeTowerIntegration(
+        const PrintConfig                                           &print_config,
+        const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes,
+        const WipeTower::ToolChangeResult                           &final_purge) :
+        m_left(float(print_config.wipe_tower_x.value)),
+        m_right(float(print_config.wipe_tower_x.value + print_config.wipe_tower_width.value)),
+        m_tool_changes(tool_changes),
+        m_final_purge(final_purge),
+        m_layer_idx(-1),
+        m_tool_change_idx(0),
+        m_brim_done(false) {}
+
+    void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
     std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
-    std::string finalize(GCode &gcodegen, const Print &print, bool current_layer_full);
+    std::string finalize(GCode &gcodegen);
 
 private:
-    std::string travel_to(GCode &codegen, const WipeTower::xy &dest);
-    void        prepare_wipe(GCode &gcodegen, const WipeTower::xy &current_position);
-    std::unique_ptr<WipeTower> m_impl;
-    bool                       m_brim_done;
+    WipeTowerIntegration& operator=(const WipeTowerIntegration&);
+    std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const;
+
+    // Left / right edges of the wipe tower, for the planning of wipe moves.
+    const float                                                  m_left;
+    const float                                                  m_right;
+    // Reference to cached values at the Printer class.
+    const std::vector<std::vector<WipeTower::ToolChangeResult>> &m_tool_changes;
+    const WipeTower::ToolChangeResult                           &m_final_purge;
+    // Current layer index.
+    int                                                          m_layer_idx;
+    int                                                          m_tool_change_idx;
+    bool                                                         m_brim_done;
 };
 
 class GCode {

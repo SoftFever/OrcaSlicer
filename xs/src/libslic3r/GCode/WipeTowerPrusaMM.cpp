@@ -4,6 +4,7 @@
 #include <math.h>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 #ifdef __linux
 #include <strings.h>
@@ -25,15 +26,33 @@ public:
 		m_current_pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()),
 		m_current_z(0.f),
 		m_current_feedrate(0.f),
-		m_extrusion_flow(0.f) {}
+		m_extrusion_flow(0.f),
+		m_layer_height(0.f),
+		m_preview_suppressed(false),
+		m_elapsed_time(0.f) {}
 
-	Writer& 			 set_initial_position(const WipeTower::xy &pos) { m_current_pos = pos; return *this; }
+	Writer& 			 set_initial_position(const WipeTower::xy &pos) { 
+		m_start_pos = pos;
+		m_current_pos = pos;
+		return *this;
+	}
+
+	Writer&				 set_initial_tool(const unsigned int tool) { m_current_tool = tool; return *this; }
 
 	Writer&				 set_z(float z) 
 		{ m_current_z = z; return *this; }
 
+	Writer&				 set_layer_height(float layer_height)
+		{ m_layer_height = layer_height; return *this; }
+
 	Writer& 			 set_extrusion_flow(float flow)
 		{ m_extrusion_flow = flow; return *this; }
+
+	// Suppress / resume G-code preview in Slic3r. Slic3r will have difficulty to differentiate the various
+	// filament loading and cooling moves from normal extrusion moves. Therefore the writer
+	// is asked to suppres output of some lines, which look like extrusions.
+	Writer& 			 suppress_preview() { m_preview_suppressed = true; return *this; }
+	Writer& 			 resume_preview() { m_preview_suppressed = false; return *this; }
 
 	Writer& 			 feedrate(float f)
 	{
@@ -43,24 +62,48 @@ public:
 	}
 
 	const std::string&   gcode() const { return m_gcode; }
+	const std::vector<WipeTower::Extrusion>& extrusions() const { return m_extrusions; }
 	float                x()     const { return m_current_pos.x; }
 	float                y()     const { return m_current_pos.y; }
+	const WipeTower::xy& start_pos() const { return m_start_pos; }
 	const WipeTower::xy& pos()   const { return m_current_pos; }
+	float 				 elapsed_time() const { return m_elapsed_time; }
 
 	// Extrude with an explicitely provided amount of extrusion.
 	Writer& extrude_explicit(float x, float y, float e, float f = 0.f) 
 	{
 		if (x == m_current_pos.x && y == m_current_pos.y && e == 0.f && (f == 0.f || f == m_current_feedrate))
+			// Neither extrusion nor a travel move.
 			return *this;
+
+		float dx = x - m_current_pos.x;
+		float dy = y - m_current_pos.y;
+		double len = sqrt(dx*dx+dy*dy);
+		if (! m_preview_suppressed && e > 0.f && len > 0.) {
+			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
+			// This is left zero if it is a travel move.
+			float width = float(double(e) * m_filament_area / (len * m_layer_height));
+			// Correct for the roundings of a squished extrusion.
+			width += float(m_layer_height * (1. - M_PI / 4.));
+			if (m_extrusions.empty() || m_extrusions.back().pos != m_current_pos)
+				m_extrusions.emplace_back(WipeTower::Extrusion(m_current_pos, 0, m_current_tool));
+			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(x, y), width, m_current_tool));
+		}
+
 		m_gcode += "G1";
 		if (x != m_current_pos.x)
 			m_gcode += set_format_X(x);
 		if (y != m_current_pos.y)
 			m_gcode += set_format_Y(y);
+
 		if (e != 0.f)
 			m_gcode += set_format_E(e);
+
 		if (f != 0.f && f != m_current_feedrate)
 			m_gcode += set_format_F(f);
+
+		// Update the elapsed time with a rough estimate.
+		m_elapsed_time += ((len == 0) ? std::abs(e) : len) / m_current_feedrate * 60.f;
 		m_gcode += "\n";
 		return *this;
 	}
@@ -146,6 +189,7 @@ public:
 		char buf[64];
 		sprintf(buf, "T%d\n", tool);
 		m_gcode += buf;
+		m_current_tool = tool;
 		return *this;
 	}
 
@@ -222,11 +266,18 @@ public:
 	Writer& append(const char *text) { m_gcode += text; return *this; }
 
 private:
+	WipeTower::xy m_start_pos;
 	WipeTower::xy m_current_pos;
 	float    	  m_current_z;
 	float 	  	  m_current_feedrate;
+	unsigned int  m_current_tool;
+	float 		  m_layer_height;
 	float 	  	  m_extrusion_flow;
+	bool		  m_preview_suppressed;
 	std::string   m_gcode;
+	std::vector<WipeTower::Extrusion> m_extrusions;
+	float         m_elapsed_time;
+	const double  m_filament_area = 0.25*M_PI*1.75*1.75;
 
 	std::string   set_format_X(float x) {
 		char buf[64];
@@ -260,6 +311,8 @@ private:
 		m_current_feedrate = f;
 		return buf;
 	}
+
+	Writer& operator=(const Writer &rhs);
 };
 
 } // namespace PrusaMultiMaterial
@@ -287,7 +340,7 @@ WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *nam
 	return INVALID;
 }
 
-std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool, Purpose purpose)
+WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(int tool, Purpose purpose)
 {
 	// Either it is the last tool unload,
 	// or there must be a nonzero wipe tower partitions available.
@@ -306,10 +359,12 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool, Pu
 	PrusaMultiMaterial::Writer writer;
 	writer.set_extrusion_flow(m_extrusion_flow)
 		  .set_z(m_z_pos)
+		  .set_layer_height(m_layer_height)
+		  .set_initial_tool(m_current_tool)
 		  .append(";--------------------\n"
 			 	  "; CP TOOLCHANGE START\n")
 		  .comment_with_value(" toolchange #", m_num_tool_changes)
-		  .comment_material(m_current_material)
+		  .comment_material(m_material[m_current_tool])
 		  .append(";--------------------\n")
 		  .speed_override(100);
 
@@ -318,7 +373,7 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool, Pu
 
 	if (purpose == PURPOSE_MOVE_TO_TOWER || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
 		// Scaffold leaks terribly, reduce leaking by a full retract when going to the wipe tower.
-		float initial_retract = ((m_current_material == SCAFF) ? 1.f : 0.5f) * m_retract;
+		float initial_retract = ((m_material[m_current_tool] == SCAFF) ? 1.f : 0.5f) * m_retract;
 		writer 	// Lift for a Z hop.
 		  	  	.z_hop(m_zhop, 7200)
 		  		// Additional retract on move to tower.
@@ -339,7 +394,7 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool, Pu
 		// Increase the extruder driver current to allow fast ramming.
 		writer.set_extruder_trimpot(750);
 		// Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
-		toolchange_Unload(writer, cleaning_box, m_current_material,
+		toolchange_Unload(writer, cleaning_box, m_material[m_current_tool],
 			m_is_first_layer ? m_first_layer_temperature[tool]  : m_temperature[tool]);
 
 		if (tool >= 0) {
@@ -379,10 +434,17 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::tool_change(int tool, Pu
 	    m_current_wipe_start_y += m_wipe_area;
 	}
 
-	return std::pair<std::string, xy>(writer.gcode(), writer.pos());
+	ToolChangeResult result;
+	result.print_z 	  = this->m_z_pos;
+	result.gcode   	  = writer.gcode();
+	result.elapsed_time = writer.elapsed_time();
+	result.extrusions = writer.extrusions();
+	result.start_pos  = writer.start_pos();
+	result.end_pos 	  = writer.pos();
+	return result;
 }
 
-std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, bool sideOnly, float y_offset)
+WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, bool sideOnly, float y_offset)
 {
 	const box_coordinates wipeTower_box(
 		m_wipe_tower_pos,
@@ -393,6 +455,8 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::toolchange_Brim(Purpose 
 	writer.set_extrusion_flow(m_extrusion_flow * 1.1f)
 		  // Let the writer know the current Z position as a base for Z-hop.
 		  .set_z(m_z_pos)
+		  .set_layer_height(m_layer_height)
+		  .set_initial_tool(m_current_tool)
 		  .append(
 			";-------------------------------------\n"
 			"; CP WIPE TOWER FIRST LAYER BRIM START\n");
@@ -453,7 +517,14 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::toolchange_Brim(Purpose 
 		m_idx_tool_change_in_layer = 0;
 	}
 
-	return std::pair<std::string, xy>(writer.gcode(), writer.pos());
+	ToolChangeResult result;
+	result.print_z 	  = this->m_z_pos;
+	result.gcode   	  = writer.gcode();
+	result.elapsed_time = writer.elapsed_time();
+	result.extrusions = writer.extrusions();
+	result.start_pos  = writer.start_pos();
+	result.end_pos 	  = writer.pos();
+	return result;
 }
 
 // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
@@ -510,7 +581,8 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	if (std::abs(writer.x() - xl) < std::abs(writer.x() - xr))
 		std::swap(xl, xr);
 	// Horizontal cooling moves will be performed at the following Y coordinate:
-	writer.travel(xr, writer.y() + y_step * 0.8f, 7200);
+	writer.travel(xr, writer.y() + y_step * 0.8f, 7200)
+		  .suppress_preview();
 	switch (current_material)
 	{
 	case ABS:
@@ -541,7 +613,8 @@ void WipeTowerPrusaMM::toolchange_Unload(
 			  .cool(xl, xr, 5, -3, 2400);
 	}
 
-	writer.flush_planner_queue();
+	writer.resume_preview()
+		  .flush_planner_queue();
 }
 
 // Change the tool, set a speed override for solube and flex materials.
@@ -561,7 +634,7 @@ void WipeTowerPrusaMM::toolchange_Change(
 	writer.set_tool(new_tool)
 	      .speed_override(speed_override)
 	      .flush_planner_queue();
-	m_current_material = new_material;
+	m_current_tool = new_tool;
 }
 
 void WipeTowerPrusaMM::toolchange_Load(
@@ -574,10 +647,12 @@ void WipeTowerPrusaMM::toolchange_Load(
 	writer.append("; CP TOOLCHANGE LOAD\n")
 	// Load the filament while moving left / right,
 	// so the excess material will not create a blob at a single position.
+		  .suppress_preview()
 		  .load_move_x(xr, 20, 1400)
 		  .load_move_x(xl, 40, 3000)
 		  .load_move_x(xr, 20, 1600)
-		  .load_move_x(xl, 10, 1000);
+		  .load_move_x(xl, 10, 1000)
+		  .resume_preview();
 
 	// Extrude first five lines (just three lines if colorInit is set).
 	writer.extrude(xr, writer.y(), 1600);
@@ -634,7 +709,7 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	writer.set_extrusion_flow(m_extrusion_flow);
 }
 
-std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::finish_layer(Purpose purpose)
+WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 {
 	// This should only be called if the layer is not finished yet.
 	// Otherwise the caller would likely travel to the wipe tower in vain.
@@ -643,6 +718,8 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::finish_layer(Purpose pur
 	PrusaMultiMaterial::Writer writer;
 	writer.set_extrusion_flow(m_extrusion_flow)
 		  .set_z(m_z_pos)
+		  .set_layer_height(m_layer_height)
+		  .set_initial_tool(m_current_tool)
 		  .append(";--------------------\n"
 				  "; CP EMPTY GRID START\n")
 		  // m_num_layer_changes is incremented by set_z, so it is 1 based.
@@ -676,7 +753,7 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::finish_layer(Purpose pur
 	} else {
 		// The print head is inside the wipe tower. Rather move to the start of the following extrusion.
 		// writer.set_initial_position(fill_box.ld);
-		writer.travel(fill_box.ld, 7000);
+		writer.set_initial_position(fill_box.ld);
 	}
 
 	if (purpose == PURPOSE_EXTRUDE || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
@@ -734,7 +811,14 @@ std::pair<std::string, WipeTower::xy> WipeTowerPrusaMM::finish_layer(Purpose pur
 	    m_idx_tool_change_in_layer = (unsigned int)m_max_color_changes;
 	}
 
-	return std::pair<std::string, xy>(writer.gcode(), writer.pos());
+	ToolChangeResult result;
+	result.print_z 	  = this->m_z_pos;
+	result.gcode   	  = writer.gcode();
+	result.elapsed_time = writer.elapsed_time();
+	result.extrusions = writer.extrusions();
+	result.start_pos  = writer.start_pos();
+	result.end_pos 	  = writer.pos();
+	return result;
 }
 
 }; // namespace Slic3r

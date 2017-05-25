@@ -135,4 +135,13 @@ _load_print_object_toolpaths(print_object, volumes, tool_colors, use_VBOs)
     CODE:
         _3DScene::_load_print_object_toolpaths(print_object, volumes, tool_colors, use_VBOs != 0);
 
+void
+_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs)
+        Print               *print;
+        GLVolumeCollection  *volumes;
+        std::vector<std::string> tool_colors;
+        int                  use_VBOs;
+    CODE:
+        _3DScene::_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
+
 %}

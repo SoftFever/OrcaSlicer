@@ -44,6 +44,7 @@ sub process {
     $_->generate_support_material for @{$self->objects};
     $self->make_skirt;
     $self->make_brim;  # must come after make_skirt
+    $self->make_wipe_tower;
     
     # time to make some statistics
     if (0) {
@@ -207,19 +208,13 @@ sub make_skirt {
     $_->generate_support_material for @{$self->objects};
     
     return if $self->step_done(STEP_SKIRT);
-    $self->set_step_started(STEP_SKIRT);
-    
-    # since this method must be idempotent, we clear skirt paths *before*
-    # checking whether we need to generate them
-    $self->skirt->clear;
-    
-    if (!$self->has_skirt) {
-        $self->set_step_done(STEP_SKIRT);
-        return;
-    }
 
-    $self->status_cb->(88, "Generating skirt");
-    $self->_make_skirt();
+    $self->set_step_started(STEP_SKIRT);
+    $self->skirt->clear;    
+    if ($self->has_skirt) {
+        $self->status_cb->(88, "Generating skirt");
+        $self->_make_skirt();
+    }
     $self->set_step_done(STEP_SKIRT);
 }
 
@@ -290,6 +285,27 @@ sub make_brim {
     ), reverse @{union_pt_chained(\@loops)});
     
     $self->set_step_done(STEP_BRIM);
+}
+
+sub make_wipe_tower {
+    my $self = shift;
+    
+    # prerequisites
+    $_->make_perimeters for @{$self->objects};
+    $_->infill for @{$self->objects};
+    $_->generate_support_material for @{$self->objects};
+    $self->make_skirt;
+    $self->make_brim;
+    
+    return if $self->step_done(STEP_WIPE_TOWER);
+    
+    $self->set_step_started(STEP_WIPE_TOWER);
+    $self->_clear_wipe_tower;
+    if ($self->has_wipe_tower) {
+#       $self->status_cb->(95, "Generating wipe tower");
+        $self->_make_wipe_tower;
+    }
+    $self->set_step_done(STEP_WIPE_TOWER);
 }
 
 # Wrapper around the C++ Slic3r::Print::validate()

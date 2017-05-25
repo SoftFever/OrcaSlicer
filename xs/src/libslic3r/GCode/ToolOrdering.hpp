@@ -4,9 +4,11 @@
 #define slic3r_ToolOrdering_hpp_
 
 #include "libslic3r.h"
-#include "Print.hpp"
 
 namespace Slic3r {
+
+class Print;
+class PrintObject;
 
 class ToolOrdering 
 {
@@ -47,6 +49,8 @@ public:
 	// (print.config.complete_objects is false).
 	ToolOrdering(const Print &print, unsigned int first_extruder = (unsigned int)-1);
 
+	void 				clear() { m_layer_tools.clear(); }
+
 	// Get the first extruder printing the layer_tools, returns -1 if there is no layer printed.
 	unsigned int   		first_extruder() const;
 
@@ -61,6 +65,7 @@ public:
 	const LayerTools&   front()       const { return m_layer_tools.front(); }
 	const LayerTools&   back()        const { return m_layer_tools.back(); }
 	bool 				empty()       const { return m_layer_tools.empty(); }
+	const std::vector<LayerTools>& layer_tools() const { return m_layer_tools; }
 
 private:
 	void				initialize_layers(std::vector<coordf_t> &zs);

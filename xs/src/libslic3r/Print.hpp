@@ -13,6 +13,8 @@
 #include "Model.hpp"
 #include "PlaceholderParser.hpp"
 #include "Slicing.hpp"
+#include "GCode/ToolOrdering.hpp"
+#include "GCode/WipeTower.hpp"
 
 namespace Slic3r {
 
@@ -22,7 +24,7 @@ class ModelObject;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
-    psSkirt, psBrim,
+    psSkirt, psBrim, psWipeTower
 };
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
@@ -258,6 +260,18 @@ public:
     void auto_assign_extruders(ModelObject* model_object) const;
 
     void _make_skirt();
+
+    // Wipe tower support.
+    bool has_wipe_tower();
+    void _clear_wipe_tower();
+    void _make_wipe_tower();
+    // Tool ordering of a non-sequential print has to be known to calculate the wipe tower.
+    // Cache it here, so it does not need to be recalculated during the G-code generation.
+    ToolOrdering m_tool_ordering;
+    // Cache of tool changes per print layer.
+    std::vector<std::vector<WipeTower::ToolChangeResult>> m_wipe_tower_tool_changes;
+    std::unique_ptr<WipeTower::ToolChangeResult>          m_wipe_tower_final_purge;
+
     std::string output_filename();
     std::string output_filepath(const std::string &path);
     

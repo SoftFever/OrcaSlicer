@@ -962,4 +962,148 @@ void _3DScene::_load_print_object_toolpaths(
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end"; 
 }
 
+void _3DScene::_load_wipe_tower_toolpaths(
+    const Print                    *print,
+    GLVolumeCollection             *volumes,
+    const std::vector<std::string> &tool_colors_str,
+    bool                            use_VBOs)
+{
+    std::vector<float> tool_colors = parse_colors(tool_colors_str);
+
+    struct Ctxt
+    {
+        const Print                 *print;
+        const std::vector<float>    *tool_colors;
+
+        // Number of vertices (each vertex is 6x4=24 bytes long)
+        static const size_t          alloc_size_max    () { return 131072; } // 3.15MB
+        static const size_t          alloc_size_reserve() { return alloc_size_max() * 2; }
+
+        static const float*          color_support     () { static float color[4] = { 0.5f, 1.0f, 0.5f, 1.f }; return color; } // greenish
+
+        // For cloring by a tool, return a parsed color.
+        bool                         color_by_tool() const { return tool_colors != nullptr; }
+        size_t                       number_tools()  const { return this->color_by_tool() ? tool_colors->size() / 4 : 0; }
+        const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
+    } ctxt;
+
+    ctxt.print          = print;
+    ctxt.tool_colors    = tool_colors.empty() ? nullptr : &tool_colors;
+    
+    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
+
+    //FIXME Improve the heuristics for a grain size.
+    size_t          n_layers   = print->m_wipe_tower_tool_changes.size();
+    size_t          grain_size = std::max(n_layers / 128, size_t(1));
+    tbb::spin_mutex new_volume_mutex;
+    auto            new_volume = [volumes, &new_volume_mutex](const float *color) -> GLVolume* {
+        auto *volume = new GLVolume(color);
+        new_volume_mutex.lock();
+        volumes->volumes.emplace_back(volume);
+        new_volume_mutex.unlock();
+        return volume;
+    };
+    const size_t   volumes_cnt_initial = volumes->volumes.size();
+    std::vector<GLVolumeCollection> volumes_per_thread(n_layers);
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, n_layers, grain_size),
+        [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
+            // Bounding box of this slab of a wipe tower.
+            BoundingBoxf3 bbox;
+            bbox.min = Pointf3(
+                ctxt.print->config.wipe_tower_x.value - 10.,
+                ctxt.print->config.wipe_tower_y.value - 10., 
+                ctxt.print->m_wipe_tower_tool_changes[range.begin()].front().print_z - 3.);
+            bbox.max = Pointf3(
+                ctxt.print->config.wipe_tower_x.value + ctxt.print->config.wipe_tower_width.value + 10.,
+                ctxt.print->config.wipe_tower_y.value + ctxt.print->config.wipe_tower_per_color_wipe.value * 
+                    ctxt.print->m_tool_ordering.layer_tools()[range.begin()].wipe_tower_partitions + 10., 
+                ctxt.print->m_wipe_tower_tool_changes[range.end() - 1].front().print_z + 0.1);
+            std::vector<GLVolume*> vols;
+            if (ctxt.color_by_tool()) {
+                for (size_t i = 0; i < ctxt.number_tools(); ++ i)
+                    vols.emplace_back(new_volume(ctxt.color_tool(i)));
+            } else
+                vols = { new_volume(ctxt.color_support()) };
+            for (size_t i = 0; i < vols.size(); ++ i) {
+                GLVolume &volume = *vols[i];
+                volume.bounding_box = bbox;
+                volume.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
+            }
+            for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                const std::vector<WipeTower::ToolChangeResult> &layer = ctxt.print->m_wipe_tower_tool_changes[idx_layer];
+                coordf_t layer_height = (idx_layer == 0) ? 
+                    ctxt.print->objects.front()->config.first_layer_height.get_abs_value(ctxt.print->objects.front()->config.layer_height.value) :
+                    ctxt.print->objects.front()->config.layer_height.value;
+                for (size_t i = 0; i < vols.size(); ++ i) {
+                    GLVolume &vol = *vols[i];
+                    if (vol.print_zs.empty() || vol.print_zs.back() != layer.front().print_z) {
+                        vol.print_zs.push_back(layer.front().print_z);
+                        vol.offsets.push_back(vol.indexed_vertex_array.quad_indices.size());
+                        vol.offsets.push_back(vol.indexed_vertex_array.triangle_indices.size());
+                    }
+                }
+                for (const WipeTower::ToolChangeResult &extrusions : layer) {
+                    for (size_t i = 1; i < extrusions.extrusions.size();) {
+                        const WipeTower::Extrusion &e = extrusions.extrusions[i];
+                        if (e.width == 0.) {
+                            ++ i;
+                            continue;
+                        }
+                        size_t j = i + 1;
+                        if (ctxt.color_by_tool())
+                            for (; j < extrusions.extrusions.size() && extrusions.extrusions[j].tool == e.tool && extrusions.extrusions[j].width > 0.f; ++ j) ;
+                        else
+                            for (; j < extrusions.extrusions.size() && extrusions.extrusions[j].width > 0.f; ++ j) ;
+                        size_t              n_lines = j - i;
+                        Lines               lines;
+                        std::vector<double> widths;
+                        std::vector<double> heights;
+                        lines.reserve(n_lines);
+                        widths.reserve(n_lines);
+                        heights.assign(n_lines, layer_height);
+                        for (; i < j; ++ i) {
+                            const WipeTower::Extrusion &e = extrusions.extrusions[i];
+                            assert(e.width > 0.f);
+                            const WipeTower::Extrusion &e_prev = *(&e - 1);
+                            lines.emplace_back(Point::new_scale(e_prev.pos.x, e_prev.pos.y), Point::new_scale(e.pos.x, e.pos.y));
+                            widths.emplace_back(e.width);
+                        }
+                        thick_lines_to_verts(lines, widths, heights, lines.front().a == lines.back().b, extrusions.print_z, *vols[ctxt.color_by_tool() ? e.tool : 0]);
+                    }
+                }
+            }
+            for (size_t i = 0; i < vols.size(); ++ i) {
+                GLVolume &vol = *vols[i];
+                if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
+                    // Store the vertex arrays and restart their containers, 
+                    vols[i] = new_volume(vol.color);
+                    GLVolume &vol_new = *vols[i];
+                    vol_new.bounding_box = bbox;
+                    // Assign the large pre-allocated buffers to the new GLVolume.
+                    vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
+                    // Copy the content back to the old GLVolume.
+                    vol.indexed_vertex_array = vol_new.indexed_vertex_array;
+                    // Clear the buffers, but keep them pre-allocated.
+                    vol_new.indexed_vertex_array.clear();
+                    // Just make sure that clear did not clear the reserved memory.
+                    vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
+                }
+            }
+            for (size_t i = 0; i < vols.size(); ++ i)
+                vols[i]->indexed_vertex_array.shrink_to_fit();
+        });
+
+    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - finalizing results";
+    // Remove empty volumes from the newly added volumes.
+    volumes->volumes.erase(
+        std::remove_if(volumes->volumes.begin() + volumes_cnt_initial, volumes->volumes.end(), 
+            [](const GLVolume *volume) { return volume->empty(); }),
+        volumes->volumes.end());
+    for (size_t i = volumes_cnt_initial; i < volumes->volumes.size(); ++ i)
+        volumes->volumes[i]->indexed_vertex_array.finalize_geometry(use_VBOs);
+  
+    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end"; 
+}
+
 }

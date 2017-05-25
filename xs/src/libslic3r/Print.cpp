@@ -5,6 +5,7 @@
 #include "Flow.hpp"
 #include "Geometry.hpp"
 #include "SupportMaterial.hpp"
+#include "GCode/WipeTowerPrusaMM.hpp"
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
@@ -117,7 +118,7 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
     
     // this method only accepts PrintConfig option keys
     for (std::vector<t_config_option_key>::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
-        if (*opt_key == "skirts"
+        if (   *opt_key == "skirts"
             || *opt_key == "skirt_height"
             || *opt_key == "skirt_distance"
             || *opt_key == "min_skirt_length"
@@ -129,12 +130,26 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
         } else if (*opt_key == "nozzle_diameter"
             || *opt_key == "resolution") {
             osteps.insert(posSlice);
+        } else if (
+               *opt_key == "complete_objects"
+            || *opt_key == "filament_type"
+            || *opt_key == "first_layer_temperature"
+            || *opt_key == "gcode_flavor"
+            || *opt_key == "single_extruder_multi_material"
+            || *opt_key == "spiral_vase"
+            || *opt_key == "temperature"
+            || *opt_key == "wipe_tower"
+            || *opt_key == "wipe_tower_x"
+            || *opt_key == "wipe_tower_y"
+            || *opt_key == "wipe_tower_width"
+            || *opt_key == "wipe_tower_per_color_wipe"
+            || *opt_key == "z_offset") {
+            steps.insert(psWipeTower);
         } else if (*opt_key == "avoid_crossing_perimeters"
             || *opt_key == "bed_shape"
             || *opt_key == "bed_temperature"
             || *opt_key == "bridge_acceleration"
             || *opt_key == "bridge_fan_speed"
-            || *opt_key == "complete_objects"
             || *opt_key == "cooling"
             || *opt_key == "default_acceleration"
             || *opt_key == "disable_fan_first_layers"
@@ -150,14 +165,11 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "fan_below_layer_time"
             || *opt_key == "filament_diameter"
             || *opt_key == "filament_notes"
-            || *opt_key == "filament_type"
             || *opt_key == "filament_soluble"
             || *opt_key == "first_layer_acceleration"
             || *opt_key == "first_layer_bed_temperature"
             || *opt_key == "first_layer_speed"
-            || *opt_key == "first_layer_temperature"
             || *opt_key == "gcode_comments"
-            || *opt_key == "gcode_flavor"
             || *opt_key == "infill_acceleration"
             || *opt_key == "infill_first"
             || *opt_key == "layer_gcode"
@@ -181,24 +193,15 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             || *opt_key == "retract_restart_extra_toolchange"
             || *opt_key == "retract_speed"
             || *opt_key == "deretract_speed"
-            || *opt_key == "single_extruder_multi_material"
             || *opt_key == "slowdown_below_layer_time"
-            || *opt_key == "spiral_vase"
             || *opt_key == "standby_temperature_delta"
             || *opt_key == "start_gcode"
-            || *opt_key == "temperature"
             || *opt_key == "threads"
             || *opt_key == "toolchange_gcode"
             || *opt_key == "travel_speed"
             || *opt_key == "use_firmware_retraction"
             || *opt_key == "use_relative_e_distances"
             || *opt_key == "wipe"
-            || *opt_key == "wipe_tower"
-            || *opt_key == "wipe_tower_x"
-            || *opt_key == "wipe_tower_y"
-            || *opt_key == "wipe_tower_width"
-            || *opt_key == "wipe_tower_per_color_wipe"
-            || *opt_key == "z_offset"
             || *opt_key == "max_volumetric_extrusion_rate_slope_negative"
             || *opt_key == "max_volumetric_extrusion_rate_slope_positive") {
             // these options only affect G-code export, so nothing to invalidate
@@ -208,6 +211,7 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
             osteps.insert(posSupportMaterial);
             steps.insert(psSkirt);
             steps.insert(psBrim);
+            steps.insert(psWipeTower);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             return this->invalidate_all_steps();
@@ -233,23 +237,22 @@ Print::invalidate_step(PrintStep step)
     bool invalidated = this->state.invalidate(step);
     
     // propagate to dependent steps
-    if (step == psSkirt) {
+    if (step == psSkirt)
         this->invalidate_step(psBrim);
-    }
     
     return invalidated;
 }
 
-bool
-Print::invalidate_all_steps()
+bool Print::invalidate_all_steps()
 {
     // make a copy because when invalidating steps the iterators are not working anymore
     std::set<PrintStep> steps = this->state.started;
     
     bool invalidated = false;
-    for (std::set<PrintStep>::const_iterator step = steps.begin(); step != steps.end(); ++step) {
-        if (this->invalidate_step(*step)) invalidated = true;
-    }
+    for (PrintStep step : steps)
+        if (this->invalidate_step(step))
+            invalidated = true;
+
     return invalidated;
 }
 
@@ -369,6 +372,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
             // invalidate steps
             this->invalidate_step(psSkirt);
             this->invalidate_step(psBrim);
+            this->invalidate_step(psWipeTower);
         }
     }
 
@@ -991,15 +995,119 @@ void Print::_make_skirt()
     this->skirt.reverse();
 }
 
-std::string
-Print::output_filename()
+// Wipe tower support.
+bool Print::has_wipe_tower()
+{
+    return 
+        this->config.single_extruder_multi_material.value && 
+        ! this->config.spiral_vase.value &&
+        this->config.wipe_tower.value && 
+        this->config.nozzle_diameter.values.size() > 1;
+}
+
+void Print::_clear_wipe_tower()
+{
+    m_tool_ordering.clear();
+    m_wipe_tower_tool_changes.clear();
+    m_wipe_tower_final_purge.reset(nullptr);
+}
+
+void Print::_make_wipe_tower()
+{
+    this->_clear_wipe_tower();
+    if (! this->has_wipe_tower())
+        return;
+
+    m_tool_ordering = ToolOrdering(*this, (unsigned int)-1);
+    unsigned int initial_extruder_id = m_tool_ordering.first_extruder();
+    if (initial_extruder_id == (unsigned int)-1)
+        return;
+
+    // Initialize the wipe tower.
+    WipeTowerPrusaMM wipe_tower(
+        float(this->config.wipe_tower_x.value),     float(this->config.wipe_tower_y.value), 
+        float(this->config.wipe_tower_width.value), float(this->config.wipe_tower_per_color_wipe.value),
+        initial_extruder_id);
+    
+    //wipe_tower.set_retract();
+    //wipe_tower.set_zhop();
+    //wipe_tower.set_zhop();
+
+    // Set the extruder & material properties at the wipe tower object.
+    for (size_t i = 0; i < 4; ++ i)
+        wipe_tower.set_extruder(
+            i, 
+            WipeTowerPrusaMM::parse_material(this->config.filament_type.get_at(i).c_str()),
+            this->config.temperature.get_at(i),
+            this->config.first_layer_temperature.get_at(i));
+
+    // Generate the wipe tower layers.
+    m_wipe_tower_tool_changes.reserve(m_tool_ordering.layer_tools().size());
+    unsigned int current_extruder_id = initial_extruder_id;
+    for (const ToolOrdering::LayerTools &layer_tools : m_tool_ordering.layer_tools()) {
+        if (! layer_tools.has_wipe_tower)
+            // This is a support only layer, or the wipe tower does not reach to this height.
+            continue;
+        bool first_layer = &layer_tools == &m_tool_ordering.front();
+        bool last_layer  = &layer_tools == &m_tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0;
+        wipe_tower.set_layer(
+            float(layer_tools.print_z), 
+            float(first_layer ? 
+                this->objects.front()->config.first_layer_height.get_abs_value(this->objects.front()->config.layer_height.value) :
+                this->objects.front()->config.layer_height.value),
+            layer_tools.wipe_tower_partitions,
+            first_layer,
+            last_layer);
+        std::vector<WipeTower::ToolChangeResult> tool_changes;
+        for (unsigned int extruder_id : layer_tools.extruders)
+            if ((first_layer && extruder_id == initial_extruder_id) || extruder_id != current_extruder_id) {
+                tool_changes.emplace_back(wipe_tower.tool_change(extruder_id, WipeTower::PURPOSE_EXTRUDE));
+                current_extruder_id = extruder_id;
+            }
+        if (! wipe_tower.layer_finished()) {
+            tool_changes.emplace_back(wipe_tower.finish_layer(WipeTower::PURPOSE_EXTRUDE));
+            if (tool_changes.size() > 1) {
+                // Merge the two last tool changes into one.
+                WipeTower::ToolChangeResult &tc1 = tool_changes[tool_changes.size() - 2];
+                WipeTower::ToolChangeResult &tc2 = tool_changes.back();
+                if (tc1.end_pos != tc2.start_pos) {
+                    // Add a travel move from tc1.end_pos to tc2.start_pos.
+                    char buf[2048];
+                    sprintf(buf, "G1 X%.3f Y%.3f F7200\n", tc2.start_pos.x, tc2.start_pos.y);
+                    tc1.gcode += buf;
+                }
+                tc1.gcode += tc2.gcode;
+                append(tc1.extrusions, tc2.extrusions);
+                tc1.end_pos = tc2.end_pos;
+                tool_changes.pop_back();
+            }
+        }
+        m_wipe_tower_tool_changes.emplace_back(std::move(tool_changes));
+        if (last_layer)
+            break;
+    }
+    
+    // Tower is printed to the top and it has no empty space for the final extruder purge.
+    bool     tower_full   = m_tool_ordering.back().wipe_tower_partitions > 0 && wipe_tower.layer_finished();
+    coordf_t last_print_z = m_tool_ordering.back().print_z;
+
+    // Unload the current filament over the purge tower.
+    if (tower_full) {
+        // There is not enough space on the wipe tower to purge the nozzle into. Lift Z to the next layer.
+        coordf_t layer_height = this->objects.front()->config.layer_height.value;
+        wipe_tower.set_layer(float(last_print_z + layer_height), float(layer_height), 0, false, true);
+    }
+    m_wipe_tower_final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
+        wipe_tower.tool_change(-1, WipeTower::PURPOSE_EXTRUDE));
+}
+
+std::string Print::output_filename()
 {
     this->placeholder_parser.update_timestamp();
     return this->placeholder_parser.process(this->config.output_filename_format.value);
 }
 
-std::string
-Print::output_filepath(const std::string &path)
+std::string Print::output_filepath(const std::string &path)
 {
     // if we were supplied no path, generate an automatic one based on our first object's input file
     if (path.empty()) {

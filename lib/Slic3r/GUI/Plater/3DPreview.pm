@@ -206,6 +206,7 @@ sub load_print {
     if ($self->IsShown) {
         # load skirt and brim
         $self->canvas->load_print_toolpaths($self->print, \@colors);
+        $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);
         
         foreach my $object (@{$self->print->objects}) {
             $self->canvas->load_print_object_toolpaths($object, \@colors);

@@ -354,6 +354,13 @@ public:
         GLVolumeCollection              *volumes,
         const std::vector<std::string>  &tool_colors,
         bool                             use_VBOs);
+
+
+    static void _3DScene::_load_wipe_tower_toolpaths(
+        const Print                    *print,
+        GLVolumeCollection             *volumes,
+        const std::vector<std::string> &tool_colors_str,
+        bool                            use_VBOs);
 };
 
 }

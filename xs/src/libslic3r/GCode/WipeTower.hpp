@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <string>
+#include <vector>
 
 namespace Slic3r
 {
@@ -20,6 +21,8 @@ public:
 		xy  operator-(const xy &rhs) const { xy out(*this); out.x -= rhs.x; out.y -= rhs.y; return out; }
 		xy& operator+=(const xy &rhs) { x += rhs.x; y += rhs.y; return *this; }
 		xy& operator-=(const xy &rhs) { x -= rhs.x; y -= rhs.y; return *this; }
+		bool operator==(const xy &rhs) { return x == rhs.x && y == rhs.y; }
+		bool operator!=(const xy &rhs) { return x != rhs.x || y != rhs.y; }
 		float x;
 		float y;
 	};
@@ -55,18 +58,50 @@ public:
 		PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE,
 	};
 
+	// Extrusion path of the wipe tower, for 3D preview of the generated tool paths.
+	struct Extrusion
+	{
+		Extrusion(const xy &pos, float width, unsigned int tool) : pos(pos), width(width), tool(tool) {}
+		// End position of this extrusion.
+		xy				pos;
+		// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
+		// This is left zero if it is a travel move.
+		float 			width;
+		// Current extruder index.
+		unsigned int    tool;
+	};
+
+	struct ToolChangeResult
+	{
+		// Print heigh of this tool change.
+		float					print_z;
+		// G-code section to be directly included into the output G-code.
+		std::string				gcode;
+		// For path preview.
+		std::vector<Extrusion> 	extrusions;
+		// Initial position, at which the wipe tower starts its action.
+		// At this position the extruder is loaded and there is no Z-hop applied.
+		xy						start_pos;
+		// Last point, at which the normal G-code generator of Slic3r shall continue.
+		// At this position the extruder is loaded and there is no Z-hop applied.
+		xy						end_pos;
+		// Time elapsed over this tool change.
+		// This is useful not only for the print time estimation, but also for the control of layer cooling.
+		float  				    elapsed_time;
+	};
+
 	// Returns gcode for toolchange and the end position.
 	// if new_tool == -1, just unload the current filament over the wipe tower.
-	virtual std::pair<std::string, xy> tool_change(int new_tool, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+	virtual ToolChangeResult tool_change(int new_tool, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.
-	virtual std::pair<std::string, xy> finish_layer(Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+	virtual ToolChangeResult finish_layer(Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
 
 	// Is the current layer finished? A layer is finished if either the wipe tower is finished, or
 	// the wipe tower has been completely covered by the tool change extrusions,
 	// or the rest of the tower has been filled by a sparse infill with the finish_layer() method.
-	virtual bool 					   layer_finished() const = 0;
+	virtual bool 		     layer_finished() const = 0;
 };
 
 }; // namespace Slic3r
