@@ -13,15 +13,14 @@
 
 namespace Slic3r {
 
-void
-GCodeWriter::apply_print_config(const PrintConfig &print_config)
+void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
     this->_extrusion_axis = this->config.get_extrusion_axis();
+    this->m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
 }
 
-void
-GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
+void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
 {
     for (unsigned int extruder_id : extruder_ids)
         this->extruders.insert(Extruder(extruder_id, &this->config));
@@ -32,8 +31,7 @@ GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
     this->multiple_extruders = (*std::max_element(extruder_ids.begin(), extruder_ids.end())) > 0;
 }
 
-std::string
-GCodeWriter::preamble()
+std::string GCodeWriter::preamble()
 {
     std::ostringstream gcode;
     
@@ -53,8 +51,7 @@ GCodeWriter::preamble()
     return gcode.str();
 }
 
-std::string
-GCodeWriter::postamble() const
+std::string GCodeWriter::postamble() const
 {
     std::ostringstream gcode;
     if (FLAVOR_IS(gcfMachinekit))
@@ -62,8 +59,7 @@ GCodeWriter::postamble() const
     return gcode.str();
 }
 
-std::string
-GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
+std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
 {
     if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
         return "";
@@ -85,7 +81,9 @@ GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) cons
         gcode << "S";
     }
     gcode << temperature;
-    if (tool != -1 && (this->multiple_extruders || FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish))) {
+    if (tool != -1 && 
+        ( (this->multiple_extruders && ! this->m_single_extruder_multi_material) ||
+          FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) ) {
         gcode << " T" << tool;
     }
     gcode << " ; " << comment << "\n";
@@ -96,8 +94,7 @@ GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) cons
     return gcode.str();
 }
 
-std::string
-GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait) const
+std::string GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait) const
 {
     std::string code, comment;
     if (wait && FLAVOR_IS_NOT(gcfTeacup)) {

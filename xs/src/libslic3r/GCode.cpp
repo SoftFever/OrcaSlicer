@@ -511,7 +511,7 @@ bool GCode::do_export(FILE *file, Print &print)
     }
     
     // Calculate wiping points if needed
-    if (print.config.ooze_prevention.value) {
+    if (print.config.ooze_prevention.value && ! print.config.single_extruder_multi_material) {
         Points skirt_points;
         for (const ExtrusionEntity *ee : print.skirt.entities)
             for (const ExtrusionPath &path : dynamic_cast<const ExtrusionLoop*>(ee)->paths)
@@ -680,8 +680,6 @@ void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, u
         if (print.config.single_extruder_multi_material.value) {
             // Set temperature of the first printing extruder only.
             int temp = print.config.first_layer_temperature.get_at(first_printing_extruder_id);
-            if (print.config.ooze_prevention.value)
-                temp += print.config.standby_temperature_delta.value;
             if (temp > 0)
                 write(file, m_writer.set_temperature(temp, wait, first_printing_extruder_id));
         } else {
@@ -1985,7 +1983,7 @@ std::string GCode::set_extruder(unsigned int extruder_id)
     m_wipe.reset_path();
     
     // append custom toolchange G-code
-    if (m_writer.extruder() != NULL && !m_config.toolchange_gcode.value.empty()) {
+    if (m_writer.extruder() != nullptr && !m_config.toolchange_gcode.value.empty()) {
         PlaceholderParser pp = m_placeholder_parser;
         pp.set("previous_extruder", m_writer.extruder()->id);
         pp.set("next_extruder",     extruder_id);
@@ -1994,7 +1992,7 @@ std::string GCode::set_extruder(unsigned int extruder_id)
     
     // if ooze prevention is enabled, park current extruder in the nearest
     // standby point and set it to the standby temperature
-    if (m_ooze_prevention.enable && m_writer.extruder() != NULL)
+    if (m_ooze_prevention.enable && m_writer.extruder() != nullptr)
         gcode += m_ooze_prevention.pre_toolchange(*this);
     // append the toolchange command
     gcode += m_writer.toolchange(extruder_id);

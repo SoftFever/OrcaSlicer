@@ -17,6 +17,7 @@ public:
     
     GCodeWriter() : 
         multiple_extruders(false), _extrusion_axis("E"), _extruder(nullptr),
+        m_single_extruder_multi_material(false),
         _last_acceleration(0), _last_fan_speed(0), _lifted(0)
         {}
     Extruder*   extruder() { return this->_extruder; }
@@ -61,12 +62,13 @@ public:
 
 private:
     std::string     _extrusion_axis;
+    bool            m_single_extruder_multi_material;
     Extruder*       _extruder;
     unsigned int    _last_acceleration;
     unsigned int    _last_fan_speed;
     double          _lifted;
     Pointf3         _pos;
-    
+
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);
 };
