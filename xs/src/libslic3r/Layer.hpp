@@ -130,14 +130,12 @@ protected:
     size_t _id;     // sequential number of layer, 0-based
     PrintObject *_object;
 
-    Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
-        coordf_t slice_z);
+    Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
+        upper_layer(nullptr), lower_layer(nullptr), slicing_errors(false),
+        slice_z(slice_z), print_z(print_z), height(height),
+        _id(id), _object(object) {}
     virtual ~Layer();
-
-    void clear_regions();
-    void delete_region(int idx);
 };
-
 
 class SupportLayer : public Layer {
     friend class PrintObject;
@@ -149,11 +147,10 @@ public:
     ExtrusionEntityCollection support_fills;
 
 protected:
-    SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
-        coordf_t slice_z);
+    SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
+        Layer(id, object, height, print_z, slice_z) {}
     virtual ~SupportLayer() {}
 };
-
 
 }
 

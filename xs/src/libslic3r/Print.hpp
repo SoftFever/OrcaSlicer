@@ -158,7 +158,6 @@ public:
 
     // print_z: top of the layer; slice_z: center of the layer.
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
-    void delete_layer(int idx);
 
     size_t support_layer_count() const { return this->support_layers.size(); }
     void clear_support_layers();

@@ -58,16 +58,14 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     this->layer_height_profile = model_object->layer_height_profile;
 }
 
-bool
-PrintObject::add_copy(const Pointf &point)
+bool PrintObject::add_copy(const Pointf &point)
 {
     Points points = this->_copies;
     points.push_back(Point::new_scale(point.x, point.y));
     return this->set_copies(points);
 }
 
-bool
-PrintObject::delete_last_copy()
+bool PrintObject::delete_last_copy()
 {
     Points points = this->_copies;
     points.pop_back();
@@ -86,7 +84,8 @@ bool PrintObject::set_copies(const Points &points)
     std::vector<Points::size_type> ordered_copies;
     Slic3r::Geometry::chained_path(points, ordered_copies);
     
-    for (Point copy : ordered_copies) {
+    for (size_t point_idx : ordered_copies) {
+        Point copy = points[point_idx];
         copy.translate(this->_copies_shift);
         this->_shifted_copies.push_back(copy);
     }
@@ -94,68 +93,39 @@ bool PrintObject::set_copies(const Points &points)
     return this->_print->invalidate_step(psSkirt) || this->_print->invalidate_step(psBrim);
 }
 
-bool
-PrintObject::reload_model_instances()
+bool PrintObject::reload_model_instances()
 {
     Points copies;
-    for (ModelInstancePtrs::const_iterator i = this->_model_object->instances.begin(); i != this->_model_object->instances.end(); ++i) {
-        copies.push_back(Point::new_scale((*i)->offset.x, (*i)->offset.y));
-    }
+    copies.reserve(this->_model_object->instances.size());
+    for (const ModelInstance *mi : this->_model_object->instances)
+        copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
     return this->set_copies(copies);
 }
 
-void
-PrintObject::clear_layers()
+void PrintObject::clear_layers()
 {
-    for (size_t i = 0; i < this->layers.size(); ++ i) {
-        Layer *layer = this->layers[i];
-        layer->upper_layer = layer->lower_layer = nullptr;
-        delete layer;
-    }
+    for (Layer *l : this->layers)
+        delete l;
     this->layers.clear();
 }
 
-Layer*
-PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
+Layer* PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
 {
-    Layer* layer = new Layer(id, this, height, print_z, slice_z);
-    layers.push_back(layer);
-    return layer;
+    layers.push_back(new Layer(id, this, height, print_z, slice_z));
+    return layers.back();
 }
 
-void
-PrintObject::delete_layer(int idx)
+void PrintObject::clear_support_layers()
 {
-    LayerPtrs::iterator i = this->layers.begin() + idx;
-    delete *i;
-    this->layers.erase(i);
-}
-
-void
-PrintObject::clear_support_layers()
-{
-    for (size_t i = 0; i < this->support_layers.size(); ++ i) {
-        Layer *layer = this->support_layers[i];
-        layer->upper_layer = layer->lower_layer = nullptr;
-        delete layer;
-    }
+    for (Layer *l : this->support_layers)
+        delete l;
     this->support_layers.clear();
 }
 
-SupportLayer*
-PrintObject::add_support_layer(int id, coordf_t height, coordf_t print_z)
+SupportLayer* PrintObject::add_support_layer(int id, coordf_t height, coordf_t print_z)
 {
-    SupportLayer* layer = new SupportLayer(id, this, height, print_z, -1);
-    support_layers.push_back(layer);
-    return layer;
-}
-
-void
-PrintObject::delete_support_layer(int idx)
-{
-    SupportLayerPtrs::iterator i = this->support_layers.begin() + idx;
-    delete *i;
-    this->support_layers.erase(i);
+    support_layers.emplace_back(new SupportLayer(id, this, height, print_z, -1));
+    return support_layers.back();
 }
 
 bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
@@ -493,8 +463,7 @@ void PrintObject::detect_surfaces_type()
     } // for each $self->print->region_count
 }
 
-void
-PrintObject::process_external_surfaces()
+void PrintObject::process_external_surfaces()
 {
     BOOST_LOG_TRIVIAL(info) << "Processing external surfaces...";
 
@@ -524,8 +493,7 @@ struct DiscoverVerticalShellsCacheEntry
     Polygons    bottom_fill_surfaces;
 };
 
-void
-PrintObject::discover_vertical_shells()
+void PrintObject::discover_vertical_shells()
 {
     PROFILE_FUNC();
 
@@ -1085,7 +1053,9 @@ void PrintObject::_slice()
             if (layer->regions[region_id] != nullptr && ! layer->regions[region_id]->slices.empty())
                 // Non empty layer.
                 goto end;
-        this->delete_layer(int(this->layers.size()) - 1);
+        delete layer;
+        this->layers.pop_back();
+        this->layers.back()->upper_layer = nullptr;
     }
 end:
     ;
@@ -1229,7 +1199,9 @@ std::string PrintObject::_fix_slicing_errors()
 
     // remove empty layers from bottom
     while (! this->layers.empty() && this->layers.front()->slices.expolygons.empty()) {
-        this->delete_layer(0);
+        delete this->layers.front();
+        this->layers.erase(this->layers.begin());
+        this->layers.front()->lower_layer = nullptr;
         for (size_t i = 0; i < this->layers.size(); ++ i)
             this->layers[i]->set_id(this->layers[i]->id() - 1);
     }
@@ -1258,8 +1230,7 @@ void PrintObject::_simplify_slices(double distance)
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - end";
 }
 
-void
-PrintObject::_make_perimeters()
+void PrintObject::_make_perimeters()
 {
     if (this->state.is_done(posPerimeters)) return;
     this->state.set_started(posPerimeters);
@@ -1368,8 +1339,7 @@ PrintObject::_make_perimeters()
     this->state.set_done(posPerimeters);
 }
 
-void
-PrintObject::_infill()
+void PrintObject::_infill()
 {
     if (this->state.is_done(posInfill)) return;
     this->state.set_started(posInfill);

@@ -94,14 +94,12 @@ _constant()
     Ref<Layer> get_layer(int idx);
     Ref<Layer> add_layer(int id, coordf_t height, coordf_t print_z,
         coordf_t slice_z);
-    void delete_layer(int idx);
 
     size_t support_layer_count();
     void clear_support_layers();
     Ref<SupportLayer> get_support_layer(int idx);
     Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z);
-    void delete_support_layer(int idx);
-    
+
     bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);
     bool invalidate_step(PrintObjectStep step);
     bool invalidate_all_steps();

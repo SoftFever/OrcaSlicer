@@ -9,61 +9,22 @@
 
 namespace Slic3r {
 
-Layer::Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z,
-        coordf_t slice_z)
-:   upper_layer(NULL),
-    lower_layer(NULL),
-    slicing_errors(false),
-    slice_z(slice_z),
-    print_z(print_z),
-    height(height),
-    _id(id),
-    _object(object)
-{
-}
-
 Layer::~Layer()
 {
-    // remove references to self
-    if (NULL != this->upper_layer) {
-        this->upper_layer->lower_layer = NULL;
-    }
-
-    if (NULL != this->lower_layer) {
-        this->lower_layer->upper_layer = NULL;
-    }
-
-    this->clear_regions();
-}
-
-void
-Layer::clear_regions()
-{
-    for (size_t i = 0; i < this->regions.size(); ++ i)
-        delete this->regions[i];
+    this->lower_layer = this->upper_layer = nullptr;
+    for (LayerRegion *region : this->regions)
+        delete region;
     this->regions.clear();
 }
 
-LayerRegion*
-Layer::add_region(PrintRegion* print_region)
+LayerRegion* Layer::add_region(PrintRegion* print_region)
 {
-    LayerRegion* region = new LayerRegion(this, print_region);
-    this->regions.push_back(region);
-    return region;
-}
-
-void
-Layer::delete_region(int idx)
-{
-    LayerRegionPtrs::iterator i = this->regions.begin() + idx;
-    LayerRegion* item = *i;
-    this->regions.erase(i);
-    delete item;
+    this->regions.emplace_back(new LayerRegion(this, print_region));
+    return this->regions.back();
 }
 
 // merge all regions' slices to get islands
-void
-Layer::make_slices()
+void Layer::make_slices()
 {
     ExPolygons slices;
     if (this->regions.size() == 1) {
@@ -95,8 +56,7 @@ Layer::make_slices()
         this->slices.expolygons.push_back(STDMOVE(slices[i]));
 }
 
-void
-Layer::merge_slices()
+void Layer::merge_slices()
 {
     if (this->regions.size() == 1) {
         // Optimization, also more robust. Don't merge classified pieces of layerm->slices,
@@ -111,8 +71,7 @@ Layer::merge_slices()
 }
 
 template <class T>
-bool
-Layer::any_internal_region_slice_contains(const T &item) const
+bool Layer::any_internal_region_slice_contains(const T &item) const
 {
     FOREACH_LAYERREGION(this, layerm) {
         if ((*layerm)->slices.any_internal_contains(item)) return true;
@@ -122,8 +81,7 @@ Layer::any_internal_region_slice_contains(const T &item) const
 template bool Layer::any_internal_region_slice_contains<Polyline>(const Polyline &item) const;
 
 template <class T>
-bool
-Layer::any_bottom_region_slice_contains(const T &item) const
+bool Layer::any_bottom_region_slice_contains(const T &item) const
 {
     FOREACH_LAYERREGION(this, layerm) {
         if ((*layerm)->slices.any_bottom_contains(item)) return true;
@@ -136,8 +94,7 @@ template bool Layer::any_bottom_region_slice_contains<Polyline>(const Polyline &
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
 // The perimeter paths and the thin fills (ExtrusionEntityCollection) are assigned to the first compatible layer region.
 // The resulting fill surface is split back among the originating regions.
-void
-Layer::make_perimeters()
+void Layer::make_perimeters()
 {
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
     
@@ -274,12 +231,6 @@ void Layer::export_region_fill_surfaces_to_svg_debug(const char *name)
 {
     static size_t idx = 0;
     this->export_region_fill_surfaces_to_svg(debug_out_path("Layer-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
-}
-
-SupportLayer::SupportLayer(size_t id, PrintObject *object, coordf_t height,
-        coordf_t print_z, coordf_t slice_z)
-:   Layer(id, object, height, print_z, slice_z)
-{
 }
 
 }
