@@ -26,7 +26,7 @@ extern bool unescape_strings_cstyle(const std::string &str, std::vector<std::str
 
 // A generic value of a configuration option.
 class ConfigOption {
-    public:
+public:
     virtual ~ConfigOption() {};
     virtual std::string serialize() const = 0;
     virtual bool deserialize(std::string str) = 0;
@@ -42,7 +42,7 @@ class ConfigOption {
 // Value of a single valued option (bool, int, float, string, point, enum)
 template <class T>
 class ConfigOptionSingle : public ConfigOption {
-    public:
+public:
     T value;
     ConfigOptionSingle(T _value) : value(_value) {};
     operator T() const { return this->value; };
@@ -55,7 +55,7 @@ class ConfigOptionSingle : public ConfigOption {
 
 // Value of a vector valued option (bools, ints, floats, strings, points)
 class ConfigOptionVectorBase : public ConfigOption {
-    public:
+public:
     virtual ~ConfigOptionVectorBase() {};
     // Currently used only to initialize the PlaceholderParser.
     virtual std::vector<std::string> vserialize() const = 0;
@@ -65,7 +65,7 @@ class ConfigOptionVectorBase : public ConfigOption {
 template <class T>
 class ConfigOptionVector : public ConfigOptionVectorBase
 {
-    public:
+public:
     virtual ~ConfigOptionVector() {};
     std::vector<T> values;
     
@@ -82,7 +82,7 @@ class ConfigOptionVector : public ConfigOptionVectorBase
 
 class ConfigOptionFloat : public ConfigOptionSingle<double>
 {
-    public:
+public:
     ConfigOptionFloat() : ConfigOptionSingle<double>(0) {};
     ConfigOptionFloat(double _value) : ConfigOptionSingle<double>(_value) {};
     
@@ -103,8 +103,7 @@ class ConfigOptionFloat : public ConfigOptionSingle<double>
 
 class ConfigOptionFloats : public ConfigOptionVector<double>
 {
-    public:
-    
+public:
     std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<double>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
@@ -141,7 +140,7 @@ class ConfigOptionFloats : public ConfigOptionVector<double>
 
 class ConfigOptionInt : public ConfigOptionSingle<int>
 {
-    public:
+public:
     ConfigOptionInt() : ConfigOptionSingle<int>(0) {};
     ConfigOptionInt(double _value) : ConfigOptionSingle<int>(int(floor(_value + 0.5))) {};
     
@@ -163,8 +162,7 @@ class ConfigOptionInt : public ConfigOptionSingle<int>
 
 class ConfigOptionInts : public ConfigOptionVector<int>
 {
-    public:
-    
+public:
     std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<int>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
@@ -201,7 +199,7 @@ class ConfigOptionInts : public ConfigOptionVector<int>
 
 class ConfigOptionString : public ConfigOptionSingle<std::string>
 {
-    public:
+public:
     ConfigOptionString() : ConfigOptionSingle<std::string>("") {};
     ConfigOptionString(std::string _value) : ConfigOptionSingle<std::string>(_value) {};
     
@@ -217,8 +215,7 @@ class ConfigOptionString : public ConfigOptionSingle<std::string>
 // semicolon-separated strings
 class ConfigOptionStrings : public ConfigOptionVector<std::string>
 {
-    public:
-    
+public:
     std::string serialize() const {
         return escape_strings_cstyle(this->values);
     };
@@ -234,7 +231,7 @@ class ConfigOptionStrings : public ConfigOptionVector<std::string>
 
 class ConfigOptionPercent : public ConfigOptionFloat
 {
-    public:
+public:
     ConfigOptionPercent() : ConfigOptionFloat(0) {};
     ConfigOptionPercent(double _value) : ConfigOptionFloat(_value) {};
     
@@ -263,7 +260,7 @@ class ConfigOptionPercents : public ConfigOptionFloats
 public:    
     std::string serialize() const {
         std::ostringstream ss;
-        for (const auto v : this->values) {
+        for (const auto &v : this->values) {
             if (&v != &this->values.front()) ss << ",";
             ss << v << "%";
         }
@@ -300,7 +297,7 @@ public:
 
 class ConfigOptionFloatOrPercent : public ConfigOptionPercent
 {
-    public:
+public:
     bool percent;
     ConfigOptionFloatOrPercent() : ConfigOptionPercent(0), percent(false) {};
     ConfigOptionFloatOrPercent(double _value, bool _percent)
@@ -340,7 +337,7 @@ class ConfigOptionFloatOrPercent : public ConfigOptionPercent
 
 class ConfigOptionPoint : public ConfigOptionSingle<Pointf>
 {
-    public:
+public:
     ConfigOptionPoint() : ConfigOptionSingle<Pointf>(Pointf(0,0)) {};
     ConfigOptionPoint(Pointf _value) : ConfigOptionSingle<Pointf>(_value) {};
     
@@ -364,8 +361,7 @@ class ConfigOptionPoint : public ConfigOptionSingle<Pointf>
 
 class ConfigOptionPoints : public ConfigOptionVector<Pointf>
 {
-    public:
-    
+public:
     std::string serialize() const {
         std::ostringstream ss;
         for (Pointfs::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
@@ -409,7 +405,7 @@ class ConfigOptionPoints : public ConfigOptionVector<Pointf>
 
 class ConfigOptionBool : public ConfigOptionSingle<bool>
 {
-    public:
+public:
     ConfigOptionBool() : ConfigOptionSingle<bool>(false) {};
     ConfigOptionBool(bool _value) : ConfigOptionSingle<bool>(_value) {};
     
@@ -427,8 +423,7 @@ class ConfigOptionBool : public ConfigOptionSingle<bool>
 
 class ConfigOptionBools : public ConfigOptionVector<bool>
 {
-    public:
-    
+public:    
     std::string serialize() const {
         std::ostringstream ss;
         for (std::vector<bool>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
@@ -465,7 +460,7 @@ typedef std::map<std::string,int> t_config_enum_values;
 template <class T>
 class ConfigOptionEnum : public ConfigOptionSingle<T>
 {
-    public:
+public:
     // by default, use the first value (0) of the T enum type
     ConfigOptionEnum() : ConfigOptionSingle<T>(static_cast<T>(0)) {};
     ConfigOptionEnum(T _value) : ConfigOptionSingle<T>(_value) {};
@@ -495,7 +490,7 @@ class ConfigOptionEnum : public ConfigOptionSingle<T>
 // In the StaticConfig, it is better to use the specialized ConfigOptionEnum<T> containers.
 class ConfigOptionEnumGeneric : public ConfigOptionInt
 {
-    public:
+public:
     const t_config_enum_values* keys_map;
     
     std::string serialize() const {
@@ -548,7 +543,7 @@ enum ConfigOptionType {
 // Definition of a configuration value for the purpose of GUI presentation, editing, value mapping and config file handling.
 class ConfigOptionDef
 {
-    public:
+public:
     // What type? bool, int, string etc.
     ConfigOptionType type;
     // Default value of this option. The default value object is owned by ConfigDef, it is released in its destructor.
