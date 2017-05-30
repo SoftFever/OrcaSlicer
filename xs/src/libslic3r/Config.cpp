@@ -162,48 +162,8 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
     }
 }
 
-bool
-operator== (const ConfigOption &a, const ConfigOption &b)
+void ConfigBase::apply(const ConfigBase &other, bool ignore_nonexistent)
 {
-    return a.serialize().compare(b.serialize()) == 0;
-}
-
-bool
-operator!= (const ConfigOption &a, const ConfigOption &b)
-{
-    return !(a == b);
-}
-
-ConfigDef::~ConfigDef()
-{
-    for (t_optiondef_map::iterator it = this->options.begin(); it != this->options.end(); ++it) {
-        if (it->second.default_value != NULL)
-            delete it->second.default_value;
-    }
-}
-
-ConfigOptionDef*
-ConfigDef::add(const t_config_option_key &opt_key, ConfigOptionType type)
-{
-    ConfigOptionDef* opt = &this->options[opt_key];
-    opt->type = type;
-    return opt;
-}
-
-const ConfigOptionDef*
-ConfigDef::get(const t_config_option_key &opt_key) const
-{
-    t_optiondef_map::iterator it = const_cast<ConfigDef*>(this)->options.find(opt_key);
-    return (it == this->options.end()) ? NULL : &it->second;
-}
-
-bool
-ConfigBase::has(const t_config_option_key &opt_key) {
-    return (this->option(opt_key, false) != NULL);
-}
-
-void
-ConfigBase::apply(const ConfigBase &other, bool ignore_nonexistent) {
     // get list of option keys to apply
     t_config_option_keys opt_keys = other.keys();
     
@@ -224,35 +184,25 @@ ConfigBase::apply(const ConfigBase &other, bool ignore_nonexistent) {
     }
 }
 
-bool
-ConfigBase::equals(ConfigBase &other) {
-    return this->diff(other).empty();
-}
-
 // this will *ignore* options not present in both configs
-t_config_option_keys
-ConfigBase::diff(ConfigBase &other) {
+t_config_option_keys ConfigBase::diff(const ConfigBase &other) const
+{
     t_config_option_keys diff;
-    
-    t_config_option_keys my_keys = this->keys();
-    for (t_config_option_keys::const_iterator opt_key = my_keys.begin(); opt_key != my_keys.end(); ++opt_key) {
-        if (other.has(*opt_key) && other.serialize(*opt_key) != this->serialize(*opt_key)) {
-            diff.push_back(*opt_key);
-        }
-    }
-    
+    for (const t_config_option_key &opt_key : this->keys())
+        if (other.has(opt_key) && other.serialize(opt_key) != this->serialize(opt_key))
+            diff.push_back(opt_key);
     return diff;
 }
 
-std::string
-ConfigBase::serialize(const t_config_option_key &opt_key) const {
+std::string ConfigBase::serialize(const t_config_option_key &opt_key) const
+{
     const ConfigOption* opt = this->option(opt_key);
-    assert(opt != NULL);
+    assert(opt != nullptr);
     return opt->serialize();
 }
 
-bool
-ConfigBase::set_deserialize(const t_config_option_key &opt_key, std::string str) {
+bool ConfigBase::set_deserialize(const t_config_option_key &opt_key, std::string str)
+{
     const ConfigOptionDef* optdef = this->def->get(opt_key);
     if (optdef == NULL) throw "Calling set_deserialize() on unknown option";
     if (!optdef->shortcut.empty()) {
@@ -261,22 +211,20 @@ ConfigBase::set_deserialize(const t_config_option_key &opt_key, std::string str)
         }
         return true;
     }
-    
     ConfigOption* opt = this->option(opt_key, true);
-    assert(opt != NULL);
+    assert(opt != nullptr);
     return opt->deserialize(str);
 }
 
 // Return an absolute value of a possibly relative config variable.
 // For example, return absolute infill extrusion width, either from an absolute value, or relative to the layer height.
-double
-ConfigBase::get_abs_value(const t_config_option_key &opt_key) const {
+double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
+{
     const ConfigOption* opt = this->option(opt_key);
     if (const ConfigOptionFloatOrPercent* optv = dynamic_cast<const ConfigOptionFloatOrPercent*>(opt)) {
         // get option definition
         const ConfigOptionDef* def = this->def->get(opt_key);
-        assert(def != NULL);
-        
+        assert(def != nullptr);
         // compute absolute value over the absolute value of the base option
         return optv->get_abs_value(this->get_abs_value(def->ratio_over));
     } else if (const ConfigOptionFloat* optv = dynamic_cast<const ConfigOptionFloat*>(opt)) {
@@ -288,18 +236,16 @@ ConfigBase::get_abs_value(const t_config_option_key &opt_key) const {
 
 // Return an absolute value of a possibly relative config variable.
 // For example, return absolute infill extrusion width, either from an absolute value, or relative to a provided value.
-double
-ConfigBase::get_abs_value(const t_config_option_key &opt_key, double ratio_over) const {
+double ConfigBase::get_abs_value(const t_config_option_key &opt_key, double ratio_over) const 
+{
     // get stored option value
     const ConfigOptionFloatOrPercent* opt = dynamic_cast<const ConfigOptionFloatOrPercent*>(this->option(opt_key));
-    assert(opt != NULL);
-    
+    assert(opt != nullptr);
     // compute absolute value
     return opt->get_abs_value(ratio_over);
 }
 
-void
-ConfigBase::setenv_()
+void ConfigBase::setenv_()
 {
 #ifdef setenv
     t_config_option_keys opt_keys = this->keys();
@@ -319,43 +265,7 @@ ConfigBase::setenv_()
 #endif
 }
 
-const ConfigOption*
-ConfigBase::option(const t_config_option_key &opt_key) const {
-    return const_cast<ConfigBase*>(this)->option(opt_key, false);
-}
-
-ConfigOption*
-ConfigBase::option(const t_config_option_key &opt_key, bool create) {
-    return this->optptr(opt_key, create);
-}
-
-DynamicConfig& DynamicConfig::operator= (DynamicConfig other)
-{
-    this->swap(other);
-    return *this;
-}
-
-void
-DynamicConfig::swap(DynamicConfig &other)
-{
-    std::swap(this->def, other.def);
-    std::swap(this->options, other.options);
-}
-
-DynamicConfig::~DynamicConfig () {
-    for (t_options_map::iterator it = this->options.begin(); it != this->options.end(); ++it) {
-        ConfigOption* opt = it->second;
-        if (opt != NULL) delete opt;
-    }
-}
-
-DynamicConfig::DynamicConfig (const DynamicConfig& other) {
-    this->def = other.def;
-    this->apply(other, false);
-}
-
-ConfigOption*
-DynamicConfig::optptr(const t_config_option_key &opt_key, bool create) {
+ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool create) {
     t_options_map::iterator it = options.find(opt_key);
     if (it == options.end()) {
         if (create) {
@@ -405,8 +315,7 @@ DynamicConfig::optptr(const t_config_option_key &opt_key, bool create) {
 }
 
 template<class T>
-T*
-DynamicConfig::opt(const t_config_option_key &opt_key, bool create) {
+T* DynamicConfig::opt(const t_config_option_key &opt_key, bool create) {
     return dynamic_cast<T*>(this->option(opt_key, create));
 }
 template ConfigOptionInt* DynamicConfig::opt<ConfigOptionInt>(const t_config_option_key &opt_key, bool create);
@@ -414,40 +323,34 @@ template ConfigOptionBool* DynamicConfig::opt<ConfigOptionBool>(const t_config_o
 template ConfigOptionBools* DynamicConfig::opt<ConfigOptionBools>(const t_config_option_key &opt_key, bool create);
 template ConfigOptionPercent* DynamicConfig::opt<ConfigOptionPercent>(const t_config_option_key &opt_key, bool create);
 
-t_config_option_keys
-DynamicConfig::keys() const {
+t_config_option_keys DynamicConfig::keys() const
+{
     t_config_option_keys keys;
-    for (t_options_map::const_iterator it = this->options.begin(); it != this->options.end(); ++it)
-        keys.push_back(it->first);
+    keys.reserve(this->options.size());
+    for (const auto &opt : this->options)
+        keys.emplace_back(opt.first);
     return keys;
 }
 
-void
-DynamicConfig::erase(const t_config_option_key &opt_key) {
-    this->options.erase(opt_key);
-}
-
-void
-StaticConfig::set_defaults()
+void StaticConfig::set_defaults()
 {
     // use defaults from definition
-    if (this->def == NULL) return;
-    t_config_option_keys keys = this->keys();
-    for (t_config_option_keys::const_iterator it = keys.begin(); it != keys.end(); ++it) {
-        const ConfigOptionDef* def = this->def->get(*it);
-        if (def->default_value != NULL)
-            this->option(*it)->set(*def->default_value);
+    if (this->def != nullptr) {
+        for (const std::string &key : this->keys()) {
+            const ConfigOptionDef* def = this->def->get(key);
+            if (def->default_value != nullptr)
+                this->option(key)->set(*def->default_value);
+        }
     }
 }
 
-t_config_option_keys
-StaticConfig::keys() const {
+t_config_option_keys StaticConfig::keys() const 
+{
     t_config_option_keys keys;
-	assert(this->def != NULL);
-    for (t_optiondef_map::const_iterator it = this->def->options.begin(); it != this->def->options.end(); ++it) {
-        const ConfigOption* opt = this->option(it->first);
-        if (opt != NULL) keys.push_back(it->first);
-    }
+	assert(this->def != nullptr);
+    for (const auto &opt_def : this->def->options)
+        if (this->option(opt_def.first) != nullptr) 
+            keys.push_back(opt_def.first);
     return keys;
 }
 

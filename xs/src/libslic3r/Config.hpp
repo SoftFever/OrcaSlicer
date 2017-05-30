@@ -35,8 +35,8 @@ class ConfigOption {
     virtual double getFloat() const { return 0; };
     virtual bool getBool() const { return false; };
     virtual void setInt(int /* val */) { };
-    friend bool operator== (const ConfigOption &a, const ConfigOption &b);
-    friend bool operator!= (const ConfigOption &a, const ConfigOption &b);
+    bool operator==(const ConfigOption &rhs) { return this->serialize().compare(rhs.serialize()) == 0; }
+    bool operator!=(const ConfigOption &rhs) { return this->serialize().compare(rhs.serialize()) != 0; }
 };
 
 // Value of a single valued option (bool, int, float, string, point, enum)
@@ -263,7 +263,7 @@ class ConfigOptionPercents : public ConfigOptionFloats
 public:    
     std::string serialize() const {
         std::ostringstream ss;
-        for (const auto &v : this->values) {
+        for (const auto v : this->values) {
             if (&v != &this->values.front()) ss << ",";
             ss << v << "%";
         }
@@ -627,33 +627,42 @@ typedef std::map<t_config_option_key,ConfigOptionDef> t_optiondef_map;
 // but it carries the defaults of the configuration values.
 class ConfigDef
 {
-    public:
+public:
     t_optiondef_map options;
-    ~ConfigDef();
-    ConfigOptionDef* add(const t_config_option_key &opt_key, ConfigOptionType type);
-    const ConfigOptionDef* get(const t_config_option_key &opt_key) const;
+    ~ConfigDef() { for (auto &opt : this->options) delete opt.second.default_value; }
+    ConfigOptionDef* add(const t_config_option_key &opt_key, ConfigOptionType type) {
+        ConfigOptionDef* opt = &this->options[opt_key];
+        opt->type = type;
+        return opt;
+    }
+    const ConfigOptionDef* get(const t_config_option_key &opt_key) const {
+        t_optiondef_map::iterator it = const_cast<ConfigDef*>(this)->options.find(opt_key);
+        return (it == this->options.end()) ? nullptr : &it->second;
+    }
 };
 
 // An abstract configuration store.
 class ConfigBase
 {
-    public:
+public:
     // Definition of configuration values for the purpose of GUI presentation, editing, value mapping and config file handling.
     // The configuration definition is static: It does not carry the actual configuration values,
     // but it carries the defaults of the configuration values.
     // ConfigBase does not own ConfigDef, it only references it.
     const ConfigDef* def;
     
-    ConfigBase() : def(NULL) {};
+    ConfigBase(const ConfigDef *def = nullptr) : def(def) {};
     virtual ~ConfigBase() {};
-    bool has(const t_config_option_key &opt_key);
-    const ConfigOption* option(const t_config_option_key &opt_key) const;
-    ConfigOption* option(const t_config_option_key &opt_key, bool create = false);
+    bool has(const t_config_option_key &opt_key) const { return this->option(opt_key) != nullptr; }
+    const ConfigOption* option(const t_config_option_key &opt_key) const
+        { return const_cast<ConfigBase*>(this)->option(opt_key, false); }
+    ConfigOption* option(const t_config_option_key &opt_key, bool create = false)
+        { return this->optptr(opt_key, create); }
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) = 0;
     virtual t_config_option_keys keys() const = 0;
     void apply(const ConfigBase &other, bool ignore_nonexistent = false);
-    bool equals(ConfigBase &other);
-    t_config_option_keys diff(ConfigBase &other);
+    bool equals(const ConfigBase &other) const { return this->diff(other).empty(); }
+    t_config_option_keys diff(const ConfigBase &other) const;
     std::string serialize(const t_config_option_key &opt_key) const;
     bool set_deserialize(const t_config_option_key &opt_key, std::string str);
 
@@ -666,18 +675,18 @@ class ConfigBase
 // In Slic3r, the dynamic config is mostly used at the user interface layer.
 class DynamicConfig : public virtual ConfigBase
 {
-    public:
+public:
     DynamicConfig() {};
-    DynamicConfig(const DynamicConfig& other);
-    DynamicConfig& operator= (DynamicConfig other);
-    void swap(DynamicConfig &other);
-    virtual ~DynamicConfig();
+    DynamicConfig(const DynamicConfig& other) : ConfigBase(other.def) { this->apply(other, false); }
+    DynamicConfig& operator= (DynamicConfig other) { this->swap(other); return *this; }
+    virtual ~DynamicConfig() { for (auto &opt : this->options) delete opt.second; }
+    void swap(DynamicConfig &other) { std::swap(this->def, other.def); std::swap(this->options, other.options); }
     template<class T> T* opt(const t_config_option_key &opt_key, bool create = false);
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false);
     t_config_option_keys keys() const;
-    void erase(const t_config_option_key &opt_key);
-    
-    private:
+    void erase(const t_config_option_key &opt_key) { this->options.erase(opt_key); }
+
+private:
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;
     t_options_map options;
 };
@@ -687,7 +696,7 @@ class DynamicConfig : public virtual ConfigBase
 // because the configuration values could be accessed directly.
 class StaticConfig : public virtual ConfigBase
 {
-    public:
+public:
     StaticConfig() : ConfigBase() {};
     // Gets list of config option names for each config option of this->def, which has a static counter-part defined by the derived object
     // and which could be resolved by this->optptr(key) call.
