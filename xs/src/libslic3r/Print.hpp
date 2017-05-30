@@ -232,8 +232,8 @@ public:
     // ordered collections of extrusion paths to build skirt loops and brim
     ExtrusionEntityCollection skirt, brim;
 
-    Print();
-    ~Print();
+    Print() : total_used_filament(0), total_extruded_volume(0) {}
+    ~Print() { clear_objects(); }
     
     // methods for handling objects
     void clear_objects();
@@ -293,7 +293,6 @@ public:
     
 private:
     void clear_regions();
-    void delete_region(size_t idx);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
 };
 

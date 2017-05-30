@@ -660,7 +660,8 @@ public:
         { return this->optptr(opt_key, create); }
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) = 0;
     virtual t_config_option_keys keys() const = 0;
-    void apply(const ConfigBase &other, bool ignore_nonexistent = false);
+    void apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->apply(other, other.keys(), ignore_nonexistent); }
+    void apply(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false);
     bool equals(const ConfigBase &other) const { return this->diff(other).empty(); }
     t_config_option_keys diff(const ConfigBase &other) const;
     std::string serialize(const t_config_option_key &opt_key) const;

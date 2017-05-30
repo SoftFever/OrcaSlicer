@@ -128,11 +128,14 @@ SupportLayer* PrintObject::add_support_layer(int id, coordf_t height, coordf_t p
     return support_layers.back();
 }
 
+// Called by Print::apply_config().
+// This method only accepts PrintObjectConfig and PrintRegionConfig option keys.
 bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {
+    if (opt_keys.empty())
+        return false;
+
     std::vector<PrintObjectStep> steps;
-    
-    // this method only accepts PrintObjectConfig and PrintRegionConfig option keys
     for (const t_config_option_key &opt_key : opt_keys) {
         if (opt_key == "perimeters"
             || opt_key == "extra_perimeters"

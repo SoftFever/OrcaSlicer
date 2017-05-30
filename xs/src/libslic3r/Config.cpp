@@ -162,25 +162,19 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
     }
 }
 
-void ConfigBase::apply(const ConfigBase &other, bool ignore_nonexistent)
+void ConfigBase::apply(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent)
 {
-    // get list of option keys to apply
-    t_config_option_keys opt_keys = other.keys();
-    
     // loop through options and apply them
-    for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it) {
-        ConfigOption* my_opt = this->option(*it, true);
-        if (my_opt == NULL) {
-            if (ignore_nonexistent == false) throw "Attempt to apply non-existent option";
+    for (const t_config_option_key &key : keys) {
+        ConfigOption *my_opt = this->option(key, true);
+        if (my_opt == nullptr) {
+            if (! ignore_nonexistent)
+                throw "Attempt to apply non-existent option";
             continue;
         }
-        
         // not the most efficient way, but easier than casting pointers to subclasses
-        bool res = my_opt->deserialize( other.option(*it)->serialize() );
-        if (!res) {
-            std::string error = "Unexpected failure when deserializing serialized value for " + *it;
-            CONFESS(error.c_str());
-        }
+        if (! my_opt->deserialize(other.option(key)->serialize()))
+            CONFESS((std::string("Unexpected failure when deserializing serialized value for ") + key).c_str());
     }
 }
 

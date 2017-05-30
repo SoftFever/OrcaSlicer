@@ -100,9 +100,6 @@ _constant()
     Ref<SupportLayer> get_support_layer(int idx);
     Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z);
 
-    bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);
-    bool invalidate_step(PrintObjectStep step);
-    bool invalidate_all_steps();
     bool step_done(PrintObjectStep step)
         %code%{ RETVAL = THIS->state.is_done(step); %};
     void set_step_done(PrintObjectStep step)
@@ -182,9 +179,6 @@ _constant()
     size_t region_count()
         %code%{ RETVAL = THIS->regions.size(); %};
     
-    bool invalidate_state_by_config_options(std::vector<std::string> opt_keys);
-    bool invalidate_step(PrintStep step);
-    bool invalidate_all_steps();
     bool step_done(PrintStep step)
         %code%{ RETVAL = THIS->state.is_done(step); %};
     bool object_step_done(PrintObjectStep step)

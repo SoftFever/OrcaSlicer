@@ -15,46 +15,26 @@ namespace Slic3r {
 template class PrintState<PrintStep, psCount>;
 template class PrintState<PrintObjectStep, posCount>;
 
-
-Print::Print()
-:   total_used_filament(0),
-    total_extruded_volume(0)
-{
-}
-
-Print::~Print()
-{
-    clear_objects();
-    clear_regions();
-}
-
-void
-Print::clear_objects()
+void Print::clear_objects()
 {
     for (int i = int(this->objects.size())-1; i >= 0; --i)
         this->delete_object(i);
-
     this->clear_regions();
 }
 
-void
-Print::delete_object(size_t idx)
+void Print::delete_object(size_t idx)
 {
-    PrintObjectPtrs::iterator i = this->objects.begin() + idx;
-    
+    PrintObject *object = this->objects[idx];
     // before deleting object, invalidate all of its steps in order to 
     // invalidate all of the dependent ones in Print
-    (*i)->invalidate_all_steps();
-    
+    object->invalidate_all_steps();
     // destroy object and remove it from our container
-    delete *i;
-    this->objects.erase(i);
-
+    delete object;
+    this->objects.erase(this->objects.begin() + idx);
     // TODO: purge unused regions
 }
 
-void
-Print::reload_object(size_t idx)
+void Print::reload_object(size_t idx)
 {
     /* TODO: this method should check whether the per-object config and per-material configs
         have changed in such a way that regions need to be rearranged or we can just apply
@@ -64,59 +44,46 @@ Print::reload_object(size_t idx)
     
     // collect all current model objects
     ModelObjectPtrs model_objects;
-    FOREACH_OBJECT(this, object) {
-        model_objects.push_back((*object)->model_object());
-    }
-    
+    model_objects.reserve(this->objects.size());
+    for (PrintObject *object : this->objects)
+        model_objects.push_back(object->model_object());    
     // remove our print objects
     this->clear_objects();
-    
     // re-add model objects
-    for (ModelObjectPtrs::iterator it = model_objects.begin(); it != model_objects.end(); ++it) {
-        this->add_model_object(*it);
-    }
+    for (ModelObject *mo : model_objects)
+        this->add_model_object(mo);
 }
 
-bool
-Print::reload_model_instances()
+bool Print::reload_model_instances()
 {
     bool invalidated = false;
-    FOREACH_OBJECT(this, object) {
-        if ((*object)->reload_model_instances()) invalidated = true;
-    }
+    for (PrintObject *object : this->objects)
+        invalidated |= object->reload_model_instances();
     return invalidated;
 }
 
-void
-Print::clear_regions()
+void Print::clear_regions()
 {
-    for (int i = this->regions.size()-1; i >= 0; --i)
-        this->delete_region(i);
+    for (PrintRegion *region : this->regions)
+        delete region;
+    this->regions.clear();
 }
 
-PrintRegion*
-Print::add_region()
+PrintRegion* Print::add_region()
 {
-    PrintRegion *region = new PrintRegion(this);
-    regions.push_back(region);
-    return region;
+    regions.push_back(new PrintRegion(this));
+    return regions.back();
 }
 
-void
-Print::delete_region(size_t idx)
+// Called by Print::apply_config().
+// This method only accepts PrintConfig option keys.
+bool Print::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {
-    PrintRegionPtrs::iterator i = this->regions.begin() + idx;
-    delete *i;
-    this->regions.erase(i);
-}
+    if (opt_keys.empty())
+        return false;
 
-bool
-Print::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
-{
     std::vector<PrintStep> steps;
     std::vector<PrintObjectStep> osteps;
-    
-    // this method only accepts PrintConfig option keys
     for (const t_config_option_key &opt_key : opt_keys) {
         if (   opt_key == "skirts"
             || opt_key == "skirt_height"
@@ -308,12 +275,11 @@ std::vector<unsigned int> Print::extruders() const
 
 void Print::_simplify_slices(double distance)
 {
-    FOREACH_OBJECT(this, object) {
-        FOREACH_LAYER(*object, layer) {
-            (*layer)->slices.simplify(distance);
-            FOREACH_LAYERREGION(*layer, layerm) {
-                (*layerm)->slices.simplify(distance);
-            }
+    for (PrintObject *object : this->objects) {
+        for (Layer *layer : object->layers) {
+            layer->slices.simplify(distance);
+            for (LayerRegion *layerm : layer->regions)
+                layerm->slices.simplify(distance);
         }
     }
 }
@@ -409,8 +375,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
     }
 }
 
-bool
-Print::apply_config(DynamicPrintConfig config)
+bool Print::apply_config(DynamicPrintConfig config)
 {
     // we get a copy of the config object so we can modify it safely
     config.normalize();
@@ -422,16 +387,12 @@ Print::apply_config(DynamicPrintConfig config)
     
     // handle changes to print config
     t_config_option_keys print_diff = this->config.diff(config);
-    if (!print_diff.empty()) {
-        this->config.apply(config, true);
-        
-        if (this->invalidate_state_by_config_options(print_diff))
-            invalidated = true;
-    }
+    this->config.apply(config, print_diff, true);        
+    invalidated |= this->invalidate_state_by_config_options(print_diff);
     
     // handle changes to object config defaults
     this->default_object_config.apply(config, true);
-    FOREACH_OBJECT(this, obj_ptr) {
+    for (PrintObject *object : this->objects) {
         // we don't assume that config contains a full ObjectConfig,
         // so we base it on the current print-wise default
         PrintObjectConfig new_config = this->default_object_config;
@@ -439,19 +400,15 @@ Print::apply_config(DynamicPrintConfig config)
         
         // we override the new config with object-specific options
         {
-            DynamicPrintConfig model_object_config = (*obj_ptr)->model_object()->config;
+            DynamicPrintConfig model_object_config = object->model_object()->config;
             model_object_config.normalize();
             new_config.apply(model_object_config, true);
         }
         
         // check whether the new config is different from the current one
-        t_config_option_keys diff = (*obj_ptr)->config.diff(new_config);
-        if (!diff.empty()) {
-            (*obj_ptr)->config.apply(new_config, true);
-            
-            if ((*obj_ptr)->invalidate_state_by_config_options(diff))
-                invalidated = true;
-        }
+        t_config_option_keys diff = object->config.diff(new_config);
+        object->config.apply(new_config, diff, true);
+        invalidated |= object->invalidate_state_by_config_options(diff);
     }
     
     // handle changes to regions config defaults
@@ -461,37 +418,34 @@ Print::apply_config(DynamicPrintConfig config)
     // Check whether applying the new region config defaults we'd get different regions.
     bool rearrange_regions = false;
     std::vector<PrintRegionConfig> other_region_configs;
-    FOREACH_REGION(this, it_r) {
-        size_t region_id = it_r - this->regions.begin();
-        PrintRegion* region = *it_r;
-        
+    for (size_t region_id = 0; region_id < this->regions.size(); ++ region_id) 
+    {
+        PrintRegion* region = this->regions[region_id];    
         std::vector<PrintRegionConfig> this_region_configs;
-        FOREACH_OBJECT(this, it_o) {
-            PrintObject* object = *it_o;
-            
-            std::vector<int> &region_volumes = object->region_volumes[region_id];
-            for (std::vector<int>::const_iterator volume_id = region_volumes.begin(); volume_id != region_volumes.end(); ++volume_id) {
-                ModelVolume* volume = object->model_object()->volumes.at(*volume_id);
+        for (PrintObject* object : this->objects) 
+        {
+            for (int volume_id : object->region_volumes[region_id]) {
+                ModelVolume* volume = object->model_object()->volumes.at(volume_id);
                 
                 PrintRegionConfig new_config = this->_region_config_from_model_volume(*volume);
                 
-                for (std::vector<PrintRegionConfig>::iterator it = this_region_configs.begin(); it != this_region_configs.end(); ++it) {
+                for (const PrintRegionConfig &cfg : this_region_configs) {
                     // if the new config for this volume differs from the other
                     // volume configs currently associated to this region, it means
                     // the region subdivision does not make sense anymore
-                    if (!it->equals(new_config)) {
+                    if (! cfg.equals(new_config)) {
                         rearrange_regions = true;
                         goto NEXT_REGION;
                     }
                 }
                 this_region_configs.push_back(new_config);
                 
-                for (std::vector<PrintRegionConfig>::iterator it = other_region_configs.begin(); it != other_region_configs.end(); ++it) {
+                for (const PrintRegionConfig &cfg : other_region_configs) {
                     // if the new config for this volume equals any of the other
                     // volume configs that are not currently associated to this
                     // region, it means the region subdivision does not make
                     // sense anymore
-                    if (it->equals(new_config)) {
+                    if (cfg.equals(new_config)) {
                         rearrange_regions = true;
                         goto NEXT_REGION;
                     }
@@ -500,50 +454,48 @@ Print::apply_config(DynamicPrintConfig config)
                 // if we're here and the new region config is different from the old
                 // one, we need to apply the new config and invalidate all objects
                 // (possible optimization: only invalidate objects using this region)
-                t_config_option_keys region_config_diff = region->config.diff(new_config);
-                if (!region_config_diff.empty()) {
-                    region->config.apply(new_config);
-                    FOREACH_OBJECT(this, o) {
-                        if ((*o)->invalidate_state_by_config_options(region_config_diff))
-                            invalidated = true;
-                    }
+                t_config_option_keys diff = region->config.diff(new_config);
+                if (! diff.empty()) {
+                    region->config.apply(new_config, diff);
+                    for (PrintObject *object : this->objects)
+                        invalidated |= object->invalidate_state_by_config_options(diff);
                 }
             }
         }
-        other_region_configs.insert(other_region_configs.end(), this_region_configs.begin(), this_region_configs.end());
-        
+        append(other_region_configs, this_region_configs);
+
         NEXT_REGION:
             continue;
     }
     
     if (rearrange_regions) {
-        // the current subdivision of regions does not make sense anymore.
-        // we need to remove all objects and re-add them
+        // The current subdivision of regions does not make sense anymore.
+        // We need to remove all objects and re-add them.
         ModelObjectPtrs model_objects;
-        FOREACH_OBJECT(this, o) {
-            model_objects.push_back((*o)->model_object());
-        }
+        model_objects.reserve(this->objects.size());
+        for (PrintObject *object : this->objects)
+            model_objects.push_back(object->model_object());
         this->clear_objects();
-        for (ModelObjectPtrs::iterator it = model_objects.begin(); it != model_objects.end(); ++it) {
-            this->add_model_object(*it);
+        for (ModelObject *mo : model_objects) {
+            this->add_model_object(mo);
             // Update layer_height_profile from the main thread as it may pull the data from the associated ModelObject.
             this->objects.back()->update_layer_height_profile();
         }
         invalidated = true;
     } else {
         // Check validity of the layer height profiles.
-        FOREACH_OBJECT(this, o) {
-            if (! (*o)->layer_height_profile_valid) {
+        for (PrintObject *object : this->objects) {
+            if (! object->layer_height_profile_valid) {
                 // The layer_height_profile is not valid for some reason (updated by the user or invalidated due to some option change).
                 // Start slicing of this object from scratch.
-                (*o)->invalidate_all_steps();
+                object->invalidate_all_steps();
                 // Following line sets the layer_height_profile_valid flag.
-                (*o)->update_layer_height_profile();
+                object->update_layer_height_profile();
                 invalidated = true;
             } else if (! step_done(posSlice)) {
                 // Update layer_height_profile from the main thread as it may pull the data from the associated ModelObject.
                 // Only update if the slicing was not finished yet.
-                (*o)->update_layer_height_profile();
+                object->update_layer_height_profile();
             }
         }
     }
@@ -563,8 +515,7 @@ bool Print::has_skirt() const
         || this->has_infinite_skirt();
 }
 
-std::string
-Print::validate() const
+std::string Print::validate() const
 {
     if (this->config.complete_objects) {
         // check horizontal clearance
@@ -686,8 +637,7 @@ Print::validate() const
 
 // the bounding box of objects placed in copies position
 // (without taking skirt/brim/support material into account)
-BoundingBox
-Print::bounding_box() const
+BoundingBox Print::bounding_box() const
 {
     BoundingBox bb;
     FOREACH_OBJECT(this, object) {
@@ -705,8 +655,7 @@ Print::bounding_box() const
 // the total bounding box of extrusions, including skirt/brim/support material
 // this methods needs to be called even when no steps were processed, so it should
 // only use configuration values
-BoundingBox
-Print::total_bounding_box() const
+BoundingBox Print::total_bounding_box() const
 {
     // get objects bounding box
     BoundingBox bb = this->bounding_box();
@@ -744,15 +693,13 @@ Print::total_bounding_box() const
     return bb;
 }
 
-double
-Print::skirt_first_layer_height() const
+double Print::skirt_first_layer_height() const
 {
     if (this->objects.empty()) CONFESS("skirt_first_layer_height() can't be called without PrintObjects");
     return this->objects.front()->config.get_abs_value("first_layer_height");
 }
 
-Flow
-Print::brim_flow() const
+Flow Print::brim_flow() const
 {
     ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
     if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
@@ -771,8 +718,7 @@ Print::brim_flow() const
     );
 }
 
-Flow
-Print::skirt_flow() const
+Flow Print::skirt_flow() const
 {
     ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
     if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
@@ -792,8 +738,7 @@ Print::skirt_flow() const
 }
 
 
-PrintRegionConfig
-Print::_region_config_from_model_volume(const ModelVolume &volume)
+PrintRegionConfig Print::_region_config_from_model_volume(const ModelVolume &volume)
 {
     PrintRegionConfig config = this->default_region_config;
     {
@@ -814,34 +759,30 @@ Print::_region_config_from_model_volume(const ModelVolume &volume)
     return config;
 }
 
-bool
-Print::has_support_material() const
+bool Print::has_support_material() const
 {
-    FOREACH_OBJECT(this, object) {
-        if ((*object)->has_support_material()) return true;
-    }
+    for (const PrintObject *object : this->objects)
+        if (object->has_support_material()) 
+            return true;
     return false;
 }
 
 /*  This method assigns extruders to the volumes having a material
     but not having extruders set in the volume config. */
-void
-Print::auto_assign_extruders(ModelObject* model_object) const
+void Print::auto_assign_extruders(ModelObject* model_object) const
 {
     // only assign extruders if object has more than one volume
-    if (model_object->volumes.size() < 2) return;
+    if (model_object->volumes.size() < 2)
+        return;
     
-    size_t extruders = this->config.nozzle_diameter.values.size();
-    for (ModelVolumePtrs::const_iterator v = model_object->volumes.begin(); v != model_object->volumes.end(); ++v) {
-        if (!(*v)->material_id().empty()) {
-            //FIXME Vojtech: This assigns an extruder ID even to a modifier volume, if it has a material assigned.
-            size_t extruder_id = (v - model_object->volumes.begin()) + 1;
-            if (!(*v)->config.has("extruder"))
-                (*v)->config.opt<ConfigOptionInt>("extruder", true)->value = int(extruder_id);
-        }
+//    size_t extruders = this->config.nozzle_diameter.values.size();
+    for (size_t volume_id = 0; volume_id < model_object->volumes.size(); ++ volume_id) {
+        ModelVolume *volume = model_object->volumes[volume_id];
+        //FIXME Vojtech: This assigns an extruder ID even to a modifier volume, if it has a material assigned.
+        if (! volume->material_id().empty() && ! volume->config.has("extruder"))
+            volume->config.opt<ConfigOptionInt>("extruder", true)->value = int(volume_id + 1);
     }
 }
-
 
 void Print::_make_skirt()
 {
