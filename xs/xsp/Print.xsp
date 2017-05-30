@@ -230,6 +230,7 @@ _constant()
         %code%{ RETVAL = THIS->apply_config(*config); %};
     bool has_infinite_skirt();
     bool has_skirt();
+    std::vector<unsigned int> extruders() const;
     std::string _validate()
         %code%{ RETVAL = THIS->validate(); %};
     Clone<BoundingBox> bounding_box();

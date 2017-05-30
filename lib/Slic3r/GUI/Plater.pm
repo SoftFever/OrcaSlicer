@@ -1202,11 +1202,7 @@ sub schedule_background_process {
 # The timer is started by schedule_background_process(), 
 sub async_apply_config {
     my ($self) = @_;
-    
-    # reset preview canvases
-    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
-    $self->{preview3D}->reload_print if $self->{preview3D};
-    
+
     # pause process thread before applying new config
     # since we don't want to touch data that is being used by the threads
     $self->pause_background_process;
@@ -1231,6 +1227,11 @@ sub async_apply_config {
     
     # schedule a new process thread in case it wasn't running
     $self->start_background_process;
+
+    # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
+    # Otherwise they will be just refreshed.
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
 sub start_background_process {
@@ -1817,8 +1818,10 @@ sub on_config_change {
                     $self->{"btn_layer_editing"}->Enable;
                 }
             }
-        } elsif ($opt_key eq 'extruder_color') {
-
+        } elsif ($opt_key eq 'extruder_colour') {
+            $update_scheduled = 1;
+            my $extruder_colors = $config->get('extruder_colour');
+            $self->{preview3D}->set_number_extruders(scalar(@{$extruder_colors}));
         }
     }
 

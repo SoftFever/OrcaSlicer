@@ -910,14 +910,12 @@ sub UseVBOs {
     if (! defined ($self->{use_VBOs})) {
         # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
         # first when an OpenGL widget is shown for the first time. How ugly.
-        # It seems like the wipe tower configuration fills in the VBOs before the window is created.
-        # Therefore it is safer to wait for the first screen refresh on Windows and OSX as well.
-#        return 0 if (! $self->init && $^O eq 'linux');
-        return 0 if (! $self->init);
+        return 0 if (! $self->init && $^O eq 'linux');
         # Don't use VBOs if anything fails.
         $self->{use_VBOs} = 0;
         if ($self->GetContext) {
             $self->SetCurrent($self->GetContext);
+            Slic3r::GUI::_3DScene::_glew_init;
             my @gl_version = split(/\./, glGetString(GL_VERSION));
             $self->{use_VBOs} = int($gl_version[0]) >= 2;
             # print "UseVBOs $self OpenGL major: $gl_version[0], minor: $gl_version[1]. Use VBOs: ", $self->{use_VBOs}, "\n";
@@ -1022,8 +1020,6 @@ sub InitGL {
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_MULTISAMPLE);
-
-    Slic3r::GUI::_3DScene::_glew_init;
 
     if ($self->UseVBOs) {
         my $shader = new Slic3r::GUI::_3DScene::GLShader;

@@ -8,7 +8,7 @@ use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX);
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer color_by_extruder));
+__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer));
 
 sub new {
     my $class = shift;
@@ -16,6 +16,8 @@ sub new {
     
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
     $self->{config} = $config;
+    $self->{number_extruders} = 1;
+    $self->{preferred_color_mode} = 'feature';
 
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
@@ -54,7 +56,7 @@ sub new {
     $z_label_high->SetFont($Slic3r::GUI::small_font);
 
     $self->single_layer(0);
-    $self->color_by_extruder(0);
+    $self->{color_by_extruder} = 0;
     my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
     my $checkbox_color_by_extruder = $self->{checkbox_color_by_extruder} = Wx::CheckBox->new($self, -1, "Tool");
     
@@ -112,7 +114,8 @@ sub new {
         }
     });
     EVT_CHECKBOX($self, $checkbox_color_by_extruder, sub {
-        $self->color_by_extruder($checkbox_color_by_extruder->GetValue());
+        $self->{color_by_extruder} = $checkbox_color_by_extruder->GetValue();
+        $self->{preferred_color_mode} = $self->{color_by_extruder} ? 'tool' : 'feature';
         $self->reload_print;
     });
     
@@ -189,10 +192,21 @@ sub load_print {
     $self->slider_high->Show;
     $self->Layout;
 
+    my $by_tool = $self->{color_by_extruder};
+    if ($self->{preferred_color_mode} eq 'tool_or_feature') {
+        # It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
+        # Color by feature if it is a single extruder print.
+        my $extruders = $self->{print}->extruders;
+        $by_tool = scalar(@{$extruders}) > 1;
+        $self->{color_by_extruder} = $by_tool;
+        $self->{checkbox_color_by_extruder}->SetValue($by_tool);
+        $self->{preferred_color_mode} = 'tool_or_feature';
+    }
+
     # Collect colors per extruder.
     # Leave it empty, if the print should be colored by a feature.
     my @colors = ();
-    if ($self->color_by_extruder) {
+    if ($by_tool) {
         my @extruder_colors = @{$self->{config}->extruder_colour};
         my @filament_colors = @{$self->{config}->filament_colour};
         for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
@@ -262,6 +276,17 @@ sub set_z_idx_high
 sub set_bed_shape {
     my ($self, $bed_shape) = @_;
     $self->canvas->set_bed_shape($bed_shape);
+}
+
+sub set_number_extruders {
+    my ($self, $number_extruders) = @_;
+    if ($self->{number_extruders} != $number_extruders) {
+        $self->{number_extruders} = $number_extruders;
+        my $by_tool = $number_extruders > 1;
+        $self->{color_by_extruder} = $by_tool;
+        $self->{checkbox_color_by_extruder}->SetValue($by_tool);
+        $self->{preferred_color_mode} = $by_tool ? 'tool_or_feature' : 'feature';
+    }
 }
 
 1;

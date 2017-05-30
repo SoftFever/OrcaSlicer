@@ -825,6 +825,8 @@ void _3DScene::_load_print_object_toolpaths(
         bool                         color_by_tool() const { return tool_colors != nullptr; }
         size_t                       number_tools()  const { return this->color_by_tool() ? tool_colors->size() / 4 : 0; }
         const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
+        int                          volume_idx(int extruder, int feature) const 
+            { return this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(extruder - 1, 0)) : feature; }
     } ctxt;
 
     ctxt.shifted_copies = &print_object->_shifted_copies;
@@ -890,41 +892,33 @@ void _3DScene::_load_print_object_toolpaths(
                 }
                 for (const Point &copy: *ctxt.shifted_copies) {
                     for (const LayerRegion *layerm : layer->regions) {
-                        if (ctxt.has_perimeters) {
-                            int volume_idx = ctxt.color_by_tool() ? 
-                                std::max<int>(layerm->region()->config.perimeter_extruder.value - 1, 0) :
-                                0;
-                            extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy, *vols[volume_idx]);
-                        }
+                        if (ctxt.has_perimeters)
+                            extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy, 
+                                *vols[ctxt.volume_idx(layerm->region()->config.perimeter_extruder.value, 0)]);
                         if (ctxt.has_infill) {
                             for (const ExtrusionEntity *ee : layerm->fills.entities) {
                                 // fill represents infill extrusions of a single island.
                                 const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-                                if (fill->entities.empty())
-                                    // This shouldn't happen but first_point() would fail.
-                                    continue;
-                                int volume_idx = ctxt.color_by_tool() ? 
-                                    std::max<int>(0, 
-                                        (is_solid_infill(fill->entities.front()->role()) ? 
-                                            layerm->region()->config.solid_infill_extruder : 
-                                            layerm->region()->config.infill_extruder) - 1) :
-                                    1;
-                                extrusionentity_to_verts(*fill, float(layer->print_z), copy, *vols[volume_idx]);
+                                if (! fill->entities.empty())
+                                    extrusionentity_to_verts(*fill, float(layer->print_z), copy, 
+                                        *vols[ctxt.volume_idx(
+                                            is_solid_infill(fill->entities.front()->role()) ? 
+                                                layerm->region()->config.solid_infill_extruder : 
+                                                layerm->region()->config.infill_extruder,
+                                        1)]);
                             }
                         }
                     }
                     if (ctxt.has_support) {
                         const SupportLayer *support_layer = dynamic_cast<const SupportLayer*>(layer);
                         if (support_layer) {
-                            for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities) {
-                                int volume_idx = ctxt.color_by_tool() ? 
-                                    std::max<int>(0, 
-                                        ((extrusion_entity->role() == erSupportMaterial) ? 
-                                            support_layer->object()->config.support_material_extruder : 
-                                            support_layer->object()->config.support_material_interface_extruder) - 1) :
-                                    2;
-                                extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy, *vols[volume_idx]);
-                            }
+                            for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
+                                extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy, 
+                                    *vols[ctxt.volume_idx(
+                                            (extrusion_entity->role() == erSupportMaterial) ? 
+                                                support_layer->object()->config.support_material_extruder : 
+                                                support_layer->object()->config.support_material_interface_extruder,
+                                            2)]);
                         }
                     }
                 }
@@ -985,6 +979,8 @@ void _3DScene::_load_wipe_tower_toolpaths(
         bool                         color_by_tool() const { return tool_colors != nullptr; }
         size_t                       number_tools()  const { return this->color_by_tool() ? tool_colors->size() / 4 : 0; }
         const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
+        int                          volume_idx(int tool, int feature) const 
+            { return this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(tool, 0)) : feature; }
     } ctxt;
 
     ctxt.print          = print;
@@ -1069,7 +1065,8 @@ void _3DScene::_load_wipe_tower_toolpaths(
                             lines.emplace_back(Point::new_scale(e_prev.pos.x, e_prev.pos.y), Point::new_scale(e.pos.x, e.pos.y));
                             widths.emplace_back(e.width);
                         }
-                        thick_lines_to_verts(lines, widths, heights, lines.front().a == lines.back().b, extrusions.print_z, *vols[ctxt.color_by_tool() ? e.tool : 0]);
+                        thick_lines_to_verts(lines, widths, heights, lines.front().a == lines.back().b, extrusions.print_z, 
+                            *vols[ctxt.volume_idx(e.tool, 0)]);
                     }
                 }
             }

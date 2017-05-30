@@ -139,19 +139,19 @@ public:
     const Points& copies() const { return this->_copies; }
     bool add_copy(const Pointf &point);
     bool delete_last_copy();
-    bool delete_all_copies();
+    bool delete_all_copies() { return this->set_copies(Points()); }
     bool set_copies(const Points &points);
     bool reload_model_instances();
-    BoundingBox bounding_box() const {
-        // since the object is aligned to origin, bounding box coincides with size
-        return BoundingBox(Point(0,0), this->size);
-    }
-    
-    // adds region_id, too, if necessary
-    void add_region_volume(int region_id, int volume_id);
+    // since the object is aligned to origin, bounding box coincides with size
+    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), this->size); }
 
-    size_t total_layer_count() const;
-    size_t layer_count() const;
+    // adds region_id, too, if necessary
+    void add_region_volume(int region_id, int volume_id) { region_volumes[region_id].push_back(volume_id); }
+    // This is the *total* layer count (including support layers)
+    // this value is not supposed to be compared with Layer::id
+    // since they have different semantics.
+    size_t total_layer_count() const { return this->layer_count() + this->support_layer_count(); }
+    size_t layer_count() const { return this->layers.size(); }
     void clear_layers();
     Layer* get_layer(int idx) { return this->layers.at(idx); }
     const Layer* get_layer(int idx) const { return this->layers.at(idx); }
@@ -160,9 +160,9 @@ public:
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_layer(int idx);
 
-    size_t support_layer_count() const;
+    size_t support_layer_count() const { return this->support_layers.size(); }
     void clear_support_layers();
-    SupportLayer* get_support_layer(int idx);
+    SupportLayer* get_support_layer(int idx) { return this->support_layers.at(idx); }
     SupportLayer* add_support_layer(int id, coordf_t height, coordf_t print_z);
     void delete_support_layer(int idx);
     
