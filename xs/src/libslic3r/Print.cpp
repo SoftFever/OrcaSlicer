@@ -12,8 +12,8 @@
 
 namespace Slic3r {
 
-template class PrintState<PrintStep>;
-template class PrintState<PrintObjectStep>;
+template class PrintState<PrintStep, psCount>;
+template class PrintState<PrintObjectStep, posCount>;
 
 
 Print::Print()
@@ -113,105 +113,105 @@ Print::delete_region(size_t idx)
 bool
 Print::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {
-    std::set<PrintStep> steps;
-    std::set<PrintObjectStep> osteps;
+    std::vector<PrintStep> steps;
+    std::vector<PrintObjectStep> osteps;
     
     // this method only accepts PrintConfig option keys
-    for (std::vector<t_config_option_key>::const_iterator opt_key = opt_keys.begin(); opt_key != opt_keys.end(); ++opt_key) {
-        if (   *opt_key == "skirts"
-            || *opt_key == "skirt_height"
-            || *opt_key == "skirt_distance"
-            || *opt_key == "min_skirt_length"
-            || *opt_key == "ooze_prevention") {
-            steps.insert(psSkirt);
-        } else if (*opt_key == "brim_width") {
-            steps.insert(psBrim);
-            steps.insert(psSkirt);
-        } else if (*opt_key == "nozzle_diameter"
-            || *opt_key == "resolution") {
-            osteps.insert(posSlice);
+    for (const t_config_option_key &opt_key : opt_keys) {
+        if (   opt_key == "skirts"
+            || opt_key == "skirt_height"
+            || opt_key == "skirt_distance"
+            || opt_key == "min_skirt_length"
+            || opt_key == "ooze_prevention") {
+            steps.emplace_back(psSkirt);
+        } else if (opt_key == "brim_width") {
+            steps.emplace_back(psBrim);
+            steps.emplace_back(psSkirt);
+        } else if (opt_key == "nozzle_diameter"
+            || opt_key == "resolution") {
+            osteps.emplace_back(posSlice);
         } else if (
-               *opt_key == "complete_objects"
-            || *opt_key == "filament_type"
-            || *opt_key == "first_layer_temperature"
-            || *opt_key == "gcode_flavor"
-            || *opt_key == "single_extruder_multi_material"
-            || *opt_key == "spiral_vase"
-            || *opt_key == "temperature"
-            || *opt_key == "wipe_tower"
-            || *opt_key == "wipe_tower_x"
-            || *opt_key == "wipe_tower_y"
-            || *opt_key == "wipe_tower_width"
-            || *opt_key == "wipe_tower_per_color_wipe"
-            || *opt_key == "z_offset") {
-            steps.insert(psWipeTower);
-        } else if (*opt_key == "avoid_crossing_perimeters"
-            || *opt_key == "bed_shape"
-            || *opt_key == "bed_temperature"
-            || *opt_key == "bridge_acceleration"
-            || *opt_key == "bridge_fan_speed"
-            || *opt_key == "cooling"
-            || *opt_key == "default_acceleration"
-            || *opt_key == "disable_fan_first_layers"
-            || *opt_key == "duplicate_distance"
-            || *opt_key == "end_gcode"
-            || *opt_key == "extruder_clearance_height"
-            || *opt_key == "extruder_clearance_radius"
-            || *opt_key == "extruder_colour"
-            || *opt_key == "extruder_offset"
-            || *opt_key == "extrusion_axis"
-            || *opt_key == "extrusion_multiplier"
-            || *opt_key == "fan_always_on"
-            || *opt_key == "fan_below_layer_time"
-            || *opt_key == "filament_diameter"
-            || *opt_key == "filament_notes"
-            || *opt_key == "filament_soluble"
-            || *opt_key == "first_layer_acceleration"
-            || *opt_key == "first_layer_bed_temperature"
-            || *opt_key == "first_layer_speed"
-            || *opt_key == "gcode_comments"
-            || *opt_key == "infill_acceleration"
-            || *opt_key == "infill_first"
-            || *opt_key == "layer_gcode"
-            || *opt_key == "min_fan_speed"
-            || *opt_key == "max_fan_speed"
-            || *opt_key == "min_print_speed"
-            || *opt_key == "notes"
-            || *opt_key == "only_retract_when_crossing_perimeters"
-            || *opt_key == "output_filename_format"
-            || *opt_key == "perimeter_acceleration"
-            || *opt_key == "post_process"
-            || *opt_key == "retract_before_travel"
-            || *opt_key == "retract_before_wipe"
-            || *opt_key == "retract_layer_change"
-            || *opt_key == "retract_length"
-            || *opt_key == "retract_length_toolchange"
-            || *opt_key == "retract_lift"
-            || *opt_key == "retract_lift_above"
-            || *opt_key == "retract_lift_below"
-            || *opt_key == "retract_restart_extra"
-            || *opt_key == "retract_restart_extra_toolchange"
-            || *opt_key == "retract_speed"
-            || *opt_key == "deretract_speed"
-            || *opt_key == "slowdown_below_layer_time"
-            || *opt_key == "standby_temperature_delta"
-            || *opt_key == "start_gcode"
-            || *opt_key == "threads"
-            || *opt_key == "toolchange_gcode"
-            || *opt_key == "travel_speed"
-            || *opt_key == "use_firmware_retraction"
-            || *opt_key == "use_relative_e_distances"
-            || *opt_key == "wipe"
-            || *opt_key == "max_volumetric_extrusion_rate_slope_negative"
-            || *opt_key == "max_volumetric_extrusion_rate_slope_positive") {
+               opt_key == "complete_objects"
+            || opt_key == "filament_type"
+            || opt_key == "first_layer_temperature"
+            || opt_key == "gcode_flavor"
+            || opt_key == "single_extruder_multi_material"
+            || opt_key == "spiral_vase"
+            || opt_key == "temperature"
+            || opt_key == "wipe_tower"
+            || opt_key == "wipe_tower_x"
+            || opt_key == "wipe_tower_y"
+            || opt_key == "wipe_tower_width"
+            || opt_key == "wipe_tower_per_color_wipe"
+            || opt_key == "z_offset") {
+            steps.emplace_back(psWipeTower);
+        } else if (opt_key == "avoid_crossing_perimeters"
+            || opt_key == "bed_shape"
+            || opt_key == "bed_temperature"
+            || opt_key == "bridge_acceleration"
+            || opt_key == "bridge_fan_speed"
+            || opt_key == "cooling"
+            || opt_key == "default_acceleration"
+            || opt_key == "disable_fan_first_layers"
+            || opt_key == "duplicate_distance"
+            || opt_key == "end_gcode"
+            || opt_key == "extruder_clearance_height"
+            || opt_key == "extruder_clearance_radius"
+            || opt_key == "extruder_colour"
+            || opt_key == "extruder_offset"
+            || opt_key == "extrusion_axis"
+            || opt_key == "extrusion_multiplier"
+            || opt_key == "fan_always_on"
+            || opt_key == "fan_below_layer_time"
+            || opt_key == "filament_diameter"
+            || opt_key == "filament_notes"
+            || opt_key == "filament_soluble"
+            || opt_key == "first_layer_acceleration"
+            || opt_key == "first_layer_bed_temperature"
+            || opt_key == "first_layer_speed"
+            || opt_key == "gcode_comments"
+            || opt_key == "infill_acceleration"
+            || opt_key == "infill_first"
+            || opt_key == "layer_gcode"
+            || opt_key == "min_fan_speed"
+            || opt_key == "max_fan_speed"
+            || opt_key == "min_print_speed"
+            || opt_key == "notes"
+            || opt_key == "only_retract_when_crossing_perimeters"
+            || opt_key == "output_filename_format"
+            || opt_key == "perimeter_acceleration"
+            || opt_key == "post_process"
+            || opt_key == "retract_before_travel"
+            || opt_key == "retract_before_wipe"
+            || opt_key == "retract_layer_change"
+            || opt_key == "retract_length"
+            || opt_key == "retract_length_toolchange"
+            || opt_key == "retract_lift"
+            || opt_key == "retract_lift_above"
+            || opt_key == "retract_lift_below"
+            || opt_key == "retract_restart_extra"
+            || opt_key == "retract_restart_extra_toolchange"
+            || opt_key == "retract_speed"
+            || opt_key == "deretract_speed"
+            || opt_key == "slowdown_below_layer_time"
+            || opt_key == "standby_temperature_delta"
+            || opt_key == "start_gcode"
+            || opt_key == "threads"
+            || opt_key == "toolchange_gcode"
+            || opt_key == "travel_speed"
+            || opt_key == "use_firmware_retraction"
+            || opt_key == "use_relative_e_distances"
+            || opt_key == "wipe"
+            || opt_key == "max_volumetric_extrusion_rate_slope_negative"
+            || opt_key == "max_volumetric_extrusion_rate_slope_positive") {
             // these options only affect G-code export, so nothing to invalidate
-        } else if (*opt_key == "first_layer_extrusion_width") {
-            osteps.insert(posPerimeters);
-            osteps.insert(posInfill);
-            osteps.insert(posSupportMaterial);
-            steps.insert(psSkirt);
-            steps.insert(psBrim);
-            steps.insert(psWipeTower);
+        } else if (opt_key == "first_layer_extrusion_width") {
+            osteps.emplace_back(posPerimeters);
+            osteps.emplace_back(posInfill);
+            osteps.emplace_back(posSupportMaterial);
+            steps.emplace_back(psSkirt);
+            steps.emplace_back(psBrim);
+            steps.emplace_back(psWipeTower);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             return this->invalidate_all_steps();
@@ -219,53 +219,34 @@ Print::invalidate_state_by_config_options(const std::vector<t_config_option_key>
     }
     
     bool invalidated = false;
-    for (std::set<PrintStep>::const_iterator step = steps.begin(); step != steps.end(); ++step) {
-        if (this->invalidate_step(*step)) invalidated = true;
-    }
-    for (std::set<PrintObjectStep>::const_iterator ostep = osteps.begin(); ostep != osteps.end(); ++ostep) {
-        FOREACH_OBJECT(this, object) {
-            if ((*object)->invalidate_step(*ostep)) invalidated = true;
-        }
-    }
-    
+    sort_remove_duplicates(steps);
+    for (PrintStep step : steps)
+        invalidated |= this->invalidate_step(step);
+    sort_remove_duplicates(osteps);
+    for (PrintObjectStep ostep : osteps)
+        FOREACH_OBJECT(this, object)
+            invalidated |= (*object)->invalidate_step(ostep);
     return invalidated;
 }
 
-bool
-Print::invalidate_step(PrintStep step)
+bool Print::invalidate_step(PrintStep step)
 {
     bool invalidated = this->state.invalidate(step);
-    
-    // propagate to dependent steps
+    // Propagate to dependent steps.
     if (step == psSkirt)
-        this->invalidate_step(psBrim);
-    
-    return invalidated;
-}
-
-bool Print::invalidate_all_steps()
-{
-    // make a copy because when invalidating steps the iterators are not working anymore
-    std::set<PrintStep> steps = this->state.started;
-    
-    bool invalidated = false;
-    for (PrintStep step : steps)
-        if (this->invalidate_step(step))
-            invalidated = true;
-
+        invalidated |= this->state.invalidate(psBrim);
     return invalidated;
 }
 
 // returns true if an object step is done on all objects
 // and there's at least one object
-bool
-Print::step_done(PrintObjectStep step) const
+bool Print::step_done(PrintObjectStep step) const
 {
-    if (this->objects.empty()) return false;
-    FOREACH_OBJECT(this, object) {
-        if (!(*object)->state.is_done(step))
+    if (this->objects.empty())
+        return false;
+    for (const PrintObject *object : this->objects)
+        if (!object->state.is_done(step))
             return false;
-    }
     return true;
 }
 
@@ -274,15 +255,15 @@ std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     
-    FOREACH_REGION(this, region) {
+    for (PrintRegion* region : this->regions) {
         // these checks reflect the same logic used in the GUI for enabling/disabling
         // extruder selection fields
-        if ((*region)->config.perimeters.value > 0 || this->config.brim_width.value > 0)
-            extruders.push_back((*region)->config.perimeter_extruder - 1);
-        if ((*region)->config.fill_density.value > 0)
-            extruders.push_back((*region)->config.infill_extruder - 1);
-        if ((*region)->config.top_solid_layers.value > 0 || (*region)->config.bottom_solid_layers.value > 0)
-            extruders.push_back((*region)->config.solid_infill_extruder - 1);
+        if (region->config.perimeters.value > 0 || this->config.brim_width.value > 0)
+            extruders.push_back(region->config.perimeter_extruder - 1);
+        if (region->config.fill_density.value > 0)
+            extruders.push_back(region->config.infill_extruder - 1);
+        if (region->config.top_solid_layers.value > 0 || region->config.bottom_solid_layers.value > 0)
+            extruders.push_back(region->config.solid_infill_extruder - 1);
     }
     
     sort_remove_duplicates(extruders);
@@ -376,27 +357,24 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         }
     }
 
-    for (ModelVolumePtrs::const_iterator v_i = model_object->volumes.begin(); v_i != model_object->volumes.end(); ++v_i) {
-        size_t volume_id = v_i - model_object->volumes.begin();
-        ModelVolume* volume = *v_i;
+    for (size_t volume_id = 0; volume_id < model_object->volumes.size(); ++ volume_id) {
+        ModelVolume* volume = model_object->volumes[volume_id];
         
         // get the config applied to this volume
         PrintRegionConfig config = this->_region_config_from_model_volume(*volume);
         
         // find an existing print region with the same config
-        int region_id = -1;
-        for (PrintRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region) {
-            if (config.equals((*region)->config)) {
-                region_id = region - this->regions.begin();
+        size_t region_id = size_t(-1);
+        for (size_t i = 0; i < this->regions.size(); ++ i)
+            if (config.equals(this->regions[i]->config)) {
+                region_id = i;
                 break;
             }
-        }
         
         // if no region exists with the same config, create a new one
-        if (region_id == -1) {
-            PrintRegion* r = this->add_region();
-            r->config.apply(config);
-            region_id = this->regions.size() - 1;
+        if (region_id == size_t(-1)) {
+            region_id = this->regions.size();
+            this->add_region()->config.apply(config);
         }
         
         // assign volume to region

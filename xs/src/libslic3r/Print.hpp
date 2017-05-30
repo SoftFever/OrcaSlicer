@@ -24,27 +24,44 @@ class ModelObject;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
-    psSkirt, psBrim, psWipeTower
+    psSkirt, psBrim, psWipeTower, psCount,
 };
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posSupportMaterial,
+    posInfill, posSupportMaterial, posCount,
 };
 
 // To be instantiated over PrintStep or PrintObjectStep enums.
-template <class StepType>
+template <class StepType, size_t COUNT>
 class PrintState
 {
 public:
-    std::set<StepType> started, done;
+    PrintState() { memset(state, 0, sizeof(state)); }
+
+    enum State {
+        INVALID,
+        STARTED,
+        DONE,
+    };
+    State state[COUNT];
     
-    bool is_started(StepType step) const { return this->started.find(step) != this->started.end(); }
-    bool is_done(StepType step) const { return this->done.find(step) != this->done.end(); }
-    void set_started(StepType step) { this->started.insert(step); }
-    void set_done(StepType step) { this->done.insert(step); }
+    bool is_started(StepType step) const { return this->state[step] == STARTED; }
+    bool is_done(StepType step) const { return this->state[step] == DONE; }
+    void set_started(StepType step) { this->state[step] = STARTED; }
+    void set_done(StepType step) { this->state[step] = DONE; }
     bool invalidate(StepType step) {
-        bool invalidated = this->started.erase(step) > 0;
-        this->done.erase(step);
+        bool invalidated = this->state[step] != INVALID;
+        this->state[step] = INVALID;
+        return invalidated;
+    }
+    bool invalidate_all() {
+        bool invalidated = false;
+        for (size_t i = 0; i < COUNT; ++ i)
+            if (this->state[i] != INVALID) {
+                invalidated = true;
+                break;
+            }
+        memset(state, 0, sizeof(state));
         return invalidated;
     }
 };
@@ -112,7 +129,7 @@ public:
 
     LayerPtrs layers;
     SupportLayerPtrs support_layers;
-    PrintState<PrintObjectStep> state;
+    PrintState<PrintObjectStep, posCount> state;
     
     Print*              print()                 { return this->_print; }
     const Print*        print() const           { return this->_print; }
@@ -152,7 +169,7 @@ public:
     // methods for handling state
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintObjectStep step);
-    bool invalidate_all_steps();
+    bool invalidate_all_steps() { return this->state.invalidate_all(); }
 
     // To be used over the layer_height_profile of both the PrintObject and ModelObject
     // to initialize the height profile with the height ranges.
@@ -211,7 +228,7 @@ public:
     // TODO: status_cb
     double total_used_filament, total_extruded_volume, total_cost, total_weight;
     std::map<size_t,float> filament_stats;
-    PrintState<PrintStep> state;
+    PrintState<PrintStep, psCount> state;
 
     // ordered collections of extrusion paths to build skirt loops and brim
     ExtrusionEntityCollection skirt, brim;
@@ -236,7 +253,7 @@ public:
     // methods for handling state
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintStep step);
-    bool invalidate_all_steps();
+    bool invalidate_all_steps() { return this->state.invalidate_all(); }
     bool step_done(PrintObjectStep step) const;
     
     void add_model_object(ModelObject* model_object, int idx = -1);
