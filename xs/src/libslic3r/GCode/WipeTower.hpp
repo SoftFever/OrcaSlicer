@@ -92,7 +92,7 @@ public:
 
 	// Returns gcode for toolchange and the end position.
 	// if new_tool == -1, just unload the current filament over the wipe tower.
-	virtual ToolChangeResult tool_change(int new_tool, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+	virtual ToolChangeResult tool_change(int new_tool, bool last_in_layer, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.

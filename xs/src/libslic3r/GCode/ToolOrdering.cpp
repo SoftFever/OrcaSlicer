@@ -244,7 +244,7 @@ void ToolOrdering::fill_wipe_tower_partitions()
 
     //FIXME this is a hack to get the ball rolling.
     for (LayerTools &lt : m_layer_tools)
-        lt.has_wipe_tower = lt.has_object;
+        lt.has_wipe_tower = lt.has_object && lt.wipe_tower_partitions > 0;
 }
 
 } // namespace Slic3r

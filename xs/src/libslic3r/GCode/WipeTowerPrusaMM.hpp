@@ -117,7 +117,7 @@ public:
 
 	// Returns gcode for a toolchange and a final print head position.
 	// On the first layer, extrude a brim around the future wipe tower first.
-	virtual ToolChangeResult tool_change(int new_tool, Purpose purpose);
+	virtual ToolChangeResult tool_change(int new_tool, bool last_in_layer, Purpose purpose);
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.

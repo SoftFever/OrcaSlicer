@@ -340,7 +340,7 @@ WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *nam
 	return INVALID;
 }
 
-WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(int tool, Purpose purpose)
+WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(int tool, bool last_in_layer, Purpose purpose)
 {
 	// Either it is the last tool unload,
 	// or there must be a nonzero wipe tower partitions available.
@@ -351,10 +351,47 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(int tool, Purpose purp
 		return toolchange_Brim(purpose);
 	}
 
+	float wipe_area = m_wipe_area;
+	if (++ m_idx_tool_change_in_layer < (unsigned int)m_max_color_changes && last_in_layer) {
+		// This tool_change() call will be followed by a finish_layer() call.
+		// Try to shrink the wipe_area to save material, as less than usual wipe is required
+		// if this step is foolowed by finish_layer() extrusions wiping the same extruder.
+		for (size_t iter = 0; iter < 3; ++ iter) {
+			// Simulate the finish_layer() extrusions, summ the length of the extrusion.
+			float e_length = 0.f;
+			{
+				unsigned int old_idx_tool_change = m_idx_tool_change_in_layer;
+			    float old_wipe_start_y = m_current_wipe_start_y;
+			    m_current_wipe_start_y += wipe_area;
+				ToolChangeResult tcr = this->finish_layer(PURPOSE_EXTRUDE);
+				for (size_t i = 1; i < tcr.extrusions.size(); ++ i) {
+					const Extrusion &e = tcr.extrusions[i];
+					if (e.width > 0) {
+						xy v = e.pos - (&e - 1)->pos;
+						e_length += sqrt(v.x*v.x+v.y*v.y);
+					}
+				}
+				m_idx_tool_change_in_layer = old_idx_tool_change;
+				m_current_wipe_start_y = old_wipe_start_y;
+			}
+			// Shrink wipe_area by the amount of extrusion extruded by the finish_layer().
+			// Y stepping of the wipe extrusions.
+			float dy = m_perimeter_width * 0.8f;
+			// Number of whole wipe lines, that would be extruded to wipe as much material as the finish_layer().
+			float num_lines_extruded = floor(e_length / m_wipe_tower_width);
+			// Minimum wipe area is 5mm wide.
+			wipe_area -= num_lines_extruded * dy;
+			if (wipe_area < 5.) {
+				wipe_area = 5.;
+				break;
+			}
+		}
+	}
+
 	box_coordinates cleaning_box(
 		m_wipe_tower_pos + xy(0.f, m_current_wipe_start_y + 0.5f * m_perimeter_width),
 		m_wipe_tower_width, 
-		m_wipe_area - m_perimeter_width);
+		wipe_area - m_perimeter_width);
 
 	PrusaMultiMaterial::Writer writer;
 	writer.set_extrusion_flow(m_extrusion_flow)
@@ -430,8 +467,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(int tool, Purpose purp
 					  "\n\n");
 
 	    ++ m_num_tool_changes;
-	    ++ m_idx_tool_change_in_layer;
-	    m_current_wipe_start_y += m_wipe_area;
+	    m_current_wipe_start_y += wipe_area;
 	}
 
 	ToolChangeResult result;
@@ -728,8 +764,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 	// Slow down on the 1st layer.
 	float speed_factor = m_is_first_layer ? 0.5f : 1.f;
 
-	box_coordinates fill_box(m_wipe_tower_pos + xy(0.f, float(m_idx_tool_change_in_layer) * m_wipe_area),
-		m_wipe_tower_width, float(m_max_color_changes - m_idx_tool_change_in_layer) * m_wipe_area);
+	box_coordinates fill_box(m_wipe_tower_pos + xy(0.f, m_current_wipe_start_y),
+		m_wipe_tower_width, float(m_max_color_changes) * m_wipe_area - m_current_wipe_start_y);
 	fill_box.expand(0.f, - 0.5f * m_perimeter_width);
 	{
 		float firstLayerOffset = 0.f;

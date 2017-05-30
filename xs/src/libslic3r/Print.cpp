@@ -1062,7 +1062,7 @@ void Print::_make_wipe_tower()
         std::vector<WipeTower::ToolChangeResult> tool_changes;
         for (unsigned int extruder_id : layer_tools.extruders)
             if ((first_layer && extruder_id == initial_extruder_id) || extruder_id != current_extruder_id) {
-                tool_changes.emplace_back(wipe_tower.tool_change(extruder_id, WipeTower::PURPOSE_EXTRUDE));
+                tool_changes.emplace_back(wipe_tower.tool_change(extruder_id, extruder_id == layer_tools.extruders.back(), WipeTower::PURPOSE_EXTRUDE));
                 current_extruder_id = extruder_id;
             }
         if (! wipe_tower.layer_finished()) {
@@ -1105,7 +1105,7 @@ void Print::_make_wipe_tower()
         wipe_tower.set_layer(float(m_tool_ordering.back().print_z), float(layer_height), 0, false, true);
     }
     m_wipe_tower_final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-        wipe_tower.tool_change(-1, WipeTower::PURPOSE_EXTRUDE));
+        wipe_tower.tool_change(-1, false, WipeTower::PURPOSE_EXTRUDE));
 }
 
 std::string Print::output_filename()
