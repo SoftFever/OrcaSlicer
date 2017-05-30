@@ -1020,7 +1020,8 @@ void Print::_make_wipe_tower()
 
     m_tool_ordering = ToolOrdering(*this, (unsigned int)-1);
     unsigned int initial_extruder_id = m_tool_ordering.first_extruder();
-    if (initial_extruder_id == (unsigned int)-1)
+    if (initial_extruder_id == (unsigned int)-1 || m_tool_ordering.front().wipe_tower_partitions == 0)
+        // Don't generate any wipe tower.
         return;
 
     // Initialize the wipe tower.
@@ -1087,15 +1088,21 @@ void Print::_make_wipe_tower()
             break;
     }
     
-    // Tower is printed to the top and it has no empty space for the final extruder purge.
-    bool     tower_full   = m_tool_ordering.back().wipe_tower_partitions > 0 && wipe_tower.layer_finished();
-    coordf_t last_print_z = m_tool_ordering.back().print_z;
-
     // Unload the current filament over the purge tower.
-    if (tower_full) {
-        // There is not enough space on the wipe tower to purge the nozzle into. Lift Z to the next layer.
-        coordf_t layer_height = this->objects.front()->config.layer_height.value;
-        wipe_tower.set_layer(float(last_print_z + layer_height), float(layer_height), 0, false, true);
+    coordf_t layer_height = this->objects.front()->config.layer_height.value;
+    if (m_tool_ordering.back().wipe_tower_partitions > 0) {
+        // The wipe tower goes up to the last layer of the print.
+        if (wipe_tower.layer_finished()) {
+            // The wipe tower is printed to the top of the print and it has no space left for the final extruder purge.
+            // Lift Z to the next layer.
+            wipe_tower.set_layer(float(m_tool_ordering.back().print_z + layer_height), float(layer_height), 0, false, true);
+        } else {
+            // There is yet enough space at this layer of the wipe tower for the final purge.
+        }
+    } else {
+        // The wipe tower does not reach the last print layer, perform the pruge at the last print layer.
+        assert(m_tool_ordering.back().wipe_tower_partitions == 0);
+        wipe_tower.set_layer(float(m_tool_ordering.back().print_z), float(layer_height), 0, false, true);
     }
     m_wipe_tower_final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
         wipe_tower.tool_change(-1, WipeTower::PURPOSE_EXTRUDE));
