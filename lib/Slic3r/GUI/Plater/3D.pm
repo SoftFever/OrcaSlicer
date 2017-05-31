@@ -100,11 +100,18 @@ sub set_on_model_update {
 }
 
 sub reload_scene {
-    my ($self) = @_;
+    my ($self, $force) = @_;
 
     $self->reset_objects;
     $self->update_bed_size;
-    
+
+    if (! $self->IsShown && ! $force) {
+        $self->{reload_delayed} = 1;
+        return;
+    }
+
+    $self->{reload_delayed} = 0;
+
     foreach my $obj_idx (0..$#{$self->{model}->objects}) {
         my @volume_idxs = $self->load_object($self->{model}, $self->{print}, $obj_idx);
         if ($self->{objects}[$obj_idx]->selected) {
@@ -131,6 +138,12 @@ sub reload_scene {
 sub update_bed_size {
     my ($self) = @_;
     $self->set_bed_shape($self->{config}->bed_shape);
+}
+
+# Called by the Platter wxNotebook when this page is activated.
+sub OnActivate {
+    my ($self) = @_;
+    $self->reload_scene(1) if ($self->{reload_delayed});
 }
 
 1;

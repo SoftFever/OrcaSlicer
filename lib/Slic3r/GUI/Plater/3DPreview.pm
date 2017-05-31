@@ -131,10 +131,16 @@ sub new {
 }
 
 sub reload_print {
-    my ($self) = @_;
+    my ($self, $force) = @_;
     
     $self->canvas->reset_objects;
     $self->_loaded(0);
+
+    if (! $self->IsShown && ! $force) {
+        $self->{reload_delayed} = 1;
+        return;
+    }
+
     $self->load_print;
 }
 
@@ -287,6 +293,12 @@ sub set_number_extruders {
         $self->{checkbox_color_by_extruder}->SetValue($by_tool);
         $self->{preferred_color_mode} = $by_tool ? 'tool_or_feature' : 'feature';
     }
+}
+
+# Called by the Platter wxNotebook when this page is activated.
+sub OnActivate {
+    my ($self) = @_;
+    $self->reload_scene(1) if ($self->{reload_delayed});
 }
 
 1;

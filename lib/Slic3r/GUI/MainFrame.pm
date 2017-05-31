@@ -134,7 +134,7 @@ sub _init_tabpanel {
             no_controller => $self->{no_controller});
         # Callback to be executed after any of the configuration fields (Perl class Slic3r::GUI::OptionsGroup::Field) change their value.
         $tab->on_value_change(sub {
-            my ($opt_key, $value) = @_;            
+            my ($opt_key, $value) = @_;
             my $config = $tab->config;
             if ($self->{plater}) {
                 $self->{plater}->on_config_change($config); # propagate config change events to the plater

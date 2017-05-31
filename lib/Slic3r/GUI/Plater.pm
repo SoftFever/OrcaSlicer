@@ -631,7 +631,7 @@ sub update_presets {
 sub update_filament_colors_preview {
     my ($self, $extruder_idx) = shift;
 
-    my @choosers           = @{$self->{preset_choosers}{filament}};
+    my @choosers = @{$self->{preset_choosers}{filament}};
 
     if (ref $extruder_idx) {
         # $extruder_idx is the chooser.
@@ -1210,28 +1210,30 @@ sub async_apply_config {
     # apply new config
     my $invalidated = $self->{print}->apply_config($self->GetFrame->config);
 
+    # Just redraw the 3D canvas without reloading the scene.
 #    $self->{canvas3D}->Refresh if ($invalidated && $self->{canvas3D}->layer_editing_enabled);
     $self->{canvas3D}->Refresh if ($self->{canvas3D}->layer_editing_enabled);
 
     # Hide the slicing results if the current slicing status is no more valid.    
     $self->{"print_info_box_show"}->(0) if $invalidated;
 
-    return if !$Slic3r::GUI::Settings->{_}{background_processing};
-    
-    if ($invalidated) {
-        # kill current thread if any
-        $self->stop_background_process;
-    } else {
-        $self->resume_background_process;
+    if ($Slic3r::GUI::Settings->{_}{background_processing}) {    
+        if ($invalidated) {
+            # kill current thread if any
+            $self->stop_background_process;
+        } else {
+            $self->resume_background_process;
+        }
+        # schedule a new process thread in case it wasn't running
+        $self->start_background_process;
     }
-    
-    # schedule a new process thread in case it wasn't running
-    $self->start_background_process;
 
     # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
     # Otherwise they will be just refreshed.
-    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
-    $self->{preview3D}->reload_print if $self->{preview3D};
+    if ($invalidated) {
+        $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+        $self->{preview3D}->reload_print if $self->{preview3D};
+    }
 }
 
 sub start_background_process {
@@ -1696,7 +1698,7 @@ sub on_thumbnail_made {
     my ($obj_idx) = @_;
     
     $self->{objects}[$obj_idx]->transform_thumbnail($self->{model}, $obj_idx);
-    $self->refresh_canvases;
+    $self->{canvas}->Refresh;
 }
 
 # this method gets called whenever print center is changed or the objects' bounding box changes
@@ -1721,7 +1723,9 @@ sub update {
         $self->resume_background_process;
     }
     
-    $self->refresh_canvases;
+    $self->{canvas}->Refresh;
+    $self->{canvas3D}->reload_scene if $self->{canvas3D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
 # When a number of extruders changes, the UI needs to be updated to show a single filament selection combo box per extruder.
@@ -1785,18 +1789,10 @@ sub on_config_change {
         } elsif ($opt_key =~ '^wipe_tower' || $opt_key eq 'single_extruder_multi_material') {
             $update_scheduled = 1;
         } elsif ($opt_key eq 'serial_port') {
-            if ($config->get('serial_port')) {
-                $self->{btn_print}->Show;
-            } else {
-                $self->{btn_print}->Hide;
-            }
+            $self->{btn_print}->Show($config->get('serial_port'));
             $self->Layout;
         } elsif ($opt_key eq 'octoprint_host') {
-            if ($config->get('octoprint_host')) {
-                $self->{btn_send_gcode}->Show;
-            } else {
-                $self->{btn_send_gcode}->Hide;
-            }
+            $self->{btn_send_gcode}->Show($config->get('octoprint_host'));
             $self->Layout;
         } elsif ($opt_key eq 'variable_layer_height') {
             if ($config->get('variable_layer_height') != 1) {
@@ -1839,7 +1835,9 @@ sub list_item_deselected {
     
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
-        $self->refresh_canvases;
+        $self->{canvas}->Refresh;
+        #FIXME VBOs are being refreshed just to change a selection color?
+        $self->{canvas3D}->reload_scene if $self->{canvas3D};
     }
 }
 
@@ -1849,7 +1847,9 @@ sub list_item_selected {
     
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
-    $self->refresh_canvases;
+    $self->{canvas}->Refresh;
+    #FIXME VBOs are being refreshed just to change a selection color?
+    $self->{canvas3D}->reload_scene if $self->{canvas3D};
 }
 
 sub list_item_activated {
@@ -2059,14 +2059,6 @@ sub selected_object {
     my $obj_idx = first { $self->{objects}[$_]->selected } 0..$#{ $self->{objects} };
     return undef if !defined $obj_idx;
     return ($obj_idx, $self->{objects}[$obj_idx]),
-}
-
-sub refresh_canvases {
-    my ($self) = @_;
-    
-    $self->{canvas}->Refresh;
-    $self->{canvas3D}->reload_scene if $self->{canvas3D};
-    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
 sub validate_config {
