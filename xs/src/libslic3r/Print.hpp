@@ -96,10 +96,8 @@ class PrintObject
     friend class Print;
 
 public:
-    // map of (vectors of volume ids), indexed by region_id
-    /* (we use map instead of vector so that we don't have to worry about
-       resizing it and the [] operator adds new items automagically) */
-    std::map< size_t,std::vector<int> > region_volumes;
+    // vector of (vectors of volume ids), indexed by region_id
+    std::vector<std::vector<int>> region_volumes;
     PrintObjectConfig config;
     t_layer_height_ranges layer_height_ranges;
 
@@ -146,7 +144,11 @@ public:
     BoundingBox bounding_box() const { return BoundingBox(Point(0,0), this->size); }
 
     // adds region_id, too, if necessary
-    void add_region_volume(int region_id, int volume_id) { region_volumes[region_id].push_back(volume_id); }
+    void add_region_volume(int region_id, int volume_id) {
+        if (region_id >= region_volumes.size())
+            region_volumes.resize(region_id + 1);
+        region_volumes[region_id].push_back(volume_id);
+    }
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
     // since they have different semantics.

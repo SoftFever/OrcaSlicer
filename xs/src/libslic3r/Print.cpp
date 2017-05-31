@@ -24,13 +24,10 @@ void Print::clear_objects()
 
 void Print::delete_object(size_t idx)
 {
-    PrintObject *object = this->objects[idx];
-    // before deleting object, invalidate all of its steps in order to 
-    // invalidate all of the dependent ones in Print
-    object->invalidate_all_steps();
     // destroy object and remove it from our container
-    delete object;
+    delete this->objects[idx];
     this->objects.erase(this->objects.begin() + idx);
+    this->invalidate_all_steps();
     // TODO: purge unused regions
 }
 
@@ -181,6 +178,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             steps.emplace_back(psWipeTower);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
+            //FIXME invalidate all steps of all objects as well?
             return this->invalidate_all_steps();
         }
     }
@@ -191,8 +189,8 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         invalidated |= this->invalidate_step(step);
     sort_remove_duplicates(osteps);
     for (PrintObjectStep ostep : osteps)
-        FOREACH_OBJECT(this, object)
-            invalidated |= (*object)->invalidate_step(ostep);
+        for (PrintObject *object : this->objects)
+            invalidated |= object->invalidate_step(ostep);
     return invalidated;
 }
 
@@ -292,64 +290,42 @@ double Print::max_allowed_layer_height() const
     return nozzle_diameter_max;
 }
 
-/*  Caller is responsible for supplying models whose objects don't collide
-    and have explicit instance positions */
+// Caller is responsible for supplying models whose objects don't collide
+// and have explicit instance positions.
 void Print::add_model_object(ModelObject* model_object, int idx)
 {
-    DynamicPrintConfig object_config = model_object->config;  // clone
-    object_config.normalize();
-
-    // initialize print object and store it at the given position
-    PrintObject* o;
-    {
-        BoundingBoxf3 bb = model_object->raw_bounding_box();
-        if (idx != -1) {
-            // replacing existing object
-            PrintObjectPtrs::iterator old_it = this->objects.begin() + idx;
-            // before deleting object, invalidate all of its steps in order to 
-            // invalidate all of the dependent ones in Print
-            (*old_it)->invalidate_all_steps();
-            delete *old_it;
-            
-            this->objects[idx] = o = new PrintObject(this, model_object, bb);
-        } else {
-            o = new PrintObject(this, model_object, bb);
-            this->objects.push_back(o);
-    
-            // invalidate steps
-            this->invalidate_step(psSkirt);
-            this->invalidate_step(psBrim);
-            this->invalidate_step(psWipeTower);
-        }
-    }
+    // Initialize a new print object and store it at the given position.
+    PrintObject *object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+    if (idx != -1) {
+        delete this->objects[idx];
+        this->objects[idx] = object;
+    } else
+        this->objects.emplace_back(object);
+    // Invalidate all print steps.
+    this->invalidate_all_steps();
 
     for (size_t volume_id = 0; volume_id < model_object->volumes.size(); ++ volume_id) {
-        ModelVolume* volume = model_object->volumes[volume_id];
-        
-        // get the config applied to this volume
-        PrintRegionConfig config = this->_region_config_from_model_volume(*volume);
-        
-        // find an existing print region with the same config
+        // Get the config applied to this volume.
+        PrintRegionConfig config = this->_region_config_from_model_volume(*model_object->volumes[volume_id]);
+        // Find an existing print region with the same config.
         size_t region_id = size_t(-1);
         for (size_t i = 0; i < this->regions.size(); ++ i)
             if (config.equals(this->regions[i]->config)) {
                 region_id = i;
                 break;
             }
-        
-        // if no region exists with the same config, create a new one
+        // If no region exists with the same config, create a new one.
         if (region_id == size_t(-1)) {
             region_id = this->regions.size();
             this->add_region()->config.apply(config);
         }
-        
-        // assign volume to region
-        o->add_region_volume(region_id, volume_id);
+        // Assign volume to a region.
+        object->add_region_volume(region_id, volume_id);
     }
 
-    // apply config to print object
-    o->config.apply(this->default_object_config);
-    o->config.apply(object_config, true);
+    // Apply config to print object.
+    object->config.apply(this->default_object_config);
+    normalize_and_apply_config(object->config, model_object->config);
     
     // update placeholders
     {
@@ -358,14 +334,14 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         std::vector<std::string> v_scale;
         for (const PrintObject *object : this->objects) {
             const ModelObject &mobj = *object->model_object();
-            v_scale.push_back( boost::lexical_cast<std::string>(mobj.instances[0]->scaling_factor*100) + "%" );
+            v_scale.push_back(boost::lexical_cast<std::string>(mobj.instances[0]->scaling_factor*100) + "%");
             if (input_file.empty())
                 input_file = mobj.input_file;
         }
         
         PlaceholderParser &pp = this->placeholder_parser;
         pp.set("scale", v_scale);
-        if (!input_file.empty()) {
+        if (! input_file.empty()) {
             // get basename with and without suffix
             const std::string input_basename = boost::filesystem::path(input_file).filename().string();
             pp.set("input_filename", input_basename);
@@ -383,12 +359,10 @@ bool Print::apply_config(DynamicPrintConfig config)
     // apply variables to placeholder parser
     this->placeholder_parser.apply_config(config);
     
-    bool invalidated = false;
-    
     // handle changes to print config
     t_config_option_keys print_diff = this->config.diff(config);
-    this->config.apply(config, print_diff, true);        
-    invalidated |= this->invalidate_state_by_config_options(print_diff);
+    this->config.apply(config, print_diff, true);
+    bool invalidated = this->invalidate_state_by_config_options(print_diff);
     
     // handle changes to object config defaults
     this->default_object_config.apply(config, true);
@@ -396,15 +370,8 @@ bool Print::apply_config(DynamicPrintConfig config)
         // we don't assume that config contains a full ObjectConfig,
         // so we base it on the current print-wise default
         PrintObjectConfig new_config = this->default_object_config;
-        new_config.apply(config, true);
-        
         // we override the new config with object-specific options
-        {
-            DynamicPrintConfig model_object_config = object->model_object()->config;
-            model_object_config.normalize();
-            new_config.apply(model_object_config, true);
-        }
-        
+        normalize_and_apply_config(new_config, object->model_object()->config);
         // check whether the new config is different from the current one
         t_config_option_keys diff = object->config.diff(new_config);
         object->config.apply(new_config, diff, true);
@@ -417,56 +384,57 @@ bool Print::apply_config(DynamicPrintConfig config)
     // All regions now have distinct settings.
     // Check whether applying the new region config defaults we'd get different regions.
     bool rearrange_regions = false;
-    std::vector<PrintRegionConfig> other_region_configs;
-    for (size_t region_id = 0; region_id < this->regions.size(); ++ region_id) 
     {
-        PrintRegion* region = this->regions[region_id];    
-        std::vector<PrintRegionConfig> this_region_configs;
-        for (PrintObject* object : this->objects) 
-        {
-            for (int volume_id : object->region_volumes[region_id]) {
-                ModelVolume* volume = object->model_object()->volumes.at(volume_id);
-                
-                PrintRegionConfig new_config = this->_region_config_from_model_volume(*volume);
-                
-                for (const PrintRegionConfig &cfg : this_region_configs) {
-                    // if the new config for this volume differs from the other
-                    // volume configs currently associated to this region, it means
-                    // the region subdivision does not make sense anymore
-                    if (! cfg.equals(new_config)) {
-                        rearrange_regions = true;
-                        goto NEXT_REGION;
+        // Collect the already visited region configs into other_region_configs,
+        // so one may check for duplicates.
+        std::vector<PrintRegionConfig> other_region_configs;
+        for (size_t region_id = 0; region_id < this->regions.size(); ++ region_id) {
+            PrintRegion       &region = *this->regions[region_id];
+            PrintRegionConfig  this_region_config;
+            bool               this_region_config_set = false;
+            for (PrintObject *object : this->objects) {
+                if (region_id < object->region_volumes.size()) {
+                    for (int volume_id : object->region_volumes[region_id]) {
+                        const ModelVolume &volume = *object->model_object()->volumes[volume_id];
+                        if (this_region_config_set) {
+                            // If the new config for this volume differs from the other
+                            // volume configs currently associated to this region, it means
+                            // the region subdivision does not make sense anymore.
+                            if (! this_region_config.equals(this->_region_config_from_model_volume(volume))) {
+                                rearrange_regions = true;
+                                goto exit_for_rearrange_regions;
+                            }
+                        } else {
+                            this_region_config = this->_region_config_from_model_volume(volume);
+                            this_region_config_set = true;
+                        }
+                        for (const PrintRegionConfig &cfg : other_region_configs) {
+                            // If the new config for this volume equals any of the other
+                            // volume configs that are not currently associated to this
+                            // region, it means the region subdivision does not make
+                            // sense anymore.
+                            if (cfg.equals(this_region_config)) {
+                                rearrange_regions = true;
+                                goto exit_for_rearrange_regions;
+                            }
+                        }
                     }
-                }
-                this_region_configs.push_back(new_config);
-                
-                for (const PrintRegionConfig &cfg : other_region_configs) {
-                    // if the new config for this volume equals any of the other
-                    // volume configs that are not currently associated to this
-                    // region, it means the region subdivision does not make
-                    // sense anymore
-                    if (cfg.equals(new_config)) {
-                        rearrange_regions = true;
-                        goto NEXT_REGION;
-                    }
-                }
-                
-                // if we're here and the new region config is different from the old
-                // one, we need to apply the new config and invalidate all objects
-                // (possible optimization: only invalidate objects using this region)
-                t_config_option_keys diff = region->config.diff(new_config);
-                if (! diff.empty()) {
-                    region->config.apply(new_config, diff);
-                    for (PrintObject *object : this->objects)
-                        invalidated |= object->invalidate_state_by_config_options(diff);
                 }
             }
+            if (this_region_config_set) {
+                t_config_option_keys diff = region.config.diff(this_region_config);
+                if (! diff.empty()) {
+                    region.config.apply(this_region_config, diff);
+                    for (PrintObject *object : this->objects)
+                        if (region_id < object->region_volumes.size() && ! object->region_volumes[region_id].empty())
+                            invalidated |= object->invalidate_state_by_config_options(diff);
+                }
+                other_region_configs.emplace_back(this_region_config);
+            }
         }
-        append(other_region_configs, this_region_configs);
-
-        NEXT_REGION:
-            continue;
     }
+
+exit_for_rearrange_regions:
     
     if (rearrange_regions) {
         // The current subdivision of regions does not make sense anymore.
@@ -518,65 +486,54 @@ bool Print::has_skirt() const
 std::string Print::validate() const
 {
     if (this->config.complete_objects) {
-        // check horizontal clearance
+        // Check horizontal clearance.
         {
-            Polygons a;
-            FOREACH_OBJECT(this, i_object) {
-                PrintObject* object = *i_object;
-                
-                /*  get convex hull of all meshes assigned to this print object
-                    (this is the same as model_object()->raw_mesh.convex_hull()
-                    but probably more efficient */
+            Polygons convex_hulls_other;
+            for (PrintObject *object : this->objects) {
+                // Get convex hull of all meshes assigned to this print object
+                // (this is the same as model_object()->raw_mesh.convex_hull()
+                // but probably more efficient.
                 Polygon convex_hull;
                 {
                     Polygons mesh_convex_hulls;
-                    for (size_t i = 0; i < this->regions.size(); ++i) {
-                        for (std::vector<int>::const_iterator it = object->region_volumes[i].begin(); it != object->region_volumes[i].end(); ++it) {
-                            Polygon hull = object->model_object()->volumes[*it]->mesh.convex_hull();
-                            mesh_convex_hulls.push_back(hull);
-                        }
-                    }
-                
+                    for (const std::vector<int> &volumes : object->region_volumes)
+                        for (int volume_id : volumes)
+                            mesh_convex_hulls.emplace_back(object->model_object()->volumes[volume_id]->mesh.convex_hull());
                     // make a single convex hull for all of them
                     convex_hull = Slic3r::Geometry::convex_hull(mesh_convex_hulls);
                 }
-                
-                // apply the same transformations we apply to the actual meshes when slicing them
+                // Apply the same transformations we apply to the actual meshes when slicing them.
                 object->model_object()->instances.front()->transform_polygon(&convex_hull);
-                
-                // grow convex hull with the clearance margin
+                // Grow convex hull with the clearance margin.
                 convex_hull = offset(convex_hull, scale_(this->config.extruder_clearance_radius.value)/2, jtRound, scale_(0.1)).front();
-                
-                // now we check that no instance of convex_hull intersects any of the previously checked object instances
+                // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
                 for (const Point &copy : object->_shifted_copies) {
                     Polygon p = convex_hull;
                     p.translate(copy);
-                    if (! intersection(a, p).empty())
+                    if (! intersection(convex_hulls_other, p).empty())
                         return "Some objects are too close; your extruder will collide with them.";
-                    polygons_append(a, p);
+                    polygons_append(convex_hulls_other, p);
                 }
             }
         }
-        
-        // check vertical clearance
+        // Check vertical clearance.
         {
             std::vector<coord_t> object_height;
-            FOREACH_OBJECT(this, i_object) {
-                PrintObject* object = *i_object;
+            for (const PrintObject *object : this->objects)
                 object_height.insert(object_height.end(), object->copies().size(), object->size.z);
-            }
             std::sort(object_height.begin(), object_height.end());
-            // ignore the tallest *copy* (this is why we repeat height for all of them):
-            // it will be printed as last one so its height doesn't matter
+            // Ignore the tallest *copy* (this is why we repeat height for all of them):
+            // it will be printed as last one so its height doesn't matter.
             object_height.pop_back();
-            if (!object_height.empty() && object_height.back() > scale_(this->config.extruder_clearance_height.value))
+            if (! object_height.empty() && object_height.back() > scale_(this->config.extruder_clearance_height.value))
                 return "Some objects are too tall and cannot be printed without extruder collisions.";
         }
     } // end if (this->config.complete_objects)
-    
+
     if (this->config.spiral_vase) {
         size_t total_copies_count = 0;
-        FOREACH_OBJECT(this, i_object) total_copies_count += (*i_object)->copies().size();
+        for (const PrintObject *object : this->objects)
+            total_copies_count += object->copies().size();
         if (total_copies_count > 1)
             return "The Spiral Vase option can only be used when printing a single object.";
         if (this->regions.size() > 1)
@@ -594,9 +551,7 @@ std::string Print::validate() const
             nozzle_diameters.push_back(this->config.nozzle_diameter.get_at(extruder_id));
         double min_nozzle_diameter = *std::min_element(nozzle_diameters.begin(), nozzle_diameters.end());
         
-        FOREACH_OBJECT(this, i_object) {
-            PrintObject* object = *i_object;
-
+        for (PrintObject *object : this->objects) {
             if ((object->config.support_material_extruder == -1 || object->config.support_material_interface_extruder == -1) &&
                 (object->config.raft_layers > 0 || object->config.support_material.value)) {
                 // The object has some form of support and either support_material_extruder or support_material_interface_extruder
@@ -640,15 +595,12 @@ std::string Print::validate() const
 BoundingBox Print::bounding_box() const
 {
     BoundingBox bb;
-    FOREACH_OBJECT(this, object) {
-        for (Points::const_iterator copy = (*object)->_shifted_copies.begin(); copy != (*object)->_shifted_copies.end(); ++copy) {
-            bb.merge(*copy);
-            
-            Point p = *copy;
-            p.translate((*object)->size);
-            bb.merge(p);
+    for (const PrintObject *object : this->objects)
+        for (Point copy : object->_shifted_copies) {
+            bb.merge(copy);
+            copy.translate(object->size);
+            bb.merge(copy);
         }
-    }
     return bb;
 }
 
@@ -737,25 +689,13 @@ Flow Print::skirt_flow() const
     );
 }
 
-
 PrintRegionConfig Print::_region_config_from_model_volume(const ModelVolume &volume)
 {
     PrintRegionConfig config = this->default_region_config;
-    {
-        DynamicPrintConfig other_config = volume.get_object()->config;
-        other_config.normalize();
-        config.apply(other_config, true);
-    }
-    {
-        DynamicPrintConfig other_config = volume.config;
-        other_config.normalize();
-        config.apply(other_config, true);
-    }
-    if (!volume.material_id().empty()) {
-        DynamicPrintConfig material_config = volume.material()->config;
-        material_config.normalize();
-        config.apply(material_config, true);
-    }
+    normalize_and_apply_config(config, volume.get_object()->config);
+    normalize_and_apply_config(config, volume.config);
+    if (! volume.material_id().empty())
+        normalize_and_apply_config(config, volume.material()->config);
     return config;
 }
 
@@ -1039,9 +979,10 @@ std::string Print::output_filepath(const std::string &path)
     if (path.empty()) {
         // get the first input file name
         std::string input_file;
-        FOREACH_OBJECT(this, object) {
-            input_file = (*object)->model_object()->input_file;
-            if (!input_file.empty()) break;
+        for (const PrintObject *object : this->objects) {
+            input_file = object->model_object()->input_file;
+            if (! input_file.empty())
+                break;
         }
         return (boost::filesystem::path(input_file).parent_path() / this->output_filename()).string();
     }

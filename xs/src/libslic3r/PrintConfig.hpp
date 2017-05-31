@@ -145,6 +145,13 @@ class DynamicPrintConfig : public PrintConfigBase, public DynamicConfig
     void normalize();
 };
 
+template<typename CONFIG>
+void normalize_and_apply_config(CONFIG &dst, const DynamicPrintConfig &src)
+{
+    DynamicPrintConfig src_normalized = src;
+    src_normalized.normalize();
+    dst.apply(src_normalized, true);
+}
 
 class StaticPrintConfig : public PrintConfigBase, public StaticConfig
 {
