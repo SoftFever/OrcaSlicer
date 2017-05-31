@@ -7,6 +7,7 @@
 #include "SupportMaterial.hpp"
 #include "GCode/WipeTowerPrusaMM.hpp"
 #include <algorithm>
+#include <unordered_set>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -19,7 +20,9 @@ void Print::clear_objects()
 {
     for (int i = int(this->objects.size())-1; i >= 0; --i)
         this->delete_object(i);
-    this->clear_regions();
+    for (PrintRegion *region : this->regions)
+        delete region;
+    this->regions.clear();
 }
 
 void Print::delete_object(size_t idx)
@@ -31,7 +34,7 @@ void Print::delete_object(size_t idx)
     // TODO: purge unused regions
 }
 
-void Print::reload_object(size_t idx)
+void Print::reload_object(size_t /* idx */)
 {
     /* TODO: this method should check whether the per-object config and per-material configs
         have changed in such a way that regions need to be rearranged or we can just apply
@@ -59,13 +62,6 @@ bool Print::reload_model_instances()
     return invalidated;
 }
 
-void Print::clear_regions()
-{
-    for (PrintRegion *region : this->regions)
-        delete region;
-    this->regions.clear();
-}
-
 PrintRegion* Print::add_region()
 {
     regions.push_back(new PrintRegion(this));
@@ -79,10 +75,91 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
     if (opt_keys.empty())
         return false;
 
+    // Cache the plenty of parameters, which influence the G-code generator only,
+    // or they are only notes not influencing the generated G-code.
+    static std::unordered_set<std::string> steps_ignore;
+    if (steps_ignore.empty()) {
+        steps_ignore.insert("avoid_crossing_perimeters");
+        steps_ignore.insert("bed_shape");
+        steps_ignore.insert("bed_temperature");
+        steps_ignore.insert("before_layer_gcode");
+        steps_ignore.insert("bridge_acceleration");
+        steps_ignore.insert("bridge_fan_speed");
+        steps_ignore.insert("cooling");
+        steps_ignore.insert("default_acceleration");
+        steps_ignore.insert("deretract_speed");
+        steps_ignore.insert("disable_fan_first_layers");
+        steps_ignore.insert("duplicate_distance");
+        steps_ignore.insert("end_gcode");
+        steps_ignore.insert("extrusion_axis");
+        steps_ignore.insert("extruder_clearance_height");
+        steps_ignore.insert("extruder_clearance_radius");
+        steps_ignore.insert("extruder_colour");
+        steps_ignore.insert("extruder_offset");
+        steps_ignore.insert("extrusion_multiplier");
+        steps_ignore.insert("fan_always_on");
+        steps_ignore.insert("fan_below_layer_time");
+        steps_ignore.insert("filament_colour");
+        steps_ignore.insert("filament_diameter");
+        steps_ignore.insert("filament_density");
+        steps_ignore.insert("filament_notes");
+        steps_ignore.insert("filament_cost");
+        steps_ignore.insert("filament_max_volumetric_speed");
+        steps_ignore.insert("first_layer_acceleration");
+        steps_ignore.insert("first_layer_bed_temperature");
+        steps_ignore.insert("first_layer_speed");
+        steps_ignore.insert("gcode_comments");
+        steps_ignore.insert("gcode_flavor");
+        steps_ignore.insert("infill_acceleration");
+        steps_ignore.insert("infill_first");
+        steps_ignore.insert("layer_gcode");
+        steps_ignore.insert("min_fan_speed");
+        steps_ignore.insert("max_fan_speed");
+        steps_ignore.insert("min_print_speed");
+        steps_ignore.insert("max_print_speed");
+        steps_ignore.insert("max_volumetric_speed");
+        steps_ignore.insert("max_volumetric_extrusion_rate_slope_positive");
+        steps_ignore.insert("max_volumetric_extrusion_rate_slope_negative");
+        steps_ignore.insert("notes");
+        steps_ignore.insert("only_retract_when_crossing_perimeters");
+        steps_ignore.insert("output_filename_format");
+        steps_ignore.insert("perimeter_acceleration");
+        steps_ignore.insert("post_process");
+        steps_ignore.insert("printer_notes");
+        steps_ignore.insert("retract_before_travel");
+        steps_ignore.insert("retract_before_wipe");
+        steps_ignore.insert("retract_layer_change");
+        steps_ignore.insert("retract_length");
+        steps_ignore.insert("retract_length_toolchange");
+        steps_ignore.insert("retract_lift");
+        steps_ignore.insert("retract_lift_above");
+        steps_ignore.insert("retract_lift_below");
+        steps_ignore.insert("retract_restart_extra");
+        steps_ignore.insert("retract_restart_extra_toolchange");
+        steps_ignore.insert("retract_speed");
+        steps_ignore.insert("slowdown_below_layer_time");
+        steps_ignore.insert("standby_temperature_delta");
+        steps_ignore.insert("start_gcode");
+        steps_ignore.insert("toolchange_gcode");
+        steps_ignore.insert("threads");
+        steps_ignore.insert("travel_speed");
+        steps_ignore.insert("use_firmware_retraction");
+        steps_ignore.insert("use_relative_e_distances");
+        steps_ignore.insert("use_volumetric_e");
+        steps_ignore.insert("set_and_wait_temperatures");
+        steps_ignore.insert("variable_layer_height");
+        steps_ignore.insert("wipe");
+    }
+
     std::vector<PrintStep> steps;
     std::vector<PrintObjectStep> osteps;
+    bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (   opt_key == "skirts"
+        if (steps_ignore.find(opt_key) != steps_ignore.end()) {
+            // These options only affect G-code export or they are just notes without influence on the generated G-code,
+            // so there is nothing to invalidate.
+        } else if (
+               opt_key == "skirts"
             || opt_key == "skirt_height"
             || opt_key == "skirt_distance"
             || opt_key == "min_skirt_length"
@@ -91,12 +168,14 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         } else if (opt_key == "brim_width") {
             steps.emplace_back(psBrim);
             steps.emplace_back(psSkirt);
-        } else if (opt_key == "nozzle_diameter"
+        } else if (
+               opt_key == "nozzle_diameter"
             || opt_key == "resolution") {
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "complete_objects"
             || opt_key == "filament_type"
+            || opt_key == "filament_soluble"
             || opt_key == "first_layer_temperature"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
@@ -109,67 +188,10 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower_per_color_wipe"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
-        } else if (opt_key == "avoid_crossing_perimeters"
-            || opt_key == "bed_shape"
-            || opt_key == "bed_temperature"
-            || opt_key == "bridge_acceleration"
-            || opt_key == "bridge_fan_speed"
-            || opt_key == "cooling"
-            || opt_key == "default_acceleration"
-            || opt_key == "disable_fan_first_layers"
-            || opt_key == "duplicate_distance"
-            || opt_key == "end_gcode"
-            || opt_key == "extruder_clearance_height"
-            || opt_key == "extruder_clearance_radius"
-            || opt_key == "extruder_colour"
-            || opt_key == "extruder_offset"
-            || opt_key == "extrusion_axis"
-            || opt_key == "extrusion_multiplier"
-            || opt_key == "fan_always_on"
-            || opt_key == "fan_below_layer_time"
-            || opt_key == "filament_diameter"
-            || opt_key == "filament_notes"
-            || opt_key == "filament_soluble"
-            || opt_key == "first_layer_acceleration"
-            || opt_key == "first_layer_bed_temperature"
-            || opt_key == "first_layer_speed"
-            || opt_key == "gcode_comments"
-            || opt_key == "infill_acceleration"
-            || opt_key == "infill_first"
-            || opt_key == "layer_gcode"
-            || opt_key == "min_fan_speed"
-            || opt_key == "max_fan_speed"
-            || opt_key == "min_print_speed"
-            || opt_key == "notes"
-            || opt_key == "only_retract_when_crossing_perimeters"
-            || opt_key == "output_filename_format"
-            || opt_key == "perimeter_acceleration"
-            || opt_key == "post_process"
-            || opt_key == "retract_before_travel"
-            || opt_key == "retract_before_wipe"
-            || opt_key == "retract_layer_change"
-            || opt_key == "retract_length"
-            || opt_key == "retract_length_toolchange"
-            || opt_key == "retract_lift"
-            || opt_key == "retract_lift_above"
-            || opt_key == "retract_lift_below"
-            || opt_key == "retract_restart_extra"
-            || opt_key == "retract_restart_extra_toolchange"
-            || opt_key == "retract_speed"
-            || opt_key == "deretract_speed"
-            || opt_key == "slowdown_below_layer_time"
-            || opt_key == "standby_temperature_delta"
-            || opt_key == "start_gcode"
-            || opt_key == "threads"
-            || opt_key == "toolchange_gcode"
-            || opt_key == "travel_speed"
-            || opt_key == "use_firmware_retraction"
-            || opt_key == "use_relative_e_distances"
-            || opt_key == "wipe"
-            || opt_key == "max_volumetric_extrusion_rate_slope_negative"
-            || opt_key == "max_volumetric_extrusion_rate_slope_positive") {
-            // these options only affect G-code export, so nothing to invalidate
-        } else if (opt_key == "first_layer_extrusion_width") {
+        } else if (
+               opt_key == "first_layer_extrusion_width" 
+            || opt_key == "min_layer_height"
+            || opt_key == "max_layer_height") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
@@ -179,11 +201,11 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             //FIXME invalidate all steps of all objects as well?
-            return this->invalidate_all_steps();
+            invalidated |= this->invalidate_all_steps();
+            // Continue with the other opt_keys to possibly invalidate any object specific steps.
         }
     }
-    
-    bool invalidated = false;
+
     sort_remove_duplicates(steps);
     for (PrintStep step : steps)
         invalidated |= this->invalidate_step(step);
@@ -198,6 +220,7 @@ bool Print::invalidate_step(PrintStep step)
 {
     bool invalidated = this->state.invalidate(step);
     // Propagate to dependent steps.
+    //FIXME Why should skirt invalidate brim? Shouldn't it be vice versa?
     if (step == psSkirt)
         invalidated |= this->state.invalidate(psBrim);
     return invalidated;

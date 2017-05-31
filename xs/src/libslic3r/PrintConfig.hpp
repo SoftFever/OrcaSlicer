@@ -162,7 +162,7 @@ class StaticPrintConfig : public PrintConfigBase, public StaticConfig
 // This object is mapped to Perl as Slic3r::Config::PrintObject.
 class PrintObjectConfig : public virtual StaticPrintConfig
 {
-    public:
+public:
     ConfigOptionBool                clip_multipart_objects;
     ConfigOptionBool                dont_support_bridges;
     ConfigOptionFloatOrPercent      extrusion_width;
@@ -555,7 +555,7 @@ public:
 
 class HostConfig : public virtual StaticPrintConfig
 {
-    public:
+public:
     ConfigOptionString              octoprint_host;
     ConfigOptionString              octoprint_apikey;
     ConfigOptionString              serial_port;

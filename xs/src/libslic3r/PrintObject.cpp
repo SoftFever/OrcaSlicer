@@ -137,7 +137,7 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
 
     std::vector<PrintObjectStep> steps;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (opt_key == "perimeters"
+        if (   opt_key == "perimeters"
             || opt_key == "extra_perimeters"
             || opt_key == "gap_fill_speed"
             || opt_key == "overhangs"
@@ -147,25 +147,29 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "thin_walls"
             || opt_key == "external_perimeters_first") {
             steps.emplace_back(posPerimeters);
-        } else if (opt_key == "layer_height"
+        } else if (
+               opt_key == "layer_height"
             || opt_key == "first_layer_height"
             || opt_key == "raft_layers") {
             steps.emplace_back(posSlice);
 			this->reset_layer_height_profile();
 		}
-		else if (opt_key == "clip_multipart_objects" 
+		else if (
+               opt_key == "clip_multipart_objects" 
             || opt_key == "xy_size_compensation") {
             steps.emplace_back(posSlice);
-        } else if (opt_key == "support_material"
+        } else if (
+               opt_key == "support_material"
             || opt_key == "support_material_angle"
+            || opt_key == "support_material_buildplate_only"
+            || opt_key == "support_material_contact_distance"
+            || opt_key == "support_material_enforce_layers"
             || opt_key == "support_material_extruder"
             || opt_key == "support_material_extrusion_width"
             || opt_key == "support_material_interface_layers"
             || opt_key == "support_material_interface_contact_loops"
             || opt_key == "support_material_interface_extruder"
             || opt_key == "support_material_interface_spacing"
-            || opt_key == "support_material_interface_speed"
-            || opt_key == "support_material_buildplate_only"
             || opt_key == "support_material_pattern"
             || opt_key == "support_material_xy_spacing"
             || opt_key == "support_material_spacing"
@@ -175,7 +179,8 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "dont_support_bridges"
             || opt_key == "first_layer_extrusion_width") {
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "interface_shells"
+        } else if (
+               opt_key == "interface_shells"
             || opt_key == "infill_only_where_needed"
             || opt_key == "infill_every_layers"
             || opt_key == "solid_infill_every_layers"
@@ -187,7 +192,8 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "infill_extrusion_width"
             || opt_key == "ensure_vertical_shell_thickness") {
             steps.emplace_back(posPrepareInfill);
-        } else if (opt_key == "external_fill_pattern"
+        } else if (
+               opt_key == "external_fill_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "fill_angle"
             || opt_key == "fill_pattern"
@@ -195,21 +201,25 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "top_infill_extrusion_width"
             || opt_key == "first_layer_extrusion_width") {
             steps.emplace_back(posInfill);
-        } else if (opt_key == "fill_density"
+        } else if (
+               opt_key == "fill_density"
             || opt_key == "solid_infill_extrusion_width") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posPrepareInfill);
-        } else if (opt_key == "external_perimeter_extrusion_width"
+        } else if (
+               opt_key == "external_perimeter_extrusion_width"
             || opt_key == "perimeter_extruder") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow_ratio") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posInfill);
-        } else if (opt_key == "seam_position"
+        } else if (
+               opt_key == "seam_position"
             || opt_key == "seam_preferred_direction"
             || opt_key == "seam_preferred_direction_jitter"
             || opt_key == "support_material_speed"
+            || opt_key == "support_material_interface_speed"
             || opt_key == "bridge_speed"
             || opt_key == "external_perimeter_speed"
             || opt_key == "infill_speed"
@@ -241,28 +251,26 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
         invalidated |= 
             this->invalidate_step(posPrepareInfill) ||
             this->_print->invalidate_step(psSkirt)  ||
-            this->_print->invalidate_step(psBrim)   ||
-            this->_print->invalidate_step(psWipeTower);
+            this->_print->invalidate_step(psBrim);
     } else if (step == posPrepareInfill) {
         invalidated |= 
             this->invalidate_step(posInfill);
     } else if (step == posInfill) {
         invalidated |= 
             this->_print->invalidate_step(psSkirt)  ||
-            this->_print->invalidate_step(psBrim)   ||
-            this->_print->invalidate_step(psWipeTower);
+            this->_print->invalidate_step(psBrim);
     } else if (step == posSlice) {
         invalidated |= 
-            this->invalidate_step(posPerimeters)      ||
-            this->invalidate_step(posSupportMaterial) ||
-            this->_print->invalidate_step(psWipeTower);
+            this->invalidate_step(posPerimeters)    ||
+            this->invalidate_step(posSupportMaterial);
     } else if (step == posSupportMaterial) {
         invalidated |= 
-            this->_print->invalidate_step(psSkirt)    ||
-            this->_print->invalidate_step(psBrim)     ||
-            this->_print->invalidate_step(psWipeTower);
+            this->_print->invalidate_step(psSkirt)  ||
+            this->_print->invalidate_step(psBrim);
     }
 
+    // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
+    invalidated |= this->_print->invalidate_step(psWipeTower);
     return invalidated;
 }
 

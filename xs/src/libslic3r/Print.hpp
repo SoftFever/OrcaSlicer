@@ -252,7 +252,6 @@ public:
     PrintRegion* add_region();
     
     // methods for handling state
-    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintStep step);
     bool invalidate_all_steps() { return this->state.invalidate_all(); }
     bool step_done(PrintObjectStep step) const;
@@ -294,7 +293,7 @@ public:
     std::string output_filepath(const std::string &path);
     
 private:
-    void clear_regions();
+    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
 };
 
