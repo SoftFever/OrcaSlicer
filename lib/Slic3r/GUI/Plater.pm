@@ -153,9 +153,9 @@ sub new {
     }
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
-        if ($self->{preview_notebook}->GetSelection == $self->{preview3D_page_idx}) {
-            $self->{preview3D}->load_print;
-        }
+        my $preview = $self->{preview_notebook}->GetCurrentPage;
+        $self->{preview3D}->load_print(1) if ($preview == $self->{preview3D});
+        $preview->OnActivate if $preview->can('OnActivate');
     });
     
     # toolbar for object manipulation
@@ -622,7 +622,8 @@ sub update_presets {
     }
 
     $self->{preset_choosers_default_suppressed}{$group} = $default_suppressed;
-    $self->update_filament_colors_preview;
+
+    wxTheApp->CallAfter(sub { $self->update_filament_colors_preview }) if $group eq 'filament' || $group eq 'printer';
 }
 
 # Update the color icon in front of each filament selection on the platter.
@@ -1723,7 +1724,6 @@ sub update {
         $self->resume_background_process;
     }
     
-    $self->{canvas}->Refresh;
     $self->{canvas3D}->reload_scene if $self->{canvas3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
 }
@@ -1946,6 +1946,7 @@ sub object_settings_dialog {
 	    $self->stop_background_process;
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
+        $self->{canvas3D}->reload_scene if $self->{canvas3D};
     } else {
         $self->resume_background_process;
     }

@@ -298,7 +298,7 @@ sub set_number_extruders {
 # Called by the Platter wxNotebook when this page is activated.
 sub OnActivate {
     my ($self) = @_;
-    $self->reload_scene(1) if ($self->{reload_delayed});
+    $self->reload_print(1) if ($self->{reload_delayed});
 }
 
 1;
