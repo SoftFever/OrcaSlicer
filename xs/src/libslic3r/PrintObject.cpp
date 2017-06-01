@@ -6,6 +6,7 @@
 
 #include <utility>
 #include <boost/log/trivial.hpp>
+#include <float.h>
 
 #include <tbb/task_scheduler_init.h>
 #include <tbb/parallel_for.h>
