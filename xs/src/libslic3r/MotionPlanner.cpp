@@ -12,13 +12,13 @@ using boost::polygon::voronoi_diagram;
 
 namespace Slic3r {
 
-MotionPlanner::MotionPlanner(const ExPolygons &islands) : initialized(false)
+MotionPlanner::MotionPlanner(const ExPolygons &islands) : m_initialized(false)
 {
     ExPolygons expp;
     for (const ExPolygon &island : islands) {
         island.simplify(SCALED_EPSILON, &expp);
         for (ExPolygon &island : expp)
-            this->islands.push_back(MotionPlannerEnv(island));
+            m_islands.emplace_back(MotionPlannerEnv(island));
         expp.clear();
     }
 }
@@ -26,18 +26,18 @@ MotionPlanner::MotionPlanner(const ExPolygons &islands) : initialized(false)
 void MotionPlanner::initialize()
 {
     // prevent initialization of empty BoundingBox
-    if (this->initialized || this->islands.empty())
+    if (m_initialized || m_islands.empty())
         return;
-    
-    // loop through islands in order to create inner expolygons and collect their contours
+
+    // loop through islands in order to create inner expolygons and collect their contours.
     Polygons outer_holes;
-    for (MotionPlannerEnv &island : this->islands) {
-        // generate the internal env boundaries by shrinking the island
+    for (MotionPlannerEnv &island : m_islands) {
+        // Generate the internal env boundaries by shrinking the island
         // we'll use these inner rings for motion planning (endpoints of the Voronoi-based
-        // graph, visibility check) in order to avoid moving too close to the boundaries
-        island.env = ExPolygonCollection(offset_ex(island.island, -MP_INNER_MARGIN));
-        // island contours are holes of our external environment
-        outer_holes.push_back(island.island.contour);
+        // graph, visibility check) in order to avoid moving too close to the boundaries.
+        island.m_env = ExPolygonCollection(offset_ex(island.m_island, -MP_INNER_MARGIN));
+        // Island contours are holes of our external environment.
+        outer_holes.push_back(island.m_island.contour);
     }
     
     // Generate a box contour around everyting.
@@ -46,30 +46,37 @@ void MotionPlanner::initialize()
     // make expolygon for outer environment
     ExPolygons outer = diff_ex(contour, outer_holes);
     assert(outer.size() == 1);
-    //FIXME What if some of the islands are nested? Then the front contour may not be the outmost contour!
-    this->outer.island = outer.front();
-    this->outer.env = ExPolygonCollection(diff_ex(contour, offset(outer_holes, +MP_OUTER_MARGIN)));
-    this->graphs.resize(this->islands.size() + 1);
-    this->initialized = true;
+    // If some of the islands are nested, then the 0th contour is the outer contour due to the order of conversion
+    // from Clipper data structure into the Slic3r expolygons inside diff_ex().
+    m_outer = MotionPlannerEnv(outer.front());
+    m_outer.m_env = ExPolygonCollection(diff_ex(contour, offset(outer_holes, +MP_OUTER_MARGIN)));
+    m_graphs.resize(m_islands.size() + 1);
+    m_initialized = true;
 }
 
 Polyline MotionPlanner::shortest_path(const Point &from, const Point &to)
 {
     // If we have an empty configuration space, return a straight move.
-    if (this->islands.empty())
+    if (m_islands.empty())
         return Line(from, to);
     
     // Are both points in the same island?
-    int island_idx = -1;
-    for (MotionPlannerEnv &island : islands) {
-        if (island.island_bbox.contains(from) && island.island_bbox.contains(to) &&
-            island.island.contains(from) && island.island.contains(to)) {
+    int island_idx_from = -1;
+    int island_idx_to   = -1;
+    int island_idx      = -1;
+    for (MotionPlannerEnv &island : m_islands) {
+        int idx = &island - m_islands.data();
+        if (island.island_contains(from))
+            island_idx_from = idx;
+        if (island.island_contains(to))
+            island_idx_to   = idx;
+        if (island_idx_from == idx && island_idx_to == idx) {
             // Since both points are in the same island, is a direct move possible?
             // If so, we avoid generating the visibility environment.
-            if (island.island.contains(Line(from, to)))
+            if (island.m_island.contains(Line(from, to)))
                 return Line(from, to);
             // Both points are inside a single island, but the straight line crosses the island boundary.
-            island_idx = &island - this->islands.data();
+            island_idx = idx;
             break;
         }
     }
@@ -77,9 +84,10 @@ Polyline MotionPlanner::shortest_path(const Point &from, const Point &to)
     // lazy generation of configuration space.
     this->initialize();
 
-    // get environment
+    // Get environment. If the from / to points do not share an island, then they cross an open space,
+    // therefore island_idx == -1 and env will be set to the environment of the empty space.
     const MotionPlannerEnv &env = this->get_env(island_idx);
-    if (env.env.expolygons.empty()) {
+    if (env.m_env.expolygons.empty()) {
         // if this environment is empty (probably because it's too small), perform straight move
         // and avoid running the algorithms on empty dataset
         return Line(from, to);
@@ -90,32 +98,32 @@ Polyline MotionPlanner::shortest_path(const Point &from, const Point &to)
     Point inner_to   = to;
     
     if (island_idx == -1) {
+        // The end points do not share the same island. In that case some of the travel
+        // will be likely performed inside the empty space.
         // TODO: instead of using the nearest_env_point() logic, we should
         // create a temporary graph where we connect 'from' and 'to' to the
         // nodes which don't require more than one crossing, and let Dijkstra
         // figure out the entire path - this should also replace the call to
         // find_node() below
-        if (! env.island_bbox.contains(inner_from) || ! env.island.contains(inner_from)) {
-            // Find the closest inner point to start from.
+        if (island_idx_from != -1)
+            // The start point is inside some island. Find the closest point at the empty space to start from.
             inner_from = env.nearest_env_point(from, to);
-        }
-        if (! env.island_bbox.contains(inner_to) || ! env.island.contains(inner_to)) {
-            // Find the closest inner point to start from.
+        if (island_idx_to != -1)
+            // The start point is inside some island. Find the closest point at the empty space to start from.
             inner_to = env.nearest_env_point(to, inner_from);
-        }
     }
-    
-    // perform actual path search
+
+    // Perform a path search either in the open space, or in a common island of from/to.
     const MotionPlannerGraph &graph = this->init_graph(island_idx);
-    Polyline polyline = graph.shortest_path(graph.find_closest_node(inner_from), graph.find_closest_node(inner_to));
-    
+    // If no path exists without crossing perimeters, returns a straight segment.
+    Polyline polyline = graph.shortest_path(inner_from, inner_to);
     polyline.points.insert(polyline.points.begin(), from);
-    polyline.points.push_back(to);
+    polyline.points.emplace_back(to);
     
     {
         // grow our environment slightly in order for simplify_by_visibility()
         // to work best by considering moves on boundaries valid as well
-        ExPolygonCollection grown_env(offset_ex(env.env.expolygons, +SCALED_EPSILON));
+        ExPolygonCollection grown_env(offset_ex(env.m_env.expolygons, float(+SCALED_EPSILON)));
         
         if (island_idx == -1) {
             /*  If 'from' or 'to' are not inside our env, they were connected using the 
@@ -128,14 +136,17 @@ Polyline MotionPlanner::shortest_path(const Point &from, const Point &to)
             if (! grown_env.contains(from)) {
                 // delete second point while the line connecting first to third crosses the
                 // boundaries as many times as the current first to second
-                while (polyline.points.size() > 2 && intersection_ln((Lines)Line(from, polyline.points[2]), grown_env).size() == 1)
+                while (polyline.points.size() > 2 && intersection_ln(Line(from, polyline.points[2]), grown_env).size() == 1)
                     polyline.points.erase(polyline.points.begin() + 1);
             }
-            if (! grown_env.contains(to)) {
-                while (polyline.points.size() > 2 && intersection_ln((Lines)Line(*(polyline.points.end() - 3), to), grown_env).size() == 1)
+            if (! grown_env.contains(to))
+                while (polyline.points.size() > 2 && intersection_ln(Line(*(polyline.points.end() - 3), to), grown_env).size() == 1)
                     polyline.points.erase(polyline.points.end() - 2);
-            }
         }
+
+        // Perform some quick simplification (simplify_by_visibility() would make this
+        // unnecessary, but this is much faster)
+        polyline.simplify(MP_INNER_MARGIN/10);
         
         // remove unnecessary vertices
         // Note: this is computationally intensive and does not look very necessary
@@ -169,64 +180,73 @@ Polyline MotionPlanner::shortest_path(const Point &from, const Point &to)
 
 const MotionPlannerGraph& MotionPlanner::init_graph(int island_idx)
 {
-    if (! this->graphs[island_idx + 1]) {
-        // if this graph doesn't exist, initialize it
-        this->graphs[island_idx + 1] = make_unique<MotionPlannerGraph>();
-        MotionPlannerGraph* graph = this->graphs[island_idx + 1].get();
+    // 0th graph is the graph for m_outer. Other graphs are 1 indexed.
+    MotionPlannerGraph *graph = m_graphs[island_idx + 1].get();
+    if (graph == nullptr) {
+        // If this graph doesn't exist, initialize it.
+        m_graphs[island_idx + 1] = make_unique<MotionPlannerGraph>();
+        graph = m_graphs[island_idx + 1].get();
         
         /*  We don't add polygon boundaries as graph edges, because we'd need to connect
             them to the Voronoi-generated edges by recognizing coinciding nodes. */
         
         typedef voronoi_diagram<double> VD;
         VD vd;
-        
-        // mapping between Voronoi vertices and graph nodes
-        typedef std::map<const VD::vertex_type*,size_t> t_vd_vertices;
-        t_vd_vertices vd_vertices;
-        
+        // Mapping between Voronoi vertices and graph nodes.
+        std::map<const VD::vertex_type*, size_t> vd_vertices;
         // get boundaries as lines
         const MotionPlannerEnv &env = this->get_env(island_idx);
-        Lines lines = env.env.lines();
+        Lines lines = env.m_env.lines();
         boost::polygon::construct_voronoi(lines.begin(), lines.end(), &vd);
-        
         // traverse the Voronoi diagram and generate graph nodes and edges
-        for (VD::const_edge_iterator edge = vd.edges().begin(); edge != vd.edges().end(); ++edge) {
-            if (edge->is_infinite()) continue;
-            
-            const VD::vertex_type* v0 = edge->vertex0();
-            const VD::vertex_type* v1 = edge->vertex1();
-            Point p0 = Point(v0->x(), v0->y());
-            Point p1 = Point(v1->x(), v1->y());
-            
-            // skip edge if any of its endpoints is outside our configuration space
+        for (const VD::edge_type &edge : vd.edges()) {
+            if (edge.is_infinite())
+                continue;
+            const VD::vertex_type* v0 = edge.vertex0();
+            const VD::vertex_type* v1 = edge.vertex1();
+            Point p0(v0->x(), v0->y());
+            Point p1(v1->x(), v1->y());
+            // Insert only Voronoi edges fully contained in the island.
             //FIXME This test has a terrible O(n^2) time complexity.
-            if (!env.island.contains_b(p0) || !env.island.contains_b(p1)) continue;
-            
-            t_vd_vertices::const_iterator i_v0 = vd_vertices.find(v0);
-            size_t v0_idx;
-            if (i_v0 == vd_vertices.end()) {
-                graph->nodes.push_back(p0);
-                vd_vertices[v0] = v0_idx = graph->nodes.size()-1;
-            } else {
-                v0_idx = i_v0->second;
+            if (env.island_contains_b(p0) && env.island_contains_b(p1)) {
+                // Find v0 in the graph, allocate a new node if v0 does not exist in the graph yet.
+                auto i_v0 = vd_vertices.find(v0);
+                size_t v0_idx;
+                if (i_v0 == vd_vertices.end())
+                    vd_vertices[v0] = v0_idx = graph->add_node(p0);
+                else
+                    v0_idx = i_v0->second;
+                // Find v1 in the graph, allocate a new node if v0 does not exist in the graph yet.
+                auto i_v1 = vd_vertices.find(v1);
+                size_t v1_idx;
+                if (i_v1 == vd_vertices.end())
+                    vd_vertices[v1] = v1_idx = graph->add_node(p1);
+                else
+                    v1_idx = i_v1->second;
+                // Euclidean distance is used as weight for the graph edge
+                graph->add_edge(v0_idx, v1_idx, p0.distance_to(p1));
             }
-            
-            t_vd_vertices::const_iterator i_v1 = vd_vertices.find(v1);
-            size_t v1_idx;
-            if (i_v1 == vd_vertices.end()) {
-                graph->nodes.push_back(p1);
-                vd_vertices[v1] = v1_idx = graph->nodes.size()-1;
-            } else {
-                v1_idx = i_v1->second;
-            }
-            
-            // Euclidean distance is used as weight for the graph edge
-            double dist = graph->nodes[v0_idx].distance_to(graph->nodes[v1_idx]);
-            graph->add_edge(v0_idx, v1_idx, dist);
         }
     }
 
-    return *this->graphs[island_idx + 1].get();
+    return *graph;
+}
+
+// Find a middle point on the path from start_point to end_point with the shortest path.
+static inline size_t nearest_waypoint_index(const Point &start_point, const Points &middle_points, const Point &end_point)
+{
+    size_t idx = size_t(-1);
+    double dmin = std::numeric_limits<double>::infinity();
+    for (const Point &p : middle_points) {
+        double d = start_point.distance_to(p) + p.distance_to(end_point);
+        if (d < dmin) {
+            idx  = &p - middle_points.data();
+            dmin = d;
+            if (dmin < EPSILON)
+                break;
+        }
+    }
+    return idx;
 }
 
 Point MotionPlannerEnv::nearest_env_point(const Point &from, const Point &to) const
@@ -240,7 +260,7 @@ Point MotionPlannerEnv::nearest_env_point(const Point &from, const Point &to) co
     
     // get the points of the hole containing 'from', if any
     Points pp;
-    for (const ExPolygon &ex : this->env.expolygons) {
+    for (const ExPolygon &ex : m_env.expolygons) {
         for (const Polygon &hole : ex.holes)
             if (hole.contains(from))
                 pp = hole;
@@ -248,19 +268,17 @@ Point MotionPlannerEnv::nearest_env_point(const Point &from, const Point &to) co
             break;
     }
     
-    /*  If 'from' is not inside a hole, it's outside of all contours, so take all
-        contours' points */
+    // If 'from' is not inside a hole, it's outside of all contours, so take all contours' points.
     if (pp.empty())
-        for (const ExPolygon &ex : this->env.expolygons)
+        for (const ExPolygon &ex : m_env.expolygons)
             append(pp, ex.contour.points);
     
-    /*  Find the candidate result and check that it doesn't cross too many boundaries. */
-    while (pp.size() >= 2) {
+    // Find the candidate result and check that it doesn't cross too many boundaries.
+    while (pp.size() > 1) {
         // find the point in pp that is closest to both 'from' and 'to'
-        size_t result = from.nearest_waypoint_index(pp, to);
-        
+        size_t result = nearest_waypoint_index(from, pp, to);
         // as we assume 'from' is outside env, any node will require at least one crossing
-        if (intersection_ln((Lines)Line(from, pp[result]), this->island).size() > 1) {
+        if (intersection_ln(Line(from, pp[result]), m_island).size() > 1) {
             // discard result
             pp.erase(pp.begin() + result);
         } else
@@ -277,34 +295,35 @@ Point MotionPlannerEnv::nearest_env_point(const Point &from, const Point &to) co
 void MotionPlannerGraph::add_edge(size_t from, size_t to, double weight)
 {
     // Extend adjacency list until this start node.
-    if (this->adjacency_list.size() < from + 1) {
+    if (m_adjacency_list.size() < from + 1) {
         // Reserve in powers of two to avoid repeated reallocation.
-        this->adjacency_list.reserve(std::max<size_t>(8, next_highest_power_of_2(from + 1)));
+        m_adjacency_list.reserve(std::max<size_t>(8, next_highest_power_of_2(from + 1)));
         // Allocate new empty adjacency vectors.
-        this->adjacency_list.resize(from + 1);
+        m_adjacency_list.resize(from + 1);
     }
-    this->adjacency_list[from].emplace_back(Neighbor(node_t(to), weight));
+    m_adjacency_list[from].emplace_back(Neighbor(node_t(to), weight));
 }
 
 // Dijkstra's shortest path in a weighted graph from node_start to node_end.
 // The returned path contains the end points.
+// If no path exists from node_start to node_end, a straight segment is returned.
 Polyline MotionPlannerGraph::shortest_path(size_t node_start, size_t node_end) const
 {
     // This prevents a crash in case for some reason we got here with an empty adjacency list.
-    if (this->adjacency_list.empty())
+    if (this->empty())
         return Polyline();
 
     // Dijkstra algorithm, previous node of the current node 'u' in the shortest path towards node_start.
-    std::vector<node_t>   previous(this->adjacency_list.size(), -1);
-    std::vector<weight_t> distance(this->adjacency_list.size(), std::numeric_limits<weight_t>::infinity());
-    std::vector<size_t>   map_node_to_queue_id(this->adjacency_list.size(), size_t(-1));
+    std::vector<node_t>   previous(m_adjacency_list.size(), -1);
+    std::vector<weight_t> distance(m_adjacency_list.size(), std::numeric_limits<weight_t>::infinity());
+    std::vector<size_t>   map_node_to_queue_id(m_adjacency_list.size(), size_t(-1));
     distance[node_start] = 0.;
 
     auto queue = make_mutable_priority_queue<node_t>(
-        [&map_node_to_queue_id](const node_t &node, size_t idx) { map_node_to_queue_id[node] = idx; },
-        [&distance](const node_t &node1, const node_t &node2) { return distance[node1] < distance[node2]; });
-    queue.reserve(this->adjacency_list.size());
-    for (size_t i = 0; i < this->adjacency_list.size(); ++ i)
+        [&map_node_to_queue_id](const node_t node, size_t idx) { map_node_to_queue_id[node] = idx; },
+        [&distance](const node_t node1, const node_t node2) { return distance[node1] < distance[node2]; });
+    queue.reserve(m_adjacency_list.size());
+    for (size_t i = 0; i < m_adjacency_list.size(); ++ i)
         queue.push(node_t(i));
 
     while (! queue.empty()) {
@@ -316,7 +335,7 @@ Polyline MotionPlannerGraph::shortest_path(size_t node_start, size_t node_end) c
         if (u == node_end)
             break;
         // Visit each edge starting at node u.
-        for (const Neighbor& neighbor : this->adjacency_list[u])
+        for (const Neighbor& neighbor : m_adjacency_list[u])
             if (map_node_to_queue_id[neighbor.target] != size_t(-1)) {
                 weight_t alt = distance[u] + neighbor.weight;
                 // If total distance through u is shorter than the previous
@@ -329,11 +348,13 @@ Polyline MotionPlannerGraph::shortest_path(size_t node_start, size_t node_end) c
             }
     }
 
+    // In case the end point was not reached, previous[node_end] contains -1
+    // and a straight line from node_start to node_end is returned.
     Polyline polyline;
-    polyline.points.reserve(previous.size());
+    polyline.points.reserve(m_adjacency_list.size());
     for (node_t vertex = node_t(node_end); vertex != -1; vertex = previous[vertex])
-        polyline.points.push_back(this->nodes[vertex]);
-    polyline.points.push_back(this->nodes[node_start]);
+        polyline.points.emplace_back(m_nodes[vertex]);
+    polyline.points.emplace_back(m_nodes[node_start]);
     polyline.reverse();
     return polyline;
 }

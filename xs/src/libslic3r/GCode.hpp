@@ -42,7 +42,7 @@ public:
     void init_external_mp(const ExPolygons &islands) { m_external_mp = Slic3r::make_unique<MotionPlanner>(islands); }
     void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
 
-    Polyline travel_to(GCode &gcodegen, Point point);
+    Polyline travel_to(const GCode &gcodegen, const Point &point);
 
 private:
     std::unique_ptr<MotionPlanner> m_external_mp;

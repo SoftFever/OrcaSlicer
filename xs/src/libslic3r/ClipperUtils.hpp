@@ -170,10 +170,16 @@ intersection_pl(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip, 
     return _clipper_pl(ClipperLib::ctIntersection, subject, clip, safety_offset_);
 }
 
-inline Slic3r::Lines
-intersection_ln(const Slic3r::Lines &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false)
+inline Slic3r::Lines intersection_ln(const Slic3r::Lines &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false)
 {
     return _clipper_ln(ClipperLib::ctIntersection, subject, clip, safety_offset_);
+}
+
+inline Slic3r::Lines intersection_ln(const Slic3r::Line &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false)
+{
+    Slic3r::Lines lines;
+    lines.emplace_back(subject);
+    return _clipper_ln(ClipperLib::ctIntersection, lines, clip, safety_offset_);
 }
 
 // union

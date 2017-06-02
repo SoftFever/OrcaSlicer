@@ -119,29 +119,6 @@ int Point::nearest_point_index(const PointConstPtrs &points) const
     return idx;
 }
 
-/* This method finds the point that is closest to both this point and the supplied one */
-size_t Point::nearest_waypoint_index(const Points &points, const Point &dest) const
-{
-    size_t idx = size_t(-1);
-    double d2min = std::numeric_limits<double>::infinity();  // double because long is limited to 2147483647 on some platforms and it's not enough
-
-    for (const Point &p : points) {
-        double d2 =
-            // distance from this to candidate
-            sqr<double>(this->x - p.x) + sqr<double>(this->y - p.y) + 
-            // distance from candidate to dest
-            sqr<double>(p.x - dest.x) + sqr<double>(p.y - dest.y);
-        if (d2 < d2min) {
-            idx      = &p - points.data();
-            d2min = d2;
-            if (d2min < EPSILON)
-                break;
-        }
-    }
-
-    return idx;
-}
-
 int
 Point::nearest_point_index(const PointPtrs &points) const
 {
@@ -156,15 +133,6 @@ bool
 Point::nearest_point(const Points &points, Point* point) const
 {
     int idx = this->nearest_point_index(points);
-    if (idx == -1) return false;
-    *point = points.at(idx);
-    return true;
-}
-
-bool
-Point::nearest_waypoint(const Points &points, const Point &dest, Point* point) const
-{
-    int idx = this->nearest_waypoint_index(points, dest);
     if (idx == -1) return false;
     *point = points.at(idx);
     return true;

@@ -26,13 +26,18 @@
 
 namespace Slic3r {
     
-Polyline AvoidCrossingPerimeters::travel_to(GCode &gcodegen, Point point) 
+// Plan a travel move while minimizing the number of perimeter crossings.
+// point is in unscaled coordinates, in the coordinate system of the current active object
+// (set by gcodegen.set_origin()).
+Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &point) 
 {
+    // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
+    // Otherwise perform the path planning in the coordinate system of the active object.
     bool  use_external  = this->use_external_mp || this->use_external_mp_once;
-    Point scaled_origin = use_external ? Point(0, 0) : Point::new_scale(gcodegen.origin().x, gcodegen.origin().y);
+    Point scaled_origin = use_external ? Point::new_scale(gcodegen.origin().x, gcodegen.origin().y) : Point(0, 0);
     Polyline result = (use_external ? m_external_mp.get() : m_layer_mp.get())->
         shortest_path(gcodegen.last_pos() + scaled_origin, point + scaled_origin);
-    if (! use_external)
+    if (use_external)
         result.translate(scaled_origin.negative());
     return result;
 }
@@ -489,25 +494,18 @@ bool GCode::do_export(FILE *file, Print &print)
     
     // Initialize a motion planner for object-to-object travel moves.
     if (print.config.avoid_crossing_perimeters.value) {
-        //coord_t distance_from_objects = coord_t(scale_(1.)); 
-        // Compute the offsetted convex hull for each object and repeat it for each copy.
-        Polygons islands_p;
-        for (const PrintObject *object : print.objects) {
-            // Discard objects only containing thin walls (offset would fail on an empty polygon).
-            Polygons polygons;
+        // Collect outer contours of all objects over all layers.
+        // Discard objects only containing thin walls (offset would fail on an empty polygon).
+        Polygons islands;
+        for (const PrintObject *object : print.objects)
             for (const Layer *layer : object->layers)
                 for (const ExPolygon &expoly : layer->slices.expolygons)
-                    polygons.push_back(expoly.contour);
-            if (! polygons.empty()) {
-                // Translate convex hull for each object copy and append it to the islands array.
-                for (const Point &copy : object->_shifted_copies)
-                    for (Polygon poly : polygons) {
-                        poly.translate(copy);
-                        islands_p.emplace_back(std::move(poly));
+                    for (const Point &copy : object->_shifted_copies) {
+                        islands.emplace_back(expoly.contour);
+                        islands.back().translate(copy);
                     }
-            }
-        }
-        m_avoid_crossing_perimeters.init_external_mp(union_ex(islands_p));
+        //FIXME Mege the islands in parallel.
+        m_avoid_crossing_perimeters.init_external_mp(union_ex(islands));
     }
     
     // Calculate wiping points if needed
@@ -1022,7 +1020,7 @@ void GCode::process_layer(
         
         // Extrude brim with the extruder of the 1st region.
         if (! m_brim_done) {
-            this->set_origin(0.f, 0.f);
+            this->set_origin(0., 0.);
             m_avoid_crossing_perimeters.use_external_mp = true;
             for (const ExtrusionEntity *ee : print.brim.entities)
                 gcode += this->extrude_loop(*dynamic_cast<const ExtrusionLoop*>(ee), "brim", m_config.support_material_speed.value);
