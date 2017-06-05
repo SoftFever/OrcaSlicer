@@ -1471,8 +1471,21 @@ sub draw_active_object_annotations {
     my $max_z = unscale($print_object->size->z);
     my $profile = $print_object->model_object->layer_height_profile;
     my $layer_height = $print_object->config->get('layer_height');
-    my $layer_heights_max = $print_object->print->config->get('max_layer_height');
-    my $layer_height_max = my $max = max(@{$layer_heights_max}) * 1.12;
+    my $layer_height_max  = 10000000000.;
+    {
+        # Get a maximum layer height value.
+        #FIXME This is a duplicate code of Slicing.cpp.
+        my $nozzle_diameters  = $print_object->print->config->get('nozzle_diameter');
+        my $layer_heights_min = $print_object->print->config->get('min_layer_height');
+        my $layer_heights_max = $print_object->print->config->get('max_layer_height');
+        for (my $i = 0; $i < scalar(@{$nozzle_diameters}); $i += 1) {
+            my $lh_min = ($layer_heights_min->[$i] == 0.) ? 0.07 : max(0.01, $layer_heights_min->[$i]);
+            my $lh_max = ($layer_heights_max->[$i] == 0.) ? (0.75 * $nozzle_diameters->[$i]) : $layer_heights_max->[$i];
+            $layer_height_max = min($layer_height_max, max($lh_min, $lh_max));
+        }
+    }
+    # Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
+    $layer_height_max *= 1.12;
     # Baseline
     glColor3f(0., 0., 0.);
     glBegin(GL_LINE_STRIP);

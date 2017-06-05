@@ -21,7 +21,7 @@ namespace Slic3r
 {
 
 static const coordf_t MIN_LAYER_HEIGHT = 0.01;
-static const coordf_t MIN_LAYER_HEIGHT_DEFAULT = 0.05;
+static const coordf_t MIN_LAYER_HEIGHT_DEFAULT = 0.07;
 
 // Minimum layer height for the variable layer height algorithm.
 inline coordf_t min_layer_height_from_nozzle(const PrintConfig &print_config, int idx_nozzle)
