@@ -91,6 +91,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         steps_ignore.insert("disable_fan_first_layers");
         steps_ignore.insert("duplicate_distance");
         steps_ignore.insert("end_gcode");
+        steps_ignore.insert("end_filament_gcode");
         steps_ignore.insert("extrusion_axis");
         steps_ignore.insert("extruder_clearance_height");
         steps_ignore.insert("extruder_clearance_radius");
@@ -140,6 +141,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         steps_ignore.insert("slowdown_below_layer_time");
         steps_ignore.insert("standby_temperature_delta");
         steps_ignore.insert("start_gcode");
+        steps_ignore.insert("start_filament_gcode");
         steps_ignore.insert("toolchange_gcode");
         steps_ignore.insert("threads");
         steps_ignore.insert("travel_speed");

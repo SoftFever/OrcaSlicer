@@ -229,8 +229,10 @@ inline void write(FILE *file, const std::string &what)
 
 inline void writeln(FILE *file, const std::string &what)
 {
-    write(file, what);
-    fprintf(file, "\n");
+    if (! what.empty()) {
+        write(file, what);
+        fprintf(file, "\n");
+    }
 }
 
 // Collect pairs of object_layer + support_layer sorted by print_z.
@@ -486,7 +488,10 @@ bool GCode::do_export(FILE *file, Print &print)
     this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
     // Let the start-up script prime the 1st printing tool.
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
-    fprintf(file, "%s\n", m_placeholder_parser.process(print.config.start_gcode.value).c_str());
+    writeln(file, m_placeholder_parser.process(print.config.start_gcode.value));
+    // Process filament-specific gcode in extruder order.
+    for (const std::string &start_gcode : print.config.start_filament_gcode.values)
+        writeln(file, m_placeholder_parser.process(start_gcode));
     this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, true);
     
     // Set other general things.
@@ -623,14 +628,17 @@ bool GCode::do_export(FILE *file, Print &print)
             write(file, m_wipe_tower->finalize(*this));
     }
 
-    // write end commands to file
+    // Write end commands to file.
     write(file, this->retract());
     write(file, m_writer.set_fan(false));
+    // Process filament-specific gcode in extruder order.
+    for (const std::string &end_gcode : print.config.end_filament_gcode.values)
+        writeln(file, m_placeholder_parser.process(end_gcode));
     writeln(file, m_placeholder_parser.process(print.config.end_gcode));
     write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     write(file, m_writer.postamble());
 
-    // get filament stats
+    // Get filament stats.
     print.filament_stats.clear();
     print.total_used_filament    = 0.;
     print.total_extruded_volume  = 0.;

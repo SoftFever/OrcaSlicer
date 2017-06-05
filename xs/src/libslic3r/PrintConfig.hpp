@@ -326,6 +326,7 @@ public:
     ConfigOptionString              before_layer_gcode;
     ConfigOptionFloats              deretract_speed;
     ConfigOptionString              end_gcode;
+    ConfigOptionStrings             end_filament_gcode;
     ConfigOptionString              extrusion_axis;
     ConfigOptionFloats              extrusion_multiplier;
     ConfigOptionFloats              filament_diameter;
@@ -351,6 +352,7 @@ public:
     ConfigOptionFloats              retract_restart_extra_toolchange;
     ConfigOptionFloats              retract_speed;
     ConfigOptionString              start_gcode;
+    ConfigOptionStrings             start_filament_gcode;
     ConfigOptionBool                single_extruder_multi_material;
     ConfigOptionString              toolchange_gcode;
     ConfigOptionFloat               travel_speed;
@@ -369,6 +371,7 @@ public:
         OPT_PTR(before_layer_gcode);
         OPT_PTR(deretract_speed);
         OPT_PTR(end_gcode);
+        OPT_PTR(end_filament_gcode);
         OPT_PTR(extrusion_axis);
         OPT_PTR(extrusion_multiplier);
         OPT_PTR(filament_diameter);
@@ -395,6 +398,7 @@ public:
         OPT_PTR(retract_speed);
         OPT_PTR(single_extruder_multi_material);
         OPT_PTR(start_gcode);
+        OPT_PTR(start_filament_gcode);
         OPT_PTR(toolchange_gcode);
         OPT_PTR(travel_speed);
         OPT_PTR(use_firmware_retraction);

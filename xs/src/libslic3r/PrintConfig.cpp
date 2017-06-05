@@ -156,6 +156,19 @@ PrintConfigDef::PrintConfigDef()
     def->height = 120;
     def->default_value = new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n");
 
+    def = this->add("end_filament_gcode", coStrings);
+    def->label = "End G-code";
+    def->tooltip = "This end procedure is inserted at the end of the output file, before the printer end gcode. Note that you can use placeholder variables for all Slic3r settings. If you have multiple extruders, the gcode is processed in extruder order.";
+    def->cli = "end-filament-gcode=s@";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 120;
+    {
+        ConfigOptionStrings* opt = new ConfigOptionStrings();
+        opt->values.push_back("; Filament-specific end gcode \n;END gcode for filament\n");
+        def->default_value = opt;
+    }
+
     def = this->add("ensure_vertical_shell_thickness", coBool);
     def->label = "Ensure vertical shell thickness";
     def->category = "Layers and Perimeters";
@@ -1234,6 +1247,19 @@ PrintConfigDef::PrintConfigDef()
     def->full_width = true;
     def->height = 120;
     def->default_value = new ConfigOptionString("G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n");
+
+    def = this->add("start_filament_gcode", coStrings);
+    def->label = "Start G-code";
+    def->tooltip = "This start procedure is inserted at the beginning, after any printer start gcode. This is used to override settings for a specific filament. If Slic3r detects M104, M109, M140 or M190 in your custom codes, such commands will not be prepended automatically so you're free to customize the order of heating commands and other custom actions. Note that you can use placeholder variables for all Slic3r settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want. If you have multiple extruders, the gcode is processed in extruder order.";
+    def->cli = "start-filament-gcode=s@";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 120;
+    {
+        ConfigOptionStrings* opt = new ConfigOptionStrings();
+        opt->values.push_back("; Filament gcode\n");
+        def->default_value = opt;
+    }
 
     def = this->add("single_extruder_multi_material", coBool);
     def->label = "Single Extruder Multi Material";
