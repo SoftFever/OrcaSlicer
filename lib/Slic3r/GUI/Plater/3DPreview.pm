@@ -89,20 +89,26 @@ sub new {
     EVT_KEY_DOWN($canvas, sub {
         my ($s, $event) = @_;
         my $key = $event->GetKeyCode;
-        if ($key == ord('U') || $key == WXK_RIGHT) {
-            $slider_high->SetValue($slider_high->GetValue + 1);
-            $slider_low->SetValue($slider_high->GetValue) if ($event->ShiftDown());
-            $self->set_z_idx_high($slider_high->GetValue);
-        } elsif ($key == ord('D') || $key == WXK_LEFT) {
-            $slider_high->SetValue($slider_high->GetValue - 1);
-            $slider_low->SetValue($slider_high->GetValue) if ($event->ShiftDown());
-            $self->set_z_idx_high($slider_high->GetValue);
-        } elsif ($key == ord('S')) {
-            $checkbox_singlelayer->SetValue(! $checkbox_singlelayer->GetValue());
-            $self->single_layer($checkbox_singlelayer->GetValue());
-            if ($self->single_layer) {
-                $slider_low->SetValue($slider_high->GetValue);
+        if ($event->HasModifiers) {
+            $event->Skip;
+        } else {
+            if ($key == ord('U') || $key == WXK_RIGHT) {
+                $slider_high->SetValue($slider_high->GetValue + 1);
+                $slider_low->SetValue($slider_high->GetValue) if ($event->ShiftDown());
                 $self->set_z_idx_high($slider_high->GetValue);
+            } elsif ($key == ord('D') || $key == WXK_LEFT) {
+                $slider_high->SetValue($slider_high->GetValue - 1);
+                $slider_low->SetValue($slider_high->GetValue) if ($event->ShiftDown());
+                $self->set_z_idx_high($slider_high->GetValue);
+            } elsif ($key == ord('S')) {
+                $checkbox_singlelayer->SetValue(! $checkbox_singlelayer->GetValue());
+                $self->single_layer($checkbox_singlelayer->GetValue());
+                if ($self->single_layer) {
+                    $slider_low->SetValue($slider_high->GetValue);
+                    $self->set_z_idx_high($slider_high->GetValue);
+                }
+            } else {
+                $event->Skip;
             }
         }
     });
