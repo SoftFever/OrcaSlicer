@@ -783,9 +783,7 @@ void _3DScene::_load_print_toolpaths(
             extrusionentity_to_verts(print->brim, print_zs[i], Point(0, 0), volume);
         extrusionentity_to_verts(print->skirt, print_zs[i], Point(0, 0), volume);
     }
-    auto bb = print->bounding_box();
-    volume.bounding_box.merge(Pointf3(unscale(bb.min.x), unscale(bb.min.y), 0.f));
-    volume.bounding_box.merge(Pointf3(unscale(bb.max.x), unscale(bb.max.y), 0.f));
+    volume.bounding_box = volume.indexed_vertex_array.bounding_box();
     volume.indexed_vertex_array.finalize_geometry(use_VBOs);
 }
 
@@ -804,8 +802,6 @@ void _3DScene::_load_print_object_toolpaths(
     {
         const Points                *shifted_copies;
         std::vector<const Layer*>    layers;
-        // Bounding box of the object and its copies.
-        BoundingBoxf3                bbox;
         bool                         has_perimeters;
         bool                         has_infill;
         bool                         has_support;
@@ -838,13 +834,6 @@ void _3DScene::_load_print_object_toolpaths(
     for (const Layer *layer : print_object->support_layers)
         ctxt.layers.push_back(layer);
     std::sort(ctxt.layers.begin(), ctxt.layers.end(), [](const Layer *l1, const Layer *l2) { return l1->print_z < l2->print_z; });
-    
-    for (const Point &copy: print_object->_shifted_copies) {
-        BoundingBox cbb = print_object->bounding_box();
-        cbb.translate(copy.x, copy.y);
-        ctxt.bbox.merge(Pointf3(unscale(cbb.min.x), unscale(cbb.min.y), 0.f));
-        ctxt.bbox.merge(Pointf3(unscale(cbb.max.x), unscale(cbb.max.y), 0.f));
-    }
 
     // Maximum size of an allocation block: 32MB / sizeof(float)
     ctxt.has_perimeters = print_object->state.is_done(posPerimeters);
@@ -875,11 +864,8 @@ void _3DScene::_load_print_object_toolpaths(
                     vols.emplace_back(new_volume(ctxt.color_tool(i)));
             } else
                 vols = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_infill()), new_volume(ctxt.color_support()) };
-            for (size_t i = 0; i < vols.size(); ++ i) {
-                GLVolume &volume = *vols[i];
-                volume.bounding_box = ctxt.bbox;
-                volume.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
-            }
+            for (GLVolume *vol : vols)
+                vol->indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
             for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                 const Layer *layer = ctxt.layers[idx_layer];
                 for (size_t i = 0; i < vols.size(); ++ i) {
@@ -928,7 +914,6 @@ void _3DScene::_load_print_object_toolpaths(
                         // Store the vertex arrays and restart their containers, 
                         vols[i] = new_volume(vol.color);
                         GLVolume &vol_new = *vols[i];
-                        vol_new.bounding_box = ctxt.bbox;
                         // Assign the large pre-allocated buffers to the new GLVolume.
                         vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
                         // Copy the content back to the old GLVolume.
@@ -950,8 +935,11 @@ void _3DScene::_load_print_object_toolpaths(
         std::remove_if(volumes->volumes.begin() + volumes_cnt_initial, volumes->volumes.end(), 
             [](const GLVolume *volume) { return volume->empty(); }),
         volumes->volumes.end());
-    for (size_t i = volumes_cnt_initial; i < volumes->volumes.size(); ++ i)
-        volumes->volumes[i]->indexed_vertex_array.finalize_geometry(use_VBOs);
+    for (size_t i = volumes_cnt_initial; i < volumes->volumes.size(); ++ i) {
+        GLVolume &volume = *volumes->volumes[i];
+        volume.bounding_box = volume.indexed_vertex_array.bounding_box();
+        volume.indexed_vertex_array.finalize_geometry(use_VBOs);
+    }
   
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end"; 
 }
