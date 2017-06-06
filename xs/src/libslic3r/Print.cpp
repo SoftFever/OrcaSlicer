@@ -564,6 +564,16 @@ std::string Print::validate() const
         if (this->regions.size() > 1)
             return "The Spiral Vase option can only be used when printing single material objects.";
     }
+
+    if (this->config.wipe_tower) {
+        for (auto dmr : this->config.nozzle_diameter.values)
+            if (std::abs(dmr - 0.4) > EPSILON)
+                return "The Wipe Tower is currently only supported for the 0.4mm nozzle diameter.";
+        if (this->config.gcode_flavor != gcfRepRap)
+            return "The Wipe Tower is currently only supported for the RepRap (Marlin / Sprinter) G-code flavor.";
+        if (! this->config.use_relative_e_distances)
+            return "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).";
+    }
     
     {
         // find the smallest nozzle diameter

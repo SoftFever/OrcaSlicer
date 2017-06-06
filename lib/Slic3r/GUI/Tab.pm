@@ -841,19 +841,53 @@ sub _update {
             . "- no ensure_vertical_shell_thickness\n"
             . "\nShall I adjust those settings in order to enable Spiral Vase?",
             'Spiral Vase', wxICON_WARNING | wxYES | wxNO);
+        my $new_conf = Slic3r::Config->new;
         if ($dialog->ShowModal() == wxID_YES) {
-            my $new_conf = Slic3r::Config->new;
             $new_conf->set("perimeters", 1);
             $new_conf->set("top_solid_layers", 0);
             $new_conf->set("fill_density", 0);
             $new_conf->set("support_material", 0);
             $new_conf->set("ensure_vertical_shell_thickness", 0);
-            $self->load_config($new_conf);
         } else {
-            my $new_conf = Slic3r::Config->new;
             $new_conf->set("spiral_vase", 0);
-            $self->load_config($new_conf);
         }
+        $self->load_config($new_conf);
+    }
+
+    if ($config->wipe_tower && 
+        ($config->first_layer_height != 0.2 || ($config->layer_height != 0.15 && $config->layer_height != 0.2))) {
+        my $dialog = Wx::MessageDialog->new($self,
+            "The Wipe Tower currently supports only:\n"
+            . "- first layer height 0.2mm\n"
+            . "- layer height 0.15mm or 0.2mm\n"
+            . "\nShall I adjust those settings in order to enable the Wipe Tower?",
+            'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
+        my $new_conf = Slic3r::Config->new;
+        if ($dialog->ShowModal() == wxID_YES) {
+            $new_conf->set("first_layer_height", 0.2);
+            $new_conf->set("layer_height", 0.15) if $config->layer_height != 0.15 && $config->layer_height != 0.2;
+        } else {
+            $new_conf->set("wipe_tower", 0);
+        }
+        $self->load_config($new_conf);
+    }
+
+    if ($config->wipe_tower && $config->support_material && $config->support_material_contact_distance > 0. && 
+        ($config->support_material_extruder != 0 || $config->support_material_interface_extruder != 0)) {
+        my $dialog = Wx::MessageDialog->new($self,
+            "The Wipe Tower currently supports the non-soluble supports only\n"
+            . "if they are printed with the current extruder without triggering a tool change.\n"
+            . "(both support_material_extruder and support_material_interface_extruder need to be set to 0).\n"
+            . "\nShall I adjust those settings in order to enable the Wipe Tower?",
+            'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
+        my $new_conf = Slic3r::Config->new;
+        if ($dialog->ShowModal() == wxID_YES) {
+            $new_conf->set("support_material_extruder", 0);
+            $new_conf->set("support_material_interface_extruder", 0);
+        } else {
+            $new_conf->set("wipe_tower", 0);
+        }
+        $self->load_config($new_conf);
     }
 
     if ($keys_modified->{'layer_height'}) {
