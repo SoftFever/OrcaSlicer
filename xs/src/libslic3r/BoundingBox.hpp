@@ -85,19 +85,24 @@ class BoundingBox : public BoundingBoxBase<Point>
     friend BoundingBox get_extents_rotated(const Points &points, double angle);
 };
 
-/*
-class BoundingBox3  : public BoundingBox3Base<Point3> {};
-*/
+class BoundingBox3  : public BoundingBox3Base<Point3> 
+{
+    BoundingBox3() : BoundingBox3Base<Point3>() {};
+    BoundingBox3(const Point3 &pmin, const Point3 &pmax) : BoundingBox3Base<Point3>(pmin, pmax) {};
+    BoundingBox3(const std::vector<Point3> &points) : BoundingBox3Base<Point3>(points) {};
+};
 
-class BoundingBoxf : public BoundingBoxBase<Pointf> {
-    public:
+class BoundingBoxf : public BoundingBoxBase<Pointf> 
+{
+public:
     BoundingBoxf() : BoundingBoxBase<Pointf>() {};
     BoundingBoxf(const Pointf &pmin, const Pointf &pmax) : BoundingBoxBase<Pointf>(pmin, pmax) {};
     BoundingBoxf(const std::vector<Pointf> &points) : BoundingBoxBase<Pointf>(points) {};
 };
 
-class BoundingBoxf3 : public BoundingBox3Base<Pointf3> {
-    public:
+class BoundingBoxf3 : public BoundingBox3Base<Pointf3> 
+{
+public:
     BoundingBoxf3() : BoundingBox3Base<Pointf3>() {};
     BoundingBoxf3(const Pointf3 &pmin, const Pointf3 &pmax) : BoundingBox3Base<Pointf3>(pmin, pmax) {};
     BoundingBoxf3(const std::vector<Pointf3> &points) : BoundingBox3Base<Pointf3>(points) {};
