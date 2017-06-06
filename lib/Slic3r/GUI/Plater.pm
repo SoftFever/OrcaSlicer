@@ -903,9 +903,9 @@ sub increase {
 }
 
 sub decrease {
-    my ($self, $copies) = @_;
+    my ($self, $copies_asked) = @_;
     
-    $copies //= 1;
+    my $copies = $copies_asked // 1;
     $self->stop_background_process;
     
     my ($obj_idx, $object) = $self->selected_object;
@@ -916,8 +916,13 @@ sub decrease {
             $self->{print}->objects->[$obj_idx]->delete_last_copy;
         }
         $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
-    } else {
+    } elsif (defined $copies_asked) {
+        # The "decrease" came from the "set number of copies" dialog.
         $self->remove;
+    } else {
+        # The "decrease" came from the "-" button. Don't allow the object to disappear.
+        $self->resume_background_process;
+        return;
     }
     
     if ($self->{objects}[$obj_idx]) {
