@@ -1841,6 +1841,7 @@ sub get_name {
 
 package Slic3r::GUI::Tab::Preset;
 use Moo;
+use List::Util qw(any);
 
 # The preset represents a "default" set of properties.
 has 'default'   => (is => 'ro', default => sub { 0 });
@@ -1865,6 +1866,17 @@ sub config {
         my $external_config = Slic3r::Config->load($self->file);
         $config->set($_, $external_config->get($_))
             for grep $external_config->has($_), @$keys;
+
+        if (any { $_ eq 'nozzle_diameter' } @$keys) {
+            # Loaded the Printer settings. Verify, that all extruder dependent values have enough values.
+            my $nozzle_diameter     = $config->nozzle_diameter;
+            my $num_extruders       = scalar(@{$nozzle_diameter});
+            foreach my $key (qw(deretract_speed extruder_colour retract_before_wipe)) {
+                my $vec = $config->get($key);
+                push @{$vec}, ($vec->[0]) x ($num_extruders - @{$vec});
+                $config->set($key, $vec);
+            }
+        }
         
         return $config;
     }
