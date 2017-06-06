@@ -890,6 +890,22 @@ sub _update {
         $self->load_config($new_conf);
     }
 
+    if ($config->wipe_tower && $config->support_material && $config->support_material_contact_distance == 0 && 
+        ! $config->support_material_synchronize_layers) {
+        my $dialog = Wx::MessageDialog->new($self,
+            "For the Wipe Tower to work with the soluble supports, the support layers\n"
+            . "need to be synchronized with the object layers.\n"
+            . "\nShall I synchronize support layers in order to enable the Wipe Tower?",
+            'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
+        my $new_conf = Slic3r::Config->new;
+        if ($dialog->ShowModal() == wxID_YES) {
+            $new_conf->set("support_material_synchronize_layers", 1);
+        } else {
+            $new_conf->set("wipe_tower", 0);
+        }
+        $self->load_config($new_conf);
+    }
+
     if ($keys_modified->{'layer_height'}) {
         # If the user had set the variable layer height, reset it and let the user know.
     }

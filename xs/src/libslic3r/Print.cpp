@@ -573,6 +573,18 @@ std::string Print::validate() const
             return "The Wipe Tower is currently only supported for the RepRap (Marlin / Sprinter) G-code flavor.";
         if (! this->config.use_relative_e_distances)
             return "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).";
+        for (PrintObject *object : this->objects) {
+            if (std::abs(object->config.first_layer_height - this->objects.front()->config.first_layer_height) > EPSILON ||
+                std::abs(object->config.layer_height       - this->objects.front()->config.layer_height      ) > EPSILON)
+                return "The Wipe Tower is only supported for multiple objects if they have equal layer heigths";
+            object->update_layer_height_profile();
+            if (object->layer_height_profile.size() != 8 ||
+                std::abs(object->layer_height_profile[1] - object->config.first_layer_height) > EPSILON ||
+                std::abs(object->layer_height_profile[3] - object->config.first_layer_height) > EPSILON ||
+                std::abs(object->layer_height_profile[5] - object->config.layer_height) > EPSILON ||
+                std::abs(object->layer_height_profile[7] - object->config.layer_height) > EPSILON)
+                return "The Wipe Tower is currently only supported with constant Z layer spacing. Layer editing is not allowed.";
+        }
     }
     
     {
