@@ -15,7 +15,7 @@ typedef std::vector<ThickLine> ThickLines;
 
 class Line
 {
-    public:
+public:
     Point a;
     Point b;
     Line() {};

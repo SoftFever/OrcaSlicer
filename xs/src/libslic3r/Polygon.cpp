@@ -293,6 +293,44 @@ Polygon::convex_points(double angle) const
     return points;
 }
 
+// Projection of a point onto the polygon.
+Point Polygon::point_projection(const Point &point) const
+{
+    Point proj = point;
+    double dmin = std::numeric_limits<double>::max();
+    if (! this->points.empty()) {
+        for (size_t i = 0; i < this->points.size(); ++ i) {
+            const Point &pt0 = this->points[i];
+            const Point &pt1 = this->points[(i + 1 == this->points.size()) ? 0 : i + 1];
+            double d = pt0.distance_to(point);
+            if (d < dmin) {
+                dmin = d;
+                proj = pt0;
+            }
+            d = pt1.distance_to(point);
+            if (d < dmin) {
+                dmin = d;
+                proj = pt1;
+            }
+            Pointf v1(coordf_t(pt1.x - pt0.x), coordf_t(pt1.y - pt0.y));
+            coordf_t div = dot(v1);
+            if (div > 0.) {
+                Pointf v2(coordf_t(point.x - pt0.x), coordf_t(point.y - pt0.y));
+                coordf_t t = dot(v1, v2) / div;
+                if (t > 0. && t < 1.) {
+                    Point foot(coord_t(floor(coordf_t(pt0.x) + t * v1.x + 0.5)), coord_t(floor(coordf_t(pt0.y) + t * v1.y + 0.5)));
+                    d = foot.distance_to(point);
+                    if (d < dmin) {
+                        dmin = d;
+                        proj = foot;
+                    }
+                }
+            }
+        }
+    }
+    return proj;
+}
+
 BoundingBox get_extents(const Polygon &poly) 
 { 
     return poly.bounding_box();

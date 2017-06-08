@@ -48,6 +48,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               bed_shape
                               bed_triangles
                               bed_grid_lines
+                              bed_polygon
                               background
                               origin
                               _mouse_pos
@@ -55,6 +56,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
 
                               _drag_volume_idx
                               _drag_start_pos
+                              _drag_volume_center_offset
                               _drag_start_xy
                               _dragged
 
@@ -388,8 +390,18 @@ sub mouse_event {
             
             if ($volume_idx != -1) {
                 if ($e->LeftDown && $self->enable_moving) {
-                    $self->_drag_volume_idx($volume_idx);
-                    $self->_drag_start_pos($self->mouse_to_3d(@$pos));
+                    my $pos3d = $self->mouse_to_3d(@$pos);
+                    # Only accept the initial position, if it is inside the volume bounding box.
+                    my $volume_bbox = $self->volumes->[$volume_idx]->transformed_bounding_box;
+                    $volume_bbox->offset(0.01);
+                    if ($volume_bbox->contains_point($pos3d)) {
+                        # The dragging operation is initiated.
+                        $self->_drag_volume_idx($volume_idx);
+                        $self->_drag_start_pos($pos3d);
+                        # Remember the shift to to the object center. The object center will later be used
+                        # to limit the object placement close to the bed.
+                        $self->_drag_volume_center_offset($pos3d->vector_to($volume_bbox->center));
+                    }
                 } elsif ($e->RightDown) {
                     # if right clicking on volume, propagate event through callback
                     $self->on_right_click->($e->GetPosition)
@@ -398,26 +410,29 @@ sub mouse_event {
             }
         }
     } elsif ($e->Dragging && $e->LeftIsDown && ! $self->_layer_height_edited && defined($self->_drag_volume_idx)) {
-        # get new position at the same Z of the initial click point
-        my $mouse_ray = $self->mouse_ray($e->GetX, $e->GetY);
-        my $cur_pos = $mouse_ray->intersect_plane($self->_drag_start_pos->z);
-        
-        # calculate the translation vector
-        my $vector = $self->_drag_start_pos->vector_to($cur_pos);
-        
-        # get volume being dragged
-        my $volume = $self->volumes->[$self->_drag_volume_idx];
-        
-        # get all volumes belonging to the same group, if any
-        my @volumes;
-        if ($volume->drag_group_id == -1) {
-            @volumes = ($volume);
-        } else {
-            @volumes = grep $_->drag_group_id == $volume->drag_group_id, @{$self->volumes};
+        # Get new position at the same Z of the initial click point.
+        my $cur_pos = $self->mouse_ray($e->GetX, $e->GetY)->intersect_plane($self->_drag_start_pos->z);
+        # Clip the new position, so the object center remains close to the bed.
+        {
+            $cur_pos->translate(@{$self->_drag_volume_center_offset});
+            my $cur_pos2 = Slic3r::Point->new(scale($cur_pos->x), scale($cur_pos->y));
+            if (! $self->bed_polygon->contains_point($cur_pos2)) {
+                my $ip = $self->bed_polygon->point_projection($cur_pos2);
+                $cur_pos->set_x(unscale($ip->x));
+                $cur_pos->set_y(unscale($ip->y));
+            }
+            $cur_pos->translate(@{$self->_drag_volume_center_offset->negative});
         }
-        
-        # apply new temporary volume origin and ignore Z
-        $_->translate($vector->x, $vector->y, 0) for @volumes; #,,
+        # Calculate the translation vector.
+        my $vector = $self->_drag_start_pos->vector_to($cur_pos);
+        # Get the volume being dragged.
+        my $volume = $self->volumes->[$self->_drag_volume_idx];
+        # Get all volumes belonging to the same group, if any.
+        my @volumes = ($volume->drag_group_id == -1) ?
+            ($volume) :
+            grep $_->drag_group_id == $volume->drag_group_id, @{$self->volumes};
+        # Apply new temporary volume origin and ignore Z.
+        $_->translate($vector->x, $vector->y, 0) for @volumes;
         $self->_drag_start_pos($cur_pos);
         $self->_dragged(1);
         $self->Refresh;
@@ -430,6 +445,7 @@ sub mouse_event {
             if (defined $self->_drag_start_pos) {
                 my $orig = $self->_drag_start_pos;
                 if (TURNTABLE_MODE) {
+                    # Turntable mode is enabled by default.
                     $self->_sphi($self->_sphi + ($pos->x - $orig->x) * TRACKBALLSIZE);
                     $self->_stheta($self->_stheta - ($pos->y - $orig->y) * TRACKBALLSIZE);        #-
                     $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
@@ -668,6 +684,8 @@ sub max_bounding_box {
     return $bb;
 }
 
+# Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane
+# to support the scene objects.
 sub set_auto_bed_shape {
     my ($self, $bed_shape) = @_;
     
@@ -680,9 +698,14 @@ sub set_auto_bed_shape {
         [ $center->x + $max_size, $center->y + $max_size ],  #++
         [ $center->x - $max_size, $center->y + $max_size ],  #++
     ]);
+    # Set the origin for painting of the coordinate system axes.
     $self->origin(Slic3r::Pointf->new(@$center[X,Y]));
 }
 
+# Set the bed shape to a single closed 2D polygon (array of two element arrays),
+# triangulate the bed and store the triangles into $self->bed_triangles,
+# fills the $self->bed_grid_lines and sets $self->origin.
+# Sets $self->bed_polygon to limit the object placement.
 sub set_bed_shape {
     my ($self, $bed_shape) = @_;
     
@@ -695,7 +718,7 @@ sub set_bed_shape {
     {
         my @points = ();
         foreach my $triangle (@{ $expolygon->triangulate }) {
-            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$triangle;  #))
+            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$triangle;
         }
         $self->bed_triangles(OpenGL::Array->new_list(GL_FLOAT, @points));
     }
@@ -723,7 +746,10 @@ sub set_bed_shape {
         $self->bed_grid_lines(OpenGL::Array->new_list(GL_FLOAT, @points));
     }
     
+    # Set the origin for painting of the coordinate system axes.
     $self->origin(Slic3r::Pointf->new(0,0));
+
+    $self->bed_polygon(offset_ex([$expolygon->contour], $bed_bb->radius * 1.7)->[0]->contour->clone);
 }
 
 sub deselect_volumes {
@@ -1073,6 +1099,7 @@ sub Render {
     }
     
     if (TURNTABLE_MODE) {
+        # Turntable mode is enabled by default.
         glRotatef(-$self->_stheta, 1, 0, 0); # pitch
         glRotatef($self->_sphi, 0, 0, 1);    # yaw
     } else {

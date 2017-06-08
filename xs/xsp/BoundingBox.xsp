@@ -95,6 +95,8 @@ new_from_points(CLASS, points)
     void merge_point(Pointf3* point) %code{% THIS->merge(*point); %};
     void scale(double factor);
     void translate(double x, double y, double z);
+    void offset(double delta);
+    bool contains_point(Pointf3* point) %code{% RETVAL = THIS->contains(*point); %};
     Clone<Pointf3> size();
     Clone<Pointf3> center();
     double radius();

@@ -51,6 +51,8 @@ public:
     std::string wkt() const;
     Points concave_points(double angle = PI) const;
     Points convex_points(double angle = PI) const;
+    // Projection of a point onto the polygon.
+    Point point_projection(const Point &point) const;
 };
 
 extern BoundingBox get_extents(const Polygon &poly);
