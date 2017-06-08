@@ -93,19 +93,9 @@ public:
 		m_current_wipe_start_y  = 0.f;
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
 		++ m_num_layer_changes;
-
+		// Extrusion rate for an extrusion aka perimeter width 0.35mm.
+		m_extrusion_flow = std::min(0.2f, layer_height) * 0.145f;
 		int layer_idx = int(std::floor(layer_height * 1000) + 0.5f);
-		switch (layer_idx)
-		{
-		case 150:
-			m_extrusion_flow = (float)0.0218;
-			break;
-		case 200:
-		default:
-			// Extrusion rate for an extrusion aka perimeter width 0.35mm.
-			m_extrusion_flow = (float)0.029;
-			break;
-		}
 	}
 
 	// Return the wipe tower position.

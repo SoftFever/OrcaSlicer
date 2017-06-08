@@ -855,17 +855,18 @@ sub _update {
     }
 
     if ($config->wipe_tower && 
-        ($config->first_layer_height != 0.2 || ($config->layer_height != 0.15 && $config->layer_height != 0.2))) {
+        ($config->first_layer_height != 0.2 || $config->layer_height < 0.15 || $config->layer_height > 0.35)) {
         my $dialog = Wx::MessageDialog->new($self,
             "The Wipe Tower currently supports only:\n"
             . "- first layer height 0.2mm\n"
-            . "- layer height 0.15mm or 0.2mm\n"
+            . "- layer height from 0.15mm to 0.35mm\n"
             . "\nShall I adjust those settings in order to enable the Wipe Tower?",
             'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
         my $new_conf = Slic3r::Config->new;
         if ($dialog->ShowModal() == wxID_YES) {
             $new_conf->set("first_layer_height", 0.2);
-            $new_conf->set("layer_height", 0.15) if $config->layer_height != 0.15 && $config->layer_height != 0.2;
+            $new_conf->set("layer_height", 0.15) if  $config->layer_height < 0.15;
+            $new_conf->set("layer_height", 0.35) if  $config->layer_height > 0.35;
         } else {
             $new_conf->set("wipe_tower", 0);
         }
