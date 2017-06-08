@@ -23,7 +23,7 @@ use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin tan);
 use List::Util qw(reduce min max first);
 use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale scaled_epsilon);
-use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl);
+use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl JT_ROUND);
 use Wx::GLCanvas qw(:all);
 use Slic3r::Geometry qw(PI);
 
@@ -752,7 +752,7 @@ sub set_bed_shape {
     # Set the origin for painting of the coordinate system axes.
     $self->origin(Slic3r::Pointf->new(0,0));
 
-    $self->bed_polygon(offset_ex([$expolygon->contour], $bed_bb->radius * 1.7)->[0]->contour->clone);
+    $self->bed_polygon(offset_ex([$expolygon->contour], $bed_bb->radius * 1.7, JT_ROUND, scale(0.5))->[0]->contour->clone);
 }
 
 sub deselect_volumes {
@@ -1116,8 +1116,10 @@ sub Render {
         # Render the object for picking.
         # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
         # Better to use software ray-casting on a bounding-box hierarchy.
+        glPushAttrib(GL_ENABLE_BIT);
         glDisable(GL_MULTISAMPLE);
         glDisable(GL_LIGHTING);
+        glDisable(GL_BLEND);
         $self->draw_volumes(1);
         glFlush();
         glFinish();
@@ -1142,8 +1144,7 @@ sub Render {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glFlush();
         glFinish();
-        glEnable(GL_LIGHTING);
-        glEnable(GL_MULTISAMPLE);
+        glPopAttrib();
     }
     
     # draw fixed background
