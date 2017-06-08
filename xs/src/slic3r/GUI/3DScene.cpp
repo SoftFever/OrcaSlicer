@@ -1016,9 +1016,6 @@ void _3DScene::_load_wipe_tower_toolpaths(
             }
             for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                 const std::vector<WipeTower::ToolChangeResult> &layer = ctxt.print->m_wipe_tower_tool_changes[idx_layer];
-                coordf_t layer_height = (idx_layer == 0) ? 
-                    ctxt.print->objects.front()->config.first_layer_height.get_abs_value(ctxt.print->objects.front()->config.layer_height.value) :
-                    ctxt.print->objects.front()->config.layer_height.value;
                 for (size_t i = 0; i < vols.size(); ++ i) {
                     GLVolume &vol = *vols[i];
                     if (vol.print_zs.empty() || vol.print_zs.back() != layer.front().print_z) {
@@ -1045,7 +1042,7 @@ void _3DScene::_load_wipe_tower_toolpaths(
                         std::vector<double> heights;
                         lines.reserve(n_lines);
                         widths.reserve(n_lines);
-                        heights.assign(n_lines, layer_height);
+                        heights.assign(n_lines, extrusions.layer_height);
                         for (; i < j; ++ i) {
                             const WipeTower::Extrusion &e = extrusions.extrusions[i];
                             assert(e.width > 0.f);

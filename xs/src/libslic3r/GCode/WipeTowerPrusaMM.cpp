@@ -471,12 +471,13 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(int tool, bool last_in
 	}
 
 	ToolChangeResult result;
-	result.print_z 	  = this->m_z_pos;
-	result.gcode   	  = writer.gcode();
+	result.print_z 	  	= this->m_z_pos;
+	result.layer_height = this->m_layer_height;
+	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
-	result.extrusions = writer.extrusions();
-	result.start_pos  = writer.start_pos();
-	result.end_pos 	  = writer.pos();
+	result.extrusions 	= writer.extrusions();
+	result.start_pos  	= writer.start_pos();
+	result.end_pos 	  	= writer.pos();
 	return result;
 }
 
@@ -554,12 +555,13 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 	}
 
 	ToolChangeResult result;
-	result.print_z 	  = this->m_z_pos;
-	result.gcode   	  = writer.gcode();
+	result.print_z 	  	= this->m_z_pos;
+	result.layer_height = this->m_layer_height;
+	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
-	result.extrusions = writer.extrusions();
-	result.start_pos  = writer.start_pos();
-	result.end_pos 	  = writer.pos();
+	result.extrusions 	= writer.extrusions();
+	result.start_pos  	= writer.start_pos();
+	result.end_pos 	  	= writer.pos();
 	return result;
 }
 
@@ -848,12 +850,13 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 	}
 
 	ToolChangeResult result;
-	result.print_z 	  = this->m_z_pos;
-	result.gcode   	  = writer.gcode();
+	result.print_z 	  	= this->m_z_pos;
+	result.layer_height = this->m_layer_height;
+	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
-	result.extrusions = writer.extrusions();
-	result.start_pos  = writer.start_pos();
-	result.end_pos 	  = writer.pos();
+	result.extrusions 	= writer.extrusions();
+	result.start_pos 	= writer.start_pos();
+	result.end_pos 	  	= writer.pos();
 	return result;
 }
 

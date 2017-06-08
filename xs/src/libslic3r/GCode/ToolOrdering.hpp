@@ -20,7 +20,8 @@ public:
 	    	has_object(false),
 			has_support(false),
 			has_wipe_tower(false),
-	    	wipe_tower_partitions(0) {}
+	    	wipe_tower_partitions(0),
+	    	wipe_tower_layer_height(0.) {}
 
 	    bool operator< (const LayerTools &rhs) const { return print_z <  rhs.print_z; }
 	    bool operator==(const LayerTools &rhs) const { return print_z == rhs.print_z; }
@@ -37,6 +38,7 @@ public:
 		// Number of wipe tower partitions to support the required number of tool switches
 		// and to support the wipe tower partitions above this one.
 	    size_t                      wipe_tower_partitions;
+	    coordf_t 					wipe_tower_layer_height;
 	};
 
 	ToolOrdering() {}
@@ -71,7 +73,7 @@ private:
 	void				initialize_layers(std::vector<coordf_t> &zs);
 	void 				collect_extruders(const PrintObject &object);
 	void				reorder_extruders(unsigned int last_extruder_id);
-	void 				fill_wipe_tower_partitions();
+	void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z);
 
 	std::vector<LayerTools> m_layer_tools;
 };

@@ -9,6 +9,9 @@ namespace Slic3r {
 // (print.config.complete_objects is true).
 ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder)
 {
+    if (object.layers.empty())
+        return;
+
     // Initialize the print layers for just a single object.
     {
         std::vector<coordf_t> zs;
@@ -26,7 +29,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
 
-    this->fill_wipe_tower_partitions();
+    this->fill_wipe_tower_partitions(object.print()->config, object.layers.front()->print_z - object.layers.front()->height);
 }
 
 // For the use case when all objects are printed at once.
@@ -34,6 +37,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder)
 {
     // Initialize the print layers for all objects and all layers. 
+    coordf_t object_bottom_z = 0.;
     {
         std::vector<coordf_t> zs;
         for (auto object : print.objects) {
@@ -42,6 +46,8 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder)
                 zs.emplace_back(layer->print_z);
             for (auto layer : object->support_layers)
                 zs.emplace_back(layer->print_z);
+            if (! object->layers.empty())
+                object_bottom_z = object->layers.front()->print_z - object->layers.front()->height;
         }
         this->initialize_layers(zs);
     }
@@ -53,7 +59,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder)
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
 
-    this->fill_wipe_tower_partitions();
+    this->fill_wipe_tower_partitions(print.config, object_bottom_z);
 }
 
 unsigned int ToolOrdering::first_extruder() const
@@ -221,7 +227,7 @@ void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
         }
 }
 
-void ToolOrdering::fill_wipe_tower_partitions()
+void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z)
 {
     if (m_layer_tools.empty())
         return;
@@ -244,7 +250,50 @@ void ToolOrdering::fill_wipe_tower_partitions()
 
     //FIXME this is a hack to get the ball rolling.
     for (LayerTools &lt : m_layer_tools)
-        lt.has_wipe_tower = lt.has_object && lt.wipe_tower_partitions > 0;
+        lt.has_wipe_tower = (lt.has_object && lt.wipe_tower_partitions > 0) || lt.print_z < object_bottom_z + EPSILON;
+
+    // Test for a raft, insert additional wipe tower layer to fill in the raft separation gap.
+    double max_layer_height = FLT_MAX;
+    for (size_t i = 0; i < config.nozzle_diameter.values.size(); ++ i) {
+        double mlh = config.max_layer_height.values[i];
+        if (mlh == 0.)
+            mlh = 0.75 * config.nozzle_diameter.values[i];
+        max_layer_height = std::min(max_layer_height, mlh);
+    }
+    for (size_t i = 0; i + 1 < m_layer_tools.size(); ++ i) {
+        const LayerTools &lt      = m_layer_tools[i];
+        const LayerTools &lt_next = m_layer_tools[i + 1];
+        if (lt.print_z < object_bottom_z + EPSILON && lt_next.print_z >= object_bottom_z + EPSILON) {
+            // lt is the last raft layer. Find the 1st object layer.
+            size_t j = i + 1;
+            for (; j < m_layer_tools.size() && ! m_layer_tools[j].has_wipe_tower; ++ j);
+            if (j < m_layer_tools.size()) {
+                const LayerTools &lt_object = m_layer_tools[j];
+                coordf_t gap = lt_object.print_z - lt.print_z;
+                assert(gap > 0.f);
+                if (gap > max_layer_height + EPSILON) {
+                    // Insert one additional wipe tower layer between lh.print_z and lt_object.print_z.
+                    LayerTools lt_new(0.5f * (lt.print_z + lt_object.print_z));
+                    // Find the 1st layer above lt_new.
+                    for (j = i + 1; j < m_layer_tools.size() && m_layer_tools[j].print_z < lt_new.print_z; ++ j);
+                    LayerTools &lt_extra = (m_layer_tools[j].print_z == lt_new.print_z) ? 
+                        m_layer_tools[j] :
+                        *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);
+                    lt_extra.has_wipe_tower = true;
+                    lt_extra.wipe_tower_partitions = lt_object.wipe_tower_partitions;
+                }
+            }
+            break;
+        }
+    }
+
+    // Calculate the wipe_tower_layer_height values.
+    coordf_t wipe_tower_print_z_last = 0.;
+    for (LayerTools &lt : m_layer_tools)
+        if (lt.has_wipe_tower) {
+            lt.wipe_tower_layer_height = lt.print_z - wipe_tower_print_z_last;
+            wipe_tower_print_z_last = lt.print_z;
+        }
 }
 
 } // namespace Slic3r

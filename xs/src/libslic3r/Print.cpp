@@ -565,7 +565,7 @@ std::string Print::validate() const
             return "The Spiral Vase option can only be used when printing single material objects.";
     }
 
-    if (this->config.wipe_tower) {
+    if (this->config.wipe_tower && ! this->objects.empty()) {
         for (auto dmr : this->config.nozzle_diameter.values)
             if (std::abs(dmr - 0.4) > EPSILON)
                 return "The Wipe Tower is currently only supported for the 0.4mm nozzle diameter.";
@@ -573,16 +573,22 @@ std::string Print::validate() const
             return "The Wipe Tower is currently only supported for the RepRap (Marlin / Sprinter) G-code flavor.";
         if (! this->config.use_relative_e_distances)
             return "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).";
+        SlicingParameters slicing_params0 = this->objects.front()->slicing_parameters();
         for (PrintObject *object : this->objects) {
-            if (std::abs(object->config.first_layer_height - this->objects.front()->config.first_layer_height) > EPSILON ||
-                std::abs(object->config.layer_height       - this->objects.front()->config.layer_height      ) > EPSILON)
+            SlicingParameters slicing_params = object->slicing_parameters();
+            if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
+                std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
                 return "The Wipe Tower is only supported for multiple objects if they have equal layer heigths";
+            if (slicing_params.raft_layers() != slicing_params0.raft_layers())
+                return "The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers";
+            if (object->config.support_material_contact_distance != this->objects.front()->config.support_material_contact_distance)
+                return "The Wipe Tower is only supported for multiple objects if they are printed with the same support_material_contact_distance";
+            if (! equal_layering(slicing_params, slicing_params0))
+                return "The Wipe Tower is only supported for multiple objects if they are sliced equally.";
             object->update_layer_height_profile();
-            if (object->layer_height_profile.size() != 8 ||
-                std::abs(object->layer_height_profile[1] - object->config.first_layer_height) > EPSILON ||
-                std::abs(object->layer_height_profile[3] - object->config.first_layer_height) > EPSILON ||
-                std::abs(object->layer_height_profile[5] - object->config.layer_height) > EPSILON ||
-                std::abs(object->layer_height_profile[7] - object->config.layer_height) > EPSILON)
+            for (size_t i = 1; i < object->layer_height_profile.size(); i += 2)
+                if (object->layer_height_profile[i-1] > slicing_params.object_print_z_min + EPSILON &&
+                    std::abs(object->layer_height_profile[i] - object->config.layer_height) > EPSILON)
                 return "The Wipe Tower is currently only supported with constant Z layer spacing. Layer editing is not allowed.";
         }
     }
@@ -959,9 +965,7 @@ void Print::_make_wipe_tower()
         bool last_layer  = &layer_tools == &m_tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0;
         wipe_tower.set_layer(
             float(layer_tools.print_z), 
-            float(first_layer ? 
-                this->objects.front()->config.first_layer_height.get_abs_value(this->objects.front()->config.layer_height.value) :
-                this->objects.front()->config.layer_height.value),
+            float(layer_tools.wipe_tower_layer_height),
             layer_tools.wipe_tower_partitions,
             first_layer,
             last_layer);

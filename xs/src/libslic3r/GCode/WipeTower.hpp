@@ -75,6 +75,7 @@ public:
 	{
 		// Print heigh of this tool change.
 		float					print_z;
+		float 					layer_height;
 		// G-code section to be directly included into the output G-code.
 		std::string				gcode;
 		// For path preview.
