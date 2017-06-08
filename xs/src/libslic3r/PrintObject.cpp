@@ -91,7 +91,9 @@ bool PrintObject::set_copies(const Points &points)
         this->_shifted_copies.push_back(copy);
     }
     
-    return this->_print->invalidate_step(psSkirt) || this->_print->invalidate_step(psBrim);
+    bool invalidated = this->_print->invalidate_step(psSkirt);
+    invalidated |= this->_print->invalidate_step(psBrim);
+    return invalidated;
 }
 
 bool PrintObject::reload_model_instances()
@@ -137,6 +139,7 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
         return false;
 
     std::vector<PrintObjectStep> steps;
+    bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
         if (   opt_key == "perimeters"
             || opt_key == "extra_perimeters"
@@ -232,11 +235,11 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
 			this->reset_layer_height_profile();
-			return this->invalidate_all_steps();
+			this->invalidate_all_steps();
+            invalidated = true;
         }
     }
-    
-    bool invalidated = false;
+
     sort_remove_duplicates(steps);
     for (PrintObjectStep step : steps)
         invalidated |= this->invalidate_step(step);
@@ -249,25 +252,20 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     
     // propagate to dependent steps
     if (step == posPerimeters) {
-        invalidated |= 
-            this->invalidate_step(posPrepareInfill) ||
-            this->_print->invalidate_step(psSkirt)  ||
-            this->_print->invalidate_step(psBrim);
+        invalidated |= this->invalidate_step(posPrepareInfill);
+        invalidated |= this->_print->invalidate_step(psSkirt);
+        invalidated |= this->_print->invalidate_step(psBrim);
     } else if (step == posPrepareInfill) {
-        invalidated |= 
-            this->invalidate_step(posInfill);
+        invalidated |= this->invalidate_step(posInfill);
     } else if (step == posInfill) {
-        invalidated |= 
-            this->_print->invalidate_step(psSkirt)  ||
-            this->_print->invalidate_step(psBrim);
+        invalidated |= this->_print->invalidate_step(psSkirt);
+        invalidated |= this->_print->invalidate_step(psBrim);
     } else if (step == posSlice) {
-        invalidated |= 
-            this->invalidate_step(posPerimeters)    ||
-            this->invalidate_step(posSupportMaterial);
+        invalidated |= this->invalidate_step(posPerimeters);
+        invalidated |= this->invalidate_step(posSupportMaterial);
     } else if (step == posSupportMaterial) {
-        invalidated |= 
-            this->_print->invalidate_step(psSkirt)  ||
-            this->_print->invalidate_step(psBrim);
+        invalidated |= this->_print->invalidate_step(psSkirt);
+        invalidated |= this->_print->invalidate_step(psBrim);
     }
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
