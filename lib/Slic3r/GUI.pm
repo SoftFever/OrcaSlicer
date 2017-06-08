@@ -350,7 +350,6 @@ sub check_version {
         my $response = $ua->get('http://slic3r.org/updatecheck');
         Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $VERSION_CHECK_EVENT,
             threads::shared::shared_clone([ $response->is_success, $response->decoded_content, $manual_check ])));
-        
         Slic3r::thread_cleanup();
     })->detach;
 }

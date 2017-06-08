@@ -14,11 +14,6 @@ use Slic3r::Surface ':types';
 # If enabled, phases of prepare_infill will be written into SVG files to an "out" directory.
 our $SLIC3R_DEBUG_SLICE_PROCESSING = 0;
 
-sub region_volumes {
-    my $self = shift;
-    return [ map $self->get_region_volumes($_), 0..($self->region_count - 1) ];
-}
-
 sub layers {
     my $self = shift;
     return [ map $self->get_layer($_), 0..($self->layer_count - 1) ];
