@@ -396,7 +396,7 @@ sub mouse_event {
                     my $pos3d = $self->mouse_to_3d(@$pos);
                     # Only accept the initial position, if it is inside the volume bounding box.
                     my $volume_bbox = $self->volumes->[$volume_idx]->transformed_bounding_box;
-                    $volume_bbox->offset(0.01);
+                    $volume_bbox->offset(1.);
                     if ($volume_bbox->contains_point($pos3d)) {
                         # The dragging operation is initiated.
                         $self->_drag_volume_idx($volume_idx);
