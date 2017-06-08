@@ -466,19 +466,33 @@ Polygons collect_slices_outer(const Layer &layer)
 class SupportGridPattern
 {
 public:
-    SupportGridPattern(const Polygons &support_polygons, const Polygons &trimming_polygons, coordf_t support_spacing) :
-        m_support_polygons(support_polygons), m_trimming_polygons(trimming_polygons), m_support_spacing(support_spacing)
+    SupportGridPattern(
+        const Polygons &support_polygons, 
+        const Polygons &trimming_polygons, 
+        coordf_t        support_spacing, 
+        coordf_t        support_angle) :
+        m_support_polygons(&support_polygons), m_trimming_polygons(&trimming_polygons),
+        m_support_spacing(support_spacing), m_support_angle(support_angle)
     {
+        if (m_support_angle != 0.) {
+            // Create a copy of the rotated contours.
+            m_support_polygons_rotated  = support_polygons;
+            m_trimming_polygons_rotated = trimming_polygons;
+            m_support_polygons  = &m_support_polygons_rotated;
+            m_trimming_polygons = &m_trimming_polygons_rotated;
+            polygons_rotate(m_support_polygons_rotated, - support_angle);
+            polygons_rotate(m_trimming_polygons_rotated, - support_angle);
+        }
         // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
         coord_t grid_resolution = coord_t(scale_(m_support_spacing));
-        BoundingBox bbox = get_extents(m_support_polygons);
+        BoundingBox bbox = get_extents(*m_support_polygons);
         bbox.offset(20);
         bbox.align_to_grid(grid_resolution);
         m_grid.set_bbox(bbox);
-        m_grid.create(m_support_polygons, grid_resolution);
+        m_grid.create(*m_support_polygons, grid_resolution);
         m_grid.calculate_sdf();
         // Extract a bounding contour from the grid, trim by the object.
-        m_island_samples = island_samples(m_support_polygons);
+        m_island_samples = island_samples(*m_support_polygons);
     }
 
     // Extract polygons from the grid, offsetted by offset_in_grid,
@@ -490,7 +504,7 @@ public:
         // Generate islands, so each island may be tested for overlap with m_island_samples.
         ExPolygons islands = diff_ex(
             m_grid.contours_simplified(offset_in_grid),
-            m_trimming_polygons, false);
+            *m_trimming_polygons, false);
 
         // Extract polygons, which contain some of the m_island_samples.
         Polygons out;
@@ -536,7 +550,7 @@ public:
     #ifdef SLIC3R_DEBUG
         static int iRun = 0;
         ++iRun;
-        BoundingBox bbox = get_extents(m_trimming_polygons);
+        BoundingBox bbox = get_extents(*m_trimming_polygons);
         if (! islands.empty())
             bbox.merge(get_extents(islands));
         if (!out.empty())
@@ -544,15 +558,17 @@ public:
         SVG svg(debug_out_path("extract_support_from_grid_trimmed-%d.svg", iRun).c_str(), bbox);
         svg.draw(islands, "red", 0.5f);
         svg.draw(union_ex(out), "green", 0.5f);
-        svg.draw(union_ex(m_support_polygons), "blue", 0.5f);
+        svg.draw(union_ex(*m_support_polygons), "blue", 0.5f);
         svg.draw_outline(islands, "red", "red", scale_(0.05));
         svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
-        svg.draw_outline(union_ex(m_support_polygons), "blue", "blue", scale_(0.05));
+        svg.draw_outline(union_ex(*m_support_polygons), "blue", "blue", scale_(0.05));
         for (const Point &pt : m_island_samples)
             svg.draw(pt, "black", coord_t(scale_(0.15)));
         svg.Close();
     #endif /* SLIC3R_DEBUG */
 
+        if (m_support_angle != 0.)
+            polygons_rotate(out, m_support_angle);
         return out;
     }
 
@@ -609,8 +625,13 @@ private:
         return island_samples(union_ex(polygons));
     }
 
-    const Polygons         &m_support_polygons;
-    const Polygons         &m_trimming_polygons;
+    const Polygons         *m_support_polygons;
+    const Polygons         *m_trimming_polygons;
+    Polygons                m_support_polygons_rotated;
+    Polygons                m_trimming_polygons_rotated;
+    // Angle in radians, by which the whole support is rotated.
+    coordf_t                m_support_angle;
+    // X spacing of the support lines parallel with the Y axis.
     coordf_t                m_support_spacing;
 
     Slic3r::EdgeGrid::Grid  m_grid;
@@ -916,7 +937,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         // Trimming polygons, to trim the stretched support islands.
                         slices_margin_cached,
                         // How much to offset the extracted contour outside of the grid.
-                        m_object_config->support_material_spacing.value + m_support_material_flow.spacing());
+                        m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
+                        Geometry::deg2rad(double(m_object_config->support_material_angle)));
                     // 1) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
                     new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5);
                     // 2) Contact polygons will be projected down. To keep the interface and base layers to grow, return a contour a tiny bit smaller than the grid cells.
@@ -1122,7 +1144,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                     // Trimming polygons, to trim the stretched support islands.
                     trimming,
                     // How much to offset the extracted contour outside of the grid.
-                    m_object_config->support_material_spacing.value + m_support_material_flow.spacing());
+                    m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
+                    Geometry::deg2rad(double(m_object_config->support_material_angle)));
                 tbb::task_group task_group_inner;
                 // 1) Cache the slice of a support volume. The support volume is expanded by 1/2 of support material flow spacing
                 // to allow a placement of suppot zig-zag snake along the grid lines.
@@ -2430,8 +2453,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     LoopInterfaceProcessor loop_interface_processor(1.5 * m_support_material_interface_flow.scaled_width());
     loop_interface_processor.n_contact_loops = this->has_contact_loops() ? 1 : 0;
 
-    float    base_angle         = float(Geometry::deg2rad(m_object_config->support_material_angle));
-    float    interface_angle    = float(Geometry::deg2rad(m_object_config->support_material_angle + 90.));
+    float    base_angle         = Geometry::deg2rad(float(m_object_config->support_material_angle));
+    float    interface_angle    = Geometry::deg2rad(float(m_object_config->support_material_angle + 90));
     coordf_t interface_spacing  = m_object_config->support_material_interface_spacing.value + m_support_material_interface_flow.spacing();
     coordf_t interface_density  = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
     coordf_t support_spacing    = m_object_config->support_material_spacing.value + m_support_material_flow.spacing();
@@ -2723,7 +2746,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 if (base_layer.layer->bottom_z < EPSILON) {
                     // Base flange (the 1st layer).
                     filler = filler_interface.get();
-                    filler->angle = Geometry::deg2rad(float(m_object_config->support_material_angle) + 90.f);
+                    filler->angle = Geometry::deg2rad(float(m_object_config->support_material_angle + 90));
                     density = 0.5f;
                     flow = m_first_layer_flow;
                     // use the proper spacing for first layer as we don't need to align

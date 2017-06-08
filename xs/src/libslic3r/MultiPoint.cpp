@@ -30,16 +30,13 @@ MultiPoint::translate(const Point &vector)
     this->translate(vector.x, vector.y);
 }
 
-void
-MultiPoint::rotate(double angle)
+void MultiPoint::rotate(double cos_angle, double sin_angle)
 {
-    double s = sin(angle);
-    double c = cos(angle);
-    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        double cur_x = (double)it->x;
-        double cur_y = (double)it->y;
-        it->x = (coord_t)round(c * cur_x - s * cur_y);
-        it->y = (coord_t)round(c * cur_y + s * cur_x);
+    for (Point &pt : this->points) {
+        double cur_x = double(pt.x);
+        double cur_y = double(pt.y);
+        pt.x = coord_t(round(cos_angle * cur_x - sin_angle * cur_y));
+        pt.y = coord_t(round(cos_angle * cur_y + sin_angle * cur_x));
     }
 }
 
