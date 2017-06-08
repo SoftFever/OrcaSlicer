@@ -341,6 +341,7 @@ sub mouse_event {
     if ($e->Entering && &Wx::wxMSW) {
         # wxMSW needs focus in order to catch mouse wheel events
         $self->SetFocus;
+        $self->_drag_start_xy(undef);        
     } elsif ($e->LeftDClick) {
         if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
         } elsif ($self->on_double_click) {
@@ -390,6 +391,8 @@ sub mouse_event {
             
             if ($volume_idx != -1) {
                 if ($e->LeftDown && $self->enable_moving) {
+                    # The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate $pos->x,y,
+                    # an converts the screen space coordinate to unscaled object space.
                     my $pos3d = $self->mouse_to_3d(@$pos);
                     # Only accept the initial position, if it is inside the volume bounding box.
                     my $volume_bbox = $self->volumes->[$volume_idx]->transformed_bounding_box;
@@ -411,7 +414,10 @@ sub mouse_event {
         }
     } elsif ($e->Dragging && $e->LeftIsDown && ! $self->_layer_height_edited && defined($self->_drag_volume_idx)) {
         # Get new position at the same Z of the initial click point.
-        my $cur_pos = $self->mouse_ray($e->GetX, $e->GetY)->intersect_plane($self->_drag_start_pos->z);
+        my $cur_pos = Slic3r::Linef3->new(
+                $self->mouse_to_3d($e->GetX, $e->GetY, 0),
+                $self->mouse_to_3d($e->GetX, $e->GetY, 1))
+            ->intersect_plane($self->_drag_start_pos->z);
         # Clip the new position, so the object center remains close to the bed.
         {
             $cur_pos->translate(@{$self->_drag_volume_center_offset});
@@ -466,15 +472,12 @@ sub mouse_event {
             }
             $self->_drag_start_pos($pos);
         } elsif ($e->MiddleIsDown || $e->RightIsDown) {
-            # if dragging over blank area with right button, translate
-            
+            # If dragging over blank area with right button, pan.
             if (defined $self->_drag_start_xy) {
                 # get point in model space at Z = 0
-                my $cur_pos = $self->mouse_ray($e->GetX, $e->GetY)->intersect_plane(0);
-                my $orig    = $self->mouse_ray(@{$self->_drag_start_xy})->intersect_plane(0);
-                $self->_camera_target->translate(
-                    @{$orig->vector_to($cur_pos)->negative},
-                );
+                my $cur_pos = $self->mouse_to_3d($e->GetX, $e->GetY, 0);
+                my $orig    = $self->mouse_to_3d($self->_drag_start_xy->x, $self->_drag_start_xy->y, 0);
+                $self->_camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
                 $self->on_viewport_changed->() if $self->on_viewport_changed;
                 $self->Refresh;
                 $self->Update;
@@ -888,6 +891,8 @@ sub mulquats {
             @$q1[3] * @$rq[3] - @$q1[0] * @$rq[0] - @$q1[1] * @$rq[1] - @$q1[2] * @$rq[2])
 }
 
+# Convert the screen space coordinate to an object space coordinate.
+# If the Z screen space coordinate is not provided, a depth buffer value is substituted.
 sub mouse_to_3d {
     my ($self, $x, $y, $z) = @_;
 
@@ -899,15 +904,6 @@ sub mouse_to_3d {
     $z //= glReadPixels_p($x, $y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT);
     my @projected = gluUnProject_p($x, $y, $z, @mview, @proj, @viewport);
     return Slic3r::Pointf3->new(@projected);
-}
-
-sub mouse_ray {
-    my ($self, $x, $y) = @_;
-    
-    return Slic3r::Linef3->new(
-        $self->mouse_to_3d($x, $y, 0),
-        $self->mouse_to_3d($x, $y, 1),
-    );
 }
 
 sub GetContext {
