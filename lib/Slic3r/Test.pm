@@ -189,6 +189,8 @@ sub init_print {
             $print->add_model_object($model_object);
         }
     }
+    # Call apply_config one more time, so that the layer height profiles are updated over all PrintObjects.
+    $print->apply_config($config);
     $print->validate;
     
     # We return a proxy object in order to keep $models alive as required by the Print API.

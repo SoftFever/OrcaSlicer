@@ -2,6 +2,7 @@
 #include "ToolOrdering.hpp"
 
 #include <assert.h>
+#include <limits>
 
 namespace Slic3r {
 
@@ -253,7 +254,7 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
         lt.has_wipe_tower = (lt.has_object && lt.wipe_tower_partitions > 0) || lt.print_z < object_bottom_z + EPSILON;
 
     // Test for a raft, insert additional wipe tower layer to fill in the raft separation gap.
-    double max_layer_height = FLT_MAX;
+    double max_layer_height = std::numeric_limits<double>::max();
     for (size_t i = 0; i < config.nozzle_diameter.values.size(); ++ i) {
         double mlh = config.max_layer_height.values[i];
         if (mlh == 0.)
