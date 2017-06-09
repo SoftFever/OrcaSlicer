@@ -263,6 +263,7 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     } else if (step == posSlice) {
         invalidated |= this->invalidate_step(posPerimeters);
         invalidated |= this->invalidate_step(posSupportMaterial);
+        invalidated |= this->_print->invalidate_step(psWipeTower);
     } else if (step == posSupportMaterial) {
         invalidated |= this->_print->invalidate_step(psSkirt);
         invalidated |= this->_print->invalidate_step(psBrim);
@@ -1079,7 +1080,6 @@ void PrintObject::_slice()
     {
         this->clear_layers();
         // Object layers (pairs of bottom/top Z coordinate), without the raft.
-        this->update_layer_height_profile();
         std::vector<coordf_t> object_layers = generate_object_layers(slicing_params, this->layer_height_profile);
         // Reserve object layers for the raft. Last layer of the raft is the contact layer.
         int id = int(slicing_params.raft_layers());

@@ -319,6 +319,7 @@ sub _variable_layer_thickness_action {
     if ($self->{layer_height_edit_last_object_id} != -1) {
         # Mark the volume as modified, so Print will pick its layer height profile? Where to mark it?
         # Start a timer to refresh the print? schedule_background_process() ?
+        # The PrintObject::adjust_layer_height_profile() call adjusts the profile of its associated ModelObject, it does not modify the profile of the PrintObject itself.
         $self->{print}->get_object($self->{layer_height_edit_last_object_id})->adjust_layer_height_profile(
             $self->{layer_height_edit_last_z},
             $self->{layer_height_edit_strength},

@@ -214,8 +214,11 @@ if (@ARGV) {  # slicing from command line
             output_file     => $opt{output},
         );
         
+        # This is delegated to C++ PrintObject::apply_config().
         $sprint->apply_config($config);
         $sprint->set_model($model);
+        # Do the apply_config once again to validate the layer height profiles at all the newly added PrintObjects.
+        $sprint->apply_config($config);
         
         if ($opt{export_svg}) {
             $sprint->export_svg;

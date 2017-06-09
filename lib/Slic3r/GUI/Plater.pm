@@ -116,8 +116,7 @@ sub new {
         });
         $self->{canvas3D}->set_on_model_update(sub {
             if ($Slic3r::GUI::Settings->{_}{background_processing}) {
-                $self->{apply_config_timer}->Stop if defined $self->{apply_config_timer};
-                $self->async_apply_config();
+                $self->schedule_background_process;
             } else {
                 # Hide the print info box, it is no more valid.
                 $self->{"print_info_box_show"}->(0);
