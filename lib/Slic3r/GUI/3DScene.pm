@@ -522,6 +522,11 @@ sub mouse_event {
 
 sub mouse_wheel_event {
     my ($self, $e) = @_;
+
+    if ($e->MiddleIsDown) {
+        # Ignore the wheel events if the middle button is pressed.
+        return;
+    }
     
     if ($self->layer_editing_enabled && $self->{print}) {
         my $object_idx_selected = $self->_first_selected_object_id_for_variable_layer_height_editing;
@@ -540,7 +545,11 @@ sub mouse_wheel_event {
     my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
     $zoom = max(min($zoom, 4), -4);
     $zoom /= 10;
-    $self->_zoom($self->_zoom / (1-$zoom));
+    $zoom = $self->_zoom / (1-$zoom);
+    # Don't allow to zoom too far outside the scene.
+    my $zoom_min = $self->get_zoom_to_bounding_box_factor($self->max_bounding_box) * 0.4;
+    $zoom = $zoom_min if defined $zoom_min && $zoom < $zoom_min;
+    $self->_zoom($zoom);
     
     # In order to zoom around the mouse point we need to translate
     # the camera target
@@ -624,21 +633,23 @@ sub select_view {
     }
 }
 
+sub get_zoom_to_bounding_box_factor {
+    my ($self, $bb) = @_;
+    return undef if ($bb->empty);
+    my $max_size = max(@{$bb->size}) * 2;
+    return ($max_size == 0) ? undef : min($self->GetSizeWH) / $max_size;
+}
+
 sub zoom_to_bounding_box {
     my ($self, $bb) = @_;
-    return if ($bb->empty);
-    
-    # calculate the zoom factor needed to adjust viewport to
-    # bounding box
-    my $max_size = max(@{$bb->size}) * 2;
-    my $min_viewport_size = min($self->GetSizeWH);
-    # only re-zoom if we have a valid bounding box, avoid a divide by 0 error.
-    $self->_zoom($min_viewport_size / $max_size) if ($max_size != 0);
-    
-    # center view around bounding box center
-    $self->_camera_target($bb->center);
-    
-    $self->on_viewport_changed->() if $self->on_viewport_changed;
+    # Calculate the zoom factor needed to adjust viewport to bounding box.
+    my $zoom = $self->get_zoom_to_bounding_box_factor($bb);
+    if (defined $zoom) {
+        $self->_zoom($zoom);
+        # center view around bounding box center
+        $self->_camera_target($bb->center);
+        $self->on_viewport_changed->() if $self->on_viewport_changed;
+    }
 }
 
 sub zoom_to_bed {
