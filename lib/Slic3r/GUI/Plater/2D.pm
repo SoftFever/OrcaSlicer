@@ -13,10 +13,6 @@ use Wx qw(:misc :pen :brush :sizer :font :cursor wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_MOUSE_EVENTS EVT_PAINT EVT_ERASE_BACKGROUND EVT_SIZE);
 use base 'Wx::Panel';
 
-use constant CANVAS_TEXT => join('-', +(localtime)[3,4]) eq '13-8'
-    ? 'What do you want to print today? ™' # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
-    : 'Drag your objects here';
-
 sub new {
     my $class = shift;
     my ($parent, $size, $objects, $model, $config) = @_;
@@ -128,7 +124,11 @@ sub repaint {
     if (!@{$self->{objects}}) {
         $dc->SetTextForeground(Wx::Colour->new(150,50,50));
         $dc->SetFont(Wx::Font->new(14, wxDEFAULT, wxNORMAL, wxNORMAL));
-        $dc->DrawLabel(CANVAS_TEXT, Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
+        $dc->DrawLabel(
+            join('-', +(localtime)[3,4]) eq '13-8'
+                ? 'What do you want to print today? ™' # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
+                : 'Drag your objects here',
+            Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
     }
     
     # draw thumbnails
@@ -338,6 +338,34 @@ sub point_to_model_units {
         scale ($point->[X] - $zero->[X]) / $self->{scaling_factor},
         scale ($zero->[Y] - $point->[Y]) / $self->{scaling_factor},
     );
+}
+
+sub reload_scene {
+    my ($self, $force) = @_;
+
+    if (! $self->IsShown && ! $force) {
+        $self->{reload_delayed} = 1;
+        return;
+    }
+
+    $self->{reload_delayed} = 0;
+
+    foreach my $obj_idx (0..$#{$self->{model}->objects}) {
+        my $plater_object = $self->{objects}[$obj_idx];
+        next if $plater_object->thumbnail;
+        # The thumbnail is not valid, update it with a convex hull of an object.
+        $plater_object->thumbnail(Slic3r::ExPolygon::Collection->new);
+        $plater_object->make_thumbnail($self->{model}, $obj_idx);
+        $plater_object->transform_thumbnail($self->{model}, $obj_idx);
+    }
+
+    $self->Refresh;
+}
+
+# Called by the Platter wxNotebook when this page is activated.
+sub OnActivate {
+    my ($self) = @_;
+    $self->reload_scene(1) if ($self->{reload_delayed});
 }
 
 1;

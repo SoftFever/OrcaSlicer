@@ -492,9 +492,9 @@ TriangleMesh::merge(const TriangleMesh &mesh)
     stl_get_size(&this->stl);
 }
 
-/* this will return scaled ExPolygons */
-ExPolygons
-TriangleMesh::horizontal_projection() const
+// Calculate projection of the mesh into the XY plane, in scaled coordinates.
+//FIXME This could be extremely slow! Use it for tiny meshes only!
+ExPolygons TriangleMesh::horizontal_projection() const
 {
     Polygons pp;
     pp.reserve(this->stl.stats.number_of_facets);
@@ -502,26 +502,25 @@ TriangleMesh::horizontal_projection() const
         stl_facet* facet = &this->stl.facet_start[i];
         Polygon p;
         p.points.resize(3);
-        p.points[0] = Point(facet->vertex[0].x / SCALING_FACTOR, facet->vertex[0].y / SCALING_FACTOR);
-        p.points[1] = Point(facet->vertex[1].x / SCALING_FACTOR, facet->vertex[1].y / SCALING_FACTOR);
-        p.points[2] = Point(facet->vertex[2].x / SCALING_FACTOR, facet->vertex[2].y / SCALING_FACTOR);
+        p.points[0] = Point::new_scale(facet->vertex[0].x, facet->vertex[0].y);
+        p.points[1] = Point::new_scale(facet->vertex[1].x, facet->vertex[1].y);
+        p.points[2] = Point::new_scale(facet->vertex[2].x, facet->vertex[2].y);
         p.make_counter_clockwise();  // do this after scaling, as winding order might change while doing that
         pp.push_back(p);
     }
     
     // the offset factor was tuned using groovemount.stl
-    return union_ex(offset(pp, 0.01 / SCALING_FACTOR), true);
+    return union_ex(offset(pp, scale_(0.01)), true);
 }
 
-Polygon
-TriangleMesh::convex_hull()
+Polygon TriangleMesh::convex_hull()
 {
     this->require_shared_vertices();
     Points pp;
     pp.reserve(this->stl.stats.shared_vertices);
-    for (int i = 0; i < this->stl.stats.shared_vertices; i++) {
+    for (int i = 0; i < this->stl.stats.shared_vertices; ++ i) {
         stl_vertex* v = &this->stl.v_shared[i];
-        pp.push_back(Point(v->x / SCALING_FACTOR, v->y / SCALING_FACTOR));
+        pp.emplace_back(Point::new_scale(v->x, v->y));
     }
     return Slic3r::Geometry::convex_hull(pp);
 }

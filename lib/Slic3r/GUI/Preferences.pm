@@ -30,14 +30,14 @@ sub new {
         default     => $Slic3r::GUI::Settings->{_}{mode},
         width       => 100,
     ));
-    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
-        opt_id      => 'version_check',
-        type        => 'bool',
-        label       => 'Check for updates',
-        tooltip     => 'If this is enabled, Slic3r will check for updates daily and display a reminder if a newer version is available.',
-        default     => $Slic3r::GUI::Settings->{_}{version_check} // 1,
-        readonly    => !wxTheApp->have_version_check,
-    ));
+#    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+#        opt_id      => 'version_check',
+#        type        => 'bool',
+#        label       => 'Check for updates',
+#        tooltip     => 'If this is enabled, Slic3r will check for updates daily and display a reminder if a newer version is available.',
+#        default     => $Slic3r::GUI::Settings->{_}{version_check} // 1,
+#        readonly    => !wxTheApp->have_version_check,
+#    ));
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'remember_output_path',
         type        => 'bool',
