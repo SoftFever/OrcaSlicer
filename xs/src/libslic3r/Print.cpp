@@ -582,7 +582,7 @@ std::string Print::validate() const
             bool was_layer_height_profile_valid = object->layer_height_profile_valid;
             object->update_layer_height_profile();
             object->layer_height_profile_valid = was_layer_height_profile_valid;
-            for (size_t i = 1; i < object->layer_height_profile.size(); i += 2)
+            for (size_t i = 5; i < object->layer_height_profile.size(); i += 2)
                 if (object->layer_height_profile[i-1] > slicing_params.object_print_z_min + EPSILON &&
                     std::abs(object->layer_height_profile[i] - object->config.layer_height) > EPSILON)
                     return "The Wipe Tower is currently only supported with constant Z layer spacing. Layer editing is not allowed.";
