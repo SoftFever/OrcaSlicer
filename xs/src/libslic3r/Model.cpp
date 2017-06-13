@@ -167,13 +167,26 @@ TriangleMesh Model::mesh() const
 static bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb, Pointfs &out)
 {
     // we supply unscaled data to arrange()
-    return Slic3r::Geometry::arrange(
+    bool result = Slic3r::Geometry::arrange(
         sizes.size(),               // number of parts
         BoundingBoxf(sizes).max,    // width and height of a single cell
         dist,                       // distance between cells
         bb,                         // bounding box of the area to fill
         out                         // output positions
     );
+
+    if (!result && bb != nullptr) {
+        // Try to arrange again ignoring bb
+        result = Slic3r::Geometry::arrange(
+            sizes.size(),               // number of parts
+            BoundingBoxf(sizes).max,    // width and height of a single cell
+            dist,                       // distance between cells
+            nullptr,                    // bounding box of the area to fill
+            out                         // output positions
+        );
+    }
+    
+    return result;
 }
 
 /*  arrange objects preserving their instance count
