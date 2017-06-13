@@ -144,7 +144,6 @@ if (@ARGV) {  # slicing from command line
         foreach my $file (@ARGV) {
             $file = Slic3r::decode_path($file);
             my $model = Slic3r::Model->read_from_file($file);
-            $model->add_default_instances;
             my $mesh = $model->mesh;
             $mesh->translate(0, 0, -$mesh->bounding_box->z_min);
             my $upper = Slic3r::TriangleMesh->new;
@@ -164,7 +163,6 @@ if (@ARGV) {  # slicing from command line
         foreach my $file (@ARGV) {
             $file = Slic3r::decode_path($file);
             my $model = Slic3r::Model->read_from_file($file);
-            $model->add_default_instances;
             my $mesh = $model->mesh;
             $mesh->repair;
             

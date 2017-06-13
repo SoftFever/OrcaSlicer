@@ -547,7 +547,8 @@ sub mouse_wheel_event {
     $zoom /= 10;
     $zoom = $self->_zoom / (1-$zoom);
     # Don't allow to zoom too far outside the scene.
-    my $zoom_min = $self->get_zoom_to_bounding_box_factor($self->max_bounding_box) * 0.4;
+    my $zoom_min = $self->get_zoom_to_bounding_box_factor($self->max_bounding_box);
+    $zoom_min *= 0.4 if defined $zoom_min;
     $zoom = $zoom_min if defined $zoom_min && $zoom < $zoom_min;
     $self->_zoom($zoom);
     

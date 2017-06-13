@@ -707,7 +707,7 @@ sub load_file {
     
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
     
-    my $model = eval { Slic3r::Model->read_from_file($input_file) };
+    my $model = eval { Slic3r::Model->read_from_file($input_file, 0) };
     Slic3r::GUI::show_error($self, $@) if $@;
     
     my @obj_idx = ();
@@ -1007,7 +1007,6 @@ sub rotate {
         $self->reset_thumbnail($obj_idx);
     }
     
-    $model_object->update_bounding_box;
     # update print and start background processing
     $self->{print}->add_model_object($model_object, $obj_idx);
     
@@ -1032,7 +1031,6 @@ sub mirror {
     }
     
     $model_object->mirror($axis);
-    $model_object->update_bounding_box;
     
     # realign object to Z = 0
     $model_object->center_around_origin;
@@ -1112,7 +1110,6 @@ sub changescale {
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
         $object->transform_thumbnail($self->{model}, $obj_idx);
     }
-    $model_object->update_bounding_box;
     
     # update print and start background processing
     $self->stop_background_process;
@@ -1133,6 +1130,7 @@ sub arrange {
     # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     # when parts don't fit in print bed
     
+    # Force auto center of the aligned grid of of objects on the print bed.
     $self->update(1);
 }
 
@@ -2198,6 +2196,7 @@ sub make_thumbnail {
     # make method idempotent
     $self->thumbnail->clear;
     
+    # raw_mesh is the non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
     my $mesh = $model->objects->[$obj_idx]->raw_mesh;
 #FIXME The "correct" variant could be extremely slow.
 #    if ($mesh->facets_count <= 5000) {

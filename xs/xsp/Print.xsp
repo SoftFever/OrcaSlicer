@@ -64,8 +64,6 @@ _constant()
     Ref<Point3> size()
         %code%{ RETVAL = &THIS->size; %};
     Clone<BoundingBox> bounding_box();
-    Ref<Point> _copies_shift()
-        %code%{ RETVAL = &THIS->_copies_shift; %};
     
     bool typed_slices()
         %code%{ RETVAL = THIS->typed_slices; %};

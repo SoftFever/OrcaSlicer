@@ -290,7 +290,7 @@ sub _load_stl {
     $dialog->Destroy;
     
     my $model = Slic3r::Model->read_from_file($input_file);
-    my $mesh = $model->raw_mesh;
+    my $mesh = $model->mesh;
     my $expolygons = $mesh->horizontal_projection;
 
     if (@$expolygons == 0) {

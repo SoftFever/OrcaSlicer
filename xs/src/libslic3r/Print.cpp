@@ -509,9 +509,7 @@ std::string Print::validate() const
         {
             Polygons convex_hulls_other;
             for (PrintObject *object : this->objects) {
-                // Get convex hull of all meshes assigned to this print object
-                // (this is the same as model_object()->raw_mesh.convex_hull()
-                // but probably more efficient.
+                // Get convex hull of all meshes assigned to this print object.
                 Polygon convex_hull;
                 {
                     Polygons mesh_convex_hulls;

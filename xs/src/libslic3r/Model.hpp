@@ -28,53 +28,6 @@ typedef std::vector<ModelObject*> ModelObjectPtrs;
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 typedef std::vector<ModelInstance*> ModelInstancePtrs;
 
-// The print bed content.
-// Description of a triangular model with multiple materials, multiple instances with various affine transformations
-// and with multiple modifier meshes.
-// A model groups multiple objects, each object having possibly multiple instances,
-// all objects may share mutliple materials.
-class Model
-{
-public:
-    // Materials are owned by a model and referenced by objects through t_model_material_id.
-    // Single material may be shared by multiple models.
-    ModelMaterialMap materials;
-    // Objects are owned by a model. Each model may have multiple instances, each instance having its own transformation (shift, scale, rotation).
-    ModelObjectPtrs objects;
-    
-    Model();
-    Model(const Model &other);
-    Model& operator= (Model other);
-    void swap(Model &other);
-    ~Model();
-    ModelObject* add_object();
-    ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
-    ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
-    ModelObject* add_object(const ModelObject &other, bool copy_volumes = true);
-    void delete_object(size_t idx);
-    void clear_objects();
-    
-    ModelMaterial* add_material(t_model_material_id material_id);
-    ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);
-    ModelMaterial* get_material(t_model_material_id material_id);
-    void delete_material(t_model_material_id material_id);
-    void clear_materials();
-    bool has_objects_with_no_instances() const;
-    bool add_default_instances();
-    BoundingBoxf3 bounding_box() const;
-    void center_instances_around_point(const Pointf &point);
-    void align_instances_to_origin();
-    void translate(coordf_t x, coordf_t y, coordf_t z);
-    TriangleMesh mesh() const;
-    TriangleMesh raw_mesh() const;
-    bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb, Pointfs &out) const;
-    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
-    // Croaks if the duplicated objects do not fit the print bed.
-    void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
-    void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
-    void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
-};
-
 // Material, which may be shared across multiple ModelObjects of a single Model.
 class ModelMaterial
 {
@@ -85,15 +38,16 @@ public:
     // Dynamic configuration storage for the object specific configuration values, overriding the global configuration.
     DynamicPrintConfig config;
 
-    Model* get_model() const { return this->model; };
-    void apply(const t_model_material_attributes &attributes);
-    
+    Model* get_model() const { return m_model; };
+    void apply(const t_model_material_attributes &attributes)
+        { this->attributes.insert(attributes.begin(), attributes.end()); }
+
 private:
     // Parent, owning this material.
-    Model* model;
+    Model *m_model;
     
-    ModelMaterial(Model *model);
-    ModelMaterial(Model *model, const ModelMaterial &other);
+    ModelMaterial(Model *model) : m_model(model) {}
+    ModelMaterial(Model *model, const ModelMaterial &other) : attributes(other.attributes), config(other.config), m_model(model) {}
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
@@ -104,37 +58,33 @@ class ModelObject
 {
     friend class Model;
 public:
-    std::string name;
-    std::string input_file;
+    std::string             name;
+    std::string             input_file;
     // Instances of this ModelObject. Each instance defines a shift on the print bed, rotation around the Z axis and a uniform scaling.
     // Instances are owned by this ModelObject.
-    ModelInstancePtrs instances;
+    ModelInstancePtrs       instances;
     // Printable and modifier volumes, each with its material ID and a set of override parameters.
     // ModelVolumes are owned by this ModelObject.
-    ModelVolumePtrs volumes;
+    ModelVolumePtrs         volumes;
     // Configuration parameters specific to a single ModelObject, overriding the global Slic3r settings.
-    DynamicPrintConfig config;
+    DynamicPrintConfig      config;
     // Variation of a layer thickness for spans of Z coordinates.
-    t_layer_height_ranges layer_height_ranges;
+    t_layer_height_ranges   layer_height_ranges;
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
     // The pairs of <z, layer_height> are packed into a 1D array to simplify handling by the Perl XS.
-    std::vector<coordf_t> layer_height_profile;
+    std::vector<coordf_t>   layer_height_profile;
     // layer_height_profile is initialized when the layer editing mode is entered.
     // Only if the user really modified the layer height, layer_height_profile_valid is set
     // and used subsequently by the PrintObject.
-    bool                  layer_height_profile_valid;
+    bool                    layer_height_profile_valid;
 
     /* This vector accumulates the total translation applied to the object by the
         center_around_origin() method. Callers might want to apply the same translation
         to new volumes before adding them to this object in order to preserve alignment
         when user expects that. */
-    Pointf3 origin_translation;
+    Pointf3                 origin_translation;
     
-    // these should be private but we need to expose them via XS until all methods are ported
-    BoundingBoxf3 _bounding_box;
-    bool _bounding_box_valid;
-    
-    Model* get_model() const { return this->model; };
+    Model* get_model() const { return m_model; };
     
     ModelVolume* add_volume(const TriangleMesh &mesh);
     ModelVolume* add_volume(TriangleMesh &&mesh);
@@ -148,15 +98,23 @@ public:
     void delete_last_instance();
     void clear_instances();
 
+    // Returns the bounding box of the transformed instances.
+    // This bounding box is approximate and not snug.
     BoundingBoxf3 bounding_box();
-    void invalidate_bounding_box();
+    void invalidate_bounding_box() { m_bounding_box_valid = false; }
 
+    // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
+    // Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
+    // Currently used by ModelObject::mesh() and to calculate the 2D envelope for 2D platter.
     TriangleMesh raw_mesh() const;
+    // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
+    // This bounding box is only used for the actual slicing.
     BoundingBoxf3 raw_bounding_box() const;
-    BoundingBoxf3 instance_bounding_box(size_t instance_idx) const;
+    // A snug bounding box around the transformed non-modifier object volumes.
+    BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
     void center_around_origin();
-    void translate(const Vectorf3 &vector);
+    void translate(const Vectorf3 &vector) { this->translate(vector.x, vector.y, vector.z); }
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Pointf3 &versor);
     void rotate(float angle, const Axis &axis);
@@ -166,17 +124,19 @@ public:
     bool needed_repair() const;
     void cut(coordf_t z, Model* model) const;
     void split(ModelObjectPtrs* new_objects);
-    void update_bounding_box();   // this is a private method but we expose it until we need to expose it via XS
     
-private:
-    // Parent object, owning this ModelObject.
-    Model* model;
-    
-    ModelObject(Model *model);
+private:        
+    ModelObject(Model *model) : m_model(model),  m_bounding_box_valid(false), layer_height_profile_valid(false) {}
     ModelObject(Model *model, const ModelObject &other, bool copy_volumes = true);
     ModelObject& operator= (ModelObject other);
     void swap(ModelObject &other);
     ~ModelObject();
+
+    // Parent object, owning this ModelObject.
+    Model          *m_model;
+    // Bounding box, cached.
+    BoundingBoxf3   m_bounding_box;
+    bool            m_bounding_box_valid;
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -196,7 +156,7 @@ public:
     
     // A parent object owning this modifier volume.
     ModelObject* get_object() const { return this->object; };
-    t_model_material_id material_id() const;
+    t_model_material_id material_id() const { return this->_material_id; }
     void material_id(t_model_material_id material_id);
     ModelMaterial* material() const;
     void set_material(t_model_material_id material_id, const ModelMaterial &material);
@@ -208,9 +168,11 @@ private:
     ModelObject* object;
     t_model_material_id _material_id;
     
-    ModelVolume(ModelObject *object, const TriangleMesh &mesh);
-    ModelVolume(ModelObject *object, TriangleMesh &&mesh);
-    ModelVolume(ModelObject *object, const ModelVolume &other);
+    ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), modifier(false), object(object) {}
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh) : mesh(std::move(mesh)), modifier(false), object(object) {}
+    ModelVolume(ModelObject *object, const ModelVolume &other) : 
+        name(other.name), mesh(other.mesh), config(other.config), modifier(other.modifier), object(object)
+        { this->material_id(other.material_id()); }
 };
 
 // A single instance of a ModelObject.
@@ -237,9 +199,58 @@ public:
 private:
     // Parent object, owning this instance.
     ModelObject* object;
+
+    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), object(object) {}
+    ModelInstance(ModelObject *object, const ModelInstance &other) :
+        rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object) {}
+};
+
+
+// The print bed content.
+// Description of a triangular model with multiple materials, multiple instances with various affine transformations
+// and with multiple modifier meshes.
+// A model groups multiple objects, each object having possibly multiple instances,
+// all objects may share mutliple materials.
+class Model
+{
+public:
+    // Materials are owned by a model and referenced by objects through t_model_material_id.
+    // Single material may be shared by multiple models.
+    ModelMaterialMap materials;
+    // Objects are owned by a model. Each model may have multiple instances, each instance having its own transformation (shift, scale, rotation).
+    ModelObjectPtrs objects;
     
-    ModelInstance(ModelObject *object);
-    ModelInstance(ModelObject *object, const ModelInstance &other);
+    Model() {}
+    Model(const Model &other);
+    Model& operator= (Model other);
+    void swap(Model &other);
+    ~Model();
+    ModelObject* add_object();
+    ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
+    ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
+    ModelObject* add_object(const ModelObject &other, bool copy_volumes = true);
+    void delete_object(size_t idx);
+    void clear_objects();
+    
+    ModelMaterial* add_material(t_model_material_id material_id);
+    ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);
+    ModelMaterial* get_material(t_model_material_id material_id) {
+        ModelMaterialMap::iterator i = this->materials.find(material_id);
+        return (i == this->materials.end()) ? nullptr : i->second;
+    }
+
+    void delete_material(t_model_material_id material_id);
+    void clear_materials();
+    bool add_default_instances();
+    BoundingBoxf3 bounding_box();
+    void center_instances_around_point(const Pointf &point);
+    void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
+    TriangleMesh mesh() const;
+    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    // Croaks if the duplicated objects do not fit the print bed.
+    void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
+    void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
+    void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
 };
 
 }

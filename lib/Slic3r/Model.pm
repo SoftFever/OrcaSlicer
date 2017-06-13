@@ -6,8 +6,8 @@ use List::Util qw(first max any);
 use Slic3r::Geometry qw(X Y Z move_points);
 
 sub read_from_file {
-    my $class = shift;
-    my ($input_file) = @_;
+    my ($class, $input_file, $add_default_instances) = @_;
+    $add_default_instances //= 1;
     
     my $model = $input_file =~ /\.stl$/i            ? Slic3r::Model->load_stl(Slic3r::encode_path($input_file), basename($input_file))
               : $input_file =~ /\.obj$/i            ? Slic3r::Model->load_obj(Slic3r::encode_path($input_file), basename($input_file))
@@ -19,6 +19,7 @@ sub read_from_file {
         if $model->objects_count == 0;
     
     $_->set_input_file($input_file) for @{$model->objects};
+    $model->add_default_instances if $add_default_instances;
     return $model;
 }
 

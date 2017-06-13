@@ -246,7 +246,6 @@ sub mouse_event {
                 unscale($point->[X] - $self->{drag_start_pos}[X]),
                 unscale($point->[Y] - $self->{drag_start_pos}[Y]),
             ));
-        $model_object->update_bounding_box;
         $self->Refresh;
     } elsif ($event->Moving) {
         my $cursor = wxSTANDARD_CURSOR;
