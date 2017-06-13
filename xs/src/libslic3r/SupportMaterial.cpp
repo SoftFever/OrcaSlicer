@@ -891,7 +891,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                             // Interface layer will be synchronized with the object.
                             assert(layer_id > 0);
                             new_layer.height = object.layers[layer_id - 1]->height;
-                            new_layer.bottom_z = new_layer.print_z - new_layer.height;
+                            new_layer.bottom_z = (layer_id == 1) ? m_slicing_params.object_print_z_min : object.layers[layer_id - 2]->print_z;
                         }
                     } else {
                         // Contact layer will be printed with a normal flow, but
@@ -1044,11 +1044,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                             // top shapes so this can be done here
                             layer_new.height  = m_slicing_params.soluble_interface ? 
                                 // Align the interface layer with the object's layer height.
-                                object.get_layer(layer_id + 1)->height :
+                                object.layers[layer_id + 1]->height :
                                 // Place a bridge flow interface layer over the top surface.
                                 m_support_material_interface_flow.nozzle_diameter;
-                            layer_new.print_z = layer.print_z + layer_new.height + 
-                                (m_slicing_params.soluble_interface ? 0. : m_object_config->support_material_contact_distance.value);
+                            layer_new.print_z = m_slicing_params.soluble_interface ? object.layers[layer_id + 1]->print_z :
+                                layer.print_z + layer_new.height + m_object_config->support_material_contact_distance.value;
                             layer_new.bottom_z = layer.print_z;
                             layer_new.idx_object_layer_below = layer_id;
                             layer_new.bridging = ! m_slicing_params.soluble_interface;
@@ -1382,12 +1382,20 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
             // Find the first object layer, which has its print_z in this support Z range.
             while (idx_layer_object < object.layers.size() && object.layers[idx_layer_object]->print_z < extr1z + EPSILON)
                 ++ idx_layer_object;
+            if (idx_layer_object == 0 && extr1z == m_slicing_params.raft_interface_top_z) {
+                // Insert one base support layer below the object.
+                MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
+                layer_new.print_z  = m_slicing_params.object_print_z_min;
+                layer_new.bottom_z = m_slicing_params.raft_interface_top_z;
+                layer_new.height   = layer_new.print_z - layer_new.bottom_z;
+                intermediate_layers.push_back(&layer_new);
+            }
             // Emit all intermediate support layers synchronized with object layers up to extr2z.
             for (; idx_layer_object < object.layers.size() && object.layers[idx_layer_object]->print_z < extr2z + EPSILON; ++ idx_layer_object) {
                 MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);
                 layer_new.print_z  = object.layers[idx_layer_object]->print_z;
                 layer_new.height   = object.layers[idx_layer_object]->height;
-                layer_new.bottom_z = layer_new.print_z - layer_new.height;
+                layer_new.bottom_z = (idx_layer_object > 0) ? object.layers[idx_layer_object - 1]->print_z : (layer_new.print_z - layer_new.height);
                 assert(intermediate_layers.empty() || intermediate_layers.back()->print_z < layer_new.print_z + EPSILON);
                 intermediate_layers.push_back(&layer_new);
             }
