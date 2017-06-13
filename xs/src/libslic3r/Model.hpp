@@ -14,6 +14,7 @@
 
 namespace Slic3r {
 
+class Model;
 class ModelInstance;
 class ModelMaterial;
 class ModelObject;
@@ -38,7 +39,7 @@ public:
     // Dynamic configuration storage for the object specific configuration values, overriding the global configuration.
     DynamicPrintConfig config;
 
-    Model* get_model() const { return m_model; };
+    Model* get_model() const { return m_model; }
     void apply(const t_model_material_attributes &attributes)
         { this->attributes.insert(attributes.begin(), attributes.end()); }
 

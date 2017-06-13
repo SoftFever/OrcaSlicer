@@ -1537,12 +1537,6 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "use-volumetric-e!";
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("set_and_wait_temperatures", coBool);
-    def->label = "Use Set and Wait for changing bed temperatures";
-    def->tooltip = "Check this to change gcode for temperature changes from not waiting (usually M140) to waiting (usually M190). Only necessary if you have a slow-to-heat bed and the first layer bed temp is lower than the other layers.";
-    def->cli = "set-and-wait-temperatures!";
-    def->default_value = new ConfigOptionBool(false);
-
     def = this->add("variable_layer_height", coBool);
     def->label = "Enable variable layer height feature";
     def->tooltip = "Some printers or printer setups may have difficulties printing with a variable layer height. Enabled by default.";

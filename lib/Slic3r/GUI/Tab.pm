@@ -1233,7 +1233,7 @@ sub build {
         serial_port serial_speed
         octoprint_host octoprint_apikey
         use_firmware_retraction
-        use_volumetric_e set_and_wait_temperatures variable_layer_height
+        use_volumetric_e variable_layer_height
         single_extruder_multi_material start_gcode end_gcode before_layer_gcode layer_gcode toolchange_gcode
         nozzle_diameter extruder_offset
         retract_length retract_lift retract_speed deretract_speed retract_before_wipe retract_restart_extra retract_before_travel retract_layer_change wipe
@@ -1440,7 +1440,6 @@ sub build {
             $optgroup->append_single_option_line('use_firmware_retraction');
             $optgroup->append_single_option_line('use_volumetric_e');
             $optgroup->append_single_option_line('variable_layer_height');
-            $optgroup->append_single_option_line('set_and_wait_temperatures');
         }
     }
     {

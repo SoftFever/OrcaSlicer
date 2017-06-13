@@ -148,7 +148,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         steps_ignore.insert("use_firmware_retraction");
         steps_ignore.insert("use_relative_e_distances");
         steps_ignore.insert("use_volumetric_e");
-        steps_ignore.insert("set_and_wait_temperatures");
         steps_ignore.insert("variable_layer_height");
         steps_ignore.insert("wipe");
     }
