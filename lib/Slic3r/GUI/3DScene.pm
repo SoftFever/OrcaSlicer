@@ -248,7 +248,8 @@ sub _first_selected_object_id_for_variable_layer_height_editing {
         if ($self->volumes->[$i]->selected) {
             my $object_id = int($self->volumes->[$i]->select_group_id / 1000000);
             # Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
-            return $object_id if $object_id < 10000;
+            return ($object_id >= $self->{print}->object_count) ? -1 : $object_id
+                if $object_id < 10000;
         }
     }
     return -1;
@@ -292,12 +293,6 @@ sub _variable_layer_thickness_reset_rect_mouse_inside {
    return $mouse_evt->GetX >= $bar_left && $mouse_evt->GetX <= $bar_right && $mouse_evt->GetY >= $bar_top && $mouse_evt->GetY <= $bar_bottom;
 }
 
-sub _variable_layer_thickness_bar_mouse_cursor_z {
-   my ($self, $object_idx, $mouse_evt) = @_;
-   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
-   return unscale($self->{print}->get_object($object_idx)->size->z) * ($bar_bottom - $mouse_evt->GetY - 1.) / ($bar_bottom - $bar_top);
-}
-
 sub _variable_layer_thickness_bar_mouse_cursor_z_relative {
    my ($self) = @_;
    my $mouse_pos = $self->ScreenToClientPoint(Wx::GetMousePosition());
@@ -312,25 +307,26 @@ sub _variable_layer_thickness_bar_mouse_cursor_z_relative {
 sub _variable_layer_thickness_action {
     my ($self, $mouse_event, $do_modification) = @_;
     # A volume is selected. Test, whether hovering over a layer thickness bar.
+    return if $self->{layer_height_edit_last_object_id} == -1;
     if (defined($mouse_event)) {
-        $self->{layer_height_edit_last_z} = $self->_variable_layer_thickness_bar_mouse_cursor_z($self->{layer_height_edit_last_object_id}, $mouse_event);
+        my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
+        $self->{layer_height_edit_last_z} = unscale($self->{print}->get_object($self->{layer_height_edit_last_object_id})->size->z)
+            * ($bar_bottom - $mouse_event->GetY - 1.) / ($bar_bottom - $bar_top);
         $self->{layer_height_edit_last_action} = $mouse_event->ShiftDown ? ($mouse_event->RightIsDown ? 3 : 2) : ($mouse_event->RightIsDown ? 0 : 1);
     }
-    if ($self->{layer_height_edit_last_object_id} != -1) {
-        # Mark the volume as modified, so Print will pick its layer height profile? Where to mark it?
-        # Start a timer to refresh the print? schedule_background_process() ?
-        # The PrintObject::adjust_layer_height_profile() call adjusts the profile of its associated ModelObject, it does not modify the profile of the PrintObject itself.
-        $self->{print}->get_object($self->{layer_height_edit_last_object_id})->adjust_layer_height_profile(
-            $self->{layer_height_edit_last_z},
-            $self->{layer_height_edit_strength},
-            $self->{layer_height_edit_band_width}, 
-            $self->{layer_height_edit_last_action});
-        $self->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
-            $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
-        $self->Refresh;
-        # Automatic action on mouse down with the same coordinate.
-        $self->{layer_height_edit_timer}->Start(100, wxTIMER_CONTINUOUS);
-    }
+    # Mark the volume as modified, so Print will pick its layer height profile? Where to mark it?
+    # Start a timer to refresh the print? schedule_background_process() ?
+    # The PrintObject::adjust_layer_height_profile() call adjusts the profile of its associated ModelObject, it does not modify the profile of the PrintObject itself.
+    $self->{print}->get_object($self->{layer_height_edit_last_object_id})->adjust_layer_height_profile(
+        $self->{layer_height_edit_last_z},
+        $self->{layer_height_edit_strength},
+        $self->{layer_height_edit_band_width}, 
+        $self->{layer_height_edit_last_action});
+    $self->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
+        $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
+    $self->Refresh;
+    # Automatic action on mouse down with the same coordinate.
+    $self->{layer_height_edit_timer}->Start(100, wxTIMER_CONTINUOUS);
 }
 
 sub mouse_event {
@@ -359,7 +355,7 @@ sub mouse_event {
             $self->_layer_height_edited(1);
             $self->_variable_layer_thickness_action($e);
         } elsif ($object_idx_selected != -1 && $self->_variable_layer_thickness_reset_rect_mouse_inside($e)) {
-            $self->{print}->get_object($self->{layer_height_edit_last_object_id})->reset_layer_height_profile;
+            $self->{print}->get_object($object_idx_selected)->reset_layer_height_profile;
             # Index 2 means no editing, just wait for mouse up event.
             $self->_layer_height_edited(2);
             $self->Refresh;
@@ -1308,10 +1304,11 @@ sub draw_volumes {
         my $volume = $self->volumes->[$volume_idx];
 
         my $shader_active = 0;
-        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{layer_height_edit_shader} && $volume->has_layer_height_texture) {
+        my $object_id = int($volume->select_group_id / 1000000);
+        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{layer_height_edit_shader} && 
+            $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
             # Update the height texture if the ModelObject::layer_height_texture is invalid.
-            $volume->generate_layer_height_texture(
-                $self->{print}->get_object(int($volume->select_group_id / 1000000)), 0);
+            $volume->generate_layer_height_texture($self->{print}->get_object($object_id), 0);
             $self->{layer_height_edit_shader}->enable;
             $self->{layer_height_edit_shader}->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
             $self->{layer_height_edit_shader}->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
@@ -1441,6 +1438,7 @@ sub draw_active_object_annotations {
 
     return if (! $self->{layer_height_edit_shader} || ! $self->layer_editing_enabled);
 
+    # Find the selected volume, over which the layer editing is active.
     my $volume;
     foreach my $volume_idx (0..$#{$self->volumes}) {
         my $v = $self->volumes->[$volume_idx];
@@ -1451,6 +1449,11 @@ sub draw_active_object_annotations {
     }
     return if (! $volume);
     
+    # If the active object was not allocated at the Print, go away. This should only be a momentary case between an object addition / deletion
+    # and an update by Platter::async_apply_config.
+    my $object_idx = int($volume->select_group_id / 1000000);
+    return if $object_idx >= $self->{print}->object_count;
+
     # The viewport and camera are set to complete view and glOrtho(-$x/2, $x/2, -$y/2, $y/2, -$depth, $depth), 
     # where x, y is the window size divided by $self->_zoom.
     my ($bar_left, $bar_bottom, $bar_right, $bar_top) = $self->_variable_layer_thickness_bar_rect_viewport;
@@ -1501,9 +1504,7 @@ sub draw_active_object_annotations {
     }
 
     # Paint the graph.
-    #FIXME use the min / maximum layer height
     #FIXME show some kind of legend.
-    my $object_idx = int($volume->select_group_id / 1000000);
     my $print_object = $self->{print}->get_object($object_idx);
     my $max_z = unscale($print_object->size->z);
     my $profile = $print_object->model_object->layer_height_profile;
