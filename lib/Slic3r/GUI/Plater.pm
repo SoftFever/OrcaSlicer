@@ -348,7 +348,7 @@ sub new {
     
     {
         my $presets;
-        if ($self->GetFrame->{mode} eq 'expert') {
+        {
             $presets = $self->{presets_sizer} = Wx::FlexGridSizer->new(3, 2, 1, 2);
             $presets->AddGrowableCol(1, 1);
             $presets->SetFlexibleDirection(wxHORIZONTAL);

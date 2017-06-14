@@ -31,7 +31,6 @@ use Slic3r::GUI::ProgressStatusBar;
 use Slic3r::GUI::Projector;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::OptionsGroup::Field;
-use Slic3r::GUI::SimpleTab;
 use Slic3r::GUI::SystemInfo;
 use Slic3r::GUI::Tab;
 
@@ -59,14 +58,11 @@ our $datadir;
 # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
 our $no_controller;
 our $no_plater;
-our $mode;
 our $autosave;
 our @cb;
 
 our $Settings = {
     _ => {
-        # Simple mode is very limited, rather start with the expert mode.
-        mode => 'expert',
         version_check => 1,
         autocenter => 1,
         # Disable background processing by default as it is not stable.
@@ -128,7 +124,6 @@ sub OnInit {
         my $ini = eval { Slic3r::Config->read_ini("$datadir/slic3r.ini") };
         $Settings = $ini if $ini;
         $last_version = $Settings->{_}{version};
-        $Settings->{_}{mode} ||= 'expert';
         $Settings->{_}{autocenter} //= 1;
         $Settings->{_}{background_processing} //= 1;
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
@@ -142,7 +137,6 @@ sub OnInit {
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
-        mode            => $mode // $Settings->{_}{mode},
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
         no_controller   => $no_controller // $Settings->{_}{no_controller},
         no_plater       => $no_plater,

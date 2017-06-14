@@ -1,4 +1,4 @@
-# A dialog group object. Used by the Tab, SimpleTab, Preferences dialog, ManualControlDialog etc.
+# A dialog group object. Used by the Tab, Preferences dialog, ManualControlDialog etc.
 
 package Slic3r::GUI::OptionsGroup;
 use Moo;
