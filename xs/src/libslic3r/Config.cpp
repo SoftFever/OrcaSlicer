@@ -318,7 +318,7 @@ void ConfigBase::load_from_gcode(const std::string &file)
 		std::string firstline;
 		std::getline(ifs, firstline);
 		if (strncmp(slic3r_gcode_header, firstline.c_str(), strlen(slic3r_gcode_header)) != 0)
-			throw std::exception("Not a Slic3r generated g-code.");
+			throw std::runtime_error("Not a Slic3r generated g-code.");
 	}
     ifs.seekg(0, ifs.end);
 	auto file_length = ifs.tellg();
@@ -379,7 +379,7 @@ void ConfigBase::load_from_gcode(const std::string &file)
     if (num_key_value_pairs < 90) {
         char msg[80];
         sprintf(msg, "Suspiciously low number of configuration values extracted: %d", num_key_value_pairs);
-        throw std::exception(msg);
+        throw std::runtime_error(msg);
     }
 }
 
