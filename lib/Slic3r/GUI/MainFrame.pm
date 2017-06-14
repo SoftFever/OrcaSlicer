@@ -181,13 +181,13 @@ sub _init_menubar {
         }, undef, 'lorry_go.png');
         $fileMenu->AppendSeparator();
         my $repeat;
-        $self->_append_menu_item($fileMenu, "Q&uick Slice…\tCtrl+U", 'Slice file', sub {
+        $self->_append_menu_item($fileMenu, "Q&uick Slice…\tCtrl+U", 'Slice a file into a G-code', sub {
             wxTheApp->CallAfter(sub {
                 $self->quick_slice;
                 $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
             });
         }, undef, 'cog_go.png');
-        $self->_append_menu_item($fileMenu, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice file and save as', sub {
+        $self->_append_menu_item($fileMenu, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice a file into a G-code, save as', sub {
             wxTheApp->CallAfter(sub {
                 $self->quick_slice(save_as => 1);
                 $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
@@ -200,7 +200,7 @@ sub _init_menubar {
         }, undef, 'cog_go.png');
         $repeat->Enable(0);
         $fileMenu->AppendSeparator();
-        $self->_append_menu_item($fileMenu, "Slice to SV&G…\tCtrl+G", 'Slice file to SVG', sub {
+        $self->_append_menu_item($fileMenu, "Slice to SV&G…\tCtrl+G", 'Slice file to a multi-layer SVG', sub {
             $self->quick_slice(save_as => 1, export_svg => 1);
         }, undef, 'shape_handles.png');
         $self->{menu_item_reslice_now} = $self->_append_menu_item(
@@ -345,6 +345,7 @@ sub on_plater_selection_changed {
         for $self->{object_menu}->GetMenuItems;
 }
 
+# To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".
 sub quick_slice {
     my $self = shift;
     my %params = @_;
