@@ -314,15 +314,17 @@ void ConfigBase::load_from_gcode(const std::string &file)
     // 1) Read a 64k block from the end of the G-code.
     boost::nowide::ifstream ifs(file);
     ifs.seekg(0, ifs.end);
-    auto length = std::min<std::fstream::streampos>(65535, ifs.tellg());
-    ifs.seekg(std::min(length, length), ifs.end);
-    std::vector<char> data(size_t(length) + 1, 0);
-    ifs.read(data.data(), length);
+	auto file_length = ifs.tellg();
+	auto data_length = std::min<std::fstream::streampos>(65535, file_length);
+	ifs.seekg(file_length - data_length, ifs.beg);
+	std::vector<char> data(size_t(data_length) + 1, 0);
+	ifs.read(data.data(), data_length);
     ifs.close();
 
     // 2) Walk line by line in reverse until a non-configuration key appears.
     char *data_start = data.data();
-    char *end = data_start + length;
+    // boost::nowide::ifstream seems to cook the text data somehow, so less then the 64k of characters may be retrieved.
+	char *end = data_start + strlen(data.data());
     for (;;) {
         // Extract next line.
         for (-- end; end > data_start && (*end == '\r' || *end == '\n'); -- end);
@@ -330,28 +332,40 @@ void ConfigBase::load_from_gcode(const std::string &file)
             break;
         char *start = end;
         *(++ end) = 0;
-        for (-- start; start > data_start && *start != '\r' && *start != '\n'; -- start);
+        for (; start > data_start && *start != '\r' && *start != '\n'; -- start);
         if (start == data_start)
             break;
         // Extracted a line from start to end. Extract the key = value pair.
-        if (end - start < 10 || start[0] != ';' || start[1] != ' ' || (start[2] == ' ' || start[2] == '\t'))
+        if (end - (++ start) < 10 || start[0] != ';' || start[1] != ' ')
             break;
         char *key = start + 2;
+        if (! (*key >= 'a' && *key <= 'z') || (*key >= 'A' && *key <= 'Z'))
+            // A key must start with a letter.
+            break;
         char *sep = strchr(key, '=');
-        if (sep == nullptr)
+        if (sep == nullptr || sep[-1] != ' ' || sep[1] != ' ')
             break;
         char *value = sep + 2;
-        if (value >= end)
+        if (value > end)
             break;
         char *key_end = sep - 1;
         if (key_end - key < 3)
             break;
         *key_end = 0;
+        // The key may contain letters, digits and underscores.
+        for (char *c = key; c != key_end; ++ c)
+            if (! ((*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z') || (*c >= '0' && *c <= '9') || *c == '_')) {
+                key = nullptr;
+                break;
+            }
+        if (key == nullptr)
+            break;
         try {
             this->set_deserialize(key, value);
         } catch (UnknownOptionException & /* e */) {
             // ignore
         }
+        end = start;
     }
 }
 
