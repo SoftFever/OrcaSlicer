@@ -455,17 +455,21 @@ sub load_config_file {
     my $i = first { $self->{presets}[$_]{file} eq $file && $self->{presets}[$_]{external} } 1..$#{$self->{presets}};
     if (!$i) {
         my $preset_name = basename($file);  # keep the .ini suffix
-        push @{$self->{presets}}, Slic3r::GUI::Tab::Preset->new(
+        my $preset_new = Slic3r::GUI::Tab::Preset->new(
             file        => $file,
             name        => $preset_name,
             external    => 1,
         );
+        # Try to load the config file before it is entered into the list. If the loading fails, an undef is returned.
+        return undef if ! defined $preset_new->config;
+        push @{$self->{presets}}, $preset_new;
         $self->{presets_choice}->Append($preset_name);
         $i = $#{$self->{presets}};
     }
     $self->{presets_choice}->SetSelection($i - $self->{default_suppressed});
     $self->on_select_preset;
     $self->_on_presets_changed;
+    return 1;
 }
 
 sub load_config {
@@ -1710,13 +1714,15 @@ sub on_preset_loaded {
 
 sub load_config_file {
     my $self = shift;
-    $self->SUPER::load_config_file(@_);
-    
-    Slic3r::GUI::warning_catcher($self)->(
-        "Your configuration was imported. However, Slic3r is currently only able to import settings "
-        . "for the first defined filament. We recommend you don't use exported configuration files "
-        . "for multi-extruder setups and rely on the built-in preset management system instead.")
-        if @{ $self->{config}->nozzle_diameter } > 1;
+    if ($self->SUPER::load_config_file(@_)) {
+        Slic3r::GUI::warning_catcher($self)->(
+            "Your configuration was imported. However, Slic3r is currently only able to import settings "
+            . "for the first defined filament. We recommend you don't use exported configuration files "
+            . "for multi-extruder setups and rely on the built-in preset management system instead.")
+            if @{ $self->{config}->nozzle_diameter } > 1;
+        return 1;
+    }
+    return undef;
 }
 
 package Slic3r::GUI::Tab::Page;
@@ -1862,7 +1868,11 @@ sub config {
         
         # apply preset values on top of defaults
         my $config = Slic3r::Config->new_from_defaults(@$keys);
-        my $external_config = Slic3r::Config->load($self->file);
+        my $external_config = eval { Slic3r::Config->load($self->file); };
+        if ($@) {
+            Slic3r::GUI::show_error(undef, $@);
+            return undef;
+        }
         $config->set($_, $external_config->get($_))
             for grep $external_config->has($_), @$keys;
 

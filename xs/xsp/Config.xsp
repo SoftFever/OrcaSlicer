@@ -39,7 +39,14 @@
     %name{setenv} void setenv_();
     double min_object_distance();
     %name{_load} void load(std::string file);
-    %name{_load_from_gcode} void load_from_gcode(std::string file);
+    %name{_load_from_gcode} void load_from_gcode(std::string input_file)
+        %code%{
+            try {
+                THIS->load_from_gcode(input_file);
+            } catch (std::exception& e) {
+                croak("Error exracting configuration from a g-code %s:\n%s\n", input_file.c_str(), e.what());
+            }
+        %};
     %name{_save} void save(std::string file);
 };
 

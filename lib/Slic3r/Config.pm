@@ -100,7 +100,7 @@ sub merge {
 sub load {
     my $class = shift;
     my ($file) = @_;
-    
+
     if ($file =~ /\.gcode$/i || $file =~ /\.g$/i) {
         my $config = $class->new;        
         $config->_load_from_gcode($file);

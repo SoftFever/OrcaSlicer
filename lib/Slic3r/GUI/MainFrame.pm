@@ -548,12 +548,13 @@ sub load_config_file {
         $file = Slic3r::decode_path($dlg->GetPaths);
         $dlg->Destroy;
     }
+    for my $tab (values %{$self->{options_tabs}}) {
+        # Dont proceed further if the config file cannot be loaded.
+        return undef if ! $tab->load_config_file($file);
+    }
     $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
     wxTheApp->save_settings;
     $last_config = $file;
-    for my $tab (values %{$self->{options_tabs}}) {
-        $tab->load_config_file($file);
-    }
 }
 
 sub export_configbundle {
