@@ -72,6 +72,7 @@ use Slic3r::Polygon;
 use Slic3r::Polyline;
 use Slic3r::Print;
 use Slic3r::Print::Object;
+use Slic3r::Print::Simple;
 use Slic3r::Surface;
 our $build = eval "use Slic3r::Build; 1";
 use Thread::Semaphore;

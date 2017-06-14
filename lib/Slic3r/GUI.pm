@@ -28,7 +28,6 @@ use Slic3r::GUI::Plater::LambdaObjectDialog;
 use Slic3r::GUI::Plater::OverrideSettingsPanel;
 use Slic3r::GUI::Preferences;
 use Slic3r::GUI::ProgressStatusBar;
-use Slic3r::GUI::Projector;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SystemInfo;

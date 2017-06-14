@@ -235,13 +235,6 @@ sub _init_menubar {
         $self->_append_menu_item($self->{plater_menu}, "Export plate as AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
         }, undef, 'brick_go.png');
-        $self->_append_menu_item($self->{plater_menu}, "Open DLP Projector…\tCtrl+L", 'Open projector window for DLP printing', sub {
-            my $projector = Slic3r::GUI::Projector->new($self);
-            
-            # this double invocation is needed for properly hiding the MainFrame
-            $projector->Show;
-            $projector->ShowModal;
-        }, undef, 'film.png');
         
         $self->{object_menu} = $self->{plater}->object_menu;
         $self->on_plater_selection_changed(0);
