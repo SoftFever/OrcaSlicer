@@ -29,7 +29,7 @@ class ConfigOption {
 public:
     virtual ~ConfigOption() {};
     virtual std::string serialize() const = 0;
-    virtual bool deserialize(std::string str) = 0;
+    virtual bool deserialize(const std::string &str, bool append = false) = 0;
     virtual void set(const ConfigOption &option) = 0;
     virtual int getInt() const { return 0; };
     virtual double getFloat() const { return 0; };
@@ -94,7 +94,7 @@ public:
         return ss.str();
     };
     
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         std::istringstream iss(str);
         iss >> this->value;
         return !iss.fail();
@@ -124,8 +124,9 @@ public:
         return vv;
     };
     
-    bool deserialize(std::string str) {
-        this->values.clear();
+    bool deserialize(const std::string &str, bool append = false) {
+        if (! append)
+            this->values.clear();
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
@@ -153,7 +154,7 @@ public:
         return ss.str();
     };
     
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         std::istringstream iss(str);
         iss >> this->value;
         return !iss.fail();
@@ -183,8 +184,9 @@ public:
         return vv;
     };
     
-    bool deserialize(std::string str) {
-        this->values.clear();
+    bool deserialize(const std::string &str, bool append = false) {
+        if (! append)
+            this->values.clear();
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
@@ -207,7 +209,7 @@ public:
         return escape_string_cstyle(this->value);
     }
 
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         return unescape_string_cstyle(str, this->value);
     };
 };
@@ -224,7 +226,9 @@ public:
         return this->values;
     };
     
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
+        if (! append)
+            this->values.clear();
         return unescape_strings_cstyle(str, this->values);
     };
 };
@@ -247,7 +251,7 @@ public:
         return s;
     };
     
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         // don't try to parse the trailing % since it's optional
         std::istringstream iss(str);
         iss >> this->value;
@@ -280,8 +284,9 @@ public:
         return vv;
     };
 
-    bool deserialize(std::string str) {
-        this->values.clear();
+    bool deserialize(const std::string &str, bool append = false) {
+        if (! append)
+            this->values.clear();
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
@@ -327,7 +332,7 @@ public:
         return s;
     };
     
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         this->percent = str.find_first_of("%") != std::string::npos;
         std::istringstream iss(str);
         iss >> this->value;
@@ -349,7 +354,7 @@ public:
         return ss.str();
     };
     
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         std::istringstream iss(str);
         iss >> this->value.x;
         iss.ignore(std::numeric_limits<std::streamsize>::max(), ',');
@@ -383,8 +388,9 @@ public:
         return vv;
     };
     
-    bool deserialize(std::string str) {
-        this->values.clear();
+    bool deserialize(const std::string &str, bool append = false) {
+        if (! append)
+            this->values.clear();
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
@@ -415,7 +421,7 @@ public:
         return std::string(this->value ? "1" : "0");
     };
     
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         this->value = (str.compare("1") == 0);
         return true;
     };
@@ -443,8 +449,9 @@ public:
         return vv;
     };
     
-    bool deserialize(std::string str) {
-        this->values.clear();
+    bool deserialize(const std::string &str, bool append = false) {
+        if (! append)
+            this->values.clear();
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
@@ -473,7 +480,7 @@ public:
         return "";
     };
 
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         t_config_enum_values enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
         if (enum_keys_map.count(str) == 0) return false;
         this->value = static_cast<T>(enum_keys_map[str]);
@@ -500,7 +507,7 @@ public:
         return "";
     };
 
-    bool deserialize(std::string str) {
+    bool deserialize(const std::string &str, bool append = false) {
         if (this->keys_map->count(str) == 0) return false;
         this->value = (*const_cast<t_config_enum_values*>(this->keys_map))[str];
         return true;
@@ -660,11 +667,14 @@ public:
     bool equals(const ConfigBase &other) const { return this->diff(other).empty(); }
     t_config_option_keys diff(const ConfigBase &other) const;
     std::string serialize(const t_config_option_key &opt_key) const;
-    bool set_deserialize(const t_config_option_key &opt_key, std::string str);
+    bool set_deserialize(t_config_option_key opt_key, const std::string &str, bool append = false);
 
     double get_abs_value(const t_config_option_key &opt_key) const;
     double get_abs_value(const t_config_option_key &opt_key, double ratio_over) const;
     void setenv_();
+    void load(const std::string &file);
+    void load_from_gcode(const std::string &file);
+    void save(const std::string &file) const;
 };
 
 // Configuration store with dynamic number of configuration values.
@@ -702,6 +712,9 @@ public:
     // The derived class has to implement optptr to resolve a static configuration value.
     // virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) = 0;
 };
+
+/// Specialization of std::exception to indicate that an unknown config option has been encountered.
+class UnknownOptionException : public std::exception {};
 
 }
 

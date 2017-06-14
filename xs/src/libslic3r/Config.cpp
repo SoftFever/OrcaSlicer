@@ -1,6 +1,22 @@
 #include "Config.hpp"
-#include <stdlib.h>  // for setenv()
 #include <assert.h>
+#include <ctime>
+#include <fstream>
+#include <iostream>
+#include <exception> // std::runtime_error
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/config.hpp>
+#include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/nowide/cenv.hpp>
+#include <boost/nowide/fstream.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <string.h>
 
 #if defined(_WIN32) && !defined(setenv) && defined(_putenv_s)
@@ -94,7 +110,6 @@ bool unescape_string_cstyle(const std::string &str, std::string &str_out)
 
 bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &out)
 {
-    out.clear();
     if (str.empty())
         return true;
 
@@ -195,19 +210,36 @@ std::string ConfigBase::serialize(const t_config_option_key &opt_key) const
     return opt->serialize();
 }
 
-bool ConfigBase::set_deserialize(const t_config_option_key &opt_key, std::string str)
+bool ConfigBase::set_deserialize(t_config_option_key opt_key, const std::string &str, bool append)
 {
     const ConfigOptionDef* optdef = this->def->get(opt_key);
-    if (optdef == NULL) throw "Calling set_deserialize() on unknown option";
-    if (!optdef->shortcut.empty()) {
-        for (std::vector<t_config_option_key>::const_iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it) {
-            if (!this->set_deserialize(*it, str)) return false;
+    if (optdef == nullptr) {
+        // If we didn't find an option, look for any other option having this as an alias.
+        for (const auto &opt : this->def->options) {
+            for (const t_config_option_key &opt_key2 : opt.second.aliases) {
+                if (opt_key2 == opt_key) {
+                    opt_key = opt_key2;
+                    optdef = &opt.second;
+                    break;
+                }
+            }
+            if (optdef != nullptr)
+                break;
         }
+        if (optdef == nullptr)
+            throw UnknownOptionException();
+    }
+    
+    if (! optdef->shortcut.empty()) {
+        for (const t_config_option_key &shortcut : optdef->shortcut)
+            if (! this->set_deserialize(shortcut, str))
+                return false;
         return true;
     }
-    ConfigOption* opt = this->option(opt_key, true);
+    
+    ConfigOption *opt = this->option(opt_key, true);
     assert(opt != nullptr);
-    return opt->deserialize(str);
+    return opt->deserialize(str, append);
 }
 
 // Return an absolute value of a possibly relative config variable.
@@ -257,6 +289,90 @@ void ConfigBase::setenv_()
         setenv(envname.c_str(), this->serialize(*it).c_str(), 1);
     }
 #endif
+}
+
+void ConfigBase::load(const std::string &file)
+{
+    namespace pt = boost::property_tree;
+    pt::ptree tree;
+    boost::nowide::ifstream ifs(file);
+    pt::read_ini(ifs, tree);
+    for (const pt::ptree::value_type &v : tree) {
+        try {
+            t_config_option_key opt_key = v.first;
+            std::string value = v.second.get_value<std::string>();
+            this->set_deserialize(opt_key, value);
+        } catch (UnknownOptionException & /* e */) {
+            // ignore
+        }
+    }
+}
+
+// Load the config keys from the tail of a G-code.
+void ConfigBase::load_from_gcode(const std::string &file)
+{
+    // 1) Read a 64k block from the end of the G-code.
+    boost::nowide::ifstream ifs(file);
+    ifs.seekg(0, ifs.end);
+    auto length = std::min<std::fstream::streampos>(65535, ifs.tellg());
+    ifs.seekg(std::min(length, length), ifs.end);
+    std::vector<char> data(size_t(length) + 1, 0);
+    ifs.read(data.data(), length);
+    ifs.close();
+
+    // 2) Walk line by line in reverse until a non-configuration key appears.
+    char *data_start = data.data();
+    char *end = data_start + length;
+    for (;;) {
+        // Extract next line.
+        for (-- end; end > data_start && (*end == '\r' || *end == '\n'); -- end);
+        if (end == data_start)
+            break;
+        char *start = end;
+        *(++ end) = 0;
+        for (-- start; start > data_start && *start != '\r' && *start != '\n'; -- start);
+        if (start == data_start)
+            break;
+        // Extracted a line from start to end. Extract the key = value pair.
+        if (end - start < 10 || start[0] != ';' || start[1] != ' ' || (start[2] == ' ' || start[2] == '\t'))
+            break;
+        char *key = start + 2;
+        char *sep = strchr(key, '=');
+        if (sep == nullptr)
+            break;
+        char *value = sep + 2;
+        if (value >= end)
+            break;
+        char *key_end = sep - 1;
+        if (key_end - key < 3)
+            break;
+        *key_end = 0;
+        try {
+            this->set_deserialize(key, value);
+        } catch (UnknownOptionException & /* e */) {
+            // ignore
+        }
+    }
+}
+
+void ConfigBase::save(const std::string &file) const
+{
+    using namespace std;
+    boost::nowide::ofstream c;
+    c.open(file, ios::out | ios::trunc);
+
+    {
+        time_t now;
+        time(&now);
+        char buf[sizeof "0000-00-00 00:00:00"];
+        strftime(buf, sizeof buf, "%F %T", gmtime(&now));
+        c << "# generated by Slic3r " << SLIC3R_VERSION << " on " << buf << endl;
+    }
+
+    t_config_option_keys my_keys = this->keys();
+    for (t_config_option_keys::const_iterator opt_key = my_keys.begin(); opt_key != my_keys.end(); ++opt_key)
+        c << *opt_key << " = " << this->serialize(*opt_key) << endl;
+    c.close();
 }
 
 ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool create) {
