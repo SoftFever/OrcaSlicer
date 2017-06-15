@@ -261,7 +261,7 @@ sub selection_changed {
     }
     
     # disable things as if nothing is selected
-    $self->{'btn_' . $_}->Disable for (qw(delete move_up move_down));
+    $self->{'btn_' . $_}->Disable for (qw(delete move_up move_down split));
     $self->{settings_panel}->disable;
     $self->{settings_panel}->set_config(undef);
 
