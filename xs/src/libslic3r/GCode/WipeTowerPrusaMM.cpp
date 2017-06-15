@@ -380,7 +380,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(int tool, bool last_in
 			// Number of whole wipe lines, that would be extruded to wipe as much material as the finish_layer().
 			float num_lines_extruded = floor(e_length / m_wipe_tower_width);
 			// Minimum wipe area is 5mm wide.
-			wipe_area -= num_lines_extruded * dy;
+			wipe_area = m_wipe_area - num_lines_extruded * dy;
 			if (wipe_area < 5.) {
 				wipe_area = 5.;
 				break;
