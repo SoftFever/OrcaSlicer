@@ -401,8 +401,6 @@ bool Print::apply_config(DynamicPrintConfig config)
             // The layer_height_profile is not valid for some reason (updated by the user or invalidated due to some option change).
             // Invalidate the slicing step, which in turn invalidates everything.
             object->invalidate_step(posSlice);
-            // Following line sets the layer_height_profile_valid flag.
-            object->update_layer_height_profile();
             // Trigger recalculation.
             invalidated = true;
         }
@@ -478,13 +476,15 @@ exit_for_rearrange_regions:
         for (PrintObject *object : this->objects)
             model_objects.push_back(object->model_object());
         this->clear_objects();
-        for (ModelObject *mo : model_objects) {
+        for (ModelObject *mo : model_objects)
             this->add_model_object(mo);
-            // Update layer_height_profile from the main thread as it may pull the data from the associated ModelObject.
-            this->objects.back()->update_layer_height_profile();
-        }
         invalidated = true;
     }
+
+    // Always make sure that the layer_height_profiles are set, as they should not be modified from the worker threads.
+    for (PrintObject *object : this->objects)
+        if (! object->layer_height_profile_valid)
+            object->update_layer_height_profile();
     
     return invalidated;
 }

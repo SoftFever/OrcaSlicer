@@ -1468,6 +1468,7 @@ void PrintObject::reset_layer_height_profile()
 {
     // Reset the layer_heigth_profile.
     this->layer_height_profile.clear();
+	this->layer_height_profile_valid = false;
     // Reset the source layer_height_profile if it exists at the ModelObject.
     this->model_object()->layer_height_profile.clear();
     this->model_object()->layer_height_profile_valid = false;
