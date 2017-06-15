@@ -161,6 +161,10 @@ public:
     void material_id(t_model_material_id material_id);
     ModelMaterial* material() const;
     void set_material(t_model_material_id material_id, const ModelMaterial &material);
+    // Split this volume, append the result to the object owning this volume.
+    // Return the number of volumes created from this one.
+    // This is useful to assign different materials to different volumes of an object.
+    size_t split();
     
     ModelMaterial* assign_unique_material();
     
@@ -173,6 +177,9 @@ private:
     ModelVolume(ModelObject *object, TriangleMesh &&mesh) : mesh(std::move(mesh)), modifier(false), object(object) {}
     ModelVolume(ModelObject *object, const ModelVolume &other) : 
         name(other.name), mesh(other.mesh), config(other.config), modifier(other.modifier), object(object)
+        { this->material_id(other.material_id()); }
+    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) : 
+        name(other.name), mesh(std::move(mesh)), config(other.config), modifier(other.modifier), object(object)
         { this->material_id(other.material_id()); }
 };
 

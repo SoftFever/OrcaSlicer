@@ -685,6 +685,36 @@ ModelMaterial* ModelVolume::assign_unique_material()
     return model->add_material(this->_material_id);
 }
 
+// Split this volume, append the result to the object owning this volume.
+// Return the number of volumes created from this one.
+// This is useful to assign different materials to different volumes of an object.
+size_t ModelVolume::split()
+{
+    TriangleMeshPtrs meshptrs = this->mesh.split();
+    if (meshptrs.size() <= 1) {
+        delete meshptrs.front();
+        return 1;
+    }
+
+    size_t idx = 0;
+    size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
+    std::string name = this->name;
+    for (TriangleMesh *mesh : meshptrs) {
+        mesh->repair();
+        if (idx == 0)
+            this->mesh = std::move(*mesh);
+        else
+            this->object->volumes.insert(this->object->volumes.begin() + (++ ivolume), new ModelVolume(object, *this, std::move(*mesh)));
+        char str_idx[64];
+        sprintf(str_idx, "_%d", idx + 1);
+        this->object->volumes[ivolume]->name = name + str_idx;
+        delete mesh;
+        ++ idx;
+    }
+    
+    return idx;
+}
+
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->rotate_z(this->rotation);                 // rotate around mesh origin

@@ -24,8 +24,8 @@ public:
     TriangleMesh(const Pointf3s &points, const std::vector<Point3> &facets);
     TriangleMesh(const TriangleMesh &other);
     TriangleMesh(TriangleMesh &&other);
-    TriangleMesh& operator= (TriangleMesh other);
-    TriangleMesh& operator= (TriangleMesh &&other);
+    TriangleMesh& operator=(const TriangleMesh &other);
+    TriangleMesh& operator=(TriangleMesh &&other);
     void swap(TriangleMesh &other);
     ~TriangleMesh();
     void ReadSTLFile(const char* input_file);

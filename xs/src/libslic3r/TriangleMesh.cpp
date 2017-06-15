@@ -78,28 +78,11 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Point3>& fa
     stl_get_size(&stl);
 }
 
-TriangleMesh::TriangleMesh(const TriangleMesh &other)
-    : stl(other.stl), repaired(other.repaired)
+TriangleMesh::TriangleMesh(const TriangleMesh &other) :
+    repaired(false)
 {
-    this->stl.heads = NULL;
-    this->stl.tail  = NULL;
-    this->stl.error = other.stl.error;
-    if (other.stl.facet_start != NULL) {
-        this->stl.facet_start = (stl_facet*)calloc(other.stl.stats.number_of_facets, sizeof(stl_facet));
-        std::copy(other.stl.facet_start, other.stl.facet_start + other.stl.stats.number_of_facets, this->stl.facet_start);
-    }
-    if (other.stl.neighbors_start != NULL) {
-        this->stl.neighbors_start = (stl_neighbors*)calloc(other.stl.stats.number_of_facets, sizeof(stl_neighbors));
-        std::copy(other.stl.neighbors_start, other.stl.neighbors_start + other.stl.stats.number_of_facets, this->stl.neighbors_start);
-    }
-    if (other.stl.v_indices != NULL) {
-        this->stl.v_indices = (v_indices_struct*)calloc(other.stl.stats.number_of_facets, sizeof(v_indices_struct));
-        std::copy(other.stl.v_indices, other.stl.v_indices + other.stl.stats.number_of_facets, this->stl.v_indices);
-    }
-    if (other.stl.v_shared != NULL) {
-        this->stl.v_shared = (stl_vertex*)calloc(other.stl.stats.shared_vertices, sizeof(stl_vertex));
-        std::copy(other.stl.v_shared, other.stl.v_shared + other.stl.stats.shared_vertices, this->stl.v_shared);
-    }
+    stl_initialize(&this->stl);
+    *this = other;
 }
 
 TriangleMesh::TriangleMesh(TriangleMesh &&other) : 
@@ -109,9 +92,30 @@ TriangleMesh::TriangleMesh(TriangleMesh &&other) :
     this->swap(other);
 }
 
-TriangleMesh& TriangleMesh::operator= (TriangleMesh other)
+TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
 {
-    this->swap(other);
+    stl_close(&this->stl);
+    this->stl       = other.stl;
+    this->repaired  = other.repaired;
+    this->stl.heads = nullptr;
+    this->stl.tail  = nullptr;
+    this->stl.error = other.stl.error;
+    if (other.stl.facet_start != nullptr) {
+        this->stl.facet_start = (stl_facet*)calloc(other.stl.stats.number_of_facets, sizeof(stl_facet));
+        std::copy(other.stl.facet_start, other.stl.facet_start + other.stl.stats.number_of_facets, this->stl.facet_start);
+    }
+    if (other.stl.neighbors_start != nullptr) {
+        this->stl.neighbors_start = (stl_neighbors*)calloc(other.stl.stats.number_of_facets, sizeof(stl_neighbors));
+        std::copy(other.stl.neighbors_start, other.stl.neighbors_start + other.stl.stats.number_of_facets, this->stl.neighbors_start);
+    }
+    if (other.stl.v_indices != nullptr) {
+        this->stl.v_indices = (v_indices_struct*)calloc(other.stl.stats.number_of_facets, sizeof(v_indices_struct));
+        std::copy(other.stl.v_indices, other.stl.v_indices + other.stl.stats.number_of_facets, this->stl.v_indices);
+    }
+    if (other.stl.v_shared != nullptr) {
+        this->stl.v_shared = (stl_vertex*)calloc(other.stl.stats.shared_vertices, sizeof(stl_vertex));
+        std::copy(other.stl.v_shared, other.stl.v_shared + other.stl.stats.shared_vertices, this->stl.v_shared);
+    }
     return *this;
 }
 
@@ -427,7 +431,7 @@ TriangleMesh::split() const
     if (!this->repaired) CONFESS("split() requires repair()");
     
     // loop while we have remaining facets
-    while (1) {
+    for (;;) {
         // get the first facet
         std::queue<int> facet_queue;
         std::deque<int> facets;

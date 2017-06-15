@@ -56,13 +56,15 @@ sub new {
     $self->{btn_load_modifier} = Wx::Button->new($self, -1, "Load modifier…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_load_lambda_modifier} = Wx::Button->new($self, -1, "Load generic…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_delete} = Wx::Button->new($self, -1, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    $self->{btn_move_up} = Wx::Button->new($self, -1, $Slic3r::GUI::have_button_icons ? "" : "Up", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    $self->{btn_move_down} = Wx::Button->new($self, -1, $Slic3r::GUI::have_button_icons ? "" : "Down", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_split} = Wx::Button->new($self, -1, "Split part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    $self->{btn_move_up} = Wx::Button->new($self, -1, $Slic3r::GUI::have_button_icons ? "" : "Up", wxDefaultPosition, [40, -1], wxBU_LEFT);
+    $self->{btn_move_down} = Wx::Button->new($self, -1, $Slic3r::GUI::have_button_icons ? "" : "Down", wxDefaultPosition, [40, -1], wxBU_LEFT);
     if ($Slic3r::GUI::have_button_icons) {
         $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_load_lambda_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_delete}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_delete.png"), wxBITMAP_TYPE_PNG));
+        $self->{btn_split}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("shape_ungroup.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_move_up}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_up.png"), wxBITMAP_TYPE_PNG));
         $self->{btn_move_down}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_down.png"), wxBITMAP_TYPE_PNG));
     }
@@ -73,12 +75,18 @@ sub new {
     $buttons_sizer->Add($self->{btn_load_modifier}, 0, wxEXPAND | wxBOTTOM | wxRIGHT, 5);
     $buttons_sizer->Add($self->{btn_load_lambda_modifier}, 0, wxEXPAND | wxBOTTOM, 5);
     $buttons_sizer->Add($self->{btn_delete}, 0, wxEXPAND | wxRIGHT, 5);
-    $buttons_sizer->Add($self->{btn_move_up}, 0, wxEXPAND | wxRIGHT, 5);
-    $buttons_sizer->Add($self->{btn_move_down}, 0, wxEXPAND, 5);
+    $buttons_sizer->Add($self->{btn_split}, 0, wxEXPAND | wxRIGHT, 5);
+    {
+        my $up_down_sizer = Wx::GridSizer->new(1, 2);
+        $up_down_sizer->Add($self->{btn_move_up}, 0, wxEXPAND | wxRIGHT, 5);
+        $up_down_sizer->Add($self->{btn_move_down}, 0, wxEXPAND, 5);
+        $buttons_sizer->Add($up_down_sizer, 0, wxEXPAND, 5);
+    }
     $self->{btn_load_part}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_load_modifier}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_load_lambda_modifier}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_delete}->SetFont($Slic3r::GUI::small_font);
+    $self->{btn_split}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_move_up}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_move_down}->SetFont($Slic3r::GUI::small_font);
     
@@ -182,6 +190,7 @@ sub new {
     EVT_BUTTON($self, $self->{btn_load_modifier}, sub { $self->on_btn_load(1) });
     EVT_BUTTON($self, $self->{btn_load_lambda_modifier}, sub { $self->on_btn_lambda(1) });
     EVT_BUTTON($self, $self->{btn_delete}, \&on_btn_delete);
+    EVT_BUTTON($self, $self->{btn_split}, \&on_btn_split);
     EVT_BUTTON($self, $self->{btn_move_up}, \&on_btn_move_up);
     EVT_BUTTON($self, $self->{btn_move_down}, \&on_btn_move_down);
     
@@ -279,6 +288,7 @@ sub selection_changed {
                 $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
             }
             $self->{btn_delete}->Enable;
+            $self->{btn_split}->Enable;
             $self->{btn_move_up}->Enable if $itemData->{volume_id} > 0;
             $self->{btn_move_down}->Enable if $itemData->{volume_id} + 1 < $self->{model_object}->volumes_count;
             
@@ -444,6 +454,18 @@ sub on_btn_delete {
 
         $self->{model_object}->delete_volume($itemData->{volume_id});
         $self->{parts_changed} = 1;
+    }
+    
+    $self->_parts_changed;
+}
+
+sub on_btn_split {
+    my ($self) = @_;
+
+    my $itemData = $self->get_selection;
+    if ($itemData && $itemData->{type} eq 'volume') {
+        my $volume = $self->{model_object}->volumes->[$itemData->{volume_id}];
+        $self->{parts_changed} = 1 if $volume->split > 1;
     }
     
     $self->_parts_changed;
