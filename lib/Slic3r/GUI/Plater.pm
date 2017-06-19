@@ -1158,18 +1158,7 @@ sub split_object {
         $self->resume_background_process;
         return;
     }
-    
-    foreach my $object (@model_objects) {
-        $object->instances->[$_]->offset->translate($_ * 10, $_ * 10)
-            for 1..$#{ $object->instances };
-        
-        # we need to center this single object around origin
-        $object->center_around_origin;
-    }
 
-    # remove the original object before spawning the object_loaded event, otherwise 
-    # we'll pass the wrong $obj_idx to it (which won't be recognized after the
-    # thumbnail thread returns)
     $self->remove($obj_idx);
     $current_object = $obj_idx = undef;
     
