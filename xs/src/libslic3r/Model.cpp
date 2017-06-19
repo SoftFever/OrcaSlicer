@@ -496,7 +496,7 @@ void ModelObject::center_around_origin()
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
             Vectorf3 v = vector.negative();
-            v.rotate(i->rotation, i->offset);
+            v.rotate(i->rotation);
             v.scale(i->scaling_factor);
             i->offset.translate(v.x, v.y);
         }
@@ -639,19 +639,22 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     
     ModelVolume* volume = this->volumes.front();
     TriangleMeshPtrs meshptrs = volume->mesh.split();
-    for (TriangleMeshPtrs::iterator mesh = meshptrs.begin(); mesh != meshptrs.end(); ++mesh) {
-        (*mesh)->repair();
+    for (TriangleMesh *mesh : meshptrs) {
+        // Snap the mesh to Z=0.
+        float z0 = FLT_MAX;
+        
+        mesh->repair();
         
         ModelObject* new_object = m_model->add_object(*this, false);
         new_object->input_file  = "";
-        ModelVolume* new_volume = new_object->add_volume(**mesh);
+        ModelVolume* new_volume = new_object->add_volume(*mesh);
         new_volume->name        = volume->name;
         new_volume->config      = volume->config;
         new_volume->modifier    = volume->modifier;
         new_volume->material_id(volume->material_id());
         
         new_objects->push_back(new_object);
-        delete *mesh;
+        delete mesh;
     }
     
     return;

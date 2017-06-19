@@ -1158,6 +1158,8 @@ sub split_object {
         $self->resume_background_process;
         return;
     }
+    
+    $_->center_around_origin for (@model_objects);
 
     $self->remove($obj_idx);
     $current_object = $obj_idx = undef;
