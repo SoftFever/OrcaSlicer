@@ -1,6 +1,8 @@
 #include "Model.hpp"
 #include "Geometry.hpp"
 
+#include <float.h>
+
 namespace Slic3r {
 
 Model::Model(const Model &other)
