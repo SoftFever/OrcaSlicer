@@ -421,6 +421,7 @@ sub on_btn_move_up {
     if ($itemData && $itemData->{type} eq 'volume') {
         my $volume_id = $itemData->{volume_id};
         if ($self->{model_object}->move_volume_up($volume_id)) {
+            $self->{canvas}->volumes->move_volume_up($volume_id);
             $self->{parts_changed} = 1;
             $self->reload_tree($volume_id - 1);
         }
@@ -433,6 +434,7 @@ sub on_btn_move_down {
     if ($itemData && $itemData->{type} eq 'volume') {
         my $volume_id = $itemData->{volume_id};
         if ($self->{model_object}->move_volume_down($volume_id)) {
+            $self->{canvas}->volumes->move_volume_down($volume_id);
             $self->{parts_changed} = 1;
             $self->reload_tree($volume_id + 1);
         }
