@@ -27,18 +27,18 @@ sub buffer {
 }
 
 my $config = Slic3r::Config->new_from_defaults;
-$config->set('disable_fan_first_layers', 0);
+$config->set('disable_fan_first_layers', [ 0 ]);
 
 {
     my $buffer = buffer($config);
-    $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time + 1);
+    $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time->[0] + 1);
     my $gcode = $buffer->append('G1 F3000;_EXTRUDE_SET_SPEED\nG1 X100 E1', 0, 0, 0) . $buffer->flush;
     like $gcode, qr/F3000/, 'speed is not altered when elapsed time is greater than slowdown threshold';
 }
 
 {
     my $buffer = buffer($config);
-    $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time - 1);
+    $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time->[0] - 1);
     my $gcode = $buffer->append(
         "G1 X50 F2500\n" .
         "G1 F3000;_EXTRUDE_SET_SPEED\n" .
@@ -53,7 +53,7 @@ $config->set('disable_fan_first_layers', 0);
 
 {
     my $buffer = buffer($config);
-    $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time + 1);
+    $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time->[0] + 1);
     my $gcode = $buffer->append('G1 X100 E1 F3000', 0, 0, 0) . $buffer->flush;
     unlike $gcode, qr/M106/, 'fan is not activated when elapsed time is greater than fan threshold';
 }
@@ -63,7 +63,7 @@ $config->set('disable_fan_first_layers', 0);
     my $gcode = "";
     for my $obj_id (0 .. 1) {
         # use an elapsed time which is < the slowdown threshold but greater than it when summed twice
-        $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time - 1);
+        $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time->[0] - 1);
         $gcode .= $buffer->append("G1 X100 E1 F3000\n", $obj_id, 0, 0);
     }
     $gcode .= $buffer->flush;
@@ -76,7 +76,7 @@ $config->set('disable_fan_first_layers', 0);
     for my $layer_id (0 .. 1) {
         for my $obj_id (0 .. 1) {
             # use an elapsed time which is < the threshold but greater than it when summed twice
-            $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time - 1);
+            $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time->[0] - 1);
             $gcode .= $buffer->append("G1 X100 E1 F3000\n", $obj_id, $layer_id, 0);
         }
     }
@@ -90,7 +90,7 @@ $config->set('disable_fan_first_layers', 0);
     for my $layer_id (0 .. 1) {
         for my $obj_id (0 .. 1) {
             # use an elapsed time which is < the threshold even when summed twice
-            $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time/2 - 1);
+            $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time->[0]/2 - 1);
             $gcode .= $buffer->append("G1 X100 E1 F3000\n", $obj_id, $layer_id, 0);
         }
     }
@@ -100,10 +100,10 @@ $config->set('disable_fan_first_layers', 0);
 
 {
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('cooling', 1);
-    $config->set('bridge_fan_speed', 100);
-    $config->set('fan_below_layer_time', 0);
-    $config->set('slowdown_below_layer_time', 0);
+    $config->set('cooling', [ 1 ]);
+    $config->set('bridge_fan_speed', [ 100 ]);
+    $config->set('fan_below_layer_time', [ 0 ]);
+    $config->set('slowdown_below_layer_time', [ 0 ]);
     $config->set('bridge_speed', 99);
     $config->set('top_solid_layers', 1);     # internal bridges use solid_infil speed
     $config->set('bottom_solid_layers', 1);  # internal bridges use solid_infil speed
@@ -134,10 +134,10 @@ $config->set('disable_fan_first_layers', 0);
 
 {
     my $config = Slic3r::Config->new_from_defaults;
-    $config->set('cooling', 1);
-    $config->set('fan_below_layer_time', 0);
-    $config->set('slowdown_below_layer_time', 10);
-    $config->set('min_print_speed', 0);
+    $config->set('cooling', [ 1 ]);
+    $config->set('fan_below_layer_time', [ 0 ]);
+    $config->set('slowdown_below_layer_time', [ 10 ]);
+    $config->set('min_print_speed', [ 0 ]);
     $config->set('start_gcode', '');
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -152,7 +152,7 @@ $config->set('disable_fan_first_layers', 0);
             $layer_times[-1] += abs($info->{dist_XY} || $info->{dist_E} || $info->{dist_Z} || 0) / ($args->{F} // $self->F) * 60;
         }
     });
-    my $all_below = !defined first { $_ > 0 && $_ < $config->slowdown_below_layer_time } @layer_times;
+    my $all_below = !defined first { $_ > 0 && $_ < $config->slowdown_below_layer_time->[0] } @layer_times;
     ok $all_below, 'slowdown_below_layer_time is honored';
 }
 

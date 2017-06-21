@@ -23,7 +23,7 @@ use Slic3r::Test;
     $config->set('small_perimeter_speed', 66);
     $config->set('gap_fill_speed', 99);
     $config->set('perimeters', 1);
-    $config->set('cooling', 0);                     # to prevent speeds from being altered
+    $config->set('cooling', [ 0 ]);                 # to prevent speeds from being altered
     $config->set('first_layer_speed', '100%');      # to prevent speeds from being altered
     $config->set('perimeter_extrusion_width', 0.35);
     $config->set('first_layer_extrusion_width', 0.35);

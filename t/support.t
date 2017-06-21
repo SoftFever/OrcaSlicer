@@ -114,7 +114,7 @@ use Slic3r::Test;
     $config->set('support_material_extrusion_width', 0.6);
     $config->set('first_layer_extrusion_width', '100%');
     $config->set('bridge_speed', 99);
-    $config->set('cooling', 0);                 # prevent speed alteration
+    $config->set('cooling', [ 0 ]);             # prevent speed alteration
     $config->set('first_layer_speed', '100%');  # prevent speed alteration
     $config->set('start_gcode', '');            # prevent any unexpected Z move
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -197,7 +197,7 @@ use Slic3r::Test;
     $config->set('support_material', 1);
     $config->set('top_solid_layers', 0); # so that we don't have the internal bridge over infill
     $config->set('bridge_speed', 99);
-    $config->set('cooling', 0);
+    $config->set('cooling', [ 0 ]);
     $config->set('first_layer_speed', '100%');
     
     my $test = sub {

@@ -1078,8 +1078,8 @@ sub build {
                 my $line = Slic3r::GUI::OptionsGroup::Line->new(
                     label => 'Bed',
                 );
-                $line->append_option($optgroup->get_option('first_layer_bed_temperature'));
-                $line->append_option($optgroup->get_option('bed_temperature'));
+                $line->append_option($optgroup->get_option('first_layer_bed_temperature', 0));
+                $line->append_option($optgroup->get_option('bed_temperature', 0));
                 $optgroup->append_line($line);
             }
         }
@@ -1089,8 +1089,8 @@ sub build {
         my $page = $self->add_options_page('Cooling', 'hourglass.png');
         {
             my $optgroup = $page->new_optgroup('Enable');
-            $optgroup->append_single_option_line('fan_always_on');
-            $optgroup->append_single_option_line('cooling');
+            $optgroup->append_single_option_line('fan_always_on', 0);
+            $optgroup->append_single_option_line('cooling', 0);
             
             my $line = Slic3r::GUI::OptionsGroup::Line->new(
                 label       => '',
@@ -1109,21 +1109,21 @@ sub build {
                 my $line = Slic3r::GUI::OptionsGroup::Line->new(
                     label => 'Fan speed',
                 );
-                $line->append_option($optgroup->get_option('min_fan_speed'));
-                $line->append_option($optgroup->get_option('max_fan_speed'));
+                $line->append_option($optgroup->get_option('min_fan_speed', 0));
+                $line->append_option($optgroup->get_option('max_fan_speed', 0));
                 $optgroup->append_line($line);
             }
             
-            $optgroup->append_single_option_line('bridge_fan_speed');
-            $optgroup->append_single_option_line('disable_fan_first_layers');
+            $optgroup->append_single_option_line('bridge_fan_speed', 0);
+            $optgroup->append_single_option_line('disable_fan_first_layers', 0);
         }
         {
             my $optgroup = $page->new_optgroup('Cooling thresholds',
                 label_width => 250,
             );
-            $optgroup->append_single_option_line('fan_below_layer_time');
-            $optgroup->append_single_option_line('slowdown_below_layer_time');
-            $optgroup->append_single_option_line('min_print_speed');
+            $optgroup->append_single_option_line('fan_below_layer_time', 0);
+            $optgroup->append_single_option_line('slowdown_below_layer_time', 0);
+            $optgroup->append_single_option_line('min_print_speed', 0);
         }
     }
 
@@ -1182,10 +1182,11 @@ sub _update {
     
     $self->_update_description;
     
-    my $cooling = $self->{config}->cooling;
-    $self->get_field($_)->toggle($cooling)
+    my $cooling = $self->{config}->cooling->[0];
+    my $fan_always_on = $cooling || $self->{config}->fan_always_on->[0];
+    $self->get_field($_, 0)->toggle($cooling)
         for qw(max_fan_speed fan_below_layer_time slowdown_below_layer_time min_print_speed);
-    $self->get_field($_)->toggle($cooling || $self->{config}->fan_always_on)
+    $self->get_field($_, 0)->toggle($fan_always_on)
         for qw(min_fan_speed disable_fan_first_layers);
 }
 
@@ -1195,21 +1196,21 @@ sub _update_description {
     my $config = $self->config;
     
     my $msg = "";
-    my $fan_other_layers = $config->fan_always_on
-        ? sprintf "will always run at %d%%%s.", $config->min_fan_speed,
-                ($config->disable_fan_first_layers > 1
-                    ? " except for the first " . $config->disable_fan_first_layers . " layers"
-                    : $config->disable_fan_first_layers == 1
+    my $fan_other_layers = $config->fan_always_on->[0]
+        ? sprintf "will always run at %d%%%s.", $config->min_fan_speed->[0],
+                ($config->disable_fan_first_layers->[0] > 1
+                    ? " except for the first " . $config->disable_fan_first_layers->[0] . " layers"
+                    : $config->disable_fan_first_layers->[0] == 1
                         ? " except for the first layer"
                         : "")
         : "will be turned off.";
     
-    if ($config->cooling) {
+    if ($config->cooling->[0]) {
         $msg = sprintf "If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).",
-            $config->slowdown_below_layer_time, $config->max_fan_speed, $config->slowdown_below_layer_time, $config->min_print_speed;
-        if ($config->fan_below_layer_time > $config->slowdown_below_layer_time) {
+            $config->slowdown_below_layer_time->[0], $config->max_fan_speed->[0], $config->slowdown_below_layer_time->[0], $config->min_print_speed->[0];
+        if ($config->fan_below_layer_time->[0] > $config->slowdown_below_layer_time->[0]) {
             $msg .= sprintf "\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%.",
-                $config->fan_below_layer_time, $config->max_fan_speed, $config->min_fan_speed;
+                $config->fan_below_layer_time->[0], $config->max_fan_speed->[0], $config->min_fan_speed->[0];
         }
         $msg .= "\nDuring the other layers, fan $fan_other_layers"
     } else {

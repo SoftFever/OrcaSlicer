@@ -161,7 +161,7 @@ use Slic3r::Test;
     $config->set('perimeters', 3);
     $config->set('top_solid_layers', 0);
     $config->set('bottom_solid_layers', 0);
-    $config->set('cooling', 0);                     # to prevent speeds from being altered
+    $config->set('cooling', [ 0 ]);                 # to prevent speeds from being altered
     $config->set('first_layer_speed', '100%');      # to prevent speeds from being altered
     
     {
@@ -242,10 +242,10 @@ use Slic3r::Test;
         $config->set('perimeter_speed', 77);
         $config->set('external_perimeter_speed', 66);
         $config->set('bridge_speed', 99);
-        $config->set('cooling', 1);
-        $config->set('fan_below_layer_time', 0);
-        $config->set('slowdown_below_layer_time', 0);
-        $config->set('bridge_fan_speed', 100);
+        $config->set('cooling', [ 1 ]);
+        $config->set('fan_below_layer_time', [ 0 ]);
+        $config->set('slowdown_below_layer_time', [ 0 ]);
+        $config->set('bridge_fan_speed', [ 100 ]);
         $config->set('bridge_flow_ratio', 33);  # arbitrary value
         $config->set('overhangs', 1);
         my $print = Slic3r::Test::init_print('overhang', config => $config);
@@ -289,7 +289,7 @@ use Slic3r::Test;
     $config->set('layer_height', 0.4);
     $config->set('first_layer_height', 0.35);
     $config->set('extra_perimeters', 1);
-    $config->set('cooling', 0);                     # to prevent speeds from being altered
+    $config->set('cooling', [ 0 ]);                 # to prevent speeds from being altered
     $config->set('first_layer_speed', '100%');      # to prevent speeds from being altered
     $config->set('perimeter_speed', 99);
     $config->set('external_perimeter_speed', 99);
@@ -377,7 +377,7 @@ use Slic3r::Test;
     $config->set('bridge_speed', 99);
     $config->set('fill_density', 0);                # to prevent bridging over sparse infill
     $config->set('overhangs', 1);
-    $config->set('cooling', 0);                     # to prevent speeds from being altered
+    $config->set('cooling', [ 0 ]);                 # to prevent speeds from being altered
     $config->set('first_layer_speed', '100%');      # to prevent speeds from being altered
     
     my $test = sub {

@@ -59,25 +59,25 @@ std::string CoolingBuffer::flush()
     m_gcode.clear();
     m_elapsed_time = 0.;
 
-    int fan_speed = config.fan_always_on ? config.min_fan_speed.value : 0;
+    int fan_speed = config.fan_always_on.values.front() ? config.min_fan_speed.values.front() : 0;
     
     float speed_factor = 1.0;
     
-    if (config.cooling) {
+    if (config.cooling.values.front()) {
         #ifdef SLIC3R_DEBUG
         printf("Layer %zu estimated printing time: %f seconds\n", m_layer_id, elapsed);
         #endif        
-        if (elapsed < (float)config.slowdown_below_layer_time) {
+        if (elapsed < (float)config.slowdown_below_layer_time.values.front()) {
             // Layer time very short. Enable the fan to a full throttle and slow down the print
             // (stretch the layer print time to slowdown_below_layer_time).
-            fan_speed = config.max_fan_speed;
-            speed_factor = elapsed / (float)config.slowdown_below_layer_time;
-        } else if (elapsed < (float)config.fan_below_layer_time) {
+            fan_speed = config.max_fan_speed.values.front();
+            speed_factor = elapsed / (float)config.slowdown_below_layer_time.values.front();
+        } else if (elapsed < (float)config.fan_below_layer_time.values.front()) {
             // Layer time quite short. Enable the fan proportionally according to the current layer time.
-            fan_speed = config.max_fan_speed
-                - (config.max_fan_speed - config.min_fan_speed)
-                * (elapsed - (float)config.slowdown_below_layer_time)
-                / (config.fan_below_layer_time - config.slowdown_below_layer_time);
+            fan_speed = config.max_fan_speed.values.front()
+                - (config.max_fan_speed.values.front() - config.min_fan_speed.values.front())
+                * (elapsed - (float)config.slowdown_below_layer_time.values.front())
+                / (config.fan_below_layer_time.values.front() - config.slowdown_below_layer_time.values.front());
         }
         
         #ifdef SLIC3R_DEBUG
@@ -92,7 +92,7 @@ std::string CoolingBuffer::flush()
             std::istringstream ss(gcode);
             std::string line;
             bool  bridge_fan_start = false;
-            float min_print_speed  = float(config.min_print_speed * 60.);
+            float min_print_speed  = float(config.min_print_speed.values.front() * 60.);
             while (std::getline(ss, line)) {
                 if (boost::starts_with(line, "G1")
                     && boost::contains(line, ";_EXTRUDE_SET_SPEED")
@@ -107,17 +107,17 @@ std::string CoolingBuffer::flush()
             gcode = new_gcode;
         }
     }
-    if (m_layer_id < config.disable_fan_first_layers)
+    if (m_layer_id < config.disable_fan_first_layers.values.front())
         fan_speed = 0;
     
     gcode = m_gcodegen.writer().set_fan(fan_speed) + gcode;
     
     // bridge fan speed
-    if (!config.cooling || config.bridge_fan_speed == 0 || m_layer_id < config.disable_fan_first_layers) {
+    if (!config.cooling.values.front() || config.bridge_fan_speed.values.front() == 0 || m_layer_id < config.disable_fan_first_layers.values.front()) {
         boost::replace_all(gcode, ";_BRIDGE_FAN_START", "");
         boost::replace_all(gcode, ";_BRIDGE_FAN_END", "");
     } else {
-        boost::replace_all(gcode, ";_BRIDGE_FAN_START", m_gcodegen.writer().set_fan(config.bridge_fan_speed, true));
+        boost::replace_all(gcode, ";_BRIDGE_FAN_START", m_gcodegen.writer().set_fan(config.bridge_fan_speed.values.front(), true));
         boost::replace_all(gcode, ";_BRIDGE_FAN_END",   m_gcodegen.writer().set_fan(fan_speed, true));
     }
     boost::replace_all(gcode, ";_WIPE", "");

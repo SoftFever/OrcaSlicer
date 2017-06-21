@@ -445,14 +445,14 @@ bool GCode::do_export(FILE *file, Print &print)
     m_placeholder_parser.update_timestamp();
     
     // Disable fan.
-    if (print.config.cooling.value && print.config.disable_fan_first_layers.value)
+    if (print.config.cooling.values.front() && print.config.disable_fan_first_layers.values.front())
         write(file, m_writer.set_fan(0, true));
     
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
-    if (print.config.first_layer_bed_temperature.value > 0 &&
+    if (print.config.first_layer_bed_temperature.values.front() > 0 &&
         boost::ifind_first(print.config.start_gcode.value, std::string("M140")).empty() &&
         boost::ifind_first(print.config.start_gcode.value, std::string("M190")).empty())
-        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.value, true));
+        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.values.front(), true));
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.
@@ -582,8 +582,8 @@ bool GCode::do_export(FILE *file, Print &print)
                     // Ff we are printing the bottom layer of an object, and we have already finished
                     // another one, set first layer temperatures. This happens before the Z move
                     // is triggered, so machine has more time to reach such temperatures.
-                    if (print.config.first_layer_bed_temperature.value > 0)
-                        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature));
+                    if (print.config.first_layer_bed_temperature.values.front() > 0)
+                        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.values.front()));
                     // Set first layer extruder.
                     this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
                 }
@@ -819,8 +819,8 @@ void GCode::process_layer(
             if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id))
                 gcode += m_writer.set_temperature(temperature, false, extruder.id);
         }
-        if (print.config.bed_temperature.value > 0 && print.config.bed_temperature != print.config.first_layer_bed_temperature.value)
-            gcode += m_writer.set_bed_temperature(print.config.bed_temperature);
+        if (print.config.bed_temperature.values.front() > 0 && print.config.bed_temperature.values.front() != print.config.first_layer_bed_temperature.values.front())
+            gcode += m_writer.set_bed_temperature(print.config.bed_temperature.values.front());
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
     }
@@ -1861,7 +1861,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     
     this->set_last_pos(path.last_point());
     
-    if (m_config.cooling)
+    if (m_config.cooling.values.front())
         m_elapsed_time += path_length / F * 60.f;
     
     return gcode;
@@ -1913,7 +1913,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         factor on the whole elapsed time but only alters non-travel moves, thus the resulting
         time is still shorter than the configured threshold. We could create a new 
         elapsed_travel_time but we would still need to account for bridges, retractions, wipe etc.
-    if (m_config.cooling)
+    if (m_config.cooling.values.front())
         m_elapsed_time += unscale(travel.length()) / m_config.get_abs_value("travel_speed");
     */
 

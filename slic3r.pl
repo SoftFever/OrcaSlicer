@@ -315,7 +315,7 @@ $j
     --temperature       Extrusion temperature in degree Celsius, set 0 to disable (default: $config->{temperature}->[0])
     --first-layer-temperature Extrusion temperature for the first layer, in degree Celsius,
                         set 0 to disable (default: same as --temperature)
-    --bed-temperature   Heated bed temperature in degree Celsius, set 0 to disable (default: $config->{bed_temperature})
+    --bed-temperature   Heated bed temperature in degree Celsius, set 0 to disable (default: $config->{bed_temperature}[0])
     --first-layer-bed-temperature Heated bed temperature for the first layer, in degree Celsius,
                         set 0 to disable (default: same as --bed-temperature)
     
@@ -464,15 +464,15 @@ $j
    
    Cooling options:
     --cooling           Enable fan and cooling control
-    --min-fan-speed     Minimum fan speed (default: $config->{min_fan_speed}%)
-    --max-fan-speed     Maximum fan speed (default: $config->{max_fan_speed}%)
-    --bridge-fan-speed  Fan speed to use when bridging (default: $config->{bridge_fan_speed}%)
+    --min-fan-speed     Minimum fan speed (default: $config->{min_fan_speed}[0]%)
+    --max-fan-speed     Maximum fan speed (default: $config->{max_fan_speed}[0]%)
+    --bridge-fan-speed  Fan speed to use when bridging (default: $config->{bridge_fan_speed}[0]%)
     --fan-below-layer-time Enable fan if layer print time is below this approximate number 
-                        of seconds (default: $config->{fan_below_layer_time})
+                        of seconds (default: $config->{fan_below_layer_time}[0])
     --slowdown-below-layer-time Slow down if layer print time is below this approximate number
-                        of seconds (default: $config->{slowdown_below_layer_time})
-    --min-print-speed   Minimum print speed (mm/s, default: $config->{min_print_speed})
-    --disable-fan-first-layers Disable fan for the first N layers (default: $config->{disable_fan_first_layers})
+                        of seconds (default: $config->{slowdown_below_layer_time}[0])
+    --min-print-speed   Minimum print speed (mm/s, default: $config->{min_print_speed}[0])
+    --disable-fan-first-layers Disable fan for the first N layers (default: $config->{disable_fan_first_layers}[0])
     --fan-always-on     Keep fan always on at min fan speed, even for layers that don't need
                         cooling
    
