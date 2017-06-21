@@ -16,13 +16,15 @@ public:
     bool multiple_extruders;
     
     GCodeWriter() : 
-        multiple_extruders(false), _extrusion_axis("E"), _extruder(nullptr),
+        multiple_extruders(false), m_extrusion_axis("E"), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
-        _last_acceleration(0), _last_fan_speed(0), _lifted(0)
+        m_last_acceleration(0), m_last_fan_speed(0), 
+        m_last_bed_temperature(0), m_last_bed_temperature_reached(true), 
+        m_lifted(0)
         {}
-    Extruder*   extruder() { return this->_extruder; }
-    const Extruder* extruder() const { return this->_extruder; }
-    std::string extrusion_axis() const { return this->_extrusion_axis; }
+    Extruder*   extruder() { return m_extruder; }
+    const Extruder* extruder() const { return m_extruder; }
+    std::string extrusion_axis() const { return m_extrusion_axis; }
     void        apply_print_config(const PrintConfig &print_config);
     void        set_extruders(const std::vector<unsigned int> &extruder_ids);
     std::vector<unsigned int> extruder_ids() const { 
@@ -35,14 +37,14 @@ public:
     std::string preamble();
     std::string postamble() const;
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
-    std::string set_bed_temperature(unsigned int temperature, bool wait = false) const;
+    std::string set_bed_temperature(unsigned int temperature, bool wait = false);
     std::string set_fan(unsigned int speed, bool dont_save = false);
     std::string set_acceleration(unsigned int acceleration);
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
     // return false if this extruder was already selected
     bool        need_toolchange(unsigned int extruder_id) const 
-        { return (this->_extruder == nullptr) || (this->_extruder->id != extruder_id); }
+        { return m_extruder == nullptr || m_extruder->id != extruder_id; }
     std::string set_extruder(unsigned int extruder_id)
         { return this->need_toolchange(extruder_id) ? this->toolchange(extruder_id) : ""; }
     std::string toolchange(unsigned int extruder_id);
@@ -58,16 +60,18 @@ public:
     std::string unretract();
     std::string lift();
     std::string unlift();
-    Pointf3     get_position() const { return this->_pos; }
+    Pointf3     get_position() const { return m_pos; }
 
 private:
-    std::string     _extrusion_axis;
+    std::string     m_extrusion_axis;
     bool            m_single_extruder_multi_material;
-    Extruder*       _extruder;
-    unsigned int    _last_acceleration;
-    unsigned int    _last_fan_speed;
-    double          _lifted;
-    Pointf3         _pos;
+    Extruder*       m_extruder;
+    unsigned int    m_last_acceleration;
+    unsigned int    m_last_fan_speed;
+    unsigned int    m_last_bed_temperature;
+    bool            m_last_bed_temperature_reached;
+    double          m_lifted;
+    Pointf3         m_pos;
 
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);

@@ -443,16 +443,6 @@ bool GCode::do_export(FILE *file, Print &print)
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser;
     m_placeholder_parser.update_timestamp();
-    
-    // Disable fan.
-    if (print.config.cooling.values.front() && print.config.disable_fan_first_layers.values.front())
-        write(file, m_writer.set_fan(0, true));
-    
-    // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
-    if (print.config.first_layer_bed_temperature.values.front() > 0 &&
-        boost::ifind_first(print.config.start_gcode.value, std::string("M140")).empty() &&
-        boost::ifind_first(print.config.start_gcode.value, std::string("M190")).empty())
-        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.values.front(), true));
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.
@@ -482,6 +472,21 @@ bool GCode::do_export(FILE *file, Print &print)
     } else {
         final_extruder_id = tool_ordering.last_extruder();
         assert(final_extruder_id != (unsigned int)-1);
+    }
+
+    // Disable fan.
+    if (print.config.cooling.get_at(initial_extruder_id) && print.config.disable_fan_first_layers.get_at(initial_extruder_id))
+        write(file, m_writer.set_fan(0, true));
+    
+    // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
+    {
+        // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
+        // the custom start G-code emited these.
+        //FIXME Should one parse the custom G-code to initialize the "current" bed temp state at m_writer?
+        std::string gcode = m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.get_at(initial_extruder_id), true);
+        if (boost::ifind_first(print.config.start_gcode.value, std::string("M140")).empty() &&
+            boost::ifind_first(print.config.start_gcode.value, std::string("M190")).empty())
+            write(file, gcode);
     }
 
     // Set extruder(s) temperature before and after start G-code.
@@ -582,8 +587,7 @@ bool GCode::do_export(FILE *file, Print &print)
                     // Ff we are printing the bottom layer of an object, and we have already finished
                     // another one, set first layer temperatures. This happens before the Z move
                     // is triggered, so machine has more time to reach such temperatures.
-                    if (print.config.first_layer_bed_temperature.values.front() > 0)
-                        write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.values.front()));
+                    write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.get_at(initial_extruder_id)));
                     // Set first layer extruder.
                     this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
                 }
@@ -767,7 +771,7 @@ void GCode::process_layer(
     const Layer         &layer         = (object_layer != nullptr) ? *object_layer : *support_layer;    
     coordf_t             print_z       = layer.print_z;
     bool                 first_layer   = layer.id() == 0;
-    unsigned int         first_extruder_id = layer_tools.extruders.empty() ? 0 : layer_tools.extruders.front();
+    unsigned int         first_extruder_id = layer_tools.extruders.front();
 
     // Initialize config with the 1st object to be printed at this layer.
     m_config.apply(layer.object()->config, true);
@@ -819,8 +823,7 @@ void GCode::process_layer(
             if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id))
                 gcode += m_writer.set_temperature(temperature, false, extruder.id);
         }
-        if (print.config.bed_temperature.values.front() > 0 && print.config.bed_temperature.values.front() != print.config.first_layer_bed_temperature.values.front())
-            gcode += m_writer.set_bed_temperature(print.config.bed_temperature.values.front());
+        gcode += m_writer.set_bed_temperature(print.config.bed_temperature.get_at(first_extruder_id));
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
     }
