@@ -197,9 +197,9 @@ std::string GCodeWriter::reset_e(bool force)
         return "";
     
     if (m_extruder != nullptr) {
-        if (m_extruder->E == 0. && ! force)
+        if (m_extruder->E() == 0. && ! force)
             return "";
-        m_extruder->E = 0.;
+        m_extruder->reset_E();
     }
 
     if (! m_extrusion_axis.empty() && ! this->config.use_relative_e_distances) {
@@ -356,7 +356,7 @@ std::string GCodeWriter::extrude_to_xy(const Pointf &point, double dE, const std
     std::ostringstream gcode;
     gcode << "G1 X" << XYZF_NUM(point.x)
           <<   " Y" << XYZF_NUM(point.y)
-          <<    " " << m_extrusion_axis << E_NUM(m_extruder->E);
+          <<    " " << m_extrusion_axis << E_NUM(m_extruder->E());
     COMMENT(comment);
     gcode << "\n";
     return gcode.str();
@@ -372,7 +372,7 @@ std::string GCodeWriter::extrude_to_xyz(const Pointf3 &point, double dE, const s
     gcode << "G1 X" << XYZF_NUM(point.x)
           <<   " Y" << XYZF_NUM(point.y)
           <<   " Z" << XYZF_NUM(point.z)
-          <<    " " << m_extrusion_axis << E_NUM(m_extruder->E);
+          <<    " " << m_extrusion_axis << E_NUM(m_extruder->E());
     COMMENT(comment);
     gcode << "\n";
     return gcode.str();
@@ -425,7 +425,7 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
             else
                 gcode << "G10 ; retract\n";
         } else {
-            gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E)
+            gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E())
                            << " F" << float(m_extruder->retract_speed() * 60.);
             COMMENT(comment);
             gcode << "\n";
@@ -455,7 +455,7 @@ std::string GCodeWriter::unretract()
             gcode << this->reset_e();
         } else {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
-            gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E)
+            gcode << "G1 " << m_extrusion_axis << E_NUM(m_extruder->E())
                            << " F" << float(m_extruder->deretract_speed() * 60.);
             if (this->config.gcode_comments) gcode << " ; unretract";
             gcode << "\n";

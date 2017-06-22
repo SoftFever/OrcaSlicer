@@ -121,6 +121,11 @@ struct ElapsedTime
         return *this;
     }
 
+    // Potion of the total time, which cannot be stretched to heed the minimum layer print time.
+    float   non_stretchable() const { return this->bridges + this->travel + this->other; }
+    // Potion of the total time, which could be stretched to heed the minimum layer print time.
+    float   stretchable() const { return this->total - this->non_stretchable(); }
+
     float   total;
     float   bridges;
     float   external_perimeters;

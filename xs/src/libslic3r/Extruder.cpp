@@ -2,29 +2,27 @@
 
 namespace Slic3r {
 
-Extruder::Extruder(unsigned int id, GCodeConfig *config)
-:   m_id(id),
+Extruder::Extruder(unsigned int id, GCodeConfig *config) :
+    m_id(id),
     m_config(config)
 {
     reset();
     
     // cache values that are going to be called often
-    if (m_config->use_volumetric_e) {
-        m_e_per_mm3 = this->extrusion_multiplier();
-    } else {
-        m_e_per_mm3 = this->extrusion_multiplier()
-            * (4 / ((this->filament_diameter() * this->filament_diameter()) * PI));
-    }
+    m_e_per_mm3 = this->extrusion_multiplier();
+    if (! m_config->use_volumetric_e)
+        m_e_per_mm3 /= this->filament_crossection();
 }
 
 double Extruder::extrude(double dE)
 {
     // in case of relative E distances we always reset to 0 before any output
     if (m_config->use_relative_e_distances)
-        this->E = 0;
-
-    this->E += dE;
-    this->absolute_E += dE;
+        m_E = 0.;
+    m_E          += dE;
+    m_absolute_E += dE;
+    if (dE < 0.)
+        m_retracted -= dE;
     return dE;
 }
 
@@ -39,54 +37,40 @@ double Extruder::retract(double length, double restart_extra)
 {
     // in case of relative E distances we always reset to 0 before any output
     if (m_config->use_relative_e_distances)
-        this->E = 0;
-    
-    double to_retract = length - this->retracted;
-    if (to_retract > 0) {
-        this->E -= to_retract;
-        this->absolute_E -= to_retract;
-        this->retracted += to_retract;
-        this->restart_extra = restart_extra;
-        return to_retract;
-    } else {
-        return 0;
+        m_E = 0.;
+    double to_retract = std::max(0., length - m_retracted);
+    if (to_retract > 0.) {
+        m_E             -= to_retract;
+        m_absolute_E    -= to_retract;
+        m_retracted     += to_retract;
+        m_restart_extra = restart_extra;
     }
+    return to_retract;
 }
 
 double Extruder::unretract()
 {
-    double dE = this->retracted + this->restart_extra;
+    double dE = m_retracted + m_restart_extra;
     this->extrude(dE);
-    this->retracted = 0;
-    this->restart_extra = 0;
+    m_retracted     = 0.;
+    m_restart_extra = 0.;
     return dE;
 }
 
-double Extruder::e_per_mm(double mm3_per_mm) const
-{
-    return mm3_per_mm * m_e_per_mm3;
-}
-
+// Used filament volume in mm^3.
 double Extruder::extruded_volume() const
 {
-    if (m_config->use_volumetric_e) {
-        // Any current amount of retraction should not affect used filament, since
-        // it represents empty volume in the nozzle. We add it back to E.
-        return this->absolute_E + this->retracted;
-    }
-    
-    return this->used_filament() * (this->filament_diameter() * this->filament_diameter()) * PI/4;
+    return m_config->use_volumetric_e ? 
+        m_absolute_E + m_retracted :
+        this->used_filament() * this->filament_crossection();
 }
 
+// Used filament length in mm.
 double Extruder::used_filament() const
 {
-    if (m_config->use_volumetric_e) {
-        return this->extruded_volume() / (this->filament_diameter() * this->filament_diameter() * PI/4);
-    }
-    
-    // Any current amount of retraction should not affect used filament, since
-    // it represents empty volume in the nozzle. We add it back to E.
-    return this->absolute_E + this->retracted;
+    return m_config->use_volumetric_e ?
+        this->extruded_volume() / this->filament_crossection() :
+        m_absolute_E + m_retracted;
 }
 
 double Extruder::filament_diameter() const
@@ -127,12 +111,12 @@ double Extruder::retract_lift() const
 
 int Extruder::retract_speed() const
 {
-    return m_config->retract_speed.get_at(m_id);
+    return int(floor(m_config->retract_speed.get_at(m_id)+0.5));
 }
 
 int Extruder::deretract_speed() const
 {
-    int speed = m_config->deretract_speed.get_at(m_id);
+    int speed = int(floor(m_config->deretract_speed.get_at(m_id)+0.5));
     return (speed > 0) ? speed : this->retract_speed();
 }
 

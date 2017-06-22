@@ -83,8 +83,8 @@ std::string CoolingBuffer::flush()
             fan_speed = config.max_fan_speed.values.front();
             
             // We are not altering speed of bridges.
-            float time_to_stretch = m_elapsed_time->total - m_elapsed_time->bridges;
-            float target_time = (float)config.slowdown_below_layer_time.values.front() - m_elapsed_time->bridges;
+            float time_to_stretch = m_elapsed_time->stretchable();
+            float target_time = (float)config.slowdown_below_layer_time.values.front() - m_elapsed_time->non_stretchable();
             
             // If we spend most of our time on external perimeters include them in the slowdown,
             // otherwise only alter other extrusions.

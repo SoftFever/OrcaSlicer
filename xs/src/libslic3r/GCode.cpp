@@ -121,10 +121,8 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
         wipe_path.clip_end(wipe_path.length() - wipe_dist);
     
         // subdivide the retraction in segments
-        double retracted = 0;
-        Lines lines = wipe_path.lines();
-        for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
-            double segment_length = line->length();
+        for (const Line &line : wipe_path.lines()) {
+            double segment_length = line.length();
             /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
                 due to rounding (TODO: test and/or better math for this)  */
             double dE = length * (segment_length / wipe_dist) * 0.95;
@@ -132,13 +130,11 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
             // Is it here for the cooling markers? Or should it be outside of the cycle?
             gcode += gcodegen.writer().set_speed(wipe_speed*60, "", gcodegen.enable_cooling_markers() ? ";_WIPE" : "");
             gcode += gcodegen.writer().extrude_to_xy(
-                gcodegen.point_to_gcode(line->b),
+                gcodegen.point_to_gcode(line.b),
                 -dE,
                 "wipe and retract"
             );
-            retracted += dE;
         }
-        gcodegen.writer().extruder()->retracted += retracted;
         
         // prevent wiping again on same path
         this->reset_path();
