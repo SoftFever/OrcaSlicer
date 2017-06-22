@@ -22,8 +22,10 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 
 void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
 {
+    m_extruders.clear();
+    m_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
-        this->extruders.insert(Extruder(extruder_id, &this->config));
+        m_extruders.emplace_back(Extruder(extruder_id, &this->config));
     
     /*  we enable support for multiple extruder if any extruder greater than 0 is used
         (even if prints only uses that one) since we need to output Tx commands
@@ -229,8 +231,10 @@ std::string GCodeWriter::update_progress(unsigned int num, unsigned int tot, boo
 std::string GCodeWriter::toolchange(unsigned int extruder_id)
 {
     // set the new extruder
-    m_extruder = const_cast<Extruder*>(&*this->extruders.find(Extruder::key(extruder_id)));
-    
+    auto it_extruder = std::lower_bound(m_extruders.begin(), m_extruders.end(), Extruder::key(extruder_id));
+    assert(it_extruder != m_extruders.end());
+    m_extruder = const_cast<Extruder*>(&*it_extruder);
+
     // return the toolchange command
     // if we are running a single-extruder setup, just set the extruder and return nothing
     std::ostringstream gcode;
@@ -469,10 +473,10 @@ std::string GCodeWriter::lift()
     // check whether the above/below conditions are met
     double target_lift = 0;
     {
-        double above = this->config.retract_lift_above.get_at(m_extruder->id);
-        double below = this->config.retract_lift_below.get_at(m_extruder->id);
+        double above = this->config.retract_lift_above.get_at(m_extruder->id());
+        double below = this->config.retract_lift_below.get_at(m_extruder->id());
         if (m_pos.z >= above && (below == 0 || m_pos.z <= below))
-            target_lift = this->config.retract_lift.get_at(m_extruder->id);
+            target_lift = this->config.retract_lift.get_at(m_extruder->id());
     }
     if (m_lifted == 0 && target_lift > 0) {
         m_lifted = target_lift;

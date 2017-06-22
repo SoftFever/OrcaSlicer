@@ -10,12 +10,10 @@ namespace Slic3r {
 class Extruder
 {
 public:
-    unsigned int id;
     double E;
     double absolute_E;
     double retracted;
     double restart_extra;
-    double e_per_mm3;
 
     Extruder(unsigned int id, GCodeConfig *config);
     virtual ~Extruder() {}
@@ -27,10 +25,13 @@ public:
         this->restart_extra = 0;
     }
 
+    unsigned int id() const { return m_id; }
+
     double extrude(double dE);
     double retract(double length, double restart_extra);
     double unretract();
     double e_per_mm(double mm3_per_mm) const;
+    double e_per_mm3() const { return m_e_per_mm3; }
     double extruded_volume() const;
     double used_filament() const;
     
@@ -47,20 +48,23 @@ public:
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;
 
+    // Constructor for a key object, to be used by the stdlib search functions.
     static Extruder key(unsigned int id) { return Extruder(id); }
 
 private:
     // Private constructor to create a key for a search in std::set.
-    Extruder(unsigned int id) : id(id) {}
+    Extruder(unsigned int id) : m_id(id) {}
 
     GCodeConfig *m_config;
+    unsigned int m_id;
+    double       m_e_per_mm3;
 };
 
 // Sort Extruder objects by the extruder id by default.
-inline bool operator==(const Extruder &e1, const Extruder &e2) { return e1.id == e2.id; }
-inline bool operator!=(const Extruder &e1, const Extruder &e2) { return e1.id != e2.id; }
-inline bool operator< (const Extruder &e1, const Extruder &e2) { return e1.id < e2.id; }
-inline bool operator> (const Extruder &e1, const Extruder &e2) { return e1.id > e2.id; }
+inline bool operator==(const Extruder &e1, const Extruder &e2) { return e1.id() == e2.id(); }
+inline bool operator!=(const Extruder &e1, const Extruder &e2) { return e1.id() != e2.id(); }
+inline bool operator< (const Extruder &e1, const Extruder &e2) { return e1.id() < e2.id(); }
+inline bool operator> (const Extruder &e1, const Extruder &e2) { return e1.id() > e2.id(); }
 
 }
 

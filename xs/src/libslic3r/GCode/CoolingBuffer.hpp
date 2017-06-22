@@ -7,6 +7,7 @@
 
 namespace Slic3r {
 
+struct ElapsedTime;
 class GCode;
 class Layer;
 
@@ -18,7 +19,8 @@ and the print is modified to stretch over a minimum layer time.
 
 class CoolingBuffer {
 public:
-    CoolingBuffer(GCode &gcodegen) : m_gcodegen(gcodegen), m_elapsed_time(0.), m_layer_id(0) {}
+    CoolingBuffer(GCode &gcodegen);
+    ~CoolingBuffer();
     std::string append(const std::string &gcode, size_t object_id, size_t layer_id, bool is_support);
     std::string flush();
     GCode* 	    gcodegen() { return &m_gcodegen; };
@@ -28,7 +30,7 @@ private:
 
     GCode&              m_gcodegen;
     std::string         m_gcode;
-    float               m_elapsed_time;
+    ElapsedTime        *m_elapsed_time;
     size_t              m_layer_id;
     std::set<size_t>	m_object_ids_visited;
 };

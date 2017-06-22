@@ -107,6 +107,27 @@ private:
     bool                                                         m_brim_done;
 };
 
+struct ElapsedTime
+{
+    ElapsedTime() { this->reset(); }
+    void reset() { total = bridges = external_perimeters = travel = other = 0.f; }
+
+    ElapsedTime& operator+=(const ElapsedTime &rhs) {
+        this->total                 += rhs.total;
+        this->bridges               += rhs.bridges;
+        this->external_perimeters   += rhs.external_perimeters;
+        this->travel                += rhs.travel;
+        this->other                 += rhs.other;
+        return *this;
+    }
+
+    float   total;
+    float   bridges;
+    float   external_perimeters;
+    float   travel;
+    float   other;
+};
+
 class GCode {
 public:        
     GCode() : 
@@ -117,7 +138,6 @@ public:
         m_layer_count(0),
         m_layer_index(-1), 
         m_layer(nullptr), 
-        m_elapsed_time(0.0), 
         m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
@@ -140,13 +160,13 @@ public:
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
     bool            enable_cooling_markers() const { return m_enable_cooling_markers; }
-    float           get_reset_elapsed_time() { float t = m_elapsed_time; m_elapsed_time = 0.f; return t; }
+    ElapsedTime     get_reset_elapsed_time() { ElapsedTime et = this->m_elapsed_time; this->m_elapsed_time.reset(); return et; }
 
     // For Perl bindings, to be used exclusively by unit tests.
     unsigned int    layer_count() const { return m_layer_count; }
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
-    float           elapsed_time() const { return m_elapsed_time; }
-    void            set_elapsed_time(float value) { m_elapsed_time = value; }
+    float           elapsed_time() const { return m_elapsed_time.total; }
+    void            set_elapsed_time(float value) { m_elapsed_time.total = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
 protected:
@@ -247,7 +267,7 @@ protected:
     // This value is not quite precise. First it only accouts for extrusion moves and travel moves,
     // it does not account for wipe, retract / unretract moves.
     // second it does not account for the velocity profiles of the printer.
-    float                               m_elapsed_time; // seconds
+    ElapsedTime                         m_elapsed_time;
     double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;

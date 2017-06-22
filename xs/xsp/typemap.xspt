@@ -99,9 +99,6 @@
 %typemap{MotionPlanner*};
 %typemap{Ref<MotionPlanner>}{simple};
 %typemap{Clone<MotionPlanner>}{simple};
-%typemap{GCodeWriter*};
-%typemap{Ref<GCodeWriter>}{simple};
-%typemap{Clone<GCodeWriter>}{simple};
 %typemap{GCodeSender*};
 %typemap{Ref<GCodeSender>}{simple};
 %typemap{Clone<GCodeSender>}{simple};
@@ -169,9 +166,6 @@
 %typemap{Polygons*};
 %typemap{TriangleMesh*};
 %typemap{TriangleMeshPtrs};
-%typemap{Extruder*};
-%typemap{Ref<Extruder>}{simple};
-%typemap{Clone<Extruder>}{simple};
 %typemap{Model*};
 %typemap{Ref<Model>}{simple};
 %typemap{Clone<Model>}{simple};

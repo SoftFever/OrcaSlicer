@@ -5,7 +5,6 @@ namespace Slic3r {
 
 REGISTER_CLASS(ExPolygon, "ExPolygon");
 REGISTER_CLASS(ExPolygonCollection, "ExPolygon::Collection");
-REGISTER_CLASS(Extruder, "Extruder");
 REGISTER_CLASS(ExtrusionMultiPath, "ExtrusionMultiPath");
 REGISTER_CLASS(ExtrusionPath, "ExtrusionPath");
 REGISTER_CLASS(ExtrusionLoop, "ExtrusionLoop");
@@ -17,7 +16,6 @@ REGISTER_CLASS(Flow, "Flow");
 REGISTER_CLASS(CoolingBuffer, "GCode::CoolingBuffer");
 REGISTER_CLASS(GCode, "GCode");
 REGISTER_CLASS(GCodeSender, "GCode::Sender");
-REGISTER_CLASS(GCodeWriter, "GCode::Writer");
 REGISTER_CLASS(Layer, "Layer");
 REGISTER_CLASS(SupportLayer, "Layer::Support");
 REGISTER_CLASS(LayerRegion, "Layer::Region");

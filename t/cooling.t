@@ -2,14 +2,14 @@ use Test::More;
 use strict;
 use warnings;
 
-plan tests => 12;
+plan tests => 13;
 
 BEGIN {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 }
 
-use List::Util qw(first);
+use List::Util qw(none all);
 use Slic3r;
 use Slic3r::Test;
 
@@ -139,21 +139,33 @@ $config->set('disable_fan_first_layers', [ 0 ]);
     $config->set('slowdown_below_layer_time', [ 10 ]);
     $config->set('min_print_speed', [ 0 ]);
     $config->set('start_gcode', '');
+    $config->set('first_layer_speed', '100%');
+    $config->set('external_perimeter_speed', 99);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     my @layer_times = (0);  # in seconds
+    my %layer_external = ();  # z => 1
     Slic3r::GCode::Reader->new->parse(my $gcode = Slic3r::Test::gcode($print), sub {
         my ($self, $cmd, $args, $info) = @_;
         
         if ($cmd eq 'G1') {
             if ($info->{dist_Z}) {
                 push @layer_times, 0;
+                $layer_external{ $args->{Z} } = 0;
             }
             $layer_times[-1] += abs($info->{dist_XY} || $info->{dist_E} || $info->{dist_Z} || 0) / ($args->{F} // $self->F) * 60;
+            if ($args->{F} && $args->{F} == $config->external_perimeter_speed*60) {
+                $layer_external{ $self->Z }++;
+            }
         }
     });
-    my $all_below = !defined first { $_ > 0 && $_ < $config->slowdown_below_layer_time->[0] } @layer_times;
+    @layer_times = grep $_, @layer_times;
+    my $all_below = none { $_ < $config->slowdown_below_layer_time->[0] } @layer_times;
     ok $all_below, 'slowdown_below_layer_time is honored';
+    
+    # check that all layers have at least one unaltered external perimeter speed
+    my $external = all { $_ > 0 } values %layer_external;
+    ok $external, 'slowdown_below_layer_time does not alter external perimeters';
 }
 
 __END__

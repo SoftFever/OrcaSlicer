@@ -12,7 +12,6 @@ namespace Slic3r {
 class GCodeWriter {
 public:
     GCodeConfig config;
-    std::set<Extruder> extruders;
     bool multiple_extruders;
     
     GCodeWriter() : 
@@ -26,12 +25,14 @@ public:
     const Extruder* extruder() const { return m_extruder; }
     std::string extrusion_axis() const { return m_extrusion_axis; }
     void        apply_print_config(const PrintConfig &print_config);
+    // Extruders are expected to be sorted in an increasing order.
     void        set_extruders(const std::vector<unsigned int> &extruder_ids);
+    const std::vector<Extruder>& extruders() const { return m_extruders; }
     std::vector<unsigned int> extruder_ids() const { 
         std::vector<unsigned int> out; 
-        out.reserve(extruders.size()); 
-        for (const auto e : extruders) 
-            out.push_back(e.id); 
+        out.reserve(m_extruders.size()); 
+        for (const Extruder &e : m_extruders) 
+            out.push_back(e.id()); 
         return out;
     }
     std::string preamble();
@@ -44,7 +45,7 @@ public:
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
     // return false if this extruder was already selected
     bool        need_toolchange(unsigned int extruder_id) const 
-        { return m_extruder == nullptr || m_extruder->id != extruder_id; }
+        { return m_extruder == nullptr || m_extruder->id() != extruder_id; }
     std::string set_extruder(unsigned int extruder_id)
         { return this->need_toolchange(extruder_id) ? this->toolchange(extruder_id) : ""; }
     std::string toolchange(unsigned int extruder_id);
@@ -63,6 +64,7 @@ public:
     Pointf3     get_position() const { return m_pos; }
 
 private:
+    std::vector<Extruder> m_extruders;
     std::string     m_extrusion_axis;
     bool            m_single_extruder_multi_material;
     Extruder*       m_extruder;

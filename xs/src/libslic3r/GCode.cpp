@@ -83,8 +83,8 @@ int
 OozePrevention::_get_temp(GCode &gcodegen)
 {
     return (gcodegen.layer() != NULL && gcodegen.layer()->id() == 0)
-        ? gcodegen.config().first_layer_temperature.get_at(gcodegen.writer().extruder()->id)
-        : gcodegen.config().temperature.get_at(gcodegen.writer().extruder()->id);
+        ? gcodegen.config().first_layer_temperature.get_at(gcodegen.writer().extruder()->id())
+        : gcodegen.config().temperature.get_at(gcodegen.writer().extruder()->id());
 }
 
 std::string
@@ -172,7 +172,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // Accumulate the elapsed time for the correct calculation of layer cooling.
     //FIXME currently disabled as Slic3r PE needs to be updated to differentiate the moves it could slow down
     // from the moves it could not.
-//    gcodegen.m_elapsed_time += tcr.elapsed_time;
+    gcodegen.m_elapsed_time.other += tcr.elapsed_time;
     // Let the m_writer know the current extruder_id, but ignore the generated G-code.
 	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
         gcodegen.writer().toolchange(new_extruder_id);
@@ -220,7 +220,7 @@ std::string WipeTowerIntegration::finalize(GCode &gcodegen)
     return gcode;
 }
 
-#define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id)
+#define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id())
 
 inline void write(FILE *file, const std::string &what)
 {
@@ -648,12 +648,12 @@ bool GCode::do_export(FILE *file, Print &print)
     print.total_extruded_volume  = 0.;
     print.total_weight           = 0.;
     print.total_cost             = 0.;
-    for (const Extruder &extruder : m_writer.extruders) {
+    for (const Extruder &extruder : m_writer.extruders()) {
         double used_filament   = extruder.used_filament();
         double extruded_volume = extruder.extruded_volume();
         double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
         double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
-        print.filament_stats.insert(std::pair<size_t,float>(extruder.id, used_filament));
+        print.filament_stats.insert(std::pair<size_t,float>(extruder.id(), used_filament));
         fprintf(file, "; filament used = %.1lfmm (%.1lfcm3)\n", used_filament, extruded_volume * 0.001);
         if (filament_weight > 0.) {
             print.total_weight = print.total_weight + filament_weight;
@@ -815,13 +815,13 @@ void GCode::process_layer(
     if (! first_layer && ! m_second_layer_things_done) {
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // first_layer_temperature vs. temperature settings.
-        for (const Extruder &extruder : m_writer.extruders) {
-            if (print.config.single_extruder_multi_material.value && extruder.id != m_writer.extruder()->id)
+        for (const Extruder &extruder : m_writer.extruders()) {
+            if (print.config.single_extruder_multi_material.value && extruder.id() != m_writer.extruder()->id())
                 // In single extruder multi material mode, set the temperature for the current extruder only.
                 continue;
-            int temperature = print.config.temperature.get_at(extruder.id);
-            if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id))
-                gcode += m_writer.set_temperature(temperature, false, extruder.id);
+            int temperature = print.config.temperature.get_at(extruder.id());
+            if (temperature > 0 && temperature != print.config.first_layer_temperature.get_at(extruder.id()))
+                gcode += m_writer.set_temperature(temperature, false, extruder.id());
         }
         gcode += m_writer.set_bed_temperature(print.config.bed_temperature.get_at(first_extruder_id));
         // Mark the temperature transition from 1st to 2nd layer to be finished.
@@ -1792,7 +1792,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
     
     // calculate extrusion length per distance unit
-    double e_per_mm = m_writer.extruder()->e_per_mm3 * path.mm3_per_mm;
+    double e_per_mm = m_writer.extruder()->e_per_mm3() * path.mm3_per_mm;
     if (m_writer.extrusion_axis().empty()) e_per_mm = 0;
     
     // set speed
@@ -1846,8 +1846,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
     if (is_bridge(path.role()) && m_enable_cooling_markers)
         gcode += ";_BRIDGE_FAN_START\n";
-    gcode += m_writer.set_speed(F, "", m_enable_cooling_markers ? ";_EXTRUDE_SET_SPEED" : "");
-    double path_length = 0;
+    std::string comment = ";_EXTRUDE_SET_SPEED";
+    if (path.role() == erExternalPerimeter) 
+        comment += ";_EXTERNAL_PERIMETER";
+    gcode += m_writer.set_speed(F, "", m_enable_cooling_markers ? comment : "");
+    double path_length = 0.;
     {
         std::string comment = m_config.gcode_comments ? description : "";
         for (const Line &line : path.polyline.lines()) {
@@ -1864,8 +1867,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     
     this->set_last_pos(path.last_point());
     
-    if (m_config.cooling.values.front())
-        m_elapsed_time += path_length / F * 60.f;
+    if (m_config.cooling.values.front()) {
+        float t = path_length / F * 60.f;
+        m_elapsed_time.total += t;
+        if (is_bridge(path.role()))
+            m_elapsed_time.bridges += t;
+        if (path.role() == erExternalPerimeter)
+            m_elapsed_time.external_perimeters += t;
+    }
     
     return gcode;
 }
@@ -1912,13 +1921,8 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line)
 	    gcode += m_writer.travel_to_xy(this->point_to_gcode(line->b), comment);
     
-    /*  While this makes the estimate more accurate, CoolingBuffer calculates the slowdown
-        factor on the whole elapsed time but only alters non-travel moves, thus the resulting
-        time is still shorter than the configured threshold. We could create a new 
-        elapsed_travel_time but we would still need to account for bridges, retractions, wipe etc.
     if (m_config.cooling.values.front())
-        m_elapsed_time += unscale(travel.length()) / m_config.get_abs_value("travel_speed");
-    */
+        m_elapsed_time.travel += unscale(travel.length()) / m_config.get_abs_value("travel_speed");
 
     return gcode;
 }
@@ -2000,7 +2004,7 @@ std::string GCode::set_extruder(unsigned int extruder_id)
     // append custom toolchange G-code
     if (m_writer.extruder() != nullptr && !m_config.toolchange_gcode.value.empty()) {
         PlaceholderParser pp = m_placeholder_parser;
-        pp.set("previous_extruder", m_writer.extruder()->id);
+        pp.set("previous_extruder", m_writer.extruder()->id());
         pp.set("next_extruder",     extruder_id);
         gcode += pp.process(m_config.toolchange_gcode.value) + '\n';
     }

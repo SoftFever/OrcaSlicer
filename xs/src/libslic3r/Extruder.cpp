@@ -3,16 +3,16 @@
 namespace Slic3r {
 
 Extruder::Extruder(unsigned int id, GCodeConfig *config)
-:   id(id),
+:   m_id(id),
     m_config(config)
 {
     reset();
     
     // cache values that are going to be called often
     if (m_config->use_volumetric_e) {
-        this->e_per_mm3 = this->extrusion_multiplier();
+        m_e_per_mm3 = this->extrusion_multiplier();
     } else {
-        this->e_per_mm3 = this->extrusion_multiplier()
+        m_e_per_mm3 = this->extrusion_multiplier()
             * (4 / ((this->filament_diameter() * this->filament_diameter()) * PI));
     }
 }
@@ -64,7 +64,7 @@ double Extruder::unretract()
 
 double Extruder::e_per_mm(double mm3_per_mm) const
 {
-    return mm3_per_mm * this->e_per_mm3;
+    return mm3_per_mm * m_e_per_mm3;
 }
 
 double Extruder::extruded_volume() const
@@ -91,64 +91,64 @@ double Extruder::used_filament() const
 
 double Extruder::filament_diameter() const
 {
-    return m_config->filament_diameter.get_at(this->id);
+    return m_config->filament_diameter.get_at(m_id);
 }
 
 double Extruder::filament_density() const
 {
-    return m_config->filament_density.get_at(this->id);
+    return m_config->filament_density.get_at(m_id);
 }
 
 double Extruder::filament_cost() const
 {
-    return m_config->filament_cost.get_at(this->id);
+    return m_config->filament_cost.get_at(m_id);
 }
 
 double Extruder::extrusion_multiplier() const
 {
-    return m_config->extrusion_multiplier.get_at(this->id);
+    return m_config->extrusion_multiplier.get_at(m_id);
 }
 
 // Return a "retract_before_wipe" percentage as a factor clamped to <0, 1>
 double Extruder::retract_before_wipe() const
 {
-    return std::min(1., std::max(0., m_config->retract_before_wipe.get_at(this->id) * 0.01));
+    return std::min(1., std::max(0., m_config->retract_before_wipe.get_at(m_id) * 0.01));
 }
 
 double Extruder::retract_length() const
 {
-    return m_config->retract_length.get_at(this->id);
+    return m_config->retract_length.get_at(m_id);
 }
 
 double Extruder::retract_lift() const
 {
-    return m_config->retract_lift.get_at(this->id);
+    return m_config->retract_lift.get_at(m_id);
 }
 
 int Extruder::retract_speed() const
 {
-    return m_config->retract_speed.get_at(this->id);
+    return m_config->retract_speed.get_at(m_id);
 }
 
 int Extruder::deretract_speed() const
 {
-    int speed = m_config->deretract_speed.get_at(this->id);
+    int speed = m_config->deretract_speed.get_at(m_id);
     return (speed > 0) ? speed : this->retract_speed();
 }
 
 double Extruder::retract_restart_extra() const
 {
-    return m_config->retract_restart_extra.get_at(this->id);
+    return m_config->retract_restart_extra.get_at(m_id);
 }
 
 double Extruder::retract_length_toolchange() const
 {
-    return m_config->retract_length_toolchange.get_at(this->id);
+    return m_config->retract_length_toolchange.get_at(m_id);
 }
 
 double Extruder::retract_restart_extra_toolchange() const
 {
-    return m_config->retract_restart_extra_toolchange.get_at(this->id);
+    return m_config->retract_restart_extra_toolchange.get_at(m_id);
 }
 
 }

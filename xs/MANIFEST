@@ -524,7 +524,6 @@ xsp/Clipper.xsp
 xsp/Config.xsp
 xsp/ExPolygon.xsp
 xsp/ExPolygonCollection.xsp
-xsp/Extruder.xsp
 xsp/ExtrusionEntityCollection.xsp
 xsp/ExtrusionLoop.xsp
 xsp/ExtrusionMultiPath.xsp
@@ -534,7 +533,6 @@ xsp/Filler.xsp
 xsp/Flow.xsp
 xsp/GCode.xsp
 xsp/GCodeSender.xsp
-xsp/GCodeWriter.xsp
 xsp/Geometry.xsp
 xsp/GUI.xsp
 xsp/GUI_3DScene.xsp
