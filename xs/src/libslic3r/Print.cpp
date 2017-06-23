@@ -550,7 +550,8 @@ std::string Print::validate() const
         size_t total_copies_count = 0;
         for (const PrintObject *object : this->objects)
             total_copies_count += object->copies().size();
-        if (total_copies_count > 1)
+        // #4043
+        if (total_copies_count > 1 && ! this->config.complete_objects.value)
             return "The Spiral Vase option can only be used when printing a single object.";
         if (this->regions.size() > 1)
             return "The Spiral Vase option can only be used when printing single material objects.";

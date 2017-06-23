@@ -165,13 +165,13 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // Let the tool change be executed by the wipe tower class.
     // Inform the G-code writer about the changes done behind its back.
     gcode += tcr.gcode;
-    // Accumulate the elapsed time for the correct calculation of layer cooling.
-    //FIXME currently disabled as Slic3r PE needs to be updated to differentiate the moves it could slow down
-    // from the moves it could not.
-    gcodegen.m_elapsed_time.other += tcr.elapsed_time;
     // Let the m_writer know the current extruder_id, but ignore the generated G-code.
 	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
         gcodegen.writer().toolchange(new_extruder_id);
+    // Accumulate the elapsed time for the correct calculation of layer cooling.
+    //FIXME currently disabled as Slic3r PE needs to be updated to differentiate the moves it could slow down
+    // from the moves it could not.
+    gcodegen.writer().elapsed_time()->other += tcr.elapsed_time;
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(Pointf(tcr.end_pos.x, tcr.end_pos.y));
     gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, tcr.end_pos));
@@ -470,6 +470,8 @@ bool GCode::do_export(FILE *file, Print &print)
         assert(final_extruder_id != (unsigned int)-1);
     }
 
+    m_cooling_buffer->set_current_extruder(initial_extruder_id);
+
     // Disable fan.
     if (print.config.cooling.get_at(initial_extruder_id) && print.config.disable_fan_first_layers.get_at(initial_extruder_id))
         write(file, m_writer.set_fan(0, true));
@@ -568,6 +570,7 @@ bool GCode::do_export(FILE *file, Print &print)
                     initial_extruder_id = new_extruder_id;
                     final_extruder_id   = tool_ordering.last_extruder();
                     assert(final_extruder_id != (unsigned int)-1);
+                    m_cooling_buffer->set_current_extruder(initial_extruder_id);
                 }
                 this->set_origin(unscale(copy.x), unscale(copy.y));
                 if (finished_objects > 0) {
@@ -594,7 +597,6 @@ bool GCode::do_export(FILE *file, Print &print)
                     lrs.emplace_back(std::move(ltp));
                     this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), &copy - object._shifted_copies.data());
                 }
-                write(file, this->filter(m_cooling_buffer->flush(), true));
                 ++ finished_objects;
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
@@ -622,7 +624,6 @@ bool GCode::do_export(FILE *file, Print &print)
                 m_wipe_tower->next_layer();
             this->process_layer(file, print, layer.second, layer_tools, size_t(-1));
         }
-        write(file, this->filter(m_cooling_buffer->flush(), true));
         if (m_wipe_tower)
             // Purge the extruder, pull out the active filament.
             write(file, m_wipe_tower->finalize(*this));
@@ -1107,7 +1108,7 @@ void GCode::process_layer(
         //FIXME Update the CoolingBuffer class to ignore the object ID, which does not make sense anymore
         // once all extrusions of a layer are processed at once.
         // Update the test cases.
-        gcode = m_cooling_buffer->append(gcode, 0, layer.id(), false);
+        gcode = m_cooling_buffer->process_layer(gcode, layer.id());
     write(file, this->filter(std::move(gcode), false));
 }
 
@@ -1865,11 +1866,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     
     if (m_config.cooling.values.front()) {
         float t = path_length / F * 60.f;
-        m_elapsed_time.total += t;
+        m_writer.elapsed_time()->total += t;
         if (is_bridge(path.role()))
-            m_elapsed_time.bridges += t;
+            m_writer.elapsed_time()->bridges += t;
         if (path.role() == erExternalPerimeter)
-            m_elapsed_time.external_perimeters += t;
+            m_writer.elapsed_time()->external_perimeters += t;
     }
     
     return gcode;
@@ -1918,7 +1919,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 	    gcode += m_writer.travel_to_xy(this->point_to_gcode(line->b), comment);
     
     if (m_config.cooling.values.front())
-        m_elapsed_time.travel += unscale(travel.length()) / m_config.get_abs_value("travel_speed");
+        m_writer.elapsed_time()->travel += unscale(travel.length()) / m_config.get_abs_value("travel_speed");
 
     return gcode;
 }

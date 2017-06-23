@@ -107,32 +107,6 @@ private:
     bool                                                         m_brim_done;
 };
 
-struct ElapsedTime
-{
-    ElapsedTime() { this->reset(); }
-    void reset() { total = bridges = external_perimeters = travel = other = 0.f; }
-
-    ElapsedTime& operator+=(const ElapsedTime &rhs) {
-        this->total                 += rhs.total;
-        this->bridges               += rhs.bridges;
-        this->external_perimeters   += rhs.external_perimeters;
-        this->travel                += rhs.travel;
-        this->other                 += rhs.other;
-        return *this;
-    }
-
-    // Potion of the total time, which cannot be stretched to heed the minimum layer print time.
-    float   non_stretchable() const { return this->bridges + this->travel + this->other; }
-    // Potion of the total time, which could be stretched to heed the minimum layer print time.
-    float   stretchable() const { return this->total - this->non_stretchable(); }
-
-    float   total;
-    float   bridges;
-    float   external_perimeters;
-    float   travel;
-    float   other;
-};
-
 class GCode {
 public:        
     GCode() : 
@@ -165,13 +139,12 @@ public:
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
     bool            enable_cooling_markers() const { return m_enable_cooling_markers; }
-    ElapsedTime     get_reset_elapsed_time() { ElapsedTime et = this->m_elapsed_time; this->m_elapsed_time.reset(); return et; }
 
     // For Perl bindings, to be used exclusively by unit tests.
     unsigned int    layer_count() const { return m_layer_count; }
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
-    float           elapsed_time() const { return m_elapsed_time.total; }
-    void            set_elapsed_time(float value) { m_elapsed_time.total = value; }
+	float           elapsed_time() const { return m_writer.elapsed_time()->total; }
+	void            set_elapsed_time(float value) { std::vector<unsigned int> extruders; extruders.push_back(0); m_writer.set_extruders(extruders); m_writer.set_extruder(0); m_writer.elapsed_time()->total = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
 protected:
@@ -268,11 +241,6 @@ protected:
     // In non-sequential mode, all its copies will be printed.
     const Layer*                        m_layer;
     std::map<const PrintObject*,Point>  m_seam_position;
-    // Used by the CoolingBuffer G-code filter to calculate time spent per layer change.
-    // This value is not quite precise. First it only accouts for extrusion moves and travel moves,
-    // it does not account for wipe, retract / unretract moves.
-    // second it does not account for the velocity profiles of the printer.
-    ElapsedTime                         m_elapsed_time;
     double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;

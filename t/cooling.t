@@ -32,20 +32,19 @@ $config->set('disable_fan_first_layers', [ 0 ]);
 {
     my $buffer = buffer($config);
     $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time->[0] + 1);
-    my $gcode = $buffer->append('G1 F3000;_EXTRUDE_SET_SPEED\nG1 X100 E1', 0, 0, 0) . $buffer->flush;
+    my $gcode = $buffer->process_layer('G1 F3000;_EXTRUDE_SET_SPEED\nG1 X100 E1', 0);
     like $gcode, qr/F3000/, 'speed is not altered when elapsed time is greater than slowdown threshold';
 }
 
 {
     my $buffer = buffer($config);
     $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time->[0] - 1);
-    my $gcode = $buffer->append(
+    my $gcode = $buffer->process_layer(
         "G1 X50 F2500\n" .
         "G1 F3000;_EXTRUDE_SET_SPEED\n" .
         "G1 X100 E1\n" .
         "G1 E4 F400",
-        0, 0, 0
-    ) . $buffer->flush;
+        0);
     unlike $gcode, qr/F3000/, 'speed is altered when elapsed time is lower than slowdown threshold';
     like $gcode, qr/F2500/, 'speed is not altered for travel moves';
     like $gcode, qr/F400/, 'speed is not altered for extruder-only moves';
@@ -54,7 +53,7 @@ $config->set('disable_fan_first_layers', [ 0 ]);
 {
     my $buffer = buffer($config);
     $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time->[0] + 1);
-    my $gcode = $buffer->append('G1 X100 E1 F3000', 0, 0, 0) . $buffer->flush;
+    my $gcode = $buffer->process_layer('G1 X100 E1 F3000', 0);
     unlike $gcode, qr/M106/, 'fan is not activated when elapsed time is greater than fan threshold';
 }
 
@@ -62,25 +61,26 @@ $config->set('disable_fan_first_layers', [ 0 ]);
     my $buffer = buffer($config);
     my $gcode = "";
     for my $obj_id (0 .. 1) {
-        # use an elapsed time which is < the slowdown threshold but greater than it when summed twice
-        $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->slowdown_below_layer_time->[0] - 1);
-        $gcode .= $buffer->append("G1 X100 E1 F3000\n", $obj_id, 0, 0);
+        $gcode .= "G1 X100 E1 F3000\n";
     }
-    $gcode .= $buffer->flush;
-    like $gcode, qr/F3000/, 'slowdown is computed on all objects printing at same Z';
+    # use an elapsed time which is < the slowdown threshold but greater than it when summed twice
+    $buffer->gcodegen->set_elapsed_time(2 * ($buffer->gcodegen->config->slowdown_below_layer_time->[0] - 1));
+    $gcode .= $buffer->process_layer($gcode, 0);
+    like $gcode, qr/F3000/, 'slowdown is computed on all objects printing at the same Z';
 }
 
 {
     my $buffer = buffer($config);
     my $gcode = "";
     for my $layer_id (0 .. 1) {
+        my $layer_gcode = "";
         for my $obj_id (0 .. 1) {
-            # use an elapsed time which is < the threshold but greater than it when summed twice
-            $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time->[0] - 1);
-            $gcode .= $buffer->append("G1 X100 E1 F3000\n", $obj_id, $layer_id, 0);
+            $layer_gcode .= "G1 X100 E1 F3000\n";
         }
+        # use an elapsed time which is < the threshold but greater than it when summed twice
+        $buffer->gcodegen->set_elapsed_time(2 * ($buffer->gcodegen->config->fan_below_layer_time->[0] - 1));
+        $gcode .= $buffer->process_layer($layer_gcode, $layer_id);
     }
-    $gcode .= $buffer->flush;
     unlike $gcode, qr/M106/, 'fan activation is computed on all objects printing at different Z';
 }
 
@@ -88,13 +88,14 @@ $config->set('disable_fan_first_layers', [ 0 ]);
     my $buffer = buffer($config);
     my $gcode = "";
     for my $layer_id (0 .. 1) {
+        my $layer_gcode = "";
         for my $obj_id (0 .. 1) {
-            # use an elapsed time which is < the threshold even when summed twice
-            $buffer->gcodegen->set_elapsed_time($buffer->gcodegen->config->fan_below_layer_time->[0]/2 - 1);
-            $gcode .= $buffer->append("G1 X100 E1 F3000\n", $obj_id, $layer_id, 0);
+            $layer_gcode .= "G1 X100 E1 F3000\n";
         }
+        # use an elapsed time which is < the threshold even when summed twice
+        $buffer->gcodegen->set_elapsed_time(2 * ($buffer->gcodegen->config->fan_below_layer_time->[0]/2 - 1));
+        $gcode .= $buffer->process_layer($layer_gcode, $layer_id);
     }
-    $gcode .= $buffer->flush;
     like $gcode, qr/M106/, 'fan activation is computed on all objects printing at different Z';
 }
 
