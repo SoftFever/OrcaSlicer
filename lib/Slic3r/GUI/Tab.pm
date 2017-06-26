@@ -566,7 +566,7 @@ sub build {
         external_perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width 
         top_infill_extrusion_width support_material_extrusion_width
         infill_overlap bridge_flow_ratio
-        clip_multipart_objects xy_size_compensation threads resolution
+        clip_multipart_objects elefant_foot_compensation xy_size_compensation threads resolution
         wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe
     ));
     $self->{config}->set('print_settings_id', '');
@@ -770,6 +770,7 @@ sub build {
         {
             my $optgroup = $page->new_optgroup('Other');
             $optgroup->append_single_option_line('clip_multipart_objects');
+            $optgroup->append_single_option_line('elefant_foot_compensation');
             $optgroup->append_single_option_line('xy_size_compensation');
             $optgroup->append_single_option_line('threads') if $Slic3r::have_threads;
             $optgroup->append_single_option_line('resolution');

@@ -163,6 +163,15 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(6);
 
+    def = this->add("elefant_foot_compensation", coFloat);
+    def->label = "Elefant foot compensation";
+    def->category = "Advanced";
+    def->tooltip = "The first layer will be shrunk in the XY plane by the configured value to compensate for the 1st layer squish aka an Elefant Foot effect.";
+    def->sidetext = "mm";
+    def->cli = "elefant-foot-compensation=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0);
+
     def = this->add("end_gcode", coString);
     def->label = "End G-code";
     def->tooltip = "This end procedure is inserted at the end of the output file. Note that you can use placeholder variables for all Slic3r settings.";

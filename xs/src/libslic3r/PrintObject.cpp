@@ -160,6 +160,7 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
 		}
 		else if (
                opt_key == "clip_multipart_objects"
+            || opt_key == "elefant_foot_compensation"
             || opt_key == "support_material_contact_distance" 
             || opt_key == "xy_size_compensation") {
             steps.emplace_back(posSlice);
@@ -1164,6 +1165,8 @@ end:
                 Layer *layer = this->layers[layer_id];
                 // Apply size compensation and perform clipping of multi-part objects.
                 float delta = float(scale_(this->config.xy_size_compensation.value));
+                if (layer_id == 0)
+                    delta -= float(scale_(this->config.elefant_foot_compensation.value));
                 bool  scale = delta != 0.f;
                 bool  clip  = this->config.clip_multipart_objects.value || delta > 0.f;
                 if (layer->regions.size() == 1) {

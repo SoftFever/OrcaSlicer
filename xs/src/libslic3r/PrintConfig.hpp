@@ -165,6 +165,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
 public:
     ConfigOptionBool                clip_multipart_objects;
     ConfigOptionBool                dont_support_bridges;
+    ConfigOptionFloat               elefant_foot_compensation;
     ConfigOptionFloatOrPercent      extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionBool                infill_only_where_needed;
@@ -203,6 +204,7 @@ public:
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
         OPT_PTR(clip_multipart_objects);
         OPT_PTR(dont_support_bridges);
+        OPT_PTR(elefant_foot_compensation);
         OPT_PTR(extrusion_width);
         OPT_PTR(first_layer_height);
         OPT_PTR(infill_only_where_needed);
