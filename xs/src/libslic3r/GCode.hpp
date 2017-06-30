@@ -267,8 +267,6 @@ protected:
     // this flag triggers first layer speeds
     bool                                on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0; }
 
-    std::string filter(std::string &&gcode, bool flush);
-
     friend ObjectByExtruder& object_by_extruder(
         std::map<unsigned int, std::vector<ObjectByExtruder>> &by_extruder, 
         unsigned int                                           extruder_id, 

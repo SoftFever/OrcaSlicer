@@ -171,6 +171,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // Accumulate the elapsed time for the correct calculation of layer cooling.
     //FIXME currently disabled as Slic3r PE needs to be updated to differentiate the moves it could slow down
     // from the moves it could not.
+    gcodegen.writer().elapsed_time()->total += tcr.elapsed_time;
     gcodegen.writer().elapsed_time()->other += tcr.elapsed_time;
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(Pointf(tcr.end_pos.x, tcr.end_pos.y));
@@ -570,7 +571,6 @@ bool GCode::do_export(FILE *file, Print &print)
                     initial_extruder_id = new_extruder_id;
                     final_extruder_id   = tool_ordering.last_extruder();
                     assert(final_extruder_id != (unsigned int)-1);
-                    m_cooling_buffer->set_current_extruder(initial_extruder_id);
                 }
                 this->set_origin(unscale(copy.x), unscale(copy.y));
                 if (finished_objects > 0) {
@@ -590,6 +590,9 @@ bool GCode::do_export(FILE *file, Print &print)
                     // Set first layer extruder.
                     this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
                 }
+                // Reset the cooling buffer internal state (the current position, feed rate, accelerations).
+                m_cooling_buffer->reset();
+                m_cooling_buffer->set_current_extruder(initial_extruder_id);
                 // Pair the object layers with the support layers by z, extrude them.
                 std::vector<LayerToPrint> layers_to_print = collect_layers_to_print(object);
                 for (const LayerToPrint &ltp : layers_to_print) {
@@ -597,6 +600,8 @@ bool GCode::do_export(FILE *file, Print &print)
                     lrs.emplace_back(std::move(ltp));
                     this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), &copy - object._shifted_copies.data());
                 }
+                if (m_pressure_equalizer)
+                    write(file, m_pressure_equalizer->process("", true));
                 ++ finished_objects;
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
@@ -624,6 +629,8 @@ bool GCode::do_export(FILE *file, Print &print)
                 m_wipe_tower->next_layer();
             this->process_layer(file, print, layer.second, layer_tools, size_t(-1));
         }
+        if (m_pressure_equalizer)
+            write(file, m_pressure_equalizer->process("", true));
         if (m_wipe_tower)
             // Purge the extruder, pull out the active filament.
             write(file, m_wipe_tower->finalize(*this));
@@ -1099,28 +1106,21 @@ void GCode::process_layer(
     // (we must feed all the G-code into the post-processor, including the first 
     // bottom non-spiral layers otherwise it will mess with positions)
     // we apply spiral vase at this stage because it requires a full layer.
-    // Just a reminder: A spiral vase mode is allowed for a single object, single material print only.
+    // Just a reminder: A spiral vase mode is allowed for a single object per layer, single material print only.
     if (m_spiral_vase)
         gcode = m_spiral_vase->process_layer(gcode);
 
     // Apply cooling logic; this may alter speeds.
     if (m_cooling_buffer)
-        //FIXME Update the CoolingBuffer class to ignore the object ID, which does not make sense anymore
-        // once all extrusions of a layer are processed at once.
-        // Update the test cases.
         gcode = m_cooling_buffer->process_layer(gcode, layer.id());
-    write(file, this->filter(std::move(gcode), false));
-}
 
-std::string GCode::filter(std::string &&gcode, bool flush)
-{
-    // apply pressure equalization if enabled;
+    // Apply pressure equalization if enabled;
     // printf("G-code before filter:\n%s\n", gcode.c_str());
-    std::string out = m_pressure_equalizer ? 
-        m_pressure_equalizer->process(gcode.c_str(), flush) :
-        std::move(gcode);
+    if (m_pressure_equalizer)
+        gcode = m_pressure_equalizer->process(gcode.c_str(), false);
     // printf("G-code after filter:\n%s\n", out.c_str());
-    return out;
+
+    write(file, gcode);
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)
@@ -1841,12 +1841,17 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             gcode += buf;
         }
     }
-    if (is_bridge(path.role()) && m_enable_cooling_markers)
-        gcode += ";_BRIDGE_FAN_START\n";
-    std::string comment = ";_EXTRUDE_SET_SPEED";
-    if (path.role() == erExternalPerimeter) 
-        comment += ";_EXTERNAL_PERIMETER";
-    gcode += m_writer.set_speed(F, "", m_enable_cooling_markers ? comment : "");
+    std::string comment;
+    if (m_enable_cooling_markers) {
+        if (is_bridge(path.role()))
+            gcode += ";_BRIDGE_FAN_START\n";
+        else
+            comment = ";_EXTRUDE_SET_SPEED";
+        if (path.role() == erExternalPerimeter)
+            comment += ";_EXTERNAL_PERIMETER";
+    }
+    // F is mm per minute.
+    gcode += m_writer.set_speed(F, "", comment);
     double path_length = 0.;
     {
         std::string comment = m_config.gcode_comments ? description : "";
@@ -1859,18 +1864,26 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 comment);
         }
     }
-    if (is_bridge(path.role()) && m_enable_cooling_markers)
-        gcode += ";_BRIDGE_FAN_END\n";
+    if (m_enable_cooling_markers)
+        gcode += is_bridge(path.role()) ? ";_BRIDGE_FAN_END\n" : ";_EXTRUDE_END\n";
     
     this->set_last_pos(path.last_point());
     
     if (m_config.cooling.values.front()) {
-        float t = path_length / F * 60.f;
+        float t = float(path_length / F * 60);
         m_writer.elapsed_time()->total += t;
+        assert(! (is_bridge(path.role()) && path.role() == erExternalPerimeter));
         if (is_bridge(path.role()))
             m_writer.elapsed_time()->bridges += t;
-        if (path.role() == erExternalPerimeter)
-            m_writer.elapsed_time()->external_perimeters += t;
+        else {
+            // Maximum print time of this extrusion, respecting the min_print_speed.
+            float t_max = std::max(t, float(path_length / std::max(0.1, EXTRUDER_CONFIG(min_print_speed))));
+            if (path.role() == erExternalPerimeter)
+                m_writer.elapsed_time()->external_perimeters += t;
+            else
+                m_writer.elapsed_time()->max_stretch_time_no_ext_perimetes += t_max;
+            m_writer.elapsed_time()->max_stretch_time_total += t_max;
+        }
     }
     
     return gcode;

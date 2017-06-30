@@ -22,7 +22,7 @@ public:
         
         GCodeLine(GCodeReader* _reader) : reader(_reader) {};
         
-        bool has(char arg) const { return this->args.count(arg) > 0; };
+        bool  has(char arg) const { return this->args.count(arg) > 0; };
         float get_float(char arg) const { return float(atof(this->args.at(arg).c_str())); };
         float new_X() const { return this->has('X') ? float(atof(this->args.at('X').c_str())) : this->reader->X; };
         float new_Y() const { return this->has('Y') ? float(atof(this->args.at('Y').c_str())) : this->reader->Y; };
@@ -38,9 +38,9 @@ public:
             float y = this->dist_Y();
             return sqrt(x*x + y*y);
         };
-        bool extruding() const { return this->cmd == "G1" && this->dist_E() > 0; };
+        bool extruding()  const { return this->cmd == "G1" && this->dist_E() > 0; };
         bool retracting() const { return this->cmd == "G1" && this->dist_E() < 0; };
-        bool travel() const { return this->cmd == "G1" && !this->has('E'); };
+        bool travel()     const { return this->cmd == "G1" && ! this->has('E'); };
         void set(char arg, std::string value);
     };
     typedef std::function<void(GCodeReader&, const GCodeLine&)> callback_t;
@@ -49,15 +49,15 @@ public:
     bool verbose;
     callback_t callback; 
     
-    GCodeReader() : X(0), Y(0), Z(0), E(0), F(0), verbose(false), _extrusion_axis('E') {};
+    GCodeReader() : X(0), Y(0), Z(0), E(0), F(0), verbose(false), m_extrusion_axis('E') {};
     void apply_config(const PrintConfigBase &config);
     void parse(const std::string &gcode, callback_t callback);
     void parse_line(std::string line, callback_t callback);
     void parse_file(const std::string &file, callback_t callback);
     
 private:
-    GCodeConfig _config;
-    char _extrusion_axis;
+    GCodeConfig m_config;
+    char m_extrusion_axis;
 };
 
 } /* namespace Slic3r */

@@ -6,15 +6,13 @@
 
 namespace Slic3r {
 
-void
-GCodeReader::apply_config(const PrintConfigBase &config)
+void GCodeReader::apply_config(const PrintConfigBase &config)
 {
-    this->_config.apply(config, true);
-    this->_extrusion_axis = this->_config.get_extrusion_axis()[0];
+    m_config.apply(config, true);
+    m_extrusion_axis = m_config.get_extrusion_axis()[0];
 }
 
-void
-GCodeReader::parse(const std::string &gcode, callback_t callback)
+void GCodeReader::parse(const std::string &gcode, callback_t callback)
 {
     std::istringstream ss(gcode);
     std::string line;
@@ -22,8 +20,7 @@ GCodeReader::parse(const std::string &gcode, callback_t callback)
         this->parse_line(line, callback);
 }
 
-void
-GCodeReader::parse_line(std::string line, callback_t callback)
+void GCodeReader::parse_line(std::string line, callback_t callback)
 {
     GCodeLine gline(this);
     gline.raw = line;
@@ -55,15 +52,15 @@ GCodeReader::parse_line(std::string line, callback_t callback)
     }
     
     // convert extrusion axis
-    if (this->_extrusion_axis != 'E') {
-        const auto it = gline.args.find(this->_extrusion_axis);
+    if (m_extrusion_axis != 'E') {
+        const auto it = gline.args.find(m_extrusion_axis);
         if (it != gline.args.end()) {
             std::swap(gline.args['E'], it->second);
             gline.args.erase(it);
         }
     }
     
-    if (gline.has('E') && this->_config.use_relative_e_distances)
+    if (gline.has('E') && m_config.use_relative_e_distances)
         this->E = 0;
     
     if (callback) callback(*this, gline);
@@ -78,8 +75,7 @@ GCodeReader::parse_line(std::string line, callback_t callback)
     }
 }
 
-void
-GCodeReader::parse_file(const std::string &file, callback_t callback)
+void GCodeReader::parse_file(const std::string &file, callback_t callback)
 {
     std::ifstream f(file);
     std::string line;
@@ -87,8 +83,7 @@ GCodeReader::parse_file(const std::string &file, callback_t callback)
         this->parse_line(line, callback);
 }
 
-void
-GCodeReader::GCodeLine::set(char arg, std::string value)
+void GCodeReader::GCodeLine::set(char arg, std::string value)
 {
     const std::string space(" ");
     if (this->has(arg)) {

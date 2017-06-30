@@ -54,6 +54,9 @@ public:
         { return m_extruder == nullptr || m_extruder->id() != extruder_id; }
     std::string set_extruder(unsigned int extruder_id)
         { return this->need_toolchange(extruder_id) ? this->toolchange(extruder_id) : ""; }
+    // Prefix of the toolchange G-code line, to be used by the CoolingBuffer to separate sections of the G-code
+    // printed with the same extruder.
+    std::string toolchange_prefix() const;
     std::string toolchange(unsigned int extruder_id);
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string()) const;
     std::string travel_to_xy(const Pointf &point, const std::string &comment = std::string());

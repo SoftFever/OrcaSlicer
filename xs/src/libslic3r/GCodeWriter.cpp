@@ -181,11 +181,14 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
     
     std::ostringstream gcode;
     if (FLAVOR_IS(gcfRepetier)) {
+        // M201: Set max printing acceleration
         gcode << "M201 X" << acceleration << " Y" << acceleration;
         if (this->config.gcode_comments) gcode << " ; adjust acceleration";
         gcode << "\n";
+        // M202: Set max travel acceleration
         gcode << "M202 X" << acceleration << " Y" << acceleration;
     } else {
+        // M204: Set default acceleration
         gcode << "M204 S" << acceleration;
     }
     if (this->config.gcode_comments) gcode << " ; adjust acceleration";
@@ -233,6 +236,12 @@ std::string GCodeWriter::update_progress(unsigned int num, unsigned int tot, boo
     return gcode.str();
 }
 
+std::string GCodeWriter::toolchange_prefix() const
+{
+    return FLAVOR_IS(gcfMakerWare) ? "M135 T" :
+           FLAVOR_IS(gcfSailfish)  ? "M108 T" : "T";
+}
+
 std::string GCodeWriter::toolchange(unsigned int extruder_id)
 {
     // set the new extruder
@@ -248,17 +257,10 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     // if we are running a single-extruder setup, just set the extruder and return nothing
     std::ostringstream gcode;
     if (this->multiple_extruders) {
-        if (FLAVOR_IS(gcfMakerWare)) {
-            gcode << "M135 T";
-        } else if (FLAVOR_IS(gcfSailfish)) {
-            gcode << "M108 T";
-        } else {
-            gcode << "T";
-        }
-        gcode << extruder_id;
-        if (this->config.gcode_comments) gcode << " ; change extruder";
+        gcode << this->toolchange_prefix() << extruder_id;
+        if (this->config.gcode_comments)
+            gcode << " ; change extruder";
         gcode << "\n";
-        
         gcode << this->reset_e(true);
     }
     return gcode.str();
