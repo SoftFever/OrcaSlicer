@@ -3,6 +3,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <iostream>
+#include <float.h>
 
 #if 0
     #define DEBUG
