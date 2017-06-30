@@ -34,13 +34,13 @@ void CoolingBuffer::reset()
 
 std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_id)
 {
-    const FullPrintConfig &config        = m_gcodegen.config();
-    const auto            &elapsed_times = m_gcodegen.writer().elapsed_times();
-    const size_t           num_extruders = elapsed_times.size();
+    const FullPrintConfig       &config        = m_gcodegen.config();
+    const std::vector<Extruder> &extruders     = m_gcodegen.writer().extruders();
+    const size_t                 num_extruders = extruders.size();
 
     // Calculate the required per extruder time stretches.
     struct Adjustment {
-        Adjustment() {}
+        Adjustment(unsigned int extruder_id = 0) : extruder_id(extruder_id) {}
         // Calculate the total elapsed time per this extruder, adjusted for the slowdown.
         float elapsed_time_total() {
             float time_total = 0.f;
@@ -94,6 +94,8 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
             return time_total;
         }
 
+        bool operator<(const Adjustment &rhs) const { return this->extruder_id < rhs.extruder_id; }
+
         struct Line
         {
             enum Type {
@@ -135,16 +137,19 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
             bool    slowdown;
         };
 
+        // Extruder, for which the G-code will be adjusted.
+        unsigned int        extruder_id;
         // Parsed lines.
         std::vector<Line>   lines;
     };
     std::vector<Adjustment> adjustments(num_extruders, Adjustment());
+    for (size_t i = 0; i < num_extruders; ++ i)
+        adjustments[i].extruder_id = extruders[i].id();
     const std::string       toolchange_prefix = m_gcodegen.writer().toolchange_prefix();
     // Parse the layer G-code for the moves, which could be adjusted.
     {
         float             min_print_speed   = float(EXTRUDER_CONFIG(min_print_speed));
-        auto              it_elapsed_time   = std::lower_bound(elapsed_times.begin(), elapsed_times.end(), ElapsedTime(m_current_extruder));
-        Adjustment       *adjustment        = &adjustments[it_elapsed_time - elapsed_times.begin()];
+        auto              adjustment        = std::lower_bound(adjustments.begin(), adjustments.end(), Adjustment(m_current_extruder));
         unsigned int      initial_extruder  = m_current_extruder;
 		const char       *line_start = gcode.c_str();
 		const char		 *line_end   = line_start;
@@ -242,8 +247,7 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
                 if (new_extruder != m_current_extruder) {
                     m_current_extruder = new_extruder;
                     min_print_speed    = float(EXTRUDER_CONFIG(min_print_speed));
-                    it_elapsed_time    = std::lower_bound(elapsed_times.begin(), elapsed_times.end(), ElapsedTime(m_current_extruder));
-                    adjustment         = &adjustments[it_elapsed_time - elapsed_times.begin()];
+                    adjustment         = std::lower_bound(adjustments.begin(), adjustments.end(), Adjustment(m_current_extruder));
                 }
             } else if (boost::starts_with(sline, ";_BRIDGE_FAN_START")) {
                 line.type = Adjustment::Line::TYPE_BRIDGE_FAN_START;
@@ -273,15 +277,15 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
     // Collect total print time of non-adjustable extruders.
     float elapsed_time_total_non_adjustable = 0.f;
     for (size_t i = 0; i < num_extruders; ++ i) {
-        if (config.cooling.get_at(elapsed_times[i].extruder_id))
+        if (config.cooling.get_at(extruders[i].id()))
             by_slowdown_layer_time.emplace_back(i);
         else
             elapsed_time_total_non_adjustable += adjustments[i].elapsed_time_total();
     }
     std::sort(by_slowdown_layer_time.begin(), by_slowdown_layer_time.end(),
-        [&config, &elapsed_times](const size_t idx1, const size_t idx2){
-            return config.slowdown_below_layer_time.get_at(elapsed_times[idx1].extruder_id) < 
-                   config.slowdown_below_layer_time.get_at(elapsed_times[idx2].extruder_id);
+        [&config, &extruders](const size_t idx1, const size_t idx2){
+            return config.slowdown_below_layer_time.get_at(extruders[idx1].id()) < 
+                   config.slowdown_below_layer_time.get_at(extruders[idx2].id());
         });
 
     // Elapsed time after adjustment.
@@ -290,7 +294,7 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
         // Elapsed time for the already adjusted extruders.
 		float elapsed_time_total0 = elapsed_time_total_non_adjustable;
         for (size_t i_by_slowdown_layer_time = 0; i_by_slowdown_layer_time < by_slowdown_layer_time.size(); ++ i_by_slowdown_layer_time) {
-            // Idx in elapsed_times and adjustments.
+            // Idx in adjustments.
             size_t idx = by_slowdown_layer_time[i_by_slowdown_layer_time];
             // Macro to sum or adjust all sections starting with i_by_slowdown_layer_time.
             #define FORALL_UNPROCESSED(ACCUMULATOR, ACTION) \
@@ -300,7 +304,7 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
             // Calculate the current adjusted elapsed_time_total over the non-finalized extruders.
             float        total;
             FORALL_UNPROCESSED(total, elapsed_time_total());
-            float        slowdown_below_layer_time = float(config.slowdown_below_layer_time.get_at(elapsed_times[idx].extruder_id)) * 1.001f;
+            float        slowdown_below_layer_time = float(config.slowdown_below_layer_time.get_at(adjustments[idx].extruder_id)) * 1.001f;
             if (total > slowdown_below_layer_time) {
                 // The current total time is above the minimum threshold of the rest of the extruders, don't adjust anything.
             } else {
@@ -462,7 +466,6 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
     if (pos < gcode.size())
         new_gcode.append(gcode.c_str() + pos, gcode.size() - pos);
 
-    m_gcodegen.writer().reset_elapsed_times();
     return new_gcode;
 }
 

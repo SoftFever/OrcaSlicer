@@ -16,7 +16,7 @@ public:
     bool multiple_extruders;
     
     GCodeWriter() : 
-        multiple_extruders(false), m_extrusion_axis("E"), m_extruder(nullptr), m_elapsed_time(nullptr),
+        multiple_extruders(false), m_extrusion_axis("E"), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_last_fan_speed(0), 
         m_last_bed_temperature(0), m_last_bed_temperature_reached(true), 
@@ -24,10 +24,6 @@ public:
         {}
     Extruder*            extruder()             { return m_extruder; }
     const Extruder*      extruder()     const   { return m_extruder; }
-    ElapsedTime*         elapsed_time()         { return m_elapsed_time; }
-    const ElapsedTime*   elapsed_time() const   { return m_elapsed_time; }
-    const std::vector<ElapsedTime>& elapsed_times() const { return m_elapsed_times; }
-    void                 reset_elapsed_times() { for (auto &et : m_elapsed_times) et.reset(); }
 
     std::string          extrusion_axis() const { return m_extrusion_axis; }
     void                 apply_print_config(const PrintConfig &print_config);
@@ -74,11 +70,9 @@ public:
 
 private:
     std::vector<Extruder>    m_extruders;
-    std::vector<ElapsedTime> m_elapsed_times;
     std::string     m_extrusion_axis;
     bool            m_single_extruder_multi_material;
     Extruder*       m_extruder;
-    ElapsedTime*    m_elapsed_time;
     unsigned int    m_last_acceleration;
     unsigned int    m_last_fan_speed;
     unsigned int    m_last_bed_temperature;

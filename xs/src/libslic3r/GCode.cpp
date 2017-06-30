@@ -168,11 +168,6 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // Let the m_writer know the current extruder_id, but ignore the generated G-code.
 	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
         gcodegen.writer().toolchange(new_extruder_id);
-    // Accumulate the elapsed time for the correct calculation of layer cooling.
-    //FIXME currently disabled as Slic3r PE needs to be updated to differentiate the moves it could slow down
-    // from the moves it could not.
-    gcodegen.writer().elapsed_time()->total += tcr.elapsed_time;
-    gcodegen.writer().elapsed_time()->other += tcr.elapsed_time;
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(Pointf(tcr.end_pos.x, tcr.end_pos.y));
     gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, tcr.end_pos));
@@ -1868,24 +1863,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         gcode += is_bridge(path.role()) ? ";_BRIDGE_FAN_END\n" : ";_EXTRUDE_END\n";
     
     this->set_last_pos(path.last_point());
-    
-    if (m_config.cooling.values.front()) {
-        float t = float(path_length / F * 60);
-        m_writer.elapsed_time()->total += t;
-        assert(! (is_bridge(path.role()) && path.role() == erExternalPerimeter));
-        if (is_bridge(path.role()))
-            m_writer.elapsed_time()->bridges += t;
-        else {
-            // Maximum print time of this extrusion, respecting the min_print_speed.
-            float t_max = std::max(t, float(path_length / std::max(0.1, EXTRUDER_CONFIG(min_print_speed))));
-            if (path.role() == erExternalPerimeter)
-                m_writer.elapsed_time()->external_perimeters += t;
-            else
-                m_writer.elapsed_time()->max_stretch_time_no_ext_perimetes += t_max;
-            m_writer.elapsed_time()->max_stretch_time_total += t_max;
-        }
-    }
-    
     return gcode;
 }
 
@@ -1931,9 +1908,6 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line)
 	    gcode += m_writer.travel_to_xy(this->point_to_gcode(line->b), comment);
     
-    if (m_config.cooling.values.front())
-        m_writer.elapsed_time()->travel += unscale(travel.length()) / m_config.get_abs_value("travel_speed");
-
     return gcode;
 }
 

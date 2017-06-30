@@ -26,11 +26,6 @@ void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
     m_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
         m_extruders.emplace_back(Extruder(extruder_id, &this->config));
-
-    m_elapsed_times.clear();
-    m_elapsed_times.reserve(extruder_ids.size());
-    for (unsigned int extruder_id : extruder_ids)
-        m_elapsed_times.emplace_back(ElapsedTime(extruder_id));
     
     /*  we enable support for multiple extruder if any extruder greater than 0 is used
         (even if prints only uses that one) since we need to output Tx commands
@@ -248,10 +243,6 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     auto it_extruder = std::lower_bound(m_extruders.begin(), m_extruders.end(), Extruder::key(extruder_id));
     assert(it_extruder != m_extruders.end());
     m_extruder = const_cast<Extruder*>(&*it_extruder);
-
-    auto it_elapsed_time = std::lower_bound(m_elapsed_times.begin(), m_elapsed_times.end(), ElapsedTime(extruder_id));
-    assert(it_elapsed_time != m_elapsed_times.end());
-    m_elapsed_time = const_cast<ElapsedTime*>(&*it_elapsed_time);
 
     // return the toolchange command
     // if we are running a single-extruder setup, just set the extruder and return nothing
