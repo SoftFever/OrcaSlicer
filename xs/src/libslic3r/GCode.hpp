@@ -143,8 +143,6 @@ public:
     // For Perl bindings, to be used exclusively by unit tests.
     unsigned int    layer_count() const { return m_layer_count; }
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
-	float           elapsed_time() const { return m_writer.elapsed_time()->total; }
-	void            set_elapsed_time(float value) { std::vector<unsigned int> extruders; extruders.push_back(0); m_writer.set_extruders(extruders); m_writer.set_extruder(0); m_writer.elapsed_time()->total = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
 protected:

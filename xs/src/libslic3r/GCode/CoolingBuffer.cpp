@@ -237,6 +237,7 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
                 active_speed_modifier = size_t(-1);
             } else if (boost::starts_with(sline, toolchange_prefix)) {
                 // Switch the tool.
+                line.type = Adjustment::Line::TYPE_SET_TOOL;
                 unsigned int new_extruder = (unsigned int)atoi(sline.c_str() + toolchange_prefix.size());
                 if (new_extruder != m_current_extruder) {
                     m_current_extruder = new_extruder;
@@ -417,6 +418,7 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
                 m_current_extruder = new_extruder;
                 change_extruder_set_fan();
             }
+            new_gcode.append(gcode.c_str() + line->line_start, line->line_end - line->line_start);
         } else if (line->type & Adjustment::Line::TYPE_BRIDGE_FAN_START) {
             if (bridge_fan_control)
                 new_gcode += m_gcodegen.writer().set_fan(bridge_fan_speed, true) + "\n";

@@ -38,8 +38,8 @@
 
     unsigned int    layer_count() const;
     void            set_layer_count(unsigned int value);
-    float           elapsed_time() const;
-    void            set_elapsed_time(float value);
+    void            set_extruders(std::vector<unsigned int> extruders) 
+        %code{% THIS->writer().set_extruders(extruders); THIS->writer().set_extruder(0); %};
 
     void apply_print_config(StaticPrintConfig* print_config)
         %code{%
