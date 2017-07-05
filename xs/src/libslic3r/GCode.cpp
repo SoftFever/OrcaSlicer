@@ -553,7 +553,7 @@ bool GCode::do_export(FILE *file, Print &print)
         std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size.z < po2->size.z; });        
         size_t finished_objects = 0;
         for (size_t object_id = initial_print_object_id; object_id < objects.size(); ++ object_id) {
-            const PrintObject &object = *print.objects[object_id];
+            const PrintObject &object = *objects[object_id];
             for (const Point &copy : object._shifted_copies) {
                 // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
                 if (object_id != initial_print_object_id || &copy != object._shifted_copies.data()) {
