@@ -277,6 +277,7 @@ public:
     void auto_assign_extruders(ModelObject* model_object) const;
 
     void _make_skirt();
+    void _make_brim();
 
     // Wipe tower support.
     bool has_wipe_tower();

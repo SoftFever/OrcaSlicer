@@ -230,6 +230,7 @@ _constant()
     Clone<Flow> skirt_flow();
 
     void _make_skirt();
+    void _make_brim();
 
     bool has_wipe_tower();
     void _clear_wipe_tower();

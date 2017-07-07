@@ -228,62 +228,16 @@ sub make_brim {
     $self->make_skirt;
     
     return if $self->step_done(STEP_BRIM);
+
     $self->set_step_started(STEP_BRIM);
-    
     # since this method must be idempotent, we clear brim paths *before*
     # checking whether we need to generate them
     $self->brim->clear;
-    
-    if ($self->config->brim_width == 0) {
-        $self->set_step_done(STEP_BRIM);
-        return;
+    if ($self->config->brim_width > 0) {
+        $self->status_cb->(88, "Generating brim");
+        $self->_make_brim;
     }
-    $self->status_cb->(88, "Generating brim");
-    
-    # brim is only printed on first layer and uses perimeter extruder
-    my $first_layer_height = $self->skirt_first_layer_height;
-    my $flow = $self->brim_flow;
-    my $mm3_per_mm = $flow->mm3_per_mm;
-    
-    my $grow_distance = $flow->scaled_width / 2;
-    my @islands = (); # array of polygons
-    foreach my $obj_idx (0 .. ($self->object_count - 1)) {
-        my $object = $self->objects->[$obj_idx];
-        my $layer0 = $object->get_layer(0);
-        my @object_islands = (
-            (map $_->contour, @{$layer0->slices}),
-        );
-        if (@{ $object->support_layers }) {
-            my $support_layer0 = $object->support_layers->[0];
-            push @object_islands,
-                (map @{$_->polyline->grow($grow_distance)}, @{$support_layer0->support_fills})
-                if $support_layer0->support_fills;
-        }
-        foreach my $copy (@{$object->_shifted_copies}) {
-            push @islands, map { $_->translate(@$copy); $_ } map $_->clone, @object_islands;
-        }
-    }
-    
-    my @loops = ();
-    my $num_loops = sprintf "%.0f", $self->config->brim_width / $flow->width;
-    for my $i (reverse 1 .. $num_loops) {
-        # JT_SQUARE ensures no vertex is outside the given offset distance
-        # -0.5 because islands are not represented by their centerlines
-        # (first offset more, then step back - reverse order than the one used for 
-        # perimeters because here we're offsetting outwards)
-        push @loops, @{offset2(\@islands, ($i + 0.5) * $flow->scaled_spacing, -1.0 * $flow->scaled_spacing, JT_SQUARE)};
-    }
-    
-    $self->brim->append(map Slic3r::ExtrusionLoop->new_from_paths(
-        Slic3r::ExtrusionPath->new(
-            polyline        => Slic3r::Polygon->new(@$_)->split_at_first_point,
-            role            => EXTR_ROLE_SKIRT,
-            mm3_per_mm      => $mm3_per_mm,
-            width           => $flow->width,
-            height          => $first_layer_height,
-        ),
-    ), reverse @{union_pt_chained(\@loops)});
-    
+
     $self->set_step_done(STEP_BRIM);
 }
 

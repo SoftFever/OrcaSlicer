@@ -197,12 +197,12 @@ public:
     ExtrusionPaths paths;
     
     ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : m_loop_role(role) {};
-    ExtrusionLoop(const ExtrusionPaths &paths, ExtrusionLoopRole role = elrDefault)
-        : paths(paths), m_loop_role(role) {};
-    ExtrusionLoop(const ExtrusionPath &path, ExtrusionLoopRole role = elrDefault)
-        : m_loop_role(role) {
-        this->paths.push_back(path);
-    };
+    ExtrusionLoop(const ExtrusionPaths &paths, ExtrusionLoopRole role = elrDefault) : paths(paths), m_loop_role(role) {};
+    ExtrusionLoop(ExtrusionPaths &&paths, ExtrusionLoopRole role = elrDefault) : paths(std::move(paths)), m_loop_role(role) {};
+    ExtrusionLoop(const ExtrusionPath &path, ExtrusionLoopRole role = elrDefault) : m_loop_role(role) 
+        { this->paths.push_back(path); };
+    ExtrusionLoop(const ExtrusionPath &&path, ExtrusionLoopRole role = elrDefault) : m_loop_role(role)
+        { this->paths.emplace_back(std::move(path)); };
     bool is_loop() const { return true; }
     bool can_reverse() const { return false; }
     ExtrusionLoop* clone() const { return new ExtrusionLoop (*this); }
@@ -243,49 +243,59 @@ private:
 inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
-    for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
-        if (it_polyline->is_valid()) {
+    for (Polyline &polyline : polylines)
+        if (polyline.is_valid()) {
             dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
-            dst.back().polyline = *it_polyline;
+            dst.back().polyline = polyline;
         }
-    }
 }
 
 inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
-    for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
-        if (it_polyline->is_valid()) {
+    for (Polyline &polyline : polylines)
+        if (polyline.is_valid()) {
             dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
-            dst.back().polyline = std::move(*it_polyline);
+            dst.back().polyline = std::move(polyline);
         }
-    }
     polylines.clear();
 }
 
 inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
-    for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
-        if (it_polyline->is_valid()) {
+    for (Polyline &polyline : polylines)
+        if (polyline.is_valid()) {
             ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
             dst.push_back(extrusion_path);
-            extrusion_path->polyline = *it_polyline;
+            extrusion_path->polyline = polyline;
         }
-    }
 }
 
 inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
-    for (Polylines::const_iterator it_polyline = polylines.begin(); it_polyline != polylines.end(); ++ it_polyline) {
-        if (it_polyline->is_valid()) {
+    for (Polyline &polyline : polylines)
+        if (polyline.is_valid()) {
             ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
             dst.push_back(extrusion_path);
-            extrusion_path->polyline = std::move(*it_polyline);
+            extrusion_path->polyline = std::move(polyline);
+        }
+    polylines.clear();
+}
+
+inline void extrusion_entities_append_loops(ExtrusionEntitiesPtr &dst, Polygons &&loops, ExtrusionRole role, double mm3_per_mm, float width, float height)
+{
+    dst.reserve(dst.size() + loops.size());
+    for (Polygon &poly : loops) {
+        if (poly.is_valid()) {
+            ExtrusionPath path(role, mm3_per_mm, width, height);
+            path.polyline.points = std::move(poly.points);
+            path.polyline.points.push_back(path.polyline.points.front());
+            dst.emplace_back(new ExtrusionLoop(std::move(path)));
         }
     }
-    polylines.clear();
+    loops.clear();
 }
 
 }

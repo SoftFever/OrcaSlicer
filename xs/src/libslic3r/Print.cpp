@@ -901,6 +901,43 @@ void Print::_make_skirt()
     this->skirt.reverse();
 }
 
+void Print::_make_brim()
+{
+    // Brim is only printed on first layer and uses perimeter extruder.
+    Flow        flow = this->brim_flow();
+    Polygons    islands;
+    for (PrintObject *object : this->objects) {
+        Polygons object_islands;
+        for (ExPolygon &expoly : object->layers.front()->slices.expolygons)
+            object_islands.push_back(expoly.contour);
+        if (! object->support_layers.empty())
+            object->support_layers.front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
+        islands.reserve(islands.size() + object_islands.size() * object->_shifted_copies.size());
+        for (const Point &pt : object->_shifted_copies)
+            for (Polygon &poly : object_islands) {
+                islands.push_back(poly);
+                islands.back().translate(pt);
+            }
+    }
+    Polygons loops;
+    size_t num_loops = size_t(floor(this->config.brim_width.value / flow.width));
+    for (size_t i = 0; i < num_loops; ++ i) {
+        islands = offset(islands, float(flow.scaled_spacing()), jtSquare);
+        for (Polygon &poly : islands) {
+            // poly.simplify(SCALED_RESOLUTION);
+            poly.points.push_back(poly.points.front());
+            Points p = MultiPoint::_douglas_peucker(poly.points, SCALED_RESOLUTION);
+            p.pop_back();
+            poly.points = std::move(p);
+        }
+        polygons_append(loops, offset(islands, -0.5f * float(flow.scaled_spacing())));
+    }
+    
+    loops = union_pt_chained(loops, false);
+    std::reverse(loops.begin(), loops.end());
+    extrusion_entities_append_loops(this->brim.entities, std::move(loops), erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height()));
+}
+
 // Wipe tower support.
 bool Print::has_wipe_tower()
 {
