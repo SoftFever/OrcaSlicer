@@ -121,14 +121,6 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
         bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
         unsigned int extruder_support   = object.config.support_material_extruder.value;
         unsigned int extruder_interface = object.config.support_material_interface_extruder.value;
-        if (has_support && has_interface) {
-            // If both base and interface supports are to be extruded and one of them will be extruded with a "don't care" extruder,
-            // print both with the same extruder to minimize extruder switches.
-            if (extruder_support == 0)
-                extruder_support = extruder_interface;
-            else if (extruder_interface == 0)
-                extruder_interface = extruder_support;
-        }
         if (has_support)
             layer_tools.extruders.push_back(extruder_support);
         if (has_interface)

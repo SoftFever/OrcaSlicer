@@ -883,28 +883,45 @@ void GCode::process_layer(
         if (layer_to_print.support_layer != nullptr) {
             const SupportLayer &support_layer = *layer_to_print.support_layer;
             const PrintObject  &object = *support_layer.object();
-            if (support_layer.support_fills.entities.size() > 0) {
+            if (! support_layer.support_fills.entities.empty()) {
+                ExtrusionRole role = support_layer.support_fills.role();
+                bool            has_support        = role == erMixed || role == erSupportMaterial;
+                bool            has_interface      = role == erMixed || role == erSupportMaterialInterface;
+                // Extruder ID of the support base. -1 if "don't care".
+                unsigned int    support_extruder   = object.config.support_material_extruder.value - 1;
+                // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
+                bool            support_dontcare   = support_extruder == (unsigned int)-1;
+                // Extruder ID of the support interface. -1 if "don't care".
+                unsigned int    interface_extruder = object.config.support_material_interface_extruder.value - 1;
+                // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
+                bool            interface_dontcare = interface_extruder == (unsigned int)-1;
+                if (support_dontcare || interface_dontcare) {
+                    // Some support will be printed with "don't care" material, preferably non-soluble.
+                    // Is the current extruder assigned a soluble filament?
+                    unsigned int dontcare_extruder = first_extruder_id;
+                    if (print.config.filament_soluble.get_at(dontcare_extruder)) {
+                        // The last extruder printed on the previous layer extrudes soluble filament.
+                        // Try to find a non-soluble extruder on the same layer.
+                        for (unsigned int extruder_id : layer_tools.extruders)
+                            if (! print.config.filament_soluble.get_at(extruder_id)) {
+                                dontcare_extruder = extruder_id;
+                                break;
+                            }
+                    }
+                    if (support_dontcare)
+                        support_extruder = dontcare_extruder;
+                    if (interface_dontcare)
+                        interface_extruder = dontcare_extruder;
+                }
                 // Both the support and the support interface are printed with the same extruder, therefore
                 // the interface may be interleaved with the support base.
-                // Don't change extruder if the extruder is set to 0. Use the current extruder instead.
-                bool single_extruder = 
-                    (object.config.support_material_extruder.value == object.config.support_material_interface_extruder.value ||
-                    (object.config.support_material_extruder.value == int(first_extruder_id) && object.config.support_material_interface_extruder.value == 0) ||
-                    (object.config.support_material_interface_extruder.value == int(first_extruder_id) && object.config.support_material_extruder.value == 0));
+                bool single_extruder = ! has_support || support_extruder == interface_extruder;
                 // Assign an extruder to the base.
-                ObjectByExtruder &obj = object_by_extruder(
-                    by_extruder,
-                    (object.config.support_material_extruder == 0) ? first_extruder_id : (object.config.support_material_extruder - 1),
-                    &layer_to_print - layers.data(),
-                    layers.size());
+                ObjectByExtruder &obj = object_by_extruder(by_extruder, support_extruder, &layer_to_print - layers.data(), layers.size());
                 obj.support = &support_layer.support_fills;
                 obj.support_extrusion_role = single_extruder ? erMixed : erSupportMaterial;
-                if (! single_extruder) {
-                    ObjectByExtruder &obj_interface = object_by_extruder(
-                        by_extruder,
-                        (object.config.support_material_interface_extruder == 0) ? first_extruder_id : (object.config.support_material_interface_extruder - 1),
-                        &layer_to_print - layers.data(),
-                        layers.size());
+                if (! single_extruder && has_interface) {
+                    ObjectByExtruder &obj_interface = object_by_extruder(by_extruder, interface_extruder, &layer_to_print - layers.data(), layers.size());
                     obj_interface.support = &support_layer.support_fills;
                     obj_interface.support_extrusion_role = erSupportMaterialInterface;
                 }

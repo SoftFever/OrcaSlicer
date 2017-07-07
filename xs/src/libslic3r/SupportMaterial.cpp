@@ -660,7 +660,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
     // Build support on a build plate only? If so, then collect and union all the surfaces below the current layer.
     // Unfortunately this is an inherently serial process.
-    //FIXME this may be parallelized to some extent by summing the polygons by multiples of layers, but it may be counter-productive.
     const bool            buildplate_only = this->build_plate_only();
     std::vector<Polygons> buildplate_covered;
     if (buildplate_only) {
@@ -2530,7 +2529,6 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         assert(m_slicing_params.raft_layers() == 0 && raft_layers.size() == 0);
     }
 
-    //FIXME Parallelize the support generator.
     // Insert the raft base layers.
     size_t n_raft_layers = size_t(std::max(0, int(m_slicing_params.raft_layers()) - 1));
     tbb::parallel_for(tbb::blocked_range<size_t>(0, n_raft_layers),
