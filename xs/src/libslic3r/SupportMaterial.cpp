@@ -730,6 +730,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         if (lower_layer_offset == 0.f) {
                             // Support everything.
                             diff_polygons = diff(layerm_polygons, lower_layer_polygons);
+                            if (! buildplate_covered.empty()) {
+                                // Don't support overhangs above the top surfaces.
+                                // This step is done before the contact surface is calculated by growing the overhang region.
+                                diff_polygons = diff(diff_polygons, buildplate_covered[layer_id]);
+                            }
                         } else {
                             // Get the regions needing a suport, collapse very tiny spots.
                             //FIXME cache the lower layer offset if this layer has multiple regions.
@@ -737,6 +742,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 diff(layerm_polygons,
                                      offset(lower_layer_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS)), 
                                 -0.1f*fw, +0.1f*fw);
+                            if (! buildplate_covered.empty()) {
+                                // Don't support overhangs above the top surfaces.
+                                // This step is done before the contact surface is calculated by growing the overhang region.
+                                diff_polygons = diff(diff_polygons, buildplate_covered[layer_id]);
+                            }
                             if (diff_polygons.empty())
                                 continue;
                             // Offset the support regions back to a full overhang, restrict them to the full overhang.
@@ -825,12 +835,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 diff_polygons = diff(diff_polygons, layerm->bridged, true);
                             }
                         } // if (m_objconfig->dont_support_bridges)
-
-                        if (! buildplate_covered.empty()) {
-                            // Don't support overhangs above the top surfaces.
-                            // This step is done before the contact surface is calculated by growing the overhang region.
-                            diff_polygons = diff(diff_polygons, buildplate_covered[layer_id]);
-                        }
 
                         if (diff_polygons.empty())
                             continue;
