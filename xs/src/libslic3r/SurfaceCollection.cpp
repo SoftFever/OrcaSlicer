@@ -54,28 +54,6 @@ SurfaceCollection::group(std::vector<SurfacesPtr> *retval)
     }
 }
 
-template <class T>
-bool
-SurfaceCollection::any_internal_contains(const T &item) const
-{
-    for (Surfaces::const_iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
-        if (surface->is_internal() && surface->expolygon.contains(item)) return true;
-    }
-    return false;
-}
-template bool SurfaceCollection::any_internal_contains<Polyline>(const Polyline &item) const;
-
-template <class T>
-bool
-SurfaceCollection::any_bottom_contains(const T &item) const
-{
-    for (Surfaces::const_iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
-        if (surface->is_bottom() && surface->expolygon.contains(item)) return true;
-    }
-    return false;
-}
-template bool SurfaceCollection::any_bottom_contains<Polyline>(const Polyline &item) const;
-
 SurfacesPtr
 SurfaceCollection::filter_by_type(const SurfaceType type)
 {

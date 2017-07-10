@@ -115,8 +115,14 @@ public:
     
     void make_slices();
     void merge_slices();
-    template <class T> bool any_internal_region_slice_contains(const T &item) const;
-    template <class T> bool any_bottom_region_slice_contains(const T &item) const;
+    template <class T> bool any_internal_region_slice_contains(const T &item) const {
+        for (const LayerRegion *layerm : this->regions) if (layerm->slices.any_internal_contains(item)) return true;
+        return false;
+    }
+    template <class T> bool any_bottom_region_slice_contains(const T &item) const {
+        for (const LayerRegion *layerm : this->regions) if (layerm->slices.any_bottom_contains(item)) return true;
+        return false;
+    }
     void make_perimeters();
     void make_fills();
 

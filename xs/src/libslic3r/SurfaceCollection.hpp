@@ -19,8 +19,14 @@ public:
     operator ExPolygons() const;
     void simplify(double tolerance);
     void group(std::vector<SurfacesPtr> *retval);
-    template <class T> bool any_internal_contains(const T &item) const;
-    template <class T> bool any_bottom_contains(const T &item) const;
+    template <class T> bool any_internal_contains(const T &item) const {
+        for (const Surface &surface : this->surfaces) if (surface.is_internal() && surface.expolygon.contains(item)) return true;
+        return false;
+    }
+    template <class T> bool any_bottom_contains(const T &item) const {
+        for (const Surface &surface : this->surfaces) if (surface.is_bottom() && surface.expolygon.contains(item)) return true;
+        return false;
+    }
     SurfacesPtr filter_by_type(const SurfaceType type);
     SurfacesPtr filter_by_types(const SurfaceType *types, int ntypes);
     void keep_type(const SurfaceType type);

@@ -1928,8 +1928,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     return gcode;
 }
 
-bool
-GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
+bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
 {
     if (travel.length() < scale_(EXTRUDER_CONFIG(retract_before_travel))) {
         // skip retraction if the move is shorter than the configured threshold
@@ -1946,14 +1945,12 @@ GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
             return false;
     }
 
-    if (m_config.only_retract_when_crossing_perimeters && m_layer != nullptr) {
-        if (m_config.fill_density.value > 0
-            && m_layer->any_internal_region_slice_contains(travel)) {
-            /*  skip retraction if travel is contained in an internal slice *and*
-                internal infill is enabled (so that stringing is entirely not visible)  */
-            return false;
-        }
-    }
+    if (m_config.only_retract_when_crossing_perimeters && m_layer != nullptr &&
+        m_config.fill_density.value > 0 && m_layer->any_internal_region_slice_contains(travel))
+        // Skip retraction if travel is contained in an internal slice *and*
+        // internal infill is enabled (so that stringing is entirely not visible).
+        //FIXME any_internal_region_slice_contains() is potentionally very slow, it shall test for the bounding boxes first.
+        return false;
     
     // retract if only_retract_when_crossing_perimeters is disabled or doesn't apply
     return true;
