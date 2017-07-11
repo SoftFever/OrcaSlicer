@@ -111,10 +111,8 @@ if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
     setlocale(LC_NUMERIC, 'C');
     $gui->{mainframe}->load_config_file($_) for @{$opt{load}};
     $gui->{mainframe}->load_config($cli_config);
-    foreach my $input_file (@ARGV) {
-        $input_file = Slic3r::decode_path($input_file);
-        $gui->{mainframe}{plater}->load_file($input_file) unless $opt{no_plater};
-    }
+    my @input_files = map Slic3r::decode_path($_), @ARGV;
+    $gui->{mainframe}{plater}->load_files(\@input_files) unless $opt{no_plater};
     $gui->MainLoop;
     exit;
 }

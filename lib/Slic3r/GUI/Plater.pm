@@ -690,44 +690,75 @@ sub filament_presets {
 
 sub add {
     my $self = shift;
-    
     my @input_files = wxTheApp->open_model($self);
-    $self->load_file($_) for @input_files;
+    $self->load_files(\@input_files);
 }
 
-sub load_file {
-    my $self = shift;
-    my ($input_file) = @_;
-    
-    $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
-    wxTheApp->save_settings;
-    
-    my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file…", 100, $self, 0);
+sub load_files {
+    my ($self, $input_files) = @_;
+
+    return if ! defined($input_files) || ! scalar(@$input_files);
+
+    my $nozzle_dmrs = $self->{config}->get('nozzle_diameter');
+    # One of the files is potentionally a bundle of files. Don't bundle them, but load them one by one.
+    # Only bundle .stls or .objs if the printer has multiple extruders.
+    my $one_by_one = (@$nozzle_dmrs <= 1) || (@$input_files == 1) || 
+        defined(first { $_ =~ /.amf$/i || $_ =~ /.3mf$/i || $_ =~ /.prusa$/i } @$input_files);
+        
+    my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file\n" . basename($input_files->[0]), 100, $self, 0);
     $process_dialog->Pulse;
-    
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-    
-    my $model = eval { Slic3r::Model->read_from_file($input_file, 0) };
-    Slic3r::GUI::show_error($self, $@) if $@;
-    
+
+    # new_model to collect volumes, if all of them come from .stl or .obj and there is a chance, that they will be
+    # possibly merged into a single multi-part object.
+    my $new_model = $one_by_one ? undef : Slic3r::Model->new;
+    # Object indices for the UI.
     my @obj_idx = ();
-    if (defined $model) {
+    # Collected file names to display the final message on the status bar.
+    my @loaded_files = ();
+    # For all input files.
+    for (my $i = 0; $i < @$input_files; $i += 1) {
+        my $input_file = $input_files->[$i];
+        $process_dialog->Update(100. * $i / @$input_files, "Processing input file\n" . basename($input_file));
+
+        my $model = eval { Slic3r::Model->read_from_file($input_file, 0) };
+        Slic3r::GUI::show_error($self, $@) if $@;
+
+        next if ! defined $model;
+        
         if ($model->looks_like_multipart_object) {
             my $dialog = Wx::MessageDialog->new($self,
                 "This file contains several objects positioned at multiple heights. "
                 . "Instead of considering them as multiple objects, should I consider\n"
                 . "this file as a single object having multiple parts?\n",
                 'Multi-part object detected', wxICON_WARNING | wxYES | wxNO);
-            if ($dialog->ShowModal() == wxID_YES) {
-                $model->convert_multipart_object;
-            }
+            $model->convert_multipart_object if $dialog->ShowModal() == wxID_YES;
         }
-        @obj_idx = $self->load_model_objects(@{$model->objects});
-        $self->statusbar->SetStatusText("Loaded " . basename($input_file));
+        
+        if ($one_by_one) {
+            push @obj_idx, $self->load_model_objects(@{$model->objects});
+        } else {
+            # This must be an .stl or .obj file, which may contain a maximum of one volume.
+            $new_model->add_object($_) for (@{$model->objects});
+        }
     }
+
+    if ($new_model) {
+        my $dialog = Wx::MessageDialog->new($self,
+            "Multiple objects were loaded for a multi-material printer.\n"
+            . "Instead of considering them as multiple objects, should I consider\n"
+            . "these files to represent a single object having multiple parts?\n",
+            'Multi-part object detected', wxICON_WARNING | wxYES | wxNO);
+        $new_model->convert_multipart_object if $dialog->ShowModal() == wxID_YES;
+        push @obj_idx, $self->load_model_objects(@{$new_model->objects});
+    }
+
+    # Note the current directory for the file open dialog.
+    $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_files->[-1]);
+    wxTheApp->save_settings;
     
     $process_dialog->Destroy;
-    
+    $self->statusbar->SetStatusText("Loaded " . join(',', @loaded_files));
     return @obj_idx;
 }
 
@@ -1579,7 +1610,7 @@ sub reload_from_disk {
     return if !$model_object->input_file
         || !-e $model_object->input_file;
     
-    my @new_obj_idx = $self->load_file($model_object->input_file);
+    my @new_obj_idx = $self->load_files([$model_object->input_file]);
     return if !@new_obj_idx;
     
     foreach my $new_obj_idx (@new_obj_idx) {
@@ -2165,7 +2196,7 @@ sub OnDropFiles {
     # only accept STL, OBJ and AMF files
     return 0 if grep !/\.(?:stl|obj|amf(?:\.xml)?|prusa)$/i, @$filenames;
     
-    $self->{window}->load_file($_) for @$filenames;
+    $self->{window}->load_files($filenames);
 }
 
 # 2D preview of an object. Each object is previewed by its convex hull.
