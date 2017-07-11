@@ -101,7 +101,9 @@ sub load {
     my $class = shift;
     my ($file) = @_;
 
-    if ($file =~ /\.gcode$/i || $file =~ /\.g$/i) {
+    # Instead of using the /i modifier for case-insensitive matching, the case insensitivity is expressed
+    # explicitely to avoid having to bundle the UTF8 Perl library.
+    if ($file =~ /\.[gG][cC][oO][dD][eE]/ || $file =~ /\.[gG]/) {
         my $config = $class->new;        
         $config->_load_from_gcode($file);
         return $config;

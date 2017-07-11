@@ -125,10 +125,10 @@ if (@ARGV) {  # slicing from command line
         foreach my $file (@ARGV) {
             $file = Slic3r::decode_path($file);
             die "Repair is currently supported only on STL files\n"
-                if $file !~ /\.stl$/i;
+                if $file !~ /\.[sS][tT][lL]$/;
             
             my $output_file = $file;
-            $output_file =~ s/\.(stl)$/_fixed.obj/i;
+            $output_file =~ s/\.([sS][tT][lL])$/_fixed.obj/;
             my $tmesh = Slic3r::TriangleMesh->new;
             $tmesh->ReadSTLFile($file);
             $tmesh->repair;

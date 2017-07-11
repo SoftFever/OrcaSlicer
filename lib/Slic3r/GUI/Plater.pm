@@ -703,7 +703,7 @@ sub load_files {
     # One of the files is potentionally a bundle of files. Don't bundle them, but load them one by one.
     # Only bundle .stls or .objs if the printer has multiple extruders.
     my $one_by_one = (@$nozzle_dmrs <= 1) || (@$input_files == 1) || 
-        defined(first { $_ =~ /.amf$/i || $_ =~ /.3mf$/i || $_ =~ /.prusa$/i } @$input_files);
+        defined(first { $_ =~ /.[aA][mM][fF]$/ || $_ =~ /.3[mM][fF]$/ || $_ =~ /.[pP][rR][uI][sS][aA]$/ } @$input_files);
         
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file\n" . basename($input_files->[0]), 100, $self, 0);
     $process_dialog->Pulse;
@@ -1660,7 +1660,7 @@ sub _get_export_file {
     my $output_file = $main::opt{output};
     {
         $output_file = $self->{print}->output_filepath($output_file);
-        $output_file =~ s/\.gcode$/$suffix/i;
+        $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
         my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
             basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
@@ -2194,7 +2194,7 @@ sub OnDropFiles {
     @_ = ();
     
     # only accept STL, OBJ and AMF files
-    return 0 if grep !/\.(?:stl|obj|amf(?:\.xml)?|prusa)$/i, @$filenames;
+    return 0 if grep !/\.(?:[sS][tT][lL]|[oO][bB][jJ]|[aA][mM][fF](?:\.[xX][mM][lL])?|[pP][rR][uU][sS][aA])$/, @$filenames;
     
     $self->{window}->load_files($filenames);
 }

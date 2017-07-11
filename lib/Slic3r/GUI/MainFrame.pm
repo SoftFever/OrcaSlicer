@@ -417,7 +417,7 @@ sub quick_slice {
             $output_file = $qs_last_output_file if defined $qs_last_output_file;
         } elsif ($params{save_as}) {
             $output_file = $sprint->output_filepath;
-            $output_file =~ s/\.gcode$/.svg/i if $params{export_svg};
+            $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.svg/ if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
                 wxTheApp->output_path(dirname($output_file)),
                 basename($output_file), $params{export_svg} ? &Slic3r::GUI::FILE_WILDCARDS->{svg} : &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -485,7 +485,7 @@ sub repair_stl {
     
     my $output_file = $input_file;
     {
-        $output_file =~ s/\.stl$/_fixed.obj/i;
+        $output_file =~ s/\.[sS][tT][lL]$/_fixed.obj/;
         my $dlg = Wx::FileDialog->new($self, "Save OBJ file (less prone to coordinate errors than STL) as:", dirname($output_file),
             basename($output_file), &Slic3r::GUI::FILE_WILDCARDS->{obj}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {

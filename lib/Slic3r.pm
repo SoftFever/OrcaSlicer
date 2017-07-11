@@ -234,8 +234,8 @@ sub decode_path {
     my ($path) = @_;
     
     $path = Encode::decode(locale_fs => $path)
-        unless utf8::is_utf8($path);
-    
+        unless Encode::is_utf8($path);
+
     # The filesystem might force a normalization form (like HFS+ does) so 
     # if we rely on the filename being comparable after the open() + readdir()
     # roundtrip (like when creating and then selecting a preset), we need to 

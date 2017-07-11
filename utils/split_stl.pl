@@ -27,7 +27,7 @@ my %opt = ();
 {
     my $model = Slic3r::Model->load_stl(Slic3r::encode_path($ARGV[0]), basename($ARGV[0]));
     my $basename = $ARGV[0];
-    $basename =~ s/\.stl$//i;
+    $basename =~ s/\.[sS][tT][lL]$//;
     
     my $part_count = 0;
     my $mesh = $model->objects->[0]->volumes->[0]->mesh;

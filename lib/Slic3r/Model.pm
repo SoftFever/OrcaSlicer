@@ -9,10 +9,10 @@ sub read_from_file {
     my ($class, $input_file, $add_default_instances) = @_;
     $add_default_instances //= 1;
     
-    my $model = $input_file =~ /\.stl$/i            ? Slic3r::Model->load_stl(Slic3r::encode_path($input_file), basename($input_file))
-              : $input_file =~ /\.obj$/i            ? Slic3r::Model->load_obj(Slic3r::encode_path($input_file), basename($input_file))
-              : $input_file =~ /\.amf(\.xml)?$/i    ? Slic3r::Model->load_amf(Slic3r::encode_path($input_file))
-              : $input_file =~ /\.prusa$/i          ? Slic3r::Model->load_prus(Slic3r::encode_path($input_file))
+    my $model = $input_file =~ /\.[sS][tT][lL]$/                    ? Slic3r::Model->load_stl(Slic3r::encode_path($input_file), basename($input_file))
+              : $input_file =~ /\.[oO][bB][jJ]$/                    ? Slic3r::Model->load_obj(Slic3r::encode_path($input_file), basename($input_file))
+              : $input_file =~ /\.[aA][mM][fF](\.[xX][mM][lL])?$/   ? Slic3r::Model->load_amf(Slic3r::encode_path($input_file))
+              : $input_file =~ /\.[pP][rR][uU][sS][aA]$/            ? Slic3r::Model->load_prus(Slic3r::encode_path($input_file))
               : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
     
     die "The supplied file couldn't be read because it's empty.\n"

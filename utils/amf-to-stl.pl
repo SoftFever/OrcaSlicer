@@ -27,7 +27,7 @@ my %opt = ();
 {
     my $model = Slic3r::Model->load_amf(Slic3r::encode_path($ARGV[0]));
     my $output_file = $ARGV[0];
-    $output_file =~ s/\.amf(?:\.xml)?$/\.stl/i;
+    $output_file =~ s/\.[aA][mM][fF](?:\.[xX][mM][lL])?$/\.stl/;
     
     printf "Writing to %s\n", basename($output_file);
     $model->store_stl(Slic3r::encode_path($output_file), binary => !$opt{ascii});

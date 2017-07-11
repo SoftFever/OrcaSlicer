@@ -178,7 +178,7 @@ sub save_preset {
     if (!defined $name) {
         my $preset = $self->get_current_preset;
         my $default_name = $preset->default ? 'Untitled' : $preset->name;
-        $default_name =~ s/\.ini$//i;
+        $default_name =~ s/\.[iI][nN][iI]$//;
     
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
             title   => lc($self->title),
@@ -1830,7 +1830,7 @@ sub accept {
     my ($self, $event) = @_;
 
     if (($self->{chosen_name} = $self->{combo}->GetValue)) {
-        if ($self->{chosen_name} !~ /^[^<>:\/\\|?*\"]+$/i) {
+        if ($self->{chosen_name} !~ /^[^<>:\/\\|?*\"]+$/) {
             Slic3r::GUI::show_error($self, "The supplied name is not valid; the following characters are not allowed: <>:/\|?*\"");
         } elsif ($self->{chosen_name} eq '- default -') {
             Slic3r::GUI::show_error($self, "The supplied name is not available.");

@@ -313,7 +313,9 @@ sub presets {
     my %presets = ();
     opendir my $dh, Slic3r::encode_path("$Slic3r::GUI::datadir/$section")
         or die "Failed to read directory $Slic3r::GUI::datadir/$section (errno: $!)\n";
-    foreach my $file (grep /\.ini$/i, readdir $dh) {
+    # Instead of using the /i modifier for case-insensitive matching, the case insensitivity is expressed
+    # explicitely to avoid having to bundle the UTF8 Perl library.
+    foreach my $file (grep /\.[iI][nN][iI]$/, readdir $dh) {
         $file = Slic3r::decode_path($file);
         my $name = basename($file);
         $name =~ s/\.ini$//;
