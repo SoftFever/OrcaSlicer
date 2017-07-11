@@ -884,17 +884,17 @@ void GCode::process_layer(
             const SupportLayer &support_layer = *layer_to_print.support_layer;
             const PrintObject  &object = *support_layer.object();
             if (! support_layer.support_fills.entities.empty()) {
-                ExtrusionRole role = support_layer.support_fills.role();
+                ExtrusionRole   role               = support_layer.support_fills.role();
                 bool            has_support        = role == erMixed || role == erSupportMaterial;
                 bool            has_interface      = role == erMixed || role == erSupportMaterialInterface;
                 // Extruder ID of the support base. -1 if "don't care".
                 unsigned int    support_extruder   = object.config.support_material_extruder.value - 1;
                 // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            support_dontcare   = support_extruder == (unsigned int)-1;
+                bool            support_dontcare   = object.config.support_material_extruder.value == 0;
                 // Extruder ID of the support interface. -1 if "don't care".
                 unsigned int    interface_extruder = object.config.support_material_interface_extruder.value - 1;
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            interface_dontcare = interface_extruder == (unsigned int)-1;
+                bool            interface_dontcare = object.config.support_material_interface_extruder.value == 0;
                 if (support_dontcare || interface_dontcare) {
                     // Some support will be printed with "don't care" material, preferably non-soluble.
                     // Is the current extruder assigned a soluble filament?
