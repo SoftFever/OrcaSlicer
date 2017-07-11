@@ -256,7 +256,7 @@ PrintConfigDef::PrintConfigDef()
     def->gui_type = "i_enum_open";
     def->label = "Extruder";
     def->category = "Extruders";
-    def->tooltip = "The extruder to use (unless more specific extruder settings are specified).";
+    def->tooltip = "The extruder to use (unless more specific extruder settings are specified). This value overrides perimeter and infill extruders, but not the support extruders.";
     def->cli = "extruder=i";
     def->min = 0;  // 0 = inherit defaults
     def->enum_labels.push_back("default");  // override label for item 0
@@ -1668,10 +1668,13 @@ DynamicPrintConfig::normalize() {
                 this->option("infill_extruder", true)->setInt(extruder);
             if (!this->has("perimeter_extruder"))
                 this->option("perimeter_extruder", true)->setInt(extruder);
-            if (!this->has("support_material_extruder"))
-                this->option("support_material_extruder", true)->setInt(extruder);
-            if (!this->has("support_material_interface_extruder"))
-                this->option("support_material_interface_extruder", true)->setInt(extruder);
+            // Don't propagate the current extruder to support.
+            // For non-soluble supports, the default "0" extruder means to use the active extruder,
+            // for soluble supports one certainly does not want to set the extruder to non-soluble.
+            // if (!this->has("support_material_extruder"))
+            //     this->option("support_material_extruder", true)->setInt(extruder);
+            // if (!this->has("support_material_interface_extruder"))
+            //     this->option("support_material_interface_extruder", true)->setInt(extruder);
         }
     }
     
