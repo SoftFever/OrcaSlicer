@@ -32,22 +32,18 @@ sub new {
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     
-    # horizontal sizer
-    $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
+    # Vertical sizer to hold the choice menu and the rest of the page.
+    $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
     $self->{sizer}->SetSizeHints($self);
     $self->SetSizer($self->{sizer});
-    
-    # left vertical sizer
-    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $self->{sizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
-    
-    my $left_col_width = 150;
 
+    my $left_col_width = 150;
+    
     # preset chooser
     {
         
         # choice menu
-        $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [$left_col_width, -1], []);
+        $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [270, -1], []);
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
@@ -59,17 +55,20 @@ sub new {
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_delete_preset}->Disable;
         
-        ### These cause GTK warnings:
-        ###my $box = Wx::StaticBox->new($self, -1, "Presets:", wxDefaultPosition, [$left_col_width, 50]);
-        ###my $hsizer = Wx::StaticBoxSizer->new($box, wxHORIZONTAL);
-        
-        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
-        
-        $left_sizer->Add($hsizer, 0, wxEXPAND | wxBOTTOM, 5);
-        $hsizer->Add($self->{presets_choice}, 1, wxRIGHT | wxALIGN_CENTER_VERTICAL, 3);
+        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);        
+        $self->{sizer}->Add($hsizer, 0, wxBOTTOM, 3);
+        $hsizer->Add($self->{presets_choice}, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
         $hsizer->Add($self->{btn_save_preset}, 0, wxALIGN_CENTER_VERTICAL);
         $hsizer->Add($self->{btn_delete_preset}, 0, wxALIGN_CENTER_VERTICAL);
     }
+
+    # Horizontal sizer to hold the tree and the selected page.
+    $self->{hsizer} = Wx::BoxSizer->new(wxHORIZONTAL);
+    $self->{sizer}->Add($self->{hsizer}, 1, wxEXPAND, 0);
+    
+    # left vertical sizer
+    my $left_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $self->{hsizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
     
     # tree
     $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
@@ -87,7 +86,7 @@ sub new {
             or return;
         $_->Hide for @{$self->{pages}};
         $page->Show;
-        $self->{sizer}->Layout;
+        $self->{hsizer}->Layout;
         $self->Refresh;
     });
     EVT_KEY_DOWN($self->{treectrl}, sub {
@@ -351,7 +350,7 @@ sub add_options_page {
     
     my $page = Slic3r::GUI::Tab::Page->new($self, $title, $self->{iconcount});
     $page->Hide;
-    $self->{sizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
+    $self->{hsizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
     push @{$self->{pages}}, $page;
     return $page;
 }
