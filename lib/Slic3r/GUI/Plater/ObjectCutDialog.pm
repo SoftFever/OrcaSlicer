@@ -12,10 +12,8 @@ use Wx::Event qw(EVT_CLOSE EVT_BUTTON);
 use base 'Wx::Dialog';
 
 sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
+    my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, $params{object}->name, wxDefaultPosition, [500,500], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-    $self->{model_object_idx} = $params{model_object_idx};
     $self->{model_object} = $params{model_object};
     $self->{new_model_objects} = [];
     # Mark whether the mesh cut is valid.
@@ -62,7 +60,7 @@ sub new {
         label       => 'Z',
         default     => $self->{cut_options}{z},
         min         => 0,
-        max         => $self->{model_object}->bounding_box->size->z,
+        max         => $self->{model_object}->bounding_box->size->z * $self->{model_object}->instances->[0]->scaling_factor,
         full_width  => 1,
     ));
     {
