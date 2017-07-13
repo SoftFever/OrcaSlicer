@@ -160,7 +160,11 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
 		for (; *line_start != 0; line_start = line_end) {
             while (*line_end != '\n' && *line_end != 0)
                 ++ line_end;
+            // sline will not contain the trailing '\n'.
             std::string sline(line_start, line_end);
+            // Adjustment::Line will contain the trailing '\n'.
+            if (*line_end == '\n')
+                ++ line_end;
             Adjustment::Line line(0, line_start - gcode.c_str(), line_end - gcode.c_str());
             if (boost::starts_with(sline, "G0 "))
                 line.type = Adjustment::Line::TYPE_G0;
@@ -264,8 +268,6 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
             }
             if (line.type != 0)
                 adjustment->lines.emplace_back(std::move(line));
-			while (*line_end == '\n')
-				++ line_end;
 		}
         m_current_extruder = initial_extruder;
     }
@@ -404,6 +406,7 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
         } else {
             bridge_fan_control = false;
             bridge_fan_speed   = 0;
+            fan_speed_new      = 0;
         }
         if (fan_speed_new != fan_speed) {
             fan_speed = fan_speed_new;
@@ -425,10 +428,10 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
             new_gcode.append(gcode.c_str() + line->line_start, line->line_end - line->line_start);
         } else if (line->type & Adjustment::Line::TYPE_BRIDGE_FAN_START) {
             if (bridge_fan_control)
-                new_gcode += m_gcodegen.writer().set_fan(bridge_fan_speed, true) + "\n";
+                new_gcode += m_gcodegen.writer().set_fan(bridge_fan_speed, true);
         } else if (line->type & Adjustment::Line::TYPE_BRIDGE_FAN_END) {
             if (bridge_fan_control)
-                new_gcode += m_gcodegen.writer().set_fan(fan_speed, true) + "\n";
+                new_gcode += m_gcodegen.writer().set_fan(fan_speed, true);
         } else if (line->type & Adjustment::Line::TYPE_EXTRUDE_END) {
             // Just remove this comment.
         } else if (line->type & (Adjustment::Line::TYPE_ADJUSTABLE | Adjustment::Line::TYPE_EXTERNAL_PERIMETER | Adjustment::Line::TYPE_WIPE)) {
