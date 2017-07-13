@@ -34,11 +34,9 @@
 #ifndef clipper_hpp
 #define clipper_hpp
 
-#define CLIPPER_VERSION "6.2.6"
+#include <inttypes.h>
 
-//use_int32: When enabled 32bit ints are used instead of 64bit ints. This
-//improve performance but coordinate values are limited to the range +/- 46340
-//#define use_int32
+#define CLIPPER_VERSION "6.2.6"
 
 //use_xyz: adds a Z member to IntPoint. Adds a minor cost to perfomance.
 //#define use_xyz
@@ -68,18 +66,12 @@ enum PolyType { ptSubject, ptClip };
 //see http://glprogramming.com/red/chapter11.html
 enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 
-#ifdef use_int32
-  typedef int cInt;
-  static cInt const loRange = 0x7FFF;
-  static cInt const hiRange = 0x7FFF;
-#else
-  typedef signed long long cInt;
-  static cInt const loRange = 0x3FFFFFFF;
-  static cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
-  typedef signed long long long64;     //used by Int128 class
-  typedef unsigned long long ulong64;
-
-#endif
+// Point coordinate type
+typedef int64_t cInt;
+// Maximum cInt value to allow a cross product calculation using 32bit expressions.
+static cInt const loRange = 0x3FFFFFFF;
+// Maximum allowed cInt value.
+static cInt const hiRange = 0x3FFFFFFFFFFFFFFFLL;
 
 struct IntPoint {
   cInt X;
@@ -262,12 +254,11 @@ enum EdgeSide { esLeft = 1, esRight = 2};
   };
 
   // Point of an output polygon.
-  // 36B on 64bit system with not use_int32 and not use_xyz.
+  // 36B on 64bit system without use_xyz.
   struct OutPt {
     // 4B
     int       Idx;
-    // 8B (if use_int32 and not use_xyz) or 16B (if not use_int32 and not use_xyz)
-    // or 12B (if use_int32 and use_xyz) or 24B (if not use_int32 and use_xyz)
+    // 16B without use_xyz / 24B with use_xyz
     IntPoint  Pt;
     // 4B on 32bit system, 8B on 64bit system
     OutPt    *Next;

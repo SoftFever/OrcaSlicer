@@ -15,7 +15,9 @@ using ClipperLib::jtSquare;
 // Factor to convert from coord_t (which is int32) to an int64 type used by the Clipper library
 // for general offsetting (the offset(), offset2(), offset_ex() functions) and for the safety offset,
 // which is optionally executed by other functions (union, intersection, diff).
+// This scaling (cca 130t) is applied over the usual SCALING_FACTOR.
 // By the way, is the scalling for offset needed at all?
+// The reason to apply this scaling may be to match the resolution of the double mantissa.
 #define CLIPPER_OFFSET_POWER_OF_2 17
 // 2^17=131072
 #define CLIPPER_OFFSET_SCALE (1 << CLIPPER_OFFSET_POWER_OF_2)
