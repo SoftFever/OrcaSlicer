@@ -97,6 +97,7 @@ void Layer::make_perimeters()
             if (config.perimeter_extruder   == other_config.perimeter_extruder
                 && config.perimeters        == other_config.perimeters
                 && config.perimeter_speed   == other_config.perimeter_speed
+                && config.external_perimeter_speed == other_config.external_perimeter_speed
                 && config.gap_fill_speed    == other_config.gap_fill_speed
                 && config.overhangs         == other_config.overhangs
                 && config.serialize("perimeter_extrusion_width").compare(other_config.serialize("perimeter_extrusion_width")) == 0
