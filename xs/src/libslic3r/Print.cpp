@@ -557,7 +557,7 @@ std::string Print::validate() const
             return "The Spiral Vase option can only be used when printing single material objects.";
     }
 
-    if (this->config.wipe_tower && ! this->objects.empty()) {
+    if (this->has_wipe_tower() && ! this->objects.empty()) {
         for (auto dmr : this->config.nozzle_diameter.values)
             if (std::abs(dmr - 0.4) > EPSILON)
                 return "The Wipe Tower is currently only supported for the 0.4mm nozzle diameter.";
@@ -939,7 +939,7 @@ void Print::_make_brim()
 }
 
 // Wipe tower support.
-bool Print::has_wipe_tower()
+bool Print::has_wipe_tower() const
 {
     return 
         this->config.single_extruder_multi_material.value && 
