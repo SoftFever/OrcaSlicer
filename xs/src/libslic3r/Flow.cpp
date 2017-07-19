@@ -8,7 +8,7 @@ namespace Slic3r {
 // This static method returns a sane extrusion width default.
 static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, float height)
 {
-#if 1
+#if 0
     // Here we calculate a sane default by matching the flow speed (at the nozzle) and the feed rate.
     // shape: rectangle with semicircles at the ends
     // This "sane" extrusion width gives the following results for a 0.4mm dmr nozzle:
@@ -24,7 +24,7 @@ static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, f
     // 0.10    1.28        3.20
     // 0.05    2.52        6.31
     //
-    float width = 0.25 * (nozzle_diameter * nozzle_diameter) * PI / height + height * (1.0 - 0.25 * PI);
+    float width = float(0.25 * (nozzle_diameter * nozzle_diameter) * PI / height + height * (1.0 - 0.25 * PI));
 
     switch (role) {
     case frExternalPerimeter:
@@ -49,13 +49,10 @@ static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, f
         return nozzle_diameter;
     default:
     case frExternalPerimeter:
-        1.125f * nozzle_diameter;
     case frPerimeter:
     case frSolidInfill:
-        // do not limit width for sparse infill so that we use full native flow for it
-        return std::min(std::max(width, nozzle_diameter * 1.05), nozzle_diameter * 1.7);
     case frInfill:
-        return std::max(width, nozzle_diameter * 1.05);
+        1.125f * nozzle_diameter;
     }
 #endif
 }
@@ -80,7 +77,7 @@ Flow Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent
         w = auto_extrusion_width(role, nozzle_diameter, height);
     } else {
         // If user set a manual value, use it.
-        w = width.get_abs_value(height);
+        w = float(width.get_abs_value(height));
     }
     
     return Flow(w, height, nozzle_diameter, bridge_flow_ratio > 0);
@@ -95,12 +92,12 @@ Flow Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, 
     // Calculate width from spacing.
     // For normal extrusons, extrusion width is wider than the spacing due to the rounding and squishing of the extrusions.
     // For bridge extrusions, the extrusions are placed with a tiny BRIDGE_EXTRA_SPACING gaps between the threads.
-    float width = bridge ?
+    float width = float(bridge ?
         (spacing - BRIDGE_EXTRA_SPACING) : 
 #ifdef HAS_PERIMETER_LINE_OVERLAP
         (spacing + PERIMETER_LINE_OVERLAP_FACTOR * height * (1. - 0.25 * PI));
 #else
-        (spacing + height * (1. - 0.25 * PI));
+        (spacing + height * (1. - 0.25 * PI)));
 #endif
     return Flow(width, bridge ? width : height, nozzle_diameter, bridge);
 }
@@ -116,7 +113,7 @@ float Flow::spacing() const
     float min_flow_spacing = this->width - this->height * (1. - 0.25 * PI);
     return this->width - PERIMETER_LINE_OVERLAP_FACTOR * (this->width - min_flow_spacing);
 #else
-    return this->bridge ? (this->width + BRIDGE_EXTRA_SPACING) : (this->width - this->height * (1. - 0.25 * PI));
+    return float(this->bridge ? (this->width + BRIDGE_EXTRA_SPACING) : (this->width - this->height * (1. - 0.25 * PI)));
 #endif
 }
 
@@ -127,9 +124,9 @@ float Flow::spacing(const Flow &other) const
 {
     assert(this->height == other.height);
     assert(this->bridge == other.bridge);
-    return this->bridge ? 
-        0.5f * this->width + 0.5f * other.width + BRIDGE_EXTRA_SPACING :
-        0.5f * this->spacing() + 0.5f * other.spacing();
+    return float(this->bridge ? 
+        0.5 * this->width + 0.5 * other.width + BRIDGE_EXTRA_SPACING :
+        0.5 * this->spacing() + 0.5 * other.spacing());
 }
 
 // This method returns extrusion volume per head move unit.
@@ -159,7 +156,7 @@ Flow support_material_1st_layer_flow(const PrintObject *object, float layer_heig
         // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
         (object->print()->config.first_layer_extrusion_width.value > 0) ? object->print()->config.first_layer_extrusion_width : object->config.support_material_extrusion_width,
         float(object->print()->config.nozzle_diameter.get_at(object->config.support_material_extruder-1)),
-        (layer_height > 0.f) ? layer_height : object->config.first_layer_height.get_abs_value(object->config.layer_height.value),
+        (layer_height > 0.f) ? layer_height : float(object->config.first_layer_height.get_abs_value(object->config.layer_height.value)),
         false);
 }
 

@@ -46,12 +46,12 @@ PerimeterGenerator::process()
         // in the current layer
         double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->perimeter_extruder-1);
         
-        this->_lower_slices_p = offset(*this->lower_slices, scale_(+nozzle_diameter/2));
+        this->_lower_slices_p = offset(*this->lower_slices, float(scale_(+nozzle_diameter/2)));
     }
     
     // we need to process each island separately because we might have different
     // extra perimeters for each one
-    for (Surface &surface : this->slices->surfaces) {
+    for (const Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         const int loop_number = this->config->perimeters + surface.extra_perimeters -1;  // 0-indexed loops
         
