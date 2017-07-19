@@ -22,6 +22,8 @@ struct FillParams
         dont_adjust = true;
     }
 
+    bool        full_infill() const { return density > 0.9999f; }
+
     // Fill density, fraction in <0, 1>
     float       density;
 
@@ -46,6 +48,8 @@ public:
     coordf_t    z;
     // in unscaled coordinates
     coordf_t    spacing;
+    // infill / perimeter overlap, in unscaled coordinates
+    coordf_t    overlap;
     // in radians, ccw, 0 = East
     float       angle;
     // In scaled coordinates. Maximum lenght of a perimeter segment connecting two infill lines.
@@ -77,8 +81,10 @@ public:
 protected:
     Fill() :
         layer_id(size_t(-1)),
-        z(0.f),
-        spacing(0.f),
+        z(0.),
+        spacing(0.),
+        // Infill / perimeter overlap.
+        overlap(0.),
         // Initial angle is undefined.
         angle(FLT_MAX),
         link_max_length(0),

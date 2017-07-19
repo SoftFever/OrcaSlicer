@@ -5,60 +5,126 @@
 
 namespace Slic3r {
 
-/* This constructor builds a Flow object from an extrusion width config setting
-   and other context properties. */
-Flow
-Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio) {
+// This static method returns a sane extrusion width default.
+static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, float height)
+{
+#if 1
+    // Here we calculate a sane default by matching the flow speed (at the nozzle) and the feed rate.
+    // shape: rectangle with semicircles at the ends
+    // This "sane" extrusion width gives the following results for a 0.4mm dmr nozzle:
+    // Layer   Calculated  Calculated width 
+    // heigh   extrusion   over nozzle
+    //         width       diameter
+    // 0.40    0.40        1.00
+    // 0.35    0.43        1.09
+    // 0.30    0.48        1.21
+    // 0.25    0.56        1.39
+    // 0.20    0.67        1.68
+    // 0.15    0.87        2.17
+    // 0.10    1.28        3.20
+    // 0.05    2.52        6.31
+    //
+    float width = 0.25 * (nozzle_diameter * nozzle_diameter) * PI / height + height * (1.0 - 0.25 * PI);
+
+    switch (role) {
+    case frExternalPerimeter:
+    case frSupportMaterial:
+    case frSupportMaterialInterface:
+        return nozzle_diameter;
+    case frPerimeter:
+    case frSolidInfill:
+    case frTopSolidInfill:
+        // do not limit width for sparse infill so that we use full native flow for it
+        return std::min(std::max(width, nozzle_diameter * 1.05f), nozzle_diameter * 1.7f);
+    case frInfill:
+    default:
+        return std::max(width, nozzle_diameter * 1.05f);
+    }
+#else
+//        1.125f * nozzle_diameter;
+    switch (role) {
+    case frSupportMaterial:
+    case frSupportMaterialInterface:
+    case frTopSolidInfill:
+        return nozzle_diameter;
+    default:
+    case frExternalPerimeter:
+        1.125f * nozzle_diameter;
+    case frPerimeter:
+    case frSolidInfill:
+        // do not limit width for sparse infill so that we use full native flow for it
+        return std::min(std::max(width, nozzle_diameter * 1.05), nozzle_diameter * 1.7);
+    case frInfill:
+        return std::max(width, nozzle_diameter * 1.05);
+    }
+#endif
+}
+
+// This constructor builds a Flow object from an extrusion width config setting
+// and other context properties.
+Flow Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio)
+{
     // we need layer height unless it's a bridge
-    if (height <= 0 && bridge_flow_ratio == 0) CONFESS("Invalid flow height supplied to new_from_config_width()");
-    
+    if (height <= 0 && bridge_flow_ratio == 0) 
+        CONFESS("Invalid flow height supplied to new_from_config_width()");
+
     float w;
     if (bridge_flow_ratio > 0) {
-        // if bridge flow was requested, calculate bridge width
-        height = w = Flow::_bridge_width(nozzle_diameter, bridge_flow_ratio);
-    } else if (!width.percent && width.value == 0) {
-        // if user left option to 0, calculate a sane default width
-        w = Flow::_auto_width(role, nozzle_diameter, height);
+        // If bridge flow was requested, calculate the bridge width.
+        height = w = (bridge_flow_ratio == 1.) ?
+            // optimization to avoid sqrt()
+            nozzle_diameter :
+            sqrt(bridge_flow_ratio) * nozzle_diameter;
+    } else if (! width.percent && width.value == 0.) {
+        // If user left option to 0, calculate a sane default width.
+        w = auto_extrusion_width(role, nozzle_diameter, height);
     } else {
-        // if user set a manual value, use it
+        // If user set a manual value, use it.
         w = width.get_abs_value(height);
     }
     
     return Flow(w, height, nozzle_diameter, bridge_flow_ratio > 0);
 }
 
-/* This constructor builds a Flow object from a given centerline spacing. */
-Flow
-Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge) {
+// This constructor builds a Flow object from a given centerline spacing.
+Flow Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge) 
+{
     // we need layer height unless it's a bridge
-    if (height <= 0 && !bridge) CONFESS("Invalid flow height supplied to new_from_spacing()");
-
-    float w = Flow::_width_from_spacing(spacing, nozzle_diameter, height, bridge);
-    if (bridge) height = w;
-    return Flow(w, height, nozzle_diameter, bridge);
+    if (height <= 0 && !bridge) 
+        CONFESS("Invalid flow height supplied to new_from_spacing()");
+    // Calculate width from spacing.
+    // For normal extrusons, extrusion width is wider than the spacing due to the rounding and squishing of the extrusions.
+    // For bridge extrusions, the extrusions are placed with a tiny BRIDGE_EXTRA_SPACING gaps between the threads.
+    float width = bridge ?
+        (spacing - BRIDGE_EXTRA_SPACING) : 
+#ifdef HAS_PERIMETER_LINE_OVERLAP
+        (spacing + PERIMETER_LINE_OVERLAP_FACTOR * height * (1. - 0.25 * PI));
+#else
+        (spacing + height * (1. - 0.25 * PI));
+#endif
+    return Flow(width, bridge ? width : height, nozzle_diameter, bridge);
 }
 
-/* This method returns the centerline spacing between two adjacent extrusions 
-   having the same extrusion width (and other properties). */
-float
-Flow::spacing() const 
+// This method returns the centerline spacing between two adjacent extrusions 
+// having the same extrusion width (and other properties).
+float Flow::spacing() const 
 {
 #ifdef HAS_PERIMETER_LINE_OVERLAP
     if (this->bridge)
         return this->width + BRIDGE_EXTRA_SPACING;
     // rectangle with semicircles at the ends
-    float min_flow_spacing = this->width - this->height * (1 - PI/4.0);
+    float min_flow_spacing = this->width - this->height * (1. - 0.25 * PI);
     return this->width - PERIMETER_LINE_OVERLAP_FACTOR * (this->width - min_flow_spacing);
 #else
-    return this->bridge ? (this->width + BRIDGE_EXTRA_SPACING) : (this->width - this->height * (1 - PI/4.0));
+    return this->bridge ? (this->width + BRIDGE_EXTRA_SPACING) : (this->width - this->height * (1. - 0.25 * PI));
 #endif
 }
 
-/* This method returns the centerline spacing between an extrusion using this
-   flow and another one using another flow.
-   this->spacing(other) shall return the same value as other.spacing(*this) */
-float
-Flow::spacing(const Flow &other) const {
+// This method returns the centerline spacing between an extrusion using this
+// flow and another one using another flow.
+// this->spacing(other) shall return the same value as other.spacing(*this)
+float Flow::spacing(const Flow &other) const
+{
     assert(this->height == other.height);
     assert(this->bridge == other.bridge);
     return this->bridge ? 
@@ -66,52 +132,12 @@ Flow::spacing(const Flow &other) const {
         0.5f * this->spacing() + 0.5f * other.spacing();
 }
 
-/* This method returns extrusion volume per head move unit. */
+// This method returns extrusion volume per head move unit.
 double Flow::mm3_per_mm() const 
 {
     return this->bridge ?
-        (this->width * this->width) * PI/4.0 :
-        this->width * this->height + (this->height * this->height) / 4.0 * (PI-4.0);
-}
-
-/* This static method returns bridge width for a given nozzle diameter. */
-float Flow::_bridge_width(float nozzle_diameter, float bridge_flow_ratio) {
-    return (bridge_flow_ratio == 1.) ?
-        // optimization to avoid sqrt()
-        nozzle_diameter :
-        sqrt(bridge_flow_ratio) * nozzle_diameter;
-}
-
-/* This static method returns a sane extrusion width default. */
-float Flow::_auto_width(FlowRole role, float nozzle_diameter, float height) {
-    // here we calculate a sane default by matching the flow speed (at the nozzle) and the feed rate
-    // shape: rectangle with semicircles at the ends
-    float width = ((nozzle_diameter*nozzle_diameter) * PI + (height*height) * (4.0 - PI)) / (4.0 * height);
-    
-    float min = nozzle_diameter * 1.05;
-    float max = -1;
-    if (role == frExternalPerimeter || role == frSupportMaterial || role == frSupportMaterialInterface) {
-        min = max = nozzle_diameter;
-    } else if (role != frInfill) {
-        // do not limit width for sparse infill so that we use full native flow for it
-        max = nozzle_diameter * 1.7;
-    }
-    if (max != -1 && width > max) width = max;
-    if (width < min) width = min;
-    
-    return width;
-}
-
-/* This static method returns the extrusion width value corresponding to the supplied centerline spacing. */
-float Flow::_width_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge) 
-{
-    return bridge ? 
-        (spacing - BRIDGE_EXTRA_SPACING) : 
-#ifdef HAS_PERIMETER_LINE_OVERLAP
-        (spacing + PERIMETER_LINE_OVERLAP_FACTOR * height * (1 - PI/4.0));
-#else
-        (spacing + height * (1 - PI/4.0));
-#endif
+        (this->width * this->width) * 0.25 * PI :
+        this->width * this->height + 0.25 * (this->height * this->height) / (PI - 4.0);
 }
 
 Flow support_material_flow(const PrintObject *object, float layer_height)

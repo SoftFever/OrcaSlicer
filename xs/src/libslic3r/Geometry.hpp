@@ -13,6 +13,59 @@ using boost::polygon::voronoi_diagram;
 
 namespace Slic3r { namespace Geometry {
 
+// Generic result of an orientation predicate.
+enum Orientation
+{
+    ORIENTATION_CCW = 1,
+    ORIENTATION_CW = -1,
+    ORIENTATION_COLINEAR = 0
+};
+
+// Return orientation of the three points (clockwise, counter-clockwise, colinear)
+// The predicate is exact for the coord_t type, using 64bit signed integers for the temporaries.
+// which means, the coord_t types must not have some of the topmost bits utilized.
+// As the points are limited to 30 bits + signum,
+// the temporaries u, v, w are limited to 61 bits + signum,
+// and d is limited to 63 bits + signum and we are good.
+static inline Orientation orient(const Point &a, const Point &b, const Point &c)
+{
+    // BOOST_STATIC_ASSERT(sizeof(coord_t) * 2 == sizeof(int64_t));
+    int64_t u = int64_t(b.x) * int64_t(c.y) - int64_t(b.y) * int64_t(c.x);
+    int64_t v = int64_t(a.x) * int64_t(c.y) - int64_t(a.y) * int64_t(c.x);
+    int64_t w = int64_t(a.x) * int64_t(b.y) - int64_t(a.y) * int64_t(b.x);
+    int64_t d = u - v + w;
+    return (d > 0) ? ORIENTATION_CCW : ((d == 0) ? ORIENTATION_COLINEAR : ORIENTATION_CW);
+}
+
+// Return orientation of the polygon by checking orientation of the left bottom corner of the polygon
+// using exact arithmetics. The input polygon must not contain duplicate points
+// (or at least the left bottom corner point must not have duplicates).
+static inline bool is_ccw(const Polygon &poly)
+{
+    // The polygon shall be at least a triangle.
+    assert(poly.points.size() >= 3);
+    if (poly.points.size() < 3)
+        return true;
+
+    // 1) Find the lowest lexicographical point.
+    int     imin = 0;
+    for (size_t i = 1; i < poly.points.size(); ++ i) {
+        const Point &pmin = poly.points[imin];
+        const Point &p    = poly.points[i];
+        if (p.x < pmin.x || (p.x == pmin.x && p.y < pmin.y))
+            imin = i;
+    }
+
+    // 2) Detect the orientation of the corner imin.
+    size_t iPrev = ((imin == 0) ? poly.points.size() : imin) - 1;
+    size_t iNext = ((imin + 1 == poly.points.size()) ? 0 : imin + 1);
+    Orientation o = orient(poly.points[iPrev], poly.points[imin], poly.points[iNext]);
+    // The lowest bottom point must not be collinear if the polygon does not contain duplicate points
+    // or overlapping segments.
+    assert(o != ORIENTATION_COLINEAR);
+    return o == ORIENTATION_CCW;
+}
+
 inline bool ray_ray_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
 {
     double denom = v1.x * v2.y - v2.x * v1.y;
