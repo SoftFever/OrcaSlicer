@@ -8,7 +8,6 @@ use utf8;
 
 use Wx;
 use base 'Wx::Wizard';
-use Slic3r::Geometry qw(unscale);
 
 # adhere to various human interface guidelines
 our $wizard = 'Wizard';

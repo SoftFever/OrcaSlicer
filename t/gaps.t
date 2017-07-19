@@ -11,7 +11,6 @@ use List::Util qw(first);
 use Slic3r;
 use Slic3r::Flow ':roles';
 use Slic3r::Geometry qw(PI scale unscale convex_hull);
-use Slic3r::Geometry::Clipper qw();
 use Slic3r::Surface ':types';
 use Slic3r::Test;
 

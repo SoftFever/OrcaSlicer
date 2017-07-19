@@ -142,21 +142,4 @@ union_ex(subject, safety_offset = false)
     OUTPUT:
         RETVAL
 
-Polygons
-union_pt_chained(subject, safety_offset = false)
-    Polygons                    subject
-    bool                        safety_offset
-    CODE:
-        RETVAL = union_pt_chained(subject, safety_offset);
-    OUTPUT:
-        RETVAL
-
-Polygons
-simplify_polygons(subject)
-    Polygons                    subject
-    CODE:
-        RETVAL = simplify_polygons(subject);
-    OUTPUT:
-        RETVAL
-
 %}

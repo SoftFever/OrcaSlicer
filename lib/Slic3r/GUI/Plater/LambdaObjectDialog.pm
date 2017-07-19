@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use utf8;
 
-use Slic3r::Geometry qw(PI X);
 use Wx qw(wxTheApp :dialog :id :misc :sizer wxTAB_TRAVERSAL wxCB_READONLY wxTE_PROCESS_TAB);
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON EVT_COMBOBOX EVT_TEXT);
 use Scalar::Util qw(looks_like_number);

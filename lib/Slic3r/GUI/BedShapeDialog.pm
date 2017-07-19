@@ -7,7 +7,7 @@ use warnings;
 use utf8;
 
 use List::Util qw(min max);
-use Slic3r::Geometry qw(PI X Y unscale);
+use Slic3r::Geometry qw(X Y unscale);
 use Wx qw(:dialog :id :misc :sizer :choicebook wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE);
 use base 'Wx::Dialog';
@@ -45,7 +45,7 @@ package Slic3r::GUI::BedShapePanel;
 
 use List::Util qw(min max sum first);
 use Scalar::Util qw(looks_like_number);
-use Slic3r::Geometry qw(PI X Y scale unscale scaled_epsilon deg2rad);
+use Slic3r::Geometry qw(PI X Y unscale scaled_epsilon);
 use Wx qw(:font :id :misc :sizer :choicebook :filedialog :pen :brush wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE EVT_CHOICEBOOK_PAGE_CHANGED EVT_BUTTON);
 use base 'Wx::Panel';

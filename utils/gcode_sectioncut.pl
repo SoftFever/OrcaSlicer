@@ -13,7 +13,7 @@ use Getopt::Long qw(:config no_auto_abbrev);
 use IO::All;
 use List::Util qw(max);
 use Slic3r;
-use Slic3r::Geometry qw(X Y A B X1 Y1 X2 Y2);
+use Slic3r::Geometry qw(X Y);
 use Slic3r::Geometry::Clipper qw(JT_SQUARE);
 use Slic3r::Test;
 use SVG;
@@ -86,9 +86,9 @@ my %opt = (
             )};
             
             $g->rectangle(
-                'x'         => $opt{scale} * ($_->[A][X] - $bounding_box->x_min),
+                'x'         => $opt{scale} * ($_->[0][X] - $bounding_box->x_min),
                 'y'         => $opt{scale} * ($max_z - $z),
-                'width'     => $opt{scale} * abs($_->[B][X] - $_->[A][X]),
+                'width'     => $opt{scale} * abs($_->[1][X] - $_->[0][X]),
                 'height'    => $opt{scale} * $opt{layer_height},
                 'rx'        => $opt{scale} * $opt{layer_height} * 0.35,
                 'ry'        => $opt{scale} * $opt{layer_height} * 0.35,

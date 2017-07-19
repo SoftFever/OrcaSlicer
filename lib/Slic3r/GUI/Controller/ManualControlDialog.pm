@@ -5,7 +5,6 @@ use strict;
 use warnings;
 use utf8;
 
-use Slic3r::Geometry qw(PI X Y unscale);
 use Wx qw(:dialog :id :misc :sizer :choicebook :button :bitmap
     wxBORDER_NONE wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON);

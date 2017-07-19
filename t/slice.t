@@ -17,7 +17,7 @@ sub Slic3r::TriangleMesh::FE_BOTTOM {
 sub Slic3r::TriangleMesh::FE_TOP {}}
 
 use Slic3r;
-use Slic3r::Geometry qw(X Y Z A B);
+use Slic3r::Geometry qw(X Y Z);
 
 my @lines;
 my $z = 20;
@@ -143,7 +143,7 @@ sub line_plane_intersection {
     
     return [
         map sprintf('%.0f', $_),
-            map +($line->[B][$_] + ($line->[A][$_] - $line->[B][$_]) * ($z - $line->[B][Z]) / ($line->[A][Z] - $line->[B][Z])),
+            map +($line->[1][$_] + ($line->[0][$_] - $line->[1][$_]) * ($z - $line->[1][Z]) / ($line->[0][Z] - $line->[1][Z])),
                 (X,Y)
     ];
 }

@@ -135,7 +135,7 @@ use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Wx::GLCanvas qw(:all);
 use List::Util qw(min max first);
-use Slic3r::Geometry qw(scale unscale epsilon X Y);
+use Slic3r::Geometry qw(scale epsilon X Y);
 use Slic3r::Print::State ':steps';
 
 __PACKAGE__->mk_accessors(qw(

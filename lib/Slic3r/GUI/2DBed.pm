@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 use List::Util qw(min max);
-use Slic3r::Geometry qw(PI X Y unscale deg2rad);
+use Slic3r::Geometry qw(X Y unscale deg2rad);
 use Slic3r::Geometry::Clipper qw(intersection_pl);
 use Wx qw(:misc :pen :brush :font :systemsettings wxTAB_TRAVERSAL wxSOLID);
 use Wx::Event qw(EVT_PAINT EVT_ERASE_BACKGROUND EVT_MOUSE_EVENTS EVT_SIZE);

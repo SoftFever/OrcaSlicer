@@ -3,7 +3,6 @@ package Slic3r::Model;
 
 use File::Basename qw(basename);
 use List::Util qw(first max any);
-use Slic3r::Geometry qw(X Y Z move_points);
 
 sub read_from_file {
     my ($class, $input_file, $add_default_instances) = @_;
@@ -116,7 +115,6 @@ package Slic3r::Model::Object;
 
 use File::Basename qw(basename);
 use List::Util qw(first sum);
-use Slic3r::Geometry qw(X Y Z rad2deg);
 
 sub add_volume {
     my $self = shift;

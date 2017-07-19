@@ -62,7 +62,6 @@ use Slic3r::ExtrusionLoop;
 use Slic3r::ExtrusionPath;
 use Slic3r::Flow;
 use Slic3r::GCode::Reader;
-use Slic3r::Geometry qw(PI);
 use Slic3r::Geometry::Clipper;
 use Slic3r::Layer;
 use Slic3r::Line;
