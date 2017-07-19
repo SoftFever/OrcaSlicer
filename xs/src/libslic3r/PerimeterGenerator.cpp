@@ -10,34 +10,34 @@ void
 PerimeterGenerator::process()
 {
     // other perimeters
-    this->_mm3_per_mm           = this->perimeter_flow.mm3_per_mm();
-    coord_t pwidth              = this->perimeter_flow.scaled_width();
-    coord_t pspacing            = this->perimeter_flow.scaled_spacing();
+    this->_mm3_per_mm               = this->perimeter_flow.mm3_per_mm();
+    coord_t perimeter_width         = this->perimeter_flow.scaled_width();
+    coord_t perimeter_spacing       = this->perimeter_flow.scaled_spacing();
     
     // external perimeters
-    this->_ext_mm3_per_mm       = this->ext_perimeter_flow.mm3_per_mm();
-    coord_t ext_pwidth          = this->ext_perimeter_flow.scaled_width();
-    coord_t ext_pspacing        = this->ext_perimeter_flow.scaled_spacing();
-    coord_t ext_pspacing2       = this->ext_perimeter_flow.scaled_spacing(this->perimeter_flow);
+    this->_ext_mm3_per_mm           = this->ext_perimeter_flow.mm3_per_mm();
+    coord_t ext_perimeter_width     = this->ext_perimeter_flow.scaled_width();
+    coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
+    coord_t ext_perimeter_spacing2  = this->ext_perimeter_flow.scaled_spacing(this->perimeter_flow);
     
     // overhang perimeters
-    this->_mm3_per_mm_overhang  = this->overhang_flow.mm3_per_mm();
+    this->_mm3_per_mm_overhang      = this->overhang_flow.mm3_per_mm();
     
     // solid infill
-    coord_t ispacing            = this->solid_infill_flow.scaled_spacing();
+    coord_t solid_infill_spacing    = this->solid_infill_flow.scaled_spacing();
     
     // Calculate the minimum required spacing between two adjacent traces.
     // This should be equal to the nominal flow spacing but we experiment
     // with some tolerance in order to avoid triggering medial axis when
     // some squishing might work. Loops are still spaced by the entire
     // flow spacing; this only applies to collapsing parts.
-    // For ext_min_spacing we use the ext_pspacing calculated for two adjacent
-    // external loops (which is the correct way) instead of using ext_pspacing2
+    // For ext_min_spacing we use the ext_perimeter_spacing calculated for two adjacent
+    // external loops (which is the correct way) instead of using ext_perimeter_spacing2
     // which is the spacing between external and internal, which is not correct
     // and would make the collapsing (thus the details resolution) dependent on 
     // internal flow which is unrelated.
-    coord_t min_spacing         = pspacing      * (1 - INSET_OVERLAP_TOLERANCE);
-    coord_t ext_min_spacing     = ext_pspacing  * (1 - INSET_OVERLAP_TOLERANCE);
+    coord_t min_spacing         = perimeter_spacing      * (1 - INSET_OVERLAP_TOLERANCE);
+    coord_t ext_min_spacing     = ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE);
     
     // prepare grown lower layer slices for overhang detection
     if (this->lower_slices != NULL && this->config->overhangs) {
@@ -51,14 +51,13 @@ PerimeterGenerator::process()
     
     // we need to process each island separately because we might have different
     // extra perimeters for each one
-    for (Surfaces::const_iterator surface = this->slices->surfaces.begin();
-        surface != this->slices->surfaces.end(); ++surface) {
+    for (Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
-        const int loop_number = this->config->perimeters + surface->extra_perimeters -1;  // 0-indexed loops
+        const int loop_number = this->config->perimeters + surface.extra_perimeters -1;  // 0-indexed loops
         
         Polygons gaps;
         
-        Polygons last = surface->expolygon.simplify_p(SCALED_RESOLUTION);
+        Polygons last = surface.expolygon.simplify_p(SCALED_RESOLUTION);
         if (loop_number >= 0) {  // no loops = -1
             
             std::vector<PerimeterGeneratorLoops> contours(loop_number+1);    // depth => loops
@@ -74,18 +73,18 @@ PerimeterGenerator::process()
                     if (this->config->thin_walls) {
                         offsets = offset2(
                             last,
-                            -(ext_pwidth/2 + ext_min_spacing/2 - 1),
+                            -(ext_perimeter_width / 2 + ext_min_spacing / 2 - 1),
                             +(ext_min_spacing/2 - 1)
                         );
                     } else {
-                        offsets = offset(last, -ext_pwidth/2);
+                        offsets = offset(last, - ext_perimeter_width / 2);
                     }
                     
                     // look for thin walls
                     if (this->config->thin_walls) {
                         Polygons diffpp = diff(
                             last,
-                            offset(offsets, +ext_pwidth/2),
+                            offset(offsets, ext_perimeter_width / 2),
                             true  // medial axis requires non-overlapping geometry
                         );
                         
@@ -96,7 +95,7 @@ PerimeterGenerator::process()
                         
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
                         for (ExPolygons::const_iterator ex = expp.begin(); ex != expp.end(); ++ex)
-                            ex->medial_axis(ext_pwidth + ext_pspacing2, min_width, &thin_walls);
+                            ex->medial_axis(ext_perimeter_width + ext_perimeter_spacing2, min_width, &thin_walls);
                         
                         #ifdef DEBUG
                         printf("  " PRINTF_ZU " thin walls detected\n", thin_walls.size());
@@ -117,7 +116,7 @@ PerimeterGenerator::process()
                 } else {
                     //FIXME Is this offset correct if the line width of the inner perimeters differs
                     // from the line width of the infill?
-                    coord_t distance = (i == 1) ? ext_pspacing2 : pspacing;
+                    coord_t distance = (i == 1) ? ext_perimeter_spacing2 : perimeter_spacing;
                     
                     if (this->config->thin_walls) {
                         // This path will ensure, that the perimeters do not overfill, as in 
@@ -255,8 +254,8 @@ PerimeterGenerator::process()
             */
             
             // collapse 
-            double min = 0.2*pwidth * (1 - INSET_OVERLAP_TOLERANCE);
-            double max = 2*pspacing;
+            double min = 0.2 * perimeter_width * (1 - INSET_OVERLAP_TOLERANCE);
+            double max = 2. * perimeter_spacing;
             ExPolygons gaps_ex = diff_ex(
                 offset2(gaps, -min/2, +min/2),
                 offset2(gaps, -max/2, +max/2),
@@ -292,20 +291,20 @@ PerimeterGenerator::process()
         coord_t inset = 0;
         if (loop_number == 0) {
             // one loop
-            inset += ext_pspacing2/2;
+            inset += ext_perimeter_spacing / 2;
         } else if (loop_number > 0) {
             // two or more loops
-            inset += pspacing/2;
+            inset += perimeter_spacing / 2;
         }
         // only apply infill overlap if we actually have one perimeter
         if (inset > 0)
-            inset -= this->config->get_abs_value("infill_overlap", inset + ispacing/2);
+            inset -= this->config->get_abs_value("infill_overlap", inset + solid_infill_spacing / 2);
         // simplify infill contours according to resolution
         Polygons pp;
         for (ExPolygon &ex : union_ex(last))
             ex.simplify_p(SCALED_RESOLUTION, &pp);
         // collapse too narrow infill areas
-        coord_t min_perimeter_infill_spacing = ispacing * (1 - INSET_OVERLAP_TOLERANCE);
+        coord_t min_perimeter_infill_spacing = solid_infill_spacing * (1 - INSET_OVERLAP_TOLERANCE);
         // append infill areas to fill_surfaces
         this->fill_surfaces->append(
             offset2_ex(

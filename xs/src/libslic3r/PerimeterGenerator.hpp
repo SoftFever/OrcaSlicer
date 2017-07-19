@@ -77,8 +77,8 @@ public:
             _ext_mm3_per_mm(-1), _mm3_per_mm(-1), _mm3_per_mm_overhang(-1)
         {};
     void process();
-    
-    private:
+
+private:
     double _ext_mm3_per_mm;
     double _mm3_per_mm;
     double _mm3_per_mm_overhang;
