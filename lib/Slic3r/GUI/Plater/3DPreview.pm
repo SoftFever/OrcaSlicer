@@ -251,8 +251,8 @@ sub load_print {
         my @filament_colors = @{$self->{config}->filament_colour};
         for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
             my $color = $extruder_colors[$i];
-            $color = $filament_colors[$i] if ($color !~ m/^#[[:xdigit:]]{6}/);
-            $color = '#FFFFFF' if ($color !~ m/^#[[:xdigit:]]{6}/);
+            $color = $filament_colors[$i] if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
+            $color = '#FFFFFF' if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
             push @colors, $color;
         }
     }
