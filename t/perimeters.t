@@ -317,6 +317,7 @@ use Slic3r::Test;
     $config->set('nozzle_diameter', [0.4]);
     $config->set('perimeters', 2);
     $config->set('perimeter_extrusion_width', 0.4);
+    $config->set('external_perimeter_extrusion_width', 0.4);
     $config->set('infill_extrusion_width', 0.53);
     $config->set('solid_infill_extrusion_width', 0.53);
     

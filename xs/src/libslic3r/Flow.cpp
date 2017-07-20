@@ -41,7 +41,6 @@ static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, f
         return std::max(width, nozzle_diameter * 1.05f);
     }
 #else
-//        1.125f * nozzle_diameter;
     switch (role) {
     case frSupportMaterial:
     case frSupportMaterialInterface:
@@ -52,7 +51,7 @@ static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, f
     case frPerimeter:
     case frSolidInfill:
     case frInfill:
-        1.125f * nozzle_diameter;
+        return 1.125f * nozzle_diameter;
     }
 #endif
 }

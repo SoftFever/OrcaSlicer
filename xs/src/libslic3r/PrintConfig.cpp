@@ -693,7 +693,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "mm or %";
     def->cli = "infill-overlap=s";
     def->ratio_over = "perimeter_extrusion_width";
-    def->default_value = new ConfigOptionFloatOrPercent(55, true);
+    def->default_value = new ConfigOptionFloatOrPercent(25, true);
 
     def = this->add("infill_speed", coFloat);
     def->label = "Infill";
