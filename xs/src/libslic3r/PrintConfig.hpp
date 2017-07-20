@@ -176,7 +176,7 @@ public:
 //    ConfigOptionFloat               seam_preferred_direction;
 //    ConfigOptionFloat               seam_preferred_direction_jitter;
     ConfigOptionBool                support_material;
-    ConfigOptionInt                 support_material_angle;
+    ConfigOptionFloat               support_material_angle;
     ConfigOptionBool                support_material_buildplate_only;
     ConfigOptionFloat               support_material_contact_distance;
     ConfigOptionInt                 support_material_enforce_layers;

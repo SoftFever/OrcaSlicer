@@ -464,9 +464,9 @@ PrintConfigDef::PrintConfigDef()
     def->category = "Infill";
     def->tooltip = "Default base angle for infill orientation. Cross-hatching will be applied to this. Bridges will be infilled using the best direction Slic3r can detect, so this setting does not affect them.";
     def->sidetext = "°";
-    def->cli = "fill-angle=i";
+    def->cli = "fill-angle=f";
     def->min = 0;
-    def->max = 359;
+    def->max = 360;
     def->default_value = new ConfigOptionFloat(45);
 
     def = this->add("fill_density", coPercent);
@@ -1338,15 +1338,15 @@ PrintConfigDef::PrintConfigDef()
     // Default is half the external perimeter width.
     def->default_value = new ConfigOptionFloatOrPercent(50, true);
 
-    def = this->add("support_material_angle", coInt);
+    def = this->add("support_material_angle", coFloat);
     def->label = "Pattern angle";
     def->category = "Support material";
     def->tooltip = "Use this setting to rotate the support material pattern on the horizontal plane.";
     def->sidetext = "°";
-    def->cli = "support-material-angle=i";
+    def->cli = "support-material-angle=f";
     def->min = 0;
     def->max = 359;
-    def->default_value = new ConfigOptionInt(0);
+    def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("support_material_buildplate_only", coBool);
     def->label = "Support on build plate only";
