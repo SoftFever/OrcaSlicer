@@ -36,8 +36,6 @@ sub new {
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
     $self->{sizer}->SetSizeHints($self);
     $self->SetSizer($self->{sizer});
-
-    my $left_col_width = 150;
     
     # preset chooser
     {
@@ -71,7 +69,7 @@ sub new {
     $self->{hsizer}->Add($left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
     
     # tree
-    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [$left_col_width, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
+    $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [185, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
     $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
     $self->{icons} = Wx::ImageList->new(16, 16, 1);
     $self->{treectrl}->AssignImageList($self->{icons});
