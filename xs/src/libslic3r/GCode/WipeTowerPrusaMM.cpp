@@ -498,7 +498,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 			";-------------------------------------\n"
 			"; CP WIPE TOWER FIRST LAYER BRIM START\n");
 
-	xy initial_position = wipeTower_box.lu - xy(m_perimeter_width * 10.f, 0);
+	xy initial_position = wipeTower_box.lu - xy(m_perimeter_width * 6.f, 0);
 
 	if (purpose == PURPOSE_MOVE_TO_TOWER || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
 		// Move with Z hop.
@@ -510,7 +510,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 
 	if (purpose == PURPOSE_EXTRUDE || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
 		// Prime the extruder 10*m_perimeter_width left along the vertical edge of the wipe tower.
-		writer.extrude_explicit(wipeTower_box.ld - xy(m_perimeter_width * 10.f, 0), m_retract, 2400);
+		writer.extrude_explicit(wipeTower_box.ld - xy(m_perimeter_width * 6.f, 0), 
+			1.5f * m_extrusion_flow * (wipeTower_box.lu.y - wipeTower_box.ld.y), 2400);
 
 		// The tool is supposed to be active and primed at the time when the wipe tower brim is extruded.
 		// toolchange_Change(writer, int(tool), m_material[tool]);
@@ -807,33 +808,50 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 		writer.extrude(box.lu, 3200 * speed_factor)
 			  .extrude(box.ru)
 			  .extrude(box.rd)
-			  .extrude(box.ld + xy(m_perimeter_width / 2, 0))
-			  .extrude(box.ld + xy(m_perimeter_width / 2, m_perimeter_width / 2));
+			  .extrude(box.ld + xy(m_perimeter_width / 2, 0));
 
-		// Extrude an inverse U at the left of the region.
-		writer.extrude(fill_box.ld + xy(m_perimeter_width * 3,   m_perimeter_width), 2900 * speed_factor)
-		      .extrude(fill_box.lu + xy(m_perimeter_width * 3, - m_perimeter_width))
-			  .extrude(fill_box.lu + xy(m_perimeter_width * 6, - m_perimeter_width))
-			  .extrude(fill_box.ld + xy(m_perimeter_width * 6,   m_perimeter_width));
-
-		if (fill_box.lu.y - fill_box.ld.y > 4.f) {
-			// Extrude three zig-zags.
-			float step = (m_wipe_tower_width - m_perimeter_width * 12.f) / 12.f;
-			for (size_t i = 0; i < 3; ++ i) {
-				writer.extrude(writer.x() + step, fill_box.ld.y + m_perimeter_width * 8, 3200 * speed_factor);
-				writer.extrude(writer.x()       , fill_box.lu.y - m_perimeter_width * 8);
-				writer.extrude(writer.x() + step, fill_box.lu.y - m_perimeter_width    );
-				writer.extrude(writer.x() + step, fill_box.lu.y - m_perimeter_width * 8);
-				writer.extrude(writer.x()       , fill_box.ld.y + m_perimeter_width * 8);
-				writer.extrude(writer.x() + step, fill_box.ld.y + m_perimeter_width    );
+		if (m_is_first_layer) {
+			// Extrude a dense infill at the 1st layer to improve 1st layer adhesion of the wipe tower.
+			box.expand(- m_perimeter_width / 2);
+			box.ld.y -= 0.5f * m_perimeter_width;
+			box.rd.y  = box.ld.y;
+			int   nsteps = int(floor((box.lu.y - box.ld.y) / (2. * (1.0 * m_perimeter_width))));
+			float step   = (box.lu.y - box.ld.y) / nsteps;
+			for (size_t i = 0; i < nsteps; ++ i) {
+				writer.extrude(box.ld.x, writer.y() + 0.5f * step);
+				writer.extrude(box.rd.x, writer.y());
+				writer.extrude(box.rd.x, writer.y() + 0.5f * step);
+				writer.extrude(box.ld.x, writer.y());
 			}
-		}
+		} else {
+			// Extrude a sparse infill to support the material to be printed above.
 
-			   // Extrude an inverse U at the left of the region.
-		writer.extrude(fill_box.ru + xy(- m_perimeter_width * 6, - m_perimeter_width), 2900 * speed_factor)
-			  .extrude(fill_box.ru + xy(- m_perimeter_width * 3, - m_perimeter_width))
-			  .extrude(fill_box.rd + xy(- m_perimeter_width * 3,   m_perimeter_width))
-			  .extrude(fill_box.rd + xy(- m_perimeter_width,       m_perimeter_width));
+			// Extrude an inverse U at the left of the region.
+			writer.extrude(box.ld + xy(m_perimeter_width / 2, m_perimeter_width / 2))
+				  .extrude(fill_box.ld + xy(m_perimeter_width * 3,   m_perimeter_width), 2900 * speed_factor)
+			      .extrude(fill_box.lu + xy(m_perimeter_width * 3, - m_perimeter_width))
+				  .extrude(fill_box.lu + xy(m_perimeter_width * 6, - m_perimeter_width))
+				  .extrude(fill_box.ld + xy(m_perimeter_width * 6,   m_perimeter_width));
+
+			if (fill_box.lu.y - fill_box.ld.y > 4.f) {
+				// Extrude three zig-zags.
+				float step = (m_wipe_tower_width - m_perimeter_width * 12.f) / 12.f;
+				for (size_t i = 0; i < 3; ++ i) {
+					writer.extrude(writer.x() + step, fill_box.ld.y + m_perimeter_width * 8, 3200 * speed_factor);
+					writer.extrude(writer.x()       , fill_box.lu.y - m_perimeter_width * 8);
+					writer.extrude(writer.x() + step, fill_box.lu.y - m_perimeter_width    );
+					writer.extrude(writer.x() + step, fill_box.lu.y - m_perimeter_width * 8);
+					writer.extrude(writer.x()       , fill_box.ld.y + m_perimeter_width * 8);
+					writer.extrude(writer.x() + step, fill_box.ld.y + m_perimeter_width    );
+				}
+			}
+
+			// Extrude an inverse U at the left of the region.
+			writer.extrude(fill_box.ru + xy(- m_perimeter_width * 6, - m_perimeter_width), 2900 * speed_factor)
+				  .extrude(fill_box.ru + xy(- m_perimeter_width * 3, - m_perimeter_width))
+				  .extrude(fill_box.rd + xy(- m_perimeter_width * 3,   m_perimeter_width))
+				  .extrude(fill_box.rd + xy(- m_perimeter_width,       m_perimeter_width));
+		}
 
 		if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
 	       	// Wipe along the front side of the current wiping box.
