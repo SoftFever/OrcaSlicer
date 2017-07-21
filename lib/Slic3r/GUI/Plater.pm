@@ -7,7 +7,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first max);
-use Slic3r::Geometry qw(X Y Z MIN MAX scale unscale deg2rad rad2deg);
+use Slic3r::Geometry qw(X Y Z scale unscale deg2rad rad2deg);
 use LWP::UserAgent;
 use threads::shared qw(shared_clone);
 use Wx qw(:button :colour :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
@@ -105,6 +105,12 @@ sub new {
         $self->{canvas3D}->set_on_select_object($on_select_object);
         $self->{canvas3D}->set_on_double_click($on_double_click);
         $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+        $self->{canvas3D}->set_on_rotate_object_left(sub { $self->rotate(-45, Z, 'relative') });
+        $self->{canvas3D}->set_on_rotate_object_right(sub { $self->rotate( 45, Z, 'relative') });
+        $self->{canvas3D}->set_on_scale_object_uniformly(sub { $self->changescale(undef) });
+        $self->{canvas3D}->set_on_increase_objects(sub { $self->increase() });
+        $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
+        $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
         $self->{canvas3D}->set_on_wipe_tower_moved(sub {
             my ($new_pos_3f) = @_;
@@ -862,8 +868,9 @@ sub remove {
     $self->{preview3D}->enabled(0) if $self->{preview3D};
     
     # if no object index is supplied, remove the selected one
-    if (!defined $obj_idx) {
+    if (! defined $obj_idx) {
         ($obj_idx, undef) = $self->selected_object;
+        return if ! defined $obj_idx;
     }
     
     splice @{$self->{objects}}, $obj_idx, 1;
@@ -1121,12 +1128,12 @@ sub changescale {
         if ($tosize) {
             my $cursize = max(@$object_size);
             my $newsize = $self->_get_number_from_user('Enter the new max size for the selected object:', 'Scale', 'Invalid scaling value entered', $cursize, 1);
-            return if $newsize eq '';
+            return if ! defined($newsize) || $newsize eq '';
             $scale = $model_instance->scaling_factor * $newsize / $cursize * 100;
         } else {
             # max scale factor should be above 2540 to allow importing files exported in inches
             $scale = $self->_get_number_from_user('Enter the scale % for the selected object:', 'Scale', 'Invalid scaling value entered', $model_instance->scaling_factor*100, 1);
-            return if $scale eq '';
+            return if ! defined($scale) || $scale eq '';
         }
     
         $self->{list}->SetItem($obj_idx, 2, "$scale%");
@@ -2060,23 +2067,23 @@ sub object_menu {
     
     my $frame = $self->GetFrame;
     my $menu = Wx::Menu->new;
-    $frame->_append_menu_item($menu, "Delete\tCtrl+Del", 'Remove the selected object', sub {
+    $frame->_append_menu_item($menu, "Delete\t\xA0Del", 'Remove the selected object', sub {
         $self->remove;
     }, undef, 'brick_delete.png');
-    $frame->_append_menu_item($menu, "Increase copies\tCtrl++", 'Place one more copy of the selected object', sub {
+    $frame->_append_menu_item($menu, "Increase copies\t\xA0+", 'Place one more copy of the selected object', sub {
         $self->increase;
     }, undef, 'add.png');
-    $frame->_append_menu_item($menu, "Decrease copies\tCtrl+-", 'Remove one copy of the selected object', sub {
+    $frame->_append_menu_item($menu, "Decrease copies\t\xA0-", 'Remove one copy of the selected object', sub {
         $self->decrease;
     }, undef, 'delete.png');
     $frame->_append_menu_item($menu, "Set number of copies…", 'Change the number of copies of the selected object', sub {
         $self->set_number_of_copies;
     }, undef, 'textfield.png');
     $menu->AppendSeparator();
-    $frame->_append_menu_item($menu, "Rotate 45° clockwise", 'Rotate the selected object by 45° clockwise', sub {
+    $frame->_append_menu_item($menu, "Rotate 45° clockwise\t\xA0l", 'Rotate the selected object by 45° clockwise', sub {
         $self->rotate(-45, Z, 'relative');
     }, undef, 'arrow_rotate_clockwise.png');
-    $frame->_append_menu_item($menu, "Rotate 45° counter-clockwise", 'Rotate the selected object by 45° counter-clockwise', sub {
+    $frame->_append_menu_item($menu, "Rotate 45° counter-clockwise\t\xA0r", 'Rotate the selected object by 45° counter-clockwise', sub {
         $self->rotate(+45, Z, 'relative');
     }, undef, 'arrow_rotate_anticlockwise.png');
     
@@ -2109,7 +2116,7 @@ sub object_menu {
     my $scaleMenu = Wx::Menu->new;
     my $scaleMenuItem = $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
     $frame->_set_menu_item_icon($scaleMenuItem, 'arrow_out.png');
-    $frame->_append_menu_item($scaleMenu, "Uniformly…", 'Scale the selected object along the XYZ axes', sub {
+    $frame->_append_menu_item($scaleMenu, "Uniformly…\t\xA0s", 'Scale the selected object along the XYZ axes', sub {
         $self->changescale(undef);
     });
     $frame->_append_menu_item($scaleMenu, "Along X axis…", 'Scale the selected object along the X axis', sub {
@@ -2202,9 +2209,6 @@ sub OnDropFiles {
 # 2D preview of an object. Each object is previewed by its convex hull.
 package Slic3r::GUI::Plater::Object;
 use Moo;
-
-use List::Util qw(first);
-use Slic3r::Geometry qw(X Y Z MIN MAX deg2rad);
 
 has 'name'                  => (is => 'rw', required => 1);
 has 'thumbnail'             => (is => 'rw'); # ExPolygon::Collection in scaled model units with no transforms

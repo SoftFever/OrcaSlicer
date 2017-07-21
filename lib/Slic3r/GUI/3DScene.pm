@@ -16,13 +16,13 @@ use strict;
 use warnings;
 
 use Wx qw(:timer :bitmap :icon :dialog);
-use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_TIMER);
+use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_CHAR EVT_TIMER);
 # must load OpenGL *before* Wx::GLCanvas
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin tan);
 use List::Util qw(reduce min max first);
-use Slic3r::Geometry qw(X Y Z MIN MAX triangle_normal normalize deg2rad tan scale unscale scaled_epsilon);
+use Slic3r::Geometry qw(X Y normalize scale unscale scaled_epsilon);
 use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl JT_ROUND);
 use Wx::GLCanvas qw(:all);
 use Slic3r::Geometry qw(PI);
@@ -168,6 +168,32 @@ sub new {
     });
     EVT_MOUSEWHEEL($self, \&mouse_wheel_event);
     EVT_MOUSE_EVENTS($self, \&mouse_event);
+#    EVT_KEY_DOWN($self, sub {
+    EVT_CHAR($self, sub {
+        my ($s, $event) = @_;
+        if ($event->HasModifiers) {
+            $event->Skip;
+        } else {
+            my $key = $event->GetKeyCode;
+            if ($key == ord('0')) {
+                $self->select_view('iso');
+            } elsif ($key == ord('1')) {
+                $self->select_view('top');
+            } elsif ($key == ord('2')) {
+                $self->select_view('bottom');
+            } elsif ($key == ord('3')) {
+                $self->select_view('front');
+            } elsif ($key == ord('4')) {
+                $self->select_view('rear');
+            } elsif ($key == ord('5')) {
+                $self->select_view('left');
+            } elsif ($key == ord('6')) {
+                $self->select_view('right');
+            } else {
+                $event->Skip;
+            }
+        }
+    });
     
     $self->{layer_height_edit_timer_id} = &Wx::NewId();
     $self->{layer_height_edit_timer} = Wx::Timer->new($self, $self->{layer_height_edit_timer_id});

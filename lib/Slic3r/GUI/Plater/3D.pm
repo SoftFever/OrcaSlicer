@@ -4,11 +4,13 @@ use warnings;
 use utf8;
 
 use List::Util qw();
-use Slic3r::Geometry qw();
-use Slic3r::Geometry::Clipper qw();
-use Wx qw(:misc :pen :brush :sizer :font :cursor wxTAB_TRAVERSAL);
-use Wx::Event qw();
+use Wx qw(:misc :pen :brush :sizer :font :cursor :keycode wxTAB_TRAVERSAL);
+use Wx::Event qw(EVT_KEY_DOWN EVT_CHAR);
 use base qw(Slic3r::GUI::3DScene Class::Accessor);
+
+__PACKAGE__->mk_accessors(qw(
+    on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
+    on_remove_object on_increase_objects on_decrease_objects));
 
 sub new {
     my $class = shift;
@@ -65,6 +67,42 @@ sub new {
         $self->{on_wipe_tower_moved}->($wipe_tower_moved)
             if $wipe_tower_moved && $self->{on_wipe_tower_moved};
     });
+
+    EVT_KEY_DOWN($self, sub {
+        my ($s, $event) = @_;
+        if ($event->HasModifiers) {
+            $event->Skip;
+        } else {
+            my $key = $event->GetKeyCode;
+            if ($key == WXK_DELETE) {
+                $self->on_remove_object->() if $self->on_remove_object;
+            } else {
+                $event->Skip;
+            }
+        }
+    });
+
+    EVT_CHAR($self, sub {
+        my ($s, $event) = @_;
+        if ($event->HasModifiers) {
+            $event->Skip;
+        } else {
+            my $key = $event->GetKeyCode;
+            if ($key == ord('l')) {
+                $self->on_rotate_object_left->() if $self->on_rotate_object_left;
+            } elsif ($key == ord('r')) {
+                $self->on_rotate_object_right->() if $self->on_rotate_object_right;
+            } elsif ($key == ord('s')) {
+                $self->on_scale_object_uniformly->() if $self->on_scale_object_uniformly;
+            } elsif ($key == ord('+')) {
+                $self->on_increase_objects->() if $self->on_increase_objects;
+            } elsif ($key == ord('-')) {
+                $self->on_decrease_objects->() if $self->on_decrease_objects;
+            } else {
+                $event->Skip;
+            }
+        }
+    });
     
     return $self;
 }
@@ -82,6 +120,36 @@ sub set_on_double_click {
 sub set_on_right_click {
     my ($self, $cb) = @_;
     $self->on_right_click($cb);
+}
+
+sub set_on_rotate_object_left {
+    my ($self, $cb) = @_;
+    $self->on_rotate_object_left($cb);
+}
+
+sub set_on_rotate_object_right {
+    my ($self, $cb) = @_;
+    $self->on_rotate_object_right($cb);
+}
+
+sub set_on_scale_object_uniformly {
+    my ($self, $cb) = @_;
+    $self->on_scale_object_uniformly($cb);
+}
+
+sub set_on_increase_objects {
+    my ($self, $cb) = @_;
+    $self->on_increase_objects($cb);
+}
+
+sub set_on_decrease_objects {
+    my ($self, $cb) = @_;
+    $self->on_decrease_objects($cb);
+}
+
+sub set_on_remove_object {
+    my ($self, $cb) = @_;
+    $self->on_remove_object($cb);
 }
 
 sub set_on_instances_moved {

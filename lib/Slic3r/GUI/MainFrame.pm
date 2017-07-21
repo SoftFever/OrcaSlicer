@@ -7,7 +7,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use List::Util qw(min);
-use Slic3r::Geometry qw(X Y Z);
+use Slic3r::Geometry qw(X Y);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
     :font :icon wxTheApp);
 use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
@@ -273,13 +273,16 @@ sub _init_menubar {
     # View menu
     if (!$self->{no_plater}) {
         $self->{viewMenu} = Wx::Menu->new;
-        $self->_append_menu_item($self->{viewMenu}, "Iso"    , 'Iso View'    , sub { $self->select_view('iso'    ); });
-        $self->_append_menu_item($self->{viewMenu}, "Top"    , 'Top View'    , sub { $self->select_view('top'    ); });
-        $self->_append_menu_item($self->{viewMenu}, "Bottom" , 'Bottom View' , sub { $self->select_view('bottom' ); });
-        $self->_append_menu_item($self->{viewMenu}, "Front"  , 'Front View'  , sub { $self->select_view('front'  ); });
-        $self->_append_menu_item($self->{viewMenu}, "Rear"   , 'Rear View'   , sub { $self->select_view('rear'   ); });
-        $self->_append_menu_item($self->{viewMenu}, "Left"   , 'Left View'   , sub { $self->select_view('left'   ); });
-        $self->_append_menu_item($self->{viewMenu}, "Right"  , 'Right View'  , sub { $self->select_view('right'  ); });
+        # \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
+        # as the simple numeric accelerators spoil all numeric data entry.
+        # The camera control accelerators are captured by 3DScene Perl module instead.
+        $self->_append_menu_item($self->{viewMenu}, "Iso\t\xA00"    , 'Iso View'    , sub { $self->select_view('iso'    ); });
+        $self->_append_menu_item($self->{viewMenu}, "Top\t\xA01"    , 'Top View'    , sub { $self->select_view('top'    ); });
+        $self->_append_menu_item($self->{viewMenu}, "Bottom\t\xA02" , 'Bottom View' , sub { $self->select_view('bottom' ); });
+        $self->_append_menu_item($self->{viewMenu}, "Front\t\xA03"  , 'Front View'  , sub { $self->select_view('front'  ); });
+        $self->_append_menu_item($self->{viewMenu}, "Rear\t\xA04"   , 'Rear View'   , sub { $self->select_view('rear'   ); });
+        $self->_append_menu_item($self->{viewMenu}, "Left\t\xA05"   , 'Left View'   , sub { $self->select_view('left'   ); });
+        $self->_append_menu_item($self->{viewMenu}, "Right\t\xA06"  , 'Right View'  , sub { $self->select_view('right'  ); });
     }
     
     # Help menu
