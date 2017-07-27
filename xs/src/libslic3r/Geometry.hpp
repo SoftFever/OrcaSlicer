@@ -49,7 +49,7 @@ static inline bool is_ccw(const Polygon &poly)
 
     // 1) Find the lowest lexicographical point.
     int     imin = 0;
-    for (size_t i = 1; i < poly.points.size(); ++ i) {
+    for (int i = 1; i < poly.points.size(); ++ i) {
         const Point &pmin = poly.points[imin];
         const Point &p    = poly.points[i];
         if (p.x < pmin.x || (p.x == pmin.x && p.y < pmin.y))

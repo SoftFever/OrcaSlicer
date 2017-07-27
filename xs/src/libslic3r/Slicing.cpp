@@ -1,5 +1,6 @@
 #include <limits>
 
+#include "libslic3r.h"
 #include "Slicing.hpp"
 #include "SlicingAdaptive.hpp"
 #include "PrintConfig.hpp"
@@ -306,19 +307,6 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
 
     return layer_height_profile;
-}
-
-template <typename T>
-static inline T clamp(const T low, const T high, const T value)
-{
-    return std::max(low, std::min(high, value));
-}
-
-template <typename T>
-static inline T lerp(const T a, const T b, const T t)
-{
-    assert(t >= T(-EPSILON) && t <= T(1.+EPSILON));
-    return (1. - t) * a + t * b;
 }
 
 void adjust_layer_height_profile(

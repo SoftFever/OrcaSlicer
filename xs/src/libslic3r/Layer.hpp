@@ -74,7 +74,10 @@ public:
     void export_region_slices_to_svg_debug(const char *name);
     void export_region_fill_surfaces_to_svg_debug(const char *name);
 
-    private:
+    // Is there any valid extrusion assigned to this LayerRegion?
+    bool has_extrusions() const { return ! this->perimeters.entities.empty() || ! this->fills.entities.empty(); }
+
+private:
     Layer *_layer;
     PrintRegion *_region;
 
@@ -131,7 +134,10 @@ public:
     // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
     void export_region_slices_to_svg_debug(const char *name);
     void export_region_fill_surfaces_to_svg_debug(const char *name);
-    
+
+    // Is there any valid extrusion assigned to this LayerRegion?
+    virtual bool has_extrusions() const { for (auto layerm : this->regions) if (layerm->has_extrusions()) return true; return false; }
+
 protected:
     size_t _id;     // sequential number of layer, 0-based
     PrintObject *_object;
@@ -151,6 +157,9 @@ public:
     ExPolygonCollection support_islands;
     // Extrusion paths for the support base and for the support interface and contacts.
     ExtrusionEntityCollection support_fills;
+
+    // Is there any valid extrusion assigned to this LayerRegion?
+    virtual bool has_extrusions() const { return ! support_fills.empty(); }
 
 protected:
     SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :

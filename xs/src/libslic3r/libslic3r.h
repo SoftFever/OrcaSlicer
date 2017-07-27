@@ -88,6 +88,10 @@ inline std::string debug_out_path(const char *name, ...)
 	#define PRINTF_ZU "%zu"
 #endif
 
+#ifndef UNUSED
+#define UNUSED(x) (void)(x)
+#endif /* UNUSED */
+
 // Write slices as SVG images into out directory during the 2D processing of the slices.
 // #define SLIC3R_DEBUG_SLICE_PROCESSING
 
@@ -140,6 +144,25 @@ inline void sort_remove_duplicates(std::vector<T> &vec)
 template<typename T, typename... Args>
 inline std::unique_ptr<T> make_unique(Args&&... args) {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+template<typename T>
+static inline T sqr(T x)
+{
+    return x * x;
+}
+
+template <typename T>
+static inline T clamp(const T low, const T high, const T value)
+{
+    return std::max(low, std::min(high, value));
+}
+
+template <typename T>
+static inline T lerp(const T a, const T b, const T t)
+{
+    assert(t >= T(-EPSILON) && t <= T(1.+EPSILON));
+    return (1. - t) * a + t * b;
 }
 
 } // namespace Slic3r

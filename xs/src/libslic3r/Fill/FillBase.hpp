@@ -95,20 +95,18 @@ protected:
 
     // The expolygon may be modified by the method to avoid a copy.
     virtual void    _fill_surface_single(
-        const FillParams                &params, 
-        unsigned int                     thickness_layers,
-        const std::pair<float, Point>   &direction, 
-        ExPolygon                       &expolygon, 
-        Polylines                       &polylines_out) {}
+        const FillParams                & /* params */, 
+        unsigned int                      /* thickness_layers */,
+        const std::pair<float, Point>   & /* direction */, 
+        ExPolygon                       & /* expolygon */, 
+        Polylines                       & /* polylines_out */) {};
 
-    static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
-
-    virtual float _layer_angle(size_t idx) const { 
-        bool odd = idx & 1;
-        return (idx & 1) ? float(M_PI/2.) : 0;
-    }
+    virtual float _layer_angle(size_t idx) const { return (idx & 1) ? float(M_PI/2.) : 0; }
 
     virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
+
+public:
+    static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
 
     // Align a coordinate to a grid. The coordinate may be negative,
     // the aligned value will never be bigger than the original one.

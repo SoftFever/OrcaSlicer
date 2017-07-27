@@ -95,6 +95,7 @@ public:
     };
     
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         std::istringstream iss(str);
         iss >> this->value;
         return !iss.fail();
@@ -155,6 +156,7 @@ public:
     };
     
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         std::istringstream iss(str);
         iss >> this->value;
         return !iss.fail();
@@ -210,6 +212,7 @@ public:
     }
 
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         return unescape_string_cstyle(str, this->value);
     };
 };
@@ -252,6 +255,7 @@ public:
     };
     
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         // don't try to parse the trailing % since it's optional
         std::istringstream iss(str);
         iss >> this->value;
@@ -333,6 +337,7 @@ public:
     };
     
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         this->percent = str.find_first_of("%") != std::string::npos;
         std::istringstream iss(str);
         iss >> this->value;
@@ -355,6 +360,7 @@ public:
     };
     
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         std::istringstream iss(str);
         iss >> this->value.x;
         iss.ignore(std::numeric_limits<std::streamsize>::max(), ',');
@@ -422,6 +428,7 @@ public:
     };
     
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         this->value = (str.compare("1") == 0);
         return true;
     };
@@ -481,6 +488,7 @@ public:
     };
 
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         t_config_enum_values enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
         if (enum_keys_map.count(str) == 0) return false;
         this->value = static_cast<T>(enum_keys_map[str]);
@@ -508,6 +516,7 @@ public:
     };
 
     bool deserialize(const std::string &str, bool append = false) {
+        UNUSED(append);
         if (this->keys_map->count(str) == 0) return false;
         this->value = (*const_cast<t_config_enum_values*>(this->keys_map))[str];
         return true;

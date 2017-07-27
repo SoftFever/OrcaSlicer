@@ -50,12 +50,6 @@ static std::vector<coordf_t> perpendPoints(const coordf_t offset, const size_t b
     return points;
 }
 
-template<typename T>
-static inline T clamp(T low, T high, T x)
-{
-    return std::max<T>(low, std::min<T>(high, x));
-}
-
 // Trims an array of points to specified rectangular limits. Point
 // components that are outside these limits are set to the limits.
 static inline void trim(Pointfs &pts, coordf_t minX, coordf_t minY, coordf_t maxX, coordf_t maxY)

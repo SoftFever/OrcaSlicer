@@ -11,11 +11,8 @@ class PolylineCollection
     static Polylines _chained_path_from(
         const Polylines &src,
         Point start_near,
-        bool no_reverse
-#if SLIC3R_CPPVER >= 11
-        , bool move_from_src
-#endif
-    );
+        bool no_reverse, 
+        bool move_from_src);
 
 public:
     Polylines polylines;
@@ -25,15 +22,24 @@ public:
     	{ retval->polylines = chained_path_from(this->polylines, start_near, no_reverse); }
     Point leftmost_point() const
     	{ return leftmost_point(polylines); }
-    void append(const Polylines &polylines);
+    void append(const Polylines &polylines)
+        { this->polylines.insert(this->polylines.end(), polylines.begin(), polylines.end()); }
 
 	static Point     leftmost_point(const Polylines &polylines);
-#if SLIC3R_CPPVER >= 11
-	static Polylines chained_path(Polylines &&src, bool no_reverse = false);
-	static Polylines chained_path_from(Polylines &&src, Point start_near, bool no_reverse = false);
-#endif
-    static Polylines chained_path(const Polylines &src, bool no_reverse = false);
-    static Polylines chained_path_from(const Polylines &src, Point start_near, bool no_reverse = false);
+	static Polylines chained_path(Polylines &&src, bool no_reverse = false) {
+        return (src.empty() || src.front().points.empty()) ?
+            Polylines() :
+            _chained_path_from(src, src.front().first_point(), no_reverse, true);
+    }
+	static Polylines chained_path_from(Polylines &&src, Point start_near, bool no_reverse = false)
+        { return _chained_path_from(src, start_near, no_reverse, true); }
+    static Polylines chained_path(const Polylines &src, bool no_reverse = false) {
+        return (src.empty() || src.front().points.empty()) ?
+            Polylines() :
+            _chained_path_from(src, src.front().first_point(), no_reverse, false);
+    }
+    static Polylines chained_path_from(const Polylines &src, Point start_near, bool no_reverse = false)
+        { return _chained_path_from(src, start_near, no_reverse, false); }
 };
 
 }

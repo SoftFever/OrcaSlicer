@@ -9,11 +9,6 @@ struct Chaining
     size_t idx;
 };
 
-#ifndef sqr
-template<typename T>
-inline T sqr(T x) { return x * x; }
-#endif /* sqr */
-
 template<typename T>
 inline int nearest_point_index(const std::vector<Chaining> &pairs, const Point &start_near, bool no_reverse)
 {
@@ -49,11 +44,8 @@ inline int nearest_point_index(const std::vector<Chaining> &pairs, const Point &
 Polylines PolylineCollection::_chained_path_from(
     const Polylines &src,
     Point start_near,
-    bool  no_reverse
-#if SLIC3R_CPPVER >= 11
-    , bool  move_from_src
-#endif
-    )
+    bool  no_reverse, 
+    bool  move_from_src)
 {
     std::vector<Chaining> endpoints;
     endpoints.reserve(src.size());
@@ -70,55 +62,17 @@ Polylines PolylineCollection::_chained_path_from(
         // find nearest point
         int endpoint_index = nearest_point_index<double>(endpoints, start_near, no_reverse);
         assert(endpoint_index >= 0 && endpoint_index < endpoints.size() * 2);
-#if SLIC3R_CPPVER > 11
         if (move_from_src) {
             retval.push_back(std::move(src[endpoints[endpoint_index/2].idx]));
         } else {
             retval.push_back(src[endpoints[endpoint_index/2].idx]);
         }
-#else
-        retval.push_back(src[endpoints[endpoint_index/2].idx]);
-#endif
         if (endpoint_index & 1)
             retval.back().reverse();
         endpoints.erase(endpoints.begin() + endpoint_index/2);
         start_near = retval.back().last_point();
     }
     return retval;
-}
-
-#if SLIC3R_CPPVER >= 11
-Polylines PolylineCollection::chained_path(Polylines &&src, bool no_reverse)
-{
-    return (src.empty() || src.front().points.empty()) ?
-        Polylines() :
-        _chained_path_from(src, src.front().first_point(), no_reverse, true);
-}
-
-Polylines PolylineCollection::chained_path_from(Polylines &&src, Point start_near, bool no_reverse)
-{
-    return _chained_path_from(src, start_near, no_reverse, true);
-}
-#endif
-
-Polylines PolylineCollection::chained_path(const Polylines &src, bool no_reverse)
-{
-    return (src.empty() || src.front().points.empty()) ?
-        Polylines() :
-        _chained_path_from(src, src.front().first_point(), no_reverse
-#if SLIC3R_CPPVER >= 11
-        , false
-#endif
-    );
-}
-
-Polylines PolylineCollection::chained_path_from(const Polylines &src, Point start_near, bool no_reverse)
-{
-    return _chained_path_from(src, start_near, no_reverse
-#if SLIC3R_CPPVER >= 11
-        , false
-#endif
-    );
 }
 
 Point PolylineCollection::leftmost_point(const Polylines &polylines)
@@ -132,12 +86,6 @@ Point PolylineCollection::leftmost_point(const Polylines &polylines)
             p = p2;
     }
     return p;
-}
-
-void
-PolylineCollection::append(const Polylines &pp)
-{
-    this->polylines.insert(this->polylines.end(), pp.begin(), pp.end());
 }
 
 } // namespace Slic3r

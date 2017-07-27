@@ -38,8 +38,8 @@ void FillConcentric::_fill_surface_single(
     // split paths using a nearest neighbor search
     size_t iPathFirst = polylines_out.size();
     Point last_pos(0, 0);
-    for (Polygons::const_iterator it_loop = loops.begin(); it_loop != loops.end(); ++ it_loop) {
-        polylines_out.push_back(it_loop->split_at_index(last_pos.nearest_point_index(*it_loop)));
+    for (const Polygon &loop : loops) {
+        polylines_out.push_back(loop.split_at_index(last_pos.nearest_point_index(loop)));
         last_pos = polylines_out.back().last_point();
     }
 
@@ -50,13 +50,15 @@ void FillConcentric::_fill_surface_single(
         polylines_out[i].clip_end(this->loop_clipping);
         if (polylines_out[i].is_valid()) {
             if (j < i)
-                std::swap(polylines_out[j], polylines_out[i]);
+                polylines_out[j] = std::move(polylines_out[i]);
             ++ j;
         }
     }
     if (j < polylines_out.size())
         polylines_out.erase(polylines_out.begin() + j, polylines_out.end());
-    // TODO: return ExtrusionLoop objects to get better chained paths
+    //TODO: return ExtrusionLoop objects to get better chained paths,
+    // otherwise the outermost loop starts at the closest point to (0, 0).
+    // We want the loops to be split inside the G-code generator to get optimum path planning.
 }
 
 } // namespace Slic3r

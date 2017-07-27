@@ -11,8 +11,9 @@
 #include "../ExPolygon.hpp"
 #include "../Geometry.hpp"
 #include "../Surface.hpp"
+#include "../Int128.hpp"
 
-#include "FillRectilinear2.hpp"
+#include "FillRectilinear3.hpp"
 
 // #define SLIC3R_DEBUG
 
@@ -32,6 +33,598 @@
 #endif
 
 namespace Slic3r {
+
+namespace FillRectilinear3_Internal {
+
+// A container maintaining the source expolygon with its inner offsetted polygon.
+// The source expolygon is offsetted twice: 
+// 1) A tiny offset is used to get a contour, to which the open hatching lines will be extended.
+// 2) A larger offset is used to get a contor, along which the individual hatching lines will be connected.
+struct ExPolygonWithOffset
+{
+public:
+    ExPolygonWithOffset(
+        const ExPolygon &expolygon,
+        float aoffset1,
+        float aoffset2)
+    {
+        // Copy and rotate the source polygons.
+        polygons_src = expolygon;
+
+        double mitterLimit = 3.;
+        // for the infill pattern, don't cut the corners.
+        // default miterLimt = 3
+        //double mitterLimit = 10.;
+        myassert(aoffset1 < 0);
+        myassert(aoffset2 < 0);
+        myassert(aoffset2 < aoffset1);
+//        bool sticks_removed = remove_sticks(polygons_src);
+//        if (sticks_removed) printf("Sticks removed!\n");
+        polygons_outer = offset(polygons_src, aoffset1,
+            ClipperLib::jtMiter,
+            mitterLimit);
+        polygons_inner = offset(polygons_outer, aoffset2 - aoffset1,
+            ClipperLib::jtMiter,
+            mitterLimit);
+        // Filter out contours with zero area or small area, contours with 2 points only.
+        const double min_area_threshold = 0.01 * aoffset2 * aoffset2;
+        remove_small(polygons_outer, min_area_threshold);
+        remove_small(polygons_inner, min_area_threshold);
+        remove_sticks(polygons_outer);
+        remove_sticks(polygons_inner);
+        n_contours_outer = polygons_outer.size();
+        n_contours_inner = polygons_inner.size();
+        n_contours = n_contours_outer + n_contours_inner;
+        polygons_ccw.assign(n_contours, false);
+        for (size_t i = 0; i < n_contours; ++ i) {
+            contour(i).remove_duplicate_points();
+            myassert(! contour(i).has_duplicate_points());
+            polygons_ccw[i] = Slic3r::Geometry::is_ccw(contour(i));
+        }
+    }
+
+    // Any contour with offset1
+    bool             is_contour_outer(size_t idx) const { return idx < n_contours_outer; }
+    // Any contour with offset2
+    bool             is_contour_inner(size_t idx) const { return idx >= n_contours_outer; }
+
+    const Polygon&   contour(size_t idx) const 
+        { return is_contour_outer(idx) ? polygons_outer[idx] : polygons_inner[idx - n_contours_outer]; }
+
+    Polygon&         contour(size_t idx)
+        { return is_contour_outer(idx) ? polygons_outer[idx] : polygons_inner[idx - n_contours_outer]; }
+
+    bool             is_contour_ccw(size_t idx) const { return polygons_ccw[idx] != 0; }
+
+    BoundingBox      bounding_box_src() const 
+        { return get_extents(polygons_src); }
+    BoundingBox      bounding_box_outer() const 
+        { return get_extents(polygons_outer); }
+    BoundingBox      bounding_box_inner() const 
+        { return get_extents(polygons_inner); }
+
+#ifdef SLIC3R_DEBUG
+    void export_to_svg(Slic3r::SVG &svg) const {
+        svg.draw_outline(polygons_src,   "black");
+        svg.draw_outline(polygons_outer, "green");
+        svg.draw_outline(polygons_inner, "brown");
+    }
+#endif /* SLIC3R_DEBUG */
+
+    ExPolygon        polygons_src;
+    Polygons         polygons_outer;
+    Polygons         polygons_inner;
+
+    size_t           n_contours_outer;
+    size_t           n_contours_inner;
+    size_t           n_contours;
+
+protected:
+    // For each polygon of polygons_inner, remember its orientation.
+    std::vector<unsigned char> polygons_ccw;
+};
+
+class SegmentedIntersectionLine;
+
+// Intersection point of a vertical line with a polygon segment.
+class SegmentIntersection
+{
+public:
+    SegmentIntersection() :
+        line(nullptr),
+        expoly_with_offset(nullptr),
+        iContour(0),
+        iSegment(0),
+        type(UNKNOWN),
+        consumed_vertical_up(false),
+        consumed_perimeter_right(false)
+        {}
+
+    // Parent object owning this intersection point.
+    const SegmentedIntersectionLine *line;
+    // Container with the source expolygon and its shrank copies, to be intersected by the line.
+    const ExPolygonWithOffset       *expoly_with_offset;
+
+    // Index of a contour in ExPolygonWithOffset, with which this vertical line intersects.
+    size_t                           iContour;
+    // Index of a segment in iContour, with which this vertical line intersects.
+    size_t                           iSegment;
+
+    // Kind of intersection. With the original contour, or with the inner offestted contour?
+    // A vertical segment will be at least intersected by OUTER_LOW, OUTER_HIGH,
+    // but it could be intersected with OUTER_LOW, INNER_LOW, INNER_HIGH, OUTER_HIGH,
+    // and there may be more than one pair of INNER_LOW, INNER_HIGH between OUTER_LOW, OUTER_HIGH.
+    enum SegmentIntersectionType {
+        OUTER_LOW   = 0,
+        OUTER_HIGH  = 1,
+        INNER_LOW   = 2,
+        INNER_HIGH  = 3,
+        UNKNOWN     = -1
+    };
+    SegmentIntersectionType    type;
+
+    // For the INNER_LOW type, this point may be connected to another INNER_LOW point following a perimeter contour.
+    // For the INNER_HIGH type, this point may be connected to another INNER_HIGH point following a perimeter contour.
+    // If INNER_LOW is connected to INNER_HIGH or vice versa,
+    // one has to make sure the vertical infill line does not overlap with the connecting perimeter line.
+    bool is_inner() const { return type == INNER_LOW  || type == INNER_HIGH; }
+    bool is_outer() const { return type == OUTER_LOW  || type == OUTER_HIGH; }
+    bool is_low  () const { return type == INNER_LOW  || type == OUTER_LOW; }
+    bool is_high () const { return type == INNER_HIGH || type == OUTER_HIGH; }
+
+    // Calculate a position of this intersection point. The position does not need to be necessary exact.
+    Point       pos() const;
+
+    // Returns 0, if this and other segments intersect at the hatching line.
+    // Returns -1, if this intersection is below the other intersection on the hatching line.
+    // Returns +1 otherwise. 
+    int         ordering_along_line(const SegmentIntersection &other) const;
+
+    // Compare two y intersection points given by rational numbers.
+    bool        operator< (const SegmentIntersection &other) const { return this->ordering_along_line(other) == -1; }
+    bool        operator==(const SegmentIntersection &other) const { return this->ordering_along_line(other) == 0; }
+
+    //FIXME legacy code, suporting the old graph traversal algorithm. Please remove.
+    // Was this segment along the y axis consumed?
+    // Up means up along the vertical segment.
+    bool consumed_vertical_up;
+    // Was a segment of the inner perimeter contour consumed?
+    // Right means right from the vertical segment.
+    bool consumed_perimeter_right;
+};
+
+// A single hathing line intersecting the ExPolygonWithOffset.
+class SegmentedIntersectionLine
+{
+public:
+    // Index of this vertical intersection line.
+    size_t                              idx;
+    // Position of the line along the X axis of the oriented bounding box.
+    coord_t                             x;
+    // Position of this vertical intersection line, rotated to the world coordinate system.
+    Point                               pos;
+    // Direction of this vertical intersection line, rotated to the world coordinate system. The direction is not normalized to maintain a sufficient accuracy!
+    Vector                              dir;
+    // List of intersection points with polygons, sorted increasingly by the y axis.
+    // The SegmentIntersection keeps a pointer to this object to access the start and direction of this line.
+    std::vector<SegmentIntersection>    intersections;
+};
+
+// Return an intersection point of the parent SegmentedIntersectionLine with the segment of a parent ExPolygonWithOffset.
+// The intersected segment of the ExPolygonWithOffset is addressed with (iContour, iSegment).
+// When calling this method, the SegmentedIntersectionLine must not be parallel with the segment.
+Point SegmentIntersection::pos() const
+{
+    // Get the two rays to be intersected.
+    const Polygon &poly = this->expoly_with_offset->contour(this->iContour);
+    // 30 bits + 1 signum bit.
+    const Point   &seg_start = poly.points[this->iSegment];
+    const Point   &seg_end   = poly.points[(this->iSegment + 1) % poly.points.size()];
+    // Point, vector of the segment.
+    const Pointf   p1  = convert_to<Pointf>(seg_start);
+    const Pointf   v1  = convert_to<Pointf>(seg_end - seg_start);
+    // Point, vector of this hatching line.
+    const Pointf   p2  = convert_to<Pointf>(line->pos);
+    const Pointf   v2  = convert_to<Pointf>(line->dir);
+    // Intersect the two rays.
+    double denom = v1.x * v2.y - v2.x * v1.y;
+    Point out;
+    if (denom == 0.) {
+        // Lines are collinear. As the pos() method is not supposed to be called on collinear vectors,
+        // the source vectors are not quite collinear. Return the center of the contour segment.
+        out = seg_start + seg_end;
+        out.x >>= 1;
+        out.y >>= 1;
+    } else {
+        // Find the intersection point.
+        double t = (v2.x * (p1.y - p2.y) - v2.y * (p1.x - p2.x)) / denom;
+        if (t < 0.)
+            out = seg_start;
+        else if (t > 1.)
+            out = seg_end;
+        else {
+            out.x = coord_t(floor(p1.x + t * v1.x + 0.5));
+            out.y = coord_t(floor(p1.y + t * v1.y + 0.5));
+        }
+    }
+    return out;
+}
+
+static inline int signum(int64_t v) { return (v > 0) - (v < 0); }
+
+// Returns 0, if this and other segments intersect at the hatching line.
+// Returns -1, if this intersection is below the other intersection on the hatching line.
+// Returns +1 otherwise. 
+int SegmentIntersection::ordering_along_line(const SegmentIntersection &other) const
+{
+    assert(this->line == other.line);
+    assert(this->expoly_with_offset == other.expoly_with_offset);
+
+    if (this->iContour == other.iContour && this->iSegment == other.iSegment)
+        return true;
+
+    // Segment of this
+    const Polygon &poly_a      = this->expoly_with_offset->contour(this->iContour);
+    // 30 bits + 1 signum bit.
+    const Point   &seg_start_a = poly_a.points[this->iSegment];
+    const Point   &seg_end_a   = poly_a.points[(this->iSegment + 1) % poly_a.points.size()];
+    const Point    vec_a       = seg_end_a - seg_start_a;
+
+    // Segment of other
+    const Polygon &poly_b      = this->expoly_with_offset->contour(other.iContour);
+    // 30 bits + 1 signum bit.
+    const Point   &seg_start_b = poly_b.points[other.iSegment];
+    const Point   &seg_end_b   = poly_b.points[(other.iSegment + 1) % poly_b.points.size()];
+    const Point    vec_b       = seg_end_b - seg_start_b;
+
+    if (this->iContour == other.iContour) {
+        if ((this->iSegment + 1) % poly_a.points.size() == other.iSegment) {
+            // other.iSegment succeeds this->iSegment
+        } else if ((other.iSegment + 1) % poly_a.points.size() == this->iSegment) {
+            // this->iSegment succeeds other.iSegment
+        } else {
+            // General case.
+        }
+    }
+
+    // First test, whether both points of one segment are completely in one half-plane of the other line.
+    int side_start = signum(cross(vec_b, seg_start_a - seg_start_b));
+    int side_end   = signum(cross(vec_b, seg_end_a   - seg_start_b));
+    int side       = side_start * side_end;
+    if (side > 0)
+        // This segment is completely inside one half-plane of the other line, therefore the ordering is trivial.
+        return signum(cross(vec_b, this->line->dir)) * side_start;
+
+    int side_start2 = signum(cross(vec_a, seg_start_b - seg_start_a));
+    int side_end2   = signum(cross(vec_a, seg_end_b   - seg_start_a));
+    int side2       = side_start2 * side_end2;
+    if (side2 > 0)
+        // This segment is completely inside one half-plane of the other line, therefore the ordering is trivial.
+        return signum(cross(vec_a, this->line->dir)) * side_start2;
+
+    if (side == 0 && side2 == 0)
+        // The segments share one of their end points.
+        return 0;
+
+    // The two segments intersect and they are not sucessive segments of the same contour.
+    // Ordering of the points depends on the position of the segment intersection (left / right from this->line),
+    // therefore a simple test over the input segment end points is not sufficient.
+
+    // Find the parameters of intersection of the two segmetns with this->line.
+    int64_t denom1 = cross(vec_a, this->line->dir);
+    int64_t denom2 = cross(vec_b, this->line->dir);
+    int64_t t1_times_denom1 = int64_t(this->line->dir.x) * int64_t(seg_start_a.y - this->line->pos.y) - int64_t(this->line->dir.y) * int64_t(seg_start_a.x - this->line->pos.x);
+    int64_t t2_times_denom2 = int64_t(this->line->dir.x) * int64_t(seg_start_b.y - this->line->pos.y) - int64_t(this->line->dir.y) * int64_t(seg_start_b.x - this->line->pos.x);
+    assert(denom1 != 0);
+    assert(denom2 != 0);
+    return Int128::compare_rationals_filtered(t1_times_denom1, denom1, t2_times_denom2, denom2);
+}
+
+// When doing a rectilinear / grid / triangle / stars / cubic infill,
+// the following class holds the hatching lines of each of the hatching directions.
+class InfillHatchingSingleDirection
+{
+public:
+    // Hatching angle, CCW from the X axis.
+    double                                  angle;
+    // Starting point of the 1st hatching line.
+    Point                                   start_point;
+    // Direction vector, its size is not normalized to maintain a sufficient accuracy!
+    Vector                                  direction;
+    // Spacing of the hatching lines, perpendicular to the direction vector.
+    coord_t                                 line_spacing;
+    // Infill segments oriented at angle.
+    std::vector<SegmentedIntersectionLine>  segs;
+};
+
+// For the rectilinear, grid, triangles, stars and cubic pattern fill one InfillHatchingSingleDirection structure
+// for each infill direction. The segments stored in InfillHatchingSingleDirection will then form a graph of candidate
+// paths to be extruded.
+static bool prepare_infill_hatching_segments(
+    // Input geometry to be hatch, containing two concentric contours for each input contour.
+    const ExPolygonWithOffset      &poly_with_offset,
+    // fill density, dont_adjust
+    const FillParams               &params,
+    // angle, pattern_shift, spacing
+    FillRectilinear3::FillDirParams &fill_dir_params,
+    // Reference point of the pattern, to which the infill lines will be alligned, and the base angle.
+    const std::pair<float, Point>  &rotate_vector,
+    // Resulting straight segments of the infill graph.
+    InfillHatchingSingleDirection  &out)
+{
+    out.angle = rotate_vector.first + fill_dir_params.angle;
+    out.direction = Point(1000, 0);
+    // Hatch along the Y axis of the rotated coordinate system.
+    out.direction.rotate(out.angle + 0.5 * M_PI);
+    out.segs.clear();
+
+    myassert(params.density > 0.0001f && params.density <= 1.f);
+    coord_t line_spacing = coord_t(scale_(fill_dir_params.spacing) / params.density);
+
+    // Bounding box around the source contour, aligned with out.angle.
+    BoundingBox bounding_box = get_extents_rotated(poly_with_offset.polygons_src.contour, - out.angle);
+
+    // Define the flow spacing according to requested density.
+    if (params.full_infill() && ! params.dont_adjust) {
+        // Full infill, adjust the line spacing to fit an integer number of lines.
+        out.line_spacing = Fill::_adjust_solid_spacing(bounding_box.size().x, line_spacing);
+        // Report back the adjusted line spacing.
+        fill_dir_params.spacing = float(unscale(line_spacing));
+    } else {
+        // Extend bounding box so that our pattern will be aligned with the other layers.
+        // Transform the reference point to the rotated coordinate system.
+        Point refpt = rotate_vector.second.rotated(- out.angle);
+        // _align_to_grid will not work correctly with positive pattern_shift.
+        coord_t pattern_shift_scaled = coord_t(scale_(fill_dir_params.pattern_shift)) % line_spacing;
+        refpt.x -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
+        bounding_box.merge(Fill::_align_to_grid(
+            bounding_box.min, 
+            Point(line_spacing, line_spacing), 
+            refpt));
+    }
+
+    // Intersect a set of euqally spaced vertical lines wiht expolygon.
+    // n_vlines = ceil(bbox_width / line_spacing)
+    size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + line_spacing - 1) / line_spacing;
+    coord_t x0 = bounding_box.min.x;
+    if (params.full_infill())
+        x0 += coord_t((line_spacing + SCALED_EPSILON) / 2);
+
+    out.line_spacing = line_spacing;
+    out.start_point = Point(x0, bounding_box.min.y);
+    out.start_point.rotate(out.angle);
+
+#ifdef SLIC3R_DEBUG
+    static int iRun = 0;
+    BoundingBox bbox_svg = poly_with_offset.bounding_box_outer();
+    ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-%d.svg", iRun), bbox_svg); // , scale_(1.));
+    poly_with_offset.export_to_svg(svg);
+    {
+        ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-initial-%d.svg", iRun), bbox_svg); // , scale_(1.));
+        poly_with_offset.export_to_svg(svg);
+    }
+    iRun ++;
+#endif /* SLIC3R_DEBUG */
+
+    // For each contour
+    // Allocate storage for the segments.
+    out.segs.assign(n_vlines, SegmentedIntersectionLine());
+    for (size_t i = 0; i < n_vlines; ++ i) {
+        auto &seg = out.segs[i];
+        seg.idx = i;
+        seg.x   = x0 + coord_t(i) * line_spacing;
+        seg.pos = Point(seg.x, bounding_box.min.y);
+        seg.pos.rotate(out.angle);
+        seg.dir = out.direction;
+    }
+
+    #if 1
+    double cos_a = cos(- out.angle);
+    double sin_a = sin(- out.angle);
+    for (size_t iContour = 0; iContour < poly_with_offset.n_contours; ++ iContour) {
+        const Points &contour = poly_with_offset.contour(iContour).points;
+        if (contour.size() < 2)
+            continue;
+        // For each segment
+        for (size_t iSegment = 0; iSegment < contour.size(); ++ iSegment) {
+            size_t iPrev = ((iSegment == 0) ? contour.size() : iSegment) - 1;
+            const Point *pl = &contour[iPrev];
+            const Point *pr = &contour[iSegment];
+            // Orient the segment to the direction vector.
+            const Point  v  = *pr - *pl;
+            int   orientation = Int128::sign_determinant_2x2_filtered(v.x, v.y, out.direction.x, out.direction.y);
+            if (orientation == 0)
+                // Ignore strictly vertical segments.
+                continue;
+            if (orientation < 0)
+                // Always orient the input segment consistently towards the hatching direction.
+                std::swap(pl, pr);
+            // Which of the equally spaced vertical lines is intersected by this segment?
+            coord_t l = (coord_t)floor(cos_a * pl->x - sin_a * pl->y - EPSILON);
+            coord_t r = (coord_t)ceil (cos_a * pr->x - sin_a * pr->y + EPSILON);
+            // il, ir are the left / right indices of vertical lines intersecting a segment
+            int il = (l - x0) / line_spacing;
+            il = std::max(int(0), il);
+            while (il * line_spacing + x0 < l)
+                ++ il;
+            int ir = (r - x0 + line_spacing) / line_spacing;
+            while (ir * line_spacing + x0 > r)
+                -- ir;
+            ir = std::min(int(out.segs.size()) - 1, ir);
+            if (il > ir)
+                // No vertical line intersects this segment.
+                continue;
+            // The previous tests were done with floating point arithmetics over an epsilon-extended interval.
+            // Now do the same tests with exact arithmetics over the exact interval.
+            while (il <= ir && Int128::orient(out.segs[il].pos, out.segs[il].pos + out.direction, *pl) < 0)
+                ++ il;
+            while (il <= ir && Int128::orient(out.segs[ir].pos, out.segs[ir].pos + out.direction, *pr) > 0)
+                -- ir;
+            if (il > ir)
+                // No vertical line intersects this segment.
+                continue;
+            // Here it is ensured, that
+            // 1) out.seg is not parallel to (pl, pr)
+            // 2) all lines from il to ir intersect <pl, pr>.
+            myassert(il >= 0 && il < out.segs.size());
+            myassert(ir >= 0 && ir < out.segs.size());
+            for (int i = il; i <= ir; ++ i) {
+                myassert(out.segs[i].x == i * line_spacing + x0);
+                myassert(l <= out.segs[i].x);
+                myassert(r >= out.segs[i].x);
+                SegmentIntersection is;
+                is.line     = &out.segs[i];
+                is.expoly_with_offset = &poly_with_offset;
+                is.iContour = iContour;
+                is.iSegment = iSegment;
+                // Test whether the calculated intersection point falls into the bounding box of the input segment.
+                // +-1 to take rounding into account.
+                myassert(is.pos().x + 1 >= std::min(pl->x, pr->x));
+                myassert(is.pos().y + 1 >= std::min(pl->y, pr->y));
+                myassert(is.pos().x     <= std::max(pl->x, pr->x) + 1);
+                myassert(is.pos().y     <= std::max(pl->y, pr->y) + 1);
+                out.segs[i].intersections.push_back(is);
+            }
+        }
+    }
+    #endif
+
+    // Sort the intersections along their segments, specify the intersection types.
+    for (size_t i_seg = 0; i_seg < out.segs.size(); ++ i_seg) {
+        SegmentedIntersectionLine &sil = out.segs[i_seg];
+        // Sort the intersection points using exact rational arithmetic.
+        std::sort(sil.intersections.begin(), sil.intersections.end());
+        // Assign the intersection types, remove duplicate or overlapping intersection points.
+        // When a loop vertex touches a vertical line, intersection point is generated for both segments.
+        // If such two segments are oriented equally, then one of them is removed.
+        // Otherwise the vertex is tangential to the vertical line and both segments are removed.
+        // The same rule applies, if the loop is pinched into a single point and this point touches the vertical line:
+        // The loop has a zero vertical size at the vertical line, therefore the intersection point is removed.
+        size_t j = 0;
+        for (size_t i = 0; i < sil.intersections.size(); ++ i) {
+            // What is the orientation of the segment at the intersection point?
+            size_t iContour = sil.intersections[i].iContour;
+            const Points &contour = poly_with_offset.contour(iContour).points;
+            size_t iSegment = sil.intersections[i].iSegment;
+            size_t iPrev    = ((iSegment == 0) ? contour.size() : iSegment) - 1;
+            coord_t dir = contour[iSegment].x - contour[iPrev].x;
+            bool low = dir > 0;
+            sil.intersections[i].type = poly_with_offset.is_contour_outer(iContour) ? 
+                (low ? SegmentIntersection::OUTER_LOW : SegmentIntersection::OUTER_HIGH) :
+                (low ? SegmentIntersection::INNER_LOW : SegmentIntersection::INNER_HIGH);
+            if (j > 0 && sil.intersections[i].iContour == sil.intersections[j-1].iContour) {
+                // Two successive intersection points on a vertical line with the same contour. This may be a special case.
+                if (sil.intersections[i] == sil.intersections[j-1]) {
+                    // Two successive segments meet exactly at the vertical line.
+        #ifdef SLIC3R_DEBUG
+                    // Verify that the segments of sil.intersections[i] and sil.intersections[j-1] are adjoint.
+                    size_t iSegment2 = sil.intersections[j-1].iSegment;
+                    size_t iPrev2    = ((iSegment2 == 0) ? contour.size() : iSegment2) - 1;
+                    myassert(iSegment == iPrev2 || iSegment2 == iPrev);
+        #endif /* SLIC3R_DEBUG */
+                    if (sil.intersections[i].type == sil.intersections[j-1].type) {
+                        // Two successive segments of the same direction (both to the right or both to the left)
+                        // meet exactly at the vertical line.
+                        // Remove the second intersection point.
+                    } else {
+                        // This is a loop returning to the same point.
+                        // It may as well be a vertex of a loop touching this vertical line.
+                        // Remove both the lines.
+                        -- j;
+                    }
+                } else if (sil.intersections[i].type == sil.intersections[j-1].type) {
+                    // Two non successive segments of the same direction (both to the right or both to the left)
+                    // meet exactly at the vertical line. That means there is a Z shaped path, where the center segment
+                    // of the Z shaped path is aligned with this vertical line.
+                    // Remove one of the intersection points while maximizing the vertical segment length.
+                    if (low) {
+                        // Remove the second intersection point, keep the first intersection point.
+                    } else {
+                        // Remove the first intersection point, keep the second intersection point.
+                        sil.intersections[j-1] = sil.intersections[i];
+                    }
+                } else {
+                    // Vertical line intersects a contour segment at a general position (not at one of its end points).
+                    // or the contour just touches this vertical line with a vertical segment or a sequence of vertical segments.
+                    // Keep both intersection points.
+                    if (j < i)
+                        sil.intersections[j] = sil.intersections[i];
+                    ++ j;
+                }
+            } else {
+                // Vertical line intersects a contour segment at a general position (not at one of its end points).
+                if (j < i)
+                    sil.intersections[j] = sil.intersections[i];
+                ++ j;
+            }
+        }
+        // Shrink the list of intersections, if any of the intersection was removed during the classification.
+        if (j < sil.intersections.size())
+            sil.intersections.erase(sil.intersections.begin() + j, sil.intersections.end());
+    }
+
+    // Verify the segments. If something is wrong, give up.
+#define ASSERT_OR_RETURN(CONDITION) do { assert(CONDITION); if (! (CONDITION)) return false; } while (0)
+#ifdef _MSC_VER
+    #pragma warning(push)
+    #pragma warning(disable: 4127)
+#endif
+    for (size_t i_seg = 0; i_seg < out.segs.size(); ++ i_seg) {
+        SegmentedIntersectionLine &sil = out.segs[i_seg];
+        // The intersection points have to be even.
+        ASSERT_OR_RETURN((sil.intersections.size() & 1) == 0);
+        for (size_t i = 0; i < sil.intersections.size();) {
+            // An intersection segment crossing the bigger contour may cross the inner offsetted contour even number of times.
+            ASSERT_OR_RETURN(sil.intersections[i].type == SegmentIntersection::OUTER_LOW);
+            size_t j = i + 1;
+            ASSERT_OR_RETURN(j < sil.intersections.size());
+            ASSERT_OR_RETURN(sil.intersections[j].type == SegmentIntersection::INNER_LOW || sil.intersections[j].type == SegmentIntersection::OUTER_HIGH);
+            for (; j < sil.intersections.size() && sil.intersections[j].is_inner(); ++ j) ;
+            ASSERT_OR_RETURN(j < sil.intersections.size());
+            ASSERT_OR_RETURN((j & 1) == 1);
+            ASSERT_OR_RETURN(sil.intersections[j].type == SegmentIntersection::OUTER_HIGH);
+            ASSERT_OR_RETURN(i + 1 == j || sil.intersections[j - 1].type == SegmentIntersection::INNER_HIGH);
+            i = j + 1;
+        }
+    }
+#undef ASSERT_OR_RETURN
+#ifdef _MSC_VER
+    #pragma warning(push)
+#endif _MSC_VER
+
+#ifdef SLIC3R_DEBUG
+    // Paint the segments and finalize the SVG file.
+    for (size_t i_seg = 0; i_seg < out.segs.size(); ++ i_seg) {
+        SegmentedIntersectionLine &sil = out.segs[i_seg];
+        for (size_t i = 0; i < sil.intersections.size();) {
+            size_t j = i + 1;
+            for (; j < sil.intersections.size() && sil.intersections[j].is_inner(); ++ j) ;
+            if (i + 1 == j) {
+                svg.draw(Line(sil.intersections[i  ].pos(), sil.intersections[j  ].pos()), "blue");
+            } else {
+                svg.draw(Line(sil.intersections[i  ].pos(), sil.intersections[i+1].pos()), "green");
+                svg.draw(Line(sil.intersections[i+1].pos(), sil.intersections[j-1].pos()), (j - i + 1 > 4) ? "yellow" : "magenta");
+                svg.draw(Line(sil.intersections[j-1].pos(), sil.intersections[j  ].pos()), "green");
+            }
+            i = j + 1;
+        }
+    }
+    svg.Close();
+#endif /* SLIC3R_DEBUG */
+
+
+    return true;
+}
+
+
+
+
+
+
+
+
+/****************************************************************** Legacy code, to be replaced by a graph algorithm ******************************************************************/
+
 
 // Having a segment of a closed polygon, calculate its Euclidian length.
 // The segment indices seg1 and seg2 signify an end point of an edge in the forward direction of the loop,
@@ -107,255 +700,6 @@ static inline void polygon_segment_append_reversed(Points &out, const Polygon &p
             out.push_back(polygon.points[i - 1]);
     }
 }
-
-// Intersection point of a vertical line with a polygon segment.
-class SegmentIntersection
-{
-public:
-    SegmentIntersection() : 
-        iContour(0),
-        iSegment(0),
-        pos_p(0),
-        pos_q(1),
-        type(UNKNOWN),
-        consumed_vertical_up(false),
-        consumed_perimeter_right(false)
-        {}
-
-    // Index of a contour in ExPolygonWithOffset, with which this vertical line intersects.
-    size_t      iContour;
-    // Index of a segment in iContour, with which this vertical line intersects.
-    size_t      iSegment;
-    // y position of the intersection, ratinal number.
-    int64_t     pos_p;
-    uint32_t    pos_q;
-
-    coord_t     pos() const {
-        // Division rounds both positive and negative down to zero.
-        // Add half of q for an arithmetic rounding effect.
-        int64_t p = pos_p;
-        if (p < 0)
-            p -= int64_t(pos_q>>1);
-        else
-            p += int64_t(pos_q>>1);
-        return coord_t(p / int64_t(pos_q)); 
-    }
-
-    // Kind of intersection. With the original contour, or with the inner offestted contour?
-    // A vertical segment will be at least intersected by OUTER_LOW, OUTER_HIGH,
-    // but it could be intersected with OUTER_LOW, INNER_LOW, INNER_HIGH, OUTER_HIGH,
-    // and there may be more than one pair of INNER_LOW, INNER_HIGH between OUTER_LOW, OUTER_HIGH.
-    enum SegmentIntersectionType {
-        OUTER_LOW   = 0,
-        OUTER_HIGH  = 1,
-        INNER_LOW   = 2,
-        INNER_HIGH  = 3,
-        UNKNOWN     = -1
-    };
-    SegmentIntersectionType type;
-
-    // Was this segment along the y axis consumed?
-    // Up means up along the vertical segment.
-    bool consumed_vertical_up;
-    // Was a segment of the inner perimeter contour consumed?
-    // Right means right from the vertical segment.
-    bool consumed_perimeter_right;
-
-    // For the INNER_LOW type, this point may be connected to another INNER_LOW point following a perimeter contour.
-    // For the INNER_HIGH type, this point may be connected to another INNER_HIGH point following a perimeter contour.
-    // If INNER_LOW is connected to INNER_HIGH or vice versa,
-    // one has to make sure the vertical infill line does not overlap with the connecting perimeter line.
-    bool is_inner() const { return type == INNER_LOW  || type == INNER_HIGH; }
-    bool is_outer() const { return type == OUTER_LOW  || type == OUTER_HIGH; }
-    bool is_low  () const { return type == INNER_LOW  || type == OUTER_LOW; }
-    bool is_high () const { return type == INNER_HIGH || type == OUTER_HIGH; }
-
-    // Compare two y intersection points given by rational numbers.
-    // Note that the rational number is given as pos_p/pos_q, where pos_p is int64 and pos_q is uint32.
-    // This function calculates pos_p * other.pos_q < other.pos_p * pos_q as a 48bit number.
-    // We don't use 128bit intrinsic data types as these are usually not supported by 32bit compilers and
-    // we don't need the full 128bit precision anyway.
-    bool operator<(const SegmentIntersection &other) const
-    {
-        assert(pos_q > 0);
-        assert(other.pos_q > 0);
-        if (pos_p == 0 || other.pos_p == 0) {
-            // Because the denominators are positive and one of the nominators is zero,
-            // following simple statement holds.
-            return pos_p < other.pos_p;
-        } else {
-            // None of the nominators is zero.
-            int sign1 = (pos_p > 0) ? 1 : -1;
-            int sign2 = (other.pos_p > 0) ? 1 : -1;
-            int signs = sign1 * sign2;
-            assert(signs == 1 || signs == -1);
-            if (signs < 0) {
-                // The nominators have different signs.
-                return sign1 < 0;
-            } else {
-                // The nominators have the same sign.
-                // Absolute values
-                uint64_t p1, p2;
-                if (sign1 > 0) {
-                    p1 = uint64_t(pos_p);
-                    p2 = uint64_t(other.pos_p);
-                } else {
-                    p1 = uint64_t(- pos_p);
-                    p2 = uint64_t(- other.pos_p);
-                };
-                // Multiply low and high 32bit words of p1 by other_pos.q
-                // 32bit x 32bit => 64bit
-                // l_hi and l_lo overlap by 32 bits.
-                uint64_t l_hi = (p1 >> 32) * uint64_t(other.pos_q);
-                uint64_t l_lo = (p1 & 0xffffffffll) * uint64_t(other.pos_q);
-                l_hi += (l_lo >> 32);
-                uint64_t r_hi = (p2 >> 32) * uint64_t(pos_q);
-                uint64_t r_lo = (p2 & 0xffffffffll) * uint64_t(pos_q);
-                r_hi += (r_lo >> 32);
-                // Compare the high 64 bits.
-                if (l_hi == r_hi) {
-                    // Compare the low 32 bits.
-                    l_lo &= 0xffffffffll;
-                    r_lo &= 0xffffffffll;
-                    return (sign1 < 0) ? (l_lo > r_lo) : (l_lo < r_lo);
-                }
-                return (sign1 < 0) ? (l_hi > r_hi) : (l_hi < r_hi);
-            }
-        }
-    }
-
-    bool operator==(const SegmentIntersection &other) const 
-    {
-        assert(pos_q > 0);
-        assert(other.pos_q > 0);
-        if (pos_p == 0 || other.pos_p == 0) {
-            // Because the denominators are positive and one of the nominators is zero,
-            // following simple statement holds.
-            return pos_p == other.pos_p;
-        }
-
-        // None of the nominators is zero, none of the denominators is zero.
-        bool positive = pos_p > 0;
-        if (positive != (other.pos_p > 0))
-            return false;
-        // The nominators have the same sign.
-        // Absolute values
-        uint64_t p1 = positive ? uint64_t(pos_p) : uint64_t(- pos_p);
-        uint64_t p2 = positive ? uint64_t(other.pos_p) : uint64_t(- other.pos_p);
-        // Multiply low and high 32bit words of p1 by other_pos.q
-        // 32bit x 32bit => 64bit
-        // l_hi and l_lo overlap by 32 bits.
-        uint64_t l_lo = (p1 & 0xffffffffll) * uint64_t(other.pos_q);
-        uint64_t r_lo = (p2 & 0xffffffffll) * uint64_t(pos_q);
-        if (l_lo != r_lo)
-            return false;
-        uint64_t l_hi = (p1 >> 32) * uint64_t(other.pos_q);
-        uint64_t r_hi = (p2 >> 32) * uint64_t(pos_q);
-        return l_hi + (l_lo >> 32) == r_hi + (r_lo >> 32);
-    }
-};
-
-// A vertical line with intersection points with polygons.
-class SegmentedIntersectionLine
-{
-public:
-    // Index of this vertical intersection line.
-    size_t                              idx;
-    // x position of this vertical intersection line.
-    coord_t                             pos;
-    // List of intersection points with polygons, sorted increasingly by the y axis.
-    std::vector<SegmentIntersection>    intersections;
-};
-
-// A container maintaining an expolygon with its inner offsetted polygon.
-// The purpose of the inner offsetted polygon is to provide segments to connect the infill lines.
-struct ExPolygonWithOffset
-{
-public:
-    ExPolygonWithOffset(
-        const ExPolygon &expolygon,
-        float   angle,
-        coord_t aoffset1,
-        coord_t aoffset2)
-    {
-        // Copy and rotate the source polygons.
-        polygons_src = expolygon;
-        polygons_src.contour.rotate(angle);
-        for (Polygons::iterator it = polygons_src.holes.begin(); it != polygons_src.holes.end(); ++ it)
-            it->rotate(angle);
-
-        double mitterLimit = 3.;
-        // for the infill pattern, don't cut the corners.
-        // default miterLimt = 3
-        //double mitterLimit = 10.;
-        myassert(aoffset1 < 0);
-        myassert(aoffset2 < 0);
-        myassert(aoffset2 < aoffset1);
-        bool sticks_removed = remove_sticks(polygons_src);
-//        if (sticks_removed) printf("Sticks removed!\n");
-        polygons_outer = offset(polygons_src, aoffset1,
-            ClipperLib::jtMiter,
-            mitterLimit);
-        polygons_inner = offset(polygons_outer, aoffset2 - aoffset1,
-            ClipperLib::jtMiter,
-            mitterLimit);
-		// Filter out contours with zero area or small area, contours with 2 points only.
-        const double min_area_threshold = 0.01 * aoffset2 * aoffset2;
-        remove_small(polygons_outer, min_area_threshold);
-        remove_small(polygons_inner, min_area_threshold);
-        remove_sticks(polygons_outer);
-        remove_sticks(polygons_inner);
-		n_contours_outer = polygons_outer.size();
-        n_contours_inner = polygons_inner.size();
-        n_contours = n_contours_outer + n_contours_inner;
-        polygons_ccw.assign(n_contours, false);
-        for (size_t i = 0; i < n_contours; ++ i) {
-            contour(i).remove_duplicate_points();
-            myassert(! contour(i).has_duplicate_points());
-            polygons_ccw[i] = Slic3r::Geometry::is_ccw(contour(i));
-        }
-    }
-
-    // Any contour with offset1
-    bool             is_contour_outer(size_t idx) const { return idx < n_contours_outer; }
-    // Any contour with offset2
-    bool             is_contour_inner(size_t idx) const { return idx >= n_contours_outer; }
-
-    const Polygon&   contour(size_t idx) const 
-        { return is_contour_outer(idx) ? polygons_outer[idx] : polygons_inner[idx - n_contours_outer]; }
-
-    Polygon&         contour(size_t idx)
-        { return is_contour_outer(idx) ? polygons_outer[idx] : polygons_inner[idx - n_contours_outer]; }
-
-    bool             is_contour_ccw(size_t idx) const { return polygons_ccw[idx]; }
-
-    BoundingBox      bounding_box_src() const 
-        { return get_extents(polygons_src); }
-    BoundingBox      bounding_box_outer() const 
-        { return get_extents(polygons_outer); }
-    BoundingBox      bounding_box_inner() const 
-        { return get_extents(polygons_inner); }
-
-#ifdef SLIC3R_DEBUG
-    void export_to_svg(Slic3r::SVG &svg) {
-        svg.draw_outline(polygons_src,   "black");
-        svg.draw_outline(polygons_outer, "green");
-        svg.draw_outline(polygons_inner, "brown");
-    }
-#endif /* SLIC3R_DEBUG */
-
-    ExPolygon        polygons_src;
-    Polygons         polygons_outer;
-    Polygons         polygons_inner;
-
-    size_t           n_contours_outer;
-    size_t           n_contours_inner;
-    size_t           n_contours;
-
-protected:
-    // For each polygon of polygons_inner, remember its orientation.
-    std::vector<unsigned char> polygons_ccw;
-};
 
 static inline int distance_of_segmens(const Polygon &poly, size_t seg1, size_t seg2, bool forward)
 {
@@ -560,8 +904,8 @@ static inline coordf_t measure_perimeter_prev_next_segment_length(
     myassert(itsct.is_inner());
     const bool                       forward = itsct.is_low() == dir_is_next;
 
-    Point p1(il.pos, itsct.pos());
-    Point p2(il2.pos, itsct2.pos());
+    Point p1 = itsct.pos();
+    Point p2 = itsct2.pos();
     return forward ?
         segment_length(poly, itsct .iSegment, p1, itsct2.iSegment, p2) :
         segment_length(poly, itsct2.iSegment, p2, itsct .iSegment, p1);
@@ -628,7 +972,7 @@ static inline void emit_perimeter_prev_next_segment(
     else
         polygon_segment_append_reversed(out.points, poly, itsct.iSegment, itsct2.iSegment);
     // Append the last point.
-    out.points.push_back(Point(il2.pos, itsct2.pos()));
+    out.points.push_back(itsct2.pos());
 }
 
 static inline coordf_t measure_perimeter_segment_on_vertical_line_length(
@@ -649,43 +993,41 @@ static inline coordf_t measure_perimeter_segment_on_vertical_line_length(
     myassert(itsct.type != itsct2.type);
     myassert(itsct.iContour == iInnerContour);
     myassert(itsct.iContour == itsct2.iContour);
-    Point p1(il.pos, itsct.pos());
-    Point p2(il.pos, itsct2.pos());
     return forward ?
-        segment_length(poly, itsct .iSegment, p1, itsct2.iSegment, p2) :
-        segment_length(poly, itsct2.iSegment, p2, itsct .iSegment, p1);
+        segment_length(poly, itsct .iSegment, itsct.pos(),  itsct2.iSegment, itsct2.pos()) :
+        segment_length(poly, itsct2.iSegment, itsct2.pos(), itsct .iSegment, itsct.pos());
 }
 
 // Append the points of a perimeter segment when going from iIntersection to iIntersection2.
 // The first point (the point of iIntersection) will not be inserted,
 // the last point will be inserted.
 static inline void emit_perimeter_segment_on_vertical_line(
-	const ExPolygonWithOffset                     &poly_with_offset,
-	const std::vector<SegmentedIntersectionLine>  &segs,
-	size_t                                         iVerticalLine,
-	size_t                                         iInnerContour,
-	size_t                                         iIntersection,
-	size_t                                         iIntersection2,
-	Polyline                                      &out,
-	bool                                           forward)
+    const ExPolygonWithOffset                     &poly_with_offset,
+    const std::vector<SegmentedIntersectionLine>  &segs,
+    size_t                                         iVerticalLine,
+    size_t                                         iInnerContour,
+    size_t                                         iIntersection,
+    size_t                                         iIntersection2,
+    Polyline                                      &out,
+    bool                                           forward)
 {
-	const SegmentedIntersectionLine &il = segs[iVerticalLine];
-	const SegmentIntersection       &itsct = il.intersections[iIntersection];
-	const SegmentIntersection       &itsct2 = il.intersections[iIntersection2];
-	const Polygon                   &poly = poly_with_offset.contour(iInnerContour);
-	myassert(itsct.is_inner());
-	myassert(itsct2.is_inner());
-	myassert(itsct.type != itsct2.type);
+    const SegmentedIntersectionLine &il = segs[iVerticalLine];
+    const SegmentIntersection       &itsct = il.intersections[iIntersection];
+    const SegmentIntersection       &itsct2 = il.intersections[iIntersection2];
+    const Polygon                   &poly = poly_with_offset.contour(iInnerContour);
+    myassert(itsct.is_inner());
+    myassert(itsct2.is_inner());
+    myassert(itsct.type != itsct2.type);
     myassert(itsct.iContour == iInnerContour);
-	myassert(itsct.iContour == itsct2.iContour);
-	// Do not append the first point.
-	// out.points.push_back(Point(il.pos, itsct.pos));
-	if (forward)
-		polygon_segment_append(out.points, poly, itsct.iSegment, itsct2.iSegment);
-	else
-		polygon_segment_append_reversed(out.points, poly, itsct.iSegment, itsct2.iSegment);
-	// Append the last point.
-	out.points.push_back(Point(il.pos, itsct2.pos()));
+    myassert(itsct.iContour == itsct2.iContour);
+    // Do not append the first point.
+    // out.points.push_back(Point(il.pos, itsct.pos));
+    if (forward)
+        polygon_segment_append(out.points, poly, itsct.iSegment, itsct2.iSegment);
+    else
+        polygon_segment_append_reversed(out.points, poly, itsct.iSegment, itsct2.iSegment);
+    // Append the last point.
+    out.points.push_back(itsct2.pos());
 }
 
 //TBD: For precise infill, measure the area of a slab spanned by an infill line.
@@ -762,264 +1104,23 @@ enum DirectionMask
     DIR_BACKWARD = 2
 };
 
-bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out)
+// For the rectilinear, grid, triangles, stars and cubic pattern fill one InfillHatchingSingleDirection structure
+// for each infill direction. The segments stored in InfillHatchingSingleDirection will then form a graph of candidate
+// paths to be extruded.
+static bool fill_hatching_segments_legacy(
+    // Input geometry to be hatch, containing two concentric contours for each input contour.
+    const ExPolygonWithOffset      &poly_with_offset,
+    // fill density, dont_adjust
+    const FillParams               &params,
+    const coord_t                   link_max_length,
+    // Resulting straight segments of the infill graph.
+    InfillHatchingSingleDirection  &hatching,
+    Polylines                      &polylines_out)
 {
     // At the end, only the new polylines will be rotated back.
     size_t n_polylines_out_initial = polylines_out.size();
 
-    // Shrink the input polygon a bit first to not push the infill lines out of the perimeters.
-//    const float INFILL_OVERLAP_OVER_SPACING = 0.3f;
-    const float INFILL_OVERLAP_OVER_SPACING = 0.45f;
-    myassert(INFILL_OVERLAP_OVER_SPACING > 0 && INFILL_OVERLAP_OVER_SPACING < 0.5f);
-
-    // Rotate polygons so that we can work with vertical lines here
-    std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
-    rotate_vector.first += angleBase;
-
-    myassert(params.density > 0.0001f && params.density <= 1.f);
-    coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
-
-    // On the polygons of poly_with_offset, the infill lines will be connected.
-    ExPolygonWithOffset poly_with_offset(
-        surface->expolygon, 
-        - rotate_vector.first, 
-        scale_(this->overlap - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing),
-        scale_(this->overlap - 0.5 * this->spacing));
-    if (poly_with_offset.n_contours_inner == 0) {
-        // Not a single infill line fits.
-        //FIXME maybe one shall trigger the gap fill here?
-        return true;
-    }
-
-    BoundingBox bounding_box = poly_with_offset.bounding_box_src();
-
-    // define flow spacing according to requested density
-    if (params.full_infill() && !params.dont_adjust) {
-        line_spacing = this->_adjust_solid_spacing(bounding_box.size().x, line_spacing);
-        this->spacing = unscale(line_spacing);
-    } else {
-        // extend bounding box so that our pattern will be aligned with other layers
-        // Transform the reference point to the rotated coordinate system.
-        Point refpt = rotate_vector.second.rotated(- rotate_vector.first);
-        // _align_to_grid will not work correctly with positive pattern_shift.
-        coord_t pattern_shift_scaled = coord_t(scale_(pattern_shift)) % line_spacing;
-        refpt.x -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
-        bounding_box.merge(_align_to_grid(
-            bounding_box.min, 
-            Point(line_spacing, line_spacing), 
-            refpt));
-    }
-
-    // Intersect a set of euqally spaced vertical lines wiht expolygon.
-    // n_vlines = ceil(bbox_width / line_spacing)
-    size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + line_spacing - 1) / line_spacing;
-	coord_t x0 = bounding_box.min.x;
-	if (params.full_infill())
-		x0 += (line_spacing + SCALED_EPSILON) / 2;
-
-#ifdef SLIC3R_DEBUG
-    static int iRun = 0;
-    BoundingBox bbox_svg = poly_with_offset.bounding_box_outer();
-    ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-%d.svg", iRun), bbox_svg); // , scale_(1.));
-    poly_with_offset.export_to_svg(svg);
-    {
-        ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-initial-%d.svg", iRun), bbox_svg); // , scale_(1.));
-        poly_with_offset.export_to_svg(svg);
-    }
-    iRun ++;
-#endif /* SLIC3R_DEBUG */
-
-    // For each contour
-    // Allocate storage for the segments.
-    std::vector<SegmentedIntersectionLine> segs(n_vlines, SegmentedIntersectionLine());
-    for (size_t i = 0; i < n_vlines; ++ i) {
-        segs[i].idx = i;
-        segs[i].pos = x0 + i * line_spacing;
-    }
-    for (size_t iContour = 0; iContour < poly_with_offset.n_contours; ++ iContour) {
-        const Points &contour = poly_with_offset.contour(iContour).points;
-        if (contour.size() < 2)
-            continue;
-        // For each segment
-        for (size_t iSegment = 0; iSegment < contour.size(); ++ iSegment) {
-            size_t iPrev = ((iSegment == 0) ? contour.size() : iSegment) - 1;
-            const Point &p1 = contour[iPrev];
-            const Point &p2 = contour[iSegment];
-            // Which of the equally spaced vertical lines is intersected by this segment?
-            coord_t l = p1.x;
-            coord_t r = p2.x;
-            if (l > r)
-                std::swap(l, r);
-            // il, ir are the left / right indices of vertical lines intersecting a segment
-            int il = (l - x0) / line_spacing;
-            while (il * line_spacing + x0 < l)
-                ++ il;
-            il = std::max(int(0), il);
-            int ir = (r - x0 + line_spacing) / line_spacing;
-            while (ir * line_spacing + x0 > r)
-                -- ir;
-            ir = std::min(int(segs.size()) - 1, ir);
-            if (il > ir)
-                // No vertical line intersects this segment.
-                continue;
-            myassert(il >= 0 && il < segs.size());
-            myassert(ir >= 0 && ir < segs.size());
-            for (int i = il; i <= ir; ++ i) {
-                coord_t this_x = segs[i].pos;
-				assert(this_x == i * line_spacing + x0);
-                SegmentIntersection is;
-                is.iContour = iContour;
-                is.iSegment = iSegment;
-                myassert(l <= this_x);
-                myassert(r >= this_x);
-                // Calculate the intersection position in y axis. x is known.
-                if (p1.x == this_x) {
-                    if (p2.x == this_x) {
-                        // Ignore strictly vertical segments.
-                        continue;
-                    }
-                    is.pos_p = p1.y;
-                    is.pos_q = 1;
-                } else if (p2.x == this_x) {
-                    is.pos_p = p2.y;
-                    is.pos_q = 1;
-                } else {
-                    // First calculate the intersection parameter 't' as a rational number with non negative denominator.
-                    if (p2.x > p1.x) {
-                        is.pos_p = this_x - p1.x;
-                        is.pos_q = p2.x - p1.x;
-                    } else {
-                        is.pos_p = p1.x - this_x;
-                        is.pos_q = p1.x - p2.x;
-                    }
-                    myassert(is.pos_p >= 0 && is.pos_p <= is.pos_q);
-                    // Make an intersection point from the 't'.
-                    is.pos_p *= int64_t(p2.y - p1.y);
-                    is.pos_p += p1.y * int64_t(is.pos_q);
-                }
-                // +-1 to take rounding into account.
-                myassert(is.pos() + 1 >= std::min(p1.y, p2.y));
-                myassert(is.pos() <= std::max(p1.y, p2.y) + 1);
-                segs[i].intersections.push_back(is);
-            }
-        }
-    }
-
-    // Sort the intersections along their segments, specify the intersection types.
-    for (size_t i_seg = 0; i_seg < segs.size(); ++ i_seg) {
-        SegmentedIntersectionLine &sil = segs[i_seg];
-        // Sort the intersection points using exact rational arithmetic.
-        std::sort(sil.intersections.begin(), sil.intersections.end());
-        // Assign the intersection types, remove duplicate or overlapping intersection points.
-        // When a loop vertex touches a vertical line, intersection point is generated for both segments.
-        // If such two segments are oriented equally, then one of them is removed.
-        // Otherwise the vertex is tangential to the vertical line and both segments are removed.
-        // The same rule applies, if the loop is pinched into a single point and this point touches the vertical line:
-        // The loop has a zero vertical size at the vertical line, therefore the intersection point is removed.
-        size_t j = 0;
-        for (size_t i = 0; i < sil.intersections.size(); ++ i) {
-            // What is the orientation of the segment at the intersection point?
-            size_t iContour = sil.intersections[i].iContour;
-            const Points &contour = poly_with_offset.contour(iContour).points;
-            size_t iSegment = sil.intersections[i].iSegment;
-            size_t iPrev    = ((iSegment == 0) ? contour.size() : iSegment) - 1;
-            coord_t dir = contour[iSegment].x - contour[iPrev].x;
-            bool low = dir > 0;
-            sil.intersections[i].type = poly_with_offset.is_contour_outer(iContour) ? 
-                (low ? SegmentIntersection::OUTER_LOW : SegmentIntersection::OUTER_HIGH) :
-                (low ? SegmentIntersection::INNER_LOW : SegmentIntersection::INNER_HIGH);
-            if (j > 0 && sil.intersections[i].iContour == sil.intersections[j-1].iContour) {
-                // Two successive intersection points on a vertical line with the same contour. This may be a special case.
-                if (sil.intersections[i].pos() == sil.intersections[j-1].pos()) {
-                    // Two successive segments meet exactly at the vertical line.
-        #ifdef SLIC3R_DEBUG
-                    // Verify that the segments of sil.intersections[i] and sil.intersections[j-1] are adjoint.
-                    size_t iSegment2 = sil.intersections[j-1].iSegment;
-                    size_t iPrev2    = ((iSegment2 == 0) ? contour.size() : iSegment2) - 1;
-                    myassert(iSegment == iPrev2 || iSegment2 == iPrev);
-        #endif /* SLIC3R_DEBUG */
-                    if (sil.intersections[i].type == sil.intersections[j-1].type) {
-                        // Two successive segments of the same direction (both to the right or both to the left)
-                        // meet exactly at the vertical line.
-                        // Remove the second intersection point.
-                    } else {
-                        // This is a loop returning to the same point.
-                        // It may as well be a vertex of a loop touching this vertical line.
-                        // Remove both the lines.
-                        -- j;
-                    }
-                } else if (sil.intersections[i].type == sil.intersections[j-1].type) {
-                    // Two non successive segments of the same direction (both to the right or both to the left)
-                    // meet exactly at the vertical line. That means there is a Z shaped path, where the center segment
-                    // of the Z shaped path is aligned with this vertical line.
-                    // Remove one of the intersection points while maximizing the vertical segment length.
-                    if (low) {
-                        // Remove the second intersection point, keep the first intersection point.
-                    } else {
-                        // Remove the first intersection point, keep the second intersection point.
-                        sil.intersections[j-1] = sil.intersections[i];
-                    }
-                } else {
-                    // Vertical line intersects a contour segment at a general position (not at one of its end points).
-                    // or the contour just touches this vertical line with a vertical segment or a sequence of vertical segments.
-                    // Keep both intersection points.
-                    if (j < i)
-                        sil.intersections[j] = sil.intersections[i];
-                    ++ j;
-                }
-            } else {
-                // Vertical line intersects a contour segment at a general position (not at one of its end points).
-                if (j < i)
-                    sil.intersections[j] = sil.intersections[i];
-                ++ j;
-            }
-        }
-        // Shrink the list of intersections, if any of the intersection was removed during the classification.
-        if (j < sil.intersections.size())
-            sil.intersections.erase(sil.intersections.begin() + j, sil.intersections.end());
-    }
-
-    // Verify the segments. If something is wrong, give up.
-#define ASSERT_OR_RETURN(CONDITION) do { assert(CONDITION); if (! (CONDITION)) return false; } while (0)
-    for (size_t i_seg = 0; i_seg < segs.size(); ++ i_seg) {
-        SegmentedIntersectionLine &sil = segs[i_seg];
-        // The intersection points have to be even.
-        ASSERT_OR_RETURN((sil.intersections.size() & 1) == 0);
-        for (size_t i = 0; i < sil.intersections.size();) {
-            // An intersection segment crossing the bigger contour may cross the inner offsetted contour even number of times.
-            ASSERT_OR_RETURN(sil.intersections[i].type == SegmentIntersection::OUTER_LOW);
-            size_t j = i + 1;
-            ASSERT_OR_RETURN(j < sil.intersections.size());
-            ASSERT_OR_RETURN(sil.intersections[j].type == SegmentIntersection::INNER_LOW || sil.intersections[j].type == SegmentIntersection::OUTER_HIGH);
-            for (; j < sil.intersections.size() && sil.intersections[j].is_inner(); ++ j) ;
-            ASSERT_OR_RETURN(j < sil.intersections.size());
-            ASSERT_OR_RETURN((j & 1) == 1);
-            ASSERT_OR_RETURN(sil.intersections[j].type == SegmentIntersection::OUTER_HIGH);
-            ASSERT_OR_RETURN(i + 1 == j || sil.intersections[j - 1].type == SegmentIntersection::INNER_HIGH);
-            i = j + 1;
-        }
-    }
-#undef ASSERT_OR_RETURN
-
-#ifdef SLIC3R_DEBUG
-    // Paint the segments and finalize the SVG file.
-    for (size_t i_seg = 0; i_seg < segs.size(); ++ i_seg) {
-        SegmentedIntersectionLine &sil = segs[i_seg];
-        for (size_t i = 0; i < sil.intersections.size();) {
-            size_t j = i + 1;
-            for (; j < sil.intersections.size() && sil.intersections[j].is_inner(); ++ j) ;
-            if (i + 1 == j) {
-                svg.draw(Line(Point(sil.pos, sil.intersections[i].pos()), Point(sil.pos, sil.intersections[j].pos())), "blue");
-            } else {
-                svg.draw(Line(Point(sil.pos, sil.intersections[i].pos()), Point(sil.pos, sil.intersections[i+1].pos())), "green");
-                svg.draw(Line(Point(sil.pos, sil.intersections[i+1].pos()), Point(sil.pos, sil.intersections[j-1].pos())), (j - i + 1 > 4) ? "yellow" : "magenta");
-                svg.draw(Line(Point(sil.pos, sil.intersections[j-1].pos()), Point(sil.pos, sil.intersections[j].pos())), "green");
-            }
-            i = j + 1;
-        }
-    }
-    svg.Close();
-#endif /* SLIC3R_DEBUG */
+    std::vector<SegmentedIntersectionLine> &segs = hatching.segs;
 
     // For each outer only chords, measure their maximum distance to the bow of the outer contour.
     // Mark an outer only chord as consumed, if the distance is low.
@@ -1070,7 +1171,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                                 intrsctn.consumed_vertical_up : 
                                 seg.intersections[i-1].consumed_vertical_up;
                             if (! consumed) {
-                                coordf_t dist2 = sqr(coordf_t(pointLast.x - seg.pos)) + sqr(coordf_t(pointLast.y - intrsctn.pos()));
+                                coordf_t dist2 = pointLast.distance_to(intrsctn.pos());
                                 if (dist2 < dist2min) {
                                     dist2min = dist2;
                                     i_vline = i_vline2;
@@ -1094,7 +1195,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             polylines_out.push_back(Polyline());
             polyline_current = &polylines_out.back();
             // Emit the first point of a path.
-            pointLast = Point(segs[i_vline].pos, segs[i_vline].intersections[i_intersection].pos());
+            pointLast = segs[i_vline].intersections[i_intersection].pos();
             polyline_current->points.push_back(pointLast);
         }
 
@@ -1185,7 +1286,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
 
             // 3) Sort the intersection points, clear iPrev / iNext / iSegBelow / iSegAbove,
             // if it is preceded by any other intersection point along the contour.
-			unsigned int vert_seg_dir_valid_mask = 
+            unsigned int vert_seg_dir_valid_mask = 
                 (going_up ? 
                     (iSegAbove != -1 && seg.intersections[iAbove].type == SegmentIntersection::INNER_LOW) :
                     (iSegBelow != -1 && seg.intersections[iBelow].type == SegmentIntersection::INNER_HIGH)) ?
@@ -1244,13 +1345,13 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                 if (skip) {
                     // Just skip the connecting contour and start a new path.
                     goto dont_connect;
-                    polyline_current->points.push_back(Point(seg.pos, intrsctn->pos()));
+                    polyline_current->points.push_back(intrsctn->pos());
                     polylines_out.push_back(Polyline()); 
                     polyline_current = &polylines_out.back(); 
                     const SegmentedIntersectionLine &il2 = segs[take_next ? (i_vline + 1) : (i_vline - 1)];
-                    polyline_current->points.push_back(Point(il2.pos, il2.intersections[take_next ? iNext : iPrev].pos()));
+                    polyline_current->points.push_back(il2.intersections[take_next ? iNext : iPrev].pos());
                 } else {
-                    polyline_current->points.push_back(Point(seg.pos, intrsctn->pos()));
+                    polyline_current->points.push_back(intrsctn->pos());
                     emit_perimeter_prev_next_segment(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, take_next ? iNext : iPrev, *polyline_current, take_next);
                 }
                 // Mark both the left and right connecting segment as consumed, because one cannot go to this intersection point as it has been consumed.
@@ -1274,23 +1375,23 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             if (vert_seg_dir_valid_mask) {
                 bool valid = true;
                 // Verify, that there is no intersection with the inner contour up to the end of the contour segment.
-				// Verify, that the successive segment has not been consumed yet.
-				if (going_up) {
-					if (seg.intersections[iAbove].consumed_vertical_up) {
-						valid = false;
-					} else {
-						for (int i = (int)i_intersection + 1; i < iAbove && valid; ++i)
-							if (seg.intersections[i].is_inner()) 
-								valid = false;
-					}
+                // Verify, that the successive segment has not been consumed yet.
+                if (going_up) {
+                    if (seg.intersections[iAbove].consumed_vertical_up) {
+                        valid = false;
+                    } else {
+                        for (int i = (int)i_intersection + 1; i < iAbove && valid; ++i)
+                            if (seg.intersections[i].is_inner()) 
+                                valid = false;
+                    }
                 } else {
-					if (seg.intersections[iBelow-1].consumed_vertical_up) {
-						valid = false;
-					} else {
-						for (int i = iBelow + 1; i < (int)i_intersection && valid; ++i)
-							if (seg.intersections[i].is_inner()) 
-								valid = false;
-					}
+                    if (seg.intersections[iBelow-1].consumed_vertical_up) {
+                        valid = false;
+                    } else {
+                        for (int i = iBelow + 1; i < (int)i_intersection && valid; ++i)
+                            if (seg.intersections[i].is_inner()) 
+                                valid = false;
+                    }
                 }
                 if (valid) {
                     const Polygon &poly = poly_with_offset.contour(intrsctn->iContour);
@@ -1308,12 +1409,12 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                             poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext, dir_forward);
                         skip = link_length > link_max_length;
                     }
-                    polyline_current->points.push_back(Point(seg.pos, intrsctn->pos()));
+                    polyline_current->points.push_back(intrsctn->pos());
                     if (skip) {
                         // Just skip the connecting contour and start a new path.
                         polylines_out.push_back(Polyline()); 
                         polyline_current = &polylines_out.back();
-                        polyline_current->points.push_back(Point(seg.pos, seg.intersections[iNext].pos()));
+                        polyline_current->points.push_back(seg.intersections[iNext].pos());
                     } else {
                         // Consume the connecting contour and the next segment.
                         emit_perimeter_segment_on_vertical_line(poly_with_offset, segs, i_vline, intrsctn->iContour, i_intersection, iNext, *polyline_current, dir_forward);
@@ -1352,16 +1453,16 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         // reset the current vertical line to pick a new starting point in the next round.
         myassert(intrsctn->is_outer());
         myassert(intrsctn->is_high() == going_up);
-        pointLast = Point(seg.pos, intrsctn->pos());
+        pointLast = intrsctn->pos();
         polyline_current->points.push_back(pointLast);
         // Handle duplicate points and zero length segments.
         polyline_current->remove_duplicate_points();
         myassert(! polyline_current->has_duplicate_points());
         // Handle nearly zero length edges.
         if (polyline_current->points.size() <= 1 ||
-        	(polyline_current->points.size() == 2 &&
-        		std::abs(polyline_current->points.front().x - polyline_current->points.back().x) < SCALED_EPSILON &&
-				std::abs(polyline_current->points.front().y - polyline_current->points.back().y) < SCALED_EPSILON))
+            (polyline_current->points.size() == 2 &&
+                std::abs(polyline_current->points.front().x - polyline_current->points.back().x) < SCALED_EPSILON &&
+                std::abs(polyline_current->points.front().y - polyline_current->points.back().y) < SCALED_EPSILON))
             polylines_out.pop_back();
         intrsctn = NULL;
         i_intersection = -1;
@@ -1370,6 +1471,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
 
 #ifdef SLIC3R_DEBUG
     {
+        static int iRun = 0;
+        BoundingBox bbox_svg = poly_with_offset.bounding_box_outer();
         {
             ::Slic3r::SVG svg(debug_out_path("FillRectilinear2-final-%03d.svg", iRun), bbox_svg); // , scale_(1.));
             poly_with_offset.export_to_svg(svg);
@@ -1389,7 +1492,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         // No need to translate, the absolute position is irrelevant.
         // it->translate(- rotate_vector.second.x, - rotate_vector.second.y);
         myassert(! it->has_duplicate_points());
-        it->rotate(rotate_vector.first);
+        //it->rotate(rotate_vector.first);
         //FIXME rather simplify the paths to avoid very short edges?
         //myassert(! it->has_duplicate_points());
         it->remove_duplicate_points();
@@ -1404,69 +1507,115 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     return true;
 }
 
-Polylines FillRectilinear2::fill_surface(const Surface *surface, const FillParams &params)
+}; // namespace FillRectilinear3_Internal
+
+bool FillRectilinear3::fill_surface_by_lines(const Surface *surface, const FillParams &params, std::vector<FillDirParams> &fill_dir_params, Polylines &polylines_out)
+{
+    myassert(params.density > 0.0001f && params.density <= 1.f);
+
+    const float INFILL_OVERLAP_OVER_SPACING = 0.45f;
+    myassert(INFILL_OVERLAP_OVER_SPACING > 0 && INFILL_OVERLAP_OVER_SPACING < 0.5f);
+
+    // On the polygons of poly_with_offset, the infill lines will be connected.
+    FillRectilinear3_Internal::ExPolygonWithOffset poly_with_offset(
+        surface->expolygon,
+        float(scale_(- (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing)),
+        float(scale_(- 0.5 * this->spacing)));
+    if (poly_with_offset.n_contours_inner == 0) {
+        // Not a single infill line fits.
+        //FIXME maybe one shall trigger the gap fill here?
+        return true;
+    }
+
+    // Rotate polygons so that we can work with vertical lines here
+    std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
+    std::vector<FillRectilinear3_Internal::InfillHatchingSingleDirection> hatching(fill_dir_params.size(), FillRectilinear3_Internal::InfillHatchingSingleDirection());
+    for (size_t i = 0; i < hatching.size(); ++ i)
+        if (! FillRectilinear3_Internal::prepare_infill_hatching_segments(poly_with_offset, params, fill_dir_params[i], rotate_vector, hatching[i]))
+            return false;
+
+    for (size_t i = 0; i < hatching.size(); ++ i)
+        if (! FillRectilinear3_Internal::fill_hatching_segments_legacy(
+                poly_with_offset,
+                params,
+                this->link_max_length,
+                hatching[i],
+                polylines_out))
+            return false;
+
+    return true;
+}
+
+Polylines FillRectilinear3::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out)) {
-        printf("FillRectilinear2::fill_surface() failed to fill a region.\n");
-    }
+    std::vector<FillDirParams> fill_dir_params;
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 0.f));
+    if (! fill_surface_by_lines(surface, params, fill_dir_params, polylines_out))
+        printf("FillRectilinear3::fill_surface() failed to fill a region.\n");
+    if (params.full_infill() && ! params.dont_adjust)
+        // Return back the adjusted spacing.
+        this->spacing = fill_dir_params.front().spacing;
     return polylines_out;
 }
 
-Polylines FillGrid2::fill_surface(const Surface *surface, const FillParams &params)
+Polylines FillGrid3::fill_surface(const Surface *surface, const FillParams &params)
 {
     // Each linear fill covers half of the target coverage.
     FillParams params2 = params;
     params2.density *= 0.5f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, 0.f, polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 2.), 0.f, polylines_out)) {
-        printf("FillGrid2::fill_surface() failed to fill a region.\n");
-    }
+    std::vector<FillDirParams> fill_dir_params;
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 0.f));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, float(M_PI / 2.)));
+    if (! fill_surface_by_lines(surface, params2, fill_dir_params, polylines_out))
+        printf("FillGrid3::fill_surface() failed to fill a region.\n");
     return polylines_out;
 }
 
-Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &params)
+Polylines FillTriangles3::fill_surface(const Surface *surface, const FillParams &params)
 {
     // Each linear fill covers 1/3 of the target coverage.
     FillParams params2 = params;
     params2.density *= 0.333333333f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0., polylines_out)) {
-        printf("FillTriangles::fill_surface() failed to fill a region.\n");
-    }
+    std::vector<FillDirParams> fill_dir_params;
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 0.));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, M_PI / 3.));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 2. * M_PI / 3.));
+    if (! fill_surface_by_lines(surface, params2, fill_dir_params, polylines_out))
+        printf("FillTriangles3::fill_surface() failed to fill a region.\n");
     return polylines_out;
 }
 
-Polylines FillStars::fill_surface(const Surface *surface, const FillParams &params)
+Polylines FillStars3::fill_surface(const Surface *surface, const FillParams &params)
 {
     // Each linear fill covers 1/3 of the target coverage.
     FillParams params2 = params;
     params2.density *= 0.333333333f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0.5 * this->spacing / params2.density, polylines_out)) {
-        printf("FillStars::fill_surface() failed to fill a region.\n");
-    }
+    std::vector<FillDirParams> fill_dir_params;
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 0.));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, M_PI / 3.));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 2. * M_PI / 3., 0.5 * this->spacing / params2.density));
+    if (! fill_surface_by_lines(surface, params2, fill_dir_params, polylines_out))
+        printf("FillStars3::fill_surface() failed to fill a region.\n");
     return polylines_out;
 }
 
-Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &params)
+Polylines FillCubic3::fill_surface(const Surface *surface, const FillParams &params)
 {
     // Each linear fill covers 1/3 of the target coverage.
     FillParams params2 = params;
     params2.density *= 0.333333333f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, z, polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), -z, polylines_out) ||
-        // Rotated by PI*2/3 + PI to achieve reverse sloping wall.
-        ! fill_surface_by_lines(surface, params2, float(M_PI * 2. / 3.), z, polylines_out)) {
-        printf("FillCubic::fill_surface() failed to fill a region.\n");
-    } 
-    return polylines_out; 
+    std::vector<FillDirParams> fill_dir_params;
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 0.,             z));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, M_PI / 3.,     -z));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 2. * M_PI / 3., z));
+    if (! fill_surface_by_lines(surface, params2, fill_dir_params, polylines_out))
+        printf("FillCubic3::fill_surface() failed to fill a region.\n");
+    return polylines_out;
 }
 
 } // namespace Slic3r

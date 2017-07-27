@@ -13,11 +13,14 @@
 
 #include <boost/multi_array.hpp>
 
+#include "libslic3r.h"
 #include "ExtrusionSimulator.hpp"
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
 #endif
+
+namespace Slic3r {
 
 // Replacement for a template alias.
 // Shorthand for the point_xy.
@@ -170,24 +173,6 @@ template<typename T>
 inline T mag(const boost::geometry::model::d2::point_xy<T> &v)
 {
 	return l2(v);
-}
-
-template<typename T>
-inline T lerp(T start, T end, T alpha)
-{
-	return start * (T(1.) - alpha) + end * alpha;
-}
-
-template<typename T>
-inline T clamp(T low, T high, T x)
-{
-	return std::max<T>(low, std::min<T>(high, x));
-}
-
-template<typename T>
-inline T sqr(T x)
-{
-	return x * x;
 }
 
 template<typename T>
@@ -657,7 +642,7 @@ void gcode_spread_points(
 	A2f 					&acc,
 	const A2f				&mask,
 	const ExtrusionPoints   &points, 
-	Slic3r::ExtrusionSimulationType simulationType)
+	ExtrusionSimulationType simulationType)
 {
 	int nc = acc.shape()[1];
 	int nr = acc.shape()[0];
@@ -796,14 +781,14 @@ void gcode_spread_points(
 //		if (true) {
 //		printf("volume_total: %f, volume_full: %f, fill factor: %f\n", volume_total, volume_full, 100.f - 100.f * volume_total / volume_full);
 //		printf("volume_full: %f, volume_excess+deficit: %f, volume_excess: %f, volume_deficit: %f\n", volume_full, volume_excess+volume_deficit, volume_excess, volume_deficit);
-		if (simulationType == Slic3r::ExtrusionSimulationSpreadFull || volume_total <= volume_full) {
+		if (simulationType == ExtrusionSimulationSpreadFull || volume_total <= volume_full) {
 			// The volume under the circle is spreaded fully.
 			float height_avg = volume_total / area_total;
 			for (size_t i = 0; i < n_cells; ++ i) {
 				const Cell &cell = cells[i];
 				acc[cell.idx.y()][cell.idx.x()] = (1.f - cell.fraction_covered) * cell.volume + cell.fraction_covered * cell.area * height_avg;
 			}
-		} else if (simulationType == Slic3r::ExtrusionSimulationSpreadExcess) {
+		} else if (simulationType == ExtrusionSimulationSpreadExcess) {
 			// The volume under the circle does not fit.
 			// 1) Fill the underfilled cells and remove them from the list.
 			float volume_borrowed_total = 0.;
@@ -880,8 +865,6 @@ inline std::vector<V3uc> CreatePowerColorGradient24bit()
 		out[iColor++] = V3uc(255, 0, i);
 	return out;
 }
-
-namespace Slic3r {
 
 class ExtrusionSimulatorImpl {
 public:

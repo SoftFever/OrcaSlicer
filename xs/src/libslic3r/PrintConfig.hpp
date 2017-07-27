@@ -202,6 +202,7 @@ public:
     }
 
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
+        UNUSED(create);
         OPT_PTR(clip_multipart_objects);
         OPT_PTR(dont_support_bridges);
         OPT_PTR(elefant_foot_compensation);
@@ -283,6 +284,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     }
 
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
+        UNUSED(create);
         OPT_PTR(bottom_solid_layers);
         OPT_PTR(bridge_flow_ratio);
         OPT_PTR(bridge_speed);
@@ -369,6 +371,7 @@ public:
     }
     
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
+        UNUSED(create);
         OPT_PTR(before_layer_gcode);
         OPT_PTR(deretract_speed);
         OPT_PTR(end_gcode);
@@ -571,6 +574,7 @@ public:
     }
 
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
+        UNUSED(create);
         OPT_PTR(octoprint_host);
         OPT_PTR(octoprint_apikey);
         OPT_PTR(serial_port);

@@ -88,12 +88,6 @@ Point::nearest_point_index(const Points &points) const
     return this->nearest_point_index(p);
 }
 
-template<typename T>
-inline T sqr(const T x)
-{
-    return x * x;
-}
-
 int Point::nearest_point_index(const PointConstPtrs &points) const
 {
     int idx = -1;
