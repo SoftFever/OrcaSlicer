@@ -242,10 +242,10 @@ class Pointf3 : public Pointf
     Vectorf3 vector_to(const Pointf3 &point) const;
 };
 
-template<typename TO> inline TO convert_to(const Point &src) { return TO(TO::coord_type(src.x), TO::coord_type(src.y)); }
-template<typename TO> inline TO convert_to(const Pointf &src) { return TO(TO::coord_type(src.x), TO::coord_type(src.y)); }
-template<typename TO> inline TO convert_to(const Point3 &src) { return TO(TO::coord_type(src.x), TO::coord_type(src.y), TO::coord_type(src.z)); }
-template<typename TO> inline TO convert_to(const Pointf3 &src) { return TO(TO::coord_type(src.x), TO::coord_type(src.y), TO::coord_type(src.z)); }
+template<typename TO> inline TO convert_to(const Point &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y)); }
+template<typename TO> inline TO convert_to(const Pointf &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y)); }
+template<typename TO> inline TO convert_to(const Point3 &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y), typename TO::coord_type(src.z)); }
+template<typename TO> inline TO convert_to(const Pointf3 &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y), typename TO::coord_type(src.z)); }
 
 } // namespace Slic3r
 
