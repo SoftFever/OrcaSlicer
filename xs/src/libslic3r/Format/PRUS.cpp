@@ -123,6 +123,7 @@ bool load_prus(const char *path, Model *model)
     wxZipInputStream            zip(in);
     std::unique_ptr<wxZipEntry> entry;
     size_t                      num_models = 0;
+    std::map<int, ModelObject*> group_to_model_object;
     while (entry.reset(zip.GetNextEntry()), entry.get() != NULL) {
         wxString name = entry->GetName();
         if (name == "scene.xml") {
@@ -158,6 +159,9 @@ bool load_prus(const char *path, Model *model)
             double instance_scaling_factor = 1.f;
             Pointf instance_offset(0., 0.); 
             bool   trafo_set = false;
+            unsigned int group_id     = (unsigned int)-1;
+            unsigned int extruder_id  = (unsigned int)-1;
+            ModelObject *model_object = nullptr;
             if (model_xml != nullptr) {
                 model_xml += strlen(model_name_tag);
                 const char *position_tag = "<position>";
@@ -199,17 +203,36 @@ bool load_prus(const char *path, Model *model)
                     trafo[2][3] = position[2] / instance_scaling_factor;
                     trafo_set = true;
                 }
+                const char *group_tag    = "<group>";
+                const char *group_xml    = strstr(model_xml, group_tag);
+                const char *extruder_tag = "<extruder>";
+                const char *extruder_xml = strstr(model_xml, extruder_tag);
+                if (group_xml != nullptr) {
+                    int group = atoi(group_xml + strlen(group_tag));
+                    if (group > 0) {
+                        group_id = group;
+                        auto it = group_to_model_object.find(group_id);
+                        if (it != group_to_model_object.end())
+                            model_object = it->second;
+                    }
+                }
+                if (extruder_xml != nullptr) {
+                    int e = atoi(extruder_xml + strlen(extruder_tag));
+                    if (e > 0)
+                    extruder_id = e;
+                }
             }
             if (trafo_set) {
 				// Extract the STL.
 				StlHeader header;
+                TriangleMesh mesh;
+                bool mesh_valid = false;
 				bool stl_ascii = false;
 				if (!zip.Read((void*)&header, sizeof(StlHeader)).Eof()) {
 					if (strncmp(header.comment, "solid ", 6) == 0)
 						stl_ascii = true;
 					else {
 						// Header has been extracted. Now read the faces.
-						TriangleMesh mesh;
 						stl_file &stl = mesh.stl;
 						stl.error = 0;
 						stl.stats.type = inmemory;
@@ -231,14 +254,8 @@ bool load_prus(const char *path, Model *model)
 							if (std::abs(stl.stats.min.z) < EPSILON)
 								stl.stats.min.z = 0.;
 							// Add a mesh to a model.
-							if (mesh.facets_count() > 0) {
-                                ModelObject *object = model->add_object(name_utf8.data(), path, std::move(mesh));
-                                ModelInstance *instance     = object->add_instance();
-                                instance->rotation          = instance_rotation;
-                                instance->scaling_factor    = instance_scaling_factor;
-                                instance->offset            = instance_offset;
-								++ num_models;
-							}
+							if (mesh.facets_count() > 0)
+                                mesh_valid = true;
 						}
 					}
 				} else
@@ -308,7 +325,6 @@ bool load_prus(const char *path, Model *model)
                         facets.emplace_back(facet);
                     }
                     if (! facets.empty() && solid_name.empty()) {
-                        TriangleMesh mesh;
                         stl_file &stl = mesh.stl;
                         stl.stats.type = inmemory;
                         stl.stats.number_of_facets = facets.size();
@@ -320,12 +336,37 @@ bool load_prus(const char *path, Model *model)
                         // Transform the model.
                         stl_transform(&stl, &trafo[0][0]);
                         // Add a mesh to a model.
-                        if (mesh.facets_count() > 0) {
-                            model->add_object(name_utf8.data(), path, std::move(mesh));
-                            ++ num_models;
-                        }
+                        if (mesh.facets_count() > 0)
+                            mesh_valid = true;
                     }
 				}
+
+                if (mesh_valid) {
+                    // Add this mesh to the model.
+                    ModelVolume *volume = nullptr;
+                    if (model_object == nullptr) {
+                        // This is a first mesh of a group. Create a new object & volume.
+                        model_object = model->add_object(name_utf8.data(), path, std::move(mesh));
+                        volume = model_object->volumes.front();
+                        ModelInstance *instance     = model_object->add_instance();
+                        instance->rotation          = instance_rotation;
+                        instance->scaling_factor    = instance_scaling_factor;
+                        instance->offset            = instance_offset;
+                        ++ num_models;
+                        if (group_id != (size_t)-1)
+                            group_to_model_object[group_id] = model_object;
+                    } else {
+                        // This is not the 1st mesh of a group. Add it to the ModelObject.
+                        volume = model_object->add_volume(std::move(mesh));
+                        volume->name = name_utf8.data();
+                    }
+                    // Set the extruder to the volume.
+                    if (extruder_id != (unsigned int)-1) {
+                        char str_extruder[64];
+                        sprintf(str_extruder, "%ud", extruder_id);
+                        volume->config.set_deserialize("extruder", str_extruder);
+                    }
+                }
             }
         }
     }
