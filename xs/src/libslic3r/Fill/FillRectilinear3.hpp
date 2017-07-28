@@ -1,5 +1,5 @@
-#ifndef slic3r_FillRectilinear2_hpp_
-#define slic3r_FillRectilinear2_hpp_
+#ifndef slic3r_FillRectilinear3_hpp_
+#define slic3r_FillRectilinear3_hpp_
 
 #include "../libslic3r.h"
 
@@ -80,4 +80,4 @@ protected:
 
 }; // namespace Slic3r
 
-#endif // slic3r_FillRectilinear2_hpp_
+#endif // slic3r_FillRectilinear3_hpp_
