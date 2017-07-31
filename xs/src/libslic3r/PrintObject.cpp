@@ -195,7 +195,8 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "infill_extruder"
             || opt_key == "solid_infill_extruder"
             || opt_key == "infill_extrusion_width"
-            || opt_key == "ensure_vertical_shell_thickness") {
+            || opt_key == "ensure_vertical_shell_thickness"
+            || opt_key == "bridge_angle") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "external_fill_pattern"

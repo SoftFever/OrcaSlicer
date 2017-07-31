@@ -31,7 +31,8 @@ public:
     
     BridgeDetector(ExPolygon _expolygon, const ExPolygonCollection &_lower_slices, coord_t _extrusion_width);
     BridgeDetector(const ExPolygons &_expolygons, const ExPolygonCollection &_lower_slices, coord_t _extrusion_width);
-    bool detect_angle();
+    // If bridge_direction_override != 0, then the angle is used instead of auto-detect.
+    bool detect_angle(double bridge_direction_override = 0.);
     Polygons coverage(double angle = -1) const;
     void unsupported_edges(double angle, Polylines* unsupported) const;
     Polylines unsupported_edges(double angle = -1) const;

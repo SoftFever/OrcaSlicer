@@ -532,7 +532,7 @@ sub build {
         seam_position external_perimeters_first
         fill_density fill_pattern external_fill_pattern
         infill_every_layers infill_only_where_needed
-        solid_infill_every_layers fill_angle solid_infill_below_area 
+        solid_infill_every_layers fill_angle bridge_angle solid_infill_below_area 
         only_retract_when_crossing_perimeters infill_first
         max_print_speed max_volumetric_speed 
         max_volumetric_extrusion_rate_slope_positive max_volumetric_extrusion_rate_slope_negative
@@ -622,6 +622,7 @@ sub build {
             $optgroup->append_single_option_line('solid_infill_every_layers');
             $optgroup->append_single_option_line('fill_angle');
             $optgroup->append_single_option_line('solid_infill_below_area');
+            $optgroup->append_single_option_line('bridge_angle');
             $optgroup->append_single_option_line('only_retract_when_crossing_perimeters');
             $optgroup->append_single_option_line('infill_first');
         }
@@ -977,7 +978,7 @@ sub _update {
             solid_infill_speed);
     
     $self->get_field($_)->toggle($have_infill || $have_solid_infill)
-        for qw(fill_angle infill_extrusion_width infill_speed bridge_speed);
+        for qw(fill_angle bridge_angle infill_extrusion_width infill_speed bridge_speed);
     
     $self->get_field('gap_fill_speed')->toggle($have_perimeters && $have_infill);
     

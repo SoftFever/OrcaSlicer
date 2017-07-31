@@ -65,6 +65,15 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
 
+    def = this->add("bridge_angle", coFloat);
+    def->label = "Bridging angle";
+    def->category = "Infill";
+    def->tooltip = "Bridging angle override. If left to zero, the bridging angle will be calculated automatically. Otherwise the provided angle will be used for all bridges, use 180° for zero angle.";
+    def->sidetext = "°";
+    def->cli = "bridge-angle=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.);
+
     def = this->add("bridge_fan_speed", coInts);
     def->label = "Bridges fan speed";
     def->tooltip = "This fan speed is enforced during all bridges and overhangs.";

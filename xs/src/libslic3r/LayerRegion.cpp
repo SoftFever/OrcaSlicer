@@ -1,6 +1,7 @@
 #include "Layer.hpp"
 #include "BridgeDetector.hpp"
 #include "ClipperUtils.hpp"
+#include "Geometry.hpp"
 #include "PerimeterGenerator.hpp"
 #include "Print.hpp"
 #include "Surface.hpp"
@@ -87,8 +88,7 @@ LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection*
 //#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 1.5
 #define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
 
-void
-LayerRegion::process_external_surfaces(const Layer* lower_layer)
+void LayerRegion::process_external_surfaces(const Layer* lower_layer)
 {
     const Surfaces &surfaces = this->fill_surfaces.surfaces;
     const double margin = scale_(EXTERNAL_INFILL_MARGIN);
@@ -260,7 +260,7 @@ LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer " PRINTF_ZU ":\n", this->layer()->id());
                 #endif
-                if (bd.detect_angle()) {
+                if (bd.detect_angle(Geometry::deg2rad(this->region()->config.bridge_angle))) {
                     bridges[idx_last].bridge_angle = bd.angle;
                     if (this->layer()->object()->config.support_material) {
                         polygons_append(this->bridged, bd.coverage());

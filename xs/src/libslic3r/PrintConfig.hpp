@@ -243,7 +243,8 @@ public:
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
 class PrintRegionConfig : public virtual StaticPrintConfig
 {
-    public:
+public:
+    ConfigOptionFloat               bridge_angle;
     ConfigOptionInt                 bottom_solid_layers;
     ConfigOptionFloat               bridge_flow_ratio;
     ConfigOptionFloat               bridge_speed;
@@ -285,6 +286,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
 
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
         UNUSED(create);
+        OPT_PTR(bridge_angle);
         OPT_PTR(bottom_solid_layers);
         OPT_PTR(bridge_flow_ratio);
         OPT_PTR(bridge_speed);

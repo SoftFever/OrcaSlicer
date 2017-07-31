@@ -68,20 +68,20 @@ void BridgeDetector::initialize()
     */
 }
 
-bool
-BridgeDetector::detect_angle()
+bool BridgeDetector::detect_angle(double bridge_direction_override)
 {
     if (this->_edges.empty() || this->_anchor_regions.empty()) 
         // The bridging region is completely in the air, there are no anchors available at the layer below.
         return false;
 
     std::vector<BridgeDirection> candidates;
-    {
+    if (bridge_direction_override == 0.) {
         std::vector<double> angles = bridge_direction_candidates();
         candidates.reserve(angles.size());
         for (size_t i = 0; i < angles.size(); ++ i)
-            candidates.push_back(BridgeDirection(angles[i]));
-    }
+            candidates.emplace_back(BridgeDirection(angles[i]));
+    } else
+        candidates.emplace_back(BridgeDirection(bridge_direction_override));
     
     /*  Outset the bridge expolygon by half the amount we used for detecting anchors;
         we'll use this one to clip our test lines and be sure that their endpoints
