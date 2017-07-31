@@ -30,8 +30,7 @@ PlaceholderParser::PlaceholderParser()
     this->update_timestamp();
 }
 
-void
-PlaceholderParser::update_timestamp()
+void PlaceholderParser::update_timestamp()
 {
     time_t rawtime;
     time(&rawtime);
@@ -56,22 +55,26 @@ PlaceholderParser::update_timestamp()
     this->set("second", timeinfo->tm_sec);
 }
 
+// Scalar configuration values are stored into m_single,
+// vector configuration values are stored into m_multiple.
+// All vector configuration values stored into the PlaceholderParser
+// are expected to be addressed by the extruder ID, therefore
+// if a vector configuration value is addressed without an index,
+// a current extruder ID is used.
 void PlaceholderParser::apply_config(const DynamicPrintConfig &config)
 {
-    t_config_option_keys opt_keys = config.keys();
-    for (t_config_option_keys::const_iterator i = opt_keys.begin(); i != opt_keys.end(); ++i) {
-        const t_config_option_key &opt_key = *i;
+    for (const t_config_option_key &opt_key : config.keys()) {
         const ConfigOptionDef* def = config.def->get(opt_key);
-        if (def->multiline) continue;
-        
+        if (def->multiline || opt_key == "post_process")
+            continue;
+
         const ConfigOption* opt = config.option(opt_key);
-        if (const ConfigOptionVectorBase* optv = dynamic_cast<const ConfigOptionVectorBase*>(opt)) {
+        const ConfigOptionVectorBase* optv = dynamic_cast<const ConfigOptionVectorBase*>(opt);
+        if (optv != nullptr && opt_key != "bed_shape") {
             // set placeholders for options with multiple values
-            // TODO: treat [bed_shape] as single, not multiple
             this->set(opt_key, optv->vserialize());
         } else if (const ConfigOptionPoint* optp = dynamic_cast<const ConfigOptionPoint*>(opt)) {
             this->set(opt_key, optp->serialize());
-            
             Pointf val = *optp;
             this->set(opt_key + "_X", val.x);
             this->set(opt_key + "_Y", val.y);
@@ -82,8 +85,7 @@ void PlaceholderParser::apply_config(const DynamicPrintConfig &config)
     }
 }
 
-void
-PlaceholderParser::apply_env_variables()
+void PlaceholderParser::apply_env_variables()
 {
     for (char** env = environ; *env; env++) {
         if (strncmp(*env, "SLIC3R_", 7) == 0) {
@@ -99,8 +101,8 @@ PlaceholderParser::apply_env_variables()
 
 void PlaceholderParser::set(const std::string &key, const std::string &value)
 {
-    this->_single[key] = value;
-    this->_multiple.erase(key);
+    m_single[key] = value;
+    m_multiple.erase(key);
 }
 
 void PlaceholderParser::set(const std::string &key, int value)
@@ -126,53 +128,63 @@ void PlaceholderParser::set(const std::string &key, double value)
 
 void PlaceholderParser::set(const std::string &key, std::vector<std::string> values)
 {
-    if (values.empty()) {
-        this->_multiple.erase(key);
-        this->_single.erase(key);
-    } else {
-        this->_multiple[key] = values;
-        this->_single[key] = values.front();
-    }
+    m_single.erase(key);
+    if (values.empty())
+        m_multiple.erase(key);
+    else
+        m_multiple[key] = values;
 }
 
-std::string PlaceholderParser::process(std::string str) const
+std::string PlaceholderParser::process(std::string str, unsigned int current_extruder_id) const
 {
-    // replace single options, like [foo]
-    for (t_strstr_map::const_iterator it = this->_single.begin(); it != this->_single.end(); ++it) {
-        std::stringstream ss;
-        ss << '[' << it->first << ']';
-        this->find_and_replace(str, ss.str(), it->second);
+    char key[2048];
+
+    // Replace extruder independent single options, like [foo].
+    for (const auto &key_value : m_single) {
+        sprintf(key, "[%s]", key_value.first.c_str());
+        const std::string &replace = key_value.second;
+        for (size_t i = 0; (i = str.find(key, i)) != std::string::npos;) {
+            str.replace(i, key_value.first.size() + 2, replace);
+            i += replace.size();
+        }
     }
-    
-    // replace multiple options like [foo_0] by looping until we have enough values
-    // or until a previous match was found (this handles non-existing indices reasonably
-    // without a regex)
-    for (t_strstrs_map::const_iterator it = this->_multiple.begin(); it != this->_multiple.end(); ++it) {
-        const std::vector<std::string> &values = it->second;
-        bool found = false;
-        for (size_t i = 0; (i < values.size()) || found; ++i) {
-            std::stringstream ss;
-            ss << '[' << it->first << '_' << i << ']';
-            if (i < values.size()) {
-                found = this->find_and_replace(str, ss.str(), values[i]);
-            } else {
-                found = this->find_and_replace(str, ss.str(), values.front());
+
+    // Replace extruder dependent single options with the value for the active extruder.
+    // For example, [temperature] will be replaced with the current extruder temperature.
+    for (const auto &key_value : m_multiple) {
+		sprintf(key, "[%s]", key_value.first.c_str());
+        const std::string &replace = key_value.second[(current_extruder_id < key_value.second.size()) ? current_extruder_id : 0];
+        for (size_t i = 0; (i = str.find(key, i)) != std::string::npos;) {
+            str.replace(i, key_value.first.size() + 2, replace);
+            i += replace.size();
+        }
+    }
+
+    // Replace multiple options like [foo_0].
+    for (const auto &key_value : m_multiple) {
+        sprintf(key, "[%s_", key_value.first.c_str());
+        const std::vector<std::string> &values = key_value.second;
+        for (size_t i = 0; (i = str.find(key, i)) != std::string::npos;) {
+            size_t k = str.find(']', i + key_value.first.size() + 2);
+            if (k != std::string::npos) {
+                // Parse the key index and the closing bracket.
+                ++ k;
+                int idx = 0;
+                if (sscanf(str.c_str() + i + key_value.first.size() + 2, "%d]", &idx) == 1 && idx >= 0) {
+                    if (idx >= int(values.size()))
+                        idx = 0;
+                    str.replace(i, k - i, values[idx]);
+                    i += values[idx].size();
+                    continue;
+                }
             }
+            // The key does not match the pattern [foo_%d]. Skip just [foo_.] with the hope that there was a missing ']',
+            // so an opening '[' may be found somewhere before the position k.
+            i += key_value.first.size() + 3;
         }
     }
     
     return str;
-}
-
-bool PlaceholderParser::find_and_replace(std::string &source, std::string const &find, std::string const &replace) const
-{
-    bool found = false;
-    for (std::string::size_type i = 0; (i = source.find(find, i)) != std::string::npos; ) {
-        source.replace(i, find.length(), replace);
-        i += replace.length();
-        found = true;
-    }
-    return found;
 }
 
 }

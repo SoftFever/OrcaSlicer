@@ -1052,7 +1052,7 @@ void Print::_make_wipe_tower()
 std::string Print::output_filename()
 {
     this->placeholder_parser.update_timestamp();
-    return this->placeholder_parser.process(this->config.output_filename_format.value);
+    return this->placeholder_parser.process(this->config.output_filename_format.value, 0);
 }
 
 std::string Print::output_filepath(const std::string &path)

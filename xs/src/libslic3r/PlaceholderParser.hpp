@@ -7,17 +7,13 @@
 #include <vector>
 #include "PrintConfig.hpp"
 
-
 namespace Slic3r {
-
-typedef std::map<std::string, std::string> t_strstr_map;
-typedef std::map<std::string, std::vector<std::string> > t_strstrs_map;
 
 class PlaceholderParser
 {
 public:
-    t_strstr_map _single;
-    t_strstrs_map _multiple;
+    std::map<std::string, std::string>                  m_single;
+    std::map<std::string, std::vector<std::string>>     m_multiple;
     
     PlaceholderParser();
     void update_timestamp();
@@ -28,7 +24,7 @@ public:
     void set(const std::string &key, unsigned int value);
     void set(const std::string &key, double value);
     void set(const std::string &key, std::vector<std::string> values);
-    std::string process(std::string str) const;
+    std::string process(std::string str, unsigned int current_extruder_id) const;
     
 private:
     bool find_and_replace(std::string &source, std::string const &find, std::string const &replace) const;
