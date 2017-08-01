@@ -1101,7 +1101,7 @@ sub changescale {
         if ($tosize) {
             my $cursize = $object_size->[$axis];
             my $newsize = $self->_get_number_from_user(
-                sprintf('Enter the new size for the selected object (print bed: %smm):', $bed_size->[$axis]), 
+                sprintf('Enter the new size for the selected object (print bed: %smm):', unscale($bed_size->[$axis])), 
                 "Scale along $axis_name", 'Invalid scaling value entered', $cursize, 1);
             return if $newsize eq '';
             $scale = $newsize / $cursize * 100;
