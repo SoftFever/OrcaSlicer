@@ -1,7 +1,15 @@
 #include "Model.hpp"
 #include "Geometry.hpp"
 
+#include "Format/AMF.hpp"
+#include "Format/OBJ.hpp"
+#include "Format/PRUS.hpp"
+#include "Format/STL.hpp"
+
 #include <float.h>
+
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
 
 namespace Slic3r {
 
@@ -28,10 +36,36 @@ void Model::swap(Model &other)
     std::swap(this->objects,    other.objects);
 }
 
-Model::~Model()
+Model Model::read_from_file(const std::string &input_file, bool add_default_instances)
 {
-    this->clear_objects();
-    this->clear_materials();
+    Model model;
+    
+    bool result = false;
+    if (boost::algorithm::iends_with(input_file, ".stl"))
+        result = load_stl(input_file.c_str(), &model);
+    else if (boost::algorithm::iends_with(input_file, ".obj"))
+        result = load_obj(input_file.c_str(), &model);
+    else if (boost::algorithm::iends_with(input_file, ".amf") ||
+               boost::algorithm::iends_with(input_file, ".amf.xml"))
+        result = load_amf(input_file.c_str(), &model);
+    else if (boost::algorithm::iends_with(input_file, ".prusa"))
+        result = load_prus(input_file.c_str(), &model);
+    else
+        throw std::runtime_error("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
+    
+    if (! result)
+        throw std::runtime_error("Loading of a model file failed.");
+
+    if (model.objects.empty())
+        throw std::runtime_error("The supplied file couldn't be read because it's empty");
+    
+    for (ModelObject *o : model.objects)
+        o->input_file = input_file;
+    
+    if (add_default_instances)
+        model.add_default_instances();
+
+    return model;
 }
 
 ModelObject* Model::add_object()
@@ -277,6 +311,45 @@ void Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
             instance->offset.y = (size.y + dist) * (y_copy-1);
         }
     }
+}
+
+bool Model::looks_like_multipart_object() const
+{
+    if (this->objects.size() <= 1)
+        return false;
+    double zmin = std::numeric_limits<double>::max();
+    for (const ModelObject *obj : this->objects) {
+        if (obj->volumes.size() > 1 || obj->config.keys().size() > 1)
+            return false;
+        for (const ModelVolume *vol : obj->volumes) {
+            double zmin_this = vol->mesh.bounding_box().min.z;
+            if (zmin == std::numeric_limits<double>::max())
+                zmin = zmin_this;
+            else if (std::abs(zmin - zmin_this) > EPSILON)
+                // The volumes don't share zmin.
+                return true;
+        }
+    }
+    return false;
+}
+
+void Model::convert_multipart_object()
+{
+    if (this->objects.empty())
+        return;
+    
+    ModelObject* object = this->add_object();
+    object->input_file = this->objects.front()->input_file;
+    
+    for (const ModelObject* o : this->objects)
+        for (const ModelVolume* v : o->volumes)
+            object->add_volume(*v)->name = o->name;
+
+    for (const ModelInstance* i : this->objects.front()->instances)
+        object->add_instance(*i);
+    
+    while (this->objects.size() > 1)
+        this->delete_object(0);
 }
 
 ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes) :  
@@ -660,6 +733,48 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     }
     
     return;
+}
+
+void ModelObject::print_info() const
+{
+    using namespace std;
+    cout << fixed;
+    cout << "[" << boost::filesystem::path(this->input_file).filename().string() << "]" << endl;
+    
+    TriangleMesh mesh = this->raw_mesh();
+    mesh.check_topology();
+    BoundingBoxf3 bb = mesh.bounding_box();
+    Sizef3 size = bb.size();
+    cout << "size_x = " << size.x << endl;
+    cout << "size_y = " << size.y << endl;
+    cout << "size_z = " << size.z << endl;
+    cout << "min_x = " << bb.min.x << endl;
+    cout << "min_y = " << bb.min.y << endl;
+    cout << "min_z = " << bb.min.z << endl;
+    cout << "max_x = " << bb.max.x << endl;
+    cout << "max_y = " << bb.max.y << endl;
+    cout << "max_z = " << bb.max.z << endl;
+    cout << "number_of_facets = " << mesh.stl.stats.number_of_facets  << endl;
+    cout << "manifold = "   << (mesh.is_manifold() ? "yes" : "no") << endl;
+    
+    mesh.repair();  // this calculates number_of_parts
+    if (mesh.needed_repair()) {
+        mesh.repair();
+        if (mesh.stl.stats.degenerate_facets > 0)
+            cout << "degenerate_facets = "  << mesh.stl.stats.degenerate_facets << endl;
+        if (mesh.stl.stats.edges_fixed > 0)
+            cout << "edges_fixed = "        << mesh.stl.stats.edges_fixed       << endl;
+        if (mesh.stl.stats.facets_removed > 0)
+            cout << "facets_removed = "     << mesh.stl.stats.facets_removed    << endl;
+        if (mesh.stl.stats.facets_added > 0)
+            cout << "facets_added = "       << mesh.stl.stats.facets_added      << endl;
+        if (mesh.stl.stats.facets_reversed > 0)
+            cout << "facets_reversed = "    << mesh.stl.stats.facets_reversed   << endl;
+        if (mesh.stl.stats.backwards_edges > 0)
+            cout << "backwards_edges = "    << mesh.stl.stats.backwards_edges   << endl;
+    }
+    cout << "number_of_parts =  " << mesh.stl.stats.number_of_parts << endl;
+    cout << "volume = "           << mesh.volume()                  << endl;
 }
 
 void ModelVolume::material_id(t_model_material_id material_id)

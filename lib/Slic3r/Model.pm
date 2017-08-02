@@ -1,26 +1,7 @@
 # extends C++ class Slic3r::Model
 package Slic3r::Model;
 
-use File::Basename qw(basename);
 use List::Util qw(first max any);
-
-sub read_from_file {
-    my ($class, $input_file, $add_default_instances) = @_;
-    $add_default_instances //= 1;
-    
-    my $model = $input_file =~ /\.[sS][tT][lL]$/                    ? Slic3r::Model->load_stl(Slic3r::encode_path($input_file), basename($input_file))
-              : $input_file =~ /\.[oO][bB][jJ]$/                    ? Slic3r::Model->load_obj(Slic3r::encode_path($input_file), basename($input_file))
-              : $input_file =~ /\.[aA][mM][fF](\.[xX][mM][lL])?$/   ? Slic3r::Model->load_amf(Slic3r::encode_path($input_file))
-              : $input_file =~ /\.[pP][rR][uU][sS][aA]$/            ? Slic3r::Model->load_prus(Slic3r::encode_path($input_file))
-              : die "Input file must have .stl, .obj or .amf(.xml) extension\n";
-    
-    die "The supplied file couldn't be read because it's empty.\n"
-        if $model->objects_count == 0;
-    
-    $_->set_input_file($input_file) for @{$model->objects};
-    $model->add_default_instances if $add_default_instances;
-    return $model;
-}
 
 sub merge {
     my $class = shift;
@@ -70,38 +51,6 @@ sub set_material {
     return $material;
 }
 
-sub print_info {
-    my $self = shift;
-    $_->print_info for @{$self->objects};
-}
-
-sub looks_like_multipart_object {
-    my ($self) = @_;
-    
-    return 0 if $self->objects_count == 1;
-    return 0 if any { $_->volumes_count > 1 } @{$self->objects};
-    return 0 if any { @{$_->config->get_keys} > 1 } @{$self->objects};
-    
-    my %heights = map { $_ => 1 } map $_->mesh->bounding_box->z_min, map @{$_->volumes}, @{$self->objects};
-    return scalar(keys %heights) > 1;
-}
-
-sub convert_multipart_object {
-    my ($self) = @_;
-    
-    my @objects = @{$self->objects};
-    my $object = $self->add_object(
-        input_file          => $objects[0]->input_file,
-    );
-    foreach my $v (map @{$_->volumes}, @objects) {
-        my $volume = $object->add_volume($v);
-        $volume->set_name($v->object->name);
-    }
-    $object->add_instance($_) for map @{$_->instances}, @objects;
-    
-    $self->delete_object($_) for reverse 0..($self->objects_count-2);
-}
-
 # Extends C++ class Slic3r::ModelMaterial
 package Slic3r::Model::Material;
 
@@ -113,7 +62,6 @@ sub apply {
 # Extends C++ class Slic3r::ModelObject
 package Slic3r::Model::Object;
 
-use File::Basename qw(basename);
 use List::Util qw(first sum);
 
 sub add_volume {
@@ -191,31 +139,6 @@ sub mesh_stats {
     
     # TODO: sum values from all volumes
     return $self->volumes->[0]->mesh->stats;
-}
-
-sub print_info {
-    my $self = shift;
-    
-    printf "Info about %s:\n", basename($self->input_file);
-    printf "  size:              x=%.3f y=%.3f z=%.3f\n", @{$self->raw_mesh->bounding_box->size};
-    if (my $stats = $self->mesh_stats) {
-        printf "  number of facets:  %d\n", $stats->{number_of_facets};
-        printf "  number of shells:  %d\n", $stats->{number_of_parts};
-        printf "  volume:            %.3f\n", $stats->{volume};
-        if ($self->needed_repair) {
-            printf "  needed repair:     yes\n";
-            printf "  degenerate facets: %d\n", $stats->{degenerate_facets};
-            printf "  edges fixed:       %d\n", $stats->{edges_fixed};
-            printf "  facets removed:    %d\n", $stats->{facets_removed};
-            printf "  facets added:      %d\n", $stats->{facets_added};
-            printf "  facets reversed:   %d\n", $stats->{facets_reversed};
-            printf "  backwards edges:   %d\n", $stats->{backwards_edges};
-        } else {
-            printf "  needed repair:     no\n";
-        }
-    } else {
-        printf "  number of facets:  %d\n", scalar(map @{$_->facets}, grep !$_->modifier, @{$self->volumes});
-    }
 }
 
 1;

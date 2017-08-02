@@ -15,6 +15,15 @@
     Model();
     ~Model();
 
+    %name{read_from_file} Model(std::string input_file, bool add_default_instances = true)
+        %code%{
+            try {
+                RETVAL = new Model(Model::read_from_file(input_file, add_default_instances));
+            } catch (std::exception& e) {
+                croak("Error while opening %s: %s\n", input_file.c_str(), e.what());
+            }
+        %};
+
     Clone<Model> clone()
         %code%{ RETVAL = THIS; %};
     
@@ -72,6 +81,11 @@
     void duplicate(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
     void duplicate_objects(unsigned int copies_num, double dist, BoundingBoxf* bb = NULL);
     void duplicate_objects_grid(unsigned int x, unsigned int y, double dist);
+
+    bool looks_like_multipart_object() const;
+    void convert_multipart_object();
+
+    void print_info() const;
 
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
@@ -272,6 +286,8 @@ ModelMaterial::attributes()
             RETVAL = new ModelObjectPtrs();  // leak?
             THIS->split(RETVAL);
         %};
+
+    void print_info() const;
 };
 
 

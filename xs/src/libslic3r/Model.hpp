@@ -125,6 +125,9 @@ public:
     bool needed_repair() const;
     void cut(coordf_t z, Model* model) const;
     void split(ModelObjectPtrs* new_objects);
+
+    // Print object statistics to console.
+    void print_info() const;
     
 private:        
     ModelObject(Model *model) : m_model(model),  m_bounding_box_valid(false), layer_height_profile_valid(false) {}
@@ -232,7 +235,10 @@ public:
     Model(const Model &other);
     Model& operator= (Model other);
     void swap(Model &other);
-    ~Model();
+    ~Model() { this->clear_objects(); this->clear_materials(); }
+
+    static Model read_from_file(const std::string &input_file, bool add_default_instances = true);
+
     ModelObject* add_object();
     ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
     ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
@@ -259,6 +265,11 @@ public:
     void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
     void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
     void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
+
+    bool looks_like_multipart_object() const;
+    void convert_multipart_object();
+
+    void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
 };
 
 }

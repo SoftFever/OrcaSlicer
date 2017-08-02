@@ -64,6 +64,7 @@ sub process {
     Slic3r::trace(3, "Slicing process finished.")
 }
 
+# G-code export process, running at a background thread.
 sub export_gcode {
     my $self = shift;
     my %params = @_;

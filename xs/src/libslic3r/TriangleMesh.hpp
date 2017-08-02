@@ -32,6 +32,9 @@ public:
     void write_ascii(const char* output_file);
     void write_binary(const char* output_file);
     void repair();
+    float volume();
+    void check_topology();
+    bool is_manifold() const;
     void WriteOBJFile(char* output_file);
     void scale(float factor);
     void scale(const Pointf3 &versor);
