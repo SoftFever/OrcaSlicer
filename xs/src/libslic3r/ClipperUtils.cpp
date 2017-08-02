@@ -505,13 +505,8 @@ inline ClipperLib::PolyTree _clipper_do_polytree2(const ClipperLib::ClipType cli
     ClipperLib::Paths input_clip    = Slic3rMultiPoints_to_ClipperPaths(clip);
     
     // perform safety offset
-    if (safety_offset_) {
-        if (clipType == ClipperLib::ctUnion) {
-            safety_offset(&input_subject);
-        } else {
-            safety_offset(&input_clip);
-        }
-    }
+    if (safety_offset_)
+        safety_offset((clipType == ClipperLib::ctUnion) ? &input_subject : &input_clip);
     
     ClipperLib::Clipper clipper;
     clipper.AddPaths(input_subject, ClipperLib::ptSubject, true);
@@ -528,8 +523,7 @@ inline ClipperLib::PolyTree _clipper_do_polytree2(const ClipperLib::ClipType cli
     return retval;
 }
 
-ClipperLib::PolyTree
-_clipper_do_pl(const ClipperLib::ClipType clipType, const Polylines &subject, 
+ClipperLib::PolyTree _clipper_do_pl(const ClipperLib::ClipType clipType, const Polylines &subject, 
     const Polygons &clip, const ClipperLib::PolyFillType fillType,
     const bool safety_offset_)
 {
@@ -554,33 +548,25 @@ _clipper_do_pl(const ClipperLib::ClipType clipType, const Polylines &subject,
     return retval;
 }
 
-Polygons
-_clipper(ClipperLib::ClipType clipType, const Polygons &subject, 
-    const Polygons &clip, bool safety_offset_)
+Polygons _clipper(ClipperLib::ClipType clipType, const Polygons &subject, const Polygons &clip, bool safety_offset_)
 {
     return ClipperPaths_to_Slic3rPolygons(_clipper_do<ClipperLib::Paths>(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_));
 }
 
-ExPolygons
-_clipper_ex(ClipperLib::ClipType clipType, const Polygons &subject, 
-    const Polygons &clip, bool safety_offset_)
+ExPolygons _clipper_ex(ClipperLib::ClipType clipType, const Polygons &subject, const Polygons &clip, bool safety_offset_)
 {
     ClipperLib::PolyTree polytree = _clipper_do_polytree2(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_);
     return PolyTreeToExPolygons(polytree);
 }
 
-Polylines
-_clipper_pl(ClipperLib::ClipType clipType, const Polylines &subject, 
-    const Polygons &clip, bool safety_offset_)
+Polylines _clipper_pl(ClipperLib::ClipType clipType, const Polylines &subject, const Polygons &clip, bool safety_offset_)
 {
     ClipperLib::Paths output;
     ClipperLib::PolyTreeToPaths(_clipper_do_pl(clipType, subject, clip, ClipperLib::pftNonZero, safety_offset_), output);
     return ClipperPaths_to_Slic3rPolylines(output);
 }
 
-Polylines
-_clipper_pl(ClipperLib::ClipType clipType, const Polygons &subject, 
-    const Polygons &clip, bool safety_offset_)
+Polylines _clipper_pl(ClipperLib::ClipType clipType, const Polygons &subject, const Polygons &clip, bool safety_offset_)
 {
     // transform input polygons into polylines
     Polylines polylines;

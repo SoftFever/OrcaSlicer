@@ -191,6 +191,7 @@ public:
     void _slice();
     std::string _fix_slicing_errors();
     void _simplify_slices(double distance);
+    void _prepare_infill();
     bool has_support_material() const;
     void detect_surfaces_type();
     void process_external_surfaces();
@@ -198,6 +199,9 @@ public:
     void bridge_over_infill();
     void _make_perimeters();
     void _infill();
+    void clip_fill_surfaces();
+    void discover_horizontal_shells();
+    void combine_infill();
     void _generate_support_material();
 
 private:

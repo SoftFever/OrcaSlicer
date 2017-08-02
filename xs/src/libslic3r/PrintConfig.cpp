@@ -68,7 +68,7 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("bridge_angle", coFloat);
     def->label = "Bridging angle";
     def->category = "Infill";
-    def->tooltip = "Bridging angle override. If left to zero, the bridging angle will be calculated automatically. Otherwise the provided angle will be used for all bridges, use 180° for zero angle.";
+    def->tooltip = "Bridging angle override. If left to zero, the bridging angle will be calculated automatically. Otherwise the provided angle will be used for all bridges. Use 180° for zero angle.";
     def->sidetext = "°";
     def->cli = "bridge-angle=f";
     def->min = 0;

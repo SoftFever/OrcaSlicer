@@ -35,9 +35,7 @@ public:
     Point(int _x, int _y): x(_x), y(_y) {};
     Point(long long _x, long long _y): x(coord_t(_x)), y(coord_t(_y)) {};  // for Clipper
     Point(double x, double y);
-    static Point new_scale(coordf_t x, coordf_t y) {
-        return Point(scale_(x), scale_(y));
-    };
+    static Point new_scale(coordf_t x, coordf_t y) { return Point(coord_t(scale_(x)), coord_t(scale_(y))); }
 
     bool operator==(const Point& rhs) const { return this->x == rhs.x && this->y == rhs.y; }
     bool operator!=(const Point& rhs) const { return ! (*this == rhs); }
@@ -182,9 +180,10 @@ private:
 
 class Point3 : public Point
 {
-    public:
+public:
     coord_t z;
     explicit Point3(coord_t _x = 0, coord_t _y = 0, coord_t _z = 0): Point(_x, _y), z(_z) {};
+    static Point3 new_scale(coordf_t x, coordf_t y, coordf_t z) { return Point3(coord_t(scale_(x)), coord_t(scale_(y)), coord_t(scale_(z))); }
 };
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);

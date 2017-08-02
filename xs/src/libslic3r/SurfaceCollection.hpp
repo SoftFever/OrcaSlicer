@@ -13,8 +13,8 @@ public:
     Surfaces surfaces;
     
     SurfaceCollection() {};
-    SurfaceCollection(const Surfaces &_surfaces)
-        : surfaces(_surfaces) {};
+    SurfaceCollection(const Surfaces &surfaces) : surfaces(surfaces) {};
+    SurfaceCollection(Surfaces &&surfaces) : surfaces(std::move(surfaces)) {};
     operator Polygons() const;
     operator ExPolygons() const;
     void simplify(double tolerance);

@@ -65,11 +65,6 @@ _constant()
         %code%{ RETVAL = &THIS->size; %};
     Clone<BoundingBox> bounding_box();
     
-    bool typed_slices()
-        %code%{ RETVAL = THIS->typed_slices; %};
-    void set_typed_slices(bool value)
-        %code%{ THIS->typed_slices = value; %};
-    
     Points _shifted_copies()
         %code%{ RETVAL = THIS->_shifted_copies; %};
     void set_shifted_copies(Points value)
@@ -108,10 +103,9 @@ _constant()
     void _slice();
     std::string _fix_slicing_errors();
     void _simplify_slices(double distance);
+    void _prepare_infill();
     void detect_surfaces_type();
     void process_external_surfaces();
-    void discover_vertical_shells();
-    void bridge_over_infill();
     void _make_perimeters();
     void _infill();
     void _generate_support_material();

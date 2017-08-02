@@ -185,32 +185,27 @@ inline Slic3r::Lines intersection_ln(const Slic3r::Line &subject, const Slic3r::
 }
 
 // union
-inline Slic3r::Polygons
-union_(const Slic3r::Polygons &subject, bool safety_offset_ = false)
+inline Slic3r::Polygons union_(const Slic3r::Polygons &subject, bool safety_offset_ = false)
 {
     return _clipper(ClipperLib::ctUnion, subject, Slic3r::Polygons(), safety_offset_);
 }
 
-inline Slic3r::Polygons
-union_(const Slic3r::Polygons &subject, const Slic3r::Polygons &subject2, bool safety_offset_ = false)
+inline Slic3r::Polygons union_(const Slic3r::Polygons &subject, const Slic3r::Polygons &subject2, bool safety_offset_ = false)
 {
     return _clipper(ClipperLib::ctUnion, subject, subject2, safety_offset_);
 }
 
-inline Slic3r::ExPolygons
-union_ex(const Slic3r::Polygons &subject, bool safety_offset_ = false)
+inline Slic3r::ExPolygons union_ex(const Slic3r::Polygons &subject, bool safety_offset_ = false)
 {
     return _clipper_ex(ClipperLib::ctUnion, subject, Slic3r::Polygons(), safety_offset_);
 }
 
-inline Slic3r::ExPolygons
-union_ex(const Slic3r::ExPolygons &subject, bool safety_offset_ = false)
+inline Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons &subject, bool safety_offset_ = false)
 {
     return _clipper_ex(ClipperLib::ctUnion, to_polygons(subject), Slic3r::Polygons(), safety_offset_);
 }
 
-inline Slic3r::ExPolygons
-union_ex(const Slic3r::Surfaces &subject, bool safety_offset_ = false)
+inline Slic3r::ExPolygons union_ex(const Slic3r::Surfaces &subject, bool safety_offset_ = false)
 {
     return _clipper_ex(ClipperLib::ctUnion, to_polygons(subject), Slic3r::Polygons(), safety_offset_);
 }
