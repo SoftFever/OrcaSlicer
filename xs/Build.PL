@@ -129,11 +129,11 @@ if (defined $ENV{BOOST_LIBRARYDIR}) {
 
 # In order to generate the -l switches we need to know how Boost libraries are named
 my $have_boost = 0;
-my @boost_libraries = qw(system thread filesystem log);  # we need these
+my @boost_libraries = qw(system thread filesystem locale log);  # we need these
 
 if (!$ENV{SLIC3R_STATIC}) {
     # Dynamic linking of boost libraries.
-    push @cflags, qw(-DBOOST_LOG_DYN_LINK);
+    push @cflags, qw(-DBOOST_LOG_DYN_LINK -DBOOST_LOCALE_DYN_LINK);
     if (! $mswin) {
         # Check without explicit lib path (works on Linux and OSX).
         $have_boost = 1
@@ -193,10 +193,10 @@ path through the BOOST_DIR environment variable:
 Or you may specify BOOST_INCLUDEDIR and BOOST_LIBRARYDIR separatly, which
 is handy, if you have built Boost libraries with mutliple settings.
 
-Following boost libraries are needed by Slic3r Prusa Edition: system, filesystem, thread, log.
+Following boost libraries are needed by Slic3r Prusa Edition: system, filesystem, thread, locale, log.
 
 On Debian, you need to run
-sudo apt-get install libboost-thread-dev libboost-system-dev libboost-filesystem-dev libboost-log-dev
+sudo apt-get install libboost-thread-dev libboost-system-dev libboost-filesystem-dev libboost-locale-dev libboost-log-dev
 
 EOF
 

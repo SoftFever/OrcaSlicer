@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include <boost/nowide/convert.hpp>
+
 #include <wx/string.h>
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -119,7 +121,14 @@ bool load_prus(const char *path, Model *model)
 {
     // To receive the content of the zipped 'scene.xml' file.
     std::vector<char>           scene_xml_data;
-    wxFFileInputStream          in(path);
+    wxFFileInputStream          in(
+#ifdef WIN32
+        // On Windows, convert to a 16bit unicode string.
+        boost::nowide::widen(path).c_str()
+#else
+        path
+#endif
+        );
     wxZipInputStream            zip(in);
     std::unique_ptr<wxZipEntry> entry;
     size_t                      num_models = 0;

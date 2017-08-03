@@ -27,9 +27,13 @@
 
 #include "stl.h"
 
-static void stl_reverse_facet(stl_file *stl, int facet_num);
-static void stl_reverse_vector(float v[]);
-int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag);
+static void stl_reverse_vector(float v[]) {
+  v[0] *= -1;
+  v[1] *= -1;
+  v[2] *= -1;
+}
+
+static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag);
 
 static void
 stl_reverse_facet(stl_file *stl, int facet_num) {
@@ -136,10 +140,8 @@ stl_fix_normal_directions(stl_file *stl) {
       /* Reverse the neighboring facets if necessary. */
       if(stl->neighbors_start[facet_num].which_vertex_not[j] > 2) {
         /* If the facet has a neighbor that is -1, it means that edge isn't shared by another facet */
-        if(stl->neighbors_start[facet_num].neighbor[j] != -1) {
-          stl_reverse_facet
-          (stl, stl->neighbors_start[facet_num].neighbor[j]);
-        }
+        if(stl->neighbors_start[facet_num].neighbor[j] != -1)
+          stl_reverse_facet(stl, stl->neighbors_start[facet_num].neighbor[j]);
       }
       /* If this edge of the facet is connected: */
       if(stl->neighbors_start[facet_num].neighbor[j] != -1) {
@@ -193,8 +195,7 @@ stl_fix_normal_directions(stl_file *stl) {
   free(norm_sw);
 }
 
-int
-stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag) {
+static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag) {
   /* Returns 0 if the normal is within tolerance */
   /* Returns 1 if the normal is not within tolerance, but direction is OK */
   /* Returns 2 if the normal is not within tolerance and backwards */
@@ -259,26 +260,17 @@ stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag) {
   return 4;
 }
 
-static void
-stl_reverse_vector(float v[]) {
-  v[0] *= -1;
-  v[1] *= -1;
-  v[2] *= -1;
-}
-
-
-void
-stl_calculate_normal(float normal[], stl_facet *facet) {
-  float v1[3];
-  float v2[3];
-
-  v1[0] = facet->vertex[1].x - facet->vertex[0].x;
-  v1[1] = facet->vertex[1].y - facet->vertex[0].y;
-  v1[2] = facet->vertex[1].z - facet->vertex[0].z;
-  v2[0] = facet->vertex[2].x - facet->vertex[0].x;
-  v2[1] = facet->vertex[2].y - facet->vertex[0].y;
-  v2[2] = facet->vertex[2].z - facet->vertex[0].z;
-
+void stl_calculate_normal(float normal[], stl_facet *facet) {
+  float v1[3] = {
+    facet->vertex[1].x - facet->vertex[0].x,
+    facet->vertex[1].y - facet->vertex[0].y,
+    facet->vertex[1].z - facet->vertex[0].z
+  };
+  float v2[3] = {
+    facet->vertex[2].x - facet->vertex[0].x,
+    facet->vertex[2].y - facet->vertex[0].y,
+    facet->vertex[2].z - facet->vertex[0].z
+  };
   normal[0] = (float)((double)v1[1] * (double)v2[2]) - ((double)v1[2] * (double)v2[1]);
   normal[1] = (float)((double)v1[2] * (double)v2[0]) - ((double)v1[0] * (double)v2[2]);
   normal[2] = (float)((double)v1[0] * (double)v2[1]) - ((double)v1[1] * (double)v2[0]);

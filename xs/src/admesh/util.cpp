@@ -186,7 +186,7 @@ static void calculate_normals(stl_file *stl) {
 }
 
 void stl_transform(stl_file *stl, float *trafo3x4) {
-  int i_face, i_vertex, i, j;
+  int i_face, i_vertex;
   if (stl->error)
     return;
   for (i_face = 0; i_face < stl->stats.number_of_facets; ++ i_face) {
@@ -404,7 +404,7 @@ static float get_volume(stl_file *stl) {
     n = stl->facet_start[i].normal;
     height = (n.x * p.x) + (n.y * p.y) + (n.z * p.z);
     area = get_area(&stl->facet_start[i]);
-    volume += (area * height) / 3.0;
+    volume += (area * height) / 3.0f;
   }
   return volume;
 }

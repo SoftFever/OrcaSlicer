@@ -25,7 +25,7 @@ my %opt = ();
 }
 
 {
-    my $model = Slic3r::Model->load_stl(Slic3r::encode_path($ARGV[0]), basename($ARGV[0]));
+    my $model = Slic3r::Model->load_stl($ARGV[0], basename($ARGV[0]));
     my $basename = $ARGV[0];
     $basename =~ s/\.[sS][tT][lL]$//;
     
@@ -43,7 +43,7 @@ my %opt = ();
         
         my $output_file = sprintf '%s_%02d.stl', $basename, ++$part_count;
         printf "Writing to %s\n", basename($output_file);
-        $new_model->store_stl(Slic3r::encode_path($output_file), !$opt{ascii});
+        $new_model->store_stl($output_file, !$opt{ascii});
     }
 }
 

@@ -1,6 +1,8 @@
 #include "SVG.hpp"
 #include <iostream>
 
+#include <boost/nowide/cstdio.hpp>
+
 #define COORD(x) ((float)unscale((x))*10)
 
 namespace Slic3r {
@@ -8,7 +10,7 @@ namespace Slic3r {
 bool SVG::open(const char* afilename)
 {
     this->filename = afilename;
-    this->f = fopen(afilename, "w");
+    this->f = boost::nowide::fopen(afilename, "w");
     if (this->f == NULL)
         return false;
     fprintf(this->f,
@@ -27,7 +29,7 @@ bool SVG::open(const char* afilename, const BoundingBox &bbox, const coord_t bbo
     this->filename = afilename;
     this->origin   = bbox.min - Point(bbox_offset, bbox_offset);
     this->flipY    = aflipY;
-    this->f        = ::fopen(afilename, "w");
+    this->f        = boost::nowide::fopen(afilename, "w");
     if (f == NULL)
         return false;
     float w = COORD(bbox.max.x - bbox.min.x + 2 * bbox_offset);

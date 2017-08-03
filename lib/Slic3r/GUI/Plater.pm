@@ -1408,7 +1408,7 @@ sub export_gcode {
             $dlg->Destroy;
             return;
         }
-        my $path = Slic3r::decode_path($dlg->GetPath);
+        my $path = $dlg->GetPath;
         $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($path);
         wxTheApp->save_settings;
         $self->{export_gcode_output_file} = $path;
@@ -1574,7 +1574,7 @@ sub send_gcode {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(180);
     
-    my $path = Slic3r::encode_path($self->{send_gcode_file});
+    my $enc_path = Slic3r::encode_path($self->{send_gcode_file});
     my $res = $ua->post(
         "http://" . $self->{config}->octoprint_host . "/api/files/local",
         Content_Type => 'form-data',
@@ -1582,7 +1582,7 @@ sub send_gcode {
         Content => [
             # OctoPrint doesn't like Windows paths so we use basename()
             # Also, since we need to read from filesystem we process it through encode_path()
-            file => [ $path, basename($path) ],
+            file => [ $enc_path, basename($enc_path) ],
         ],
     );
     
@@ -1603,7 +1603,7 @@ sub export_stl {
     return if !@{$self->{objects}};
         
     my $output_file = $self->_get_export_file('STL') or return;
-    $self->{model}->store_stl(Slic3r::encode_path($output_file), 1);
+    $self->{model}->store_stl($output_file, 1);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
 
@@ -1644,7 +1644,7 @@ sub export_object_stl {
     my $model_object = $self->{model}->objects->[$obj_idx];
         
     my $output_file = $self->_get_export_file('STL') or return;
-    $model_object->mesh->write_binary(Slic3r::encode_path($output_file));
+    $model_object->mesh->write_binary($output_file);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
 
@@ -1654,7 +1654,7 @@ sub export_amf {
     return if !@{$self->{objects}};
         
     my $output_file = $self->_get_export_file('AMF') or return;
-    $self->{model}->store_amf(Slic3r::encode_path($output_file));
+    $self->{model}->store_amf($output_file);
     $self->statusbar->SetStatusText("AMF file exported to $output_file");
 }
 
@@ -1674,7 +1674,7 @@ sub _get_export_file {
             $dlg->Destroy;
             return undef;
         }
-        $output_file = Slic3r::decode_path($dlg->GetPath);
+        $output_file = $dlg->GetPath;
         $dlg->Destroy;
     }
     return $output_file;

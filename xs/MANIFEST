@@ -1,13 +1,13 @@
 Build.PL
 lib/Slic3r/XS.pm
 MANIFEST			This list of files
-src/admesh/connect.c
-src/admesh/normals.c
-src/admesh/shared.c
+src/admesh/connect.cpp
+src/admesh/normals.cpp
+src/admesh/shared.cpp
 src/admesh/stl.h
-src/admesh/stl_io.c
-src/admesh/stlinit.c
-src/admesh/util.c
+src/admesh/stl_io.cpp
+src/admesh/stlinit.cpp
+src/admesh/util.cpp
 src/boost/nowide/args.hpp
 src/boost/nowide/cenv.hpp
 src/boost/nowide/config.hpp

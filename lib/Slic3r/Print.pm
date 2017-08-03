@@ -75,21 +75,9 @@ sub export_gcode {
     # output everything to a G-code file
     my $output_file = $self->output_filepath($params{output_file} // '');
     $self->status_cb->(90, "Exporting G-code" . ($output_file ? " to $output_file" : ""));
-    
-    {
-        # open output gcode file if we weren't supplied a file-handle
-        my $tempfile = "$output_file.tmp";
-        my $gcode    = Slic3r::GCode->new();
-        my $result   = $gcode->do_export($self, Slic3r::encode_path($tempfile));
-        die $result . "\n" if ($result ne '');
-        my $i;
-        for ($i = 0; $i < 5; $i += 1)  {
-            last if (rename Slic3r::encode_path($tempfile), Slic3r::encode_path($output_file));
-            # Wait for 1/4 seconds and try to rename once again.
-            select(undef, undef, undef, 0.25);
-        }
-        Slic3r::debugf "Failed to remove the output G-code file from $tempfile to $output_file. Is $tempfile locked?\n" if ($i == 5);
-    }
+
+    die "G-code export to " . $output_file . " failed\n" 
+        if ! Slic3r::GCode->new->do_export($self, $output_file);
     
     # run post-processing scripts
     if (@{$self->config->post_process}) {

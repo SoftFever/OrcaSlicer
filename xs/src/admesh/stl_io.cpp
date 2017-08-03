@@ -25,6 +25,8 @@
 #include "stl.h"
 #include "config.h"
 
+#include <boost/nowide/cstdio.hpp>
+
 #if !defined(SEEK_SET)
 #define SEEK_SET 0
 #define SEEK_CUR 1
@@ -126,13 +128,12 @@ Normals fixed         : %5d\n", stl->stats.normals_fixed);
 void
 stl_write_ascii(stl_file *stl, const char *file, const char *label) {
   int       i;
-  FILE      *fp;
   char      *error_msg;
 
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "w");
+  FILE *fp = boost::nowide::fopen(file, "w");
   if(fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
@@ -178,7 +179,7 @@ stl_print_neighbors(stl_file *stl, char *file) {
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "w");
+  fp = boost::nowide::fopen(file, "w");
   if(fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
@@ -212,7 +213,7 @@ stl_write_binary(stl_file *stl, const char *file, const char *label) {
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "wb");
+  fp = boost::nowide::fopen(file, "wb");
   if(fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
@@ -292,7 +293,7 @@ stl_write_quad_object(stl_file *stl, char *file) {
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "w");
+  fp = boost::nowide::fopen(file, "w");
   if(fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
@@ -360,7 +361,7 @@ stl_write_dxf(stl_file *stl, char *file, char *label) {
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "w");
+  fp = boost::nowide::fopen(file, "w");
   if(fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */

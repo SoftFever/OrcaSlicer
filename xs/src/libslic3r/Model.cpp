@@ -10,6 +10,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/nowide/iostream.hpp>
 
 namespace Slic3r {
 
@@ -739,7 +740,7 @@ void ModelObject::print_info() const
 {
     using namespace std;
     cout << fixed;
-    cout << "[" << boost::filesystem::path(this->input_file).filename().string() << "]" << endl;
+    boost::nowide::cout << "[" << boost::filesystem::path(this->input_file).filename().string() << "]" << endl;
     
     TriangleMesh mesh = this->raw_mesh();
     mesh.check_topology();

@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <boost/nowide/cstdio.hpp>
+
 #include "objparser.hpp"
 
 namespace ObjParser {
@@ -318,7 +320,7 @@ static bool obj_parseline(const char *line, ObjData &data)
 
 bool objparse(const char *path, ObjData &data)
 {
-	FILE *pFile = ::fopen(path, "rt");
+	FILE *pFile = boost::nowide::fopen(path, "rt");
 	if (pFile == 0)
 		return false;
 
@@ -446,7 +448,7 @@ bool loadvectornameidx(FILE *pFile, std::vector<T> &v)
 
 bool objbinsave(const char *path, const ObjData &data)
 {
-	FILE *pFile = ::fopen(path, "wb");
+	FILE *pFile = boost::nowide::fopen(path, "wb");
 	if (pFile == 0)
 		return false;
 
@@ -471,7 +473,7 @@ bool objbinsave(const char *path, const ObjData &data)
 
 bool objbinload(const char *path, ObjData &data)
 {
-	FILE *pFile = ::fopen(path, "rb");
+	FILE *pFile = boost::nowide::fopen(path, "rb");
 	if (pFile == 0)
 		return false;
 

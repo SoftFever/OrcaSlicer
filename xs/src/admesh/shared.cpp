@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <boost/nowide/cstdio.hpp>
+
 #include "stl.h"
 
 void
@@ -149,7 +151,7 @@ stl_write_off(stl_file *stl, char *file) {
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "w");
+  fp = boost::nowide::fopen(file, "w");
   if(fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
@@ -185,7 +187,7 @@ stl_write_vrml(stl_file *stl, char *file) {
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "w");
+  fp = boost::nowide::fopen(file, "w");
   if(fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
@@ -241,7 +243,7 @@ void stl_write_obj (stl_file *stl, char *file) {
   if (stl->error) return;
 
   /* Open the file */
-  fp = fopen(file, "w");
+  fp = boost::nowide::fopen(file, "w");
   if (fp == NULL) {
     char* error_msg = (char*)malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
     sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);

@@ -17,17 +17,7 @@
 %name{Slic3r::GCode} class GCode {
     GCode();
     ~GCode();
-    std::string do_export(Print *print, const char *path)
-        %code{%
-            FILE *file = fopen(path, "wb");
-            if (file == nullptr) {
-                RETVAL = std::string("Failed to open ") + path + " for writing.";
-            } else {
-                THIS->do_export(file, *print);
-                fclose(file);
-                RETVAL = std::string();
-            }
-        %};
+    std::string do_export(Print *print, const char *path);
 
     Ref<Pointf> origin()
         %code{% RETVAL = &(THIS->origin()); %};

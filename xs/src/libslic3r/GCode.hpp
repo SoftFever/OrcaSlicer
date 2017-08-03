@@ -126,7 +126,7 @@ public:
         {}
     ~GCode() {}
 
-    bool            do_export(FILE *file, Print &print);
+    bool            do_export(Print *print, const char *path);
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.
     const Pointf&   origin() const { return m_origin; }
@@ -146,6 +146,8 @@ public:
     void            apply_print_config(const PrintConfig &print_config);
 
 protected:
+    bool            _do_export(Print &print, FILE *file);
+
     // Object and support extrusions of the same PrintObject at the same print_z.
     struct LayerToPrint
     {

@@ -101,7 +101,7 @@ sub OnInit {
     # Unix: ~/.Slic3r
     # Windows: "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
     # Mac: "~/Library/Application Support/Slic3r"
-    $datadir ||= Slic3r::decode_path(Wx::StandardPaths::Get->GetUserDataDir);
+    $datadir ||= Wx::StandardPaths::Get->GetUserDataDir;
     my $enc_datadir = Slic3r::encode_path($datadir);
     Slic3r::debugf "Data directory: %s\n", $datadir;
     
@@ -370,9 +370,8 @@ sub open_model {
         $dialog->Destroy;
         return;
     }
-    my @input_files = map Slic3r::decode_path($_), $dialog->GetPaths;
+    my @input_files = $dialog->GetPaths;
     $dialog->Destroy;
-    
     return @input_files;
 }
 

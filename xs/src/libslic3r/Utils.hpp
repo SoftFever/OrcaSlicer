@@ -6,6 +6,10 @@ namespace Slic3r {
 extern void set_logging_level(unsigned int level);
 extern void trace(unsigned int level, const char *message);
 
+extern std::string encode_path(const char *src);
+extern std::string decode_path(const char *src);
+extern std::string normalize_utf8_nfc(const char *src);
+
 // Compute the next highest power of 2 of 32-bit v
 // http://graphics.stanford.edu/~seander/bithacks.html
 template<typename T>

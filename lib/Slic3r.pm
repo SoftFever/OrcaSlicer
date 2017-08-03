@@ -75,20 +75,10 @@ use Slic3r::Print::Simple;
 use Slic3r::Surface;
 our $build = eval "use Slic3r::Build; 1";
 use Thread::Semaphore;
-use Encode::Locale 1.05;
-use Encode;
-use Unicode::Normalize;
 
 # Scaling between the float and integer coordinates.
 # Floats are in mm.
 use constant SCALING_FACTOR         => 0.000001;
-use constant LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER => 0.15;
-
-# Following constants are used by the infill algorithms and integration tests.
-# Resolution to simplify perimeters to. These constants are now used in C++ code only. Better to publish them to Perl from the C++ code.
-# use constant RESOLUTION             => 0.0125;
-# use constant SCALED_RESOLUTION      => RESOLUTION / SCALING_FACTOR;
-use constant INFILL_OVERLAP_OVER_SPACING  => 0.3;
 
 # Keep track of threads we created. Perl worker threads shall not create further threads.
 my @threads = ();
@@ -209,39 +199,6 @@ sub resume_all_threads {
     return unless $paused;
     $paused = 0;
     $pause_sema->up;
-}
-
-# Convert a Unicode path to a file system locale.
-# The encoding is (from Encode::Locale POD):
-# Alias       | Windows | Mac OS X     | POSIX
-# locale_fs   | ANSI    | UTF-8        | nl_langinfo
-# where nl_langinfo is en-US.UTF-8 on a modern Linux as well.
-# So this conversion seems to make the most sense on Windows.
-sub encode_path {
-    my ($path) = @_;
-
-    # UTF8 encoding is not unique. Normalize the UTF8 string to make the file names unique.
-    # Unicode::Normalize::NFC() returns the Normalization Form C (formed by canonical decomposition followed by canonical composition).
-    $path = Unicode::Normalize::NFC($path);
-    $path = Encode::encode(locale_fs => $path);
-    
-    return $path;
-}
-
-# Convert a path coded by a file system locale to Unicode.
-sub decode_path {
-    my ($path) = @_;
-    
-    $path = Encode::decode(locale_fs => $path)
-        unless Encode::is_utf8($path);
-
-    # The filesystem might force a normalization form (like HFS+ does) so 
-    # if we rely on the filename being comparable after the open() + readdir()
-    # roundtrip (like when creating and then selecting a preset), we need to 
-    # restore our normalization form.
-    $path = Unicode::Normalize::NFC($path);
-    
-    return $path;
 }
 
 # Open a file by converting $filename to local file system locales.

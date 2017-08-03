@@ -32,10 +32,6 @@
 #error "admesh works correctly on little endian machines only!"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define STL_MAX(A,B) ((A)>(B)? (A):(B))
 #define STL_MIN(A,B) ((A)<(B)? (A):(B))
 #define ABS(X)  ((X) < 0 ? -(X) : (X))
@@ -222,9 +218,5 @@ extern void stl_get_size(stl_file *stl);
 extern void stl_clear_error(stl_file *stl);
 extern int stl_get_error(stl_file *stl);
 extern void stl_exit_on_error(stl_file *stl);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

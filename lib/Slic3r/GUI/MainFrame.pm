@@ -368,7 +368,7 @@ sub quick_slice {
                 $dialog->Destroy;
                 return;
             }
-            $input_file = Slic3r::decode_path($dialog->GetPaths);
+            $input_file = $dialog->GetPaths;
             $dialog->Destroy;
             $qs_last_input_file = $input_file unless $params{export_svg};
         } else {
@@ -428,7 +428,7 @@ sub quick_slice {
                 $dlg->Destroy;
                 return;
             }
-            $output_file = Slic3r::decode_path($dlg->GetPath);
+            $output_file = $dlg->GetPath;
             $qs_last_output_file = $output_file unless $params{export_svg};
             $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($output_file);
             wxTheApp->save_settings;
@@ -482,7 +482,7 @@ sub repair_stl {
             $dialog->Destroy;
             return;
         }
-        $input_file = Slic3r::decode_path($dialog->GetPaths);
+        $input_file = $dialog->GetPaths;
         $dialog->Destroy;
     }
     
@@ -495,14 +495,14 @@ sub repair_stl {
             $dlg->Destroy;
             return undef;
         }
-        $output_file = Slic3r::decode_path($dlg->GetPath);
+        $output_file = $dlg->GetPath;
         $dlg->Destroy;
     }
     
     my $tmesh = Slic3r::TriangleMesh->new;
-    $tmesh->ReadSTLFile(Slic3r::encode_path($input_file));
+    $tmesh->ReadSTLFile($input_file);
     $tmesh->repair;
-    $tmesh->WriteOBJFile(Slic3r::encode_path($output_file));
+    $tmesh->WriteOBJFile($output_file);
     Slic3r::GUI::show_info($self, "Your file was repaired.", "Repair");
 }
 
@@ -529,7 +529,7 @@ sub export_config {
     my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
         &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
-        my $file = Slic3r::decode_path($dlg->GetPath);
+        my $file = $dlg->GetPath;
         $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
         wxTheApp->save_settings;
         $last_config = $file;
@@ -548,7 +548,7 @@ sub load_config_file {
         my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
                 'INI files (*.ini, *.gcode)|*.ini;*.INI;*.gcode;*.g', wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         return unless $dlg->ShowModal == wxID_OK;
-        $file = Slic3r::decode_path($dlg->GetPaths);
+        $file = $dlg->GetPaths;
         $dlg->Destroy;
     }
     for my $tab (values %{$self->{options_tabs}}) {
@@ -574,7 +574,7 @@ sub export_configbundle {
     my $dlg = Wx::FileDialog->new($self, 'Save presets bundle as:', $dir, $filename, 
         &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal == wxID_OK) {
-        my $file = Slic3r::decode_path($dlg->GetPath);
+        my $file = $dlg->GetPath;
         $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
         wxTheApp->save_settings;
         
@@ -604,7 +604,7 @@ sub load_configbundle {
         my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
                 &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         return unless $dlg->ShowModal == wxID_OK;
-        $file = Slic3r::decode_path($dlg->GetPaths);
+        $file = $dlg->GetPaths;
         $dlg->Destroy;
     }
     

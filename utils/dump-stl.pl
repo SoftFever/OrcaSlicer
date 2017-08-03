@@ -18,7 +18,7 @@ $|++;
 $ARGV[0] or usage(1);
 
 if (-e $ARGV[0]) {
-    my $model = Slic3r::Model->load_stl(Slic3r::encode_path($ARGV[0]), basename($ARGV[0]));
+    my $model = Slic3r::Model->load_stl($ARGV[0], basename($ARGV[0]));
     $model->objects->[0]->add_instance(offset => Slic3r::Pointf->new(0,0));
     my $mesh = $model->mesh;
     $mesh->repair;
@@ -27,7 +27,7 @@ if (-e $ARGV[0]) {
     exit 0;
 } elsif ((my $model = Slic3r::Test::model($ARGV[0]))) {
     $ARGV[1] or die "Missing writeable destination as second argument\n";
-    $model->store_stl(Slic3r::encode_path($ARGV[1]), 1);
+    $model->store_stl($ARGV[1], 1);
     printf "Model $ARGV[0] written to $ARGV[1]\n";
     exit 0;
 } else {

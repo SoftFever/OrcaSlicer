@@ -8,8 +8,6 @@ use File::Spec;
 
 my %prereqs = qw(
     Devel::CheckLib                 0
-    Encode                          0
-    Encode::Locale                  1.05
     ExtUtils::MakeMaker             6.80
     ExtUtils::ParseXS               3.22
     File::Basename                  0
@@ -24,7 +22,6 @@ my %prereqs = qw(
     IO::Scalar                      0
     threads                         1.96
     Time::HiRes                     0
-    Unicode::Normalize              0
 );
 my %recommends = qw(
     Class::XSAccessor               0

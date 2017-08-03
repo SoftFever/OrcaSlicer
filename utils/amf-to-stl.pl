@@ -14,6 +14,9 @@ use Getopt::Long qw(:config no_auto_abbrev);
 use Slic3r;
 $|++;
 
+# Convert all parameters from the local code page to utf8 on Windows.
+@ARGV = map Slic3r::decode_path($_), @ARGV if $^O eq 'MSWin32';
+
 my %opt = ();
 {
     my %options = (
@@ -25,12 +28,12 @@ my %opt = ();
 }
 
 {
-    my $model = Slic3r::Model->load_amf(Slic3r::encode_path($ARGV[0]));
+    my $model = Slic3r::Model->load_amf($ARGV[0]);
     my $output_file = $ARGV[0];
     $output_file =~ s/\.[aA][mM][fF](?:\.[xX][mM][lL])?$/\.stl/;
     
     printf "Writing to %s\n", basename($output_file);
-    $model->store_stl(Slic3r::encode_path($output_file), binary => !$opt{ascii});
+    $model->store_stl($output_file, binary => !$opt{ascii});
 }
 
 

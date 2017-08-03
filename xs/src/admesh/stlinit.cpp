@@ -26,6 +26,8 @@
 #include <math.h>
 #include <assert.h>
 
+#include <boost/nowide/cstdio.hpp>
+
 #include "stl.h"
 
 #ifndef SEEK_SET
@@ -62,7 +64,7 @@ stl_count_facets(stl_file *stl, const char *file) {
   if (stl->error) return;
 
   /* Open the file in binary mode first */
-  stl->fp = fopen(file, "rb");
+  stl->fp = boost::nowide::fopen(file, "rb");
   if(stl->fp == NULL) {
     error_msg = (char*)
                 malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
@@ -121,7 +123,7 @@ stl_count_facets(stl_file *stl, const char *file) {
     /* Reopen the file in text mode (for getting correct newlines on Windows) */
     // fix to silence a warning about unused return value.
     // obviously if it fails we have problems....
-    stl->fp = freopen(file, "r", stl->fp);
+    stl->fp = boost::nowide::freopen(file, "r", stl->fp);
 
     // do another null check to be safe
     if(stl->fp == NULL) {

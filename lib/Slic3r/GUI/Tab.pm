@@ -112,8 +112,9 @@ sub new {
         my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
         return unless $res == wxID_YES;
         # Delete the file.
-        my $path = Slic3r::encode_path($self->{presets}[$i]->file);
-        if (-e $path && ! unlink $path) {
+        my $path = $self->{presets}[$i]->file;
+        my $enc_path = Slic3r::encode_path($path);
+        if (-e $enc_path && ! unlink $enc_path) {
             # Cannot delete the file, therefore the item will not be removed from the selection.
             Slic3r::GUI::show_error($self, "Cannot delete file $path : $!");
             return;
@@ -255,7 +256,7 @@ sub select_preset {
 sub select_preset_by_name {
     my ($self, $name) = @_;
     
-    $name = Unicode::Normalize::NFC($name);
+    $name = Slic3r::normalize_utf8_nfc($name);
     $self->select_preset(first { $self->{presets}[$_]->name eq $name } 0 .. $#{$self->{presets}});
 }
 

@@ -13,6 +13,10 @@
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/foreach.hpp>
 
+#include <boost/nowide/iostream.hpp>
+#include <boost/nowide/cstdio.hpp>
+#include <boost/nowide/cstdlib.hpp>
+
 #include "SVG.hpp"
 
 #if 0
@@ -306,7 +310,33 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     return layers_to_print;
 }
 
-bool GCode::do_export(FILE *file, Print &print)
+bool GCode::do_export(Print *print, const char *path)
+{
+    // Remove the old g-code if it exists.
+    boost::nowide::remove(path);
+
+    std::string path_tmp(path);
+    path_tmp += ".tmp";
+
+    FILE *file = boost::nowide::fopen(path_tmp.c_str(), "wb");
+    if (file == nullptr)
+        return false;
+
+    bool result = this->_do_export(*print, file);
+    fclose(file);
+
+    if (result && boost::nowide::rename(path_tmp.c_str(), path) != 0) {
+        boost::nowide::cerr << "Failed to remove the output G-code file from " << path_tmp << " to " << path
+            << ". Is " << path_tmp << " locked?" << std::endl;
+        result = false;
+    }
+
+    if (! result)
+        boost::nowide::remove(path_tmp.c_str());
+    return result;
+}
+
+bool GCode::_do_export(Print &print, FILE *file)
 {
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
