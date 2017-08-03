@@ -9,13 +9,6 @@
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 
-#ifdef WIN32
-extern "C" {
-__declspec(dllimport) int WideCharToMultiByte(unsigned int, unsigned long, wchar_t const *, int, char *, int, char const *, int *);
-__declspec(dllimport) int MultiByteToWideChar(unsigned int, unsigned long, char const *, int, wchar_t *, int);
-}
-#endif /* WIN32 */
-
 namespace Slic3r {
 
 static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
@@ -72,46 +65,6 @@ void trace(unsigned int level, const char *message)
 
     BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
         (::boost::log::keywords::severity = severity)) << message;
-}
-
-std::string encode_path(const char *src)
-{    
-#ifdef WIN32
-    // Convert the source utf8 encoded string to a wide string.
-    std::wstring wstr_src = boost::nowide::widen(src);
-    if (wstr_src.length() == 0)
-        return std::string();
-    // Convert a wide string to a local code page.
-    int size_needed = ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), nullptr, 0, nullptr, nullptr);
-    std::string str_dst(size_needed, 0);
-    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), const_cast<char*>(str_dst.data()), size_needed, nullptr, nullptr);
-    return str_dst;
-#else /* WIN32 */
-    return src;
-#endif /* WIN32 */
-}
-
-std::string decode_path(const char *src)
-{  
-#ifdef WIN32
-    int len = strlen(src);
-    if (len == 0)
-        return std::string();
-    // Convert the string encoded using the local code page to a wide string.
-    int size_needed = ::MultiByteToWideChar(0, 0, src, len, nullptr, 0);
-    std::wstring wstr_dst(size_needed, 0);
-    ::MultiByteToWideChar(0, 0, src, len, const_cast<wchar_t*>(wstr_dst.data()), size_needed);
-    // Convert a wide string to utf8.
-    return boost::nowide::narrow(wstr_dst.c_str());
-#else /* WIN32 */
-    return src;
-#endif /* WIN32 */
-}
-
-std::string normalize_utf8_nfc(const char *src)
-{
-    static std::locale locale_utf8("en_US.UTF-8");
-    return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
 }
 
 } // namespace Slic3r
@@ -184,3 +137,54 @@ confess_at(const char *file, int line, const char *func,
 }
 
 #endif
+
+#ifdef WIN32
+    #ifndef NOMINMAX
+    # define NOMINMAX
+    #endif
+    #include <windows.h>
+#endif /* WIN32 */
+
+namespace Slic3r {
+
+std::string encode_path(const char *src)
+{    
+#ifdef WIN32
+    // Convert the source utf8 encoded string to a wide string.
+    std::wstring wstr_src = boost::nowide::widen(src);
+    if (wstr_src.length() == 0)
+        return std::string();
+    // Convert a wide string to a local code page.
+    int size_needed = ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), nullptr, 0, nullptr, nullptr);
+    std::string str_dst(size_needed, 0);
+    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), const_cast<char*>(str_dst.data()), size_needed, nullptr, nullptr);
+    return str_dst;
+#else /* WIN32 */
+    return src;
+#endif /* WIN32 */
+}
+
+std::string decode_path(const char *src)
+{  
+#ifdef WIN32
+    int len = int(strlen(src));
+    if (len == 0)
+        return std::string();
+    // Convert the string encoded using the local code page to a wide string.
+    int size_needed = ::MultiByteToWideChar(0, 0, src, len, nullptr, 0);
+    std::wstring wstr_dst(size_needed, 0);
+    ::MultiByteToWideChar(0, 0, src, len, const_cast<wchar_t*>(wstr_dst.data()), size_needed);
+    // Convert a wide string to utf8.
+    return boost::nowide::narrow(wstr_dst.c_str());
+#else /* WIN32 */
+    return src;
+#endif /* WIN32 */
+}
+
+std::string normalize_utf8_nfc(const char *src)
+{
+    static std::locale locale_utf8("en_US.UTF-8");
+    return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
+}
+
+}; // namespace Slic3r
