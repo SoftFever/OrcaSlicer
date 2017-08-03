@@ -127,9 +127,7 @@ sub new {
         {
             $self->{btn_disconnect} = my $btn = Wx::Button->new($box, -1, "Disconnect", wxDefaultPosition, wxDefaultSize);
             $btn->SetFont($Slic3r::GUI::small_font);
-            if ($Slic3r::GUI::have_button_icons) {
-                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("delete.png"), wxBITMAP_TYPE_PNG));
-            }
+            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("delete.png"), wxBITMAP_TYPE_PNG));
             $serial_speed_sizer->Add($btn, 0, wxLEFT, 5);
             EVT_BUTTON($self, $btn, \&disconnect);
         }
@@ -142,9 +140,7 @@ sub new {
         my $font = $btn->GetFont;
         $font->SetPointSize($font->GetPointSize + 2);
         $btn->SetFont($font);
-        if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("arrow_up.png"), wxBITMAP_TYPE_PNG));
-        }
+        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("arrow_up.png"), wxBITMAP_TYPE_PNG));
         $left_sizer->Add($btn, 0, wxTOP, 15);
         EVT_BUTTON($self, $btn, \&connect);
     }
@@ -164,9 +160,7 @@ sub new {
     {
         $self->{btn_manual_control} = my $btn = Wx::Button->new($box, -1, "Manual control", wxDefaultPosition, wxDefaultSize);
         $btn->SetFont($Slic3r::GUI::small_font);
-        if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG));
-        }
+        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG));
         $btn->Hide;
         $left_sizer->Add($btn, 0, wxTOP, 15);
         EVT_BUTTON($self, $btn, sub {
@@ -583,9 +577,7 @@ sub new {
         $btn->SetToolTipString("Delete this job from print queue")
             if $btn->can('SetToolTipString');
         $btn->SetFont($Slic3r::GUI::small_font);
-        if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("delete.png"), wxBITMAP_TYPE_PNG));
-        }
+        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("delete.png"), wxBITMAP_TYPE_PNG));
         if ($job->printing) {
             $btn->Hide;
         }
@@ -605,11 +597,9 @@ sub new {
         my $btn = $self->{btn_print} = Wx::Button->new($self, -1, $label, wxDefaultPosition, wxDefaultSize,
             $button_style);
         $btn->SetFont($Slic3r::GUI::small_bold_font);
-        if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_play.png"), wxBITMAP_TYPE_PNG));
-            $btn->SetBitmapCurrent(Wx::Bitmap->new($Slic3r::var->("control_play_blue.png"), wxBITMAP_TYPE_PNG));
-            #$btn->SetBitmapPosition(wxRIGHT);
-        }
+        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_play.png"), wxBITMAP_TYPE_PNG));
+        $btn->SetBitmapCurrent(Wx::Bitmap->new($Slic3r::var->("control_play_blue.png"), wxBITMAP_TYPE_PNG));
+        #$btn->SetBitmapPosition(wxRIGHT);
         $btn->Hide;
         $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
         
@@ -626,10 +616,8 @@ sub new {
         if (!$job->printing || $job->paused) {
             $btn->Hide;
         }
-        if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_pause.png"), wxBITMAP_TYPE_PNG));
-            $btn->SetBitmapCurrent(Wx::Bitmap->new($Slic3r::var->("control_pause_blue.png"), wxBITMAP_TYPE_PNG));
-        }
+        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_pause.png"), wxBITMAP_TYPE_PNG));
+        $btn->SetBitmapCurrent(Wx::Bitmap->new($Slic3r::var->("control_pause_blue.png"), wxBITMAP_TYPE_PNG));
         $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
         
         EVT_BUTTON($self, $btn, sub {
@@ -645,10 +633,8 @@ sub new {
         if (!$job->printing || !$job->paused) {
             $btn->Hide;
         }
-        if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_play.png"), wxBITMAP_TYPE_PNG));
-            $btn->SetBitmapCurrent(Wx::Bitmap->new($Slic3r::var->("control_play_blue.png"), wxBITMAP_TYPE_PNG));
-        }
+        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_play.png"), wxBITMAP_TYPE_PNG));
+        $btn->SetBitmapCurrent(Wx::Bitmap->new($Slic3r::var->("control_play_blue.png"), wxBITMAP_TYPE_PNG));
         $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
         
         EVT_BUTTON($self, $btn, sub {
@@ -664,10 +650,8 @@ sub new {
         if (!$job->printing) {
             $btn->Hide;
         }
-        if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_stop.png"), wxBITMAP_TYPE_PNG));
-            $btn->SetBitmapCurrent(Wx::Bitmap->new($Slic3r::var->("control_stop_blue.png"), wxBITMAP_TYPE_PNG));
-        }
+        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("control_stop.png"), wxBITMAP_TYPE_PNG));
+        $btn->SetBitmapCurrent(Wx::Bitmap->new($Slic3r::var->("control_stop_blue.png"), wxBITMAP_TYPE_PNG));
         $buttons_sizer->Add($btn, 0, wxBOTTOM, 2);
         
         EVT_BUTTON($self, $btn, sub {

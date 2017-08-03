@@ -398,7 +398,6 @@ sub quick_slice {
             print_center    => $print_center,
             status_cb       => sub {
                 my ($percent, $message) = @_;
-                return if &Wx::wxVERSION_STRING !~ m" 2\.(8\.|9\.[2-9])";
                 $progress_dialog->Update($percent, "$message…");
             },
         );

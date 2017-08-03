@@ -74,7 +74,6 @@ our $Settings = {
     },
 };
 
-our $have_button_icons = &Wx::wxVERSION_STRING =~ m" (?:2\.9\.[1-9]|3\.)";
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if &Wx::wxMAC;
 our $small_bold_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -92,7 +91,7 @@ sub OnInit {
     my ($self) = @_;
     
     $self->SetAppName('Slic3r');
-    $self->SetAppDisplayName('Slic3r Prusa Edition') if (Wx::wxVERSION >= 3.000000);
+    $self->SetAppDisplayName('Slic3r Prusa Edition');
     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;

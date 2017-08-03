@@ -235,30 +235,28 @@ sub new {
     $self->{btn_print}->Hide;
     $self->{btn_send_gcode}->Hide;
     
-    if ($Slic3r::GUI::have_button_icons) {
-        my %icons = qw(
-            add             brick_add.png
-            remove          brick_delete.png
-            reset           cross.png
-            arrange         bricks.png
-            export_gcode    cog_go.png
-            print           arrow_up.png
-            send_gcode      arrow_up.png
-            reslice         reslice.png
-            export_stl      brick_go.png
-            
-            increase        add.png
-            decrease        delete.png
-            rotate45cw      arrow_rotate_clockwise.png
-            rotate45ccw     arrow_rotate_anticlockwise.png
-            changescale     arrow_out.png
-            split           shape_ungroup.png
-            cut             package.png
-            settings        cog.png
-        );
-        for (grep $self->{"btn_$_"}, keys %icons) {
-            $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new($Slic3r::var->($icons{$_}), wxBITMAP_TYPE_PNG));
-        }
+    my %icons = qw(
+        add             brick_add.png
+        remove          brick_delete.png
+        reset           cross.png
+        arrange         bricks.png
+        export_gcode    cog_go.png
+        print           arrow_up.png
+        send_gcode      arrow_up.png
+        reslice         reslice.png
+        export_stl      brick_go.png
+        
+        increase        add.png
+        decrease        delete.png
+        rotate45cw      arrow_rotate_clockwise.png
+        rotate45ccw     arrow_rotate_anticlockwise.png
+        changescale     arrow_out.png
+        split           shape_ungroup.png
+        cut             package.png
+        settings        cog.png
+    );
+    for (grep $self->{"btn_$_"}, keys %icons) {
+        $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new($Slic3r::var->($icons{$_}), wxBITMAP_TYPE_PNG));
     }
     $self->selection_changed(0);
     $self->object_list_changed;
@@ -1401,7 +1399,7 @@ sub export_gcode {
     if ($output_file) {
         $self->{export_gcode_output_file} = $self->{print}->output_filepath($output_file);
     } else {
-        my $default_output_file = $self->{print}->output_filepath($main::opt{output});
+        my $default_output_file = $self->{print}->output_filepath($main::opt{output} // '');
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', wxTheApp->output_path(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {

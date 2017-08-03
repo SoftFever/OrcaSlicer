@@ -90,7 +90,7 @@ sub new {
     $sizer->Add($grid, 1, wxEXPAND | wxALL, 10);
     $grid->CreateGrid(0, 3);
     $grid->DisableDragRowSize;
-    $grid->HideRowLabels if &Wx::wxVERSION_STRING !~ / 2\.8\./;
+    $grid->HideRowLabels;
     $grid->SetColLabelValue(0, "Min Z (mm)");
     $grid->SetColLabelValue(1, "Max Z (mm)");
     $grid->SetColLabelValue(2, "Layer height (mm)");

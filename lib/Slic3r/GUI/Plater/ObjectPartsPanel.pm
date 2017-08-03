@@ -57,17 +57,15 @@ sub new {
     $self->{btn_load_lambda_modifier} = Wx::Button->new($self, -1, "Load generic…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_delete} = Wx::Button->new($self, -1, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_split} = Wx::Button->new($self, -1, "Split part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    $self->{btn_move_up} = Wx::Button->new($self, -1, $Slic3r::GUI::have_button_icons ? "" : "Up", wxDefaultPosition, [40, -1], wxBU_LEFT);
-    $self->{btn_move_down} = Wx::Button->new($self, -1, $Slic3r::GUI::have_button_icons ? "" : "Down", wxDefaultPosition, [40, -1], wxBU_LEFT);
-    if ($Slic3r::GUI::have_button_icons) {
-        $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
-        $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
-        $self->{btn_load_lambda_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
-        $self->{btn_delete}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_delete.png"), wxBITMAP_TYPE_PNG));
-        $self->{btn_split}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("shape_ungroup.png"), wxBITMAP_TYPE_PNG));
-        $self->{btn_move_up}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_up.png"), wxBITMAP_TYPE_PNG));
-        $self->{btn_move_down}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_down.png"), wxBITMAP_TYPE_PNG));
-    }
+    $self->{btn_move_up} = Wx::Button->new($self, -1, "", wxDefaultPosition, [40, -1], wxBU_LEFT);
+    $self->{btn_move_down} = Wx::Button->new($self, -1, "", wxDefaultPosition, [40, -1], wxBU_LEFT);
+    $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_load_lambda_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_delete}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_delete.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_split}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("shape_ungroup.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_move_up}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_up.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_move_down}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_down.png"), wxBITMAP_TYPE_PNG));
     
     # buttons sizer
     my $buttons_sizer = Wx::GridSizer->new(2, 3);

@@ -943,22 +943,12 @@ sub mouse_to_3d {
 
 sub GetContext {
     my ($self) = @_;
-    
-    if (Wx::wxVERSION >= 2.009) {
-        return $self->{context} ||= Wx::GLContext->new($self);
-    } else {
-        return $self->SUPER::GetContext;
-    }
+    return $self->{context} ||= Wx::GLContext->new($self);
 }
  
 sub SetCurrent {
     my ($self, $context) = @_;
-    
-    if (Wx::wxVERSION >= 2.009) {
-        return $self->SUPER::SetCurrent($context);
-    } else {
-        return $self->SUPER::SetCurrent;
-    }
+    return $self->SUPER::SetCurrent($context);
 }
 
 sub UseVBOs {

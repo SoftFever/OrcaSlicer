@@ -1252,9 +1252,7 @@ sub build {
         my $btn = Wx::Button->new($parent, -1, "Set…", wxDefaultPosition, wxDefaultSize,
             wxBU_LEFT | wxBU_EXACTFIT);
         $btn->SetFont($Slic3r::GUI::small_font);
-        if ($Slic3r::GUI::have_button_icons) {
-            $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG));
-        }
+        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG));
         
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $sizer->Add($btn);
@@ -1335,9 +1333,7 @@ sub build {
                 my $btn = $self->{serial_test_btn} = Wx::Button->new($parent, -1,
                     "Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
                 $btn->SetFont($Slic3r::GUI::small_font);
-                if ($Slic3r::GUI::have_button_icons) {
-                    $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("wrench.png"), wxBITMAP_TYPE_PNG));
-                }
+                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("wrench.png"), wxBITMAP_TYPE_PNG));
                 
                 EVT_BUTTON($self, $btn, sub {
                     my $sender = Slic3r::GCode::Sender->new;
@@ -1367,9 +1363,7 @@ sub build {
                 
                 my $btn = Wx::Button->new($parent, -1, "Browse…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
                 $btn->SetFont($Slic3r::GUI::small_font);
-                if ($Slic3r::GUI::have_button_icons) {
-                    $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("zoom.png"), wxBITMAP_TYPE_PNG));
-                }
+                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("zoom.png"), wxBITMAP_TYPE_PNG));
                 
                 if (!eval "use Net::Bonjour; 1") {
                     $btn->Disable;
@@ -1405,9 +1399,7 @@ sub build {
                 my $btn = $self->{octoprint_host_test_btn} = Wx::Button->new($parent, -1,
                     "Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
                 $btn->SetFont($Slic3r::GUI::small_font);
-                if ($Slic3r::GUI::have_button_icons) {
-                    $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("wrench.png"), wxBITMAP_TYPE_PNG));
-                }
+                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("wrench.png"), wxBITMAP_TYPE_PNG));
                 
                 EVT_BUTTON($self, $btn, sub {
                     my $ua = LWP::UserAgent->new;
