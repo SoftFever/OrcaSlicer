@@ -404,4 +404,29 @@ sub scan_serial_ports {
     return grep !/Bluetooth|FireFly/, @ports;
 }
 
+sub save_window_pos {
+    my ($self, $window, $name) = @_;
+    
+    $Settings->{_}{"${name}_pos"}  = join ',', $window->GetScreenPositionXY;
+    $Settings->{_}{"${name}_size"} = join ',', $window->GetSizeWH;
+    $Settings->{_}{"${name}_maximized"}      = $window->IsMaximized;
+    $self->save_settings;
+}
+
+sub restore_window_pos {
+    my ($self, $window, $name) = @_;
+    
+    if (defined $Settings->{_}{"${name}_pos"}) {
+        my $size = [ split ',', $Settings->{_}{"${name}_size"}, 2 ];
+        $window->SetSize($size);
+        
+        my $display = Wx::Display->new->GetClientArea();
+        my $pos = [ split ',', $Settings->{_}{"${name}_pos"}, 2 ];
+        if (($pos->[0] + $size->[0]/2) < $display->GetRight && ($pos->[1] + $size->[1]/2) < $display->GetBottom) {
+            $window->Move($pos);
+        }
+        $window->Maximize(1) if $Settings->{_}{"${name}_maximized"};
+    }
+}
+
 1;

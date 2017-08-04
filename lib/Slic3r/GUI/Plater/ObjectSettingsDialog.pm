@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(:dialog :id :misc :sizer :systemsettings :notebook wxTAB_TRAVERSAL);
+use Wx qw(:dialog :id :misc :sizer :systemsettings :notebook wxTAB_TRAVERSAL wxTheApp);
 use Wx::Event qw(EVT_BUTTON);
 use base 'Wx::Dialog';
 

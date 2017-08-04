@@ -60,19 +60,8 @@ sub new {
         $self->SetSizer($sizer);
         $self->Fit;
         $self->SetMinSize([760, 490]);
-        if (defined $Slic3r::GUI::Settings->{_}{main_frame_size}) {
-            my $size = [ split ',', $Slic3r::GUI::Settings->{_}{main_frame_size}, 2 ];
-            $self->SetSize($size);
-            
-            my $display = Wx::Display->new->GetClientArea();
-            my $pos = [ split ',', $Slic3r::GUI::Settings->{_}{main_frame_pos}, 2 ];
-            if (($pos->[X] + $size->[X]/2) < $display->GetRight && ($pos->[Y] + $size->[Y]/2) < $display->GetBottom) {
-                $self->Move($pos);
-            }
-            $self->Maximize(1) if $Slic3r::GUI::Settings->{_}{main_frame_maximized};
-        } else {
-            $self->SetSize($self->GetMinSize);
-        }
+        $self->SetSize($self->GetMinSize);
+        wxTheApp->restore_window_pos($self, "main_frame");
         $self->Show;
         $self->Layout;
     }
@@ -87,10 +76,7 @@ sub new {
         }
         
         # save window size
-        $Slic3r::GUI::Settings->{_}{main_frame_pos}  = join ',', $self->GetScreenPositionXY;
-        $Slic3r::GUI::Settings->{_}{main_frame_size} = join ',', $self->GetSizeWH;
-        $Slic3r::GUI::Settings->{_}{main_frame_maximized} = $self->IsMaximized;
-        wxTheApp->save_settings;
+        wxTheApp->save_window_pos($self, "main_frame");
         
         # propagate event
         $event->Skip;
