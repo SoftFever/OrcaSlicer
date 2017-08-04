@@ -1127,7 +1127,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("seam_position", coEnum);
     def->label = "Seam position";
-    def->category = "Layers and perimeters";
+    def->category = "Layers and Perimeters";
     def->tooltip = "Position of perimeters starting points.";
     def->cli = "seam-position=s";
     def->enum_keys_map = ConfigOptionEnum<SeamPosition>::get_enum_values();

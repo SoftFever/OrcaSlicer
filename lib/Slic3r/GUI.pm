@@ -36,9 +36,8 @@ use Slic3r::GUI::Tab;
 our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
 our $have_LWP    = eval "use LWP::UserAgent; 1";
 
-use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow
-    :filedialog :font);
-use Wx::Event qw(EVT_IDLE EVT_COMMAND);
+use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow :filedialog :font);
+use Wx::Event qw(EVT_IDLE EVT_COMMAND EVT_MENU);
 use base 'Wx::App';
 
 use constant FILE_WILDCARDS => {
@@ -402,6 +401,39 @@ sub scan_serial_ports {
     }
     
     return grep !/Bluetooth|FireFly/, @ports;
+}
+
+sub append_menu_item {
+    my ($self, $menu, $string, $description, $cb, $id, $icon, $kind) = @_;
+    
+    $id //= &Wx::NewId();
+    my $item = Wx::MenuItem->new($menu, $id, $string, $description // '', $kind // 0);
+    $self->set_menu_item_icon($item, $icon);
+    $menu->Append($item);
+    
+    EVT_MENU($self, $id, $cb);
+    return $item;
+}
+
+sub append_submenu {
+    my ($self, $menu, $string, $description, $submenu, $id, $icon) = @_;
+    
+    $id //= &Wx::NewId();
+    my $item = Wx::MenuItem->new($menu, $id, $string, $description // '');
+    $self->set_menu_item_icon($item, $icon);
+    $item->SetSubMenu($submenu);
+    $menu->Append($item);
+    
+    return $item;
+}
+
+sub set_menu_item_icon {
+    my ($self, $menuItem, $icon) = @_;
+    
+    # SetBitmap was not available on OS X before Wx 0.9927
+    if ($icon && $menuItem->can('SetBitmap')) {
+        $menuItem->SetBitmap(Wx::Bitmap->new($Slic3r::var->($icon), wxBITMAP_TYPE_PNG));
+    }
 }
 
 sub save_window_pos {
