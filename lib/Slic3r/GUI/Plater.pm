@@ -903,9 +903,9 @@ sub reset {
 
 sub increase {
     my ($self, $copies) = @_;
-    
     $copies //= 1;
     my ($obj_idx, $object) = $self->selected_object;
+    return if ! defined $obj_idx;
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $instance = $model_object->instances->[-1];
     for my $i (1..$copies) {
@@ -930,11 +930,12 @@ sub increase {
 
 sub decrease {
     my ($self, $copies_asked) = @_;
-    
     my $copies = $copies_asked // 1;
+    my ($obj_idx, $object) = $self->selected_object;
+    return if ! defined $obj_idx;
+
     $self->stop_background_process;
     
-    my ($obj_idx, $object) = $self->selected_object;
     my $model_object = $self->{model}->objects->[$obj_idx];
     if ($model_object->instances_count > $copies) {
         for my $i (1..$copies) {
