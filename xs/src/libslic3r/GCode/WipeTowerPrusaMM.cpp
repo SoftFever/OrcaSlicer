@@ -10,6 +10,13 @@
 #include <strings.h>
 #endif /* __linux */
 
+/*-------ADD THIS ----------------*/
+/*----- Error --> strcasecmp was not declared ----*/
+#ifdef __GNUC__ 
+#include <strings.h>
+#endif
+/*-------ADD THIS ----------------*/
+
 #ifdef _MSC_VER 
 #define strcasecmp _stricmp
 #endif
