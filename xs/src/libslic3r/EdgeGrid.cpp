@@ -3,7 +3,8 @@
 #include <float.h>
 #include <unordered_map>
 
-#ifdef SLIC3R_GUI
+#if 0
+// #ifdef SLIC3R_GUI
 #include <wx/image.h>
 #endif /* SLIC3R_GUI */
 

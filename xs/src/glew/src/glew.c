@@ -30,7 +30,8 @@
 ** THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifdef SLIC3R_GUI
+#if 1
+// #ifdef SLIC3R_GUI
 
 #include <GL/glew.h>
 
