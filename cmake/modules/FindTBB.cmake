@@ -46,6 +46,9 @@
 #                           tbb_preview, or tbb_preview_debug.
 # * TBB_USE_DEBUG_BUILD   - The debug version of tbb libraries, if present, will
 #                           be used instead of the release version.
+# * TBB_STATIC            - Static linking of libraries with a _static suffix.
+#                           For example, on Windows a tbb_static.lib will be searched for
+#                           instead of tbb.lib.
 #
 # Users may modify the behavior of this module with the following environment
 # variables:
@@ -204,17 +207,21 @@ if(NOT TBB_FOUND)
     set(TBB_SEARCH_COMPOMPONENTS tbb_preview tbbmalloc_proxy tbbmalloc tbb)
   endif()
 
+  if(TBB_STATIC)
+    set(TBB_STATIC_SUFFIX "_static")
+  endif()
+
   # Find each component
   foreach(_comp ${TBB_SEARCH_COMPOMPONENTS})
     if(";${TBB_FIND_COMPONENTS};tbb;" MATCHES ";${_comp};")
 
       # Search for the libraries
-      find_library(TBB_${_comp}_LIBRARY_RELEASE ${_comp}
+      find_library(TBB_${_comp}_LIBRARY_RELEASE ${_comp}${TBB_STATIC_SUFFIX}
           HINTS ${TBB_LIBRARY} ${TBB_SEARCH_DIR}
           PATHS ${TBB_DEFAULT_SEARCH_DIR} ENV LIBRARY_PATH
           PATH_SUFFIXES ${TBB_LIB_PATH_SUFFIX})
 
-      find_library(TBB_${_comp}_LIBRARY_DEBUG ${_comp}_debug
+      find_library(TBB_${_comp}_LIBRARY_DEBUG ${_comp}${TBB_STATIC_SUFFIX}_debug
           HINTS ${TBB_LIBRARY} ${TBB_SEARCH_DIR}
           PATHS ${TBB_DEFAULT_SEARCH_DIR} ENV LIBRARY_PATH
           PATH_SUFFIXES ${TBB_LIB_PATH_SUFFIX})
@@ -242,6 +249,8 @@ if(NOT TBB_FOUND)
 
     endif()
   endforeach()
+
+  unset(TBB_STATIC_SUFFIX)
 
   ##################################
   # Set compile flags and libraries
@@ -299,5 +308,15 @@ if(NOT TBB_FOUND)
   unset(TBB_BUILD_TYPE)
   unset(TBB_LIB_PATH_SUFFIX)
   unset(TBB_DEFAULT_SEARCH_DIR)
+
+  if(TBB_DEBUG)
+    message(STATUS "  TBB_INCLUDE_DIRS        = ${TBB_INCLUDE_DIRS}")
+    message(STATUS "  TBB_DEFINITIONS         = ${TBB_DEFINITIONS}")
+    message(STATUS "  TBB_LIBRARIES           = ${TBB_LIBRARIES}")
+    message(STATUS "  TBB_DEFINITIONS_DEBUG   = ${TBB_DEFINITIONS_DEBUG}")
+    message(STATUS "  TBB_LIBRARIES_DEBUG     = ${TBB_LIBRARIES_DEBUG}")
+    message(STATUS "  TBB_DEFINITIONS_RELEASE = ${TBB_DEFINITIONS_RELEASE}")
+    message(STATUS "  TBB_LIBRARIES_RELEASE   = ${TBB_LIBRARIES_RELEASE}")
+  endif()
 
 endif()

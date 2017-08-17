@@ -17,8 +17,7 @@ option(SLIC3R_HAS_BROKEN_CROAK 	"Compile Slic3r for a broken Strawberry Perl 64b
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 
 if (MSVC AND SLIC3R_MSVC_COMPILE_PARALLEL)
-	set(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS} /MP)
-	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} /MP)
+	add_compile_options(/MP)
 endif ()
 
 add_subdirectory(xs)

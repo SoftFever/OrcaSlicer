@@ -69,7 +69,7 @@ cmake_set_var('INCLUDE_DIRS', \$include_path);
 \$libraries =~ s/ -L/ -LIBPATH:/g if \$msvc;
 cmake_set_var('LIBRARIES', \$libraries);
 #cmake_set_var('LIBRARY_DIRS', );
-\$defines =~ s/ -D/ /g;
+#\$defines =~ s/ -D/ /g;
 cmake_set_var('DEFINITIONS', \$defines);
 #cmake_set_var('DEFINITIONS_DEBUG', );
 cmake_set_var('CXX_FLAGS', \$cflags);
