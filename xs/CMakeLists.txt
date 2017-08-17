@@ -186,7 +186,8 @@ endif ()
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 # Find expat or use bundled version
-if (NOT SLIC3R_STATIC)
+# Always use the system libexpat on Linux.
+if (NOT SLIC3R_STATIC OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(EXPAT)
 endif ()
 if (NOT EXPAT_FOUND)
