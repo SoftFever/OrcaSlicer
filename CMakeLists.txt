@@ -1,5 +1,5 @@
 # Boost 1.63 requires CMake 3.7 or newer
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 2.8)
 
 project(Slic3r)
 

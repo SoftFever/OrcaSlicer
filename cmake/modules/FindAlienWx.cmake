@@ -40,13 +40,13 @@ my \$defines      = ' ' . Alien::wxWidgets->defines;
 my \$cflags       = Alien::wxWidgets->c_flags;
 my \$linkflags    = Alien::wxWidgets->link_flags;
 my \$libraries    = ' ' . Alien::wxWidgets->libraries(@components);
-my @libraries     = Alien::wxWidgets->link_libraries(@components);
-my @implib        = Alien::wxWidgets->import_libraries(@components);
-my @shrlib        = Alien::wxWidgets->shared_libraries(@components);
-my @keys          = Alien::wxWidgets->library_keys; # 'gl', 'adv', ...
-my \$library_path = Alien::wxWidgets->shared_library_path;
-my \$key          = Alien::wxWidgets->key;
-my \$prefix       = Alien::wxWidgets->prefix;
+#my @libraries     = Alien::wxWidgets->link_libraries(@components);
+#my @implib        = Alien::wxWidgets->import_libraries(@components);
+#my @shrlib        = Alien::wxWidgets->shared_libraries(@components);
+#my @keys          = Alien::wxWidgets->library_keys; # 'gl', 'adv', ...
+#my \$library_path = Alien::wxWidgets->shared_library_path;
+#my \$key          = Alien::wxWidgets->key;
+#my \$prefix       = Alien::wxWidgets->prefix;
 
 my \$filename     = '${AlienWx_TEMP_INCLUDE}';
 open(my $fh, '>', \$filename) or die \"Could not open file '\$filename' \$!\";

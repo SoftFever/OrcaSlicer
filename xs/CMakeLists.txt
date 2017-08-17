@@ -116,10 +116,10 @@ find_package(PerlEmbed REQUIRED)
 target_include_directories(XS PRIVATE ${PERL_INCLUDE_PATH})
 target_compile_options(XS PRIVATE ${PerlEmbed_CCFLAGS})
 # If the Perl is compiled with optimization off, disable optimization over the whole project.
-if ("-Od" IN_LIST PerlEmbed_CCFLAGS OR "/Od" IN_LIST PerlEmbed_CCFLAGS)
-    set(CMAKE_CXX_FLAGS_RELEASE /Od)
-    set(CMAKE_C_FLAGS_RELEASE /Od)
-endif()
+#if ("-Od" IN_LIST PerlEmbed_CCFLAGS OR "/Od" IN_LIST PerlEmbed_CCFLAGS)
+#    set(CMAKE_CXX_FLAGS_RELEASE /Od)
+#    set(CMAKE_C_FLAGS_RELEASE /Od)
+#endif()
 target_link_libraries(XS ${PERL_LIBRARY})
 
 ## REQUIRED packages
