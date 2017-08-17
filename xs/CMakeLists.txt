@@ -1,27 +1,17 @@
-# Enable c++11 language standard
+# Enable C++11 language standard.
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add our own cmake module path
+# Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 
+# Where all the bundled libraries reside?
 set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+# For the bundled boost libraries (boost::nowide)
 include_directories(${LIBDIR})
 
-# Bring back SLIC3R_DYNAMIC logic from Build.PL
-if (DEFINED SLIC3R_DYNAMIC AND NOT SLIC3R_DYNAMIC)
-    set(SLIC3R_STATIC 1)
-endif ()
-
-# Bring back SLIC3R_NOGUI logic from Build.PL
-# Map SLIC3R_PRUS to SLIC3R_GUI
-#if (DEFINED SLIC3R_NOGUI AND NOT SLIC3R_NOGUI OR SLIC3R_PRUS)
-#    set(SLIC3R_GUI 0)
-#else ()
-    set(SLIC3R_GUI 1)
-#endif ()
-
-# Generate XS typemap file
+# Generate the Slic3r Perl module (XS) typemap file.
+#FIXME add the dependencies.
 find_package(Perl REQUIRED)
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
 add_custom_command(
@@ -30,8 +20,9 @@ add_custom_command(
         VERBATIM
 )
 
-# Generate main.xs file
+# Generate the Slic3r Perl module (XS) main.xs file.
 set(MyMainXs ${CMAKE_CURRENT_BINARY_DIR}/main.xs)
+#FIXME list the dependecies explicitely, add dependency on the typemap.
 file(GLOB files xsp/*.xsp)
 foreach (file ${files})
     if (MSVC)
@@ -43,7 +34,8 @@ foreach (file ${files})
 endforeach ()
 configure_file(main.xs.in ${MyMainXs} @ONLY) # Insert INCLUDE_COMMANDS into main.xs
 
-# Generate XS.cpp file
+# Generate the Slic3r Perl module (XS) XS.cpp file.
+#FIXME add the dependency on main.xs and typemap.
 set(MyXsC "${CMAKE_CURRENT_BINARY_DIR}/XS.cpp")
 add_custom_command(
         OUTPUT ${MyXsC}
@@ -98,7 +90,6 @@ endif ()
 ## Configuration flags
 if (SLIC3R_GUI)
     message("Slic3r will be built with GUI support")
-#    target_compile_definitions(XS PRIVATE -DSLIC3R_GUI -DSLIC3R_PRUS)
     target_compile_definitions(XS PRIVATE -DSLIC3R_GUI)
 endif ()
 
@@ -119,44 +110,11 @@ endif ()
 
 # Perl specific stuff
 find_package(PerlLibs REQUIRED)
-execute_process(
-    COMMAND ${PERL_EXECUTABLE} -MExtUtils::Embed -e "
-        use Text::ParseWords; 
-        my \$line; 
-        { local *STDOUT; open STDOUT, '>', \\\$line; ccflags; } 
-        \$line =~ s/\\\\/\\\\\\\\/g; 
-        my @words = shellwords(\$line); 
-        print join(';', @words)"
-    OUTPUT_VARIABLE PERL_CCLAGS
-)
-execute_process(
-    COMMAND ${PERL_EXECUTABLE} -MExtUtils::Embed -e "
-        use Text::ParseWords; 
-        my \$line; 
-        { local *STDOUT; open STDOUT, '>', \\\$line; ldopts; } 
-        \$line =~ s/\\\\/\\\\\\\\/g; 
-        my @words = shellwords(\$line); 
-        print join(';', @words)"
-    OUTPUT_VARIABLE PERL_LDFLAGS
-)
+set(PerlEmbed_DEBUG 1)
+find_package(PerlEmbed REQUIRED)
 target_include_directories(XS PRIVATE ${PERL_INCLUDE_PATH})
-
-message("PERL_INCLUDE_PATH: ${PERL_INCLUDE_PATH}")
-message("PERL_LIBRARY: ${PERL_LIBRARY}")
-message("PERL_EXECUTABLE: ${PERL_EXECUTABLE}")
-message("PERL_SITESEARCH: ${PERL_SITESEARCH}")
-message("PERL_SITELIB: ${PERL_SITELIB}")
-message("PERL_VENDORARCH: ${PERL_VENDORARCH}")
-message("PERL_VENDORLIB: ${PERL_VENDORLIB}")
-message("PERL_ARCHLIB: ${PERL_ARCHLIB}")
-message("PERL_PRIVLIB: ${PERL_PRIVLIB}")
-message("PERL_EXTRA_C_FLAGS: ${PERL_EXTRA_C_FLAGS}")
-message("PERL_CCLAGS: ${PERL_CCLAGS}")
-message("PERL_LDFLAGS: ${PERL_LDFLAGS}")
-
-target_compile_options(XS PRIVATE ${PERL_CCLAGS})
-#target_link_libraries(XS ${PERL_LDFLAGS})
-target_link_libraries(XS C:\\wperl64d\\lib\\CORE\\perl524.lib)
+target_compile_options(XS PRIVATE ${PerlEmbed_CCLAGS})
+target_link_libraries(XS ${PERL_LIBRARY})
 
 ## REQUIRED packages
 
@@ -186,16 +144,22 @@ if (TBB_FOUND)
 endif ()
 
 # Find and configure wxWidgets
-set(wxWidgets_UseAlienWx 1)
-if (wxWidgets_UseAlienWx)
-    # ${PROJECT_SOURCE_DIR}/cmake/helpers/alien_wx_to_cmake.pl
-else ()
-    find_package(wxWidgets REQUIRED)
-    if (wxWidgets_FOUND)
+if (SLIC3R_PRUSACONTROL)
+    set(wxWidgets_UseAlienWx 1)
+    if (wxWidgets_UseAlienWx)
+        set(AlienWx_DEBUG 1)
+        find_package(AlienWx REQUIRED COMPONENTS base)
+        include_directories(${AlienWx_INCLUDE_DIR})
+        string(APPEND CMAKE_CXX_FLAGS " ${AlienWx_CXX_FLAGS}")
+        add_definitions(${AlienWx_DEFINITIONS})
+        target_link_libraries(XS ${AlienWx_LIBRARIES})
+    else ()
+        find_package(wxWidgets REQUIRED COMPONENTS base)
         include(${wxWidgets_USE_FILE})
         target_link_libraries(XS ${wxWidgets_LIBRARIES})
     endif ()
-endif ()
+    target_compile_definitions(XS PRIVATE -DSLIC3R_GUI -DSLIC3R_PRUS)
+endif()
 
 ## OPTIONAL packages
 
