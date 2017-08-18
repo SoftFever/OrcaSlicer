@@ -295,15 +295,22 @@ configure_file(main.xs.in ${XS_MAIN_XS} @ONLY) # Insert INCLUDE_COMMANDS into ma
 set(XS_MAIN_CPP ${CMAKE_CURRENT_BINARY_DIR}/XS.cpp)
 add_custom_command(
         OUTPUT ${XS_MAIN_CPP}
-        DEPENDS ${MyTemplate} ${MyTypemap}
+        DEPENDS ${MyTypemap} ${CMAKE_CURRENT_LIST_DIR}/xsp/typemap.xspt
         COMMAND COMMAND xsubpp -typemap typemap -output ${XS_MAIN_CPP} -hiertype ${XS_MAIN_XS}
 )
 
 # Define the Perl XS shared library.
 add_library(XS SHARED
     ${XS_MAIN_CPP}
-    ${LIBDIR}/perlglue.cpp
     ${LIBDIR}/libslic3r/utils.cpp
+    ${LIBDIR}/perlglue.cpp
+    ${LIBDIR}/ppport.h
+    ${LIBDIR}/xsinit.h
+    ${CMAKE_CURRENT_LIST_DIR}/xsp/my.map
+    # mytype.map is empty. Is it required by Build.PL or the Perl xspp module?
+    ${CMAKE_CURRENT_LIST_DIR}/xsp/mytype.map
+    # Used by Perl xsubpp to generate XS.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/xsp/typemap.xspt
 )
 target_link_libraries(XS libslic3r libslic3r_gui admesh clipper nowide polypartition poly2tri)
 if(SLIC3R_DEBUG)
@@ -418,13 +425,13 @@ if (SLIC3R_PRUSACONTROL)
         include_directories(${AlienWx_INCLUDE_DIRS})
         #add_compile_options(${AlienWx_CXX_FLAGS})
         add_definitions(${AlienWx_DEFINITIONS})
-        target_link_libraries(XS ${AlienWx_LIBRARIES})
+        set(wxWidgets_LIBRARIES, ${AlienWx_LIBRARIES})
     else ()
         find_package(wxWidgets REQUIRED COMPONENTS base)
         include(${wxWidgets_USE_FILE})
-        target_link_libraries(XS ${wxWidgets_LIBRARIES})
     endif ()
     target_compile_definitions(XS PRIVATE -DSLIC3R_GUI -DSLIC3R_PRUS)
+    target_link_libraries(XS ${wxWidgets_LIBRARIES})
 endif()
 
 ## OPTIONAL packages
@@ -471,6 +478,24 @@ if (NOT GLEW_FOUND)
 endif ()
 include_directories(${GLEW_INCLUDE_DIRS})
 target_link_libraries(XS ${GLEW_LIBRARIES})
+
+
+# Create a slic3r executable
+add_executable(slic3r ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)
+target_include_directories(XS PRIVATE src src/libslic3r)
+target_link_libraries(slic3r libslic3r libslic3r_gui admesh ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
+if(SLIC3R_DEBUG)
+    target_link_libraries(Shiny)
+endif()
+target_compile_definitions(slic3r PRIVATE -DBOOST_ASIO_DISABLE_KQUEUE -DBOOST_LIBS -DBOOST_ALL_NO_LIB)
+if(NOT SLIC3R_STATIC)
+    target_compile_definitions(slic3r PRIVATE -DBOOST_LOG_DYN_LINK)
+endif()
+if (APPLE)
+    target_link_libraries(slic3r -framework IOKit -framework CoreFoundation -lc++)
+elseif (NOT MSVC)
+    target_link_libraries(slic3r -lstdc++)
+endif ()
 
 # Installation
 install(TARGETS XS DESTINATION lib/slic3r-prusa3d/auto/Slic3r/XS)
