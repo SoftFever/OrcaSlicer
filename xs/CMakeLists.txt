@@ -231,9 +231,20 @@ add_library(Shiny STATIC
     ${LIBDIR}/Shiny/ShinyZone.h
 )
 
-# Generate the Slic3r Perl module (XS) typemap file.
-#FIXME add the dependencies.
+# Find the Perl interpreter, add local-lib to PATH and PERL5LIB environment variables,
+# so the locally installed modules (mainly the Alien::wxPerl) will be reached.
+if (WIN32)
+    set(ENV_PATH_SEPARATOR ";")
+else()
+    set(ENV_PATH_SEPARATOR ":")
+endif()
+set(ENV{PATH}     "${PROJECT_SOURCE_DIR}/local-lib/bin${ENV_PATH_SEPARATOR}$ENV{PATH}")
+set(ENV{PERL5LIB} "${PROJECT_SOURCE_DIR}/local-lib/lib/perl${ENV_PATH_SEPARATOR}$ENV{PERL5LIB}")
+message("PATH: $ENV{PATH}")
+message("PERL5LIB: $ENV{PERL5LIB}")
 find_package(Perl REQUIRED)
+
+# Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
 add_custom_command(
         OUTPUT ${MyTypemap}
