@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 2.8)
 
 project(Slic3r)
 
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "No build type selected, default to Release")
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
+endif()
+
 if (MSVC OR MINGW OR APPLE)
 	set(SLIC3R_STATIC_INITIAL 1)
 else ()
