@@ -8,6 +8,7 @@ plan tests => 16;
 BEGIN {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
+    use local::lib "$FindBin::Bin/../local-lib";
 }
 
 # temporarily disable compilation errors due to constant not being exported anymore

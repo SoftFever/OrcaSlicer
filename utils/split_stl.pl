@@ -7,6 +7,7 @@ use warnings;
 BEGIN {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
+    use local::lib "$FindBin::Bin/../local-lib";
 }
 
 use File::Basename qw(basename);

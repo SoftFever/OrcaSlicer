@@ -103,6 +103,15 @@ EOF
     my @cpanm_args = ();
     push @cpanm_args, "--sudo" if $sudo;
 
+    # install local::lib without --local-lib otherwise it's not usable afterwards
+    if (!eval "use local::lib qw(local-lib); 1") {
+        my $res = system $cpanm, @cpanm_args, 'local::lib';
+        warn "Warning: local::lib is required. You might need to run the `cpanm --sudo local::lib` command in order to install it.\n"
+            if $res != 0;
+    }
+    
+    push @cpanm_args, ('--local-lib', 'local-lib');
+
     # make sure our cpanm is updated (old ones don't support the ~ syntax)
     system $cpanm, @cpanm_args, 'App::cpanminus';
     
