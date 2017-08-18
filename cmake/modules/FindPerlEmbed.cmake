@@ -73,6 +73,7 @@ if (PerlEmbed_DEBUG)
   message(STATUS " PERL_EXTRA_C_FLAGS     = ${PERL_EXTRA_C_FLAGS}")
   # Second show the configuration extracted by this module (FindPerlEmbed):
   message(STATUS " PerlEmbed_CCFLAGS      = ${PerlEmbed_CCFLAGS}")
+  message(STATUS " PerlEmbed_CCCDLFLAGS   = ${PerlEmbed_CCCDLFLAGS}")
   message(STATUS " LD                     = ${PerlEmbed_LD}")
   message(STATUS " PerlEmbed_LDFLAGS      = ${PerlEmbed_LDFLAGS}")
   message(STATUS " PerlEmbed_LDDLFLAGS    = ${PerlEmbed_LDDLFLAGS}")
