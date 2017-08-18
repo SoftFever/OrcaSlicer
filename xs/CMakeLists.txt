@@ -13,9 +13,10 @@ include_directories(${LIBDIR})
 include_directories(${LIBDIR}/libslic3r)
 #set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-if (WIN32)
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32)
-endif ()
+if(WIN32)
+    # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB)
+endif()
 
 add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/BoundingBox.cpp
@@ -255,41 +256,42 @@ add_custom_command(
 
 # Generate the Slic3r Perl module (XS) main.xs file.
 set(XS_MAIN_XS ${CMAKE_CURRENT_BINARY_DIR}/main.xs)
+set(XSP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/xsp)
 #FIXME list the dependecies explicitely, add dependency on the typemap.
-file(GLOB XS_XSP_FILES
-    ${LIBDIR}/xsp/BoundingBox.xsp
-    ${LIBDIR}/xsp/BridgeDetector.xsp
-    ${LIBDIR}/xsp/Clipper.xsp
-    ${LIBDIR}/xsp/Config.xsp
-    ${LIBDIR}/xsp/ExPolygon.xsp
-    ${LIBDIR}/xsp/ExPolygonCollection.xsp
-    ${LIBDIR}/xsp/ExtrusionEntityCollection.xsp
-    ${LIBDIR}/xsp/ExtrusionLoop.xsp
-    ${LIBDIR}/xsp/ExtrusionMultiPath.xsp
-    ${LIBDIR}/xsp/ExtrusionPath.xsp
-    ${LIBDIR}/xsp/ExtrusionSimulator.xsp
-    ${LIBDIR}/xsp/Filler.xsp
-    ${LIBDIR}/xsp/Flow.xsp
-    ${LIBDIR}/xsp/GCode.xsp
-    ${LIBDIR}/xsp/GCodeSender.xsp
-    ${LIBDIR}/xsp/Geometry.xsp
-    ${LIBDIR}/xsp/GUI.xsp
-    ${LIBDIR}/xsp/GUI_3DScene.xsp
-    ${LIBDIR}/xsp/Layer.xsp
-    ${LIBDIR}/xsp/Line.xsp
-    ${LIBDIR}/xsp/Model.xsp
-    ${LIBDIR}/xsp/MotionPlanner.xsp
-    ${LIBDIR}/xsp/PerimeterGenerator.xsp
-    ${LIBDIR}/xsp/PlaceholderParser.xsp
-    ${LIBDIR}/xsp/Point.xsp
-    ${LIBDIR}/xsp/Polygon.xsp
-    ${LIBDIR}/xsp/Polyline.xsp
-    ${LIBDIR}/xsp/PolylineCollection.xsp
-    ${LIBDIR}/xsp/Print.xsp
-    ${LIBDIR}/xsp/Surface.xsp
-    ${LIBDIR}/xsp/SurfaceCollection.xsp
-    ${LIBDIR}/xsp/TriangleMesh.xsp
-    ${LIBDIR}/xsp/XS.xsp
+set(XS_XSP_FILES
+    ${XSP_DIR}/BoundingBox.xsp
+    ${XSP_DIR}/BridgeDetector.xsp
+    ${XSP_DIR}/Clipper.xsp
+    ${XSP_DIR}/Config.xsp
+    ${XSP_DIR}/ExPolygon.xsp
+    ${XSP_DIR}/ExPolygonCollection.xsp
+    ${XSP_DIR}/ExtrusionEntityCollection.xsp
+    ${XSP_DIR}/ExtrusionLoop.xsp
+    ${XSP_DIR}/ExtrusionMultiPath.xsp
+    ${XSP_DIR}/ExtrusionPath.xsp
+    ${XSP_DIR}/ExtrusionSimulator.xsp
+    ${XSP_DIR}/Filler.xsp
+    ${XSP_DIR}/Flow.xsp
+    ${XSP_DIR}/GCode.xsp
+    ${XSP_DIR}/GCodeSender.xsp
+    ${XSP_DIR}/Geometry.xsp
+    ${XSP_DIR}/GUI.xsp
+    ${XSP_DIR}/GUI_3DScene.xsp
+    ${XSP_DIR}/Layer.xsp
+    ${XSP_DIR}/Line.xsp
+    ${XSP_DIR}/Model.xsp
+    ${XSP_DIR}/MotionPlanner.xsp
+    ${XSP_DIR}/PerimeterGenerator.xsp
+    ${XSP_DIR}/PlaceholderParser.xsp
+    ${XSP_DIR}/Point.xsp
+    ${XSP_DIR}/Polygon.xsp
+    ${XSP_DIR}/Polyline.xsp
+    ${XSP_DIR}/PolylineCollection.xsp
+    ${XSP_DIR}/Print.xsp
+    ${XSP_DIR}/Surface.xsp
+    ${XSP_DIR}/SurfaceCollection.xsp
+    ${XSP_DIR}/TriangleMesh.xsp
+    ${XSP_DIR}/XS.xsp
 )
 foreach (file ${XS_XSP_FILES})
     if (MSVC)
@@ -306,7 +308,7 @@ configure_file(main.xs.in ${XS_MAIN_XS} @ONLY) # Insert INCLUDE_COMMANDS into ma
 set(XS_MAIN_CPP ${CMAKE_CURRENT_BINARY_DIR}/XS.cpp)
 add_custom_command(
         OUTPUT ${XS_MAIN_CPP}
-        DEPENDS ${MyTypemap} ${CMAKE_CURRENT_LIST_DIR}/xsp/typemap.xspt
+        DEPENDS ${MyTypemap} ${XS_XSP_FILES} ${CMAKE_CURRENT_LIST_DIR}/xsp/typemap.xspt
         COMMAND COMMAND xsubpp -typemap typemap -output ${XS_MAIN_CPP} -hiertype ${XS_MAIN_XS}
 )
 
@@ -397,21 +399,24 @@ target_link_libraries(XS ${PERL_LIBRARY})
 ## REQUIRED packages
 
 # Find and configure boost
-if (SLIC3R_STATIC)
+if(SLIC3R_STATIC)
     # Use static boost libraries.
     set(Boost_USE_STATIC_LIBS ON)
     # Use boost libraries linked statically to the C++ runtime.
     # set(Boost_USE_STATIC_RUNTIME ON)
-endif ()
+endif()
 find_package(Boost REQUIRED COMPONENTS system filesystem thread log locale)
-if (Boost_FOUND)
+if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     target_link_libraries(XS ${Boost_LIBRARIES})
-    target_compile_definitions(XS PRIVATE -DBOOST_ASIO_DISABLE_KQUEUE -DBOOST_LIBS -DBOOST_ALL_NO_LIB)
-    if (NOT SLIC3R_STATIC)
-        target_compile_definitions(XS PRIVATE -DBOOST_LOG_DYN_LINK)
-    endif ()
-endif ()
+    if (APPLE)
+        # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
+        add_definitions(-DBOOST_ASIO_DISABLE_KQUEUE)
+    endif()
+    if(NOT SLIC3R_STATIC)
+        add_definitions(-DBOOST_LOG_DYN_LINK)
+    endif()
+endif()
 
 # Find and configure intel-tbb
 if(SLIC3R_STATIC)
@@ -436,12 +441,12 @@ if (SLIC3R_PRUSACONTROL)
         include_directories(${AlienWx_INCLUDE_DIRS})
         #add_compile_options(${AlienWx_CXX_FLAGS})
         add_definitions(${AlienWx_DEFINITIONS})
-        set(wxWidgets_LIBRARIES, ${AlienWx_LIBRARIES})
+        set(wxWidgets_LIBRARIES ${AlienWx_LIBRARIES})
     else ()
         find_package(wxWidgets REQUIRED COMPONENTS base)
         include(${wxWidgets_USE_FILE})
     endif ()
-    target_compile_definitions(XS PRIVATE -DSLIC3R_GUI -DSLIC3R_PRUS)
+    add_definitions(-DSLIC3R_GUI -DSLIC3R_PRUS)
     target_link_libraries(XS ${wxWidgets_LIBRARIES})
 endif()
 
@@ -484,8 +489,7 @@ if (NOT GLEW_FOUND)
     set(GLEW_FOUND 1)
     set(GLEW_INCLUDE_DIRS ${LIBDIR}/glew/include/)
     set(GLEW_LIBRARIES glew)
-    target_compile_definitions(glew PRIVATE -DGLEW_STATIC)
-    target_compile_definitions(XS PRIVATE -DGLEW_STATIC)
+    add_definitions(-DGLEW_STATIC)
 endif ()
 include_directories(${GLEW_INCLUDE_DIRS})
 target_link_libraries(XS ${GLEW_LIBRARIES})
@@ -497,10 +501,6 @@ target_include_directories(XS PRIVATE src src/libslic3r)
 target_link_libraries(slic3r libslic3r libslic3r_gui admesh ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
 if(SLIC3R_DEBUG)
     target_link_libraries(Shiny)
-endif()
-target_compile_definitions(slic3r PRIVATE -DBOOST_ASIO_DISABLE_KQUEUE -DBOOST_LIBS -DBOOST_ALL_NO_LIB)
-if(NOT SLIC3R_STATIC)
-    target_compile_definitions(slic3r PRIVATE -DBOOST_LOG_DYN_LINK)
 endif()
 if (APPLE)
     target_link_libraries(slic3r "-framework IOKit" "-framework CoreFoundation" -lc++)

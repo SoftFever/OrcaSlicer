@@ -610,7 +610,7 @@ static bool prepare_infill_hatching_segments(
 #undef ASSERT_OR_RETURN
 #ifdef _MSC_VER
     #pragma warning(push)
-#endif _MSC_VER
+#endif /* _MSC_VER */
 
 #ifdef SLIC3R_DEBUG
     // Paint the segments and finalize the SVG file.

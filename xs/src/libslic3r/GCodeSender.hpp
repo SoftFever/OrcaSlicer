@@ -1,6 +1,5 @@
 #ifndef slic3r_GCodeSender_hpp_
 #define slic3r_GCodeSender_hpp_
-#ifdef BOOST_LIBS
 
 #include "libslic3r.h"
 #include <queue>
@@ -71,5 +70,4 @@ class GCodeSender : private boost::noncopyable {
 
 } // namespace Slic3r
 
-#endif /* BOOST_LIBS */
 #endif /* slic3r_GCodeSender_hpp_ */

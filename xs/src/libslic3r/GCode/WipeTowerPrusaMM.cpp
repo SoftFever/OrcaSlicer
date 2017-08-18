@@ -344,7 +344,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(int tool, bool last_in
 {
 	// Either it is the last tool unload,
 	// or there must be a nonzero wipe tower partitions available.
-	assert(tool < 0 || it_layer_tools->wipe_tower_partitions > 0);
+//	assert(tool < 0 || it_layer_tools->wipe_tower_partitions > 0);
 
 	if (m_idx_tool_change_in_layer == (unsigned int)(-1)) {
 		// First layer, prime the extruder.

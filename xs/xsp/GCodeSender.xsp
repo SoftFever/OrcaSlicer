@@ -1,7 +1,5 @@
 %module{Slic3r::XS};
 
-#ifdef BOOST_LIBS
-
 %{
 #include <xsinit.h>
 #include "libslic3r/GCodeSender.hpp"
@@ -24,5 +22,3 @@
     std::string getT();
     std::string getB();
 };
-
-#endif

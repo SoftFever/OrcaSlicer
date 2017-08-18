@@ -1,4 +1,3 @@
-#ifdef BOOST_LIBS
 #include "GCodeSender.hpp"
 #include <iostream>
 #include <istream>
@@ -30,8 +29,6 @@ std::fstream fs;
 
 namespace Slic3r {
 
-namespace asio = boost::asio;
-
 GCodeSender::GCodeSender()
     : io(), serial(io), can_send(false), sent(0), open(false), error(false),
       connected(false), queue_paused(false)
@@ -50,20 +47,20 @@ GCodeSender::connect(std::string devname, unsigned int baud_rate)
     this->set_error_status(false);
     try {
         this->serial.open(devname);
-    } catch (boost::system::system_error &e) {
+    } catch (boost::system::system_error &) {
         this->set_error_status(true);
         return false;
     }
     
-    this->serial.set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::odd));
-    this->serial.set_option(asio::serial_port_base::character_size(asio::serial_port_base::character_size(8)));
-    this->serial.set_option(asio::serial_port_base::flow_control(asio::serial_port_base::flow_control::none));
-    this->serial.set_option(asio::serial_port_base::stop_bits(asio::serial_port_base::stop_bits::one));
+    this->serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::odd));
+    this->serial.set_option(boost::asio::serial_port_base::character_size(boost::asio::serial_port_base::character_size(8)));
+    this->serial.set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+    this->serial.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
     this->set_baud_rate(baud_rate);
     
     this->serial.close();
     this->serial.open(devname);
-    this->serial.set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::none));
+    this->serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
     
     // set baud rate again because set_option overwrote it
     this->set_baud_rate(baud_rate);
@@ -84,7 +81,7 @@ GCodeSender::connect(std::string devname, unsigned int baud_rate)
     this->io.post(boost::bind(&GCodeSender::do_read, this));
     
     // start reading in the background thread
-    boost::thread t(boost::bind(&asio::io_service::run, &this->io));
+    boost::thread t(boost::bind(&boost::asio::io_service::run, &this->io));
     this->background_thread.swap(t);
     
     return true;
@@ -95,8 +92,8 @@ GCodeSender::set_baud_rate(unsigned int baud_rate)
 {
     try {
         // This does not support speeds > 115200
-        this->serial.set_option(asio::serial_port_base::baud_rate(baud_rate));
-    } catch (boost::system::system_error &e) {
+        this->serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+    } catch (boost::system::system_error &) {
         boost::asio::serial_port::native_handle_type handle = this->serial.native_handle();
 
 #if __APPLE__
@@ -276,15 +273,15 @@ void
 GCodeSender::do_read()
 {
     // read one line
-    asio::async_read_until(
+    boost::asio::async_read_until(
         this->serial,
         this->read_buffer,
         '\n',
         boost::bind(
             &GCodeSender::on_read,
             this,
-            asio::placeholders::error,
-            asio::placeholders::bytes_transferred
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred
         )
     );
 }
@@ -483,11 +480,11 @@ GCodeSender::do_send()
     if (this->last_sent.size() > KEEP_SENT)
         this->last_sent.erase(this->last_sent.begin(), this->last_sent.end() - KEEP_SENT);
     
-    // we can't supply asio::buffer(full_line) to async_write() because full_line is on the
+    // we can't supply boost::asio::buffer(full_line) to async_write() because full_line is on the
     // stack and the buffer would lose its underlying storage causing memory corruption
     std::ostream os(&this->write_buffer);
     os << full_line;
-    asio::async_write(this->serial, this->write_buffer, boost::bind(&GCodeSender::on_write, this, boost::asio::placeholders::error,
+    boost::asio::async_write(this->serial, this->write_buffer, boost::bind(&GCodeSender::on_write, this, boost::asio::placeholders::error,
                 boost::asio::placeholders::bytes_transferred));
 }
 
@@ -511,7 +508,7 @@ void
 GCodeSender::set_DTR(bool on)
 {
 #if defined(_WIN32) && !defined(__SYMBIAN32__)
-    asio::serial_port_service::native_handle_type handle = this->serial.native_handle();
+    boost::asio::serial_port_service::native_handle_type handle = this->serial.native_handle();
     if (on)
         EscapeCommFunction(handle, SETDTR);
     else
@@ -543,6 +540,4 @@ GCodeSender::reset()
     }
 }
 
-}
-
-#endif
+} // namespace Slic3r

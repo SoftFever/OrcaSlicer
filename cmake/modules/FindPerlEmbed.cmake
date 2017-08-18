@@ -14,6 +14,7 @@ execute_process(
 # Import Perl modules.
 use strict;
 use warnings;
+use Config;
 use Text::ParseWords;
 use ExtUtils::CppGuess;
 
@@ -45,9 +46,13 @@ sub cmake_set_var {
   my @words = shellwords(\$content); 
   print \$fh \"set(PerlEmbed_\$varname \\\"\" . join(';', @words) . \"\\\")\\n\";
 }
-cmake_set_var('CCFLAGS', \$ccflags);
+cmake_set_var('CCFLAGS',    \$ccflags);
 \$ldflags =~ s/ -L/ -LIBPATH:/g if \$msvc;
-cmake_set_var('LDFLAGS', \$ldflags);
+cmake_set_var('LD',         \$Config{ld});
+cmake_set_var('LDFLAGS',    \$ldflags);
+cmake_set_var('CCCDLFLAGS', \$Config{cccdlflags});
+cmake_set_var('LDDLFLAGS',  \$Config{lddlflags});
+cmake_set_var('DLEXT',      \$Config{dlext});
 close \$fh;
 ")
 include(${PerlEmbed_TEMP_INCLUDE})
@@ -68,7 +73,9 @@ if (PerlEmbed_DEBUG)
   message(STATUS " PERL_EXTRA_C_FLAGS     = ${PERL_EXTRA_C_FLAGS}")
   # Second show the configuration extracted by this module (FindPerlEmbed):
   message(STATUS " PerlEmbed_CCFLAGS      = ${PerlEmbed_CCFLAGS}")
+  message(STATUS " LD                     = ${PerlEmbed_LD}")
   message(STATUS " PerlEmbed_LDFLAGS      = ${PerlEmbed_LDFLAGS}")
+  message(STATUS " PerlEmbed_LDDLFLAGS    = ${PerlEmbed_LDDLFLAGS}")
 endif()
 
 include(FindPackageHandleStandardArgs)
