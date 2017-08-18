@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "stl.h"
-#include "config.h"
+//#include "config.h"
 
 #include <boost/nowide/cstdio.hpp>
 

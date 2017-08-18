@@ -9,6 +9,132 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 # For the bundled boost libraries (boost::nowide)
 include_directories(${LIBDIR})
+# For libslic3r.h
+include_directories(${LIBDIR}/libslic3r)
+#set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+if (WIN32)
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32)
+endif ()
+
+add_library(libslic3r STATIC
+    ${LIBDIR}/libslic3r/BoundingBox.cpp
+    ${LIBDIR}/libslic3r/BridgeDetector.cpp
+    ${LIBDIR}/libslic3r/ClipperUtils.cpp
+    ${LIBDIR}/libslic3r/Config.cpp
+    ${LIBDIR}/libslic3r/EdgeGrid.cpp
+    ${LIBDIR}/libslic3r/ExPolygon.cpp
+    ${LIBDIR}/libslic3r/ExPolygonCollection.cpp
+    ${LIBDIR}/libslic3r/Extruder.cpp
+    ${LIBDIR}/libslic3r/ExtrusionEntity.cpp
+    ${LIBDIR}/libslic3r/ExtrusionEntityCollection.cpp
+    ${LIBDIR}/libslic3r/ExtrusionSimulator.cpp
+    ${LIBDIR}/libslic3r/Fill/Fill.cpp
+    ${LIBDIR}/libslic3r/Fill/Fill3DHoneycomb.cpp
+    ${LIBDIR}/libslic3r/Fill/FillBase.cpp
+    ${LIBDIR}/libslic3r/Fill/FillConcentric.cpp
+    ${LIBDIR}/libslic3r/Fill/FillHoneycomb.cpp
+    ${LIBDIR}/libslic3r/Fill/FillPlanePath.cpp
+    ${LIBDIR}/libslic3r/Fill/FillRectilinear.cpp
+    ${LIBDIR}/libslic3r/Fill/FillRectilinear2.cpp
+    ${LIBDIR}/libslic3r/Fill/FillRectilinear3.cpp
+    ${LIBDIR}/libslic3r/Flow.cpp
+    ${LIBDIR}/libslic3r/Format/AMF.cpp
+    ${LIBDIR}/libslic3r/Format/OBJ.cpp
+    ${LIBDIR}/libslic3r/Format/objparser.cpp
+    ${LIBDIR}/libslic3r/Format/PRUS.cpp
+    ${LIBDIR}/libslic3r/Format/STL.cpp
+    ${LIBDIR}/libslic3r/GCode.cpp
+    ${LIBDIR}/libslic3r/GCode/Analyzer.cpp
+    ${LIBDIR}/libslic3r/GCode/CoolingBuffer.cpp
+    ${LIBDIR}/libslic3r/GCode/PressureEqualizer.cpp
+    ${LIBDIR}/libslic3r/GCode/SpiralVase.cpp
+    ${LIBDIR}/libslic3r/GCode/ToolOrdering.cpp
+    ${LIBDIR}/libslic3r/GCode/WipeTowerPrusaMM.cpp
+    ${LIBDIR}/libslic3r/GCodeReader.cpp
+    ${LIBDIR}/libslic3r/GCodeSender.cpp
+    ${LIBDIR}/libslic3r/GCodeTimeEstimator.cpp
+    ${LIBDIR}/libslic3r/GCodeWriter.cpp
+    ${LIBDIR}/libslic3r/Geometry.cpp
+    ${LIBDIR}/libslic3r/Layer.cpp
+    ${LIBDIR}/libslic3r/LayerRegion.cpp
+    ${LIBDIR}/libslic3r/Line.cpp
+    ${LIBDIR}/libslic3r/Model.cpp
+    ${LIBDIR}/libslic3r/MotionPlanner.cpp
+    ${LIBDIR}/libslic3r/MultiPoint.cpp
+    ${LIBDIR}/libslic3r/PerimeterGenerator.cpp
+    ${LIBDIR}/libslic3r/PlaceholderParser.cpp
+    ${LIBDIR}/libslic3r/Point.cpp
+    ${LIBDIR}/libslic3r/Polygon.cpp
+    ${LIBDIR}/libslic3r/Polyline.cpp
+    ${LIBDIR}/libslic3r/PolylineCollection.cpp
+    ${LIBDIR}/libslic3r/Print.cpp
+    ${LIBDIR}/libslic3r/PrintConfig.cpp
+    ${LIBDIR}/libslic3r/PrintObject.cpp
+    ${LIBDIR}/libslic3r/PrintRegion.cpp
+    ${LIBDIR}/libslic3r/Slicing.cpp
+    ${LIBDIR}/libslic3r/SlicingAdaptive.cpp
+    ${LIBDIR}/libslic3r/SupportMaterial.cpp
+    ${LIBDIR}/libslic3r/Surface.cpp
+    ${LIBDIR}/libslic3r/SurfaceCollection.cpp
+    ${LIBDIR}/libslic3r/SVG.cpp
+    ${LIBDIR}/libslic3r/TriangleMesh.cpp
+)
+
+add_library(libslic3r_gui STATIC
+    ${LIBDIR}/slic3r/GUI/3DScene.cpp
+    ${LIBDIR}/slic3r/GUI/GLShader.cpp
+    ${LIBDIR}/slic3r/GUI/GUI.cpp
+)
+
+add_library(admesh STATIC
+    ${LIBDIR}/admesh/connect.cpp
+    ${LIBDIR}/admesh/normals.cpp
+    ${LIBDIR}/admesh/shared.cpp
+    ${LIBDIR}/admesh/stl_io.cpp
+    ${LIBDIR}/admesh/stlinit.cpp
+    ${LIBDIR}/admesh/util.cpp
+)
+
+add_library(clipper STATIC ${LIBDIR}/clipper.cpp)
+
+add_library(polypartition STATIC ${LIBDIR}/polypartition.cpp)
+
+add_library(poly2tri STATIC
+    ${LIBDIR}/poly2tri/common/shapes.cc
+    ${LIBDIR}/poly2tri/sweep/advancing_front.cc
+    ${LIBDIR}/poly2tri/sweep/cdt.cc
+    ${LIBDIR}/poly2tri/sweep/sweep_context.cc
+    ${LIBDIR}/poly2tri/sweep/sweep.cc
+)
+
+add_library(nowide STATIC 
+    ${LIBDIR}/boost/nowide/args.hpp
+    ${LIBDIR}/boost/nowide/cenv.hpp
+    ${LIBDIR}/boost/nowide/config.hpp
+    ${LIBDIR}/boost/nowide/convert.hpp
+    ${LIBDIR}/boost/nowide/cstdio.hpp
+    ${LIBDIR}/boost/nowide/cstdlib.hpp
+    ${LIBDIR}/boost/nowide/filebuf.hpp
+    ${LIBDIR}/boost/nowide/fstream.hpp
+    ${LIBDIR}/boost/nowide/integration/filesystem.hpp
+    ${LIBDIR}/boost/nowide/iostream.cpp
+    ${LIBDIR}/boost/nowide/iostream.hpp
+    ${LIBDIR}/boost/nowide/stackstring.hpp
+    ${LIBDIR}/boost/nowide/system.hpp
+    ${LIBDIR}/boost/nowide/utf8_codecvt.hpp
+    ${LIBDIR}/boost/nowide/windows.hpp
+)
+
+add_library(Shiny STATIC
+    ${LIBDIR}/Shiny/ShinyManager.c
+    ${LIBDIR}/Shiny/ShinyNode.c
+    ${LIBDIR}/Shiny/ShinyNodePool.c
+    ${LIBDIR}/Shiny/ShinyNodeState.c
+    ${LIBDIR}/Shiny/ShinyOutput.c
+    ${LIBDIR}/Shiny/ShinyTools.c
+    ${LIBDIR}/Shiny/ShinyZone.c
+)
 
 # Generate the Slic3r Perl module (XS) typemap file.
 #FIXME add the dependencies.
@@ -16,15 +142,50 @@ find_package(Perl REQUIRED)
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
 add_custom_command(
         OUTPUT ${MyTypemap}
+        DEPENDS ${CMAKE_CURRENT_LIST_DIR}/xsp/my.map
         COMMAND ${PERL_EXECUTABLE} -MExtUtils::Typemaps -MExtUtils::Typemaps::Basic -e "$typemap = ExtUtils::Typemaps->new(file => \"${CMAKE_CURRENT_LIST_DIR}/xsp/my.map\"); $typemap->merge(typemap => ExtUtils::Typemaps::Basic->new); $typemap->write(file => \"${MyTypemap}\")"
         VERBATIM
 )
 
 # Generate the Slic3r Perl module (XS) main.xs file.
-set(MyMainXs ${CMAKE_CURRENT_BINARY_DIR}/main.xs)
+set(XS_MAIN_XS ${CMAKE_CURRENT_BINARY_DIR}/main.xs)
 #FIXME list the dependecies explicitely, add dependency on the typemap.
-file(GLOB files xsp/*.xsp)
-foreach (file ${files})
+file(GLOB XS_XSP_FILES 
+    ${LIBDIR}/xsp/BoundingBox.xsp
+    ${LIBDIR}/xsp/BridgeDetector.xsp
+    ${LIBDIR}/xsp/Clipper.xsp
+    ${LIBDIR}/xsp/Config.xsp
+    ${LIBDIR}/xsp/ExPolygon.xsp
+    ${LIBDIR}/xsp/ExPolygonCollection.xsp
+    ${LIBDIR}/xsp/ExtrusionEntityCollection.xsp
+    ${LIBDIR}/xsp/ExtrusionLoop.xsp
+    ${LIBDIR}/xsp/ExtrusionMultiPath.xsp
+    ${LIBDIR}/xsp/ExtrusionPath.xsp
+    ${LIBDIR}/xsp/ExtrusionSimulator.xsp
+    ${LIBDIR}/xsp/Filler.xsp
+    ${LIBDIR}/xsp/Flow.xsp
+    ${LIBDIR}/xsp/GCode.xsp
+    ${LIBDIR}/xsp/GCodeSender.xsp
+    ${LIBDIR}/xsp/Geometry.xsp
+    ${LIBDIR}/xsp/GUI.xsp
+    ${LIBDIR}/xsp/GUI_3DScene.xsp
+    ${LIBDIR}/xsp/Layer.xsp
+    ${LIBDIR}/xsp/Line.xsp
+    ${LIBDIR}/xsp/Model.xsp
+    ${LIBDIR}/xsp/MotionPlanner.xsp
+    ${LIBDIR}/xsp/PerimeterGenerator.xsp
+    ${LIBDIR}/xsp/PlaceholderParser.xsp
+    ${LIBDIR}/xsp/Point.xsp
+    ${LIBDIR}/xsp/Polygon.xsp
+    ${LIBDIR}/xsp/Polyline.xsp
+    ${LIBDIR}/xsp/PolylineCollection.xsp
+    ${LIBDIR}/xsp/Print.xsp
+    ${LIBDIR}/xsp/Surface.xsp
+    ${LIBDIR}/xsp/SurfaceCollection.xsp
+    ${LIBDIR}/xsp/TriangleMesh.xsp
+    ${LIBDIR}/xsp/XS.xsp
+)
+foreach (file ${XS_XSP_FILES})
     if (MSVC)
         # Visual Studio C compiler has issues with FILE pragmas containing quotes.
         set(INCLUDE_COMMANDS "${INCLUDE_COMMANDS}INCLUDE_COMMAND: $^X -MExtUtils::XSpp::Cmd -e xspp -- -t ${CMAKE_CURRENT_LIST_DIR}/xsp/typemap.xspt ${file}\n")
@@ -32,29 +193,27 @@ foreach (file ${files})
         set(INCLUDE_COMMANDS "${INCLUDE_COMMANDS}INCLUDE_COMMAND: $^X -MExtUtils::XSpp::Cmd -e xspp -- -t \"${CMAKE_CURRENT_LIST_DIR}/xsp/typemap.xspt\" \"${file}\"\n")
     endif ()
 endforeach ()
-configure_file(main.xs.in ${MyMainXs} @ONLY) # Insert INCLUDE_COMMANDS into main.xs
+configure_file(main.xs.in ${XS_MAIN_XS} @ONLY) # Insert INCLUDE_COMMANDS into main.xs
 
 # Generate the Slic3r Perl module (XS) XS.cpp file.
 #FIXME add the dependency on main.xs and typemap.
-set(MyXsC "${CMAKE_CURRENT_BINARY_DIR}/XS.cpp")
+set(XS_MAIN_CPP ${CMAKE_CURRENT_BINARY_DIR}/XS.cpp)
 add_custom_command(
-        OUTPUT ${MyXsC}
+        OUTPUT ${XS_MAIN_CPP}
         DEPENDS ${MyTemplate} ${MyTypemap}
-        COMMAND COMMAND xsubpp -typemap typemap -output ${MyXsC} -hiertype ${MyMainXs}
+        COMMAND COMMAND xsubpp -typemap typemap -output ${XS_MAIN_CPP} -hiertype ${XS_MAIN_XS}
 )
 
-# Find and define all source files
-file(GLOB MySrc src/*.cpp)
-file(GLOB MyAdmesh src/admesh/*.cpp)
-SET_SOURCE_FILES_PROPERTIES(${MyAdmesh} PROPERTIES LANGUAGE CXX) # admesh has C++ syntax in it's source but the files are *.c
-
-file(GLOB MyGuiSrc src/slic3r/GUI/*.cpp)
-file(GLOB_RECURSE MyLibSlic3rSrc src/libslic3r/*.cpp)
-file(GLOB_RECURSE MyPoly2TriSrc src/poly2tri/*.cc)
-file(GLOB MyShinySrc src/Shiny/*.c)
-
-# Define target file
-add_library(XS SHARED ${MyXsC} ${MySrc} ${MyAdmesh} ${MyGuiSrc} ${MyLibSlic3rSrc} ${MyPoly2TriSrc} ${MyShinySrc})
+# Define the Perl XS shared library.
+add_library(XS SHARED 
+    ${XS_MAIN_CPP}
+    ${LIBDIR}/perlglue.cpp
+    ${LIBDIR}/libslic3r/utils.cpp
+)
+target_link_libraries(XS libslic3r libslic3r_gui admesh clipper nowide polypartition poly2tri)
+if(SLIC3R_DEBUG)
+    target_link_libraries(Shiny)
+endif()
 
 # Add the OpenGL and GLU libraries.
 if (SLIC3R_GUI)
@@ -85,7 +244,7 @@ endif ()
 
 # Windows specific stuff
 if (WIN32)
-    target_compile_definitions(XS PRIVATE -D_USE_MATH_DEFINES -DNOGDI -DNOMINMAX -D_WIN32 -DHAS_BOOL)
+    target_compile_definitions(XS PRIVATE -DNOGDI -DNOMINMAX -DHAS_BOOL)
 endif ()
 
 ## Configuration flags
@@ -217,25 +376,6 @@ if (NOT GLEW_FOUND)
 endif ()
 include_directories(${GLEW_INCLUDE_DIRS})
 target_link_libraries(XS ${GLEW_LIBRARIES})
-
-add_library(nowide STATIC 
-    ${LIBDIR}/boost/nowide/args.hpp
-    ${LIBDIR}/boost/nowide/cenv.hpp
-    ${LIBDIR}/boost/nowide/config.hpp
-    ${LIBDIR}/boost/nowide/convert.hpp
-    ${LIBDIR}/boost/nowide/cstdio.hpp
-    ${LIBDIR}/boost/nowide/cstdlib.hpp
-    ${LIBDIR}/boost/nowide/filebuf.hpp
-    ${LIBDIR}/boost/nowide/fstream.hpp
-    ${LIBDIR}/boost/nowide/integration/filesystem.hpp
-    ${LIBDIR}/boost/nowide/iostream.cpp
-    ${LIBDIR}/boost/nowide/iostream.hpp
-    ${LIBDIR}/boost/nowide/stackstring.hpp
-    ${LIBDIR}/boost/nowide/system.hpp
-    ${LIBDIR}/boost/nowide/utf8_codecvt.hpp
-    ${LIBDIR}/boost/nowide/windows.hpp
-)
-target_link_libraries(XS nowide)
 
 # Installation
 install(TARGETS XS DESTINATION lib/slic3r-prusa3d/auto/Slic3r/XS)

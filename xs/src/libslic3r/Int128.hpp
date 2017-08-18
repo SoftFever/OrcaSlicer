@@ -37,7 +37,7 @@
 *                                                                              *
 *******************************************************************************/
 
- #define SLIC3R_DEBUG
+// #define SLIC3R_DEBUG
 
 // Make assert active if SLIC3R_DEBUG
 #ifdef SLIC3R_DEBUG
