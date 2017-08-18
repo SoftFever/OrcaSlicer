@@ -313,7 +313,12 @@ add_custom_command(
 )
 
 # Define the Perl XS shared library.
-add_library(XS SHARED
+if(APPLE)
+    set(XS_SHARED_LIBRARY_TYPE MODULE)
+else()
+    set(XS_SHARED_LIBRARY_TYPE SHARED)
+endif()
+add_library(XS ${XS_SHARED_LIBRARY_TYPE}
     ${XS_MAIN_CPP}
     ${LIBDIR}/libslic3r/utils.cpp
     ${LIBDIR}/perlglue.cpp
@@ -325,6 +330,11 @@ add_library(XS SHARED
     # Used by Perl xsubpp to generate XS.cpp
     ${CMAKE_CURRENT_LIST_DIR}/xsp/typemap.xspt
 )
+if(APPLE)
+    set_target_properties(XS PROPERTIES BUNDLE TRUE)
+    # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
+    target_link_libraries(XS "-undefined dynamic_lookup")
+endif()
 target_link_libraries(XS libslic3r libslic3r_gui admesh clipper nowide polypartition poly2tri)
 if(SLIC3R_DEBUG)
     target_link_libraries(Shiny)
@@ -396,7 +406,9 @@ target_compile_options(XS PRIVATE ${PerlEmbed_CCFLAGS})
 #endif()
 # The following line will add -fPIC on Linux to make the XS.so rellocable.
 add_definitions(${PerlEmbed_CCCDLFLAGS})
-target_link_libraries(XS ${PERL_LIBRARY})
+if (NOT APPLE)
+    target_link_libraries(XS ${PERL_LIBRARY})
+endif()
 
 ## REQUIRED packages
 
