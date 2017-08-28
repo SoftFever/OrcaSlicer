@@ -341,7 +341,7 @@ void Model::convert_multipart_object()
     if (this->objects.empty())
         return;
     
-    ModelObject* object = this->add_object();
+    ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
     
     for (const ModelObject* o : this->objects)
@@ -351,8 +351,8 @@ void Model::convert_multipart_object()
     for (const ModelInstance* i : this->objects.front()->instances)
         object->add_instance(*i);
     
-    while (this->objects.size() > 1)
-        this->delete_object(0);
+    this->clear_objects();
+    this->objects.push_back(object);
 }
 
 ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes) :  
