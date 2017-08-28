@@ -558,9 +558,11 @@ std::string Print::validate() const
     }
 
     if (this->has_wipe_tower() && ! this->objects.empty()) {
+        #if 0
         for (auto dmr : this->config.nozzle_diameter.values)
             if (std::abs(dmr - 0.4) > EPSILON)
                 return "The Wipe Tower is currently only supported for the 0.4mm nozzle diameter.";
+        #endif
         if (this->config.gcode_flavor != gcfRepRap)
             return "The Wipe Tower is currently only supported for the RepRap (Marlin / Sprinter) G-code flavor.";
         if (! this->config.use_relative_e_distances)

@@ -94,8 +94,10 @@ public:
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
 		++ m_num_layer_changes;
 		// Extrusion rate for an extrusion aka perimeter width 0.35mm.
-		m_extrusion_flow = std::min(0.2f, layer_height) * 0.145f;
-		int layer_idx = int(std::floor(layer_height * 1000) + 0.5f);
+		// Clamp the extrusion height to a 0.2mm layer height, independent of the nozzle diameter.
+//		m_extrusion_flow = std::min(0.2f, layer_height) * 0.145f;
+		// Use a strictly
+		m_extrusion_flow = layer_height * 0.145f;
 	}
 
 	// Return the wipe tower position.
