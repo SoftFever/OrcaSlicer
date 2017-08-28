@@ -46,6 +46,7 @@ sub cmake_set_var {
   my @words = shellwords(\$content); 
   print \$fh \"set(PerlEmbed_\$varname \\\"\" . join(';', @words) . \"\\\")\\n\";
 }
+cmake_set_var('ARCHNAME',   \$Config{archname});
 cmake_set_var('CCFLAGS',    \$ccflags);
 \$ldflags =~ s/ -L/ -LIBPATH:/g if \$msvc;
 cmake_set_var('LD',         \$Config{ld});
@@ -72,6 +73,7 @@ if (PerlEmbed_DEBUG)
   message(STATUS " PERL_PRIVLIB           = ${PERL_PRIVLIB}")
   message(STATUS " PERL_EXTRA_C_FLAGS     = ${PERL_EXTRA_C_FLAGS}")
   # Second show the configuration extracted by this module (FindPerlEmbed):
+  message(STATUS " PerlEmbed_ARCHNAME     = ${PerlEmbed_ARCHNAME}")
   message(STATUS " PerlEmbed_CCFLAGS      = ${PerlEmbed_CCFLAGS}")
   message(STATUS " PerlEmbed_CCCDLFLAGS   = ${PerlEmbed_CCCDLFLAGS}")
   message(STATUS " LD                     = ${PerlEmbed_LD}")

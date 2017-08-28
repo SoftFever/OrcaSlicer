@@ -232,19 +232,6 @@ add_library(Shiny STATIC
     ${LIBDIR}/Shiny/ShinyZone.h
 )
 
-# Find the Perl interpreter, add local-lib to PATH and PERL5LIB environment variables,
-# so the locally installed modules (mainly the Alien::wxPerl) will be reached.
-if (WIN32)
-    set(ENV_PATH_SEPARATOR ";")
-else()
-    set(ENV_PATH_SEPARATOR ":")
-endif()
-set(ENV{PATH}     "${PROJECT_SOURCE_DIR}/local-lib/bin${ENV_PATH_SEPARATOR}$ENV{PATH}")
-set(ENV{PERL5LIB} "${PROJECT_SOURCE_DIR}/local-lib/lib/perl${ENV_PATH_SEPARATOR}$ENV{PERL5LIB}")
-message("PATH: $ENV{PATH}")
-message("PERL5LIB: $ENV{PERL5LIB}")
-find_package(Perl REQUIRED)
-
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
 add_custom_command(
@@ -507,7 +494,16 @@ if (NOT GLEW_FOUND)
 endif ()
 include_directories(${GLEW_INCLUDE_DIRS})
 target_link_libraries(XS ${GLEW_LIBRARIES})
-
+# Install the XS.pm and XS.{so,dll,bundle} into the local-lib directory.
+set(PERL_LOCAL_LIB_DIR "${PROJECT_SOURCE_DIR}/local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
+add_custom_command(
+    TARGET XS
+    POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:XS>" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/Slic3r/"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/xs/lib/Slic3r/XS.pm" "${PERL_LOCAL_LIB_DIR}/Slic3r/"
+)
 
 # Create a slic3r executable
 add_executable(slic3r ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)

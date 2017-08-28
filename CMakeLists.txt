@@ -25,7 +25,25 @@ if (MSVC AND SLIC3R_MSVC_COMPILE_PARALLEL)
 	add_compile_options(/MP)
 endif ()
 
+# Find the Perl interpreter, add local-lib to PATH and PERL5LIB environment variables,
+# so the locally installed modules (mainly the Alien::wxPerl) will be reached.
+if (WIN32)
+    set(ENV_PATH_SEPARATOR ";")
+else()
+    set(ENV_PATH_SEPARATOR ":")
+endif()
+set(ENV{PATH}     "${PROJECT_SOURCE_DIR}/local-lib/bin${ENV_PATH_SEPARATOR}$ENV{PATH}")
+set(ENV{PERL5LIB} "${PROJECT_SOURCE_DIR}/local-lib/lib/perl${ENV_PATH_SEPARATOR}$ENV{PERL5LIB}")
+message("PATH: $ENV{PATH}")
+message("PERL5LIB: $ENV{PERL5LIB}")
+find_package(Perl REQUIRED)
+
 add_subdirectory(xs)
+
+enable_testing ()
+get_filename_component(PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)
+add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_BIN_PATH}/prove -I ${PROJECT_SOURCE_DIR}/local-lib/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/xs)
+add_test (NAME integration COMMAND "${PERL_EXECUTABLE}" ${PERL_BIN_PATH}/prove WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 install(PROGRAMS slic3r.pl DESTINATION bin RENAME slic3r-prusa3d)
 
