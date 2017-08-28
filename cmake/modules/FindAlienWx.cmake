@@ -19,6 +19,15 @@ execute_process(
 use strict;
 use warnings;
 use Text::ParseWords;
+
+BEGIN {
+  # CMake sets the environment variables CC and CXX to the detected C compiler.
+  # There is an issue with the Perl ExtUtils::CBuilder, which does not handle whitespaces
+  # in the paths correctly on Windows, so we rather drop the CMake auto-detected paths.
+  delete \$ENV{CC};
+  delete \$ENV{CXX};
+}
+
 use Alien::wxWidgets;
 use ExtUtils::CppGuess;
 
