@@ -34,7 +34,7 @@ my $xs_only = grep { $_ eq '--xs' }  @ARGV;
 if ($gui) {
     %prereqs = qw(
     Class::Accessor                 0
-    Wx                              3.0
+    Wx                              0.9918
     Socket                          2.016
     );
     %recommends = qw(
