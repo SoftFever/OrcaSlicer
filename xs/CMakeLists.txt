@@ -398,7 +398,7 @@ target_compile_options(XS PRIVATE ${PerlEmbed_CCFLAGS})
 #endif()
 # The following line will add -fPIC on Linux to make the XS.so rellocable.
 add_definitions(${PerlEmbed_CCCDLFLAGS})
-if (NOT APPLE)
+if (WIN32)
     target_link_libraries(XS ${PERL_LIBRARY})
 endif()
 
