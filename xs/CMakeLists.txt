@@ -509,6 +509,13 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/Slic3r/"
         COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/xs/lib/Slic3r/XS.pm" "${PERL_LOCAL_LIB_DIR}/Slic3r/"
 )
+if(APPLE)
+    add_custom_command(
+        TARGET XS
+        POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E rename "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS.bundle"
+    )
+endif()
 
 # Create a slic3r executable
 add_executable(slic3r ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)
