@@ -44,7 +44,7 @@
             try {
                 THIS->load_from_gcode(input_file);
             } catch (std::exception& e) {
-                croak("Error exracting configuration from a g-code %s:\n%s\n", input_file.c_str(), e.what());
+                croak("Error extracting configuration from a g-code %s:\n%s\n", input_file.c_str(), e.what());
             }
         %};
     %name{_save} void save(std::string file);

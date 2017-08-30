@@ -52,19 +52,22 @@ std::string
 encode_path(src)
     const char *src;
     CODE:
-        Slic3r::encode_path(src);
+        RETVAL = Slic3r::encode_path(src);
+    OUTPUT: RETVAL
 
 std::string
 decode_path(src)
     const char *src;
     CODE:
-        Slic3r::decode_path(src);
+        RETVAL = Slic3r::decode_path(src);
+    OUTPUT: RETVAL
 
 std::string
 normalize_utf8_nfc(src)
     const char *src;
     CODE:
-        Slic3r::normalize_utf8_nfc(src);
+        RETVAL = Slic3r::normalize_utf8_nfc(src);
+    OUTPUT: RETVAL
 
 void
 xspp_test_croak_hangs_on_strawberry()
