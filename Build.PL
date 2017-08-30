@@ -30,7 +30,7 @@ my %recommends = qw(
 
 my $sudo    = grep { $_ eq '--sudo' } @ARGV;
 my $gui     = grep { $_ eq '--gui' } @ARGV;
-my $xs_only = grep { $_ eq '--xs' }  @ARGV;
+my $nolocal = grep { $_ eq '--nolocal' }  @ARGV;
 if ($gui) {
     %prereqs = qw(
     Class::Accessor                 0
@@ -45,12 +45,9 @@ if ($gui) {
     );
     if ($^O eq 'MSWin32') {
         $recommends{"Win32::TieRegistry"} = 0;
-        
         # we need an up-to-date Win32::API because older aren't thread-safe (GH #2517)
         $prereqs{'Win32::API'} = 0.79;
     }
-} elsif ($xs_only) {
-    %prereqs = %recommends = ();
 }
 
 my @missing_prereqs = ();
@@ -110,7 +107,7 @@ EOF
             if $res != 0;
     }
     
-    push @cpanm_args, ('--local-lib', 'local-lib');
+    push @cpanm_args, ('--local-lib', 'local-lib') if ! $nolocal;
 
     # make sure our cpanm is updated (old ones don't support the ~ syntax)
     system $cpanm, @cpanm_args, 'App::cpanminus';
@@ -135,36 +132,19 @@ EOF
             }
         }
     }
-    
-    if (!$gui) {
-        # clean xs directory before reinstalling, to make sure Build is called
-        # with current perl binary
-        if (-e './xs/Build') {
-            if ($^O eq 'MSWin32') {
-                system '.\xs\Build', 'distclean';
-            } else {
-                system './xs/Build', 'distclean';
-            }
-        }
-        my $res = system $cpanm, @cpanm_args, '--reinstall', '--verbose', './xs';
-        if ($res != 0) {
-            die "The XS/C++ code failed to compile, aborting\n";
-        }
-    }
 }
 
-if (@missing_prereqs) {
-    printf "The following prerequisites failed to install: %s\n", join(', ', @missing_prereqs);
-    exit 1;
-} elsif (!$gui) {
-    eval "use App::Prove; 1" or die "Failed to load App::Prove";
-    my $res = App::Prove->new->run ? 0 : 1;
-    if ($res == 0) {
-        print "If you also want to use the GUI you can now run `perl Build.PL --gui` to install the required modules.\n";
-    } else {
-        print "Some tests failed. Please report the failure to the author!\n";
-    }
-    exit $res;
+print "\n";
+if ($gui) {
+    print "Perl dependencies for the Slic3r GUI were installed.\n";
+} else {
+    print "Perl dependencies for Slic3r were installed.\n";
+    print "If you also want to use the GUI you can now run `perl Build.PL --gui` to install the required modules.\n";
 }
-
+print "\n";
+print "In the next step, you need to build the Slic3r C++ library.\n";
+print "1) Create a build directory and change to it\n";
+print "2) run cmake .. -DCMAKE_BUILD_TYPE=Release\n";
+print "3) run make\n";
+print "4) to execute the automatic tests, run ctest --verbose\n";
 __END__

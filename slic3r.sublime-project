@@ -20,12 +20,12 @@
 		},
 		{
 			"name": "xs",
-			"working_dir": "$project_path/xs",
+			"working_dir": "$project_path/build",
 			// for Visual Studio:
   			"file_regex": "^(..[^:]*)\\(([0-9]+)\\)(.*)$",
   			// For GCC:
 // 			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-			"shell_cmd": "chdir & perl Build install",
+			"shell_cmd": "chdir & ninja",
 			"env": {
 //				"PATH": "C:\\Program Files (x86)\\MSBuild\\12.0\\bin\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\BIN\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\Common7\\Tools;%PATH%;c:\\wperl64d\\site\\bin;c:\\wperl64d\\bin",
 //				"PERL_CPANM_HOME": "c:\\wperl64d\\cpanm",
@@ -38,9 +38,9 @@
 		},
 		{
 			"name": "xs & run",
-			"working_dir": "$project_path/xs",
+			"working_dir": "$project_path/build",
   			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-			"shell_cmd": "chdir & perl Build install & cd .. & perl slic3r.pl --gui \"..\\Slic3r-tests\\star3-big2.stl\""
+			"shell_cmd": "chdir & ninja & cd .. & perl slic3r.pl --gui \"..\\Slic3r-tests\\star3-big2.stl\""
 		}
 	],
 	"folders":
