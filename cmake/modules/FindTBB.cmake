@@ -102,7 +102,7 @@ if(NOT TBB_FOUND)
   ##################################
   
   if(NOT DEFINED TBB_USE_DEBUG_BUILD)
-    if(CMAKE_BUILD_TYPE MATCHES "(Debug|DEBUG|debug|RelWithDebInfo|RELWITHDEBINFO|relwithdebinfo)")
+    if(CMAKE_BUILD_TYPE MATCHES "(Debug|DEBUG|debug)")
       set(TBB_BUILD_TYPE DEBUG)
     else()
       set(TBB_BUILD_TYPE RELEASE)

@@ -11,7 +11,8 @@
 			"name": "Run",
 			"working_dir": "$project_path",
    			"file_regex": " at (.*?) line ([0-9]*)",
-			"shell_cmd": "chdir & perl slic3r.pl  --DataDir \"C:\\Users\\Public\\Documents\\Prusa3D\\Slic3r settings MK2\" --gui \"..\\Slic3r-tests\\gap fill torture 20 -rt.stl\""
+//			"shell_cmd": "chdir & perl slic3r.pl  --DataDir \"C:\\Users\\Public\\Documents\\Prusa3D\\Slic3r settings MK2\" --gui \"..\\Slic3r-tests\\gap fill torture 20 -rt.stl\""
+			"shell_cmd": "chdir & perl slic3r.pl"
 		},
 		{
 			"name": "full",
@@ -25,7 +26,7 @@
   			"file_regex": "^(..[^:]*)\\(([0-9]+)\\)(.*)$",
   			// For GCC:
 // 			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-			"shell_cmd": "chdir & ninja",
+			"shell_cmd": "chdir & ninja -j 6",
 			"env": {
 //				"PATH": "C:\\Program Files (x86)\\MSBuild\\12.0\\bin\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\BIN\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\Common7\\Tools;%PATH%;c:\\wperl64d\\site\\bin;c:\\wperl64d\\bin",
 //				"PERL_CPANM_HOME": "c:\\wperl64d\\cpanm",
@@ -40,7 +41,34 @@
 			"name": "xs & run",
 			"working_dir": "$project_path/build",
   			"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-			"shell_cmd": "chdir & ninja & cd .. & perl slic3r.pl --gui \"..\\Slic3r-tests\\star3-big2.stl\""
+			"shell_cmd": "chdir & ninja -j 6 & cd .. & perl slic3r.pl --gui \"..\\Slic3r-tests\\star3-big2.stl\""
+		},
+		{
+			"name": "Slic3r - clean",
+			"working_dir": "$project_path/build",
+			"file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+			"shell_cmd": ["chdir & ninja clean"]
+		},
+		{
+			"name": "run tests",
+			"working_dir": "$project_path/build",
+			// for Visual Studio:
+  			"file_regex": "^(..[^:]*)\\(([0-9]+)\\)(.*)$",
+			"shell_cmd": "chdir & ctest --verbose"
+		},
+		{
+			"name": "Clean & Configure",
+			"working_dir": "$project_path",
+			// for Visual Studio:
+			"file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+			"shell_cmd": "chdir & rmdir /S /Q build & mkdir build & cd build & cmake -G Ninja .. -DCMAKE_COLOR_MAKEFILE=OFF -DCMAKE_RULE_PROGRESS=OFF  -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+		},
+		{
+			"name": "Configure",
+			"working_dir": "$project_path/build",
+			// for Visual Studio:
+			"file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+			"shell_cmd": "cmake -G Ninja .. -DCMAKE_COLOR_MAKEFILE=OFF -DCMAKE_RULE_PROGRESS=OFF  -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo"
 		}
 	],
 	"folders":
