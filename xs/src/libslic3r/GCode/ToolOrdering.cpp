@@ -8,7 +8,7 @@ namespace Slic3r {
 
 // For the use case when each object is printed separately
 // (print.config.complete_objects is true).
-ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder)
+ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
 {
     if (object.layers.empty())
         return;
@@ -31,13 +31,15 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     this->reorder_extruders(first_extruder);
 
     this->fill_wipe_tower_partitions(object.print()->config, object.layers.front()->print_z - object.layers.front()->height);
+
+    this->collect_extruder_statistics(prime_multi_material);
 }
 
 // For the use case when all objects are printed at once.
 // (print.config.complete_objects is false).
-ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder)
+ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material)
 {
-    // Initialize the print layers for all objects and all layers. 
+    // Initialize the print layers for all objects and all layers.
     coordf_t object_bottom_z = 0.;
     {
         std::vector<coordf_t> zs;
@@ -61,22 +63,8 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder)
     this->reorder_extruders(first_extruder);
 
     this->fill_wipe_tower_partitions(print.config, object_bottom_z);
-}
 
-unsigned int ToolOrdering::first_extruder() const
-{
-    for (const auto &lt : m_layer_tools)
-        if (! lt.extruders.empty())
-            return lt.extruders.front();
-    return (unsigned int)-1;
-}
-
-unsigned int ToolOrdering::last_extruder() const
-{
-    for (auto lt_it = m_layer_tools.rbegin(); lt_it != m_layer_tools.rend(); ++ lt_it)
-        if (! lt_it->extruders.empty())
-            return lt_it->extruders.back();
-    return (unsigned int)-1;
+    this->collect_extruder_statistics(prime_multi_material);
 }
 
 ToolOrdering::LayerTools&  ToolOrdering::tools_for_layer(coordf_t print_z)
@@ -287,6 +275,40 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
             lt.wipe_tower_layer_height = lt.print_z - wipe_tower_print_z_last;
             wipe_tower_print_z_last = lt.print_z;
         }
+}
+
+void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
+{
+    m_first_printing_extruder = (unsigned int)-1;
+    for (const auto &lt : m_layer_tools)
+        if (! lt.extruders.empty()) {
+            m_first_printing_extruder = lt.extruders.front();
+            break;
+        }
+
+    m_last_printing_extruder = (unsigned int)-1;
+    for (auto lt_it = m_layer_tools.rbegin(); lt_it != m_layer_tools.rend(); ++ lt_it)
+        if (! lt_it->extruders.empty()) {
+            m_last_printing_extruder = lt_it->extruders.back();
+            break;
+        }
+
+    m_all_printing_extruders.clear();
+    for (const auto &lt : m_layer_tools) {
+        append(m_all_printing_extruders, lt.extruders);
+        sort_remove_duplicates(m_all_printing_extruders);
+    }
+
+    if (prime_multi_material && ! m_all_printing_extruders.empty()) {
+        // Reorder m_all_printing_extruders in the sequence they will be primed, the last one will be m_first_printing_extruder.
+        // Then set m_first_printing_extruder to the 1st extruder primed.
+        m_all_printing_extruders.erase(
+            std::remove_if(m_all_printing_extruders.begin(), m_all_printing_extruders.end(), 
+                [ this ](const unsigned int eid) { return eid == m_first_printing_extruder; }),
+            m_all_printing_extruders.end());
+        m_all_printing_extruders.emplace_back(m_first_printing_extruder);
+        m_first_printing_extruder = m_all_printing_extruders.front();
+    }
 }
 
 } // namespace Slic3r

@@ -45,19 +45,22 @@ public:
 
 	// For the use case when each object is printed separately
 	// (print.config.complete_objects is true).
-	ToolOrdering(const PrintObject &object, unsigned int first_extruder = (unsigned int)-1);
+	ToolOrdering(const PrintObject &object, unsigned int first_extruder = (unsigned int)-1, bool prime_multi_material = false);
 
 	// For the use case when all objects are printed at once.
 	// (print.config.complete_objects is false).
-	ToolOrdering(const Print &print, unsigned int first_extruder = (unsigned int)-1);
+	ToolOrdering(const Print &print, unsigned int first_extruder = (unsigned int)-1, bool prime_multi_material = false);
 
 	void 				clear() { m_layer_tools.clear(); }
 
 	// Get the first extruder printing the layer_tools, returns -1 if there is no layer printed.
-	unsigned int   		first_extruder() const;
+	unsigned int   		first_extruder() const { return m_first_printing_extruder; }
 
 	// Get the first extruder printing the layer_tools, returns -1 if there is no layer printed.
-	unsigned int   		last_extruder() const;
+	unsigned int   		last_extruder() const { return m_last_printing_extruder; }
+
+	// For a multi-material print, the printing extruders are ordered in the order they shall be primed.
+	std::vector<unsigned int> all_extruders() const { return m_all_printing_extruders; }
 
 	// Find LayerTools with the closest print_z.
 	LayerTools&			tools_for_layer(coordf_t print_z);
@@ -74,8 +77,15 @@ private:
 	void 				collect_extruders(const PrintObject &object);
 	void				reorder_extruders(unsigned int last_extruder_id);
 	void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z);
+	void 				collect_extruder_statistics(bool prime_multi_material);
 
-	std::vector<LayerTools> m_layer_tools;
+	std::vector<LayerTools> 	m_layer_tools;
+	// First printing extruder, including the multi-material priming sequence.
+	unsigned int 				m_first_printing_extruder;
+	// Final printing extruder.
+	unsigned int 				m_last_printing_extruder;
+	// All extruders, which extrude some material over m_layer_tools.
+    std::vector<unsigned int> 	m_all_printing_extruders;
 };
 
 } // namespace SLic3r

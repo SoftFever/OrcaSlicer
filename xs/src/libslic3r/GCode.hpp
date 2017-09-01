@@ -77,16 +77,19 @@ class WipeTowerIntegration {
 public:
     WipeTowerIntegration(
         const PrintConfig                                           &print_config,
+        const WipeTower::ToolChangeResult                           &priming,
         const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes,
         const WipeTower::ToolChangeResult                           &final_purge) :
         m_left(float(print_config.wipe_tower_x.value)),
         m_right(float(print_config.wipe_tower_x.value + print_config.wipe_tower_width.value)),
+        m_priming(priming),
         m_tool_changes(tool_changes),
         m_final_purge(final_purge),
         m_layer_idx(-1),
         m_tool_change_idx(0),
         m_brim_done(false) {}
 
+    std::string prime(GCode &gcodegen);
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
     std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
     std::string finalize(GCode &gcodegen);
@@ -99,6 +102,7 @@ private:
     const float                                                  m_left;
     const float                                                  m_right;
     // Reference to cached values at the Printer class.
+    const WipeTower::ToolChangeResult                           &m_priming;
     const std::vector<std::vector<WipeTower::ToolChangeResult>> &m_tool_changes;
     const WipeTower::ToolChangeResult                           &m_final_purge;
     // Current layer index.

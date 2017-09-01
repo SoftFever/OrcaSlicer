@@ -192,6 +192,33 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     return gcode;
 }
 
+std::string WipeTowerIntegration::prime(GCode &gcodegen)
+{
+    assert(m_layer_idx == 0);
+    std::string gcode;
+
+    if (&m_priming != nullptr && ! m_priming.extrusions.empty()) {
+        // Let the tool change be executed by the wipe tower class.
+        // Inform the G-code writer about the changes done behind its back.
+        gcode += m_priming.gcode;
+        // Let the m_writer know the current extruder_id, but ignore the generated G-code.
+        gcodegen.writer().toolchange(m_priming.extrusions.back().tool);
+        // A phony move to the end position at the wipe tower.
+        gcodegen.writer().travel_to_xy(Pointf(m_priming.end_pos.x, m_priming.end_pos.y));
+        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, m_priming.end_pos));
+
+        // Prepare a future wipe.
+        gcodegen.m_wipe.path.points.clear();
+        // Start the wipe at the current position.
+        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, m_priming.end_pos));
+        // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
+        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, 
+            WipeTower::xy((std::abs(m_left - m_priming.end_pos.x) < std::abs(m_right - m_priming.end_pos.x)) ? m_right : m_left,
+            m_priming.end_pos.y)));
+    }
+    return gcode;
+}
+
 std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer)
 {
     std::string gcode;
@@ -522,7 +549,7 @@ bool GCode::_do_export(Print &print, FILE *file)
     writeln(file, m_placeholder_parser.process(print.config.start_gcode.value, initial_extruder_id));
     // Process filament-specific gcode in extruder order.
     for (const std::string &start_gcode : print.config.start_filament_gcode.values)
-        writeln(file, m_placeholder_parser.process(start_gcode, &start_gcode - &print.config.start_filament_gcode.values.front()));
+        writeln(file, m_placeholder_parser.process(start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
     this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, true);
     
     // Set other general things.
@@ -647,8 +674,10 @@ bool GCode::_do_export(Print &print, FILE *file)
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
         // Prusa Multi-Material wipe tower.
         if (print.has_wipe_tower() && 
-            ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0)
-            m_wipe_tower.reset(new WipeTowerIntegration(print.config, print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
+            ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0) {
+            m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
+			write(file, m_wipe_tower->prime(*this));
+        }
         // Extrude the layers.
         for (auto &layer : layers_to_print) {
             const ToolOrdering::LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.first);
@@ -668,7 +697,7 @@ bool GCode::_do_export(Print &print, FILE *file)
     write(file, m_writer.set_fan(false));
     // Process filament-specific gcode in extruder order.
     for (const std::string &end_gcode : print.config.end_filament_gcode.values)
-        writeln(file, m_placeholder_parser.process(end_gcode, &end_gcode - &print.config.end_filament_gcode.values.front()));
+        writeln(file, m_placeholder_parser.process(end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
     writeln(file, m_placeholder_parser.process(print.config.end_gcode, m_writer.extruder()->id()));
     write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     write(file, m_writer.postamble());
@@ -1471,7 +1500,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     } else if (seam_position == spNearest || seam_position == spAligned || seam_position == spRear) {
         Polygon        polygon    = loop.polygon();
         const coordf_t nozzle_dmr = EXTRUDER_CONFIG(nozzle_diameter);
-        const coord_t  nozzle_r   = scale_(0.5*nozzle_dmr);
+        const coord_t  nozzle_r   = coord_t(scale_(0.5 * nozzle_dmr) + 0.5);
 
         // Retrieve the last start position for this object.
         float last_pos_weight = 1.f;
@@ -1524,11 +1553,11 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 penalty = penaltyConvexVertex;
             else if (ccwAngle < 0.f) {
                 // Interpolate penalty between maximum and zero.
-                penalty = penaltyFlatSurface * bspline_kernel(ccwAngle * (PI * 2. / 3.));
+                penalty = penaltyFlatSurface * bspline_kernel(ccwAngle * float(PI * 2. / 3.));
             } else {
                 assert(ccwAngle >= 0.f);
                 // Interpolate penalty between maximum and the penalty for a convex vertex.
-                penalty = penaltyConvexVertex + (penaltyFlatSurface - penaltyConvexVertex) * bspline_kernel(ccwAngle * (PI * 2. / 3.));
+                penalty = penaltyConvexVertex + (penaltyFlatSurface - penaltyConvexVertex) * bspline_kernel(ccwAngle * float(PI * 2. / 3.));
             }
             // Give a negative penalty for points close to the last point or the prefered seam location.
             //float dist_to_last_pos_proj = last_pos_proj.distance_to(polygon.points[i]);
@@ -1543,8 +1572,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // Penalty for overhangs.
         if (lower_layer_edge_grid && (*lower_layer_edge_grid)) {
             // Use the edge grid distance field structure over the lower layer to calculate overhangs.
-            coord_t nozzle_r = scale_(0.5*nozzle_dmr);
-            coord_t search_r = scale_(0.8*nozzle_dmr);
+            coord_t nozzle_r = coord_t(floor(scale_(0.5 * nozzle_dmr) + 0.5));
+            coord_t search_r = coord_t(floor(scale_(0.8 * nozzle_dmr) + 0.5));
             for (size_t i = 0; i < polygon.points.size(); ++ i) {
                 const Point &p = polygon.points[i];
                 coordf_t dist;
@@ -1555,7 +1584,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 // If the approximate Signed Distance Field was initialized over lower_layer_edge_grid,
                 // then the signed distnace shall always be known.
                 assert(found);
-                penalties[i] += extrudate_overlap_penalty(nozzle_r, penaltyOverhangHalf, dist);
+                penalties[i] += extrudate_overlap_penalty(float(nozzle_r), penaltyOverhangHalf, float(dist));
             }
         }
 
@@ -1651,7 +1680,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     }
     
     // reset acceleration
-    gcode += m_writer.set_acceleration(m_config.default_acceleration.value);
+    gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
     
     if (m_wipe.enable)
         m_wipe.path = paths.front().polyline;  // TODO: don't limit wipe to last path
@@ -1708,7 +1737,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         m_wipe.path.reverse();
     }
     // reset acceleration
-    gcode += m_writer.set_acceleration(m_config.default_acceleration.value);
+    gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
     return gcode;
 }
 

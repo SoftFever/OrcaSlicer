@@ -394,8 +394,15 @@ target_compile_options(XS PRIVATE ${PerlEmbed_CCFLAGS})
 # If the Perl is compiled with optimization off, disable optimization over the whole project.
 if (WIN32 AND ";${PerlEmbed_CCFLAGS};" MATCHES ";[-/]Od;")
     message(STATUS "Perl compiled without optimization. Disabling optimization for the Slic3r build.")
-    set(CMAKE_CXX_FLAGS_RELEASE /Od /Zi)
-    set(CMAKE_C_FLAGS_RELEASE /Od /Zi)
+    message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
+    message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
+    message("Old CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS_RELEASE}")
+    set(CMAKE_CXX_FLAGS_RELEASE "/MD /Od /Zi /EHsc /DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE "/MD /Od /Zi /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /EHsc /DNDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /DNDEBUG")
+    set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DNDEBUG")
+    set(CMAKE_C_FLAGS "/MD /Od /Zi /DNDEBUG")
 endif()
 # The following line will add -fPIC on Linux to make the XS.so rellocable.
 add_definitions(${PerlEmbed_CCCDLFLAGS})
@@ -437,6 +444,8 @@ if(MSVC)
     # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
     add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE)
 endif()
+# The Intel TBB library will use the std::exception_ptr feature of C++11.
+add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 target_link_libraries(XS ${TBB_LIBRARIES})
 
 # Find and configure wxWidgets

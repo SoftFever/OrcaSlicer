@@ -107,9 +107,12 @@ public:
 	// The wipe tower is finished, there should be no more tool changes or wipe tower prints.
 	virtual bool 	  		 finished() const { return m_max_color_changes == 0; }
 
+	// Returns gcode to prime the nozzles at the front edge of the print bed.
+	virtual ToolChangeResult prime(float first_layer_height, std::vector<unsigned int> tools, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE);
+
 	// Returns gcode for a toolchange and a final print head position.
 	// On the first layer, extrude a brim around the future wipe tower first.
-	virtual ToolChangeResult tool_change(int new_tool, bool last_in_layer, Purpose purpose);
+	virtual ToolChangeResult tool_change(unsigned int new_tool, bool last_in_layer, Purpose purpose);
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.
@@ -218,7 +221,7 @@ private:
 
 	void toolchange_Change(
 		PrusaMultiMaterial::Writer &writer,
-		int 					new_tool,
+		const unsigned int		new_tool,
 		material_type 			new_material);
 	
 	void toolchange_Load(

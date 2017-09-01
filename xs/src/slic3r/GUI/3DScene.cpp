@@ -969,16 +969,23 @@ void _3DScene::_load_wipe_tower_toolpaths(
         const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
         int                          volume_idx(int tool, int feature) const 
             { return this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(tool, 0)) : feature; }
+
+        const std::vector<WipeTower::ToolChangeResult>& tool_change(size_t idx) 
+            { return (idx == 0) ? priming : (idx == print->m_wipe_tower_tool_changes.size() + 1) ? final : print->m_wipe_tower_tool_changes[idx - 1]; }
+        std::vector<WipeTower::ToolChangeResult> priming;
+        std::vector<WipeTower::ToolChangeResult> final;
     } ctxt;
 
     ctxt.print          = print;
     ctxt.tool_colors    = tool_colors.empty() ? nullptr : &tool_colors;
+    ctxt.priming.emplace_back(*print->m_wipe_tower_priming.get());
+    ctxt.final.emplace_back(*print->m_wipe_tower_final_purge.get());
     
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.
-    size_t          n_layers   = print->m_wipe_tower_tool_changes.size();
-    size_t          grain_size = std::max(n_layers / 128, size_t(1));
+    size_t          n_items    = print->m_wipe_tower_tool_changes.size() + 1;
+    size_t          grain_size = std::max(n_items / 128, size_t(1));
     tbb::spin_mutex new_volume_mutex;
     auto            new_volume = [volumes, &new_volume_mutex](const float *color) -> GLVolume* {
         auto *volume = new GLVolume(color);
@@ -988,21 +995,21 @@ void _3DScene::_load_wipe_tower_toolpaths(
         return volume;
     };
     const size_t   volumes_cnt_initial = volumes->volumes.size();
-    std::vector<GLVolumeCollection> volumes_per_thread(n_layers);
+    std::vector<GLVolumeCollection> volumes_per_thread(n_items);
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, n_layers, grain_size),
+        tbb::blocked_range<size_t>(0, n_items, grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
             // Bounding box of this slab of a wipe tower.
             BoundingBoxf3 bbox;
             bbox.min = Pointf3(
                 ctxt.print->config.wipe_tower_x.value - 10.,
                 ctxt.print->config.wipe_tower_y.value - 10., 
-                ctxt.print->m_wipe_tower_tool_changes[range.begin()].front().print_z - 3.);
+                ctxt.tool_change(range.begin()).front().print_z - 3.);
             bbox.max = Pointf3(
                 ctxt.print->config.wipe_tower_x.value + ctxt.print->config.wipe_tower_width.value + 10.,
                 ctxt.print->config.wipe_tower_y.value + ctxt.print->config.wipe_tower_per_color_wipe.value * 
                     ctxt.print->m_tool_ordering.layer_tools()[range.begin()].wipe_tower_partitions + 10., 
-                ctxt.print->m_wipe_tower_tool_changes[range.end() - 1].front().print_z + 0.1);
+                ctxt.tool_change(range.end() - 1).front().print_z + 0.1);
             std::vector<GLVolume*> vols;
             if (ctxt.color_by_tool()) {
                 for (size_t i = 0; i < ctxt.number_tools(); ++ i)
@@ -1015,7 +1022,7 @@ void _3DScene::_load_wipe_tower_toolpaths(
                 volume.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
             }
             for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
-                const std::vector<WipeTower::ToolChangeResult> &layer = ctxt.print->m_wipe_tower_tool_changes[idx_layer];
+                const std::vector<WipeTower::ToolChangeResult> &layer = ctxt.tool_change(idx_layer);
                 for (size_t i = 0; i < vols.size(); ++ i) {
                     GLVolume &vol = *vols[i];
                     if (vol.print_zs.empty() || vol.print_zs.back() != layer.front().print_z) {

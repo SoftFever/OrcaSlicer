@@ -54,6 +54,10 @@ void Print::reload_object(size_t /* idx */)
         this->add_model_object(mo);
 }
 
+// Reloads the model instances into the print class.
+// The slicing shall not be running as the modified model instances at the print
+// are used for the brim & skirt calculation.
+// Returns true if the brim or skirt have been invalidated.
 bool Print::reload_model_instances()
 {
     bool invalidated = false;
@@ -461,7 +465,7 @@ bool Print::apply_config(DynamicPrintConfig config)
                         if (region_id < object->region_volumes.size() && ! object->region_volumes[region_id].empty())
                             invalidated |= object->invalidate_state_by_config_options(diff);
                 }
-                other_region_configs.emplace_back(this_region_config);
+                other_region_configs.emplace_back(std::move(this_region_config));
             }
         }
     }
@@ -953,6 +957,7 @@ bool Print::has_wipe_tower() const
 void Print::_clear_wipe_tower()
 {
     m_tool_ordering.clear();
+    m_wipe_tower_priming.reset(nullptr);
     m_wipe_tower_tool_changes.clear();
     m_wipe_tower_final_purge.reset(nullptr);
 }
@@ -963,7 +968,8 @@ void Print::_make_wipe_tower()
     if (! this->has_wipe_tower())
         return;
 
-    m_tool_ordering = ToolOrdering(*this, (unsigned int)-1);
+    // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
+    m_tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
     unsigned int initial_extruder_id = m_tool_ordering.first_extruder();
     if (initial_extruder_id == (unsigned int)-1 || m_tool_ordering.front().wipe_tower_partitions == 0)
         // Don't generate any wipe tower.
@@ -977,7 +983,6 @@ void Print::_make_wipe_tower()
     
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();
-    //wipe_tower.set_zhop();
 
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < 4; ++ i)
@@ -986,6 +991,9 @@ void Print::_make_wipe_tower()
             WipeTowerPrusaMM::parse_material(this->config.filament_type.get_at(i).c_str()),
             this->config.temperature.get_at(i),
             this->config.first_layer_temperature.get_at(i));
+
+    m_wipe_tower_priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
+        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), WipeTower::PURPOSE_EXTRUDE));
 
     // Generate the wipe tower layers.
     m_wipe_tower_tool_changes.reserve(m_tool_ordering.layer_tools().size());
@@ -1048,7 +1056,7 @@ void Print::_make_wipe_tower()
         wipe_tower.set_layer(float(m_tool_ordering.back().print_z), float(layer_height), 0, false, true);
     }
     m_wipe_tower_final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-        wipe_tower.tool_change(-1, false, WipeTower::PURPOSE_EXTRUDE));
+		wipe_tower.tool_change((unsigned int)-1, false, WipeTower::PURPOSE_EXTRUDE));
 }
 
 std::string Print::output_filename()
@@ -1078,6 +1086,11 @@ std::string Print::output_filepath(const std::string &path)
     
     // if we were supplied a file which is not a directory, use it
     return path;
+}
+
+void Print::set_status(int percent, const std::string &message)
+{
+    printf("Print::status %d => %s\n", percent, message.c_str());
 }
 
 }

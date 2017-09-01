@@ -16,6 +16,8 @@
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
 
+#include "tbb/atomic.h"
+
 namespace Slic3r {
 
 class Print;
@@ -125,10 +127,10 @@ public:
     // Slic3r::Point objects in scaled G-code coordinates in our coordinates
     Points _shifted_copies;
 
-    LayerPtrs layers;
-    SupportLayerPtrs support_layers;
-    PrintState<PrintObjectStep, posCount> state;
-    
+    LayerPtrs                               layers;
+    SupportLayerPtrs                        support_layers;
+    PrintState<PrintObjectStep, posCount>   state;
+
     Print*              print()                 { return this->_print; }
     const Print*        print() const           { return this->_print; }
     ModelObject*        model_object()          { return this->_model_object; }
@@ -231,14 +233,14 @@ public:
     PrintRegionPtrs regions;
     PlaceholderParser placeholder_parser;
     // TODO: status_cb
-    double total_used_filament, total_extruded_volume, total_cost, total_weight;
-    std::map<size_t,float> filament_stats;
-    PrintState<PrintStep, psCount> state;
+    double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
+    std::map<size_t,float>          filament_stats;
+    PrintState<PrintStep, psCount>  state;
 
     // ordered collections of extrusion paths to build skirt loops and brim
     ExtrusionEntityCollection skirt, brim;
 
-    Print() : total_used_filament(0), total_extruded_volume(0) {}
+    Print() : total_used_filament(0), total_extruded_volume(0) { restart(); }
     ~Print() { clear_objects(); }
     
     // methods for handling objects
@@ -291,15 +293,28 @@ public:
     // Cache it here, so it does not need to be recalculated during the G-code generation.
     ToolOrdering m_tool_ordering;
     // Cache of tool changes per print layer.
+    std::unique_ptr<WipeTower::ToolChangeResult>          m_wipe_tower_priming;
     std::vector<std::vector<WipeTower::ToolChangeResult>> m_wipe_tower_tool_changes;
     std::unique_ptr<WipeTower::ToolChangeResult>          m_wipe_tower_final_purge;
 
     std::string output_filename();
     std::string output_filepath(const std::string &path);
+
+    // Calls a registered callback to update the status.
+    void set_status(int percent, const std::string &message);
+    // Cancel the running computation. Stop execution of all the background threads.
+    void cancel() { m_canceled = true; }
+    // Cancel the running computation. Stop execution of all the background threads.
+    void restart() { m_canceled = false; }
+    // Has the calculation been canceled?
+    bool canceled() { return m_canceled; }
     
 private:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
+
+    // Has the calculation been canceled?
+    tbb::atomic<bool>   m_canceled;
 };
 
 #define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)
