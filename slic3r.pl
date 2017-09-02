@@ -31,6 +31,7 @@ my %cli_options = ();
         
         'debug'                 => \$Slic3r::debug,
         'gui'                   => \$opt{gui},
+        'no-gui'                   => \$opt{no_gui},
         'o|output=s'            => \$opt{output},
         
         'save=s'                => \$opt{save},
@@ -102,7 +103,7 @@ $config->apply($cli_config);
 
 # launch GUI
 my $gui;
-if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
+if ((!@ARGV || $opt{gui}) && !(!@ARGV || $opt{no_gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
         $Slic3r::GUI::datadir       = Slic3r::decode_path($opt{datadir} // '');
@@ -267,6 +268,8 @@ Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
     --gui               Forces the GUI launch instead of command line slicing (if you
                         supply a model file, it will be loaded into the plater)
     --no-plater         Disable the plater tab
+    --no-gui            Forces the command line slicing instead of gui. 
+                        This takes precedence over --gui if both are present.
     --autosave <file>   Automatically export current configuration to the specified file
 
   Output options:
