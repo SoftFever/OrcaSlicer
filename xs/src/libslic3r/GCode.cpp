@@ -219,6 +219,19 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
     return gcode;
 }
 
+std::string WipeTowerIntegration::prime_single_color_print(const Print & /* print */, unsigned int initial_tool, GCode & /* gcodegen */)
+{
+    std::string gcode = "\
+G1 Z0.250 F7200.000\n\
+G1 X50.0 E80.0  F1000.0\n\
+G1 X160.0 E20.0  F1000.0\n\
+G1 Z0.200 F7200.000\n\
+G1 X220.0 E13 F1000.0\n\
+G1 X240.0 E0 F1000.0\n\
+G1 E-4 F1000.0\n";
+    return gcode;
+}
+
 std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer)
 {
     std::string gcode;
@@ -673,10 +686,12 @@ bool GCode::_do_export(Print &print, FILE *file)
         // All extrusion moves with the same top layer height are extruded uninterrupted.
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
         // Prusa Multi-Material wipe tower.
-        if (print.has_wipe_tower() && 
-            ! tool_ordering.empty() && tool_ordering.front().wipe_tower_partitions > 0) {
-            m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
-			write(file, m_wipe_tower->prime(*this));
+        if (print.has_wipe_tower()) {
+            if (tool_ordering.has_wipe_tower()) {
+                m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
+			    write(file, m_wipe_tower->prime(*this));
+            } else
+                write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
         }
         // Extrude the layers.
         for (auto &layer : layers_to_print) {

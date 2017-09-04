@@ -388,7 +388,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(float first_layer_height, st
 	this->m_num_layer_changes 	= 0;
 	this->m_current_tool 		= tools.front();
 
-	box_coordinates cleaning_box(xy(0.f, - 4.0f), m_wipe_tower_width, wipe_area);
+    // The Prusa i3 MK2 has a working space of [0, -2.2] to [250, 210].
+    // Due to the XYZ calibration, this working space may shrink slightly from all directions,
+    // therefore the homing position is shifted inside the bed by 0.2 in the firmware to [0.2, -2.0].
+//	box_coordinates cleaning_box(xy(0.5f, - 1.5f), m_wipe_tower_width, wipe_area);
+	box_coordinates cleaning_box(xy(5.f, 0.f), m_wipe_tower_width, wipe_area);
 
 	PrusaMultiMaterial::Writer writer;
 	writer.set_extrusion_flow(m_extrusion_flow)
@@ -401,9 +405,10 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(float first_layer_height, st
 		  .speed_override(100);
 
 	// Always move to the starting position.
-	writer.travel(cleaning_box.ld, 7200);
+	writer.set_initial_position(xy(0.f, 0.f))
+		  .travel(cleaning_box.ld, 7200)
 	// Increase the extruder driver current to allow fast ramming.
-	writer.set_extruder_trimpot(750);
+		  .set_extruder_trimpot(750);
 
 	if (purpose == PURPOSE_EXTRUDE || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
 		for (size_t idx_tool = 0; idx_tool < tools.size(); ++ idx_tool) {

@@ -71,6 +71,7 @@ public:
 	const LayerTools&   back()        const { return m_layer_tools.back(); }
 	bool 				empty()       const { return m_layer_tools.empty(); }
 	const std::vector<LayerTools>& layer_tools() const { return m_layer_tools; }
+	bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (size_t)-1 && m_layer_tools.front().wipe_tower_partitions > 0; }
 
 private:
 	void				initialize_layers(std::vector<coordf_t> &zs);

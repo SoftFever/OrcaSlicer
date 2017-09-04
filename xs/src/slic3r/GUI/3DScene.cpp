@@ -950,6 +950,9 @@ void _3DScene::_load_wipe_tower_toolpaths(
     const std::vector<std::string> &tool_colors_str,
     bool                            use_VBOs)
 {
+    if (print->m_wipe_tower_tool_changes.empty())
+        return;
+
     std::vector<float> tool_colors = parse_colors(tool_colors_str);
 
     struct Ctxt
@@ -978,8 +981,10 @@ void _3DScene::_load_wipe_tower_toolpaths(
 
     ctxt.print          = print;
     ctxt.tool_colors    = tool_colors.empty() ? nullptr : &tool_colors;
-    ctxt.priming.emplace_back(*print->m_wipe_tower_priming.get());
-    ctxt.final.emplace_back(*print->m_wipe_tower_final_purge.get());
+	if (print->m_wipe_tower_priming)
+		ctxt.priming.emplace_back(*print->m_wipe_tower_priming.get());
+	if (print->m_wipe_tower_final_purge)
+		ctxt.final.emplace_back(*print->m_wipe_tower_final_purge.get());
     
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
 
