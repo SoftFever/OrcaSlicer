@@ -381,7 +381,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(float first_layer_height, st
 		// Minimum wipe area is 5mm wide.
 		//FIXME calculate the purge_lines_width precisely.
 		float purge_lines_width = 1.3f;
-		wipe_area = std::max(5.f, m_wipe_area - floor(e_length / m_wipe_tower_width) * dy - purge_lines_width);
+		wipe_area = std::max(5.f, m_wipe_area - float(floor(e_length / m_wipe_tower_width)) * dy - purge_lines_width);
 	}
 
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
