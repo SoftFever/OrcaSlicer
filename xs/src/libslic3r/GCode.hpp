@@ -90,7 +90,7 @@ public:
         m_brim_done(false) {}
 
     std::string prime(GCode &gcodegen);
-    static std::string WipeTowerIntegration::prime_single_color_print(const Print & /* print */, unsigned int initial_tool, GCode & /* gcodegen */);
+    static std::string prime_single_color_print(const Print & /* print */, unsigned int initial_tool, GCode & /* gcodegen */);
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
     std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
     std::string finalize(GCode &gcodegen);
