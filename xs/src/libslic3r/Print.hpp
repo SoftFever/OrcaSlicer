@@ -146,7 +146,7 @@ public:
     BoundingBox bounding_box() const { return BoundingBox(Point(0,0), this->size); }
 
     // adds region_id, too, if necessary
-    void add_region_volume(int region_id, int volume_id) {
+    void add_region_volume(unsigned int region_id, int volume_id) {
         if (region_id >= region_volumes.size())
             region_volumes.resize(region_id + 1);
         region_volumes[region_id].push_back(volume_id);

@@ -48,8 +48,8 @@ static inline bool is_ccw(const Polygon &poly)
         return true;
 
     // 1) Find the lowest lexicographical point.
-    int     imin = 0;
-    for (int i = 1; i < poly.points.size(); ++ i) {
+    unsigned int imin = 0;
+    for (unsigned int i = 1; i < poly.points.size(); ++ i) {
         const Point &pmin = poly.points[imin];
         const Point &p    = poly.points[i];
         if (p.x < pmin.x || (p.x == pmin.x && p.y < pmin.y))
@@ -134,7 +134,7 @@ class MedialAxis {
     double max_width;
     double min_width;
     MedialAxis(double _max_width, double _min_width, const ExPolygon* _expolygon = NULL)
-        : max_width(_max_width), min_width(_min_width), expolygon(_expolygon) {};
+        : expolygon(_expolygon), max_width(_max_width), min_width(_min_width) {};
     void build(ThickPolylines* polylines);
     void build(Polylines* polylines);
     

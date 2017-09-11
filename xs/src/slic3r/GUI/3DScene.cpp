@@ -414,14 +414,12 @@ static void thick_lines_to_indexed_vertex_array(
     Line prev_line;
     // right, left, top, bottom
     int     idx_prev[4]      = { -1, -1, -1, -1 };
-    double  width_prev       = 0.;
     double  bottom_z_prev    = 0.;
     Pointf  b1_prev;
     Pointf  b2_prev;
     Vectorf v_prev;
     int     idx_initial[4]   = { -1, -1, -1, -1 };
     double  width_initial    = 0.;
-    double  bottom_z_initial = 0.;
 
     // loop once more in case of closed loops
     size_t lines_end = closed ? (lines.size() + 1) : lines.size();
@@ -459,9 +457,7 @@ static void thick_lines_to_indexed_vertex_array(
         int idx_b[4];
         int idx_last = int(volume.vertices_and_normals_interleaved.size() / 6);
 
-        bool width_different    = width_prev != width;
         bool bottom_z_different = bottom_z_prev != bottom_z;
-        width_prev    = width;
         bottom_z_prev = bottom_z;
 
         // Share top / bottom vertices if possible.
@@ -486,7 +482,6 @@ static void thick_lines_to_indexed_vertex_array(
         if (ii == 0) {
             // Start of the 1st line segment.
             width_initial    = width;
-            bottom_z_initial = bottom_z;
             memcpy(idx_initial, idx_a, sizeof(int) * 4);
         } else {
             // Continuing a previous segment.
@@ -579,7 +574,6 @@ static void thick_lines_to_indexed_vertex_array(
 
         prev_line = line;
         memcpy(idx_prev, idx_b, 4 * sizeof(int));
-        width_prev = width;
         bottom_z_prev = bottom_z;
         b1_prev = b1;
         b2_prev = b2;

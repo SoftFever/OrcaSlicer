@@ -53,7 +53,7 @@ class ThickLine : public Line
     coordf_t a_width, b_width;
     
     ThickLine() : a_width(0), b_width(0) {};
-    ThickLine(Point _a, Point _b) : a_width(0), b_width(0), Line(_a, _b) {};
+    ThickLine(Point _a, Point _b) : Line(_a, _b), a_width(0), b_width(0) {};
 };
 
 class Linef
