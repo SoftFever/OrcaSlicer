@@ -207,8 +207,8 @@ public:
         drag_group_id(-1),
         selected(false),
         hover(false),
-        qverts_range(0, size_t(-1)),
-        tverts_range(0, size_t(-1))
+        tverts_range(0, size_t(-1)),
+        qverts_range(0, size_t(-1))
     {
         color[0] = r;
         color[1] = g;

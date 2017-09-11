@@ -130,7 +130,7 @@ public:
     void print_info() const;
     
 private:        
-    ModelObject(Model *model) : m_model(model),  m_bounding_box_valid(false), layer_height_profile_valid(false) {}
+    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), m_bounding_box_valid(false) {}
     ModelObject(Model *model, const ModelObject &other, bool copy_volumes = true);
     ModelObject& operator= (ModelObject other);
     void swap(ModelObject &other);
