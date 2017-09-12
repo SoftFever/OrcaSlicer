@@ -992,8 +992,13 @@ void Print::_make_wipe_tower()
             this->config.temperature.get_at(i),
             this->config.first_layer_temperature.get_at(i));
 
+    // When printing the first layer's wipe tower, the first extruder is expected to be active and primed.
+    // Therefore the number of wipe sections at the wipe tower will be (m_tool_ordering.front().extruders-1) at the 1st layer.
+    // The following variable is true if the last priming section cannot be squeezed inside the wipe tower.
+    bool last_priming_wipe_full = m_tool_ordering.front().extruders.size() > m_tool_ordering.front().wipe_tower_partitions;
+
     m_wipe_tower_priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), WipeTower::PURPOSE_EXTRUDE));
+        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), ! last_priming_wipe_full, WipeTower::PURPOSE_EXTRUDE));
 
     // Generate the wipe tower layers.
     m_wipe_tower_tool_changes.reserve(m_tool_ordering.layer_tools().size());

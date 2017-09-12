@@ -108,7 +108,16 @@ public:
 	virtual bool 	  		 finished() const { return m_max_color_changes == 0; }
 
 	// Returns gcode to prime the nozzles at the front edge of the print bed.
-	virtual ToolChangeResult prime(float first_layer_height, std::vector<unsigned int> tools, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE);
+	virtual ToolChangeResult prime(
+		// print_z of the first layer.
+		float 						first_layer_height, 
+		// Extruder indices, in the order to be primed. The last extruder will later print the wipe tower brim, print brim and the object.
+		std::vector<unsigned int> 	tools,
+		// If true, the last priming are will be the same as the other priming areas, and the rest of the wipe will be performed inside the wipe tower.
+		// If false, the last priming are will be large enough to wipe the last extruder sufficiently.
+		bool 						last_wipe_inside_wipe_tower, 
+		// May be used by a stand alone post processor.
+		Purpose 					purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE);
 
 	// Returns gcode for a toolchange and a final print head position.
 	// On the first layer, extrude a brim around the future wipe tower first.
@@ -176,6 +185,9 @@ private:
 	unsigned int 	m_current_tool  = 0;
 	// Current y position at the wipe tower.
 	float 		 	m_current_wipe_start_y = 0.f;
+	// How much to wipe the 1st extruder over the wipe tower at the 1st layer
+	// after the wipe tower brim has been extruded?
+	float  			m_initial_extra_wipe = 0.f;
 
 	struct box_coordinates
 	{
@@ -230,7 +242,8 @@ private:
 	
 	void toolchange_Wipe(
 		PrusaMultiMaterial::Writer &writer,
-		const box_coordinates  &cleaning_box);
+		const box_coordinates  &cleaning_box,
+		bool skip_initial_y_move);
 	
 	void toolchange_Perimeter();
 };

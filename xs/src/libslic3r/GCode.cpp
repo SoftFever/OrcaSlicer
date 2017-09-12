@@ -700,15 +700,17 @@ bool GCode::_do_export(Print &print, FILE *file)
                 BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));
                 bbox_prime.offset(0.5f);
                 // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
+                write(file, this->retract());
                 fprintf(file, "M300 S800 P500\n");
                 if (bbox_prime.overlap(bbox_print)) {
                     // Wait for the user to remove the priming extrusions, otherwise they would
                     // get covered by the print.
-                    fprintf(file, "M1 Remove priming towers and click button.\n");
+                    fprintf(file, "M1 Remove priming towers and click button.\nM117 Printing\n");
                 } else {
                     // Just wait for a bit to let the user check, that the priming succeeded.
-                    fprintf(file, "M0 S10\n");
+                    fprintf(file, "M117 Verify extruder priming\nM0 S10\nM117 Printing\n");
                 }
+                write(file, this->unretract());
             } else
                 write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
         }

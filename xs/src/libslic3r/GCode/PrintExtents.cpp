@@ -101,7 +101,7 @@ BoundingBoxf get_print_extrusions_extents(const Print &print)
     return bbox;
 }
 
-BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object, const coord_t max_print_z)
+BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object, const coordf_t max_print_z)
 {
     BoundingBoxf bbox;
     for (const Layer *layer : print_object.layers) {
@@ -129,7 +129,7 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
 
 // Returns a bounding box of a projection of the wipe tower for the layers <= max_print_z.
 // The projection does not contain the priming regions.
-BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coord_t max_print_z)
+BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_t max_print_z)
 {
     BoundingBoxf bbox;
     for (const std::vector<WipeTower::ToolChangeResult> &tool_changes : print.m_wipe_tower_tool_changes) {
