@@ -1041,16 +1041,15 @@ sub InitGL {
     # Set antialiasing/multisampling
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_POLYGON_SMOOTH);
-    if ($self->{can_multisample}) {
-        # See "GL_MULTISAMPLE and GL_ARRAY_BUFFER_ARB messages on failed launch"
-        # https://github.com/alexrj/Slic3r/issues/4085
-        $self->{can_multisample} = 0;
-        eval {
-            glEnable(GL_MULTISAMPLE);
-#    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-            $self->{can_multisample} = 1;
-        }
-    }
+
+    # See "GL_MULTISAMPLE and GL_ARRAY_BUFFER_ARB messages on failed launch"
+    # https://github.com/alexrj/Slic3r/issues/4085
+    eval {
+        # Disable the multi sampling by default, so the picking by color will work correctly.
+        glDisable(GL_MULTISAMPLE);
+    };
+    # Disable multi sampling if the eval failed.
+    $self->{can_multisample} = 0 if $@;
     
     # ambient lighting
     glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.3, 0.3, 0.3, 1);
