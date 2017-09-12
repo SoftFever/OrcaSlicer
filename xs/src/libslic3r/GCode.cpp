@@ -2,6 +2,7 @@
 #include "ExtrusionEntity.hpp"
 #include "EdgeGrid.hpp"
 #include "Geometry.hpp"
+#include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTowerPrusaMM.hpp"
 
 #include <algorithm>
@@ -686,10 +687,28 @@ bool GCode::_do_export(Print &print, FILE *file)
         // All extrusion moves with the same top layer height are extruded uninterrupted.
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
         // Prusa Multi-Material wipe tower.
-        if (print.has_wipe_tower()) {
+        if (print.has_wipe_tower() && ! layers_to_print.empty()) {
             if (tool_ordering.has_wipe_tower()) {
                 m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
 			    write(file, m_wipe_tower->prime(*this));
+                // Verify, whether the print overaps the priming extrusions.
+                BoundingBoxf bbox_print(get_print_extrusions_extents(print));
+                coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
+                for (const PrintObject *print_object : print.objects)
+                    bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
+                bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
+                BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));
+                bbox_prime.offset(0.5f);
+                // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
+                fprintf(file, "M300 S800 P500\n");
+                if (bbox_prime.overlap(bbox_print)) {
+                    // Wait for the user to remove the priming extrusions, otherwise they would
+                    // get covered by the print.
+                    fprintf(file, "M1 Remove priming towers and click button.\n");
+                } else {
+                    // Just wait for a bit to let the user check, that the priming succeeded.
+                    fprintf(file, "M0 S10\n");
+                }
             } else
                 write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
         }

@@ -87,6 +87,8 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/GCode/CoolingBuffer.hpp
     ${LIBDIR}/libslic3r/GCode/PressureEqualizer.cpp
     ${LIBDIR}/libslic3r/GCode/PressureEqualizer.hpp
+    ${LIBDIR}/libslic3r/GCode/PrintExtents.cpp
+    ${LIBDIR}/libslic3r/GCode/PrintExtents.hpp
     ${LIBDIR}/libslic3r/GCode/SpiralVase.cpp
     ${LIBDIR}/libslic3r/GCode/SpiralVase.hpp
     ${LIBDIR}/libslic3r/GCode/ToolOrdering.cpp
