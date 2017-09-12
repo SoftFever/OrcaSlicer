@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <assert.h>
 
 #define FLAVOR_IS(val) this->config.gcode_flavor == val
 #define FLAVOR_IS_NOT(val) this->config.gcode_flavor != val
@@ -259,6 +260,8 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
 
 std::string GCodeWriter::set_speed(double F, const std::string &comment, const std::string &cooling_marker) const
 {
+    assert(F > 0.);
+    assert(F < 100000.);
     std::ostringstream gcode;
     gcode << "G1 F" << F;
     COMMENT(comment);

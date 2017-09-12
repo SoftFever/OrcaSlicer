@@ -131,9 +131,13 @@ float Flow::spacing(const Flow &other) const
 // This method returns extrusion volume per head move unit.
 double Flow::mm3_per_mm() const 
 {
-    return this->bridge ?
+    double res = this->bridge ?
+        // Area of a circle with dmr of this->width.
         (this->width * this->width) * 0.25 * PI :
-        this->width * this->height + 0.25 * (this->height * this->height) / (PI - 4.0);
+        // Rectangle with semicircles at the ends. ~ h (w - 0.215 h)
+        this->height * (this->width - this->height * (1. - 0.25 * PI));
+    assert(res > 0.);
+    return res;
 }
 
 Flow support_material_flow(const PrintObject *object, float layer_height)
