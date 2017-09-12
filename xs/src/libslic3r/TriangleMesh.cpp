@@ -574,6 +574,7 @@ BoundingBoxf3
 TriangleMesh::bounding_box() const
 {
     BoundingBoxf3 bb;
+    bb.defined = true;
     bb.min.x = this->stl.stats.min.x;
     bb.min.y = this->stl.stats.min.y;
     bb.min.z = this->stl.stats.min.z;

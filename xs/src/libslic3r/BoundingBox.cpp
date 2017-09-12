@@ -1,5 +1,6 @@
 #include "BoundingBox.hpp"
 #include <algorithm>
+#include <assert.h>
 
 namespace Slic3r {
 
@@ -125,6 +126,7 @@ template void BoundingBoxBase<Pointf>::merge(const Pointfs &points);
 template <class PointClass> void
 BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
 {
+    assert(bb.defined || bb.min.x >= bb.max.x || bb.min.y >= bb.max.y);
     if (bb.defined) {
         if (this->defined) {
             this->min.x = std::min(bb.min.x, this->min.x);
@@ -162,6 +164,7 @@ template void BoundingBox3Base<Pointf3>::merge(const Pointf3s &points);
 template <class PointClass> void
 BoundingBox3Base<PointClass>::merge(const BoundingBox3Base<PointClass> &bb)
 {
+    assert(bb.defined || bb.min.x >= bb.max.x || bb.min.y >= bb.max.y || bb.min.z >= bb.max.z);
     if (bb.defined) {
         if (this->defined) {
             this->min.z = std::min(bb.min.z, this->min.z);

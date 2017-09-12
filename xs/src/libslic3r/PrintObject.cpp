@@ -1253,7 +1253,8 @@ void PrintObject::_slice()
                 goto end;
         delete layer;
         this->layers.pop_back();
-        this->layers.back()->upper_layer = nullptr;
+		if (! this->layers.empty())
+			this->layers.back()->upper_layer = nullptr;
     }
 end:
     ;

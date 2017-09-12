@@ -710,7 +710,6 @@ bool GCode::_do_export(Print &print, FILE *file)
                     // Just wait for a bit to let the user check, that the priming succeeded.
                     fprintf(file, "M117 Verify extruder priming\nM0 S10\nM117 Printing\n");
                 }
-                write(file, this->unretract());
             } else
                 write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
         }
