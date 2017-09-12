@@ -130,6 +130,7 @@ sub new {
         $self->GetContext();
     }
 
+    $self->{can_multisample} = $can_multisample;
     $self->background(1);
     $self->_quat((0, 0, 0, 1));
     $self->_stheta(45);
@@ -1040,8 +1041,16 @@ sub InitGL {
     # Set antialiasing/multisampling
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_POLYGON_SMOOTH);
-    glEnable(GL_MULTISAMPLE);
+    if ($self->{can_multisample}) {
+        # See "GL_MULTISAMPLE and GL_ARRAY_BUFFER_ARB messages on failed launch"
+        # https://github.com/alexrj/Slic3r/issues/4085
+        $self->{can_multisample} = 0;
+        eval {
+            glEnable(GL_MULTISAMPLE);
 #    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+            $self->{can_multisample} = 1;
+        }
+    }
     
     # ambient lighting
     glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.3, 0.3, 0.3, 1);
@@ -1066,7 +1075,7 @@ sub InitGL {
     # A handy trick -- have surface material mirror the color.
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_MULTISAMPLE) if ($self->{can_multisample});
 
     if ($self->UseVBOs) {
         my $shader = new Slic3r::GUI::_3DScene::GLShader;
@@ -1142,7 +1151,7 @@ sub Render {
         # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
         # Better to use software ray-casting on a bounding-box hierarchy.
         glPushAttrib(GL_ENABLE_BIT);
-        glDisable(GL_MULTISAMPLE);
+        glDisable(GL_MULTISAMPLE) if ($self->{can_multisample});
         glDisable(GL_LIGHTING);
         glDisable(GL_BLEND);
         $self->draw_volumes(1);
