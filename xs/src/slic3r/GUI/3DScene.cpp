@@ -1009,6 +1009,7 @@ void _3DScene::_load_wipe_tower_toolpaths(
                 ctxt.print->config.wipe_tower_y.value + ctxt.print->config.wipe_tower_per_color_wipe.value * 
                     ctxt.print->m_tool_ordering.layer_tools()[range.begin()].wipe_tower_partitions + 10., 
                 ctxt.tool_change(range.end() - 1).front().print_z + 0.1);
+            bbox.defined = true;
             std::vector<GLVolume*> vols;
             if (ctxt.color_by_tool()) {
                 for (size_t i = 0; i < ctxt.number_tools(); ++ i)

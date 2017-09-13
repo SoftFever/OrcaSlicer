@@ -30,7 +30,7 @@ class BoundingBoxBase
     void scale(double factor);
     PointClass size() const;
     double radius() const;
-    void translate(coordf_t x, coordf_t y) { this->min.translate(x, y); this->max.translate(x, y); }
+    void translate(coordf_t x, coordf_t y) { assert(this->defined); this->min.translate(x, y); this->max.translate(x, y); }
     void translate(const Pointf &pos) { this->translate(pos.x, pos.y); }
     void offset(coordf_t delta);
     PointClass center() const;
