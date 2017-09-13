@@ -34,6 +34,7 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionPath &extrusio
     if (! empty(bbox)) {
         bboxf.min = Pointf::new_unscale(bbox.min);
         bboxf.max = Pointf::new_unscale(bbox.max);
+		bboxf.defined = true;
     }
     return bboxf;
 }
@@ -47,7 +48,8 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionLoop &extrusio
     if (! empty(bbox)) {
         bboxf.min = Pointf::new_unscale(bbox.min);
         bboxf.max = Pointf::new_unscale(bbox.max);
-    }
+		bboxf.defined = true;
+	}
     return bboxf;
 }
 
@@ -60,7 +62,8 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionMultiPath &ext
     if (! empty(bbox)) {
         bboxf.min = Pointf::new_unscale(bbox.min);
         bboxf.max = Pointf::new_unscale(bbox.max);
-    }
+		bboxf.defined = true;
+	}
     return bboxf;
 }
 
