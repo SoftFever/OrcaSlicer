@@ -705,10 +705,11 @@ bool GCode::_do_export(Print &print, FILE *file)
                 if (bbox_prime.overlap(bbox_print)) {
                     // Wait for the user to remove the priming extrusions, otherwise they would
                     // get covered by the print.
-                    fprintf(file, "M1 Remove priming towers and click button.\nM117 Printing\n");
+                    fprintf(file, "M1 Remove priming towers and click button.\n");
                 } else {
                     // Just wait for a bit to let the user check, that the priming succeeded.
-                    fprintf(file, "M117 Verify extruder priming\nM0 S10\nM117 Printing\n");
+                    //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
+                    fprintf(file, "M1 S10\n");
                 }
             } else
                 write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
