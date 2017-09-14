@@ -35,10 +35,10 @@
         %code%{ THIS->make_perimeters(*slices, fill_surfaces); %};
     double infill_area_threshold();
 
-    void export_region_slices_to_svg(const char *path);
-    void export_region_fill_surfaces_to_svg(const char *path);
-    void export_region_slices_to_svg_debug(const char *name);
-    void export_region_fill_surfaces_to_svg_debug(const char *name);
+    void export_region_slices_to_svg(const char *path) const;
+    void export_region_fill_surfaces_to_svg(const char *path) const;
+    void export_region_slices_to_svg_debug(const char *name) const;
+    void export_region_fill_surfaces_to_svg_debug(const char *name) const;
 };
 
 %name{Slic3r::Layer} class Layer {

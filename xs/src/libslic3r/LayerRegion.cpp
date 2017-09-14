@@ -389,8 +389,7 @@ LayerRegion::infill_area_threshold() const
     return ss*ss;
 }
 
-
-void LayerRegion::export_region_slices_to_svg(const char *path)
+void LayerRegion::export_region_slices_to_svg(const char *path) const
 {
     BoundingBox bbox;
     for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++surface)
@@ -410,14 +409,14 @@ void LayerRegion::export_region_slices_to_svg(const char *path)
 }
 
 // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
-void LayerRegion::export_region_slices_to_svg_debug(const char *name)
+void LayerRegion::export_region_slices_to_svg_debug(const char *name) const
 {
     static std::map<std::string, size_t> idx_map;
     size_t &idx = idx_map[name];
     this->export_region_slices_to_svg(debug_out_path("LayerRegion-slices-%s-%d.svg", name, idx ++).c_str());
 }
 
-void LayerRegion::export_region_fill_surfaces_to_svg(const char *path) 
+void LayerRegion::export_region_fill_surfaces_to_svg(const char *path) const
 {
     BoundingBox bbox;
     for (Surfaces::const_iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface)
@@ -428,16 +427,16 @@ void LayerRegion::export_region_fill_surfaces_to_svg(const char *path)
 
     SVG svg(path, bbox);
     const float transparency = 0.5f;
-    for (Surfaces::const_iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
-        svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
-        svg.draw_outline(surface->expolygon, "black", "blue", scale_(0.05)); 
+    for (const Surface &surface : this->fill_surfaces.surfaces) {
+        svg.draw(surface.expolygon, surface_type_to_color_name(surface.surface_type), transparency);
+        svg.draw_outline(surface.expolygon, "black", "blue", scale_(0.05)); 
     }
     export_surface_type_legend_to_svg(svg, legend_pos);
     svg.Close();
 }
 
 // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
-void LayerRegion::export_region_fill_surfaces_to_svg_debug(const char *name)
+void LayerRegion::export_region_fill_surfaces_to_svg_debug(const char *name) const
 {
     static std::map<std::string, size_t> idx_map;
     size_t &idx = idx_map[name];

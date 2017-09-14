@@ -68,11 +68,11 @@ public:
     void process_external_surfaces(const Layer* lower_layer);
     double infill_area_threshold() const;
 
-    void export_region_slices_to_svg(const char *path);
-    void export_region_fill_surfaces_to_svg(const char *path);
+    void export_region_slices_to_svg(const char *path) const;
+    void export_region_fill_surfaces_to_svg(const char *path) const;
     // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
-    void export_region_slices_to_svg_debug(const char *name);
-    void export_region_fill_surfaces_to_svg_debug(const char *name);
+    void export_region_slices_to_svg_debug(const char *name) const;
+    void export_region_fill_surfaces_to_svg_debug(const char *name) const;
 
     // Is there any valid extrusion assigned to this LayerRegion?
     bool has_extrusions() const { return ! this->perimeters.entities.empty() || ! this->fills.entities.empty(); }
@@ -129,11 +129,11 @@ public:
     void make_perimeters();
     void make_fills();
 
-    void export_region_slices_to_svg(const char *path);
-    void export_region_fill_surfaces_to_svg(const char *path);
+    void export_region_slices_to_svg(const char *path) const;
+    void export_region_fill_surfaces_to_svg(const char *path) const;
     // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
-    void export_region_slices_to_svg_debug(const char *name);
-    void export_region_fill_surfaces_to_svg_debug(const char *name);
+    void export_region_slices_to_svg_debug(const char *name) const;
+    void export_region_fill_surfaces_to_svg_debug(const char *name) const;
 
     // Is there any valid extrusion assigned to this LayerRegion?
     virtual bool has_extrusions() const { for (auto layerm : this->regions) if (layerm->has_extrusions()) return true; return false; }

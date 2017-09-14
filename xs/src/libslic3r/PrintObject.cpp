@@ -314,7 +314,7 @@ void PrintObject::_prepare_infill()
 
     // Debugging output.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id)
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
         for (const Layer *layer : this->layers) {
             LayerRegion *layerm = layer->regions[region_id];
             layerm->export_region_slices_to_svg_debug("6_discover_vertical_shells-final");
@@ -332,7 +332,7 @@ void PrintObject::_prepare_infill()
     this->discover_horizontal_shells();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id)
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
         for (const Layer *layer : this->layers) {
             LayerRegion *layerm = layer->regions[region_id];
             layerm->export_region_slices_to_svg_debug("7_discover_horizontal_shells-final");
@@ -350,7 +350,7 @@ void PrintObject::_prepare_infill()
     this->clip_fill_surfaces();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id)
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
         for (const Layer *layer : this->layers) {
             LayerRegion *layerm = layer->regions[region_id];
             layerm->export_region_slices_to_svg_debug("8_clip_surfaces-final");
@@ -367,7 +367,7 @@ void PrintObject::_prepare_infill()
     this->combine_infill();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id)
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
         for (const Layer *layer : this->layers) {
             LayerRegion *layerm = layer->regions[region_id];
             layerm->export_region_slices_to_svg_debug("9_prepare_infill-final");
@@ -1816,7 +1816,8 @@ void PrintObject::discover_horizontal_shells()
                     for (SurfacesPtr &group : top_bottom_groups)
                         neighbor_layerm->fill_surfaces.append(
                             diff_ex(to_polygons(group), polygons_internal),
-                            group.front()->surface_type);
+                            // Use an existing surface as a template, it carries the bridge angle etc.
+                            *group.front());
                 }
 		EXTERNAL:;
             } // foreach type (stTop, stBottom, stBottomBridge)
@@ -1824,7 +1825,7 @@ void PrintObject::discover_horizontal_shells()
     } // for each region
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id)
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
         for (const Layer *layer : this->layers) {
             const LayerRegion *layerm = layer->regions[region_id];
             layerm->export_region_slices_to_svg_debug("5_discover_horizontal_shells");

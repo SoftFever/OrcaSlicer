@@ -161,7 +161,7 @@ void Layer::make_fills()
     }
 }
 
-void Layer::export_region_slices_to_svg(const char *path)
+void Layer::export_region_slices_to_svg(const char *path) const
 {
     BoundingBox bbox;
     for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
@@ -181,13 +181,13 @@ void Layer::export_region_slices_to_svg(const char *path)
 }
 
 // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
-void Layer::export_region_slices_to_svg_debug(const char *name)
+void Layer::export_region_slices_to_svg_debug(const char *name) const
 {
     static size_t idx = 0;
     this->export_region_slices_to_svg(debug_out_path("Layer-slices-%s-%d.svg", name, idx ++).c_str());
 }
 
-void Layer::export_region_fill_surfaces_to_svg(const char *path)
+void Layer::export_region_fill_surfaces_to_svg(const char *path) const
 {
     BoundingBox bbox;
     for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
@@ -207,7 +207,7 @@ void Layer::export_region_fill_surfaces_to_svg(const char *path)
 }
 
 // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
-void Layer::export_region_fill_surfaces_to_svg_debug(const char *name)
+void Layer::export_region_fill_surfaces_to_svg_debug(const char *name) const
 {
     static size_t idx = 0;
     this->export_region_fill_surfaces_to_svg(debug_out_path("Layer-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
