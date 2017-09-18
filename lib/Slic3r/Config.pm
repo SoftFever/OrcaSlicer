@@ -98,126 +98,61 @@ sub merge {
 # Load a flat ini file without a category into the underlying C++ Slic3r::DynamicConfig class,
 # convert legacy configuration names.
 sub load {
-    my $class = shift;
-    my ($file) = @_;
-
+    my ($class, $file) = @_;
     # Instead of using the /i modifier for case-insensitive matching, the case insensitivity is expressed
     # explicitely to avoid having to bundle the UTF8 Perl library.
     if ($file =~ /\.[gG][cC][oO][dD][eE]/ || $file =~ /\.[gG]/) {
-        my $config = $class->new;        
+        my $config = $class->new;
         $config->_load_from_gcode($file);
         return $config;
     } else {
-        my $ini = __PACKAGE__->read_ini($file);
-        return $class->load_ini_hash($ini->{_});
+        my $config = $class->new;
+        $config->_load($file);
+        return $config;
     }
+}
+
+# Save the content of the underlying C++ Slic3r::DynamicPrintConfig as a flat ini file without any category.
+sub save {
+    my ($self, $file) = @_;
+    return $self->_save($file);
 }
 
 # Deserialize a perl hash into the underlying C++ Slic3r::DynamicConfig class,
 # convert legacy configuration names.
+# Used to load a config bundle.
 sub load_ini_hash {
-    my $class = shift;
-    my ($ini_hash) = @_;
-    
+    my ($class, $ini_hash) = @_;    
     my $config = $class->new;
-    foreach my $opt_key (keys %$ini_hash) {
-        ($opt_key, my $value) = _handle_legacy($opt_key, $ini_hash->{$opt_key});
-        next if !defined $opt_key;
-        $config->set_deserialize($opt_key, $value);
-    }
+    $config->set_deserialize($_, $ini_hash->{$_}) for keys %$ini_hash;
     return $config;
 }
 
 sub clone {
     my $self = shift;
-    
     my $new = (ref $self)->new;
     $new->apply($self);
     return $new;
 }
 
 sub get_value {
-    my $self = shift;
-    my ($opt_key) = @_;
-    
+    my ($self, $opt_key) = @_;
     return $Options->{$opt_key}{ratio_over}
         ? $self->get_abs_value($opt_key)
         : $self->get($opt_key);
 }
 
-sub _handle_legacy {
-    my ($opt_key, $value) = @_;
-    
-    # handle legacy options
-    if ($opt_key =~ /^(extrusion_width|bottom_layer_speed|first_layer_height)_ratio$/) {
-        $opt_key = $1;
-        $opt_key =~ s/^bottom_layer_speed$/first_layer_speed/;
-        $value = $value =~ /^\d+(?:\.\d+)?$/ && $value != 0 ? ($value*100) . "%" : 0;
-    }
-    if ($opt_key eq 'threads' && !$Slic3r::have_threads) {
-        $value = 1;
-    }
-    if ($opt_key eq 'gcode_flavor' && $value eq 'makerbot') {
-        $value = 'makerware';
-    }
-    if ($opt_key eq 'fill_density' && defined($value) && $value !~ /%/ && $value <= 1) {
-        # fill_density was turned into a percent value
-        $value *= 100;
-        $value = "$value";  # force update of the PV value, workaround for bug https://rt.cpan.org/Ticket/Display.html?id=94110
-    }
-    if ($opt_key eq 'randomize_start' && $value) {
-        $opt_key = 'seam_position';
-        $value = 'random';
-    }
-    if ($opt_key eq 'bed_size' && $value) {
-        $opt_key = 'bed_shape';
-        my ($x, $y) = split /,/, $value;
-        $value = "0x0,${x}x0,${x}x${y},0x${y}";
-    }
-    return () if first { $_ eq $opt_key } @Ignore;
-    
-    # For historical reasons, the world's full of configs having these very low values;
-    # to avoid unexpected behavior we need to ignore them.  Banning these two hard-coded
-    # values is a dirty hack and will need to be removed sometime in the future, but it
-    # will avoid lots of complaints for now.
-    if ($opt_key eq 'perimeter_acceleration' && $value == '25') {
-        $value = 0;
-    }
-    if ($opt_key eq 'infill_acceleration' && $value == '50') {
-        $value = 0;
-    }
-    
-    if (!exists $Options->{$opt_key}) {
-        my @keys = grep { $Options->{$_}{aliases} && grep $_ eq $opt_key, @{$Options->{$_}{aliases}} } keys %$Options;
-        if (!@keys) {
-            warn "Unknown option $opt_key\n";
-            return ();
-        }
-        $opt_key = $keys[0];
-    }
-    
-    return ($opt_key, $value);
-}
-
 # Create a hash of hashes from the underlying C++ Slic3r::DynamicPrintConfig.
 # The first hash key is '_' meaning no category.
+# Used to create a config bundle.
 sub as_ini {
     my ($self) = @_;
-    
     my $ini = { _ => {} };
     foreach my $opt_key (sort @{$self->get_keys}) {
         next if $Options->{$opt_key}{shortcut};
         $ini->{_}{$opt_key} = $self->serialize($opt_key);
     }
     return $ini;
-}
-
-# Save the content of the underlying C++ Slic3r::DynamicPrintConfig as a flat ini file without any category.
-sub save {
-    my $self = shift;
-    my ($file) = @_;
-    
-    __PACKAGE__->write_ini($file, $self->as_ini);
 }
 
 # this method is idempotent by design and only applies to ::DynamicConfig or ::Full

@@ -112,7 +112,6 @@ sub add_volume {
 
 sub add_instance {
     my $self = shift;
-    my %params = @_;
     
     if (@_ == 1) {
         # we have a Model::Instance

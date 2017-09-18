@@ -1,4 +1,6 @@
 #include "PrintConfig.hpp"
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 
 namespace Slic3r {
@@ -118,6 +120,10 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "When printing multi-material objects, this settings will make slic3r to clip the overlapping object parts one by the other (2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).";
     def->cli = "clip-multipart-objects!";
     def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("compatible_printers", coStrings);
+    def->label = "Compatible printers";
+    def->default_value = new ConfigOptionStrings();
 
     def = this->add("complete_objects", coBool);
     def->label = "Complete individual objects";
@@ -1704,8 +1710,87 @@ DynamicPrintConfig::normalize() {
     }
 }
 
-double
-PrintConfigBase::min_object_distance() const
+
+bool PrintConfigBase::set_deserialize(t_config_option_key opt_key, std::string str, bool append)
+{
+    this->_handle_legacy(opt_key, str);
+    return opt_key.empty() ? 
+        // ignore option
+        true :
+        ConfigBase::set_deserialize(opt_key, str, append);
+}
+
+void PrintConfigBase::_handle_legacy(t_config_option_key &opt_key, std::string &value) const
+{
+    // handle legacy options
+    if (opt_key == "extrusion_width_ratio" || opt_key == "bottom_layer_speed_ratio"
+        || opt_key == "first_layer_height_ratio") {
+        boost::replace_first(opt_key, "_ratio", "");
+        if (opt_key == "bottom_layer_speed") opt_key = "first_layer_speed";
+        try {
+            float v = boost::lexical_cast<float>(value);
+            if (v != 0) 
+                value = boost::lexical_cast<std::string>(v*100) + "%";
+        } catch (boost::bad_lexical_cast &) {
+            value = "0";
+        }
+    } else if (opt_key == "gcode_flavor" && value == "makerbot") {
+        value = "makerware";
+    } else if (opt_key == "fill_density" && value.find("%") == std::string::npos) {
+        try {
+            // fill_density was turned into a percent value
+            float v = boost::lexical_cast<float>(value);
+            value = boost::lexical_cast<std::string>(v*100) + "%";
+        } catch (boost::bad_lexical_cast &) {}
+    } else if (opt_key == "randomize_start" && value == "1") {
+        opt_key = "seam_position";
+        value = "random";
+    } else if (opt_key == "bed_size" && !value.empty()) {
+        opt_key = "bed_shape";
+        ConfigOptionPoint p;
+        p.deserialize(value);
+        std::ostringstream oss;
+        oss << "0x0," << p.value.x << "x0," << p.value.x << "x" << p.value.y << ",0x" << p.value.y;
+        value = oss.str();
+    } else if (opt_key == "octoprint_host" && !value.empty()) {
+        opt_key = "print_host";
+    } else if ((opt_key == "perimeter_acceleration" && value == "25")
+        || (opt_key == "infill_acceleration" && value == "50")) {
+        /*  For historical reasons, the world's full of configs having these very low values;
+            to avoid unexpected behavior we need to ignore them. Banning these two hard-coded
+            values is a dirty hack and will need to be removed sometime in the future, but it
+            will avoid lots of complaints for now. */
+        value = "0";
+    } else if (opt_key == "support_material_threshold" && value == "0") {
+        // 0 used to be automatic threshold, but we introduced percent values so let's
+        // transform it into the default value
+        value = "60%";
+    }
+    
+    // cemetery of old config settings
+    if (opt_key == "duplicate_x" || opt_key == "duplicate_y" || opt_key == "multiply_x" 
+        || opt_key == "multiply_y" || opt_key == "support_material_tool" 
+        || opt_key == "acceleration" || opt_key == "adjust_overhang_flow" 
+        || opt_key == "standby_temperature" || opt_key == "scale" || opt_key == "rotate" 
+        || opt_key == "duplicate" || opt_key == "duplicate_grid" || opt_key == "rotate" 
+        || opt_key == "scale"  || opt_key == "duplicate_grid" 
+        || opt_key == "start_perimeters_at_concave_points" 
+        || opt_key == "start_perimeters_at_non_overhang" || opt_key == "randomize_start" 
+        || opt_key == "seal_position" || opt_key == "bed_size" || opt_key == "octoprint_host" 
+        || opt_key == "print_center" || opt_key == "g0" || opt_key == "threads")
+    {
+        opt_key = "";
+        return;
+    }
+    
+    if (!this->def->has(opt_key)) {
+        //printf("Unknown option %s\n", opt_key.c_str());
+        opt_key = "";
+        return;
+    }
+}
+
+double PrintConfigBase::min_object_distance() const
 {
     double extruder_clearance_radius = this->option("extruder_clearance_radius")->getFloat();
     double duplicate_distance = this->option("duplicate_distance")->getFloat();
