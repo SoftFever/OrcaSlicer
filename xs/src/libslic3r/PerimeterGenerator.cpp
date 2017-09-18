@@ -511,11 +511,10 @@ PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRo
         
         // append paths to collection
         if (!paths.empty()) {
-            if (paths.front().first_point().coincides_with(paths.back().last_point())) {
+            if (paths.front().first_point().coincides_with(paths.back().last_point()))
                 coll.append(ExtrusionLoop(paths));
-            } else {
+            else
                 coll.append(paths);
-            }
         }
     }
     

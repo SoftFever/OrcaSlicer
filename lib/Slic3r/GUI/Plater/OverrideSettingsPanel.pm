@@ -29,8 +29,7 @@ my %icons = (
 );
 
 sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
+    my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     # C++ class Slic3r::DynamicPrintConfig, initially empty.
     $self->{default_config} = Slic3r::Config->new;

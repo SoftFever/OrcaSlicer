@@ -384,9 +384,10 @@ sub update_tree {
     }
 }
 
+# Update the combo box label of the selected preset based on its "dirty" state,
+# comparing the selected preset config with $self->{config}.
 sub update_dirty {
-    my $self = shift;
-    
+    my ($self) = @_;
     my $list_updated;
     foreach my $i ($self->{default_suppressed}..$#{$self->{presets}}) {
         my $preset = $self->get_preset($i);
@@ -401,20 +402,23 @@ sub update_dirty {
     $self->_on_presets_changed;
 }
 
+# Has the selected preset been modified?
 sub is_dirty {
-    my $self = shift;
+    my ($self) = @_;
     return @{$self->dirty_options} > 0;
 }
 
+# Which options of the selected preset were modified?
 sub dirty_options {
-    my $self = shift;
-    
+    my ($self) = @_;
     return [] if !defined $self->current_preset;  # happens during initialization
     return $self->get_preset_config($self->get_current_preset)->diff($self->{config});
 }
 
+# Search all ini files in the presets directory, add them into the list of $self->{presets} in the form of Slic3r::GUI::Tab::Preset.
+# Initialize the drop down list box.
 sub load_presets {
-    my $self = shift;
+    my ($self) = @_;
     
     $self->{presets} = [
         Slic3r::GUI::Tab::Preset->new(
@@ -445,10 +449,9 @@ sub load_presets {
     $self->_on_presets_changed;
 }
 
+# Load a config file containing a Print, Filament & Printer preset.
 sub load_config_file {
-    my $self = shift;
-    my ($file) = @_;
-    
+    my ($self, $file) = @_;
     # look for the loaded config among the existing menu items
     my $i = first { $self->{presets}[$_]{file} eq $file && $self->{presets}[$_]{external} } 1..$#{$self->{presets}};
     if (!$i) {
@@ -470,9 +473,10 @@ sub load_config_file {
     return 1;
 }
 
+# Load a provied DynamicConfig into the tab, modifying the active preset.
+# This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 sub load_config {
-    my $self = shift;
-    my ($config) = @_;
+    my ($self, $config) = @_;
     
     my %keys_modified = ();
     foreach my $opt_key (@{$self->{config}->diff($config)}) {
@@ -487,6 +491,7 @@ sub load_config {
     }
 }
 
+# Load and return a config from the file associated with the $preset (Perl type Slic3r::GUI::Tab::Preset).
 sub get_preset_config {
     my ($self, $preset) = @_;
     return $preset->config($self->{config}->get_keys);
@@ -1705,6 +1710,7 @@ sub on_preset_loaded {
     }
 }
 
+# Load a config file containing a Print, Filament & Printer preset.
 sub load_config_file {
     my $self = shift;
     if ($self->SUPER::load_config_file(@_)) {
@@ -1847,6 +1853,8 @@ has 'external'  => (is => 'ro', default => sub { 0 });
 has 'name'      => (is => 'rw', required => 1);
 has 'file'      => (is => 'rw');
 
+# Load a config file, return a C++ class Slic3r::DynamicPrintConfig with $keys initialized from the config file.
+# In case of a "default" config item, return the default values.
 sub config {
     my ($self, $keys) = @_;
     

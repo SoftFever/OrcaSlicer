@@ -17,8 +17,7 @@ use constant ICON_SOLIDMESH     => 1;
 use constant ICON_MODIFIERMESH  => 2;
 
 sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
+    my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     
     # C++ type Slic3r::ModelObject

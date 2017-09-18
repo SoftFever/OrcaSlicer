@@ -15,8 +15,7 @@ use base 'Wx::Dialog';
 # %params{object} of a Perl type Slic3r::GUI::Plater::Object
 # %params{model_object} of a C++ type Slic3r::ModelObject
 sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
+    my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, "Settings for " . $params{object}->name, wxDefaultPosition, [700,500], wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
     $self->{$_} = $params{$_} for keys %params;
 

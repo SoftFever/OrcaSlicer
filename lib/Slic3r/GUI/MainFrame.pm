@@ -326,6 +326,7 @@ sub is_loaded {
     return $self->{loaded};
 }
 
+# Selection of a 3D object changed on the platter.
 sub on_plater_selection_changed {
     my ($self, $have_selection) = @_;
     
@@ -523,10 +524,9 @@ sub export_config {
     $dlg->Destroy;
 }
 
+# Load a config file containing a Print, Filament & Printer preset.
 sub load_config_file {
-    my $self = shift;
-    my ($file) = @_;
-    
+    my ($self, $file) = @_;
     if (!$file) {
         return unless $self->check_unsaved_changes;
         my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
@@ -638,6 +638,8 @@ sub load_configbundle {
     Slic3r::GUI::show_info($self, $message);
 }
 
+# Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
+# Also update the platter with the new presets.
 sub load_config {
     my $self = shift;
     my ($config) = @_;
