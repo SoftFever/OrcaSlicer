@@ -21,7 +21,7 @@ use File::Basename qw(basename);
 use List::Util qw(first);
 use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window
     :button wxTheApp);
-use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_TREE_SEL_CHANGED);
+use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_CHECKBOX EVT_TREE_SEL_CHANGED);
 use base qw(Wx::Panel Class::Accessor);
 
 # Index of the currently active preset.
@@ -522,7 +522,7 @@ package Slic3r::GUI::Tab::Print;
 use base 'Slic3r::GUI::Tab';
 
 use List::Util qw(first);
-use Wx qw(:icon :dialog :id);
+use Wx qw(:icon :dialog :id wxTheApp);
 
 sub name { 'print' }
 sub title { 'Print Settings' }
@@ -530,49 +530,7 @@ sub title { 'Print Settings' }
 sub build {
     my $self = shift;
     
-    $self->init_config_options(qw(
-        layer_height first_layer_height
-        perimeters spiral_vase
-        top_solid_layers bottom_solid_layers
-        extra_perimeters ensure_vertical_shell_thickness avoid_crossing_perimeters thin_walls overhangs
-        seam_position external_perimeters_first
-        fill_density fill_pattern external_fill_pattern
-        infill_every_layers infill_only_where_needed
-        solid_infill_every_layers fill_angle bridge_angle solid_infill_below_area 
-        only_retract_when_crossing_perimeters infill_first
-        max_print_speed max_volumetric_speed 
-        max_volumetric_extrusion_rate_slope_positive max_volumetric_extrusion_rate_slope_negative
-        perimeter_speed small_perimeter_speed external_perimeter_speed infill_speed 
-        solid_infill_speed top_solid_infill_speed support_material_speed 
-        support_material_xy_spacing
-        support_material_interface_speed bridge_speed gap_fill_speed
-        travel_speed
-        first_layer_speed
-        perimeter_acceleration infill_acceleration bridge_acceleration 
-        first_layer_acceleration default_acceleration
-        skirts skirt_distance skirt_height min_skirt_length
-        brim_width
-        support_material support_material_threshold support_material_enforce_layers
-        raft_layers
-        support_material_pattern support_material_with_sheath support_material_spacing support_material_synchronize_layers support_material_angle
-        support_material_interface_layers support_material_interface_spacing support_material_interface_contact_loops
-        support_material_contact_distance support_material_buildplate_only dont_support_bridges
-        notes
-        complete_objects extruder_clearance_radius extruder_clearance_height
-        gcode_comments output_filename_format
-        post_process
-        perimeter_extruder infill_extruder solid_infill_extruder
-        support_material_extruder support_material_interface_extruder
-        ooze_prevention standby_temperature_delta
-        interface_shells
-        extrusion_width first_layer_extrusion_width perimeter_extrusion_width 
-        external_perimeter_extrusion_width infill_extrusion_width solid_infill_extrusion_width 
-        top_infill_extrusion_width support_material_extrusion_width
-        infill_overlap bridge_flow_ratio
-        clip_multipart_objects elefant_foot_compensation xy_size_compensation threads resolution
-        wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe
-    ));
-    $self->{config}->set('print_settings_id', '');
+    $self->{config}->apply(wxTheApp->{preset_bundle}->prints->preset(0)->config);
     
     {
         my $page = $self->add_options_page('Layers and perimeters', 'layers.png');
@@ -776,7 +734,7 @@ sub build {
             $optgroup->append_single_option_line('clip_multipart_objects');
             $optgroup->append_single_option_line('elefant_foot_compensation');
             $optgroup->append_single_option_line('xy_size_compensation');
-            $optgroup->append_single_option_line('threads') if $Slic3r::have_threads;
+#            $optgroup->append_single_option_line('threads') if $Slic3r::have_threads;
             $optgroup->append_single_option_line('resolution');
         }
     }
@@ -829,6 +787,12 @@ sub build {
             $optgroup->append_single_option_line($option);
         }
     }
+}
+
+sub reload_config {
+    my ($self) = @_;
+#    $self->_reload_compatible_printers_widget;
+    $self->SUPER::reload_config;
 }
 
 # Slic3r::GUI::Tab::Print::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
@@ -1035,10 +999,11 @@ sub _update {
         for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe);
 }
 
-sub hidden_options { !$Slic3r::have_threads ? qw(threads) : () }
+#sub hidden_options { !$Slic3r::have_threads ? qw(threads) : () }
 
 package Slic3r::GUI::Tab::Filament;
 use base 'Slic3r::GUI::Tab';
+use Wx qw(wxTheApp);
 
 sub name { 'filament' }
 sub title { 'Filament Settings' }
@@ -1046,15 +1011,7 @@ sub title { 'Filament Settings' }
 sub build {
     my $self = shift;
     
-    $self->init_config_options(qw(
-        filament_colour filament_diameter filament_type filament_soluble filament_notes filament_max_volumetric_speed extrusion_multiplier filament_density filament_cost
-        temperature first_layer_temperature bed_temperature first_layer_bed_temperature
-        fan_always_on cooling
-        min_fan_speed max_fan_speed bridge_fan_speed disable_fan_first_layers
-        fan_below_layer_time slowdown_below_layer_time min_print_speed
-        start_filament_gcode end_filament_gcode
-    ));
-    $self->{config}->set('filament_settings_id', '');
+    $self->{config}->apply(wxTheApp->{preset_bundle}->filaments->preset(0)->config);
     
     {
         my $page = $self->add_options_page('Filament', 'spool.png');
@@ -1236,20 +1193,7 @@ sub build {
     my $self = shift;
     my (%params) = @_;
     
-    $self->init_config_options(qw(
-        bed_shape z_offset
-        gcode_flavor use_relative_e_distances
-        serial_port serial_speed
-        octoprint_host octoprint_apikey
-        use_firmware_retraction
-        use_volumetric_e variable_layer_height
-        single_extruder_multi_material start_gcode end_gcode before_layer_gcode layer_gcode toolchange_gcode
-        nozzle_diameter extruder_offset
-        retract_length retract_lift retract_speed deretract_speed retract_before_wipe retract_restart_extra retract_before_travel retract_layer_change wipe
-        retract_length_toolchange retract_restart_extra_toolchange
-        extruder_colour printer_notes
-    ));
-    $self->{config}->set('printer_settings_id', '');
+    $self->{config}->apply(wxTheApp->{preset_bundle}->printers->preset(0)->config);
     
     my $bed_shape_widget = sub {
         my ($parent) = @_;

@@ -216,6 +216,13 @@ Ref<GLVolume>              O_OBJECT_SLIC3R_T
 GLVolumeCollection*        O_OBJECT_SLIC3R
 Ref<GLVolumeCollection>    O_OBJECT_SLIC3R_T
 
+Preset*	                	O_OBJECT_SLIC3R
+Ref<Preset>                	O_OBJECT_SLIC3R_T
+PresetCollection*	      	O_OBJECT_SLIC3R
+Ref<PresetCollection>      	O_OBJECT_SLIC3R_T
+PresetBundle*	    		O_OBJECT_SLIC3R
+Ref<PresetBundle>    		O_OBJECT_SLIC3R_T
+
 Axis                  T_UV
 ExtrusionLoopRole     T_UV
 ExtrusionRole     T_UV

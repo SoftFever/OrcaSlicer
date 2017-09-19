@@ -196,6 +196,12 @@
 %typemap{Ref<GLVolume>}{simple};
 %typemap{GLVolumeCollection*};
 %typemap{Ref<GLVolumeCollection>}{simple};
+%typemap{Preset*};
+%typemap{Ref<Preset>}{simple};
+%typemap{PresetCollection*};
+%typemap{Ref<PresetCollection>}{simple};
+%typemap{PresetBundle*};
+%typemap{Ref<PresetBundle>}{simple};
 
 %typemap{PrintRegionPtrs*};
 %typemap{PrintObjectPtrs*};

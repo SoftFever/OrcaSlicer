@@ -94,7 +94,8 @@ sub OnInit {
     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;
-    
+    $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
+
     # locate or create data directory
     # Unix: ~/.Slic3r
     # Windows: "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"

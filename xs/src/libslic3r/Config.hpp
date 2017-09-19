@@ -49,7 +49,7 @@ public:
     
     void set(const ConfigOption &option) {
         const ConfigOptionSingle<T>* other = dynamic_cast< const ConfigOptionSingle<T>* >(&option);
-        if (other != NULL) this->value = other->value;
+        if (other != nullptr) this->value = other->value;
     };
 };
 
@@ -71,13 +71,15 @@ public:
     
     void set(const ConfigOption &option) {
         const ConfigOptionVector<T>* other = dynamic_cast< const ConfigOptionVector<T>* >(&option);
-        if (other != NULL) this->values = other->values;
+        if (other != nullptr) this->values = other->values;
     };
     
-    T get_at(size_t i) const {
+    T& get_at(size_t i) {
         assert(! this->values.empty());
         return (i < this->values.size()) ? this->values[i] : this->values.front();
     };
+
+    const T& get_at(size_t i) const { return const_cast<ConfigOptionVector<T>*>(this)->get_at(i); }
 };
 
 class ConfigOptionFloat : public ConfigOptionSingle<double>
@@ -434,12 +436,25 @@ public:
     };
 };
 
-class ConfigOptionBools : public ConfigOptionVector<bool>
+class ConfigOptionBools : public ConfigOptionVector<unsigned char>
 {
-public:    
+public:
+    void set(const ConfigOption &option) {
+        const ConfigOptionVector<unsigned char>* other = dynamic_cast<const ConfigOptionVector<unsigned char>*>(&option);
+        if (other != nullptr) 
+            this->values = other->values;
+    };
+    
+    bool& get_at(size_t i) {
+        assert(! this->values.empty());
+        return *reinterpret_cast<bool*>(&((i < this->values.size()) ? this->values[i] : this->values.front()));
+    };
+
+    bool get_at(size_t i) const { return bool((i < this->values.size()) ? this->values[i] : this->values.front()); }
+
     std::string serialize() const {
         std::ostringstream ss;
-        for (std::vector<bool>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+        for (std::vector<unsigned char>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
             ss << (*it ? "1" : "0");
         }
@@ -448,7 +463,7 @@ public:
     
     std::vector<std::string> vserialize() const {
         std::vector<std::string> vv;
-        for (std::vector<bool>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
+        for (std::vector<unsigned char>::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             std::ostringstream ss;
             ss << (*it ? "1" : "0");
             vv.push_back(ss.str());
@@ -701,6 +716,16 @@ public:
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false);
     t_config_option_keys keys() const;
     void erase(const t_config_option_key &opt_key) { this->options.erase(opt_key); }
+
+    std::string&        opt_string(const t_config_option_key &opt_key, bool create = false)     { return dynamic_cast<ConfigOptionString*>(this->optptr(opt_key, create))->value; }
+    const std::string&  opt_string(const t_config_option_key &opt_key) const                    { return const_cast<DynamicConfig*>(this)->opt_string(opt_key); }
+    std::string&        opt_string(const t_config_option_key &opt_key, unsigned int idx)        { return dynamic_cast<ConfigOptionStrings*>(this->optptr(opt_key))->get_at(idx); }
+    const std::string&  opt_string(const t_config_option_key &opt_key, unsigned int idx) const  { return const_cast<DynamicConfig*>(this)->opt_string(opt_key, idx); }
+
+    double&             opt_float(const t_config_option_key &opt_key)                           { return dynamic_cast<ConfigOptionFloat*>(this->optptr(opt_key))->value; }
+    const double&       opt_float(const t_config_option_key &opt_key) const                     { return const_cast<DynamicConfig*>(this)->opt_float(opt_key); }
+    double&             opt_float(const t_config_option_key &opt_key, unsigned int idx)         { return dynamic_cast<ConfigOptionFloats*>(this->optptr(opt_key))->get_at(idx); }
+    const double&       opt_float(const t_config_option_key &opt_key, unsigned int idx) const   { return const_cast<DynamicConfig*>(this)->opt_float(opt_key, idx); }
 
 private:
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;

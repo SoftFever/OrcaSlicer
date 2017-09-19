@@ -57,6 +57,9 @@ REGISTER_CLASS(TriangleMesh, "TriangleMesh");
 REGISTER_CLASS(GLShader, "GUI::_3DScene::GLShader");
 REGISTER_CLASS(GLVolume, "GUI::_3DScene::GLVolume");
 REGISTER_CLASS(GLVolumeCollection, "GUI::_3DScene::GLVolume::Collection");
+REGISTER_CLASS(Preset, "GUI::Preset");
+REGISTER_CLASS(PresetCollection, "GUI::PresetCollection");
+REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
 
 SV*
 ConfigBase__as_hash(ConfigBase* THIS) {
@@ -138,8 +141,8 @@ ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def) {
         const ConfigOptionBools* optv = dynamic_cast<const ConfigOptionBools*>(&opt);
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
-        for (std::vector<bool>::const_iterator it = optv->values.begin(); it != optv->values.end(); ++it)
-            av_store(av, it - optv->values.begin(), newSViv(*it ? 1 : 0));
+        for (size_t i = 0; i < optv->values.size(); ++ i)
+            av_store(av, i, newSViv(optv->values[i] ? 1 : 0));
         return newRV_noinc((SV*)av);
     } else {
         std::string serialized = opt.serialize();

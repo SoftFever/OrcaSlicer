@@ -704,7 +704,7 @@ void _3DScene::_glew_init()
     glewInit();
 }
 
-inline int hex_digit_to_int(const char c)
+static inline int hex_digit_to_int(const char c)
 {
     return 
         (c >= '0' && c <= '9') ? int(c - '0') : 
@@ -712,7 +712,7 @@ inline int hex_digit_to_int(const char c)
 		(c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
 
-inline std::vector<float> parse_colors(const std::vector<std::string> &scolors)
+static inline std::vector<float> parse_colors(const std::vector<std::string> &scolors)
 {
     std::vector<float> output(scolors.size() * 4, 1.f);
     for (size_t i = 0; i < scolors.size(); ++ i) {

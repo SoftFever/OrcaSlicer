@@ -28,6 +28,8 @@ if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB)
 endif()
 
+add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE)
+
 add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/BoundingBox.cpp
     ${LIBDIR}/libslic3r/BoundingBox.hpp
@@ -164,6 +166,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/3DScene.hpp
     ${LIBDIR}/slic3r/GUI/GLShader.cpp
     ${LIBDIR}/slic3r/GUI/GLShader.hpp
+    ${LIBDIR}/slic3r/GUI/Preset.cpp
+    ${LIBDIR}/slic3r/GUI/Preset.hpp
     ${LIBDIR}/slic3r/GUI/GUI.cpp
     ${LIBDIR}/slic3r/GUI/GUI.hpp
 )
@@ -276,6 +280,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Geometry.xsp
     ${XSP_DIR}/GUI.xsp
     ${XSP_DIR}/GUI_3DScene.xsp
+    ${XSP_DIR}/GUI_Preset.xsp
     ${XSP_DIR}/Layer.xsp
     ${XSP_DIR}/Line.xsp
     ${XSP_DIR}/Model.xsp
@@ -460,13 +465,13 @@ if (SLIC3R_PRUSACONTROL)
     set(wxWidgets_UseAlienWx 1)
     if (wxWidgets_UseAlienWx)
         set(AlienWx_DEBUG 1)
-        find_package(AlienWx REQUIRED COMPONENTS base)
+        find_package(AlienWx REQUIRED COMPONENTS base core adv)
         include_directories(${AlienWx_INCLUDE_DIRS})
         #add_compile_options(${AlienWx_CXX_FLAGS})
         add_definitions(${AlienWx_DEFINITIONS})
         set(wxWidgets_LIBRARIES ${AlienWx_LIBRARIES})
     else ()
-        find_package(wxWidgets REQUIRED COMPONENTS base)
+        find_package(wxWidgets REQUIRED COMPONENTS base core adv)
         include(${wxWidgets_USE_FILE})
     endif ()
     add_definitions(-DSLIC3R_GUI -DSLIC3R_PRUS)

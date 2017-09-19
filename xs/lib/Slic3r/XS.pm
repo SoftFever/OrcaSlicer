@@ -282,6 +282,8 @@ for my $class (qw(
         Slic3r::Geometry::BoundingBoxf
         Slic3r::Geometry::BoundingBoxf3
         Slic3r::GUI::_3DScene::GLVolume
+        Slic3r::GUI::Preset
+        Slic3r::GUI::PresetCollection
         Slic3r::Layer
         Slic3r::Layer::Region
         Slic3r::Layer::Support

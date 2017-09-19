@@ -1,0 +1,56 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/GUI/Preset.hpp"
+%}
+
+%name{Slic3r::GUI::Preset} class Preset {
+    // owned by PresetCollection, no constructor/destructor
+
+    bool                    is_default()  %code%{ RETVAL = THIS->is_default;  %};
+    bool                    is_external() %code%{ RETVAL = THIS->is_external; %};
+    bool                    is_visible()  %code%{ RETVAL = THIS->is_visible;  %};
+    bool                    is_dirty()    %code%{ RETVAL = THIS->is_dirty;    %};
+
+    const char*             name()        %code%{ RETVAL = THIS->name.c_str(); %};
+    const char*             file()        %code%{ RETVAL = THIS->file.c_str(); %};
+
+    bool                    loaded()      %code%{ RETVAL = THIS->loaded;      %};
+
+    Ref<DynamicPrintConfig> config()      %code%{ RETVAL = &THIS->config;     %};
+};
+
+%name{Slic3r::GUI::PresetCollection} class PresetCollection {
+
+    Ref<Preset>             preset(size_t idx) %code%{ RETVAL = &THIS->preset(idx); %};
+    size_t                  size() const;
+    size_t                  num_visible() const;
+%{
+
+SV*
+PresetCollection::arrayref()
+    CODE:
+        AV* av = newAV();
+        av_fill(av, THIS->size()-1);
+        int i = 0;
+        for (size_t i = 0; i < THIS->size(); ++ i) {
+            Preset &preset = THIS->preset(i);
+            av_store(av, i++, perl_to_SV_ref(preset));
+        }
+        RETVAL = newRV_noinc((SV*)av);
+    OUTPUT:
+        RETVAL
+
+%}
+};
+
+
+%name{Slic3r::GUI::PresetBundle} class PresetBundle {
+    PresetBundle();
+    ~PresetBundle();
+
+    Ref<PresetCollection> prints()    %code%{ RETVAL = &THIS->prints;   %};
+    Ref<PresetCollection> filaments() %code%{ RETVAL = &THIS->filaments; %};
+    Ref<PresetCollection> printers()  %code%{ RETVAL = &THIS->printers;  %};
+};
