@@ -97,7 +97,7 @@ void PresetCollection::update_editor_ui(wxBitmapComboBox *ui)
 
     size_t      n_visible       = this->num_visible();
     size_t      n_choice        = size_t(ui->GetCount());
-    std::string name_selected   = ui->GetStringSelection().ToUTF8();
+    std::string name_selected   = ui->GetStringSelection().ToUTF8().data();
     if (boost::algorithm::iends_with(name_selected, g_suffix_modified))
         // Remove the g_suffix_modified.
         name_selected.erase(name_selected.end() - g_suffix_modified.size(), name_selected.end());

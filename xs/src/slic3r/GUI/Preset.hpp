@@ -20,7 +20,7 @@ public:
         TYPE_PRINTER,
     };
 
-    Preset(Type type, const std::string &name, bool is_default = false) : type(type), name(name), is_default(is_default) {}
+    Preset(Type type, const std::string &name, bool is_default = false) : type(type), is_default(is_default), name(name) {}
 
     Type                type        = TYPE_INVALID;
 
@@ -54,7 +54,7 @@ public:
     DynamicPrintConfig& load(const std::vector<std::string> &keys);
 
     // Set the is_dirty flag if the provided config is different from the active one.
-    bool                set_dirty(const DynamicPrintConfig &config) { this->is_dirty = ! this->config.diff(config).empty(); }
+    void                set_dirty(const DynamicPrintConfig &config) { this->is_dirty = ! this->config.diff(config).empty(); }
     void                reset_dirty() { this->is_dirty = false; }
     bool                enable_compatible(const std::string &active_printer);
 };
