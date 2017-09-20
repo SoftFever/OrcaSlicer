@@ -83,6 +83,7 @@ public:
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
     // Return a preset possibly with modifications.
+    const Preset&   default_preset() const      { return m_presets.front(); }
     Preset&         preset(size_t idx)          { return (int(idx) == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
     size_t          size() const                { return this->m_presets.size(); }

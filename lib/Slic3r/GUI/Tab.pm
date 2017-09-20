@@ -530,7 +530,7 @@ sub title { 'Print Settings' }
 sub build {
     my $self = shift;
     
-    $self->{config}->apply(wxTheApp->{preset_bundle}->prints->preset(0)->config);
+    $self->{config}->apply(wxTheApp->{preset_bundle}->prints->default_preset->config);
     
     {
         my $page = $self->add_options_page('Layers and perimeters', 'layers.png');
@@ -1011,7 +1011,7 @@ sub title { 'Filament Settings' }
 sub build {
     my $self = shift;
     
-    $self->{config}->apply(wxTheApp->{preset_bundle}->filaments->preset(0)->config);
+    $self->{config}->apply(wxTheApp->{preset_bundle}->filaments->default_preset->config);
     
     {
         my $page = $self->add_options_page('Filament', 'spool.png');
@@ -1193,7 +1193,7 @@ sub build {
     my $self = shift;
     my (%params) = @_;
     
-    $self->{config}->apply(wxTheApp->{preset_bundle}->printers->preset(0)->config);
+    $self->{config}->apply(wxTheApp->{preset_bundle}->printers->default_preset->config);
     
     my $bed_shape_widget = sub {
         my ($parent) = @_;
