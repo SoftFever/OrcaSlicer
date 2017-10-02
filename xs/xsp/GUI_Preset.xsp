@@ -51,6 +51,9 @@ PresetCollection::arrayref()
     PresetBundle();
     ~PresetBundle();
 
+    void                  load_bitmaps(std::string path_bitmap_compatible, std::string path_bitmap_incompatible);
+    void                  load_presets(std::string dir_path);
+
     Ref<PresetCollection> prints()    %code%{ RETVAL = &THIS->prints;   %};
     Ref<PresetCollection> filaments() %code%{ RETVAL = &THIS->filaments; %};
     Ref<PresetCollection> printers()  %code%{ RETVAL = &THIS->printers;  %};

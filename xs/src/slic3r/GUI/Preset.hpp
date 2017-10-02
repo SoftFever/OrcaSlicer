@@ -66,6 +66,9 @@ public:
     // Initialize the PresetCollection with the "- default -" preset.
     PresetCollection(Preset::Type type, const std::vector<std::string> &keys);
 
+    // Load ini files of the particular type from the provided directory path.
+    void            load_presets(const std::string &dir_path, const std::string &subdir);
+
     // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items.
     void            set_bitmap_compatible  (const wxBitmap *bmp) { m_bitmap_compatible   = bmp; }
     void            set_bitmap_incompatible(const wxBitmap *bmp) { m_bitmap_incompatible = bmp; }
@@ -120,7 +123,10 @@ public:
     PresetBundle();
     ~PresetBundle();
 
-    bool load_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible);
+    bool            load_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible);
+
+    // Load ini files of all types (print, filament, printer) from the provided directory path.
+    void            load_presets(const std::string &dir_path);
 
     PresetCollection        prints;
     PresetCollection        filaments;

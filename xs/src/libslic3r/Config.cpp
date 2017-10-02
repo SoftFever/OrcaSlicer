@@ -188,7 +188,8 @@ void ConfigBase::apply(const ConfigBase &other, const t_config_option_keys &keys
             continue;
         }
         // not the most efficient way, but easier than casting pointers to subclasses
-        if (! my_opt->deserialize(other.option(key)->serialize()))
+		const ConfigOption *other_opt = other.option(key);
+        if (other_opt != nullptr && ! my_opt->deserialize(other_opt->serialize()))
             CONFESS((std::string("Unexpected failure when deserializing serialized value for ") + key).c_str());
     }
 }

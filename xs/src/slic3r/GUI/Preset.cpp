@@ -1,10 +1,19 @@
 #include "Preset.hpp"
 
 #include <fstream>
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <wx/image.h>
 #include <wx/bmpcbox.h>
+
+#if 0
+#define DEBUG
+#define _DEBUG
+#undef NDEBUG
+#endif
+
+#include <assert.h>
 
 namespace Slic3r {
 
@@ -65,6 +74,28 @@ PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::str
     // Insert just the default preset.
     m_presets.emplace_back(Preset(type, "- default -", true));
     m_presets.front().load(keys);
+}
+
+// Load all presets found in dir_path.
+// Throws an exception on error.
+void PresetCollection::load_presets(const std::string &dir_path, const std::string &subdir)
+{
+    m_presets.erase(m_presets.begin()+1, m_presets.end());
+    t_config_option_keys keys = this->default_preset().config.keys();
+	for (auto &file : boost::filesystem::directory_iterator(boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred()))
+        if (boost::filesystem::is_regular_file(file.status()) && boost::algorithm::iends_with(file.path().filename().string(), ".ini")) {
+            std::string name = file.path().filename().string();
+            // Remove the .ini suffix.
+            name.erase(name.size() - 4);
+            try {
+                Preset preset(m_type, name, false);
+                preset.file = file.path().string();
+                preset.load(keys);
+                m_presets.emplace_back(preset);
+            } catch (const boost::filesystem::filesystem_error &err) {
+
+            }
+        }
 }
 
 void PresetCollection::set_default_suppressed(bool default_suppressed)
@@ -162,10 +193,21 @@ PresetBundle::PresetBundle() :
 
 PresetBundle::~PresetBundle()
 {
-    delete m_bitmapCompatible;
+	assert(m_bitmapCompatible != nullptr);
+	assert(m_bitmapIncompatible != nullptr);
+	delete m_bitmapCompatible;
+	m_bitmapCompatible = nullptr;
     delete m_bitmapIncompatible;
+	m_bitmapIncompatible = nullptr;
     for (std::pair<const std::string, wxBitmap*> &bitmap : m_mapColorToBitmap)
         delete bitmap.second;
+}
+
+void PresetBundle::load_presets(const std::string &dir_path)
+{
+    this->prints.load_presets(dir_path, "print");
+    this->prints.load_presets(dir_path, "filament");
+    this->prints.load_presets(dir_path, "printer");
 }
 
 bool PresetBundle::load_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible)

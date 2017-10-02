@@ -172,6 +172,7 @@ sub OnInit {
         }
     }
     $self->{mainframe}->config_wizard if $run_wizard;
+    eval { $self->{preset_bundle}->load_presets($datadir) };
     
 #    $self->check_version
 #        if $self->have_version_check
