@@ -1456,10 +1456,11 @@ Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &para
     FillParams params2 = params;
     params2.density *= 0.333333333f;
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params2, 0.f, z, polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), -z, polylines_out) ||
+    coordf_t dx = sqrt(0.5) * z;
+    if (! fill_surface_by_lines(surface, params2, 0.f, dx, polylines_out) ||
+        ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), - dx, polylines_out) ||
         // Rotated by PI*2/3 + PI to achieve reverse sloping wall.
-        ! fill_surface_by_lines(surface, params2, float(M_PI * 2. / 3.), z, polylines_out)) {
+        ! fill_surface_by_lines(surface, params2, float(M_PI * 2. / 3.), dx, polylines_out)) {
         printf("FillCubic::fill_surface() failed to fill a region.\n");
     } 
     return polylines_out; 

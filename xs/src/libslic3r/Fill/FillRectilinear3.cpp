@@ -1630,9 +1630,10 @@ Polylines FillCubic3::fill_surface(const Surface *surface, const FillParams &par
     params2.density *= 0.333333333f;
     Polylines polylines_out;
     std::vector<FillDirParams> fill_dir_params;
-    fill_dir_params.emplace_back(FillDirParams(this->spacing, 0.,             z));
-    fill_dir_params.emplace_back(FillDirParams(this->spacing, M_PI / 3.,     -z));
-    fill_dir_params.emplace_back(FillDirParams(this->spacing, 2. * M_PI / 3., z));
+    coordf_t dx = sqrt(0.5) * z;
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 0.,             dx));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, M_PI / 3.,     -dx));
+    fill_dir_params.emplace_back(FillDirParams(this->spacing, 2. * M_PI / 3., dx));
     if (! fill_surface_by_lines(surface, params2, fill_dir_params, polylines_out))
         printf("FillCubic3::fill_surface() failed to fill a region.\n");
     return polylines_out;
