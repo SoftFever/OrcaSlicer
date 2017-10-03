@@ -440,7 +440,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 			} else {
 				// Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
 				writer.travel(writer.x(), writer.y() + m_perimeter_width, 7200);
-				toolchange_Unload(writer, cleaning_box, m_material[m_current_tool], m_first_layer_temperature[tool]);
+				// Change the extruder temperature to the temperature of the next filament before starting the cooling moves.
+				toolchange_Unload(writer, cleaning_box, m_material[m_current_tool], m_first_layer_temperature[tools[idx_tool+1]]);
 				// Save the y end of the non-last priming area.
 				y_end = writer.y();
 			    cleaning_box.translate(m_wipe_tower_width, 0.f);
