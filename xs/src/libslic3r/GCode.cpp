@@ -1014,7 +1014,7 @@ void GCode::process_layer(
                 // the interface may be interleaved with the support base.
                 bool single_extruder = ! has_support || support_extruder == interface_extruder;
                 // Assign an extruder to the base.
-                ObjectByExtruder &obj = object_by_extruder(by_extruder, support_extruder, &layer_to_print - layers.data(), layers.size());
+                ObjectByExtruder &obj = object_by_extruder(by_extruder, has_support ? support_extruder : interface_extruder, &layer_to_print - layers.data(), layers.size());
                 obj.support = &support_layer.support_fills;
                 obj.support_extrusion_role = single_extruder ? erMixed : erSupportMaterial;
                 if (! single_extruder && has_interface) {
