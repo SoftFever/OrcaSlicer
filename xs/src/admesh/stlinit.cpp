@@ -58,7 +58,7 @@ extern void stl_internal_reverse_quads(char *buf, size_t cnt);
 void
 stl_count_facets(stl_file *stl, const char *file) {
   long           file_size;
-  int            header_num_facets;
+  uint32_t       header_num_facets;
   uint32_t       num_facets;
   int            i;
   size_t         s;
