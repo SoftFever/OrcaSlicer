@@ -89,7 +89,11 @@ sub export_gcode {
             if (($^O eq 'MSWin32') ? !(-e $script) : !(-x $script)) {
                 die "The configured post-processing script is not executable: check permissions. ($script)\n";
             }
-            system($script, $output_file);
+            if ($^O eq 'MSWin32' && $script =~ /\.[pP][lL]/) {
+                system($^X, $script, $output_file);
+            } else {
+                system($script, $output_file);
+            }
         }
     }
 }
