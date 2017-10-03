@@ -967,8 +967,11 @@ void _3DScene::_load_wipe_tower_toolpaths(
         int                          volume_idx(int tool, int feature) const 
             { return this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(tool, 0)) : feature; }
 
-        const std::vector<WipeTower::ToolChangeResult>& tool_change(size_t idx) 
-            { return (idx == 0) ? priming : (idx == print->m_wipe_tower_tool_changes.size() + 1) ? final : print->m_wipe_tower_tool_changes[idx - 1]; }
+        const std::vector<WipeTower::ToolChangeResult>& tool_change(size_t idx) { 
+            return priming.empty() ? 
+                ((idx == print->m_wipe_tower_tool_changes.size()) ? final : print->m_wipe_tower_tool_changes[idx]) :
+                ((idx == 0) ? priming : (idx == print->m_wipe_tower_tool_changes.size() + 1) ? final : print->m_wipe_tower_tool_changes[idx - 1]);
+        }
         std::vector<WipeTower::ToolChangeResult> priming;
         std::vector<WipeTower::ToolChangeResult> final;
     } ctxt;
@@ -983,7 +986,7 @@ void _3DScene::_load_wipe_tower_toolpaths(
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.
-    size_t          n_items    = print->m_wipe_tower_tool_changes.size() + 1;
+    size_t          n_items    = print->m_wipe_tower_tool_changes.size() + (ctxt.priming.empty() ? 0 : 1);
     size_t          grain_size = std::max(n_items / 128, size_t(1));
     tbb::spin_mutex new_volume_mutex;
     auto            new_volume = [volumes, &new_volume_mutex](const float *color) -> GLVolume* {
