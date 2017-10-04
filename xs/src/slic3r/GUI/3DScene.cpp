@@ -912,6 +912,8 @@ void _3DScene::_load_print_object_toolpaths(
                         vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
                         // Copy the content back to the old GLVolume.
                         vol.indexed_vertex_array = vol_new.indexed_vertex_array;
+                        // Finalize a bounding box of the old GLVolume.
+                        vol.bounding_box = vol.indexed_vertex_array.bounding_box();
                         // Clear the buffers, but keep them pre-allocated.
                         vol_new.indexed_vertex_array.clear();
                         // Just make sure that clear did not clear the reserved memory.
@@ -919,8 +921,10 @@ void _3DScene::_load_print_object_toolpaths(
                     }
                 }
             }
-            for (size_t i = 0; i < vols.size(); ++ i)
-                vols[i]->indexed_vertex_array.shrink_to_fit();
+            for (GLVolume *vol : vols) {
+                vol->bounding_box = vol->indexed_vertex_array.bounding_box();
+                vol->indexed_vertex_array.shrink_to_fit();
+            }
         });
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - finalizing results";
@@ -929,11 +933,8 @@ void _3DScene::_load_print_object_toolpaths(
         std::remove_if(volumes->volumes.begin() + volumes_cnt_initial, volumes->volumes.end(), 
             [](const GLVolume *volume) { return volume->empty(); }),
         volumes->volumes.end());
-    for (size_t i = volumes_cnt_initial; i < volumes->volumes.size(); ++ i) {
-        GLVolume &volume = *volumes->volumes[i];
-        volume.bounding_box = volume.indexed_vertex_array.bounding_box();
-        volume.indexed_vertex_array.finalize_geometry(use_VBOs);
-    }
+    for (size_t i = volumes_cnt_initial; i < volumes->volumes.size(); ++ i)
+        volumes->volumes[i]->indexed_vertex_array.finalize_geometry(use_VBOs);
   
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end"; 
 }
@@ -1002,28 +1003,14 @@ void _3DScene::_load_wipe_tower_toolpaths(
         tbb::blocked_range<size_t>(0, n_items, grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
             // Bounding box of this slab of a wipe tower.
-            BoundingBoxf3 bbox;
-            bbox.min = Pointf3(
-                ctxt.print->config.wipe_tower_x.value - 10.,
-                ctxt.print->config.wipe_tower_y.value - 10., 
-                ctxt.tool_change(range.begin()).front().print_z - 3.);
-            bbox.max = Pointf3(
-                ctxt.print->config.wipe_tower_x.value + ctxt.print->config.wipe_tower_width.value + 10.,
-                ctxt.print->config.wipe_tower_y.value + ctxt.print->config.wipe_tower_per_color_wipe.value * 
-                    ctxt.print->m_tool_ordering.layer_tools()[range.begin()].wipe_tower_partitions + 10., 
-                ctxt.tool_change(range.end() - 1).front().print_z + 0.1);
-            bbox.defined = true;
             std::vector<GLVolume*> vols;
             if (ctxt.color_by_tool()) {
                 for (size_t i = 0; i < ctxt.number_tools(); ++ i)
                     vols.emplace_back(new_volume(ctxt.color_tool(i)));
             } else
                 vols = { new_volume(ctxt.color_support()) };
-            for (size_t i = 0; i < vols.size(); ++ i) {
-                GLVolume &volume = *vols[i];
-                volume.bounding_box = bbox;
-                volume.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
-            }
+            for (GLVolume *volume : vols)
+                volume->indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
             for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                 const std::vector<WipeTower::ToolChangeResult> &layer = ctxt.tool_change(idx_layer);
                 for (size_t i = 0; i < vols.size(); ++ i) {
@@ -1071,19 +1058,22 @@ void _3DScene::_load_wipe_tower_toolpaths(
                     // Store the vertex arrays and restart their containers, 
                     vols[i] = new_volume(vol.color);
                     GLVolume &vol_new = *vols[i];
-                    vol_new.bounding_box = bbox;
                     // Assign the large pre-allocated buffers to the new GLVolume.
                     vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
                     // Copy the content back to the old GLVolume.
                     vol.indexed_vertex_array = vol_new.indexed_vertex_array;
+                    // Finalize a bounding box of the old GLVolume.
+                    vol.bounding_box = vol.indexed_vertex_array.bounding_box();
                     // Clear the buffers, but keep them pre-allocated.
                     vol_new.indexed_vertex_array.clear();
                     // Just make sure that clear did not clear the reserved memory.
                     vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
                 }
             }
-            for (size_t i = 0; i < vols.size(); ++ i)
-                vols[i]->indexed_vertex_array.shrink_to_fit();
+            for (GLVolume *vol : vols) {
+                vol->bounding_box = vol->indexed_vertex_array.bounding_box();
+                vol->indexed_vertex_array.shrink_to_fit();
+            }
         });
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - finalizing results";
