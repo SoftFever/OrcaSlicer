@@ -998,7 +998,7 @@ protected:
 class UnknownOptionException : public std::exception
 {
 public:
-    const char* what() const _NOEXCEPT override { return "Unknown config option"; }
+    const char* what() const noexcept override { return "Unknown config option"; }
 };
 
 }
