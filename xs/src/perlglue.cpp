@@ -77,7 +77,7 @@ ConfigBase__get(ConfigBase* THIS, const t_config_option_key &opt_key) {
     ConfigOption* opt = THIS->option(opt_key);
     if (opt == NULL) return &PL_sv_undef;
     
-    const ConfigOptionDef* def = THIS->def->get(opt_key);
+    const ConfigOptionDef* def = THIS->def()->get(opt_key);
     return ConfigOption_to_SV(*opt, *def);
 }
 
@@ -155,7 +155,7 @@ ConfigBase__get_at(ConfigBase* THIS, const t_config_option_key &opt_key, size_t 
     ConfigOption* opt = THIS->option(opt_key);
     if (opt == NULL) return &PL_sv_undef;
     
-    const ConfigOptionDef* def = THIS->def->get(opt_key);
+    const ConfigOptionDef* def = THIS->def()->get(opt_key);
     if (def->type == coFloats || def->type == coPercents) {
         ConfigOptionFloats* optv = dynamic_cast<ConfigOptionFloats*>(opt);
         return newSVnv(optv->get_at(i));
@@ -183,7 +183,7 @@ ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* value)
     ConfigOption* opt = THIS->option(opt_key, true);
     if (opt == NULL) CONFESS("Trying to set non-existing option");
     
-    const ConfigOptionDef* def = THIS->def->get(opt_key);
+    const ConfigOptionDef* def = THIS->def()->get(opt_key);
     if (def->type == coFloat) {
         if (!looks_like_number(value)) return false;
         ConfigOptionFloat* optv = dynamic_cast<ConfigOptionFloat*>(opt);
@@ -297,7 +297,7 @@ ConfigBase__set_ifndef(ConfigBase* THIS, const t_config_option_key &opt_key, SV*
 
 bool
 StaticConfig__set(StaticConfig* THIS, const t_config_option_key &opt_key, SV* value) {
-    const ConfigOptionDef* optdef = THIS->def->get(opt_key);
+    const ConfigOptionDef* optdef = THIS->def()->get(opt_key);
     if (!optdef->shortcut.empty()) {
         for (std::vector<t_config_option_key>::const_iterator it = optdef->shortcut.begin(); it != optdef->shortcut.end(); ++it) {
             if (!StaticConfig__set(THIS, *it, value)) return false;

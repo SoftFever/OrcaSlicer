@@ -177,20 +177,24 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
     }
 }
 
-void ConfigBase::apply(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent)
+void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent)
 {
     // loop through options and apply them
-    for (const t_config_option_key &key : keys) {
-        ConfigOption *my_opt = this->option(key, true);
+    for (const t_config_option_key &opt_key : keys) {
+        // Create a new option with default value for the key.
+        // If the key is not in the parameter definition, or this ConfigBase is a static type and it does not support the parameter,
+        // an exception is thrown if not ignore_nonexistent.
+        ConfigOption *my_opt = this->option(opt_key, true);
         if (my_opt == nullptr) {
-            if (! ignore_nonexistent)
-                throw "Attempt to apply non-existent option";
-            continue;
+            // opt_key does not exist in this ConfigBase and it cannot be created, because it is not defined by this->def().
+            // This is only possible if other is of DynamicConfig type.
+            if (ignore_nonexistent)
+                continue;
+            throw UnknownOptionException();
         }
-        // not the most efficient way, but easier than casting pointers to subclasses
-		const ConfigOption *other_opt = other.option(key);
-        if (other_opt != nullptr && ! my_opt->deserialize(other_opt->serialize()))
-            CONFESS((std::string("Unexpected failure when deserializing serialized value for ") + key).c_str());
+		const ConfigOption *other_opt = other.option(opt_key);
+        if (other_opt != nullptr)
+            my_opt->set(other_opt);
     }
 }
 
@@ -198,9 +202,12 @@ void ConfigBase::apply(const ConfigBase &other, const t_config_option_keys &keys
 t_config_option_keys ConfigBase::diff(const ConfigBase &other) const
 {
     t_config_option_keys diff;
-    for (const t_config_option_key &opt_key : this->keys())
-        if (other.has(opt_key) && other.serialize(opt_key) != this->serialize(opt_key))
-            diff.push_back(opt_key);
+    for (const t_config_option_key &opt_key : this->keys()) {
+        const ConfigOption *this_opt  = this->option(opt_key);
+        const ConfigOption *other_opt = other.option(opt_key);
+        if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
+            diff.emplace_back(opt_key);
+    }
     return diff;
 }
 
@@ -211,12 +218,27 @@ std::string ConfigBase::serialize(const t_config_option_key &opt_key) const
     return opt->serialize();
 }
 
-bool ConfigBase::set_deserialize(t_config_option_key opt_key, const std::string &str, bool append)
+bool ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const std::string &value_src, bool append)
 {
-    const ConfigOptionDef* optdef = this->def->get(opt_key);
+    t_config_option_key opt_key = opt_key_src;
+    std::string         value   = value_src;
+    // Both opt_key and value may be modified by _handle_legacy().
+    // If the opt_key is no more valid in this version of Slic3r, opt_key is cleared by _handle_legacy().
+    this->handle_legacy(opt_key, value);
+    if (opt_key.empty())
+        // Ignore the option.
+        return true;
+    return this->set_deserialize_raw(opt_key, value, append);
+}
+
+bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, const std::string &value, bool append)
+{
+    t_config_option_key opt_key = opt_key_src;
+    // Try to deserialize the option by its name.
+    const ConfigOptionDef* optdef = this->def()->get(opt_key);
     if (optdef == nullptr) {
         // If we didn't find an option, look for any other option having this as an alias.
-        for (const auto &opt : this->def->options) {
+        for (const auto &opt : this->def()->options) {
             for (const t_config_option_key &opt_key2 : opt.second.aliases) {
                 if (opt_key2 == opt_key) {
                     opt_key = opt_key2;
@@ -232,44 +254,49 @@ bool ConfigBase::set_deserialize(t_config_option_key opt_key, const std::string 
     }
     
     if (! optdef->shortcut.empty()) {
+        // Aliasing for example "solid_layers" to "top_solid_layers" and "bottom_solid_layers".
         for (const t_config_option_key &shortcut : optdef->shortcut)
-            if (! this->set_deserialize(shortcut, str))
+            // Recursive call.
+            if (! this->set_deserialize_raw(shortcut, value, append))
                 return false;
         return true;
     }
     
     ConfigOption *opt = this->option(opt_key, true);
     assert(opt != nullptr);
-    return opt->deserialize(str, append);
+    return opt->deserialize(value, append);
 }
 
 // Return an absolute value of a possibly relative config variable.
 // For example, return absolute infill extrusion width, either from an absolute value, or relative to the layer height.
 double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
 {
-    const ConfigOption* opt = this->option(opt_key);
-    if (const ConfigOptionFloatOrPercent* optv = dynamic_cast<const ConfigOptionFloatOrPercent*>(opt)) {
-        // get option definition
-        const ConfigOptionDef* def = this->def->get(opt_key);
+    // Get stored option value.
+    const ConfigOption *raw_opt = this->option(opt_key);
+    assert(raw_opt != nullptr);
+    if (raw_opt->type() == coFloat)
+        return static_cast<const ConfigOptionFloat*>(raw_opt)->value;
+    if (raw_opt->type() == coFloatOrPercent) {
+        // Get option definition.
+        const ConfigOptionDef *def = this->def()->get(opt_key);
         assert(def != nullptr);
-        // compute absolute value over the absolute value of the base option
-        return optv->get_abs_value(this->get_abs_value(def->ratio_over));
-    } else if (const ConfigOptionFloat* optv = dynamic_cast<const ConfigOptionFloat*>(opt)) {
-        return optv->value;
-    } else {
-        throw "Not a valid option type for get_abs_value()";
+        // Compute absolute value over the absolute value of the base option.
+        return static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(def->ratio_over));
     }
+    throw std::runtime_error("ConfigBase::get_abs_value(): Not a valid option type for get_abs_value()");
 }
 
 // Return an absolute value of a possibly relative config variable.
 // For example, return absolute infill extrusion width, either from an absolute value, or relative to a provided value.
 double ConfigBase::get_abs_value(const t_config_option_key &opt_key, double ratio_over) const 
 {
-    // get stored option value
-    const ConfigOptionFloatOrPercent* opt = dynamic_cast<const ConfigOptionFloatOrPercent*>(this->option(opt_key));
-    assert(opt != nullptr);
-    // compute absolute value
-    return opt->get_abs_value(ratio_over);
+    // Get stored option value.
+    const ConfigOption *raw_opt = this->option(opt_key);
+    assert(raw_opt != nullptr);
+    if (raw_opt->type() != coFloatOrPercent)
+        throw std::runtime_error("ConfigBase::get_abs_value(): opt_key is not of coFloatOrPercent");
+    // Compute absolute value.
+    return static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(ratio_over);
 }
 
 void ConfigBase::setenv_()
@@ -301,8 +328,7 @@ void ConfigBase::load(const std::string &file)
     for (const pt::ptree::value_type &v : tree) {
         try {
             t_config_option_key opt_key = v.first;
-            std::string value = v.second.get_value<std::string>();
-            this->set_deserialize(opt_key, value);
+            this->set_deserialize(opt_key, v.second.get_value<std::string>());
         } catch (UnknownOptionException & /* e */) {
             // ignore
         }
@@ -400,63 +426,42 @@ void ConfigBase::save(const std::string &file) const
     c.close();
 }
 
-ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool create) {
+ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool create)
+{
     t_options_map::iterator it = options.find(opt_key);
-    if (it == options.end()) {
-        if (create) {
-            const ConfigOptionDef* optdef = this->def->get(opt_key);
-            assert(optdef != NULL);
-            ConfigOption* opt;
-            if (optdef->type == coFloat) {
-                opt = new ConfigOptionFloat ();
-            } else if (optdef->type == coFloats) {
-                opt = new ConfigOptionFloats ();
-            } else if (optdef->type == coInt) {
-                opt = new ConfigOptionInt ();
-            } else if (optdef->type == coInts) {
-                opt = new ConfigOptionInts ();
-            } else if (optdef->type == coString) {
-                opt = new ConfigOptionString ();
-            } else if (optdef->type == coStrings) {
-                opt = new ConfigOptionStrings ();
-            } else if (optdef->type == coPercent) {
-                opt = new ConfigOptionPercent ();
-            } else if (optdef->type == coPercents) {
-                opt = new ConfigOptionPercents ();
-            } else if (optdef->type == coFloatOrPercent) {
-                opt = new ConfigOptionFloatOrPercent ();
-            } else if (optdef->type == coPoint) {
-                opt = new ConfigOptionPoint ();
-            } else if (optdef->type == coPoints) {
-                opt = new ConfigOptionPoints ();
-            } else if (optdef->type == coBool) {
-                opt = new ConfigOptionBool ();
-            } else if (optdef->type == coBools) {
-                opt = new ConfigOptionBools ();
-            } else if (optdef->type == coEnum) {
-                ConfigOptionEnumGeneric* optv = new ConfigOptionEnumGeneric ();
-                optv->keys_map = &optdef->enum_keys_map;
-                opt = static_cast<ConfigOption*>(optv);
-            } else {
-                throw "Unknown option type";
-            }
-            this->options[opt_key] = opt;
-            return opt;
-        } else {
-            return NULL;
-        }
+    if (it != options.end())
+        // Option was found.
+        return it->second;
+    if (! create)
+        // Option was not found and a new option shall not be created.
+        return nullptr;
+    // Try to create a new ConfigOption.
+    const ConfigOptionDef *optdef = this->def()->get(opt_key);
+    if (optdef == nullptr)
+//        throw std::runtime_error(std::string("Invalid option name: ") + opt_key);
+        // Let the parent decide what to do if the opt_key is not defined by this->def().
+        return nullptr;
+    ConfigOption *opt = nullptr;
+    switch (optdef->type) {
+    case coFloat:           opt = new ConfigOptionFloat();          break;
+    case coFloats:          opt = new ConfigOptionFloats();         break;
+    case coInt:             opt = new ConfigOptionInt();            break;
+    case coInts:            opt = new ConfigOptionInts();           break;
+    case coString:          opt = new ConfigOptionString();         break;
+    case coStrings:         opt = new ConfigOptionStrings();        break;
+    case coPercent:         opt = new ConfigOptionPercent();        break;
+    case coPercents:        opt = new ConfigOptionPercents();       break;
+    case coFloatOrPercent:  opt = new ConfigOptionFloatOrPercent(); break;
+    case coPoint:           opt = new ConfigOptionPoint();          break;
+    case coPoints:          opt = new ConfigOptionPoints();         break;
+    case coBool:            opt = new ConfigOptionBool();           break;
+    case coBools:           opt = new ConfigOptionBools();          break;
+    case coEnum:            opt = new ConfigOptionEnumGeneric(optdef->enum_keys_map); break;
+    default:                throw std::runtime_error(std::string("Unknown option type for option ") + opt_key);
     }
-    return it->second;
+    this->options[opt_key] = opt;
+    return opt;
 }
-
-template<class T>
-T* DynamicConfig::opt(const t_config_option_key &opt_key, bool create) {
-    return dynamic_cast<T*>(this->option(opt_key, create));
-}
-template ConfigOptionInt* DynamicConfig::opt<ConfigOptionInt>(const t_config_option_key &opt_key, bool create);
-template ConfigOptionBool* DynamicConfig::opt<ConfigOptionBool>(const t_config_option_key &opt_key, bool create);
-template ConfigOptionBools* DynamicConfig::opt<ConfigOptionBools>(const t_config_option_key &opt_key, bool create);
-template ConfigOptionPercent* DynamicConfig::opt<ConfigOptionPercent>(const t_config_option_key &opt_key, bool create);
 
 t_config_option_keys DynamicConfig::keys() const
 {
@@ -470,11 +475,13 @@ t_config_option_keys DynamicConfig::keys() const
 void StaticConfig::set_defaults()
 {
     // use defaults from definition
-    if (this->def != nullptr) {
+    auto *defs = this->def();
+    if (defs != nullptr) {
         for (const std::string &key : this->keys()) {
-            const ConfigOptionDef* def = this->def->get(key);
-            if (def->default_value != nullptr)
-                this->option(key)->set(*def->default_value);
+            const ConfigOptionDef   *def = defs->get(key);
+            ConfigOption            *opt = this->option(key);
+            if (def != nullptr && opt != nullptr && def->default_value != nullptr)
+                opt->set(def->default_value);
         }
     }
 }
@@ -483,7 +490,7 @@ t_config_option_keys StaticConfig::keys() const
 {
     t_config_option_keys keys;
 	assert(this->def != nullptr);
-    for (const auto &opt_def : this->def->options)
+    for (const auto &opt_def : this->def()->options)
         if (this->option(opt_def.first) != nullptr) 
             keys.push_back(opt_def.first);
     return keys;

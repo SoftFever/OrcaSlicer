@@ -50,7 +50,8 @@ public:
     callback_t callback; 
     
     GCodeReader() : X(0), Y(0), Z(0), E(0), F(0), verbose(false), m_extrusion_axis('E') {};
-    void apply_config(const PrintConfigBase &config);
+    void apply_config(const GCodeConfig &config);
+    void apply_config(const DynamicPrintConfig &config);
     void parse(const std::string &gcode, callback_t callback);
     void parse_line(std::string line, callback_t callback);
     void parse_file(const std::string &file, callback_t callback);

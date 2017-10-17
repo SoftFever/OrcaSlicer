@@ -2,6 +2,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
+#include <float.h>
 
 namespace Slic3r {
 
@@ -221,7 +222,7 @@ PrintConfigDef::PrintConfigDef()
     def->category = "Infill";
     def->tooltip = "Fill pattern for top/bottom infill. This only affects the external visible layer, and not its adjacent solid shells.";
     def->cli = "external-fill-pattern|solid-fill-pattern=s";
-    def->enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("hilbertcurve");
@@ -529,7 +530,7 @@ PrintConfigDef::PrintConfigDef()
     def->category = "Infill";
     def->tooltip = "Fill pattern for general low-density infill.";
     def->cli = "fill-pattern=s";
-    def->enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("grid");
     def->enum_values.push_back("triangles");
@@ -633,7 +634,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = "G-code flavor";
     def->tooltip = "Some G/M-code commands, including temperature control and others, are not universal. Set this option to your printer's firmware to get a compatible output. The \"No extrusion\" flavor prevents Slic3r from exporting any extrusion value at all.";
     def->cli = "gcode-flavor=s";
-    def->enum_keys_map = ConfigOptionEnum<GCodeFlavor>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<GCodeFlavor>::get_enum_values();
     def->enum_values.push_back("reprap");
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("teacup");
@@ -1136,7 +1137,7 @@ PrintConfigDef::PrintConfigDef()
     def->category = "Layers and Perimeters";
     def->tooltip = "Position of perimeters starting points.";
     def->cli = "seam-position=s";
-    def->enum_keys_map = ConfigOptionEnum<SeamPosition>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<SeamPosition>::get_enum_values();
     def->enum_values.push_back("random");
     def->enum_values.push_back("nearest");
     def->enum_values.push_back("aligned");
@@ -1458,7 +1459,7 @@ PrintConfigDef::PrintConfigDef()
     def->category = "Support material";
     def->tooltip = "Pattern used to generate support material.";
     def->cli = "support-material-pattern=s";
-    def->enum_keys_map = ConfigOptionEnum<SupportMaterialPattern>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<SupportMaterialPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
@@ -1538,7 +1539,7 @@ PrintConfigDef::PrintConfigDef()
     def->readonly = true;
     def->min = 1;
     {
-        unsigned int threads = boost::thread::hardware_concurrency();
+        int threads = (unsigned int)boost::thread::hardware_concurrency();
         def->default_value = new ConfigOptionInt(threads > 0 ? threads : 2);
     }
     
@@ -1671,56 +1672,7 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloat(0);
 }
 
-PrintConfigDef print_config_def;
-
-void
-DynamicPrintConfig::normalize() {
-    if (this->has("extruder")) {
-        int extruder = this->option("extruder")->getInt();
-        this->erase("extruder");
-        if (extruder != 0) {
-            if (!this->has("infill_extruder"))
-                this->option("infill_extruder", true)->setInt(extruder);
-            if (!this->has("perimeter_extruder"))
-                this->option("perimeter_extruder", true)->setInt(extruder);
-            // Don't propagate the current extruder to support.
-            // For non-soluble supports, the default "0" extruder means to use the active extruder,
-            // for soluble supports one certainly does not want to set the extruder to non-soluble.
-            // if (!this->has("support_material_extruder"))
-            //     this->option("support_material_extruder", true)->setInt(extruder);
-            // if (!this->has("support_material_interface_extruder"))
-            //     this->option("support_material_interface_extruder", true)->setInt(extruder);
-        }
-    }
-    
-    if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
-        this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
-    
-    if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
-        {
-            // this should be actually done only on the spiral layers instead of all
-            ConfigOptionBools* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
-            opt->values.assign(opt->values.size(), false);  // set all values to false
-        }
-        {
-            this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;
-            this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
-            this->opt<ConfigOptionPercent>("fill_density", true)->value  = 0;
-        }
-    }
-}
-
-
-bool PrintConfigBase::set_deserialize(t_config_option_key opt_key, std::string str, bool append)
-{
-    this->_handle_legacy(opt_key, str);
-    return opt_key.empty() ? 
-        // ignore option
-        true :
-        ConfigBase::set_deserialize(opt_key, str, append);
-}
-
-void PrintConfigBase::_handle_legacy(t_config_option_key &opt_key, std::string &value) const
+void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
 {
     // handle legacy options
     if (opt_key == "extrusion_width_ratio" || opt_key == "bottom_layer_speed_ratio"
@@ -1783,22 +1735,249 @@ void PrintConfigBase::_handle_legacy(t_config_option_key &opt_key, std::string &
         return;
     }
     
-    if (!this->def->has(opt_key)) {
+    if (! print_config_def.has(opt_key)) {
         //printf("Unknown option %s\n", opt_key.c_str());
         opt_key = "";
         return;
     }
 }
 
-double PrintConfigBase::min_object_distance() const
+PrintConfigDef print_config_def;
+
+void DynamicPrintConfig::normalize()
 {
-    double extruder_clearance_radius = this->option("extruder_clearance_radius")->getFloat();
-    double duplicate_distance = this->option("duplicate_distance")->getFloat();
+    if (this->has("extruder")) {
+        int extruder = this->option("extruder")->getInt();
+        this->erase("extruder");
+        if (extruder != 0) {
+            if (!this->has("infill_extruder"))
+                this->option("infill_extruder", true)->setInt(extruder);
+            if (!this->has("perimeter_extruder"))
+                this->option("perimeter_extruder", true)->setInt(extruder);
+            // Don't propagate the current extruder to support.
+            // For non-soluble supports, the default "0" extruder means to use the active extruder,
+            // for soluble supports one certainly does not want to set the extruder to non-soluble.
+            // if (!this->has("support_material_extruder"))
+            //     this->option("support_material_extruder", true)->setInt(extruder);
+            // if (!this->has("support_material_interface_extruder"))
+            //     this->option("support_material_interface_extruder", true)->setInt(extruder);
+        }
+    }
+    
+    if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
+        this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
+    
+    if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
+        {
+            // this should be actually done only on the spiral layers instead of all
+            ConfigOptionBools* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
+            opt->values.assign(opt->values.size(), false);  // set all values to false
+        }
+        {
+            this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;
+            this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
+            this->opt<ConfigOptionPercent>("fill_density", true)->value  = 0;
+        }
+    }
+}
+
+std::string DynamicPrintConfig::validate()
+{
+    // Full print config is initialized from the defaults.
+    FullPrintConfig fpc;
+    fpc.apply(*this);
+    // Verify this print options through the FullPrintConfig.
+    return fpc.validate();
+}
+
+double PrintConfig::min_object_distance() const
+{
+    return PrintConfig::min_object_distance(static_cast<const ConfigBase*>(this));
+}
+
+double PrintConfig::min_object_distance(const ConfigBase *config)
+{
+    double extruder_clearance_radius = config->option("extruder_clearance_radius")->getFloat();
+    double duplicate_distance = config->option("duplicate_distance")->getFloat();
     
     // min object distance is max(duplicate_distance, clearance_radius)
-    return (this->option("complete_objects")->getBool() && extruder_clearance_radius > duplicate_distance)
+    return (config->option("complete_objects")->getBool() && extruder_clearance_radius > duplicate_distance)
         ? extruder_clearance_radius
         : duplicate_distance;
 }
+
+std::string FullPrintConfig::validate()
+{
+    // --layer-height
+    if (this->get_abs_value("layer_height") <= 0)
+        return "Invalid value for --layer-height";
+    if (fabs(fmod(this->get_abs_value("layer_height"), SCALING_FACTOR)) > 1e-4)
+        return "--layer-height must be a multiple of print resolution";
+
+    // --first-layer-height
+    if (this->get_abs_value("first_layer_height") <= 0)
+        return "Invalid value for --first-layer-height";
+
+    // --filament-diameter
+    for (double fd : this->filament_diameter.values)
+        if (fd < 1)
+            return "Invalid value for --filament-diameter";
+
+    // --nozzle-diameter
+    for (double nd : this->nozzle_diameter.values)
+        if (nd < 1)
+            return "Invalid value for --nozzle-diameter";
+    
+    // --perimeters
+    if (this->perimeters.value < 0)
+        return "Invalid value for --perimeters";
+
+    // --solid-layers
+    if (this->top_solid_layers < 0)
+        return "Invalid value for --top-solid-layers";
+    if (this->bottom_solid_layers < 0)
+        return "Invalid value for --bottom-solid-layers";
+    
+    if (this->use_firmware_retraction.value && 
+        this->gcode_flavor.value != gcfSmoothie &&
+        this->gcode_flavor.value != gcfRepRap &&
+        this->gcode_flavor.value != gcfMachinekit &&
+        this->gcode_flavor.value != gcfRepetier)
+        return "--use-firmware-retraction is only supported by Marlin, Smoothie, Repetier and Machinekit firmware";
+
+    if (this->use_firmware_retraction.value)
+        for (bool wipe : this->wipe.values)
+             if (wipe)
+                return "--use-firmware-retraction is not compatible with --wipe";
+        
+    // --gcode-flavor
+    if (! print_config_def.get("gcode_flavor")->has_enum_value(this->gcode_flavor.serialize()))
+        return "Invalid value for --gcode-flavor";
+    
+    // --fill-pattern
+    if (! print_config_def.get("fill_pattern")->has_enum_value(this->fill_pattern.serialize()))
+        return "Invalid value for --fill-pattern";
+    
+    // --external-fill-pattern
+    if (! print_config_def.get("external_fill_pattern")->has_enum_value(this->external_fill_pattern.serialize()))
+        return "Invalid value for --external-fill-pattern";
+
+    // --fill-density
+    if (fabs(this->fill_density.value - 100.) < EPSILON &&
+        ! print_config_def.get("external_fill_pattern")->has_enum_value(this->fill_pattern.serialize()))
+        return "The selected fill pattern is not supposed to work at 100% density";
+    
+    // --infill-every-layers
+    if (this->infill_every_layers < 1)
+        return "Invalid value for --infill-every-layers";
+
+    // --skirt-height
+    if (this->skirt_height < -1) // -1 means as tall as the object
+        return "Invalid value for --skirt-height";
+    
+    // --bridge-flow-ratio
+    if (this->bridge_flow_ratio <= 0)
+        return "Invalid value for --bridge-flow-ratio";
+    
+    // extruder clearance
+    if (this->extruder_clearance_radius <= 0)
+        return "Invalid value for --extruder-clearance-radius";
+    if (this->extruder_clearance_height <= 0)
+        return "Invalid value for --extruder-clearance-height";
+
+    // --extrusion-multiplier
+    for (float em : this->extrusion_multiplier.values)
+        if (em <= 0)
+            return "Invalid value for --extrusion-multiplier";
+
+    // --default-acceleration
+    if ((this->perimeter_acceleration != 0. || this->infill_acceleration != 0. || this->bridge_acceleration != 0. || this->first_layer_acceleration != 0.) &&
+        this->default_acceleration == 0.)
+        return "Invalid zero value for --default-acceleration when using other acceleration settings";
+
+    // --spiral-vase
+    if (this->spiral_vase) {
+        // Note that we might want to have more than one perimeter on the bottom
+        // solid layers.
+        if (this->perimeters > 1)
+            return "Can't make more than one perimeter when spiral vase mode is enabled";
+        else if (this->perimeters < 1)
+            return "Can't make less than one perimeter when spiral vase mode is enabled";
+        if (this->fill_density > 0)
+            return "Spiral vase mode can only print hollow objects, so you need to set Fill density to 0";
+        if (this->top_solid_layers > 0)
+            return "Spiral vase mode is not compatible with top solid layers";
+        if (this->support_material || this->support_material_enforce_layers > 0)
+            return "Spiral vase mode is not compatible with support material";
+    }
+    
+    // extrusion widths
+    {
+        double max_nozzle_diameter = 0.;
+        for (double dmr : this->nozzle_diameter.values)
+            max_nozzle_diameter = std::max(max_nozzle_diameter, dmr);
+        const char *widths[] = { "external_perimeter", "perimeter", "infill", "solid_infill", "top_infill", "support_material", "first_layer" };
+        for (size_t i = 0; i < sizeof(widths) / sizeof(widths[i]); ++ i) {
+            std::string key(widths[i]);
+            key += "_extrusion_width";
+            if (this->get_abs_value(key, max_nozzle_diameter) > 10. * max_nozzle_diameter)
+                return std::string("Invalid extrusion width (too large): ") + key;
+        }
+    }
+
+    // Out of range validation of numeric values.
+    for (const std::string &opt_key : this->keys()) {
+        const ConfigOption      *opt    = this->optptr(opt_key);
+        assert(opt != nullptr);
+        const ConfigOptionDef   *optdef = print_config_def.get(opt_key);
+        assert(optdef != nullptr);
+        bool out_of_range = false;
+        switch (opt->type()) {
+        case coFloat:
+        case coPercent:
+        case coFloatOrPercent:
+        {
+            auto *fopt = static_cast<const ConfigOptionFloat*>(opt);
+            out_of_range = fopt->value < optdef->min || fopt->value > optdef->max;
+            break;
+        }
+        case coFloats:
+        case coPercents:
+            for (double v : static_cast<const ConfigOptionFloats*>(opt)->values)
+                if (v < optdef->min || v > optdef->max) {
+                    out_of_range = true;
+                    break;
+                }
+            break;
+        case coInt:
+        {
+            auto *iopt = static_cast<const ConfigOptionInt*>(opt);
+            out_of_range = iopt->value < optdef->min || iopt->value > optdef->max;
+            break;
+        }
+        case coInts:
+            for (int v : static_cast<const ConfigOptionInts*>(opt)->values)
+                if (v < optdef->min || v > optdef->max) {
+                    out_of_range = true;
+                    break;
+                }
+            break;
+        default:;
+        }
+        if (out_of_range)
+            return std::string("Value out of range: " + opt_key);
+    }
+    
+    // The configuration is valid.
+    return "";
+}
+
+// Declare the static caches for each StaticPrintConfig derived class.
+StaticPrintConfig::StaticCache<class Slic3r::PrintObjectConfig> PrintObjectConfig::s_cache;
+StaticPrintConfig::StaticCache<class Slic3r::PrintRegionConfig> PrintRegionConfig::s_cache;
+StaticPrintConfig::StaticCache<class Slic3r::GCodeConfig>       GCodeConfig::s_cache;
+StaticPrintConfig::StaticCache<class Slic3r::PrintConfig>       PrintConfig::s_cache;
+StaticPrintConfig::StaticCache<class Slic3r::HostConfig>        HostConfig::s_cache;
+StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig::s_cache;
 
 }

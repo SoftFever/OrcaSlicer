@@ -31,10 +31,9 @@ $Options->{threads}{readonly} = !$Slic3r::have_threads;
 
 # Fill in the underlying C++ Slic3r::DynamicPrintConfig with the content of the defaults
 # provided by the C++ class Slic3r::FullPrintConfig.
+# Used by the UI.
 sub new_from_defaults {
-    my $class = shift;
-    my (@opt_keys) = @_;
-    
+    my ($class, @opt_keys) = @_;
     my $self = $class->new;
     # Instantiating the C++ class Slic3r::FullPrintConfig.
     my $defaults = Slic3r::Config::Full->new;
@@ -47,7 +46,7 @@ sub new_from_defaults {
     return $self;
 }
 
-# From command line parameters
+# From command line parameters, used by slic3r.pl
 sub new_from_cli {
     my $class = shift;
     my %args = @_;
@@ -110,12 +109,6 @@ sub load {
         $config->_load($file);
         return $config;
     }
-}
-
-# Save the content of the underlying C++ Slic3r::DynamicPrintConfig as a flat ini file without any category.
-sub save {
-    my ($self, $file) = @_;
-    return $self->_save($file);
 }
 
 # Deserialize a perl hash into the underlying C++ Slic3r::DynamicConfig class,
@@ -309,6 +302,7 @@ sub validate {
 # CLASS METHODS:
 
 # Write a "Windows" style ini file with categories enclosed in squre brackets.
+# Used by config-bundle-to-config.pl and to save slic3r.ini.
 sub write_ini {
     my $class = shift;
     my ($file, $ini) = @_;
@@ -331,6 +325,7 @@ sub write_ini {
 # Returns a hash of hashes over strings.
 # {category}{name}=value
 # Non-categorized entries are stored under a category '_'.
+# Used by config-bundle-to-config.pl and to read slic3r.ini.
 sub read_ini {
     my $class = shift;
     my ($file) = @_;

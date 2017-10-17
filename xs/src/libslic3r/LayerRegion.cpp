@@ -260,7 +260,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer " PRINTF_ZU ":\n", this->layer()->id());
                 #endif
-                if (bd.detect_angle(Geometry::deg2rad(this->region()->config.bridge_angle))) {
+                if (bd.detect_angle(Geometry::deg2rad(this->region()->config.bridge_angle.value))) {
                     bridges[idx_last].bridge_angle = bd.angle;
                     if (this->layer()->object()->config.support_material) {
                         polygons_append(this->bridged, bd.coverage());

@@ -37,7 +37,7 @@
     void erase(t_config_option_key opt_key);
     void normalize();
     %name{setenv} void setenv_();
-    double min_object_distance();
+    double min_object_distance() %code{% RETVAL = PrintConfig::min_object_distance(THIS); %};
     %name{_load} void load(std::string file);
     %name{_load_from_gcode} void load_from_gcode(std::string input_file)
         %code%{
@@ -47,20 +47,20 @@
                 croak("Error extracting configuration from a g-code %s:\n%s\n", input_file.c_str(), e.what());
             }
         %};
-    %name{_save} void save(std::string file);
+    void save(std::string file);
 };
 
 %name{Slic3r::Config::Static} class StaticPrintConfig {
     static StaticPrintConfig* new_GCodeConfig()
-        %code{% RETVAL = new GCodeConfig (); %};
+        %code{% RETVAL = new GCodeConfig(); %};
     static StaticPrintConfig* new_PrintConfig()
-        %code{% RETVAL = new PrintConfig (); %};
+        %code{% RETVAL = new PrintConfig(); %};
     static StaticPrintConfig* new_PrintObjectConfig()
-        %code{% RETVAL = new PrintObjectConfig (); %};
+        %code{% RETVAL = new PrintObjectConfig(); %};
     static StaticPrintConfig* new_PrintRegionConfig()
-        %code{% RETVAL = new PrintRegionConfig (); %};
+        %code{% RETVAL = new PrintRegionConfig(); %};
     static StaticPrintConfig* new_FullPrintConfig()
-        %code{% RETVAL = new FullPrintConfig (); %};
+        %code{% RETVAL = static_cast<PrintObjectConfig*>(new FullPrintConfig()); %};
     ~StaticPrintConfig();
     bool has(t_config_option_key opt_key);
     SV* as_hash()
@@ -93,10 +93,10 @@
             }
         %};
     %name{setenv} void setenv_();
-    double min_object_distance();
+    double min_object_distance() %code{% RETVAL = PrintConfig::min_object_distance(THIS); %};
     %name{_load} void load(std::string file);
     %name{_load_from_gcode} void load_from_gcode(std::string file);
-    %name{_save} void save(std::string file);
+    void save(std::string file);
 };
 
 %package{Slic3r::Config};

@@ -5,7 +5,6 @@
 // during the slicing and the g-code generation.
 //
 // The classes derived from StaticPrintConfig form a following hierarchy.
-// Virtual inheritance is used for some of the parent objects.
 //
 // FullPrintConfig
 //    PrintObjectConfig
@@ -20,8 +19,6 @@
 
 #include "libslic3r.h"
 #include "Config.hpp"
-
-#define OPT_PTR(KEY) if (opt_key == #KEY) return &this->KEY
 
 namespace Slic3r {
 
@@ -46,66 +43,76 @@ enum FilamentType {
     ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
 };
 
-template<> inline t_config_enum_values ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
-    t_config_enum_values keys_map;
-    keys_map["reprap"]          = gcfRepRap;
-    keys_map["repetier"]        = gcfRepetier;
-    keys_map["teacup"]          = gcfTeacup;
-    keys_map["makerware"]       = gcfMakerWare;
-    keys_map["sailfish"]        = gcfSailfish;
-    keys_map["smoothie"]        = gcfSmoothie;
-    keys_map["mach3"]           = gcfMach3;
-    keys_map["machinekit"]      = gcfMachinekit;
-    keys_map["no-extrusion"]    = gcfNoExtrusion;
+template<> inline t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["reprap"]          = gcfRepRap;
+        keys_map["repetier"]        = gcfRepetier;
+        keys_map["teacup"]          = gcfTeacup;
+        keys_map["makerware"]       = gcfMakerWare;
+        keys_map["sailfish"]        = gcfSailfish;
+        keys_map["smoothie"]        = gcfSmoothie;
+        keys_map["mach3"]           = gcfMach3;
+        keys_map["machinekit"]      = gcfMachinekit;
+        keys_map["no-extrusion"]    = gcfNoExtrusion;
+    }
     return keys_map;
 }
 
-template<> inline t_config_enum_values ConfigOptionEnum<InfillPattern>::get_enum_values() {
-    t_config_enum_values keys_map;
-    keys_map["rectilinear"]         = ipRectilinear;
-    keys_map["grid"]                = ipGrid;
-    keys_map["triangles"]           = ipTriangles;
-    keys_map["stars"]               = ipStars;
-    keys_map["cubic"]               = ipCubic;
-    keys_map["line"]                = ipLine;
-    keys_map["concentric"]          = ipConcentric;
-    keys_map["honeycomb"]           = ipHoneycomb;
-    keys_map["3dhoneycomb"]         = ip3DHoneycomb;
-    keys_map["hilbertcurve"]        = ipHilbertCurve;
-    keys_map["archimedeanchords"]   = ipArchimedeanChords;
-    keys_map["octagramspiral"]      = ipOctagramSpiral;
+template<> inline t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["rectilinear"]         = ipRectilinear;
+        keys_map["grid"]                = ipGrid;
+        keys_map["triangles"]           = ipTriangles;
+        keys_map["stars"]               = ipStars;
+        keys_map["cubic"]               = ipCubic;
+        keys_map["line"]                = ipLine;
+        keys_map["concentric"]          = ipConcentric;
+        keys_map["honeycomb"]           = ipHoneycomb;
+        keys_map["3dhoneycomb"]         = ip3DHoneycomb;
+        keys_map["hilbertcurve"]        = ipHilbertCurve;
+        keys_map["archimedeanchords"]   = ipArchimedeanChords;
+        keys_map["octagramspiral"]      = ipOctagramSpiral;
+    }
     return keys_map;
 }
 
-template<> inline t_config_enum_values ConfigOptionEnum<SupportMaterialPattern>::get_enum_values() {
-    t_config_enum_values keys_map;
-    keys_map["rectilinear"]         = smpRectilinear;
-    keys_map["rectilinear-grid"]    = smpRectilinearGrid;
-    keys_map["honeycomb"]           = smpHoneycomb;
-    keys_map["pillars"]             = smpPillars;
+template<> inline t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["rectilinear"]         = smpRectilinear;
+        keys_map["rectilinear-grid"]    = smpRectilinearGrid;
+        keys_map["honeycomb"]           = smpHoneycomb;
+        keys_map["pillars"]             = smpPillars;
+    }
     return keys_map;
 }
 
-template<> inline t_config_enum_values ConfigOptionEnum<SeamPosition>::get_enum_values() {
-    t_config_enum_values keys_map;
-    keys_map["random"]              = spRandom;
-    keys_map["nearest"]             = spNearest;
-    keys_map["aligned"]             = spAligned;
-    keys_map["rear"]                = spRear;
+template<> inline t_config_enum_values& ConfigOptionEnum<SeamPosition>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["random"]              = spRandom;
+        keys_map["nearest"]             = spNearest;
+        keys_map["aligned"]             = spAligned;
+        keys_map["rear"]                = spRear;
+    }
     return keys_map;
 }
 
-template<> inline t_config_enum_values ConfigOptionEnum<FilamentType>::get_enum_values() {
-    t_config_enum_values keys_map;
-    keys_map["PLA"]             = ftPLA;
-    keys_map["ABS"]             = ftABS;
-    keys_map["PET"]             = ftPET;
-    keys_map["HIPS"]            = ftHIPS;
-    keys_map["FLEX"]            = ftFLEX;
-    keys_map["SCAFF"]           = ftSCAFF;
-    keys_map["EDGE"]            = ftEDGE;
-    keys_map["NGEN"]            = ftNGEN;
-    keys_map["PVA"]             = ftPVA;
+template<> inline t_config_enum_values& ConfigOptionEnum<FilamentType>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["PLA"]             = ftPLA;
+        keys_map["ABS"]             = ftABS;
+        keys_map["PET"]             = ftPET;
+        keys_map["HIPS"]            = ftHIPS;
+        keys_map["FLEX"]            = ftFLEX;
+        keys_map["SCAFF"]           = ftSCAFF;
+        keys_map["EDGE"]            = ftEDGE;
+        keys_map["NGEN"]            = ftNGEN;
+        keys_map["PVA"]             = ftPVA;
+    }
     return keys_map;
 }
 
@@ -113,29 +120,15 @@ template<> inline t_config_enum_values ConfigOptionEnum<FilamentType>::get_enum_
 // Does not store the actual values, but defines default values.
 class PrintConfigDef : public ConfigDef
 {
-    public:
+public:
     PrintConfigDef();
+
+    static void handle_legacy(t_config_option_key &opt_key, std::string &value);
 };
 
 // The one and only global definition of SLic3r configuration options.
 // This definition is constant.
 extern PrintConfigDef print_config_def;
-
-// Slic3r configuration storage with print_config_def assigned.
-class PrintConfigBase : public virtual ConfigBase
-{
-public:
-    PrintConfigBase() {
-        this->def = &print_config_def;
-    };
-    
-    bool set_deserialize(t_config_option_key opt_key, std::string str, bool append = false);
-
-    double min_object_distance() const;
-
-protected:
-    void _handle_legacy(t_config_option_key &opt_key, std::string &value) const;
-};
 
 // Slic3r dynamic configuration, used to override the configuration 
 // per object, per modification volume or per printing material.
@@ -143,30 +136,161 @@ protected:
 // so the modified configuration values may be diffed against the active configuration
 // to invalidate the proper slicing resp. g-code generation processing steps.
 // This object is mapped to Perl as Slic3r::Config.
-class DynamicPrintConfig : public PrintConfigBase, public DynamicConfig
+class DynamicPrintConfig : public DynamicConfig
 {
-    public:
-    DynamicPrintConfig() : PrintConfigBase(), DynamicConfig() {};
-    void normalize();
+public:
+    DynamicPrintConfig() {}
+    DynamicPrintConfig(const DynamicPrintConfig &other) : DynamicConfig(other) {}
+
+    // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
+    const ConfigDef*    def() const override { return &print_config_def; }
+
+    void                normalize();
+
+    // Validate the PrintConfig. Returns an empty string on success, otherwise an error message is returned.
+    std::string         validate();
 };
 
 template<typename CONFIG>
 void normalize_and_apply_config(CONFIG &dst, const DynamicPrintConfig &src)
 {
-    DynamicPrintConfig src_normalized = src;
+    DynamicPrintConfig src_normalized(src);
     src_normalized.normalize();
     dst.apply(src_normalized, true);
 }
 
-class StaticPrintConfig : public PrintConfigBase, public StaticConfig
+class StaticPrintConfig : public StaticConfig
 {
+public:
+    StaticPrintConfig() {}
+
+    // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
+    const ConfigDef*    def() const override { return &print_config_def; }
+
+protected:
+    // Verify whether the opt_key has not been obsoleted or renamed.
+    // Both opt_key and value may be modified by handle_legacy().
+    // If the opt_key is no more valid in this version of Slic3r, opt_key is cleared by handle_legacy().
+    // handle_legacy() is called internally by set_deserialize().
+    void                handle_legacy(t_config_option_key &opt_key, std::string &value) const override
+        { PrintConfigDef::handle_legacy(opt_key, value); }
+
+    // Internal class for keeping a dynamic map to static options.
+    class StaticCacheBase
+    {
     public:
-    StaticPrintConfig() : PrintConfigBase(), StaticConfig() {};
+        // To be called during the StaticCache setup.
+        // Add one ConfigOption into m_map_name_to_offset.
+        template<typename T>
+        void                opt_add(const std::string &name, const char *base_ptr, const T &opt)
+        {
+            assert(m_map_name_to_offset.find(name) == m_map_name_to_offset.end());
+            m_map_name_to_offset[name] = (const char*)&opt - base_ptr;
+        }
+
+    protected:
+        std::map<std::string, ptrdiff_t>    m_map_name_to_offset;
+    };
+
+    // Parametrized by the type of the topmost class owning the options.
+    template<typename T>
+    class StaticCache : public StaticCacheBase
+    {
+    public:
+        // Calling the constructor of m_defaults with 0 forces m_defaults to not run the initialization.
+        StaticCache() : m_defaults(nullptr) {}
+        ~StaticCache() { delete m_defaults; m_defaults = nullptr; }
+
+        bool                initialized() const { return ! m_keys.empty(); }
+
+        ConfigOption*       optptr(const std::string &name, T *owner) const
+        {
+            const auto it = m_map_name_to_offset.find(name);
+            return (it == m_map_name_to_offset.end()) ? nullptr : reinterpret_cast<ConfigOption*>((char*)owner + it->second);
+        }
+
+        const ConfigOption* optptr(const std::string &name, const T *owner) const
+        {
+            const auto it = m_map_name_to_offset.find(name);
+            return (it == m_map_name_to_offset.end()) ? nullptr : reinterpret_cast<const ConfigOption*>((const char*)owner + it->second);
+        }
+
+        const std::vector<std::string>& keys()      const { return m_keys; }
+        const T&                        defaults()  const { return *m_defaults; }
+
+        // To be called during the StaticCache setup.
+        // Collect option keys from m_map_name_to_offset,
+        // assign default values to m_defaults.
+        void                finalize(T *defaults, const ConfigDef *defs)
+        {
+            assert(defs != nullptr);
+            m_defaults = defaults;
+            m_keys.clear();
+            m_keys.reserve(m_map_name_to_offset.size());
+			for (const auto &kvp : defs->options) {
+				// Find the option given the option name kvp.first by an offset from (char*)m_defaults.
+				ConfigOption *opt = this->optptr(kvp.first, m_defaults);
+				if (opt == nullptr)
+					// This option is not defined by the ConfigBase of type T.
+					continue;
+                m_keys.emplace_back(kvp.first);
+                const ConfigOptionDef *def = defs->get(kvp.first);
+                assert(def != nullptr);
+                if (def->default_value != nullptr)
+                    opt->set(def->default_value);
+            }
+        }
+
+    private:
+        T                                  *m_defaults;
+        std::vector<std::string>            m_keys;
+    };
 };
 
+#define STATIC_PRINT_CONFIG_CACHE_BASE(CLASS_NAME) \
+public: \
+    /* Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name. */ \
+    ConfigOption*            optptr(const t_config_option_key &opt_key, bool create = false) override \
+        { return s_cache.optptr(opt_key, this); } \
+    /* Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store. */ \
+    t_config_option_keys     keys() const override { return s_cache.keys(); } \
+    static const CLASS_NAME& defaults() { initialize_cache(); return s_cache.defaults(); } \
+protected: \
+    static void initialize_cache() \
+    { \
+        if (! s_cache.initialized()) { \
+            CLASS_NAME *inst = new CLASS_NAME(1); \
+            inst->initialize(s_cache, (const char*)inst); \
+            s_cache.finalize(inst, inst->def()); \
+        } \
+    } \
+    /* Cache object holding a key/option map, a list of option keys and a copy of this static config initialized with the defaults. */ \
+    static StaticCache<CLASS_NAME> s_cache;
+
+#define STATIC_PRINT_CONFIG_CACHE(CLASS_NAME) \
+    STATIC_PRINT_CONFIG_CACHE_BASE(CLASS_NAME) \
+public: \
+    /* Public default constructor will initialize the key/option cache and the default object copy if needed. */ \
+    CLASS_NAME() { initialize_cache(); *this = s_cache.defaults(); } \
+protected: \
+    /* Protected constructor to be called when compounded. */ \
+    CLASS_NAME(int) {}
+
+#define STATIC_PRINT_CONFIG_CACHE_DERIVED(CLASS_NAME) \
+    STATIC_PRINT_CONFIG_CACHE_BASE(CLASS_NAME) \
+public: \
+    /* Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here. */ \
+    const ConfigDef*    def() const override { return &print_config_def; } \
+    /* Handle legacy and obsoleted config keys */ \
+    void                handle_legacy(t_config_option_key &opt_key, std::string &value) const override \
+        { PrintConfigDef::handle_legacy(opt_key, value); }
+
+#define OPT_PTR(KEY) cache.opt_add(#KEY, base_ptr, this->KEY)
+
 // This object is mapped to Perl as Slic3r::Config::PrintObject.
-class PrintObjectConfig : public virtual StaticPrintConfig
+class PrintObjectConfig : public StaticPrintConfig
 {
+    STATIC_PRINT_CONFIG_CACHE(PrintObjectConfig)
 public:
     ConfigOptionBool                clip_multipart_objects;
     ConfigOptionBool                dont_support_bridges;
@@ -201,13 +325,9 @@ public:
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
     ConfigOptionFloat               xy_size_compensation;
     
-    PrintObjectConfig(bool initialize = true) : StaticPrintConfig() {
-        if (initialize)
-            this->set_defaults();
-    }
-
-    virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
-        UNUSED(create);
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
         OPT_PTR(clip_multipart_objects);
         OPT_PTR(dont_support_bridges);
         OPT_PTR(elefant_foot_compensation);
@@ -240,14 +360,13 @@ public:
         OPT_PTR(support_material_threshold);
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);
-        
-        return NULL;
-    };
+    }
 };
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
-class PrintRegionConfig : public virtual StaticPrintConfig
+class PrintRegionConfig : public StaticPrintConfig
 {
+    STATIC_PRINT_CONFIG_CACHE(PrintRegionConfig)
 public:
     ConfigOptionFloat               bridge_angle;
     ConfigOptionInt                 bottom_solid_layers;
@@ -283,14 +402,10 @@ public:
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
-    
-    PrintRegionConfig(bool initialize = true) : StaticPrintConfig() {
-        if (initialize)
-            this->set_defaults();
-    }
 
-    virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
-        UNUSED(create);
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
         OPT_PTR(bridge_angle);
         OPT_PTR(bottom_solid_layers);
         OPT_PTR(bridge_flow_ratio);
@@ -325,14 +440,13 @@ public:
         OPT_PTR(top_infill_extrusion_width);
         OPT_PTR(top_solid_infill_speed);
         OPT_PTR(top_solid_layers);
-        
-        return NULL;
-    };
+    }
 };
 
 // This object is mapped to Perl as Slic3r::Config::GCode.
-class GCodeConfig : public virtual StaticPrintConfig
+class GCodeConfig : public StaticPrintConfig
 {
+    STATIC_PRINT_CONFIG_CACHE(GCodeConfig)
 public:
     ConfigOptionString              before_layer_gcode;
     ConfigOptionFloats              deretract_speed;
@@ -372,13 +486,16 @@ public:
     ConfigOptionBool                use_volumetric_e;
     ConfigOptionBool                variable_layer_height;
     
-    GCodeConfig(bool initialize = true) : StaticPrintConfig() {
-        if (initialize)
-            this->set_defaults();
+    std::string get_extrusion_axis() const
+    {
+        return
+            ((this->gcode_flavor.value == gcfMach3) || (this->gcode_flavor.value == gcfMachinekit)) ? "A" :
+            (this->gcode_flavor.value == gcfNoExtrusion) ? "" : this->extrusion_axis.value;
     }
-    
-    virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
-        UNUSED(create);
+
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
         OPT_PTR(before_layer_gcode);
         OPT_PTR(deretract_speed);
         OPT_PTR(end_gcode);
@@ -416,25 +533,18 @@ public:
         OPT_PTR(use_relative_e_distances);
         OPT_PTR(use_volumetric_e);
         OPT_PTR(variable_layer_height);
-        return NULL;
-    };
-    
-    std::string get_extrusion_axis() const
-    {
-        if ((this->gcode_flavor.value == gcfMach3) || (this->gcode_flavor.value == gcfMachinekit)) {
-            return "A";
-        } else if (this->gcode_flavor.value == gcfNoExtrusion) {
-            return "";
-        } else {
-            return this->extrusion_axis.value;
-        }
-    };
+    }
 };
 
 // This object is mapped to Perl as Slic3r::Config::Print.
 class PrintConfig : public GCodeConfig
 {
+    STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
+    PrintConfig() : GCodeConfig(0) { initialize_cache(); *this = s_cache.defaults(); }
 public:
+    double                          min_object_distance() const;
+    static double                   min_object_distance(const ConfigBase *config);
+
     ConfigOptionBool                avoid_crossing_perimeters;
     ConfigOptionPoints              bed_shape;
     ConfigOptionInts                bed_temperature;
@@ -494,12 +604,11 @@ public:
     ConfigOptionFloat               wipe_tower_per_color_wipe;
     ConfigOptionFloat               z_offset;
     
-    PrintConfig(bool initialize = true) : GCodeConfig(false) {
-        if (initialize)
-            this->set_defaults();
-    }
-
-    virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
+protected:
+    PrintConfig(int) : GCodeConfig(1) {}
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        this->GCodeConfig::initialize(cache, base_ptr);
         OPT_PTR(avoid_crossing_perimeters);
         OPT_PTR(bed_shape);
         OPT_PTR(bed_temperature);
@@ -558,63 +667,57 @@ public:
         OPT_PTR(wipe_tower_width);
         OPT_PTR(wipe_tower_per_color_wipe);
         OPT_PTR(z_offset);
-        
-        // look in parent class
-        ConfigOption* opt;
-        if ((opt = GCodeConfig::optptr(opt_key, create)) != NULL) return opt;
-        
-        return NULL;
-    };
+    }
 };
 
-class HostConfig : public virtual StaticPrintConfig
+class HostConfig : public StaticPrintConfig
 {
+    STATIC_PRINT_CONFIG_CACHE(HostConfig)
 public:
     ConfigOptionString              octoprint_host;
     ConfigOptionString              octoprint_apikey;
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
     
-    HostConfig(bool initialize = true) : StaticPrintConfig() {
-        if (initialize)
-            this->set_defaults();
-    }
-
-    virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
-        UNUSED(create);
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
         OPT_PTR(octoprint_host);
         OPT_PTR(octoprint_apikey);
         OPT_PTR(serial_port);
         OPT_PTR(serial_speed);
-        
-        return NULL;
-    };
+    }
 };
 
 // This object is mapped to Perl as Slic3r::Config::Full.
-class FullPrintConfig
-    : public PrintObjectConfig, public PrintRegionConfig, public PrintConfig, public HostConfig
+class FullPrintConfig : 
+    public PrintObjectConfig, 
+    public PrintRegionConfig,
+    public PrintConfig,
+    public HostConfig
 {
-    public:
-    FullPrintConfig(bool initialize = true) :
-        PrintObjectConfig(false),
-        PrintRegionConfig(false), 
-        PrintConfig(false), 
-        HostConfig(false)
-    {
-        if (initialize)
-            this->set_defaults();
-    }
+    STATIC_PRINT_CONFIG_CACHE_DERIVED(FullPrintConfig)
+	FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) { initialize_cache(); *this = s_cache.defaults(); }
 
-    virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
-        ConfigOption* opt;
-        if ((opt = PrintObjectConfig::optptr(opt_key, create)) != NULL) return opt;
-        if ((opt = PrintRegionConfig::optptr(opt_key, create)) != NULL) return opt;
-        if ((opt = PrintConfig::optptr(opt_key, create)) != NULL) return opt;
-        if ((opt = HostConfig::optptr(opt_key, create)) != NULL) return opt;
-        return NULL;
-    };
+public:
+    // Validate the FullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
+    std::string                 validate();
+protected:
+    // Protected constructor to be called to initialize ConfigCache::m_default.
+    FullPrintConfig(int) : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) {}
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        this->PrintObjectConfig::initialize(cache, base_ptr);
+        this->PrintRegionConfig::initialize(cache, base_ptr);
+        this->PrintConfig      ::initialize(cache, base_ptr);
+        this->HostConfig       ::initialize(cache, base_ptr);
+    }
 };
+
+#undef STATIC_PRINT_CONFIG_CACHE
+#undef STATIC_PRINT_CONFIG_CACHE_BASE
+#undef STATIC_PRINT_CONFIG_CACHE_DERIVED
+#undef OPT_PTR
 
 }
 

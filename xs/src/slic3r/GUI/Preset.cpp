@@ -23,7 +23,7 @@ DynamicPrintConfig& Preset::load(const std::vector<std::string> &keys)
 {
     // Set the configuration from the defaults.
     Slic3r::FullPrintConfig defaults;
-    this->config.apply(defaults, keys.empty() ? defaults.keys() : keys);
+    this->config.apply_only(defaults, keys.empty() ? defaults.keys() : keys);
 
     if (! this->is_default) {
         // Load the preset file, apply preset values on top of defaults.

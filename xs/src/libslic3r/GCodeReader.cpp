@@ -6,7 +6,13 @@
 
 namespace Slic3r {
 
-void GCodeReader::apply_config(const PrintConfigBase &config)
+void GCodeReader::apply_config(const GCodeConfig &config)
+{
+    m_config = config;
+    m_extrusion_axis = m_config.get_extrusion_axis()[0];
+}
+
+void GCodeReader::apply_config(const DynamicPrintConfig &config)
 {
     m_config.apply(config, true);
     m_extrusion_axis = m_config.get_extrusion_axis()[0];

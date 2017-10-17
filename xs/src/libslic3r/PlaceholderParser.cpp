@@ -64,7 +64,7 @@ void PlaceholderParser::update_timestamp()
 void PlaceholderParser::apply_config(const DynamicPrintConfig &config)
 {
     for (const t_config_option_key &opt_key : config.keys()) {
-        const ConfigOptionDef* def = config.def->get(opt_key);
+        const ConfigOptionDef* def = config.def()->get(opt_key);
         if (def->multiline || opt_key == "post_process")
             continue;
 
