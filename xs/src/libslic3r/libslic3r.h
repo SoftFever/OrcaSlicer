@@ -92,6 +92,11 @@ inline std::string debug_out_path(const char *name, ...)
 #define UNUSED(x) (void)(x)
 #endif /* UNUSED */
 
+// Detect whether the compiler supports C++11 noexcept exception specifications.
+#if defined(_MSC_VER) && _MSC_VER < 1900
+    #define noexcept throw()
+#endif
+
 // Write slices as SVG images into out directory during the 2D processing of the slices.
 // #define SLIC3R_DEBUG_SLICE_PROCESSING
 

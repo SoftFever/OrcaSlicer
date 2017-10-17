@@ -71,7 +71,7 @@ public:
 	const LayerTools&   back()        const { return m_layer_tools.back(); }
 	bool 				empty()       const { return m_layer_tools.empty(); }
 	const std::vector<LayerTools>& layer_tools() const { return m_layer_tools; }
-	bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (size_t)-1 && m_layer_tools.front().wipe_tower_partitions > 0; }
+	bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().wipe_tower_partitions > 0; }
 
 private:
 	void				initialize_layers(std::vector<coordf_t> &zs);
@@ -82,9 +82,9 @@ private:
 
 	std::vector<LayerTools> 	m_layer_tools;
 	// First printing extruder, including the multi-material priming sequence.
-	unsigned int 				m_first_printing_extruder;
+	unsigned int 				m_first_printing_extruder = (unsigned int)-1;
 	// Final printing extruder.
-	unsigned int 				m_last_printing_extruder;
+	unsigned int 				m_last_printing_extruder  = (unsigned int)-1;
 	// All extruders, which extrude some material over m_layer_tools.
     std::vector<unsigned int> 	m_all_printing_extruders;
 };
