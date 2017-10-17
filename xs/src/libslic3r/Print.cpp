@@ -847,9 +847,7 @@ void Print::_make_skirt()
         extruders_e_per_mm.reserve(set_extruders.size());
         for (auto &extruder_id : set_extruders) {
             extruders.push_back(extruder_id);
-            GCodeConfig config;
-            config.apply(this->config, true);
-            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &config).e_per_mm(mm3_per_mm));
+            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &this->config).e_per_mm(mm3_per_mm));
         }
     }
 

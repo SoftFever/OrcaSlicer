@@ -65,7 +65,7 @@ SV* ConfigBase__as_hash(ConfigBase* THIS)
 {
     HV* hv = newHV();    
     for (auto &key : THIS->keys())
-        (void)hv_store(hv, key.c_str(), key.length(), ConfigBase__get(THIS, *it), 0);
+        (void)hv_store(hv, key.c_str(), key.length(), ConfigBase__get(THIS, key), 0);
     return newRV_noinc((SV*)hv);
 }
 
@@ -74,7 +74,7 @@ SV* ConfigBase__get(ConfigBase* THIS, const t_config_option_key &opt_key)
     ConfigOption* opt = THIS->option(opt_key);
     return (opt == nullptr) ? 
         &PL_sv_undef :
-        ConfigOption_to_SV(*opt, *THIS->def->get(opt_key));
+        ConfigOption_to_SV(*opt, *THIS->def()->get(opt_key));
 }
 
 SV* ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def)
@@ -152,7 +152,7 @@ SV* ConfigBase__get_at(ConfigBase* THIS, const t_config_option_key &opt_key, siz
     ConfigOption* opt = THIS->option(opt_key);
     if (opt == NULL) return &PL_sv_undef;
     
-    const ConfigOptionDef* def = THIS->def->get(opt_key);
+    const ConfigOptionDef* def = THIS->def()->get(opt_key);
     switch (def->type) {
     case coFloats:
     case coPercents:
@@ -179,7 +179,8 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
     ConfigOption* opt = THIS->option(opt_key, true);
     if (opt == NULL) CONFESS("Trying to set non-existing option");
     
-    const ConfigOptionDef* def = THIS->def->get(opt_key);
+    const ConfigOptionDef* def = THIS->def()->get(opt_key);
+    switch (def->type) {
     case coFloat:
         if (!looks_like_number(value))
             return false;
@@ -307,7 +308,7 @@ void ConfigBase__set_ifndef(ConfigBase* THIS, const t_config_option_key &opt_key
 
 bool StaticConfig__set(StaticConfig* THIS, const t_config_option_key &opt_key, SV* value)
 {
-    const ConfigOptionDef* optdef = THIS->def->get(opt_key);
+    const ConfigOptionDef* optdef = THIS->def()->get(opt_key);
     if (optdef->shortcut.empty())
         return ConfigBase__set(THIS, opt_key, value);
     for (const t_config_option_key &key : optdef->shortcut)
