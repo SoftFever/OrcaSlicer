@@ -666,7 +666,7 @@ void ModelObject::cut(coordf_t z, Model* model) const
                 // we rather split the mesh into multiple non-intersecting pieces.
                 TriangleMeshPtrs meshptrs = volume->mesh.split();
                 for (TriangleMeshPtrs::iterator mesh = meshptrs.begin(); mesh != meshptrs.end(); ++mesh) {
-                    printf("Cutting mesh patch %d of %d\n", size_t(mesh - meshptrs.begin()));
+                    printf("Cutting mesh patch %d of %d\n", int(mesh - meshptrs.begin()), int(meshptrs.size()));
                     (*mesh)->repair();
                     TriangleMeshSlicer tms(*mesh);
                     if (mesh == meshptrs.begin()) {

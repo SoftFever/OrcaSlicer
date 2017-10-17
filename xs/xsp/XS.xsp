@@ -48,6 +48,25 @@ trace(level, message)
     CODE:
         Slic3r::trace(level, message);
 
+void
+set_var_dir(dir)
+    char  *dir;
+    CODE:
+        Slic3r::set_var_dir(dir);
+
+char*
+var_dir()
+    CODE:
+        RETVAL = const_cast<char*>(Slic3r::var_dir().c_str());
+    OUTPUT: RETVAL
+
+std::string
+var(file_name)
+    const char *file_name;
+    CODE:
+        RETVAL = Slic3r::var(file_name);
+    OUTPUT: RETVAL
+
 std::string
 encode_path(src)
     const char *src;

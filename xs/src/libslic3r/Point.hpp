@@ -223,6 +223,7 @@ public:
 
     bool operator==(const Pointf &rhs) const { return this->x == rhs.x && this->y == rhs.y; }
     bool operator!=(const Pointf &rhs) const { return ! (*this == rhs); }
+    bool operator< (const Pointf& rhs) const { return this->x < rhs.x || (this->x == rhs.x && this->y < rhs.y); }
 };
 
 inline Pointf operator+(const Pointf& point1, const Pointf& point2) { return Pointf(point1.x + point2.x, point1.y + point2.y); }

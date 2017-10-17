@@ -325,6 +325,7 @@ endif()
 add_library(XS ${XS_SHARED_LIBRARY_TYPE}
     ${XS_MAIN_CPP}
     ${LIBDIR}/libslic3r/utils.cpp
+    ${LIBDIR}/slic3r/GUI/wxPerlIface.cpp
     ${LIBDIR}/perlglue.cpp
     ${LIBDIR}/ppport.h
     ${LIBDIR}/xsinit.h

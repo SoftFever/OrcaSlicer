@@ -6,6 +6,8 @@
 
 #include <boost/locale.hpp>
 
+#include <boost/filesystem.hpp>
+
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -65,6 +67,24 @@ void trace(unsigned int level, const char *message)
 
     BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
         (::boost::log::keywords::severity = severity)) << message;
+}
+
+static std::string g_var_dir;
+
+void set_var_dir(const std::string &dir)
+{
+    g_var_dir = dir;
+}
+
+const std::string& var_dir()
+{
+    return g_var_dir;
+}
+
+std::string var(const std::string &file_name)
+{
+    auto file = boost::filesystem::canonical(boost::filesystem::path(g_var_dir) / file_name).make_preferred();
+    return file.string();
 }
 
 } // namespace Slic3r

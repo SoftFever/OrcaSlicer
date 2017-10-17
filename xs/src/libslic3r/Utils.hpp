@@ -6,6 +6,13 @@ namespace Slic3r {
 extern void set_logging_level(unsigned int level);
 extern void trace(unsigned int level, const char *message);
 
+// Set a path with GUI resource files.
+void set_var_dir(const std::string &path);
+// Return a path to the GUI resource files.
+const std::string& var_dir();
+// Return a resource path for a file_name.
+std::string var(const std::string &file_name);
+
 extern std::string encode_path(const char *src);
 extern std::string decode_path(const char *src);
 extern std::string normalize_utf8_nfc(const char *src);
