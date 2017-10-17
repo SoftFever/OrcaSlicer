@@ -680,7 +680,7 @@ public:
 
     static bool has(T value) 
     {
-        for (const std::map<std::string,int> &kvp : get_enum_values())
+        for (const std::pair<std::string, int> &kvp : ConfigOptionEnum<T>::get_enum_values())
             if (kvp.second == value)
                 return true;
         return false;
@@ -694,11 +694,11 @@ public:
             // Initialize the map.
             const t_config_enum_values &enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
             int cnt = 0;
-            for (auto &kvp : enum_keys_map)
+            for (const std::pair<std::string, int> &kvp : enum_keys_map)
                 cnt = std::max(cnt, kvp.second);
             cnt += 1;
             names.assign(cnt, "");
-            for (auto &kvp : enum_keys_map)
+            for (const std::pair<std::string, int> &kvp : enum_keys_map)
                 names[kvp.second] = kvp.first;
         }
         return names;
@@ -998,7 +998,7 @@ protected:
 class UnknownOptionException : public std::exception
 {
 public:
-    const char* what() const override { return "Unknown config option"; }
+    const char* what() const _NOEXCEPT override { return "Unknown config option"; }
 };
 
 }

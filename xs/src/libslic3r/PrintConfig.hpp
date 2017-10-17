@@ -265,7 +265,7 @@ private: \
         } \
     } \
     /* Cache object holding a key/option map, a list of option keys and a copy of this static config initialized with the defaults. */ \
-    static StaticCache<CLASS_NAME> s_cache_##CLASS_NAME;
+    static StaticPrintConfig::StaticCache<CLASS_NAME> s_cache_##CLASS_NAME;
 
 #define STATIC_PRINT_CONFIG_CACHE(CLASS_NAME) \
     STATIC_PRINT_CONFIG_CACHE_BASE(CLASS_NAME) \
