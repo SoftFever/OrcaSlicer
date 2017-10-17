@@ -251,27 +251,27 @@ protected:
 public: \
     /* Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name. */ \
     ConfigOption*            optptr(const t_config_option_key &opt_key, bool create = false) override \
-        { return s_cache.optptr(opt_key, this); } \
+        { return s_cache_##CLASS_NAME.optptr(opt_key, this); } \
     /* Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store. */ \
-    t_config_option_keys     keys() const override { return s_cache.keys(); } \
-    static const CLASS_NAME& defaults() { initialize_cache(); return s_cache.defaults(); } \
-protected: \
+    t_config_option_keys     keys() const override { return s_cache_##CLASS_NAME.keys(); } \
+    static const CLASS_NAME& defaults() { initialize_cache(); return s_cache_##CLASS_NAME.defaults(); } \
+private: \
     static void initialize_cache() \
     { \
-        if (! s_cache.initialized()) { \
+        if (! s_cache_##CLASS_NAME.initialized()) { \
             CLASS_NAME *inst = new CLASS_NAME(1); \
-            inst->initialize(s_cache, (const char*)inst); \
-            s_cache.finalize(inst, inst->def()); \
+            inst->initialize(s_cache_##CLASS_NAME, (const char*)inst); \
+            s_cache_##CLASS_NAME.finalize(inst, inst->def()); \
         } \
     } \
     /* Cache object holding a key/option map, a list of option keys and a copy of this static config initialized with the defaults. */ \
-    static StaticCache<CLASS_NAME> s_cache;
+    static StaticCache<CLASS_NAME> s_cache_##CLASS_NAME;
 
 #define STATIC_PRINT_CONFIG_CACHE(CLASS_NAME) \
     STATIC_PRINT_CONFIG_CACHE_BASE(CLASS_NAME) \
 public: \
     /* Public default constructor will initialize the key/option cache and the default object copy if needed. */ \
-    CLASS_NAME() { initialize_cache(); *this = s_cache.defaults(); } \
+    CLASS_NAME() { initialize_cache(); *this = s_cache_##CLASS_NAME.defaults(); } \
 protected: \
     /* Protected constructor to be called when compounded. */ \
     CLASS_NAME(int) {}
@@ -540,7 +540,7 @@ protected:
 class PrintConfig : public GCodeConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
-    PrintConfig() : GCodeConfig(0) { initialize_cache(); *this = s_cache.defaults(); }
+    PrintConfig() : GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
 public:
     double                          min_object_distance() const;
     static double                   min_object_distance(const ConfigBase *config);
@@ -697,7 +697,7 @@ class FullPrintConfig :
     public HostConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(FullPrintConfig)
-	FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) { initialize_cache(); *this = s_cache.defaults(); }
+	FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) { initialize_cache(); *this = s_cache_FullPrintConfig.defaults(); }
 
 public:
     // Validate the FullPrintConfig. Returns an empty string on success, otherwise an error message is returned.

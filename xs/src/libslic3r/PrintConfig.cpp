@@ -1973,11 +1973,11 @@ std::string FullPrintConfig::validate()
 }
 
 // Declare the static caches for each StaticPrintConfig derived class.
-StaticPrintConfig::StaticCache<class Slic3r::PrintObjectConfig> PrintObjectConfig::s_cache;
-StaticPrintConfig::StaticCache<class Slic3r::PrintRegionConfig> PrintRegionConfig::s_cache;
-StaticPrintConfig::StaticCache<class Slic3r::GCodeConfig>       GCodeConfig::s_cache;
-StaticPrintConfig::StaticCache<class Slic3r::PrintConfig>       PrintConfig::s_cache;
-StaticPrintConfig::StaticCache<class Slic3r::HostConfig>        HostConfig::s_cache;
-StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig::s_cache;
+StaticPrintConfig::StaticCache<class Slic3r::PrintObjectConfig> PrintObjectConfig::s_cache_PrintObjectConfig;
+StaticPrintConfig::StaticCache<class Slic3r::PrintRegionConfig> PrintRegionConfig::s_cache_PrintRegionConfig;
+StaticPrintConfig::StaticCache<class Slic3r::GCodeConfig>       GCodeConfig::s_cache_GCodeConfig;
+StaticPrintConfig::StaticCache<class Slic3r::PrintConfig>       PrintConfig::s_cache_PrintConfig;
+StaticPrintConfig::StaticCache<class Slic3r::HostConfig>        HostConfig::s_cache_HostConfig;
+StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig::s_cache_FullPrintConfig;
 
 }
