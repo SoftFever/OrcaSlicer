@@ -38,7 +38,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
 
 Fill* Fill::new_from_type(const std::string &type)
 {
-    static t_config_enum_values enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
+    const t_config_enum_values &enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
     t_config_enum_values::const_iterator it = enum_keys_map.find(type);
     return (it == enum_keys_map.end()) ? nullptr : new_from_type(InfillPattern(it->second));
 }

@@ -31,6 +31,7 @@ Clone<BoundingBoxf3>       O_OBJECT_SLIC3R_T
 
 DynamicPrintConfig*        O_OBJECT_SLIC3R
 Ref<DynamicPrintConfig>    O_OBJECT_SLIC3R_T
+Clone<DynamicPrintConfig>  O_OBJECT_SLIC3R_T
 
 StaticPrintConfig*         O_OBJECT_SLIC3R
 Ref<StaticPrintConfig>     O_OBJECT_SLIC3R_T
