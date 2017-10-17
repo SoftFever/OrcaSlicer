@@ -184,6 +184,12 @@ public:
     coord_t z;
     explicit Point3(coord_t _x = 0, coord_t _y = 0, coord_t _z = 0): Point(_x, _y), z(_z) {};
     static Point3 new_scale(coordf_t x, coordf_t y, coordf_t z) { return Point3(coord_t(scale_(x)), coord_t(scale_(y)), coord_t(scale_(z))); }
+    bool operator==(const Point3 &rhs) const { return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z; }
+    bool operator!=(const Point3 &rhs) const { return ! (*this == rhs); }
+private:
+    // Hide the following inherited methods:
+    bool operator==(const Point &rhs);
+    bool operator!=(const Point &rhs);
 };
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
@@ -214,6 +220,9 @@ public:
     Pointf& operator+=(const Pointf& rhs) { this->x += rhs.x; this->y += rhs.y; return *this; }
     Pointf& operator-=(const Pointf& rhs) { this->x -= rhs.x; this->y -= rhs.y; return *this; }
     Pointf& operator*=(const coordf_t& rhs) { this->x *= rhs; this->y *= rhs;   return *this; }
+
+    bool operator==(const Pointf &rhs) const { return this->x == rhs.x && this->y == rhs.y; }
+    bool operator!=(const Pointf &rhs) const { return ! (*this == rhs); }
 };
 
 inline Pointf operator+(const Pointf& point1, const Pointf& point2) { return Pointf(point1.x + point2.x, point1.y + point2.y); }
@@ -228,7 +237,7 @@ inline double l2(const Vectorf &v) { return dot(v); }
 
 class Pointf3 : public Pointf
 {
-    public:
+public:
     coordf_t z;
     explicit Pointf3(coordf_t _x = 0, coordf_t _y = 0, coordf_t _z = 0): Pointf(_x, _y), z(_z) {};
     static Pointf3 new_unscale(coord_t x, coord_t y, coord_t z) {
@@ -240,6 +249,14 @@ class Pointf3 : public Pointf
     double distance_to(const Pointf3 &point) const;
     Pointf3 negative() const;
     Vectorf3 vector_to(const Pointf3 &point) const;
+
+    bool operator==(const Pointf3 &rhs) const { return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z; }
+    bool operator!=(const Pointf3 &rhs) const { return ! (*this == rhs); }
+
+private:
+    // Hide the following inherited methods:
+    bool operator==(const Pointf &rhs);
+    bool operator!=(const Pointf &rhs);
 };
 
 template<typename TO> inline TO convert_to(const Point &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y)); }
