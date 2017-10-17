@@ -41,5 +41,5 @@
         %};
 
     Ref<StaticPrintConfig> config()
-        %code{% RETVAL = const_cast<StaticPrintConfig*>(static_cast<const PrintObjectConfig*>(&THIS->config())); %};
+        %code{% RETVAL = const_cast<StaticPrintConfig*>(static_cast<const StaticPrintConfig*>(static_cast<const PrintObjectConfig*>(&THIS->config()))); %};
 };
