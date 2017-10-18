@@ -71,7 +71,7 @@ SV* ConfigBase__as_hash(ConfigBase* THIS)
 
 SV* ConfigBase__get(ConfigBase* THIS, const t_config_option_key &opt_key)
 {
-    ConfigOption* opt = THIS->option(opt_key);
+    ConfigOption *opt = THIS->option(opt_key, false);
     return (opt == nullptr) ? 
         &PL_sv_undef :
         ConfigOption_to_SV(*opt, *THIS->def()->get(opt_key));
@@ -149,8 +149,9 @@ SV* ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def)
 
 SV* ConfigBase__get_at(ConfigBase* THIS, const t_config_option_key &opt_key, size_t i)
 {
-    ConfigOption* opt = THIS->option(opt_key);
-    if (opt == NULL) return &PL_sv_undef;
+    ConfigOption* opt = THIS->option(opt_key, false);
+    if (opt == nullptr)
+        return &PL_sv_undef;
     
     const ConfigOptionDef* def = THIS->def()->get(opt_key);
     switch (def->type) {
@@ -177,9 +178,11 @@ SV* ConfigBase__get_at(ConfigBase* THIS, const t_config_option_key &opt_key, siz
 bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* value)
 {
     ConfigOption* opt = THIS->option(opt_key, true);
-    if (opt == NULL) CONFESS("Trying to set non-existing option");
-    
+    if (opt == nullptr)
+        CONFESS("Trying to set non-existing option");
     const ConfigOptionDef* def = THIS->def()->get(opt_key);
+    if (opt->type() != def->type)
+        CONFESS("Option type is different from the definition");
     switch (def->type) {
     case coFloat:
         if (!looks_like_number(value))
@@ -188,28 +191,30 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
         break;
     case coFloats:
     {
-        std::vector<double> values;
+        std::vector<double> &values = static_cast<ConfigOptionFloats*>(opt)->values;
         AV* av = (AV*)SvRV(value);
         const size_t len = av_len(av)+1;
-        for (size_t i = 0; i < len; i++) {
+        values.clear();
+        values.reserve(len);
+        for (size_t i = 0; i < len; ++ i) {
             SV** elem = av_fetch(av, i, 0);
             if (elem == NULL || !looks_like_number(*elem)) return false;
-            values.push_back(SvNV(*elem));
+            values.emplace_back(SvNV(*elem));
         }
-        static_cast<ConfigOptionFloats*>(opt)->values = std::move(values);
         break;
     }
     case coPercents:
     {
-        std::vector<double> values;
+        std::vector<double> &values = static_cast<ConfigOptionPercents*>(opt)->values;
         AV* av = (AV*)SvRV(value);
         const size_t len = av_len(av)+1;
+        values.clear();
+        values.reserve(len);
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
             if (elem == NULL || !looks_like_number(*elem)) return false;
-            values.push_back(SvNV(*elem));
+            values.emplace_back(SvNV(*elem));
         }
-        static_cast<ConfigOptionPercents*>(opt)->values = std::move(values);
         break;
     }
     case coInt:
@@ -218,15 +223,16 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
         break;
     case coInts:
     {
-        std::vector<int> values;
+        std::vector<int> &values = static_cast<ConfigOptionInts*>(opt)->values;
         AV* av = (AV*)SvRV(value);
         const size_t len = av_len(av)+1;
+        values.clear();
+        values.reserve(len);
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
             if (elem == NULL || !looks_like_number(*elem)) return false;
-            values.push_back(SvIV(*elem));
+            values.emplace_back(SvIV(*elem));
         }
-        static_cast<ConfigOptionInts*>(opt)->values = std::move(values);
         break;
     }
     case coString:
@@ -234,15 +240,15 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
         break;
     case coStrings:
     {
-        auto optv = static_cast<ConfigOptionStrings*>(opt);
-        optv->values.clear();
+        std::vector<std::string> &values = static_cast<ConfigOptionStrings*>(opt)->values;
         AV* av = (AV*)SvRV(value);
         const size_t len = av_len(av)+1;
-        optv->values.reserve(len);
+        values.clear();
+        values.reserve(len);
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
             if (elem == NULL) return false;
-            optv->values.emplace_back(std::string(SvPV_nolen(*elem), SvCUR(*elem)));
+            values.emplace_back(std::string(SvPV_nolen(*elem), SvCUR(*elem)));
         }
         break;
     }
@@ -250,16 +256,17 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
         return from_SV_check(value, &static_cast<ConfigOptionPoint*>(opt)->value);
     case coPoints:
     {
-        std::vector<Pointf> values;
+        std::vector<Pointf> &values = static_cast<ConfigOptionPoints*>(opt)->values;
         AV* av = (AV*)SvRV(value);
         const size_t len = av_len(av)+1;
+        values.clear();
+        values.reserve(len);
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
             Pointf point;
             if (elem == NULL || !from_SV_check(*elem, &point)) return false;
-            values.push_back(point);
+            values.emplace_back(point);
         }
-        static_cast<ConfigOptionPoints*>(opt)->values = std::move(values);
         break;
     }
     case coBool:
@@ -267,15 +274,15 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
         break;
     case coBools:
     {
-        auto optv = static_cast<ConfigOptionBools*>(opt);
-        optv->values.clear();
+        std::vector<unsigned char> &values = static_cast<ConfigOptionBools*>(opt)->values;
         AV* av = (AV*)SvRV(value);
         const size_t len = av_len(av)+1;
-        optv->values.reserve(len);
+        values.clear();
+        values.reserve(len);
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
             if (elem == NULL) return false;
-            optv->values.emplace_back(SvTRUE(*elem));
+            values.emplace_back(SvTRUE(*elem));
         }
         break;
     }
