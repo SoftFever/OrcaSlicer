@@ -8,17 +8,18 @@
 %name{Slic3r::GUI::Preset} class Preset {
     // owned by PresetCollection, no constructor/destructor
 
-    bool                    is_default()  %code%{ RETVAL = THIS->is_default;  %};
-    bool                    is_external() %code%{ RETVAL = THIS->is_external; %};
-    bool                    is_visible()  %code%{ RETVAL = THIS->is_visible;  %};
-    bool                    is_dirty()    %code%{ RETVAL = THIS->is_dirty;    %};
+    bool                        default()       %code%{ RETVAL = THIS->is_default;  %};
+    bool                        external()      %code%{ RETVAL = THIS->is_external; %};
+    bool                        visible()       %code%{ RETVAL = THIS->is_visible;  %};
+    bool                        dirty()         %code%{ RETVAL = THIS->is_dirty;    %};
 
-    const char*             name()        %code%{ RETVAL = THIS->name.c_str(); %};
-    const char*             file()        %code%{ RETVAL = THIS->file.c_str(); %};
+    const char*                 name()          %code%{ RETVAL = THIS->name.c_str(); %};
+    const char*                 file()          %code%{ RETVAL = THIS->file.c_str(); %};
 
-    bool                    loaded()      %code%{ RETVAL = THIS->loaded;      %};
+    bool                        loaded()        %code%{ RETVAL = THIS->loaded;      %};
 
-    Ref<DynamicPrintConfig> config()      %code%{ RETVAL = &THIS->config;     %};
+    Ref<DynamicPrintConfig>     config_ref()    %code%{ RETVAL = &THIS->config;     %};
+    Clone<DynamicPrintConfig>   config()        %code%{ RETVAL = &THIS->config;     %};
 };
 
 %name{Slic3r::GUI::PresetCollection} class PresetCollection {
@@ -27,6 +28,29 @@
     Ref<Preset>             default_preset() %code%{ RETVAL = &THIS->default_preset(); %};
     size_t                  size() const;
     size_t                  num_visible() const;
+
+    Ref<Preset>             get_selected_preset() %code%{ RETVAL = &THIS->get_selected_preset(); %};
+    Ref<Preset>             get_current_preset() %code%{ RETVAL = &THIS->get_edited_preset(); %};
+    std::string             get_current_preset_name() %code%{ RETVAL = THIS->get_selected_preset().name; %};
+    Ref<Preset>             get_edited_preset() %code%{ RETVAL = &THIS->get_edited_preset(); %};
+    void                    set_default_suppressed(bool default_suppressed);
+
+    Ref<Preset>             find_preset(char *name, bool first_visible_if_not_found = false) %code%{ RETVAL = THIS->find_preset(name, first_visible_if_not_found); %};
+
+    bool                    current_is_dirty();
+    std::vector<std::string> current_dirty_options();
+
+    void                    update_platter_ui(SV *ui)
+        %code%{ wxChoice* cb = (wxChoice*)wxPli_sv_2_object( aTHX_ ui, "Wx::Choice" ); 
+                THIS->update_platter_ui(cb); %};
+
+    bool                    update_dirty_ui(SV *ui)
+        %code%{ RETVAL = THIS->update_dirty_ui((wxChoice*)wxPli_sv_2_object(aTHX_ ui, "Wx::Choice")); %};
+
+    bool                    select_preset_by_name(char *name) %code%{ RETVAL = THIS->select_preset_by_name(name, true); %};
+    bool                    select_by_name_ui(char *name, SV *ui) 
+        %code%{ RETVAL = THIS->select_by_name_ui(name, (wxChoice*)wxPli_sv_2_object(aTHX_ ui, "Wx::Choice")); %};
+
 %{
 
 SV*
@@ -43,6 +67,19 @@ PresetCollection::arrayref()
     OUTPUT:
         RETVAL
 
+SV*
+PresetCollection::presets_hash()
+    CODE:
+        HV* hv = newHV();
+        for (size_t i = 1; i < THIS->size(); ++ i) {
+            const Slic3r::Preset &preset = THIS->preset(i);
+            if (! preset.is_default && ! preset.is_external)
+                (void)hv_store(hv, preset.name.c_str(), - int(preset.name.size()), newSVpvn_utf8(preset.file.c_str(), preset.file.size(), true), 0);
+        }
+        RETVAL = (SV*)newRV_noinc((SV*)hv);
+    OUTPUT:
+        RETVAL
+
 %}
 };
 
@@ -51,10 +88,12 @@ PresetCollection::arrayref()
     PresetBundle();
     ~PresetBundle();
 
-    void                  load_bitmaps(std::string path_bitmap_compatible, std::string path_bitmap_incompatible);
     void                  load_presets(std::string dir_path);
+    void                  set_default_suppressed(bool default_suppressed);
 
-    Ref<PresetCollection> prints()    %code%{ RETVAL = &THIS->prints;   %};
-    Ref<PresetCollection> filaments() %code%{ RETVAL = &THIS->filaments; %};
-    Ref<PresetCollection> printers()  %code%{ RETVAL = &THIS->printers;  %};
+    Ref<PresetCollection> print()    %code%{ RETVAL = &THIS->prints;   %};
+    Ref<PresetCollection> filament() %code%{ RETVAL = &THIS->filaments; %};
+    Ref<PresetCollection> printer()  %code%{ RETVAL = &THIS->printers;  %};
+    
+    Clone<DynamicPrintConfig> full_config() %code%{ RETVAL = THIS->full_config();  %};
 };

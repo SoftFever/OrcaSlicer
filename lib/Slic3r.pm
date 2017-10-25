@@ -50,8 +50,9 @@ warn "Running Slic3r under Perl 5.16 is neither supported nor recommended\n"
     if $^V == v5.16;
 
 use FindBin;
-# Path to the images.
-our $var = sub { decode_path($FindBin::Bin) . "/var/" . $_[0] };
+
+# Let the XS module know where the GUI resources reside.
+set_var_dir(decode_path($FindBin::Bin) . "/var");
 
 use Moo 1.003001;
 

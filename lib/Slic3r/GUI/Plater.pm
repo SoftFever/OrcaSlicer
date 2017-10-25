@@ -166,22 +166,22 @@ sub new {
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
         $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE | wxTAB_TRAVERSAL);
-        $self->{htoolbar}->AddTool(TB_ADD, "Add…", Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_REMOVE, "Delete", Wx::Bitmap->new($Slic3r::var->("brick_delete.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_RESET, "Delete All", Wx::Bitmap->new($Slic3r::var->("cross.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_ARRANGE, "Arrange", Wx::Bitmap->new($Slic3r::var->("bricks.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ADD, "Add…", Wx::Bitmap->new(Slic3r::var("brick_add.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_REMOVE, "Delete", Wx::Bitmap->new(Slic3r::var("brick_delete.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_RESET, "Delete All", Wx::Bitmap->new(Slic3r::var("cross.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ARRANGE, "Arrange", Wx::Bitmap->new(Slic3r::var("bricks.png"), wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new($Slic3r::var->("add.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_FEWER, "Fewer", Wx::Bitmap->new($Slic3r::var->("delete.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new(Slic3r::var("add.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_FEWER, "Fewer", Wx::Bitmap->new(Slic3r::var("delete.png"), wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new($Slic3r::var->("arrow_rotate_anticlockwise.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new($Slic3r::var->("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new($Slic3r::var->("arrow_out.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new($Slic3r::var->("shape_ungroup.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_CUT, "Cut…", Wx::Bitmap->new($Slic3r::var->("package.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new(Slic3r::var("arrow_rotate_anticlockwise.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new(Slic3r::var("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new(Slic3r::var("arrow_out.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new(Slic3r::var("shape_ungroup.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_CUT, "Cut…", Wx::Bitmap->new(Slic3r::var("package.png"), wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, 'Layer Editing', Wx::Bitmap->new($Slic3r::var->("variable_layer_height.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, 0, 'Layer Editing');
+        $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, 'Layer Editing', Wx::Bitmap->new(Slic3r::var("variable_layer_height.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, 0, 'Layer Editing');
     } else {
         my %tbar_buttons = (
             add             => "Add…",
@@ -256,7 +256,7 @@ sub new {
         settings        cog.png
     );
     for (grep $self->{"btn_$_"}, keys %icons) {
-        $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new($Slic3r::var->($icons{$_}), wxBITMAP_TYPE_PNG));
+        $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new(Slic3r::var($icons{$_}), wxBITMAP_TYPE_PNG));
     }
     $self->selection_changed(0);
     $self->object_list_changed;
@@ -414,7 +414,7 @@ sub new {
                 $self->{"object_info_$field"} = Wx::StaticText->new($self, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $self->{"object_info_$field"}->SetFont($Slic3r::GUI::small_font);
                 if ($field eq 'manifold') {
-                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new($Slic3r::var->("error.png"), wxBITMAP_TYPE_PNG));
+                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($self, -1, Wx::Bitmap->new(Slic3r::var("error.png"), wxBITMAP_TYPE_PNG));
                     $self->{object_info_manifold_warning_icon}->Hide;
                     
                     my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -527,7 +527,7 @@ sub _on_select_preset {
     }
 	
 	# get new config and generate on_config_change() event for updating plater and other things
-	$self->on_config_change($self->GetFrame->config);
+	$self->on_config_change(wxTheApp->{preset_bundle}->full_config);
 }
 
 sub on_layer_editing_toggled {
@@ -572,50 +572,51 @@ sub update_ui_from_settings
 # For Print settings and Printer, synchronize the selection index with their tabs.
 # For Filament, synchronize the selection index for a single extruder printer only, otherwise keep the selection.
 sub update_presets {
-    my $self = shift;
     # $presets: one of qw(print filament printer)
     # $selected: index of the selected preset in the array. This may not correspond
     # with the index of selection in the UI element, where not all items are displayed.
-    my ($group, $presets, $default_suppressed, $selected, $is_dirty) = @_;
-    
-    my @choosers = @{ $self->{preset_choosers}{$group} };
-    my $choice_idx = 0;
-    foreach my $choice (@choosers) {
-        if ($group eq 'filament' && @choosers > 1) {
+    my ($self, $group, $presets, $default_suppressed, $selected, $is_dirty) = @_;
+
+    print "Plater.pm update_presets presets: $presets\n";
+#    my @choosers = @{ $self->{preset_choosers}{$group} };
+#    my $choice_idx = 0;
+#    foreach my $choice (@choosers) {
+#        if ($group eq 'filament' && @choosers > 1) {
             # if we have more than one filament chooser, keep our selection
             # instead of importing the one from the tab
-            $selected = $choice->GetSelection + $self->{preset_choosers_default_suppressed}{$group};
-            $is_dirty = 0;
-        }
-        $choice->Clear;
-        foreach my $preset (@$presets) {
-            next if ($preset->default && $default_suppressed);
-            my $bitmap;
-            if ($group eq 'filament') {
-                $bitmap = Wx::Bitmap->new($Slic3r::var->("spool.png"), wxBITMAP_TYPE_PNG);
-            } elsif ($group eq 'print') {
-                $bitmap = Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG);
-            } elsif ($group eq 'printer') {
-                $bitmap = Wx::Bitmap->new($Slic3r::var->("printer_empty.png"), wxBITMAP_TYPE_PNG);
-            }
-            $choice->AppendString($preset->name, $bitmap);
-        }
+#            $selected = $choice->GetSelection + $self->{preset_choosers_default_suppressed}{$group};
+#            $is_dirty = 0;
+#        }
+#        $choice->Clear;
+#        foreach my $preset (@{$presets}) {
+#            print "Prset of $presets: $preset\n";
+#            next if ($preset->default && $default_suppressed);
+#            my $bitmap;
+#            if ($group eq 'filament') {
+#                $bitmap = Wx::Bitmap->new(Slic3r::var("spool.png"), wxBITMAP_TYPE_PNG);
+#            } elsif ($group eq 'print') {
+#                $bitmap = Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG);
+#            } elsif ($group eq 'printer') {
+#                $bitmap = Wx::Bitmap->new(Slic3r::var("printer_empty.png"), wxBITMAP_TYPE_PNG);
+#            }
+#            $choice->AppendString($preset->name, $bitmap);
+#        }
         
-        if ($selected <= $#$presets) {
-            my $idx = $selected - $default_suppressed;
-            if ($idx >= 0) {
-                if ($is_dirty) {
-                    $choice->SetString($idx, $choice->GetString($idx) . " (modified)");
-                }
-                # call SetSelection() only after SetString() otherwise the new string
-                # won't be picked up as the visible string
-                $choice->SetSelection($idx);
-            }
-        }
-        $choice_idx += 1;
-    }
+#        if ($selected <= $#$presets) {
+#            my $idx = $selected - $default_suppressed;
+#            if ($idx >= 0) {
+#                if ($is_dirty) {
+#                    $choice->SetString($idx, $choice->GetString($idx) . " (modified)");
+#                }
+#                # call SetSelection() only after SetString() otherwise the new string
+#                # won't be picked up as the visible string
+#                $choice->SetSelection($idx);
+#            }
+#        }
+#        $choice_idx += 1;
+#    }
 
-    $self->{preset_choosers_default_suppressed}{$group} = $default_suppressed;
+#    $self->{preset_choosers_default_suppressed}{$group} = $default_suppressed;
 
     wxTheApp->CallAfter(sub { $self->update_filament_colors_preview }) if $group eq 'filament' || $group eq 'printer';
 }
@@ -626,63 +627,65 @@ sub update_presets {
 sub update_filament_colors_preview {
     my ($self, $extruder_idx) = shift;
 
-    my @choosers = @{$self->{preset_choosers}{filament}};
+#    my @choosers = @{$self->{preset_choosers}{filament}};
 
-    if (ref $extruder_idx) {
+#    if (ref $extruder_idx) {
         # $extruder_idx is the chooser.
-        foreach my $chooser (@choosers) {
-            if ($extruder_idx == $chooser) {
-                $extruder_idx = $chooser;
-                last;
-            }
-        }
-    }
+#        foreach my $chooser (@choosers) {
+#            if ($extruder_idx == $chooser) {
+#                $extruder_idx = $chooser;
+#                last;
+#            }
+#        }
+#    }
 
-    my @extruder_colors = @{$self->{config}->extruder_colour};
+#    my @extruder_colors = @{$self->{config}->extruder_colour};
 
-    my @extruder_list;
-    if (defined $extruder_idx) {
-        @extruder_list = ($extruder_idx);
-    } else {
+#    my @extruder_list;
+#    if (defined $extruder_idx) {
+#        @extruder_list = ($extruder_idx);
+#    } else {
         # Collect extruder indices.
-        @extruder_list = (0..$#extruder_colors);
-    }
+#        @extruder_list = (0..$#extruder_colors);
+#    }
 
-    my $filament_tab       = $self->GetFrame->{options_tabs}{filament};
-    my $presets            = $filament_tab->{presets};
-    my $default_suppressed = $filament_tab->{default_suppressed};
+#    my $filament_tab       = $self->GetFrame->{options_tabs}{filament};
+#    my $presets            = $filament_tab->{presets};
+#    my $default_suppressed = $filament_tab->{default_suppressed};
 
-    foreach my $extruder_idx (@extruder_list) {
-        my $chooser = $choosers[$extruder_idx];
-        my $extruder_color = $self->{config}->extruder_colour->[$extruder_idx];
-        my $preset_idx = 0;
-        my $selection_idx = $chooser->GetSelection;
-        foreach my $preset (@$presets) {
-            my $bitmap;
-            if ($preset->default) {
-                next if $default_suppressed;
-            } else {
+#    foreach my $extruder_idx (@extruder_list) {
+#        my $chooser = $choosers[$extruder_idx];
+#        my $extruder_color = $self->{config}->extruder_colour->[$extruder_idx];
+#        my $preset_idx = 0;
+#        my $selection_idx = $chooser->GetSelection;
+#        foreach my $preset (@$presets) {
+#            my $bitmap;
+#            if ($preset->default) {
+#                next if $default_suppressed;
+#            } else {
                 # Assign an extruder color to the selected item if the extruder color is defined.
-                my $filament_rgb = $preset->config(['filament_colour'])->filament_colour->[0];
-                my $extruder_rgb = ($preset_idx == $selection_idx && $extruder_color =~ m/^#[[:xdigit:]]{6}/) ? $extruder_color : $filament_rgb;
-                $filament_rgb =~ s/^#//;
-                $extruder_rgb =~ s/^#//;
-                my $image = Wx::Image->new(24,16);
-                if ($filament_rgb ne $extruder_rgb) {
-                    my @rgb = unpack 'C*', pack 'H*', $extruder_rgb;
-                    $image->SetRGB(Wx::Rect->new(0,0,16,16), @rgb);
-                    @rgb = unpack 'C*', pack 'H*', $filament_rgb;
-                    $image->SetRGB(Wx::Rect->new(16,0,8,16), @rgb);
-                } else {
-                    my @rgb = unpack 'C*', pack 'H*', $filament_rgb;
-                    $image->SetRGB(Wx::Rect->new(0,0,24,16), @rgb);
-                }
-                $bitmap = Wx::Bitmap->new($image);
-            }
-            $chooser->SetItemBitmap($preset_idx, $bitmap) if $bitmap;
-            $preset_idx += 1;
-        }
-    }
+#                my $filament_colour_cfg = $preset->config_ref->filament_colour;
+#                print $filament_colour_cfg . "\n";
+#                my $filament_rgb = $filament_colour_cfg->[0];
+#                my $extruder_rgb = ($preset_idx == $selection_idx && $extruder_color =~ m/^#[[:xdigit:]]{6}/) ? $extruder_color : $filament_rgb;
+#                $filament_rgb =~ s/^#//;
+#                $extruder_rgb =~ s/^#//;
+#                my $image = Wx::Image->new(24,16);
+#                if ($filament_rgb ne $extruder_rgb) {
+#                    my @rgb = unpack 'C*', pack 'H*', $extruder_rgb;
+#                    $image->SetRGB(Wx::Rect->new(0,0,16,16), @rgb);
+#                    @rgb = unpack 'C*', pack 'H*', $filament_rgb;
+#                    $image->SetRGB(Wx::Rect->new(16,0,8,16), @rgb);
+#                } else {
+#                    my @rgb = unpack 'C*', pack 'H*', $filament_rgb;
+#                    $image->SetRGB(Wx::Rect->new(0,0,24,16), @rgb);
+#                }
+#                $bitmap = Wx::Bitmap->new($image);
+#            }
+#            $chooser->SetItemBitmap($preset_idx, $bitmap) if $bitmap;
+#            $preset_idx += 1;
+#        }
+#    }
 }
 
 # Return a vector of indices of filaments selected by the $self->{preset_choosers}{filament} combo boxes.
@@ -1163,7 +1166,7 @@ sub arrange {
     $self->pause_background_process;
     
     my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
-    my $success = $self->{model}->arrange_objects($self->GetFrame->config->min_object_distance, $bb);
+    my $success = $self->{model}->arrange_objects(wxTheApp->{preset_bundle}->full_config->min_object_distance, $bb);
     # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     # when parts don't fit in print bed
     
@@ -1224,7 +1227,7 @@ sub async_apply_config {
     $self->pause_background_process;
     
     # apply new config
-    my $invalidated = $self->{print}->apply_config($self->GetFrame->config);
+    my $invalidated = $self->{print}->apply_config(wxTheApp->{preset_bundle}->full_config);
 
     # Just redraw the 3D canvas without reloading the scene.
 #    $self->{canvas3D}->Refresh if ($invalidated && $self->{canvas3D}->layer_editing_enabled);
@@ -1266,7 +1269,7 @@ sub start_background_process {
     # don't start process thread if config is not valid
     eval {
         # this will throw errors if config is not valid
-        $self->GetFrame->config->validate;
+        wxTheApp->{preset_bundle}->full_config->validate;
         $self->{print}->validate;
     };
     if ($@) {
@@ -1378,14 +1381,14 @@ sub export_gcode {
     # (we assume that if it is running, config is valid)
     eval {
         # this will throw errors if config is not valid
-        $self->GetFrame->config->validate;
+        wxTheApp->{preset_bundle}->full_config->validate;
         $self->{print}->validate;
     };
     Slic3r::GUI::catch_error($self) and return;
     
     
     # apply config and validate print
-    my $config = $self->GetFrame->config;
+    my $config = wxTheApp->{preset_bundle}->full_config;
     eval {
         # this will throw errors if config is not valid
         $config->validate;
@@ -1549,11 +1552,9 @@ sub on_export_completed {
 sub do_print {
     my ($self) = @_;
     
-    my $printer_tab = $self->GetFrame->{options_tabs}{printer};
-    my $printer_name = $printer_tab->get_current_preset->name;
-    
     my $controller = $self->GetFrame->{controller};
-    my $printer_panel = $controller->add_printer($printer_name, $printer_tab->config);
+    my $printer_preset = wxTheApp->{preset_bundle}->printer->get_edited_preset;    
+    my $printer_panel = $controller->add_printer($printer_preset->name, $printer_preset->config);
     
     my $filament_stats = $self->{print}->filament_stats;
     my @filament_names = $self->GetFrame->filament_preset_names;
@@ -1859,7 +1860,7 @@ sub filament_color_box_lmouse_down
         my $dialog = Wx::ColourDialog->new($self->GetFrame, $data);
         if ($dialog->ShowModal == wxID_OK) {
             my $cfg = Slic3r::Config->new;
-            my $colors = $self->GetFrame->config->get('extruder_colour');
+            my $colors = wxTheApp->{preset_bundle}->full_config->get('extruder_colour');
             $colors->[$extruder_idx] = $dialog->GetColourData->GetColour->GetAsString(wxC2S_HTML_SYNTAX);
             $cfg->set('extruder_colour', $colors);
             $self->GetFrame->{options_tabs}{printer}->load_config($cfg);
@@ -1912,7 +1913,7 @@ sub object_settings_dialog {
     my $dlg = Slic3r::GUI::Plater::ObjectSettingsDialog->new($self,
 		object          => $self->{objects}[$obj_idx],
 		model_object    => $model_object,
-        config          => $self->GetFrame->config,
+        config          => wxTheApp->{preset_bundle}->full_config,
 	);
 	$self->pause_background_process;
 	$dlg->ShowModal;
@@ -2048,18 +2049,14 @@ sub selected_object {
 }
 
 sub validate_config {
-    my $self = shift;
-    
     eval {
-        $self->GetFrame->config->validate;
+        wxTheApp->{preset_bundle}->full_config->validate;
     };
-    return 0 if Slic3r::GUI::catch_error($self);    
-    return 1;
+    return Slic3r::GUI::catch_error($_[0]) ? 0 : 1;
 }
 
 sub statusbar {
-    my $self = shift;
-    return $self->GetFrame->{statusbar};
+    return $_[0]->GetFrame->{statusbar};
 }
 
 sub object_menu {

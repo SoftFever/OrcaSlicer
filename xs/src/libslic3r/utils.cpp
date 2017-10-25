@@ -6,8 +6,8 @@
 
 #include <boost/locale.hpp>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
-
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -84,6 +84,31 @@ const std::string& var_dir()
 std::string var(const std::string &file_name)
 {
     auto file = boost::filesystem::canonical(boost::filesystem::path(g_var_dir) / file_name).make_preferred();
+    return file.string();
+}
+
+static std::string g_data_dir;
+
+void set_data_dir(const std::string &dir)
+{
+    g_data_dir = dir;
+}
+
+const std::string& data_dir()
+{
+    return g_data_dir;
+}
+
+std::string config_path(const std::string &file_name)
+{
+    auto file = boost::filesystem::canonical(boost::filesystem::path(g_data_dir) / file_name).make_preferred();
+    return file.string();
+}
+
+std::string config_path(const std::string &section, const std::string &name)
+{
+    auto file_name = boost::algorithm::iends_with(name, ".ini") ? name : name + ".ini";
+    auto file = boost::filesystem::canonical(boost::filesystem::path(g_data_dir) / file_name).make_preferred();
     return file.string();
 }
 

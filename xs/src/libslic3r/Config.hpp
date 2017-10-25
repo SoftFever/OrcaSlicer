@@ -27,35 +27,36 @@ extern bool         unescape_strings_cstyle(const std::string &str, std::vector<
 
 // Type of a configuration value.
 enum ConfigOptionType {
-    coNone,
+    coVectorType    = 0x4000,
+    coNone          = 0,
     // single float
-    coFloat,
+    coFloat         = 1,
     // vector of floats
-    coFloats,
+    coFloats        = coFloat + coVectorType,
     // single int
-    coInt,
+    coInt           = 2,
     // vector of ints
-    coInts,
+    coInts          = coInt + coVectorType,
     // single string
-    coString,
+    coString        = 3,
     // vector of strings
-    coStrings,
+    coStrings       = coString + coVectorType,
     // percent value. Currently only used for infill.
-    coPercent,
+    coPercent       = 4,
     // percents value. Currently used for retract before wipe only.
-    coPercents,
+    coPercents      = coPercent + coVectorType,
     // a fraction or an absolute value
-    coFloatOrPercent,
+    coFloatOrPercent = 5,
     // single 2d point. Currently not used.
-    coPoint,
+    coPoint         = 6,
     // vector of 2d points. Currently used for the definition of the print bed and for the extruder offsets.
-    coPoints,
+    coPoints        = coPoint + coVectorType,
     // single boolean value
-    coBool,
+    coBool          = 7,
     // vector of boolean values
-    coBools,
+    coBools         = coBool + coVectorType,
     // a generic enum
-    coEnum,
+    coEnum          = 8,
 };
 
 // A generic value of a configuration option.
@@ -75,6 +76,8 @@ public:
     virtual void                setInt(int /* val */) { throw std::runtime_error("Calling ConfigOption::setInt on a non-int ConfigOption"); }
     virtual bool                operator==(const ConfigOption &rhs) const = 0;
     bool                        operator!=(const ConfigOption &rhs) const { return ! (*this == rhs); }
+    bool                        is_scalar()     const { return (int(this->type()) & int(coVectorType)) == 0; }
+    bool                        is_vector()     const { return ! this->is_scalar(); }
 };
 
 // Value of a single valued option (bool, int, float, string, point, enum)
@@ -110,6 +113,18 @@ class ConfigOptionVectorBase : public ConfigOption {
 public:
     // Currently used only to initialize the PlaceholderParser.
     virtual std::vector<std::string> vserialize() const = 0;
+    // Set from a vector of ConfigOptions. 
+    // If the rhs ConfigOption is scalar, then its value is used,
+    // otherwise for each of rhs, the first value of a vector is used.
+    // This function is useful to collect values for multiple extrder / filament settings.
+    virtual void set(const std::vector<const ConfigOption*> &rhs) = 0;
+    // Set a single vector item from either a scalar option or the first value of a vector option.vector of ConfigOptions. 
+    // This function is useful to split values from multiple extrder / filament settings into separate configurations.
+    virtual void set_at(const ConfigOption *rhs, size_t i, size_t j) = 0;
+
+protected:
+    // Used to verify type compatibility when assigning to / from a scalar ConfigOption.
+    ConfigOptionType scalar_type() const { return static_cast<ConfigOptionType>(this->type() - coVectorType); }
 };
 
 // Value of a vector valued option (bools, ints, floats, strings, points), template
@@ -125,13 +140,57 @@ public:
             throw std::runtime_error("ConfigOptionVector: Assigning an incompatible type");
         assert(dynamic_cast<const ConfigOptionVector<T>*>(rhs));
         this->values = static_cast<const ConfigOptionVector<T>*>(rhs)->values;
-    };
+    }
+
+    // Set from a vector of ConfigOptions. 
+    // If the rhs ConfigOption is scalar, then its value is used,
+    // otherwise for each of rhs, the first value of a vector is used.
+    // This function is useful to collect values for multiple extrder / filament settings.
+    void set(const std::vector<const ConfigOption*> &rhs) override
+    {
+        this->values.clear();
+        this->values.reserve(rhs.size());
+        for (const ConfigOption *opt : rhs) {
+            if (opt->type() == this->type()) {
+                auto other = static_cast<const ConfigOptionVector<T>*>(opt);
+                if (other->values.empty())
+                    throw std::runtime_error("ConfigOptionVector::set(): Assigning from an empty vector");
+                this->values.emplace_back(other->values.front());
+            } else if (opt->type() == this->scalar_type())
+                this->values.emplace_back(static_cast<const ConfigOptionSingle<T>*>(opt)->value);
+            else
+                throw std::runtime_error("ConfigOptionVector::set():: Assigning an incompatible type");
+        }
+    }
+
+    // Set a single vector item from either a scalar option or the first value of a vector option.vector of ConfigOptions. 
+    // This function is useful to split values from multiple extrder / filament settings into separate configurations.
+    void set_at(const ConfigOption *rhs, size_t i, size_t j) override
+    {
+        // It is expected that the vector value has at least one value, which is the default, if not overwritten.
+        assert(! this->values.empty());
+        if (this->values.size() <= i) {
+            // Resize this vector, fill in the new vector fields with the copy of the first field.
+            T v = this->values.front();
+            this->values.resize(i + 1, v);
+        }
+        if (rhs->type() == this->type()) {
+            // Assign the first value of the rhs vector.
+            auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
+            if (other->values.empty())
+                throw std::runtime_error("ConfigOptionVector::set_at(): Assigning from an empty vector");
+            this->values[i] = other->get_at(j);
+        } else if (rhs->type() == this->scalar_type())
+            this->values[i] = static_cast<const ConfigOptionSingle<T>*>(rhs)->value;
+        else
+            throw std::runtime_error("ConfigOptionVector::set_at(): Assigning an incompatible type");
+    }
 
     T& get_at(size_t i)
     {
         assert(! this->values.empty());
         return (i < this->values.size()) ? this->values[i] : this->values.front();
-    };
+    }
 
     const T& get_at(size_t i) const { return const_cast<ConfigOptionVector<T>*>(this)->get_at(i); }
 

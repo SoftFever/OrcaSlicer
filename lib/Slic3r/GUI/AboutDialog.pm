@@ -97,7 +97,7 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_);
 
-    $self->{logo} = Wx::Bitmap->new($Slic3r::var->("Slic3r_192px.png"), wxBITMAP_TYPE_PNG);
+    $self->{logo} = Wx::Bitmap->new(Slic3r::var("Slic3r_192px.png"), wxBITMAP_TYPE_PNG);
     $self->SetMinSize(Wx::Size->new($self->{logo}->GetWidth, $self->{logo}->GetHeight));
 
     EVT_PAINT($self, \&repaint);

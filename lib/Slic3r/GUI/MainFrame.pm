@@ -6,6 +6,7 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
+use FindBin;
 use List::Util qw(min);
 use Slic3r::Geometry qw(X Y);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
@@ -22,12 +23,12 @@ sub new {
     
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
     if ($^O eq 'MSWin32') {
-        # Load the icon either from the exe, or fron the ico file.
-        my $iconfile = $Slic3r::var->('..\slic3r.exe');
-        $iconfile = $Slic3r::var->("Slic3r.ico") unless -f $iconfile;
+        # Load the icon either from the exe, or from the ico file.
+        my $iconfile = Slic3r::decode_path($FindBin::Bin) . '\slic3r.exe';
+        $iconfile = Slic3r::var("Slic3r.ico") unless -f $iconfile;
         $self->SetIcon(Wx::Icon->new($iconfile, wxBITMAP_TYPE_ICO));
     } else {
-        $self->SetIcon(Wx::Icon->new($Slic3r::var->("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));        
+        $self->SetIcon(Wx::Icon->new(Slic3r::var("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));        
     }
     
     # store input params
@@ -112,7 +113,7 @@ sub _init_tabpanel {
         # Callback to be executed after any of the configuration fields (Perl class Slic3r::GUI::OptionsGroup::Field) change their value.
         $tab->on_value_change(sub {
             my ($opt_key, $value) = @_;
-            my $config = $tab->config;
+            my $config = $tab->{presets}->get_current_preset->config;
             if ($self->{plater}) {
                 $self->{plater}->on_config_change($config); # propagate config change events to the plater
                 $self->{plater}->on_extruders_change($value) if $opt_key eq 'extruders_count';
@@ -126,7 +127,7 @@ sub _init_tabpanel {
             if ($self->{plater}) {
                 # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
                 $self->{plater}->update_presets($tab_name, @_);
-                $self->{plater}->on_config_change($tab->config);
+                $self->{plater}->on_config_change($tab->{presets}->get_current_preset->config);
                 if ($self->{controller}) {
                     $self->{controller}->update_presets($tab_name, @_);
                 }
@@ -143,7 +144,7 @@ sub _init_tabpanel {
         });
         
         # load initial config
-        $self->{plater}->on_config_change($self->config);
+        $self->{plater}->on_config_change(wxTheApp->{preset_bundle}->full_config);
     }
 }
 
@@ -495,7 +496,7 @@ sub repair_stl {
 sub extra_variables {
     my $self = shift;
     my %extra_variables = ();
-    $extra_variables{"${_}_preset"} = $self->{options_tabs}{$_}->get_current_preset->name
+    $extra_variables{"${_}_preset"} = wxTheApp->{preset_bundle}->{$_}->get_current_preset_name
         for qw(print filament printer);
     return { %extra_variables };
 }
@@ -569,9 +570,9 @@ sub export_configbundle {
         $ini->{presets} = $Slic3r::GUI::Settings->{presets};
 
         foreach my $section (qw(print filament printer)) {
-            my %presets = wxTheApp->presets($section);
-            foreach my $preset_name (keys %presets) {
-                my $config = Slic3r::Config->load($presets{$preset_name});
+            my $presets = wxTheApp->{preset_bundle}->$section->presets_hash;
+            foreach my $preset_name (keys %{$presets}) {
+                my $config = Slic3r::Config->load($presets->{$preset_name});
                 $ini->{"$section:$preset_name"} = $config->as_ini->{_};
             }
         }
@@ -616,15 +617,15 @@ sub load_configbundle {
         next if $skip_no_id && !$config->get($section . "_settings_id");
         
         {
-            my %current_presets = Slic3r::GUI->presets($section);
+            my $current_presets = wxTheApp->{preset_bundle}->$section->presets_hash;
             my %current_ids = map { $_ => 1 }
                 grep $_,
                 map Slic3r::Config->load($_)->get($section . "_settings_id"),
-                values %current_presets;
+                values %{$current_presets};
             next INI_BLOCK if exists $current_ids{$config->get($section . "_settings_id")};
         }
         
-        $config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $section, $preset_name);
+        $config->save(sprintf Slic3r::data_dir . "/%s/%s.ini", $section, $preset_name);
         Slic3r::debugf "Imported %s preset %s\n", $section, $preset_name;
         $imported++;
     }
@@ -658,7 +659,8 @@ sub config_wizard {
     return unless $self->check_unsaved_changes;
     if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {
         for my $tab (values %{$self->{options_tabs}}) {
-            $tab->select_default_preset;
+            # Select the first visible preset.
+            $tab->select_preset(undef);
         }
         $self->load_config($config);
         for my $tab (values %{$self->{options_tabs}}) {
@@ -667,84 +669,27 @@ sub config_wizard {
     }
 }
 
-=head2 config
-
-This method collects all config values from the tabs and merges them into a single config object.
-
-=cut
-
-sub config {
-    my $self = shift;
-    
-    return Slic3r::Config->new_from_defaults
-        if !exists $self->{options_tabs}{print}
-            || !exists $self->{options_tabs}{filament}
-            || !exists $self->{options_tabs}{printer};
-    
-    # retrieve filament presets and build a single config object for them
-    my $filament_config;
-    if (!$self->{plater} || $self->{plater}->filament_presets == 1) {
-        $filament_config = $self->{options_tabs}{filament}->config;
-    } else {
-        my $i = -1;
-        foreach my $preset_idx ($self->{plater}->filament_presets) {
-            $i++;
-            my $config;
-            if ($preset_idx == $self->{options_tabs}{filament}->current_preset) {
-                # the selected preset for this extruder is the one in the tab
-                # use the tab's config instead of the preset in case it is dirty
-                # perhaps plater shouldn't expose dirty presets at all in multi-extruder environments.
-                $config = $self->{options_tabs}{filament}->config;
-            } else {
-                my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
-                $config = $self->{options_tabs}{filament}->get_preset_config($preset);
-            }
-            if (!$filament_config) {
-                $filament_config = $config->clone;
-                next;
-            }
-            foreach my $opt_key (@{$config->get_keys}) {
-                my $value = $filament_config->get($opt_key);
-                next unless ref $value eq 'ARRAY';
-                $value->[$i] = $config->get($opt_key)->[0];
-                $filament_config->set($opt_key, $value);
-            }
-        }
-    }
-    
-    my $config = Slic3r::Config->merge(
-        Slic3r::Config->new_from_defaults,
-        $self->{options_tabs}{print}->config,
-        $self->{options_tabs}{printer}->config,
-        $filament_config,
-    );
-    
-    my $extruders_count = $self->{options_tabs}{printer}{extruders_count};
-    $config->set("${_}_extruder", min($config->get("${_}_extruder"), $extruders_count))
-        for qw(perimeter infill solid_infill support_material support_material_interface);
-    
-    return $config;
-}
-
 sub filament_preset_names {
     my ($self) = @_;
-    return map $self->{options_tabs}{filament}->get_preset($_)->name,
+    return map $self->{options_tabs}{filament}->{presets}->preset($_)->name,
         $self->{plater}->filament_presets;
 }
 
+# This is called when closing the application, when loading a config file or when starting the config wizard
+# to notify the user whether he is aware that some preset changes will be lost.
 sub check_unsaved_changes {
     my $self = shift;
     
     my @dirty = ();
     foreach my $tab (values %{$self->{options_tabs}}) {
-        push @dirty, $tab->title if $tab->is_dirty;
+        push @dirty, $tab->title if $tab->{presets}->current_is_dirty;
     }
     
     if (@dirty) {
         my $titles = join ', ', @dirty;
         my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",
                                              'Unsaved Presets', wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-        return ($confirm->ShowModal == wxID_YES);
+        return $confirm->ShowModal == wxID_YES;
     }
     
     return 1;
@@ -779,7 +724,7 @@ sub _set_menu_item_icon {
     
     # SetBitmap was not available on OS X before Wx 0.9927
     if ($icon && $menuItem->can('SetBitmap')) {
-        $menuItem->SetBitmap(Wx::Bitmap->new($Slic3r::var->($icon), wxBITMAP_TYPE_PNG));
+        $menuItem->SetBitmap(Wx::Bitmap->new(Slic3r::var($icon), wxBITMAP_TYPE_PNG));
     }
 }
 

@@ -13,8 +13,7 @@ namespace Slic3r { namespace GUI {
 IOPMAssertionID assertionID;
 #endif
 
-void
-disable_screensaver()
+void disable_screensaver()
 {
     #if __APPLE__
     CFStringRef reasonForActivity = CFSTR("Slic3r");
@@ -26,8 +25,7 @@ disable_screensaver()
     #endif
 }
 
-void
-enable_screensaver()
+void enable_screensaver()
 {
     #if __APPLE__
     IOReturn success = IOPMAssertionRelease(assertionID);
@@ -36,8 +34,7 @@ enable_screensaver()
     #endif
 }
 
-bool 
-debugged()
+bool debugged()
 {
     #ifdef _WIN32
     return IsDebuggerPresent();
@@ -46,8 +43,7 @@ debugged()
     #endif /* _WIN32 */
 }
 
-void
-break_to_debugger()
+void break_to_debugger()
 {
     #ifdef _WIN32
     if (IsDebuggerPresent())

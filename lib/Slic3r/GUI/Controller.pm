@@ -32,21 +32,21 @@ sub new {
     
     # button for adding new printer panels
     {
-        my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new($Slic3r::var->("add.png"), wxBITMAP_TYPE_PNG),
+        my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new(Slic3r::var("add.png"), wxBITMAP_TYPE_PNG),
             wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);
         $btn->SetToolTipString("Add printer…")
             if $btn->can('SetToolTipString');
         
         EVT_LEFT_DOWN($btn, sub {
             my $menu = Wx::Menu->new;
-            my %presets = wxTheApp->presets('printer');
+            my $presets = wxTheApp->{preset_bundle}->printer->presets_hash;
             
             # remove printers that already exist
             my @panels = $self->print_panels;
-            delete $presets{$_} for map $_->printer_name, @panels;
+            delete $presets->{$_} for map $_->printer_name, @panels;
             
-            foreach my $preset_name (sort keys %presets) {
-                my $config = Slic3r::Config->load($presets{$preset_name});
+            foreach my $preset_name (sort keys %{$presets}) {
+                my $config = Slic3r::Config->load($presets->{$preset_name});
                 next if !$config->serial_port;
                 
                 my $id = &Wx::NewId();
@@ -100,9 +100,9 @@ sub OnActivate {
     # get all available presets
     my %presets = ();
     {
-        my %all = wxTheApp->presets('printer');
-        my %configs = map { my $name = $_; $name => Slic3r::Config->load($all{$name}) } keys %all;
-        %presets = map { $_ => $configs{$_} } grep $configs{$_}->serial_port, keys %all;
+        my $all = wxTheApp->{preset_bundle}->printer->presets_hash;
+        my %configs = map { my $name = $_; $name => Slic3r::Config->load($all->{$name}) } keys %{$all};
+        %presets = map { $_ => $configs{$_} } grep $configs{$_}->serial_port, keys %{$all};
     }
     
     # decide which ones we want to keep
@@ -183,8 +183,7 @@ sub print_panels {
 #       Slic3r::GUI::Tab::Printer::_on_presets_changed
 # when the presets are loaded or the user select another preset.
 sub update_presets {
-    my $self = shift;
-    my ($group, $presets, $default_suppressed, $selected, $is_dirty) = @_;
+    my ($self, $group, $presets, $default_suppressed, $selected, $is_dirty) = @_;
     
     # update configs of currently loaded print panels
     foreach my $panel ($self->print_panels) {

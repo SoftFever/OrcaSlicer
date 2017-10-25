@@ -52,7 +52,6 @@ use constant FILE_WILDCARDS => {
 };
 use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf prusa)};
 
-our $datadir;
 # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
 our $no_controller;
 our $no_plater;
@@ -84,8 +83,6 @@ our $grey = Wx::Colour->new(200,200,200);
 
 #our $VERSION_CHECK_EVENT : shared = Wx::NewEventType;
 
-our $DLP_projection_screen;
-
 sub OnInit {
     my ($self) = @_;
     
@@ -95,17 +92,11 @@ sub OnInit {
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
-
-    # locate or create data directory
-    # Unix: ~/.Slic3r
-    # Windows: "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
-    # Mac: "~/Library/Application Support/Slic3r"
-    $datadir ||= Wx::StandardPaths::Get->GetUserDataDir;
-    my $enc_datadir = Slic3r::encode_path($datadir);
-    Slic3r::debugf "Data directory: %s\n", $datadir;
     
-    # just checking for existence of $datadir is not enough: it may be an empty directory
+    # just checking for existence of Slic3r::data_dir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
+    my $enc_datadir = Slic3r::encode_path(Slic3r::data_dir);
+    Slic3r::debugf "Data directory: %s\n", $enc_datadir;
     my $run_wizard = (-d $enc_datadir && -e "$enc_datadir/slic3r.ini") ? 0 : 1;
     foreach my $dir ($enc_datadir, "$enc_datadir/print", "$enc_datadir/filament", "$enc_datadir/printer") {
         next if -d $dir;
@@ -119,7 +110,7 @@ sub OnInit {
     # load settings
     my $last_version;
     if (-f "$enc_datadir/slic3r.ini") {
-        my $ini = eval { Slic3r::Config->read_ini("$datadir/slic3r.ini") };
+        my $ini = eval { Slic3r::Config->read_ini(Slic3r::data_dir . "/slic3r.ini") };
         $Settings = $ini if $ini;
         $last_version = $Settings->{_}{version};
         $Settings->{_}{autocenter} //= 1;
@@ -131,6 +122,8 @@ sub OnInit {
     }
     $Settings->{_}{version} = $Slic3r::VERSION;
     $self->save_settings;
+
+    eval { $self->{preset_bundle}->load_presets(Slic3r::data_dir) };
     
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
@@ -142,20 +135,21 @@ sub OnInit {
     $self->SetTopWindow($frame);
     
     # load init bundle
-    {
-        my @dirs = ($FindBin::Bin);
-        if (&Wx::wxMAC) {
-            push @dirs, qw();
-        } elsif (&Wx::wxMSW) {
-            push @dirs, qw();
-        }
-        my $init_bundle = first { -e $_ } map "$_/.init_bundle.ini", @dirs;
-        if ($init_bundle) {
-            Slic3r::debugf "Loading config bundle from %s\n", $init_bundle;
-            $self->{mainframe}->load_configbundle($init_bundle, 1);
-            $run_wizard = 0;
-        }
-    }
+    #FIXME this is undocumented and the use case is unclear.
+#    {
+#        my @dirs = ($FindBin::Bin);
+#        if (&Wx::wxMAC) {
+#            push @dirs, qw();
+#        } elsif (&Wx::wxMSW) {
+#            push @dirs, qw();
+#        }
+#        my $init_bundle = first { -e $_ } map "$_/.init_bundle.ini", @dirs;
+#        if ($init_bundle) {
+#            Slic3r::debugf "Loading config bundle from %s\n", $init_bundle;
+#            $self->{mainframe}->load_configbundle($init_bundle, 1);
+#            $run_wizard = 0;
+#        }
+#    }
     
     if (!$run_wizard && (!defined $last_version || $last_version ne $Slic3r::VERSION)) {
         # user was running another Slic3r version on this computer
@@ -171,8 +165,10 @@ sub OnInit {
                 . "to Print Settings and click the \"Set\" button next to \"Bed Shape\".", "Bed Shape");
         }
     }
-    $self->{mainframe}->config_wizard if $run_wizard;
-    eval { $self->{preset_bundle}->load_presets($datadir) };
+    if ($run_wizard) {
+        $self->{mainframe}->config_wizard;
+        eval { $self->{preset_bundle}->load_presets(Slic3r::data_dir) };
+    }
     
 #    $self->check_version
 #        if $self->have_version_check
@@ -297,7 +293,7 @@ sub notify {
 
 sub save_settings {
     my ($self) = @_;
-    Slic3r::Config->write_ini("$datadir/slic3r.ini", $Settings);
+    Slic3r::Config->write_ini(Slic3r::data_dir . "/slic3r.ini", $Settings);
 }
 
 # Called after the Preferences dialog is closed and the program settings are saved.
@@ -306,48 +302,6 @@ sub update_ui_from_settings {
     my ($self) = @_;
     $self->{mainframe}->update_ui_from_settings;
 }
-
-sub presets {
-    my ($self, $section) = @_;
-    
-    my %presets = ();
-    opendir my $dh, Slic3r::encode_path("$Slic3r::GUI::datadir/$section")
-        or die "Failed to read directory $Slic3r::GUI::datadir/$section (errno: $!)\n";
-    # Instead of using the /i modifier for case-insensitive matching, the case insensitivity is expressed
-    # explicitely to avoid having to bundle the UTF8 Perl library.
-    foreach my $file (grep /\.[iI][nN][iI]$/, readdir $dh) {
-        $file = Slic3r::decode_path($file);
-        my $name = basename($file);
-        $name =~ s/\.ini$//;
-        $presets{$name} = "$Slic3r::GUI::datadir/$section/$file";
-    }
-    closedir $dh;
-    
-    return %presets;
-}
-
-#sub have_version_check {
-#    my ($self) = @_;
-#    
-#    # return an explicit 0
-#    return ($Slic3r::have_threads && $Slic3r::build && $have_LWP) || 0;
-#}
-
-#sub check_version {
-#    my ($self, $manual_check) = @_;
-#    
-#    Slic3r::debugf "Checking for updates...\n";
-#    
-#    @_ = ();
-#    threads->create(sub {
-#        my $ua = LWP::UserAgent->new;
-#        $ua->timeout(10);
-#        my $response = $ua->get('http://slic3r.org/updatecheck');
-#        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $VERSION_CHECK_EVENT,
-#            threads::shared::shared_clone([ $response->is_success, $response->decoded_content, $manual_check ])));
-#        Slic3r::thread_cleanup();
-#    })->detach;
-#}
 
 sub output_path {
     my ($self, $dir) = @_;
@@ -434,7 +388,7 @@ sub set_menu_item_icon {
     
     # SetBitmap was not available on OS X before Wx 0.9927
     if ($icon && $menuItem->can('SetBitmap')) {
-        $menuItem->SetBitmap(Wx::Bitmap->new($Slic3r::var->($icon), wxBITMAP_TYPE_PNG));
+        $menuItem->SetBitmap(Wx::Bitmap->new(Slic3r::var($icon), wxBITMAP_TYPE_PNG));
     }
 }
 

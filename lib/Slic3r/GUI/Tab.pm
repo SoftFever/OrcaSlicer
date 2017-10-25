@@ -24,12 +24,8 @@ use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :wi
 use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_CHECKBOX EVT_TREE_SEL_CHANGED);
 use base qw(Wx::Panel Class::Accessor);
 
-# Index of the currently active preset.
-__PACKAGE__->mk_accessors(qw(current_preset));
-
 sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
+    my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     
     # Vertical sizer to hold the choice menu and the rest of the page.
@@ -45,9 +41,9 @@ sub new {
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
-        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new($Slic3r::var->("disk.png"), wxBITMAP_TYPE_PNG), 
+        $self->{btn_save_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new(Slic3r::var("disk.png"), wxBITMAP_TYPE_PNG), 
             wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new($Slic3r::var->("delete.png"), wxBITMAP_TYPE_PNG), 
+        $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new(Slic3r::var("delete.png"), wxBITMAP_TYPE_PNG), 
             wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         $self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
@@ -97,54 +93,18 @@ sub new {
     });
     
     EVT_CHOICE($parent, $self->{presets_choice}, sub {
-        $self->on_select_preset;
+        $self->select_preset($self->{presets_choice}->GetStringSelection);
         $self->_on_presets_changed;
     });
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub { $self->save_preset });
+    EVT_BUTTON($self, $self->{btn_delete_preset}, sub { $self->delete_preset });
     
-    EVT_BUTTON($self, $self->{btn_delete_preset}, sub {
-        my $i = $self->current_preset;
-        # Don't let the user delete the '- default -' configuration.
-        # This shall not happen as the 'delete' button is disabled for the '- default -' entry,
-        # but better be safe than sorry.
-        return if ($i == 0 && $self->get_current_preset->{default});
-        my $res = Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
-        return unless $res == wxID_YES;
-        # Delete the file.
-        my $path = $self->{presets}[$i]->file;
-        my $enc_path = Slic3r::encode_path($path);
-        if (-e $enc_path && ! unlink $enc_path) {
-            # Cannot delete the file, therefore the item will not be removed from the selection.
-            Slic3r::GUI::show_error($self, "Cannot delete file $path : $!");
-            return;
-        }
-        # Delete the preset.
-        splice @{$self->{presets}}, $i, 1;
-        # Delete the item from the UI component.
-        $self->{presets_choice}->Delete($i - $self->{default_suppressed});
-        $self->current_preset(undef);
-        if ($self->{default_suppressed} && scalar(@{$self->{presets}}) == 1) {
-            # Empty selection. Add the '- default -' item into the drop down selection.
-            $self->{presets_choice}->Append($self->{presets}->[0]->name);
-            # and remember that the '- default -' is shown.
-            $self->{default_suppressed} = 0;
-        }
-        # Select the 0th item. If default is suppressed, select the first valid.
-        $self->select_preset($self->{default_suppressed});
-        $self->_on_presets_changed;
-    });
-    
-    # C++ instance DynamicPrintConfig
-    $self->{config} = Slic3r::Config->new;
     # Initialize the DynamicPrintConfig by default keys/values.
     # Possible %params keys: no_controller
     $self->build(%params);
     $self->update_tree;
     $self->_update;
-    if ($self->hidden_options) {
-        $self->{config}->apply(Slic3r::Config->new_from_defaults($self->hidden_options));
-    }
     
     return $self;
 }
@@ -152,18 +112,6 @@ sub new {
 # Are the '- default -' selections suppressed by the Slic3r GUI preferences?
 sub no_defaults {
     return $Slic3r::GUI::Settings->{_}{no_defaults} ? 1 : 0;
-}
-
-# Get a currently active preset (Perl class Slic3r::GUI::Tab::Preset).
-sub get_current_preset {
-    my $self = shift;
-    return $self->get_preset($self->current_preset);
-}
-
-# Get a preset (Perl class Slic3r::GUI::Tab::Preset) with an index $i.
-sub get_preset {
-    my ($self, $i) = @_;
-    return $self->{presets}[$i];
 }
 
 sub save_preset {
@@ -175,7 +123,7 @@ sub save_preset {
     $self->{treectrl}->SetFocus;
     
     if (!defined $name) {
-        my $preset = $self->get_current_preset;
+        my $preset = $self->{presets}->get_edited_preset;
         my $default_name = $preset->default ? 'Untitled' : $preset->name;
         $default_name =~ s/\.[iI][nN][iI]$//;
     
@@ -185,12 +133,27 @@ sub save_preset {
             values  => [ map $_->name, grep !$_->default && !$_->external, @{$self->{presets}} ],
         );
         return unless $dlg->ShowModal == wxID_OK;
-        $name = $dlg->get_name;
+        $name = Slic3r::normalize_utf8_nfc($dlg->get_name);
     }
     
-    $self->config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $self->name, $name);
+    $self->{config}->save(sprintf Slic3r::data_dir . "/%s/%s.ini", $self->name, $name);
     $self->load_presets;
-    $self->select_preset_by_name($name);
+    $self->select_preset($name);
+    $self->_on_presets_changed;
+}
+
+# Called for a currently selected preset.
+sub delete_preset {
+    my ($self) = @_;
+    my $current_preset = $self->{presets}->get_selected_preset;
+    # Don't let the user delete the '- default -' configuration.
+    return if $current_preset->{default} ||
+        wxID_YES == Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
+    # Delete the file and select some other reasonable preset.
+    eval { $self->{presets}->delete_file($current_preset->name); };
+    Slic3r::GUI::catch_error($self) and return;
+    # Delete the item from the UI component.
+    $self->{presets}->update_platter_ui($self->{presets_choice});
     $self->_on_presets_changed;
 }
 
@@ -210,116 +173,79 @@ sub on_presets_changed {
 sub _on_value_change {
     my ($self, $key, $value) = @_;
     $self->{on_value_change}->($key, $value) if $self->{on_value_change};
-    $self->_update({ $key => 1 });
+    $self->_update;
 }
 
 # Override this to capture changes of configuration caused either by loading or switching a preset,
 # or by a user changing an option field.
 sub _update {}
 
+# Call a callback to update the selection of presets on the platter.
 sub _on_presets_changed {
-    my $self = shift;
-    
+    my ($self) = @_;
     $self->{on_presets_changed}->(
         $self->{presets},
         $self->{default_suppressed},
         scalar($self->{presets_choice}->GetSelection) + $self->{default_suppressed},
-        $self->is_dirty,
+        $self->{presets}->current_is_dirty,
     ) if $self->{on_presets_changed};
 }
 
 sub on_preset_loaded {}
-sub hidden_options {}
-sub config { $_[0]->{config}->clone }
 
-sub select_default_preset {
-    my $self = shift;
-    $self->select_preset(0);
-}
-
+# Called by the UI combo box when the user switches profiles.
+# Select a preset by a name. If ! defined(name), then the first visible preset is selected.
+# If the current profile is modified, user is asked to save the changes.
 sub select_preset {
-    my ($self, $i) = @_;
-    if ($self->{default_suppressed} && $i == 0) {
-        # Selecting the '- default -'. Add it to the combo box.
-        $self->{default_suppressed} = 0;
-        $self->{presets_choice}->Insert($self->{presets}->[0]->name, 0);
-    } elsif ($self->no_defaults && ! $self->{default_suppressed} && $i > 0) {
-        # The user wants to hide the '- default -' items and a non-default item has been added to the presets.
-        # Hide the '- default -' item.
-        $self->{presets_choice}->Delete(0);
-        $self->{default_suppressed} = 1;
-    }
-    $self->{presets_choice}->SetSelection($i - $self->{default_suppressed});
-    $self->on_select_preset;
-}
-
-sub select_preset_by_name {
     my ($self, $name) = @_;
-    
-    $name = Slic3r::normalize_utf8_nfc($name);
-    $self->select_preset(first { $self->{presets}[$_]->name eq $name } 0 .. $#{$self->{presets}});
-}
 
-sub on_select_preset {
-    my $self = shift;
-    
-    if ($self->is_dirty) {
+    if ($self->{presets}->current_is_dirty) {
         # Display a dialog showing the dirty options in a human readable form.
-        my $old_preset = $self->get_current_preset;
+        my $old_preset = $self->{presets}->get_current_preset;
         my $name = $old_preset->default ? 'Default preset' : "Preset \"" . $old_preset->name . "\"";
-        
+        # Collect descriptions of the dirty options.
         my @option_names = ();
-        foreach my $opt_key (@{$self->dirty_options}) {
+        foreach my $opt_key (@{$self->{presets}->current_dirty_options}) {
             my $opt = $Slic3r::Config::Options->{$opt_key};
             my $name = $opt->{full_label} // $opt->{label};
-            if ($opt->{category}) {
-                $name = $opt->{category} . " > $name";
-            }
+            $name = $opt->{category} . " > $name" if $opt->{category};
             push @option_names, $name;
         }
-        
+        # Show a confirmation dialog with the list of dirty options.
         my $changes = join "\n", map "- $_", @option_names;
         my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes:\n$changes\n\nDiscard changes and continue anyway?",
                                              'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
         if ($confirm->ShowModal == wxID_NO) {
-            $self->{presets_choice}->SetSelection($self->current_preset - $self->{default_suppressed});
-            
-            # trigger the on_presets_changed event so that we also restore the previous value
-            # in the plater selector
+            $self->{presets}->update_platter_ui($self->{presets_choice});
+            # Trigger the on_presets_changed event so that we also restore the previous value in the plater selector.
             $self->_on_presets_changed;
             return;
         }
     }
-    
-    $self->current_preset($self->{presets_choice}->GetSelection + $self->{default_suppressed});
-    my $preset = $self->get_current_preset;
-    my $preset_config = $self->get_preset_config($preset);
+
+    $self->{presets}->select_by_name_ui(defined $name ? $name : "", $self->{presets_choice});
+    my $preset = $self->{presets}->get_current_preset;
+    my $preset_config = $preset->config;
     eval {
         local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-        my %keys_modified = ();
         foreach my $opt_key (@{$self->{config}->get_keys}) {
-            if ($preset_config->has($opt_key)) {
-                if ($self->{config}->serialize($opt_key) ne $preset_config->serialize($opt_key)) {
-                    $self->{config}->set($opt_key, $preset_config->get($opt_key));
-                    $keys_modified{$opt_key} = 1;
-                }
+            if ($preset_config->has($opt_key) && 
+                $self->{config}->serialize($opt_key) ne $preset_config->serialize($opt_key)) {
+                $self->{config}->set($opt_key, $preset_config->get($opt_key));
             }
         }
         ($preset->default || $preset->external)
             ? $self->{btn_delete_preset}->Disable
             : $self->{btn_delete_preset}->Enable;
-        
-        $self->_update(\%keys_modified);
+        $self->_update;
+        # For the printer profile, generate the extruder pages.
         $self->on_preset_loaded;
+        # Reload preset pages with the new configuration values.
         $self->reload_config;
+        # Use this preset the next time Slic3r starts.
         $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->file ? basename($preset->file) : '';
     };
-    if ($@) {
-        $@ = "I was unable to load the selected config file: $@";
-        Slic3r::GUI::catch_error($self);
-        $self->select_default_preset;
-    }
-        
+
     # use CallAfter because some field triggers schedule on_change calls using CallAfter,
     # and we don't want them to be called after this update_dirty() as they would mark the 
     # preset dirty again
@@ -329,12 +255,8 @@ sub on_select_preset {
         $self->update_dirty;
     });
     
+    # Save the current application settings with the newly selected preset name.
     wxTheApp->save_settings;
-}
-
-sub init_config_options {
-    my ($self, @opt_keys) = @_;
-    $self->{config}->apply(Slic3r::Config->new_from_defaults(@opt_keys));
 }
 
 sub add_options_page {
@@ -342,7 +264,7 @@ sub add_options_page {
     my ($title, $icon, %params) = @_;
     
     if ($icon) {
-        my $bitmap = Wx::Bitmap->new($Slic3r::var->($icon), wxBITMAP_TYPE_PNG);
+        my $bitmap = Wx::Bitmap->new(Slic3r::var($icon), wxBITMAP_TYPE_PNG);
         $self->{icons}->Add($bitmap);
         $self->{iconcount}++;
     }
@@ -354,8 +276,9 @@ sub add_options_page {
     return $page;
 }
 
+# Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 sub reload_config {
-    my $self = shift;
+    my ($self) = @_;
     $_->reload_config for @{$self->{pages}};
 }
 
@@ -388,31 +311,8 @@ sub update_tree {
 # comparing the selected preset config with $self->{config}.
 sub update_dirty {
     my ($self) = @_;
-    my $list_updated;
-    foreach my $i ($self->{default_suppressed}..$#{$self->{presets}}) {
-        my $preset = $self->get_preset($i);
-        my $label  = ($i == $self->current_preset && $self->is_dirty) ? $preset->name . " (modified)" : $preset->name;
-        my $idx    = $i - $self->{default_suppressed};
-        if ($self->{presets_choice}->GetString($idx) ne $label) {
-            $self->{presets_choice}->SetString($idx, $label);
-            $list_updated = 1;
-        }
-    }
-    $self->{presets_choice}->SetSelection($self->current_preset - $self->{default_suppressed}) if ($list_updated);  # http://trac.wxwidgets.org/ticket/13769
+    $self->{presets}->update_dirty_ui($self->{presets_choice});
     $self->_on_presets_changed;
-}
-
-# Has the selected preset been modified?
-sub is_dirty {
-    my ($self) = @_;
-    return @{$self->dirty_options} > 0;
-}
-
-# Which options of the selected preset were modified?
-sub dirty_options {
-    my ($self) = @_;
-    return [] if !defined $self->current_preset;  # happens during initialization
-    return $self->get_preset_config($self->get_current_preset)->diff($self->{config});
 }
 
 # Search all ini files in the presets directory, add them into the list of $self->{presets} in the form of Slic3r::GUI::Tab::Preset.
@@ -420,55 +320,31 @@ sub dirty_options {
 sub load_presets {
     my ($self) = @_;
     
-    $self->{presets} = [
-        Slic3r::GUI::Tab::Preset->new(
-            default => 1,
-            name    => '- default -',
-        ),
-    ];
-    
-    my %presets = wxTheApp->presets($self->name);
-    foreach my $preset_name (sort keys %presets) {
-        push @{$self->{presets}}, Slic3r::GUI::Tab::Preset->new(
-            name => $preset_name,
-            file => $presets{$preset_name},
-        );
-    }
-    $self->current_preset(undef);
-    $self->{default_suppressed} = Slic3r::GUI::Tab->no_defaults && scalar(@{$self->{presets}}) > 1;
-    $self->{presets_choice}->Clear;
-    foreach my $preset (@{$self->{presets}}) {
-        next if ($preset->default && $self->{default_suppressed});
-        $self->{presets_choice}->Append($preset->name);
-    }
-    {
-        # load last used preset
-        my $i = first { basename($self->{presets}[$_]->file) eq ($Slic3r::GUI::Settings->{presets}{$self->name} || '') } 1 .. $#{$self->{presets}};
-        $self->select_preset($i || $self->{default_suppressed});
-    }
+    print "Load presets, ui: " . $self->{presets_choice} . "\n";
+#    $self->current_preset(undef);
+#    $self->{presets}->set_default_suppressed(Slic3r::GUI::Tab->no_defaults);
+#    $self->{presets_choice}->Clear;
+#    foreach my $preset (@{$self->{presets}}) {
+#        if ($preset->visible) {
+#            # Set client data of the choice item to $preset.
+#            $self->{presets_choice}->Append($preset->name, $preset);
+#        }
+#    }
+#    {
+#        # load last used preset
+#        my $i = first { basename($self->{presets}[$_]->file) eq ($Slic3r::GUI::Settings->{presets}{$self->name} || '') } 1 .. $#{$self->{presets}};
+#        $self->select_preset($i || $self->{default_suppressed});
+#    }
+
+    $self->{presets}->update_platter_ui($self->{presets_choice});
     $self->_on_presets_changed;
 }
 
 # Load a config file containing a Print, Filament & Printer preset.
 sub load_config_file {
     my ($self, $file) = @_;
-    # look for the loaded config among the existing menu items
-    my $i = first { $self->{presets}[$_]{file} eq $file && $self->{presets}[$_]{external} } 1..$#{$self->{presets}};
-    if (!$i) {
-        my $preset_name = basename($file);  # keep the .ini suffix
-        my $preset_new = Slic3r::GUI::Tab::Preset->new(
-            file        => $file,
-            name        => $preset_name,
-            external    => 1,
-        );
-        # Try to load the config file before it is entered into the list. If the loading fails, an undef is returned.
-        return undef if ! defined $preset_new->config;
-        push @{$self->{presets}}, $preset_new;
-        $self->{presets_choice}->Append($preset_name);
-        $i = $#{$self->{presets}};
-    }
-    $self->{presets_choice}->SetSelection($i - $self->{default_suppressed});
-    $self->on_select_preset;
+    $self->{presets}->update_platter_ui($self->{presets_choice});
+    $self->select_preset;
     $self->_on_presets_changed;
     return 1;
 }
@@ -478,28 +354,22 @@ sub load_config_file {
 sub load_config {
     my ($self, $config) = @_;
     
-    my %keys_modified = ();
+    my $modified = 0;
     foreach my $opt_key (@{$self->{config}->diff($config)}) {
         $self->{config}->set($opt_key, $config->get($opt_key));
-        $keys_modified{$opt_key} = 1;
+        $modified = 1;
     }
-    if (keys(%keys_modified)) {
+    if ($modified) {
         $self->update_dirty;
         # Initialize UI components with the config values.
         $self->reload_config;
-        $self->_update(\%keys_modified);
+        $self->_update;
     }
 }
 
-# Load and return a config from the file associated with the $preset (Perl type Slic3r::GUI::Tab::Preset).
-sub get_preset_config {
-    my ($self, $preset) = @_;
-    return $preset->config($self->{config}->get_keys);
-}
-
+# Find a field with an index over all pages of this tab.
 sub get_field {
     my ($self, $opt_key, $opt_index) = @_;
-    
     foreach my $page (@{ $self->{pages} }) {
         my $field = $page->get_field($opt_key, $opt_index);
         return $field if defined $field;
@@ -507,10 +377,9 @@ sub get_field {
     return undef;
 }
 
+# Set a key/value pair on this page. Return true if the value has been modified.
 sub set_value {
-    my $self = shift;
-    my ($opt_key, $value) = @_;
-    
+    my ($self, $opt_key, $value) = @_;
     my $changed = 0;
     foreach my $page (@{ $self->{pages} }) {
         $changed = 1 if $page->set_value($opt_key, $value);
@@ -530,7 +399,8 @@ sub title { 'Print Settings' }
 sub build {
     my $self = shift;
     
-    $self->{config}->apply(wxTheApp->{preset_bundle}->prints->default_preset->config);
+    $self->{presets} = wxTheApp->{preset_bundle}->print;
+    $self->{config} = $self->{presets}->get_edited_preset->config_ref;
     
     {
         my $page = $self->add_options_page('Layers and perimeters', 'layers.png');
@@ -789,6 +659,7 @@ sub build {
     }
 }
 
+# Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 sub reload_config {
     my ($self) = @_;
 #    $self->_reload_compatible_printers_widget;
@@ -797,11 +668,9 @@ sub reload_config {
 
 # Slic3r::GUI::Tab::Print::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
 sub _update {
-    # $keys_modified is a reference to hash with modified keys set to 1, unmodified keys missing.
-    my ($self, $keys_modified) = @_;
-    $keys_modified //= {};
+    my ($self) = @_;
 
-    my $config = $self->{config};
+    my $config = $self->{presets}->get_edited_preset->config_ref;
     
     if ($config->spiral_vase && !($config->perimeters == 1 && $config->top_solid_layers == 0 && $config->fill_density == 0)) {
         my $dialog = Wx::MessageDialog->new($self,
@@ -877,10 +746,6 @@ sub _update {
             $new_conf->set("wipe_tower", 0);
         }
         $self->load_config($new_conf);
-    }
-
-    if ($keys_modified->{'layer_height'}) {
-        # If the user had set the variable layer height, reset it and let the user know.
     }
 
     if ($config->support_material) {
@@ -999,8 +864,6 @@ sub _update {
         for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe);
 }
 
-#sub hidden_options { !$Slic3r::have_threads ? qw(threads) : () }
-
 package Slic3r::GUI::Tab::Filament;
 use base 'Slic3r::GUI::Tab';
 use Wx qw(wxTheApp);
@@ -1011,7 +874,8 @@ sub title { 'Filament Settings' }
 sub build {
     my $self = shift;
     
-    $self->{config}->apply(wxTheApp->{preset_bundle}->filaments->default_preset->config);
+    $self->{presets} = wxTheApp->{preset_bundle}->filament;
+    $self->{config} = $self->{presets}->get_edited_preset->config_ref;
     
     {
         my $page = $self->add_options_page('Filament', 'spool.png');
@@ -1139,8 +1003,7 @@ sub build {
 
 # Slic3r::GUI::Tab::Filament::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
 sub _update {
-    # $keys_modified is a reference to hash with modified keys set to 1, unmodified keys missing.
-    my ($self, $keys_modified) = @_;
+    my ($self) = @_;
     
     $self->_update_description;
     
@@ -1153,10 +1016,8 @@ sub _update {
 }
 
 sub _update_description {
-    my $self = shift;
-    
-    my $config = $self->config;
-    
+    my ($self) = @_;
+    my $config = $self->{config};
     my $msg = "";
     my $fan_other_layers = $config->fan_always_on->[0]
         ? sprintf "will always run at %d%%%s.", $config->min_fan_speed->[0],
@@ -1190,10 +1051,10 @@ sub name { 'printer' }
 sub title { 'Printer Settings' }
 
 sub build {
-    my $self = shift;
-    my (%params) = @_;
+    my ($self, %params) = @_;
     
-    $self->{config}->apply(wxTheApp->{preset_bundle}->printers->default_preset->config);
+    $self->{presets} = wxTheApp->{preset_bundle}->printer;
+    $self->{config} = $self->{presets}->get_edited_preset->config_ref;
     
     my $bed_shape_widget = sub {
         my ($parent) = @_;
@@ -1201,7 +1062,7 @@ sub build {
         my $btn = Wx::Button->new($parent, -1, "Set…", wxDefaultPosition, wxDefaultSize,
             wxBU_LEFT | wxBU_EXACTFIT);
         $btn->SetFont($Slic3r::GUI::small_font);
-        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("cog.png"), wxBITMAP_TYPE_PNG));
+        $btn->SetBitmap(Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG));
         
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $sizer->Add($btn);
@@ -1268,7 +1129,7 @@ sub build {
             $serial_port->side_widget(sub {
                 my ($parent) = @_;
                 
-                my $btn = Wx::BitmapButton->new($parent, -1, Wx::Bitmap->new($Slic3r::var->("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG),
+                my $btn = Wx::BitmapButton->new($parent, -1, Wx::Bitmap->new(Slic3r::var("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG),
                     wxDefaultPosition, wxDefaultSize, &Wx::wxBORDER_NONE);
                 $btn->SetToolTipString("Rescan serial ports")
                     if $btn->can('SetToolTipString');
@@ -1282,7 +1143,7 @@ sub build {
                 my $btn = $self->{serial_test_btn} = Wx::Button->new($parent, -1,
                     "Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
                 $btn->SetFont($Slic3r::GUI::small_font);
-                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("wrench.png"), wxBITMAP_TYPE_PNG));
+                $btn->SetBitmap(Wx::Bitmap->new(Slic3r::var("wrench.png"), wxBITMAP_TYPE_PNG));
                 
                 EVT_BUTTON($self, $btn, sub {
                     my $sender = Slic3r::GCode::Sender->new;
@@ -1312,7 +1173,7 @@ sub build {
                 
                 my $btn = Wx::Button->new($parent, -1, "Browse…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
                 $btn->SetFont($Slic3r::GUI::small_font);
-                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("zoom.png"), wxBITMAP_TYPE_PNG));
+                $btn->SetBitmap(Wx::Bitmap->new(Slic3r::var("zoom.png"), wxBITMAP_TYPE_PNG));
                 
                 if (!eval "use Net::Bonjour; 1") {
                     $btn->Disable;
@@ -1348,7 +1209,7 @@ sub build {
                 my $btn = $self->{octoprint_host_test_btn} = Wx::Button->new($parent, -1,
                     "Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
                 $btn->SetFont($Slic3r::GUI::small_font);
-                $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("wrench.png"), wxBITMAP_TYPE_PNG));
+                $btn->SetBitmap(Wx::Bitmap->new(Slic3r::var("wrench.png"), wxBITMAP_TYPE_PNG));
                 
                 EVT_BUTTON($self, $btn, sub {
                     my $ua = LWP::UserAgent->new;
@@ -1565,8 +1426,7 @@ sub _build_extruder_pages {
 
 # Slic3r::GUI::Tab::Printer::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
 sub _update {
-    # $keys_modified is a reference to hash with modified keys set to 1, unmodified keys missing.
-    my ($self, $keys_modified) = @_;
+    my ($self) = @_;
     
     my $config = $self->{config};
     
@@ -1654,27 +1514,13 @@ sub on_preset_loaded {
     }
 }
 
-# Load a config file containing a Print, Filament & Printer preset.
-sub load_config_file {
-    my $self = shift;
-    if ($self->SUPER::load_config_file(@_)) {
-        Slic3r::GUI::warning_catcher($self)->(
-            "Your configuration was imported. However, Slic3r is currently only able to import settings "
-            . "for the first defined filament. We recommend you don't use exported configuration files "
-            . "for multi-extruder setups and rely on the built-in preset management system instead.")
-            if @{ $self->{config}->nozzle_diameter } > 1;
-        return 1;
-    }
-    return undef;
-}
-
+# Single Tab page containing a {vsizer} of {optgroups}
 package Slic3r::GUI::Tab::Page;
 use Wx qw(wxTheApp :misc :panel :sizer);
 use base 'Wx::ScrolledWindow';
 
 sub new {
-    my $class = shift;
-    my ($parent, $title, $iconID) = @_;
+    my ($class, $parent, $title, $iconID) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{optgroups}  = [];
     $self->{title}      = $title;
@@ -1718,7 +1564,6 @@ sub reload_config {
 
 sub get_field {
     my ($self, $opt_key, $opt_index) = @_;
-    
     foreach my $optgroup (@{ $self->{optgroups} }) {
         my $field = $optgroup->get_fieldc($opt_key, $opt_index);
         return $field if defined $field;
@@ -1727,9 +1572,7 @@ sub get_field {
 }
 
 sub set_value {
-    my $self = shift;
-    my ($opt_key, $value) = @_;
-    
+    my ($self, $opt_key, $value) = @_;    
     my $changed = 0;
     foreach my $optgroup (@{$self->{optgroups}}) {
         $changed = 1 if $optgroup->set_value($opt_key, $value);
@@ -1743,8 +1586,7 @@ use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
 use base 'Wx::Dialog';
 
 sub new {
-    my $class = shift;
-    my ($parent, %params) = @_;
+    my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, "Save preset", wxDefaultPosition, wxDefaultSize);
     
     my @values = @{$params{values}};
@@ -1770,7 +1612,6 @@ sub new {
 
 sub accept {
     my ($self, $event) = @_;
-
     if (($self->{chosen_name} = $self->{combo}->GetValue)) {
         if ($self->{chosen_name} !~ /^[^<>:\/\\|?*\"]+$/) {
             Slic3r::GUI::show_error($self, "The supplied name is not valid; the following characters are not allowed: <>:/\|?*\"");
@@ -1783,57 +1624,8 @@ sub accept {
 }
 
 sub get_name {
-    my $self = shift;
+    my ($self) = @_;
     return $self->{chosen_name};
-}
-
-package Slic3r::GUI::Tab::Preset;
-use Moo;
-use List::Util qw(any);
-
-# The preset represents a "default" set of properties.
-has 'default'   => (is => 'ro', default => sub { 0 });
-has 'external'  => (is => 'ro', default => sub { 0 });
-has 'name'      => (is => 'rw', required => 1);
-has 'file'      => (is => 'rw');
-
-# Load a config file, return a C++ class Slic3r::DynamicPrintConfig with $keys initialized from the config file.
-# In case of a "default" config item, return the default values.
-sub config {
-    my ($self, $keys) = @_;
-    
-    if ($self->default) {
-        # Perl class Slic3r::Config extends the C++ class Slic3r::DynamicPrintConfig
-        return Slic3r::Config->new_from_defaults(@$keys);
-    } else {
-        if (!-e Slic3r::encode_path($self->file)) {
-            Slic3r::GUI::show_error(undef, "The selected preset does not exist anymore (" . $self->file . ").");
-            return undef;
-        }
-        
-        # apply preset values on top of defaults
-        my $config = Slic3r::Config->new_from_defaults(@$keys);
-        my $external_config = eval { Slic3r::Config->load($self->file); };
-        if ($@) {
-            Slic3r::GUI::show_error(undef, $@);
-            return undef;
-        }
-        $config->set($_, $external_config->get($_))
-            for grep $external_config->has($_), @$keys;
-
-        if (any { $_ eq 'nozzle_diameter' } @$keys) {
-            # Loaded the Printer settings. Verify, that all extruder dependent values have enough values.
-            my $nozzle_diameter     = $config->nozzle_diameter;
-            my $num_extruders       = scalar(@{$nozzle_diameter});
-            foreach my $key (qw(deretract_speed extruder_colour retract_before_wipe)) {
-                my $vec = $config->get($key);
-                push @{$vec}, ($vec->[0]) x ($num_extruders - @{$vec});
-                $config->set($key, $vec);
-            }
-        }
-        
-        return $config;
-    }
 }
 
 1;
