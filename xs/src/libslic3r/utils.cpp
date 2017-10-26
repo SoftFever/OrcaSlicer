@@ -226,9 +226,10 @@ std::string decode_path(const char *src)
 #endif /* WIN32 */
 }
 
+std::locale locale_utf8(boost::locale::generator().generate(""));
+
 std::string normalize_utf8_nfc(const char *src)
 {
-    static std::locale locale_utf8(boost::locale::generator().generate(""));
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
 }
 

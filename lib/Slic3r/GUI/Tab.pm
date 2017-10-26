@@ -68,8 +68,11 @@ sub new {
     $self->{treectrl} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [185, -1], wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
     $left_sizer->Add($self->{treectrl}, 1, wxEXPAND);
     $self->{icons} = Wx::ImageList->new(16, 16, 1);
+    # Map from an icon file name to its index in $self->{icons}.
+    $self->{icon_index} = {};
+    # Index of the last icon inserted into $self->{icons}.
+    $self->{icon_count} = -1;
     $self->{treectrl}->AssignImageList($self->{icons});
-    $self->{iconcount} = -1;
     $self->{treectrl}->AddRoot("root");
     $self->{pages} = [];
     $self->{treectrl}->SetIndent(0);
@@ -94,7 +97,6 @@ sub new {
     
     EVT_CHOICE($parent, $self->{presets_choice}, sub {
         $self->select_preset($self->{presets_choice}->GetStringSelection);
-        $self->_on_presets_changed;
     });
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub { $self->save_preset });
@@ -103,17 +105,17 @@ sub new {
     # Initialize the DynamicPrintConfig by default keys/values.
     # Possible %params keys: no_controller
     $self->build(%params);
-    $self->update_tree;
+    $self->rebuild_page_tree;
     $self->_update;
     
     return $self;
 }
 
-# Are the '- default -' selections suppressed by the Slic3r GUI preferences?
-sub no_defaults {
-    return $Slic3r::GUI::Settings->{_}{no_defaults} ? 1 : 0;
-}
-
+# Save the current preset into file.
+# This removes the "dirty" flag of the preset, possibly creates a new preset under a new name,
+# and activates the new preset.
+# Wizard calls save_preset with a name "My Settings", otherwise no name is provided and this method
+# opens a Slic3r::GUI::SavePresetWindow dialog.
 sub save_preset {
     my ($self, $name) = @_;
     
@@ -127,18 +129,25 @@ sub save_preset {
         my $default_name = $preset->default ? 'Untitled' : $preset->name;
         $default_name =~ s/\.[iI][nN][iI]$//;
     
+        my @prsts = @{$self->{presets}};
+        print "Num of presets: ". int(@prsts) . "\n";
+        for my $pr (@prsts) {
+            print "Name: " . $pr->name . " default " . $pr->default . "\n";
+        }
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
             title   => lc($self->title),
             default => $default_name,
             values  => [ map $_->name, grep !$_->default && !$_->external, @{$self->{presets}} ],
         );
         return unless $dlg->ShowModal == wxID_OK;
-        $name = Slic3r::normalize_utf8_nfc($dlg->get_name);
+        $name = $dlg->get_name;
     }
-    
-    $self->{config}->save(sprintf Slic3r::data_dir . "/%s/%s.ini", $self->name, $name);
-    $self->load_presets;
-    $self->select_preset($name);
+    # Save the preset into Slic3r::data_dir/section_name/preset_name.ini
+    eval { $self->{presets}->save_current_preset($name); };
+    Slic3r::GUI::catch_error($self) and return;
+    # Add the new item into the UI component, remove dirty flags and activate the saved item.
+    $self->{presets}->update_tab_ui($self->{presets_choice});
+    # Update the selection boxes at the platter.
     $self->_on_presets_changed;
 }
 
@@ -147,29 +156,35 @@ sub delete_preset {
     my ($self) = @_;
     my $current_preset = $self->{presets}->get_selected_preset;
     # Don't let the user delete the '- default -' configuration.
-    return if $current_preset->{default} ||
-        wxID_YES == Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
+    return if $current_preset->default ||
+        wxID_YES != Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
     # Delete the file and select some other reasonable preset.
-    eval { $self->{presets}->delete_file($current_preset->name); };
+    # The 'external' presets will only be removed from the preset list, their files will not be deleted.
+    eval { $self->{presets}->delete_current_preset; };
     Slic3r::GUI::catch_error($self) and return;
-    # Delete the item from the UI component.
-    $self->{presets}->update_platter_ui($self->{presets_choice});
+    # Delete the item from the UI component and activate another preset.
+    $self->{presets}->update_tab_ui($self->{presets_choice});
+    # Update the selection boxes at the patter.
     $self->_on_presets_changed;
 }
 
+# Register the on_value_change callback.
 sub on_value_change {
     my ($self, $cb) = @_;
     $self->{on_value_change} = $cb;
 }
 
+# Register the on_presets_changed callback.
 sub on_presets_changed {
     my ($self, $cb) = @_;
     $self->{on_presets_changed} = $cb;
 }
 
 # This method is called whenever an option field is changed by the user.
-# Propagate event to the parent through the 'on_value_changed' callback
+# Propagate event to the parent through the 'on_value_change' callback
 # and call _update.
+# The on_value_change callback triggers Platter::on_config_change() to configure the 3D preview
+# (colors, wipe tower positon etc) and to restart the background slicing process.
 sub _on_value_change {
     my ($self, $key, $value) = @_;
     $self->{on_value_change}->($key, $value) if $self->{on_value_change};
@@ -178,27 +193,28 @@ sub _on_value_change {
 
 # Override this to capture changes of configuration caused either by loading or switching a preset,
 # or by a user changing an option field.
+# This callback is useful for cross-validating configuration values of a single preset.
 sub _update {}
 
-# Call a callback to update the selection of presets on the platter.
+# Call a callback to update the selection of presets on the platter:
+# To update the content of the selection boxes,
+# to update the filament colors of the selection boxes,
+# to update the "dirty" flags of the selection boxes,
+# to uddate number of "filament" selection boxes when the number of extruders change.
 sub _on_presets_changed {
     my ($self) = @_;
-    $self->{on_presets_changed}->(
-        $self->{presets},
-        $self->{default_suppressed},
-        scalar($self->{presets_choice}->GetSelection) + $self->{default_suppressed},
-        $self->{presets}->current_is_dirty,
-    ) if $self->{on_presets_changed};
+    print "Tab::_on_presets_changed\n";
+    $self->{on_presets_changed}->($self->{presets}) if $self->{on_presets_changed};
 }
 
+# For the printer profile, generate the extruder pages after a preset is loaded.
 sub on_preset_loaded {}
 
-# Called by the UI combo box when the user switches profiles.
-# Select a preset by a name. If ! defined(name), then the first visible preset is selected.
-# If the current profile is modified, user is asked to save the changes.
-sub select_preset {
-    my ($self, $name) = @_;
-
+# If the current preset is dirty, the user is asked whether the changes may be discarded.
+# if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
+sub may_discard_current_preset_if_dirty
+{
+    my ($self) = @_;
     if ($self->{presets}->current_is_dirty) {
         # Display a dialog showing the dirty options in a human readable form.
         my $old_preset = $self->{presets}->get_current_preset;
@@ -215,37 +231,52 @@ sub select_preset {
         my $changes = join "\n", map "- $_", @option_names;
         my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes:\n$changes\n\nDiscard changes and continue anyway?",
                                              'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
-        if ($confirm->ShowModal == wxID_NO) {
-            $self->{presets}->update_platter_ui($self->{presets_choice});
-            # Trigger the on_presets_changed event so that we also restore the previous value in the plater selector.
-            $self->_on_presets_changed;
-            return;
-        }
+        return 0 if $confirm->ShowModal == wxID_NO;
     }
+    return 1;
+}
 
-    $self->{presets}->select_by_name_ui(defined $name ? $name : "", $self->{presets_choice});
+# Called by the UI combo box when the user switches profiles.
+# Select a preset by a name. If ! defined(name), then the first visible preset is selected.
+# If the current profile is modified, user is asked to save the changes.
+sub select_preset {
+    my ($self, $name, $force) = @_;
+    print "select_preset 1\n";
+    if (! $self->may_discard_current_preset_if_dirty) {
+        $self->{presets}->update_tab_ui($self->{presets_choice});
+        # Trigger the on_presets_changed event so that we also restore the previous value in the plater selector.
+        $self->_on_presets_changed;
+        return;
+    }
+    print "select_preset 2\n";
+    $self->{presets}->select_preset_by_name(defined $name ? $name : "");
+    print "select_preset 3\n";
+    # Initialize the UI from the current preset.
+    $self->load_current_preset;
+    print "select_preset 4\n";
+    # Save the current application settings with the newly selected preset name.
+    wxTheApp->save_settings;
+    print "select_preset 5\n";
+
+}
+
+# Initialize the UI from the current preset.
+sub load_current_preset {
+    my ($self) = @_;
+    print "load_current_preset 1\n";
+    $self->{presets}->update_tab_ui($self->{presets_choice});
+    print "load_current_preset 2\n";
     my $preset = $self->{presets}->get_current_preset;
-    my $preset_config = $preset->config;
     eval {
         local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-        foreach my $opt_key (@{$self->{config}->get_keys}) {
-            if ($preset_config->has($opt_key) && 
-                $self->{config}->serialize($opt_key) ne $preset_config->serialize($opt_key)) {
-                $self->{config}->set($opt_key, $preset_config->get($opt_key));
-            }
-        }
-        ($preset->default || $preset->external)
-            ? $self->{btn_delete_preset}->Disable
-            : $self->{btn_delete_preset}->Enable;
+        my $method = ($preset->default || $preset->external) ? 'Disable' : 'Enable';
+        $self->{btn_delete_preset}->$method;
         $self->_update;
         # For the printer profile, generate the extruder pages.
         $self->on_preset_loaded;
         # Reload preset pages with the new configuration values.
-        $self->reload_config;
-        # Use this preset the next time Slic3r starts.
-        $Slic3r::GUI::Settings->{presets}{$self->name} = $preset->file ? basename($preset->file) : '';
+        $self->_reload_config;
     };
-
     # use CallAfter because some field triggers schedule on_change calls using CallAfter,
     # and we don't want them to be called after this update_dirty() as they would mark the 
     # preset dirty again
@@ -254,22 +285,25 @@ sub select_preset {
         $self->_on_presets_changed;
         $self->update_dirty;
     });
-    
-    # Save the current application settings with the newly selected preset name.
-    wxTheApp->save_settings;
 }
 
 sub add_options_page {
-    my $self = shift;
-    my ($title, $icon, %params) = @_;
-    
+    my ($self, $title, $icon, %params) = @_;
+    # Index of $icon in an icon list $self->{icons}.
+    my $icon_idx = 0;
     if ($icon) {
-        my $bitmap = Wx::Bitmap->new(Slic3r::var($icon), wxBITMAP_TYPE_PNG);
-        $self->{icons}->Add($bitmap);
-        $self->{iconcount}++;
+        $icon_idx = $self->{icon_index}->{$icon};
+        if (! defined $icon_idx) {
+            # Add a new icon to the icon list.
+            my $bitmap = Wx::Bitmap->new(Slic3r::var($icon), wxBITMAP_TYPE_PNG);
+            $self->{icons}->Add($bitmap);
+            $icon_idx = $self->{icon_count} + 1;
+            $self->{icon_count} = $icon_idx;
+            $self->{icon_index}->{$icon} = $icon_idx;
+        }
     }
-    
-    my $page = Slic3r::GUI::Tab::Page->new($self, $title, $self->{iconcount});
+    # Initialize the page.
+    my $page = Slic3r::GUI::Tab::Page->new($self, $title, $icon_idx);
     $page->Hide;
     $self->{hsizer}->Add($page, 1, wxEXPAND | wxLEFT, 5);
     push @{$self->{pages}}, $page;
@@ -277,14 +311,16 @@ sub add_options_page {
 }
 
 # Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
-sub reload_config {
+sub _reload_config {
     my ($self) = @_;
     $_->reload_config for @{$self->{pages}};
 }
 
-sub update_tree {
+# Regerenerate content of the page tree.
+sub rebuild_page_tree {
     my ($self) = @_;
     
+    print "Tab::rebuild_page_tree " . $self->title . "\n";
     # get label of the currently selected item
     my $selected = $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection);
     
@@ -315,40 +351,6 @@ sub update_dirty {
     $self->_on_presets_changed;
 }
 
-# Search all ini files in the presets directory, add them into the list of $self->{presets} in the form of Slic3r::GUI::Tab::Preset.
-# Initialize the drop down list box.
-sub load_presets {
-    my ($self) = @_;
-    
-    print "Load presets, ui: " . $self->{presets_choice} . "\n";
-#    $self->current_preset(undef);
-#    $self->{presets}->set_default_suppressed(Slic3r::GUI::Tab->no_defaults);
-#    $self->{presets_choice}->Clear;
-#    foreach my $preset (@{$self->{presets}}) {
-#        if ($preset->visible) {
-#            # Set client data of the choice item to $preset.
-#            $self->{presets_choice}->Append($preset->name, $preset);
-#        }
-#    }
-#    {
-#        # load last used preset
-#        my $i = first { basename($self->{presets}[$_]->file) eq ($Slic3r::GUI::Settings->{presets}{$self->name} || '') } 1 .. $#{$self->{presets}};
-#        $self->select_preset($i || $self->{default_suppressed});
-#    }
-
-    $self->{presets}->update_platter_ui($self->{presets_choice});
-    $self->_on_presets_changed;
-}
-
-# Load a config file containing a Print, Filament & Printer preset.
-sub load_config_file {
-    my ($self, $file) = @_;
-    $self->{presets}->update_platter_ui($self->{presets_choice});
-    $self->select_preset;
-    $self->_on_presets_changed;
-    return 1;
-}
-
 # Load a provied DynamicConfig into the tab, modifying the active preset.
 # This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 sub load_config {
@@ -362,15 +364,16 @@ sub load_config {
     if ($modified) {
         $self->update_dirty;
         # Initialize UI components with the config values.
-        $self->reload_config;
+        $self->_reload_config;
         $self->_update;
     }
 }
 
 # Find a field with an index over all pages of this tab.
+# This method is used often and everywhere, therefore it shall be quick.
 sub get_field {
     my ($self, $opt_key, $opt_index) = @_;
-    foreach my $page (@{ $self->{pages} }) {
+    foreach my $page (@{$self->{pages}}) {
         my $field = $page->get_field($opt_key, $opt_index);
         return $field if defined $field;
     }
@@ -378,10 +381,12 @@ sub get_field {
 }
 
 # Set a key/value pair on this page. Return true if the value has been modified.
+# Currently used for distributing extruders_count over preset pages of Slic3r::GUI::Tab::Printer
+# after a preset is loaded.
 sub set_value {
     my ($self, $opt_key, $value) = @_;
     my $changed = 0;
-    foreach my $page (@{ $self->{pages} }) {
+    foreach my $page (@{$self->{pages}}) {
         $changed = 1 if $page->set_value($opt_key, $value);
     }
     return $changed;
@@ -660,10 +665,10 @@ sub build {
 }
 
 # Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
-sub reload_config {
+sub _reload_config {
     my ($self) = @_;
 #    $self->_reload_compatible_printers_widget;
-    $self->SUPER::reload_config;
+    $self->SUPER::_reload_config;
 }
 
 # Slic3r::GUI::Tab::Print::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
@@ -1194,7 +1199,7 @@ sub build {
                             $self->{config}->set('octoprint_host', $value);
                             $self->update_dirty;
                             $self->_on_value_change('octoprint_host', $value);
-                            $self->reload_config;
+                            $self->_reload_config;
                         }
                     } else {
                         Wx::MessageDialog->new($self, 'No Bonjour device found', 'Device Browser', wxOK | wxICON_INFORMATION)->ShowModal;
@@ -1421,7 +1426,7 @@ sub _build_extruder_pages {
         @{$self->{extruder_pages}}[ 0 .. $self->{extruders_count}-1 ],
         $page_notes
     );
-    $self->update_tree;
+    $self->rebuild_page_tree;
 }
 
 # Slic3r::GUI::Tab::Printer::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
@@ -1580,6 +1585,8 @@ sub set_value {
     return $changed;
 }
 
+# Dialog to select a new file name for a modified preset to be saved.
+# Called from Tab::save_preset().
 package Slic3r::GUI::SavePresetWindow;
 use Wx qw(:combobox :dialog :id :misc :sizer);
 use Wx::Event qw(EVT_BUTTON EVT_TEXT_ENTER);
@@ -1612,7 +1619,7 @@ sub new {
 
 sub accept {
     my ($self, $event) = @_;
-    if (($self->{chosen_name} = $self->{combo}->GetValue)) {
+    if (($self->{chosen_name} = Slic3r::normalize_utf8_nfc($self->{combo}->GetValue))) {
         if ($self->{chosen_name} !~ /^[^<>:\/\\|?*\"]+$/) {
             Slic3r::GUI::show_error($self, "The supplied name is not valid; the following characters are not allowed: <>:/\|?*\"");
         } elsif ($self->{chosen_name} eq '- default -') {

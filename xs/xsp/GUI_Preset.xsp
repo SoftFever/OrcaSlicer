@@ -33,15 +33,18 @@
     Ref<Preset>             get_current_preset() %code%{ RETVAL = &THIS->get_edited_preset(); %};
     std::string             get_current_preset_name() %code%{ RETVAL = THIS->get_selected_preset().name; %};
     Ref<Preset>             get_edited_preset() %code%{ RETVAL = &THIS->get_edited_preset(); %};
-    void                    set_default_suppressed(bool default_suppressed);
 
     Ref<Preset>             find_preset(char *name, bool first_visible_if_not_found = false) %code%{ RETVAL = THIS->find_preset(name, first_visible_if_not_found); %};
 
     bool                    current_is_dirty();
     std::vector<std::string> current_dirty_options();
 
+    void                    update_tab_ui(SV *ui)
+        %code%{ auto cb = (wxChoice*)wxPli_sv_2_object( aTHX_ ui, "Wx::Choice" ); 
+                THIS->update_tab_ui(cb); %};
+
     void                    update_platter_ui(SV *ui)
-        %code%{ wxChoice* cb = (wxChoice*)wxPli_sv_2_object( aTHX_ ui, "Wx::Choice" ); 
+        %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object( aTHX_ ui, "Wx::BitmapComboBox" ); 
                 THIS->update_platter_ui(cb); %};
 
     bool                    update_dirty_ui(SV *ui)
@@ -51,6 +54,9 @@
     bool                    select_by_name_ui(char *name, SV *ui) 
         %code%{ RETVAL = THIS->select_by_name_ui(name, (wxChoice*)wxPli_sv_2_object(aTHX_ ui, "Wx::Choice")); %};
 
+    void                    save_current_preset(char *new_name);
+    void                    delete_current_preset();
+
 %{
 
 SV*
@@ -58,10 +64,9 @@ PresetCollection::arrayref()
     CODE:
         AV* av = newAV();
         av_fill(av, THIS->size()-1);
-        int i = 0;
-        for (size_t i = 0; i < THIS->size(); ++ i) {
+        for (int i = 0; i < int(THIS->size()); ++ i) {
             Preset &preset = THIS->preset(i);
-            av_store(av, i++, perl_to_SV_ref(preset));
+            av_store(av, i, perl_to_SV_ref(preset));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
@@ -88,12 +93,26 @@ PresetCollection::presets_hash()
     PresetBundle();
     ~PresetBundle();
 
-    void                  load_presets(std::string dir_path);
-    void                  set_default_suppressed(bool default_suppressed);
+    void                        load_presets(const char *dir_path);
+    size_t                      load_configbundle(const char *path);
+    void                        set_default_suppressed(bool default_suppressed);
 
-    Ref<PresetCollection> print()    %code%{ RETVAL = &THIS->prints;   %};
-    Ref<PresetCollection> filament() %code%{ RETVAL = &THIS->filaments; %};
-    Ref<PresetCollection> printer()  %code%{ RETVAL = &THIS->printers;  %};
-    
-    Clone<DynamicPrintConfig> full_config() %code%{ RETVAL = THIS->full_config();  %};
+    Ref<PresetCollection>       print()    %code%{ RETVAL = &THIS->prints;   %};
+    Ref<PresetCollection>       filament() %code%{ RETVAL = &THIS->filaments; %};
+    Ref<PresetCollection>       printer()  %code%{ RETVAL = &THIS->printers;  %};
+
+    std::vector<std::string>    filament_presets() %code%{ RETVAL = THIS->filament_presets; %};
+    void                        set_filament_preset(int idx, const char *name);
+    void                        update_multi_material_filament_presets();
+
+    Clone<DynamicPrintConfig>   full_config() %code%{ RETVAL = THIS->full_config();  %};
+
+    void                        update_platter_filament_ui(int extruder_idx, SV *ui)
+        %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox");
+                THIS->update_platter_filament_ui(extruder_idx, cb); %};
+
+    void                        update_platter_filament_ui_colors(int extruder_idx, SV *ui)
+        %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox");
+                THIS->update_platter_filament_ui_colors(extruder_idx, cb); %};
+
 };

@@ -93,6 +93,14 @@ public:
     // and select it, losing previous modifications.
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true);
 
+    // Save the preset under a new name. If the name is different from the old one,
+    // a new preset is stored into the list of presets.
+    // All presets are marked as not modified and the new preset is activated.
+    void            save_current_preset(const std::string &new_name);
+
+    // Delete the current preset, activate the first visible preset.
+    void            delete_current_preset();
+
     // Load default bitmap to be placed at the wxBitmapComboBox of a MainFrame.
     bool            load_bitmap_default(const std::string &file_name);
 
@@ -143,17 +151,8 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
     std::vector<std::string>    current_dirty_options() { return this->get_selected_preset().config.diff(this->get_edited_preset().config); }
 
-    // Save the preset under a new name. If the name is different from the old one,
-    // a new preset is stored into the list of presets.
-    // All presets are marked as not modified and the new preset is activated.
-    void            save_current_preset(const std::string &new_name);
-
-    // Delete the current preset, activate the first visible preset.
-    void            delete_current_preset();
-
     // Update the choice UI from the list of presets.
-    void            update_editor_ui(wxBitmapComboBox *ui);
-    void            update_platter_ui(wxChoice *ui);
+    void            update_tab_ui(wxChoice *ui);
     void            update_platter_ui(wxBitmapComboBox *ui);
 
     // Update a dirty floag of the current preset, update the labels of the UI component accordingly.
@@ -194,6 +193,8 @@ private:
     // Marks placed at the wxBitmapComboBox of a MainFrame.
     // These bitmaps are owned by PresetCollection.
     wxBitmap               *m_bitmap_main_frame;
+    // Path to the directory to store the config files into.
+    std::string             m_dir_path;
 };
 
 // Bundle of Print + Filament + Printer presets.
@@ -224,24 +225,35 @@ public:
     // Load a config bundle file, into presets and store the loaded presets into separate files
     // of the local configuration directory.
     // Load settings into the provided settings instance.
-    // Activate the presets stored in the 
-    void                        load_configbundle(const std::string &path, const DynamicPrintConfig &settings);
+    // Activate the presets stored in the config bundle.
+    // Returns the number of presets loaded successfully.
+    size_t                      load_configbundle(const std::string &path);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path, const DynamicPrintConfig &settings);
 
+    // Update a filament selection combo box on the platter for an idx_extruder.
+    void                        update_platter_filament_ui(unsigned int idx_extruder, wxBitmapComboBox *ui);
     // Update the colors preview at the platter extruder combo box.
-    void update_platter_filament_ui_colors(wxBitmapComboBox *ui, unsigned int idx_extruder, unsigned int idx_filament);
+    void                        update_platter_filament_ui_colors(unsigned int idx_extruder, wxBitmapComboBox *ui);
 
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();
     static const std::vector<std::string>&  printer_options();
 
     // Enable / disable the "- default -" preset.
-    void            set_default_suppressed(bool default_suppressed);
+    void                        set_default_suppressed(bool default_suppressed);
+
+    // Set the filament preset name. As the name could come from the UI selection box, 
+    // an optional "(modified)" suffix will be removed from the filament name.
+    void                        set_filament_preset(size_t idx, const std::string &name);
+
+    // Read out the number of extruders from an active printer preset,
+    // update size and content of filament_presets.
+    void                        update_multi_material_filament_presets();
 
 private:
-    bool            load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible);
+    bool                        load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible);
 
     // Indicator, that the preset is compatible with the selected printer.
     wxBitmap                            *m_bitmapCompatible;

@@ -81,8 +81,6 @@ our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
 our $grey = Wx::Colour->new(200,200,200);
 
-#our $VERSION_CHECK_EVENT : shared = Wx::NewEventType;
-
 sub OnInit {
     my ($self) = @_;
     
@@ -123,6 +121,8 @@ sub OnInit {
     $Settings->{_}{version} = $Slic3r::VERSION;
     $self->save_settings;
 
+    # Suppress the '- default -' presets.
+    $self->{preset_bundle}->set_default_suppressed($Slic3r::GUI::Settings->{_}{no_defaults} ? 1 : 0);
     eval { $self->{preset_bundle}->load_presets(Slic3r::data_dir) };
     
     # application frame
@@ -169,43 +169,18 @@ sub OnInit {
         $self->{mainframe}->config_wizard;
         eval { $self->{preset_bundle}->load_presets(Slic3r::data_dir) };
     }
-    
-#    $self->check_version
-#        if $self->have_version_check
-#            && ($Settings->{_}{version_check} // 1)
-#            && (!$Settings->{_}{last_version_check} || (time - $Settings->{_}{last_version_check}) >= 86400);
-    
+
     EVT_IDLE($frame, sub {
         while (my $cb = shift @cb) {
             $cb->();
         }
     });
     
-#    EVT_COMMAND($self, -1, $VERSION_CHECK_EVENT, sub {
-#        my ($self, $event) = @_;
-#        my ($success, $response, $manual_check) = @{$event->GetData};
-#        
-#        if ($success) {
-#            if ($response =~ /^obsolete ?= ?([a-z0-9.-]+,)*\Q$Slic3r::VERSION\E(?:,|$)/) {
-#                my $res = Wx::MessageDialog->new(undef, "A new version is available. Do you want to open the Slic3r website now?",
-#                    'Update', wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxICON_INFORMATION | wxICON_ERROR)->ShowModal;
-#                Wx::LaunchDefaultBrowser('http://slic3r.org/') if $res == wxID_YES;
-#            } else {
-#                Slic3r::GUI::show_info(undef, "You're using the latest version. No updates are available.") if $manual_check;
-#            }
-#            $Settings->{_}{last_version_check} = time();
-#            $self->save_settings;
-#        } else {
-#            Slic3r::GUI::show_error(undef, "Failed to check for updates. Try later.") if $manual_check;
-#        }
-#    });
-    
     return 1;
 }
 
 sub about {
     my ($self) = @_;
-    
     my $about = Slic3r::GUI::AboutDialog->new(undef);
     $about->ShowModal;
     $about->Destroy;
@@ -213,7 +188,6 @@ sub about {
 
 sub system_info {
     my ($self) = @_;
-
     my $slic3r_info = Slic3r::slic3r_info(format => 'html');
     my $copyright_info = Slic3r::copyright_info(format => 'html');
     my $system_info = Slic3r::system_info(format => 'html');

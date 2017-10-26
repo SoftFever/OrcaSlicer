@@ -81,7 +81,8 @@ sub new {
 sub _accept {
     my $self = shift;
     
-    if (defined($self->{values}{no_controller})) {
+    if (defined($self->{values}{no_controller}) ||
+        defined($self->{values}{no_defaults})) {
         Slic3r::GUI::warning_catcher($self)->("You need to restart Slic3r to make the changes effective.");
     }
     

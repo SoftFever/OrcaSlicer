@@ -366,20 +366,17 @@ sub new {
             # once a printer preset with multiple extruders is activated.
             # $self->{preset_choosers}{$group}[$idx]
             $self->{preset_choosers} = {};
-            # Boolean indicating whether the '- default -' preset is shown by the combo box.
-            $self->{preset_choosers_default_suppressed} = {};
             for my $group (qw(print filament printer)) {
                 my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
                 EVT_LEFT_DOWN($choice, sub { $self->filament_color_box_lmouse_down(0, @_); } );
                 $self->{preset_choosers}{$group} = [$choice];
-                $self->{preset_choosers_default_suppressed}{$group} = 0;
                 # setup the listener
                 EVT_COMBOBOX($choice, $choice, sub {
                     my ($choice) = @_;
                     wxTheApp->CallAfter(sub {
-                        $self->_on_select_preset($group, $choice);
+                        $self->_on_select_preset($group, $choice, 0);
                     });
                 });
                 $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
@@ -504,28 +501,23 @@ sub on_select_preset {
     $self->{on_select_preset} = $cb;
 }
 
+# Called from the platter combo boxes selecting the active print, filament or printer.
 sub _on_select_preset {
-	my $self = shift;
-	my ($group, $choice) = @_;
-	
+	my ($self, $group, $choice, $idx) = @_;
 	# If user changed a filament preset and the selected machine is equipped with multiple extruders,
     # there are multiple filament selection combo boxes shown at the platter. In that case
     # don't propagate the filament selection changes to the tab.
-    my $default_suppressed = $self->{preset_choosers_default_suppressed}{$group};
+    if ($group eq 'filament') {
+        wxTheApp->{preset_bundle}->set_filament_preset($idx, $choice->GetStringSelection);
+    }
 	if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
-        # Indices of the filaments selected.
-		my @filament_presets = $self->filament_presets;
-		$Slic3r::GUI::Settings->{presets}{filament} = $choice->GetString($filament_presets[0] - $default_suppressed) . ".ini";
-		$Slic3r::GUI::Settings->{presets}{"filament_${_}"} = $choice->GetString($filament_presets[$_] - $default_suppressed)
-			for 1 .. $#filament_presets;
 		wxTheApp->save_settings;
-        $self->update_filament_colors_preview($choice);
+        wxTheApp->{preset_bundle}->update_platter_filament_ui_colors($idx, $choice);
 	} else {
     	# call GetSelection() in scalar context as it's context-aware
-    	$self->{on_select_preset}->($group, scalar($choice->GetSelection) + $default_suppressed)
+    	$self->{on_select_preset}->($group, $choice->GetStringSelection)
     	    if $self->{on_select_preset};
     }
-	
 	# get new config and generate on_config_change() event for updating plater and other things
 	$self->on_config_change(wxTheApp->{preset_bundle}->full_config);
 }
@@ -572,127 +564,31 @@ sub update_ui_from_settings
 # For Print settings and Printer, synchronize the selection index with their tabs.
 # For Filament, synchronize the selection index for a single extruder printer only, otherwise keep the selection.
 sub update_presets {
-    # $presets: one of qw(print filament printer)
-    # $selected: index of the selected preset in the array. This may not correspond
-    # with the index of selection in the UI element, where not all items are displayed.
-    my ($self, $group, $presets, $default_suppressed, $selected, $is_dirty) = @_;
-
-    print "Plater.pm update_presets presets: $presets\n";
-#    my @choosers = @{ $self->{preset_choosers}{$group} };
-#    my $choice_idx = 0;
-#    foreach my $choice (@choosers) {
-#        if ($group eq 'filament' && @choosers > 1) {
-            # if we have more than one filament chooser, keep our selection
-            # instead of importing the one from the tab
-#            $selected = $choice->GetSelection + $self->{preset_choosers_default_suppressed}{$group};
-#            $is_dirty = 0;
-#        }
-#        $choice->Clear;
-#        foreach my $preset (@{$presets}) {
-#            print "Prset of $presets: $preset\n";
-#            next if ($preset->default && $default_suppressed);
-#            my $bitmap;
-#            if ($group eq 'filament') {
-#                $bitmap = Wx::Bitmap->new(Slic3r::var("spool.png"), wxBITMAP_TYPE_PNG);
-#            } elsif ($group eq 'print') {
-#                $bitmap = Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG);
-#            } elsif ($group eq 'printer') {
-#                $bitmap = Wx::Bitmap->new(Slic3r::var("printer_empty.png"), wxBITMAP_TYPE_PNG);
-#            }
-#            $choice->AppendString($preset->name, $bitmap);
-#        }
-        
-#        if ($selected <= $#$presets) {
-#            my $idx = $selected - $default_suppressed;
-#            if ($idx >= 0) {
-#                if ($is_dirty) {
-#                    $choice->SetString($idx, $choice->GetString($idx) . " (modified)");
-#                }
-#                # call SetSelection() only after SetString() otherwise the new string
-#                # won't be picked up as the visible string
-#                $choice->SetSelection($idx);
-#            }
-#        }
-#        $choice_idx += 1;
-#    }
-
-#    $self->{preset_choosers_default_suppressed}{$group} = $default_suppressed;
-
-    wxTheApp->CallAfter(sub { $self->update_filament_colors_preview }) if $group eq 'filament' || $group eq 'printer';
-}
-
-# Update the color icon in front of each filament selection on the platter.
-# If the extruder has a preview color assigned, apply the extruder color to the active selection.
-# Always apply the filament color to the non-active selections.
-sub update_filament_colors_preview {
-    my ($self, $extruder_idx) = shift;
-
-#    my @choosers = @{$self->{preset_choosers}{filament}};
-
-#    if (ref $extruder_idx) {
-        # $extruder_idx is the chooser.
-#        foreach my $chooser (@choosers) {
-#            if ($extruder_idx == $chooser) {
-#                $extruder_idx = $chooser;
-#                last;
-#            }
-#        }
-#    }
-
-#    my @extruder_colors = @{$self->{config}->extruder_colour};
-
-#    my @extruder_list;
-#    if (defined $extruder_idx) {
-#        @extruder_list = ($extruder_idx);
-#    } else {
-        # Collect extruder indices.
-#        @extruder_list = (0..$#extruder_colors);
-#    }
-
-#    my $filament_tab       = $self->GetFrame->{options_tabs}{filament};
-#    my $presets            = $filament_tab->{presets};
-#    my $default_suppressed = $filament_tab->{default_suppressed};
-
-#    foreach my $extruder_idx (@extruder_list) {
-#        my $chooser = $choosers[$extruder_idx];
-#        my $extruder_color = $self->{config}->extruder_colour->[$extruder_idx];
-#        my $preset_idx = 0;
-#        my $selection_idx = $chooser->GetSelection;
-#        foreach my $preset (@$presets) {
-#            my $bitmap;
-#            if ($preset->default) {
-#                next if $default_suppressed;
-#            } else {
-                # Assign an extruder color to the selected item if the extruder color is defined.
-#                my $filament_colour_cfg = $preset->config_ref->filament_colour;
-#                print $filament_colour_cfg . "\n";
-#                my $filament_rgb = $filament_colour_cfg->[0];
-#                my $extruder_rgb = ($preset_idx == $selection_idx && $extruder_color =~ m/^#[[:xdigit:]]{6}/) ? $extruder_color : $filament_rgb;
-#                $filament_rgb =~ s/^#//;
-#                $extruder_rgb =~ s/^#//;
-#                my $image = Wx::Image->new(24,16);
-#                if ($filament_rgb ne $extruder_rgb) {
-#                    my @rgb = unpack 'C*', pack 'H*', $extruder_rgb;
-#                    $image->SetRGB(Wx::Rect->new(0,0,16,16), @rgb);
-#                    @rgb = unpack 'C*', pack 'H*', $filament_rgb;
-#                    $image->SetRGB(Wx::Rect->new(16,0,8,16), @rgb);
-#                } else {
-#                    my @rgb = unpack 'C*', pack 'H*', $filament_rgb;
-#                    $image->SetRGB(Wx::Rect->new(0,0,24,16), @rgb);
-#                }
-#                $bitmap = Wx::Bitmap->new($image);
-#            }
-#            $chooser->SetItemBitmap($preset_idx, $bitmap) if $bitmap;
-#            $preset_idx += 1;
-#        }
-#    }
-}
-
-# Return a vector of indices of filaments selected by the $self->{preset_choosers}{filament} combo boxes.
-sub filament_presets {
-    my $self = shift;
-    # force scalar context for GetSelection() as it's context-aware
-    return map scalar($_->GetSelection) + $self->{preset_choosers_default_suppressed}{filament}, @{ $self->{preset_choosers}{filament} };
+    # $group: one of qw(print filament printer)
+    # $presets: PresetCollection
+    my ($self, $group, $presets) = @_;
+    print "Platter::update_presets\n";
+    my @choosers = @{$self->{preset_choosers}{$group}};
+    if ($group eq 'filament') {
+        my $choice_idx = 0;
+        if (int(@choosers) == 1) {
+            # Single filament printer, synchronize the filament presets.
+            wxTheApp->{preset_bundle}->set_filament_preset(0, wxTheApp->{preset_bundle}->filament->get_selected_preset->name);
+        }
+        foreach my $choice (@choosers) {
+            wxTheApp->{preset_bundle}->update_platter_filament_ui($choice_idx, $choice);
+            $choice_idx += 1;
+        }
+    } elsif ($group eq 'print') {
+        wxTheApp->{preset_bundle}->print->update_platter_ui($choosers[0]);        
+    } elsif ($group eq 'printer') {
+        wxTheApp->{preset_bundle}->printer->update_platter_ui($choosers[0]);        
+        my $choice_idx = 0;
+        foreach my $choice (@{$self->{preset_choosers}{filament}}) {
+            wxTheApp->{preset_bundle}->update_platter_filament_ui_colors($choice_idx, $choice);
+            $choice_idx += 1;
+        }
+    }
 }
 
 sub add {
@@ -1557,7 +1453,7 @@ sub do_print {
     my $printer_panel = $controller->add_printer($printer_preset->name, $printer_preset->config);
     
     my $filament_stats = $self->{print}->filament_stats;
-    my @filament_names = $self->GetFrame->filament_preset_names;
+    my @filament_names = wxTheApp->{preset_bundle}->filament_presets;
     $filament_stats = { map { $filament_names[$_] => $filament_stats->{$_} } keys %$filament_stats };
     $printer_panel->load_print_job($self->{print_file}, $filament_stats);
     
@@ -1713,11 +1609,18 @@ sub update {
 }
 
 # When a number of extruders changes, the UI needs to be updated to show a single filament selection combo box per extruder.
+# Also the wxTheApp->{preset_bundle}->filament_presets needs to be resized accordingly
+# and some reasonable default has to be selected for the additional extruders.
 sub on_extruders_change {
     my ($self, $num_extruders) = @_;
     
     my $choices = $self->{preset_choosers}{filament};
-    while (@$choices < $num_extruders) {
+    print "on_extruders_change1 $num_extruders, current choices: " . int(@$choices) . "\n";
+    wxTheApp->{preset_bundle}->update_multi_material_filament_presets;
+    print "on_extruders_change2 $num_extruders, current choices: " . int(@$choices) . "\n";
+
+    while (int(@$choices) < $num_extruders) {
+        print "Adding an extruder selection combo box\n";
         # copy strings from first choice
         my @presets = $choices->[0]->GetStrings;
         
@@ -1726,25 +1629,20 @@ sub on_extruders_change {
         my $extruder_idx = scalar @$choices;
         EVT_LEFT_DOWN($choice, sub { $self->filament_color_box_lmouse_down($extruder_idx, @_); } );
         push @$choices, $choice;
-        
         # copy icons from first choice
         $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
-        
         # insert new choice into sizer
         $self->{presets_sizer}->Insert(4 + ($#$choices-1)*2, 0, 0);
         $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
-        
         # setup the listener
         EVT_COMBOBOX($choice, $choice, sub {
             my ($choice) = @_;
             wxTheApp->CallAfter(sub {
-                $self->_on_select_preset('filament', $choice);
+                $self->_on_select_preset('filament', $choice, $extruder_idx);
             });
         });
-        
         # initialize selection
-        my $i = first { $choice->GetString($_) eq ($Slic3r::GUI::Settings->{presets}{"filament_" . $#$choices} || '') } 0 .. $#presets;
-        $choice->SetSelection($i || 0);
+        wxTheApp->{preset_bundle}->update_platter_filament_ui($extruder_idx, $choice);
     }
     
     # remove unused choices if any
@@ -1758,8 +1656,7 @@ sub on_extruders_change {
 }
 
 sub on_config_change {
-    my $self = shift;
-    my ($config) = @_;
+    my ($self, $config) = @_;
     
     my $update_scheduled;
     foreach my $opt_key (@{$self->{config}->diff($config)}) {
@@ -1864,7 +1761,7 @@ sub filament_color_box_lmouse_down
             $colors->[$extruder_idx] = $dialog->GetColourData->GetColour->GetAsString(wxC2S_HTML_SYNTAX);
             $cfg->set('extruder_colour', $colors);
             $self->GetFrame->{options_tabs}{printer}->load_config($cfg);
-            $self->update_filament_colors_preview($extruder_idx);
+            wxTheApp->{preset_bundle}->update_platter_filament_ui_colors($extruder_idx, $combobox);
         }
         $dialog->Destroy();
     }
@@ -1964,9 +1861,9 @@ sub object_list_changed {
         for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
 }
 
+# Selection of an active 3D object changed.
 sub selection_changed {
     my $self = shift;
-    
     my ($obj_idx, $object) = $self->selected_object;
     my $have_sel = defined $obj_idx;
     

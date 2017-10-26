@@ -5,9 +5,11 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <boost/nowide/cenv.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/locale.hpp>
 
 #include <wx/image.h>
 #include <wx/choice.h>
@@ -25,7 +27,16 @@
 
 namespace Slic3r {
 
+// Suffix to be added to a modified preset name in the combo box.
 static std::string g_suffix_modified = " (modified)";
+// Remove an optional "(modified)" suffix from a name.
+// This converts a UI name to a unique preset identifier.
+std::string remove_suffix_modified(const std::string &name)
+{
+    return boost::algorithm::ends_with(name, g_suffix_modified) ?
+        name.substr(0, name.size() - g_suffix_modified.size()) :
+        name;
+}
 
 // Load keys from a config file or a G-code.
 // Throw exceptions with reasonable messages if something goes wrong.
@@ -117,9 +128,11 @@ PresetCollection::~PresetCollection()
 // Throws an exception on error.
 void PresetCollection::load_presets(const std::string &dir_path, const std::string &subdir)
 {
+	boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
+	m_dir_path = dir.string();
     m_presets.erase(m_presets.begin()+1, m_presets.end());
     t_config_option_keys keys = this->default_preset().config.keys();
-	for (auto &file : boost::filesystem::directory_iterator(boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred()))
+	for (auto &file : boost::filesystem::directory_iterator(dir))
         if (boost::filesystem::is_regular_file(file.status()) && boost::algorithm::iends_with(file.path().filename().string(), ".ini")) {
             std::string name = file.path().filename().string();
             // Remove the .ini suffix.
@@ -133,7 +146,9 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 
             }
         }
-    std::sort(m_presets.begin() + 1, m_presets.end(), [](const Preset &p1, const Preset &p2){ return p1.name < p2.name; });
+    std::sort(m_presets.begin() + 1, m_presets.end());
+    m_presets.front().is_visible = ! m_default_suppressed || m_presets.size() > 1;
+    this->select_preset(first_visible_idx());
 }
 
 // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
@@ -158,6 +173,50 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     return preset;
 }
 
+void PresetCollection::save_current_preset(const std::string &new_name)
+{
+    Preset key(m_type, new_name, false);
+    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
+    if (it != m_presets.end() && it->name == key.name) {
+        // Preset with the same name found.
+        Preset &preset = *it;
+        if (preset.is_default)
+            // Cannot overwrite the default preset.
+            return;
+        // Overwriting an existing preset.
+        preset.config = std::move(m_edited_preset.config);
+        m_idx_selected = it - m_presets.begin();
+    } else {
+        // Creating a new preset.
+		m_idx_selected = m_presets.insert(it, m_edited_preset) - m_presets.begin();
+        Preset &preset = m_presets[m_idx_selected];
+        std::string file_name = new_name;
+        if (! boost::iends_with(file_name, ".ini"))
+            file_name += ".ini";
+        preset.name = new_name;
+		preset.file = (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+    }
+    m_edited_preset = m_presets[m_idx_selected];
+    m_presets[m_idx_selected].save();
+}
+
+void PresetCollection::delete_current_preset()
+{
+    const Preset &selected = this->get_selected_preset();
+    if (selected.is_default || selected.is_external)
+        return;
+    // Erase the preset file.
+    boost::nowide::remove(selected.file.c_str());
+    // Remove the preset from the list.
+    m_presets.erase(m_presets.begin() + m_idx_selected);
+    // Find the next visible preset.
+    m_presets.front().is_visible = ! m_default_suppressed || m_presets.size() > 1;    
+    for (; m_idx_selected < m_presets.size() && ! m_presets[m_idx_selected].is_visible; ++ m_idx_selected) ;
+    if (m_idx_selected == m_presets.size())
+        m_idx_selected = this->first_visible_idx();
+    m_edited_preset = m_presets[m_idx_selected];
+}
+
 bool PresetCollection::load_bitmap_default(const std::string &file_name)
 {
     return m_bitmap_main_frame->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
@@ -168,8 +227,7 @@ bool PresetCollection::load_bitmap_default(const std::string &file_name)
 Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found)
 {
     Preset key(m_type, name, false);
-    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key, 
-        [](const Preset &p1, const Preset &p2) { return p1.name < p2.name; } );
+    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
     // Ensure that a temporary copy is returned if the preset found is currently selected.
     return (it != m_presets.end() && it->name == key.name) ? &this->preset(it - m_presets.begin()) : 
         first_visible_if_not_found ? &this->first_visible() : nullptr;
@@ -216,84 +274,31 @@ void PresetCollection::enable_disable_compatible_to_printer(const std::string &a
 
 // Update the wxChoice UI component from this list of presets.
 // Hide the 
-void PresetCollection::update_editor_ui(wxBitmapComboBox *ui)
-{
-    if (ui == nullptr)
-        return;
-
-    size_t      n_visible       = this->num_visible();
-    size_t      n_choice        = size_t(ui->GetCount());
-    std::string name_selected   = dynamic_cast<wxItemContainerImmutable*>(ui)->GetStringSelection().ToUTF8().data();
-    if (boost::algorithm::iends_with(name_selected, g_suffix_modified))
-        // Remove the g_suffix_modified.
-        name_selected.erase(name_selected.end() - g_suffix_modified.size(), name_selected.end());
-#if 0
-    if (std::abs(int(n_visible) - int(n_choice)) <= 1) {
-        // The number of items differs by at most one, update the choice.
-        size_t i_preset = 0;
-        size_t i_ui     = 0;
-        while (i_preset < presets.size()) {
-            std::string name_ui = ui->GetString(i_ui).ToUTF8();
-            if (boost::algorithm::iends_with(name_ui, g_suffix_modified))
-                // Remove the g_suffix_modified.
-                name_ui.erase(name_ui.end() - g_suffix_modified.size(), name_ui.end());
-            while (this->presets[i_preset].name )
-            const Preset &preset = this->presets[i_preset];
-            if (preset)
-        }
-    } else 
-#endif
-    {
-        // Otherwise fill in the list from scratch.
-        ui->Clear();
-        for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
-            const Preset &preset = this->m_presets[i];
-            const wxBitmap *bmp = (i == 0 || preset.is_visible) ? m_bitmap_compatible : m_bitmap_incompatible;
-            ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), (bmp == 0) ? wxNullBitmap : *bmp, (void*)i);
-            if (name_selected == preset.name)
-                ui->SetSelection(ui->GetCount() - 1);
-        }
-    }
-}
-
 void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 {
     if (ui == nullptr)
         return;
-
-    size_t n_visible = this->num_visible();
-    size_t n_choice  = size_t(ui->GetCount());
-    if (std::abs(int(n_visible) - int(n_choice)) <= 1) {
-        // The number of items differs by at most one, update the choice.
-    } else {
-        // Otherwise fill in the list from scratch.
+    // Otherwise fill in the list from scratch.
+    ui->Clear();
+    for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
+        const Preset &preset = this->m_presets[i];
+        const wxBitmap *bmp = (i == 0 || preset.is_visible) ? m_bitmap_compatible : m_bitmap_incompatible;
+        ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), (bmp == 0) ? wxNullBitmap : *bmp, (void*)i);
+		if (i == m_idx_selected)
+            ui->SetSelection(ui->GetCount() - 1);
     }
 }
 
-void PresetCollection::update_platter_ui(wxChoice *ui)
+void PresetCollection::update_tab_ui(wxChoice *ui)
 {
     if (ui == nullptr)
         return;
-
-    size_t n_visible = this->num_visible();
-    size_t n_choice  = size_t(ui->GetCount());
-    if (std::abs(int(n_visible) - int(n_choice)) <= 1) {
-        // The number of items differs by at most one, update the choice.
-    } else {
-        // Otherwise fill in the list from scratch.
-    }
-
-    std::string name_selected = dynamic_cast<wxItemContainerImmutable*>(ui)->GetStringSelection().ToUTF8().data();
-    if (boost::algorithm::iends_with(name_selected, g_suffix_modified))
-        // Remove the g_suffix_modified.
-        name_selected.erase(name_selected.end() - g_suffix_modified.size(), name_selected.end());
-
     ui->Clear();
     for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
         const wxBitmap *bmp = (i == 0 || preset.is_visible) ? m_bitmap_compatible : m_bitmap_incompatible;
         ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), (void*)&preset);
-        if (name_selected == preset.name)
+		if (i == m_idx_selected)
             ui->SetSelection(ui->GetCount() - 1);
     }
 }
@@ -309,9 +314,7 @@ bool PresetCollection::update_dirty_ui(wxItemContainer *ui)
     // 2) Update the labels.
     for (unsigned int ui_id = 0; ui_id < ui->GetCount(); ++ ui_id) {
         std::string   old_label    = ui->GetString(ui_id).utf8_str().data();
-        std::string   preset_name  = boost::algorithm::ends_with(old_label, g_suffix_modified) ? 
-                old_label.substr(0, g_suffix_modified.size()) :
-                old_label;
+        std::string   preset_name  = remove_suffix_modified(old_label);
         const Preset *preset       = this->find_preset(preset_name, false);
         assert(preset != nullptr);
         std::string new_label = preset->is_dirty ? preset->name + g_suffix_modified : preset->name;
@@ -335,12 +338,12 @@ Preset& PresetCollection::select_preset(size_t idx)
     return m_presets[idx];
 }
 
-bool PresetCollection::select_preset_by_name(const std::string &name, bool force)
-{
+bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, bool force)
+{   
+    std::string name = remove_suffix_modified(name_w_suffix);
     // 1) Try to find the preset by its name.
     Preset key(m_type, name, false);
-    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key, 
-        [](const Preset &p1, const Preset &p2) { return p1.name < p2.name; } );
+    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
     size_t idx = 0;
     if (it != m_presets.end() && it->name == key.name)
         // Preset found by its name.
@@ -419,6 +422,7 @@ void PresetBundle::load_presets(const std::string &dir_path)
     this->prints   .load_presets(dir_path, "print");
     this->filaments.load_presets(dir_path, "filament");
     this->printers .load_presets(dir_path, "printer");
+    this->update_multi_material_filament_presets();
 }
 
 bool PresetBundle::load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible)
@@ -567,8 +571,7 @@ std::string PresetCollection::name() const
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
 // of the local configuration directory.
-// Load settings into the provided settings instance.
-void PresetBundle::load_configbundle(const std::string &path, const DynamicPrintConfig &settings)
+size_t PresetBundle::load_configbundle(const std::string &path)
 {
     // 1) Read the complete config file into the boost::property_tree.
     namespace pt = boost::property_tree;
@@ -583,6 +586,7 @@ void PresetBundle::load_configbundle(const std::string &path, const DynamicPrint
     std::string              active_print;
     std::vector<std::string> active_filaments;
     std::string              active_printer;
+    size_t                   presets_loaded = 0;
     for (const auto &section : tree) {
         PresetCollection         *presets = nullptr;
         std::vector<std::string> *loaded  = nullptr;
@@ -631,6 +635,7 @@ void PresetBundle::load_configbundle(const std::string &path, const DynamicPrint
                 config.set_deserialize(kvp.first, kvp.second.data());
             // Load the preset into the list of presets, save it to disk.
             presets->load_preset(Slic3r::config_path(presets->name(), preset_name), preset_name, config, false).save();
+            ++ presets_loaded;
         }
     }
 
@@ -642,15 +647,24 @@ void PresetBundle::load_configbundle(const std::string &path, const DynamicPrint
     // Activate the first filament preset.
     if (! active_filaments.empty() && ! active_filaments.front().empty())
         filaments.select_preset_by_name(active_filaments.front(), true);
+
+    this->update_multi_material_filament_presets();
+    for (size_t i = 0; i < std::min(this->filament_presets.size(), active_filaments.size()); ++ i)
+        this->filament_presets[i] = filaments.first_visible().name;
+    return presets_loaded;
+}
+
+void PresetBundle::update_multi_material_filament_presets()
+{
     // Verify and select the filament presets.
     auto   *nozzle_diameter = static_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();
+    // Verify validity of the current filament presets.
+    for (size_t i = 0; i < std::min(this->filament_presets.size(), num_extruders); ++ i)
+        this->filament_presets[i] = this->filaments.find_preset(this->filament_presets[i], true)->name;
+    // Append the rest of filament presets.
     if (this->filament_presets.size() < num_extruders)
-        this->filament_presets.resize(num_extruders, filaments.get_selected_preset().name);
-    for (size_t i = 0; i < num_extruders; ++ i)
-        this->filament_presets[i] = (i < active_filaments.size()) ? 
-            filaments.find_preset(active_filaments[i], true)->name :
-            filaments.first_visible().name;
+        this->filament_presets.resize(num_extruders, this->filaments.first_visible().name);
 }
 
 void PresetBundle::export_configbundle(const std::string &path, const DynamicPrintConfig &settings)
@@ -703,6 +717,15 @@ void PresetBundle::export_configbundle(const std::string &path, const DynamicPri
     c.close();
 }
 
+// Set the filament preset name. As the name could come from the UI selection box, 
+// an optional "(modified)" suffix will be removed from the filament name.
+void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
+{
+    if (idx >= filament_presets.size())
+        filament_presets.resize(idx + 1, filaments.default_preset().name);
+    filament_presets[idx] = remove_suffix_modified(name);
+}
+
 static inline int hex_digit_to_int(const char c)
 {
     return 
@@ -727,9 +750,67 @@ static inline bool parse_color(const std::string &scolor, unsigned char *rgb_out
     return true;
 }
 
-// Update the colors preview at the platter extruder combo box.
-void PresetBundle::update_platter_filament_ui_colors(wxBitmapComboBox *ui, unsigned int idx_extruder, unsigned int idx_filament)
+void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitmapComboBox *ui)
 {
+    if (ui == nullptr)
+        return;
+
+    unsigned char rgb[3];
+    std::string extruder_color = this->printers.get_edited_preset().config.opt_string("extruder_colour", idx_extruder);
+    if (! parse_color(extruder_color, rgb))
+        // Extruder color is not defined.
+        extruder_color.clear();
+
+    // Fill in the list from scratch.
+    ui->Clear();
+    for (size_t i = this->filaments().front().is_visible ? 0 : 1; i < this->filaments().size(); ++ i) {
+        const Preset &preset = this->filaments.preset(i);
+		if (! preset.is_visible)
+			continue;
+        bool selected = this->filament_presets[idx_extruder] == preset.name;
+		// Assign an extruder color to the selected item if the extruder color is defined.
+		std::string   filament_rgb = preset.config.opt_string("filament_colour", 0);
+		std::string   extruder_rgb = (selected && !extruder_color.empty()) ? extruder_color : filament_rgb;
+		wxBitmap     *bitmap	   = nullptr;
+		if (filament_rgb == extruder_rgb) {
+			auto it = m_mapColorToBitmap.find(filament_rgb);
+			if (it == m_mapColorToBitmap.end()) {
+				// Create the bitmap.
+				parse_color(filament_rgb, rgb);
+				wxImage image(24, 16);
+				image.SetRGB(wxRect(0, 0, 24, 16), rgb[0], rgb[1], rgb[2]);
+				m_mapColorToBitmap[filament_rgb] = bitmap = new wxBitmap(image);
+			} else {
+				bitmap = it->second;
+			}
+		} else {
+			std::string bitmap_key = filament_rgb + extruder_rgb;
+			auto it = m_mapColorToBitmap.find(bitmap_key);
+			if (it == m_mapColorToBitmap.end()) {
+				// Create the bitmap.
+				wxImage image(24, 16);
+				parse_color(extruder_rgb, rgb);
+				image.SetRGB(wxRect(0, 0, 16, 16), rgb[0], rgb[1], rgb[2]);
+				parse_color(filament_rgb, rgb);
+				image.SetRGB(wxRect(16, 0, 8, 16), rgb[0], rgb[1], rgb[2]);
+				m_mapColorToBitmap[filament_rgb] = bitmap = new wxBitmap(image);
+			} else {
+				bitmap = it->second;
+			}
+		}
+
+		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
+        if (selected)
+            ui->SetSelection(ui->GetCount() - 1);
+    }
+}
+
+// Update the colors preview at the platter extruder combo box.
+void PresetBundle::update_platter_filament_ui_colors(unsigned int idx_extruder, wxBitmapComboBox *ui)
+{
+	this->update_platter_filament_ui(idx_extruder, ui);
+	return;
+
     unsigned char rgb[3];
     std::string extruder_color = this->printers.get_edited_preset().config.opt_string("extruder_colour", idx_extruder);
     if (! parse_color(extruder_color, rgb))
