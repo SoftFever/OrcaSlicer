@@ -1,7 +1,10 @@
 #include "PrintConfig.hpp"
+
+#include <set>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
+
 #include <float.h>
 
 namespace Slic3r {
@@ -1719,18 +1722,16 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         value = "60%";
     }
     
-    // cemetery of old config settings
-    if (opt_key == "duplicate_x" || opt_key == "duplicate_y" || opt_key == "multiply_x" 
-        || opt_key == "multiply_y" || opt_key == "support_material_tool" 
-        || opt_key == "acceleration" || opt_key == "adjust_overhang_flow" 
-        || opt_key == "standby_temperature" || opt_key == "scale" || opt_key == "rotate" 
-        || opt_key == "duplicate" || opt_key == "duplicate_grid" || opt_key == "rotate" 
-        || opt_key == "scale"  || opt_key == "duplicate_grid" 
-        || opt_key == "start_perimeters_at_concave_points" 
-        || opt_key == "start_perimeters_at_non_overhang" || opt_key == "randomize_start" 
-        || opt_key == "seal_position" || opt_key == "bed_size" || opt_key == "octoprint_host" 
-        || opt_key == "print_center" || opt_key == "g0" || opt_key == "threads")
-    {
+    // Ignore the following obsolete configuration keys:
+    static std::set<std::string> ignore = {
+        "duplicate_x", "duplicate_y", "gcode_arcs", "multiply_x", "multiply_y",
+        "support_material_tool", "acceleration", "adjust_overhang_flow", 
+        "standby_temperature", "scale", "rotate", "duplicate", "duplicate_grid",
+        "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start", 
+        "seal_position", "vibration_limit", "bed_size", "octoprint_host",
+        "print_center", "g0", "threads", "pressure_advance" 
+    };
+    if (ignore.find(opt_key) != ignore.end()) {
         opt_key = "";
         return;
     }
@@ -1743,6 +1744,18 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 }
 
 PrintConfigDef print_config_def;
+
+DynamicPrintConfig* DynamicPrintConfig::new_from_defaults()
+{
+    return new_from_defaults_keys(FullPrintConfig::defaults().keys());
+}
+
+DynamicPrintConfig* DynamicPrintConfig::new_from_defaults_keys(const std::vector<std::string> &keys)
+{
+    auto *out = new DynamicPrintConfig();
+    out->apply_only(FullPrintConfig::defaults(), keys);
+    return out;
+}
 
 void DynamicPrintConfig::normalize()
 {

@@ -21,7 +21,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('wipe', [1]);
     $config->set('retract_layer_change', [0]);
     
@@ -52,7 +52,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('z_offset', 5);
     $config->set('start_gcode', '');
     
@@ -86,7 +86,7 @@ use Slic3r::Test;
     # - Z moves are correctly generated for both objects
     # - no travel moves go outside skirt
     # - temperatures are set correctly
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('gcode_comments', 1);
     $config->set('complete_objects', 1);
     $config->set('extrusion_axis', 'A');
@@ -130,7 +130,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('retract_length', [1000000]);
     $config->set('use_relative_e_distances', 1);
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -162,7 +162,7 @@ use Slic3r::Test;
     };
     
     {
-        my $config = Slic3r::Config->new_from_defaults;
+        my $config = Slic3r::Config::new_from_defaults;
         $config->set('gcode_flavor', 'sailfish');
         $config->set('raft_layers', 3);
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -170,21 +170,21 @@ use Slic3r::Test;
     }
     
     {
-        my $config = Slic3r::Config->new_from_defaults;
+        my $config = Slic3r::Config::new_from_defaults;
         $config->set('gcode_flavor', 'sailfish');
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config, duplicate => 2);
         $test->($print, 'two copies of single object');
     }
     
     {
-        my $config = Slic3r::Config->new_from_defaults;
+        my $config = Slic3r::Config::new_from_defaults;
         $config->set('gcode_flavor', 'sailfish');
         my $print = Slic3r::Test::init_print(['20mm_cube','20mm_cube'], config => $config);
         $test->($print, 'two objects');
     }
     
     {
-        my $config = Slic3r::Config->new_from_defaults;
+        my $config = Slic3r::Config::new_from_defaults;
         $config->set('gcode_flavor', 'sailfish');
         my $print = Slic3r::Test::init_print('20mm_cube', config => $config, scale_xyz => [1,1, 1/(20/$config->layer_height) ]);
         $test->($print, 'one layer object');
@@ -192,7 +192,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('start_gcode', 'START:[input_filename]');
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     my $gcode = Slic3r::Test::gcode($print);
@@ -200,7 +200,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('spiral_vase', 1);
     my $print = Slic3r::Test::init_print('cube_with_hole', config => $config);
     
@@ -220,7 +220,7 @@ use Slic3r::Test;
 {
     # Tests that the Repetier flavor produces M201 Xnnn Ynnn for resetting
     # acceleration, also that M204 Snnn syntax is not generated. 
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('gcode_flavor', 'repetier');
     $config->set('default_acceleration', 1337);
     my $print = Slic3r::Test::init_print('cube_with_hole', config => $config);

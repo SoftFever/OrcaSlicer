@@ -8,6 +8,9 @@
 %name{Slic3r::Config} class DynamicPrintConfig {
     DynamicPrintConfig();
     ~DynamicPrintConfig();
+    static DynamicPrintConfig* new_from_defaults();
+    static DynamicPrintConfig* new_from_defaults_keys(std::vector<std::string> keys);
+    DynamicPrintConfig* clone() %code{% RETVAL = new DynamicPrintConfig(*THIS); %};
     bool has(t_config_option_key opt_key);
     SV* as_hash()
         %code{% RETVAL = ConfigBase__as_hash(THIS); %};
@@ -15,6 +18,13 @@
         %code{% RETVAL = ConfigBase__get(THIS, opt_key); %};
     SV* get_at(t_config_option_key opt_key, int i)
         %code{% RETVAL = ConfigBase__get_at(THIS, opt_key, i); %};
+    SV* get_value(t_config_option_key opt_key)
+        %code{%
+            const ConfigOptionDef *def = THIS->def()->get(opt_key);
+            RETVAL = (def != nullptr && ! def->ratio_over.empty()) ? 
+                newSVnv(THIS->get_abs_value(opt_key)) :
+                ConfigBase__get(THIS, opt_key);
+        %};
     bool set(t_config_option_key opt_key, SV* value)
         %code{% RETVAL = ConfigBase__set(THIS, opt_key, value); %};
     bool set_deserialize(t_config_option_key opt_key, SV* str)

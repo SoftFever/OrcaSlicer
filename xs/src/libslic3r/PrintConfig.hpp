@@ -142,6 +142,9 @@ public:
     DynamicPrintConfig() {}
     DynamicPrintConfig(const DynamicPrintConfig &other) : DynamicConfig(other) {}
 
+    static DynamicPrintConfig* new_from_defaults();
+    static DynamicPrintConfig* new_from_defaults_keys(const std::vector<std::string> &keys);
+
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
 

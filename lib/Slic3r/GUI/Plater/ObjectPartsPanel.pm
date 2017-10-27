@@ -312,7 +312,7 @@ sub selection_changed {
             $config = $self->{model_object}->config;
         }
         # get default values
-        my $default_config = Slic3r::Config->new_from_defaults(@opt_keys);
+        my $default_config = Slic3r::Config::new_from_defaults_keys(@opt_keys);
         
         # append default extruder
         push @opt_keys, 'extruder';
@@ -490,12 +490,12 @@ sub CanClose {
     # validate options before allowing user to dismiss the dialog
     # the validate method only works on full configs so we have
     # to merge our settings with the default ones
-    my $config = Slic3r::Config->merge($self->GetParent->GetParent->GetParent->GetParent->GetParent->config, $self->model_object->config);
+    my $config = $self->GetParent->GetParent->GetParent->GetParent->GetParent->config->clone;
     eval {
+        $config->apply($self->model_object->config);
         $config->validate;
     };
-    return 0 if Slic3r::GUI::catch_error($self);    
-    return 1;
+    return ! Slic3r::GUI::catch_error($self);
 }
 
 sub PartsChanged {

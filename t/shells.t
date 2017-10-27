@@ -14,7 +14,7 @@ use Slic3r::Geometry qw(epsilon);
 use Slic3r::Test;
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('perimeters', 0);
     $config->set('solid_infill_speed', 99);
@@ -82,7 +82,7 @@ use Slic3r::Test;
 
 # issue #1161
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('layer_height', 0.3);
     $config->set('first_layer_height', '100%');
     $config->set('bottom_solid_layers', 0);
@@ -106,7 +106,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     # we need to check against one perimeter because this test is calibrated
     # (shape, extrusion_width) so that perimeters cover the bottom surfaces of
     # their lower layer - the test checks that shells are not generated on the
@@ -137,7 +137,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('perimeters', 3);
     $config->set('cooling', [ 0 ]);             # prevent speed alteration
     $config->set('first_layer_speed', '100%');  # prevent speed alteration
@@ -161,7 +161,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('perimeters', 1);
     $config->set('fill_density', 0);
     $config->set('top_solid_layers', 0);
@@ -221,7 +221,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('spiral_vase', 1);
     $config->set('perimeters', 1);
     $config->set('fill_density', 0);
@@ -292,7 +292,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('perimeters', 1);
     $config->set('fill_density', 0);
     $config->set('top_solid_layers', 0);

@@ -54,7 +54,7 @@ plan tests => 8;
             'infill is only present in correct number of layers';
     };
     
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('layer_height', 0.2);
     $config->set('first_layer_height', 0.2);
     $config->set('nozzle_diameter', [0.5]);
@@ -73,7 +73,7 @@ plan tests => 8;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('layer_height', 0.2);
     $config->set('first_layer_height', 0.2);
     $config->set('nozzle_diameter', [0.5]);
@@ -98,7 +98,7 @@ plan tests => 8;
 
 # the following needs to be adapted to the new API
 if (0) {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('solid_layers', 0);
     $config->set('bottom_solid_layers', 0);

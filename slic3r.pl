@@ -92,12 +92,12 @@ if ($opt{save}) {
     if (@{$cli_config->get_keys} > 0) {
         $cli_config->save($opt{save});
     } else {
-        Slic3r::Config->new_from_defaults->save($opt{save});
+        Slic3r::Config::new_from_defaults->save($opt{save});
     }
 }
 
 # apply command line config on top of default config
-my $config = Slic3r::Config->new_from_defaults;
+my $config = Slic3r::Config::new_from_defaults;
 $config->apply($cli_config);
 
 # locate or create data directory
@@ -242,7 +242,7 @@ if (@ARGV) {  # slicing from command line
 sub usage {
     my ($exit_code) = @_;
     
-    my $config = Slic3r::Config->new_from_defaults->as_hash;
+    my $config = Slic3r::Config::new_from_defaults->as_hash;
     
     my $j = '';
     if ($Slic3r::have_threads) {

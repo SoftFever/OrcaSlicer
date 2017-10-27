@@ -8,12 +8,6 @@ use utf8;
 
 use List::Util qw(first max);
 
-# cemetery of old config settings
-our @Ignore = qw(duplicate_x duplicate_y multiply_x multiply_y support_material_tool acceleration
-    adjust_overhang_flow standby_temperature scale rotate duplicate duplicate_grid
-    rotate scale duplicate_grid start_perimeters_at_concave_points start_perimeters_at_non_overhang
-    randomize_start seal_position bed_size print_center g0 vibration_limit gcode_arcs pressure_advance);
-
 # C++ Slic3r::PrintConfigDef exported as a Perl hash of hashes.
 # The C++ counterpart is a constant singleton.
 our $Options = print_config_def();
@@ -27,23 +21,6 @@ $Options->{threads}{readonly} = !$Slic3r::have_threads;
     for my $opt_key (keys %$Options) {
         *{$opt_key} = sub { $_[0]->get($opt_key) };
     }
-}
-
-# Fill in the underlying C++ Slic3r::DynamicPrintConfig with the content of the defaults
-# provided by the C++ class Slic3r::FullPrintConfig.
-# Used by the UI.
-sub new_from_defaults {
-    my ($class, @opt_keys) = @_;
-    my $self = $class->new;
-    # Instantiating the C++ class Slic3r::FullPrintConfig.
-    my $defaults = Slic3r::Config::Full->new;
-    if (@opt_keys) {
-        $self->set($_, $defaults->get($_))
-            for grep $defaults->has($_), @opt_keys;
-    } else {
-        $self->apply_static($defaults);
-    }
-    return $self;
 }
 
 # From command line parameters, used by slic3r.pl
@@ -85,27 +62,6 @@ sub new_from_cli {
     }
     
     return $self;
-}
-
-sub merge {
-    my $class = shift;
-    my $config = $class->new;
-    $config->apply($_) for @_;
-    return $config;
-}
-
-sub clone {
-    my $self = shift;
-    my $new = (ref $self)->new;
-    $new->apply($self);
-    return $new;
-}
-
-sub get_value {
-    my ($self, $opt_key) = @_;
-    return $Options->{$opt_key}{ratio_over}
-        ? $self->get_abs_value($opt_key)
-        : $self->get($opt_key);
 }
 
 # CLASS METHODS:

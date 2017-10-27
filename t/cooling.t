@@ -42,7 +42,7 @@ my $print_time1 = 100 / (3000 / 60); # 2 sec
 my $gcode2      = $gcode1 . "G1 X0 E1 F3000\n";
 my $print_time2 = 2 * $print_time1; # 4 sec
 
-my $config = Slic3r::Config->new_from_defaults;
+my $config = Slic3r::Config::new_from_defaults;
 # Default cooling settings.
 $config->set('bridge_fan_speed',            [ 100 ]);
 $config->set('cooling',                     [ 1 ]);
@@ -138,7 +138,7 @@ $config->set('disable_fan_first_layers',    [ 0 ]);
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('cooling', [ 1 ]);
     $config->set('bridge_fan_speed', [ 100 ]);
     $config->set('fan_below_layer_time', [ 0 ]);
@@ -172,7 +172,7 @@ $config->set('disable_fan_first_layers',    [ 0 ]);
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('cooling', [ 1 ]);
     $config->set('fan_below_layer_time', [ 0 ]);
     $config->set('slowdown_below_layer_time', [ 10 ]);

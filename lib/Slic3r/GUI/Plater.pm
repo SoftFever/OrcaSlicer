@@ -49,7 +49,7 @@ sub new {
     my $class = shift;
     my ($parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    $self->{config} = Slic3r::Config->new_from_defaults(qw(
+    $self->{config} = Slic3r::Config::new_from_defaults_keys(qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
         serial_port serial_speed octoprint_host octoprint_apikey
         nozzle_diameter single_extruder_multi_material 

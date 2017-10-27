@@ -13,7 +13,7 @@ use Slic3r;
 use Slic3r::Test;
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     
     my $test = sub {
         my ($conf) = @_;
@@ -47,7 +47,7 @@ use Slic3r::Test;
 
 {
     my $parser = Slic3r::GCode::PlaceholderParser->new;
-    $parser->apply_config(my $config = Slic3r::Config->new_from_defaults);
+    $parser->apply_config(my $config = Slic3r::Config::new_from_defaults);
     $parser->set('foo' => '0');
     is $parser->process('[temperature_[foo]]'),
         $config->temperature->[0],
@@ -55,7 +55,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('output_filename_format', 'ts_[travel_speed]_lh_[layer_height].gcode');
     $config->set('start_gcode', "TRAVEL:[travel_speed] HEIGHT:[layer_height]\n");
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -108,7 +108,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('before_layer_gcode', ';BEFORE [layer_num]');
     $config->set('layer_gcode', ';CHANGE [layer_num]');
     $config->set('support_material', 1);

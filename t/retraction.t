@@ -13,7 +13,7 @@ use Slic3r;
 use Slic3r::Test qw(_eq);
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     my $duplicate = 1;
 
     my $test = sub {
@@ -131,7 +131,7 @@ use Slic3r::Test qw(_eq);
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('start_gcode', '');  # prevent any default priming Z move from affecting our lift detection
     $config->set('retract_length', [0]);
     $config->set('retract_layer_change', [0]);
@@ -165,7 +165,7 @@ use Slic3r::Test qw(_eq);
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('use_firmware_retraction', 1);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -188,7 +188,7 @@ use Slic3r::Test qw(_eq);
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('use_firmware_retraction', 1);
     $config->set('retract_length', [0]);
     
@@ -206,7 +206,7 @@ use Slic3r::Test qw(_eq);
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('start_gcode', '');
     $config->set('retract_lift', [3, 4]);
     

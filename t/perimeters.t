@@ -156,7 +156,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('fill_density', 0);
     $config->set('perimeters', 3);
@@ -284,7 +284,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('perimeters', 3);
     $config->set('layer_height', 0.4);
@@ -314,7 +314,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('nozzle_diameter', [0.4]);
     $config->set('perimeters', 2);
     $config->set('perimeter_extrusion_width', 0.4);
@@ -372,7 +372,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('perimeters', 3);
     $config->set('layer_height', 0.4);
@@ -401,7 +401,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('seam_position', 'random');
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     ok Slic3r::Test::gcode($print), 'successful generation of G-code with seam_position = random';
@@ -410,7 +410,7 @@ use Slic3r::Test;
 {
     my $test = sub {
         my ($model_name) = @_;
-        my $config = Slic3r::Config->new_from_defaults;
+        my $config = Slic3r::Config::new_from_defaults;
         $config->set('seam_position', 'aligned');
         $config->set('skirts', 0);
         $config->set('perimeters', 1);
