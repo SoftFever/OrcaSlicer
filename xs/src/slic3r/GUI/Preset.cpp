@@ -14,6 +14,7 @@
 #include <wx/image.h>
 #include <wx/choice.h>
 #include <wx/bmpcbox.h>
+#include <wx/wupdlock.h>
 
 #include "../../libslic3r/Utils.hpp"
 
@@ -279,6 +280,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
     if (ui == nullptr)
         return;
     // Otherwise fill in the list from scratch.
+    ui->Freeze();
     ui->Clear();
     for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
@@ -287,12 +289,14 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 		if (i == m_idx_selected)
             ui->SetSelection(ui->GetCount() - 1);
     }
+    ui->Thaw();
 }
 
 void PresetCollection::update_tab_ui(wxChoice *ui)
 {
     if (ui == nullptr)
         return;
+    ui->Freeze();
     ui->Clear();
     for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
@@ -301,6 +305,7 @@ void PresetCollection::update_tab_ui(wxChoice *ui)
 		if (i == m_idx_selected)
             ui->SetSelection(ui->GetCount() - 1);
     }
+    ui->Thaw();
 }
 
 // Update a dirty floag of the current preset, update the labels of the UI component accordingly.
@@ -326,6 +331,7 @@ bool PresetCollection::update_dirty_ui(wxItemContainer *ui)
 
 bool PresetCollection::update_dirty_ui(wxChoice *ui)
 { 
+    wxWindowUpdateLocker noUpdates(ui);
     return update_dirty_ui(dynamic_cast<wxItemContainer*>(ui));
 }
 
@@ -762,6 +768,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
         extruder_color.clear();
 
     // Fill in the list from scratch.
+    ui->Freeze();
     ui->Clear();
     for (size_t i = this->filaments().front().is_visible ? 0 : 1; i < this->filaments().size(); ++ i) {
         const Preset &preset = this->filaments.preset(i);
@@ -803,6 +810,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
         if (selected)
             ui->SetSelection(ui->GetCount() - 1);
     }
+    ui->Thaw();
 }
 
 // Update the colors preview at the platter extruder combo box.
@@ -817,6 +825,7 @@ void PresetBundle::update_platter_filament_ui_colors(unsigned int idx_extruder, 
         // Extruder color is not defined.
         extruder_color.clear();
 
+    ui->Freeze();
     for (unsigned int ui_id = 0; ui_id < ui->GetCount(); ++ ui_id) {
         std::string   preset_name        = ui->GetString(ui_id).utf8_str().data();
         size_t        filament_preset_id = size_t(ui->GetClientData(ui_id));
@@ -854,6 +863,7 @@ void PresetBundle::update_platter_filament_ui_colors(unsigned int idx_extruder, 
         }
         ui->SetItemBitmap(ui_id, *bitmap);
     }
+    ui->Thaw();
 }
 
 const std::vector<std::string>& PresetBundle::print_options()

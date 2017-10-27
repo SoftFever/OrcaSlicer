@@ -257,7 +257,6 @@ sub select_preset {
     # Save the current application settings with the newly selected preset name.
     wxTheApp->save_settings;
     print "select_preset 5\n";
-
 }
 
 # Initialize the UI from the current preset.
@@ -313,17 +312,17 @@ sub add_options_page {
 # Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 sub _reload_config {
     my ($self) = @_;
+    $self->Freeze;
     $_->reload_config for @{$self->{pages}};
+    $self->Thaw;
 }
 
 # Regerenerate content of the page tree.
 sub rebuild_page_tree {
     my ($self) = @_;
-    
-    print "Tab::rebuild_page_tree " . $self->title . "\n";
+    $self->Freeze;
     # get label of the currently selected item
-    my $selected = $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection);
-    
+    my $selected = $self->{treectrl}->GetItemText($self->{treectrl}->GetSelection);    
     my $rootItem = $self->{treectrl}->GetRootItem;
     $self->{treectrl}->DeleteChildren($rootItem);
     my $have_selection = 0;
@@ -336,11 +335,11 @@ sub rebuild_page_tree {
             $have_selection = 1;
         }
     }
-    
     if (!$have_selection) {
         # this is triggered on first load, so we don't disable the sel change event
         $self->{treectrl}->SelectItem($self->{treectrl}->GetFirstChild($rootItem));
     }
+    $self->Thaw;
 }
 
 # Update the combo box label of the selected preset based on its "dirty" state,
@@ -674,6 +673,7 @@ sub _reload_config {
 # Slic3r::GUI::Tab::Print::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
 sub _update {
     my ($self) = @_;
+    $self->Freeze;
 
     my $config = $self->{presets}->get_edited_preset->config_ref;
     
@@ -867,6 +867,8 @@ sub _update {
     my $have_wipe_tower = $config->wipe_tower;
     $self->get_field($_)->toggle($have_wipe_tower)
         for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe);
+
+    $self->Thaw;
 }
 
 package Slic3r::GUI::Tab::Filament;
@@ -1432,7 +1434,8 @@ sub _build_extruder_pages {
 # Slic3r::GUI::Tab::Printer::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
 sub _update {
     my ($self) = @_;
-    
+    $self->Freeze;
+
     my $config = $self->{config};
     
     my $serial_speed = $self->get_field('serial_speed');
@@ -1504,6 +1507,8 @@ sub _update {
         $self->get_field('retract_restart_extra_toolchange', $i)->toggle
             ($have_multiple_extruders && $toolchange_retraction);
     }
+
+    $self->Thaw;
 }
 
 # this gets executed after preset is loaded and before GUI fields are updated
