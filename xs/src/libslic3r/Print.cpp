@@ -1079,13 +1079,13 @@ std::string Print::output_filepath(const std::string &path)
             if (! input_file.empty())
                 break;
         }
-        return (boost::filesystem::path(input_file).parent_path() / this->output_filename()).string();
+        return (boost::filesystem::path(input_file).parent_path() / this->output_filename()).make_preferred().string();
     }
     
     // if we were supplied a directory, use it and append our automatically generated filename
     boost::filesystem::path p(path);
     if (boost::filesystem::is_directory(p))
-        return (p / this->output_filename()).string();
+        return (p / this->output_filename()).make_preferred().string();
     
     // if we were supplied a file which is not a directory, use it
     return path;

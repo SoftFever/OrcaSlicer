@@ -70,15 +70,12 @@ sub new {
     # declare events
     EVT_CLOSE($self, sub {
         my (undef, $event) = @_;
-        
         if ($event->CanVeto && !$self->check_unsaved_changes) {
             $event->Veto;
             return;
         }
-        
         # save window size
         wxTheApp->save_window_pos($self, "main_frame");
-        
         # propagate event
         $event->Skip;
     });
@@ -141,7 +138,6 @@ sub _init_tabpanel {
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
             my ($group, $name) = @_;
-            print "MainFrame::on_select_preset callback, group: $group, name: $name\n";
 	        $self->{options_tabs}{$group}->select_preset($name);
         });
         
@@ -332,7 +328,6 @@ sub is_loaded {
 # Selection of a 3D object changed on the platter.
 sub on_plater_selection_changed {
     my ($self, $have_selection) = @_;
-    
     return if !defined $self->{object_menu};
     $self->{object_menu}->Enable($_->GetId, $have_selection)
         for $self->{object_menu}->GetMenuItems;
@@ -340,8 +335,7 @@ sub on_plater_selection_changed {
 
 # To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".
 sub quick_slice {
-    my $self = shift;
-    my %params = @_;
+    my ($self, %params) = @_;
     
     my $progress_dialog;
     eval {
@@ -455,9 +449,7 @@ sub quick_slice {
 
 sub reslice_now {
     my ($self) = @_;
-    if ($self->{plater}) {
-        $self->{plater}->reslice;
-    }
+    $self->{plater}->reslice if $self->{plater};
 }
 
 sub repair_stl {
@@ -495,6 +487,7 @@ sub repair_stl {
     Slic3r::GUI::show_info($self, "Your file was repaired.", "Repair");
 }
 
+# Extra variables for the placeholder parser generating a G-code.
 sub extra_variables {
     my $self = shift;
     my %extra_variables = ();
@@ -518,13 +511,11 @@ sub export_config {
     my $file = ($dlg->ShowModal == wxID_OK) ? $dlg->GetPath : undef;
     $dlg->Destroy;
     if (defined $file) {
-        my $file = $dlg->GetPath;
         $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
         wxTheApp->save_settings;
         $last_config = $file;
         $config->save($file);
     }
-    $dlg->Destroy;
 }
 
 # Load a config file containing a Print, Filament & Printer preset.
@@ -600,15 +591,9 @@ sub load_configbundle {
 # Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
 # Also update the platter with the new presets.
 sub load_config {
-    my $self = shift;
-    my ($config) = @_;
-    
-    foreach my $tab (values %{$self->{options_tabs}}) {
-        $tab->load_config($config);
-    }
-    if ($self->{plater}) {
-        $self->{plater}->on_config_change($config);
-    }
+    my ($self, $config) = @_;    
+    $_->load_config($config) foreach values %{$self->{options_tabs}};
+    $self->{plater}->on_config_change($config) if $self->{plater};
 }
 
 sub config_wizard {
@@ -662,18 +647,15 @@ sub select_view {
 
 sub _append_menu_item {
     my ($self, $menu, $string, $description, $cb, $id, $icon) = @_;
-    
     $id //= &Wx::NewId();
     my $item = $menu->Append($id, $string, $description);
     $self->_set_menu_item_icon($item, $icon);
-    
     EVT_MENU($self, $id, $cb);
     return $item;
 }
 
 sub _set_menu_item_icon {
     my ($self, $menuItem, $icon) = @_;
-    
     # SetBitmap was not available on OS X before Wx 0.9927
     if ($icon && $menuItem->can('SetBitmap')) {
         $menuItem->SetBitmap(Wx::Bitmap->new(Slic3r::var($icon), wxBITMAP_TYPE_PNG));

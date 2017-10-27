@@ -312,7 +312,7 @@ sub selection_changed {
             $config = $self->{model_object}->config;
         }
         # get default values
-        my $default_config = Slic3r::Config::new_from_defaults_keys(@opt_keys);
+        my $default_config = Slic3r::Config::new_from_defaults_keys(\@opt_keys);
         
         # append default extruder
         push @opt_keys, 'extruder';

@@ -46,15 +46,14 @@ use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 my $PreventListEvents = 0;
 
 sub new {
-    my $class = shift;
-    my ($parent) = @_;
+    my ($class, $parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    $self->{config} = Slic3r::Config::new_from_defaults_keys(qw(
+    $self->{config} = Slic3r::Config::new_from_defaults_keys([qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
         serial_port serial_speed octoprint_host octoprint_apikey
         nozzle_diameter single_extruder_multi_material 
         wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe extruder_colour filament_colour
-    ));
+    )]);
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;
     # C++ Slic3r::Print with Perl extensions in Slic3r/Print.pm
@@ -567,7 +566,6 @@ sub update_presets {
     # $group: one of qw(print filament printer)
     # $presets: PresetCollection
     my ($self, $group, $presets) = @_;
-    print "Platter::update_presets\n";
     my @choosers = @{$self->{preset_choosers}{$group}};
     if ($group eq 'filament') {
         my $choice_idx = 0;
@@ -592,7 +590,7 @@ sub update_presets {
 }
 
 sub add {
-    my $self = shift;
+    my ($self) = @_;
     my @input_files = wxTheApp->open_model($self);
     $self->load_files(\@input_files);
 }
@@ -1494,11 +1492,11 @@ sub send_gcode {
 }
 
 sub export_stl {
-    my $self = shift;
-    
+    my ($self) = @_;
     return if !@{$self->{objects}};
-        
+    # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('STL') or return;
+    # Store a binary STL.
     $self->{model}->store_stl($output_file, 1);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
@@ -1532,47 +1530,40 @@ sub reload_from_disk {
 }
 
 sub export_object_stl {
-    my $self = shift;
-    
+    my ($self) = @_;
     my ($obj_idx, $object) = $self->selected_object;
     return if !defined $obj_idx;
-    
     my $model_object = $self->{model}->objects->[$obj_idx];
-        
+    # Ask user for a file name to write into.        
     my $output_file = $self->_get_export_file('STL') or return;
     $model_object->mesh->write_binary($output_file);
     $self->statusbar->SetStatusText("STL file exported to $output_file");
 }
 
 sub export_amf {
-    my $self = shift;
-    
+    my ($self) = @_;
     return if !@{$self->{objects}};
-        
+    # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('AMF') or return;
     $self->{model}->store_amf($output_file);
     $self->statusbar->SetStatusText("AMF file exported to $output_file");
 }
 
+# Ask user to select an output file for a given file format (STl, AMF, 3MF).
+# Propose a default file name based on the 'output_filename_format' configuration value.
 sub _get_export_file {
-    my $self = shift;
-    my ($format) = @_;
-    
+    my ($self, $format) = @_;    
     my $suffix = $format eq 'STL' ? '.stl' : '.amf.xml';
-    
-    my $output_file = $main::opt{output};
-    {
-        $output_file = $self->{print}->output_filepath($output_file);
-        $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
-        my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
-            basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-        if ($dlg->ShowModal != wxID_OK) {
-            $dlg->Destroy;
-            return undef;
-        }
-        $output_file = $dlg->GetPath;
+    my $output_file = $self->{print}->output_filepath($main::opt{output});
+    $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
+    my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
+        basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if ($dlg->ShowModal != wxID_OK) {
         $dlg->Destroy;
+        return undef;
     }
+    $output_file = $dlg->GetPath;
+    $dlg->Destroy;
     return $output_file;
 }
 
@@ -1615,12 +1606,9 @@ sub on_extruders_change {
     my ($self, $num_extruders) = @_;
     
     my $choices = $self->{preset_choosers}{filament};
-    print "on_extruders_change1 $num_extruders, current choices: " . int(@$choices) . "\n";
     wxTheApp->{preset_bundle}->update_multi_material_filament_presets;
-    print "on_extruders_change2 $num_extruders, current choices: " . int(@$choices) . "\n";
 
     while (int(@$choices) < $num_extruders) {
-        print "Adding an extruder selection combo box\n";
         # copy strings from first choice
         my @presets = $choices->[0]->GetStrings;
         
@@ -1713,7 +1701,6 @@ sub on_config_change {
 sub list_item_deselected {
     my ($self, $event) = @_;
     return if $PreventListEvents;
-    
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
         $self->{canvas}->Refresh;
@@ -1725,7 +1712,6 @@ sub list_item_deselected {
 sub list_item_selected {
     my ($self, $event) = @_;
     return if $PreventListEvents;
-    
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
     $self->{canvas}->Refresh;
@@ -1768,8 +1754,7 @@ sub filament_color_box_lmouse_down
 }
 
 sub object_cut_dialog {
-    my $self = shift;
-    my ($obj_idx) = @_;
+    my ($self, $obj_idx) = @_;
     
     if (!defined $obj_idx) {
         ($obj_idx, undef) = $self->selected_object;
@@ -1794,18 +1779,15 @@ sub object_cut_dialog {
 }
 
 sub object_settings_dialog {
-    my $self = shift;
-    my ($obj_idx) = @_;
-    
-    if (!defined $obj_idx) {
-        ($obj_idx, undef) = $self->selected_object;
-    }
+    my ($self, $obj_idx) = @_;
+    ($obj_idx, undef) = $self->selected_object if !defined $obj_idx;
     my $model_object = $self->{model}->objects->[$obj_idx];
     
     # validate config before opening the settings dialog because
     # that dialog can't be closed if validation fails, but user
     # can't fix any error which is outside that dialog
-    return unless $self->validate_config;
+    eval { wxTheApp->{preset_bundle}->full_config->validate; };
+    return if Slic3r::GUI::catch_error($_[0]);
     
     my $dlg = Slic3r::GUI::Plater::ObjectSettingsDialog->new($self,
 		object          => $self->{objects}[$obj_idx],
@@ -1863,7 +1845,7 @@ sub object_list_changed {
 
 # Selection of an active 3D object changed.
 sub selection_changed {
-    my $self = shift;
+    my ($self) = @_;
     my ($obj_idx, $object) = $self->selected_object;
     my $have_sel = defined $obj_idx;
     
@@ -1924,7 +1906,6 @@ sub select_object {
     $_->selected(0) for @{ $self->{objects} };
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
-        
         # We use this flag to avoid circular event handling
         # Select() happens to fire a wxEVT_LIST_ITEM_SELECTED on Windows, 
         # whose event handler calls this method again and again and again
@@ -1938,18 +1919,9 @@ sub select_object {
 }
 
 sub selected_object {
-    my $self = shift;
-    
+    my ($self) = @_;
     my $obj_idx = first { $self->{objects}[$_]->selected } 0..$#{ $self->{objects} };
-    return undef if !defined $obj_idx;
-    return ($obj_idx, $self->{objects}[$obj_idx]),
-}
-
-sub validate_config {
-    eval {
-        wxTheApp->{preset_bundle}->full_config->validate;
-    };
-    return Slic3r::GUI::catch_error($_[0]) ? 0 : 1;
+    return defined $obj_idx ? ($obj_idx, $self->{objects}[$obj_idx]) : undef;
 }
 
 sub statusbar {
@@ -2079,24 +2051,19 @@ use Wx::DND;
 use base 'Wx::FileDropTarget';
 
 sub new {
-    my $class = shift;
-    my ($window) = @_;
+    my ($class, $window) = @_;
     my $self = $class->SUPER::new;
     $self->{window} = $window;
     return $self;
 }
 
 sub OnDropFiles {
-    my $self = shift;
-    my ($x, $y, $filenames) = @_;
-    
+    my ($self, $x, $y, $filenames) = @_;    
     # stop scalars leaking on older perl
     # https://rt.perl.org/rt3/Public/Bug/Display.html?id=70602
     @_ = ();
-    
     # only accept STL, OBJ and AMF files
     return 0 if grep !/\.(?:[sS][tT][lL]|[oO][bB][jJ]|[aA][mM][fF](?:\.[xX][mM][lL])?|[pP][rR][uU][sS][aA])$/, @$filenames;
-    
     $self->{window}->load_files($filenames);
 }
 
@@ -2112,10 +2079,8 @@ has 'selected'              => (is => 'rw', default => sub { 0 });
 
 sub make_thumbnail {
     my ($self, $model, $obj_idx) = @_;
-    
     # make method idempotent
     $self->thumbnail->clear;
-    
     # raw_mesh is the non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
     my $mesh = $model->objects->[$obj_idx]->raw_mesh;
 #FIXME The "correct" variant could be extremely slow.
@@ -2131,7 +2096,6 @@ sub make_thumbnail {
         my $convex_hull = Slic3r::ExPolygon->new($mesh->convex_hull);
         $self->thumbnail->append($convex_hull);
 #    }
-    
     return $self->thumbnail;
 }
 
