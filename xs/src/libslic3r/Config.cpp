@@ -321,6 +321,14 @@ void ConfigBase::setenv_()
 
 void ConfigBase::load(const std::string &file)
 {
+    if (boost::iends_with(file, ".gcode") || boost::iends_with(file, ".g"))
+        this->load_from_gcode(file);
+    else
+        this->load_from_ini(file);
+}
+
+void ConfigBase::load_from_ini(const std::string &file)
+{
     namespace pt = boost::property_tree;
     pt::ptree tree;
     boost::nowide::ifstream ifs(file);

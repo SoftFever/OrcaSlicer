@@ -38,16 +38,24 @@
     void normalize();
     %name{setenv} void setenv_();
     double min_object_distance() %code{% RETVAL = PrintConfig::min_object_distance(THIS); %};
-    %name{_load} void load(std::string file);
-    %name{_load_from_gcode} void load_from_gcode(std::string input_file)
+    static DynamicPrintConfig* load(char *path)
         %code%{
+            auto config = new DynamicPrintConfig();
             try {
-                THIS->load_from_gcode(input_file);
+                config->load(path);
+                RETVAL = config;
             } catch (std::exception& e) {
-                croak("Error extracting configuration from a g-code %s:\n%s\n", input_file.c_str(), e.what());
+                delete config;
+                croak("Error extracting configuration from %s:\n%s\n", path, e.what());
             }
         %};
     void save(std::string file);
+    int validate() %code%{ 
+            std::string err = THIS->validate(); 
+            if (! err.empty())
+                croak("Configuration is not valid: %s\n", err.c_str()); 
+            RETVAL = 1;
+        %};
 };
 
 %name{Slic3r::Config::Static} class StaticPrintConfig {
@@ -94,8 +102,18 @@
         %};
     %name{setenv} void setenv_();
     double min_object_distance() %code{% RETVAL = PrintConfig::min_object_distance(THIS); %};
-    %name{_load} void load(std::string file);
-    %name{_load_from_gcode} void load_from_gcode(std::string file);
+    static StaticPrintConfig* load(char *path)
+        %code%{
+            auto config = new FullPrintConfig();
+            try {
+                config->load(path);
+                RETVAL = static_cast<PrintObjectConfig*>(config);
+            } catch (std::exception& e) {
+                delete config;
+                croak("Error extracting configuration from %s:\n%s\n", path, e.what());
+            }
+        %};
+
     void save(std::string file);
 };
 

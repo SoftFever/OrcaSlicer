@@ -215,8 +215,7 @@ _constant()
     bool has_infinite_skirt();
     bool has_skirt();
     std::vector<unsigned int> extruders() const;
-    std::string _validate()
-        %code%{ RETVAL = THIS->validate(); %};
+    void validate() %code%{ std::string err = THIS->validate(); if (! err.empty()) throw std::exception(err.c_str()); %};
     Clone<BoundingBox> bounding_box();
     Clone<BoundingBox> total_bounding_box();
     double skirt_first_layer_height();

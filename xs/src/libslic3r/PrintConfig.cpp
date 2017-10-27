@@ -1825,7 +1825,7 @@ std::string FullPrintConfig::validate()
 
     // --nozzle-diameter
     for (double nd : this->nozzle_diameter.values)
-        if (nd < 1)
+        if (nd < 0.005)
             return "Invalid value for --nozzle-diameter";
     
     // --perimeters

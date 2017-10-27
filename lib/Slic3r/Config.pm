@@ -94,23 +94,6 @@ sub merge {
     return $config;
 }
 
-# Load a flat ini file without a category into the underlying C++ Slic3r::DynamicConfig class,
-# convert legacy configuration names.
-sub load {
-    my ($class, $file) = @_;
-    # Instead of using the /i modifier for case-insensitive matching, the case insensitivity is expressed
-    # explicitely to avoid having to bundle the UTF8 Perl library.
-    if ($file =~ /\.[gG][cC][oO][dD][eE]/ || $file =~ /\.[gG]/) {
-        my $config = $class->new;
-        $config->_load_from_gcode($file);
-        return $config;
-    } else {
-        my $config = $class->new;
-        $config->_load($file);
-        return $config;
-    }
-}
-
 sub clone {
     my $self = shift;
     my $new = (ref $self)->new;

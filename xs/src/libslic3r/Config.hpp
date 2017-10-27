@@ -952,6 +952,7 @@ public:
     double get_abs_value(const t_config_option_key &opt_key, double ratio_over) const;
     void setenv_();
     void load(const std::string &file);
+    void load_from_ini(const std::string &file);
     void load_from_gcode(const std::string &file);
     void save(const std::string &file) const;
 
