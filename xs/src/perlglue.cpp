@@ -54,6 +54,7 @@ REGISTER_CLASS(Surface, "Surface");
 REGISTER_CLASS(SurfaceCollection, "Surface::Collection");
 REGISTER_CLASS(PrintObjectSupportMaterial, "Print::SupportMaterial2");
 REGISTER_CLASS(TriangleMesh, "TriangleMesh");
+REGISTER_CLASS(AppConfig, "GUI::AppConfig");
 REGISTER_CLASS(GLShader, "GUI::_3DScene::GLShader");
 REGISTER_CLASS(GLVolume, "GUI::_3DScene::GLVolume");
 REGISTER_CLASS(GLVolumeCollection, "GUI::_3DScene::GLVolume::Collection");

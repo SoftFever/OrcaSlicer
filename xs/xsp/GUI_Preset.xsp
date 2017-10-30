@@ -51,8 +51,6 @@
         %code%{ RETVAL = THIS->update_dirty_ui((wxChoice*)wxPli_sv_2_object(aTHX_ ui, "Wx::Choice")); %};
 
     bool                    select_preset_by_name(char *name) %code%{ RETVAL = THIS->select_preset_by_name(name, true); %};
-    bool                    select_by_name_ui(char *name, SV *ui) 
-        %code%{ RETVAL = THIS->select_by_name_ui(name, (wxChoice*)wxPli_sv_2_object(aTHX_ ui, "Wx::Choice")); %};
 
     void                    save_current_preset(char *new_name);
     void                    delete_current_preset();
@@ -93,9 +91,13 @@ PresetCollection::presets_hash()
     PresetBundle();
     ~PresetBundle();
 
+    void                        setup_directories();
     void                        load_presets(const char *dir_path);
     size_t                      load_configbundle(const char *path);
     void                        set_default_suppressed(bool default_suppressed);
+
+    void                        load_selections  (AppConfig *config) %code%{ THIS->load_selections(*config); %};
+    void                        export_selections(AppConfig *config) %code%{ THIS->export_selections(*config); %};
 
     Ref<PresetCollection>       print()    %code%{ RETVAL = &THIS->prints;   %};
     Ref<PresetCollection>       filament() %code%{ RETVAL = &THIS->filaments; %};

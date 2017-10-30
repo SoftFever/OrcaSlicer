@@ -1,4 +1,5 @@
 #include <locale>
+#include <ctime>
 
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
@@ -7,6 +8,7 @@
 #include <boost/locale.hpp>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
@@ -231,6 +233,26 @@ std::locale locale_utf8(boost::locale::generator().generate(""));
 std::string normalize_utf8_nfc(const char *src)
 {
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
+}
+
+std::string timestamp_str()
+{
+#if 1
+    std::time_t now;
+    time(&now);
+    char buf[sizeof "0000-00-00 00:00:00"];
+    strftime(buf, sizeof(buf), "%F %T", gmtime(&now));
+#else
+    const auto now = boost::posix_time::second_clock::local_time();
+    const auto date = now.date();
+    char buf[2048];
+    sprintf(buf, "on %04d-%02d-%02d at %02d:%02d:%02d",
+        SLIC3R_VERSION,
+        // Local date in an ANSII format.
+        int(now.date().year()), int(now.date().month()), int(now.date().day()),
+        int(now.time_of_day().hours()), int(now.time_of_day().minutes()), int(now.time_of_day().seconds()));
+#endif
+    return buf;
 }
 
 }; // namespace Slic3r

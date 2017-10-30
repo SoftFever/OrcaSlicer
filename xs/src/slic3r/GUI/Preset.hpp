@@ -6,6 +6,8 @@
 #include "../../libslic3r/libslic3r.h"
 #include "../../libslic3r/PrintConfig.hpp"
 
+#include "AppConfig.hpp"
+
 class wxBitmap;
 class wxChoice;
 class wxBitmapComboBox;
@@ -164,10 +166,6 @@ public:
     // Without force, the selection is only updated if the index changes.
     // With force, the changes are reverted if the new index is the same as the old index.
     bool            select_preset_by_name(const std::string &name, bool force);
-    // Select a profile by its name, update selection at the UI component.
-    // Return true if the selection changed.
-    bool            select_by_name_ui(char *name, wxItemContainer *ui);
-    bool            select_by_name_ui(char *name, wxChoice *ui);
 
 private:
     PresetCollection();
@@ -204,8 +202,16 @@ public:
     PresetBundle();
     ~PresetBundle();
 
+    void            setup_directories();
+
     // Load ini files of all types (print, filament, printer) from the provided directory path.
     void            load_presets(const std::string &dir_path);
+
+    // Load selections (current print, current filaments, current printer) from config.ini
+    // This is done just once on application start up.
+    void            load_selections(const AppConfig &config);
+    // Export selections (current print, current filaments, current printer) into config.ini
+    void            export_selections(AppConfig &config);
 
     PresetCollection            prints;
     PresetCollection            filaments;

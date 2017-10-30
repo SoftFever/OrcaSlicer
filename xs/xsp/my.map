@@ -210,12 +210,15 @@ PrintObjectSupportMaterial*       O_OBJECT_SLIC3R
 Ref<PrintObjectSupportMaterial>   O_OBJECT_SLIC3R_T
 Clone<PrintObjectSupportMaterial> O_OBJECT_SLIC3R_T
 
-GLShader*                  O_OBJECT_SLIC3R
-Ref<GLShader>              O_OBJECT_SLIC3R_T
-GLVolume*                  O_OBJECT_SLIC3R
-Ref<GLVolume>              O_OBJECT_SLIC3R_T
-GLVolumeCollection*        O_OBJECT_SLIC3R
-Ref<GLVolumeCollection>    O_OBJECT_SLIC3R_T
+AppConfig*	                O_OBJECT_SLIC3R
+Ref<AppConfig>         		O_OBJECT_SLIC3R_T
+
+GLShader*                  	O_OBJECT_SLIC3R
+Ref<GLShader>              	O_OBJECT_SLIC3R_T
+GLVolume*                  	O_OBJECT_SLIC3R
+Ref<GLVolume>              	O_OBJECT_SLIC3R_T
+GLVolumeCollection*        	O_OBJECT_SLIC3R
+Ref<GLVolumeCollection>    	O_OBJECT_SLIC3R_T
 
 Preset*	                	O_OBJECT_SLIC3R
 Ref<Preset>                	O_OBJECT_SLIC3R_T
