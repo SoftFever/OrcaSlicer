@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "slic3r/GUI/Preset.hpp"
+#include "slic3r/GUI/PresetBundle.hpp"
 %}
 
 %name{Slic3r::GUI::Preset} class Preset {
