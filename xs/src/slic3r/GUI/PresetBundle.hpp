@@ -47,16 +47,12 @@ public:
     size_t                      load_configbundle(const std::string &path);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
-    void                        export_configbundle(const std::string &path, const DynamicPrintConfig &settings);
+    void                        export_configbundle(const std::string &path); // , const DynamicPrintConfig &settings);
 
     // Update a filament selection combo box on the platter for an idx_extruder.
     void                        update_platter_filament_ui(unsigned int idx_extruder, wxBitmapComboBox *ui);
     // Update the colors preview at the platter extruder combo box.
     void                        update_platter_filament_ui_colors(unsigned int idx_extruder, wxBitmapComboBox *ui);
-
-    static const std::vector<std::string>&  print_options();
-    static const std::vector<std::string>&  filament_options();
-    static const std::vector<std::string>&  printer_options();
 
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);
@@ -70,6 +66,8 @@ public:
     void                        update_multi_material_filament_presets();
 
 private:
+    void                        load_config_file_config(const std::string &path, const boost::property_tree::ptree &tree);
+    void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
     bool                        load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible);
 
     // Indicator, that the preset is compatible with the selected printer.

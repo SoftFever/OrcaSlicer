@@ -143,7 +143,7 @@ void AppConfig::update_last_output_dir(const std::string &dir)
 
 std::string AppConfig::config_path()
 {
-	return boost::filesystem::canonical(boost::filesystem::path(Slic3r::data_dir()) / "config.ini").make_preferred().string();
+	return (boost::filesystem::path(Slic3r::data_dir()) / "slic3r.ini").make_preferred().string();
 }
 
 bool AppConfig::exists()

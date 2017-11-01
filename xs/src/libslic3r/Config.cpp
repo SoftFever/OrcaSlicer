@@ -16,7 +16,6 @@
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
 #include <string.h>
 
 #if defined(_WIN32) && !defined(setenv) && defined(_putenv_s)
@@ -329,11 +328,15 @@ void ConfigBase::load(const std::string &file)
 
 void ConfigBase::load_from_ini(const std::string &file)
 {
-    namespace pt = boost::property_tree;
-    pt::ptree tree;
+    boost::property_tree::ptree tree;
     boost::nowide::ifstream ifs(file);
-    pt::read_ini(ifs, tree);
-    for (const pt::ptree::value_type &v : tree) {
+    boost::property_tree::read_ini(ifs, tree);
+    this->load(tree);
+}
+
+void ConfigBase::load(const boost::property_tree::ptree &tree)
+{
+    for (const boost::property_tree::ptree::value_type &v : tree) {
         try {
             t_config_option_key opt_key = v.first;
             this->set_deserialize(opt_key, v.second.get_value<std::string>());
@@ -426,6 +429,18 @@ void ConfigBase::save(const std::string &file) const
     for (const std::string &opt_key : this->keys())
         c << opt_key << " = " << this->serialize(opt_key) << std::endl;
     c.close();
+}
+
+bool DynamicConfig::operator==(const DynamicConfig &rhs) const
+{
+    t_options_map::const_iterator it1     = this->options.begin();
+    t_options_map::const_iterator it1_end = this->options.end();
+    t_options_map::const_iterator it2     = rhs.options.begin();
+    t_options_map::const_iterator it2_end = rhs.options.end();
+    for (; it1 != it1_end && it2 != it2_end; ++ it1, ++ it2)
+        if (*it1->second != *it2->second)
+            return false;
+    return it1 == it1_end && it2 == it2_end;
 }
 
 ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool create)

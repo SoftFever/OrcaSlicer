@@ -13,6 +13,8 @@
 #include "libslic3r.h"
 #include "Point.hpp"
 
+#include <boost/property_tree/ptree.hpp>
+
 namespace Slic3r {
 
 // Name of the configuration option.
@@ -62,7 +64,7 @@ enum ConfigOptionType {
 // A generic value of a configuration option.
 class ConfigOption {
 public:
-    virtual ~ConfigOption() {};
+    virtual ~ConfigOption() {}
 
     virtual ConfigOptionType    type() const = 0;
     virtual std::string         serialize() const = 0;
@@ -94,7 +96,7 @@ public:
             throw std::runtime_error("ConfigOptionSingle: Assigning an incompatible type");
         assert(dynamic_cast<const ConfigOptionSingle<T>*>(rhs));
         this->value = static_cast<const ConfigOptionSingle<T>*>(rhs)->value;
-    };
+    }
 
     bool operator==(const ConfigOption &rhs) const override
     {
@@ -122,6 +124,9 @@ public:
     // This function is useful to split values from multiple extrder / filament settings into separate configurations.
     virtual void set_at(const ConfigOption *rhs, size_t i, size_t j) = 0;
 
+    virtual void resize(size_t n, const ConfigOption *opt_default = nullptr) = 0;
+
+
 protected:
     // Used to verify type compatibility when assigning to / from a scalar ConfigOption.
     ConfigOptionType scalar_type() const { return static_cast<ConfigOptionType>(this->type() - coVectorType); }
@@ -132,6 +137,9 @@ template <class T>
 class ConfigOptionVector : public ConfigOptionVectorBase
 {
 public:
+    ConfigOptionVector() {}
+    explicit ConfigOptionVector(size_t n, const T &value) : values(n, value) {}
+    explicit ConfigOptionVector(std::initializer_list<T> il) : values(std::move(il)) {}
     std::vector<T> values;
     
     void set(const ConfigOption *rhs) override
@@ -194,6 +202,31 @@ public:
 
     const T& get_at(size_t i) const { return const_cast<ConfigOptionVector<T>*>(this)->get_at(i); }
 
+    // Resize this vector by duplicating the last value.
+    // If the current vector is empty, the default value is used instead.
+    void resize(size_t n, const ConfigOption *opt_default = nullptr) override
+    {
+        assert(opt_default == nullptr || opt_default->is_vector());
+        assert(opt_default == nullptr || dynamic_cast<ConfigOptionVector<T>>(opt_default));
+        assert(! this->values.empty() || opt_default != nullptr);
+        if (n == 0)
+            this->values.clear();
+        else if (n < this->values.size())
+            this->values.erase(this->values.begin() + n, this->values.end());
+        else if (n > this->values.size())
+            if (this->values.empty()) {
+                if (opt_default == nullptr) {
+                    throw std::runtime_error("ConfigOptionVector::resize(): No default value provided.");
+                if (opt_default->type() != this->type())
+                    throw std::runtime_error("ConfigOptionVector::resize(): Extending with an incompatible type.");
+                this->values.resize(n, static_cast<const ConfigOptionVector<T>*>(opt_default)->values.front());
+            } else {
+                // Resize by duplicating the last value.
+                this->values.resize(n, this->values.back());
+            }
+        }
+    }
+
     bool operator==(const ConfigOption &rhs) const override
     {
         if (rhs.type() != this->type())
@@ -209,8 +242,8 @@ public:
 class ConfigOptionFloat : public ConfigOptionSingle<double>
 {
 public:
-    ConfigOptionFloat() : ConfigOptionSingle<double>(0) {};
-    explicit ConfigOptionFloat(double _value) : ConfigOptionSingle<double>(_value) {};
+    ConfigOptionFloat() : ConfigOptionSingle<double>(0) {}
+    explicit ConfigOptionFloat(double _value) : ConfigOptionSingle<double>(_value) {}
 
     ConfigOptionType    type()      const override { return coFloat; }
     double              getFloat()  const override { return this->value; }
@@ -242,6 +275,10 @@ public:
 class ConfigOptionFloats : public ConfigOptionVector<double>
 {
 public:
+    ConfigOptionFloats() : ConfigOptionVector<double>() {}
+    explicit ConfigOptionFloats(size_t n, double value) : ConfigOptionVector<double>(n, value) {}
+    explicit ConfigOptionFloats(std::initializer_list<double> il) : ConfigOptionVector<double>(std::move(il)) {}
+
     ConfigOptionType    type()  const override { return coFloats; }
     ConfigOption*       clone() const override { return new ConfigOptionFloats(*this); }
     bool                operator==(const ConfigOptionFloats &rhs) const { return this->values == rhs.values; }
@@ -254,7 +291,7 @@ public:
             ss << *it;
         }
         return ss.str();
-    };
+    }
     
     std::vector<std::string> vserialize() const override
     {
@@ -293,13 +330,13 @@ public:
 class ConfigOptionInt : public ConfigOptionSingle<int>
 {
 public:
-    ConfigOptionInt() : ConfigOptionSingle<int>(0) {};
-    explicit ConfigOptionInt(int value) : ConfigOptionSingle<int>(value) {};
-    explicit ConfigOptionInt(double _value) : ConfigOptionSingle<int>(int(floor(_value + 0.5))) {};
+    ConfigOptionInt() : ConfigOptionSingle<int>(0) {}
+    explicit ConfigOptionInt(int value) : ConfigOptionSingle<int>(value) {}
+    explicit ConfigOptionInt(double _value) : ConfigOptionSingle<int>(int(floor(_value + 0.5))) {}
     
     ConfigOptionType    type()   const override { return coInt; }
-    int                 getInt() const override { return this->value; };
-    void                setInt(int val) { this->value = val; };
+    int                 getInt() const override { return this->value; }
+    void                setInt(int val) { this->value = val; }
     ConfigOption*       clone()  const override { return new ConfigOptionInt(*this); }
     bool                operator==(const ConfigOptionInt &rhs) const { return this->value == rhs.value; }
     
@@ -328,6 +365,10 @@ public:
 class ConfigOptionInts : public ConfigOptionVector<int>
 {
 public:
+    ConfigOptionInts() : ConfigOptionVector<int>() {}
+    explicit ConfigOptionInts(size_t n, int value) : ConfigOptionVector<int>(n, value) {}
+    explicit ConfigOptionInts(std::initializer_list<int> il) : ConfigOptionVector<int>(std::move(il)) {}
+
     ConfigOptionType    type()  const override { return coInts; }
     ConfigOption*       clone() const override { return new ConfigOptionInts(*this); }
     ConfigOptionInts&   operator=(const ConfigOption *opt) { this->set(opt); return *this; }
@@ -373,8 +414,8 @@ public:
 class ConfigOptionString : public ConfigOptionSingle<std::string>
 {
 public:
-    ConfigOptionString() : ConfigOptionSingle<std::string>("") {};
-    explicit ConfigOptionString(std::string _value) : ConfigOptionSingle<std::string>(_value) {};
+    ConfigOptionString() : ConfigOptionSingle<std::string>("") {}
+    explicit ConfigOptionString(const std::string &value) : ConfigOptionSingle<std::string>(value) {}
     
     ConfigOptionType    type()  const override { return coString; }
     ConfigOption*       clone() const override { return new ConfigOptionString(*this); }
@@ -397,6 +438,10 @@ public:
 class ConfigOptionStrings : public ConfigOptionVector<std::string>
 {
 public:
+    ConfigOptionStrings() : ConfigOptionVector<std::string>() {}
+    explicit ConfigOptionStrings(size_t n, const std::string &value) : ConfigOptionVector<std::string>(n, value) {}
+    explicit ConfigOptionStrings(std::initializer_list<std::string> il) : ConfigOptionVector<std::string>(std::move(il)) {}
+
     ConfigOptionType     type()  const override { return coStrings; }
     ConfigOption*        clone() const override { return new ConfigOptionStrings(*this); }
     ConfigOptionStrings& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
@@ -423,8 +468,8 @@ public:
 class ConfigOptionPercent : public ConfigOptionFloat
 {
 public:
-    ConfigOptionPercent() : ConfigOptionFloat(0) {};
-    explicit ConfigOptionPercent(double _value) : ConfigOptionFloat(_value) {};
+    ConfigOptionPercent() : ConfigOptionFloat(0) {}
+    explicit ConfigOptionPercent(double _value) : ConfigOptionFloat(_value) {}
     
     ConfigOptionType     type()  const override { return coPercent; }
     ConfigOption*        clone() const override { return new ConfigOptionPercent(*this); }
@@ -454,6 +499,10 @@ public:
 class ConfigOptionPercents : public ConfigOptionFloats
 {
 public:
+    ConfigOptionPercents() : ConfigOptionFloats() {}
+    explicit ConfigOptionPercents(size_t n, double value) : ConfigOptionFloats(n, value) {}
+    explicit ConfigOptionPercents(std::initializer_list<double> il) : ConfigOptionFloats(std::move(il)) {}
+
     ConfigOptionType      type()  const override { return coPercents; }
     ConfigOption*         clone() const override { return new ConfigOptionPercents(*this); }
     ConfigOptionPercents& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
@@ -504,9 +553,9 @@ class ConfigOptionFloatOrPercent : public ConfigOptionPercent
 {
 public:
     bool percent;
-    ConfigOptionFloatOrPercent() : ConfigOptionPercent(0), percent(false) {};
-    explicit ConfigOptionFloatOrPercent(double _value, bool _percent) : ConfigOptionPercent(_value), percent(_percent) {};
-    
+    ConfigOptionFloatOrPercent() : ConfigOptionPercent(0), percent(false) {}
+    explicit ConfigOptionFloatOrPercent(double _value, bool _percent) : ConfigOptionPercent(_value), percent(_percent) {}
+
     ConfigOptionType            type()  const override { return coFloatOrPercent; }
     ConfigOption*               clone() const override { return new ConfigOptionFloatOrPercent(*this); }
     ConfigOptionFloatOrPercent& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
@@ -544,8 +593,8 @@ public:
 class ConfigOptionPoint : public ConfigOptionSingle<Pointf>
 {
 public:
-    ConfigOptionPoint() : ConfigOptionSingle<Pointf>(Pointf(0,0)) {};
-    explicit ConfigOptionPoint(const Pointf &value) : ConfigOptionSingle<Pointf>(value) {};
+    ConfigOptionPoint() : ConfigOptionSingle<Pointf>(Pointf(0,0)) {}
+    explicit ConfigOptionPoint(const Pointf &value) : ConfigOptionSingle<Pointf>(value) {}
     
     ConfigOptionType    type()  const override { return coPoint; }
     ConfigOption*       clone() const override { return new ConfigOptionPoint(*this); }
@@ -576,6 +625,10 @@ public:
 class ConfigOptionPoints : public ConfigOptionVector<Pointf>
 {
 public:
+    ConfigOptionPoints() : ConfigOptionVector<Pointf>() {}
+    explicit ConfigOptionPoints(size_t n, const Pointf &value) : ConfigOptionVector<Pointf>(n, value) {}
+    explicit ConfigOptionPoints(std::initializer_list<Pointf> il) : ConfigOptionVector<Pointf>(std::move(il)) {}
+
     ConfigOptionType    type()  const override { return coPoints; }
     ConfigOption*       clone() const override { return new ConfigOptionPoints(*this); }
     ConfigOptionPoints& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
@@ -629,11 +682,11 @@ public:
 class ConfigOptionBool : public ConfigOptionSingle<bool>
 {
 public:
-    ConfigOptionBool() : ConfigOptionSingle<bool>(false) {};
-    explicit ConfigOptionBool(bool _value) : ConfigOptionSingle<bool>(_value) {};
+    ConfigOptionBool() : ConfigOptionSingle<bool>(false) {}
+    explicit ConfigOptionBool(bool _value) : ConfigOptionSingle<bool>(_value) {}
     
     ConfigOptionType    type()      const override { return coBool; }
-    bool                getBool()   const override { return this->value; };
+    bool                getBool()   const override { return this->value; }
     ConfigOption*       clone()     const override { return new ConfigOptionBool(*this); }
     ConfigOptionBool&   operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                operator==(const ConfigOptionBool &rhs) const { return this->value == rhs.value; }
@@ -654,6 +707,10 @@ public:
 class ConfigOptionBools : public ConfigOptionVector<unsigned char>
 {
 public:
+    ConfigOptionBools() : ConfigOptionVector<unsigned char>() {}
+    explicit ConfigOptionBools(size_t n, bool value) : ConfigOptionVector<unsigned char>(n, (unsigned char)value) {}
+    explicit ConfigOptionBools(std::initializer_list<bool> il) { values.reserve(il.size()); for (bool b : il) values.emplace_back((unsigned char)b); }
+
     ConfigOptionType    type()  const override { return coBools; }
     ConfigOption*       clone() const override { return new ConfigOptionBools(*this); }
     ConfigOptionBools&  operator=(const ConfigOption *opt) { this->set(opt); return *this; }
@@ -711,8 +768,8 @@ class ConfigOptionEnum : public ConfigOptionSingle<T>
 {
 public:
     // by default, use the first value (0) of the T enum type
-    ConfigOptionEnum() : ConfigOptionSingle<T>(static_cast<T>(0)) {};
-    explicit ConfigOptionEnum(T _value) : ConfigOptionSingle<T>(_value) {};
+    ConfigOptionEnum() : ConfigOptionSingle<T>(static_cast<T>(0)) {}
+    explicit ConfigOptionEnum(T _value) : ConfigOptionSingle<T>(_value) {}
     
     ConfigOptionType     type()  const override { return coEnum; }
     ConfigOption*        clone() const override { return new ConfigOptionEnum<T>(*this); }
@@ -954,6 +1011,7 @@ public:
     void load(const std::string &file);
     void load_from_ini(const std::string &file);
     void load_from_gcode(const std::string &file);
+    void load(const boost::property_tree::ptree &tree);
     void save(const std::string &file) const;
 
 private:
@@ -985,6 +1043,9 @@ public:
         other.options.clear();
         return *this;
     }
+
+    bool           operator==(const DynamicConfig &rhs) const;
+    bool           operator!=(const DynamicConfig &rhs) const { return ! (*this == rhs); }
 
     void swap(DynamicConfig &other) 
     { 

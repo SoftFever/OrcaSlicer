@@ -16,9 +16,9 @@ public:
 	// Override missing or keys with their defaults.
 	void 			   	set_defaults();
 
-	// Load the config.ini from a user profile directory (or a datadir, if configured).
+	// Load the slic3r.ini from a user profile directory (or a datadir, if configured).
 	void 			   	load();
-	// Store the config.ini into a user profile directory (or a datadir, if configured).
+	// Store the slic3r.ini into a user profile directory (or a datadir, if configured).
 	void 			   	save();
 
 	// Does this config need to be saved?
@@ -61,6 +61,9 @@ public:
 	}
 	bool				has(const std::string &key) const
 		{ return this->has("", key); }
+
+	void 				clear_section(const std::string &section)
+		{ m_storage[section].clear(); }
 
 	// return recent/skein_directory or recent/config_directory or empty string.
 	std::string 		get_last_dir() const;

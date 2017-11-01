@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <boost/nowide/cenv.hpp>
@@ -23,9 +24,9 @@
 namespace Slic3r {
 
 PresetBundle::PresetBundle() :
-    prints(Preset::TYPE_PRINT, print_options()), 
-    filaments(Preset::TYPE_FILAMENT, filament_options()), 
-    printers(Preset::TYPE_PRINTER, printer_options()),
+    prints(Preset::TYPE_PRINT, Preset::print_options()), 
+    filaments(Preset::TYPE_FILAMENT, Preset::filament_options()), 
+    printers(Preset::TYPE_PRINTER, Preset::printer_options()),
     m_bitmapCompatible(new wxBitmap),
     m_bitmapIncompatible(new wxBitmap)
 {
@@ -66,7 +67,7 @@ void PresetBundle::setup_directories()
         throw std::runtime_error(std::string("datadir does not exist: ") + Slic3r::data_dir());
     std::initializer_list<const char*> names = { "print", "filament", "printer" };
     for (const char *name : names) {
-        boost::filesystem::path subdir = (dir / subdir).make_preferred();
+		boost::filesystem::path subdir = (dir / name).make_preferred();
         if (! boost::filesystem::is_directory(subdir) && 
             ! boost::filesystem::create_directory(subdir))
             throw std::runtime_error(std::string("Slic3r was unable to create its data directory at ") + subdir.string());
@@ -87,28 +88,33 @@ void PresetBundle::load_selections(const AppConfig &config)
 {
     prints.select_preset_by_name(config.get("presets", "print"), true);
     filaments.select_preset_by_name(config.get("presets", "filament"), true);
+    printers.select_preset_by_name(config.get("presets", "printer"), true);
+    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
+    size_t  num_extruders   = nozzle_diameter->values.size();   
     this->set_filament_preset(0, filaments.get_selected_preset().name);
-    for (int i = 1; i < 1000; ++ i) {
+    for (unsigned int i = 1; i < (unsigned int)num_extruders; ++ i) {
         char name[64];
         sprintf(name, "filament_%d", i);
         if (! config.has("presets", name))
             break;
-        this->set_filament_preset(i, name);
+        this->set_filament_preset(i, config.get("presets", name));
     }
-    printers.select_preset_by_name(config.get("presets", "printer"), true);
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini
 void PresetBundle::export_selections(AppConfig &config)
 {
-    config.set("presets", "print",    prints   .get_selected_preset().name);
-    config.set("presets", "filament", filaments.get_selected_preset().name);
-    for (int i = 1; i < 1000; ++ i) {
+    assert(filament_presets.size() >= 1);
+    assert(filament_presets.size() > 1 || filaments.get_selected_preset().name == filament_presets.front());
+    config.clear_section("presets");
+    config.set("presets", "print",    prints.get_selected_preset().name);
+    config.set("presets", "filament", filament_presets.front());
+	for (int i = 1; i < filament_presets.size(); ++i) {
         char name[64];
         sprintf(name, "filament_%d", i);
         config.set("presets", name, filament_presets[i]);
     }
-    config.set("presets", "printer",  printers .get_selected_preset().name);
+    config.set("presets", "printer",  printers.get_selected_preset().name);
 }
 
 bool PresetBundle::load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible)
@@ -175,7 +181,7 @@ DynamicPrintConfig PresetBundle::full_config() const
         std::string key = std::string(keys[i]) + "_extruder";
         auto *opt = dynamic_cast<ConfigOptionInt*>(out.option(key, false));
         assert(opt != nullptr);
-        opt->value = std::min<int>(opt->value, std::min<int>(0, int(num_extruders) - 1));
+        opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_extruders));
     }
 
     return out;
@@ -187,15 +193,43 @@ DynamicPrintConfig PresetBundle::full_config() const
 // If the file is loaded successfully, its print / filament / printer profiles will be activated.
 void PresetBundle::load_config_file(const std::string &path)
 {
+    // 1) Try to load the config file into a boost property tree.
+    boost::property_tree::ptree tree;
+    try {
+        boost::nowide::ifstream ifs(path);
+        boost::property_tree::read_ini(ifs, tree);
+    } catch (const std::ifstream::failure&) {
+        throw std::runtime_error(std::string("The config file cannot be loaded: ") + path);
+    } catch (const std::runtime_error&) {
+        throw std::runtime_error(std::string("Failed loading the preset file: ") + path);
+    }
+
+    // 2) Continue based on the type of the configuration file.
+    ConfigFileType config_file_type = guess_config_file_type(tree);
+    switch (config_file_type) {
+    case CONFIG_FILE_TYPE_UNKNOWN:
+        throw std::runtime_error(std::string("Unknown configuration file type: ") + path);   
+    case CONFIG_FILE_TYPE_APP_CONFIG:
+        throw std::runtime_error(std::string("Invalid configuration file: ") + path + ". This is an application config file.");
+    case CONFIG_FILE_TYPE_CONFIG:
+        load_config_file_config(path, tree);
+        break;
+    case CONFIG_FILE_TYPE_CONFIG_BUNDLE:
+        load_config_file_config_bundle(path, tree);
+        break;
+    }
+}
+
+// Load a config file from a boost property_tree. This is a private method called from load_config_file.
+void PresetBundle::load_config_file_config(const std::string &path, const boost::property_tree::ptree &tree)
+{
     // 1) Initialize a config from full defaults.
     DynamicPrintConfig config;
     config.apply(FullPrintConfig());
+    config.load(tree);
+    Preset::normalize(config);
 
-    // 2) Try to load the config file.
-    // Throw exceptions with reasonable messages if something goes wrong.
-    Preset::load_config_file(config, path);
-
-    // 3) Create a name from the file name.
+    // 2) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
     std::string name = boost::filesystem::path(path).filename().string();
 
@@ -242,6 +276,32 @@ void PresetBundle::load_config_file(const std::string &path)
             this->filaments.load_preset(path, name + suffix, configs[i], i == 0).is_external = true;
             filament_presets.emplace_back(name + suffix);
         }
+    }
+}
+
+// Load the active configuration of a config bundle from a boost property_tree. This is a private method called from load_config_file.
+void PresetBundle::load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree)
+{
+    // 1) Load the config bundle into a temp data.
+    PresetBundle tmp_bundle;
+    tmp_bundle.load_configbundle(path);
+
+    // 2) Extract active configs from the config bundle, copy them and activate them in this bundle.
+    if (tmp_bundle.prints.get_selected_preset().is_default)
+        this->prints.select_preset(0);
+    else {
+        std::string new_name = tmp_bundle.prints.get_selected_preset().name;
+        Preset *existing = this->prints.find_preset(new_name, false);
+        if (existing == nullptr) {
+            // Save under the new_name.
+        } else if (existing->config == tmp_bundle.prints.get_selected_preset().config) {
+            // Don't save as the config exists in the current bundle and its content is the same.
+            new_name.clear();
+        } else {
+            // Generate a new unique name.
+        }
+        if (! new_name.empty())
+            this->prints.load_preset(path, new_name, tmp_bundle.prints.get_selected_preset().config);
     }
 }
 
@@ -333,17 +393,18 @@ size_t PresetBundle::load_configbundle(const std::string &path)
 void PresetBundle::update_multi_material_filament_presets()
 {
     // Verify and select the filament presets.
-    auto   *nozzle_diameter = static_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
+    auto   *nozzle_diameter = static_cast<const ConfigOptionFloats*>(printers.get_edited_preset().config.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();
     // Verify validity of the current filament presets.
+    printf("PresetBundle::update_multi_material_filament_presets, old: %d, new: %d\n", int(this->filament_presets.size()), int(num_extruders));
     for (size_t i = 0; i < std::min(this->filament_presets.size(), num_extruders); ++ i)
         this->filament_presets[i] = this->filaments.find_preset(this->filament_presets[i], true)->name;
     // Append the rest of filament presets.
-    if (this->filament_presets.size() < num_extruders)
-        this->filament_presets.resize(num_extruders, this->filaments.first_visible().name);
+//    if (this->filament_presets.size() < num_extruders)
+        this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
 }
 
-void PresetBundle::export_configbundle(const std::string &path, const DynamicPrintConfig &settings)
+void PresetBundle::export_configbundle(const std::string &path) //, const DynamicPrintConfig &settings
 {
     boost::nowide::ofstream c;
     c.open(path, std::ios::out | std::ios::trunc);
@@ -358,14 +419,14 @@ void PresetBundle::export_configbundle(const std::string &path, const DynamicPri
             if (preset.is_default || preset.is_external)
                 // Only export the common presets, not external files or the default preset.
                 continue;
-            c << "[" << presets.name() << ":" << preset.name << "]" << std::endl;
+            c << std::endl << "[" << presets.name() << ":" << preset.name << "]" << std::endl;
             for (const std::string &opt_key : preset.config.keys())
                 c << opt_key << " = " << preset.config.serialize(opt_key) << std::endl;
         }
     }
 
     // Export the names of the active presets.
-    c << "[presets]" << std::endl;
+    c << std::endl << "[presets]" << std::endl;
     c << "print = " << this->prints.get_selected_preset().name << std::endl;
     c << "printer = " << this->printers.get_selected_preset().name << std::endl;
     for (size_t i = 0; i < this->filament_presets.size(); ++ i) {
@@ -377,12 +438,13 @@ void PresetBundle::export_configbundle(const std::string &path, const DynamicPri
         c << "filament" << suffix << " = " << this->filament_presets[i] << std::endl;
     }
 
+#if 0
     // Export the following setting values from the provided setting repository.
     static const char *settings_keys[] = { "autocenter" };
-    c << "[presets]" << std::endl;
-    c << "print = " << this->prints.get_selected_preset().name << std::endl;
+    c << "[settings]" << std::endl;
     for (size_t i = 0; i < sizeof(settings_keys) / sizeof(settings_keys[0]); ++ i)
         c << settings_keys[i] << " = " << settings.serialize(settings_keys[i]) << std::endl;
+#endif
 
     c.close();
 }
@@ -528,69 +590,6 @@ void PresetBundle::update_platter_filament_ui_colors(unsigned int idx_extruder, 
         ui->SetItemBitmap(ui_id, *bitmap);
     }
     ui->Thaw();
-}
-
-const std::vector<std::string>& PresetBundle::print_options()
-{    
-    const char *opts[] = { 
-        "layer_height", "first_layer_height", "perimeters", "spiral_vase", "top_solid_layers", "bottom_solid_layers", 
-        "extra_perimeters", "ensure_vertical_shell_thickness", "avoid_crossing_perimeters", "thin_walls", "overhangs", 
-        "seam_position", "external_perimeters_first", "fill_density", "fill_pattern", "external_fill_pattern", 
-        "infill_every_layers", "infill_only_where_needed", "solid_infill_every_layers", "fill_angle", "bridge_angle", 
-        "solid_infill_below_area", "only_retract_when_crossing_perimeters", "infill_first", "max_print_speed", 
-        "max_volumetric_speed", "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative", 
-        "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed", 
-        "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
-        "bridge_speed", "gap_fill_speed", "travel_speed", "first_layer_speed", "perimeter_acceleration", "infill_acceleration", 
-        "bridge_acceleration", "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height",
-        "min_skirt_length", "brim_width", "support_material", "support_material_threshold", "support_material_enforce_layers", 
-        "raft_layers", "support_material_pattern", "support_material_with_sheath", "support_material_spacing", 
-        "support_material_synchronize_layers", "support_material_angle", "support_material_interface_layers", 
-        "support_material_interface_spacing", "support_material_interface_contact_loops", "support_material_contact_distance", 
-        "support_material_buildplate_only", "dont_support_bridges", "notes", "complete_objects", "extruder_clearance_radius", 
-        "extruder_clearance_height", "gcode_comments", "output_filename_format", "post_process", "perimeter_extruder", 
-        "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder", 
-        "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "first_layer_extrusion_width", 
-        "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", 
-        "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
-        "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
-        "wipe_tower_width", "wipe_tower_per_color_wipe"
-    };
-    static std::vector<std::string> s_opts;
-    if (s_opts.empty())
-        s_opts.assign(opts, opts + (sizeof(opts) / sizeof(opts[0])));
-    return s_opts;
-}
-
-const std::vector<std::string>& PresetBundle::filament_options()
-{    
-    const char *opts[] = {
-        "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed", 
-        "extrusion_multiplier", "filament_density", "filament_cost", "temperature", "first_layer_temperature", "bed_temperature", 
-        "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", 
-        "disable_fan_first_layers", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", 
-        "end_filament_gcode"
-    };
-    static std::vector<std::string> s_opts;
-    if (s_opts.empty())
-        s_opts.assign(opts, opts + (sizeof(opts) / sizeof(opts[0])));
-    return s_opts;
-}
-
-const std::vector<std::string>& PresetBundle::printer_options()
-{    
-    const char *opts[] = {
-        "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
-        "octoprint_host", "octoprint_apikey", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height", 
-        "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode", 
-        "nozzle_diameter", "extruder_offset", "retract_length", "retract_lift", "retract_speed", "deretract_speed", 
-        "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "retract_layer_change", "wipe", 
-        "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour", "printer_notes"
-    };
-    static std::vector<std::string> s_opts;
-    if (s_opts.empty())
-        s_opts.assign(opts, opts + (sizeof(opts) / sizeof(opts[0])));
-    return s_opts;
 }
 
 void PresetBundle::set_default_suppressed(bool default_suppressed)

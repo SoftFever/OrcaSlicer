@@ -19,8 +19,9 @@
 
     bool                        loaded()        %code%{ RETVAL = THIS->loaded;      %};
 
-    Ref<DynamicPrintConfig>     config_ref()    %code%{ RETVAL = &THIS->config;     %};
-    Clone<DynamicPrintConfig>   config()        %code%{ RETVAL = &THIS->config;     %};
+    Ref<DynamicPrintConfig>     config()        %code%{ RETVAL = &THIS->config;     %};
+
+    void                        set_num_extruders(int num_extruders);
 };
 
 %name{Slic3r::GUI::PresetCollection} class PresetCollection {
@@ -94,7 +95,9 @@ PresetCollection::presets_hash()
 
     void                        setup_directories();
     void                        load_presets(const char *dir_path);
+    void                        load_config_file(const char *path);
     size_t                      load_configbundle(const char *path);
+    void                        export_configbundle(char *path);
     void                        set_default_suppressed(bool default_suppressed);
 
     void                        load_selections  (AppConfig *config) %code%{ THIS->load_selections(*config); %};

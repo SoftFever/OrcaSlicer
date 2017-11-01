@@ -170,6 +170,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/GLShader.hpp
     ${LIBDIR}/slic3r/GUI/Preset.cpp
     ${LIBDIR}/slic3r/GUI/Preset.hpp
+    ${LIBDIR}/slic3r/GUI/PresetBundle.cpp
+    ${LIBDIR}/slic3r/GUI/PresetBundle.hpp
     ${LIBDIR}/slic3r/GUI/GUI.cpp
     ${LIBDIR}/slic3r/GUI/GUI.hpp
 )

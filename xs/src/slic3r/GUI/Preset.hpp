@@ -13,6 +13,16 @@ class wxItemContainer;
 
 namespace Slic3r {
 
+enum ConfigFileType
+{
+    CONFIG_FILE_TYPE_UNKNOWN,
+    CONFIG_FILE_TYPE_APP_CONFIG,
+    CONFIG_FILE_TYPE_CONFIG,
+    CONFIG_FILE_TYPE_CONFIG_BUNDLE,
+};
+
+extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree);
+
 class Preset
 {
 public:
@@ -70,13 +80,25 @@ public:
     // Mark this preset as visible if it is compatible with active_printer.
     bool                enable_compatible(const std::string &active_printer);
 
+    // Resize the extruder specific fields, initialize them with the content of the 1st extruder.
+    void                set_num_extruders(unsigned int n) { set_num_extruders(this->config, n); }
+
     // Sort lexicographically by a preset name. The preset name shall be unique across a single PresetCollection.
     bool                operator<(const Preset &other) const { return this->name < other.name; }
+
+    static const std::vector<std::string>&  print_options();
+    static const std::vector<std::string>&  filament_options();
+    // Printer options contain the nozzle options.
+    static const std::vector<std::string>&  printer_options();
+    // Nozzle options of the printer options.
+    static const std::vector<std::string>&  nozzle_options();
 
 protected:
     friend class        PresetCollection;
     friend class        PresetBundle;
-    static void         load_config_file(DynamicPrintConfig &config, const std::string &path);
+    static void         normalize(DynamicPrintConfig &config);
+    // Resize the extruder specific vectors ()
+    static void         set_num_extruders(DynamicPrintConfig &config, unsigned int n);
     static const std::string& suffix_modified();
     static std::string  remove_suffix_modified(const std::string &name);
 };
@@ -117,7 +139,7 @@ public:
 
     // Enable / disable the "- default -" preset.
     void            set_default_suppressed(bool default_suppressed);
-    bool            is_default_suppressed() const { return m_default_suppressed || m_presets.size() <= 1; }
+    bool            is_default_suppressed() const { return m_default_suppressed; }
 
     // Select a preset. If an invalid index is provided, the first visible preset is selected.
     Preset&         select_preset(size_t idx);

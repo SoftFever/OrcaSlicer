@@ -23,14 +23,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("bed_shape", coPoints);
     def->label = "Bed shape";
-    {
-        ConfigOptionPoints* opt = new ConfigOptionPoints();
-        opt->values.push_back(Pointf(0,0));
-        opt->values.push_back(Pointf(200,0));
-        opt->values.push_back(Pointf(200,200));
-        opt->values.push_back(Pointf(0,200));
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionPoints { Pointf(0,0), Pointf(200,0), Pointf(200,200), Pointf(0,200) };
     
     def = this->add("bed_temperature", coInts);
     def->label = "Other layers";
@@ -39,11 +32,7 @@ PrintConfigDef::PrintConfigDef()
     def->full_label = "Bed temperature";
     def->min = 0;
     def->max = 300;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 0 };
 
     def = this->add("before_layer_gcode", coString);
     def->label = "Before layer change G-code";
@@ -87,11 +76,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "bridge-fan-speed=i@";
     def->min = 0;
     def->max = 100;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(100);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 100 };
 
     def = this->add("bridge_flow_ratio", coFloat);
     def->label = "Bridge flow ratio";
@@ -139,11 +124,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = "Enable auto cooling";
     def->tooltip = "This flag enables the automatic cooling logic that adjusts print speed and fan speed according to layer printing time.";
     def->cli = "cooling!";
-    {
-        ConfigOptionBools* opt = new ConfigOptionBools();
-        opt->values.push_back(true);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionBools { true };
 
     def = this->add("default_acceleration", coFloat);
     def->label = "Default";
@@ -160,11 +141,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "disable-fan-first-layers=i@";
     def->min = 0;
     def->max = 1000;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(3);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 3 };
 
     def = this->add("dont_support_bridges", coBool);
     def->label = "Don't support bridges";
@@ -207,11 +184,7 @@ PrintConfigDef::PrintConfigDef()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
-    {
-        ConfigOptionStrings* opt = new ConfigOptionStrings();
-        opt->values.push_back("; Filament-specific end gcode \n;END gcode for filament\n");
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionStrings { "; Filament-specific end gcode \n;END gcode for filament\n" };
 
     def = this->add("ensure_vertical_shell_thickness", coBool);
     def->label = "Ensure vertical shell thickness";
@@ -305,24 +278,15 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "This is only used in the Slic3r interface as a visual help.";
     def->cli = "extruder-color=s@";
     def->gui_type = "color";
-    {
-        ConfigOptionStrings* opt = new ConfigOptionStrings();
-        // Empty string means no color assigned yet.
-//        opt->values.push_back("#FFFFFF");
-        opt->values.push_back("");
-        def->default_value = opt;
-    }
+    // Empty string means no color assigned yet.
+    def->default_value = new ConfigOptionStrings { "" };
 
     def = this->add("extruder_offset", coPoints);
     def->label = "Extruder offset";
     def->tooltip = "If your firmware doesn't handle the extruder displacement you need the G-code to take it into account. This option lets you specify the displacement of each extruder with respect to the first one. It expects positive coordinates (they will be subtracted from the XY coordinate).";
     def->sidetext = "mm";
     def->cli = "extruder-offset=s@";
-    {
-        ConfigOptionPoints* opt = new ConfigOptionPoints();
-        opt->values.push_back(Pointf(0,0));
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionPoints { Pointf(0,0) };
 
     def = this->add("extrusion_axis", coString);
     def->label = "Extrusion axis";
@@ -334,11 +298,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = "Extrusion multiplier";
     def->tooltip = "This factor changes the amount of flow proportionally. You may need to tweak this setting to get nice surface finish and correct single wall widths. Usual values are between 0.9 and 1.1. If you think you need to change this more, check filament diameter and your firmware E steps.";
     def->cli = "extrusion-multiplier=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(1);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 1. };
     
     def = this->add("extrusion_width", coFloatOrPercent);
     def->label = "Default extrusion width";
@@ -352,11 +312,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = "Keep fan always on";
     def->tooltip = "If this is enabled, fan will never be disabled and will be kept running at least at its minimum speed. Useful for PLA, harmful for ABS.";
     def->cli = "fan-always-on!";
-    {
-        ConfigOptionBools* opt = new ConfigOptionBools();
-        opt->values.push_back(false);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionBools { false };
 
     def = this->add("fan_below_layer_time", coInts);
     def->label = "Enable fan if layer print time is below";
@@ -366,22 +322,14 @@ PrintConfigDef::PrintConfigDef()
     def->width = 60;
     def->min = 0;
     def->max = 1000;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(60);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 60 };
 
     def = this->add("filament_colour", coStrings);
     def->label = "Color";
     def->tooltip = "This is only used in the Slic3r interface as a visual help.";
     def->cli = "filament-color=s@";
     def->gui_type = "color";
-    {
-        ConfigOptionStrings* opt = new ConfigOptionStrings();
-        opt->values.push_back("#FFFFFF");
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionStrings { "#29b2b2" };
 
     def = this->add("filament_notes", coStrings);
     def->label = "Filament notes";
@@ -390,11 +338,7 @@ PrintConfigDef::PrintConfigDef()
     def->multiline = true;
     def->full_width = true;
     def->height = 130;
-    {
-        ConfigOptionStrings* opt = new ConfigOptionStrings();
-        opt->values.push_back("");
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionStrings { "" };
 
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = "Max volumetric speed";
@@ -402,11 +346,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "mm³/s";
     def->cli = "filament-max-volumetric-speed=f@";
     def->min = 0;
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0.f);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("filament_diameter", coFloats);
     def->label = "Diameter";
@@ -414,11 +354,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "mm";
     def->cli = "filament-diameter=f@";
     def->min = 0;
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(3);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 3. };
 
     def = this->add("filament_density", coFloats);
     def->label = "Density";
@@ -426,11 +362,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "g/cm^3";
     def->cli = "filament-density=f@";
     def->min = 0;
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("filament_type", coStrings);
     def->label = "Filament type";
@@ -447,21 +379,13 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("EDGE");
     def->enum_values.push_back("NGEN");
     def->enum_values.push_back("PVA");
-    {
-        ConfigOptionStrings* opt = new ConfigOptionStrings();
-        opt->values.push_back("PLA");
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionStrings { "PLA" };
 
     def = this->add("filament_soluble", coBools);
     def->label = "Soluble material";
     def->tooltip = "Soluble material is most likely used for a soluble support.";
     def->cli = "filament-soluble!";
-    {
-        ConfigOptionBools* opt = new ConfigOptionBools();
-        opt->values.push_back(false);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionBools { false };
 
     def = this->add("filament_cost", coFloats);
     def->label = "Cost";
@@ -469,15 +393,11 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "money/kg";
     def->cli = "filament-cost=f@";
     def->min = 0;
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
     
-    def = this->add("filament_settings_id", coString);
-    def->default_value = new ConfigOptionString("");
-    
+    def = this->add("filament_settings_id", coStrings);
+    def->default_value = new ConfigOptionStrings { "" };
+
     def = this->add("fill_angle", coFloat);
     def->label = "Fill angle";
     def->category = "Infill";
@@ -574,11 +494,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "first-layer-bed-temperature=i@";
     def->max = 0;
     def->max = 300;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 0 };
 
     def = this->add("first_layer_extrusion_width", coFloatOrPercent);
     def->label = "First layer";
@@ -612,11 +528,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "first-layer-temperature=i@";
     def->min = 0;
     def->max = 500;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(200);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 200 };
     
     def = this->add("gap_fill_speed", coFloat);
     def->label = "Gap fill";
@@ -757,11 +669,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "max-fan-speed=i@";
     def->min = 0;
     def->max = 100;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(100);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 100 };
 
     def = this->add("max_layer_height", coFloats);
     def->label = "Max";
@@ -769,11 +677,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "mm";
     def->cli = "max-layer-height=f@";
     def->min = 0;
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("max_print_speed", coFloat);
     def->label = "Max print speed";
@@ -816,11 +720,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "min-fan-speed=i@";
     def->min = 0;
     def->max = 100;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(35);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 35 };
 
     def = this->add("min_layer_height", coFloats);
     def->label = "Min";
@@ -828,11 +728,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "mm";
     def->cli = "min-layer-height=f@";
     def->min = 0;
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0.07);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0.07 };
 
     def = this->add("min_print_speed", coFloats);
     def->label = "Min print speed";
@@ -840,11 +736,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "mm/s";
     def->cli = "min-print-speed=f@";
     def->min = 0;
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(10.);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 10. };
 
     def = this->add("min_skirt_length", coFloat);
     def->label = "Minimum extrusion length";
@@ -868,11 +760,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)";
     def->sidetext = "mm";
     def->cli = "nozzle-diameter=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0.5);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0.5 };
 
     def = this->add("octoprint_apikey", coString);
     def->label = "API Key";
@@ -1003,32 +891,20 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "Retraction is not triggered when travel moves are shorter than this length.";
     def->sidetext = "mm";
     def->cli = "retract-before-travel=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(2);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 2. };
 
     def = this->add("retract_before_wipe", coPercents);
     def->label = "Retract amount before wipe";
     def->tooltip = "With bowden extruders, it may be wise to do some amount of quick retract before doing the wipe movement.";
     def->sidetext = "%";
     def->cli = "retract-before-wipe=s@";
-    {
-        ConfigOptionPercents* opt = new ConfigOptionPercents();
-        opt->values.push_back(0.f);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionPercents { 0. };
     
     def = this->add("retract_layer_change", coBools);
     def->label = "Retract on layer change";
     def->tooltip = "This flag enforces a retraction whenever a Z move is done.";
     def->cli = "retract-layer-change!";
-    {
-        ConfigOptionBools* opt = new ConfigOptionBools();
-        opt->values.push_back(false);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionBools { false };
 
     def = this->add("retract_length", coFloats);
     def->label = "Length";
@@ -1036,11 +912,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "When retraction is triggered, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).";
     def->sidetext = "mm (zero to disable)";
     def->cli = "retract-length=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(2);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 2. };
 
     def = this->add("retract_length_toolchange", coFloats);
     def->label = "Length";
@@ -1048,22 +920,14 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder).";
     def->sidetext = "mm (zero to disable)";
     def->cli = "retract-length-toolchange=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(10);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 10. };
 
     def = this->add("retract_lift", coFloats);
     def->label = "Lift Z";
     def->tooltip = "If you set this to a positive value, Z is quickly raised every time a retraction is triggered. When using multiple extruders, only the setting for the first extruder will be considered.";
     def->sidetext = "mm";
     def->cli = "retract-lift=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("retract_lift_above", coFloats);
     def->label = "Above Z";
@@ -1071,11 +935,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "If you set this to a positive value, Z lift will only take place above the specified absolute Z. You can tune this setting for skipping lift on the first layers.";
     def->sidetext = "mm";
     def->cli = "retract-lift-above=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("retract_lift_below", coFloats);
     def->label = "Below Z";
@@ -1083,33 +943,21 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "If you set this to a positive value, Z lift will only take place below the specified absolute Z. You can tune this setting for limiting lift to the first layers.";
     def->sidetext = "mm";
     def->cli = "retract-lift-below=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("retract_restart_extra", coFloats);
     def->label = "Extra length on restart";
     def->tooltip = "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed.";
     def->sidetext = "mm";
     def->cli = "retract-restart-extra=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("retract_restart_extra_toolchange", coFloats);
     def->label = "Extra length on restart";
     def->tooltip = "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament.";
     def->sidetext = "mm";
     def->cli = "retract-restart-extra-toolchange=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("retract_speed", coFloats);
     def->label = "Retraction Speed";
@@ -1117,11 +965,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "The speed for retractions (it only applies to the extruder motor).";
     def->sidetext = "mm/s";
     def->cli = "retract-speed=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(40);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 40. };
 
     def = this->add("deretract_speed", coFloats);
     def->label = "Deretraction Speed";
@@ -1129,11 +973,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "The speed for loading of a filament into extruder after retraction (it only applies to the extruder motor). If left to zero, the retraction speed is used.";
     def->sidetext = "mm/s";
     def->cli = "retract-speed=f@";
-    {
-        ConfigOptionFloats* opt = new ConfigOptionFloats();
-        opt->values.push_back(0);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionFloats { 0. };
 
     def = this->add("seam_position", coEnum);
     def->label = "Seam position";
@@ -1227,11 +1067,7 @@ PrintConfigDef::PrintConfigDef()
     def->width = 60;
     def->min = 0;
     def->max = 1000;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(5);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 5 };
 
     def = this->add("small_perimeter_speed", coFloatOrPercent);
     def->label = "Small perimeters";
@@ -1327,11 +1163,7 @@ PrintConfigDef::PrintConfigDef()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
-    {
-        ConfigOptionStrings* opt = new ConfigOptionStrings();
-        opt->values.push_back("; Filament gcode\n");
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionStrings { "; Filament gcode\n" };
 
     def = this->add("single_extruder_multi_material", coBool);
     def->label = "Single Extruder Multi Material";
@@ -1522,11 +1354,7 @@ PrintConfigDef::PrintConfigDef()
     def->full_label = "Temperature";
     def->max = 0;
     def->max = 500;
-    {
-        ConfigOptionInts* opt = new ConfigOptionInts();
-        opt->values.push_back(200);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionInts { 200 };
     
     def = this->add("thin_walls", coBool);
     def->label = "Detect thin walls";
@@ -1619,11 +1447,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = "Wipe while retracting";
     def->tooltip = "This flag will move the nozzle while retracting to minimize the possible blob on leaky extruders.";
     def->cli = "wipe!";
-    {
-        ConfigOptionBools* opt = new ConfigOptionBools();
-        opt->values.push_back(false);
-        def->default_value = opt;
-    }
+    def->default_value = new ConfigOptionBools { false };
 
     def = this->add("wipe_tower", coBool);
     def->label = "Enable";
@@ -1798,7 +1622,7 @@ std::string DynamicPrintConfig::validate()
 {
     // Full print config is initialized from the defaults.
     FullPrintConfig fpc;
-    fpc.apply(*this);
+    fpc.apply(*this, true);
     // Verify this print options through the FullPrintConfig.
     return fpc.validate();
 }

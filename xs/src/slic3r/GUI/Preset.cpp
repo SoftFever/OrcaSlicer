@@ -28,6 +28,39 @@
 
 namespace Slic3r {
 
+ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree)
+{
+    size_t app_config   = 0;
+    size_t bundle       = 0;
+    size_t config       = 0;
+    for (const boost::property_tree::ptree::value_type &v : tree) {
+        if (v.second.empty()) {
+            if (v.first == "background_processing" ||
+                v.first == "last_output_path" ||
+                v.first == "no_controller" ||
+                v.first == "no_defaults")
+                ++ app_config;
+            else if (v.first == "nozzle_diameter" ||
+                v.first == "filament_diameter")
+                ++ config;
+        } else if (boost::algorithm::starts_with(v.first, "print:") ||
+            boost::algorithm::starts_with(v.first, "filament:") ||
+            boost::algorithm::starts_with(v.first, "printer:") ||
+            v.first == "settings")
+            ++ bundle;
+        else if (v.first == "presets") {
+            ++ app_config;
+            ++ bundle;
+        } else if (v.first == "recent") {
+            for (auto &kvp : v.second)
+                if (kvp.first == "config_directory" || kvp.first == "skein_directory")
+                    ++ app_config;
+        }
+    }
+    return (app_config > bundle && app_config > config) ? CONFIG_FILE_TYPE_APP_CONFIG :
+           (bundle > config) ? CONFIG_FILE_TYPE_CONFIG_BUNDLE : CONFIG_FILE_TYPE_CONFIG;
+}
+
 // Suffix to be added to a modified preset name in the combo box.
 static std::string g_suffix_modified = " (modified)";
 const std::string& Preset::suffix_modified()
@@ -43,38 +76,24 @@ std::string Preset::remove_suffix_modified(const std::string &name)
         name;
 }
 
-// Load keys from a config file or a G-code.
-// Throw exceptions with reasonable messages if something goes wrong.
-void Preset::load_config_file(DynamicPrintConfig &config, const std::string &path)
+void Preset::set_num_extruders(DynamicPrintConfig &config, unsigned int num_extruders)
 {
-    try {
-        if (boost::algorithm::iends_with(path, ".gcode") || boost::algorithm::iends_with(path, ".g"))
-            config.load_from_gcode(path);
-        else
-            config.load(path);
-    } catch (const std::ifstream::failure&) {
-        throw std::runtime_error(std::string("The selected preset does not exist anymore: ") + path);
-    } catch (const std::runtime_error&) {
-        throw std::runtime_error(std::string("Failed loading the preset file: ") + path);
-    }
-
-    // Update new extruder fields at the printer profile.
-    auto keys = config.keys();
     const auto &defaults = FullPrintConfig::defaults();
-    if (std::find(keys.begin(), keys.end(), "nozzle_diameter") != keys.end()) {
-        // Loaded the Printer settings. Verify, that all extruder dependent values have enough values.
-        auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
-        size_t  num_extruders   = nozzle_diameter->values.size();
-        auto   *deretract_speed = dynamic_cast<ConfigOptionFloats*>(config.option("deretract_speed"));
-        deretract_speed->values.resize(num_extruders, deretract_speed->values.empty() ? 
-            defaults.deretract_speed.values.front() : deretract_speed->values.front());
-        auto   *extruder_colour = dynamic_cast<ConfigOptionStrings*>(config.option("extruder_colour"));
-        extruder_colour->values.resize(num_extruders, extruder_colour->values.empty() ? 
-            defaults.extruder_colour.values.front() : extruder_colour->values.front());
-        auto   *retract_before_wipe = dynamic_cast<ConfigOptionPercents*>(config.option("retract_before_wipe"));
-        retract_before_wipe->values.resize(num_extruders, retract_before_wipe->values.empty() ? 
-            defaults.retract_before_wipe.values.front() : retract_before_wipe->values.front());
+    for (const std::string &key : Preset::nozzle_options()) {
+        auto *opt = config.option(key, false);
+        assert(opt != nullptr);
+        assert(opt->is_vector());
+        static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
     }
+}
+
+// Update new extruder fields at the printer profile.
+void Preset::normalize(DynamicPrintConfig &config)
+{
+    auto *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
+    if (nozzle_diameter != nullptr)
+        // Loaded the Printer settings. Verify, that all extruder dependent values have enough values.
+        set_num_extruders(config, (unsigned int)nozzle_diameter->values.size());
 }
 
 // Load a config file, return a C++ class Slic3r::DynamicPrintConfig with $keys initialized from the config file.
@@ -84,9 +103,17 @@ DynamicPrintConfig& Preset::load(const std::vector<std::string> &keys)
     // Set the configuration from the defaults.
     Slic3r::FullPrintConfig defaults;
     this->config.apply_only(defaults, keys.empty() ? defaults.keys() : keys);
-    if (! this->is_default)
+    if (! this->is_default) {
         // Load the preset file, apply preset values on top of defaults.
-        load_config_file(this->config, this->file);
+        try {
+            this->config.load(this->file);
+            Preset::normalize(this->config);
+        } catch (const std::ifstream::failure&) {
+            throw std::runtime_error(std::string("The selected preset does not exist anymore: ") + this->file);
+        } catch (const std::runtime_error&) {
+            throw std::runtime_error(std::string("Failed loading the preset file: ") + this->file);
+        }
+    }
     this->loaded = true;
     return this->config;
 }
@@ -109,6 +136,74 @@ bool Preset::enable_compatible(const std::string &active_printer)
         std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer) != 
             compatible_printers->values.end();
     return this->is_visible;
+}
+
+const std::vector<std::string>& Preset::print_options()
+{    
+    static std::vector<std::string> s_opts {
+        "layer_height", "first_layer_height", "perimeters", "spiral_vase", "top_solid_layers", "bottom_solid_layers", 
+        "extra_perimeters", "ensure_vertical_shell_thickness", "avoid_crossing_perimeters", "thin_walls", "overhangs", 
+        "seam_position", "external_perimeters_first", "fill_density", "fill_pattern", "external_fill_pattern", 
+        "infill_every_layers", "infill_only_where_needed", "solid_infill_every_layers", "fill_angle", "bridge_angle", 
+        "solid_infill_below_area", "only_retract_when_crossing_perimeters", "infill_first", "max_print_speed", 
+        "max_volumetric_speed", "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative", 
+        "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed", 
+        "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
+        "bridge_speed", "gap_fill_speed", "travel_speed", "first_layer_speed", "perimeter_acceleration", "infill_acceleration", 
+        "bridge_acceleration", "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height",
+        "min_skirt_length", "brim_width", "support_material", "support_material_threshold", "support_material_enforce_layers", 
+        "raft_layers", "support_material_pattern", "support_material_with_sheath", "support_material_spacing", 
+        "support_material_synchronize_layers", "support_material_angle", "support_material_interface_layers", 
+        "support_material_interface_spacing", "support_material_interface_contact_loops", "support_material_contact_distance", 
+        "support_material_buildplate_only", "dont_support_bridges", "notes", "complete_objects", "extruder_clearance_radius", 
+        "extruder_clearance_height", "gcode_comments", "output_filename_format", "post_process", "perimeter_extruder", 
+        "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder", 
+        "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "first_layer_extrusion_width", 
+        "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", 
+        "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
+        "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
+        "wipe_tower_width", "wipe_tower_per_color_wipe"
+    };
+    return s_opts;
+}
+
+const std::vector<std::string>& Preset::filament_options()
+{    
+    static std::vector<std::string> s_opts {
+        "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed", 
+        "extrusion_multiplier", "filament_density", "filament_cost", "temperature", "first_layer_temperature", "bed_temperature", 
+        "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", 
+        "disable_fan_first_layers", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", 
+        "end_filament_gcode"
+    };
+    return s_opts;
+}
+
+const std::vector<std::string>& Preset::printer_options()
+{    
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
+            "octoprint_host", "octoprint_apikey", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height", 
+            "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode", 
+            "printer_notes"
+        };
+        s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
+    }
+    return s_opts;
+}
+
+const std::vector<std::string>& Preset::nozzle_options()
+{
+    // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
+    static std::vector<std::string> s_opts {
+        "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
+        "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
+        "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
+        "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour"
+    };
+    return s_opts;
 }
 
 PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::string> &keys) :
@@ -203,6 +298,7 @@ void PresetCollection::save_current_preset(const std::string &new_name)
     }
     m_edited_preset = m_presets[m_idx_selected];
     m_presets[m_idx_selected].save();
+    m_presets.front().is_visible = ! m_default_suppressed || m_idx_selected > 0;
 }
 
 void PresetCollection::delete_current_preset()
@@ -254,7 +350,7 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
 {
     if (m_default_suppressed != default_suppressed) {
         m_default_suppressed = default_suppressed;
-        m_presets.front().is_visible = ! default_suppressed || m_presets.size() > 1;
+        m_presets.front().is_visible = ! default_suppressed || (m_presets.size() > 1 && m_idx_selected > 0);
     }
 }
 
@@ -320,6 +416,7 @@ bool PresetCollection::update_dirty_ui(wxItemContainer *ui)
     bool was_dirty = this->get_selected_preset().is_dirty;
     bool is_dirty  = current_is_dirty();
     this->get_selected_preset().is_dirty = is_dirty;
+    this->get_edited_preset().is_dirty = is_dirty;
     // 2) Update the labels.
     for (unsigned int ui_id = 0; ui_id < ui->GetCount(); ++ ui_id) {
         std::string   old_label    = ui->GetString(ui_id).utf8_str().data();
@@ -345,6 +442,7 @@ Preset& PresetCollection::select_preset(size_t idx)
         idx = first_visible_idx();
     m_idx_selected = idx;
     m_edited_preset = m_presets[idx];
+    m_presets.front().is_visible = ! m_default_suppressed || m_idx_selected > 0;
     return m_presets[idx];
 }
 

@@ -16,6 +16,7 @@
     void                        load();
     void                        save();
     bool						exists();
+    bool                        dirty();
 
     std::string                 get(char *name);
     void                        set(char *name, char *value);
