@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
 
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
@@ -96,9 +97,9 @@ std::vector<std::string> scan_serial_ports()
     }
 #else
     // UNIX and OS X
-    boost::filesystem::recursive_directory_iterator end;
+    boost::filesystem::directory_iterator end;
     std::initializer_list<const char*> prefixes { "ttyUSB" , "ttyACM", "tty.", "cu.", "rfcomm" };
-    for (boost::filesystem::recursive_directory_iterator it_path(boost::filesystem::path("/dev")); 
+    for (boost::filesystem::directory_iterator it_path(boost::filesystem::path("/dev")); 
         it_path != end; ++ it_path)
         for (const char *prefix : prefixes)
             if (boost::starts_with(it_path->string(), std::string("/dev/") + prefix)) {
