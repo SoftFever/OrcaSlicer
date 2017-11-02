@@ -125,15 +125,9 @@ sub save_preset {
     $self->{treectrl}->SetFocus;
     
     if (!defined $name) {
-        my $preset = $self->{presets}->get_edited_preset;
+        my $preset = $self->{presets}->get_selected_preset;
         my $default_name = $preset->default ? 'Untitled' : $preset->name;
         $default_name =~ s/\.[iI][nN][iI]$//;
-    
-        my @prsts = @{$self->{presets}};
-        print "Num of presets: ". int(@prsts) . "\n";
-        for my $pr (@prsts) {
-            print "Name: " . $pr->name . " default " . $pr->default . "\n";
-        }
         my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
             title   => lc($self->title),
             default => $default_name,
@@ -156,16 +150,16 @@ sub delete_preset {
     my ($self) = @_;
     my $current_preset = $self->{presets}->get_selected_preset;
     # Don't let the user delete the '- default -' configuration.
+    my $msg = 'Are you sure you want to ' . ($current_preset->external ? 'remove' : 'delete') . ' the selected preset?';
+    my $title = ($current_preset->external ? 'Remove' : 'Delete') . ' Preset';
     return if $current_preset->default ||
-        wxID_YES != Wx::MessageDialog->new($self, "Are you sure you want to delete the selected preset?", 'Delete Preset', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
+        wxID_YES != Wx::MessageDialog->new($self, $msg, $title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)->ShowModal;
     # Delete the file and select some other reasonable preset.
     # The 'external' presets will only be removed from the preset list, their files will not be deleted.
     eval { $self->{presets}->delete_current_preset; };
     Slic3r::GUI::catch_error($self) and return;
-    # Delete the item from the UI component and activate another preset.
-    $self->{presets}->update_tab_ui($self->{presets_choice});
-    # Update the selection boxes at the patter.
-    $self->_on_presets_changed;
+    # Load the newly selected preset into the UI, update selection combo boxes with their dirty flags.
+    $self->load_current_preset;
 }
 
 # Register the on_value_change callback.
@@ -203,7 +197,6 @@ sub _update {}
 # to uddate number of "filament" selection boxes when the number of extruders change.
 sub _on_presets_changed {
     my ($self) = @_;
-    print "Tab::_on_presets_changed\n";
     $self->{on_presets_changed}->($self->{presets}) if $self->{on_presets_changed};
 }
 
@@ -237,38 +230,34 @@ sub may_discard_current_preset_if_dirty
 }
 
 # Called by the UI combo box when the user switches profiles.
-# Select a preset by a name. If ! defined(name), then the first visible preset is selected.
+# Select a preset by a name. If ! defined(name), then the default preset is selected.
 # If the current profile is modified, user is asked to save the changes.
 sub select_preset {
     my ($self, $name, $force) = @_;
-    print "select_preset 1\n";
-    if (! $self->may_discard_current_preset_if_dirty) {
+    $force //= 0;
+    if (! $force && ! $self->may_discard_current_preset_if_dirty) {
         $self->{presets}->update_tab_ui($self->{presets_choice});
         # Trigger the on_presets_changed event so that we also restore the previous value in the plater selector.
         $self->_on_presets_changed;
         return;
     }
-    print "select_preset 2\n";
-    $self->{presets}->select_preset_by_name(defined $name ? $name : "");
-    print "select_preset 3\n";
+    if (defined $name) {
+        $self->{presets}->select_preset_by_name($name);
+    } else {
+        $self->{presets}->select_preset(0);
+    }
     # Initialize the UI from the current preset.
     $self->load_current_preset;
-    print "select_preset 4\n";
-    # Save the current application settings with the newly selected preset name.
-    wxTheApp->save_settings;
-    print "select_preset 5\n";
 }
 
 # Initialize the UI from the current preset.
 sub load_current_preset {
     my ($self) = @_;
-    print "load_current_preset 1\n";
     $self->{presets}->update_tab_ui($self->{presets_choice});
-    print "load_current_preset 2\n";
     my $preset = $self->{presets}->get_current_preset;
     eval {
         local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-        my $method = ($preset->default || $preset->external) ? 'Disable' : 'Enable';
+        my $method = $preset->default ? 'Disable' : 'Enable';
         $self->{btn_delete_preset}->$method;
         $self->_update;
         # For the printer profile, generate the extruder pages.
@@ -281,8 +270,9 @@ sub load_current_preset {
     # preset dirty again
     # (not sure this is true anymore now that update_dirty is idempotent)
     wxTheApp->CallAfter(sub {
-        $self->_on_presets_changed;
         $self->update_dirty;
+        #the following is called by update_dirty
+        #$self->_on_presets_changed;
     });
 }
 
@@ -404,7 +394,7 @@ sub build {
     my $self = shift;
     
     $self->{presets} = wxTheApp->{preset_bundle}->print;
-    $self->{config} = $self->{presets}->get_edited_preset->config_ref;
+    $self->{config} = $self->{presets}->get_edited_preset->config;
     
     {
         my $page = $self->add_options_page('Layers and perimeters', 'layers.png');
@@ -608,7 +598,7 @@ sub build {
             $optgroup->append_single_option_line('clip_multipart_objects');
             $optgroup->append_single_option_line('elefant_foot_compensation');
             $optgroup->append_single_option_line('xy_size_compensation');
-#            $optgroup->append_single_option_line('threads') if $Slic3r::have_threads;
+#            $optgroup->append_single_option_line('threads');
             $optgroup->append_single_option_line('resolution');
         }
     }
@@ -675,7 +665,7 @@ sub _update {
     my ($self) = @_;
     $self->Freeze;
 
-    my $config = $self->{presets}->get_edited_preset->config_ref;
+    my $config = $self->{config};
     
     if ($config->spiral_vase && !($config->perimeters == 1 && $config->top_solid_layers == 0 && $config->fill_density == 0)) {
         my $dialog = Wx::MessageDialog->new($self,
@@ -882,7 +872,7 @@ sub build {
     my $self = shift;
     
     $self->{presets} = wxTheApp->{preset_bundle}->filament;
-    $self->{config} = $self->{presets}->get_edited_preset->config_ref;
+    $self->{config} = $self->{presets}->get_edited_preset->config;
     
     {
         my $page = $self->add_options_page('Filament', 'spool.png');
@@ -1061,8 +1051,9 @@ sub build {
     my ($self, %params) = @_;
     
     $self->{presets} = wxTheApp->{preset_bundle}->printer;
-    $self->{config} = $self->{presets}->get_edited_preset->config_ref;
-    
+    $self->{config} = $self->{presets}->get_edited_preset->config;
+    $self->{extruders_count} = scalar @{$self->{config}->nozzle_diameter};
+
     my $bed_shape_widget = sub {
         my ($parent) = @_;
         
@@ -1086,9 +1077,7 @@ sub build {
         
         return $sizer;
     };
-    
-    $self->{extruders_count} = 1;
-    
+        
     {
         my $page = $self->add_options_page('General', 'printer_empty.png');
         {
@@ -1117,13 +1106,16 @@ sub build {
                 $optgroup->append_single_option_line('single_extruder_multi_material');
             }
             $optgroup->on_change(sub {
-                my ($opt_id) = @_;
-                if ($opt_id eq 'extruders_count') {
-                    wxTheApp->CallAfter(sub {
+                my ($opt_key, $value) = @_;
+                wxTheApp->CallAfter(sub {
+                    if ($opt_key eq 'extruders_count') {
                         $self->_extruders_count_changed($optgroup->get_value('extruders_count'));
-                    });
-                    $self->update_dirty;
-                }
+                        $self->update_dirty;
+                    } else {
+                        $self->update_dirty;
+                        $self->_on_value_change($opt_key, $value);
+                    }
+                });
             });
         }
         if (!$params{no_controller})
@@ -1326,43 +1318,23 @@ sub build {
 sub _update_serial_ports {
     my ($self) = @_;
     
-    $self->get_field('serial_port')->set_values([ wxTheApp->scan_serial_ports ]);
+    $self->get_field('serial_port')->set_values([ Slic3r::GUI::scan_serial_ports ]);
 }
 
 sub _extruders_count_changed {
     my ($self, $extruders_count) = @_;
-    
     $self->{extruders_count} = $extruders_count;
+    wxTheApp->{preset_bundle}->printer->get_edited_preset->set_num_extruders($extruders_count);
+    wxTheApp->{preset_bundle}->update_multi_material_filament_presets;
     $self->_build_extruder_pages;
     $self->_on_value_change('extruders_count', $extruders_count);
 }
 
-sub _extruder_options { 
-    qw(nozzle_diameter min_layer_height max_layer_height extruder_offset 
-       retract_length retract_lift retract_lift_above retract_lift_below retract_speed deretract_speed 
-       retract_before_wipe retract_restart_extra retract_before_travel wipe
-       retract_layer_change retract_length_toolchange retract_restart_extra_toolchange extruder_colour) }
-
 sub _build_extruder_pages {
-    my $self = shift;
-    
+    my ($self) = @_;    
     my $default_config = Slic3r::Config::Full->new;
-    
+
     foreach my $extruder_idx (@{$self->{extruder_pages}} .. $self->{extruders_count}-1) {
-        # extend options
-        foreach my $opt_key ($self->_extruder_options) {
-            my $values = $self->{config}->get($opt_key);
-            if (!defined $values) {
-                $values = [ $default_config->get_at($opt_key, 0) ];
-            } else {
-                # use last extruder's settings for the new one
-                my $last_value = $values->[-1];
-                $values->[$extruder_idx] //= $last_value;
-            }
-            $self->{config}->set($opt_key, $values)
-                or die "Unable to extend $opt_key";
-        }
-        
         # build page
         my $page = $self->{extruder_pages}[$extruder_idx] = $self->add_options_page("Extruder " . ($extruder_idx + 1), 'funnel.png');
         {
@@ -1410,14 +1382,6 @@ sub _build_extruder_pages {
     if ($self->{extruders_count} <= $#{$self->{extruder_pages}}) {
         $_->Destroy for @{$self->{extruder_pages}}[$self->{extruders_count}..$#{$self->{extruder_pages}}];
         splice @{$self->{extruder_pages}}, $self->{extruders_count};
-    }
-    
-    # remove extra config values
-    foreach my $opt_key ($self->_extruder_options) {
-        my $values = $self->{config}->get($opt_key);
-        splice @$values, $self->{extruders_count} if $self->{extruders_count} <= $#$values;
-        $self->{config}->set($opt_key, $values)
-            or die "Unable to truncate $opt_key";
     }
     
     # rebuild page list
@@ -1513,15 +1477,12 @@ sub _update {
 
 # this gets executed after preset is loaded and before GUI fields are updated
 sub on_preset_loaded {
-    my $self = shift;
-    
+    my ($self) = @_;
     # update the extruders count field
-    {
-        # update the GUI field according to the number of nozzle diameters supplied
-        my $extruders_count = scalar @{ $self->{config}->nozzle_diameter };
-        $self->set_value('extruders_count', $extruders_count);
-        $self->_extruders_count_changed($extruders_count);
-    }
+    my $extruders_count = scalar @{ $self->{config}->nozzle_diameter };
+    $self->set_value('extruders_count', $extruders_count);
+    # update the GUI field according to the number of nozzle diameters supplied
+    $self->_extruders_count_changed($extruders_count);
 }
 
 # Single Tab page containing a {vsizer} of {optgroups}

@@ -207,15 +207,15 @@ public:
     void resize(size_t n, const ConfigOption *opt_default = nullptr) override
     {
         assert(opt_default == nullptr || opt_default->is_vector());
-        assert(opt_default == nullptr || dynamic_cast<ConfigOptionVector<T>>(opt_default));
+//        assert(opt_default == nullptr || dynamic_cast<ConfigOptionVector<T>>(opt_default));
         assert(! this->values.empty() || opt_default != nullptr);
         if (n == 0)
             this->values.clear();
         else if (n < this->values.size())
             this->values.erase(this->values.begin() + n, this->values.end());
-        else if (n > this->values.size())
+        else if (n > this->values.size()) {
             if (this->values.empty()) {
-                if (opt_default == nullptr) {
+                if (opt_default == nullptr)
                     throw std::runtime_error("ConfigOptionVector::resize(): No default value provided.");
                 if (opt_default->type() != this->type())
                     throw std::runtime_error("ConfigOptionVector::resize(): Extending with an incompatible type.");

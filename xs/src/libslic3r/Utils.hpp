@@ -25,7 +25,6 @@ std::string config_path(const std::string &file_name);
 // The suffix ".ini" will be added if it is missing in the name.
 std::string config_path(const std::string &section, const std::string &name);
 
-extern std::locale locale_utf8;
 extern std::string encode_path(const char *src);
 extern std::string decode_path(const char *src);
 extern std::string normalize_utf8_nfc(const char *src);

@@ -241,16 +241,7 @@ if (@ARGV) {  # slicing from command line
 
 sub usage {
     my ($exit_code) = @_;
-    
     my $config = Slic3r::Config::new_from_defaults->as_hash;
-    
-    my $j = '';
-    if ($Slic3r::have_threads) {
-        $j = <<"EOF";
-    -j, --threads <num> Number of threads to use (1+, default: $config->{threads})
-EOF
-    }
-    
     print <<"EOF";
 Slic3r $Slic3r::VERSION is a STL-to-GCODE translator for RepRap 3D printers
 written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
@@ -275,8 +266,8 @@ Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
                         them as <name>_upper.stl and <name>_lower.stl
     --split             Split the shells contained in given STL file into several STL files
     --info              Output information about the supplied file(s) and exit
-    
-$j
+    -j, --threads <num> Number of threads to use (1+, default: $config->{threads})
+
   GUI options:
     --gui               Forces the GUI launch instead of command line slicing (if you
                         supply a model file, it will be loaded into the plater)

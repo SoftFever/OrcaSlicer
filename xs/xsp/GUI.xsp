@@ -14,6 +14,9 @@ void disable_screensaver()
 void enable_screensaver()
     %code{% Slic3r::GUI::enable_screensaver(); %};
 
+std::vector<std::string> scan_serial_ports()
+    %code{% RETVAL=Slic3r::GUI::scan_serial_ports(); %};
+
 bool debugged()
     %code{% RETVAL=Slic3r::GUI::debugged(); %};
 

@@ -1,3 +1,6 @@
+//#undef NDEBUGc
+#include <cassert>
+
 #include "PresetBundle.hpp"
 
 #include <fstream>
@@ -17,9 +20,9 @@
 #include <wx/bmpcbox.h>
 #include <wx/wupdlock.h>
 
+#include "../../libslic3r/libslic3r.h"
+#include "../../libslic3r/PlaceholderParser.hpp"
 #include "../../libslic3r/Utils.hpp"
-
-#include <assert.h>
 
 namespace Slic3r {
 
@@ -117,6 +120,15 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "printer",  printers.get_selected_preset().name);
 }
 
+void PresetBundle::export_selections(PlaceholderParser &pp)
+{
+    assert(filament_presets.size() >= 1);
+    assert(filament_presets.size() > 1 || filaments.get_selected_preset().name == filament_presets.front());
+    pp.set("print_preset",    prints.get_selected_preset().name);
+    pp.set("filament_preset", filament_presets);
+    pp.set("printer_preset",  printers.get_selected_preset().name);
+}
+
 bool PresetBundle::load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible)
 {
     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
@@ -193,6 +205,15 @@ DynamicPrintConfig PresetBundle::full_config() const
 // If the file is loaded successfully, its print / filament / printer profiles will be activated.
 void PresetBundle::load_config_file(const std::string &path)
 {
+	if (boost::iends_with(path, ".gcode") || boost::iends_with(path, ".g")) {
+		DynamicPrintConfig config;
+		config.apply(FullPrintConfig::defaults());
+		config.load_from_gcode(path);
+		Preset::normalize(config);
+		load_config_file_config(path, std::move(config));
+		return;
+	}
+
     // 1) Try to load the config file into a boost property tree.
     boost::property_tree::ptree tree;
     try {
@@ -211,36 +232,37 @@ void PresetBundle::load_config_file(const std::string &path)
         throw std::runtime_error(std::string("Unknown configuration file type: ") + path);   
     case CONFIG_FILE_TYPE_APP_CONFIG:
         throw std::runtime_error(std::string("Invalid configuration file: ") + path + ". This is an application config file.");
-    case CONFIG_FILE_TYPE_CONFIG:
-        load_config_file_config(path, tree);
-        break;
+	case CONFIG_FILE_TYPE_CONFIG:
+	{
+		// Initialize a config from full defaults.
+		DynamicPrintConfig config;
+		config.apply(FullPrintConfig::defaults());
+		config.load(tree);
+		Preset::normalize(config);
+		load_config_file_config(path, std::move(config));
+		break;
+	}
     case CONFIG_FILE_TYPE_CONFIG_BUNDLE:
-        load_config_file_config_bundle(path, tree);
+		load_config_file_config_bundle(path, tree);
         break;
     }
 }
 
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
-void PresetBundle::load_config_file_config(const std::string &path, const boost::property_tree::ptree &tree)
+void PresetBundle::load_config_file_config(const std::string &path, const DynamicPrintConfig &config)
 {
-    // 1) Initialize a config from full defaults.
-    DynamicPrintConfig config;
-    config.apply(FullPrintConfig());
-    config.load(tree);
-    Preset::normalize(config);
-
-    // 2) Create a name from the file name.
+    // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
     std::string name = boost::filesystem::path(path).filename().string();
 
-    // 3) If the loading succeeded, split and load the config into print / filament / printer settings.
+    // 2) If the loading succeeded, split and load the config into print / filament / printer settings.
     // First load the print and printer presets.
     for (size_t i_group = 0; i_group < 2; ++ i_group) {
         PresetCollection &presets = (i_group == 0) ? this->prints : this->printers;
         presets.load_preset(path, name, config).is_external = true;
     }
 
-    // Now load the filaments. If there are multiple filament presets, split them and load them.
+    // 3) Now load the filaments. If there are multiple filament presets, split them and load them.
     auto   *nozzle_diameter   = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
     auto   *filament_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_diameter"));
     size_t  num_extruders     = std::min(nozzle_diameter->values.size(), filament_diameter->values.size());
@@ -253,7 +275,7 @@ void PresetBundle::load_config_file_config(const std::string &path, const boost:
         std::vector<DynamicPrintConfig> configs(num_extruders, this->filaments.default_preset().config);
         // loop through options and scatter them into configs.
         for (const t_config_option_key &key : this->filaments.default_preset().config.keys()) {
-            const ConfigOption *other_opt = config.option(key, false);
+            const ConfigOption *other_opt = config.option(key);
             if (other_opt == nullptr)
                 continue;
             if (other_opt->is_scalar()) {
@@ -273,7 +295,7 @@ void PresetBundle::load_config_file_config(const std::string &path, const boost:
             else
                 sprintf(suffix, " (%d)", i);
             // Load all filament presets, but only select the first one in the preset dialog.
-            this->filaments.load_preset(path, name + suffix, configs[i], i == 0).is_external = true;
+            this->filaments.load_preset(path, name + suffix, std::move(configs[i]), i == 0).is_external = true;
             filament_presets.emplace_back(name + suffix);
         }
     }
@@ -301,7 +323,7 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
             // Generate a new unique name.
         }
         if (! new_name.empty())
-            this->prints.load_preset(path, new_name, tmp_bundle.prints.get_selected_preset().config);
+            this->prints.load_preset(path, new_name, std::move(tmp_bundle.prints.get_selected_preset().config));
     }
 }
 
@@ -369,8 +391,9 @@ size_t PresetBundle::load_configbundle(const std::string &path)
             DynamicPrintConfig config(presets->default_preset().config);
             for (auto &kvp : section.second)
                 config.set_deserialize(kvp.first, kvp.second.data());
+            Preset::normalize(config);
             // Load the preset into the list of presets, save it to disk.
-            presets->load_preset(Slic3r::config_path(presets->name(), preset_name), preset_name, config, false).save();
+            presets->load_preset(Slic3r::config_path(presets->name(), preset_name), preset_name, std::move(config), false).save();
             ++ presets_loaded;
         }
     }
@@ -386,7 +409,7 @@ size_t PresetBundle::load_configbundle(const std::string &path)
 
     this->update_multi_material_filament_presets();
     for (size_t i = 0; i < std::min(this->filament_presets.size(), active_filaments.size()); ++ i)
-        this->filament_presets[i] = filaments.first_visible().name;
+        this->filament_presets[i] = filaments.find_preset(active_filaments[i], true)->name;
     return presets_loaded;
 }
 
@@ -396,7 +419,6 @@ void PresetBundle::update_multi_material_filament_presets()
     auto   *nozzle_diameter = static_cast<const ConfigOptionFloats*>(printers.get_edited_preset().config.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();
     // Verify validity of the current filament presets.
-    printf("PresetBundle::update_multi_material_filament_presets, old: %d, new: %d\n", int(this->filament_presets.size()), int(num_extruders));
     for (size_t i = 0; i < std::min(this->filament_presets.size(), num_extruders); ++ i)
         this->filament_presets[i] = this->filaments.find_preset(this->filament_presets[i], true)->name;
     // Append the rest of filament presets.

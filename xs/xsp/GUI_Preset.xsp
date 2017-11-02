@@ -52,10 +52,25 @@
     bool                    update_dirty_ui(SV *ui)
         %code%{ RETVAL = THIS->update_dirty_ui((wxChoice*)wxPli_sv_2_object(aTHX_ ui, "Wx::Choice")); %};
 
+    void                    select_preset(int idx);
     bool                    select_preset_by_name(char *name) %code%{ RETVAL = THIS->select_preset_by_name(name, true); %};
 
-    void                    save_current_preset(char *new_name);
-    void                    delete_current_preset();
+    void                    save_current_preset(char *new_name)
+        %code%{
+            try {
+                THIS->save_current_preset(new_name);
+            } catch (std::exception& e) {
+                croak("Error saving a preset %s:\n%s\n", new_name, e.what());
+            }
+        %};
+    void                    delete_current_preset()
+        %code%{
+            try {
+                THIS->delete_current_preset();
+            } catch (std::exception& e) {
+                croak("Error deleting a preset file %s:\n%s\n", THIS->get_selected_preset().file.c_str(), e.what());
+            }
+        %};
 
 %{
 
@@ -88,24 +103,61 @@ PresetCollection::presets_hash()
 %}
 };
 
-
 %name{Slic3r::GUI::PresetBundle} class PresetBundle {
     PresetBundle();
     ~PresetBundle();
 
-    void                        setup_directories();
-    void                        load_presets(const char *dir_path);
-    void                        load_config_file(const char *path);
-    size_t                      load_configbundle(const char *path);
-    void                        export_configbundle(char *path);
+    void                        setup_directories()
+        %code%{
+            try {
+                THIS->setup_directories();
+            } catch (std::exception& e) {
+                croak("Cannot create configuration directories:\n%s\n", e.what());
+            }
+        %};
+    void                        load_presets(const char *dir_path)
+        %code%{
+            try {
+                THIS->load_presets(dir_path);
+            } catch (std::exception& e) {
+                croak("Loading of Slic3r presets from %s failed:\n%s\n", dir_path, e.what());
+            }
+        %};
+    void                        load_config_file(const char *path)
+        %code%{
+            try {
+                THIS->load_config_file(path);
+            } catch (std::exception& e) {
+                croak("Loading a configuration file %s failed:\n%s\n", path, e.what());
+            }
+        %};
+    size_t                      load_configbundle(const char *path)
+        %code%{
+            try {
+                RETVAL = THIS->load_configbundle(path);
+            } catch (std::exception& e) {
+                croak("Loading of a config bundle %s failed:\n%s\n", path, e.what());
+            }
+        %};
+    void                        export_configbundle(char *path)
+        %code%{
+            try {
+                THIS->export_configbundle(path);
+            } catch (std::exception& e) {
+                croak("Export of a config bundle %s failed:\n%s\n", path, e.what());
+            }
+        %};
+
     void                        set_default_suppressed(bool default_suppressed);
 
     void                        load_selections  (AppConfig *config) %code%{ THIS->load_selections(*config); %};
     void                        export_selections(AppConfig *config) %code%{ THIS->export_selections(*config); %};
+    void                        export_selections_pp(PlaceholderParser *pp) %code%{ THIS->export_selections(*pp); %};
 
     Ref<PresetCollection>       print()    %code%{ RETVAL = &THIS->prints;   %};
     Ref<PresetCollection>       filament() %code%{ RETVAL = &THIS->filaments; %};
     Ref<PresetCollection>       printer()  %code%{ RETVAL = &THIS->printers;  %};
+    bool                        has_defauls_only();
 
     std::vector<std::string>    filament_presets() %code%{ RETVAL = THIS->filament_presets; %};
     void                        set_filament_preset(int idx, const char *name);

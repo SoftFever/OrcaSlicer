@@ -13,8 +13,22 @@
     void 					    reset();
     void 						set_defaults();
 
-    void                        load();
-    void                        save();
+    void                        load()
+        %code%{
+            try {
+                THIS->load();
+            } catch (std::exception& e) {
+                croak("Loading an application config file failed:\n%s\n", e.what());
+            }
+        %};
+    void                        save()
+        %code%{
+            try {
+                THIS->save();
+            } catch (std::exception& e) {
+                croak("Saving an application config file failed:\n%s\n", e.what());
+            }
+        %};
     bool						exists();
     bool                        dirty();
 

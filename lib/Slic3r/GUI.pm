@@ -53,24 +53,8 @@ use constant FILE_WILDCARDS => {
 use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf prusa)};
 
 # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-our $no_controller;
 our $no_plater;
-our $autosave;
 our @cb;
-
-our $Settings = {
-    _ => {
-        version_check => 1,
-        autocenter => 1,
-        # Disable background processing by default as it is not stable.
-        background_processing => 0,
-        # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        # By default, Prusa has the controller hidden.
-        no_controller => 1,
-        # If set, the "- default -" selections of print/filament/printer are suppressed, if there is a valid preset available.
-        no_defaults => 1,
-    },
-};
 
 our $small_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $small_font->SetPointSize(11) if &Wx::wxMAC;
@@ -89,91 +73,47 @@ sub OnInit {
     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;
+    $self->{app_config} = Slic3r::GUI::AppConfig->new;
     $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
     
     # just checking for existence of Slic3r::data_dir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
-    my $enc_datadir = Slic3r::encode_path(Slic3r::data_dir);
-    Slic3r::debugf "Data directory: %s\n", $enc_datadir;
-    my $run_wizard = (-d $enc_datadir && -e "$enc_datadir/slic3r.ini") ? 0 : 1;
-    foreach my $dir ($enc_datadir, "$enc_datadir/print", "$enc_datadir/filament", "$enc_datadir/printer") {
-        next if -d $dir;
-        if (!mkdir $dir) {
-            my $error = "Slic3r was unable to create its data directory at $dir ($!).";
-            warn "$error\n";
-            fatal_error(undef, $error);
-        }
+    eval { $self->{preset_bundle}->setup_directories() };
+    if ($@) {
+        warn $@ . "\n";
+        fatal_error(undef, $@);
     }
-    
+    my $run_wizard = ! $self->{app_config}->exists;
     # load settings
-    my $last_version;
-    if (-f "$enc_datadir/slic3r.ini") {
-        my $ini = eval { Slic3r::Config->read_ini(Slic3r::data_dir . "/slic3r.ini") };
-        $Settings = $ini if $ini;
-        $last_version = $Settings->{_}{version};
-        $Settings->{_}{autocenter} //= 1;
-        $Settings->{_}{background_processing} //= 1;
-        # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        $Settings->{_}{no_controller} //= 1;
-        # If set, the "- default -" selections of print/filament/printer are suppressed, if there is a valid preset available.
-        $Settings->{_}{no_defaults} //= 1;
-    }
-    $Settings->{_}{version} = $Slic3r::VERSION;
-    $self->save_settings;
+    $self->{app_config}->load if ! $run_wizard;
+    $self->{app_config}->set('version', $Slic3r::VERSION);
+    $self->{app_config}->save;
 
     # Suppress the '- default -' presets.
-    $self->{preset_bundle}->set_default_suppressed($Slic3r::GUI::Settings->{_}{no_defaults} ? 1 : 0);
-    eval { $self->{preset_bundle}->load_presets(Slic3r::data_dir) };
+    $self->{preset_bundle}->set_default_suppressed($self->{app_config}->get('no_defaults') ? 1 : 0);
+    eval { 
+        $self->{preset_bundle}->load_presets(Slic3r::data_dir);
+        $self->{preset_bundle}->load_selections($self->{app_config});
+        $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
+    };
     
     # application frame
     Wx::Image::AddHandler(Wx::PNGHandler->new);
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        no_controller   => $no_controller // $Settings->{_}{no_controller},
+        no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
     );
     $self->SetTopWindow($frame);
-    
-    # load init bundle
-    #FIXME this is undocumented and the use case is unclear.
-#    {
-#        my @dirs = ($FindBin::Bin);
-#        if (&Wx::wxMAC) {
-#            push @dirs, qw();
-#        } elsif (&Wx::wxMSW) {
-#            push @dirs, qw();
-#        }
-#        my $init_bundle = first { -e $_ } map "$_/.init_bundle.ini", @dirs;
-#        if ($init_bundle) {
-#            Slic3r::debugf "Loading config bundle from %s\n", $init_bundle;
-#            $self->{mainframe}->load_configbundle($init_bundle, 1);
-#            $run_wizard = 0;
-#        }
-#    }
-    
-    if (!$run_wizard && (!defined $last_version || $last_version ne $Slic3r::VERSION)) {
-        # user was running another Slic3r version on this computer
-        if (!defined $last_version || $last_version =~ /^0\./) {
-            show_info($self->{mainframe}, "Hello! Support material was improved since the "
-                . "last version of Slic3r you used. It is strongly recommended to revert "
-                . "your support material settings to the factory defaults and start from "
-                . "those. Enjoy and provide feedback!", "Support Material");
-        }
-        if (!defined $last_version || $last_version =~ /^(?:0|1\.[01])\./) {
-            show_info($self->{mainframe}, "Hello! In this version a new Bed Shape option was "
-                . "added. If the bed coordinates in the plater preview screen look wrong, go "
-                . "to Print Settings and click the \"Set\" button next to \"Bed Shape\".", "Bed Shape");
-        }
-    }
     if ($run_wizard) {
         $self->{mainframe}->config_wizard;
-        eval { $self->{preset_bundle}->load_presets(Slic3r::data_dir) };
     }
 
     EVT_IDLE($frame, sub {
         while (my $cb = shift @cb) {
             $cb->();
         }
+        $self->{app_config}->save if $self->{app_config}->dirty;
     });
     
     return 1;
@@ -265,11 +205,6 @@ sub notify {
     $self->{notifier}->notify($message);
 }
 
-sub save_settings {
-    my ($self) = @_;
-    Slic3r::Config->write_ini(Slic3r::data_dir . "/slic3r.ini", $Settings);
-}
-
 # Called after the Preferences dialog is closed and the program settings are saved.
 # Update the UI based on the current preferences.
 sub update_ui_from_settings {
@@ -277,22 +212,11 @@ sub update_ui_from_settings {
     $self->{mainframe}->update_ui_from_settings;
 }
 
-sub output_path {
-    my ($self, $dir) = @_;
-    
-    return ($Settings->{_}{last_output_path} && $Settings->{_}{remember_output_path})
-        ? $Settings->{_}{last_output_path}
-        : $dir;
-}
-
 sub open_model {
     my ($self, $window) = @_;
     
-    my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory}
-           || $Slic3r::GUI::Settings->{recent}{config_directory}
-           || '';
-    
-    my $dialog = Wx::FileDialog->new($window // $self->GetTopWindow, 'Choose one or more files (STL/OBJ/AMF/PRUSA):', $dir, "",
+    my $dialog = Wx::FileDialog->new($window // $self->GetTopWindow, 'Choose one or more files (STL/OBJ/AMF/PRUSA):', 
+        $self->{app_config}->get_last_dir, "",
         MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
         $dialog->Destroy;
@@ -306,31 +230,6 @@ sub open_model {
 sub CallAfter {
     my ($self, $cb) = @_;
     push @cb, $cb;
-}
-
-sub scan_serial_ports {
-    my ($self) = @_;
-    
-    my @ports = ();
-    
-    if ($^O eq 'MSWin32') {
-        # Windows
-        if (eval "use Win32::TieRegistry; 1") {
-            my $ts = Win32::TieRegistry->new("HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIALCOMM",
-                { Access => 'KEY_READ' });
-            if ($ts) {
-                # when no serial ports are available, the registry key doesn't exist and 
-                # TieRegistry->new returns undef
-                $ts->Tie(\my %reg);
-                push @ports, sort values %reg;
-            }
-        }
-    } else {
-        # UNIX and OS X
-        push @ports, glob '/dev/{ttyUSB,ttyACM,tty.,cu.,rfcomm}*';
-    }
-    
-    return grep !/Bluetooth|FireFly/, @ports;
 }
 
 sub append_menu_item {
@@ -369,25 +268,24 @@ sub set_menu_item_icon {
 sub save_window_pos {
     my ($self, $window, $name) = @_;
     
-    $Settings->{_}{"${name}_pos"}  = join ',', $window->GetScreenPositionXY;
-    $Settings->{_}{"${name}_size"} = join ',', $window->GetSizeWH;
-    $Settings->{_}{"${name}_maximized"}      = $window->IsMaximized;
-    $self->save_settings;
+    $self->{app_config}->set("${name}_pos", join ',', $window->GetScreenPositionXY);
+    $self->{app_config}->set("${name}_size", join ',', $window->GetSizeWH);
+    $self->{app_config}->set("${name}_maximized", $window->IsMaximized);
+    $self->{app_config}->save;
 }
 
 sub restore_window_pos {
     my ($self, $window, $name) = @_;
-    
-    if (defined $Settings->{_}{"${name}_pos"}) {
-        my $size = [ split ',', $Settings->{_}{"${name}_size"}, 2 ];
+    if ($self->{app_config}->has("${name}_pos")) {
+        my $size = [ split ',', $self->{app_config}->get("${name}_size"), 2 ];
         $window->SetSize($size);
         
         my $display = Wx::Display->new->GetClientArea();
-        my $pos = [ split ',', $Settings->{_}{"${name}_pos"}, 2 ];
+        my $pos = [ split ',', $self->{app_config}->get("${name}_pos"), 2 ];
         if (($pos->[0] + $size->[0]/2) < $display->GetRight && ($pos->[1] + $size->[1]/2) < $display->GetBottom) {
             $window->Move($pos);
         }
-        $window->Maximize(1) if $Settings->{_}{"${name}_maximized"};
+        $window->Maximize(1) if $self->{app_config}->get("${name}_maximized");
     }
 }
 

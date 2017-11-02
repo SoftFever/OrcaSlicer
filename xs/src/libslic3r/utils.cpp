@@ -103,14 +103,14 @@ const std::string& data_dir()
 
 std::string config_path(const std::string &file_name)
 {
-    auto file = boost::filesystem::canonical(boost::filesystem::path(g_data_dir) / file_name).make_preferred();
+    auto file = (boost::filesystem::path(g_data_dir) / file_name).make_preferred();
     return file.string();
 }
 
 std::string config_path(const std::string &section, const std::string &name)
 {
     auto file_name = boost::algorithm::iends_with(name, ".ini") ? name : name + ".ini";
-    auto file = boost::filesystem::canonical(boost::filesystem::path(g_data_dir) / file_name).make_preferred();
+    auto file = (boost::filesystem::path(g_data_dir) / section / file_name).make_preferred();
     return file.string();
 }
 
@@ -228,10 +228,9 @@ std::string decode_path(const char *src)
 #endif /* WIN32 */
 }
 
-std::locale locale_utf8(boost::locale::generator().generate(""));
-
 std::string normalize_utf8_nfc(const char *src)
 {
+    static std::locale locale_utf8(boost::locale::generator().generate(""));
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
 }
 

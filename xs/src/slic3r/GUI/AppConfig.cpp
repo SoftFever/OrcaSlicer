@@ -27,9 +27,7 @@ void AppConfig::reset()
 // Override missing or keys with their defaults.
 void AppConfig::set_defaults()
 {
-    // 2) Reset to defaults.
-    if (get("version_check").empty())
-        set("version_check", "1");
+    // Reset the empty fields to defaults.
     if (get("autocenter").empty())
         set("autocenter", "1");
     // Disable background processing by default as it is not stable.
@@ -38,10 +36,13 @@ void AppConfig::set_defaults()
     // If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
     // By default, Prusa has the controller hidden.
     if (get("no_controller").empty())
-        set("no_controller", "0");
+        set("no_controller", "1");
     // If set, the "- default -" selections of print/filament/printer are suppressed, if there is a valid preset available.
     if (get("no_defaults").empty())
         set("no_defaults", "1");
+    // Version check is enabled by default in the config, but it is not implemented yet.
+    if (get("version_check").empty())
+        set("version_check", "1");
 }
 
 void AppConfig::load()
@@ -114,13 +115,11 @@ std::string AppConfig::get_last_dir() const
 void AppConfig::update_config_dir(const std::string &dir)
 {
     this->set("recent", "config_directory", dir);
-    this->save();
 }
 
 void AppConfig::update_skein_dir(const std::string &dir)
 {
     this->set("recent", "skein_directory", dir);
-    this->save();
 }
 
 std::string AppConfig::get_last_output_dir(const std::string &alt) const
@@ -138,7 +137,6 @@ std::string AppConfig::get_last_output_dir(const std::string &alt) const
 void AppConfig::update_last_output_dir(const std::string &dir)
 {
     this->set("", "last_output_path", dir);
-    this->save();
 }
 
 std::string AppConfig::config_path()

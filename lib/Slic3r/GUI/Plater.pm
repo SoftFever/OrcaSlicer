@@ -63,12 +63,7 @@ sub new {
     
     $self->{print}->set_status_cb(sub {
         my ($percent, $message) = @_;
-        
-        if ($Slic3r::have_threads) {
-            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([$percent, $message])));
-        } else {
-            $self->on_progress_event($percent, $message);
-        }
+        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([$percent, $message])));
     });
     
     # Initialize preview notebook
@@ -119,7 +114,7 @@ sub new {
             $self->GetFrame->{options_tabs}{print}->load_config($cfg);
         });
         $self->{canvas3D}->set_on_model_update(sub {
-            if ($Slic3r::GUI::Settings->{_}{background_processing}) {
+            if (wxTheApp->{app_config}->get("background_processing")) {
                 $self->schedule_background_process;
             } else {
                 # Hide the print info box, it is no more valid.
@@ -330,7 +325,7 @@ sub new {
         $self->on_process_completed($event->GetData);
     });
     
-    if ($Slic3r::have_threads) {
+    {
         my $timer_id = Wx::NewId();
         $self->{apply_config_timer} = Wx::Timer->new($self, $timer_id);
         EVT_TIMER($self, $timer_id, sub {
@@ -448,7 +443,6 @@ sub new {
                 $self->{"print_info_$field"}->SetFont($Slic3r::GUI::small_font);
                 $grid_sizer->Add($self->{"print_info_$field"}, 0);
             }
-            
         }
         
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -510,13 +504,14 @@ sub _on_select_preset {
         wxTheApp->{preset_bundle}->set_filament_preset($idx, $choice->GetStringSelection);
     }
 	if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
-		wxTheApp->save_settings;
         wxTheApp->{preset_bundle}->update_platter_filament_ui_colors($idx, $choice);
 	} else {
     	# call GetSelection() in scalar context as it's context-aware
     	$self->{on_select_preset}->($group, $choice->GetStringSelection)
     	    if $self->{on_select_preset};
     }
+    # Synchronize config.ini with the current selections.
+    wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
 	# get new config and generate on_config_change() event for updating plater and other things
 	$self->on_config_change(wxTheApp->{preset_bundle}->full_config);
 }
@@ -548,8 +543,8 @@ sub GetFrame {
 sub update_ui_from_settings
 {
     my ($self) = @_;
-    if (defined($self->{btn_reslice}) && $self->{buttons_sizer}->IsShown($self->{btn_reslice}) != (! $Slic3r::GUI::Settings->{_}{background_processing})) {
-        $self->{buttons_sizer}->Show($self->{btn_reslice}, ! $Slic3r::GUI::Settings->{_}{background_processing});
+    if (defined($self->{btn_reslice}) && $self->{buttons_sizer}->IsShown($self->{btn_reslice}) != (! wxTheApp->{app_config}->get("background_processing"))) {
+        $self->{buttons_sizer}->Show($self->{btn_reslice}, ! wxTheApp->{app_config}->get("background_processing"));
         $self->{buttons_sizer}->Layout;
     }
 }
@@ -587,6 +582,8 @@ sub update_presets {
             $choice_idx += 1;
         }
     }
+    # Synchronize config.ini with the current selections.
+    wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
 }
 
 sub add {
@@ -655,8 +652,7 @@ sub load_files {
     }
 
     # Note the current directory for the file open dialog.
-    $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_files->[-1]);
-    wxTheApp->save_settings;
+    wxTheApp->{app_config}->update_skein_dir(dirname($input_files->[-1]));
     
     $process_dialog->Destroy;
     $self->statusbar->SetStatusText("Loaded " . join(',', @loaded_files));
@@ -704,7 +700,7 @@ sub load_model_objects {
     }
     
     # if user turned autocentering off, automatic arranging would disappoint them
-    if (!$Slic3r::GUI::Settings->{_}{autocenter}) {
+    if (! wxTheApp->{app_config}->get("autocenter")) {
         $need_arrange = 0;
     }
     
@@ -817,7 +813,7 @@ sub increase {
     
     # only autoarrange if user has autocentering enabled
     $self->stop_background_process;
-    if ($Slic3r::GUI::Settings->{_}{autocenter}) {
+    if (wxTheApp->{app_config}->get("autocenter")) {
         $self->arrange;
     } else {
         $self->update;
@@ -1130,7 +1126,7 @@ sub async_apply_config {
     # Hide the slicing results if the current slicing status is no more valid.    
     $self->{"print_info_box_show"}->(0) if $invalidated;
 
-    if ($Slic3r::GUI::Settings->{_}{background_processing}) {    
+    if (wxTheApp->{app_config}->get("background_processing")) {    
         if ($invalidated) {
             # kill current thread if any
             $self->stop_background_process;
@@ -1152,7 +1148,6 @@ sub async_apply_config {
 sub start_background_process {
     my ($self) = @_;
     
-    return if !$Slic3r::have_threads;
     return if !@{$self->{objects}};
     return if $self->{process_thread};
     
@@ -1171,11 +1166,8 @@ sub start_background_process {
         return;
     }
     
-    # apply extra variables
-    {
-        my $extra = $self->GetFrame->extra_variables;
-        $self->{print}->placeholder_parser->set($_, $extra->{$_}) for keys %$extra;
-    }
+    # Copy the names of active presets into the placeholder parser.
+    wxTheApp->{preset_bundle}->export_selections_pp($self->{print}->placeholder_parser);
     
     # start thread
     @_ = ();
@@ -1246,7 +1238,7 @@ sub reslice {
     # explicitly cancel a previous thread and start a new one.
     my ($self) = @_;
     # Don't reslice if export of G-code or sending to OctoPrint is running.
-    if ($Slic3r::have_threads && ! defined($self->{export_gcode_output_file}) && ! defined($self->{send_gcode_file})) {
+    if (! defined($self->{export_gcode_output_file}) && ! defined($self->{send_gcode_file})) {
         # Stop the background processing threads, stop the async update timer.
         $self->stop_background_process;
         # Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
@@ -1289,52 +1281,41 @@ sub export_gcode {
         $self->{print}->apply_config($config);
         $self->{print}->validate;
     };
-    if (!$Slic3r::have_threads) {
-        Slic3r::GUI::catch_error($self) and return;
-    }
+    Slic3r::GUI::catch_error($self) and return;
     
     # select output file
     if ($output_file) {
         $self->{export_gcode_output_file} = $self->{print}->output_filepath($output_file);
     } else {
         my $default_output_file = $self->{print}->output_filepath($main::opt{output} // '');
-        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', wxTheApp->output_path(dirname($default_output_file)),
+        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', 
+            wxTheApp->{app_config}->get_last_output_dir(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
             return;
         }
         my $path = $dlg->GetPath;
-        $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($path);
-        wxTheApp->save_settings;
+        wxTheApp->{app_config}->update_last_output_dir(dirname($path));
         $self->{export_gcode_output_file} = $path;
         $dlg->Destroy;
     }
     
     $self->statusbar->StartBusy;
     
-    if ($Slic3r::have_threads) {
-        $self->statusbar->SetCancelCallback(sub {
-            $self->stop_background_process;
-            $self->statusbar->SetStatusText("Export cancelled");
-            $self->{export_gcode_output_file} = undef;
-            $self->{send_gcode_file} = undef;
-            
-            # this updates buttons status
-            $self->object_list_changed;
-        });
+    $self->statusbar->SetCancelCallback(sub {
+        $self->stop_background_process;
+        $self->statusbar->SetStatusText("Export cancelled");
+        $self->{export_gcode_output_file} = undef;
+        $self->{send_gcode_file} = undef;
         
-        # start background process, whose completion event handler
-        # will detect $self->{export_gcode_output_file} and proceed with export
-        $self->start_background_process;
-    } else {
-        eval {
-            $self->{print}->process;
-            $self->{print}->export_gcode(output_file => $self->{export_gcode_output_file});
-        };
-        my $result = !Slic3r::GUI::catch_error($self);
-        $self->on_export_completed($result);
-    }
+        # this updates buttons status
+        $self->object_list_changed;
+    });
+    
+    # start background process, whose completion event handler
+    # will detect $self->{export_gcode_output_file} and proceed with export
+    $self->start_background_process;
     
     # this updates buttons status
     $self->object_list_changed;
@@ -1577,7 +1558,7 @@ sub reset_thumbnail {
 sub update {
     my ($self, $force_autocenter) = @_;
 
-    if ($Slic3r::GUI::Settings->{_}{autocenter} || $force_autocenter) {
+    if (wxTheApp->{app_config}->get("autocenter") || $force_autocenter) {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
     
@@ -1604,9 +1585,7 @@ sub update {
 # and some reasonable default has to be selected for the additional extruders.
 sub on_extruders_change {
     my ($self, $num_extruders) = @_;
-    
     my $choices = $self->{preset_choosers}{filament};
-    wxTheApp->{preset_bundle}->update_multi_material_filament_presets;
 
     while (int(@$choices) < $num_extruders) {
         # copy strings from first choice

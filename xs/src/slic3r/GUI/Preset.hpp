@@ -121,6 +121,7 @@ public:
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true);
+    Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true);
 
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.

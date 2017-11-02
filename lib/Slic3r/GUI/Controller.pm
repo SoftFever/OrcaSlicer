@@ -121,7 +121,7 @@ sub OnActivate {
         }
         if (!%active) {
             # enable printers whose port is available
-            my %ports = map { $_ => 1 } wxTheApp->scan_serial_ports;
+            my %ports = map { $_ => 1 } Slic3r::GUI::scan_serial_ports;
             $active{$_} = 1
                 for grep exists $ports{$presets{$_}->serial_port}, keys %presets;
         }

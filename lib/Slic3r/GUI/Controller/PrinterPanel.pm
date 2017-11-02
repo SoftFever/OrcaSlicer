@@ -348,7 +348,7 @@ sub update_serial_ports {
     my $cb = $self->{serial_port_combobox};
     my $current = $cb->GetValue;
     $cb->Clear;
-    $cb->Append($_) for wxTheApp->scan_serial_ports;
+    $cb->Append($_) for Slic3r::GUI::scan_serial_ports;
     $cb->SetValue($current);
 }
 

@@ -10,6 +10,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, "Preferences", wxDefaultPosition, wxDefaultSize);
     $self->{values} = {};
     
+    my $app_config = wxTheApp->{app_config};
     my $optgroup;
     $optgroup = Slic3r::GUI::OptionsGroup->new(
         parent  => $self,
@@ -25,7 +26,7 @@ sub new {
 #        type        => 'bool',
 #        label       => 'Check for updates',
 #        tooltip     => 'If this is enabled, Slic3r will check for updates daily and display a reminder if a newer version is available.',
-#        default     => $Slic3r::GUI::Settings->{_}{version_check} // 1,
+#        default     => $app_config->get("version_check") // 1,
 #        readonly    => !wxTheApp->have_version_check,
 #    ));
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
@@ -33,36 +34,35 @@ sub new {
         type        => 'bool',
         label       => 'Remember output directory',
         tooltip     => 'If this is enabled, Slic3r will prompt the last output directory instead of the one containing the input files.',
-        default     => $Slic3r::GUI::Settings->{_}{remember_output_path},
+        default     => $app_config->get("remember_output_path"),
     ));
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'autocenter',
         type        => 'bool',
         label       => 'Auto-center parts',
         tooltip     => 'If this is enabled, Slic3r will auto-center objects around the print bed center.',
-        default     => $Slic3r::GUI::Settings->{_}{autocenter},
+        default     => $app_config->get("autocenter"),
     ));
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'background_processing',
         type        => 'bool',
         label       => 'Background processing',
         tooltip     => 'If this is enabled, Slic3r will pre-process objects as soon as they\'re loaded in order to save time when exporting G-code.',
-        default     => $Slic3r::GUI::Settings->{_}{background_processing},
-        readonly    => !$Slic3r::have_threads,
+        default     => $app_config->get("background_processing"),
     ));
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'no_controller',
         type        => 'bool',
         label       => 'Disable USB/serial connection',
         tooltip     => 'Disable communication with the printer over a serial / USB cable. This simplifies the user interface in case the printer is never attached to the computer.',
-        default     => $Slic3r::GUI::Settings->{_}{no_controller},
+        default     => $app_config->get("no_controller"),
     ));
     $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
         opt_id      => 'no_defaults',
         type        => 'bool',
         label       => 'Suppress "- default -" presets',
         tooltip     => 'Suppress "- default -" presets in the Print / Filament / Printer selections once there are any other valid presets available.',
-        default     => $Slic3r::GUI::Settings->{_}{no_defaults},
+        default     => $app_config->get("no_defaults"),
     ));
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -79,15 +79,15 @@ sub new {
 }
 
 sub _accept {
-    my $self = shift;
+    my ($self) = @_;
     
     if (defined($self->{values}{no_controller}) ||
         defined($self->{values}{no_defaults})) {
         Slic3r::GUI::warning_catcher($self)->("You need to restart Slic3r to make the changes effective.");
     }
     
-    $Slic3r::GUI::Settings->{_}{$_} = $self->{values}{$_} for keys %{$self->{values}};
-    wxTheApp->save_settings;
+    my $app_config = wxTheApp->{app_config};
+    $app_config->set($_, $self->{values}{$_}) for keys %{$self->{values}};
     
     $self->EndModal(wxID_OK);
     $self->Close;  # needed on Linux

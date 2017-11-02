@@ -6,6 +6,8 @@
 
 namespace Slic3r {
 
+class PlaceholderParser;
+
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
 {
@@ -23,6 +25,8 @@ public:
     void            load_selections(const AppConfig &config);
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
+    // Export selections (current print, current filaments, current printer) into a placeholder parser.
+    void            export_selections(PlaceholderParser &pp);
 
     PresetCollection            prints;
     PresetCollection            filaments;
@@ -30,6 +34,9 @@ public:
     // Filament preset names for a multi-extruder or multi-material print.
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;
+
+    bool                        has_defauls_only() const 
+        { return prints.size() <= 1 && filaments.size() <= 1 && printers.size() <= 1; }
 
     DynamicPrintConfig          full_config() const;
 
@@ -66,7 +73,7 @@ public:
     void                        update_multi_material_filament_presets();
 
 private:
-    void                        load_config_file_config(const std::string &path, const boost::property_tree::ptree &tree);
+    void                        load_config_file_config(const std::string &path, const DynamicPrintConfig &config);
     void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
     bool                        load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible);
 

@@ -1,3 +1,6 @@
+//#undef NDEBUG
+#include <cassert>
+
 #include "Preset.hpp"
 
 #include <fstream>
@@ -16,15 +19,8 @@
 #include <wx/bmpcbox.h>
 #include <wx/wupdlock.h>
 
+#include "../../libslic3r/libslic3r.h"
 #include "../../libslic3r/Utils.hpp"
-
-#if 0
-#define DEBUG
-#define _DEBUG
-#undef NDEBUG
-#endif
-
-#include <assert.h>
 
 namespace Slic3r {
 
@@ -94,6 +90,19 @@ void Preset::normalize(DynamicPrintConfig &config)
     if (nozzle_diameter != nullptr)
         // Loaded the Printer settings. Verify, that all extruder dependent values have enough values.
         set_num_extruders(config, (unsigned int)nozzle_diameter->values.size());
+    if (config.option("filament_diameter") != nullptr) {
+        // This config contains single or multiple filament presets.
+        // Ensure that the filament preset vector options contain the correct number of values.
+        size_t n = (nozzle_diameter == nullptr) ? 1 : nozzle_diameter->values.size();
+        const auto &defaults = FullPrintConfig::defaults();
+        for (const std::string &key : Preset::filament_options()) {
+            auto *opt = config.option(key, false);
+            assert(opt != nullptr);
+            assert(opt->is_vector());
+            if (opt != nullptr && opt->is_vector())
+                static_cast<ConfigOptionVectorBase*>(opt)->resize(n, defaults.option(key));
+        }
+    }
 }
 
 // Load a config file, return a C++ class Slic3r::DynamicPrintConfig with $keys initialized from the config file.
@@ -247,7 +256,6 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
             }
         }
     std::sort(m_presets.begin() + 1, m_presets.end());
-    m_presets.front().is_visible = ! m_default_suppressed || m_presets.size() > 1;
     this->select_preset(first_visible_idx());
 }
 
@@ -255,19 +263,22 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 // and select it, losing previous modifications.
 Preset& PresetCollection::load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select)
 {
+    DynamicPrintConfig cfg(this->default_preset().config);
+    cfg.apply(config, true);
+    return this->load_preset(path, name, std::move(cfg));
+}
+
+Preset& PresetCollection::load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select)
+{
     Preset key(m_type, name);
     auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
-    if (it != m_presets.end() && it->name == name) {
-        // The preset with the same name was found.
-        it->is_dirty = false;
-    } else {
+    if (it == m_presets.end() || it->name != name)
         it = m_presets.emplace(it, Preset(m_type, name, false));
-    }
     Preset &preset = *it;
     preset.file = path;
-    preset.config = this->default_preset().config;
+    preset.config = std::move(config);
     preset.loaded = true;
-    this->get_selected_preset().is_dirty = false;
+    preset.is_dirty = false;
     if (select)
         this->select_preset_by_name(name, true);
     return preset;
@@ -275,6 +286,8 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
 
 void PresetCollection::save_current_preset(const std::string &new_name)
 {
+	// 1) Find the preset with a new_name or create a new one,
+	// initialize it with the edited config.
     Preset key(m_type, new_name, false);
     auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
     if (it != m_presets.end() && it->name == key.name) {
@@ -285,37 +298,39 @@ void PresetCollection::save_current_preset(const std::string &new_name)
             return;
         // Overwriting an existing preset.
         preset.config = std::move(m_edited_preset.config);
-        m_idx_selected = it - m_presets.begin();
     } else {
         // Creating a new preset.
-		m_idx_selected = m_presets.insert(it, m_edited_preset) - m_presets.begin();
-        Preset &preset = m_presets[m_idx_selected];
+		Preset &preset = *m_presets.insert(it, m_edited_preset);
         std::string file_name = new_name;
         if (! boost::iends_with(file_name, ".ini"))
             file_name += ".ini";
         preset.name = new_name;
 		preset.file = (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
     }
-    m_edited_preset = m_presets[m_idx_selected];
-    m_presets[m_idx_selected].save();
-    m_presets.front().is_visible = ! m_default_suppressed || m_idx_selected > 0;
+	// 2) Activate the saved preset.
+	this->select_preset_by_name(new_name, true);
+	// 2) Store the active preset to disk.
+	this->get_selected_preset().save();
 }
 
 void PresetCollection::delete_current_preset()
 {
     const Preset &selected = this->get_selected_preset();
-    if (selected.is_default || selected.is_external)
+    if (selected.is_default)
         return;
-    // Erase the preset file.
-    boost::nowide::remove(selected.file.c_str());
+	if (! selected.is_external) {
+		// Erase the preset file.
+		boost::nowide::remove(selected.file.c_str());
+	}
     // Remove the preset from the list.
     m_presets.erase(m_presets.begin() + m_idx_selected);
     // Find the next visible preset.
-    m_presets.front().is_visible = ! m_default_suppressed || m_presets.size() > 1;    
-    for (; m_idx_selected < m_presets.size() && ! m_presets[m_idx_selected].is_visible; ++ m_idx_selected) ;
-    if (m_idx_selected == m_presets.size())
-        m_idx_selected = this->first_visible_idx();
-    m_edited_preset = m_presets[m_idx_selected];
+    size_t new_selected_idx = m_idx_selected;
+    if (new_selected_idx < m_presets.size())
+        for (; new_selected_idx < m_presets.size() && ! m_presets[new_selected_idx].is_visible; ++ new_selected_idx) ;
+    if (new_selected_idx == m_presets.size())
+		for (--new_selected_idx; new_selected_idx > 0 && !m_presets[new_selected_idx].is_visible; --new_selected_idx);
+    this->select_preset(new_selected_idx);
 }
 
 bool PresetCollection::load_bitmap_default(const std::string &file_name)
@@ -337,7 +352,7 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
 // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
 size_t PresetCollection::first_visible_idx() const
 {
-    size_t idx = 0;
+    size_t idx = m_default_suppressed ? 1 : 0;
     for (; idx < this->m_presets.size(); ++ idx)
         if (m_presets[idx].is_visible)
             break;
@@ -438,11 +453,13 @@ bool PresetCollection::update_dirty_ui(wxChoice *ui)
 
 Preset& PresetCollection::select_preset(size_t idx)
 {
+    for (Preset &preset : m_presets)
+        preset.is_dirty = false;
     if (idx >= m_presets.size())
         idx = first_visible_idx();
     m_idx_selected = idx;
     m_edited_preset = m_presets[idx];
-    m_presets.front().is_visible = ! m_default_suppressed || m_idx_selected > 0;
+    m_presets.front().is_visible = ! m_default_suppressed || m_idx_selected == 0;
     return m_presets[idx];
 }
 
@@ -458,7 +475,7 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
         idx = it - m_presets.begin();
     else {
         // Find the first visible preset.
-        for (size_t i = 0; i < m_presets.size(); ++ i)
+        for (size_t i = m_default_suppressed ? 1 : 0; i < m_presets.size(); ++ i)
             if (m_presets[i].is_visible) {
                 idx = i;
                 break;
