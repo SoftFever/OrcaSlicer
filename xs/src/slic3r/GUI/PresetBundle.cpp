@@ -85,13 +85,21 @@ void PresetBundle::load_presets(const std::string &dir_path)
     this->update_multi_material_filament_presets();
 }
 
+static inline std::string remove_ini_suffix(const std::string &name)
+{
+    std::string out = name;
+    if (boost::iends_with(out, ".ini"))
+        out.erase(out.end() - 4, out.end());
+    return out;
+}
+
 // Load selections (current print, current filaments, current printer) from config.ini
 // This is done just once on application start up.
 void PresetBundle::load_selections(const AppConfig &config)
 {
-    prints.select_preset_by_name(config.get("presets", "print"), true);
-    filaments.select_preset_by_name(config.get("presets", "filament"), true);
-    printers.select_preset_by_name(config.get("presets", "printer"), true);
+    prints.select_preset_by_name(remove_ini_suffix(config.get("presets", "print")), true);
+    filaments.select_preset_by_name(remove_ini_suffix(config.get("presets", "filament")), true);
+    printers.select_preset_by_name(remove_ini_suffix(config.get("presets", "printer")), true);
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();   
     this->set_filament_preset(0, filaments.get_selected_preset().name);
@@ -100,7 +108,7 @@ void PresetBundle::load_selections(const AppConfig &config)
         sprintf(name, "filament_%d", i);
         if (! config.has("presets", name))
             break;
-        this->set_filament_preset(i, config.get("presets", name));
+        this->set_filament_preset(i, remove_ini_suffix(config.get("presets", name)));
     }
 }
 
