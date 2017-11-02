@@ -462,7 +462,7 @@ bool GCode::_do_export(Print &print, FILE *file)
     m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
 
     // Write information on the generator.
-    fprintf(file, "# %s\n\n", Slic3r::header_slic3r_generated().c_str());
+    fprintf(file, "; %s\n\n", Slic3r::header_slic3r_generated().c_str());
     // Write notes (content of the Print Settings tab -> Notes)
     {
         std::list<std::string> lines;
