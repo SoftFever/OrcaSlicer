@@ -11,6 +11,8 @@
     static DynamicPrintConfig* new_from_defaults();
     static DynamicPrintConfig* new_from_defaults_keys(std::vector<std::string> keys);
     DynamicPrintConfig* clone() %code{% RETVAL = new DynamicPrintConfig(*THIS); %};
+    DynamicPrintConfig* clone_only(std::vector<std::string> keys) 
+        %code{% RETVAL = new DynamicPrintConfig(); RETVAL->apply_only(*THIS, keys, true); %};
     bool has(t_config_option_key opt_key);
     SV* as_hash()
         %code{% RETVAL = ConfigBase__as_hash(THIS); %};

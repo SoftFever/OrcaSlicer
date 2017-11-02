@@ -1535,7 +1535,7 @@ sub export_amf {
 sub _get_export_file {
     my ($self, $format) = @_;    
     my $suffix = $format eq 'STL' ? '.stl' : '.amf.xml';
-    my $output_file = $self->{print}->output_filepath($main::opt{output});
+    my $output_file = $self->{print}->output_filepath($main::opt{output} // '');
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
     my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
         basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);

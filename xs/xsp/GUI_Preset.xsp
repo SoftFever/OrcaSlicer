@@ -87,19 +87,6 @@ PresetCollection::arrayref()
     OUTPUT:
         RETVAL
 
-SV*
-PresetCollection::presets_hash()
-    CODE:
-        HV* hv = newHV();
-        for (size_t i = 1; i < THIS->size(); ++ i) {
-            const Slic3r::Preset &preset = THIS->preset(i);
-            if (! preset.is_default && ! preset.is_external)
-                (void)hv_store(hv, preset.name.c_str(), - int(preset.name.size()), newSVpvn_utf8(preset.file.c_str(), preset.file.size(), true), 0);
-        }
-        RETVAL = (SV*)newRV_noinc((SV*)hv);
-    OUTPUT:
-        RETVAL
-
 %}
 };
 

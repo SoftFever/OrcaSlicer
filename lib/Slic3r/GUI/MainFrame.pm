@@ -128,8 +128,8 @@ sub _init_tabpanel {
                 # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
                 $self->{plater}->update_presets($tab_name, @_);
                 $self->{plater}->on_config_change($tab->{presets}->get_current_preset->config);
-                if ($self->{controller}) {
-                    $self->{controller}->update_presets($tab_name, @_);
+                if ($self->{controller} && $tab_name eq 'printer') {
+                    $self->{controller}->update_presets(@_);
                 }
             }
         });
