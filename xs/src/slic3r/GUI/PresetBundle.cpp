@@ -295,7 +295,7 @@ void PresetBundle::load_config_file_config(const std::string &path, const Dynami
             }
         }
         // Load the configs into this->filaments and make them active.
-        filament_presets.clear();
+        this->filament_presets.clear();
         for (size_t i = 0; i < configs.size(); ++ i) {
             char suffix[64];
             if (i == 0)
@@ -304,7 +304,7 @@ void PresetBundle::load_config_file_config(const std::string &path, const Dynami
                 sprintf(suffix, " (%d)", i);
             // Load all filament presets, but only select the first one in the preset dialog.
             this->filaments.load_preset(path, name + suffix, std::move(configs[i]), i == 0).is_external = true;
-            filament_presets.emplace_back(name + suffix);
+            this->filament_presets.emplace_back(name + suffix);
         }
     }
 }

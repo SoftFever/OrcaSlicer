@@ -115,7 +115,7 @@ DynamicPrintConfig& Preset::load(const std::vector<std::string> &keys)
     if (! this->is_default) {
         // Load the preset file, apply preset values on top of defaults.
         try {
-            this->config.load(this->file);
+            this->config.load_from_ini(this->file);
             Preset::normalize(this->config);
         } catch (const std::ifstream::failure&) {
             throw std::runtime_error(std::string("The selected preset does not exist anymore: ") + this->file);
@@ -264,7 +264,7 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 Preset& PresetCollection::load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select)
 {
     DynamicPrintConfig cfg(this->default_preset().config);
-    cfg.apply(config, true);
+    cfg.apply_only(config, cfg.keys(), true);
     return this->load_preset(path, name, std::move(cfg));
 }
 
