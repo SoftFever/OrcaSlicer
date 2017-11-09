@@ -1010,7 +1010,7 @@ public:
     { 
         ConfigOption *opt = this->optptr(opt_key, create);
         assert(opt == nullptr || opt->type() == typename TYPE::static_type());
-        return (opt == nullptr || opt->type() == typename TYPE::static_type()) ? nullptr : static_cast<TYPE*>(opt);
+        return (opt == nullptr || opt->type() != typename TYPE::static_type()) ? nullptr : static_cast<TYPE*>(opt);
     }
     template<typename TYPE>
     const TYPE* option(const t_config_option_key &opt_key) const
@@ -1101,23 +1101,23 @@ public:
     // Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store.
     t_config_option_keys    keys() const override;
 
-    std::string&        opt_string(const t_config_option_key &opt_key, bool create = false)     { return dynamic_cast<ConfigOptionString*>(this->option(opt_key, create))->value; }
+    std::string&        opt_string(const t_config_option_key &opt_key, bool create = false)     { return this->option<ConfigOptionString>(opt_key, create)->value; }
     const std::string&  opt_string(const t_config_option_key &opt_key) const                    { return const_cast<DynamicConfig*>(this)->opt_string(opt_key); }
-    std::string&        opt_string(const t_config_option_key &opt_key, unsigned int idx)        { return dynamic_cast<ConfigOptionStrings*>(this->option(opt_key))->get_at(idx); }
+    std::string&        opt_string(const t_config_option_key &opt_key, unsigned int idx)        { return this->option<ConfigOptionStrings>(opt_key)->get_at(idx); }
     const std::string&  opt_string(const t_config_option_key &opt_key, unsigned int idx) const  { return const_cast<DynamicConfig*>(this)->opt_string(opt_key, idx); }
 
-    double&             opt_float(const t_config_option_key &opt_key)                           { return dynamic_cast<ConfigOptionFloat*>(this->option(opt_key))->value; }
+    double&             opt_float(const t_config_option_key &opt_key)                           { return this->option<ConfigOptionFloat>(opt_key)->value; }
     const double        opt_float(const t_config_option_key &opt_key) const                     { return dynamic_cast<const ConfigOptionFloat*>(this->option(opt_key))->value; }
-    double&             opt_float(const t_config_option_key &opt_key, unsigned int idx)         { return dynamic_cast<ConfigOptionFloats*>(this->option(opt_key))->get_at(idx); }
+    double&             opt_float(const t_config_option_key &opt_key, unsigned int idx)         { return this->option<ConfigOptionFloats>(opt_key)->get_at(idx); }
     const double        opt_float(const t_config_option_key &opt_key, unsigned int idx) const   { return dynamic_cast<const ConfigOptionFloats*>(this->option(opt_key))->get_at(idx); }
 
-    int&                opt_int(const t_config_option_key &opt_key)                             { return dynamic_cast<ConfigOptionInt*>(this->option(opt_key))->value; }
+    int&                opt_int(const t_config_option_key &opt_key)                             { return this->option<ConfigOptionInt>(opt_key)->value; }
     const int           opt_int(const t_config_option_key &opt_key) const                       { return dynamic_cast<const ConfigOptionInt*>(this->option(opt_key))->value; }
-    int&                opt_int(const t_config_option_key &opt_key, unsigned int idx)           { return dynamic_cast<ConfigOptionInts*>(this->option(opt_key))->get_at(idx); }
+    int&                opt_int(const t_config_option_key &opt_key, unsigned int idx)           { return this->option<ConfigOptionInts>(opt_key)->get_at(idx); }
     const int           opt_int(const t_config_option_key &opt_key, unsigned int idx) const     { return dynamic_cast<const ConfigOptionInts*>(this->option(opt_key))->get_at(idx); }
 
-    bool                opt_bool(const t_config_option_key &opt_key) const                      { return dynamic_cast<const ConfigOptionBool*>(this->option(opt_key))->value != 0; }
-    bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { return dynamic_cast<const ConfigOptionBools*>(this->option(opt_key))->get_at(idx) != 0; }
+    bool                opt_bool(const t_config_option_key &opt_key) const                      { return this->option<ConfigOptionBool>(opt_key)->value != 0; }
+    bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { return this->option<ConfigOptionBools>(opt_key)->get_at(idx) != 0; }
 
 protected:
     DynamicConfig() {}

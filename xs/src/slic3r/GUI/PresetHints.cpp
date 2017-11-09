@@ -1,4 +1,4 @@
-//#undef NDEBUGc
+//#undef NDEBUG
 #include <cassert>
 
 #include "PresetBundle.hpp"
@@ -36,7 +36,7 @@ std::string PresetHints::cooling_description(const Preset &preset)
 	if (preset.config.opt_bool("fan_always_on", 0)) {
 		int 	disable_fan_first_layers 	= preset.config.opt_int("disable_fan_first_layers", 0);
 		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
-        sprintf(buf, "will always run at %d% ", min_fan_speed);
+        sprintf(buf, "will always run at %d%% ", min_fan_speed);
         out += buf;
         if (disable_fan_first_layers > 1) {
         	sprintf(buf, "except for the first %d layers", disable_fan_first_layers);
@@ -50,26 +50,37 @@ std::string PresetHints::cooling_description(const Preset &preset)
     return out;
 }
 
+static const ConfigOptionFloatOrPercent& first_positive(const ConfigOptionFloatOrPercent *v1, const ConfigOptionFloatOrPercent &v2, const ConfigOptionFloatOrPercent &v3)
+{
+    return (v1 != nullptr && v1->value > 0) ? *v1 : ((v2.value > 0) ? v2 : v3);
+}
+
+static double first_positive(double v1, double v2)
+{
+    return (v1 > 0.) ? v1 : v2;
+}
+
 std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle &preset_bundle)
 {
     // Find out, to which nozzle index is the current filament profile assigned.
-    unsigned int idx_nozzle = 0;
-    for (; idx_nozzle < (unsigned int)preset_bundle.filaments.size(); ++ idx_nozzle)
-        if (preset_bundle.filament_presets[idx_nozzle] == preset_bundle.filaments.get_selected_preset().name)
+    int idx_extruder  = 0;
+	int num_extruders = (int)preset_bundle.filament_presets.size();
+    for (; idx_extruder < num_extruders; ++ idx_extruder)
+        if (preset_bundle.filament_presets[idx_extruder] == preset_bundle.filaments.get_selected_preset().name)
             break;
-    if (idx_nozzle == (unsigned int)preset_bundle.filaments.size())
+    if (idx_extruder == num_extruders)
         // The current filament preset is not active for any extruder.
-        idx_nozzle = (unsigned int)-1;
+        idx_extruder = -1;
 
     const DynamicPrintConfig &print_config    = preset_bundle.prints   .get_edited_preset().config;
     const DynamicPrintConfig &filament_config = preset_bundle.filaments.get_edited_preset().config;
     const DynamicPrintConfig &printer_config  = preset_bundle.printers .get_edited_preset().config;
 
     // Current printer values.
-    double nozzle_diameter                  = printer_config.opt_float("nozzle_diameter", idx_nozzle);
+    float  nozzle_diameter                  = (float)printer_config.opt_float("nozzle_diameter", idx_extruder);
 
     // Print config values
-    double layer_height                     = print_config.get_abs_value("layer_height", nozzle_diameter);
+    double layer_height                     = print_config.opt_float("layer_height");
     double first_layer_height               = print_config.get_abs_value("first_layer_height", layer_height);
     double support_material_speed           = print_config.opt_float("support_material_speed");
     double support_material_interface_speed = print_config.get_abs_value("support_material_interface_speed", support_material_speed);
@@ -87,168 +98,132 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     // Maximum volumetric speed allowed for the print profile.
     double max_volumetric_speed             = print_config.opt_float("max_volumetric_speed");
 
-    const auto &extrusion_width                     = print_config.get_abs_value("extrusion_width");
-    const auto &support_material_extrusion_width    = *print_config.option<ConfigOptionFloatOrPercent>("support_material_extrusion_width");
+    const auto &extrusion_width                     = *print_config.option<ConfigOptionFloatOrPercent>("extrusion_width");
     const auto &external_perimeter_extrusion_width  = *print_config.option<ConfigOptionFloatOrPercent>("external_perimeter_extrusion_width");
-    const auto &infill_extrusion_width              = *print_config.option<ConfigOptionFloatOrPercent>("infill_extrusion_width");
-    const auto &solid_infill_extrusion_width        = *print_config.option<ConfigOptionFloatOrPercent>("solid_infill_extrusion_width");
-    const auto &perimeter_extrusion_width           = *print_config.option<ConfigOptionFloatOrPercent>("perimeter_extrusion_width");
-    const auto &top_infill_extrusion_width          = *print_config.option<ConfigOptionFloatOrPercent>("top_infill_extrusion_width");
     const auto &first_layer_extrusion_width         = *print_config.option<ConfigOptionFloatOrPercent>("first_layer_extrusion_width");
+    const auto &infill_extrusion_width              = *print_config.option<ConfigOptionFloatOrPercent>("infill_extrusion_width");
+    const auto &perimeter_extrusion_width           = *print_config.option<ConfigOptionFloatOrPercent>("perimeter_extrusion_width");
+    const auto &solid_infill_extrusion_width        = *print_config.option<ConfigOptionFloatOrPercent>("solid_infill_extrusion_width");
+    const auto &support_material_extrusion_width    = *print_config.option<ConfigOptionFloatOrPercent>("support_material_extrusion_width");
+    const auto &top_infill_extrusion_width          = *print_config.option<ConfigOptionFloatOrPercent>("top_infill_extrusion_width");
 
-    int perimeter_extruder                  = print_config.opt_int("perimeter_extruder");
-    int infill_extruder                     = print_config.opt_int("infill_extruder");
-    int solid_infill_extruder               = print_config.opt_int("solid_infill_extruder");
-    int support_material_extruder           = print_config.opt_int("support_material_extruder");
-    int support_material_interface_extruder = print_config.opt_int("support_material_interface_extruder");
+    // Index of an extruder assigned to a feature. If set to 0, an active extruder will be used for a multi-material print.
+    // If different from idx_extruder, it will not be taken into account for this hint.
+    auto feature_extruder_active = [idx_extruder, num_extruders](int i) {
+        return i <= 0 || i > num_extruders || idx_extruder == -1 || idx_extruder == i - 1;
+    };
+    bool perimeter_extruder_active                  = feature_extruder_active(print_config.opt_int("perimeter_extruder"));
+    bool infill_extruder_active                     = feature_extruder_active(print_config.opt_int("infill_extruder"));
+    bool solid_infill_extruder_active               = feature_extruder_active(print_config.opt_int("solid_infill_extruder"));
+    bool support_material_extruder_active           = feature_extruder_active(print_config.opt_int("support_material_extruder"));
+    bool support_material_interface_extruder_active = feature_extruder_active(print_config.opt_int("support_material_interface_extruder"));
 
     // Current filament values
     double filament_diameter                = filament_config.opt_float("filament_diameter", 0);
+    double filament_crossection             = M_PI * 0.25 * filament_diameter * filament_diameter;
     double extrusion_multiplier             = filament_config.opt_float("extrusion_multiplier", 0);
-    double filament_max_volumetric_speed    = filament_config.opt_float("filament_max_volumetric_speed", 0);
-
-
-    auto external_perimeter_flow = Flow::new_from_config_width(frExternalPerimeter, external_perimeter_extrusion_width, (float)nozzle_diameter, (float)layer_height, 0);
-    auto perimeter_flow = Flow::new_from_config_width(frPerimeter, perimeter_extrusion_width, (float)nozzle_diameter, (float)layer_height, 0);
-    auto infill_flow = Flow::new_from_config_width(frInfill, infill_extrusion_width, (float)nozzle_diameter, (float)layer_height, 0);
-    auto solid_infill_flow = Flow::new_from_config_width(frInfill, solid_infill_extrusion_width, (float)nozzle_diameter, (float)layer_height, 0);
-    auto top_solid_infill_flow = Flow::new_from_config_width(frInfill, top_infill_extrusion_width, (float)nozzle_diameter, (float)layer_height, 0);
-//    auto support_material_flow = Flow::new_from_config_width(frSupportMaterial, , 
-//        (float)nozzle_diameter, (float)layer_height, 0);
-    auto support_material_interface_flow = Flow::new_from_config_width(frSupportMaterialInterface, *print_config.option<ConfigOptionFloatOrPercent>("support_material_extrusion_width"), 
-        (float)nozzle_diameter, (float)layer_height, 0);
+    // The following value will be annotated by this hint, so it does not take part in the calculation.
+//    double filament_max_volumetric_speed    = filament_config.opt_float("filament_max_volumetric_speed", 0);
 
     std::string out;
-    out="Hu";
-	return out;
-}
-
-#if 0
-static create_flow(FlowRole role, ConfigOptionFloatOrPercent &width, double layer_height, bool bridge, bool first_layer, double width) const
-{
-    ConfigOptionFloatOrPercent config_width;
-    if (width != -1) {
-        // use the supplied custom width, if any
-        config_width.value = width;
-        config_width.percent = false;
-    } else {
-        // otherwise, get extrusion width from configuration
-        // (might be an absolute value, or a percent value, or zero for auto)
-        if (first_layer && this->_print->config.first_layer_extrusion_width.value > 0) {
-            config_width = this->_print->config.first_layer_extrusion_width;
-        } else if (role == frExternalPerimeter) {
-            config_width = this->config.external_perimeter_extrusion_width;
-        } else if (role == frPerimeter) {
-            config_width = this->config.perimeter_extrusion_width;
-        } else if (role == frInfill) {
-            config_width = this->config.infill_extrusion_width;
-        } else if (role == frSolidInfill) {
-            config_width = this->config.solid_infill_extrusion_width;
-        } else if (role == frTopSolidInfill) {
-            config_width = this->config.top_infill_extrusion_width;
-        } else {
-            CONFESS("Unknown role");
+    for (size_t idx_type = (first_layer_extrusion_width.value == 0) ? 1 : 0; idx_type < 3; ++ idx_type) {
+        // First test the maximum volumetric extrusion speed for non-bridging extrusions.
+        bool first_layer = idx_type == 0;
+        bool bridging    = idx_type == 2;
+		const ConfigOptionFloatOrPercent *first_layer_extrusion_width_ptr = (first_layer && first_layer_extrusion_width.value > 0) ?
+			&first_layer_extrusion_width : nullptr;
+        const float                       lh  = float(first_layer ? first_layer_height : layer_height);
+        const float                       bfr = bridging ? bridge_flow_ratio : 0.f;
+        double                            max_flow = 0.;
+        std::string                       max_flow_extrusion_type;
+        if (perimeter_extruder_active) {
+            double external_perimeter_rate = Flow::new_from_config_width(frExternalPerimeter, 
+                first_positive(first_layer_extrusion_width_ptr, external_perimeter_extrusion_width, extrusion_width), 
+                nozzle_diameter, lh, bfr).mm3_per_mm() *
+                (bridging ? bridge_speed : 
+                    first_positive(std::max(external_perimeter_speed, small_perimeter_speed), max_print_speed));
+            if (max_flow < external_perimeter_rate) {
+                max_flow = external_perimeter_rate;
+                max_flow_extrusion_type = "external perimeters";
+            }
+            double perimeter_rate = Flow::new_from_config_width(frPerimeter, 
+                first_positive(first_layer_extrusion_width_ptr, perimeter_extrusion_width, extrusion_width), 
+                nozzle_diameter, lh, bfr).mm3_per_mm() *
+                (bridging ? bridge_speed :
+                    first_positive(std::max(perimeter_speed, small_perimeter_speed), max_print_speed));
+            if (max_flow < perimeter_rate) {
+                max_flow = perimeter_rate;
+                max_flow_extrusion_type = "perimeters";
+            }
         }
+        if (! bridging && infill_extruder_active) {
+            double infill_rate = Flow::new_from_config_width(frInfill, 
+                first_positive(first_layer_extrusion_width_ptr, infill_extrusion_width, extrusion_width), 
+                nozzle_diameter, lh, bfr).mm3_per_mm() * first_positive(infill_speed, max_print_speed);
+            if (max_flow < infill_rate) {
+                max_flow = infill_rate;
+                max_flow_extrusion_type = "infill";
+            }
+        }
+        if (solid_infill_extruder_active) {
+            double solid_infill_rate = Flow::new_from_config_width(frInfill, 
+                first_positive(first_layer_extrusion_width_ptr, solid_infill_extrusion_width, extrusion_width), 
+                nozzle_diameter, lh, 0).mm3_per_mm() *
+                (bridging ? bridge_speed : first_positive(solid_infill_speed, max_print_speed));
+            if (max_flow < solid_infill_rate) {
+                max_flow = solid_infill_rate;
+                max_flow_extrusion_type = "solid infill";
+            }
+            if (! bridging) {
+                double top_solid_infill_rate = Flow::new_from_config_width(frInfill, 
+                    first_positive(first_layer_extrusion_width_ptr, top_infill_extrusion_width, extrusion_width), 
+                    nozzle_diameter, lh, bfr).mm3_per_mm() * first_positive(top_solid_infill_speed, max_print_speed);
+                if (max_flow < top_solid_infill_rate) {
+                    max_flow = top_solid_infill_rate;
+                    max_flow_extrusion_type = "top solid infill";
+                }
+            }
+        }
+        if (support_material_extruder_active) {
+            double support_material_rate = Flow::new_from_config_width(frSupportMaterial,
+                first_positive(first_layer_extrusion_width_ptr, support_material_extrusion_width, extrusion_width), 
+                nozzle_diameter, lh, bfr).mm3_per_mm() *
+                (bridging ? bridge_speed : first_positive(support_material_speed, max_print_speed));
+            if (max_flow < support_material_rate) {
+                max_flow = support_material_rate;
+                max_flow_extrusion_type = "support";
+            }
+        }
+        if (support_material_interface_extruder_active) {
+            double support_material_interface_rate = Flow::new_from_config_width(frSupportMaterialInterface,
+                first_positive(first_layer_extrusion_width_ptr, support_material_extrusion_width, extrusion_width),
+                nozzle_diameter, lh, bfr).mm3_per_mm() *
+                (bridging ? bridge_speed : first_positive(support_material_interface_speed, max_print_speed));
+            if (max_flow < support_material_interface_rate) {
+                max_flow = support_material_interface_rate;
+                max_flow_extrusion_type = "support interface";
+            }
+        }
+
+        //FIXME handle gap_fill_speed
+        if (! out.empty())
+            out += "\n";
+        out += (first_layer ? "First layer volumetric" : (bridging ? "Bridging volumetric" : "Volumetric"));
+        out += " flow rate is maximized ";
+        out += ((max_volumetric_speed > 0 && max_volumetric_speed < max_flow) ? 
+            "by the print profile maximum" : 
+            ("when printing " + max_flow_extrusion_type)) 
+            + " with a volumetric rate ";
+        if (max_volumetric_speed > 0 && max_volumetric_speed < max_flow)
+            max_flow = max_volumetric_speed;
+        char buf[2048];
+        sprintf(buf, "%3.2f mm³/s", max_flow);
+        out += buf;
+        sprintf(buf, " at filament speed %3.2f mm/s.", max_flow / filament_crossection);
+        out += buf;
     }
-    if (config_width.value == 0) {
-        config_width = object.config.extrusion_width;
-    }
-    
-    // get the configured nozzle_diameter for the extruder associated
-    // to the flow role requested
-    size_t extruder = 0;    // 1-based
-    if (role == frPerimeter || role == frExternalPerimeter) {
-        extruder = this->config.perimeter_extruder;
-    } else if (role == frInfill) {
-        extruder = this->config.infill_extruder;
-    } else if (role == frSolidInfill || role == frTopSolidInfill) {
-        extruder = this->config.solid_infill_extruder;
-    } else {
-        CONFESS("Unknown role $role");
-    }
-    double nozzle_diameter = this->_print->config.nozzle_diameter.get_at(extruder-1);
-    
-    return Flow::new_from_config_width(role, config_width, nozzle_diameter, layer_height, bridge ? (float)this->config.bridge_flow_ratio : 0.0);
+
+ 	return out;
 }
-
-        if (first_layer && this->_print->config.first_layer_extrusion_width.value > 0) {
-            config_width = this->_print->config.first_layer_extrusion_width;
-    auto flow = Flow::new_from_config_width(frExternalPerimeter, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio);
-
-
-
-Flow Print::skirt_flow() const
-{
-    ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
-    if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
-    
-    /* We currently use a random object's support material extruder.
-       While this works for most cases, we should probably consider all of the support material
-       extruders and take the one with, say, the smallest index;
-       The same logic should be applied to the code that selects the extruder during G-code
-       generation as well. */
-    return Flow::new_from_config_width(
-        frPerimeter,
-        width, 
-        this->config.nozzle_diameter.get_at(this->objects.front()->config.support_material_extruder-1),
-        this->skirt_first_layer_height(),
-        0
-    );
-}
-
-Flow Print::brim_flow() const
-{
-    ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
-    if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
-    
-    /* We currently use a random region's perimeter extruder.
-       While this works for most cases, we should probably consider all of the perimeter
-       extruders and take the one with, say, the smallest index.
-       The same logic should be applied to the code that selects the extruder during G-code
-       generation as well. */
-    return Flow::new_from_config_width(
-        frPerimeter,
-        width, 
-        this->config.nozzle_diameter.get_at(this->regions.front()->config.perimeter_extruder-1),
-        this->skirt_first_layer_height(),
-        0
-    );
-}
-
-Flow support_material_flow(const PrintObject *object, float layer_height)
-{
-    return Flow::new_from_config_width(
-        frSupportMaterial,
-        // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
-        (support_material_extrusion_width.value > 0) ? support_material_extrusion_width : extrusion_width,
-        // if object->config.support_material_extruder == 0 (which means to not trigger tool change, but use the current extruder instead), get_at will return the 0th component.
-        float(nozzle_diameter.get_at(support_material_extruder-1)),
-        (layer_height > 0.f) ? layer_height : float(layer_height.value),
-        false);
-}
-
-Flow support_material_1st_layer_flow(const PrintObject *object, float layer_height)
-{
-    return Flow::new_from_config_width(
-        frSupportMaterial,
-        // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
-        (first_layer_extrusion_width.value > 0) ? first_layer_extrusion_width : support_material_extrusion_width,
-        float(nozzle_diameter.get_at(object->config.support_material_extruder-1)),
-        (layer_height > 0.f) ? layer_height : float(first_layer_height)),
-        false);
-}
-
-Flow support_material_interface_flow(const PrintObject *object, float layer_height)
-{
-    return Flow::new_from_config_width(
-        frSupportMaterialInterface,
-        // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
-        (support_material_extrusion_width > 0) ? support_material_extrusion_width : extrusion_width,
-        // if object->config.support_material_interface_extruder == 0 (which means to not trigger tool change, but use the current extruder instead), get_at will return the 0th component.
-        float(nozzle_diameter.get_at(object->config.support_material_interface_extruder-1)),
-        layer_height,
-        false);
-}
-#endif
 
 }; // namespace Slic3r
