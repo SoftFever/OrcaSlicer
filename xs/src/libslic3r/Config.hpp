@@ -245,10 +245,11 @@ public:
     ConfigOptionFloat() : ConfigOptionSingle<double>(0) {}
     explicit ConfigOptionFloat(double _value) : ConfigOptionSingle<double>(_value) {}
 
-    ConfigOptionType    type()      const override { return coFloat; }
-    double              getFloat()  const override { return this->value; }
-    ConfigOption*       clone()     const override { return new ConfigOptionFloat(*this); }
-    bool                operator==(const ConfigOptionFloat &rhs) const { return this->value == rhs.value; }
+    static ConfigOptionType static_type() { return coFloat; }
+    ConfigOptionType        type()      const override { return static_type(); }
+    double                  getFloat()  const override { return this->value; }
+    ConfigOption*           clone()     const override { return new ConfigOptionFloat(*this); }
+    bool                    operator==(const ConfigOptionFloat &rhs) const { return this->value == rhs.value; }
     
     std::string serialize() const override
     {
@@ -279,9 +280,10 @@ public:
     explicit ConfigOptionFloats(size_t n, double value) : ConfigOptionVector<double>(n, value) {}
     explicit ConfigOptionFloats(std::initializer_list<double> il) : ConfigOptionVector<double>(std::move(il)) {}
 
-    ConfigOptionType    type()  const override { return coFloats; }
-    ConfigOption*       clone() const override { return new ConfigOptionFloats(*this); }
-    bool                operator==(const ConfigOptionFloats &rhs) const { return this->values == rhs.values; }
+    static ConfigOptionType static_type() { return coFloats; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionFloats(*this); }
+    bool                    operator==(const ConfigOptionFloats &rhs) const { return this->values == rhs.values; }
 
     std::string serialize() const override
     {
@@ -334,11 +336,12 @@ public:
     explicit ConfigOptionInt(int value) : ConfigOptionSingle<int>(value) {}
     explicit ConfigOptionInt(double _value) : ConfigOptionSingle<int>(int(floor(_value + 0.5))) {}
     
-    ConfigOptionType    type()   const override { return coInt; }
-    int                 getInt() const override { return this->value; }
-    void                setInt(int val) { this->value = val; }
-    ConfigOption*       clone()  const override { return new ConfigOptionInt(*this); }
-    bool                operator==(const ConfigOptionInt &rhs) const { return this->value == rhs.value; }
+    static ConfigOptionType static_type() { return coInt; }
+    ConfigOptionType        type()   const override { return static_type(); }
+    int                     getInt() const override { return this->value; }
+    void                    setInt(int val) { this->value = val; }
+    ConfigOption*           clone()  const override { return new ConfigOptionInt(*this); }
+    bool                    operator==(const ConfigOptionInt &rhs) const { return this->value == rhs.value; }
     
     std::string serialize() const override 
     {
@@ -369,10 +372,11 @@ public:
     explicit ConfigOptionInts(size_t n, int value) : ConfigOptionVector<int>(n, value) {}
     explicit ConfigOptionInts(std::initializer_list<int> il) : ConfigOptionVector<int>(std::move(il)) {}
 
-    ConfigOptionType    type()  const override { return coInts; }
-    ConfigOption*       clone() const override { return new ConfigOptionInts(*this); }
-    ConfigOptionInts&   operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                operator==(const ConfigOptionInts &rhs) const { return this->values == rhs.values; }
+    static ConfigOptionType static_type() { return coInts; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionInts(*this); }
+    ConfigOptionInts&       operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionInts &rhs) const { return this->values == rhs.values; }
 
     std::string serialize() const override {
         std::ostringstream ss;
@@ -417,10 +421,11 @@ public:
     ConfigOptionString() : ConfigOptionSingle<std::string>("") {}
     explicit ConfigOptionString(const std::string &value) : ConfigOptionSingle<std::string>(value) {}
     
-    ConfigOptionType    type()  const override { return coString; }
-    ConfigOption*       clone() const override { return new ConfigOptionString(*this); }
-    ConfigOptionString& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                operator==(const ConfigOptionString &rhs) const { return this->value == rhs.value; }
+    static ConfigOptionType static_type() { return coString; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionString(*this); }
+    ConfigOptionString&     operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionString &rhs) const { return this->value == rhs.value; }
 
     std::string serialize() const override
     { 
@@ -442,10 +447,11 @@ public:
     explicit ConfigOptionStrings(size_t n, const std::string &value) : ConfigOptionVector<std::string>(n, value) {}
     explicit ConfigOptionStrings(std::initializer_list<std::string> il) : ConfigOptionVector<std::string>(std::move(il)) {}
 
-    ConfigOptionType     type()  const override { return coStrings; }
-    ConfigOption*        clone() const override { return new ConfigOptionStrings(*this); }
-    ConfigOptionStrings& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                 operator==(const ConfigOptionStrings &rhs) const { return this->values == rhs.values; }
+    static ConfigOptionType static_type() { return coStrings; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionStrings(*this); }
+    ConfigOptionStrings&    operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionStrings &rhs) const { return this->values == rhs.values; }
 
     std::string serialize() const override
     {
@@ -471,11 +477,12 @@ public:
     ConfigOptionPercent() : ConfigOptionFloat(0) {}
     explicit ConfigOptionPercent(double _value) : ConfigOptionFloat(_value) {}
     
-    ConfigOptionType     type()  const override { return coPercent; }
-    ConfigOption*        clone() const override { return new ConfigOptionPercent(*this); }
-    ConfigOptionPercent& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                 operator==(const ConfigOptionPercent &rhs) const { return this->value == rhs.value; }
-    double               get_abs_value(double ratio_over) const { return ratio_over * this->value / 100; }
+    static ConfigOptionType static_type() { return coPercent; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionPercent(*this); }
+    ConfigOptionPercent&    operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionPercent &rhs) const { return this->value == rhs.value; }
+    double                  get_abs_value(double ratio_over) const { return ratio_over * this->value / 100; }
     
     std::string serialize() const override 
     {
@@ -503,10 +510,11 @@ public:
     explicit ConfigOptionPercents(size_t n, double value) : ConfigOptionFloats(n, value) {}
     explicit ConfigOptionPercents(std::initializer_list<double> il) : ConfigOptionFloats(std::move(il)) {}
 
-    ConfigOptionType      type()  const override { return coPercents; }
-    ConfigOption*         clone() const override { return new ConfigOptionPercents(*this); }
-    ConfigOptionPercents& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                  operator==(const ConfigOptionPercents &rhs) const { return this->values == rhs.values; }
+    static ConfigOptionType static_type() { return coPercents; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionPercents(*this); }
+    ConfigOptionPercents&   operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionPercents &rhs) const { return this->values == rhs.values; }
 
     std::string serialize() const override
     {
@@ -556,7 +564,8 @@ public:
     ConfigOptionFloatOrPercent() : ConfigOptionPercent(0), percent(false) {}
     explicit ConfigOptionFloatOrPercent(double _value, bool _percent) : ConfigOptionPercent(_value), percent(_percent) {}
 
-    ConfigOptionType            type()  const override { return coFloatOrPercent; }
+    static ConfigOptionType     static_type() { return coFloatOrPercent; }
+    ConfigOptionType            type()  const override { return static_type(); }
     ConfigOption*               clone() const override { return new ConfigOptionFloatOrPercent(*this); }
     ConfigOptionFloatOrPercent& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                        operator==(const ConfigOptionFloatOrPercent &rhs) const 
@@ -596,10 +605,11 @@ public:
     ConfigOptionPoint() : ConfigOptionSingle<Pointf>(Pointf(0,0)) {}
     explicit ConfigOptionPoint(const Pointf &value) : ConfigOptionSingle<Pointf>(value) {}
     
-    ConfigOptionType    type()  const override { return coPoint; }
-    ConfigOption*       clone() const override { return new ConfigOptionPoint(*this); }
-    ConfigOptionPoint&  operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                operator==(const ConfigOptionPoint &rhs) const { return this->value == rhs.value; }
+    static ConfigOptionType static_type() { return coPoint; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionPoint(*this); }
+    ConfigOptionPoint&      operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionPoint &rhs) const { return this->value == rhs.value; }
 
     std::string serialize() const override
     {
@@ -629,10 +639,11 @@ public:
     explicit ConfigOptionPoints(size_t n, const Pointf &value) : ConfigOptionVector<Pointf>(n, value) {}
     explicit ConfigOptionPoints(std::initializer_list<Pointf> il) : ConfigOptionVector<Pointf>(std::move(il)) {}
 
-    ConfigOptionType    type()  const override { return coPoints; }
-    ConfigOption*       clone() const override { return new ConfigOptionPoints(*this); }
-    ConfigOptionPoints& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                operator==(const ConfigOptionPoints &rhs) const { return this->values == rhs.values; }
+    static ConfigOptionType static_type() { return coPoints; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionPoints(*this); }
+    ConfigOptionPoints&     operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionPoints &rhs) const { return this->values == rhs.values; }
 
     std::string serialize() const override
     {
@@ -685,11 +696,12 @@ public:
     ConfigOptionBool() : ConfigOptionSingle<bool>(false) {}
     explicit ConfigOptionBool(bool _value) : ConfigOptionSingle<bool>(_value) {}
     
-    ConfigOptionType    type()      const override { return coBool; }
-    bool                getBool()   const override { return this->value; }
-    ConfigOption*       clone()     const override { return new ConfigOptionBool(*this); }
-    ConfigOptionBool&   operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                operator==(const ConfigOptionBool &rhs) const { return this->value == rhs.value; }
+    static ConfigOptionType static_type() { return coBool; }
+    ConfigOptionType        type()      const override { return static_type(); }
+    bool                    getBool()   const override { return this->value; }
+    ConfigOption*           clone()     const override { return new ConfigOptionBool(*this); }
+    ConfigOptionBool&       operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionBool &rhs) const { return this->value == rhs.value; }
 
     std::string serialize() const override
     {
@@ -711,10 +723,11 @@ public:
     explicit ConfigOptionBools(size_t n, bool value) : ConfigOptionVector<unsigned char>(n, (unsigned char)value) {}
     explicit ConfigOptionBools(std::initializer_list<bool> il) { values.reserve(il.size()); for (bool b : il) values.emplace_back((unsigned char)b); }
 
-    ConfigOptionType    type()  const override { return coBools; }
-    ConfigOption*       clone() const override { return new ConfigOptionBools(*this); }
-    ConfigOptionBools&  operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                operator==(const ConfigOptionBools &rhs) const { return this->values == rhs.values; }
+    static ConfigOptionType static_type() { return coBools; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionBools(*this); }
+    ConfigOptionBools&      operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionBools &rhs) const { return this->values == rhs.values; }
 
     bool& get_at(size_t i) {
         assert(! this->values.empty());
@@ -771,10 +784,11 @@ public:
     ConfigOptionEnum() : ConfigOptionSingle<T>(static_cast<T>(0)) {}
     explicit ConfigOptionEnum(T _value) : ConfigOptionSingle<T>(_value) {}
     
-    ConfigOptionType     type()  const override { return coEnum; }
-    ConfigOption*        clone() const override { return new ConfigOptionEnum<T>(*this); }
-    ConfigOptionEnum<T>& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
-    bool                 operator==(const ConfigOptionEnum<T> &rhs) const { return this->value == rhs.value; }
+    static ConfigOptionType static_type() { return coEnum; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionEnum<T>(*this); }
+    ConfigOptionEnum<T>&    operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionEnum<T> &rhs) const { return this->value == rhs.value; }
 
     std::string serialize() const override
     {
@@ -833,8 +847,9 @@ public:
 
     const t_config_enum_values* keys_map;
     
-    ConfigOptionType    type()  const override { return coEnum; }
-    ConfigOption*       clone() const override { return new ConfigOptionEnumGeneric(*this); }
+    static ConfigOptionType     static_type() { return coEnum; }
+    ConfigOptionType            type()  const override { return static_type(); }
+    ConfigOption*               clone() const override { return new ConfigOptionEnumGeneric(*this); }
     ConfigOptionEnumGeneric&    operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                        operator==(const ConfigOptionEnumGeneric &rhs) const { return this->value == rhs.value; }
 
@@ -990,6 +1005,16 @@ public:
         { return const_cast<ConfigBase*>(this)->option(opt_key, false); }
     ConfigOption* option(const t_config_option_key &opt_key, bool create = false)
         { return this->optptr(opt_key, create); }
+    template<typename TYPE>
+    TYPE* option(const t_config_option_key &opt_key, bool create = false)
+    { 
+        ConfigOption *opt = this->optptr(opt_key, create);
+        assert(opt == nullptr || opt->type() == typename TYPE::static_type());
+        return (opt == nullptr || opt->type() == typename TYPE::static_type()) ? nullptr : static_cast<TYPE*>(opt);
+    }
+    template<typename TYPE>
+    const TYPE* option(const t_config_option_key &opt_key) const
+        { return const_cast<ConfigBase*>(this)->option<TYPE>(opt_key, false); }
     // Apply all keys of other ConfigBase defined by this->def() to this ConfigBase.
     // An UnknownOptionException is thrown in case some option keys of other are not defined by this->def(),
     // or this ConfigBase is of a StaticConfig type and it does not support some of the keys, and ignore_nonexistent is not set.
@@ -1090,6 +1115,9 @@ public:
     const int           opt_int(const t_config_option_key &opt_key) const                       { return dynamic_cast<const ConfigOptionInt*>(this->option(opt_key))->value; }
     int&                opt_int(const t_config_option_key &opt_key, unsigned int idx)           { return dynamic_cast<ConfigOptionInts*>(this->option(opt_key))->get_at(idx); }
     const int           opt_int(const t_config_option_key &opt_key, unsigned int idx) const     { return dynamic_cast<const ConfigOptionInts*>(this->option(opt_key))->get_at(idx); }
+
+    bool                opt_bool(const t_config_option_key &opt_key) const                      { return dynamic_cast<const ConfigOptionBool*>(this->option(opt_key))->value != 0; }
+    bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { return dynamic_cast<const ConfigOptionBools*>(this->option(opt_key))->get_at(idx) != 0; }
 
 protected:
     DynamicConfig() {}
