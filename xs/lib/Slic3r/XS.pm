@@ -179,14 +179,6 @@ sub new_from_width {
     );
 }
 
-sub new_from_spacing {
-    my ($class, %args) = @_;
-    
-    return $class->_new_from_spacing(
-        @args{qw(spacing nozzle_diameter layer_height bridge)},
-    );
-}
-
 package Slic3r::Surface;
 
 sub new {

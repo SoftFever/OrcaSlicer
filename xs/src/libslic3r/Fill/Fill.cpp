@@ -149,8 +149,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
 //        );
     }
 
-    for (Surfaces::const_iterator surface_it = surfaces.begin(); surface_it != surfaces.end(); ++ surface_it) {
-        const Surface &surface = *surface_it;
+    for (const Surface &surface : surfaces) {
         if (surface.surface_type == stInternalVoid)
             continue;
         InfillPattern  fill_pattern = layerm.region()->config.fill_pattern.value;
@@ -262,10 +261,10 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
     // Unpacks the collection, creates multiple collections per path.
     // The path type could be ExtrusionPath, ExtrusionLoop or ExtrusionEntityCollection.
     // Why the paths are unpacked?
-    for (ExtrusionEntitiesPtr::iterator thin_fill = layerm.thin_fills.entities.begin(); thin_fill != layerm.thin_fills.entities.end(); ++ thin_fill) {
+    for (const ExtrusionEntity *thin_fill : layerm.thin_fills.entities) {
         ExtrusionEntityCollection &collection = *(new ExtrusionEntityCollection());
         out.entities.push_back(&collection);
-        collection.entities.push_back((*thin_fill)->clone());
+        collection.entities.push_back(thin_fill->clone());
     }
 }
 

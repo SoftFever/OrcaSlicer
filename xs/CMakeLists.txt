@@ -26,6 +26,7 @@ include_directories(${LIBDIR}/libslic3r)
 if(WIN32)
     # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
     add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB)
+    # -D_ITERATOR_DEBUG_LEVEL)
 endif()
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE)
@@ -172,6 +173,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/Preset.hpp
     ${LIBDIR}/slic3r/GUI/PresetBundle.cpp
     ${LIBDIR}/slic3r/GUI/PresetBundle.hpp
+    ${LIBDIR}/slic3r/GUI/PresetHints.cpp
+    ${LIBDIR}/slic3r/GUI/PresetHints.hpp
     ${LIBDIR}/slic3r/GUI/GUI.cpp
     ${LIBDIR}/slic3r/GUI/GUI.hpp
 )

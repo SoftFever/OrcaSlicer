@@ -61,6 +61,7 @@ REGISTER_CLASS(GLVolumeCollection, "GUI::_3DScene::GLVolume::Collection");
 REGISTER_CLASS(Preset, "GUI::Preset");
 REGISTER_CLASS(PresetCollection, "GUI::PresetCollection");
 REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
+REGISTER_CLASS(PresetHints, "GUI::PresetHints");
 
 SV* ConfigBase__as_hash(ConfigBase* THIS)
 {
