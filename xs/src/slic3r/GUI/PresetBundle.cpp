@@ -570,14 +570,16 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
         if (bitmap == nullptr) {
             // Create the bitmap with color bars.
             bitmap = new wxBitmap((wide_icons ? 16 : 0) + 24, 16);
+#if defined(__APPLE__) || defined(_MSC_VER)
             bitmap->UseAlpha();
+#endif
             wxMemoryDC memDC;
             memDC.SelectObject(*bitmap);
             memDC.SetBackground(*wxTRANSPARENT_BRUSH);
             memDC.Clear();
             if (wide_icons && ! preset.is_compatible)
                 // Paint the red flag.
-                memDC.DrawBitmap(*m_bitmapIncompatible, 0, 0, false);
+                memDC.DrawBitmap(*m_bitmapIncompatible, 0, 0, true);
             // Paint the color bars.
             parse_color(filament_rgb, rgb);
             wxImage image(24, 16);
@@ -602,7 +604,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
                     }
                 }
             }
-            memDC.DrawBitmap(wxBitmap(image), wide_icons ? 16 : 0, 0, false);
+            memDC.DrawBitmap(wxBitmap(image), wide_icons ? 16 : 0, 0, true);
             memDC.SelectObject(wxNullBitmap);
             m_mapColorToBitmap[bitmap_key] = bitmap;
 		}
