@@ -15,6 +15,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
 
+#include <wx/dcmemory.h>
 #include <wx/image.h>
 #include <wx/choice.h>
 #include <wx/bmpcbox.h>
@@ -46,9 +47,7 @@ PresetBundle::PresetBundle() :
     this->prints   .load_bitmap_default("cog.png");
     this->filaments.load_bitmap_default("spool.png");
     this->printers .load_bitmap_default("printer_empty.png");
-
-    // FIXME select some icons indicating compatibility.
-    this->load_compatible_bitmaps("cog.png", "cog.png");
+    this->load_compatible_bitmaps();
 }
 
 PresetBundle::~PresetBundle()
@@ -110,6 +109,9 @@ void PresetBundle::load_selections(const AppConfig &config)
             break;
         this->set_filament_preset(i, remove_ini_suffix(config.get("presets", name)));
     }
+    // Update visibility of presets based on their compatibility with the active printer.
+    // This will switch the print or filament presets to compatible if the active presets are incompatible.
+    this->update_compatible_with_printer(false);
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini
@@ -137,8 +139,10 @@ void PresetBundle::export_selections(PlaceholderParser &pp)
     pp.set("printer_preset",  printers.get_selected_preset().name);
 }
 
-bool PresetBundle::load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible)
+bool PresetBundle::load_compatible_bitmaps()
 {
+    const std::string path_bitmap_compatible   = "flag-green-icon.png";
+    const std::string path_bitmap_incompatible = "flag-red-icon.png";
     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
@@ -146,12 +150,12 @@ bool PresetBundle::load_compatible_bitmaps(const std::string &path_bitmap_compat
     if (loaded_compatible) {
         prints   .set_bitmap_compatible(m_bitmapCompatible);
         filaments.set_bitmap_compatible(m_bitmapCompatible);
-        printers .set_bitmap_compatible(m_bitmapCompatible);
+//        printers .set_bitmap_compatible(m_bitmapCompatible);
     }
     if (loaded_incompatible) {
-        prints   .set_bitmap_compatible(m_bitmapIncompatible);
-        filaments.set_bitmap_compatible(m_bitmapIncompatible);
-        printers .set_bitmap_compatible(m_bitmapIncompatible);        
+        prints   .set_bitmap_incompatible(m_bitmapIncompatible);
+        filaments.set_bitmap_incompatible(m_bitmapIncompatible);
+//        printers .set_bitmap_incompatible(m_bitmapIncompatible);        
     }
     return loaded_compatible && loaded_incompatible;
 }
@@ -180,6 +184,8 @@ DynamicPrintConfig PresetBundle::full_config() const
         std::vector<const ConfigOption*> filament_opts(num_extruders, nullptr);
         // loop through options and apply them to the resulting config.
         for (const t_config_option_key &key : this->filaments.default_preset().config.keys()) {
+			if (key == "compatible_printers")
+				continue;
             // Get a destination option.
             ConfigOption *opt_dst = out.option(key, false);
             if (opt_dst->is_scalar()) {
@@ -434,6 +440,20 @@ void PresetBundle::update_multi_material_filament_presets()
         this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
 }
 
+void PresetBundle::update_compatible_with_printer(bool select_other_if_incompatible)
+{
+    this->prints.update_compatible_with_printer(this->printers.get_selected_preset().name, select_other_if_incompatible);
+    this->filaments.update_compatible_with_printer(this->printers.get_selected_preset().name, select_other_if_incompatible);
+    if (select_other_if_incompatible) {
+        // Verify validity of the current filament presets.
+        for (std::string &filament_name : this->filament_presets) {
+            Preset *preset = this->filaments.find_preset(filament_name, false);
+            if (preset == nullptr || ! preset->is_compatible)
+                filament_name = this->filaments.first_compatible().name;
+        }
+    }
+}
+
 void PresetBundle::export_configbundle(const std::string &path) //, const DynamicPrintConfig &settings
 {
     boost::nowide::ofstream c;
@@ -526,98 +546,69 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
     // Fill in the list from scratch.
     ui->Freeze();
     ui->Clear();
-    for (size_t i = this->filaments().front().is_visible ? 0 : 1; i < this->filaments().size(); ++ i) {
-        const Preset &preset = this->filaments.preset(i);
-		if (! preset.is_visible)
+    const Preset *selected_preset = this->filaments.find_preset(this->filament_presets[idx_extruder]);
+    // Show wide icons if the currently selected preset is not compatible with the current printer,
+    // and draw a red flag in front of the selected preset.
+    bool          wide_icons      = selected_preset != nullptr && ! selected_preset->is_compatible && m_bitmapIncompatible != nullptr;
+    assert(selected_preset != nullptr);
+    for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++ i) {
+        const Preset &preset    = this->filaments.preset(i);
+        bool          selected  = this->filament_presets[idx_extruder] == preset.name;
+		if (! preset.is_visible || (! preset.is_compatible && ! selected))
 			continue;
-        bool selected = this->filament_presets[idx_extruder] == preset.name;
 		// Assign an extruder color to the selected item if the extruder color is defined.
 		std::string   filament_rgb = preset.config.opt_string("filament_colour", 0);
 		std::string   extruder_rgb = (selected && !extruder_color.empty()) ? extruder_color : filament_rgb;
-		wxBitmap     *bitmap	   = nullptr;
-		if (filament_rgb == extruder_rgb) {
-			auto it = m_mapColorToBitmap.find(filament_rgb);
-			if (it == m_mapColorToBitmap.end()) {
-				// Create the bitmap.
-				parse_color(filament_rgb, rgb);
-				wxImage image(24, 16);
-				image.SetRGB(wxRect(0, 0, 24, 16), rgb[0], rgb[1], rgb[2]);
-				m_mapColorToBitmap[filament_rgb] = bitmap = new wxBitmap(image);
-			} else {
-				bitmap = it->second;
-			}
-		} else {
-			std::string bitmap_key = filament_rgb + extruder_rgb;
-			auto it = m_mapColorToBitmap.find(bitmap_key);
-			if (it == m_mapColorToBitmap.end()) {
-				// Create the bitmap.
-				wxImage image(24, 16);
-				parse_color(extruder_rgb, rgb);
-				image.SetRGB(wxRect(0, 0, 16, 16), rgb[0], rgb[1], rgb[2]);
-				parse_color(filament_rgb, rgb);
-				image.SetRGB(wxRect(16, 0, 8, 16), rgb[0], rgb[1], rgb[2]);
-				m_mapColorToBitmap[filament_rgb] = bitmap = new wxBitmap(image);
-			} else {
-				bitmap = it->second;
-			}
+        bool          single_bar   = filament_rgb == extruder_rgb;
+        std::string   bitmap_key   = single_bar ? filament_rgb : filament_rgb + extruder_rgb;
+        // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
+        // to the filament color image.
+        if (wide_icons)
+            bitmap_key += preset.is_compatible ? "comp" : "notcomp";
+        auto          it           = m_mapColorToBitmap.find(bitmap_key);
+        wxBitmap     *bitmap       = (it == m_mapColorToBitmap.end()) ? nullptr : it->second;
+        if (bitmap == nullptr) {
+            // Create the bitmap with color bars.
+            bitmap = new wxBitmap((wide_icons ? 16 : 0) + 24, 16);
+            bitmap->UseAlpha();
+            wxMemoryDC memDC;
+            memDC.SelectObject(*bitmap);
+            memDC.SetBackground(*wxTRANSPARENT_BRUSH);
+            memDC.Clear();
+            if (wide_icons && ! preset.is_compatible)
+                // Paint the red flag.
+                memDC.DrawBitmap(*m_bitmapIncompatible, 0, 0, false);
+            // Paint the color bars.
+            parse_color(filament_rgb, rgb);
+            wxImage image(24, 16);
+            image.InitAlpha();
+            unsigned char* imgdata = image.GetData();
+            unsigned char* imgalpha = image.GetAlpha();
+            for (size_t i = 0; i < image.GetWidth() * image.GetHeight(); ++ i) {
+                *imgdata ++ = rgb[0];
+                *imgdata ++ = rgb[1];
+                *imgdata ++ = rgb[2];
+                *imgalpha ++ = wxALPHA_OPAQUE;
+            }
+            if (! single_bar) {
+                parse_color(extruder_rgb, rgb);
+                imgdata = image.GetData();
+                for (size_t r = 0; r < 16; ++ r) {
+                    imgdata = image.GetData() + r * image.GetWidth() * 3;
+                    for (size_t c = 0; c < 16; ++ c) {
+                        *imgdata ++ = rgb[0];
+                        *imgdata ++ = rgb[1];
+                        *imgdata ++ = rgb[2];
+                    }
+                }
+            }
+            memDC.DrawBitmap(wxBitmap(image), wide_icons ? 16 : 0, 0, false);
+            memDC.SelectObject(wxNullBitmap);
+            m_mapColorToBitmap[bitmap_key] = bitmap;
 		}
-
 		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
         if (selected)
             ui->SetSelection(ui->GetCount() - 1);
-    }
-    ui->Thaw();
-}
-
-// Update the colors preview at the platter extruder combo box.
-void PresetBundle::update_platter_filament_ui_colors(unsigned int idx_extruder, wxBitmapComboBox *ui)
-{
-	this->update_platter_filament_ui(idx_extruder, ui);
-	return;
-
-    unsigned char rgb[3];
-    std::string extruder_color = this->printers.get_edited_preset().config.opt_string("extruder_colour", idx_extruder);
-    if (! parse_color(extruder_color, rgb))
-        // Extruder color is not defined.
-        extruder_color.clear();
-
-    ui->Freeze();
-    for (unsigned int ui_id = 0; ui_id < ui->GetCount(); ++ ui_id) {
-        std::string   preset_name        = ui->GetString(ui_id).utf8_str().data();
-        size_t        filament_preset_id = size_t(ui->GetClientData(ui_id));
-        const Preset *filament_preset    = filaments.find_preset(preset_name, false);
-        assert(filament_preset != nullptr);
-        // Assign an extruder color to the selected item if the extruder color is defined.
-        std::string   filament_rgb       = filament_preset->config.opt_string("filament_colour", 0);
-        std::string   extruder_rgb       = (int(ui_id) == ui->GetSelection() && ! extruder_color.empty()) ? extruder_color : filament_rgb;
-        wxBitmap     *bitmap             = nullptr;
-        if (filament_rgb == extruder_rgb) {
-            auto it = m_mapColorToBitmap.find(filament_rgb);
-            if (it == m_mapColorToBitmap.end()) {
-                // Create the bitmap.
-                parse_color(filament_rgb, rgb);
-                wxImage image(24, 16);
-                image.SetRGB(wxRect(0, 0, 24, 16), rgb[0], rgb[1], rgb[2]);
-                m_mapColorToBitmap[filament_rgb] = new wxBitmap(image);
-            } else {
-                bitmap = it->second;
-            }
-        } else {
-            std::string bitmap_key = filament_rgb + extruder_rgb;
-            auto it = m_mapColorToBitmap.find(bitmap_key);
-            if (it == m_mapColorToBitmap.end()) {
-                // Create the bitmap.
-                wxImage image(24, 16);
-                parse_color(extruder_rgb, rgb);
-                image.SetRGB(wxRect(0, 0, 16, 16), rgb[0], rgb[1], rgb[2]);
-                parse_color(filament_rgb, rgb);
-                image.SetRGB(wxRect(16, 0, 8, 16), rgb[0], rgb[1], rgb[2]);
-                m_mapColorToBitmap[filament_rgb] = new wxBitmap(image);
-            } else {
-                bitmap = it->second;
-            }
-        }
-        ui->SetItemBitmap(ui_id, *bitmap);
     }
     ui->Thaw();
 }

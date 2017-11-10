@@ -58,8 +58,6 @@ public:
 
     // Update a filament selection combo box on the platter for an idx_extruder.
     void                        update_platter_filament_ui(unsigned int idx_extruder, wxBitmapComboBox *ui);
-    // Update the colors preview at the platter extruder combo box.
-    void                        update_platter_filament_ui_colors(unsigned int idx_extruder, wxBitmapComboBox *ui);
 
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);
@@ -72,10 +70,17 @@ public:
     // update size and content of filament_presets.
     void                        update_multi_material_filament_presets();
 
+    // Update the is_compatible flag of all print and filament presets depending on whether they are marked
+    // as compatible with the currently selected printer.
+    // Also updates the is_visible flag of each preset.
+    // If select_other_if_incompatible is true, then the print or filament preset is switched to some compatible
+    // preset if the current print or filament preset is not compatible.
+    void                        update_compatible_with_printer(bool select_other_if_incompatible);
+
 private:
     void                        load_config_file_config(const std::string &path, const DynamicPrintConfig &config);
     void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
-    bool                        load_compatible_bitmaps(const std::string &path_bitmap_compatible, const std::string &path_bitmap_incompatible);
+    bool                        load_compatible_bitmaps();
 
     // Indicator, that the preset is compatible with the selected printer.
     wxBitmap                            *m_bitmapCompatible;

@@ -64,6 +64,14 @@ sub new {
         tooltip     => 'Suppress "- default -" presets in the Print / Filament / Printer selections once there are any other valid presets available.',
         default     => $app_config->get("no_defaults"),
     ));
+    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id      => 'show_incompatible_presets',
+        type        => 'bool',
+        label       => 'Show incompatible print and filament presets',
+        tooltip     => 'When checked, the print and filament presets are shown in the preset editor even ' .
+                       'if they are marked as incompatible with the active printer',
+        default     => $app_config->get("show_incompatible_presets"),
+    ));
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);

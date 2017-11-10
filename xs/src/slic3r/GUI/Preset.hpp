@@ -49,6 +49,8 @@ public:
     bool                is_visible  = true;
     // Has this preset been modified?
     bool                is_dirty    = false;
+    // Is this preset compatible with the currently active printer?
+    bool                is_compatible = true;
 
     // Name of the preset, usually derived form the file name.
     std::string         name;
@@ -77,8 +79,9 @@ public:
     void                set_dirty(bool dirty = true) { this->is_dirty = dirty; }
     void                reset_dirty() { this->is_dirty = false; }
 
-    // Mark this preset as visible if it is compatible with active_printer.
-    bool                enable_compatible(const std::string &active_printer);
+    bool                is_compatible_with_printer(const std::string &active_printer) const;
+    // Mark this preset as compatible if it is compatible with active_printer.
+    bool                update_compatible_with_printer(const std::string &active_printer);
 
     // Resize the extruder specific fields, initialize them with the content of the 1st extruder.
     void                set_num_extruders(unsigned int n) { set_num_extruders(this->config, n); }
@@ -147,6 +150,7 @@ public:
     // Return the selected preset, without the user modifications applied.
     Preset&         get_selected_preset()       { return m_presets[m_idx_selected]; }
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
+    int             get_selected_idx()    const { return m_idx_selected; }
     // Return the selected preset including the user modifications.
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
@@ -155,6 +159,7 @@ public:
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
     Preset&         preset(size_t idx)          { return (int(idx) == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
+    void            discard_current_changes()   { m_edited_preset = m_presets[m_idx_selected]; }
     
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
     // If a preset is not found by its name, null is returned.
@@ -163,16 +168,19 @@ public:
         { return const_cast<PresetCollection*>(this)->find_preset(name, first_visible_if_not_found); }
 
     size_t          first_visible_idx() const;
+    size_t          first_compatible_idx() const;
     // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
     // Return the first visible preset. Certainly at least the '- default -' preset shall be visible.
-    Preset&         first_visible()         { return this->preset(this->first_visible_idx()); }
-    const Preset&   first_visible() const   { return this->preset(this->first_visible_idx()); }
+    Preset&         first_visible()             { return this->preset(this->first_visible_idx()); }
+    const Preset&   first_visible() const       { return this->preset(this->first_visible_idx()); }
+    Preset&         first_compatible()          { return this->preset(this->first_compatible_idx()); }
+    const Preset&   first_compatible() const    { return this->preset(this->first_compatible_idx()); }
 
     // Return number of presets including the "- default -" preset.
     size_t          size() const                { return this->m_presets.size(); }
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
-    void            enable_disable_compatible_to_printer(const std::string &active_printer);
+    void            update_compatible_with_printer(const std::string &active_printer, bool select_other_if_incompatible);
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
@@ -182,13 +190,17 @@ public:
     std::vector<std::string>    current_dirty_options() { return this->get_selected_preset().config.diff(this->get_edited_preset().config); }
 
     // Update the choice UI from the list of presets.
-    void            update_tab_ui(wxChoice *ui);
+    // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
+    // If an incompatible preset is selected, it is shown as well.
+    void            update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible);
+    // Update the choice UI from the list of presets.
+    // Only the compatible presets are shown.
+    // If an incompatible preset is selected, it is shown as well.
     void            update_platter_ui(wxBitmapComboBox *ui);
 
     // Update a dirty floag of the current preset, update the labels of the UI component accordingly.
     // Return true if the dirty flag changed.
-    bool            update_dirty_ui(wxItemContainer *ui);
-    bool            update_dirty_ui(wxChoice *ui);
+    bool            update_dirty_ui(wxBitmapComboBox *ui);
     
     // Select a profile by its name. Return true if the selection changed.
     // Without force, the selection is only updated if the index changes.

@@ -96,6 +96,8 @@ void Preset::normalize(DynamicPrintConfig &config)
         size_t n = (nozzle_diameter == nullptr) ? 1 : nozzle_diameter->values.size();
         const auto &defaults = FullPrintConfig::defaults();
         for (const std::string &key : Preset::filament_options()) {
+			if (key == "compatible_printers")
+				continue;
             auto *opt = config.option(key, false);
             assert(opt != nullptr);
             assert(opt->is_vector());
@@ -138,13 +140,18 @@ std::string Preset::label() const
     return this->name + (this->is_dirty ? g_suffix_modified : "");
 }
 
-bool Preset::enable_compatible(const std::string &active_printer)
+bool Preset::is_compatible_with_printer(const std::string &active_printer) const
 {
-    auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(this->config.optptr("compatible_printers"));
-    this->is_visible = compatible_printers && ! compatible_printers->values.empty() &&
+    auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(this->config.option("compatible_printers"));
+    return this->is_default || active_printer.empty() ||
+        compatible_printers == nullptr || compatible_printers->values.empty() ||
         std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer) != 
             compatible_printers->values.end();
-    return this->is_visible;
+}
+
+bool Preset::update_compatible_with_printer(const std::string &active_printer)
+{
+    return this->is_compatible = is_compatible_with_printer(active_printer);
 }
 
 const std::vector<std::string>& Preset::print_options()
@@ -171,7 +178,8 @@ const std::vector<std::string>& Preset::print_options()
         "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", 
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
-        "wipe_tower_width", "wipe_tower_per_color_wipe"
+        "wipe_tower_width", "wipe_tower_per_color_wipe",
+        "compatible_printers"
     };
     return s_opts;
 }
@@ -183,7 +191,8 @@ const std::vector<std::string>& Preset::filament_options()
         "extrusion_multiplier", "filament_density", "filament_cost", "temperature", "first_layer_temperature", "bed_temperature", 
         "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", 
         "disable_fan_first_layers", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", 
-        "end_filament_gcode"
+        "end_filament_gcode",
+        "compatible_printers"
     };
     return s_opts;
 }
@@ -361,6 +370,18 @@ size_t PresetCollection::first_visible_idx() const
     return idx;
 }
 
+// Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
+size_t PresetCollection::first_compatible_idx() const
+{
+    size_t idx = m_default_suppressed ? 1 : 0;
+    for (; idx < this->m_presets.size(); ++ idx)
+        if (m_presets[idx].is_compatible)
+            break;
+    if (idx == this->m_presets.size())
+        idx = 0;
+    return idx;
+}
+
 void PresetCollection::set_default_suppressed(bool default_suppressed)
 {
     if (m_default_suppressed != default_suppressed) {
@@ -369,13 +390,29 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
     }
 }
 
-void PresetCollection::enable_disable_compatible_to_printer(const std::string &active_printer)
+void PresetCollection::update_compatible_with_printer(const std::string &active_printer, bool select_other_if_incompatible)
 {
     size_t num_visible = 0;
-    for (size_t idx_preset = 1; idx_preset < m_presets.size(); ++ idx_preset)
-        if (m_presets[idx_preset].enable_compatible(active_printer))
+    for (size_t idx_preset = 1; idx_preset < m_presets.size(); ++ idx_preset) {
+        bool    selected        = idx_preset == m_idx_selected;
+        Preset &preset_selected = m_presets[idx_preset];
+        Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
+        if (preset_edited.update_compatible_with_printer(active_printer))
+            // Mark compatible presets as visible.
+            preset_selected.is_visible = true;
+        else if (selected && select_other_if_incompatible) {
+            preset_selected.is_visible = false;
+            m_idx_selected = (size_t)-1;
+        }
+        if (selected)
+            preset_selected.is_compatible = preset_edited.is_compatible;
+        if (preset_selected.is_visible)
             ++ num_visible;
-    if (num_visible == 0)
+    }
+    if (m_idx_selected == (size_t)-1)
+        // Find some other visible preset.
+        this->select_preset(first_visible_idx());
+    else if (num_visible == 0)
         // Show the "-- default --" preset.
         m_presets.front().is_visible = true;
 }
@@ -399,15 +436,18 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
     ui->Clear();
     for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
-        const wxBitmap *bmp = (i == 0 || preset.is_visible) ? m_bitmap_compatible : m_bitmap_incompatible;
-        ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), (bmp == 0) ? wxNullBitmap : *bmp, (void*)i);
+        if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
+            continue;
+        const wxBitmap *bmp = (i == 0 || preset.is_compatible) ? m_bitmap_main_frame : m_bitmap_incompatible;
+        ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
+            (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
 		if (i == m_idx_selected)
             ui->SetSelection(ui->GetCount() - 1);
     }
     ui->Thaw();
 }
 
-void PresetCollection::update_tab_ui(wxChoice *ui)
+void PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible)
 {
     if (ui == nullptr)
         return;
@@ -415,8 +455,11 @@ void PresetCollection::update_tab_ui(wxChoice *ui)
     ui->Clear();
     for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
-        const wxBitmap *bmp = (i == 0 || preset.is_visible) ? m_bitmap_compatible : m_bitmap_incompatible;
-        ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), (void*)&preset);
+        if (! show_incompatible && ! preset.is_compatible && i != m_idx_selected)
+            continue;
+        const wxBitmap *bmp = preset.is_compatible ? m_bitmap_compatible : m_bitmap_incompatible;
+        ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
+            (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
 		if (i == m_idx_selected)
             ui->SetSelection(ui->GetCount() - 1);
     }
@@ -425,8 +468,9 @@ void PresetCollection::update_tab_ui(wxChoice *ui)
 
 // Update a dirty floag of the current preset, update the labels of the UI component accordingly.
 // Return true if the dirty flag changed.
-bool PresetCollection::update_dirty_ui(wxItemContainer *ui)
+bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
 {
+    wxWindowUpdateLocker noUpdates(ui);
     // 1) Update the dirty flag of the current preset.
     bool was_dirty = this->get_selected_preset().is_dirty;
     bool is_dirty  = current_is_dirty();
@@ -443,12 +487,6 @@ bool PresetCollection::update_dirty_ui(wxItemContainer *ui)
             ui->SetString(ui_id, wxString::FromUTF8(new_label.c_str()));
     }
     return was_dirty != is_dirty;
-}
-
-bool PresetCollection::update_dirty_ui(wxChoice *ui)
-{ 
-    wxWindowUpdateLocker noUpdates(ui);
-    return update_dirty_ui(dynamic_cast<wxItemContainer*>(ui));
 }
 
 Preset& PresetCollection::select_preset(size_t idx)

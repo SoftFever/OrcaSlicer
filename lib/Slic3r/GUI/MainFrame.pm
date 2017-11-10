@@ -127,10 +127,18 @@ sub _init_tabpanel {
             if ($self->{plater}) {
                 # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
                 $self->{plater}->update_presets($tab_name, @_);
-                $self->{plater}->on_config_change($tab->{presets}->get_current_preset->config);
-                if ($self->{controller} && $tab_name eq 'printer') {
-                    $self->{controller}->update_presets(@_);
+                if ($tab_name eq 'printer') {
+                    # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
+                    wxTheApp->{preset_bundle}->print->update_tab_ui(
+                        $self->{options_tabs}{'print'}->{presets_choice},
+                        $self->{options_tabs}{'print'}->{show_incompatible_presets});
+                    wxTheApp->{preset_bundle}->filament->update_tab_ui(
+                        $self->{options_tabs}{'filament'}->{presets_choice},
+                        $self->{options_tabs}{'filament'}->{show_incompatible_presets});
+                    # Update the controller printers.
+                    $self->{controller}->update_presets(@_) if $self->{controller};
                 }
+                $self->{plater}->on_config_change($tab->{presets}->get_current_preset->config);
             }
         });
         # Load the currently selected preset into the GUI, update the preset selection box.
@@ -666,6 +674,9 @@ sub update_ui_from_settings {
     my ($self) = @_;
     $self->{menu_item_reslice_now}->Enable(! wxTheApp->{app_config}->get("background_processing"));
     $self->{plater}->update_ui_from_settings if ($self->{plater});
+    for my $tab_name (qw(print filament printer)) {
+        $self->{options_tabs}{$tab_name}->update_ui_from_settings;
+    }
 }
 
 1;

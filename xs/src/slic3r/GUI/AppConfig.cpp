@@ -40,6 +40,8 @@ void AppConfig::set_defaults()
     // If set, the "- default -" selections of print/filament/printer are suppressed, if there is a valid preset available.
     if (get("no_defaults").empty())
         set("no_defaults", "1");
+    if (get("show_incompatible_presets").empty())
+        set("show_incompatible_presets", "0");
     // Version check is enabled by default in the config, but it is not implemented yet.
     if (get("version_check").empty())
         set("version_check", "1");

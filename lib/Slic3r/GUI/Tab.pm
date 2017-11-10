@@ -20,8 +20,8 @@ use utf8;
 use File::Basename qw(basename);
 use List::Util qw(first);
 use Wx qw(:bookctrl :dialog :keycode :icon :id :misc :panel :sizer :treectrl :window
-    :button wxTheApp);
-use Wx::Event qw(EVT_BUTTON EVT_CHOICE EVT_KEY_DOWN EVT_CHECKBOX EVT_TREE_SEL_CHANGED);
+    :button wxTheApp wxCB_READONLY);
+use Wx::Event qw(EVT_BUTTON EVT_COMBOBOX EVT_KEY_DOWN EVT_CHECKBOX EVT_TREE_SEL_CHANGED);
 use base qw(Wx::Panel Class::Accessor);
 
 sub new {
@@ -37,7 +37,7 @@ sub new {
     {
         
         # choice menu
-        $self->{presets_choice} = Wx::Choice->new($self, -1, wxDefaultPosition, [270, -1], []);
+        $self->{presets_choice} = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, [270, -1], [], wxCB_READONLY);
         $self->{presets_choice}->SetFont($Slic3r::GUI::small_font);
         
         # buttons
@@ -45,15 +45,25 @@ sub new {
             wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         $self->{btn_delete_preset} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new(Slic3r::var("delete.png"), wxBITMAP_TYPE_PNG), 
             wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        $self->{show_incompatible_presets} = 0;
+        $self->{bmp_show_incompatible_presets} = Wx::Bitmap->new(Slic3r::var("flag-red-icon.png"), wxBITMAP_TYPE_PNG);
+        $self->{bmp_hide_incompatible_presets} = Wx::Bitmap->new(Slic3r::var("flag-green-icon.png"), wxBITMAP_TYPE_PNG);
+        $self->{btn_hide_incompatible_presets} = Wx::BitmapButton->new($self, -1, 
+            $self->{bmp_hide_incompatible_presets},
+            wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         $self->{btn_save_preset}->SetToolTipString("Save current " . lc($self->title));
         $self->{btn_delete_preset}->SetToolTipString("Delete this preset");
         $self->{btn_delete_preset}->Disable;
         
-        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);        
+        my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL); 
         $self->{sizer}->Add($hsizer, 0, wxBOTTOM, 3);
         $hsizer->Add($self->{presets_choice}, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
+        $hsizer->AddSpacer(4);
         $hsizer->Add($self->{btn_save_preset}, 0, wxALIGN_CENTER_VERTICAL);
+        $hsizer->AddSpacer(4);
         $hsizer->Add($self->{btn_delete_preset}, 0, wxALIGN_CENTER_VERTICAL);
+        $hsizer->AddSpacer(16);
+        $hsizer->Add($self->{btn_hide_incompatible_presets}, 0, wxALIGN_CENTER_VERTICAL);
     }
 
     # Horizontal sizer to hold the tree and the selected page.
@@ -95,12 +105,13 @@ sub new {
         }
     });
     
-    EVT_CHOICE($parent, $self->{presets_choice}, sub {
+    EVT_COMBOBOX($parent, $self->{presets_choice}, sub {
         $self->select_preset($self->{presets_choice}->GetStringSelection);
     });
     
     EVT_BUTTON($self, $self->{btn_save_preset}, sub { $self->save_preset });
     EVT_BUTTON($self, $self->{btn_delete_preset}, sub { $self->delete_preset });
+    EVT_BUTTON($self, $self->{btn_hide_incompatible_presets}, sub { $self->_toggle_show_hide_incompatible });
     
     # Initialize the DynamicPrintConfig by default keys/values.
     # Possible %params keys: no_controller
@@ -140,7 +151,7 @@ sub save_preset {
     eval { $self->{presets}->save_current_preset($name); };
     Slic3r::GUI::catch_error($self) and return;
     # Add the new item into the UI component, remove dirty flags and activate the saved item.
-    $self->{presets}->update_tab_ui($self->{presets_choice});
+    $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
     # Update the selection boxes at the platter.
     $self->_on_presets_changed;
 }
@@ -160,6 +171,22 @@ sub delete_preset {
     Slic3r::GUI::catch_error($self) and return;
     # Load the newly selected preset into the UI, update selection combo boxes with their dirty flags.
     $self->load_current_preset;
+}
+
+sub _toggle_show_hide_incompatible {
+    my ($self) = @_;
+    $self->{show_incompatible_presets} = ! $self->{show_incompatible_presets};
+    $self->_update_show_hide_incompatible_button;
+    $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
+}
+
+sub _update_show_hide_incompatible_button {
+    my ($self) = @_;
+    $self->{btn_hide_incompatible_presets}->SetBitmap($self->{show_incompatible_presets} ?
+        $self->{bmp_show_incompatible_presets} : $self->{bmp_hide_incompatible_presets});
+    $self->{btn_hide_incompatible_presets}->SetToolTipString($self->{show_incompatible_presets} ?
+        "Both compatible an incompatible presets are shown. Click to hide presets not compatible with the current printer." :
+        "Only compatible presets are shown. Click to show both the presets compatible and not compatible with the current printer.");
 }
 
 # Register the on_value_change callback.
@@ -205,28 +232,33 @@ sub on_preset_loaded {}
 
 # If the current preset is dirty, the user is asked whether the changes may be discarded.
 # if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
-sub may_discard_current_preset_if_dirty
+sub may_discard_current_dirty_preset
 {
-    my ($self) = @_;
-    if ($self->{presets}->current_is_dirty) {
-        # Display a dialog showing the dirty options in a human readable form.
-        my $old_preset = $self->{presets}->get_current_preset;
-        my $name = $old_preset->default ? 'Default preset' : "Preset \"" . $old_preset->name . "\"";
-        # Collect descriptions of the dirty options.
-        my @option_names = ();
-        foreach my $opt_key (@{$self->{presets}->current_dirty_options}) {
-            my $opt = $Slic3r::Config::Options->{$opt_key};
-            my $name = $opt->{full_label} // $opt->{label};
-            $name = $opt->{category} . " > $name" if $opt->{category};
-            push @option_names, $name;
-        }
-        # Show a confirmation dialog with the list of dirty options.
-        my $changes = join "\n", map "- $_", @option_names;
-        my $confirm = Wx::MessageDialog->new($self, "$name has unsaved changes:\n$changes\n\nDiscard changes and continue anyway?",
-                                             'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
-        return 0 if $confirm->ShowModal == wxID_NO;
+    my ($self, $presets, $new_printer_name) = @_;
+    $presets //= $self->{presets};
+    # Display a dialog showing the dirty options in a human readable form.
+    my $old_preset = $presets->get_current_preset;
+    my $type_name = $presets->name;
+    my $name = $old_preset->default ? 
+        ('Default ' . $type_name . ' preset') :
+        ($type_name . " preset \"" . $old_preset->name . "\"");
+    # Collect descriptions of the dirty options.
+    my @option_names = ();
+    foreach my $opt_key (@{$presets->current_dirty_options}) {
+        my $opt = $Slic3r::Config::Options->{$opt_key};
+        my $name = $opt->{full_label} // $opt->{label};
+        $name = $opt->{category} . " > $name" if $opt->{category};
+        push @option_names, $name;
     }
-    return 1;
+    # Show a confirmation dialog with the list of dirty options.
+    my $changes = join "\n", map "- $_", @option_names;
+    my $message = (defined $new_printer_name) ?
+        "$name is not compatible with printer \"$new_printer_name\"\n and it has unsaved changes:" :
+        "$name has unsaved changes:";
+    my $confirm = Wx::MessageDialog->new($self, 
+        $message . "\n$changes\n\nDiscard changes and continue anyway?",
+        'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+    return $confirm->ShowModal == wxID_YES;
 }
 
 # Called by the UI combo box when the user switches profiles.
@@ -235,25 +267,60 @@ sub may_discard_current_preset_if_dirty
 sub select_preset {
     my ($self, $name, $force) = @_;
     $force //= 0;
-    if (! $force && ! $self->may_discard_current_preset_if_dirty) {
-        $self->{presets}->update_tab_ui($self->{presets_choice});
+    my $current_dirty = $self->{presets}->current_is_dirty;
+    my $canceled = 0;
+    my $printer_tab = $self->{presets}->name eq 'printer';
+    if (! $force && $current_dirty && ! $self->may_discard_current_dirty_preset) {
+        $canceled = 1;
+    } elsif ($printer_tab) {
+        # Before switching the printer to a new one, verify, whether the currently active print and filament
+        # are compatible with the new printer.
+        # If they are not compatible and the the current print or filament are dirty, let user decide
+        # whether to discard the changes or keep the current printer selection.
+        my $new_printer_name = $name // '';
+        my $new_printer_preset = $self->{presets}->find_preset($new_printer_name, 1);
+        # my $new_nozzle_dmrs = $new_printer_preset->config->get('nozzle_diameter');
+        my $print_presets = wxTheApp->{preset_bundle}->print;
+        if ($print_presets->current_is_dirty &&
+            ! $print_presets->get_edited_preset->is_compatible_with_printer($new_printer_name)) {
+            if ($self->may_discard_current_dirty_preset($print_presets, $new_printer_name)) {
+                $canceled = 1;
+            } else {
+                $print_presets->discard_current_changes;
+            }
+        }
+        my $filament_presets = wxTheApp->{preset_bundle}->filament;
+        # if ((@$new_nozzle_dmrs <= 1) && 
+        if (! $canceled && $filament_presets->current_is_dirty &&
+            ! $filament_presets->get_edited_preset->is_compatible_with_printer($new_printer_name)) {
+            if ($self->may_discard_current_dirty_preset($filament_presets, $new_printer_name)) {
+                $canceled = 1;
+            } else {
+                $filament_presets->discard_current_changes;
+            }
+        }
+    }
+    if ($canceled) {
+        $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
         # Trigger the on_presets_changed event so that we also restore the previous value in the plater selector.
         $self->_on_presets_changed;
-        return;
-    }
-    if (defined $name) {
-        $self->{presets}->select_preset_by_name($name);
     } else {
-        $self->{presets}->select_preset(0);
+        if (defined $name) {
+            $self->{presets}->select_preset_by_name($name);
+        } else {
+            $self->{presets}->select_preset(0);
+        }
+        # Mark the print & filament enabled if they are compatible with the currently selected preset.
+        wxTheApp->{preset_bundle}->update_compatible_with_printer(1)
+            if $current_dirty || $printer_tab;
+        # Initialize the UI from the current preset.
+        $self->load_current_preset;
     }
-    # Initialize the UI from the current preset.
-    $self->load_current_preset;
 }
 
 # Initialize the UI from the current preset.
 sub load_current_preset {
     my ($self) = @_;
-    $self->{presets}->update_tab_ui($self->{presets_choice});
     my $preset = $self->{presets}->get_current_preset;
     eval {
         local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
@@ -270,9 +337,8 @@ sub load_current_preset {
     # preset dirty again
     # (not sure this is true anymore now that update_dirty is idempotent)
     wxTheApp->CallAfter(sub {
-        $self->update_dirty;
-        #the following is called by update_dirty
-        #$self->_on_presets_changed;
+        $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
+        $self->_on_presets_changed;
     });
 }
 
@@ -344,7 +410,6 @@ sub update_dirty {
 # This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 sub load_config {
     my ($self, $config) = @_;
-    
     my $modified = 0;
     foreach my $opt_key (@{$self->{config}->diff($config)}) {
         $self->{config}->set($opt_key, $config->get($opt_key));
@@ -356,6 +421,22 @@ sub load_config {
         $self->_reload_config;
         $self->_update;
     }
+}
+
+# To be called by custom widgets, load a value into a config, 
+# update the preset selection boxes (the dirty flags)
+sub _load_key_value {
+    my ($self, $opt_key, $value) = @_;
+    $self->{config}->set($opt_key, $value);
+    # Mark the print & filament enabled if they are compatible with the currently selected preset.
+    if ($opt_key eq 'compatible_printers') {
+        wxTheApp->{preset_bundle}->update_compatible_with_printer(0);
+        $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
+    } else {
+        $self->{presets}->update_dirty_ui($self->{presets_choice});
+    }
+    $self->_on_presets_changed;
+    $self->_update;
 }
 
 # Find a field with an index over all pages of this tab.
@@ -379,6 +460,87 @@ sub set_value {
         $changed = 1 if $page->set_value($opt_key, $value);
     }
     return $changed;
+}
+
+# Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
+sub _compatible_printers_widget {
+    my ($self) = @_;
+    
+    return sub {
+        my ($parent) = @_;
+        
+        my $checkbox = $self->{compatible_printers_checkbox} = Wx::CheckBox->new($parent, -1, "All");
+        
+        my $btn = $self->{compatible_printers_btn} = Wx::Button->new($parent, -1, "Set…", wxDefaultPosition, wxDefaultSize,
+            wxBU_LEFT | wxBU_EXACTFIT);
+        $btn->SetFont($Slic3r::GUI::small_font);
+        $btn->SetBitmap(Wx::Bitmap->new(Slic3r::var("printer_empty.png"), wxBITMAP_TYPE_PNG));
+        
+        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $sizer->Add($checkbox, 0, wxALIGN_CENTER_VERTICAL);
+        $sizer->Add($btn, 0, wxALIGN_CENTER_VERTICAL);
+        
+        EVT_CHECKBOX($self, $checkbox, sub {
+            my $method = $checkbox->GetValue ? 'Disable' : 'Enable';
+            $btn->$method;
+            # All printers have been made compatible with this preset.
+            $self->_load_key_value('compatible_printers', []) if $checkbox->GetValue;
+        });
+        
+        EVT_BUTTON($self, $btn, sub {
+            # Collect names of non-default non-external printer profiles.
+            my @presets = map $_->name, grep !$_->default && !$_->external,
+                @{wxTheApp->{preset_bundle}->printer};
+            my $dlg = Wx::MultiChoiceDialog->new($self,
+                "Select the printers this profile is compatible with.",
+                "Compatible printers", \@presets);
+            # Collect and set indices of printers marked as compatible.
+            my @selections = ();
+            foreach my $preset_name (@{ $self->{config}->get('compatible_printers') }) {
+                my $idx = first { $presets[$_] eq $preset_name } 0..$#presets;
+                push @selections, $idx if defined $idx;
+            }
+            $dlg->SetSelections(@selections);
+            # Show the dialog.
+            if ($dlg->ShowModal == wxID_OK) {
+                my $value = [ @presets[$dlg->GetSelections] ];
+                if (!@$value) {
+                    $checkbox->SetValue(1);
+                    $btn->Disable;
+                }
+                # All printers have been made compatible with this preset.
+                $self->_load_key_value('compatible_printers', $value);
+            }
+        });
+        
+        return $sizer;
+    };
+}
+
+sub _reload_compatible_printers_widget {
+    my ($self) = @_;
+    my $has_any = int(@{$self->{config}->get('compatible_printers')}) > 0;
+    my $method = $has_any ? 'Enable' : 'Disable';
+    $self->{compatible_printers_checkbox}->SetValue(! $has_any);
+    $self->{compatible_printers_btn}->$method;
+}
+
+sub update_ui_from_settings {
+    my ($self) = @_;
+    # Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
+    # in application preferences.
+    my $show   = wxTheApp->{app_config}->get("show_incompatible_presets") && $self->{presets}->name ne 'printer';
+    my $method = $show ? 'Show' : 'Hide';
+    $self->{btn_hide_incompatible_presets}->$method;
+    # If the 'show / hide presets' button is hidden, hide the incompatible presets.
+    if ($show) {
+        $self->_update_show_hide_incompatible_button;
+    } else {
+        if ($self->{show_incompatible_presets}) {
+            $self->{show_incompatible_presets} = 0;
+            $self->{presets}->update_tab_ui($self->{presets_choice}, 0);
+        }
+    }
 }
 
 package Slic3r::GUI::Tab::Print;
@@ -651,12 +813,26 @@ sub build {
             $optgroup->append_single_option_line($option);
         }
     }
+
+    {
+        my $page = $self->add_options_page('Dependencies', 'wrench.png');
+        {
+            my $optgroup = $page->new_optgroup('Profile dependencies');
+            {
+                my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                    label       => 'Compatible printers',
+                    widget      => $self->_compatible_printers_widget,
+                );
+                $optgroup->append_line($line);
+            }
+        }
+    }
 }
 
 # Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 sub _reload_config {
     my ($self) = @_;
-#    $self->_reload_compatible_printers_widget;
+    $self->_reload_compatible_printers_widget;
     $self->SUPER::_reload_config;
 }
 
@@ -920,7 +1096,7 @@ sub build {
                 full_width  => 1,
                 widget      => sub {
                     my ($parent) = @_;
-                    return $self->{description_line} = Slic3r::GUI::OptionsGroup::StaticText->new($parent);
+                    return $self->{cooling_description_line} = Slic3r::GUI::OptionsGroup::StaticText->new($parent);
                 },
             );
             $optgroup->append_line($line);
@@ -959,6 +1135,16 @@ sub build {
             
             $optgroup = $page->new_optgroup('Print speed override');
             $optgroup->append_single_option_line('filament_max_volumetric_speed', 0);
+
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label       => '',
+                full_width  => 1,
+                widget      => sub {
+                    my ($parent) = @_;
+                    return $self->{volumetric_speed_description_line} = Slic3r::GUI::OptionsGroup::StaticText->new($parent);
+                },
+            );
+            $optgroup->append_line($line);
         }
     }
 
@@ -996,13 +1182,37 @@ sub build {
             $optgroup->append_single_option_line($option);
         }
     }
+
+    {
+        my $page = $self->add_options_page('Dependencies', 'wrench.png');
+        {
+            my $optgroup = $page->new_optgroup('Profile dependencies');
+            {
+                my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                    label       => 'Compatible printers',
+                    widget      => $self->_compatible_printers_widget,
+                );
+                $optgroup->append_line($line);
+            }
+        }
+    }
+}
+
+# Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
+sub _reload_config {
+    my ($self) = @_;
+    $self->_reload_compatible_printers_widget;
+    $self->SUPER::_reload_config;
 }
 
 # Slic3r::GUI::Tab::Filament::_update is called after a configuration preset is loaded or switched, or when a single option is modifed by the user.
 sub _update {
     my ($self) = @_;
     
-    $self->_update_description;
+    $self->{cooling_description_line}->SetText(
+        Slic3r::GUI::PresetHints::cooling_description($self->{presets}->get_edited_preset));
+    $self->{volumetric_speed_description_line}->SetText(
+        Slic3r::GUI::PresetHints::maximum_volumetric_flow_description(wxTheApp->{preset_bundle}));
     
     my $cooling = $self->{config}->cooling->[0];
     my $fan_always_on = $cooling || $self->{config}->fan_always_on->[0];
@@ -1010,33 +1220,6 @@ sub _update {
         for qw(max_fan_speed fan_below_layer_time slowdown_below_layer_time min_print_speed);
     $self->get_field($_, 0)->toggle($fan_always_on)
         for qw(min_fan_speed disable_fan_first_layers);
-}
-
-sub _update_description {
-    my ($self) = @_;
-    my $config = $self->{config};
-    my $msg = "";
-    my $fan_other_layers = $config->fan_always_on->[0]
-        ? sprintf "will always run at %d%%%s.", $config->min_fan_speed->[0],
-                ($config->disable_fan_first_layers->[0] > 1
-                    ? " except for the first " . $config->disable_fan_first_layers->[0] . " layers"
-                    : $config->disable_fan_first_layers->[0] == 1
-                        ? " except for the first layer"
-                        : "")
-        : "will be turned off.";
-    
-    if ($config->cooling->[0]) {
-        $msg = sprintf "If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).",
-            $config->slowdown_below_layer_time->[0], $config->max_fan_speed->[0], $config->slowdown_below_layer_time->[0], $config->min_print_speed->[0];
-        if ($config->fan_below_layer_time->[0] > $config->slowdown_below_layer_time->[0]) {
-            $msg .= sprintf "\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%.",
-                $config->fan_below_layer_time->[0], $config->max_fan_speed->[0], $config->min_fan_speed->[0];
-        }
-        $msg .= "\nDuring the other layers, fan $fan_other_layers"
-    } else {
-        $msg = "Fan $fan_other_layers";
-    }
-    $self->{description_line}->SetText($msg);
 }
 
 package Slic3r::GUI::Tab::Printer;
@@ -1060,19 +1243,14 @@ sub build {
         my $btn = Wx::Button->new($parent, -1, "Set…", wxDefaultPosition, wxDefaultSize,
             wxBU_LEFT | wxBU_EXACTFIT);
         $btn->SetFont($Slic3r::GUI::small_font);
-        $btn->SetBitmap(Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG));
+        $btn->SetBitmap(Wx::Bitmap->new(Slic3r::var("printer_empty.png"), wxBITMAP_TYPE_PNG));
         
         my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $sizer->Add($btn);
         
         EVT_BUTTON($self, $btn, sub {
             my $dlg = Slic3r::GUI::BedShapeDialog->new($self, $self->{config}->bed_shape);
-            if ($dlg->ShowModal == wxID_OK) {
-                my $value = $dlg->GetValue;
-                $self->{config}->set('bed_shape', $value);
-                $self->update_dirty;
-                $self->_on_value_change('bed_shape', $value);
-            }
+            $self->_load_key_value('bed_shape', $dlg->GetValue) if $dlg->ShowModal == wxID_OK;
         });
         
         return $sizer;
@@ -1188,13 +1366,8 @@ sub build {
                     }
                     if (@{$entries}) {
                         my $dlg = Slic3r::GUI::BonjourBrowser->new($self, $entries);
-                        if ($dlg->ShowModal == wxID_OK) {
-                            my $value = $dlg->GetValue . ":" . $dlg->GetPort;
-                            $self->{config}->set('octoprint_host', $value);
-                            $self->update_dirty;
-                            $self->_on_value_change('octoprint_host', $value);
-                            $self->_reload_config;
-                        }
+                        $self->_load_key_value('octoprint_host', $dlg->GetValue . ":" . $dlg->GetPort)
+                            if $dlg->ShowModal == wxID_OK;
                     } else {
                         Wx::MessageDialog->new($self, 'No Bonjour device found', 'Device Browser', wxOK | wxICON_INFORMATION)->ShowModal;
                     }

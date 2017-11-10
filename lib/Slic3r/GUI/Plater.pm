@@ -504,7 +504,7 @@ sub _on_select_preset {
         wxTheApp->{preset_bundle}->set_filament_preset($idx, $choice->GetStringSelection);
     }
 	if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
-        wxTheApp->{preset_bundle}->update_platter_filament_ui_colors($idx, $choice);
+        wxTheApp->{preset_bundle}->update_platter_filament_ui($idx, $choice);
 	} else {
     	# call GetSelection() in scalar context as it's context-aware
     	$self->{on_select_preset}->($group, $choice->GetStringSelection)
@@ -573,12 +573,17 @@ sub update_presets {
             $choice_idx += 1;
         }
     } elsif ($group eq 'print') {
-        wxTheApp->{preset_bundle}->print->update_platter_ui($choosers[0]);        
+        wxTheApp->{preset_bundle}->print->update_platter_ui($choosers[0]);
     } elsif ($group eq 'printer') {
-        wxTheApp->{preset_bundle}->printer->update_platter_ui($choosers[0]);        
+        # Update the print choosers to only contain the compatible presets, update the dirty flags.
+        wxTheApp->{preset_bundle}->print->update_platter_ui($self->{preset_choosers}{print}->[0]);
+        # Update the printer choosers, update the dirty flags.
+        wxTheApp->{preset_bundle}->printer->update_platter_ui($choosers[0]);
+        # Update the filament choosers to only contain the compatible presets, update the color preview, 
+        # update the dirty flags.
         my $choice_idx = 0;
         foreach my $choice (@{$self->{preset_choosers}{filament}}) {
-            wxTheApp->{preset_bundle}->update_platter_filament_ui_colors($choice_idx, $choice);
+            wxTheApp->{preset_bundle}->update_platter_filament_ui($choice_idx, $choice);
             $choice_idx += 1;
         }
     }
@@ -1726,7 +1731,7 @@ sub filament_color_box_lmouse_down
             $colors->[$extruder_idx] = $dialog->GetColourData->GetColour->GetAsString(wxC2S_HTML_SYNTAX);
             $cfg->set('extruder_colour', $colors);
             $self->GetFrame->{options_tabs}{printer}->load_config($cfg);
-            wxTheApp->{preset_bundle}->update_platter_filament_ui_colors($extruder_idx, $combobox);
+            wxTheApp->{preset_bundle}->update_platter_filament_ui($extruder_idx, $combobox);
         }
         $dialog->Destroy();
     }

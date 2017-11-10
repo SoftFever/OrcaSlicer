@@ -4,6 +4,7 @@
 #include <xsinit.h>
 #include "slic3r/GUI/Preset.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/PresetHints.hpp"
 %}
 
 %name{Slic3r::GUI::Preset} class Preset {
@@ -13,6 +14,7 @@
     bool                        external()      %code%{ RETVAL = THIS->is_external; %};
     bool                        visible()       %code%{ RETVAL = THIS->is_visible;  %};
     bool                        dirty()         %code%{ RETVAL = THIS->is_dirty;    %};
+    bool                        is_compatible_with_printer(char *active_printer) const;
 
     const char*                 name()          %code%{ RETVAL = THIS->name.c_str(); %};
     const char*                 file()          %code%{ RETVAL = THIS->file.c_str(); %};
@@ -30,6 +32,7 @@
     Ref<Preset>             default_preset() %code%{ RETVAL = &THIS->default_preset(); %};
     size_t                  size() const;
     size_t                  num_visible() const;
+    std::string             name() const;
 
     Ref<Preset>             get_selected_preset() %code%{ RETVAL = &THIS->get_selected_preset(); %};
     Ref<Preset>             get_current_preset() %code%{ RETVAL = &THIS->get_edited_preset(); %};
@@ -41,19 +44,20 @@
     bool                    current_is_dirty();
     std::vector<std::string> current_dirty_options();
 
-    void                    update_tab_ui(SV *ui)
-        %code%{ auto cb = (wxChoice*)wxPli_sv_2_object( aTHX_ ui, "Wx::Choice" ); 
-                THIS->update_tab_ui(cb); %};
+    void                    update_tab_ui(SV *ui, bool show_incompatible)
+        %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object( aTHX_ ui, "Wx::BitmapComboBox" ); 
+                THIS->update_tab_ui(cb, show_incompatible); %};
 
     void                    update_platter_ui(SV *ui)
         %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object( aTHX_ ui, "Wx::BitmapComboBox" ); 
                 THIS->update_platter_ui(cb); %};
 
     bool                    update_dirty_ui(SV *ui)
-        %code%{ RETVAL = THIS->update_dirty_ui((wxChoice*)wxPli_sv_2_object(aTHX_ ui, "Wx::Choice")); %};
+        %code%{ RETVAL = THIS->update_dirty_ui((wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox")); %};
 
     void                    select_preset(int idx);
     bool                    select_preset_by_name(char *name) %code%{ RETVAL = THIS->select_preset_by_name(name, true); %};
+    void                    discard_current_changes();
 
     void                    save_current_preset(char *new_name)
         %code%{
@@ -150,14 +154,21 @@ PresetCollection::arrayref()
     void                        set_filament_preset(int idx, const char *name);
     void                        update_multi_material_filament_presets();
 
+    void                        update_compatible_with_printer(bool select_other_if_incompatible);
+
     Clone<DynamicPrintConfig>   full_config() %code%{ RETVAL = THIS->full_config();  %};
 
     void                        update_platter_filament_ui(int extruder_idx, SV *ui)
         %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox");
                 THIS->update_platter_filament_ui(extruder_idx, cb); %};
+};
 
-    void                        update_platter_filament_ui_colors(int extruder_idx, SV *ui)
-        %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox");
-                THIS->update_platter_filament_ui_colors(extruder_idx, cb); %};
+%name{Slic3r::GUI::PresetHints} class PresetHints {
+    PresetHints();
+    ~PresetHints();
 
+    static std::string cooling_description(Preset *preset) 
+        %code%{ RETVAL = PresetHints::cooling_description(*preset); %};
+    static std::string maximum_volumetric_flow_description(PresetBundle *preset) 
+        %code%{ RETVAL = PresetHints::maximum_volumetric_flow_description(*preset); %};
 };
