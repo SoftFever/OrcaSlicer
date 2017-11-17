@@ -82,6 +82,9 @@ public:
     bool                        is_vector()     const { return ! this->is_scalar(); }
 };
 
+typedef ConfigOption*       ConfigOptionPtr;
+typedef const ConfigOption* ConfigOptionConstPtr;
+
 // Value of a single valued option (bool, int, float, string, point, enum)
 template <class T>
 class ConfigOptionSingle : public ConfigOption {
