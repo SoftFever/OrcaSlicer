@@ -234,10 +234,13 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
 {
     t_config_option_key opt_key = opt_key_src;
     // Try to deserialize the option by its name.
-    const ConfigOptionDef* optdef = this->def()->get(opt_key);
+    const ConfigDef       *def    = this->def();
+    if (def == nullptr)
+        throw NoDefinitionException();
+    const ConfigOptionDef *optdef = def->get(opt_key);
     if (optdef == nullptr) {
         // If we didn't find an option, look for any other option having this as an alias.
-        for (const auto &opt : this->def()->options) {
+        for (const auto &opt : def->options) {
             for (const t_config_option_key &opt_key2 : opt.second.aliases) {
                 if (opt_key2 == opt_key) {
                     opt_key = opt_key2;
@@ -277,10 +280,16 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
         return static_cast<const ConfigOptionFloat*>(raw_opt)->value;
     if (raw_opt->type() == coFloatOrPercent) {
         // Get option definition.
-        const ConfigOptionDef *def = this->def()->get(opt_key);
-        assert(def != nullptr);
+        const ConfigDef *def = this->def();
+        if (def == nullptr)
+            throw NoDefinitionException();
+        const ConfigOptionDef *opt_def = def->get(opt_key);
+        assert(opt_def != nullptr);
         // Compute absolute value over the absolute value of the base option.
-        return static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(def->ratio_over));
+        //FIXME there are some ratio_over chains, which end with empty ratio_with.
+        // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
+        return opt_def->ratio_over.empty() ? 0. : 
+            static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
     }
     throw std::runtime_error("ConfigBase::get_abs_value(): Not a valid option type for get_abs_value()");
 }
@@ -453,7 +462,10 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
         // Option was not found and a new option shall not be created.
         return nullptr;
     // Try to create a new ConfigOption.
-    const ConfigOptionDef *optdef = this->def()->get(opt_key);
+    const ConfigDef       *def    = this->def();
+    if (def == nullptr)
+        throw NoDefinitionException();
+    const ConfigOptionDef *optdef = def->get(opt_key);
     if (optdef == nullptr)
 //        throw std::runtime_error(std::string("Invalid option name: ") + opt_key);
         // Let the parent decide what to do if the opt_key is not defined by this->def().

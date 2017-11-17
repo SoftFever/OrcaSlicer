@@ -126,6 +126,10 @@ public:
 
     virtual void resize(size_t n, const ConfigOption *opt_default = nullptr) = 0;
 
+    // Get size of this vector.
+    virtual size_t size()  const = 0;
+    // Is this vector empty?
+    virtual bool   empty() const = 0;
 
 protected:
     // Used to verify type compatibility when assigning to / from a scalar ConfigOption.
@@ -140,6 +144,8 @@ public:
     ConfigOptionVector() {}
     explicit ConfigOptionVector(size_t n, const T &value) : values(n, value) {}
     explicit ConfigOptionVector(std::initializer_list<T> il) : values(std::move(il)) {}
+    explicit ConfigOptionVector(const std::vector<T> &values) : values(values) {}
+    explicit ConfigOptionVector(std::vector<T> &&values) : values(std::move(values)) {}
     std::vector<T> values;
     
     void set(const ConfigOption *rhs) override
@@ -226,6 +232,9 @@ public:
             }
         }
     }
+
+    size_t size()  const override { return this->values.size(); }
+    bool   empty() const override { return this->values.empty(); }
 
     bool operator==(const ConfigOption &rhs) const override
     {
@@ -445,6 +454,8 @@ class ConfigOptionStrings : public ConfigOptionVector<std::string>
 public:
     ConfigOptionStrings() : ConfigOptionVector<std::string>() {}
     explicit ConfigOptionStrings(size_t n, const std::string &value) : ConfigOptionVector<std::string>(n, value) {}
+    explicit ConfigOptionStrings(const std::vector<std::string> &values) : ConfigOptionVector<std::string>(values) {}
+    explicit ConfigOptionStrings(std::vector<std::string> &&values) : ConfigOptionVector<std::string>(std::move(values)) {}
     explicit ConfigOptionStrings(std::initializer_list<std::string> il) : ConfigOptionVector<std::string>(std::move(il)) {}
 
     static ConfigOptionType static_type() { return coStrings; }
@@ -1049,23 +1060,71 @@ private:
 class DynamicConfig : public virtual ConfigBase
 {
 public:
+    DynamicConfig() {}
     DynamicConfig(const DynamicConfig& other) { *this = other; }
     DynamicConfig(DynamicConfig&& other) : options(std::move(other.options)) { other.options.clear(); }
     virtual ~DynamicConfig() { clear(); }
 
-    DynamicConfig& operator=(const DynamicConfig &other) 
+    // Copy a content of one DynamicConfig to another DynamicConfig.
+    // If rhs.def() is not null, then it has to be equal to this->def(). 
+    DynamicConfig& operator=(const DynamicConfig &rhs) 
     {
+        assert(this->def() == nullptr || this->def() == rhs.def());
         this->clear();
-        for (const auto &kvp : other.options)
+        for (const auto &kvp : rhs.options)
             this->options[kvp.first] = kvp.second->clone();
         return *this;
     }
 
-    DynamicConfig& operator=(DynamicConfig &&other) 
+    // Move a content of one DynamicConfig to another DynamicConfig.
+    // If rhs.def() is not null, then it has to be equal to this->def(). 
+    DynamicConfig& operator=(DynamicConfig &&rhs) 
     {
+        assert(this->def() == nullptr || this->def() == rhs.def());
         this->clear();
-        this->options = std::move(other.options);
-        other.options.clear();
+        this->options = std::move(rhs.options);
+        rhs.options.clear();
+        return *this;
+    }
+
+    // Add a content of one DynamicConfig to another DynamicConfig.
+    // If rhs.def() is not null, then it has to be equal to this->def().
+    DynamicConfig& operator+=(const DynamicConfig &rhs)
+    {
+        assert(this->def() == nullptr || this->def() == rhs.def());
+        for (const auto &kvp : rhs.options) {
+            auto it = this->options.find(kvp.first);
+            if (it == this->options.end())
+                this->options[kvp.first] = kvp.second->clone();
+            else {
+                assert(it->second->type() == kvp.second->type());
+                if (it->second->type() == kvp.second->type())
+                    *it->second = *kvp.second;
+                else {
+                    delete it->second;
+                    it->second = kvp.second->clone();
+                }
+            }
+        }
+        return *this;
+    }
+
+    // Move a content of one DynamicConfig to another DynamicConfig.
+    // If rhs.def() is not null, then it has to be equal to this->def().
+    DynamicConfig& operator+=(DynamicConfig &&rhs) 
+    {
+        assert(this->def() == nullptr || this->def() == rhs.def());
+        for (const auto &kvp : rhs.options) {
+            auto it = this->options.find(kvp.first);
+            if (it == this->options.end()) {
+                this->options[kvp.first] = kvp.second;
+            } else {
+                assert(it->second->type() == kvp.second->type());
+                delete it->second;
+                it->second = kvp.second;
+            }
+        }
+        rhs.options.clear();
         return *this;
     }
 
@@ -1094,12 +1153,31 @@ public:
         return true;
     }
 
-    template<class T> T*            opt(const t_config_option_key &opt_key, bool create = false)
+    // Allow DynamicConfig to be instantiated on ints own without a definition.
+    // If the definition is not defined, the method requiring the definition will throw NoDefinitionException.
+    const ConfigDef*        def() const override { return nullptr; };
+    template<class T> T*    opt(const t_config_option_key &opt_key, bool create = false)
         { return dynamic_cast<T*>(this->option(opt_key, create)); }
     // Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name.
     ConfigOption*           optptr(const t_config_option_key &opt_key, bool create = false) override;
     // Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store.
     t_config_option_keys    keys() const override;
+
+    // Set a value for an opt_key. Returns true if the value did not exist yet.
+    // This DynamicConfig will take ownership of opt.
+    // Be careful, as this method does not test the existence of opt_key in this->def().
+    bool                    set_key_value(const std::string &opt_key, ConfigOption *opt)
+    {
+        auto it = this->options.find(opt_key);
+        if (it == this->options.end()) {
+            this->options[opt_key] = opt;
+            return true;
+        } else {
+            delete it->second;
+            it->second = opt;
+            return false;
+        }
+    }
 
     std::string&        opt_string(const t_config_option_key &opt_key, bool create = false)     { return this->option<ConfigOptionString>(opt_key, create)->value; }
     const std::string&  opt_string(const t_config_option_key &opt_key) const                    { return const_cast<DynamicConfig*>(this)->opt_string(opt_key); }
@@ -1118,9 +1196,6 @@ public:
 
     bool                opt_bool(const t_config_option_key &opt_key) const                      { return this->option<ConfigOptionBool>(opt_key)->value != 0; }
     bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { return this->option<ConfigOptionBools>(opt_key)->get_at(idx) != 0; }
-
-protected:
-    DynamicConfig() {}
 
 private:
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;
@@ -1148,6 +1223,13 @@ class UnknownOptionException : public std::exception
 {
 public:
     const char* what() const noexcept override { return "Unknown config option"; }
+};
+
+/// Indicate that the ConfigBase derived class does not provide config definition (the method def() returns null).
+class NoDefinitionException : public std::exception
+{
+public:
+    const char* what() const noexcept override { return "No config definition"; }
 };
 
 }

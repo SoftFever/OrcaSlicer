@@ -9,15 +9,10 @@
 %name{Slic3r::GCode::PlaceholderParser} class PlaceholderParser {
     PlaceholderParser();
     ~PlaceholderParser();
-    Clone<PlaceholderParser> clone()
-        %code{% RETVAL = THIS; %};
     
-    void update_timestamp();
-    void apply_env_variables();
     void apply_config(DynamicPrintConfig *config)
         %code%{ THIS->apply_config(*config); %};
-    void set(std::string key, std::string value);
-    %name{set_multiple} void set(std::string key, std::vector<std::string> values);
+    void set(std::string key, int value);
     std::string process(std::string str) const
         %code%{ RETVAL = THIS->process(str, 0); %};
 };

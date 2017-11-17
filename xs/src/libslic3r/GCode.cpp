@@ -887,18 +887,22 @@ void GCode::process_layer(
 
     // Set new layer - this will change Z and force a retraction if retract_layer_change is enabled.
     if (! print.config.before_layer_gcode.value.empty()) {
-        PlaceholderParser pp(m_placeholder_parser);
-        pp.set("layer_num", m_layer_index + 1);
-        pp.set("layer_z",   print_z);
-        gcode += pp.process(print.config.before_layer_gcode.value, m_writer.extruder()->id()) + "\n";
+        DynamicConfig config;
+        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index + 1));
+        config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
+        gcode += m_placeholder_parser.process(
+            print.config.before_layer_gcode.value, m_writer.extruder()->id(), &config)
+            + "\n";
     }
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
 	m_layer = &layer;
     if (! print.config.layer_gcode.value.empty()) {
-        PlaceholderParser pp(m_placeholder_parser);
-        pp.set("layer_num", m_layer_index);
-        pp.set("layer_z",   print_z);
-        gcode += pp.process(print.config.layer_gcode.value, m_writer.extruder()->id()) + "\n";
+        DynamicConfig config;
+        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+        config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
+        gcode += m_placeholder_parser.process(
+            print.config.layer_gcode.value, m_writer.extruder()->id(), &config)
+            + "\n";
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
@@ -2091,10 +2095,12 @@ std::string GCode::set_extruder(unsigned int extruder_id)
     
     // append custom toolchange G-code
     if (m_writer.extruder() != nullptr && !m_config.toolchange_gcode.value.empty()) {
-        PlaceholderParser pp = m_placeholder_parser;
-        pp.set("previous_extruder", m_writer.extruder()->id());
-        pp.set("next_extruder",     extruder_id);
-        gcode += pp.process(m_config.toolchange_gcode.value, extruder_id) + '\n';
+        DynamicConfig config;
+        config.set_key_value("previous_extruder", new ConfigOptionInt((int)m_writer.extruder()->id()));
+        config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
+        gcode += m_placeholder_parser.process(
+            m_config.toolchange_gcode.value, extruder_id, &config)
+            + '\n';
     }
     
     // if ooze prevention is enabled, park current extruder in the nearest
