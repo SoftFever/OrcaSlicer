@@ -597,16 +597,11 @@ namespace client
             using namespace qi::labels;
             qi::alpha_type              alpha;
             qi::alnum_type              alnum;
-            qi::eol_type                eol;
-            qi::eoi_type                eoi;
             qi::eps_type                eps;
-            qi::omit_type               omit;
             qi::raw_type                raw;
             qi::lit_type                lit;
             qi::lexeme_type             lexeme;
-            qi::skip_type               skip;
             qi::no_skip_type            no_skip;
-            qi::uint_type               uint_;
             qi::real_parser<double, strict_real_policies_without_nan_inf> strict_double;
             spirit::ascii::char_type    char_;
             spirit::bool_type           bool_;

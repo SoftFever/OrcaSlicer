@@ -264,11 +264,14 @@ inline void write(FILE *file, const std::string &what)
     fwrite(what.data(), 1, what.size(), file);
 }
 
+// Write a string into a file. Add a newline, if the string does not end with a newline already.
+// Used to export a custom G-code section processed by the PlaceholderParser.
 inline void writeln(FILE *file, const std::string &what)
 {
     if (! what.empty()) {
         write(file, what);
-        fprintf(file, "\n");
+        if (what.back() != '\n')
+            fprintf(file, "\n");
     }
 }
 
