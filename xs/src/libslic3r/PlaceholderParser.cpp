@@ -250,6 +250,19 @@ namespace client
             return expr();
         }
 
+        expr unary_not(const Iterator start_pos) const
+        { 
+            switch (this->type) {
+            case TYPE_BOOL :
+                return expr<Iterator>(! this->b(), start_pos, this->it_range.end());
+            default:
+                this->throw_exception("Cannot apply a not operator.");
+            }
+            assert(false);
+            // Suppress compiler warnings.
+            return expr();
+        }
+
         expr &operator+=(const expr &rhs)
         { 
             const char *err_msg = "Cannot multiply with non-numeric type.";
@@ -715,12 +728,15 @@ namespace client
                         { out = expr<Iterator>(std::move(value), out.it_range.begin(), end_pos); }
                 static void minus_(expr<Iterator> &value, expr<Iterator> &out)
                         { out = value.unary_minus(out.it_range.begin()); }
+                static void not_(expr<Iterator> &value, expr<Iterator> &out)
+                        { out = value.unary_not(out.it_range.begin()); }
             };
             factor = iter_pos[px::bind(&FactorActions::set_start_pos, _1, _val)] >> (
                     scalar_variable_reference(_r1)      [ _val = _1 ]
                 |   (lit('(')  > expression(_r1) > ')' > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
                 |   (lit('-')  > factor(_r1)           ) [ px::bind(&FactorActions::minus_,  _1,     _val) ]
                 |   (lit('+')  > factor(_r1) > iter_pos) [ px::bind(&FactorActions::expr_,   _1, _2, _val) ]
+                |   ((kw["not"] | '!') > factor(_r1) > iter_pos) [ px::bind(&FactorActions::not_, _1, _val) ]
                 |   (strict_double > iter_pos)           [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)               [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)               [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
@@ -753,12 +769,15 @@ namespace client
 */
 
             keywords.add
+                ("and")
                 ("if")
                 //("inf")
                 ("else")
                 ("elsif")
                 ("endif")
                 ("false")
+                ("not")
+                ("or")
                 ("true");
 
             if (0) {
