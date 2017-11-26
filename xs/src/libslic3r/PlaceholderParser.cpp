@@ -588,6 +588,7 @@ namespace client
     ///////////////////////////////////////////////////////////////////////////
     //  Our calculator grammar
     ///////////////////////////////////////////////////////////////////////////
+    // Inspired by the C grammar https://www.lysator.liu.se/c/ANSI-C-grammar-y.html
     template <typename Iterator>
     struct calculator : qi::grammar<Iterator, std::string(const MyContext*), spirit::ascii::space_type>
     {
