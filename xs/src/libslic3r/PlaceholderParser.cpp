@@ -28,7 +28,7 @@
 // BOOST_SPIRIT_NO_PREDEFINED_TERMINALS defined, you are
 // responsible in creating instances of the terminals that
 // you need (e.g. see qi::uint_type uint_ below).
-#define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
+//#define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
 
 #define BOOST_RESULT_OF_USE_DECLTYPE
 #define BOOST_SPIRIT_USE_PHOENIX_V3
@@ -42,6 +42,7 @@
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/spirit/repository/include/qi_distinct.hpp>
 #include <boost/spirit/repository/include/qi_iter_pos.hpp>
 #include <boost/variant/recursive_variant.hpp>
 #include <boost/phoenix/bind/bind_function.hpp>
@@ -234,7 +235,7 @@ namespace client
         // Used for throwing parse exceptions.
         boost::iterator_range<Iterator>  it_range;
 
-        expr unary_minus(Iterator &start_pos) const
+        expr unary_minus(const Iterator start_pos) const
         { 
             switch (this->type) {
             case TYPE_INT :
@@ -564,6 +565,13 @@ namespace client
         return os;
     }
 
+    // Disable parsing int numbers (without decimals) and Inf/NaN symbols by the double parser.
+    struct strict_real_policies_without_nan_inf : public qi::strict_real_policies<double>
+    {
+        template <typename It, typename Attr> static bool parse_nan(It&, It const&, Attr&) { return false; }
+        template <typename It, typename Attr> static bool parse_inf(It&, It const&, Attr&) { return false; }
+    };
+
     ///////////////////////////////////////////////////////////////////////////
     //  Our calculator grammar
     ///////////////////////////////////////////////////////////////////////////
@@ -572,6 +580,7 @@ namespace client
     {
         calculator() : calculator::base_type(start)
         {
+            using namespace qi::labels;
             qi::alpha_type              alpha;
             qi::alnum_type              alnum;
             qi::eol_type                eol;
@@ -584,14 +593,14 @@ namespace client
             qi::skip_type               skip;
             qi::no_skip_type            no_skip;
             qi::uint_type               uint_;
-            qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
+            qi::real_parser<double, strict_real_policies_without_nan_inf> strict_double;
             spirit::ascii::char_type    char_;
             spirit::bool_type           bool_;
             spirit::int_type            int_;
             spirit::double_type         double_;
             spirit::ascii::string_type  string;
             spirit::repository::qi::iter_pos_type iter_pos;
-            using namespace qi::labels;
+            auto                        kw = spirit::repository::qi::distinct(qi::copy(alnum | '_'));
 
             qi::_val_type               _val;
             qi::_1_type                 _1;
@@ -611,8 +620,8 @@ namespace client
                         // Allow back tracking after '{' in case of a text_block embedded inside a condition.
                         // In that case the inner-most {else} wins and the {if}/{elsif}/{else} shall be paired.
                         // {elsif}/{else} without an {if} will be allowed to back track from the embedded text_block.
-                    |   lit('{') >> macro(_r1) [_val+=_1] > '}'
-                    |   lit('[') > legacy_variable_expansion(_r1) [_val+=_1] > ']'
+                    |   (lit('{') >> macro(_r1) [_val+=_1] > '}')
+                    |   (lit('[') > legacy_variable_expansion(_r1) [_val+=_1] > ']')
                 );
             text_block.name("text_block");
 
@@ -624,8 +633,8 @@ namespace client
             // New style of macro expansion.
             // The macro expansion may contain numeric or string expressions, ifs and cases.
             macro =
-                    string("if")     > if_else_output(_r1) [_val = _1]
-                |   string("switch") > switch_output(_r1)  [_val = _1]
+                    (kw["if"]     > if_else_output(_r1) [_val = _1])
+                |   (kw["switch"] > switch_output(_r1)  [_val = _1])
                 |   expression(_r1) [ px::bind(&expr<Iterator>::to_string2, _1, _val) ];
             macro.name("macro");
 
@@ -634,11 +643,11 @@ namespace client
                 eps[_b=true] >
                 bool_expr_eval(_r1)[_a=_1] > '}' > 
                     text_block(_r1)[px::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)] > '{' >
-                *("elsif" > bool_expr_eval(_r1)[_a=_1] > '}' > 
+                *(kw["elsif"] > bool_expr_eval(_r1)[_a=_1] > '}' > 
                     text_block(_r1)[px::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)] > '{') >
-                -("else" > lit('}') > 
+                -(kw["else"] > lit('}') > 
                     text_block(_r1)[px::bind(&expr<Iterator>::set_if, _b, _b, _1, _val)] > '{') >
-                "endif";
+                kw["endif"];
             if_else_output.name("if_else_output");
             // A switch expression enclosed in {} (the outmost {} are already parsed by the caller).
 /*
@@ -660,7 +669,7 @@ namespace client
             legacy_variable_expansion.name("legacy_variable_expansion");
 
             identifier =
-                ! keywords >>
+                ! kw[keywords] >>
                 raw[lexeme[(alpha | '_') >> *(alnum | '_')]];
             identifier.name("identifier");
 
@@ -709,22 +718,22 @@ namespace client
             };
             factor = iter_pos[px::bind(&FactorActions::set_start_pos, _1, _val)] >> (
                     scalar_variable_reference(_r1)      [ _val = _1 ]
-                |   (lit('(') > expression(_r1) > ')' > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
-                |   (lit('-') > factor(_r1)           ) [ px::bind(&FactorActions::minus_, _1, _val) ]
-                |   (lit('+') > factor(_r1) > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
-                |   (strict_double > iter_pos)          [ px::bind(&FactorActions::double_, _1, _2, _val) ]
-                |   (int_     > iter_pos)               [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
-                |   (bool_    > iter_pos)               [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
-                |   raw[lexeme['"' > *(char_ - char_('\\') - char_('"') | '\\' > char_) > '"']]
-                                                        [ px::bind(&FactorActions::string_, _1, _val) ]
+                |   (lit('(')  > expression(_r1) > ')' > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
+                |   (lit('-')  > factor(_r1)           ) [ px::bind(&FactorActions::minus_,  _1,     _val) ]
+                |   (lit('+')  > factor(_r1) > iter_pos) [ px::bind(&FactorActions::expr_,   _1, _2, _val) ]
+                |   (strict_double > iter_pos)           [ px::bind(&FactorActions::double_, _1, _2, _val) ]
+                |   (int_      > iter_pos)               [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
+                |   (kw[bool_] > iter_pos)               [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
+                |   raw[lexeme['"' > *(char_ - char_('\\') - char_('"') | ('\\' > char_)) > '"']]
+                                                         [ px::bind(&FactorActions::string_, _1,     _val) ]
                 );
             factor.name("factor");
 
             scalar_variable_reference = 
                 variable_reference(_r1)[_a=_1] >>
                 (
-                        '[' > expression(_r1)[px::bind(&MyContext::evaluate_index<Iterator>, _1, _b)] > ']' > 
-                            iter_pos[px::bind(&MyContext::vector_variable_reference<Iterator>, _r1, _a, _b, _1, _val)]
+                        ('[' > expression(_r1)[px::bind(&MyContext::evaluate_index<Iterator>, _1, _b)] > ']' > 
+                            iter_pos[px::bind(&MyContext::vector_variable_reference<Iterator>, _r1, _a, _b, _1, _val)])
                     |   eps[px::bind(&MyContext::scalar_variable_reference<Iterator>, _r1, _a, _val)]
                 );
             scalar_variable_reference.name("scalar variable reference");
@@ -748,7 +757,9 @@ namespace client
                 //("inf")
                 ("else")
                 ("elsif")
-                ("endif");
+                ("endif")
+                ("false")
+                ("true");
 
             if (0) {
                 debug(start);
