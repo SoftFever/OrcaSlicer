@@ -1,4 +1,4 @@
-use Test::More tests => 39;
+use Test::More tests => 40;
 use strict;
 use warnings;
 
@@ -55,6 +55,9 @@ use Slic3r::Test;
     is $parser->process('{temperature[foo]}'),
         $config->temperature->[0],
         "array reference";
+    is $parser->process("test [ temperature_ [foo] ] \n hu"),
+        "test " . $config->temperature->[0] . " \n hu",
+        "whitespaces and newlines are maintained";
 }
 
 {

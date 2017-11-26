@@ -641,7 +641,7 @@ namespace client
 
             // Free-form text up to a first brace, including spaces and newlines.
             // The free-form text will be inserted into the processed text without a modification.
-            text = raw[no_skip[+(char_ - '[' - '{')]];
+            text = no_skip[raw[+(char_ - '[' - '{')]];
             text.name("text");
 
             // New style of macro expansion.
