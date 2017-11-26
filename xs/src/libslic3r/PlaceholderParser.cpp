@@ -21,13 +21,17 @@
     #endif
 #endif
 
+#include <boost/algorithm/string.hpp>
+
 // Spirit v2.5 allows you to suppress automatic generation
 // of predefined terminals to speed up complation. With
 // BOOST_SPIRIT_NO_PREDEFINED_TERMINALS defined, you are
 // responsible in creating instances of the terminals that
 // you need (e.g. see qi::uint_type uint_ below).
-//#define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
+#define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
 
+#define BOOST_RESULT_OF_USE_DECLTYPE
+#define BOOST_SPIRIT_USE_PHOENIX_V3
 #include <boost/config/warning_disable.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/spirit/include/qi.hpp>
@@ -38,6 +42,7 @@
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/spirit/repository/include/qi_iter_pos.hpp>
 #include <boost/variant/recursive_variant.hpp>
 #include <boost/phoenix/bind/bind_function.hpp>
 
@@ -89,7 +94,7 @@ void PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
     const ConfigDef *def = rhs.def();
     for (const t_config_option_key &opt_key : rhs.keys()) {
         const ConfigOptionDef *opt_def = def->get(opt_key);
-        if (opt_def->multiline || opt_key == "post_process")
+        if ((opt_def->multiline && boost::ends_with(opt_key, "_gcode")) || opt_key == "post_process")
             continue;
         const ConfigOption *opt = rhs.option(opt_key);
         // Store a copy of the config option.
@@ -115,6 +120,10 @@ void PlaceholderParser::apply_env_variables()
     }
 }
 
+namespace spirit = boost::spirit;
+namespace qi = boost::spirit::qi;
+namespace px = boost::phoenix;
+
 namespace client
 {
     template<typename Iterator>
@@ -125,18 +134,32 @@ namespace client
         boost::iterator_range<Iterator>  it_range;
     };
 
+    template<typename ITERATOR>
+    std::ostream& operator<<(std::ostream& os, OptWithPos<ITERATOR> const& opt)
+    {
+        os << std::string(opt.it_range.begin(), opt.it_range.end());
+        return os;
+    }
+
     template<typename Iterator>
     struct expr
     {
-        expr() : type(TYPE_EMPTY) { data.s = nullptr; }
-        expr(bool b) : type(TYPE_BOOL) { data.b = b; }
-        expr(int i) : type(TYPE_INT) { data.i = i; }
-        expr(double d) : type(TYPE_DOUBLE) { data.d = d; }
-        expr(const char *s) : type(TYPE_STRING) { data.s = new std::string(s); }
-        expr(const std::string &s) : type(TYPE_STRING) { data.s = new std::string(s); }
-        expr(const expr &rhs) : type(rhs.type) { data.s = (rhs.type == TYPE_STRING) ? new std::string(*rhs.data.s) : rhs.data.s; }
-        expr(expr &&rhs) : type(rhs.type) { data.s = rhs.data.s; rhs.data.s = nullptr; rhs.type = TYPE_EMPTY; }
-        ~expr() { if (type == TYPE_STRING) delete data.s; data.s = nullptr; }
+                 expr() : type(TYPE_EMPTY) { data.s = nullptr; }
+        explicit expr(bool b) : type(TYPE_BOOL) { data.b = b; }
+        explicit expr(bool b, const Iterator &it_begin, const Iterator &it_end) : type(TYPE_BOOL), it_range(it_begin, it_end) { data.b = b; }
+        explicit expr(int i) : type(TYPE_INT) { data.i = i; }
+        explicit expr(int i, const Iterator &it_begin, const Iterator &it_end) : type(TYPE_INT), it_range(it_begin, it_end) { data.i = i; }
+        explicit expr(double d) : type(TYPE_DOUBLE) { data.d = d; }
+        explicit expr(double d, const Iterator &it_begin, const Iterator &it_end) : type(TYPE_DOUBLE), it_range(it_begin, it_end) { data.d = d; }
+        explicit expr(const char *s) : type(TYPE_STRING) { data.s = new std::string(s); }
+        explicit expr(const std::string &s) : type(TYPE_STRING) { data.s = new std::string(s); }
+        explicit expr(const std::string &s, const Iterator &it_begin, const Iterator &it_end) : 
+            type(TYPE_STRING), it_range(it_begin, it_end) { data.s = new std::string(s); }
+                 expr(const expr &rhs) : type(rhs.type) { data.s = (rhs.type == TYPE_STRING) ? new std::string(*rhs.data.s) : rhs.data.s; }
+        explicit expr(expr &&rhs) : type(rhs.type) { data.s = rhs.data.s; rhs.data.s = nullptr; rhs.type = TYPE_EMPTY; }
+        explicit expr(expr &&rhs, const Iterator &it_begin, const Iterator &it_end) : type(rhs.type), it_range(it_begin, it_end)
+            { data.s = rhs.data.s; rhs.data.s = nullptr; rhs.type = TYPE_EMPTY; }
+        ~expr() { this->reset(); }
 
         expr &operator=(const expr &rhs) 
         { 
@@ -154,14 +177,29 @@ namespace client
             return *this; 
         }
 
+        void                reset()   
+        { 
+            if (this->type == TYPE_STRING) 
+                delete data.s;
+            data.s = nullptr; 
+            this->type = TYPE_EMPTY;
+        }
+
         bool&               b()       { return data.b; }
         bool                b() const { return data.b; }
+        void                set_b(bool v) { this->reset(); this->data.b = v; this->type = TYPE_BOOL; }
         int&                i()       { return data.i; }
         int                 i() const { return data.i; }
+        void                set_i(int v) { this->reset(); this->data.i = v; this->type = TYPE_INT; }
+        int                 as_i() const { return (this->type == TYPE_INT) ? this->i() : int(this->d()); }
         double&             d()       { return data.d; }
         double              d() const { return data.d; }
+        void                set_d(double v) { this->reset(); this->data.d = v; this->type = TYPE_DOUBLE; }
+        double              as_d() const { return (this->type == TYPE_DOUBLE) ? this->d() : double(this->i()); }
         std::string&        s()       { return *data.s; }
         const std::string&  s() const { return *data.s; }
+        void                set_s(const std::string &s) { this->reset(); this->data.s = new std::string(s); this->type = TYPE_STRING; }
+        void                set_s(std::string &&s) { this->reset(); this->data.s = new std::string(std::move(s)); this->type = TYPE_STRING; }
         
         std::string         to_string() const 
         {
@@ -190,27 +228,125 @@ namespace client
             TYPE_STRING,
         };
 
-        int type;
+        Type type;
 
         // Range of input iterators covering this expression.
         // Used for throwing parse exceptions.
         boost::iterator_range<Iterator>  it_range;
 
-        static void store_iterator_range(expr &self, Iterator &it_start, boost::iterator_range<Iterator> &range_end) 
-        {
-            self.it_range = boost::iterator_range<Iterator>(it_start, range_end.end());
+        expr unary_minus(Iterator &start_pos) const
+        { 
+            switch (this->type) {
+            case TYPE_INT :
+                return expr<Iterator>(- this->i(), start_pos, this->it_range.end());
+            case TYPE_DOUBLE:
+                return expr<Iterator>(- this->d(), start_pos, this->it_range.end()); 
+            default:
+                this->throw_exception("Cannot apply unary minus operator.");
+            }
+            assert(false);
+            // Suppress compiler warnings.
+            return expr();
         }
+
+        expr &operator+=(const expr &rhs)
+        { 
+            const char *err_msg = "Cannot multiply with non-numeric type.";
+            this->throw_if_not_numeric(err_msg);
+            rhs.throw_if_not_numeric(err_msg);
+            if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
+                double d = this->as_d() + rhs.as_d();
+                this->data.d = d;
+                this->type = TYPE_DOUBLE;
+            } else
+                this->data.i += rhs.i();
+            this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
+            return *this;
+        }
+
+        expr &operator-=(const expr &rhs)
+        { 
+            const char *err_msg = "Cannot multiply with non-numeric type.";
+            this->throw_if_not_numeric(err_msg);
+            rhs.throw_if_not_numeric(err_msg);
+            if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
+                double d = this->as_d() - rhs.as_d();
+                this->data.d = d;
+                this->type = TYPE_DOUBLE;
+            } else
+                this->data.i -= rhs.i();
+            this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
+            return *this;
+        }
+
+        expr &operator*=(const expr &rhs)
+        { 
+            const char *err_msg = "Cannot multiply with non-numeric type.";
+            this->throw_if_not_numeric(err_msg);
+            rhs.throw_if_not_numeric(err_msg);
+            if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
+                double d = this->as_d() * rhs.as_d();
+                this->data.d = d;
+                this->type = TYPE_DOUBLE;
+            } else
+                this->data.i *= rhs.i();
+            this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
+            return *this;
+        }
+
+        expr &operator/=(const expr &rhs)
+        {
+            this->throw_if_not_numeric("Cannot divide a non-numeric type.");
+            rhs.throw_if_not_numeric("Cannot divide with a non-numeric type.");
+            if ((this->type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
+                rhs.throw_exception("Division by zero");
+            if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
+                double d = this->as_d() / rhs.as_d();
+                this->data.d = d;
+                this->type = TYPE_DOUBLE;
+            } else
+                this->data.i /= rhs.i();
+            this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
+            return *this;
+        }
+
         static void to_string2(expr &self, std::string &out)
         {
             out = self.to_string();
         }
+
         static void evaluate_boolean(expr &self, bool &out)
         {
             if (self.type != TYPE_BOOL)
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    self.it_range.begin(), self.it_range.end(), boost::spirit::info("Not a boolean expression")));
+                self.throw_exception("Not a boolean expression");
             out = self.b();
         }
+
+        // Is lhs==rhs? Store the result into lhs.
+        static void compare_op(expr &lhs, expr &rhs, char op)
+        {
+            bool value = false;
+            if ((lhs.type == TYPE_INT || lhs.type == TYPE_DOUBLE) &&
+                (rhs.type == TYPE_INT || rhs.type == TYPE_DOUBLE)) {
+                // Both types are numeric.
+                value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ? 
+                    (lhs.as_d() == rhs.as_d()) : (lhs.i() == rhs.i());
+            } else if (lhs.type == TYPE_BOOL && rhs.type == TYPE_BOOL) {
+                // Both type are bool.
+                value = lhs.b() == rhs.b();
+            } else if (lhs.type == TYPE_STRING || rhs.type == TYPE_STRING) {
+                // One type is string, the other could be converted to string.
+                value = lhs.to_string() == rhs.to_string();
+            } else {
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    lhs.it_range.begin(), rhs.it_range.end(), spirit::info("Cannot compare the types.")));
+            }
+            lhs.type = TYPE_BOOL;
+            lhs.data.b = (op == '=') ? value : !value;
+        }
+        static void equal(expr &lhs, expr &rhs) { compare_op(lhs, rhs, '='); }
+        static void not_equal(expr &lhs, expr &rhs) { compare_op(lhs, rhs, '!'); }
+
         static void set_if(bool &cond, bool &not_yet_consumed, std::string &str_in, std::string &str_out)
         {
             if (cond && not_yet_consumed) {
@@ -218,7 +354,35 @@ namespace client
                 not_yet_consumed = false;
             }
         }
+
+        void throw_exception(const char *message) const 
+        {
+            boost::throw_exception(qi::expectation_failure<Iterator>(
+                this->it_range.begin(), this->it_range.end(), spirit::info(message)));
+        }
+
+        void throw_if_not_numeric(const char *message) const 
+        {
+            if (this->type != TYPE_INT && this->type != TYPE_DOUBLE)
+                this->throw_exception(message);
+        }
     };
+
+    template<typename ITERATOR>
+    std::ostream& operator<<(std::ostream &os, const expr<ITERATOR> &expression)
+    {
+        typedef expr<ITERATOR> Expr;
+        os << std::string(expression.it_range.begin(), expression.it_range.end()) << ' - ';
+        switch (expression.type) {
+        case Expr::TYPE_EMPTY:    os << "empty"; break;
+        case Expr::TYPE_BOOL:     os << "bool ("   << expression.b() << ")"; break;
+        case Expr::TYPE_INT:      os << "int ("    << expression.i() << ")"; break;
+        case Expr::TYPE_DOUBLE:   os << "double (" << expression.d() << ")"; break;
+        case Expr::TYPE_STRING:   os << "string (" << expression.s() << ")"; break;
+        default: os << "unknown";
+        };
+        return os;
+    }
 
     struct MyContext {
         const PlaceholderParser *pp = nullptr;
@@ -251,26 +415,26 @@ namespace client
                     opt = ctx->resolve_symbol(opt_key_str.substr(0, idx));
                     if (opt != nullptr) {
                         if (! opt->is_vector())
-                            boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                                opt_key.begin(), opt_key.end(), boost::spirit::info("Trying to index a scalar variable")));
+                            boost::throw_exception(qi::expectation_failure<Iterator>(
+                                opt_key.begin(), opt_key.end(), spirit::info("Trying to index a scalar variable")));
                         char *endptr = nullptr;
                         idx = strtol(opt_key_str.c_str() + idx + 1, &endptr, 10);
                         if (endptr == nullptr || *endptr != 0)
-                            boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                                opt_key.begin() + idx + 1, opt_key.end(), boost::spirit::info("Invalid vector index")));
+                            boost::throw_exception(qi::expectation_failure<Iterator>(
+                                opt_key.begin() + idx + 1, opt_key.end(), spirit::info("Invalid vector index")));
                     }
                 }
             }
             if (opt == nullptr)
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), boost::spirit::info("Variable does not exist")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt_key.begin(), opt_key.end(), spirit::info("Variable does not exist")));
             if (opt->is_scalar())
                 output = opt->serialize();
             else {
                 const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
                 if (vec->empty())
-                    boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                        opt_key.begin(), opt_key.end(), boost::spirit::info("Indexing an empty vector variable")));
+                    boost::throw_exception(qi::expectation_failure<Iterator>(
+                        opt_key.begin(), opt_key.end(), spirit::info("Indexing an empty vector variable")));
                 output = vec->vserialize()[(idx >= vec->size()) ? 0 : idx];
             }
         }
@@ -291,23 +455,23 @@ namespace client
                 opt = ctx->resolve_symbol(opt_key_str);
             }
             if (! opt->is_vector())
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), boost::spirit::info("Trying to index a scalar variable")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt_key.begin(), opt_key.end(), spirit::info("Trying to index a scalar variable")));
             const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
             if (vec->empty())
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), boost::spirit::info("Indexing an empty vector variable")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt_key.begin(), opt_key.end(), spirit::info("Indexing an empty vector variable")));
             const ConfigOption *opt_index = ctx->resolve_symbol(std::string(opt_vector_index.begin(), opt_vector_index.end()));
             if (opt_index == nullptr)
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), boost::spirit::info("Variable does not exist")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt_key.begin(), opt_key.end(), spirit::info("Variable does not exist")));
             if (opt_index->type() != coInt)
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), boost::spirit::info("Indexing variable has to be integer")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt_key.begin(), opt_key.end(), spirit::info("Indexing variable has to be integer")));
 			int idx = opt_index->getInt();
 			if (idx < 0)
-				boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-					opt_key.begin(), opt_key.end(), boost::spirit::info("Negative vector index")));
+				boost::throw_exception(qi::expectation_failure<Iterator>(
+					opt_key.begin(), opt_key.end(), spirit::info("Negative vector index")));
 			output = vec->vserialize()[(idx >= (int)vec->size()) ? 0 : idx];
         }
 
@@ -319,8 +483,8 @@ namespace client
         {
             const ConfigOption *opt = ctx->resolve_symbol(std::string(opt_key.begin(), opt_key.end()));
             if (opt == nullptr)
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), boost::spirit::info("Not a variable name")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt_key.begin(), opt_key.end(), spirit::info("Not a variable name")));
             output.opt = opt;
             output.it_range = opt_key;
         }
@@ -332,264 +496,316 @@ namespace client
             expr<Iterator>                  &output)
         {
             if (opt.opt->is_vector())
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), boost::spirit::info("Referencing a scalar variable in a vector context")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Referencing a scalar variable in a vector context")));
             switch (opt.opt->type()) {
-            case coFloat:   output.d() = opt.opt->getFloat();   break;
-            case coInt:     output.i() = opt.opt->getInt();     break;
-            case coString:  output.s() = static_cast<const ConfigOptionString*>(opt.opt)->value; break;
-            case coPercent: output.d() = opt.opt->getFloat();   break;
-            case coPoint:   output.s() = opt.opt->serialize();  break;
-            case coBool:    output.b() = opt.opt->getBool();    break;
+            case coFloat:   output.set_d(opt.opt->getFloat());   break;
+            case coInt:     output.set_i(opt.opt->getInt());     break;
+            case coString:  output.set_s(static_cast<const ConfigOptionString*>(opt.opt)->value); break;
+            case coPercent: output.set_d(opt.opt->getFloat());   break;
+            case coPoint:   output.set_s(opt.opt->serialize());  break;
+            case coBool:    output.set_b(opt.opt->getBool());    break;
             case coFloatOrPercent:
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), boost::spirit::info("FloatOrPercent variables are not supported")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt.it_range.begin(), opt.it_range.end(), spirit::info("FloatOrPercent variables are not supported")));
             default:
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), boost::spirit::info("Unknown scalar variable type")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Unknown scalar variable type")));
             }
+            output.it_range = opt.it_range;
         }
 
         template <typename Iterator>
         static void vector_variable_reference(
             const MyContext                 *ctx,
             OptWithPos<Iterator>            &opt,
-            expr<Iterator>                  &expr_index,
+            int                             &index,
             Iterator                         it_end,
             expr<Iterator>                  &output)
         {
             if (opt.opt->is_scalar())
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), boost::spirit::info("Referencing a vector variable in a scalar context")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Referencing a vector variable in a scalar context")));
             const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt.opt);
             if (vec->empty())
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), boost::spirit::info("Indexing an empty vector variable")));
-            if (expr_index.type != expr<Iterator>::TYPE_INT)
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), boost::spirit::info("Non-integer index is not allowed to index a vector")));
-            size_t idx = (expr_index.i() < 0) ? 0 : (expr_index.i() >= int(vec->size())) ? 0 : expr_index.i();
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Indexing an empty vector variable")));
+            size_t idx = (index < 0) ? 0 : (index >= int(vec->size())) ? 0 : size_t(index);
             switch (opt.opt->type()) {
-            case coFloats:   output.d() = static_cast<const ConfigOptionFloats  *>(opt.opt)->values[idx]; break;
-            case coInts:     output.i() = static_cast<const ConfigOptionInts    *>(opt.opt)->values[idx]; break;
-            case coStrings:  output.s() = static_cast<const ConfigOptionStrings *>(opt.opt)->values[idx]; break;
-            case coPercents: output.d() = static_cast<const ConfigOptionPercents*>(opt.opt)->values[idx]; break;
-            case coPoints:   output.s() = static_cast<const ConfigOptionPoints  *>(opt.opt)->values[idx].dump_perl(); break;
-            case coBools:    output.b() = static_cast<const ConfigOptionBools   *>(opt.opt)->values[idx] != 0; break;
+            case coFloats:   output.set_d(static_cast<const ConfigOptionFloats  *>(opt.opt)->values[idx]); break;
+            case coInts:     output.set_i(static_cast<const ConfigOptionInts    *>(opt.opt)->values[idx]); break;
+            case coStrings:  output.set_s(static_cast<const ConfigOptionStrings *>(opt.opt)->values[idx]); break;
+            case coPercents: output.set_d(static_cast<const ConfigOptionPercents*>(opt.opt)->values[idx]); break;
+            case coPoints:   output.set_s(static_cast<const ConfigOptionPoints  *>(opt.opt)->values[idx].dump_perl()); break;
+            case coBools:    output.set_b(static_cast<const ConfigOptionBools   *>(opt.opt)->values[idx] != 0); break;
             default:
-                boost::throw_exception(boost::spirit::qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), boost::spirit::info("Unknown vector variable type")));
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Unknown vector variable type")));
             }
             output.it_range = boost::iterator_range<Iterator>(opt.it_range.begin(), it_end);
         }
 
+        // Verify that the expression returns an integer, which may be used
+        // to address a vector.
         template <typename Iterator>
-        static void store_start_position(
-            boost::iterator_range<Iterator> &range,
-            Iterator                        &output)
+        static void evaluate_index(expr<Iterator> &expr_index, int &output)
         {
-            output = range.begin();
-        }
-
-        template <typename Iterator>
-        static void store_end_position(
-            boost::iterator_range<Iterator> &range,
-            Iterator                        &output)
-        {
-            output = range.end();
+            if (expr_index.type != expr<Iterator>::TYPE_INT)
+                expr_index.throw_exception("Non-integer index is not allowed to address a vector variable.");
+            output = expr_index.i();
         }
     };
+
+    // For debugging the boost::spirit parsers. Print out the string enclosed in it_range.
+    template<typename Iterator>
+    std::ostream& operator<<(std::ostream& os, const boost::iterator_range<Iterator> &it_range)
+    {
+        os << std::string(it_range.begin(), it_range.end());
+        return os;
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     //  Our calculator grammar
     ///////////////////////////////////////////////////////////////////////////
     template <typename Iterator>
-    struct calculator : boost::spirit::qi::grammar<Iterator, std::string(const MyContext*), boost::spirit::ascii::space_type>
+    struct calculator : qi::grammar<Iterator, std::string(const MyContext*), spirit::ascii::space_type>
     {
         calculator() : calculator::base_type(start)
         {
-            using boost::spirit::qi::alpha;
-            using boost::spirit::qi::alnum;
-            using boost::spirit::qi::eol;
-            using boost::spirit::qi::eoi;
-            using boost::spirit::qi::eps;
-            using boost::spirit::qi::omit;
-            using boost::spirit::qi::raw;
-            using boost::spirit::qi::lit;
-            using boost::spirit::qi::lexeme;
-            using boost::spirit::qi::on_error;
-            using boost::spirit::qi::fail;
-            using boost::spirit::ascii::char_;
-            using boost::spirit::int_;
-            using boost::spirit::double_;
-            using boost::spirit::ascii::string;
-            using namespace boost::spirit::qi::labels;
+            qi::alpha_type              alpha;
+            qi::alnum_type              alnum;
+            qi::eol_type                eol;
+            qi::eoi_type                eoi;
+            qi::eps_type                eps;
+            qi::omit_type               omit;
+            qi::raw_type                raw;
+            qi::lit_type                lit;
+            qi::lexeme_type             lexeme;
+            qi::skip_type               skip;
+            qi::no_skip_type            no_skip;
+            qi::uint_type               uint_;
+            qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
+            spirit::ascii::char_type    char_;
+            spirit::bool_type           bool_;
+            spirit::int_type            int_;
+            spirit::double_type         double_;
+            spirit::ascii::string_type  string;
+            spirit::repository::qi::iter_pos_type iter_pos;
+            using namespace qi::labels;
 
-            using boost::phoenix::construct;
-            using boost::phoenix::val;
-            using boost::phoenix::begin;
-
-            boost::spirit::qi::_val_type _val;
-            boost::spirit::qi::_1_type _1;
-            boost::spirit::qi::_2_type _2;
-            boost::spirit::qi::_r1_type _a1;
-            boost::spirit::qi::_r1_type _r1;
-            boost::spirit::qi::uint_type uint_;
+            qi::_val_type               _val;
+            qi::_1_type                 _1;
+            qi::_2_type                 _2;
+            qi::_a_type                 _a;
+            qi::_b_type                 _b;
+            qi::_r1_type                _r1;
 
             // Starting symbol of the grammer.
             // The leading eps is required by the "expectation point" operator ">".
             // Without it, some of the errors would not trigger the error handler.
-            start = eps > *(text [_val+=_1]
-                || ((lit('{') > macro(_r1) [_val+=_1] > '}') 
-                | (lit('[') > legacy_variable_expansion(_r1) [_val+=_1] > ']')));
+            start = eps > text_block(_r1);
             start.name("start");
+
+            text_block = *(
+                        text [_val+=_1]
+                        // Allow back tracking after '{' in case of a text_block embedded inside a condition.
+                        // In that case the inner-most {else} wins and the {if}/{elsif}/{else} shall be paired.
+                        // {elsif}/{else} without an {if} will be allowed to back track from the embedded text_block.
+                    |   lit('{') >> macro(_r1) [_val+=_1] > '}'
+                    |   lit('[') > legacy_variable_expansion(_r1) [_val+=_1] > ']'
+                );
+            text_block.name("text_block");
 
             // Free-form text up to a first brace, including spaces and newlines.
             // The free-form text will be inserted into the processed text without a modification.
-            text = raw[+(char_ - '[' - '{')];
+            text = raw[no_skip[+(char_ - '[' - '{')]];
             text.name("text");
-            text_or_empty = raw[*(char_ - '[' - '{')];
-            text_or_empty.name("text");
 
             // New style of macro expansion.
             // The macro expansion may contain numeric or string expressions, ifs and cases.
             macro =
                     string("if")     > if_else_output(_r1) [_val = _1]
                 |   string("switch") > switch_output(_r1)  [_val = _1]
-                |   expression(_r1) [ boost::phoenix::bind(&expr<Iterator>::to_string2, _1, _val) ];
+                |   expression(_r1) [ px::bind(&expr<Iterator>::to_string2, _1, _val) ];
             macro.name("macro");
 
             // An if expression enclosed in {} (the outmost {} are already parsed by the caller).
             if_else_output =
                 eps[_b=true] >
-                omit[bool_expr_eval(_r1)[_a=_1]] > '}' > text_or_empty[boost::phoenix::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)] > '{' >
-                *("elsif" > omit[bool_expr_eval(_r1)[_a=_1]] > '}' > text_or_empty[boost::phoenix::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)]) >>
-                -("else" > '}' >> text_or_empty[boost::phoenix::bind(&expr<Iterator>::set_if, _b, _b, _1, _val)]) >
+                bool_expr_eval(_r1)[_a=_1] > '}' > 
+                    text_block(_r1)[px::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)] > '{' >
+                *("elsif" > bool_expr_eval(_r1)[_a=_1] > '}' > 
+                    text_block(_r1)[px::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)] > '{') >
+                -("else" > lit('}') > 
+                    text_block(_r1)[px::bind(&expr<Iterator>::set_if, _b, _b, _1, _val)] > '{') >
                 "endif";
+            if_else_output.name("if_else_output");
             // A switch expression enclosed in {} (the outmost {} are already parsed by the caller).
 /*
             switch_output =
                 eps[_b=true] >
-                omit[expr(_r1)[_a=_1]] > '}' > text_or_empty[boost::phoenix::bind(&expr<Iterator>::set_if_equal, _a, _b, _1, _val)] > '{' >
-                *("elsif" > omit[bool_expr_eval(_r1)[_a=_1]] > '}' > text_or_empty[boost::phoenix::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)]) >>
-                -("else" > '}' >> text_or_empty[boost::phoenix::bind(&expr<Iterator>::set_if, _b, _b, _1, _val)]) >
+                omit[expr(_r1)[_a=_1]] > '}' > text_block(_r1)[px::bind(&expr<Iterator>::set_if_equal, _a, _b, _1, _val)] > '{' >
+                *("elsif" > omit[bool_expr_eval(_r1)[_a=_1]] > '}' > text_block(_r1)[px::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)]) >>
+                -("else" > '}' >> text_block(_r1)[px::bind(&expr<Iterator>::set_if, _b, _b, _1, _val)]) >
                 "endif";
 */
 
             // Legacy variable expansion of the original Slic3r, in the form of [scalar_variable] or [vector_variable_index].
             legacy_variable_expansion =
                     (identifier >> &lit(']'))
-                        [ boost::phoenix::bind(&MyContext::legacy_variable_expansion<Iterator>, _r1, _1, _val) ]
+                        [ px::bind(&MyContext::legacy_variable_expansion<Iterator>, _r1, _1, _val) ]
                 |   (identifier > lit('[') > identifier > ']') 
-                        [ boost::phoenix::bind(&MyContext::legacy_variable_expansion2<Iterator>, _r1, _1, _2, _val) ]
+                        [ px::bind(&MyContext::legacy_variable_expansion2<Iterator>, _r1, _1, _2, _val) ]
                 ;
             legacy_variable_expansion.name("legacy_variable_expansion");
 
             identifier =
-//                    !expr.keywords >>  
-                raw[lexeme[(alpha | '_') >> *(alnum | '_')]]
-                ;
+                ! keywords >>
+                raw[lexeme[(alpha | '_') >> *(alnum | '_')]];
             identifier.name("identifier");
 
             bool_expr =
-                expression(_r1) // [ _val = _1 ] 
-                >> *(   (lit('=') > '=' > expression(_r1)       ) //[_val += _1])
-                    |   (lit('!') > '=' > expression(_r1)       )//[_val -= _1])
-                    |   (lit('<') > '>' > expression(_r1)       )//[_val -= _1])
-                    )
-                ;
+                expression(_r1)                             [_val = _1]
+                >> *(   ("==" > expression(_r1) ) [px::bind(&expr<Iterator>::equal,     _val, _1)]
+                    |   ("!=" > expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
+                    |   ("<>" > expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
+                    );
             bool_expr.name("bool expression");
 
             // Evaluate a boolean expression stored as expr into a boolean value.
             // Throw if the bool_expr does not produce a expr of boolean type.
-            bool_expr_eval = bool_expr(_r1) [ boost::phoenix::bind(&expr<Iterator>::evaluate_boolean, _1, _val) ];
+            bool_expr_eval = bool_expr(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean, _1, _val) ];
+            bool_expr_eval.name("bool_expr_eval");
 
             expression =
-                term(_r1)                        //[_val = _1]
-                >> *(   (lit('+') > term(_r1)       ) //[_val += _1])
-                    |   (lit('-') > term(_r1)       )//[_val -= _1])
-                    )
-                ;
+                term(_r1)                       [_val  = _1]
+                >> *(   (lit('+') > term(_r1) ) [_val += _1]
+                    |   (lit('-') > term(_r1) ) [_val -= _1]
+                    );
             expression.name("expression");
 
             term =
-                factor(_r1)                          //[_val = _1]
-                >> *(   (lit('*') > factor(_r1)          )//[_val *= _1])
-                    |   (lit('/') > factor(_r1)          )//[_val /= _1])
-                    )
-                ;
+                factor(_r1)                       [_val  = _1]
+                >> *(   (lit('*') > factor(_r1) ) [_val *= _1]
+                    |   (lit('/') > factor(_r1) ) [_val /= _1]
+                    );
             term.name("term");
 
-#define START_LIT(LIT) omit[raw[lit(LIT)][boost::phoenix::bind(&MyContext::store_start_position<Iterator>, _1, _a)]]
-            factor =
-                    int_                        //[_val = expr(_1)]
-                |   double_                     //[_val = expr(_1)]
-                |   (START_LIT('(') > expression(_r1) > ')') // [_val = std::move(_1)] >> ')'
-                |   (START_LIT('-') > factor(_r1)          ) //[_val = -_1])
-                |   (START_LIT('+') > factor(_r1)          ) //[_val = std::move(_1)])
-                |   scalar_variable_reference(_r1)
-                ;
+            struct FactorActions {
+                static void set_start_pos(Iterator &start_pos, expr<Iterator> &out)
+                        { out.it_range = boost::iterator_range<Iterator>(start_pos, start_pos); }
+                static void int_(int &value, Iterator &end_pos, expr<Iterator> &out)
+                        { out = expr<Iterator>(value, out.it_range.begin(), end_pos); }
+                static void double_(double &value, Iterator &end_pos, expr<Iterator> &out)
+                        { out = expr<Iterator>(value, out.it_range.begin(), end_pos); }
+                static void bool_(bool &value, Iterator &end_pos, expr<Iterator> &out)
+                        { out = expr<Iterator>(value, out.it_range.begin(), end_pos); }
+                static void string_(boost::iterator_range<Iterator> &it_range, expr<Iterator> &out)
+                        { out = expr<Iterator>(std::string(it_range.begin() + 1, it_range.end() - 1), it_range.begin(), it_range.end()); }
+                static void expr_(expr<Iterator> &value, Iterator &end_pos, expr<Iterator> &out)
+                        { out = expr<Iterator>(std::move(value), out.it_range.begin(), end_pos); }
+                static void minus_(expr<Iterator> &value, expr<Iterator> &out)
+                        { out = value.unary_minus(out.it_range.begin()); }
+            };
+            factor = iter_pos[px::bind(&FactorActions::set_start_pos, _1, _val)] >> (
+                    scalar_variable_reference(_r1)      [ _val = _1 ]
+                |   (lit('(') > expression(_r1) > ')' > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
+                |   (lit('-') > factor(_r1)           ) [ px::bind(&FactorActions::minus_, _1, _val) ]
+                |   (lit('+') > factor(_r1) > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
+                |   (strict_double > iter_pos)          [ px::bind(&FactorActions::double_, _1, _2, _val) ]
+                |   (int_     > iter_pos)               [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
+                |   (bool_    > iter_pos)               [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
+                |   raw[lexeme['"' > *(char_ - char_('\\') - char_('"') | '\\' > char_) > '"']]
+                                                        [ px::bind(&FactorActions::string_, _1, _val) ]
+                );
             factor.name("factor");
-#undef START_LIT
 
             scalar_variable_reference = 
-                    (variable_reference(_r1) >>'[' > expression(_r1) > 
-                        omit[raw[lit(']')][boost::phoenix::bind(&MyContext::store_end_position<Iterator>, _1, _a)]])
-                        [ boost::phoenix::bind(&MyContext::vector_variable_reference<Iterator>, _r1, _1, _2, _a, _val) ]
-                |   variable_reference(_r1) 
-                        [ boost::phoenix::bind(&MyContext::scalar_variable_reference<Iterator>, _r1, _1, _val) ];
+                variable_reference(_r1)[_a=_1] >>
+                (
+                        '[' > expression(_r1)[px::bind(&MyContext::evaluate_index<Iterator>, _1, _b)] > ']' > 
+                            iter_pos[px::bind(&MyContext::vector_variable_reference<Iterator>, _r1, _a, _b, _1, _val)]
+                    |   eps[px::bind(&MyContext::scalar_variable_reference<Iterator>, _r1, _a, _val)]
+                );
             scalar_variable_reference.name("scalar variable reference");
 
             variable_reference = identifier
-                [ boost::phoenix::bind(&MyContext::resolve_variable<Iterator>, _r1, _1, _val) ];
+                [ px::bind(&MyContext::resolve_variable<Iterator>, _r1, _1, _val) ];
             variable_reference.name("variable reference");
 /*
-            on_error<fail>(start, 
+            qi::on_error<qi::fail>(start, 
                     phx::ref(std::cout)
                        << "Error! Expecting "
-                       << boost::spirit::qi::_4
+                       << qi::_4
                        << " here: '"
-                       << construct<std::string>(boost::spirit::qi::_3, boost::spirit::qi::_2)
+                       << px::construct<std::string>(qi::_3, qi::_2)
                        << "'\n"
                 );
 */
+
+            keywords.add
+                ("if")
+                //("inf")
+                ("else")
+                ("elsif")
+                ("endif");
+
+            if (0) {
+                debug(start);
+                debug(text);
+                debug(text_block);
+                debug(macro);
+                debug(if_else_output);
+                debug(switch_output);
+                debug(legacy_variable_expansion);
+                debug(identifier);
+                debug(bool_expr);
+                debug(bool_expr_eval);
+                debug(expression);
+                debug(term);
+                debug(factor);
+                debug(scalar_variable_reference);
+                debug(variable_reference);
+            }
         }
 
         // The start of the grammar.
-        boost::spirit::qi::rule<Iterator, std::string(const MyContext*), boost::spirit::ascii::space_type> start;
+        qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> start;
         // A free-form text.
-        boost::spirit::qi::rule<Iterator, std::string(), boost::spirit::ascii::space_type> text;
-        // A free-form text, possibly empty.
-        boost::spirit::qi::rule<Iterator, std::string(), boost::spirit::ascii::space_type> text_or_empty;
+        qi::rule<Iterator, std::string(), spirit::ascii::space_type> text;
+        // A free-form text, possibly empty, possibly containing macro expansions.
+        qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> text_block;
         // Statements enclosed in curely braces {}
-        boost::spirit::qi::rule<Iterator, std::string(const MyContext*), boost::spirit::ascii::space_type> macro;
+        qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> macro;
         // Legacy variable expansion of the original Slic3r, in the form of [scalar_variable] or [vector_variable_index].
-        boost::spirit::qi::rule<Iterator, std::string(const MyContext*), boost::spirit::ascii::space_type> legacy_variable_expansion;
+        qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> legacy_variable_expansion;
         // Parsed identifier name.
-        boost::spirit::qi::rule<Iterator,  boost::iterator_range<Iterator>(), boost::spirit::ascii::space_type> identifier;
+        qi::rule<Iterator,  boost::iterator_range<Iterator>(), spirit::ascii::space_type> identifier;
         // Math expression consisting of +- operators over terms.
-        boost::spirit::qi::rule<Iterator, expr<Iterator>(const MyContext*), boost::spirit::ascii::space_type> expression;
+        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> expression;
         // Boolean expressions over expressions.
-        boost::spirit::qi::rule<Iterator, expr<Iterator>(const MyContext*), boost::spirit::ascii::space_type> bool_expr;
+        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> bool_expr;
         // Evaluate boolean expression into bool.
-        boost::spirit::qi::rule<Iterator, bool(const MyContext*), boost::spirit::ascii::space_type> bool_expr_eval;
+        qi::rule<Iterator, bool(const MyContext*), spirit::ascii::space_type> bool_expr_eval;
         // Math expression consisting of */ operators over factors.
-        boost::spirit::qi::rule<Iterator, expr<Iterator>(const MyContext*), boost::spirit::ascii::space_type> term;
+        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> term;
         // Number literals, functions, braced expressions, variable references, variable indexing references.
-        boost::spirit::qi::rule<Iterator, expr<Iterator>(const MyContext*), boost::spirit::qi::locals<Iterator>, boost::spirit::ascii::space_type> factor;
+        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> factor;
         // Reference of a scalar variable, or reference to a field of a vector variable.
-        boost::spirit::qi::rule<Iterator, expr<Iterator>(const MyContext*), boost::spirit::qi::locals<Iterator>, boost::spirit::ascii::space_type> scalar_variable_reference;
+        qi::rule<Iterator, expr<Iterator>(const MyContext*), qi::locals<OptWithPos<Iterator>, int>, spirit::ascii::space_type> scalar_variable_reference;
         // Rule to translate an identifier to a ConfigOption, or to fail.
-        boost::spirit::qi::rule<Iterator, OptWithPos<Iterator>(const MyContext*), boost::spirit::ascii::space_type> variable_reference;
+        qi::rule<Iterator, OptWithPos<Iterator>(const MyContext*), spirit::ascii::space_type> variable_reference;
 
-        boost::spirit::qi::rule<Iterator, std::string(const MyContext*), boost::spirit::qi::locals<bool, bool>, boost::spirit::ascii::space_type> if_else_output;
-        boost::spirit::qi::rule<Iterator, std::string(const MyContext*), boost::spirit::qi::locals<expr<Iterator>, bool, std::string>, boost::spirit::ascii::space_type> switch_output;
+        qi::rule<Iterator, std::string(const MyContext*), qi::locals<bool, bool>, spirit::ascii::space_type> if_else_output;
+        qi::rule<Iterator, std::string(const MyContext*), qi::locals<expr<Iterator>, bool, std::string>, spirit::ascii::space_type> switch_output;
+
+        qi::symbols<char> keywords;
     };
 }
 
 struct printer
 {
-    typedef boost::spirit::utf8_string string;
+    typedef spirit::utf8_string string;
 
     void element(string const& tag, string const& value, int depth) const
     {
@@ -602,9 +818,9 @@ struct printer
     }
 };
 
-void print_info(boost::spirit::info const& what)
+void print_info(spirit::info const& what)
 {
-    using boost::spirit::basic_info_walker;
+    using spirit::basic_info_walker;
     printer pr;
     basic_info_walker<printer> walker(pr, what.tag, 0);
     boost::apply_visitor(walker, what.value);
@@ -615,7 +831,7 @@ std::string PlaceholderParser::process(const std::string &templ, unsigned int cu
     typedef std::string::const_iterator iterator_type;
     typedef client::calculator<iterator_type> calculator;
 
-    boost::spirit::ascii::space_type space; // Our skipper
+    spirit::ascii::space_type space; // Our skipper
     calculator calc; // Our grammar
 
     std::string::const_iterator iter = templ.begin();
@@ -628,7 +844,7 @@ std::string PlaceholderParser::process(const std::string &templ, unsigned int cu
         context.pp = this;
         context.config_override = config_override;
         r = phrase_parse(iter, end, calc(&context), space, result);
-    } catch (boost::spirit::qi::expectation_failure<iterator_type> const& x) {
+    } catch (qi::expectation_failure<iterator_type> const& x) {
         std::cout << "expected: "; print_info(x.what_);
         std::cout << "got: \"" << std::string(x.first, x.last) << '"' << std::endl;
     }

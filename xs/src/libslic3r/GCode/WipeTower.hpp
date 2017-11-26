@@ -21,8 +21,8 @@ public:
 		xy  operator-(const xy &rhs) const { xy out(*this); out.x -= rhs.x; out.y -= rhs.y; return out; }
 		xy& operator+=(const xy &rhs) { x += rhs.x; y += rhs.y; return *this; }
 		xy& operator-=(const xy &rhs) { x -= rhs.x; y -= rhs.y; return *this; }
-		bool operator==(const xy &rhs) { return x == rhs.x && y == rhs.y; }
-		bool operator!=(const xy &rhs) { return x != rhs.x || y != rhs.y; }
+		bool operator==(const xy &rhs) const { return x == rhs.x && y == rhs.y; }
+		bool operator!=(const xy &rhs) const { return x != rhs.x || y != rhs.y; }
 		float x;
 		float y;
 	};
