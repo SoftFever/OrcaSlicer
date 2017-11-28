@@ -1,4 +1,4 @@
-use Test::More tests => 41;
+use Test::More tests => 48;
 use strict;
 use warnings;
 
@@ -49,6 +49,7 @@ use Slic3r::Test;
     my $parser = Slic3r::GCode::PlaceholderParser->new;
     $parser->apply_config(my $config = Slic3r::Config::new_from_defaults);
     $parser->set('foo' => 0);
+    $parser->set('bar' => 2);
     is $parser->process('[temperature_[foo]]'),
         $config->temperature->[0],
         "nested config options (legacy syntax)";
@@ -58,6 +59,13 @@ use Slic3r::Test;
     is $parser->process("test [ temperature_ [foo] ] \n hu"),
         "test " . $config->temperature->[0] . " \n hu",
         "whitespaces and newlines are maintained";
+    is $parser->process('{2*3}'),     '6',   'math: 2*3';
+    is $parser->process('{2*3/6}'),   '1',   'math: 2*3/6';
+    is $parser->process('{2*3/12}'),  '0',   'math: 2*3/12';
+    is $parser->process('{2.*3/12}'), '0.5', 'math: 2.*3/12';
+    is $parser->process('{2*(3-12)}'), '-18', 'math: 2*(3-12)';
+    is $parser->process('{2*foo*(3-12)}'), '0', 'math: 2*foo*(3-12)';
+    is $parser->process('{2*bar*(3-12)}'), '-36', 'math: 2*bar*(3-12)';
 }
 
 {
