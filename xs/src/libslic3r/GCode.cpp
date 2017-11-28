@@ -543,6 +543,8 @@ bool GCode::_do_export(Print &print, FILE *file)
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
     m_placeholder_parser.set("initial_extruder", initial_extruder_id);
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
+    // Useful for sequential prints.
+    m_placeholder_parser.set("current_object_idx", 0);
     std::string start_gcode = m_placeholder_parser.process(print.config.start_gcode.value, initial_extruder_id);
     
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
@@ -644,6 +646,7 @@ bool GCode::_do_export(Print &print, FILE *file)
                     // Ff we are printing the bottom layer of an object, and we have already finished
                     // another one, set first layer temperatures. This happens before the Z move
                     // is triggered, so machine has more time to reach such temperatures.
+                    m_placeholder_parser.set("current_object_idx", int(finished_objects));
                     std::string between_objects_gcode = m_placeholder_parser.process(print.config.between_objects_gcode.value, initial_extruder_id);
                     // Set first layer bed and extruder temperatures, don't wait for it to reach the temperature.
                     this->_print_first_layer_bed_temperature(file, print, between_objects_gcode, initial_extruder_id, false);
