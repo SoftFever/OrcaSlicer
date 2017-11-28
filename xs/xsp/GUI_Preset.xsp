@@ -111,7 +111,7 @@ PresetCollection::arrayref()
             try {
                 THIS->load_presets(dir_path);
             } catch (std::exception& e) {
-                croak("Loading of Slic3r presets from %s failed:\n%s\n", dir_path, e.what());
+                croak("Loading of Slic3r presets from %s failed.\n\n%s\n", dir_path, e.what());
             }
         %};
     void                        load_config_file(const char *path)

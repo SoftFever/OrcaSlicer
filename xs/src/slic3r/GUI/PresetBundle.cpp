@@ -78,10 +78,25 @@ void PresetBundle::setup_directories()
 
 void PresetBundle::load_presets(const std::string &dir_path)
 {
-    this->prints   .load_presets(dir_path, "print");
-    this->filaments.load_presets(dir_path, "filament");
-    this->printers .load_presets(dir_path, "printer");
+    std::string errors_cummulative;
+    try {
+        this->prints.load_presets(dir_path, "print");
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->filaments.load_presets(dir_path, "filament");
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->printers.load_presets(dir_path, "printer");
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
     this->update_multi_material_filament_presets();
+    if (! errors_cummulative.empty())
+        throw std::runtime_error(errors_cummulative);
 }
 
 static inline std::string remove_ini_suffix(const std::string &name)
@@ -233,10 +248,10 @@ void PresetBundle::load_config_file(const std::string &path)
     try {
         boost::nowide::ifstream ifs(path);
         boost::property_tree::read_ini(ifs, tree);
-    } catch (const std::ifstream::failure&) {
-        throw std::runtime_error(std::string("The config file cannot be loaded: ") + path);
-    } catch (const std::runtime_error&) {
-        throw std::runtime_error(std::string("Failed loading the preset file: ") + path);
+    } catch (const std::ifstream::failure &err) {
+        throw std::runtime_error(std::string("The config file cannot be loaded: ") + path + "\n\tReason: " + err.what());
+    } catch (const std::runtime_error &err) {
+        throw std::runtime_error(std::string("Failed loading the preset file: ") + path + "\n\tReason: " + err.what());
     }
 
     // 2) Continue based on the type of the configuration file.

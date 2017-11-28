@@ -119,10 +119,10 @@ DynamicPrintConfig& Preset::load(const std::vector<std::string> &keys)
         try {
             this->config.load_from_ini(this->file);
             Preset::normalize(this->config);
-        } catch (const std::ifstream::failure&) {
-            throw std::runtime_error(std::string("The selected preset does not exist anymore: ") + this->file);
-        } catch (const std::runtime_error&) {
-            throw std::runtime_error(std::string("Failed loading the preset file: ") + this->file);
+        } catch (const std::ifstream::failure &err) {
+            throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + this->file + "\n\tReason: " + err.what());
+        } catch (const std::runtime_error &err) {
+            throw std::runtime_error(std::string("Failed loading the preset file: ") + this->file + "\n\tReason: " + err.what());
         }
     }
     this->loaded = true;
@@ -250,6 +250,7 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 	m_dir_path = dir.string();
     m_presets.erase(m_presets.begin()+1, m_presets.end());
     t_config_option_keys keys = this->default_preset().config.keys();
+    std::string errors_cummulative;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
         if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini")) {
             std::string name = dir_entry.path().filename().string();
@@ -260,12 +261,15 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
                 preset.file = dir_entry.path().string();
                 preset.load(keys);
                 m_presets.emplace_back(preset);
-            } catch (const boost::filesystem::filesystem_error &err) {
-
-            }
+            } catch (const std::runtime_error &err) {
+                errors_cummulative += err.what();
+                errors_cummulative += "\n";
+			}
         }
     std::sort(m_presets.begin() + 1, m_presets.end());
     this->select_preset(first_visible_idx());
+    if (! errors_cummulative.empty())
+        throw std::runtime_error(errors_cummulative);
 }
 
 // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
