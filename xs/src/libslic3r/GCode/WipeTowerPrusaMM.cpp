@@ -14,6 +14,9 @@
 #define strcasecmp _stricmp
 #endif
 
+#define ROTATION_ANGLE 30
+
+
 namespace Slic3r
 {
 
@@ -47,6 +50,9 @@ public:
 
 	Writer& 			 set_extrusion_flow(float flow)
 		{ m_extrusion_flow = flow; return *this; }
+		
+	Writer&				 set_rotation(WipeTower::xy pos,float angle)
+		{ m_wipe_tower_pos = pos; m_angle_deg = angle; return (*this); }
 
 	// Suppress / resume G-code preview in Slic3r. Slic3r will have difficulty to differentiate the various
 	// filament loading and cooling moves from normal extrusion moves. Therefore the writer
@@ -67,6 +73,7 @@ public:
 	float                y()     const { return m_current_pos.y; }
 	const WipeTower::xy& start_pos() const { return m_start_pos; }
 	const WipeTower::xy& pos()   const { return m_current_pos; }
+	const WipeTower::xy  printer_pos() const { return m_current_pos.rotate(m_wipe_tower_pos,m_angle_deg); }
 	float 				 elapsed_time() const { return m_elapsed_time; }
 
 	// Extrude with an explicitely provided amount of extrusion.
@@ -79,29 +86,43 @@ public:
 		float dx = x - m_current_pos.x;
 		float dy = y - m_current_pos.y;
 		double len = sqrt(dx*dx+dy*dy);
+		
+		// For rotated wipe tower, transform position to printer coordinates
+		//Q zavadet nove promenne? rotace o zaporny uhel?
+		WipeTower::xy rotated_current_pos( m_current_pos.rotate(m_wipe_tower_pos,m_angle_deg) );
+		WipeTower::xy rot( WipeTower::xy(x,y).rotate(m_wipe_tower_pos,m_angle_deg ) );
+						
+		
 		if (! m_preview_suppressed && e > 0.f && len > 0.) {
 			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
 			float width = float(double(e) * m_filament_area / (len * m_layer_height));
 			// Correct for the roundings of a squished extrusion.
 			width += float(m_layer_height * (1. - M_PI / 4.));
-			if (m_extrusions.empty() || m_extrusions.back().pos != m_current_pos)
-				m_extrusions.emplace_back(WipeTower::Extrusion(m_current_pos, 0, m_current_tool));
-			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(x, y), width, m_current_tool));
+			if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos)
+				m_extrusions.emplace_back(WipeTower::Extrusion(rotated_current_pos, 0, m_current_tool));
+			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(rot.x, rot.y), width, m_current_tool));
 		}
 
 		m_gcode += "G1";
-		if (x != m_current_pos.x)
-			m_gcode += set_format_X(x);
-		if (y != m_current_pos.y)
-			m_gcode += set_format_Y(y);
+		if (rot.x != rotated_current_pos.x)
+			m_gcode += set_format_X(rot.x);
+		if (rot.y != rotated_current_pos.y)
+			m_gcode += set_format_Y(rot.y);
+			
+		// Transform current position back to wipe tower coordinates (was updated by set_format_X)
+		m_current_pos.x = x;
+		m_current_pos.y = y;
 
 		if (e != 0.f)
 			m_gcode += set_format_E(e);
 
 		if (f != 0.f && f != m_current_feedrate)
 			m_gcode += set_format_F(f);
-
+		
+		
+		
+		
 		// Update the elapsed time with a rough estimate.
 		m_elapsed_time += ((len == 0) ? std::abs(e) : len) / m_current_feedrate * 60.f;
 		m_gcode += "\n";
@@ -278,6 +299,8 @@ private:
 	std::vector<WipeTower::Extrusion> m_extrusions;
 	float         m_elapsed_time;
 	const double  m_filament_area = 0.25*M_PI*1.75*1.75;
+	float   	  m_angle_deg = 0;
+	WipeTower::xy m_wipe_tower_pos;
 
 	std::string   set_format_X(float x) {
 		char buf[64];
@@ -338,7 +361,7 @@ public:
 };
 */
 
-} // namespace PrusaMultiMaterial
+}; // namespace PrusaMultiMaterial
 
 WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *name)
 {
@@ -470,7 +493,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
 	result.start_pos  	= writer.start_pos();
-	result.end_pos 	  	= writer.pos();
+	result.end_pos 	  	= writer.printer_pos();
 	return result;
 }
 
@@ -525,6 +548,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		  .set_z(m_z_pos)
 		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
+		  .set_rotation(this->m_wipe_tower_pos,ROTATION_ANGLE)
 		  .append(";--------------------\n"
 			 	  "; CP TOOLCHANGE START\n")
 		  .comment_with_value(" toolchange #", m_num_tool_changes)
@@ -605,7 +629,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
 	result.start_pos  	= writer.start_pos();
-	result.end_pos 	  	= writer.pos();
+	result.end_pos 	  	= writer.printer_pos();
 	return result;
 }
 
@@ -622,6 +646,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 		  .set_z(m_z_pos)
 		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
+		  .set_rotation(this->m_wipe_tower_pos,ROTATION_ANGLE)
 		  .append(
 			";-------------------------------------\n"
 			"; CP WIPE TOWER FIRST LAYER BRIM START\n");
@@ -705,7 +730,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
 	result.start_pos  	= writer.start_pos();
-	result.end_pos 	  	= writer.pos();
+	result.end_pos 	  	= writer.printer_pos();
 	return result;
 }
 
@@ -910,6 +935,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 		  .set_z(m_z_pos)
 		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
+		  .set_rotation(this->m_wipe_tower_pos,ROTATION_ANGLE)
 		  .append(";--------------------\n"
 				  "; CP EMPTY GRID START\n")
 		  // m_num_layer_changes is incremented by set_z, so it is 1 based.
@@ -1025,7 +1051,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
 	result.start_pos 	= writer.start_pos();
-	result.end_pos 	  	= writer.pos();
+	result.end_pos 	  	= writer.printer_pos();
 	return result;
 }
 

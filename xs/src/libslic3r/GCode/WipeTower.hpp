@@ -23,6 +23,16 @@ public:
 		xy& operator-=(const xy &rhs) { x -= rhs.x; y -= rhs.y; return *this; }
 		bool operator==(const xy &rhs) { return x == rhs.x && y == rhs.y; }
 		bool operator!=(const xy &rhs) { return x != rhs.x || y != rhs.y; }
+		
+		// Rotate the point around given point about given angle (in degrees)
+		xy rotate(const xy& origin, float angle) const {
+			xy out(0,0);
+			angle *= M_PI/180.;
+			out.x=(x-origin.x) * cos(angle)  -  (y-origin.y) * sin(angle);
+			out.y=(x-origin.x) * sin(angle)  +  (y-origin.y) * cos(angle);
+			return out+origin;
+		}
+			
 		float x;
 		float y;
 	};
