@@ -336,24 +336,47 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
     // 1) Load the config bundle into a temp data.
     PresetBundle tmp_bundle;
     tmp_bundle.load_configbundle(path);
+    std::string bundle_name = std::string(" - ") + boost::filesystem::path(path).filename().string();
 
     // 2) Extract active configs from the config bundle, copy them and activate them in this bundle.
-    if (tmp_bundle.prints.get_selected_preset().is_default)
-        this->prints.select_preset(0);
-    else {
-        std::string new_name = tmp_bundle.prints.get_selected_preset().name;
-        Preset *existing = this->prints.find_preset(new_name, false);
-        if (existing == nullptr) {
-            // Save under the new_name.
-        } else if (existing->config == tmp_bundle.prints.get_selected_preset().config) {
+    auto load_one = [this, &path, &bundle_name](PresetCollection &collection_dst, PresetCollection &collection_src, const std::string &preset_name_src, bool activate) -> std::string {
+        Preset *preset_src = collection_src.find_preset(preset_name_src, false);
+        Preset *preset_dst = collection_dst.find_preset(preset_name_src, false);
+        assert(preset_src != nullptr);
+        std::string preset_name_dst;
+        if (preset_dst != nullptr && preset_dst->is_default) {
+            // No need to copy a default preset, it always exists in collection_dst.
+            if (activate)
+                collection_dst.select_preset(0);
+            return preset_name_src;
+        } else if (preset_dst != nullptr && preset_src->config == preset_dst->config) {
             // Don't save as the config exists in the current bundle and its content is the same.
-            new_name.clear();
+            return preset_name_src;
         } else {
             // Generate a new unique name.
+            preset_name_dst = preset_name_src + bundle_name;
+            Preset *preset_dup = nullptr;
+            for (size_t i = 1; (preset_dup = collection_dst.find_preset(preset_name_dst, false)) != nullptr; ++ i) {
+                if (preset_src->config == preset_dup->config)
+                    // The preset has been already copied into collection_dst.
+                    return preset_name_dst;
+                // Try to generate another name.
+                char buf[64];
+                sprintf(buf, " (%d)", i);
+                preset_name_dst = preset_name_src + buf + bundle_name;
+            }
         }
-        if (! new_name.empty())
-            this->prints.load_preset(path, new_name, std::move(tmp_bundle.prints.get_selected_preset().config));
-    }
+        assert(! preset_name_dst.empty());
+        // Save preset_src->config into collection_dst under preset_name_dst.
+        collection_dst.load_preset(path, preset_name_dst, std::move(preset_src->config), activate).is_external = true;
+        return preset_name_dst;
+    };
+    load_one(this->prints,    tmp_bundle.prints,    tmp_bundle.prints   .get_selected_preset().name, true);
+    load_one(this->filaments, tmp_bundle.filaments, tmp_bundle.filaments.get_selected_preset().name, true);
+    load_one(this->printers,  tmp_bundle.printers,  tmp_bundle.printers .get_selected_preset().name, true);
+    this->update_multi_material_filament_presets();
+    for (size_t i = 1; i < std::min(tmp_bundle.filament_presets.size(), this->filament_presets.size()); ++ i)
+        this->filament_presets[i] = load_one(this->filaments, tmp_bundle.filaments, tmp_bundle.filament_presets[i], false);
 }
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
