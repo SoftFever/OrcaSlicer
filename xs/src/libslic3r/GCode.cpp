@@ -538,29 +538,23 @@ bool GCode::_do_export(Print &print, FILE *file)
     // Disable fan.
     if (! print.config.cooling.get_at(initial_extruder_id) || print.config.disable_fan_first_layers.get_at(initial_extruder_id))
         write(file, m_writer.set_fan(0, true));
-    
-    // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
-    {
-        // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
-        // the custom start G-code emited these.
-        //FIXME Should one parse the custom G-code to initialize the "current" bed temp state at m_writer?
-        std::string gcode = m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.get_at(initial_extruder_id), true);
-        if (boost::ifind_first(print.config.start_gcode.value, std::string("M140")).empty() &&
-            boost::ifind_first(print.config.start_gcode.value, std::string("M190")).empty())
-            write(file, gcode);
-    }
 
-    // Set extruder(s) temperature before and after start G-code.
-    this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
     // Let the start-up script prime the 1st printing tool.
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
     m_placeholder_parser.set("initial_extruder", initial_extruder_id);
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
-    writeln(file, m_placeholder_parser.process(print.config.start_gcode.value, initial_extruder_id));
+    std::string start_gcode = m_placeholder_parser.process(print.config.start_gcode.value, initial_extruder_id);
+    
+    // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
+    this->_print_first_layer_bed_temperature(file, print, start_gcode, initial_extruder_id, true);
+    // Set extruder(s) temperature before and after start G-code.
+    this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, false);
+    // Write the custom start G-code
+    writeln(file, start_gcode);
     // Process filament-specific gcode in extruder order.
     for (const std::string &start_gcode : print.config.start_filament_gcode.values)
         writeln(file, m_placeholder_parser.process(start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
-    this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, true);
+    this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, true);
     
     // Set other general things.
     write(file, this->preamble());
@@ -650,9 +644,11 @@ bool GCode::_do_export(Print &print, FILE *file)
                     // Ff we are printing the bottom layer of an object, and we have already finished
                     // another one, set first layer temperatures. This happens before the Z move
                     // is triggered, so machine has more time to reach such temperatures.
-                    write(file, m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.get_at(initial_extruder_id)));
-                    // Set first layer extruder.
-                    this->_print_first_layer_extruder_temperatures(file, print, initial_extruder_id, false);
+                    std::string between_objects_gcode = m_placeholder_parser.process(print.config.between_objects_gcode.value, initial_extruder_id);
+                    // Set first layer bed and extruder temperatures, don't wait for it to reach the temperature.
+                    this->_print_first_layer_bed_temperature(file, print, between_objects_gcode, initial_extruder_id, false);
+                    this->_print_first_layer_extruder_temperatures(file, print, between_objects_gcode, initial_extruder_id, false);
+                    writeln(file, between_objects_gcode);
                 }
                 // Reset the cooling buffer internal state (the current position, feed rate, accelerations).
                 m_cooling_buffer->reset();
@@ -774,15 +770,96 @@ bool GCode::_do_export(Print &print, FILE *file)
     return true;
 }
 
+// Parse the custom G-code, try to find mcode_set_temp_dont_wait and mcode_set_temp_and_wait inside the custom G-code.
+// Returns true if one of the temp commands are found, and try to parse the target temperature value into temp_out.
+static bool custom_gcode_sets_temperature(const std::string &gcode, const int mcode_set_temp_dont_wait, const int mcode_set_temp_and_wait, int &temp_out)
+{
+    temp_out = -1;
+    if (gcode.empty())
+        return false;
+
+    const char *ptr = gcode.data();
+    bool temp_set_by_gcode = false;
+    while (*ptr != 0) {
+        // Skip whitespaces.
+        for (; *ptr == ' ' || *ptr == '\t'; ++ ptr);
+        if (*ptr == 'M') {
+            // Line starts with 'M'. It is a machine command.
+            ++ ptr;
+            // Parse the M code value.
+            char *endptr = nullptr;
+            int mcode = int(strtol(ptr, &endptr, 10));
+            if (endptr != nullptr && endptr != ptr && (mcode == mcode_set_temp_dont_wait || mcode == mcode_set_temp_and_wait)) {
+                // M104/M109 or M140/M190 found.
+				ptr = endptr;
+                // Let the caller know that the custom G-code sets the temperature.
+                temp_set_by_gcode = true;
+                // Now try to parse the temperature value.
+				// While not at the end of the line:
+				while (strchr(";\r\n\0", *ptr) == nullptr) {
+                    // Skip whitespaces.
+                    for (; *ptr == ' ' || *ptr == '\t'; ++ ptr);
+                    if (*ptr == 'S') {
+                        // Skip whitespaces.
+                        for (++ ptr; *ptr == ' ' || *ptr == '\t'; ++ ptr);
+                        // Parse an int.
+                        endptr = nullptr;
+                        long temp_parsed = strtol(ptr, &endptr, 10);
+						if (endptr > ptr) {
+							ptr = endptr;
+							temp_out = temp_parsed;
+						}
+                    } else {
+                        // Skip this word.
+						for (; strchr(" \t;\r\n\0", *ptr) == nullptr; ++ ptr);
+                    }
+                }
+            }
+        }
+        // Skip the rest of the line.
+        for (; *ptr != 0 && *ptr != '\r' && *ptr != '\n'; ++ ptr);
+		// Skip the end of line indicators.
+		for (; *ptr == '\r' || *ptr == '\n'; ++ ptr);
+	}
+    return temp_set_by_gcode;
+}
+
+// Write 1st layer bed temperatures into the G-code.
+// Only do that if the start G-code does not already contain any M-code controlling an extruder temperature.
+// M140 - Set Extruder Temperature
+// M190 - Set Extruder Temperature and Wait
+void GCode::_print_first_layer_bed_temperature(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait)
+{
+    // Initial bed temperature based on the first extruder.
+    int  temp = print.config.first_layer_bed_temperature.get_at(first_printing_extruder_id);
+    // Is the bed temperature set by the provided custom G-code?
+    int  temp_by_gcode     = -1;
+    bool temp_set_by_gcode = custom_gcode_sets_temperature(gcode, 140, 190, temp_by_gcode);
+    if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
+        temp = temp_by_gcode;
+    // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
+    // the custom start G-code emited these.
+    std::string set_temp_gcode = m_writer.set_bed_temperature(temp, wait);
+    if (! temp_by_gcode)
+        write(file, set_temp_gcode);
+}
+
 // Write 1st layer extruder temperatures into the G-code.
 // Only do that if the start G-code does not already contain any M-code controlling an extruder temperature.
-// FIXME this does not work correctly for multi-extruder, single heater configuration as it emits multiple preheat commands for the same heater.
 // M104 - Set Extruder Temperature
 // M109 - Set Extruder Temperature and Wait
-void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, unsigned int first_printing_extruder_id, bool wait)
+void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait)
 {
-    if (boost::ifind_first(print.config.start_gcode.value, std::string("M104")).empty() &&
-        boost::ifind_first(print.config.start_gcode.value, std::string("M109")).empty()) {
+    // Is the bed temperature set by the provided custom G-code?
+    int  temp_by_gcode     = -1;
+    if (custom_gcode_sets_temperature(gcode, 104, 109, temp_by_gcode)) {
+        // Set the extruder temperature at m_writer, but throw away the generated G-code as it will be written with the custom G-code.
+        int temp = print.config.first_layer_temperature.get_at(first_printing_extruder_id);
+        if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
+            temp = temp_by_gcode;
+        m_writer.set_temperature(temp_by_gcode, wait, first_printing_extruder_id);
+    } else {
+        // Custom G-code does not set the extruder temperature. Do it now.
         if (print.config.single_extruder_multi_material.value) {
             // Set temperature of the first printing extruder only.
             int temp = print.config.first_layer_temperature.get_at(first_printing_extruder_id);

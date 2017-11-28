@@ -452,6 +452,7 @@ class GCodeConfig : public StaticPrintConfig
     STATIC_PRINT_CONFIG_CACHE(GCodeConfig)
 public:
     ConfigOptionString              before_layer_gcode;
+    ConfigOptionString              between_objects_gcode;
     ConfigOptionFloats              deretract_speed;
     ConfigOptionString              end_gcode;
     ConfigOptionStrings             end_filament_gcode;
@@ -500,6 +501,7 @@ protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         OPT_PTR(before_layer_gcode);
+        OPT_PTR(between_objects_gcode);
         OPT_PTR(deretract_speed);
         OPT_PTR(end_gcode);
         OPT_PTR(end_filament_gcode);

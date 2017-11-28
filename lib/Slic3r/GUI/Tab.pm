@@ -1467,6 +1467,15 @@ sub build {
             $option->height(150);
             $optgroup->append_single_option_line($option);
         }
+        {
+            my $optgroup = $page->new_optgroup('Between objects G-code (for sequential printing)',
+                label_width => 0,
+            );
+            my $option = $optgroup->get_option('between_objects_gcode');
+            $option->full_width(1);
+            $option->height(150);
+            $optgroup->append_single_option_line($option);
+        }
     }
     
     {

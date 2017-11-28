@@ -1,4 +1,4 @@
-use Test::More tests => 40;
+use Test::More tests => 41;
 use strict;
 use warnings;
 
@@ -208,6 +208,15 @@ use Slic3r::Test;
         my $gcode = Slic3r::Test::gcode($print);
         ok $gcode =~ /substitution:$printer_name:end/, "printer name $printer_name matched";
     }
+}
+
+{
+    my $config = Slic3r::Config::new_from_defaults;
+    $config->set('complete_objects', 1);
+    $config->set('between_objects_gcode', '_MY_CUSTOM_GCODE_');
+    my $print = Slic3r::Test::init_print('20mm_cube', config => $config, duplicate => 3);
+    my $gcode = Slic3r::Test::gcode($print);
+    is scalar(() = $gcode =~ /^_MY_CUSTOM_GCODE_/gm), 2, 'between_objects_gcode is applied correctly';
 }
 
 __END__
