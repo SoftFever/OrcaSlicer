@@ -145,7 +145,7 @@ namespace client
     template<typename Iterator>
     struct expr
     {
-                 expr() : type(TYPE_EMPTY) { data.s = nullptr; }
+                 expr() { this->reset(); }
         explicit expr(bool b) : type(TYPE_BOOL) { data.b = b; }
         explicit expr(bool b, const Iterator &it_begin, const Iterator &it_end) : type(TYPE_BOOL), it_range(it_begin, it_end) { data.b = b; }
         explicit expr(int i) : type(TYPE_INT) { data.i = i; }
@@ -156,33 +156,39 @@ namespace client
         explicit expr(const std::string &s) : type(TYPE_STRING) { data.s = new std::string(s); }
         explicit expr(const std::string &s, const Iterator &it_begin, const Iterator &it_end) : 
             type(TYPE_STRING), it_range(it_begin, it_end) { data.s = new std::string(s); }
-                 expr(const expr &rhs) : type(rhs.type) { data.s = (rhs.type == TYPE_STRING) ? new std::string(*rhs.data.s) : rhs.data.s; }
-        explicit expr(expr &&rhs) : type(rhs.type) { data.s = rhs.data.s; rhs.data.s = nullptr; rhs.type = TYPE_EMPTY; }
+                 expr(const expr &rhs) : type(rhs.type), it_range(rhs.it_range)
+            { if (rhs.type == TYPE_STRING) data.s = new std::string(*rhs.data.s); else data.set(rhs.data); }
+        explicit expr(expr &&rhs) : type(rhs.type), it_range(rhs.it_range)
+            { data.set(rhs.data); rhs.type = TYPE_EMPTY; }
         explicit expr(expr &&rhs, const Iterator &it_begin, const Iterator &it_end) : type(rhs.type), it_range(it_begin, it_end)
-            { data.s = rhs.data.s; rhs.data.s = nullptr; rhs.type = TYPE_EMPTY; }
+            { data.set(rhs.data); rhs.type = TYPE_EMPTY; }
         ~expr() { this->reset(); }
 
         expr &operator=(const expr &rhs) 
         { 
-            type = rhs.type; 
-            data.s = (type == TYPE_STRING) ? new std::string(*rhs.data.s) : rhs.data.s; 
+            this->type      = rhs.type;
+            this->it_range  = rhs.it_range;
+            if (rhs.type == TYPE_STRING) 
+                this->data.s = new std::string(*rhs.data.s);
+            else 
+                this->data.set(rhs.data);
             return *this; 
         }
 
         expr &operator=(expr &&rhs) 
         { 
-            type = rhs.type; 
-            data.s = rhs.data.s; 
-            rhs.data.s = nullptr; 
-            rhs.type = TYPE_EMPTY; 
-            return *this; 
+            type            = rhs.type;
+            this->it_range  = rhs.it_range;
+            data.set(rhs.data);
+            rhs.type        = TYPE_EMPTY;
+            return *this;
         }
 
         void                reset()   
         { 
             if (this->type == TYPE_STRING) 
                 delete data.s;
-            data.s = nullptr; 
+            memset(data.raw, 0, sizeof(data.raw));
             this->type = TYPE_EMPTY;
         }
 
@@ -210,15 +216,23 @@ namespace client
             case TYPE_INT:    out = boost::to_string(data.i); break;
             case TYPE_DOUBLE: out = boost::to_string(data.d); break;
             case TYPE_STRING: out = *data.s; break;
+            default:          break;
             }
             return out;
         }
 
-        union {
+        union Data {
+            // Raw image of the other data members.
+            // The C++ compiler will consider a possible aliasing of char* with any other union member,
+            // therefore copying the raw data is safe.
+            char         raw[8];
             bool         b;
             int          i;
             double       d;
             std::string *s;
+
+            // Copy the largest member variable through char*, which will alias with all other union members by default.
+            void set(const Data &rhs) { memcpy(this->raw, rhs.raw, sizeof(rhs.raw)); }
         } data;
 
         enum Type {
@@ -386,7 +400,7 @@ namespace client
     std::ostream& operator<<(std::ostream &os, const expr<ITERATOR> &expression)
     {
         typedef expr<ITERATOR> Expr;
-        os << std::string(expression.it_range.begin(), expression.it_range.end()) << ' - ';
+        os << std::string(expression.it_range.begin(), expression.it_range.end()) << " - ";
         switch (expression.type) {
         case Expr::TYPE_EMPTY:    os << "empty"; break;
         case Expr::TYPE_BOOL:     os << "bool ("   << expression.b() << ")"; break;
@@ -588,7 +602,7 @@ namespace client
     ///////////////////////////////////////////////////////////////////////////
     //  Our calculator grammar
     ///////////////////////////////////////////////////////////////////////////
-    // Inspired by the C grammar https://www.lysator.liu.se/c/ANSI-C-grammar-y.html
+    // Inspired by the C grammar rules https://www.lysator.liu.se/c/ANSI-C-grammar-y.html
     template <typename Iterator>
     struct calculator : qi::grammar<Iterator, std::string(const MyContext*), spirit::ascii::space_type>
     {
@@ -644,7 +658,7 @@ namespace client
             macro =
                     (kw["if"]     > if_else_output(_r1) [_val = _1])
                 |   (kw["switch"] > switch_output(_r1)  [_val = _1])
-                |   expression(_r1) [ px::bind(&expr<Iterator>::to_string2, _1, _val) ];
+                |   additive_expression(_r1) [ px::bind(&expr<Iterator>::to_string2, _1, _val) ];
             macro.name("macro");
 
             // An if expression enclosed in {} (the outmost {} are already parsed by the caller).
@@ -683,10 +697,10 @@ namespace client
             identifier.name("identifier");
 
             bool_expr =
-                expression(_r1)                             [_val = _1]
-                >> *(   ("==" > expression(_r1) ) [px::bind(&expr<Iterator>::equal,     _val, _1)]
-                    |   ("!=" > expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
-                    |   ("<>" > expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
+                additive_expression(_r1)                   [_val = _1]
+                >> *(   ("==" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::equal,     _val, _1)]
+                    |   ("!=" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
+                    |   ("<>" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
                     );
             bool_expr.name("bool expression");
 
@@ -695,12 +709,12 @@ namespace client
             bool_expr_eval = bool_expr(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean, _1, _val) ];
             bool_expr_eval.name("bool_expr_eval");
 
-            expression =
+            additive_expression =
                 term(_r1)                       [_val  = _1]
                 >> *(   (lit('+') > term(_r1) ) [_val += _1]
                     |   (lit('-') > term(_r1) ) [_val -= _1]
                     );
-            expression.name("expression");
+            additive_expression.name("additive_expression");
 
             term =
                 factor(_r1)                       [_val  = _1]
@@ -729,14 +743,14 @@ namespace client
             };
             factor = iter_pos[px::bind(&FactorActions::set_start_pos, _1, _val)] >> (
                     scalar_variable_reference(_r1)      [ _val = _1 ]
-                |   (lit('(')  > expression(_r1) > ')' > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
+                |   (lit('(')  > additive_expression(_r1) > ')' > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
                 |   (lit('-')  > factor(_r1)           ) [ px::bind(&FactorActions::minus_,  _1,     _val) ]
                 |   (lit('+')  > factor(_r1) > iter_pos) [ px::bind(&FactorActions::expr_,   _1, _2, _val) ]
                 |   ((kw["not"] | '!') > factor(_r1) > iter_pos) [ px::bind(&FactorActions::not_, _1, _val) ]
                 |   (strict_double > iter_pos)           [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)               [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)               [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
-                |   raw[lexeme['"' > *(char_ - char_('\\') - char_('"') | ('\\' > char_)) > '"']]
+                |   raw[lexeme['"' > *((char_ - char_('\\') - char_('"')) | ('\\' > char_)) > '"']]
                                                          [ px::bind(&FactorActions::string_, _1,     _val) ]
                 );
             factor.name("factor");
@@ -744,7 +758,7 @@ namespace client
             scalar_variable_reference = 
                 variable_reference(_r1)[_a=_1] >>
                 (
-                        ('[' > expression(_r1)[px::bind(&MyContext::evaluate_index<Iterator>, _1, _b)] > ']' > 
+                        ('[' > additive_expression(_r1)[px::bind(&MyContext::evaluate_index<Iterator>, _1, _b)] > ']' > 
                             iter_pos[px::bind(&MyContext::vector_variable_reference<Iterator>, _r1, _a, _b, _1, _val)])
                     |   eps[px::bind(&MyContext::scalar_variable_reference<Iterator>, _r1, _a, _val)]
                 );
@@ -787,7 +801,7 @@ namespace client
                 debug(identifier);
                 debug(bool_expr);
                 debug(bool_expr_eval);
-                debug(expression);
+                debug(additive_expression);
                 debug(term);
                 debug(factor);
                 debug(scalar_variable_reference);
@@ -808,7 +822,7 @@ namespace client
         // Parsed identifier name.
         qi::rule<Iterator,  boost::iterator_range<Iterator>(), spirit::ascii::space_type> identifier;
         // Math expression consisting of +- operators over terms.
-        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> expression;
+        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> additive_expression;
         // Boolean expressions over expressions.
         qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> bool_expr;
         // Evaluate boolean expression into bool.
