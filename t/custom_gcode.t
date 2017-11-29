@@ -62,7 +62,7 @@ use Slic3r::Test;
     is $parser->process('{2*3}'),     '6',   'math: 2*3';
     is $parser->process('{2*3/6}'),   '1',   'math: 2*3/6';
     is $parser->process('{2*3/12}'),  '0',   'math: 2*3/12';
-    is $parser->process('{2.*3/12}'), '0.5', 'math: 2.*3/12';
+    ok abs($parser->process('{2.*3/12}') - 0.5) < 1e-7, 'math: 2.*3/12';
     is $parser->process('{2*(3-12)}'), '-18', 'math: 2*(3-12)';
     is $parser->process('{2*foo*(3-12)}'), '0', 'math: 2*foo*(3-12)';
     is $parser->process('{2*bar*(3-12)}'), '-36', 'math: 2*bar*(3-12)';
