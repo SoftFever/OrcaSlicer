@@ -145,7 +145,7 @@ namespace client
     template<typename Iterator>
     struct expr
     {
-                 expr() { this->reset(); }
+                 expr() : type(TYPE_EMPTY) {}
         explicit expr(bool b) : type(TYPE_BOOL) { data.b = b; }
         explicit expr(bool b, const Iterator &it_begin, const Iterator &it_end) : type(TYPE_BOOL), it_range(it_begin, it_end) { data.b = b; }
         explicit expr(int i) : type(TYPE_INT) { data.i = i; }
@@ -188,7 +188,6 @@ namespace client
         { 
             if (this->type == TYPE_STRING) 
                 delete data.s;
-            memset(data.raw, 0, sizeof(data.raw));
             this->type = TYPE_EMPTY;
         }
 
