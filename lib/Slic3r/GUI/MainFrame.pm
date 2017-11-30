@@ -274,13 +274,14 @@ sub _init_menubar {
         # \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
         # as the simple numeric accelerators spoil all numeric data entry.
         # The camera control accelerators are captured by 3DScene Perl module instead.
-        $self->_append_menu_item($self->{viewMenu}, "Iso\t\xA00"    , 'Iso View'    , sub { $self->select_view('iso'    ); });
-        $self->_append_menu_item($self->{viewMenu}, "Top\t\xA01"    , 'Top View'    , sub { $self->select_view('top'    ); });
-        $self->_append_menu_item($self->{viewMenu}, "Bottom\t\xA02" , 'Bottom View' , sub { $self->select_view('bottom' ); });
-        $self->_append_menu_item($self->{viewMenu}, "Front\t\xA03"  , 'Front View'  , sub { $self->select_view('front'  ); });
-        $self->_append_menu_item($self->{viewMenu}, "Rear\t\xA04"   , 'Rear View'   , sub { $self->select_view('rear'   ); });
-        $self->_append_menu_item($self->{viewMenu}, "Left\t\xA05"   , 'Left View'   , sub { $self->select_view('left'   ); });
-        $self->_append_menu_item($self->{viewMenu}, "Right\t\xA06"  , 'Right View'  , sub { $self->select_view('right'  ); });
+        my $accel = ($^O eq 'MSWin32') ? sub { $_[0] . "\t\xA0" . $_[1] } : sub { $_[0] };
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Iso',    '0'), 'Iso View'    , sub { $self->select_view('iso'    ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Top',    '1'), 'Top View'    , sub { $self->select_view('top'    ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Bottom', '2'), 'Bottom View' , sub { $self->select_view('bottom' ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Front',  '3'), 'Front View'  , sub { $self->select_view('front'  ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Rear',   '4'), 'Rear View'   , sub { $self->select_view('rear'   ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Left',   '5'), 'Left View'   , sub { $self->select_view('left'   ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Right',  '6'), 'Right View'  , sub { $self->select_view('right'  ); });
     }
     
     # Help menu
