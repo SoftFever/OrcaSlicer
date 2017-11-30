@@ -2602,7 +2602,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 // Base flange.
                 filler->angle = raft_angle_1st_layer;
                 filler->spacing = m_first_layer_flow.spacing();
-                density       = 0.5f;
+                // 70% of density on the 1st layer.
+                density       = 0.7f;
             } else if (support_layer_id >= m_slicing_params.base_raft_layers) {
                 filler->angle = raft_angle_interface;
                 // We don't use $base_flow->spacing because we need a constant spacing
