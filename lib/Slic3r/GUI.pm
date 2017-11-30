@@ -112,7 +112,7 @@ sub OnInit {
     $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
     
     # application frame
-    Wx::Image::AddHandler(Wx::PNGHandler->new);
+    Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
         no_controller   => $self->{app_config}->get('no_controller'),

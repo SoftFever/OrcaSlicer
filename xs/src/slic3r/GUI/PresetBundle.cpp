@@ -34,7 +34,8 @@ PresetBundle::PresetBundle() :
     m_bitmapCompatible(new wxBitmap),
     m_bitmapIncompatible(new wxBitmap)
 {
-    ::wxInitAllImageHandlers();
+    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
+        wxImage::AddHandler(new wxPNGHandler);
 
     // Create the ID config keys, as they are not part of the Static print config classes.
     this->prints.preset(0).config.opt_string("print_settings_id", true);
