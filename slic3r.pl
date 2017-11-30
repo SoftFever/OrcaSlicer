@@ -103,7 +103,7 @@ $config->apply($cli_config);
 
 # launch GUI
 my $gui;
-if ((!@ARGV || $opt{gui}) && !(!@ARGV || $opt{no_gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
+if ((!@ARGV || $opt{gui}) && !$opt{no_gui} && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
         $Slic3r::GUI::datadir       = Slic3r::decode_path($opt{datadir} // '');
