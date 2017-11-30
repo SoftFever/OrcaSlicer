@@ -245,6 +245,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("Hilbert Curve");
     def->enum_labels.push_back("Archimedean Chords");
     def->enum_labels.push_back("Octagram Spiral");
+    // solid_fill_pattern is an obsolete equivalent to external_fill_pattern.
     def->aliases.push_back("solid_fill_pattern");
     def->default_value = new ConfigOptionEnum<InfillPattern>(ipRectilinear);
 
