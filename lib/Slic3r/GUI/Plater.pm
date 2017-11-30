@@ -1495,6 +1495,7 @@ sub reload_from_disk {
     return if !defined $obj_idx;
     
     my $model_object = $self->{model}->objects->[$obj_idx];
+    #FIXME convert to local file encoding
     return if !$model_object->input_file
         || !-e $model_object->input_file;
     
@@ -1505,12 +1506,14 @@ sub reload_from_disk {
         my $o = $self->{model}->objects->[$new_obj_idx];
         $o->clear_instances;
         $o->add_instance($_) for @{$model_object->instances};
+        #$o->invalidate_bounding_box;
         
         if ($o->volumes_count == $model_object->volumes_count) {
             for my $i (0..($o->volumes_count-1)) {
                 $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
             }
         }
+        #FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
     }
     
     $self->remove($obj_idx);
@@ -1932,10 +1935,10 @@ sub object_menu {
         $self->set_number_of_copies;
     }, undef, 'textfield.png');
     $menu->AppendSeparator();
-    $frame->_append_menu_item($menu, "Rotate 45° clockwise\t\xA0l", 'Rotate the selected object by 45° clockwise', sub {
+    $frame->_append_menu_item($menu, $accel->('Rotate 45° clockwise', 'l'), 'Rotate the selected object by 45° clockwise', sub {
         $self->rotate(-45, Z, 'relative');
     }, undef, 'arrow_rotate_clockwise.png');
-    $frame->_append_menu_item($menu, "Rotate 45° counter-clockwise\t\xA0r", 'Rotate the selected object by 45° counter-clockwise', sub {
+    $frame->_append_menu_item($menu, $accel->('Rotate 45° counter-clockwise', 'r'), 'Rotate the selected object by 45° counter-clockwise', sub {
         $self->rotate(+45, Z, 'relative');
     }, undef, 'arrow_rotate_anticlockwise.png');
     
@@ -1968,7 +1971,7 @@ sub object_menu {
     my $scaleMenu = Wx::Menu->new;
     my $scaleMenuItem = $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
     $frame->_set_menu_item_icon($scaleMenuItem, 'arrow_out.png');
-    $frame->_append_menu_item($scaleMenu, "Uniformly…\t\xA0s", 'Scale the selected object along the XYZ axes', sub {
+    $frame->_append_menu_item($scaleMenu, $accel->('Uniformly…', 's'), 'Scale the selected object along the XYZ axes', sub {
         $self->changescale(undef);
     });
     $frame->_append_menu_item($scaleMenu, "Along X axis…", 'Scale the selected object along the X axis', sub {
