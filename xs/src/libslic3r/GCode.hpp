@@ -143,6 +143,7 @@ public:
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
+    PlaceholderParser& placeholder_parser() { return m_placeholder_parser; }
     bool            enable_cooling_markers() const { return m_enable_cooling_markers; }
 
     // For Perl bindings, to be used exclusively by unit tests.

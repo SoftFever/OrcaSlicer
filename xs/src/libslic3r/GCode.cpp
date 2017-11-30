@@ -30,6 +30,13 @@
 #include <assert.h>
 
 namespace Slic3r {
+
+// Only add a newline in case the current G-code does not end with a newline.
+static inline void check_add_eol(std::string &gcode)
+{
+    if (! gcode.empty() && gcode.back() != '\n')
+        gcode += '\n';    
+}
     
 // Plan a travel move while minimizing the number of perimeter crossings.
 // point is in unscaled coordinates, in the coordinate system of the current active object
@@ -157,6 +164,8 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 {
     std::string gcode;
 
+    // Disable linear advance for the wipe tower operations.
+    gcode += "M900 K0\n";
     // Move over the wipe tower.
     // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
     gcode += gcodegen.retract(true);
@@ -171,8 +180,17 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // Inform the G-code writer about the changes done behind its back.
     gcode += tcr.gcode;
     // Let the m_writer know the current extruder_id, but ignore the generated G-code.
-	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
+	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id)) {
         gcodegen.writer().toolchange(new_extruder_id);
+        // Append the filament start G-code.
+        const std::string &start_filament_gcode = gcodegen.config().start_filament_gcode.get_at(new_extruder_id);
+        if (! start_filament_gcode.empty()) {
+            // Process the start_filament_gcode for the active filament only.
+            gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
+            gcode += gcodegen.placeholder_parser().process(start_filament_gcode, new_extruder_id);
+            check_add_eol(gcode);
+        }
+    }
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(Pointf(tcr.end_pos.x, tcr.end_pos.y));
     gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, tcr.end_pos));
@@ -199,15 +217,25 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
     std::string gcode;
 
     if (&m_priming != nullptr && ! m_priming.extrusions.empty()) {
+        // Disable linear advance for the wipe tower operations.
+        gcode += "M900 K0\n";
         // Let the tool change be executed by the wipe tower class.
         // Inform the G-code writer about the changes done behind its back.
         gcode += m_priming.gcode;
         // Let the m_writer know the current extruder_id, but ignore the generated G-code.
-        gcodegen.writer().toolchange(m_priming.extrusions.back().tool);
+        unsigned int current_extruder_id = m_priming.extrusions.back().tool;
+        gcodegen.writer().toolchange(current_extruder_id);
+        gcodegen.placeholder_parser().set("current_extruder", current_extruder_id);
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy(Pointf(m_priming.end_pos.x, m_priming.end_pos.y));
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, m_priming.end_pos));
-
+        // Append the filament start G-code, so the linear advance value will be restored.
+        const std::string &start_filament_gcode = gcodegen.config().start_filament_gcode.get_at(current_extruder_id);
+        if (! start_filament_gcode.empty()) {
+            // Process the start_filament_gcode for the active filament only to restore the linear advance value.
+            gcode += gcodegen.placeholder_parser().process(start_filament_gcode, current_extruder_id);
+            check_add_eol(gcode);
+        }
         // Prepare a future wipe.
         gcodegen.m_wipe.path.points.clear();
         // Start the wipe at the current position.
@@ -554,8 +582,10 @@ bool GCode::_do_export(Print &print, FILE *file)
     // Write the custom start G-code
     writeln(file, start_gcode);
     // Process filament-specific gcode in extruder order.
-    for (const std::string &start_gcode : print.config.start_filament_gcode.values)
-        writeln(file, m_placeholder_parser.process(start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
+    if (! print.config.single_extruder_multi_material) {
+        for (const std::string &start_gcode : print.config.start_filament_gcode.values)
+            writeln(file, m_placeholder_parser.process(start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
+    }
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, true);
     
     // Set other general things.
@@ -727,8 +757,13 @@ bool GCode::_do_export(Print &print, FILE *file)
     write(file, this->retract());
     write(file, m_writer.set_fan(false));
     // Process filament-specific gcode in extruder order.
-    for (const std::string &end_gcode : print.config.end_filament_gcode.values)
-        writeln(file, m_placeholder_parser.process(end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
+    if (print.config.single_extruder_multi_material) {
+        // Process the end_filament_gcode for the active filament only.
+        writeln(file, m_placeholder_parser.process(print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id()));
+    } else {
+        for (const std::string &end_gcode : print.config.end_filament_gcode.values)
+            writeln(file, m_placeholder_parser.process(end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
+    }
     writeln(file, m_placeholder_parser.process(print.config.end_gcode, m_writer.extruder()->id()));
     write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     write(file, m_writer.postamble());
@@ -2162,13 +2197,14 @@ GCode::retract(bool toolchange)
 
 std::string GCode::set_extruder(unsigned int extruder_id)
 {
-    m_placeholder_parser.set("current_extruder", extruder_id);
     if (!m_writer.need_toolchange(extruder_id))
         return "";
     
     // if we are running a single-extruder setup, just set the extruder and return nothing
-    if (!m_writer.multiple_extruders)
+    if (!m_writer.multiple_extruders) {
+        m_placeholder_parser.set("current_extruder", extruder_id);
         return m_writer.toolchange(extruder_id);
+    }
     
     // prepend retraction on the current extruder
     std::string gcode = this->retract(true);
@@ -2176,23 +2212,41 @@ std::string GCode::set_extruder(unsigned int extruder_id)
     // Always reset the extrusion path, even if the tool change retract is set to zero.
     m_wipe.reset_path();
     
-    // append custom toolchange G-code
-    if (m_writer.extruder() != nullptr && !m_config.toolchange_gcode.value.empty()) {
+    if (m_writer.extruder() != nullptr) {
+        // Process the custom end_filament_gcode in case of single_extruder_multi_material.
+        unsigned int        old_extruder_id     = m_writer.extruder()->id();
+        const std::string  &end_filament_gcode  = m_config.end_filament_gcode.get_at(old_extruder_id);
+        if (m_config.single_extruder_multi_material && ! end_filament_gcode.empty()) {
+            gcode += m_placeholder_parser.process(end_filament_gcode, old_extruder_id);
+            check_add_eol(gcode);
+        }
+    }
+
+    m_placeholder_parser.set("current_extruder", extruder_id);
+
+    if (m_writer.extruder() != nullptr && ! m_config.toolchange_gcode.value.empty()) {
+        // Process the custom toolchange_gcode.
         DynamicConfig config;
         config.set_key_value("previous_extruder", new ConfigOptionInt((int)m_writer.extruder()->id()));
         config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
-        gcode += m_placeholder_parser.process(
-            m_config.toolchange_gcode.value, extruder_id, &config)
-            + '\n';
+        gcode += m_placeholder_parser.process(m_config.toolchange_gcode.value, extruder_id, &config);
+        check_add_eol(gcode);
     }
     
-    // if ooze prevention is enabled, park current extruder in the nearest
-    // standby point and set it to the standby temperature
+    // If ooze prevention is enabled, park current extruder in the nearest
+    // standby point and set it to the standby temperature.
     if (m_ooze_prevention.enable && m_writer.extruder() != nullptr)
         gcode += m_ooze_prevention.pre_toolchange(*this);
-    // append the toolchange command
+    // Append the toolchange command.
     gcode += m_writer.toolchange(extruder_id);
-    // set the new extruder to the operating temperature
+    // Append the filament start G-code for single_extruder_multi_material.
+    const std::string &start_filament_gcode = m_config.start_filament_gcode.get_at(extruder_id);
+    if (m_config.single_extruder_multi_material && ! start_filament_gcode.empty()) {
+        // Process the start_filament_gcode for the active filament only.
+        gcode += m_placeholder_parser.process(start_filament_gcode, extruder_id);
+        check_add_eol(gcode);
+    }
+    // Set the new extruder to the operating temperature.
     if (m_ooze_prevention.enable)
         gcode += m_ooze_prevention.post_toolchange(*this);
     
