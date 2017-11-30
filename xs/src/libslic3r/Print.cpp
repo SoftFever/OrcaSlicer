@@ -81,80 +81,80 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
 
     // Cache the plenty of parameters, which influence the G-code generator only,
     // or they are only notes not influencing the generated G-code.
-    static std::unordered_set<std::string> steps_ignore;
-    if (steps_ignore.empty()) {
-        steps_ignore.insert("avoid_crossing_perimeters");
-        steps_ignore.insert("bed_shape");
-        steps_ignore.insert("bed_temperature");
-        steps_ignore.insert("before_layer_gcode");
-        steps_ignore.insert("bridge_acceleration");
-        steps_ignore.insert("bridge_fan_speed");
-        steps_ignore.insert("cooling");
-        steps_ignore.insert("default_acceleration");
-        steps_ignore.insert("deretract_speed");
-        steps_ignore.insert("disable_fan_first_layers");
-        steps_ignore.insert("duplicate_distance");
-        steps_ignore.insert("end_gcode");
-        steps_ignore.insert("end_filament_gcode");
-        steps_ignore.insert("extrusion_axis");
-        steps_ignore.insert("extruder_clearance_height");
-        steps_ignore.insert("extruder_clearance_radius");
-        steps_ignore.insert("extruder_colour");
-        steps_ignore.insert("extruder_offset");
-        steps_ignore.insert("extrusion_multiplier");
-        steps_ignore.insert("fan_always_on");
-        steps_ignore.insert("fan_below_layer_time");
-        steps_ignore.insert("filament_colour");
-        steps_ignore.insert("filament_diameter");
-        steps_ignore.insert("filament_density");
-        steps_ignore.insert("filament_notes");
-        steps_ignore.insert("filament_cost");
-        steps_ignore.insert("filament_max_volumetric_speed");
-        steps_ignore.insert("first_layer_acceleration");
-        steps_ignore.insert("first_layer_bed_temperature");
-        steps_ignore.insert("first_layer_speed");
-        steps_ignore.insert("gcode_comments");
-        steps_ignore.insert("gcode_flavor");
-        steps_ignore.insert("infill_acceleration");
-        steps_ignore.insert("infill_first");
-        steps_ignore.insert("layer_gcode");
-        steps_ignore.insert("min_fan_speed");
-        steps_ignore.insert("max_fan_speed");
-        steps_ignore.insert("min_print_speed");
-        steps_ignore.insert("max_print_speed");
-        steps_ignore.insert("max_volumetric_speed");
-        steps_ignore.insert("max_volumetric_extrusion_rate_slope_positive");
-        steps_ignore.insert("max_volumetric_extrusion_rate_slope_negative");
-        steps_ignore.insert("notes");
-        steps_ignore.insert("only_retract_when_crossing_perimeters");
-        steps_ignore.insert("output_filename_format");
-        steps_ignore.insert("perimeter_acceleration");
-        steps_ignore.insert("post_process");
-        steps_ignore.insert("printer_notes");
-        steps_ignore.insert("retract_before_travel");
-        steps_ignore.insert("retract_before_wipe");
-        steps_ignore.insert("retract_layer_change");
-        steps_ignore.insert("retract_length");
-        steps_ignore.insert("retract_length_toolchange");
-        steps_ignore.insert("retract_lift");
-        steps_ignore.insert("retract_lift_above");
-        steps_ignore.insert("retract_lift_below");
-        steps_ignore.insert("retract_restart_extra");
-        steps_ignore.insert("retract_restart_extra_toolchange");
-        steps_ignore.insert("retract_speed");
-        steps_ignore.insert("slowdown_below_layer_time");
-        steps_ignore.insert("standby_temperature_delta");
-        steps_ignore.insert("start_gcode");
-        steps_ignore.insert("start_filament_gcode");
-        steps_ignore.insert("toolchange_gcode");
-        steps_ignore.insert("threads");
-        steps_ignore.insert("travel_speed");
-        steps_ignore.insert("use_firmware_retraction");
-        steps_ignore.insert("use_relative_e_distances");
-        steps_ignore.insert("use_volumetric_e");
-        steps_ignore.insert("variable_layer_height");
-        steps_ignore.insert("wipe");
-    }
+    static std::unordered_set<std::string> steps_ignore = {
+        "avoid_crossing_perimeters",
+        "bed_shape",
+        "bed_temperature",
+        "before_layer_gcode",
+        "between_objects_gcode",
+        "bridge_acceleration",
+        "bridge_fan_speed",
+        "cooling",
+        "default_acceleration",
+        "deretract_speed",
+        "disable_fan_first_layers",
+        "duplicate_distance",
+        "end_gcode",
+        "end_filament_gcode",
+        "extrusion_axis",
+        "extruder_clearance_height",
+        "extruder_clearance_radius",
+        "extruder_colour",
+        "extruder_offset",
+        "extrusion_multiplier",
+        "fan_always_on",
+        "fan_below_layer_time",
+        "filament_colour",
+        "filament_diameter",
+        "filament_density",
+        "filament_notes",
+        "filament_cost",
+        "filament_max_volumetric_speed",
+        "first_layer_acceleration",
+        "first_layer_bed_temperature",
+        "first_layer_speed",
+        "gcode_comments",
+        "gcode_flavor",
+        "infill_acceleration",
+        "infill_first",
+        "layer_gcode",
+        "min_fan_speed",
+        "max_fan_speed",
+        "min_print_speed",
+        "max_print_speed",
+        "max_volumetric_speed",
+        "max_volumetric_extrusion_rate_slope_positive",
+        "max_volumetric_extrusion_rate_slope_negative",
+        "notes",
+        "only_retract_when_crossing_perimeters",
+        "output_filename_format",
+        "perimeter_acceleration",
+        "post_process",
+        "printer_notes",
+        "retract_before_travel",
+        "retract_before_wipe",
+        "retract_layer_change",
+        "retract_length",
+        "retract_length_toolchange",
+        "retract_lift",
+        "retract_lift_above",
+        "retract_lift_below",
+        "retract_restart_extra",
+        "retract_restart_extra_toolchange",
+        "retract_speed",
+        "slowdown_below_layer_time",
+        "standby_temperature_delta",
+        "start_gcode",
+        "start_filament_gcode",
+        "toolchange_gcode",
+        "threads",
+        "travel_speed",
+        "use_firmware_retraction",
+        "use_relative_e_distances",
+        "use_volumetric_e",
+        "variable_layer_height",
+        "wipe"
+    };
 
     std::vector<PrintStep> steps;
     std::vector<PrintObjectStep> osteps;
@@ -707,7 +707,10 @@ double Print::skirt_first_layer_height() const
 Flow Print::brim_flow() const
 {
     ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
-    if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
+    if (width.value == 0) 
+        width = this->regions.front()->config.perimeter_extrusion_width;
+    if (width.value == 0) 
+        width = this->objects.front()->config.extrusion_width;
     
     /* We currently use a random region's perimeter extruder.
        While this works for most cases, we should probably consider all of the perimeter
@@ -726,7 +729,10 @@ Flow Print::brim_flow() const
 Flow Print::skirt_flow() const
 {
     ConfigOptionFloatOrPercent width = this->config.first_layer_extrusion_width;
-    if (width.value == 0) width = this->regions.front()->config.perimeter_extrusion_width;
+    if (width.value == 0) 
+        width = this->regions.front()->config.perimeter_extrusion_width;
+    if (width.value == 0)
+        width = this->objects.front()->config.extrusion_width;
     
     /* We currently use a random object's support material extruder.
        While this works for most cases, we should probably consider all of the support material
@@ -1079,13 +1085,13 @@ std::string Print::output_filepath(const std::string &path)
             if (! input_file.empty())
                 break;
         }
-        return (boost::filesystem::path(input_file).parent_path() / this->output_filename()).string();
+        return (boost::filesystem::path(input_file).parent_path() / this->output_filename()).make_preferred().string();
     }
     
     // if we were supplied a directory, use it and append our automatically generated filename
     boost::filesystem::path p(path);
     if (boost::filesystem::is_directory(p))
-        return (p / this->output_filename()).string();
+        return (p / this->output_filename()).make_preferred().string();
     
     // if we were supplied a file which is not a directory, use it
     return path;

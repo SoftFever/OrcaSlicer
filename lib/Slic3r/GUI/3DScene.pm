@@ -1390,7 +1390,7 @@ sub _load_image_set_texture {
     my ($self, $file_name) = @_;
     # Load a PNG with an alpha channel.
     my $img = Wx::Image->new;
-    $img->LoadFile($Slic3r::var->($file_name), wxBITMAP_TYPE_PNG);
+    $img->LoadFile(Slic3r::var($file_name), wxBITMAP_TYPE_PNG);
     # Get RGB & alpha raw data from wxImage, interleave them into a Perl array.
     my @rgb = unpack 'C*', $img->GetData();
     my @alpha = $img->HasAlpha ? unpack 'C*', $img->GetAlpha() : (255) x (int(@rgb) / 3);

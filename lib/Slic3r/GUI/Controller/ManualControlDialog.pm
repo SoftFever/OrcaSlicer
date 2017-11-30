@@ -34,7 +34,7 @@ sub new {
         my $btn = Wx::Button->new($self, -1, $label, wxDefaultPosition, wxDefaultSize,
             wxBU_LEFT | wxBU_EXACTFIT);
         $btn->SetFont($bold ? $Slic3r::GUI::small_bold_font : $Slic3r::GUI::small_font);
-        $btn->SetBitmap(Wx::Bitmap->new($Slic3r::var->("$icon.png"), wxBITMAP_TYPE_PNG));
+        $btn->SetBitmap(Wx::Bitmap->new(Slic3r::var("$icon.png"), wxBITMAP_TYPE_PNG));
         $btn->SetBitmapPosition($pos);
         EVT_BUTTON($self, $btn, $handler);
         $sizer->Add($btn, 1, wxEXPAND | wxALL, 0);

@@ -92,12 +92,12 @@ if ($opt{save}) {
     if (@{$cli_config->get_keys} > 0) {
         $cli_config->save($opt{save});
     } else {
-        Slic3r::Config->new_from_defaults->save($opt{save});
+        Slic3r::Config::new_from_defaults->save($opt{save});
     }
 }
 
 # apply command line config on top of default config
-my $config = Slic3r::Config->new_from_defaults;
+my $config = Slic3r::Config::new_from_defaults;
 $config->apply($cli_config);
 
 # launch GUI
@@ -105,7 +105,7 @@ my $gui;
 if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
-        $Slic3r::GUI::datadir       = $opt{datadir} // '';
+        $Slic3r::GUI::datadir       = Slic3r::decode_path($opt{datadir} // '');
         $Slic3r::GUI::no_controller = $opt{no_controller};
         $Slic3r::GUI::no_plater     = $opt{no_plater};
         $Slic3r::GUI::autosave      = $opt{autosave};
@@ -236,16 +236,7 @@ if (@ARGV) {  # slicing from command line
 
 sub usage {
     my ($exit_code) = @_;
-    
-    my $config = Slic3r::Config->new_from_defaults->as_hash;
-    
-    my $j = '';
-    if ($Slic3r::have_threads) {
-        $j = <<"EOF";
-    -j, --threads <num> Number of threads to use (1+, default: $config->{threads})
-EOF
-    }
-    
+    my $config = Slic3r::Config::new_from_defaults->as_hash;
     print <<"EOF";
 Slic3r $Slic3r::VERSION is a STL-to-GCODE translator for RepRap 3D printers
 written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
@@ -270,8 +261,8 @@ Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
                         them as <name>_upper.stl and <name>_lower.stl
     --split             Split the shells contained in given STL file into several STL files
     --info              Output information about the supplied file(s) and exit
-    
-$j
+    -j, --threads <num> Number of threads to use (1+, default: $config->{threads})
+
   GUI options:
     --gui               Forces the GUI launch instead of command line slicing (if you
                         supply a model file, it will be loaded into the plater)

@@ -19,7 +19,7 @@ use Slic3r::Geometry::Clipper qw(diff);
 use Slic3r::Test;
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('support_material', 1);
     my @contact_z = my @top_z = ();
     
@@ -77,7 +77,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('raft_layers', 3);
     $config->set('brim_width',  0);
     $config->set('skirts', 0);
@@ -108,7 +108,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('raft_layers', 3);
     $config->set('support_material_pattern', 'honeycomb');
@@ -153,7 +153,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('layer_height', 0.35);
     $config->set('first_layer_height', 0.3);
@@ -192,7 +192,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('brim_width',  0);
     $config->set('skirts', 0);
     $config->set('support_material', 1);
@@ -232,7 +232,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('start_gcode', '');
     $config->set('raft_layers', 8);

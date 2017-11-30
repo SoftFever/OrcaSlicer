@@ -1,4 +1,5 @@
 #include <locale>
+#include <ctime>
 
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
@@ -6,8 +7,9 @@
 
 #include <boost/locale.hpp>
 
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
 #include <boost/filesystem.hpp>
-
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -84,6 +86,31 @@ const std::string& var_dir()
 std::string var(const std::string &file_name)
 {
     auto file = boost::filesystem::canonical(boost::filesystem::path(g_var_dir) / file_name).make_preferred();
+    return file.string();
+}
+
+static std::string g_data_dir;
+
+void set_data_dir(const std::string &dir)
+{
+    g_data_dir = dir;
+}
+
+const std::string& data_dir()
+{
+    return g_data_dir;
+}
+
+std::string config_path(const std::string &file_name)
+{
+    auto file = (boost::filesystem::path(g_data_dir) / file_name).make_preferred();
+    return file.string();
+}
+
+std::string config_path(const std::string &section, const std::string &name)
+{
+    auto file_name = boost::algorithm::iends_with(name, ".ini") ? name : name + ".ini";
+    auto file = (boost::filesystem::path(g_data_dir) / section / file_name).make_preferred();
     return file.string();
 }
 
@@ -205,6 +232,18 @@ std::string normalize_utf8_nfc(const char *src)
 {
     static std::locale locale_utf8(boost::locale::generator().generate(""));
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
+}
+
+std::string timestamp_str()
+{
+    const auto now = boost::posix_time::second_clock::local_time();
+    const auto date = now.date();
+    char buf[2048];
+    sprintf(buf, "on %04d-%02d-%02d at %02d:%02d:%02d",
+        // Local date in an ANSII format.
+        int(now.date().year()), int(now.date().month()), int(now.date().day()),
+        int(now.time_of_day().hours()), int(now.time_of_day().minutes()), int(now.time_of_day().seconds()));
+    return buf;
 }
 
 }; // namespace Slic3r

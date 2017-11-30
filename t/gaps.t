@@ -16,7 +16,7 @@ use Slic3r::Surface ':types';
 use Slic3r::Test;
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('perimeter_speed', 66);
     $config->set('external_perimeter_speed', 66);

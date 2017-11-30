@@ -14,7 +14,7 @@ use Slic3r::Geometry qw(scale PI);
 use Slic3r::Test;
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 1);
     $config->set('brim_width', 2);
     $config->set('perimeters', 3);
@@ -41,7 +41,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('bridge_speed', 99);
     $config->set('bridge_flow_ratio', 1);
     $config->set('cooling', [ 0 ]);             # to prevent speeds from being altered

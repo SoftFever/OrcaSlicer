@@ -11,9 +11,6 @@ use Slic3r::Geometry::Clipper qw(diff diff_ex intersection intersection_ex union
 use Slic3r::Print::State ':steps';
 use Slic3r::Surface ':types';
 
-# If enabled, phases of prepare_infill will be written into SVG files to an "out" directory.
-our $SLIC3R_DEBUG_SLICE_PROCESSING = 0;
-
 sub layers {
     my $self = shift;
     return [ map $self->get_layer($_), 0..($self->layer_count - 1) ];

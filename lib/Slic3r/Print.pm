@@ -255,13 +255,4 @@ sub make_wipe_tower {
     $self->set_step_done(STEP_WIPE_TOWER);
 }
 
-# Wrapper around the C++ Slic3r::Print::validate()
-# to produce a Perl exception without a hang-up on some Strawberry perls.
-sub validate
-{
-    my $self = shift;
-    my $err = $self->_validate;
-    die $err . "\n" if (defined($err) && $err ne '');
-}
-
 1;

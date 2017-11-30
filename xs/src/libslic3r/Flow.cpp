@@ -8,39 +8,6 @@ namespace Slic3r {
 // This static method returns a sane extrusion width default.
 static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, float height)
 {
-#if 0
-    // Here we calculate a sane default by matching the flow speed (at the nozzle) and the feed rate.
-    // shape: rectangle with semicircles at the ends
-    // This "sane" extrusion width gives the following results for a 0.4mm dmr nozzle:
-    // Layer   Calculated  Calculated width 
-    // heigh   extrusion   over nozzle
-    //         width       diameter
-    // 0.40    0.40        1.00
-    // 0.35    0.43        1.09
-    // 0.30    0.48        1.21
-    // 0.25    0.56        1.39
-    // 0.20    0.67        1.68
-    // 0.15    0.87        2.17
-    // 0.10    1.28        3.20
-    // 0.05    2.52        6.31
-    //
-    float width = float(0.25 * (nozzle_diameter * nozzle_diameter) * PI / height + height * (1.0 - 0.25 * PI));
-
-    switch (role) {
-    case frExternalPerimeter:
-    case frSupportMaterial:
-    case frSupportMaterialInterface:
-        return nozzle_diameter;
-    case frPerimeter:
-    case frSolidInfill:
-    case frTopSolidInfill:
-        // do not limit width for sparse infill so that we use full native flow for it
-        return std::min(std::max(width, nozzle_diameter * 1.05f), nozzle_diameter * 1.7f);
-    case frInfill:
-    default:
-        return std::max(width, nozzle_diameter * 1.05f);
-    }
-#else
     switch (role) {
     case frSupportMaterial:
     case frSupportMaterialInterface:
@@ -53,7 +20,6 @@ static inline float auto_extrusion_width(FlowRole role, float nozzle_diameter, f
     case frInfill:
         return 1.125f * nozzle_diameter;
     }
-#endif
 }
 
 // This constructor builds a Flow object from an extrusion width config setting
@@ -154,10 +120,11 @@ Flow support_material_flow(const PrintObject *object, float layer_height)
 
 Flow support_material_1st_layer_flow(const PrintObject *object, float layer_height)
 {
+    const auto &width = (object->print()->config.first_layer_extrusion_width.value > 0) ? object->print()->config.first_layer_extrusion_width : object->config.support_material_extrusion_width;
     return Flow::new_from_config_width(
         frSupportMaterial,
         // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
-        (object->print()->config.first_layer_extrusion_width.value > 0) ? object->print()->config.first_layer_extrusion_width : object->config.support_material_extrusion_width,
+        (width.value > 0) ? width : object->config.extrusion_width,
         float(object->print()->config.nozzle_diameter.get_at(object->config.support_material_extruder-1)),
         (layer_height > 0.f) ? layer_height : float(object->config.first_layer_height.get_abs_value(object->config.layer_height.value)),
         false);

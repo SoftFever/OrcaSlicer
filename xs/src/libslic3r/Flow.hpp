@@ -52,6 +52,9 @@ public:
     coord_t scaled_spacing(const Flow &other) const { return coord_t(scale_(this->spacing(other))); };
     
     static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio);
+    // Create a flow from the spacing of extrusion lines.
+    // This method is used exclusively to calculate new flow of 100% infill, where the extrusion width was allowed to scale
+    // to fit a region with integer number of lines.
     static Flow new_from_spacing(float spacing, float nozzle_diameter, float height, bool bridge);
 };
 

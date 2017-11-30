@@ -13,7 +13,7 @@ use Slic3r;
 use Slic3r::Test qw(_eq);
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
 
     my $test = sub {
         my ($conf) = @_;

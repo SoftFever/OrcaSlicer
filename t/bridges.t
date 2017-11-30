@@ -109,7 +109,7 @@ sub check_angle {
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('top_solid_layers', 0);            # to prevent bridging on sparse infill
     $config->set('bridge_speed', 99);
     

@@ -17,12 +17,7 @@ void FillHoneycomb::_fill_surface_single(
     CacheID cache_id(params.density, this->spacing);
     Cache::iterator it_m = this->cache.find(cache_id);
     if (it_m == this->cache.end()) {
-#if 0
-// #if SLIC3R_CPPVER > 11
-        it_m = this->cache.emplace_hint(it_m);
-#else
         it_m = this->cache.insert(it_m, std::pair<CacheID, CacheData>(cache_id, CacheData()));
-#endif
         CacheData &m = it_m->second;
         coord_t min_spacing = scale_(this->spacing);
         m.distance = min_spacing / params.density;
@@ -99,11 +94,7 @@ void FillHoneycomb::_fill_surface_single(
         // connect paths
         if (! paths.empty()) { // prevent calling leftmost_point() on empty collections
             Polylines chained = PolylineCollection::chained_path_from(
-#if SLIC3R_CPPVER >= 11
                 std::move(paths), 
-#else
-                paths,
-#endif
                 PolylineCollection::leftmost_point(paths), false);
             assert(paths.empty());
             paths.clear();

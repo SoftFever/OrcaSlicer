@@ -6,6 +6,7 @@ use warnings;
 use utf8;
 
 use File::Basename qw(basename dirname);
+use FindBin;
 use List::Util qw(min);
 use Slic3r::Geometry qw(X Y);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
@@ -22,12 +23,12 @@ sub new {
     
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
     if ($^O eq 'MSWin32') {
-        # Load the icon either from the exe, or fron the ico file.
-        my $iconfile = $Slic3r::var->('..\slic3r.exe');
-        $iconfile = $Slic3r::var->("Slic3r.ico") unless -f $iconfile;
+        # Load the icon either from the exe, or from the ico file.
+        my $iconfile = Slic3r::decode_path($FindBin::Bin) . '\slic3r.exe';
+        $iconfile = Slic3r::var("Slic3r.ico") unless -f $iconfile;
         $self->SetIcon(Wx::Icon->new($iconfile, wxBITMAP_TYPE_ICO));
     } else {
-        $self->SetIcon(Wx::Icon->new($Slic3r::var->("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));        
+        $self->SetIcon(Wx::Icon->new(Slic3r::var("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));        
     }
     
     # store input params
@@ -69,15 +70,15 @@ sub new {
     # declare events
     EVT_CLOSE($self, sub {
         my (undef, $event) = @_;
-        
         if ($event->CanVeto && !$self->check_unsaved_changes) {
             $event->Veto;
             return;
         }
-        
         # save window size
         wxTheApp->save_window_pos($self, "main_frame");
-        
+        # Save the slic3r.ini. Usually the ini file is saved from "on idle" callback,
+        # but in rare cases it may not have been called yet.
+        wxTheApp->{app_config}->save;
         # propagate event
         $event->Skip;
     });
@@ -112,7 +113,7 @@ sub _init_tabpanel {
         # Callback to be executed after any of the configuration fields (Perl class Slic3r::GUI::OptionsGroup::Field) change their value.
         $tab->on_value_change(sub {
             my ($opt_key, $value) = @_;
-            my $config = $tab->config;
+            my $config = $tab->{presets}->get_current_preset->config;
             if ($self->{plater}) {
                 $self->{plater}->on_config_change($config); # propagate config change events to the plater
                 $self->{plater}->on_extruders_change($value) if $opt_key eq 'extruders_count';
@@ -126,24 +127,35 @@ sub _init_tabpanel {
             if ($self->{plater}) {
                 # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
                 $self->{plater}->update_presets($tab_name, @_);
-                $self->{plater}->on_config_change($tab->config);
-                if ($self->{controller}) {
-                    $self->{controller}->update_presets($tab_name, @_);
+                if ($tab_name eq 'printer') {
+                    # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
+                    wxTheApp->{preset_bundle}->print->update_tab_ui(
+                        $self->{options_tabs}{'print'}->{presets_choice},
+                        $self->{options_tabs}{'print'}->{show_incompatible_presets});
+                    wxTheApp->{preset_bundle}->filament->update_tab_ui(
+                        $self->{options_tabs}{'filament'}->{presets_choice},
+                        $self->{options_tabs}{'filament'}->{show_incompatible_presets});
+                    # Update the controller printers.
+                    $self->{controller}->update_presets(@_) if $self->{controller};
                 }
+                $self->{plater}->on_config_change($tab->{presets}->get_current_preset->config);
             }
         });
-        $tab->load_presets;
+        # Load the currently selected preset into the GUI, update the preset selection box.
+        $tab->load_current_preset;
         $panel->AddPage($tab, $tab->title);
     }
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
-            my ($group, $i) = @_;
-	        $self->{options_tabs}{$group}->select_preset($i);
+            my ($group, $name) = @_;
+	        $self->{options_tabs}{$group}->select_preset($name);
         });
-        
         # load initial config
-        $self->{plater}->on_config_change($self->config);
+        my $full_config = wxTheApp->{preset_bundle}->full_config;
+        $self->{plater}->on_config_change($full_config);
+        # Show a correct number of filament fields.
+        $self->{plater}->on_extruders_change(int(@{$full_config->nozzle_diameter}));
     }
 }
 
@@ -329,7 +341,6 @@ sub is_loaded {
 # Selection of a 3D object changed on the platter.
 sub on_plater_selection_changed {
     my ($self, $have_selection) = @_;
-    
     return if !defined $self->{object_menu};
     $self->{object_menu}->Enable($_->GetId, $have_selection)
         for $self->{object_menu}->GetMenuItems;
@@ -337,20 +348,20 @@ sub on_plater_selection_changed {
 
 # To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".
 sub quick_slice {
-    my $self = shift;
-    my %params = @_;
+    my ($self, %params) = @_;
     
     my $progress_dialog;
     eval {
         # validate configuration
-        my $config = $self->config;
+        my $config = wxTheApp->{preset_bundle}->full_config();
         $config->validate;
         
         # select input file
         my $input_file;
-        my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF/PRUSA):', $dir, "", &Slic3r::GUI::MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF/PRUSA):', 
+                wxTheApp->{app_config}->get_last_dir, "", 
+                &Slic3r::GUI::MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {
                 $dialog->Destroy;
                 return;
@@ -372,8 +383,7 @@ sub quick_slice {
             $input_file = $qs_last_input_file;
         }
         my $input_file_basename = basename($input_file);
-        $Slic3r::GUI::Settings->{recent}{skein_directory} = dirname($input_file);
-        wxTheApp->save_settings;
+        wxTheApp->{app_config}->update_skein_dir(dirname($input_file));
         
         my $print_center;
         {
@@ -395,11 +405,9 @@ sub quick_slice {
         $sprint->apply_config($config);
         $sprint->set_model($model);
         
-        {
-            my $extra = $self->extra_variables;
-            $sprint->placeholder_parser->set($_, $extra->{$_}) for keys %$extra;
-        }
-        
+        # Copy the names of active presets into the placeholder parser.
+        wxTheApp->{preset_bundle}->export_selections_pp($sprint->placeholder_parser);
+
         # select output file
         my $output_file;
         if ($params{reslice}) {
@@ -408,7 +416,7 @@ sub quick_slice {
             $output_file = $sprint->output_filepath;
             $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.svg/ if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
-                wxTheApp->output_path(dirname($output_file)),
+                wxTheApp->{app_config}->get_last_output_dir(dirname($output_file)),
                 basename($output_file), $params{export_svg} ? &Slic3r::GUI::FILE_WILDCARDS->{svg} : &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if ($dlg->ShowModal != wxID_OK) {
                 $dlg->Destroy;
@@ -416,8 +424,7 @@ sub quick_slice {
             }
             $output_file = $dlg->GetPath;
             $qs_last_output_file = $output_file unless $params{export_svg};
-            $Slic3r::GUI::Settings->{_}{last_output_path} = dirname($output_file);
-            wxTheApp->save_settings;
+            wxTheApp->{app_config}->update_last_output_dir(dirname($output_file));
             $dlg->Destroy;
         }
         
@@ -452,9 +459,7 @@ sub quick_slice {
 
 sub reslice_now {
     my ($self) = @_;
-    if ($self->{plater}) {
-        $self->{plater}->reslice;
-    }
+    $self->{plater}->reslice if $self->{plater};
 }
 
 sub repair_stl {
@@ -462,8 +467,9 @@ sub repair_stl {
     
     my $input_file;
     {
-        my $dir = $Slic3r::GUI::Settings->{recent}{skein_directory} || $Slic3r::GUI::Settings->{recent}{config_directory} || '';
-        my $dialog = Wx::FileDialog->new($self, 'Select the STL file to repair:', $dir, "", &Slic3r::GUI::FILE_WILDCARDS->{stl}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        my $dialog = Wx::FileDialog->new($self, 'Select the STL file to repair:',
+            wxTheApp->{app_config}->get_last_dir, "",
+            &Slic3r::GUI::FILE_WILDCARDS->{stl}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if ($dialog->ShowModal != wxID_OK) {
             $dialog->Destroy;
             return;
@@ -492,36 +498,25 @@ sub repair_stl {
     Slic3r::GUI::show_info($self, "Your file was repaired.", "Repair");
 }
 
-sub extra_variables {
-    my $self = shift;
-    my %extra_variables = ();
-    $extra_variables{"${_}_preset"} = $self->{options_tabs}{$_}->get_current_preset->name
-        for qw(print filament printer);
-    return { %extra_variables };
-}
-
 sub export_config {
     my $self = shift;
-    
-    my $config = $self->config;
-    eval {
-        # validate configuration
-        $config->validate;
-    };
+    # Generate a cummulative configuration for the selected print, filaments and printer.    
+    my $config = wxTheApp->{preset_bundle}->full_config();
+    # Validate the cummulative configuration.
+    eval { $config->validate; };
     Slic3r::GUI::catch_error($self) and return;
-    
-    my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
-    my $filename = $last_config ? basename($last_config) : "config.ini";
-    my $dlg = Wx::FileDialog->new($self, 'Save configuration as:', $dir, $filename, 
+    # Ask user for the file name for the config file.
+    my $dlg = Wx::FileDialog->new($self, 'Save configuration as:',
+        $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
+        $last_config ? basename($last_config) : "config.ini",
         &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if ($dlg->ShowModal == wxID_OK) {
-        my $file = $dlg->GetPath;
-        $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
-        wxTheApp->save_settings;
+    my $file = ($dlg->ShowModal == wxID_OK) ? $dlg->GetPath : undef;
+    $dlg->Destroy;
+    if (defined $file) {
+        wxTheApp->{app_config}->update_config_dir(dirname($file));
         $last_config = $file;
         $config->save($file);
     }
-    $dlg->Destroy;
 }
 
 # Load a config file containing a Print, Filament & Printer preset.
@@ -529,222 +524,115 @@ sub load_config_file {
     my ($self, $file) = @_;
     if (!$file) {
         return unless $self->check_unsaved_changes;
-        my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
-        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
-                'INI files (*.ini, *.gcode)|*.ini;*.INI;*.gcode;*.g', wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', 
+            $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
+            "config.ini",
+            'INI files (*.ini, *.gcode)|*.ini;*.INI;*.gcode;*.g', wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         return unless $dlg->ShowModal == wxID_OK;
         $file = $dlg->GetPaths;
         $dlg->Destroy;
     }
-    for my $tab (values %{$self->{options_tabs}}) {
-        # Dont proceed further if the config file cannot be loaded.
-        return undef if ! $tab->load_config_file($file);
-    }
-    $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
-    wxTheApp->save_settings;
+    eval { wxTheApp->{preset_bundle}->load_config_file($file); };
+    # Dont proceed further if the config file cannot be loaded.
+    return if Slic3r::GUI::catch_error($self);
+    $_->load_current_preset for (values %{$self->{options_tabs}});
+    wxTheApp->{app_config}->update_config_dir(dirname($file));
     $last_config = $file;
 }
 
 sub export_configbundle {
-    my $self = shift;
-    
-    eval {
-        # validate current configuration in case it's dirty
-        $self->config->validate;
-    };
+    my ($self) = @_;
+    return unless $self->check_unsaved_changes;
+    # validate current configuration in case it's dirty
+    eval { wxTheApp->{preset_bundle}->full_config->validate; };
     Slic3r::GUI::catch_error($self) and return;
-    
-    my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
-    my $filename = "Slic3r_config_bundle.ini";
-    my $dlg = Wx::FileDialog->new($self, 'Save presets bundle as:', $dir, $filename, 
+    # Ask user for a file name.
+    my $dlg = Wx::FileDialog->new($self, 'Save presets bundle as:',
+        $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
+        "Slic3r_config_bundle.ini", 
         &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if ($dlg->ShowModal == wxID_OK) {
-        my $file = $dlg->GetPath;
-        $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
-        wxTheApp->save_settings;
-        
-        # leave default category empty to prevent the bundle from being parsed as a normal config file
-        my $ini = { _ => {} };
-        $ini->{settings}{$_} = $Slic3r::GUI::Settings->{_}{$_} for qw(autocenter);
-        $ini->{presets} = $Slic3r::GUI::Settings->{presets};
-
-        foreach my $section (qw(print filament printer)) {
-            my %presets = wxTheApp->presets($section);
-            foreach my $preset_name (keys %presets) {
-                my $config = Slic3r::Config->load($presets{$preset_name});
-                $ini->{"$section:$preset_name"} = $config->as_ini->{_};
-            }
-        }
-        
-        Slic3r::Config->write_ini($file, $ini);
-    }
+    my $file = ($dlg->ShowModal == wxID_OK) ? $dlg->GetPath : undef;
     $dlg->Destroy;
+    if (defined $file) {
+        # Export the config bundle.
+        wxTheApp->{app_config}->update_config_dir(dirname($file));
+        eval { wxTheApp->{preset_bundle}->export_configbundle($file); };
+        Slic3r::GUI::catch_error($self) and return;
+    }
 }
 
+# Loading a config bundle with an external file name used to be used
+# to auto-install a config bundle on a fresh user account,
+# but that behavior was not documented and likely buggy.
 sub load_configbundle {
-    my ($self, $file, $skip_no_id) = @_;
-    
+    my ($self, $file) = @_;
+    return unless $self->check_unsaved_changes;
     if (!$file) {
-        my $dir = $last_config ? dirname($last_config) : $Slic3r::GUI::Settings->{recent}{config_directory} || $Slic3r::GUI::Settings->{recent}{skein_directory} || '';
-        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', $dir, "config.ini", 
-                &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', 
+            $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
+            "config.ini", 
+            &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         return unless $dlg->ShowModal == wxID_OK;
         $file = $dlg->GetPaths;
         $dlg->Destroy;
     }
     
-    $Slic3r::GUI::Settings->{recent}{config_directory} = dirname($file);
-    wxTheApp->save_settings;
-    
-    # load .ini file
-    my $ini = Slic3r::Config->read_ini($file);
-    
-    if ($ini->{settings}) {
-        $Slic3r::GUI::Settings->{_}{$_} = $ini->{settings}{$_} for keys %{$ini->{settings}};
-        wxTheApp->save_settings;
-    }
-    if ($ini->{presets}) {
-        $Slic3r::GUI::Settings->{presets} = $ini->{presets};
-        wxTheApp->save_settings;
-    }
+    wxTheApp->{app_config}->update_config_dir(dirname($file));
 
-    my $imported = 0;
-    INI_BLOCK: foreach my $ini_category (sort keys %$ini) {
-        next unless $ini_category =~ /^(print|filament|printer):(.+)$/;
-        my ($section, $preset_name) = ($1, $2);
-        my $config = Slic3r::Config->load_ini_hash($ini->{$ini_category});
-        next if $skip_no_id && !$config->get($section . "_settings_id");
-        
-        {
-            my %current_presets = Slic3r::GUI->presets($section);
-            my %current_ids = map { $_ => 1 }
-                grep $_,
-                map Slic3r::Config->load($_)->get($section . "_settings_id"),
-                values %current_presets;
-            next INI_BLOCK if exists $current_ids{$config->get($section . "_settings_id")};
-        }
-        
-        $config->save(sprintf "$Slic3r::GUI::datadir/%s/%s.ini", $section, $preset_name);
-        Slic3r::debugf "Imported %s preset %s\n", $section, $preset_name;
-        $imported++;
-    }
+    my $presets_imported = 0;
+    eval { $presets_imported = wxTheApp->{preset_bundle}->load_configbundle($file); };
+    Slic3r::GUI::catch_error($self) and return;
+
+    # Load the currently selected preset into the GUI, update the preset selection box.
     foreach my $tab (values %{$self->{options_tabs}}) {
-        $tab->load_presets;
+        $tab->load_current_preset;
     }
     
-    return if !$imported;
-    
-    my $message = sprintf "%d presets successfully imported.", $imported;
+    my $message = sprintf "%d presets successfully imported.", $presets_imported;
     Slic3r::GUI::show_info($self, $message);
 }
 
 # Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
 # Also update the platter with the new presets.
 sub load_config {
-    my $self = shift;
-    my ($config) = @_;
-    
-    foreach my $tab (values %{$self->{options_tabs}}) {
-        $tab->load_config($config);
-    }
-    if ($self->{plater}) {
-        $self->{plater}->on_config_change($config);
-    }
+    my ($self, $config) = @_;    
+    $_->load_config($config) foreach values %{$self->{options_tabs}};
+    $self->{plater}->on_config_change($config) if $self->{plater};
 }
 
 sub config_wizard {
-    my $self = shift;
-
+    my ($self) = @_;
+    # Exit wizard if there are unsaved changes and the user cancels the action.
     return unless $self->check_unsaved_changes;
     if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {
         for my $tab (values %{$self->{options_tabs}}) {
-            $tab->select_default_preset;
+            # Select the first visible preset, force.
+            $tab->select_preset(undef, 1);
         }
+        # Load the config over the previously selected defaults.
         $self->load_config($config);
         for my $tab (values %{$self->{options_tabs}}) {
+            # Save the settings under a new name, select the name.
             $tab->save_preset('My Settings');
         }
     }
 }
 
-=head2 config
-
-This method collects all config values from the tabs and merges them into a single config object.
-
-=cut
-
-sub config {
-    my $self = shift;
-    
-    return Slic3r::Config->new_from_defaults
-        if !exists $self->{options_tabs}{print}
-            || !exists $self->{options_tabs}{filament}
-            || !exists $self->{options_tabs}{printer};
-    
-    # retrieve filament presets and build a single config object for them
-    my $filament_config;
-    if (!$self->{plater} || $self->{plater}->filament_presets == 1) {
-        $filament_config = $self->{options_tabs}{filament}->config;
-    } else {
-        my $i = -1;
-        foreach my $preset_idx ($self->{plater}->filament_presets) {
-            $i++;
-            my $config;
-            if ($preset_idx == $self->{options_tabs}{filament}->current_preset) {
-                # the selected preset for this extruder is the one in the tab
-                # use the tab's config instead of the preset in case it is dirty
-                # perhaps plater shouldn't expose dirty presets at all in multi-extruder environments.
-                $config = $self->{options_tabs}{filament}->config;
-            } else {
-                my $preset = $self->{options_tabs}{filament}->get_preset($preset_idx);
-                $config = $self->{options_tabs}{filament}->get_preset_config($preset);
-            }
-            if (!$filament_config) {
-                $filament_config = $config->clone;
-                next;
-            }
-            foreach my $opt_key (@{$config->get_keys}) {
-                my $value = $filament_config->get($opt_key);
-                next unless ref $value eq 'ARRAY';
-                $value->[$i] = $config->get($opt_key)->[0];
-                $filament_config->set($opt_key, $value);
-            }
-        }
-    }
-    
-    my $config = Slic3r::Config->merge(
-        Slic3r::Config->new_from_defaults,
-        $self->{options_tabs}{print}->config,
-        $self->{options_tabs}{printer}->config,
-        $filament_config,
-    );
-    
-    my $extruders_count = $self->{options_tabs}{printer}{extruders_count};
-    $config->set("${_}_extruder", min($config->get("${_}_extruder"), $extruders_count))
-        for qw(perimeter infill solid_infill support_material support_material_interface);
-    
-    return $config;
-}
-
-sub filament_preset_names {
-    my ($self) = @_;
-    return map $self->{options_tabs}{filament}->get_preset($_)->name,
-        $self->{plater}->filament_presets;
-}
-
+# This is called when closing the application, when loading a config file or when starting the config wizard
+# to notify the user whether he is aware that some preset changes will be lost.
 sub check_unsaved_changes {
     my $self = shift;
     
     my @dirty = ();
     foreach my $tab (values %{$self->{options_tabs}}) {
-        push @dirty, $tab->title if $tab->is_dirty;
+        push @dirty, $tab->title if $tab->{presets}->current_is_dirty;
     }
     
     if (@dirty) {
         my $titles = join ', ', @dirty;
         my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",
                                              'Unsaved Presets', wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-        return ($confirm->ShowModal == wxID_YES);
+        return $confirm->ShowModal == wxID_YES;
     }
     
     return 1;
@@ -765,21 +653,18 @@ sub select_view {
 
 sub _append_menu_item {
     my ($self, $menu, $string, $description, $cb, $id, $icon) = @_;
-    
     $id //= &Wx::NewId();
     my $item = $menu->Append($id, $string, $description);
     $self->_set_menu_item_icon($item, $icon);
-    
     EVT_MENU($self, $id, $cb);
     return $item;
 }
 
 sub _set_menu_item_icon {
     my ($self, $menuItem, $icon) = @_;
-    
     # SetBitmap was not available on OS X before Wx 0.9927
     if ($icon && $menuItem->can('SetBitmap')) {
-        $menuItem->SetBitmap(Wx::Bitmap->new($Slic3r::var->($icon), wxBITMAP_TYPE_PNG));
+        $menuItem->SetBitmap(Wx::Bitmap->new(Slic3r::var($icon), wxBITMAP_TYPE_PNG));
     }
 }
 
@@ -787,8 +672,11 @@ sub _set_menu_item_icon {
 # Update the UI based on the current preferences.
 sub update_ui_from_settings {
     my ($self) = @_;
-    $self->{menu_item_reslice_now}->Enable(! $Slic3r::GUI::Settings->{_}{background_processing});
+    $self->{menu_item_reslice_now}->Enable(! wxTheApp->{app_config}->get("background_processing"));
     $self->{plater}->update_ui_from_settings if ($self->{plater});
+    for my $tab_name (qw(print filament printer)) {
+        $self->{options_tabs}{$tab_name}->update_ui_from_settings;
+    }
 }
 
 1;
