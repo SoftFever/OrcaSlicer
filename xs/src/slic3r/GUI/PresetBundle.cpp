@@ -556,9 +556,9 @@ static inline int hex_digit_to_int(const char c)
 static inline bool parse_color(const std::string &scolor, unsigned char *rgb_out)
 {
     rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
-    const char        *c      = scolor.data() + 1;
     if (scolor.size() != 7 || scolor.front() != '#')
         return false;
+    const char *c = scolor.data() + 1;
     for (size_t i = 0; i < 3; ++ i) {
         int digit1 = hex_digit_to_int(*c ++);
         int digit2 = hex_digit_to_int(*c ++);

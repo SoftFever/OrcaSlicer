@@ -229,13 +229,6 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy(Pointf(m_priming.end_pos.x, m_priming.end_pos.y));
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, m_priming.end_pos));
-        // Append the filament start G-code, so the linear advance value will be restored.
-        const std::string &start_filament_gcode = gcodegen.config().start_filament_gcode.get_at(current_extruder_id);
-        if (! start_filament_gcode.empty()) {
-            // Process the start_filament_gcode for the active filament only to restore the linear advance value.
-            gcode += gcodegen.placeholder_parser().process(start_filament_gcode, current_extruder_id);
-            check_add_eol(gcode);
-        }
         // Prepare a future wipe.
         gcodegen.m_wipe.path.points.clear();
         // Start the wipe at the current position.
