@@ -191,6 +191,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower_y"
             || opt_key == "wipe_tower_width"
             || opt_key == "wipe_tower_per_color_wipe"
+            || opt_key == "wipe_tower_rotation_angle"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
         } else if (
@@ -983,7 +984,7 @@ void Print::_make_wipe_tower()
     WipeTowerPrusaMM wipe_tower(
         float(this->config.wipe_tower_x.value),     float(this->config.wipe_tower_y.value), 
         float(this->config.wipe_tower_width.value), float(this->config.wipe_tower_per_color_wipe.value),
-        initial_extruder_id);
+        float(this->config.wipe_tower_rotation_angle.value), initial_extruder_id);
     
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();

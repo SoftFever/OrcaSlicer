@@ -725,6 +725,7 @@ sub build {
             $optgroup->append_single_option_line('wipe_tower_y');
             $optgroup->append_single_option_line('wipe_tower_width');
             $optgroup->append_single_option_line('wipe_tower_per_color_wipe');
+            $optgroup->append_single_option_line('wipe_tower_rotation_angle');
         }
         {
             my $optgroup = $page->new_optgroup('Advanced');
@@ -1032,7 +1033,7 @@ sub _update {
 
     my $have_wipe_tower = $config->wipe_tower;
     $self->get_field($_)->toggle($have_wipe_tower)
-        for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe);
+        for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe wipe_tower_rotation_angle);
 
     $self->Thaw;
 }

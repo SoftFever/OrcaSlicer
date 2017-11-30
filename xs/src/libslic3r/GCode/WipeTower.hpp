@@ -32,7 +32,7 @@ public:
 			out.y=(x-origin.x) * sin(angle)  +  (y-origin.y) * cos(angle);
 			return out+origin;
 		}
-			
+		
 		float x;
 		float y;
 	};

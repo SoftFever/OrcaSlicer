@@ -14,7 +14,6 @@
 #define strcasecmp _stricmp
 #endif
 
-#define ROTATION_ANGLE 30
 
 
 namespace Slic3r
@@ -548,7 +547,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		  .set_z(m_z_pos)
 		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
-		  .set_rotation(this->m_wipe_tower_pos,ROTATION_ANGLE)
+		  .set_rotation(this->m_wipe_tower_pos,m_wipe_tower_rotation_angle)
 		  .append(";--------------------\n"
 			 	  "; CP TOOLCHANGE START\n")
 		  .comment_with_value(" toolchange #", m_num_tool_changes)
@@ -646,7 +645,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 		  .set_z(m_z_pos)
 		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
-		  .set_rotation(this->m_wipe_tower_pos,ROTATION_ANGLE)
+		  .set_rotation(this->m_wipe_tower_pos,m_wipe_tower_rotation_angle)
 		  .append(
 			";-------------------------------------\n"
 			"; CP WIPE TOWER FIRST LAYER BRIM START\n");
@@ -935,7 +934,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 		  .set_z(m_z_pos)
 		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
-		  .set_rotation(this->m_wipe_tower_pos,ROTATION_ANGLE)
+		  .set_rotation(this->m_wipe_tower_pos,m_wipe_tower_rotation_angle)
 		  .append(";--------------------\n"
 				  "; CP EMPTY GRID START\n")
 		  // m_num_layer_changes is incremented by set_z, so it is 1 based.

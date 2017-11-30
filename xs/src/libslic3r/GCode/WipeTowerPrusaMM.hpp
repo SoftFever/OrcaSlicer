@@ -8,6 +8,8 @@
 
 #include "WipeTower.hpp"
 
+
+
 namespace Slic3r
 {
 
@@ -39,10 +41,11 @@ public:
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
-	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, unsigned int initial_tool) :
+	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, float rotation_angle, unsigned int initial_tool) :
 		m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
 		m_wipe_area(wipe_area),
+		m_wipe_tower_rotation_angle(rotation_angle),
 		m_z_pos(0.f),
 		m_current_tool(initial_tool)
  	{
@@ -96,6 +99,7 @@ public:
 		// Extrusion rate for an extrusion aka perimeter width 0.35mm.
 		// Clamp the extrusion height to a 0.2mm layer height, independent of the nozzle diameter.
 //		m_extrusion_flow = std::min(0.2f, layer_height) * 0.145f;
+
 		// Use a strictly
 		m_extrusion_flow = layer_height * 0.145f;
 	}
@@ -149,6 +153,8 @@ private:
 	float  			m_wipe_tower_width;
 	// Per color Y span.
 	float  			m_wipe_area;
+	// Wipe tower rotation angle in degrees (with respect to x axis
+	float			m_wipe_tower_rotation_angle;
 	// Current Z position.
 	float  			m_z_pos 			= 0.f;
 	// Current layer height.

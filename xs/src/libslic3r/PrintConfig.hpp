@@ -607,6 +607,7 @@ public:
     ConfigOptionFloat               wipe_tower_y;
     ConfigOptionFloat               wipe_tower_width;
     ConfigOptionFloat               wipe_tower_per_color_wipe;
+    ConfigOptionFloat               wipe_tower_rotation_angle;
     ConfigOptionFloat               z_offset;
     
 protected:
@@ -671,6 +672,7 @@ protected:
         OPT_PTR(wipe_tower_y);
         OPT_PTR(wipe_tower_width);
         OPT_PTR(wipe_tower_per_color_wipe);
+        OPT_PTR(wipe_tower_rotation_angle);
         OPT_PTR(z_offset);
     }
 };

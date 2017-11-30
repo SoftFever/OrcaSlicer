@@ -1708,6 +1708,13 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "wipe-tower-per-color-wipe=f";
     def->default_value = new ConfigOptionFloat(15.);
 
+    def = this->add("wipe_tower_rotation_angle", coFloat);
+    def->label = "Wipe tower rotation angle";
+    def->tooltip = "Wipe tower rotation angle with respect to x-asis ";
+    def->sidetext = "degrees";
+    def->cli = "wipe-tower-rotation-angle=f";
+    def->default_value = new ConfigOptionFloat(0.);
+
     def = this->add("xy_size_compensation", coFloat);
     def->label = "XY Size Compensation";
     def->category = "Advanced";
