@@ -307,10 +307,9 @@ int GLVolumeCollection::load_wipe_tower_preview(
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
     auto mesh = make_cube(width, depth, height);
-	v.origin = Pointf3(pos_x, pos_y, 0.);
-	Point origin = Point(pos_x,pos_y);
-	mesh.rotate(rotation_angle,&origin);
+	mesh.rotate_z(rotation_angle*M_PI/180.);
 	v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+	v.origin = Pointf3(pos_x, pos_y, 0.);
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
 	v.indexed_vertex_array.finalize_geometry(use_VBOs);
