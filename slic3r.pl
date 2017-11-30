@@ -100,17 +100,12 @@ if ($opt{save}) {
 my $config = Slic3r::Config::new_from_defaults;
 $config->apply($cli_config);
 
-# locate or create data directory
-# Unix: ~/.Slic3r
-# Windows: "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
-# Mac: "~/Library/Application Support/Slic3r"
-Slic3r::set_data_dir($opt{datadir} || Wx::StandardPaths::Get->GetUserDataDir);
-
 # launch GUI
 my $gui;
 if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
+        $Slic3r::GUI::datadir       = Slic3r::decode_path($opt{datadir} // '');
         $Slic3r::GUI::no_controller = $opt{no_controller};
         $Slic3r::GUI::no_plater     = $opt{no_plater};
         $Slic3r::GUI::autosave      = $opt{autosave};

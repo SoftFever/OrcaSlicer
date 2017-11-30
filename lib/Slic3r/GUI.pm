@@ -52,6 +52,8 @@ use constant FILE_WILDCARDS => {
 };
 use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf prusa)};
 
+# Datadir provided on the command line.
+our $datadir;
 # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
 our $no_plater;
 our @cb;
@@ -71,6 +73,12 @@ sub OnInit {
     $self->SetAppName('Slic3r');
     $self->SetAppDisplayName('Slic3r Prusa Edition');
     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
+
+    # Set the Slic3r data directory at the Slic3r XS module.
+    # Unix: ~/.Slic3r
+    # Windows: "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
+    # Mac: "~/Library/Application Support/Slic3r"
+    Slic3r::set_data_dir($datadir || Wx::StandardPaths::Get->GetUserDataDir);
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
