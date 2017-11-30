@@ -64,12 +64,11 @@ PresetBundle::~PresetBundle()
 
 void PresetBundle::setup_directories()
 {
-    boost::filesystem::path dir = boost::filesystem::canonical(Slic3r::data_dir());
-    if (! boost::filesystem::is_directory(dir))
-        throw std::runtime_error(std::string("datadir does not exist: ") + Slic3r::data_dir());
-    std::initializer_list<const char*> names = { "print", "filament", "printer" };
-    for (const char *name : names) {
-		boost::filesystem::path subdir = (dir / name).make_preferred();
+    boost::filesystem::path data_dir = boost::filesystem::path(Slic3r::data_dir());
+    std::initializer_list<boost::filesystem::path> paths = { data_dir, data_dir / "print", data_dir / "filament", data_dir / "printer" };
+    for (const boost::filesystem::path &path : paths) {
+		boost::filesystem::path subdir = path;
+        subdir.make_preferred();
         if (! boost::filesystem::is_directory(subdir) && 
             ! boost::filesystem::create_directory(subdir))
             throw std::runtime_error(std::string("Slic3r was unable to create its data directory at ") + subdir.string());
