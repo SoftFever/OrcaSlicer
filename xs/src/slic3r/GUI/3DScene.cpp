@@ -301,17 +301,19 @@ std::vector<int> GLVolumeCollection::load_object(
 
 
 int GLVolumeCollection::load_wipe_tower_preview(
-    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs)
+    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs)
 {
     float color[4] = { 1.0f, 1.0f, 0.0f, 0.5f };
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
     auto mesh = make_cube(width, depth, height);
-    v.indexed_vertex_array.load_mesh_flat_shading(mesh);
-    v.origin = Pointf3(pos_x, pos_y, 0.);
+	v.origin = Pointf3(pos_x, pos_y, 0.);
+	Point origin = Point(pos_x,pos_y);
+	mesh.rotate(rotation_angle,&origin);
+	v.indexed_vertex_array.load_mesh_flat_shading(mesh);
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
-    v.indexed_vertex_array.finalize_geometry(use_VBOs);
+	v.indexed_vertex_array.finalize_geometry(use_VBOs);
     v.composite_id = obj_idx * 1000000;
     v.select_group_id = obj_idx * 1000000;
     v.drag_group_id = obj_idx * 1000;

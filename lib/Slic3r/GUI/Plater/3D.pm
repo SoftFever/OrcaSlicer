@@ -198,7 +198,7 @@ sub reload_scene {
             $self->volumes->load_wipe_tower_preview(1000, 
                 $self->{config}->wipe_tower_x, $self->{config}->wipe_tower_y, 
                 $self->{config}->wipe_tower_width, $self->{config}->wipe_tower_per_color_wipe * ($extruders_count - 1),
-                $self->{model}->bounding_box->z_max, $self->UseVBOs);
+                $self->{model}->bounding_box->z_max, $self->{config}->wipe_tower_rotation_angle, $self->UseVBOs);
         }
     }
 }
