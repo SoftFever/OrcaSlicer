@@ -794,7 +794,8 @@ bool GCode::_do_export(Print &print, FILE *file)
         for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++ i) {
             StaticPrintConfig *cfg = configs[i];
         for (const std::string &key : cfg->keys())
-            fprintf(file, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
+            if (key != "compatible_printers")
+                fprintf(file, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
         }
     }
 

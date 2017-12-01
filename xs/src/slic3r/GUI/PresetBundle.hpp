@@ -78,7 +78,7 @@ public:
     void                        update_compatible_with_printer(bool select_other_if_incompatible);
 
 private:
-    void                        load_config_file_config(const std::string &path, const DynamicPrintConfig &config);
+    void                        load_config_file_config(const std::string &path, DynamicPrintConfig &&config);
     void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
     bool                        load_compatible_bitmaps();
 

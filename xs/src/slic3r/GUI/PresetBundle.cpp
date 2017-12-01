@@ -1,4 +1,4 @@
-//#undef NDEBUGc
+//#undef NDEBUG
 #include <cassert>
 
 #include "PresetBundle.hpp"
@@ -216,6 +216,8 @@ DynamicPrintConfig PresetBundle::full_config() const
             }
         }
     }
+
+    out.erase("compatible_printers");
     
     static const char *keys[] = { "perimeter", "infill", "solid_infill", "support_material", "support_material_interface" };
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
@@ -278,8 +280,19 @@ void PresetBundle::load_config_file(const std::string &path)
 }
 
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
-void PresetBundle::load_config_file_config(const std::string &path, const DynamicPrintConfig &config)
+void PresetBundle::load_config_file_config(const std::string &path, DynamicPrintConfig &&config)
 {
+    // The "compatible_printers" field should not have been exported into a config.ini or a G-code anyway, 
+    // but some of the alpha versions of Slic3r did.
+    {
+        ConfigOption *opt_compatible = config.optptr("compatible_printers");
+        if (opt_compatible != nullptr) {
+            assert(opt_compatible->type() == coStrings);
+            if (opt_compatible->type() == coStrings)
+                static_cast<ConfigOptionStrings*>(opt_compatible)->values.clear();
+        }
+    }
+
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
     std::string name = boost::filesystem::path(path).filename().string();
@@ -310,7 +323,7 @@ void PresetBundle::load_config_file_config(const std::string &path, const Dynami
             if (other_opt->is_scalar()) {
                 for (size_t i = 0; i < configs.size(); ++ i)
                     configs[i].option(key, false)->set(other_opt);
-            } else {
+            } else if (key != "compatible_printers") {
                 for (size_t i = 0; i < configs.size(); ++ i)
                     static_cast<ConfigOptionVectorBase*>(configs[i].option(key, false))->set_at(other_opt, 0, i);
             }
@@ -368,6 +381,14 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
         }
         assert(! preset_name_dst.empty());
         // Save preset_src->config into collection_dst under preset_name_dst.
+        // The "compatible_printers" field should not have been exported into a config.ini or a G-code anyway, 
+        // but some of the alpha versions of Slic3r did.
+        ConfigOption *opt_compatible = preset_src->config.optptr("compatible_printers");
+        if (opt_compatible != nullptr) {
+            assert(opt_compatible->type() == coStrings);
+            if (opt_compatible->type() == coStrings)
+                static_cast<ConfigOptionStrings*>(opt_compatible)->values.clear();
+        }
         collection_dst.load_preset(path, preset_name_dst, std::move(preset_src->config), activate).is_external = true;
         return preset_name_dst;
     };
