@@ -70,9 +70,9 @@ public:
 	const std::vector<WipeTower::Extrusion>& extrusions() const { return m_extrusions; }
 	float                x()     const { return m_current_pos.x; }
 	float                y()     const { return m_current_pos.y; }
-	const WipeTower::xy& start_pos() const { return m_start_pos; }
 	const WipeTower::xy& pos()   const { return m_current_pos; }
-	const WipeTower::xy  printer_pos() const { return m_current_pos.rotate(m_wipe_tower_pos,m_angle_deg); }
+	const WipeTower::xy  start_pos_rotated() const { return m_start_pos.rotate(m_wipe_tower_pos,m_angle_deg); }
+	const WipeTower::xy  pos_rotated() const { return m_current_pos.rotate(m_wipe_tower_pos,m_angle_deg); }
 	float 				 elapsed_time() const { return m_elapsed_time; }
 
 	// Extrude with an explicitely provided amount of extrusion.
@@ -87,7 +87,6 @@ public:
 		double len = sqrt(dx*dx+dy*dy);
 		
 		// For rotated wipe tower, transform position to printer coordinates
-		//Q zavadet nove promenne? rotace o zaporny uhel?
 		WipeTower::xy rotated_current_pos( m_current_pos.rotate(m_wipe_tower_pos,m_angle_deg) );
 		WipeTower::xy rot( WipeTower::xy(x,y).rotate(m_wipe_tower_pos,m_angle_deg ) );
 						
@@ -491,8 +490,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
-	result.start_pos  	= writer.start_pos();
-	result.end_pos 	  	= writer.printer_pos();
+	result.start_pos  	= writer.start_pos_rotated();
+	result.end_pos 	  	= writer.pos_rotated();
 	return result;
 }
 
@@ -627,8 +626,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
-	result.start_pos  	= writer.start_pos();
-	result.end_pos 	  	= writer.printer_pos();
+	result.start_pos  	= writer.start_pos_rotated();
+	result.end_pos 	  	= writer.pos_rotated();
 	return result;
 }
 
@@ -728,8 +727,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
-	result.start_pos  	= writer.start_pos();
-	result.end_pos 	  	= writer.printer_pos();
+	result.start_pos  	= writer.start_pos_rotated();
+	result.end_pos 	  	= writer.pos_rotated();
 	return result;
 }
 
@@ -1049,8 +1048,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
-	result.start_pos 	= writer.start_pos();
-	result.end_pos 	  	= writer.printer_pos();
+	result.start_pos 	= writer.start_pos_rotated();
+	result.end_pos 	  	= writer.pos_rotated();
 	return result;
 }
 
