@@ -974,7 +974,6 @@ void Print::_make_wipe_tower()
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     m_tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
-    unsigned int initial_extruder_id = m_tool_ordering.first_extruder();
     if (! m_tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
         return;
@@ -983,7 +982,7 @@ void Print::_make_wipe_tower()
     WipeTowerPrusaMM wipe_tower(
         float(this->config.wipe_tower_x.value),     float(this->config.wipe_tower_y.value), 
         float(this->config.wipe_tower_width.value), float(this->config.wipe_tower_per_color_wipe.value),
-        initial_extruder_id);
+        m_tool_ordering.first_extruder());
     
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();
@@ -1006,7 +1005,8 @@ void Print::_make_wipe_tower()
 
     // Generate the wipe tower layers.
     m_wipe_tower_tool_changes.reserve(m_tool_ordering.layer_tools().size());
-    unsigned int current_extruder_id = initial_extruder_id;
+    // Set current_extruder_id to the last extruder primed.
+    unsigned int current_extruder_id = m_tool_ordering.all_extruders().back();
     for (const ToolOrdering::LayerTools &layer_tools : m_tool_ordering.layer_tools()) {
         if (! layer_tools.has_wipe_tower)
             // This is a support only layer, or the wipe tower does not reach to this height.
@@ -1021,7 +1021,11 @@ void Print::_make_wipe_tower()
             last_layer);
         std::vector<WipeTower::ToolChangeResult> tool_changes;
         for (unsigned int extruder_id : layer_tools.extruders)
-            if ((first_layer && extruder_id == initial_extruder_id) || extruder_id != current_extruder_id) {
+            // Call the wipe_tower.tool_change() at the first layer for the initial extruder 
+            // to extrude the wipe tower brim,
+            if ((first_layer && extruder_id == m_tool_ordering.all_extruders().back()) || 
+            // or when an extruder shall be switched.
+                extruder_id != current_extruder_id) {
                 tool_changes.emplace_back(wipe_tower.tool_change(extruder_id, extruder_id == layer_tools.extruders.back(), WipeTower::PURPOSE_EXTRUDE));
                 current_extruder_id = extruder_id;
             }
