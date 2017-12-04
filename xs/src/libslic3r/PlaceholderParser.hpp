@@ -22,6 +22,7 @@ public:
     void set(const std::string &key, const std::string &value)  { this->set(key, new ConfigOptionString(value)); }
     void set(const std::string &key, int value)                 { this->set(key, new ConfigOptionInt(value)); }
     void set(const std::string &key, unsigned int value)        { this->set(key, int(value)); }
+    void set(const std::string &key, bool value)                { this->set(key, new ConfigOptionBool(value)); }
     void set(const std::string &key, double value)              { this->set(key, new ConfigOptionFloat(value)); }
     void set(const std::string &key, const std::vector<std::string> &values) { this->set(key, new ConfigOptionStrings(values)); }
     void set(const std::string &key, ConfigOption *opt)         { m_config.set_key_value(key, opt); }

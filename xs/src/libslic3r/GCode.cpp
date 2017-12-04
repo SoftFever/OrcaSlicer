@@ -241,19 +241,6 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
     return gcode;
 }
 
-std::string WipeTowerIntegration::prime_single_color_print(const Print & /* print */, unsigned int initial_tool, GCode & /* gcodegen */)
-{
-    std::string gcode = "\
-G1 Z0.250 F7200.000\n\
-G1 X50.0 E80.0  F1000.0\n\
-G1 X160.0 E20.0  F1000.0\n\
-G1 Z0.200 F7200.000\n\
-G1 X220.0 E13 F1000.0\n\
-G1 X240.0 E0 F1000.0\n\
-G1 E-4 F1000.0\n";
-    return gcode;
-}
-
 std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer)
 {
     std::string gcode;
@@ -530,6 +517,7 @@ bool GCode::_do_export(Print &print, FILE *file)
     unsigned int initial_extruder_id = (unsigned int)-1;
     unsigned int final_extruder_id   = (unsigned int)-1;
     size_t       initial_print_object_id = 0;
+    bool         has_wipe_tower      = false;
     if (print.config.complete_objects.value) {
 		// Find the 1st printing object, find its tool ordering and the initial extruder ID.
 		for (; initial_print_object_id < print.objects.size(); ++initial_print_object_id) {
@@ -544,6 +532,7 @@ bool GCode::_do_export(Print &print, FILE *file)
             ToolOrdering(print, initial_extruder_id) :
             print.m_tool_ordering;
 		initial_extruder_id = tool_ordering.first_extruder();
+        has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
     }
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
@@ -566,6 +555,8 @@ bool GCode::_do_export(Print &print, FILE *file)
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
     // Useful for sequential prints.
     m_placeholder_parser.set("current_object_idx", 0);
+    // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
+    m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     std::string start_gcode = m_placeholder_parser.process(print.config.start_gcode.value, initial_extruder_id);
     
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
@@ -575,7 +566,14 @@ bool GCode::_do_export(Print &print, FILE *file)
     // Write the custom start G-code
     writeln(file, start_gcode);
     // Process filament-specific gcode in extruder order.
-    if (! print.config.single_extruder_multi_material) {
+    if (print.config.single_extruder_multi_material) {
+        if (has_wipe_tower) {
+            // Wipe tower will control the extruder switching, it will call the start_filament_gcode.
+        } else {
+            // Only initialize the initial extruder.
+            writeln(file, m_placeholder_parser.process(print.config.start_filament_gcode.values[initial_extruder_id], initial_extruder_id));
+        }
+    } else {
         for (const std::string &start_gcode : print.config.start_filament_gcode.values)
             writeln(file, m_placeholder_parser.process(start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
     }
@@ -705,32 +703,29 @@ bool GCode::_do_export(Print &print, FILE *file)
         // All extrusion moves with the same top layer height are extruded uninterrupted.
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
         // Prusa Multi-Material wipe tower.
-        if (print.has_wipe_tower() && ! layers_to_print.empty()) {
-            if (tool_ordering.has_wipe_tower()) {
-                m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
-			    write(file, m_wipe_tower->prime(*this));
-                // Verify, whether the print overaps the priming extrusions.
-                BoundingBoxf bbox_print(get_print_extrusions_extents(print));
-                coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
-                for (const PrintObject *print_object : print.objects)
-                    bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
-                bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
-                BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));
-                bbox_prime.offset(0.5f);
-                // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
-                write(file, this->retract());
-                fprintf(file, "M300 S800 P500\n");
-                if (bbox_prime.overlap(bbox_print)) {
-                    // Wait for the user to remove the priming extrusions, otherwise they would
-                    // get covered by the print.
-                    fprintf(file, "M1 Remove priming towers and click button.\n");
-                } else {
-                    // Just wait for a bit to let the user check, that the priming succeeded.
-                    //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
-                    fprintf(file, "M1 S10\n");
-                }
-            } else
-                write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
+        if (has_wipe_tower && ! layers_to_print.empty()) {
+            m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
+		    write(file, m_wipe_tower->prime(*this));
+            // Verify, whether the print overaps the priming extrusions.
+            BoundingBoxf bbox_print(get_print_extrusions_extents(print));
+            coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
+            for (const PrintObject *print_object : print.objects)
+                bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
+            bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
+            BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));
+            bbox_prime.offset(0.5f);
+            // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
+            write(file, this->retract());
+            fprintf(file, "M300 S800 P500\n");
+            if (bbox_prime.overlap(bbox_print)) {
+                // Wait for the user to remove the priming extrusions, otherwise they would
+                // get covered by the print.
+                fprintf(file, "M1 Remove priming towers and click button.\n");
+            } else {
+                // Just wait for a bit to let the user check, that the priming succeeded.
+                //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
+                fprintf(file, "M1 S10\n");
+            }
         }
         // Extrude the layers.
         for (auto &layer : layers_to_print) {
