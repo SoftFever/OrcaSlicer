@@ -22,6 +22,8 @@
 #endif
 
 #include <boost/algorithm/string.hpp>
+// Unicode iterator to iterate over utf8.
+#include <boost/regex/pending/unicode_iterator.hpp>
 
 // Spirit v2.5 allows you to suppress automatic generation
 // of predefined terminals to speed up complation. With
@@ -598,6 +600,39 @@ namespace client
         template <typename It, typename Attr> static bool parse_inf(It&, It const&, Attr&) { return false; }
     };
 
+    struct unicode_char_parser : qi::primitive_parser<unicode_char_parser>
+    { 
+        // Define the attribute type exposed by this parser component 
+        template <typename Context, typename Iterator>
+        struct attribute
+        { 
+            typedef wchar_t type; 
+        }; 
+
+        // This function is called during the actual parsing process 
+        template <typename Iterator, typename Context , typename Skipper, typename Attribute>
+        bool parse(Iterator& first, Iterator const& last, Context& context, Skipper const& skipper, Attribute& attr) const 
+        { 
+            skip_over(first, last, skipper); 
+            if (first == last) return false; 
+
+            boost::u8_to_u32_iterator<Iterator> f(first);
+            boost::u8_to_u32_iterator<Iterator> l(last);
+            if (f == l) return false; 
+
+            attr = *f++; 
+            first = f.base(); 
+            return true; 
+        } 
+
+        // This function is called during error handling to create a human readable string for the error context.
+        template <typename Context>
+        spirit::info what(Context&) const 
+        { 
+            return spirit::info("unicode_char");
+        } 
+    };
+
     ///////////////////////////////////////////////////////////////////////////
     //  Our calculator grammar
     ///////////////////////////////////////////////////////////////////////////
@@ -617,6 +652,7 @@ namespace client
             qi::no_skip_type            no_skip;
             qi::real_parser<double, strict_real_policies_without_nan_inf> strict_double;
             spirit::ascii::char_type    char_;
+            unicode_char_parser         utf8char;
             spirit::bool_type           bool_;
             spirit::int_type            int_;
             spirit::double_type         double_;
@@ -649,7 +685,7 @@ namespace client
 
             // Free-form text up to a first brace, including spaces and newlines.
             // The free-form text will be inserted into the processed text without a modification.
-            text = no_skip[raw[+(char_ - '[' - '{')]];
+            text = no_skip[raw[+(utf8char - char_('[') - char_('{'))]];
             text.name("text");
 
             // New style of macro expansion.
@@ -749,7 +785,7 @@ namespace client
                 |   (strict_double > iter_pos)           [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)               [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)               [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
-                |   raw[lexeme['"' > *((char_ - char_('\\') - char_('"')) | ('\\' > char_)) > '"']]
+                |   raw[lexeme['"' > *((utf8char - char_('\\') - char_('"')) | ('\\' > char_)) > '"']]
                                                          [ px::bind(&FactorActions::string_, _1,     _val) ]
                 );
             factor.name("factor");
