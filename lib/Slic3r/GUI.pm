@@ -79,6 +79,7 @@ sub OnInit {
     # Windows: "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
     # Mac: "~/Library/Application Support/Slic3r"
     Slic3r::set_data_dir($datadir || Wx::StandardPaths::Get->GetUserDataDir);
+    Slic3r::GUI::set_wxapp($self);
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     $self->{app_config} = Slic3r::GUI::AppConfig->new;

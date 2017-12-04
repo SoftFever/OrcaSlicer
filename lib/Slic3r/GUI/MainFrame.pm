@@ -22,6 +22,7 @@ sub new {
     my ($class, %params) = @_;
     
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
+    Slic3r::GUI::set_main_frame($self);
     if ($^O eq 'MSWin32') {
         # Load the icon either from the exe, or from the ico file.
         my $iconfile = Slic3r::decode_path($FindBin::Bin) . '\slic3r.exe';
@@ -92,6 +93,8 @@ sub _init_tabpanel {
     my ($self) = @_;
     
     $self->{tabpanel} = my $panel = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
+    Slic3r::GUI::set_tab_panel($panel);
+
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{tabpanel}, sub {
         my $panel = $self->{tabpanel}->GetCurrentPage;
         $panel->OnActivate if $panel->can('OnActivate');
@@ -145,6 +148,9 @@ sub _init_tabpanel {
         $tab->load_current_preset;
         $panel->AddPage($tab, $tab->title);
     }
+
+#TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
+#    Slic3r::GUI::create_preset_tab("print");
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
@@ -330,6 +336,8 @@ sub _init_menubar {
         $menubar->Append($windowMenu, "&Window");
         $menubar->Append($self->{viewMenu}, "&View") if $self->{viewMenu};
         $menubar->Append($helpMenu, "&Help");
+        # Add an optional debug menu. In production code, the add_debug_menu() call should do nothing.
+        Slic3r::GUI::add_debug_menu($menubar);
         $self->SetMenuBar($menubar);
     }
 }
