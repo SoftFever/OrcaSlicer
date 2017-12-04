@@ -600,37 +600,66 @@ namespace client
         template <typename It, typename Attr> static bool parse_inf(It&, It const&, Attr&) { return false; }
     };
 
-    struct unicode_char_parser : qi::primitive_parser<unicode_char_parser>
+    // This parser is to be used inside a raw[] directive to accept a single valid UTF-8 character.
+    // If an invalid UTF-8 sequence is encountered, a qi::expectation_failure is thrown.
+    struct utf8_char_skipper_parser : qi::primitive_parser<utf8_char_skipper_parser>
     { 
         // Define the attribute type exposed by this parser component 
         template <typename Context, typename Iterator>
         struct attribute
         { 
-            typedef wchar_t type; 
-        }; 
+            typedef wchar_t type;
+        };
 
         // This function is called during the actual parsing process 
         template <typename Iterator, typename Context , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last, Context& context, Skipper const& skipper, Attribute& attr) const 
         { 
-            skip_over(first, last, skipper); 
-            if (first == last) return false; 
-
-            boost::u8_to_u32_iterator<Iterator> f(first);
-            boost::u8_to_u32_iterator<Iterator> l(last);
-            if (f == l) return false; 
-
-            attr = *f++; 
-            first = f.base(); 
-            return true; 
-        } 
+            // The skipper shall always be empty, any white space will be accepted.
+            // skip_over(first, last, skipper);
+            if (first == last)
+                return false;
+            // Iterator over the UTF-8 sequence.
+            auto            it = first;
+            // Read the first byte of the UTF-8 sequence.
+            unsigned char   c  = static_cast<boost::uint8_t>(*it ++);
+            // UTF-8 sequence must not start with a continuation character:
+            if ((c & 0xC0) == 0x80)
+                goto err;
+            // Skip high surrogate first if there is one.
+            // If the most significant bit with a zero in it is in position
+            // 8-N then there are N bytes in this UTF-8 sequence:
+            unsigned int cnt = 0;
+            {
+                unsigned char mask   = 0x80u;
+                unsigned int  result = 0;
+                while (c & mask) {
+                    ++ result;
+                    mask >>= 1;
+                }
+                cnt = (result == 0) ? 1 : ((result > 4) ? 4 : result);
+            }
+            // Since we haven't read in a value, we need to validate the code points:
+            for (-- cnt; cnt > 0; -- cnt) {
+                if (it == last)
+                    goto err;
+                c = static_cast<boost::uint8_t>(*it ++);
+                // We must have a continuation byte:
+                if (cnt > 1 && (c & 0xC0) != 0x80)
+                    goto err;
+            }
+            first = it;
+            return true;
+        err:
+            boost::throw_exception(qi::expectation_failure<Iterator>(first, last, spirit::info("Invalid utf8 sequence")));
+        }
 
         // This function is called during error handling to create a human readable string for the error context.
         template <typename Context>
-        spirit::info what(Context&) const 
+        spirit::info what(Context&) const
         { 
             return spirit::info("unicode_char");
-        } 
+        }
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -652,7 +681,7 @@ namespace client
             qi::no_skip_type            no_skip;
             qi::real_parser<double, strict_real_policies_without_nan_inf> strict_double;
             spirit::ascii::char_type    char_;
-            unicode_char_parser         utf8char;
+            utf8_char_skipper_parser    utf8char;
             spirit::bool_type           bool_;
             spirit::int_type            int_;
             spirit::double_type         double_;
