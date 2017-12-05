@@ -664,13 +664,13 @@ namespace client
             auto            it = first;
             // Read the first byte of the UTF-8 sequence.
             unsigned char   c  = static_cast<boost::uint8_t>(*it ++);
+            unsigned int    cnt = 0;
             // UTF-8 sequence must not start with a continuation character:
             if ((c & 0xC0) == 0x80)
                 goto err;
             // Skip high surrogate first if there is one.
             // If the most significant bit with a zero in it is in position
             // 8-N then there are N bytes in this UTF-8 sequence:
-            unsigned int cnt = 0;
             {
                 unsigned char mask   = 0x80u;
                 unsigned int  result = 0;
