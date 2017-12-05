@@ -9,7 +9,6 @@
 #include "WipeTower.hpp"
 
 
-
 namespace Slic3r
 {
 
@@ -86,6 +85,9 @@ public:
 		// Is this the last layer of the waste tower?
 		bool   is_last_layer)
 	{
+		if (is_first_layer)
+			m_wipe_tower_depth = m_wipe_area * max_tool_changes; // tower depth (y-range) of the bottom
+
 		m_z_pos 				= print_z;
 		m_layer_height			= layer_height;
 		m_max_color_changes 	= max_tool_changes;
@@ -151,6 +153,8 @@ private:
 	xy     			m_wipe_tower_pos;
 	// Width of the wipe tower.
 	float  			m_wipe_tower_width;
+	// Depth of the wipe tower (wipe_area * max_color_changes at the base)
+	float			m_wipe_tower_depth;
 	// Per color Y span.
 	float  			m_wipe_area;
 	// Wipe tower rotation angle in degrees (with respect to x axis
@@ -171,6 +175,7 @@ private:
 	float  			m_retract		 = 4.f;
 	// Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float  			m_perimeter_width = 0.5f;
+	
 	// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
 	float  			m_extrusion_flow  = 0.029f;
 

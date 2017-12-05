@@ -25,12 +25,15 @@ public:
 		bool operator!=(const xy &rhs) const { return x != rhs.x || y != rhs.y; }
 		
 		// Rotate the point around given point about given angle (in degrees)
-		xy rotate(const xy& origin, float angle) const {
+		// shifts the result so that point of rotation is in the middle of the tower
+		xy rotate(const xy& origin, float width, float depth, float angle) const {
 			xy out(0,0);
+			float temp_x = x - width / 2.f;
+			float temp_y = y - depth / 2.f;
 			angle *= M_PI/180.;
-			out.x=(x-origin.x) * cos(angle)  -  (y-origin.y) * sin(angle);
-			out.y=(x-origin.x) * sin(angle)  +  (y-origin.y) * cos(angle);
-			return out+origin;
+			out.x += (temp_x - origin.x) * cos(angle)  -  (temp_y - origin.y) * sin(angle);
+			out.y += (temp_x - origin.x) * sin(angle)  +  (temp_y - origin.y) * cos(angle);
+			return out + origin;
 		}
 		
 		float x;
