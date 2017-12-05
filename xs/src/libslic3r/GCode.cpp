@@ -187,7 +187,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
         if (! start_filament_gcode.empty()) {
             // Process the start_filament_gcode for the active filament only.
             gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
-            gcode += gcodegen.placeholder_parser().process(start_filament_gcode, new_extruder_id);
+            gcode += gcodegen.placeholder_parser_process("start_filament_gcode", start_filament_gcode, new_extruder_id);
             check_add_eol(gcode);
         }
     }
@@ -362,7 +362,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     return layers_to_print;
 }
 
-bool GCode::do_export(Print *print, const char *path)
+void GCode::do_export(Print *print, const char *path)
 {
     // Remove the old g-code if it exists.
     boost::nowide::remove(path);
@@ -372,23 +372,34 @@ bool GCode::do_export(Print *print, const char *path)
 
     FILE *file = boost::nowide::fopen(path_tmp.c_str(), "wb");
     if (file == nullptr)
-        return false;
+        throw std::runtime_error(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
 
-    bool result = this->_do_export(*print, file);
+    this->m_placeholder_parser_failed_templates.clear();
+    this->_do_export(*print, file);
     fclose(file);
-
-    if (result && boost::nowide::rename(path_tmp.c_str(), path) != 0) {
-        boost::nowide::cerr << "Failed to remove the output G-code file from " << path_tmp << " to " << path
-            << ". Is " << path_tmp << " locked?" << std::endl;
-        result = false;
-    }
-
-    if (! result)
+    if (ferror(file)) {
         boost::nowide::remove(path_tmp.c_str());
-    return result;
+        throw std::runtime_error(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
+    }
+    if (! this->m_placeholder_parser_failed_templates.empty()) {
+        // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
+        std::string msg = std::string("G-code export to ") + path + " failed due to invalid custom G-code sections:\n\n";
+        for (const std::string &name : this->m_placeholder_parser_failed_templates)
+            msg += std::string("\t") + name + "\n";
+        msg += "\nPlease inspect the file ";
+        msg += path_tmp + " for error messages enclosed between\n";
+        msg += "        !!!!! Failed to process the custom G-code template ...\n";
+        msg += "and\n";
+        msg += "        !!!!! End of an error report for the custom G-code template ...\n";
+        throw std::runtime_error(msg);
+    }
+    if (boost::nowide::rename(path_tmp.c_str(), path) != 0)
+        throw std::runtime_error(
+            std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
+            "Is " + path_tmp + " locked?" + '\n');
 }
 
-bool GCode::_do_export(Print &print, FILE *file)
+void GCode::_do_export(Print &print, FILE *file)
 {
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
@@ -557,7 +568,7 @@ bool GCode::_do_export(Print &print, FILE *file)
     m_placeholder_parser.set("current_object_idx", 0);
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
-    std::string start_gcode = m_placeholder_parser.process(print.config.start_gcode.value, initial_extruder_id);
+    std::string start_gcode = this->placeholder_parser_process("start_gcode", print.config.start_gcode.value, initial_extruder_id);
     
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
     this->_print_first_layer_bed_temperature(file, print, start_gcode, initial_extruder_id, true);
@@ -571,11 +582,11 @@ bool GCode::_do_export(Print &print, FILE *file)
             // Wipe tower will control the extruder switching, it will call the start_filament_gcode.
         } else {
             // Only initialize the initial extruder.
-            writeln(file, m_placeholder_parser.process(print.config.start_filament_gcode.values[initial_extruder_id], initial_extruder_id));
+            writeln(file, this->placeholder_parser_process("start_filament_gcode", print.config.start_filament_gcode.values[initial_extruder_id], initial_extruder_id));
         }
     } else {
         for (const std::string &start_gcode : print.config.start_filament_gcode.values)
-            writeln(file, m_placeholder_parser.process(start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
+            writeln(file, this->placeholder_parser_process("start_gcode", start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
     }
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, true);
     
@@ -668,7 +679,7 @@ bool GCode::_do_export(Print &print, FILE *file)
                     // another one, set first layer temperatures. This happens before the Z move
                     // is triggered, so machine has more time to reach such temperatures.
                     m_placeholder_parser.set("current_object_idx", int(finished_objects));
-                    std::string between_objects_gcode = m_placeholder_parser.process(print.config.between_objects_gcode.value, initial_extruder_id);
+                    std::string between_objects_gcode = this->placeholder_parser_process("between_objects_gcode", print.config.between_objects_gcode.value, initial_extruder_id);
                     // Set first layer bed and extruder temperatures, don't wait for it to reach the temperature.
                     this->_print_first_layer_bed_temperature(file, print, between_objects_gcode, initial_extruder_id, false);
                     this->_print_first_layer_extruder_temperatures(file, print, between_objects_gcode, initial_extruder_id, false);
@@ -747,12 +758,12 @@ bool GCode::_do_export(Print &print, FILE *file)
     // Process filament-specific gcode in extruder order.
     if (print.config.single_extruder_multi_material) {
         // Process the end_filament_gcode for the active filament only.
-        writeln(file, m_placeholder_parser.process(print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id()));
+        writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id()));
     } else {
         for (const std::string &end_gcode : print.config.end_filament_gcode.values)
-            writeln(file, m_placeholder_parser.process(end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
+            writeln(file, this->placeholder_parser_process("end_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
     }
-    writeln(file, m_placeholder_parser.process(print.config.end_gcode, m_writer.extruder()->id()));
+    writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id()));
     write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     write(file, m_writer.postamble());
 
@@ -793,8 +804,21 @@ bool GCode::_do_export(Print &print, FILE *file)
                 fprintf(file, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
         }
     }
+}
 
-    return true;
+std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
+{
+    try {
+        return m_placeholder_parser.process(templ, current_extruder_id, config_override);
+    } catch (std::runtime_error &err) {
+        // Collect the names of failed template substitutions for error reporting.
+        this->m_placeholder_parser_failed_templates.insert(name);
+        // Insert the macro error message into the G-code.
+        return 
+            std::string("!!!!! Failed to process the custom G-code template ") + name + "\n" + 
+            err.what() + 
+            "!!!!! End of an error report for the custom G-code template " + name + "\n";
+    }
 }
 
 // Parse the custom G-code, try to find mcode_set_temp_dont_wait and mcode_set_temp_and_wait inside the custom G-code.
@@ -997,7 +1021,7 @@ void GCode::process_layer(
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index + 1));
         config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
-        gcode += m_placeholder_parser.process(
+        gcode += this->placeholder_parser_process("before_layer_gcode",
             print.config.before_layer_gcode.value, m_writer.extruder()->id(), &config)
             + "\n";
     }
@@ -1007,7 +1031,7 @@ void GCode::process_layer(
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
-        gcode += m_placeholder_parser.process(
+        gcode += this->placeholder_parser_process("layer_gcode",
             print.config.layer_gcode.value, m_writer.extruder()->id(), &config)
             + "\n";
     }
@@ -2206,7 +2230,7 @@ std::string GCode::set_extruder(unsigned int extruder_id)
         unsigned int        old_extruder_id     = m_writer.extruder()->id();
         const std::string  &end_filament_gcode  = m_config.end_filament_gcode.get_at(old_extruder_id);
         if (m_config.single_extruder_multi_material && ! end_filament_gcode.empty()) {
-            gcode += m_placeholder_parser.process(end_filament_gcode, old_extruder_id);
+            gcode += placeholder_parser_process("end_filament_gcode", end_filament_gcode, old_extruder_id);
             check_add_eol(gcode);
         }
     }
@@ -2218,7 +2242,7 @@ std::string GCode::set_extruder(unsigned int extruder_id)
         DynamicConfig config;
         config.set_key_value("previous_extruder", new ConfigOptionInt((int)m_writer.extruder()->id()));
         config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
-        gcode += m_placeholder_parser.process(m_config.toolchange_gcode.value, extruder_id, &config);
+        gcode += placeholder_parser_process("toolchange_gcode", m_config.toolchange_gcode.value, extruder_id, &config);
         check_add_eol(gcode);
     }
     
@@ -2232,7 +2256,7 @@ std::string GCode::set_extruder(unsigned int extruder_id)
     const std::string &start_filament_gcode = m_config.start_filament_gcode.get_at(extruder_id);
     if (m_config.single_extruder_multi_material && ! start_filament_gcode.empty()) {
         // Process the start_filament_gcode for the active filament only.
-        gcode += m_placeholder_parser.process(start_filament_gcode, extruder_id);
+        gcode += this->placeholder_parser_process("start_filament_gcode", start_filament_gcode, extruder_id);
         check_add_eol(gcode);
     }
     // Set the new extruder to the operating temperature.

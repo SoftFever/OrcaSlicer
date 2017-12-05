@@ -14,5 +14,11 @@
         %code%{ THIS->apply_config(*config); %};
     void set(std::string key, int value);
     std::string process(std::string str) const
-        %code%{ RETVAL = THIS->process(str, 0); %};
+        %code%{
+            try {
+                RETVAL = THIS->process(str, 0);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
 };

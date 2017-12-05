@@ -1291,9 +1291,11 @@ sub export_gcode {
     
     # select output file
     if ($output_file) {
-        $self->{export_gcode_output_file} = $self->{print}->output_filepath($output_file);
+        $self->{export_gcode_output_file} = eval { $self->{print}->output_filepath($output_file) };
+        Slic3r::GUI::catch_error($self) and return;
     } else {
-        my $default_output_file = $self->{print}->output_filepath($main::opt{output} // '');
+        my $default_output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
+        Slic3r::GUI::catch_error($self) and return;
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', 
             wxTheApp->{app_config}->get_last_output_dir(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1544,7 +1546,8 @@ sub export_amf {
 sub _get_export_file {
     my ($self, $format) = @_;    
     my $suffix = $format eq 'STL' ? '.stl' : '.amf.xml';
-    my $output_file = $self->{print}->output_filepath($main::opt{output} // '');
+    my $output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
+    Slic3r::GUI::catch_error($self) and return undef;
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
     my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
         basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);

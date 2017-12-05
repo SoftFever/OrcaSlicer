@@ -368,7 +368,7 @@ namespace client
                 value = lhs.to_string() == rhs.to_string();
             } else {
                 boost::throw_exception(qi::expectation_failure<Iterator>(
-                    lhs.it_range.begin(), rhs.it_range.end(), spirit::info("Cannot compare the types.")));
+                    lhs.it_range.begin(), rhs.it_range.end(), spirit::info("*Cannot compare the types.")));
             }
             lhs.type = TYPE_BOOL;
             lhs.data.b = (op == '=') ? value : !value;
@@ -387,7 +387,7 @@ namespace client
         void throw_exception(const char *message) const 
         {
             boost::throw_exception(qi::expectation_failure<Iterator>(
-                this->it_range.begin(), this->it_range.end(), spirit::info(message)));
+                this->it_range.begin(), this->it_range.end(), spirit::info(std::string("*") + message)));
         }
 
         void throw_if_not_numeric(const char *message) const 
@@ -417,6 +417,7 @@ namespace client
         const PlaceholderParser *pp = nullptr;
         const DynamicConfig     *config_override = nullptr;
         const size_t             current_extruder_id = 0;
+        std::string              error_message;
 
         const ConfigOption*     resolve_symbol(const std::string &opt_key) const
         {
@@ -444,26 +445,22 @@ namespace client
                     opt = ctx->resolve_symbol(opt_key_str.substr(0, idx));
                     if (opt != nullptr) {
                         if (! opt->is_vector())
-                            boost::throw_exception(qi::expectation_failure<Iterator>(
-                                opt_key.begin(), opt_key.end(), spirit::info("Trying to index a scalar variable")));
+                            ctx->throw_exception("Trying to index a scalar variable", opt_key);
                         char *endptr = nullptr;
                         idx = strtol(opt_key_str.c_str() + idx + 1, &endptr, 10);
                         if (endptr == nullptr || *endptr != 0)
-                            boost::throw_exception(qi::expectation_failure<Iterator>(
-                                opt_key.begin() + idx + 1, opt_key.end(), spirit::info("Invalid vector index")));
+                            ctx->throw_exception("Invalid vector index", boost::iterator_range<Iterator>(opt_key.begin() + idx + 1, opt_key.end()));
                     }
                 }
             }
             if (opt == nullptr)
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), spirit::info("Variable does not exist")));
+                ctx->throw_exception("Variable does not exist", boost::iterator_range<Iterator>(opt_key.begin(), opt_key.end()));
             if (opt->is_scalar())
                 output = opt->serialize();
             else {
                 const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
                 if (vec->empty())
-                    boost::throw_exception(qi::expectation_failure<Iterator>(
-                        opt_key.begin(), opt_key.end(), spirit::info("Indexing an empty vector variable")));
+                    ctx->throw_exception("Indexing an empty vector variable", opt_key);
                 output = vec->vserialize()[(idx >= vec->size()) ? 0 : idx];
             }
         }
@@ -484,23 +481,18 @@ namespace client
                 opt = ctx->resolve_symbol(opt_key_str);
             }
             if (! opt->is_vector())
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), spirit::info("Trying to index a scalar variable")));
+                ctx->throw_exception("Trying to index a scalar variable", opt_key);
             const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
             if (vec->empty())
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), spirit::info("Indexing an empty vector variable")));
+                ctx->throw_exception("Indexing an empty vector variable", boost::iterator_range<Iterator>(opt_key.begin(), opt_key.end()));
             const ConfigOption *opt_index = ctx->resolve_symbol(std::string(opt_vector_index.begin(), opt_vector_index.end()));
             if (opt_index == nullptr)
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), spirit::info("Variable does not exist")));
+                ctx->throw_exception("Variable does not exist", opt_key);
             if (opt_index->type() != coInt)
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), spirit::info("Indexing variable has to be integer")));
+                ctx->throw_exception("Indexing variable has to be integer", opt_key);
 			int idx = opt_index->getInt();
 			if (idx < 0)
-				boost::throw_exception(qi::expectation_failure<Iterator>(
-					opt_key.begin(), opt_key.end(), spirit::info("Negative vector index")));
+                ctx->throw_exception("Negative vector index", opt_key);
 			output = vec->vserialize()[(idx >= (int)vec->size()) ? 0 : idx];
         }
 
@@ -512,8 +504,7 @@ namespace client
         {
             const ConfigOption *opt = ctx->resolve_symbol(std::string(opt_key.begin(), opt_key.end()));
             if (opt == nullptr)
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt_key.begin(), opt_key.end(), spirit::info("Not a variable name")));
+                ctx->throw_exception("Not a variable name", opt_key);
             output.opt = opt;
             output.it_range = opt_key;
         }
@@ -525,8 +516,7 @@ namespace client
             expr<Iterator>                  &output)
         {
             if (opt.opt->is_vector())
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Referencing a scalar variable in a vector context")));
+                ctx->throw_exception("Referencing a scalar variable in a vector context", opt.it_range);
             switch (opt.opt->type()) {
             case coFloat:   output.set_d(opt.opt->getFloat());   break;
             case coInt:     output.set_i(opt.opt->getInt());     break;
@@ -535,11 +525,9 @@ namespace client
             case coPoint:   output.set_s(opt.opt->serialize());  break;
             case coBool:    output.set_b(opt.opt->getBool());    break;
             case coFloatOrPercent:
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), spirit::info("FloatOrPercent variables are not supported")));
+                ctx->throw_exception("FloatOrPercent variables are not supported", opt.it_range);
             default:
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Unknown scalar variable type")));
+                ctx->throw_exception("Unknown scalar variable type", opt.it_range);
             }
             output.it_range = opt.it_range;
         }
@@ -553,12 +541,10 @@ namespace client
             expr<Iterator>                  &output)
         {
             if (opt.opt->is_scalar())
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Referencing a vector variable in a scalar context")));
+                ctx->throw_exception("Referencing a vector variable in a scalar context", opt.it_range);
             const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt.opt);
             if (vec->empty())
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Indexing an empty vector variable")));
+                ctx->throw_exception("Indexing an empty vector variable", opt.it_range);
             size_t idx = (index < 0) ? 0 : (index >= int(vec->size())) ? 0 : size_t(index);
             switch (opt.opt->type()) {
             case coFloats:   output.set_d(static_cast<const ConfigOptionFloats  *>(opt.opt)->values[idx]); break;
@@ -568,8 +554,7 @@ namespace client
             case coPoints:   output.set_s(static_cast<const ConfigOptionPoints  *>(opt.opt)->values[idx].dump_perl()); break;
             case coBools:    output.set_b(static_cast<const ConfigOptionBools   *>(opt.opt)->values[idx] != 0); break;
             default:
-                boost::throw_exception(qi::expectation_failure<Iterator>(
-                    opt.it_range.begin(), opt.it_range.end(), spirit::info("Unknown vector variable type")));
+                ctx->throw_exception("Unknown vector variable type", opt.it_range);
             }
             output.it_range = boost::iterator_range<Iterator>(opt.it_range.begin(), it_end);
         }
@@ -579,9 +564,53 @@ namespace client
         template <typename Iterator>
         static void evaluate_index(expr<Iterator> &expr_index, int &output)
         {
-            if (expr_index.type != expr<Iterator>::TYPE_INT)
+            if (expr_index.type != expr<Iterator>::TYPE_INT)                
                 expr_index.throw_exception("Non-integer index is not allowed to address a vector variable.");
             output = expr_index.i();
+        }
+
+        template <typename Iterator>
+        static void throw_exception(const std::string &msg, const boost::iterator_range<Iterator> &it_range)
+        {
+            // An asterix is added to the start of the string to differentiate the boost::spirit::info::tag content
+            // between the grammer terminal / non-terminal symbol name and a free-form error message.
+            boost::throw_exception(qi::expectation_failure<Iterator>(it_range.begin(), it_range.end(), spirit::info(std::string("*") + msg)));
+        }
+
+        template <typename Iterator>
+        static void process_error_message(const MyContext *context, const boost::spirit::info &info, const Iterator &it_begin, const Iterator &it_end)
+        {
+            struct expectation_printer
+            {
+                expectation_printer(std::string &msg) : result(msg) {}
+                std::string &result;
+                void element(std::string const& tag, std::string const& value, int depth)
+                {
+                    // Indent to depth.
+                    for (int i = 0; i < depth * 4; ++ i)
+                        result += ' ';
+                    if (tag.empty() || tag.front() != '*') {
+                        if (depth == 0)
+                            this->result += "Expecting ";
+                        this->result += "tag: ";
+                        this->result += tag;
+                    } else
+                        this->result += tag.substr(1);
+                    if (! value.empty()) {
+                        this->result += ", value: ";
+                        this->result += value;
+                    }
+                    this->result += '\n';
+                }
+            };
+
+            std::string &msg = const_cast<MyContext*>(context)->error_message;
+            msg += "Error! ";
+            expectation_printer ep(msg);
+            spirit::basic_info_walker<expectation_printer> walker(ep, info.tag, 0);
+            boost::apply_visitor(walker, info.value);
+            msg += " got: \"";
+            msg += std::string(it_begin, it_end) + "\"\n";
         }
     };
 
@@ -651,7 +680,8 @@ namespace client
             first = it;
             return true;
         err:
-            boost::throw_exception(qi::expectation_failure<Iterator>(first, last, spirit::info("Invalid utf8 sequence")));
+            MyContext::throw_exception("Invalid utf8 sequence", boost::iterator_range<Iterator>(first, last));
+            return false;
         }
 
         // This function is called during error handling to create a human readable string for the error context.
@@ -692,6 +722,8 @@ namespace client
             qi::_val_type               _val;
             qi::_1_type                 _1;
             qi::_2_type                 _2;
+            qi::_3_type                 _3;
+            qi::_4_type                 _4;
             qi::_a_type                 _a;
             qi::_b_type                 _b;
             qi::_r1_type                _r1;
@@ -701,6 +733,7 @@ namespace client
             // Without it, some of the errors would not trigger the error handler.
             start = eps > text_block(_r1);
             start.name("start");
+            qi::on_error<qi::fail>(start, px::bind(&MyContext::process_error_message<Iterator>, _r1, _4, _3, _2));
 
             text_block = *(
                         text [_val+=_1]
@@ -831,16 +864,6 @@ namespace client
             variable_reference = identifier
                 [ px::bind(&MyContext::resolve_variable<Iterator>, _r1, _1, _val) ];
             variable_reference.name("variable reference");
-/*
-            qi::on_error<qi::fail>(start, 
-                    phx::ref(std::cout)
-                       << "Error! Expecting "
-                       << qi::_4
-                       << " here: '"
-                       << px::construct<std::string>(qi::_3, qi::_2)
-                       << "'\n"
-                );
-*/
 
             keywords.add
                 ("and")
@@ -907,69 +930,30 @@ namespace client
     };
 }
 
-struct printer
-{
-    typedef spirit::utf8_string string;
-
-    void element(string const& tag, string const& value, int depth) const
-    {
-        for (int i = 0; i < (depth*4); ++i) // indent to depth
-            std::cout << ' ';
-        std::cout << "tag: " << tag;
-        if (value != "")
-            std::cout << ", value: " << value;
-        std::cout << std::endl;
-    }
-};
-
-void print_info(spirit::info const& what)
-{
-    using spirit::basic_info_walker;
-    printer pr;
-    basic_info_walker<printer> walker(pr, what.tag, 0);
-    boost::apply_visitor(walker, what.value);
-}
-
 std::string PlaceholderParser::process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override) const
 {
     typedef std::string::const_iterator iterator_type;
     typedef client::calculator<iterator_type> calculator;
 
-    spirit::ascii::space_type space; // Our skipper
-    calculator calc; // Our grammar
-
+    // Our whitespace skipper.
+    spirit::ascii::space_type   space;
+    // Our grammar.
+    calculator                  calc;
+    // Iterators over the source template.
     std::string::const_iterator iter = templ.begin();
-    std::string::const_iterator end = templ.end();
-    //std::string result;
-    std::string result;
-    bool r = false;
-    try {
-        client::MyContext context;
-        context.pp = this;
-        context.config_override = config_override;
-        r = phrase_parse(iter, end, calc(&context), space, result);
-    } catch (qi::expectation_failure<iterator_type> const& x) {
-        std::cout << "expected: "; print_info(x.what_);
-        std::cout << "got: \"" << std::string(x.first, x.last) << '"' << std::endl;
+    std::string::const_iterator end  = templ.end();
+    // Accumulator for the processed template.
+    std::string                 output;
+    client::MyContext context;
+    context.pp = this;
+    context.config_override = config_override;
+    bool res = phrase_parse(iter, end, calc(&context), space, output);
+    if (! context.error_message.empty()) {
+        if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
+            context.error_message += '\n';
+        throw std::runtime_error(context.error_message);
     }
-
-    if (r && iter == end)
-    {
-//        std::cout << "-------------------------\n";
-//        std::cout << "Parsing succeeded\n";
-//        std::cout << "result = " << result << std::endl;
-//        std::cout << "-------------------------\n";
-    }
-    else
-    {
-        std::string rest(iter, end);
-        std::cout << "-------------------------\n";
-        std::cout << "Parsing failed\n";
-        std::cout << "stopped at: \" " << rest << "\"\n";
-        std::cout << "source: \n" << templ;       
-        std::cout << "-------------------------\n";
-    }
-    return result;
+    return output;
 }
 
 }

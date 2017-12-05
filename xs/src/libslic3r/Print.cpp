@@ -1075,7 +1075,11 @@ void Print::_make_wipe_tower()
 std::string Print::output_filename()
 {
     this->placeholder_parser.update_timestamp();
-    return this->placeholder_parser.process(this->config.output_filename_format.value, 0);
+    try {
+        return this->placeholder_parser.process(this->config.output_filename_format.value, 0);
+    } catch (std::runtime_error &err) {
+        throw std::runtime_error(std::string("Failed processing of the output_filename_format template.\n") + err.what());
+    }
 }
 
 std::string Print::output_filepath(const std::string &path)

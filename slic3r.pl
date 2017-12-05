@@ -219,6 +219,8 @@ if (@ARGV) {  # slicing from command line
             $sprint->export_svg;
         } else {
             my $t0 = [gettimeofday];
+            # The following call may die if the output_filename_format template substitution fails,
+            # if the file cannot be written into, or if the post processing scripts cannot be executed.
             $sprint->export_gcode;
             
             # output some statistics
