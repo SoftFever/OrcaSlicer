@@ -814,10 +814,10 @@ std::string GCode::placeholder_parser_process(const std::string &name, const std
         // Collect the names of failed template substitutions for error reporting.
         this->m_placeholder_parser_failed_templates.insert(name);
         // Insert the macro error message into the G-code.
-        return 
-            std::string("!!!!! Failed to process the custom G-code template ") + name + "\n" + 
+        return
+            std::string("\n!!!!! Failed to process the custom G-code template ") + name + "\n" + 
             err.what() + 
-            "!!!!! End of an error report for the custom G-code template " + name + "\n";
+            "!!!!! End of an error report for the custom G-code template " + name + "\n\n";
     }
 }
 

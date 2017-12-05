@@ -280,22 +280,31 @@ namespace client
 
         expr &operator+=(const expr &rhs)
         { 
-            const char *err_msg = "Cannot multiply with non-numeric type.";
-            this->throw_if_not_numeric(err_msg);
-            rhs.throw_if_not_numeric(err_msg);
-            if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
-                double d = this->as_d() + rhs.as_d();
-                this->data.d = d;
-                this->type = TYPE_DOUBLE;
-            } else
-                this->data.i += rhs.i();
+            if (this->type == TYPE_STRING) {
+                // Convert the right hand side to string and append.
+                *this->data.s += rhs.to_string();
+            } else if (rhs.type == TYPE_STRING) {
+                // Conver the left hand side to string, append rhs.
+                this->data.s = new std::string(this->to_string() + rhs.s());
+                this->type = TYPE_STRING;
+            } else {
+                const char *err_msg = "Cannot add non-numeric types.";
+                this->throw_if_not_numeric(err_msg);
+                rhs.throw_if_not_numeric(err_msg);
+                if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
+                    double d = this->as_d() + rhs.as_d();
+                    this->data.d = d;
+                    this->type = TYPE_DOUBLE;
+                } else
+                    this->data.i += rhs.i();
+            }
             this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
             return *this;
         }
 
         expr &operator-=(const expr &rhs)
         { 
-            const char *err_msg = "Cannot multiply with non-numeric type.";
+            const char *err_msg = "Cannot subtract non-numeric types.";
             this->throw_if_not_numeric(err_msg);
             rhs.throw_if_not_numeric(err_msg);
             if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
@@ -578,39 +587,42 @@ namespace client
         }
 
         template <typename Iterator>
-        static void process_error_message(const MyContext *context, const boost::spirit::info &info, const Iterator &it_begin, const Iterator &it_end)
+        static void process_error_message(const MyContext *context, const boost::spirit::info &info, const Iterator &it_begin, const Iterator &it_end, const Iterator &it_error)
         {
-            struct expectation_printer
-            {
-                expectation_printer(std::string &msg) : result(msg) {}
-                std::string &result;
-                void element(std::string const& tag, std::string const& value, int depth)
-                {
-                    // Indent to depth.
-                    for (int i = 0; i < depth * 4; ++ i)
-                        result += ' ';
-                    if (tag.empty() || tag.front() != '*') {
-                        if (depth == 0)
-                            this->result += "Expecting ";
-                        this->result += "tag: ";
-                        this->result += tag;
-                    } else
-                        this->result += tag.substr(1);
-                    if (! value.empty()) {
-                        this->result += ", value: ";
-                        this->result += value;
-                    }
-                    this->result += '\n';
-                }
-            };
-
             std::string &msg = const_cast<MyContext*>(context)->error_message;
-            msg += "Error! ";
-            expectation_printer ep(msg);
-            spirit::basic_info_walker<expectation_printer> walker(ep, info.tag, 0);
-            boost::apply_visitor(walker, info.value);
-            msg += " got: \"";
-            msg += std::string(it_begin, it_end) + "\"\n";
+            std::string  first(it_begin, it_error);
+            std::string  last(it_error, it_end);
+            auto         first_pos  = first.rfind('\n');
+            auto         last_pos   = last.find('\n');
+            int          line_nr    = 1;
+            if (first_pos == std::string::npos)
+                first_pos = 0;
+            else {
+                // Calculate the current line number.
+                for (size_t i = 0; i <= first_pos; ++ i)
+                    if (first[i] == '\n')
+                        ++ line_nr;
+                ++ first_pos;
+            }
+            auto error_line = std::string(first, first_pos) + std::string(last, 0, last_pos);
+            // Position of the it_error from the start of its line.
+            auto error_pos  = (it_error - it_begin) - first_pos;
+            msg += "Parsing error at line " + std::to_string(line_nr);
+            if (! info.tag.empty() && info.tag.front() == '*') {
+                // The gat contains an explanatory string.
+                msg += ": ";
+                msg += info.tag.substr(1);
+            } else {
+                // A generic error report based on the nonterminal or terminal symbol name.
+                msg += ". Expecting tag ";
+                msg += info.tag;
+            }
+            msg += '\n';
+            msg += error_line;
+            msg += '\n';
+            for (size_t i = 0; i < error_pos; ++ i)
+                msg += ' ';
+            msg += "^\n";
         }
     };
 
@@ -733,7 +745,7 @@ namespace client
             // Without it, some of the errors would not trigger the error handler.
             start = eps > text_block(_r1);
             start.name("start");
-            qi::on_error<qi::fail>(start, px::bind(&MyContext::process_error_message<Iterator>, _r1, _4, _3, _2));
+            qi::on_error<qi::fail>(start, px::bind(&MyContext::process_error_message<Iterator>, _r1, _4, _1, _2, _3));
 
             text_block = *(
                         text [_val+=_1]
