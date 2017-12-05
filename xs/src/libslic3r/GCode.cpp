@@ -376,11 +376,13 @@ void GCode::do_export(Print *print, const char *path)
 
     this->m_placeholder_parser_failed_templates.clear();
     this->_do_export(*print, file);
-    fclose(file);
+    fflush(file);
     if (ferror(file)) {
+        fclose(file);
         boost::nowide::remove(path_tmp.c_str());
         throw std::runtime_error(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
     }
+    fclose(file);
     if (! this->m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
         std::string msg = std::string("G-code export to ") + path + " failed due to invalid custom G-code sections:\n\n";
