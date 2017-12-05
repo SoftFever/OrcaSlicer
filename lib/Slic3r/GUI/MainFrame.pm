@@ -171,6 +171,9 @@ sub _init_menubar {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
+        wxTheApp->append_menu_item($fileMenu, "Open STL/OBJ/AMF…\tCtrl+O", 'Open a model', sub {
+            $self->{plater}->add if $self->{plater};
+        }, undef, undef); #'brick_add.png');
         $self->_append_menu_item($fileMenu, "&Load Config…\tCtrl+L", 'Load exported configuration file', sub {
             $self->load_config_file;
         }, undef, 'plugin_add.png');
