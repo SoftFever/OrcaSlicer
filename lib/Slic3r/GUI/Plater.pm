@@ -430,6 +430,7 @@ sub new {
             $grid_sizer->AddGrowableCol(3, 1);
             $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
             my @info = (
+                fil_m   => "Used Filament (m)",
                 fil_mm3 => "Used Filament (mm^3)",
                 fil_g   => "Used Filament (g)",
                 cost    => "Cost",
@@ -1426,6 +1427,7 @@ sub on_export_completed {
     $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
     $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
     $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
+    $self->{"print_info_fil_m"}->SetLabel(sprintf("%.2f" , $self->{print}->total_used_filament / 1000));
     $self->{"print_info_box_show"}->(1);
 
     # this updates buttons status
