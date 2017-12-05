@@ -21,6 +21,13 @@
 #include <wx/panel.h>
 #include <wx/sizer.h>
 
+#include "Tab.h"
+
+//#include <wx/bmpcbox.h>
+//#include <wx/bmpbuttn.h>
+//#include <wx/treectrl.h>
+//#include <wx/imaglist.h>
+
 namespace Slic3r { namespace GUI {
 
 #if __APPLE__
@@ -171,16 +178,11 @@ void add_debug_menu(wxMenuBar *menu)
 #endif
 }
 
+//
 void create_preset_tab(const char *name)
 {
-    auto  *panel  = new wxPanel(g_wxTabPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
-    // Vertical sizer to hold the choice menu and the rest of the page.
-    auto  *sizer  = new wxBoxSizer(wxVERTICAL);
-    sizer->SetSizeHints(panel);
-    panel->SetSizer(sizer);
-    auto  *button = new wxButton(panel, wxID_ANY, "Hello World", wxDefaultPosition, wxDefaultSize, 0);
-    sizer->Add(button, 0, 0, 0);
-    g_wxTabPanel->AddPage(panel, name);
+	CTabPrint* panel = new CTabPrint(g_wxTabPanel, name/*, someParams*/);
+	g_wxTabPanel->AddPage(panel, name);
 }
 
 } }
