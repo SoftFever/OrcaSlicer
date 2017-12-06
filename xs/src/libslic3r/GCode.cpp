@@ -5,6 +5,13 @@
 #include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTowerPrusaMM.hpp"
 
+//############################################################################################################
+#include "GCodeTimeEstimator.hpp"
+#ifdef WIN32
+#include "enrico/wintimer.h"
+#endif // WIN32
+//############################################################################################################
+
 #include <algorithm>
 #include <cstdlib>
 #include <math.h>
@@ -374,6 +381,87 @@ bool GCode::do_export(Print *print, const char *path)
 
     if (! result)
         boost::nowide::remove(path_tmp.c_str());
+
+//############################################################################################################
+#ifdef WIN32
+    WinTimer timer;
+    timer.Start();
+#endif // WIN32
+
+    My_GCodeTimeEstimator timeEstimator;
+    timeEstimator.parse_file(path);
+#ifdef WIN32
+    double timeParse = timer.GetElapsedTimeSec();
+#endif // WIN32
+    timeEstimator.calculate_time();
+#ifdef WIN32
+    double timeCalculate = timer.GetElapsedTimeSec();
+#endif // WIN32
+    std::cout << std::endl << ">>> estimated time: " << timeEstimator.get_time() << " seconds." << std::endl << std::endl;
+
+#ifdef WIN32
+    std::cout << std::endl << "parse_file() -> Time: " << timeParse << std::endl << std::endl;
+    std::cout << std::endl << "calculate_file() -> Time: " << timeCalculate - timeParse << std::endl << std::endl;
+#endif // WIN32
+
+/*
+    unsigned int i = 0;
+    const My_GCodeTimeEstimator::BlocksList& blocks = timeEstimator.get_blocks();
+    float maxXYZ[3] = { 0.0f, 0.0f, 0.0f };
+    unsigned int maxID[3] = { 0, 0, 0 };
+    for (const My_GCodeTimeEstimator::Block& block : blocks)
+    {
+      ++i;
+      std::cout << std::endl << "Block: " 
+                             << i 
+                             << " (" 
+                             << block.delta_pos[My_GCodeTimeEstimator::X] 
+                             << ", " 
+                             << block.delta_pos[My_GCodeTimeEstimator::Y] 
+                             << ", " 
+                             << block.delta_pos[My_GCodeTimeEstimator::Z] 
+                             << ") - f: "
+                             << block.feedrate
+                             << " - a: "
+                             << block.acceleration
+                             << " - s: ("
+                             << block.entry_feedrate
+                             << ", "
+                             << block.exit_feedrate
+                             << ")"
+                             << std::endl;
+
+      float dx = ::abs(block.delta_pos[My_GCodeTimeEstimator::X]);
+      float dy = ::abs(block.delta_pos[My_GCodeTimeEstimator::Y]);
+      float dz = ::abs(block.delta_pos[My_GCodeTimeEstimator::Z]);
+
+      if (maxXYZ[My_GCodeTimeEstimator::X] < dx)
+      {
+        maxXYZ[My_GCodeTimeEstimator::X] = dx;
+        maxID[My_GCodeTimeEstimator::X] = i;
+      }
+
+      if (maxXYZ[My_GCodeTimeEstimator::Y] < dy)
+      {
+        maxXYZ[My_GCodeTimeEstimator::Y] = dy;
+        maxID[My_GCodeTimeEstimator::Y] = i;
+      }
+
+      if (maxXYZ[My_GCodeTimeEstimator::Z] < dz)
+      {
+        maxXYZ[My_GCodeTimeEstimator::Z] = dz;
+        maxID[My_GCodeTimeEstimator::Z] = i;
+      }
+    }
+
+    std::cout << std::endl << "MAX DX: " << maxID[My_GCodeTimeEstimator::X] << " - " << maxXYZ[My_GCodeTimeEstimator::X] << std::endl;
+    std::cout << std::endl << "MAX DY: " << maxID[My_GCodeTimeEstimator::Y] << " - " << maxXYZ[My_GCodeTimeEstimator::Y] << std::endl;
+    std::cout << std::endl << "MAX DZ: " << maxID[My_GCodeTimeEstimator::Z] << " - " << maxXYZ[My_GCodeTimeEstimator::Z] << std::endl;
+
+    timeEstimator.print_counters();
+*/
+//############################################################################################################
+
     return result;
 }
 

@@ -60,7 +60,6 @@ include(${PerlEmbed_TEMP_INCLUDE})
 file(REMOVE ${PerlEmbed_TEMP_INCLUDE})
 unset(PerlEmbed_TEMP_INCLUDE)
 
-if (PerlEmbed_DEBUG)
   # First show the configuration extracted by FindPerl & FindPerlLibs:
   message(STATUS " PERL_INCLUDE_PATH      = ${PERL_INCLUDE_PATH}")
   message(STATUS " PERL_LIBRARY           = ${PERL_LIBRARY}")
@@ -79,7 +78,6 @@ if (PerlEmbed_DEBUG)
   message(STATUS " LD                     = ${PerlEmbed_LD}")
   message(STATUS " PerlEmbed_LDFLAGS      = ${PerlEmbed_LDFLAGS}")
   message(STATUS " PerlEmbed_LDDLFLAGS    = ${PerlEmbed_LDDLFLAGS}")
-endif()
 
 include(FindPackageHandleStandardArgs)
 
