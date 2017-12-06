@@ -283,10 +283,11 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
 
 Preset& PresetCollection::load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select)
 {
-    Preset key(m_type, name);
-    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
-    if (it == m_presets.end() || it->name != name)
+    auto it = this->find_preset_internal(name);
+    if (it == m_presets.end() || it->name != name) {
+        // The preset was not found. Create a new preset.
         it = m_presets.emplace(it, Preset(m_type, name, false));
+    }
     Preset &preset = *it;
     preset.file = path;
     preset.config = std::move(config);
@@ -301,9 +302,8 @@ void PresetCollection::save_current_preset(const std::string &new_name)
 {
 	// 1) Find the preset with a new_name or create a new one,
 	// initialize it with the edited config.
-    Preset key(m_type, new_name, false);
-    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
-    if (it != m_presets.end() && it->name == key.name) {
+    auto it = this->find_preset_internal(new_name);
+    if (it != m_presets.end() && it->name == new_name) {
         // Preset with the same name found.
         Preset &preset = *it;
         if (preset.is_default)
@@ -356,7 +356,7 @@ bool PresetCollection::load_bitmap_default(const std::string &file_name)
 Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found)
 {
     Preset key(m_type, name, false);
-    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
+    auto it = this->find_preset_internal(name);
     // Ensure that a temporary copy is returned if the preset found is currently selected.
     return (it != m_presets.end() && it->name == key.name) ? &this->preset(it - m_presets.begin()) : 
         first_visible_if_not_found ? &this->first_visible() : nullptr;
@@ -509,10 +509,9 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
 {   
     std::string name = Preset::remove_suffix_modified(name_w_suffix);
     // 1) Try to find the preset by its name.
-    Preset key(m_type, name, false);
-    auto it = std::lower_bound(m_presets.begin(), m_presets.end(), key);
+    auto it = this->find_preset_internal(name);
     size_t idx = 0;
-    if (it != m_presets.end() && it->name == key.name)
+    if (it != m_presets.end() && it->name == name)
         // Preset found by its name.
         idx = it - m_presets.begin();
     else {

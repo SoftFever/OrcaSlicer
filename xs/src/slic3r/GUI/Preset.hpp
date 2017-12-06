@@ -212,6 +212,18 @@ private:
     PresetCollection(const PresetCollection &other);
     PresetCollection& operator=(const PresetCollection &other);
 
+    // Find a preset in the sorted list of presets.
+    // The "-- default -- " preset is always the first, so it needs
+    // to be handled differently.
+    std::deque<Preset>::iterator find_preset_internal(const std::string &name)
+    {
+        Preset key(m_type, name);
+        auto it = std::lower_bound(m_presets.begin() + 1, m_presets.end(), key);
+        return (it == m_presets.end() && m_presets.front().name == name) ? m_presets.begin() : it;
+    }
+    std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
+        { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
+
     // Type of this PresetCollection: TYPE_PRINT, TYPE_FILAMENT or TYPE_PRINTER.
     Preset::Type            m_type;
     // List of presets, starting with the "- default -" preset.
