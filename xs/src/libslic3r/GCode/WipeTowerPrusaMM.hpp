@@ -8,6 +8,18 @@
 
 #include "WipeTower.hpp"
 
+// Following is used to calculate extrusion flow - should be taken from config in future
+constexpr float Filament_Diameter = 1.75f; // filament diameter in mm
+constexpr float Nozzle_Diameter = 0.4f;	// nozzle diameter in mm
+// desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
+constexpr float Width_To_Nozzle_Ratio = 1.f;
+// m_perimeter_width was hardcoded until now as 0.5 (for 0.4 nozzle and 0.2 layer height)
+// Konst = 1.25 implies same result
+constexpr float Konst = 1.25f;
+constexpr float m_perimeter_width = Nozzle_Diameter * Width_To_Nozzle_Ratio * Konst;
+
+
+
 
 namespace Slic3r
 {
@@ -63,7 +75,7 @@ public:
 	
 	// _zHop - z hop value in mm
 	void set_zhop(float zhop) { m_zhop = zhop; }
-
+	
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp)
 	{
@@ -101,9 +113,12 @@ public:
 		// Extrusion rate for an extrusion aka perimeter width 0.35mm.
 		// Clamp the extrusion height to a 0.2mm layer height, independent of the nozzle diameter.
 //		m_extrusion_flow = std::min(0.2f, layer_height) * 0.145f;
-
 		// Use a strictly
-		m_extrusion_flow = layer_height * 0.145f;
+		//m_extrusion_flow = layer_height * 0.145f;
+		
+		// Calculates extrusion flow from desired line width, nozzle diameter, filament diameter and layer_height
+		m_extrusion_flow = 4.f * layer_height * ( Width_To_Nozzle_Ratio * Nozzle_Diameter - layer_height * (1-M_PI/4.f)) /
+					   		(M_PI * pow(Filament_Diameter,2.f));
 	}
 
 	// Return the wipe tower position.
@@ -174,7 +189,7 @@ private:
 	float  			m_zhop 			 = 0.5f;
 	float  			m_retract		 = 4.f;
 	// Width of an extrusion line, also a perimeter spacing for 100% infill.
-	float  			m_perimeter_width = 0.5f;
+	float  			m_line_width = Nozzle_Diameter * Width_To_Nozzle_Ratio;
 	
 	// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
 	float  			m_extrusion_flow  = 0.029f;

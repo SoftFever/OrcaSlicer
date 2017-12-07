@@ -406,7 +406,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 		float e_length = this->tool_change(0, false, PURPOSE_EXTRUDE).total_extrusion_length_in_plane();
 		// Shrink wipe_area by the amount of extrusion extruded by the finish_layer().
 		// Y stepping of the wipe extrusions.
-		float dy = m_perimeter_width * 0.8f;
+		float dy = m_line_width;
 		// Number of whole wipe lines, that would be extruded to wipe as much material as the finish_layer().
 		// Minimum wipe area is 5mm wide.
 		//FIXME calculate the purge_lines_width precisely.
@@ -453,7 +453,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 				if (last_wipe_inside_wipe_tower) {
 					// Shrink the last wipe area to the area of the other purge areas,
 					// remember the last initial wipe width to be purged into the 1st layer of the wipe tower.
-					this->m_initial_extra_wipe = std::max(0.f, wipe_area - (y_end + 0.5f * 0.85f * m_perimeter_width - cleaning_box.ld.y));
+					this->m_initial_extra_wipe = std::max(0.f, wipe_area - (y_end + 0.5f * m_line_width - cleaning_box.ld.y));
 					cleaning_box.lu.y -= this->m_initial_extra_wipe;
 					cleaning_box.ru.y -= this->m_initial_extra_wipe;
 				}
@@ -524,7 +524,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 			}
 			// Shrink wipe_area by the amount of extrusion extruded by the finish_layer().
 			// Y stepping of the wipe extrusions.
-			float dy = m_perimeter_width * 0.8f;
+			float dy = m_line_width;
 			// Number of whole wipe lines, that would be extruded to wipe as much material as the finish_layer().
 			float num_lines_extruded = floor(e_length / m_wipe_tower_width);
 			// Minimum wipe area is 5mm wide.
@@ -645,7 +645,6 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
 		  .set_rotation(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_wipe_tower_rotation_angle)
-		  //.set_offset(xy(-))
 		  .append(
 			";-------------------------------------\n"
 			"; CP WIPE TOWER FIRST LAYER BRIM START\n");
@@ -867,7 +866,7 @@ void WipeTowerPrusaMM::toolchange_Load(
 	writer.extrude(xr, writer.y(), 1600);
 	bool   colorInit = false;
 	size_t pass = colorInit ? 1 : 2;
-	float  dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_perimeter_width * 0.85f;
+	float dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_line_width;
 	for (int i = 0; i < pass; ++ i) {
 		writer.travel (xr, writer.y() + dy, 7200);
 		writer.extrude(xl, writer.y(), 		2200);
@@ -896,7 +895,7 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	float wipe_speed_inc = 50.f;
 	float wipe_speed_max = 4800.f;
 	// Y increment per wipe line.
-	float dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_perimeter_width * 0.8f;
+	float dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_line_width;
 	for (bool p = true; 
 		// Next wipe line fits the cleaning box.
 		((m_current_shape == SHAPE_NORMAL) ?
