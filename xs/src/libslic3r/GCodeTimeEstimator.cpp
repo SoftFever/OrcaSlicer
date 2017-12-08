@@ -2,8 +2,6 @@
 #include <boost/bind.hpp>
 #include <cmath>
 
-//###########################################################################################################
-#include <fstream>
 static const std::string AXIS_STR = "XYZE";
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float MILLISEC_TO_SEC = 0.001f;
@@ -13,205 +11,258 @@ static const float DEFAULT_ACCELERATION = 3000.0f;
 static const float DEFAULT_AXIS_MAX_FEEDRATE[] = { 600.0f, 600.0f, 40.0f, 25.0f };
 static const float DEFAULT_AXIS_MAX_ACCELERATION[] = { 9000.0f, 9000.0f, 100.0f, 10000.0f };
 
-static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.2f, 2.5f }; // from firmware
-// static const float DEFAULT_AXIS_MAX_JERK[] = { 20.0f, 20.0f, 0.4f, 5.0f }; / from CURA
+static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.2f, 2.5f }; // from Firmware
+//static const float DEFAULT_AXIS_MAX_JERK[] = { 20.0f, 20.0f, 0.4f, 5.0f }; // from Cura
 
-static const float MINIMUM_FEEDRATE = 0.01f;
-static const float MINIMUM_PLANNER_SPEED = 0.05f; // <<<<<<<< WHAT IS THIS ???
-static const float FEEDRATE_THRESHOLD = 0.0001f;
-//###########################################################################################################
+static const float DEFAULT_MINIMUM_FEEDRATE = 0.0f; // from Firmware
+//static const float DEFAULT_MINIMUM_FEEDRATE = 0.01f; // from Cura
+
+#if USE_CURA_JUNCTION_VMAX
+static const float MINIMUM_PLANNER_SPEED = 0.05f; // from Cura <<<<<<<< WHAT IS THIS ???
+#endif // USE_CURA_JUNCTION_VMAX
+
+static const float PREVIOUS_FEEDRATE_THRESHOLD = 0.0001f;
 
 namespace Slic3r {
 
-//###########################################################################################################
-  float My_GCodeTimeEstimator::Block::move_length() const
+  void GCodeTimeEstimator::Feedrates::reset()
+  {
+    feedrate = 0.0f;
+    safe_feedrate = 0.0f;
+    ::memset(axis_feedrate, 0, Num_Axis * sizeof(float));
+    ::memset(abs_axis_feedrate, 0, Num_Axis * sizeof(float));
+  }
+
+  float GCodeTimeEstimator::Block::Trapezoid::acceleration_time(float acceleration) const
+  {
+    return acceleration_time_from_distance(feedrate.entry, accelerate_until, acceleration);
+  }
+
+  float GCodeTimeEstimator::Block::Trapezoid::cruise_time() const
+  {
+    return (feedrate.cruise != 0.0f) ? cruise_distance() / feedrate.cruise : 0.0f;
+  }
+
+  float GCodeTimeEstimator::Block::Trapezoid::deceleration_time(float acceleration) const
+  {
+    return acceleration_time_from_distance(feedrate.cruise, (distance - decelerate_after), -acceleration);
+  }
+
+  float GCodeTimeEstimator::Block::Trapezoid::cruise_distance() const
+  {
+    return decelerate_after - accelerate_until;
+  }
+
+  float GCodeTimeEstimator::Block::Trapezoid::acceleration_time_from_distance(float initial_feedrate, float distance, float acceleration)
+  {
+    return (acceleration != 0.0f) ? (speed_from_distance(initial_feedrate, distance, acceleration) - initial_feedrate) / acceleration : 0.0f;
+  }
+
+  float GCodeTimeEstimator::Block::Trapezoid::speed_from_distance(float initial_feedrate, float distance, float acceleration)
+  {
+    return ::sqrt(sqr(initial_feedrate) + 2.0f * acceleration * distance);
+  }
+
+  float GCodeTimeEstimator::Block::move_length() const
   {
     float length = ::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
     return (length > 0.0f) ? length : ::abs(delta_pos[E]);
   }
 
-  void My_GCodeTimeEstimator::Block::calculate_trapezoid()
+  float GCodeTimeEstimator::Block::acceleration_time() const
   {
-    float accelerate_distance = estimate_acceleration_distance(entry_feedrate, feedrate, acceleration);
-    float decelerate_distance = estimate_acceleration_distance(feedrate, exit_feedrate, -acceleration);
+    return trapezoid.acceleration_time(acceleration);
+  }
 
+  float GCodeTimeEstimator::Block::cruise_time() const
+  {
+    return trapezoid.cruise_time();
+  }
+
+  float GCodeTimeEstimator::Block::deceleration_time() const
+  {
+    return trapezoid.deceleration_time(acceleration);
+  }
+
+  float GCodeTimeEstimator::Block::cruise_distance() const
+  {
+    return trapezoid.cruise_distance();
+  }
+
+  void GCodeTimeEstimator::Block::calculate_trapezoid()
+  {
     float distance = move_length();
 
-    float plateau_distance = distance - accelerate_distance - decelerate_distance;
+    trapezoid.distance = distance;
+    trapezoid.feedrate = feedrate;
+
+    float accelerate_distance = estimate_acceleration_distance(feedrate.entry, feedrate.cruise, acceleration);
+    float decelerate_distance = estimate_acceleration_distance(feedrate.cruise, feedrate.exit, -acceleration);
+    float cruise_distance = distance - accelerate_distance - decelerate_distance;
 
     // Not enough space to reach the nominal feedrate.
     // This means no cruising, and we'll have to use intersection_distance() to calculate when to abort acceleration 
     // and start braking in order to reach the exit_feedrate exactly at the end of this block.
-    if (plateau_distance < 0.0f)
+    if (cruise_distance < 0.0f)
     {
-      accelerate_distance = clamp(0.0f, distance, intersection_distance(entry_feedrate, exit_feedrate, acceleration, distance));
-      plateau_distance = 0.0f;
+      accelerate_distance = clamp(0.0f, distance, intersection_distance(feedrate.entry, feedrate.exit, acceleration, distance));
+      cruise_distance = 0.0f;
+      trapezoid.feedrate.cruise = Trapezoid::speed_from_distance(feedrate.entry, accelerate_distance, acceleration);
     }
 
-    trapezoid.distance = distance;
     trapezoid.accelerate_until = accelerate_distance;
-    trapezoid.decelerate_after = accelerate_distance + plateau_distance;
-    trapezoid.entry_feedrate = entry_feedrate;
-    trapezoid.exit_feedrate = exit_feedrate;
+    trapezoid.decelerate_after = accelerate_distance + cruise_distance;
   }
 
-  float My_GCodeTimeEstimator::Block::max_allowable_speed(float acceleration, float target_velocity, float distance)
+  float GCodeTimeEstimator::Block::max_allowable_speed(float acceleration, float target_velocity, float distance)
   {
     return ::sqrt(sqr(target_velocity) - 2.0f * acceleration * distance);
   }
 
-  float My_GCodeTimeEstimator::Block::estimate_acceleration_distance(float initial_rate, float target_rate, float acceleration)
+  float GCodeTimeEstimator::Block::estimate_acceleration_distance(float initial_rate, float target_rate, float acceleration)
   {
     return (acceleration == 0.0f) ? 0.0f : (sqr(target_rate) - sqr(initial_rate)) / (2.0f * acceleration);
   }
 
-  float My_GCodeTimeEstimator::Block::intersection_distance(float initial_rate, float final_rate, float acceleration, float distance)
+  float GCodeTimeEstimator::Block::intersection_distance(float initial_rate, float final_rate, float acceleration, float distance)
   {
     return (acceleration == 0.0f) ? 0.0f : (2.0f * acceleration * distance - sqr(initial_rate) + sqr(final_rate)) / (4.0f * acceleration);
   }
 
-  float My_GCodeTimeEstimator::Block::acceleration_time_from_distance(float initial_feedrate, float distance, float acceleration)
-  {
-    float discriminant = sqr(initial_feedrate) + 2.0f * acceleration * distance;
-
-    // If discriminant is negative, we're moving in the wrong direction.
-    // Making the discriminant 0 then gives the extremum of the parabola instead of the intersection.
-    discriminant = std::max(0.0f, discriminant);
-    return (-initial_feedrate + ::sqrt(discriminant)) / acceleration;
-  }
-
-  My_GCodeTimeEstimator::My_GCodeTimeEstimator()
+  GCodeTimeEstimator::GCodeTimeEstimator()
   {
   }
 
-  void My_GCodeTimeEstimator::parse(const std::string& gcode)
+  void GCodeTimeEstimator::calculate_time_from_text(const std::string& gcode)
   {
     _reset();
-    GCodeReader::parse(gcode, boost::bind(&My_GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+    _parser.parse(gcode, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+    _calculate_time();
   }
 
-  void My_GCodeTimeEstimator::parse_file(const std::string& file)
+  void GCodeTimeEstimator::calculate_time_from_file(const std::string& file)
   {
     _reset();
-    GCodeReader::parse_file(file, boost::bind(&My_GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+    _parser.parse_file(file, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+    _calculate_time();
   }
 
-  void My_GCodeTimeEstimator::calculate_time()
-  {
-    _time = get_additional_time();
-
-    for (const Block& block : _blocks)
-    {
-      const Block::Trapezoid& trapezoid = block.trapezoid;
-      float plateau_distance = trapezoid.decelerate_after - trapezoid.accelerate_until;
-
-      _time += Block::acceleration_time_from_distance(block.entry_feedrate, trapezoid.accelerate_until, block.acceleration);
-      _time += plateau_distance / block.feedrate;
-      _time += Block::acceleration_time_from_distance(block.exit_feedrate, (trapezoid.distance - trapezoid.decelerate_after), block.acceleration);
-    }
-  }
-
-  void My_GCodeTimeEstimator::set_axis_position(EAxis axis, float position)
+  void GCodeTimeEstimator::set_axis_position(EAxis axis, float position)
   {
     _state.axis[axis].position = position;
   }
 
-  void My_GCodeTimeEstimator::set_axis_max_feedrate(EAxis axis, float feedrate_mm_sec)
+  void GCodeTimeEstimator::set_axis_max_feedrate(EAxis axis, float feedrate_mm_sec)
   {
     _state.axis[axis].max_feedrate = feedrate_mm_sec;
   }
 
-  void My_GCodeTimeEstimator::set_axis_max_acceleration(EAxis axis, float acceleration)
+  void GCodeTimeEstimator::set_axis_max_acceleration(EAxis axis, float acceleration)
   {
     _state.axis[axis].max_acceleration = acceleration;
   }
 
-  void My_GCodeTimeEstimator::set_axis_max_jerk(EAxis axis, float jerk)
+  void GCodeTimeEstimator::set_axis_max_jerk(EAxis axis, float jerk)
   {
     _state.axis[axis].max_jerk = jerk;
   }
 
-  float My_GCodeTimeEstimator::get_axis_position(EAxis axis) const
+  float GCodeTimeEstimator::get_axis_position(EAxis axis) const
   {
     return _state.axis[axis].position;
   }
 
-  float My_GCodeTimeEstimator::get_axis_max_feedrate(EAxis axis) const
+  float GCodeTimeEstimator::get_axis_max_feedrate(EAxis axis) const
   {
     return _state.axis[axis].max_feedrate;
   }
 
-  float My_GCodeTimeEstimator::get_axis_max_acceleration(EAxis axis) const
+  float GCodeTimeEstimator::get_axis_max_acceleration(EAxis axis) const
   {
     return _state.axis[axis].max_acceleration;
   }
 
-  float My_GCodeTimeEstimator::get_axis_max_jerk(EAxis axis) const
+  float GCodeTimeEstimator::get_axis_max_jerk(EAxis axis) const
   {
     return _state.axis[axis].max_jerk;
   }
 
-  void My_GCodeTimeEstimator::set_feedrate(float feedrate_mm_sec)
+  void GCodeTimeEstimator::set_feedrate(float feedrate_mm_sec)
   {
-    _state.feedrate = std::max(feedrate_mm_sec, MINIMUM_FEEDRATE);
+    _state.feedrate = feedrate_mm_sec;
   }
 
-  float My_GCodeTimeEstimator::get_feedrate() const
+  float GCodeTimeEstimator::get_feedrate() const
   {
     return _state.feedrate;
   }
 
-  void My_GCodeTimeEstimator::set_acceleration(float acceleration)
+  void GCodeTimeEstimator::set_acceleration(float acceleration)
   {
     _state.acceleration = acceleration;
   }
 
-  float My_GCodeTimeEstimator::get_acceleration() const
+  float GCodeTimeEstimator::get_acceleration() const
   {
     return _state.acceleration;
   }
 
-  void My_GCodeTimeEstimator::set_dialect(My_GCodeTimeEstimator::EDialect dialect)
+  void GCodeTimeEstimator::set_minimum_feedrate(float feedrate_mm_sec)
+  {
+    _state.minimum_feedrate = feedrate_mm_sec;
+  }
+
+  float GCodeTimeEstimator::get_minimum_feedrate() const
+  {
+    return _state.minimum_feedrate;
+  }
+
+  void GCodeTimeEstimator::set_dialect(GCodeTimeEstimator::EDialect dialect)
   {
     _state.dialect = dialect;
   }
 
-  My_GCodeTimeEstimator::EDialect My_GCodeTimeEstimator::get_dialect() const
+  GCodeTimeEstimator::EDialect GCodeTimeEstimator::get_dialect() const
   {
     return _state.dialect;
   }
 
-  void My_GCodeTimeEstimator::set_units(My_GCodeTimeEstimator::EUnits units)
+  void GCodeTimeEstimator::set_units(GCodeTimeEstimator::EUnits units)
   {
     _state.units = units;
   }
 
-  My_GCodeTimeEstimator::EUnits My_GCodeTimeEstimator::get_units() const
+  GCodeTimeEstimator::EUnits GCodeTimeEstimator::get_units() const
   {
     return _state.units;
   }
 
-  void My_GCodeTimeEstimator::set_positioningType(My_GCodeTimeEstimator::EPositioningType type)
+  void GCodeTimeEstimator::set_positioningType(GCodeTimeEstimator::EPositioningType type)
   {
     _state.positioningType = type;
   }
 
-  My_GCodeTimeEstimator::EPositioningType My_GCodeTimeEstimator::get_positioningType() const
+  GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_positioningType() const
   {
     return _state.positioningType;
   }
 
-  void My_GCodeTimeEstimator::add_additional_time(float timeSec)
+  void GCodeTimeEstimator::add_additional_time(float timeSec)
   {
     _state.additional_time += timeSec;
   }
 
-  float My_GCodeTimeEstimator::get_additional_time() const
+  void GCodeTimeEstimator::set_additional_time(float timeSec)
+  {
+    _state.additional_time = timeSec;
+  }
+
+  float GCodeTimeEstimator::get_additional_time() const
   {
     return _state.additional_time;
   }
 
-  void My_GCodeTimeEstimator::set_default()
+  void GCodeTimeEstimator::set_default()
   {
     set_units(Millimeters);
     set_dialect(Unknown);
@@ -219,6 +270,7 @@ namespace Slic3r {
 
     set_feedrate(DEFAULT_FEEDRATE);
     set_acceleration(DEFAULT_ACCELERATION);
+    set_minimum_feedrate(DEFAULT_MINIMUM_FEEDRATE);
 
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
@@ -229,40 +281,59 @@ namespace Slic3r {
     }
   }
 
-  float My_GCodeTimeEstimator::get_time() const
+  float GCodeTimeEstimator::get_time() const
   {
     return _time;
   }
 
-  const My_GCodeTimeEstimator::BlocksList& My_GCodeTimeEstimator::get_blocks() const
+  std::string GCodeTimeEstimator::get_time_hms() const
   {
-    return _blocks;
+    float timeinsecs = get_time();
+    int hours = (int)(timeinsecs / 3600.0f);
+    timeinsecs -= (float)hours * 3600.0f;
+    int minutes = (int)(timeinsecs / 60.0f);
+    timeinsecs -= (float)minutes * 60.0f;
+
+    char buf[16];
+    ::sprintf(buf, "%02d:%02d:%02d", hours, minutes, (int)timeinsecs);
+    return buf;
   }
 
-//  void My_GCodeTimeEstimator::print_counters() const
-//  {
-//    std::cout << std::endl;
-//    for (const CmdToCounterMap::value_type& counter : _cmdCounters)
-//    {
-//      std::cout << counter.first << " : " << counter.second << std::endl;
-//    }
-//  }
-
-  void My_GCodeTimeEstimator::_reset()
+  void GCodeTimeEstimator::_reset()
   {
-//    _cmdCounters.clear();
-
     _blocks.clear();
 
+    _curr.reset();
+    _prev.reset();
+
     set_default();
+
     set_axis_position(X, 0.0f);
     set_axis_position(Y, 0.0f);
     set_axis_position(Z, 0.0f);
 
-    _state.additional_time = 0.0f;
+    set_additional_time(0.0f);
   }
 
-  void My_GCodeTimeEstimator::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_calculate_time()
+  {
+#if ENABLE_BLOCKS_PRE_PROCESSING
+    forward_pass();
+    reverse_pass();
+    recalculate_trapezoids();
+#endif // ENABLE_BLOCKS_PRE_PROCESSING
+
+    _time = get_additional_time();
+
+    for (const Block& block : _blocks)
+    {
+      _time += block.acceleration_time();
+      _time += block.cruise_time();
+      _time += block.deceleration_time();
+    }
+  }
+
+  void GCodeTimeEstimator::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
   {
     if (line.cmd.length() > 1)
     {
@@ -335,6 +406,11 @@ namespace Slic3r {
               _processM204(line);
               break;
             }
+          case 205: // Advanced settings
+            {
+              _processM205(line);
+              break;
+            }
           case 566: // Set allowable instantaneous speed change
             {
               _processM566(line);
@@ -345,16 +421,10 @@ namespace Slic3r {
           break;
         }
       }
-
-//      CmdToCounterMap::iterator it = _cmdCounters.find(line.cmd);
-//      if (it == _cmdCounters.end())
-//        _cmdCounters.insert(CmdToCounterMap::value_type(line.cmd, 1));
-//      else
-//        ++it->second;
     }
   }
 
-  void My_GCodeTimeEstimator::_processG1(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processG1(const GCodeReader::GCodeLine& line)
   {
     float lengthsScaleFactor = (get_units() == Inches) ? INCHES_TO_MM : 1.0f;
 
@@ -379,7 +449,7 @@ namespace Slic3r {
 
     // updates feedrate from line, if present
     if (line.has('F'))
-      set_feedrate(line.get_float('F') * MMMIN_TO_MMSEC);
+      set_feedrate(std::max(line.get_float('F') * MMMIN_TO_MMSEC, get_minimum_feedrate()));
 
     // fills block data
     Block block;
@@ -397,24 +467,26 @@ namespace Slic3r {
       return;
 
     // calculates block feedrate
-    float feedrate = get_feedrate();
+    _curr.feedrate = std::max(get_feedrate(), get_minimum_feedrate());
 
     float distance = block.move_length();
     float invDistance = 1.0f / distance;
 
-    float axis_feedrate[Num_Axis];
     float min_feedrate_factor = 1.0f;
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
-      axis_feedrate[a] = feedrate * ::abs(block.delta_pos[a]) * invDistance;
-      if (axis_feedrate[a] > 0.0f)
-        min_feedrate_factor = std::min(min_feedrate_factor, get_axis_max_feedrate((EAxis)a) / axis_feedrate[a]);
+      _curr.axis_feedrate[a] = _curr.feedrate * block.delta_pos[a] * invDistance;
+      _curr.abs_axis_feedrate[a] = ::abs(_curr.axis_feedrate[a]);
+      if (_curr.abs_axis_feedrate[a] > 0.0f)
+        min_feedrate_factor = std::min(min_feedrate_factor, get_axis_max_feedrate((EAxis)a) / _curr.abs_axis_feedrate[a]);
     }
     
-    block.feedrate = min_feedrate_factor * feedrate;
+    block.feedrate.cruise = min_feedrate_factor * _curr.feedrate;
+
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
-      axis_feedrate[a] *= min_feedrate_factor;
+      _curr.axis_feedrate[a] *= min_feedrate_factor;
+      _curr.abs_axis_feedrate[a] *= min_feedrate_factor;
     }
 
     // calculates block acceleration
@@ -430,27 +502,28 @@ namespace Slic3r {
     block.acceleration = acceleration;
 
     // calculates block exit feedrate
-    float exit_feedrate = block.feedrate;
+    _curr.safe_feedrate = block.feedrate.cruise;
 
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
-      float half_axis_max_jerk = 0.5f * get_axis_max_jerk((EAxis)a);
-      if (axis_feedrate[a] > half_axis_max_jerk)
-        exit_feedrate = std::min(exit_feedrate, half_axis_max_jerk);
+      float axis_max_jerk = get_axis_max_jerk((EAxis)a);
+      if (_curr.abs_axis_feedrate[a] > axis_max_jerk)
+        _curr.safe_feedrate = std::min(_curr.safe_feedrate, axis_max_jerk);
     }
 
-    block.exit_feedrate = exit_feedrate;
+    block.feedrate.exit = _curr.safe_feedrate;
 
     // calculates block entry feedrate
-    float vmax_junction = exit_feedrate;
-    if (!_blocks.empty() && (_prev.feedrate > FEEDRATE_THRESHOLD))
+#if USE_CURA_JUNCTION_VMAX
+    float vmax_junction = _curr.safe_feedrate;
+    if (!_blocks.empty() && (_prev.feedrate > PREVIOUS_FEEDRATE_THRESHOLD))
     {
-      vmax_junction = block.feedrate;
+      vmax_junction = block.feedrate.cruise;
       float vmax_junction_factor = 1.0f;
 
       for (unsigned char a = X; a < Num_Axis; ++a)
       {
-        float abs_delta_axis_feedrate = ::abs(axis_feedrate[a] - _prev.axis_feedrate[a]);
+        float abs_delta_axis_feedrate = ::abs(_curr.axis_feedrate[a] - _prev.axis_feedrate[a]);
         float axis_max_jerk = get_axis_max_jerk((EAxis)a);
         if (abs_delta_axis_feedrate > axis_max_jerk)
           vmax_junction_factor = std::min(vmax_junction_factor, axis_max_jerk / abs_delta_axis_feedrate);
@@ -460,17 +533,94 @@ namespace Slic3r {
       vmax_junction = std::min(_prev.feedrate, vmax_junction * vmax_junction_factor);
     }
 
-    block.entry_feedrate = std::min(vmax_junction, Block::max_allowable_speed(-acceleration, MINIMUM_PLANNER_SPEED, distance));
+#if ENABLE_BLOCKS_PRE_PROCESSING
+    float v_allowable = Block::max_allowable_speed(-acceleration, MINIMUM_PLANNER_SPEED, distance);
+    block.feedrate.entry = std::min(vmax_junction, v_allowable);
+#else
+    block.feedrate.entry = std::min(vmax_junction, Block::max_allowable_speed(-acceleration, MINIMUM_PLANNER_SPEED, distance));
+#endif // ENABLE_BLOCKS_PRE_PROCESSING
+#else
+    float vmax_junction = _curr.safe_feedrate;
+    if (!_blocks.empty() && (_prev.feedrate > PREVIOUS_FEEDRATE_THRESHOLD))
+    {
+      bool prev_speed_larger = _prev.feedrate > block.feedrate.cruise;
+      float smaller_speed_factor = prev_speed_larger ? (block.feedrate.cruise / _prev.feedrate) : (_prev.feedrate / block.feedrate.cruise);
+      // Pick the smaller of the nominal speeds. Higher speed shall not be achieved at the junction during coasting.
+      vmax_junction = prev_speed_larger ? block.feedrate.cruise : _prev.feedrate;
+
+      float v_factor = 1.0f;
+      bool limited = false;
+
+      for (unsigned char a = X; a < Num_Axis; ++a)
+      {
+        // Limit an axis. We have to differentiate coasting from the reversal of an axis movement, or a full stop.
+        float v_exit = _prev.axis_feedrate[a];
+        float v_entry = _curr.axis_feedrate[a];
+
+        if (prev_speed_larger)
+          v_exit *= smaller_speed_factor;
+
+        if (limited)
+        {
+          v_exit *= v_factor;
+          v_entry *= v_factor;
+        }
+
+        // Calculate the jerk depending on whether the axis is coasting in the same direction or reversing a direction.
+        float jerk =
+          (v_exit > v_entry) ?
+          (((v_entry > 0.0f) || (v_exit < 0.0f)) ?
+          // coasting
+          (v_exit - v_entry) :
+          // axis reversal
+          std::max(v_exit, -v_entry)) :
+          // v_exit <= v_entry
+          (((v_entry < 0.0f) || (v_exit > 0.0f)) ?
+          // coasting
+          (v_entry - v_exit) :
+          // axis reversal
+          std::max(-v_exit, v_entry));
+
+        float axis_max_jerk = get_axis_max_jerk((EAxis)a);
+        if (jerk > axis_max_jerk)
+        {
+          v_factor *= axis_max_jerk / jerk;
+          limited = true;
+        }
+      }
+
+      if (limited)
+        vmax_junction *= v_factor;
+
+      // Now the transition velocity is known, which maximizes the shared exit / entry velocity while
+      // respecting the jerk factors, it may be possible, that applying separate safe exit / entry velocities will achieve faster prints.
+      float vmax_junction_threshold = vmax_junction * 0.99f;
+
+      // Not coasting. The machine will stop and start the movements anyway, better to start the segment from start.
+      if ((_prev.safe_feedrate > vmax_junction_threshold) && (_curr.safe_feedrate > vmax_junction_threshold))
+        vmax_junction = _curr.safe_feedrate;
+    }
+
+#if ENABLE_BLOCKS_PRE_PROCESSING
+    float v_allowable = Block::max_allowable_speed(-acceleration, _curr.safe_feedrate, distance);
+    block.feedrate.entry = std::min(vmax_junction, v_allowable);
+#else
+    block.feedrate.entry = std::min(vmax_junction, Block::max_allowable_speed(-acceleration, _curr.safe_feedrate, distance));
+#endif // ENABLE_BLOCKS_PRE_PROCESSING
+#endif // USE_CURA_JUNCTION_VMAX
+
+#if ENABLE_BLOCKS_PRE_PROCESSING
+    block.max_entry_speed = vmax_junction;
+    block.flags.nominal_length = (block.feedrate.cruise <= v_allowable);
+    block.flags.recalculate = true;
+    block.safe_feedrate = _curr.safe_feedrate;
+#endif // ENABLE_BLOCKS_PRE_PROCESSING
 
     // calculates block trapezoid
     block.calculate_trapezoid();
 
-    // updates previous cache
-    _prev.feedrate = feedrate;
-    for (unsigned char a = X; a < Num_Axis; ++a)
-    {
-      _prev.axis_feedrate[a] = axis_feedrate[a];
-    }
+    // updates previous
+    _prev = _curr;
 
     // updates axis positions
     for (unsigned char a = X; a < Num_Axis; ++a)
@@ -482,7 +632,7 @@ namespace Slic3r {
     _blocks.push_back(block);
   }
 
-  void My_GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)
   {
     EDialect dialect = get_dialect();
 
@@ -500,44 +650,44 @@ namespace Slic3r {
     }
   }
 
-  void My_GCodeTimeEstimator::_processG20(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processG20(const GCodeReader::GCodeLine& line)
   {
     set_units(Inches);
   }
 
-  void My_GCodeTimeEstimator::_processG21(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processG21(const GCodeReader::GCodeLine& line)
   {
     set_units(Millimeters);
   }
 
-  void My_GCodeTimeEstimator::_processG28(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processG28(const GCodeReader::GCodeLine& line)
   {
     // todo
   }
 
-  void My_GCodeTimeEstimator::_processG90(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processG90(const GCodeReader::GCodeLine& line)
   {
     set_positioningType(Absolute);
   }
 
-  void My_GCodeTimeEstimator::_processG91(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processG91(const GCodeReader::GCodeLine& line)
   {
     // >>>>>>>> THERE ARE DIALECT VARIANTS
 
     set_positioningType(Relative);
   }
 
-  void My_GCodeTimeEstimator::_processG92(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processG92(const GCodeReader::GCodeLine& line)
   {
     // todo
   }
 
-  void My_GCodeTimeEstimator::_processM109(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processM109(const GCodeReader::GCodeLine& line)
   {
     // todo
   }
 
-  void My_GCodeTimeEstimator::_processM203(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processM203(const GCodeReader::GCodeLine& line)
   {
     EDialect dialect = get_dialect();
 
@@ -561,7 +711,7 @@ namespace Slic3r {
       set_axis_max_feedrate(E, line.get_float('E') * factor);
   }
 
-  void My_GCodeTimeEstimator::_processM204(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processM204(const GCodeReader::GCodeLine& line)
   {
     if (line.has('S'))
       set_acceleration(line.get_float('S')); // <<<< Is this correct ?
@@ -572,7 +722,29 @@ namespace Slic3r {
     }
   }
 
-  void My_GCodeTimeEstimator::_processM566(const GCodeReader::GCodeLine& line)
+  void GCodeTimeEstimator::_processM205(const GCodeReader::GCodeLine& line)
+  {
+    if (line.has('X'))
+    {
+      float max_jerk = line.get_float('X');
+      set_axis_max_jerk(X, max_jerk);
+      set_axis_max_jerk(Y, max_jerk);
+    }
+
+    if (line.has('Y'))
+      set_axis_max_jerk(Y, line.get_float('Y'));
+
+    if (line.has('Z'))
+      set_axis_max_jerk(Z, line.get_float('Z'));
+
+    if (line.has('E'))
+      set_axis_max_jerk(E, line.get_float('E'));
+
+    if (line.has('S'))
+      set_minimum_feedrate(line.get_float('S'));
+  }
+
+  void GCodeTimeEstimator::_processM566(const GCodeReader::GCodeLine& line)
   {
     if (line.has('X'))
       set_axis_max_jerk(X, line.get_float('X') * MMMIN_TO_MMSEC);
@@ -586,77 +758,119 @@ namespace Slic3r {
     if (line.has('E'))
       set_axis_max_jerk(E, line.get_float('E') * MMMIN_TO_MMSEC);
   }
-//###########################################################################################################
 
-void
-GCodeTimeEstimator::parse(const std::string &gcode)
-{
-    GCodeReader::parse(gcode, boost::bind(&GCodeTimeEstimator::_parser, this, _1, _2));
-}
+#if ENABLE_BLOCKS_PRE_PROCESSING
+  void GCodeTimeEstimator::forward_pass()
+  {
+    Block* block[2] = { nullptr, nullptr };
 
-void
-GCodeTimeEstimator::parse_file(const std::string &file)
-{
-    GCodeReader::parse_file(file, boost::bind(&GCodeTimeEstimator::_parser, this, _1, _2));
-}
-
-void
-GCodeTimeEstimator::_parser(GCodeReader&, const GCodeReader::GCodeLine &line)
-{
-    // std::cout << "[" << this->time << "] " << line.raw << std::endl;
-    if (line.cmd == "G1") {
-        const float dist_XY = line.dist_XY();
-        const float new_F = line.new_F();
-        
-        if (dist_XY > 0) {
-            //this->time += dist_XY / new_F * 60;
-            this->time += _accelerated_move(dist_XY, new_F/60, this->acceleration);
-        } else {
-            //this->time += std::abs(line.dist_E()) / new_F * 60;
-            this->time += _accelerated_move(std::abs(line.dist_E()), new_F/60, this->acceleration);
-        }
-        //this->time += std::abs(line.dist_Z()) / new_F * 60;
-        this->time += _accelerated_move(std::abs(line.dist_Z()), new_F/60, this->acceleration);
-    } else if (line.cmd == "M204" && line.has('S')) {
-        this->acceleration = line.get_float('S');
-    } else if (line.cmd == "G4") { // swell
-        if (line.has('S')) {
-            this->time += line.get_float('S');
-        } else if (line.has('P')) {
-            this->time += line.get_float('P')/1000;
-        }
+    for (Block& b : _blocks)
+    {
+      block[0] = block[1];
+      block[1] = &b;
+      planner_forward_pass_kernel(block[0], block[1]);
     }
-}
 
-// Wildly optimistic acceleration "bell" curve modeling.
-// Returns an estimate of how long the move with a given accel
-// takes in seconds.
-// It is assumed that the movement is smooth and uniform.
-float
-GCodeTimeEstimator::_accelerated_move(double length, double v, double acceleration) 
-{
-    // for half of the move, there are 2 zones, where the speed is increasing/decreasing and 
-    // where the speed is constant.
-    // Since the slowdown is assumed to be uniform, calculate the average velocity for half of the 
-    // expected displacement.
-    // final velocity v = a*t => a * (dx / 0.5v) => v^2 = 2*a*dx
-    // v_avg = 0.5v => 2*v_avg = v
-    // d_x = v_avg*t => t = d_x / v_avg
-    acceleration = (acceleration == 0.0 ? 4000.0 : acceleration); // Set a default accel to use for print time in case it's 0 somehow.
-    auto half_length = length / 2.0;
-    auto t_init = v / acceleration; // time to final velocity
-    auto dx_init = (0.5*v*t_init); // Initial displacement for the time to get to final velocity
-    auto t = 0.0;
-    if (half_length >= dx_init) {
-        half_length -= (0.5*v*t_init);
-        t += t_init;
-        t += (half_length / v); // rest of time is at constant speed.
-    } else {
-        // If too much displacement for the expected final velocity, we don't hit the max, so reduce 
-        // the average velocity to fit the displacement we actually are looking for.
-        t += std::sqrt(std::abs(length) * 2.0 * acceleration) / acceleration;
+    planner_forward_pass_kernel(block[1], nullptr);
+  }
+
+  void GCodeTimeEstimator::reverse_pass()
+  {
+    Block* block[2] = { nullptr, nullptr };
+
+    for (int i = (int)_blocks.size() - 1; i >= 0; --i)
+    {
+      block[1] = block[0];
+      block[0] = &_blocks[i];
+      planner_reverse_pass_kernel(block[0], block[1]);
     }
-    return 2.0*t; // cut in half before, so double to get full time spent.
-}
+  }
+
+  void GCodeTimeEstimator::planner_forward_pass_kernel(Block* prev, Block* curr)
+  {
+    if (prev == nullptr)
+      return;
+
+    // If the previous block is an acceleration block, but it is not long enough to complete the
+    // full speed change within the block, we need to adjust the entry speed accordingly. Entry
+    // speeds have already been reset, maximized, and reverse planned by reverse planner.
+    // If nominal length is true, max junction speed is guaranteed to be reached. No need to recheck.
+    if (!prev->flags.nominal_length)
+    {
+      if (prev->feedrate.entry < curr->feedrate.entry)
+      {
+        float entry_speed = std::min(curr->feedrate.entry, Block::max_allowable_speed(-prev->acceleration, prev->feedrate.entry, prev->move_length()));
+
+        // Check for junction speed change
+        if (curr->feedrate.entry != entry_speed)
+        {
+          curr->feedrate.entry = entry_speed;
+          curr->flags.recalculate = true;
+        }
+      }
+    }
+  }
+
+  void GCodeTimeEstimator::planner_reverse_pass_kernel(Block* curr, Block* next)
+  {
+    if ((curr == nullptr) || (next == nullptr))
+      return;
+
+    // If entry speed is already at the maximum entry speed, no need to recheck. Block is cruising.
+    // If not, block in state of acceleration or deceleration. Reset entry speed to maximum and
+    // check for maximum allowable speed reductions to ensure maximum possible planned speed.
+    if (curr->feedrate.entry != curr->max_entry_speed)
+    {
+      // If nominal length true, max junction speed is guaranteed to be reached. Only compute
+      // for max allowable speed if block is decelerating and nominal length is false.
+      if (!curr->flags.nominal_length && (curr->max_entry_speed > next->feedrate.entry))
+        curr->feedrate.entry = std::min(curr->max_entry_speed, Block::max_allowable_speed(-curr->acceleration, next->feedrate.entry, curr->move_length()));
+      else
+        curr->feedrate.entry = curr->max_entry_speed;
+
+      curr->flags.recalculate = true;
+    }
+  }
+
+  void GCodeTimeEstimator::recalculate_trapezoids()
+  {
+    Block* curr = nullptr;
+    Block* next = nullptr;
+
+    for (Block& b : _blocks)
+    {
+      curr = next;
+      next = &b;
+
+      if (curr != nullptr)
+      {
+        // Recalculate if current block entry or exit junction speed has changed.
+        if (curr->flags.recalculate || next->flags.recalculate)
+        {
+          // NOTE: Entry and exit factors always > 0 by all previous logic operations.
+          Block block = *curr;
+          block.feedrate.exit = next->feedrate.entry;
+          block.calculate_trapezoid();
+          curr->trapezoid = block.trapezoid;
+          curr->flags.recalculate = false; // Reset current only to ensure next trapezoid is computed
+        }
+      }
+    }
+
+    // Last/newest block in buffer. Exit speed is set with MINIMUM_PLANNER_SPEED. Always recalculated.
+    if (next != nullptr)
+    {
+      Block block = *next;
+#if USE_CURA_JUNCTION_VMAX
+      block.feedrate.exit = MINIMUM_PLANNER_SPEED;
+#else
+      block.feedrate.exit = next->safe_feedrate;
+#endif // USE_CURA_JUNCTION_VMAX
+      block.calculate_trapezoid();
+      next->trapezoid = block.trapezoid;
+      next->flags.recalculate = false;
+    }
+  }
+#endif // ENABLE_BLOCKS_PRE_PROCESSING
 
 }

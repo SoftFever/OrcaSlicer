@@ -4,10 +4,12 @@
 #include "libslic3r.h"
 #include "GCodeReader.hpp"
 
+#define USE_CURA_JUNCTION_VMAX 0
+#define ENABLE_BLOCKS_PRE_PROCESSING 1
+
 namespace Slic3r {
 
-//###########################################################################################################
-  class My_GCodeTimeEstimator : public GCodeReader
+  class GCodeTimeEstimator
   {
   public:
     enum EUnits : unsigned char
@@ -51,6 +53,16 @@ namespace Slic3r {
       float max_jerk;         // mm/s
     };
 
+    struct Feedrates
+    {
+      float feedrate;                    // mm/s
+      float axis_feedrate[Num_Axis];     // mm/s
+      float abs_axis_feedrate[Num_Axis]; // mm/s
+      float safe_feedrate;               // mm/s
+
+      void reset();
+    };
+
     struct State
     {
       EDialect dialect;
@@ -60,37 +72,74 @@ namespace Slic3r {
       float feedrate;                     // mm/s
       float acceleration;                 // mm/s^2
       float additional_time;              // s
-    };
-
-    struct PreviousBlockCache
-    {
-      float feedrate;                // mm/s
-      float axis_feedrate[Num_Axis]; // mm/s
+      float minimum_feedrate;             // mm/s
     };
 
   public:
     struct Block
     {
+      struct FeedrateProfile
+      {
+        float entry;  // mm/s
+        float cruise; // mm/s
+        float exit;   // mm/s
+      };
+
       struct Trapezoid
       {
         float distance;         // mm
         float accelerate_until; // mm
         float decelerate_after; // mm
-        float entry_feedrate;   // mm/s
-        float exit_feedrate;    // mm/s
+        FeedrateProfile feedrate;
+
+        float acceleration_time(float acceleration) const;
+        float cruise_time() const;
+        float deceleration_time(float acceleration) const;
+        float cruise_distance() const;
+
+        // This function gives the time needed to accelerate from an initial speed to reach a final distance.
+        static float acceleration_time_from_distance(float initial_feedrate, float distance, float acceleration);
+
+        // This function gives the final speed while accelerating at the given constant acceleration from the given initial speed along the given distance.
+        static float speed_from_distance(float initial_feedrate, float distance, float acceleration);
       };
 
-      float delta_pos[Num_Axis]; // mm
-      float feedrate;            // mm/s
-      float acceleration;        // mm/s^2
-      float entry_feedrate;      // mm/s
-      float exit_feedrate;       // mm/s
+#if ENABLE_BLOCKS_PRE_PROCESSING
+      struct Flags
+      {
+        bool recalculate;
+        bool nominal_length;
+      };
 
+      Flags flags;
+#endif // ENABLE_BLOCKS_PRE_PROCESSING
+
+      float delta_pos[Num_Axis]; // mm
+      float acceleration;        // mm/s^2
+#if ENABLE_BLOCKS_PRE_PROCESSING
+      float max_entry_speed;     // mm/s
+      float safe_feedrate;       // mm/s
+#endif // ENABLE_BLOCKS_PRE_PROCESSING
+
+      FeedrateProfile feedrate;
       Trapezoid trapezoid;
 
       // Returns the length of the move covered by this block, in mm
       float move_length() const;
 
+      // Returns the time spent accelerating toward cruise speed, in seconds
+      float acceleration_time() const;
+
+      // Returns the time spent at cruise speed, in seconds
+      float cruise_time() const;
+
+      // Returns the time spent decelerating from cruise speed, in seconds
+      float deceleration_time() const;
+
+      // Returns the distance covered at cruise speed, in mm
+      float cruise_distance() const;
+
+      // Calculates this block's trapezoid
       void calculate_trapezoid();
 
       // Calculates the maximum allowable speed at this point when you must be able to reach target_velocity using the 
@@ -105,29 +154,26 @@ namespace Slic3r {
       // a total travel of distance. This can be used to compute the intersection point between acceleration and
       // deceleration in the cases where the trapezoid has no plateau (i.e. never reaches maximum speed)
       static float intersection_distance(float initial_rate, float final_rate, float acceleration, float distance);
-
-      // This function gives the time it needs to accelerate from an initial speed to reach a final distance.
-      static float acceleration_time_from_distance(float initial_feedrate, float distance, float acceleration);
     };
 
     typedef std::vector<Block> BlocksList;
 
   private:
-//    typedef std::map<std::string, unsigned int> CmdToCounterMap;
-//    CmdToCounterMap _cmdCounters;
-
+    GCodeReader _parser;
     State _state;
-    PreviousBlockCache _prev;
+    Feedrates _curr;
+    Feedrates _prev;
     BlocksList _blocks;
     float _time; // s
 
   public:
-    My_GCodeTimeEstimator();
+    GCodeTimeEstimator();
 
-    void parse(const std::string& gcode);
-    void parse_file(const std::string& file);
+    // Calculates the time estimate from the given gcode in string format
+    void calculate_time_from_text(const std::string& gcode);
 
-    void calculate_time();
+    // Calculates the time estimate from the gcode contained in the file with the given filename
+    void calculate_time_from_file(const std::string& file);
 
     void set_axis_position(EAxis axis, float position);
     void set_axis_max_feedrate(EAxis axis, float feedrate_mm_sec);
@@ -145,6 +191,9 @@ namespace Slic3r {
     void set_acceleration(float acceleration);
     float get_acceleration() const;
 
+    void set_minimum_feedrate(float feedrate_mm_sec);
+    float get_minimum_feedrate() const;
+
     void set_dialect(EDialect dialect);
     EDialect get_dialect() const;
 
@@ -155,19 +204,22 @@ namespace Slic3r {
     EPositioningType get_positioningType() const;
 
     void add_additional_time(float timeSec);
+    void set_additional_time(float timeSec);
     float get_additional_time() const;
 
     void set_default();
 
-    // returns estimated time in seconds
+    // Returns the estimated time, in seconds
     float get_time() const;
 
-    const BlocksList& get_blocks() const;
-
-//    void print_counters() const;
+    // Returns the estimated time, in format HH:MM:SS
+    std::string get_time_hms() const;
 
   private:
     void _reset();
+
+    // Calculates the time estimate
+    void _calculate_time();
 
     // Processes GCode line
     void _process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line);
@@ -205,23 +257,22 @@ namespace Slic3r {
     // Set default acceleration
     void _processM204(const GCodeReader::GCodeLine& line);
 
+    // Advanced settings
+    void _processM205(const GCodeReader::GCodeLine& line);
+
     // Set allowable instantaneous speed change
     void _processM566(const GCodeReader::GCodeLine& line);
-  };
-//###########################################################################################################
 
-class GCodeTimeEstimator : public GCodeReader {
-    public:
-    float time = 0;  // in seconds
-    
-    void parse(const std::string &gcode);
-    void parse_file(const std::string &file);
-    
-    protected:
-    float acceleration = 9000;
-    void _parser(GCodeReader&, const GCodeReader::GCodeLine &line);
-    static float _accelerated_move(double length, double v, double acceleration);
-};
+#if ENABLE_BLOCKS_PRE_PROCESSING
+    void forward_pass();
+    void reverse_pass();
+
+    void planner_forward_pass_kernel(Block* prev, Block* curr);
+    void planner_reverse_pass_kernel(Block* curr, Block* next);
+
+    void recalculate_trapezoids();
+#endif // ENABLE_BLOCKS_PRE_PROCESSING
+  };
 
 } /* namespace Slic3r */
 
