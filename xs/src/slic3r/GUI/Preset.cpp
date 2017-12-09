@@ -79,7 +79,8 @@ void Preset::set_num_extruders(DynamicPrintConfig &config, unsigned int num_extr
         auto *opt = config.option(key, false);
         assert(opt != nullptr);
         assert(opt->is_vector());
-        static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
+        if (opt != nullptr && opt->is_vector())
+            static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
     }
 }
 
