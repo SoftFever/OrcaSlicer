@@ -888,12 +888,12 @@ void GCode::_print_first_layer_bed_temperature(FILE *file, Print &print, const s
     // Is the bed temperature set by the provided custom G-code?
     int  temp_by_gcode     = -1;
     bool temp_set_by_gcode = custom_gcode_sets_temperature(gcode, 140, 190, temp_by_gcode);
-    if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
+    if (temp_set_by_gcode && temp_by_gcode >= 0 && temp_by_gcode < 1000)
         temp = temp_by_gcode;
     // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
     // the custom start G-code emited these.
     std::string set_temp_gcode = m_writer.set_bed_temperature(temp, wait);
-    if (! temp_by_gcode)
+    if (! temp_set_by_gcode)
         write(file, set_temp_gcode);
 }
 
