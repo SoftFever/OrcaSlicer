@@ -41,7 +41,7 @@ warn "Running Slic3r under Perl 5.16 is neither supported nor recommended\n"
 use FindBin;
 
 # Let the XS module know where the GUI resources reside.
-set_resources_dir(decode_path($FindBin::Bin) . (($^O eq 'darwin') ? '../Resources' : '/resources'));
+set_resources_dir(decode_path($FindBin::Bin) . (($^O eq 'darwin') ? '/../Resources' : '/resources'));
 set_var_dir(resources_dir() . "/icons");
 
 use Moo 1.003001;
