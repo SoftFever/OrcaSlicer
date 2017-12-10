@@ -60,6 +60,18 @@ var_dir()
         RETVAL = const_cast<char*>(Slic3r::var_dir().c_str());
     OUTPUT: RETVAL
 
+void
+set_resources_dir(dir)
+    char  *dir;
+    CODE:
+        Slic3r::set_resources_dir(dir);
+
+char*
+resources_dir()
+    CODE:
+        RETVAL = const_cast<char*>(Slic3r::resources_dir().c_str());
+    OUTPUT: RETVAL
+
 std::string
 var(file_name)
     const char *file_name;

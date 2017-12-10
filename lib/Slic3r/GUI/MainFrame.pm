@@ -617,16 +617,40 @@ sub config_wizard {
     my ($self) = @_;
     # Exit wizard if there are unsaved changes and the user cancels the action.
     return unless $self->check_unsaved_changes;
-    if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {
-        for my $tab (values %{$self->{options_tabs}}) {
-            # Select the first visible preset, force.
-            $tab->select_preset(undef, 1);
+    # Enumerate the profiles bundled with the Slic3r installation under resources/profiles.
+    my $directory = Slic3r::resources_dir() . "/profiles";
+    my @profiles = ();
+    if (opendir(DIR, Slic3r::encode_path($directory))) {
+        while (my $file = readdir(DIR)) {
+            if ($file =~ /\.ini$/) {
+                $file =~ s/\.ini$//;
+                push @profiles, Slic3r::decode_path($file);
+            }
         }
-        # Load the config over the previously selected defaults.
-        $self->load_config($config);
-        for my $tab (values %{$self->{options_tabs}}) {
-            # Save the settings under a new name, select the name.
-            $tab->save_preset('My Settings');
+        closedir(DIR);
+    }
+    # Open the wizard.
+    if (my $config = Slic3r::GUI::ConfigWizard->new($self, \@profiles)->run) {
+        if (ref($config)) {
+            # Wizard returned a config. Add the config to each of the preset types.
+            for my $tab (values %{$self->{options_tabs}}) {
+                # Select the first visible preset, force.
+                $tab->select_preset(undef, 1);
+            }
+            # Load the config over the previously selected defaults.
+            $self->load_config($config);
+            for my $tab (values %{$self->{options_tabs}}) {
+                # Save the settings under a new name, select the name.
+                $tab->save_preset('My Settings');
+            }
+        } else {
+            # Wizard returned a name of a preset bundle bundled with the installation. Unpack it.
+            eval { wxTheApp->{preset_bundle}->load_configbundle($directory . '/' . $config . '.ini'); };
+            Slic3r::GUI::catch_error($self) and return;
+            # Load the currently selected preset into the GUI, update the preset selection box.
+            foreach my $tab (values %{$self->{options_tabs}}) {
+                $tab->load_current_preset;
+            }
         }
     }
 }

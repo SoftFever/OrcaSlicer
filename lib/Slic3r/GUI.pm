@@ -70,7 +70,7 @@ our $grey = Wx::Colour->new(200,200,200);
 sub OnInit {
     my ($self) = @_;
     
-    $self->SetAppName('Slic3r');
+    $self->SetAppName('Slic3rPE');
     $self->SetAppDisplayName('Slic3r Prusa Edition');
     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
 

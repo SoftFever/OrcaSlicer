@@ -89,6 +89,18 @@ std::string var(const std::string &file_name)
     return file.string();
 }
 
+static std::string g_resources_dir;
+
+void set_resources_dir(const std::string &dir)
+{
+    g_resources_dir = dir;
+}
+
+const std::string& resources_dir()
+{
+    return g_resources_dir;
+}
+
 static std::string g_data_dir;
 
 void set_data_dir(const std::string &dir)

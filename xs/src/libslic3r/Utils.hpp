@@ -15,6 +15,11 @@ const std::string& var_dir();
 // Return a full resource path for a file_name.
 std::string var(const std::string &file_name);
 
+// Set a path with various static definition data (for example the initial config bundles).
+void set_resources_dir(const std::string &path);
+// Return a full path to the resources directory.
+const std::string& resources_dir();
+
 // Set a path with preset files.
 void set_data_dir(const std::string &path);
 // Return a full path to the GUI resource files.

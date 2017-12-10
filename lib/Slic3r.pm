@@ -42,6 +42,7 @@ use FindBin;
 
 # Let the XS module know where the GUI resources reside.
 set_var_dir(decode_path($FindBin::Bin) . "/var");
+set_resources_dir(decode_path($FindBin::Bin) . (($^O eq 'darwin') ? '/Resources' : '/resources'));
 
 use Moo 1.003001;
 
