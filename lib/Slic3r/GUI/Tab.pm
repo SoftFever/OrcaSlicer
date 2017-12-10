@@ -147,7 +147,7 @@ sub save_preset {
         return unless $dlg->ShowModal == wxID_OK;
         $name = $dlg->get_name;
     }
-    # Save the preset into Slic3r::data_dir/section_name/preset_name.ini
+    # Save the preset into Slic3r::data_dir/presets/section_name/preset_name.ini
     eval { $self->{presets}->save_current_preset($name); };
     Slic3r::GUI::catch_error($self) and return;
     # Add the new item into the UI component, remove dirty flags and activate the saved item.

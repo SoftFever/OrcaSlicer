@@ -66,7 +66,12 @@ PresetBundle::~PresetBundle()
 void PresetBundle::setup_directories()
 {
     boost::filesystem::path data_dir = boost::filesystem::path(Slic3r::data_dir());
-    std::initializer_list<boost::filesystem::path> paths = { data_dir, data_dir / "print", data_dir / "filament", data_dir / "printer" };
+    std::initializer_list<boost::filesystem::path> paths = { 
+        data_dir, 
+        data_dir / "presets", 
+        data_dir / "presets" / "print", 
+        data_dir / "presets" / "filament", 
+        data_dir / "presets" / "printer" };
     for (const boost::filesystem::path &path : paths) {
 		boost::filesystem::path subdir = path;
         subdir.make_preferred();
@@ -76,9 +81,10 @@ void PresetBundle::setup_directories()
     }
 }
 
-void PresetBundle::load_presets(const std::string &dir_path)
+void PresetBundle::load_presets()
 {
     std::string errors_cummulative;
+    const std::string dir_path = data_dir() + "/presets";
     try {
         this->prints.load_presets(dir_path, "print");
     } catch (const std::runtime_error &err) {
@@ -465,8 +471,11 @@ size_t PresetBundle::load_configbundle(const std::string &path)
             for (auto &kvp : section.second)
                 config.set_deserialize(kvp.first, kvp.second.data());
             Preset::normalize(config);
+            // Decide a full path to this .ini file.
+            auto file_name = boost::algorithm::iends_with(preset_name, ".ini") ? preset_name : preset_name + ".ini";
+            auto file_path = (boost::filesystem::path(data_dir()) / "presets" / presets->name() / file_name).make_preferred();
             // Load the preset into the list of presets, save it to disk.
-            presets->load_preset(Slic3r::config_path(presets->name(), preset_name), preset_name, std::move(config), false).save();
+            presets->load_preset(file_path.string(), preset_name, std::move(config), false).save();
             ++ presets_loaded;
         }
     }

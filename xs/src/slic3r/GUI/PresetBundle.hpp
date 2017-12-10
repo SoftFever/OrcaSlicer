@@ -17,8 +17,8 @@ public:
 
     void            setup_directories();
 
-    // Load ini files of all types (print, filament, printer) from the provided directory path.
-    void            load_presets(const std::string &dir_path);
+    // Load ini files of all types (print, filament, printer) from Slic3r::data_dir() / presets.
+    void            load_presets();
 
     // Load selections (current print, current filaments, current printer) from config.ini
     // This is done just once on application start up.

@@ -106,12 +106,13 @@ PresetCollection::arrayref()
                 croak("Cannot create configuration directories:\n%s\n", e.what());
             }
         %};
-    void                        load_presets(const char *dir_path)
+    void                        load_presets()
         %code%{
             try {
-                THIS->load_presets(dir_path);
+                THIS->load_presets();
             } catch (std::exception& e) {
-                croak("Loading of Slic3r presets from %s failed.\n\n%s\n", dir_path, e.what());
+                croak("Loading of Slic3r presets from %s failed.\n\n%s\n", 
+                    Slic3r::data_dir().c_str(), e.what());
             }
         %};
     void                        load_config_file(const char *path)

@@ -92,14 +92,6 @@ data_dir()
     OUTPUT: RETVAL
 
 std::string
-config_path(section, name)
-    const char *section;
-    const char *name;
-    CODE:
-        RETVAL = Slic3r::config_path(section, name);
-    OUTPUT: RETVAL
-
-std::string
 encode_path(src)
     const char *src;
     CODE:

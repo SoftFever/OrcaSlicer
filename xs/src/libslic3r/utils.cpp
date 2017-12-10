@@ -113,19 +113,6 @@ const std::string& data_dir()
     return g_data_dir;
 }
 
-std::string config_path(const std::string &file_name)
-{
-    auto file = (boost::filesystem::path(g_data_dir) / file_name).make_preferred();
-    return file.string();
-}
-
-std::string config_path(const std::string &section, const std::string &name)
-{
-    auto file_name = boost::algorithm::iends_with(name, ".ini") ? name : name + ".ini";
-    auto file = (boost::filesystem::path(g_data_dir) / section / file_name).make_preferred();
-    return file.string();
-}
-
 } // namespace Slic3r
 
 #ifdef SLIC3R_HAS_BROKEN_CROAK
