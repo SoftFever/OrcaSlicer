@@ -91,7 +91,6 @@ _constant()
     size_t support_layer_count();
     void clear_support_layers();
     Ref<SupportLayer> get_support_layer(int idx);
-    Ref<SupportLayer> add_support_layer(int id, coordf_t height, coordf_t print_z);
 
     bool step_done(PrintObjectStep step)
         %code%{ RETVAL = THIS->state.is_done(step); %};

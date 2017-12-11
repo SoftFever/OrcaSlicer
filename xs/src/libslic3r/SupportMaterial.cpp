@@ -373,15 +373,9 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
             height_min = std::min(height_min, layer.height);
         }
         if (! empty) {
-            object.add_support_layer(layer_id, height_min, zavg);
-            if (layer_id > 0) {
-                // Inter-link the support layers into a linked list.
-                SupportLayer *sl1 = object.support_layers[object.support_layer_count() - 2];
-                SupportLayer *sl2 = object.support_layers.back();
-                sl1->upper_layer = sl2;
-                sl2->lower_layer = sl1;
-            }
-            ++layer_id;
+            // Here the upper_layer and lower_layer pointers are left to null at the support layers, 
+            // as they are never used. These pointers are candidates for removal.
+            object.add_support_layer(layer_id ++, height_min, zavg);
         }
         i = j;
     }

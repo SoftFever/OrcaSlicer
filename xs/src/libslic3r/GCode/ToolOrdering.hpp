@@ -69,6 +69,8 @@ public:
 
 	const LayerTools&   front()       const { return m_layer_tools.front(); }
 	const LayerTools&   back()        const { return m_layer_tools.back(); }
+	std::vector<LayerTools>::const_iterator begin() const { return m_layer_tools.begin(); }
+	std::vector<LayerTools>::const_iterator end()   const { return m_layer_tools.end(); }
 	bool 				empty()       const { return m_layer_tools.empty(); }
 	const std::vector<LayerTools>& layer_tools() const { return m_layer_tools; }
 	bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().wipe_tower_partitions > 0; }
