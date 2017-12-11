@@ -45,6 +45,10 @@ void AppConfig::set_defaults()
     // Version check is enabled by default in the config, but it is not implemented yet.
     if (get("version_check").empty())
         set("version_check", "1");
+    // Use OpenGL 1.1 even if OpenGL 2.0 is available. This is mainly to support some buggy Intel HD Graphics drivers.
+    // https://github.com/prusa3d/Slic3r/issues/233
+    if (get("use_legacy_opengl").empty())
+        set("use_legacy_opengl", "0");
 }
 
 void AppConfig::load()
