@@ -1,8 +1,6 @@
 #ifndef slic3r_GCode_hpp_
 #define slic3r_GCode_hpp_
 
-#define ENABLE_TIME_ESTIMATOR 1
-
 #include "libslic3r.h"
 #include "ExPolygon.hpp"
 #include "GCodeWriter.hpp"
@@ -17,9 +15,7 @@
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
-#if ENABLE_TIME_ESTIMATOR
 #include "GCodeTimeEstimator.hpp"
-#endif // ENABLE_TIME_ESTIMATOR
 #include "EdgeGrid.hpp"
 
 #include <memory>
@@ -272,10 +268,8 @@ protected:
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
 
-#if ENABLE_TIME_ESTIMATOR
     // Time estimator
     GCodeTimeEstimator m_time_estimator;
-#endif // ENABLE_TIME_ESTIMATOR
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
     void _print_first_layer_extruder_temperatures(FILE *file, Print &print, unsigned int first_printing_extruder_id, bool wait);

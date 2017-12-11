@@ -259,7 +259,6 @@ std::string WipeTowerIntegration::finalize(GCode &gcodegen)
 
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id())
 
-#if ENABLE_TIME_ESTIMATOR
 // Helper class for writing to file with/without time estimation
 class Write
 {
@@ -296,18 +295,12 @@ public:
 
 //std::string Write::s_cache = "";
 GCodeTimeEstimator* Write::s_time_estimator = nullptr;
-#endif // ENABLE_TIME_ESTIMATOR
 
 inline void write(FILE *file, const std::string &what)
 {
-#if ENABLE_TIME_ESTIMATOR
   Write::write(file, what);
-#else
-  fwrite(what.data(), 1, what.size(), file);
-#endif // ENABLE_TIME_ESTIMATOR
 }
 
-#if ENABLE_TIME_ESTIMATOR
 inline void write_format(FILE* file, const char* format, ...)
 {
   char buffer[1024];
@@ -319,17 +312,11 @@ inline void write_format(FILE* file, const char* format, ...)
   if (res >= 0)
     write(file, buffer);
 }
-#endif // ENABLE_TIME_ESTIMATOR
 
 inline void writeln(FILE *file, const std::string &what)
 {
     if (! what.empty()) {
-#if ENABLE_TIME_ESTIMATOR
       write_format(file, "%s\n", what.c_str());
-#else
-      write(file, what);
-      fprintf(file, "\n");
-#endif // ENABLE_TIME_ESTIMATOR
     }
 }
 
@@ -436,27 +423,14 @@ bool GCode::do_export(Print *print, const char *path)
     if (! result)
         boost::nowide::remove(path_tmp.c_str());
 
-    // debug only -> tests time estimator from file
-    {
-      GCodeTimeEstimator timeEstimator;
-      timeEstimator.calculate_time_from_file(path);
-      float time = timeEstimator.get_time();
-      std::string timeHMS = timeEstimator.get_time_hms();
-
-      std::cout << std::endl << "Time estimated from file:" << std::endl;
-      std::cout << std::endl << ">>> estimated time: " << timeHMS << " (" << time << " seconds)" << std::endl << std::endl;
-    }
-
     return result;
 }
 
 bool GCode::_do_export(Print &print, FILE *file)
 {
-#if ENABLE_TIME_ESTIMATOR
     // resets time estimator
     m_time_estimator.reset();
     Write::set_time_estimator(&m_time_estimator);
-#endif // ENABLE_TIME_ESTIMATOR
 
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
@@ -780,28 +754,16 @@ bool GCode::_do_export(Print &print, FILE *file)
                 bbox_prime.offset(0.5f);
                 // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
                 write(file, this->retract());
-#if ENABLE_TIME_ESTIMATOR
-                write_format(file, "M300 S800 P500\n");
-#else
-                fprintf(file, "M300 S800 P500\n");
-#endif // ENABLE_TIME_ESTIMATOR
+                write(file, "M300 S800 P500\n");
                 if (bbox_prime.overlap(bbox_print)) {
                     // Wait for the user to remove the priming extrusions, otherwise they would
                     // get covered by the print.
-#if ENABLE_TIME_ESTIMATOR
-                  write_format(file, "M1 Remove priming towers and click button.\n");
-#else
-                  fprintf(file, "M1 Remove priming towers and click button.\n");
-#endif // ENABLE_TIME_ESTIMATOR
-                }
+                  write(file, "M1 Remove priming towers and click button.\n");
+            }
                 else {
                     // Just wait for a bit to let the user check, that the priming succeeded.
                     //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
-#if ENABLE_TIME_ESTIMATOR
-                  write_format(file, "M1 S10\n");
-#else
-                  fprintf(file, "M1 S10\n");
-#endif // ENABLE_TIME_ESTIMATOR
+                  write(file, "M1 S10\n");
                 }
             } else
                 write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
@@ -830,12 +792,16 @@ bool GCode::_do_export(Print &print, FILE *file)
     write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     write(file, m_writer.postamble());
 
+    // calculates estimated printing time
+    m_time_estimator.calculate_time();
+
     // Get filament stats.
     print.filament_stats.clear();
     print.total_used_filament    = 0.;
     print.total_extruded_volume  = 0.;
     print.total_weight           = 0.;
     print.total_cost             = 0.;
+    print.estimated_print_time   = (double)m_time_estimator.get_time() / 60.0;
     for (const Extruder &extruder : m_writer.extruders()) {
         double used_filament   = extruder.used_filament();
         double extruded_volume = extruder.extruded_volume();
@@ -855,11 +821,7 @@ bool GCode::_do_export(Print &print, FILE *file)
         print.total_extruded_volume = print.total_extruded_volume + extruded_volume;
     }
     fprintf(file, "; total filament cost = %.1lf\n", print.total_cost);
-
-#if ENABLE_TIME_ESTIMATOR
-    m_time_estimator.calculate_time();
     fprintf(file, "; estimated printing time = %s\n", m_time_estimator.get_time_hms());
-#endif // ENABLE_TIME_ESTIMATOR
 
     // Append full config.
     fprintf(file, "\n");

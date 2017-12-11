@@ -273,5 +273,15 @@ Print::total_cost(...)
     OUTPUT:
         RETVAL
 
+double
+Print::estimated_print_time(...)
+    CODE:
+        if (items > 1) {
+            THIS->estimated_print_time = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->estimated_print_time;
+    OUTPUT:
+        RETVAL
+        
 %}
 };

@@ -441,6 +441,7 @@ sub new {
                 fil_mm3 => "Used Filament (mm^3)",
                 fil_g   => "Used Filament (g)",
                 cost    => "Cost",
+                time    => "Estimated printing time (min)",
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
@@ -1540,6 +1541,7 @@ sub on_export_completed {
     $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
     $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
     $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
+    $self->{"print_info_time"}->SetLabel(sprintf("%.2f" , $self->{print}->estimated_print_time));
     $self->{"print_info_box_show"}->(1);
 
     # this updates buttons status
