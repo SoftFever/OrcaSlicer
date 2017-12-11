@@ -67,7 +67,8 @@ namespace Slic3r {
     {
       EDialect dialect;
       EUnits units;
-      EPositioningType positioningType;
+      EPositioningType positioning_xyz_type;
+      EPositioningType positioning_e_type;
       Axis axis[Num_Axis];
       float feedrate;                     // mm/s
       float acceleration;                 // mm/s^2
@@ -178,15 +179,19 @@ namespace Slic3r {
     // Adds the given gcode line
     void add_gcode_line(const std::string& gcode_line);
 
-    // Calculates the time estimate from gcode lines added using add_gcode_line()
+    // Calculates the time estimate from the gcode lines added using add_gcode_line()
     void calculate_time();
 
+    // Set current position on the given axis with the given value
     void set_axis_position(EAxis axis, float position);
+
     void set_axis_max_feedrate(EAxis axis, float feedrate_mm_sec);
     void set_axis_max_acceleration(EAxis axis, float acceleration);
     void set_axis_max_jerk(EAxis axis, float jerk);
 
+    // Returns current position on the given axis
     float get_axis_position(EAxis axis) const;
+
     float get_axis_max_feedrate(EAxis axis) const;
     float get_axis_max_acceleration(EAxis axis) const;
     float get_axis_max_jerk(EAxis axis) const;
@@ -206,8 +211,11 @@ namespace Slic3r {
     void set_units(EUnits units);
     EUnits get_units() const;
 
-    void set_positioningType(EPositioningType type);
-    EPositioningType get_positioningType() const;
+    void set_positioning_xyz_type(EPositioningType type);
+    EPositioningType get_positioning_xyz_type() const;
+
+    void set_positioning_e_type(EPositioningType type);
+    EPositioningType get_positioning_e_type() const;
 
     void add_additional_time(float timeSec);
     void set_additional_time(float timeSec);
@@ -256,6 +264,12 @@ namespace Slic3r {
 
     // Set Position
     void _processG92(const GCodeReader::GCodeLine& line);
+
+    // Set extruder to absolute mode
+    void _processM82(const GCodeReader::GCodeLine& line);
+
+    // Set extruder to relative mode
+    void _processM83(const GCodeReader::GCodeLine& line);
 
     // Set Extruder Temperature and Wait
     void _processM109(const GCodeReader::GCodeLine& line);
