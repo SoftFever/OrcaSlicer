@@ -475,8 +475,6 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_processG1(const GCodeReader::GCodeLine& line)
   {
-    float lengthsScaleFactor = (get_units() == Inches) ? INCHES_TO_MM : 1.0f;
-
     // updates axes positions from line
     EUnits units = get_units();
     float new_pos[Num_Axis];
@@ -727,7 +725,40 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_processG92(const GCodeReader::GCodeLine& line)
   {
-    // todo
+    float lengthsScaleFactor = (get_units() == Inches) ? INCHES_TO_MM : 1.0f;
+    bool anyFound = false;
+
+    if (line.has('X'))
+    {
+      set_axis_position(X, line.get_float('X') * lengthsScaleFactor);
+      anyFound = true;
+    }
+
+    if (line.has('Y'))
+    {
+      set_axis_position(Y, line.get_float('Y') * lengthsScaleFactor);
+      anyFound = true;
+    }
+
+    if (line.has('Z'))
+    {
+      set_axis_position(Z, line.get_float('Z') * lengthsScaleFactor);
+      anyFound = true;
+    }
+
+    if (line.has('E'))
+    {
+      set_axis_position(E, line.get_float('E') * lengthsScaleFactor);
+      anyFound = true;
+    }
+
+    if (!anyFound)
+    {
+      for (unsigned char a = X; a < Num_Axis; ++a)
+      {
+        set_axis_position((EAxis)a, 0.0f);
+      }
+    }
   }
 
   void GCodeTimeEstimator::_processM109(const GCodeReader::GCodeLine& line)
