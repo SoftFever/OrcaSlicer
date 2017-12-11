@@ -42,9 +42,9 @@ sub new {
     {
         $self->{tree_icons} = Wx::ImageList->new(16, 16, 1);
         $tree->AssignImageList($self->{tree_icons});
-        $self->{tree_icons}->Add(Wx::Bitmap->new($Slic3r::var->("brick.png"), wxBITMAP_TYPE_PNG));     # ICON_OBJECT
-        $self->{tree_icons}->Add(Wx::Bitmap->new($Slic3r::var->("package.png"), wxBITMAP_TYPE_PNG));   # ICON_SOLIDMESH
-        $self->{tree_icons}->Add(Wx::Bitmap->new($Slic3r::var->("plugin.png"), wxBITMAP_TYPE_PNG));    # ICON_MODIFIERMESH
+        $self->{tree_icons}->Add(Wx::Bitmap->new(Slic3r::var("brick.png"), wxBITMAP_TYPE_PNG));     # ICON_OBJECT
+        $self->{tree_icons}->Add(Wx::Bitmap->new(Slic3r::var("package.png"), wxBITMAP_TYPE_PNG));   # ICON_SOLIDMESH
+        $self->{tree_icons}->Add(Wx::Bitmap->new(Slic3r::var("plugin.png"), wxBITMAP_TYPE_PNG));    # ICON_MODIFIERMESH
         
         my $rootId = $tree->AddRoot("Object", ICON_OBJECT);
         $tree->SetPlData($rootId, { type => 'object' });
@@ -58,13 +58,13 @@ sub new {
     $self->{btn_split} = Wx::Button->new($self, -1, "Split part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
     $self->{btn_move_up} = Wx::Button->new($self, -1, "", wxDefaultPosition, [40, -1], wxBU_LEFT);
     $self->{btn_move_down} = Wx::Button->new($self, -1, "", wxDefaultPosition, [40, -1], wxBU_LEFT);
-    $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
-    $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
-    $self->{btn_load_lambda_modifier}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_add.png"), wxBITMAP_TYPE_PNG));
-    $self->{btn_delete}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("brick_delete.png"), wxBITMAP_TYPE_PNG));
-    $self->{btn_split}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("shape_ungroup.png"), wxBITMAP_TYPE_PNG));
-    $self->{btn_move_up}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_up.png"), wxBITMAP_TYPE_PNG));
-    $self->{btn_move_down}->SetBitmap(Wx::Bitmap->new($Slic3r::var->("bullet_arrow_down.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_load_part}->SetBitmap(Wx::Bitmap->new(Slic3r::var("brick_add.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_load_modifier}->SetBitmap(Wx::Bitmap->new(Slic3r::var("brick_add.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_load_lambda_modifier}->SetBitmap(Wx::Bitmap->new(Slic3r::var("brick_add.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_delete}->SetBitmap(Wx::Bitmap->new(Slic3r::var("brick_delete.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_split}->SetBitmap(Wx::Bitmap->new(Slic3r::var("shape_ungroup.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_move_up}->SetBitmap(Wx::Bitmap->new(Slic3r::var("bullet_arrow_up.png"), wxBITMAP_TYPE_PNG));
+    $self->{btn_move_down}->SetBitmap(Wx::Bitmap->new(Slic3r::var("bullet_arrow_down.png"), wxBITMAP_TYPE_PNG));
     
     # buttons sizer
     my $buttons_sizer = Wx::GridSizer->new(2, 3);
@@ -312,7 +312,7 @@ sub selection_changed {
             $config = $self->{model_object}->config;
         }
         # get default values
-        my $default_config = Slic3r::Config->new_from_defaults(@opt_keys);
+        my $default_config = Slic3r::Config::new_from_defaults_keys(\@opt_keys);
         
         # append default extruder
         push @opt_keys, 'extruder';
@@ -490,12 +490,12 @@ sub CanClose {
     # validate options before allowing user to dismiss the dialog
     # the validate method only works on full configs so we have
     # to merge our settings with the default ones
-    my $config = Slic3r::Config->merge($self->GetParent->GetParent->GetParent->GetParent->GetParent->config, $self->model_object->config);
+    my $config = $self->GetParent->GetParent->GetParent->GetParent->GetParent->config->clone;
     eval {
+        $config->apply($self->model_object->config);
         $config->validate;
     };
-    return 0 if Slic3r::GUI::catch_error($self);    
-    return 1;
+    return ! Slic3r::GUI::catch_error($self);
 }
 
 sub PartsChanged {

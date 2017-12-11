@@ -33,7 +33,7 @@ my %opt = ();
     my $model = Slic3r::Model->read_from_file($ARGV[0]);
     
     # load config
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     if ($opt{load}) {
         $config->apply(Slic3r::Config->load($opt{load}));
     }

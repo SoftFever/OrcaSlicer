@@ -6,7 +6,7 @@ use Moo;
 
 has 'growler' => (is => 'rw');
 
-my $icon = $Slic3r::var->("Slic3r.png");
+my $icon = Slic3r::var("Slic3r.png");
 
 sub BUILD {
     my ($self) = @_;

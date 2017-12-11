@@ -65,6 +65,9 @@ sub process {
 }
 
 # G-code export process, running at a background thread.
+# The export_gcode may die for various reasons (fails to process output_filename_format,
+# write error into the G-code, cannot execute post-processing scripts).
+# It is up to the caller to show an error message.
 sub export_gcode {
     my $self = shift;
     my %params = @_;
@@ -73,11 +76,12 @@ sub export_gcode {
     $self->process;
     
     # output everything to a G-code file
+    # The following call may die if the output_filename_format template substitution fails.
     my $output_file = $self->output_filepath($params{output_file} // '');
     $self->status_cb->(90, "Exporting G-code" . ($output_file ? " to $output_file" : ""));
 
-    die "G-code export to " . $output_file . " failed\n" 
-        if ! Slic3r::GCode->new->do_export($self, $output_file);
+    # The following line may die for multiple reasons.
+    Slic3r::GCode->new->do_export($self, $output_file);
     
     # run post-processing scripts
     if (@{$self->config->post_process}) {
@@ -99,6 +103,7 @@ sub export_gcode {
 }
 
 # Export SVG slices for the offline SLA printing.
+# The export_svg is expected to be executed inside an eval block.
 sub export_svg {
     my $self = shift;
     my %params = @_;
@@ -107,6 +112,7 @@ sub export_svg {
     
     my $fh = $params{output_fh};
     if (!$fh) {
+        # The following line may die if the output_filename_format template substitution fails.
         my $output_file = $self->output_filepath($params{output_file});
         $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.svg/;
         Slic3r::open(\$fh, ">", $output_file) or die "Failed to open $output_file for writing\n";
@@ -253,15 +259,6 @@ sub make_wipe_tower {
         $self->_make_wipe_tower;
     }
     $self->set_step_done(STEP_WIPE_TOWER);
-}
-
-# Wrapper around the C++ Slic3r::Print::validate()
-# to produce a Perl exception without a hang-up on some Strawberry perls.
-sub validate
-{
-    my $self = shift;
-    my $err = $self->_validate;
-    die $err . "\n" if (defined($err) && $err ne '');
 }
 
 1;

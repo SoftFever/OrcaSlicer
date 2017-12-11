@@ -3,22 +3,27 @@
 %{
 #include <xsinit.h>
 #include "slic3r/GUI/Preset.hpp"
+#include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/PresetHints.hpp"
 %}
 
 %name{Slic3r::GUI::Preset} class Preset {
     // owned by PresetCollection, no constructor/destructor
 
-    bool                    is_default()  %code%{ RETVAL = THIS->is_default;  %};
-    bool                    is_external() %code%{ RETVAL = THIS->is_external; %};
-    bool                    is_visible()  %code%{ RETVAL = THIS->is_visible;  %};
-    bool                    is_dirty()    %code%{ RETVAL = THIS->is_dirty;    %};
+    bool                        default()       %code%{ RETVAL = THIS->is_default;  %};
+    bool                        external()      %code%{ RETVAL = THIS->is_external; %};
+    bool                        visible()       %code%{ RETVAL = THIS->is_visible;  %};
+    bool                        dirty()         %code%{ RETVAL = THIS->is_dirty;    %};
+    bool                        is_compatible_with_printer(char *active_printer) const;
 
-    const char*             name()        %code%{ RETVAL = THIS->name.c_str(); %};
-    const char*             file()        %code%{ RETVAL = THIS->file.c_str(); %};
+    const char*                 name()          %code%{ RETVAL = THIS->name.c_str(); %};
+    const char*                 file()          %code%{ RETVAL = THIS->file.c_str(); %};
 
-    bool                    loaded()      %code%{ RETVAL = THIS->loaded;      %};
+    bool                        loaded()        %code%{ RETVAL = THIS->loaded;      %};
 
-    Ref<DynamicPrintConfig> config()      %code%{ RETVAL = &THIS->config;     %};
+    Ref<DynamicPrintConfig>     config()        %code%{ RETVAL = &THIS->config;     %};
+
+    void                        set_num_extruders(int num_extruders);
 };
 
 %name{Slic3r::GUI::PresetCollection} class PresetCollection {
@@ -27,6 +32,50 @@
     Ref<Preset>             default_preset() %code%{ RETVAL = &THIS->default_preset(); %};
     size_t                  size() const;
     size_t                  num_visible() const;
+    std::string             name() const;
+
+    Ref<Preset>             get_selected_preset() %code%{ RETVAL = &THIS->get_selected_preset(); %};
+    Ref<Preset>             get_current_preset() %code%{ RETVAL = &THIS->get_edited_preset(); %};
+    std::string             get_current_preset_name() %code%{ RETVAL = THIS->get_selected_preset().name; %};
+    Ref<Preset>             get_edited_preset() %code%{ RETVAL = &THIS->get_edited_preset(); %};
+
+    Ref<Preset>             find_preset(char *name, bool first_visible_if_not_found = false) %code%{ RETVAL = THIS->find_preset(name, first_visible_if_not_found); %};
+
+    bool                    current_is_dirty();
+    std::vector<std::string> current_dirty_options();
+
+    void                    update_tab_ui(SV *ui, bool show_incompatible)
+        %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object( aTHX_ ui, "Wx::BitmapComboBox" ); 
+                THIS->update_tab_ui(cb, show_incompatible); %};
+
+    void                    update_platter_ui(SV *ui)
+        %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object( aTHX_ ui, "Wx::BitmapComboBox" ); 
+                THIS->update_platter_ui(cb); %};
+
+    bool                    update_dirty_ui(SV *ui)
+        %code%{ RETVAL = THIS->update_dirty_ui((wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox")); %};
+
+    void                    select_preset(int idx);
+    bool                    select_preset_by_name(char *name) %code%{ RETVAL = THIS->select_preset_by_name(name, true); %};
+    void                    discard_current_changes();
+
+    void                    save_current_preset(char *new_name)
+        %code%{
+            try {
+                THIS->save_current_preset(new_name);
+            } catch (std::exception& e) {
+                croak("Error saving a preset %s:\n%s\n", new_name, e.what());
+            }
+        %};
+    void                    delete_current_preset()
+        %code%{
+            try {
+                THIS->delete_current_preset();
+            } catch (std::exception& e) {
+                croak("Error deleting a preset file %s:\n%s\n", THIS->get_selected_preset().file.c_str(), e.what());
+            }
+        %};
+
 %{
 
 SV*
@@ -34,10 +83,9 @@ PresetCollection::arrayref()
     CODE:
         AV* av = newAV();
         av_fill(av, THIS->size()-1);
-        int i = 0;
-        for (size_t i = 0; i < THIS->size(); ++ i) {
+        for (int i = 0; i < int(THIS->size()); ++ i) {
             Preset &preset = THIS->preset(i);
-            av_store(av, i++, perl_to_SV_ref(preset));
+            av_store(av, i, perl_to_SV_ref(preset));
         }
         RETVAL = newRV_noinc((SV*)av);
     OUTPUT:
@@ -46,15 +94,82 @@ PresetCollection::arrayref()
 %}
 };
 
-
 %name{Slic3r::GUI::PresetBundle} class PresetBundle {
     PresetBundle();
     ~PresetBundle();
 
-    void                  load_bitmaps(std::string path_bitmap_compatible, std::string path_bitmap_incompatible);
-    void                  load_presets(std::string dir_path);
+    void                        setup_directories()
+        %code%{
+            try {
+                THIS->setup_directories();
+            } catch (std::exception& e) {
+                croak("Cannot create configuration directories:\n%s\n", e.what());
+            }
+        %};
+    void                        load_presets()
+        %code%{
+            try {
+                THIS->load_presets();
+            } catch (std::exception& e) {
+                croak("Loading of Slic3r presets from %s failed.\n\n%s\n", 
+                    Slic3r::data_dir().c_str(), e.what());
+            }
+        %};
+    void                        load_config_file(const char *path)
+        %code%{
+            try {
+                THIS->load_config_file(path);
+            } catch (std::exception& e) {
+                croak("Loading a configuration file %s failed:\n%s\n", path, e.what());
+            }
+        %};
+    size_t                      load_configbundle(const char *path)
+        %code%{
+            try {
+                RETVAL = THIS->load_configbundle(path);
+            } catch (std::exception& e) {
+                croak("Loading of a config bundle %s failed:\n%s\n", path, e.what());
+            }
+        %};
+    void                        export_configbundle(char *path)
+        %code%{
+            try {
+                THIS->export_configbundle(path);
+            } catch (std::exception& e) {
+                croak("Export of a config bundle %s failed:\n%s\n", path, e.what());
+            }
+        %};
 
-    Ref<PresetCollection> prints()    %code%{ RETVAL = &THIS->prints;   %};
-    Ref<PresetCollection> filaments() %code%{ RETVAL = &THIS->filaments; %};
-    Ref<PresetCollection> printers()  %code%{ RETVAL = &THIS->printers;  %};
+    void                        set_default_suppressed(bool default_suppressed);
+
+    void                        load_selections  (AppConfig *config) %code%{ THIS->load_selections(*config); %};
+    void                        export_selections(AppConfig *config) %code%{ THIS->export_selections(*config); %};
+    void                        export_selections_pp(PlaceholderParser *pp) %code%{ THIS->export_selections(*pp); %};
+
+    Ref<PresetCollection>       print()    %code%{ RETVAL = &THIS->prints;   %};
+    Ref<PresetCollection>       filament() %code%{ RETVAL = &THIS->filaments; %};
+    Ref<PresetCollection>       printer()  %code%{ RETVAL = &THIS->printers;  %};
+    bool                        has_defauls_only();
+
+    std::vector<std::string>    filament_presets() %code%{ RETVAL = THIS->filament_presets; %};
+    void                        set_filament_preset(int idx, const char *name);
+    void                        update_multi_material_filament_presets();
+
+    void                        update_compatible_with_printer(bool select_other_if_incompatible);
+
+    Clone<DynamicPrintConfig>   full_config() %code%{ RETVAL = THIS->full_config();  %};
+
+    void                        update_platter_filament_ui(int extruder_idx, SV *ui)
+        %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox");
+                THIS->update_platter_filament_ui(extruder_idx, cb); %};
+};
+
+%name{Slic3r::GUI::PresetHints} class PresetHints {
+    PresetHints();
+    ~PresetHints();
+
+    static std::string cooling_description(Preset *preset) 
+        %code%{ RETVAL = PresetHints::cooling_description(*preset); %};
+    static std::string maximum_volumetric_flow_description(PresetBundle *preset) 
+        %code%{ RETVAL = PresetHints::maximum_volumetric_flow_description(*preset); %};
 };

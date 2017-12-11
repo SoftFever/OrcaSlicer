@@ -244,9 +244,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintCo
 {
     use Cwd qw(abs_path);
     use File::Basename qw(dirname);
-    my $class = Slic3r::Config->new;
     my $path = abs_path($0);
-    my $config = $class->_load(dirname($path)."/inc/22_config_bad_config_options.ini");
+    my $config = Slic3r::Config::load(dirname($path)."/inc/22_config_bad_config_options.ini");
     ok 1, 'did not crash on reading invalid items in config';
 }
 

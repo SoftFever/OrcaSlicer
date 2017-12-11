@@ -14,7 +14,7 @@ use Slic3r::Geometry qw(unscale X Y);
 use Slic3r::Test;
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     my $print_center = [100,100];
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config, print_center => $print_center);
     my @extrusion_points = ();
@@ -33,7 +33,7 @@ use Slic3r::Test;
 
 {
     # this represents the aggregate config from presets
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     
     # user adds one object to the plater
     my $print = Slic3r::Test::init_print(my $model = Slic3r::Test::model('20mm_cube'), config => $config);

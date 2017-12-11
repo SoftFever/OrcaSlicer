@@ -17,7 +17,14 @@
 %name{Slic3r::GCode} class GCode {
     GCode();
     ~GCode();
-    std::string do_export(Print *print, const char *path);
+    void do_export(Print *print, const char *path)
+        %code%{
+            try {
+                THIS->do_export(print, path);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
 
     Ref<Pointf> origin()
         %code{% RETVAL = &(THIS->origin()); %};

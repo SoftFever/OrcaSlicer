@@ -31,6 +31,7 @@ my %cli_options = ();
         
         'debug'                 => \$Slic3r::debug,
         'gui'                   => \$opt{gui},
+        'no-gui'                   => \$opt{no_gui},
         'o|output=s'            => \$opt{output},
         
         'save=s'                => \$opt{save},
@@ -92,20 +93,20 @@ if ($opt{save}) {
     if (@{$cli_config->get_keys} > 0) {
         $cli_config->save($opt{save});
     } else {
-        Slic3r::Config->new_from_defaults->save($opt{save});
+        Slic3r::Config::new_from_defaults->save($opt{save});
     }
 }
 
 # apply command line config on top of default config
-my $config = Slic3r::Config->new_from_defaults;
+my $config = Slic3r::Config::new_from_defaults;
 $config->apply($cli_config);
 
 # launch GUI
 my $gui;
-if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
+if ((!@ARGV || $opt{gui}) && !$opt{no_gui} && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
-        $Slic3r::GUI::datadir       = $opt{datadir} // '';
+        $Slic3r::GUI::datadir       = Slic3r::decode_path($opt{datadir} // '');
         $Slic3r::GUI::no_controller = $opt{no_controller};
         $Slic3r::GUI::no_plater     = $opt{no_plater};
         $Slic3r::GUI::autosave      = $opt{autosave};
@@ -218,6 +219,8 @@ if (@ARGV) {  # slicing from command line
             $sprint->export_svg;
         } else {
             my $t0 = [gettimeofday];
+            # The following call may die if the output_filename_format template substitution fails,
+            # if the file cannot be written into, or if the post processing scripts cannot be executed.
             $sprint->export_gcode;
             
             # output some statistics
@@ -236,16 +239,7 @@ if (@ARGV) {  # slicing from command line
 
 sub usage {
     my ($exit_code) = @_;
-    
-    my $config = Slic3r::Config->new_from_defaults->as_hash;
-    
-    my $j = '';
-    if ($Slic3r::have_threads) {
-        $j = <<"EOF";
-    -j, --threads <num> Number of threads to use (1+, default: $config->{threads})
-EOF
-    }
-    
+    my $config = Slic3r::Config::new_from_defaults->as_hash;
     print <<"EOF";
 Slic3r $Slic3r::VERSION is a STL-to-GCODE translator for RepRap 3D printers
 written by Alessandro Ranellucci <aar\@cpan.org> - http://slic3r.org/
@@ -270,12 +264,14 @@ Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
                         them as <name>_upper.stl and <name>_lower.stl
     --split             Split the shells contained in given STL file into several STL files
     --info              Output information about the supplied file(s) and exit
-    
-$j
+    -j, --threads <num> Number of threads to use (1+, default: $config->{threads})
+
   GUI options:
     --gui               Forces the GUI launch instead of command line slicing (if you
                         supply a model file, it will be loaded into the plater)
     --no-plater         Disable the plater tab
+    --no-gui            Forces the command line slicing instead of gui. 
+                        This takes precedence over --gui if both are present.
     --autosave <file>   Automatically export current configuration to the specified file
 
   Output options:

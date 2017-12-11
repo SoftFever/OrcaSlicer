@@ -91,7 +91,6 @@ public:
         m_brim_done(false) {}
 
     std::string prime(GCode &gcodegen);
-    static std::string prime_single_color_print(const Print & /* print */, unsigned int initial_tool, GCode & /* gcodegen */);
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
     std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
     std::string finalize(GCode &gcodegen);
@@ -132,7 +131,8 @@ public:
         {}
     ~GCode() {}
 
-    bool            do_export(Print *print, const char *path);
+    // throws std::runtime_exception
+    void            do_export(Print *print, const char *path);
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.
     const Pointf&   origin() const { return m_origin; }
@@ -144,6 +144,10 @@ public:
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
+    PlaceholderParser& placeholder_parser() { return m_placeholder_parser; }
+    // Process a template through the placeholder parser, collect error messages to be reported
+    // inside the generated string and after the G-code export finishes.
+    std::string     placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr);
     bool            enable_cooling_markers() const { return m_enable_cooling_markers; }
 
     // For Perl bindings, to be used exclusively by unit tests.
@@ -152,7 +156,7 @@ public:
     void            apply_print_config(const PrintConfig &print_config);
 
 protected:
-    bool            _do_export(Print &print, FILE *file);
+    void            _do_export(Print &print, FILE *file);
 
     // Object and support extrusions of the same PrintObject at the same print_z.
     struct LayerToPrint
@@ -224,6 +228,8 @@ protected:
     FullPrintConfig                     m_config;
     GCodeWriter                         m_writer;
     PlaceholderParser                   m_placeholder_parser;
+    // Collection of templates, on which the placeholder substitution failed.
+    std::set<std::string>               m_placeholder_parser_failed_templates;
     OozePrevention                      m_ooze_prevention;
     Wipe                                m_wipe;
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
@@ -272,7 +278,8 @@ protected:
     GCodeTimeEstimator m_time_estimator;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
-    void _print_first_layer_extruder_temperatures(FILE *file, Print &print, unsigned int first_printing_extruder_id, bool wait);
+    void _print_first_layer_bed_temperature(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
+    void _print_first_layer_extruder_temperatures(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     // this flag triggers first layer speeds
     bool                                on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0; }
 

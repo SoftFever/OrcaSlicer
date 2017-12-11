@@ -124,6 +124,10 @@ sub BUILD {
     });
 }
 
+sub get_value {
+    my ($self) = @_;
+    return $self->wxWindow->GetValue ? 1 : 0;
+}
 
 package Slic3r::GUI::OptionsGroup::Field::SpinCtrl;
 use Moo;

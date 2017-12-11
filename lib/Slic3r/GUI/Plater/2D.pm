@@ -9,7 +9,7 @@ use utf8;
 use List::Util qw(min max first);
 use Slic3r::Geometry qw(X Y scale unscale convex_hull);
 use Slic3r::Geometry::Clipper qw(offset JT_ROUND intersection_pl);
-use Wx qw(:misc :pen :brush :sizer :font :cursor wxTAB_TRAVERSAL);
+use Wx qw(wxTheApp :misc :pen :brush :sizer :font :cursor wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_MOUSE_EVENTS EVT_PAINT EVT_ERASE_BACKGROUND EVT_SIZE);
 use base 'Wx::Panel';
 
@@ -102,7 +102,7 @@ sub repaint {
     }
     
     # draw print center
-    if (@{$self->{objects}} && $Slic3r::GUI::Settings->{_}{autocenter}) {
+    if (@{$self->{objects}} && wxTheApp->{app_config}->get("autocenter")) {
         my $center = $self->unscaled_point_to_pixel($self->{print_center});
         $dc->SetPen($self->{print_center_pen});
         $dc->DrawLine($center->[X], 0, $center->[X], $size[Y]);
@@ -197,7 +197,6 @@ sub repaint {
 
 sub mouse_event {
     my ($self, $event) = @_;
-    
     my $pos = $event->GetPosition;
     my $point = $self->point_to_model_units([ $pos->x, $pos->y ]);  #]]
     if ($event->ButtonDown) {
@@ -257,7 +256,7 @@ sub mouse_event {
 }
 
 sub update_bed_size {
-    my $self = shift;
+    my ($self) = @_;
     
     # when the canvas is not rendered yet, its GetSize() method returns 0,0
     my $canvas_size = $self->GetSize;

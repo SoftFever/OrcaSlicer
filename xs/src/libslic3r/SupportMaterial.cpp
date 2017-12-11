@@ -2569,7 +2569,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                         // TODO: use brim ordering algorithm
                         to_infill_polygons = to_polygons(to_infill);
                         // TODO: use offset2_ex()
-                        to_infill = offset_ex(to_infill, float(- flow.scaled_spacing()));
+                        to_infill = offset_ex(to_infill, float(- 0.4 * flow.scaled_spacing()));
                         extrusion_entities_append_paths(
                             support_layer.support_fills.entities, 
                             to_polylines(STDMOVE(to_infill_polygons)),
@@ -2602,7 +2602,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 // Base flange.
                 filler->angle = raft_angle_1st_layer;
                 filler->spacing = m_first_layer_flow.spacing();
-                density       = 0.5f;
+                // 70% of density on the 1st layer.
+                density       = 0.7f;
             } else if (support_layer_id >= m_slicing_params.base_raft_layers) {
                 filler->angle = raft_angle_interface;
                 // We don't use $base_flow->spacing because we need a constant spacing
@@ -2776,7 +2777,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     // TODO: use brim ordering algorithm
                     Polygons to_infill_polygons = to_polygons(to_infill);
                     // TODO: use offset2_ex()
-                    to_infill = offset_ex(to_infill, - float(flow.scaled_spacing()));
+                    to_infill = offset_ex(to_infill, - 0.4 * float(flow.scaled_spacing()));
                     extrusion_entities_append_paths(
                         base_layer.extrusions, 
                         to_polylines(STDMOVE(to_infill_polygons)),

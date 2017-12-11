@@ -14,8 +14,26 @@ void disable_screensaver()
 void enable_screensaver()
     %code{% Slic3r::GUI::enable_screensaver(); %};
 
+std::vector<std::string> scan_serial_ports()
+    %code{% RETVAL=Slic3r::GUI::scan_serial_ports(); %};
+
 bool debugged()
     %code{% RETVAL=Slic3r::GUI::debugged(); %};
 
 void break_to_debugger()
     %code{% Slic3r::GUI::break_to_debugger(); %};
+
+void set_wxapp(SV *ui)
+    %code%{ Slic3r::GUI::set_wxapp((wxApp*)wxPli_sv_2_object(aTHX_ ui, "Wx::App")); %};
+
+void set_main_frame(SV *ui)
+    %code%{ Slic3r::GUI::set_main_frame((wxFrame*)wxPli_sv_2_object(aTHX_ ui, "Wx::Frame")); %};
+
+void set_tab_panel(SV *ui)
+    %code%{ Slic3r::GUI::set_tab_panel((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook")); %};
+
+void add_debug_menu(SV *ui)
+    %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar")); %};
+
+void create_preset_tab(const char *name)
+    %code%{ Slic3r::GUI::create_preset_tab(name); %};

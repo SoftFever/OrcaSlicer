@@ -16,7 +16,7 @@ use Slic3r::Test;
 # Disable this until a more robust implementation is provided. It currently
 # fails on Linux 32bit because some spurious extrudates are generated.
 if (0) {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('layer_height', 0.2);
     $config->set('first_layer_height', '100%');
     $config->set('extrusion_width', 0.5);

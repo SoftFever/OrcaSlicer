@@ -21,8 +21,8 @@ public:
 		xy  operator-(const xy &rhs) const { xy out(*this); out.x -= rhs.x; out.y -= rhs.y; return out; }
 		xy& operator+=(const xy &rhs) { x += rhs.x; y += rhs.y; return *this; }
 		xy& operator-=(const xy &rhs) { x -= rhs.x; y -= rhs.y; return *this; }
-		bool operator==(const xy &rhs) { return x == rhs.x && y == rhs.y; }
-		bool operator!=(const xy &rhs) { return x != rhs.x || y != rhs.y; }
+		bool operator==(const xy &rhs) const { return x == rhs.x && y == rhs.y; }
+		bool operator!=(const xy &rhs) const { return x != rhs.x || y != rhs.y; }
 		float x;
 		float y;
 	};
@@ -109,7 +109,7 @@ public:
 		// print_z of the first layer.
 		float 						first_layer_height, 
 		// Extruder indices, in the order to be primed. The last extruder will later print the wipe tower brim, print brim and the object.
-		std::vector<unsigned int> 	tools,
+		const std::vector<unsigned int> &tools,
 		// If true, the last priming are will be the same as the other priming areas, and the rest of the wipe will be performed inside the wipe tower.
 		// If false, the last priming are will be large enough to wipe the last extruder sufficiently.
 		bool 						last_wipe_inside_wipe_tower, 

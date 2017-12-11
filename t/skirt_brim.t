@@ -14,7 +14,7 @@ use Slic3r::Geometry qw(unscale convex_hull);
 use Slic3r::Test;
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 1);
     $config->set('skirt_height', 2);
     $config->set('perimeters', 0);
@@ -46,7 +46,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 0);
     $config->set('perimeters', 0);
     $config->set('top_solid_layers', 0);            # to prevent solid shells and their speeds
@@ -72,7 +72,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 1);
     $config->set('brim_width', 10);
     
@@ -81,7 +81,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('skirts', 1);
     $config->set('skirt_height', 0);
     
@@ -90,7 +90,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('layer_height', 0.4);
     $config->set('first_layer_height', 0.4);
     $config->set('skirts', 1);
@@ -135,7 +135,7 @@ use Slic3r::Test;
 }
 
 {
-    my $config = Slic3r::Config->new_from_defaults;
+    my $config = Slic3r::Config::new_from_defaults;
     $config->set('min_skirt_length', 20);
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     ok Slic3r::Test::gcode($print), 'no crash when using min_skirt_length';

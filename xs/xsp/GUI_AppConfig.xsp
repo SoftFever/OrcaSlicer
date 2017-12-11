@@ -1,0 +1,44 @@
+
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/GUI/AppConfig.hpp"
+%}
+
+%name{Slic3r::GUI::AppConfig} class AppConfig {
+    AppConfig();
+    ~AppConfig();
+
+    void 					    reset();
+    void 						set_defaults();
+
+    void                        load()
+        %code%{
+            try {
+                THIS->load();
+            } catch (std::exception& e) {
+                croak("Loading an application config file failed:\n%s\n", e.what());
+            }
+        %};
+    void                        save()
+        %code%{
+            try {
+                THIS->save();
+            } catch (std::exception& e) {
+                croak("Saving an application config file failed:\n%s\n", e.what());
+            }
+        %};
+    bool						exists();
+    bool                        dirty();
+
+    std::string                 get(char *name);
+    void                        set(char *name, char *value);
+    bool						has(char *section);
+
+    std::string                 get_last_dir();
+    void                        update_config_dir(char *dir);
+    void                        update_skein_dir(char *dir);
+    std::string                 get_last_output_dir(const char *alt = "");
+    void                        update_last_output_dir(char *dir);
+};

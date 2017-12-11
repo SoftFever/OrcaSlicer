@@ -54,6 +54,8 @@ extern "C" {
 #ifdef _MSC_VER
     // Undef some of the macros set by Perl <xsinit.h>, which cause compilation errors on Win32
     #undef connect
+    #undef link
+    #undef unlink
     #undef seek
     #undef send
     #undef write

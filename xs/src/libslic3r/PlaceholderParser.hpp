@@ -11,23 +11,28 @@ namespace Slic3r {
 
 class PlaceholderParser
 {
-public:
-    std::map<std::string, std::string>                  m_single;
-    std::map<std::string, std::vector<std::string>>     m_multiple;
-    
+public:    
     PlaceholderParser();
+    
     void update_timestamp();
     void apply_config(const DynamicPrintConfig &config);
     void apply_env_variables();
-    void set(const std::string &key, const std::string &value);
-    void set(const std::string &key, int value);
-    void set(const std::string &key, unsigned int value);
-    void set(const std::string &key, double value);
-    void set(const std::string &key, std::vector<std::string> values);
-    std::string process(std::string str, unsigned int current_extruder_id) const;
+
+    // Add new ConfigOption values to m_config.
+    void set(const std::string &key, const std::string &value)  { this->set(key, new ConfigOptionString(value)); }
+    void set(const std::string &key, int value)                 { this->set(key, new ConfigOptionInt(value)); }
+    void set(const std::string &key, unsigned int value)        { this->set(key, int(value)); }
+    void set(const std::string &key, bool value)                { this->set(key, new ConfigOptionBool(value)); }
+    void set(const std::string &key, double value)              { this->set(key, new ConfigOptionFloat(value)); }
+    void set(const std::string &key, const std::vector<std::string> &values) { this->set(key, new ConfigOptionStrings(values)); }
+    void set(const std::string &key, ConfigOption *opt)         { m_config.set_key_value(key, opt); }
+    const ConfigOption* option(const std::string &key) const    { return m_config.option(key); }
+
+    // Fill in the template.
+    std::string process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr) const;
     
 private:
-    bool find_and_replace(std::string &source, std::string const &find, std::string const &replace) const;
+    DynamicConfig m_config;
 };
 
 }
