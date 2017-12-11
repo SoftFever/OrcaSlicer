@@ -175,6 +175,12 @@ namespace Slic3r {
     // Calculates the time estimate from the gcode contained in the file with the given filename
     void calculate_time_from_file(const std::string& file);
 
+    // Adds the given gcode line
+    void add_gcode_line(const std::string& gcode_line);
+
+    // Calculates the time estimate from gcode lines added using add_gcode_line()
+    void calculate_time();
+
     void set_axis_position(EAxis axis, float position);
     void set_axis_max_feedrate(EAxis axis, float feedrate_mm_sec);
     void set_axis_max_acceleration(EAxis axis, float acceleration);
@@ -208,6 +214,9 @@ namespace Slic3r {
     float get_additional_time() const;
 
     void set_default();
+
+    // Call this method before to start adding lines using add_gcode_line() when reusing an instance of GCodeTimeEstimator
+    void reset();
 
     // Returns the estimated time, in seconds
     float get_time() const;

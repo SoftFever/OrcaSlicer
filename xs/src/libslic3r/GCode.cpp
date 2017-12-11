@@ -5,10 +5,6 @@
 #include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTowerPrusaMM.hpp"
 
-//############################################################################################################
-#include "GCodeTimeEstimator.hpp"
-//############################################################################################################
-
 #include <algorithm>
 #include <cstdlib>
 #include <math.h>
@@ -263,16 +259,77 @@ std::string WipeTowerIntegration::finalize(GCode &gcodegen)
 
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id())
 
+#if ENABLE_TIME_ESTIMATOR
+// Helper class for writing to file with/without time estimation
+class Write
+{
+  static GCodeTimeEstimator* s_time_estimator;
+
+public:
+  static void set_time_estimator(GCodeTimeEstimator* time_estimator)
+  {
+    s_time_estimator = time_estimator;
+  }
+
+  static void write(FILE* file, const std::string& what)
+  {
+    if (!what.empty())
+    {
+      fwrite(what.data(), 1, what.size(), file);
+
+      if (s_time_estimator != nullptr)
+      {
+        const char endLine = '\n';
+        std::string::size_type beginPos = 0;
+        std::string::size_type endPos = what.find_first_of(endLine, beginPos);
+        while (endPos != std::string::npos)
+        {
+          s_time_estimator->add_gcode_line(what.substr(beginPos, endPos - beginPos + 1));
+          
+          beginPos = endPos + 1;
+          endPos = what.find_first_of(endLine, beginPos);
+        }
+      }
+    }
+  }
+};
+
+//std::string Write::s_cache = "";
+GCodeTimeEstimator* Write::s_time_estimator = nullptr;
+#endif // ENABLE_TIME_ESTIMATOR
+
 inline void write(FILE *file, const std::string &what)
 {
-    fwrite(what.data(), 1, what.size(), file);
+#if ENABLE_TIME_ESTIMATOR
+  Write::write(file, what);
+#else
+  fwrite(what.data(), 1, what.size(), file);
+#endif // ENABLE_TIME_ESTIMATOR
 }
+
+#if ENABLE_TIME_ESTIMATOR
+inline void write_format(FILE* file, const char* format, ...)
+{
+  char buffer[1024];
+  va_list args;
+  va_start(args, format);
+  int res = ::vsnprintf(buffer, 1024, format, args);
+  va_end(args);
+
+  if (res >= 0)
+    write(file, buffer);
+}
+#endif // ENABLE_TIME_ESTIMATOR
 
 inline void writeln(FILE *file, const std::string &what)
 {
     if (! what.empty()) {
-        write(file, what);
-        fprintf(file, "\n");
+#if ENABLE_TIME_ESTIMATOR
+      write_format(file, "%s\n", what.c_str());
+#else
+      write(file, what);
+      fprintf(file, "\n");
+#endif // ENABLE_TIME_ESTIMATOR
     }
 }
 
@@ -379,20 +436,28 @@ bool GCode::do_export(Print *print, const char *path)
     if (! result)
         boost::nowide::remove(path_tmp.c_str());
 
-//############################################################################################################
-    GCodeTimeEstimator timeEstimator;
-    timeEstimator.calculate_time_from_file(path);
-    float time = timeEstimator.get_time();
-    std::string timeHMS = timeEstimator.get_time_hms();
+    // debug only -> tests time estimator from file
+    {
+      GCodeTimeEstimator timeEstimator;
+      timeEstimator.calculate_time_from_file(path);
+      float time = timeEstimator.get_time();
+      std::string timeHMS = timeEstimator.get_time_hms();
 
-    std::cout << std::endl << ">>> estimated time: " << timeHMS << " (" << time << " seconds)" << std::endl << std::endl;
-//############################################################################################################
+      std::cout << std::endl << "Time estimated from file:" << std::endl;
+      std::cout << std::endl << ">>> estimated time: " << timeHMS << " (" << time << " seconds)" << std::endl << std::endl;
+    }
 
     return result;
 }
 
 bool GCode::_do_export(Print &print, FILE *file)
 {
+#if ENABLE_TIME_ESTIMATOR
+    // resets time estimator
+    m_time_estimator.reset();
+    Write::set_time_estimator(&m_time_estimator);
+#endif // ENABLE_TIME_ESTIMATOR
+
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
@@ -496,7 +561,7 @@ bool GCode::_do_export(Print &print, FILE *file)
             fprintf(file, "; %s\n", line.c_str());
         }
         if (! lines.empty())
-            fprintf(file, "\n");
+          fprintf(file, "\n");
     }
     // Write some terse information on the slicing parameters.
     {
@@ -555,8 +620,8 @@ bool GCode::_do_export(Print &print, FILE *file)
 
     // Disable fan.
     if (! print.config.cooling.get_at(initial_extruder_id) || print.config.disable_fan_first_layers.get_at(initial_extruder_id))
-        write(file, m_writer.set_fan(0, true));
-    
+      write(file, m_writer.set_fan(0, true));
+
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
     {
         // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
@@ -565,7 +630,7 @@ bool GCode::_do_export(Print &print, FILE *file)
         std::string gcode = m_writer.set_bed_temperature(print.config.first_layer_bed_temperature.get_at(initial_extruder_id), true);
         if (boost::ifind_first(print.config.start_gcode.value, std::string("M140")).empty() &&
             boost::ifind_first(print.config.start_gcode.value, std::string("M190")).empty())
-            write(file, gcode);
+          write(file, gcode);
     }
 
     // Set extruder(s) temperature before and after start G-code.
@@ -715,15 +780,28 @@ bool GCode::_do_export(Print &print, FILE *file)
                 bbox_prime.offset(0.5f);
                 // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
                 write(file, this->retract());
+#if ENABLE_TIME_ESTIMATOR
+                write_format(file, "M300 S800 P500\n");
+#else
                 fprintf(file, "M300 S800 P500\n");
+#endif // ENABLE_TIME_ESTIMATOR
                 if (bbox_prime.overlap(bbox_print)) {
                     // Wait for the user to remove the priming extrusions, otherwise they would
                     // get covered by the print.
-                    fprintf(file, "M1 Remove priming towers and click button.\n");
-                } else {
+#if ENABLE_TIME_ESTIMATOR
+                  write_format(file, "M1 Remove priming towers and click button.\n");
+#else
+                  fprintf(file, "M1 Remove priming towers and click button.\n");
+#endif // ENABLE_TIME_ESTIMATOR
+                }
+                else {
                     // Just wait for a bit to let the user check, that the priming succeeded.
                     //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
-                    fprintf(file, "M1 S10\n");
+#if ENABLE_TIME_ESTIMATOR
+                  write_format(file, "M1 S10\n");
+#else
+                  fprintf(file, "M1 S10\n");
+#endif // ENABLE_TIME_ESTIMATOR
                 }
             } else
                 write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
@@ -778,6 +856,11 @@ bool GCode::_do_export(Print &print, FILE *file)
     }
     fprintf(file, "; total filament cost = %.1lf\n", print.total_cost);
 
+#if ENABLE_TIME_ESTIMATOR
+    m_time_estimator.calculate_time();
+    fprintf(file, "; estimated printing time = %s\n", m_time_estimator.get_time_hms());
+#endif // ENABLE_TIME_ESTIMATOR
+
     // Append full config.
     fprintf(file, "\n");
     {
@@ -785,7 +868,7 @@ bool GCode::_do_export(Print &print, FILE *file)
         for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++ i) {
             StaticPrintConfig *cfg = configs[i];
         for (const std::string &key : cfg->keys())
-            fprintf(file, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
+          fprintf(file, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
         }
     }
 

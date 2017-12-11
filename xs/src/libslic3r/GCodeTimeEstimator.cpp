@@ -131,20 +131,33 @@ namespace Slic3r {
 
   GCodeTimeEstimator::GCodeTimeEstimator()
   {
+    reset();
+    set_default();
   }
 
   void GCodeTimeEstimator::calculate_time_from_text(const std::string& gcode)
   {
-    _reset();
     _parser.parse(gcode, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
     _calculate_time();
+    reset();
   }
 
   void GCodeTimeEstimator::calculate_time_from_file(const std::string& file)
   {
-    _reset();
     _parser.parse_file(file, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
     _calculate_time();
+    reset();
+  }
+
+  void GCodeTimeEstimator::add_gcode_line(const std::string& gcode_line)
+  {
+    _parser.parse_line(gcode_line, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+  }
+
+  void GCodeTimeEstimator::calculate_time()
+  {
+    _calculate_time();
+    _reset();
   }
 
   void GCodeTimeEstimator::set_axis_position(EAxis axis, float position)
@@ -281,6 +294,12 @@ namespace Slic3r {
     }
   }
 
+  void GCodeTimeEstimator::reset()
+  {
+    _blocks.clear();
+    _reset();
+  }
+
   float GCodeTimeEstimator::get_time() const
   {
     return _time;
@@ -294,19 +313,15 @@ namespace Slic3r {
     int minutes = (int)(timeinsecs / 60.0f);
     timeinsecs -= (float)minutes * 60.0f;
 
-    char buf[16];
-    ::sprintf(buf, "%02d:%02d:%02d", hours, minutes, (int)timeinsecs);
-    return buf;
+    char buffer[16];
+    ::sprintf(buffer, "%02d:%02d:%02d", hours, minutes, (int)timeinsecs);
+    return buffer;
   }
 
   void GCodeTimeEstimator::_reset()
   {
-    _blocks.clear();
-
     _curr.reset();
     _prev.reset();
-
-    set_default();
 
     set_axis_position(X, 0.0f);
     set_axis_position(Y, 0.0f);
