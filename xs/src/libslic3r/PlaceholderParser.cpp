@@ -56,7 +56,7 @@ namespace Slic3r {
 
 PlaceholderParser::PlaceholderParser()
 {
-    this->set("version", SLIC3R_VERSION);
+    this->set("version", std::string(SLIC3R_VERSION));
     this->apply_env_variables();
     this->update_timestamp();
 }
