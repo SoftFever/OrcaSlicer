@@ -14,6 +14,9 @@ PrintConfigDef::PrintConfigDef()
     t_optiondef_map &Options = this->options;
     
     ConfigOptionDef* def;
+
+    // Maximum extruder temperature, bumped to 1500 to support printing of glass.
+    const int max_temp = 1500;
     
     def = this->add("avoid_crossing_perimeters", coBool);
     def->label = "Avoid crossing perimeters";
@@ -611,7 +614,7 @@ PrintConfigDef::PrintConfigDef()
                    "during print, set this to zero to disable temperature control commands in the output file.";
     def->cli = "first-layer-temperature=i@";
     def->min = 0;
-    def->max = 500;
+    def->max = max_temp;
     def->default_value = new ConfigOptionInts { 200 };
     
     def = this->add("gap_fill_speed", coFloat);
@@ -1315,8 +1318,8 @@ PrintConfigDef::PrintConfigDef()
                    "Enables a full-height \"sacrificial\" skirt on which the nozzles are periodically wiped.";
     def->sidetext = "∆°C";
     def->cli = "standby-temperature-delta=i";
-    def->min = -500;
-    def->max = 500;
+    def->min = -max_temp;
+    def->max = max_temp;
     def->default_value = new ConfigOptionInt(-5);
 
     def = this->add("start_gcode", coString);
@@ -1556,7 +1559,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "temperature=i@";
     def->full_label = "Temperature";
     def->max = 0;
-    def->max = 500;
+    def->max = max_temp;
     def->default_value = new ConfigOptionInts { 200 };
     
     def = this->add("thin_walls", coBool);
