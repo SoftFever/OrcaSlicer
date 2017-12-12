@@ -108,6 +108,7 @@ sub new {
     # We can only enable multi sample anti aliasing wih wxWidgets 3.0.3 and with a hacked Wx::GLCanvas,
     # which exports some new WX_GL_XXX constants, namely WX_GL_SAMPLE_BUFFERS and WX_GL_SAMPLES.
     my $can_multisample =
+        ! wxTheApp->{app_config}->get('use_legacy_opengl') &&
         Wx::wxVERSION >= 3.000003 &&
         defined Wx::GLCanvas->can('WX_GL_SAMPLE_BUFFERS') &&
         defined Wx::GLCanvas->can('WX_GL_SAMPLES');

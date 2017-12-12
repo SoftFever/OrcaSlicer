@@ -76,7 +76,7 @@ sub new {
         opt_id      => 'use_legacy_opengl',
         type        => 'bool',
         label       => 'Use legacy OpenGL 1.1 rendering',
-        tooltip     => 'If you have rendering issues caused by a buggy OpenGL 2.0 driver, you may try to check this checkbox. This will disable the layer height editing, so it is likely better to upgrade your graphics driver.',
+        tooltip     => 'If you have rendering issues caused by a buggy OpenGL 2.0 driver, you may try to check this checkbox. This will disable the layer height editing and anti aliasing, so it is likely better to upgrade your graphics driver.',
         default     => $app_config->get("use_legacy_opengl"),
     ));
     
