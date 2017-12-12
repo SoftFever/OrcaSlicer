@@ -6,16 +6,14 @@ static const std::string AXIS_STR = "XYZE";
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float MILLISEC_TO_SEC = 0.001f;
 static const float INCHES_TO_MM = 25.4f;
-static const float DEFAULT_FEEDRATE = 0.0f; // <<<<<<<<< FIND A PROPER VALUE
-static const float DEFAULT_ACCELERATION = 3000.0f;
-static const float DEFAULT_AXIS_MAX_FEEDRATE[] = { 600.0f, 600.0f, 40.0f, 25.0f };
-static const float DEFAULT_AXIS_MAX_ACCELERATION[] = { 9000.0f, 9000.0f, 100.0f, 10000.0f };
-
-static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.2f, 2.5f }; // from Firmware
-//static const float DEFAULT_AXIS_MAX_JERK[] = { 20.0f, 20.0f, 0.4f, 5.0f }; // from Cura
-
-static const float DEFAULT_MINIMUM_FEEDRATE = 0.0f; // from Firmware
-//static const float DEFAULT_MINIMUM_FEEDRATE = 0.01f; // from Cura
+static const float DEFAULT_FEEDRATE = 1500.0f; // from Prusa Firmware (Marlin_main.cpp)
+static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_RETRACT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_AXIS_MAX_FEEDRATE[] = { 500.0f, 500.0f, 12.0f, 120.0f }; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_AXIS_MAX_ACCELERATION[] = { 9000.0f, 9000.0f, 500.0f, 10000.0f }; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.2f, 2.5f }; // from Prusa Firmware (Configuration.h)
+static const float DEFAULT_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
+static const float DEFAULT_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
 
 #if USE_CURA_JUNCTION_VMAX
 static const float MINIMUM_PLANNER_SPEED = 0.05f; // from Cura <<<<<<<< WHAT IS THIS ???
@@ -67,6 +65,16 @@ namespace Slic3r {
   {
     float length = ::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
     return (length > 0.0f) ? length : ::abs(delta_pos[E]);
+  }
+
+  float GCodeTimeEstimator::Block::is_extruder_only_move() const
+  {
+    return (delta_pos[X] == 0.0f) && (delta_pos[Y] == 0.0f) && (delta_pos[Z] == 0.0f) && (delta_pos[E] != 0.0f);
+  }
+
+  float GCodeTimeEstimator::Block::is_travel_move() const
+  {
+    return delta_pos[E] == 0.0f;
   }
 
   float GCodeTimeEstimator::Block::acceleration_time() const
@@ -210,14 +218,24 @@ namespace Slic3r {
     return _state.feedrate;
   }
 
-  void GCodeTimeEstimator::set_acceleration(float acceleration)
+  void GCodeTimeEstimator::set_acceleration(float acceleration_mm_sec2)
   {
-    _state.acceleration = acceleration;
+    _state.acceleration = acceleration_mm_sec2;
   }
 
   float GCodeTimeEstimator::get_acceleration() const
   {
     return _state.acceleration;
+  }
+
+  void GCodeTimeEstimator::set_retract_acceleration(float acceleration_mm_sec2)
+  {
+    _state.retract_acceleration = acceleration_mm_sec2;
+  }
+
+  float GCodeTimeEstimator::get_retract_acceleration() const
+  {
+    return _state.retract_acceleration;
   }
 
   void GCodeTimeEstimator::set_minimum_feedrate(float feedrate_mm_sec)
@@ -228,6 +246,16 @@ namespace Slic3r {
   float GCodeTimeEstimator::get_minimum_feedrate() const
   {
     return _state.minimum_feedrate;
+  }
+
+  void GCodeTimeEstimator::set_minimum_travel_feedrate(float feedrate_mm_sec)
+  {
+    _state.minimum_travel_feedrate = feedrate_mm_sec;
+  }
+
+  float GCodeTimeEstimator::get_minimum_travel_feedrate() const
+  {
+    return _state.minimum_travel_feedrate;
   }
 
   void GCodeTimeEstimator::set_dialect(GCodeTimeEstimator::EDialect dialect)
@@ -294,7 +322,9 @@ namespace Slic3r {
 
     set_feedrate(DEFAULT_FEEDRATE);
     set_acceleration(DEFAULT_ACCELERATION);
+    set_retract_acceleration(DEFAULT_RETRACT_ACCELERATION);
     set_minimum_feedrate(DEFAULT_MINIMUM_FEEDRATE);
+    set_minimum_travel_feedrate(DEFAULT_MINIMUM_TRAVEL_FEEDRATE);
 
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
@@ -432,6 +462,11 @@ namespace Slic3r {
               _processM109(line);
               break;
             }
+          case 201: // Set max printing acceleration
+            {
+              _processM201(line);
+              break;
+            }
           case 203: // Set maximum feedrate
             {
               _processM203(line);
@@ -503,7 +538,7 @@ namespace Slic3r {
       return;
 
     // calculates block feedrate
-    _curr.feedrate = std::max(get_feedrate(), get_minimum_feedrate());
+    _curr.feedrate = std::max(get_feedrate(), block.is_travel_move() ? get_minimum_travel_feedrate() : get_minimum_feedrate());
 
     float distance = block.move_length();
     float invDistance = 1.0f / distance;
@@ -526,7 +561,7 @@ namespace Slic3r {
     }
 
     // calculates block acceleration
-    float acceleration = get_acceleration();
+    float acceleration = block.is_extruder_only_move() ? get_retract_acceleration() : get_acceleration();
 
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
@@ -766,6 +801,26 @@ namespace Slic3r {
     // todo
   }
 
+  void GCodeTimeEstimator::_processM201(const GCodeReader::GCodeLine& line)
+  {
+    EDialect dialect = get_dialect();
+
+    // see http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration
+    float factor = ((dialect != RepRapFirmware) && (get_units() == GCodeTimeEstimator::Inches)) ? INCHES_TO_MM : 1.0f;
+
+    if (line.has('X'))
+      set_axis_max_acceleration(X, line.get_float('X') * factor);
+
+    if (line.has('Y'))
+      set_axis_max_acceleration(Y, line.get_float('Y') * factor);
+
+    if (line.has('Z'))
+      set_axis_max_acceleration(Z, line.get_float('Z') * factor);
+
+    if (line.has('E'))
+      set_axis_max_acceleration(E, line.get_float('E') * factor);
+  }
+
   void GCodeTimeEstimator::_processM203(const GCodeReader::GCodeLine& line)
   {
     EDialect dialect = get_dialect();
@@ -793,12 +848,10 @@ namespace Slic3r {
   void GCodeTimeEstimator::_processM204(const GCodeReader::GCodeLine& line)
   {
     if (line.has('S'))
-      set_acceleration(line.get_float('S')); // <<<< Is this correct ?
+      set_acceleration(line.get_float('S'));
 
     if (line.has('T'))
-    {
-      // what to do ?
-    }
+      set_retract_acceleration(line.get_float('T'));
   }
 
   void GCodeTimeEstimator::_processM205(const GCodeReader::GCodeLine& line)
@@ -821,6 +874,9 @@ namespace Slic3r {
 
     if (line.has('S'))
       set_minimum_feedrate(line.get_float('S'));
+
+    if (line.has('T'))
+      set_minimum_travel_feedrate(line.get_float('T'));
   }
 
   void GCodeTimeEstimator::_processM566(const GCodeReader::GCodeLine& line)

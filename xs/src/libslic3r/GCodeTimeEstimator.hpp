@@ -72,8 +72,10 @@ namespace Slic3r {
       Axis axis[Num_Axis];
       float feedrate;                     // mm/s
       float acceleration;                 // mm/s^2
+      float retract_acceleration;         // mm/s^2
       float additional_time;              // s
       float minimum_feedrate;             // mm/s
+      float minimum_travel_feedrate;      // mm/s
     };
 
   public:
@@ -127,6 +129,12 @@ namespace Slic3r {
 
       // Returns the length of the move covered by this block, in mm
       float move_length() const;
+
+      // Returns true if this block is a retract/unretract move only
+      float is_extruder_only_move() const;
+
+      // Returns true if this block is a move with no extrusion
+      float is_travel_move() const;
 
       // Returns the time spent accelerating toward cruise speed, in seconds
       float acceleration_time() const;
@@ -199,11 +207,17 @@ namespace Slic3r {
     void set_feedrate(float feedrate_mm_sec);
     float get_feedrate() const;
 
-    void set_acceleration(float acceleration);
+    void set_acceleration(float acceleration_mm_sec2);
     float get_acceleration() const;
+
+    void set_retract_acceleration(float acceleration_mm_sec2);
+    float get_retract_acceleration() const;
 
     void set_minimum_feedrate(float feedrate_mm_sec);
     float get_minimum_feedrate() const;
+
+    void set_minimum_travel_feedrate(float feedrate_mm_sec);
+    float get_minimum_travel_feedrate() const;
 
     void set_dialect(EDialect dialect);
     EDialect get_dialect() const;
@@ -273,6 +287,9 @@ namespace Slic3r {
 
     // Set Extruder Temperature and Wait
     void _processM109(const GCodeReader::GCodeLine& line);
+
+    // Set max printing acceleration
+    void _processM201(const GCodeReader::GCodeLine& line);
 
     // Set maximum feedrate
     void _processM203(const GCodeReader::GCodeLine& line);
