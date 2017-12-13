@@ -397,29 +397,19 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
 
 void PresetCollection::update_compatible_with_printer(const std::string &active_printer, bool select_other_if_incompatible)
 {
-    size_t num_visible = 0;
     for (size_t idx_preset = 1; idx_preset < m_presets.size(); ++ idx_preset) {
         bool    selected        = idx_preset == m_idx_selected;
         Preset &preset_selected = m_presets[idx_preset];
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
-        if (preset_edited.update_compatible_with_printer(active_printer))
-            // Mark compatible presets as visible.
-            preset_selected.is_visible = true;
-        else if (selected && select_other_if_incompatible) {
-            preset_selected.is_visible = false;
+        if (! preset_edited.update_compatible_with_printer(active_printer) &&
+            selected && select_other_if_incompatible)
             m_idx_selected = (size_t)-1;
-        }
         if (selected)
             preset_selected.is_compatible = preset_edited.is_compatible;
-        if (preset_selected.is_visible)
-            ++ num_visible;
     }
     if (m_idx_selected == (size_t)-1)
-        // Find some other visible preset.
-        this->select_preset(first_visible_idx());
-    else if (num_visible == 0)
-        // Show the "-- default --" preset.
-        m_presets.front().is_visible = true;
+        // Find some other compatible preset, or the "-- default --" preset.
+        this->select_preset(first_compatible_idx());
 }
 
 // Save the preset under a new name. If the name is different from the old one,
@@ -460,7 +450,7 @@ void PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatibl
     ui->Clear();
     for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
-        if (! show_incompatible && ! preset.is_compatible && i != m_idx_selected)
+        if (! preset.is_visible || (! show_incompatible && ! preset.is_compatible && i != m_idx_selected))
             continue;
         const wxBitmap *bmp = preset.is_compatible ? m_bitmap_compatible : m_bitmap_incompatible;
         ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
@@ -494,6 +484,8 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
     return was_dirty != is_dirty;
 }
 
+// Select a new preset. This resets all the edits done to the currently selected preset.
+// If the preset with index idx does not exist, a first visible preset is selected.
 Preset& PresetCollection::select_preset(size_t idx)
 {
     for (Preset &preset : m_presets)

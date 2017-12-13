@@ -506,6 +506,7 @@ sub _on_select_preset {
         wxTheApp->{preset_bundle}->set_filament_preset($idx, $choice->GetStringSelection);
     }
 	if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
+        # Only update the platter UI for the 2nd and other filaments.
         wxTheApp->{preset_bundle}->update_platter_filament_ui($idx, $choice);
 	} else {
     	# call GetSelection() in scalar context as it's context-aware

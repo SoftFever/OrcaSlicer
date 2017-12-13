@@ -7,7 +7,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use FindBin;
-use List::Util qw(min);
+use List::Util qw(min first);
 use Slic3r::Geometry qw(X Y);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
     :font :icon wxTheApp);
@@ -132,12 +132,14 @@ sub _init_tabpanel {
                 $self->{plater}->update_presets($tab_name, @_);
                 if ($tab_name eq 'printer') {
                     # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-                    wxTheApp->{preset_bundle}->print->update_tab_ui(
-                        $self->{options_tabs}{'print'}->{presets_choice},
-                        $self->{options_tabs}{'print'}->{show_incompatible_presets});
-                    wxTheApp->{preset_bundle}->filament->update_tab_ui(
-                        $self->{options_tabs}{'filament'}->{presets_choice},
-                        $self->{options_tabs}{'filament'}->{show_incompatible_presets});
+                    my ($presets, $reload_dependent_tabs) = @_;
+                    for my $tab_name_other (qw(print filament)) {
+                        # If the printer tells us that the print or filament preset has been switched or invalidated,
+                        # refresh the print or filament tab page. Otherwise just refresh the combo box.
+                        my $update_action = ($reload_dependent_tabs && (first { $_ eq $tab_name_other } (@{$reload_dependent_tabs}))) 
+                            ? 'load_current_preset' : 'update_tab_ui';
+                        $self->{options_tabs}{$tab_name_other}->$update_action;
+                    }
                     # Update the controller printers.
                     $self->{controller}->update_presets(@_) if $self->{controller};
                 }

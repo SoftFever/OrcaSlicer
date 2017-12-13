@@ -14,6 +14,7 @@
     bool                        external()      %code%{ RETVAL = THIS->is_external; %};
     bool                        visible()       %code%{ RETVAL = THIS->is_visible;  %};
     bool                        dirty()         %code%{ RETVAL = THIS->is_dirty;    %};
+    bool                        compatible()    %code%{ RETVAL = THIS->is_compatible; %};
     bool                        is_compatible_with_printer(char *active_printer) const;
 
     const char*                 name()          %code%{ RETVAL = THIS->name.c_str(); %};

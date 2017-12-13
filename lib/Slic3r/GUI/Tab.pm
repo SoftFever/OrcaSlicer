@@ -151,7 +151,7 @@ sub save_preset {
     eval { $self->{presets}->save_current_preset($name); };
     Slic3r::GUI::catch_error($self) and return;
     # Add the new item into the UI component, remove dirty flags and activate the saved item.
-    $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
+    $self->update_tab_ui;
     # Update the selection boxes at the platter.
     $self->_on_presets_changed;
 }
@@ -177,7 +177,7 @@ sub _toggle_show_hide_incompatible {
     my ($self) = @_;
     $self->{show_incompatible_presets} = ! $self->{show_incompatible_presets};
     $self->_update_show_hide_incompatible_button;
-    $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
+    $self->update_tab_ui;
 }
 
 sub _update_show_hide_incompatible_button {
@@ -223,8 +223,9 @@ sub _update {}
 # to update the "dirty" flags of the selection boxes,
 # to uddate number of "filament" selection boxes when the number of extruders change.
 sub _on_presets_changed {
-    my ($self) = @_;
-    $self->{on_presets_changed}->($self->{presets}) if $self->{on_presets_changed};
+    my ($self, $reload_dependent_tabs) = @_;
+    $self->{on_presets_changed}->($self->{presets}, $reload_dependent_tabs) 
+        if $self->{on_presets_changed};
 }
 
 # For the printer profile, generate the extruder pages after a preset is loaded.
@@ -237,11 +238,12 @@ sub may_discard_current_dirty_preset
     my ($self, $presets, $new_printer_name) = @_;
     $presets //= $self->{presets};
     # Display a dialog showing the dirty options in a human readable form.
-    my $old_preset = $presets->get_current_preset;
-    my $type_name = $presets->name;
-    my $name = $old_preset->default ? 
+    my $old_preset  = $presets->get_current_preset;
+    my $type_name   = $presets->name;
+    my $tab         = '          ';
+    my $name        = $old_preset->default ? 
         ('Default ' . $type_name . ' preset') :
-        ($type_name . " preset \"" . $old_preset->name . "\"");
+        ($type_name . " preset\n$tab" . $old_preset->name);
     # Collect descriptions of the dirty options.
     my @option_names = ();
     foreach my $opt_key (@{$presets->current_dirty_options}) {
@@ -251,10 +253,10 @@ sub may_discard_current_dirty_preset
         push @option_names, $name;
     }
     # Show a confirmation dialog with the list of dirty options.
-    my $changes = join "\n", map "- $_", @option_names;
+    my $changes = join "\n", map "$tab$_", @option_names;
     my $message = (defined $new_printer_name) ?
-        "$name is not compatible with printer \"$new_printer_name\"\n and it has unsaved changes:" :
-        "$name has unsaved changes:";
+        "$name\n\nis not compatible with printer\n$tab$new_printer_name\n\nand it has the following unsaved changes:" :
+        "$name\n\nhas the following unsaved changes:";
     my $confirm = Wx::MessageDialog->new($self, 
         $message . "\n$changes\n\nDiscard changes and continue anyway?",
         'Unsaved Changes', wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
@@ -267,9 +269,11 @@ sub may_discard_current_dirty_preset
 sub select_preset {
     my ($self, $name, $force) = @_;
     $force //= 0;
-    my $current_dirty = $self->{presets}->current_is_dirty;
-    my $canceled = 0;
-    my $printer_tab = $self->{presets}->name eq 'printer';
+    my $presets         = $self->{presets};
+    my $current_dirty   = $presets->current_is_dirty;
+    my $canceled        = 0;
+    my $printer_tab     = $presets->name eq 'printer';
+    my @reload_dependent_tabs = ();
     if (! $force && $current_dirty && ! $self->may_discard_current_dirty_preset) {
         $canceled = 1;
     } elsif ($printer_tab) {
@@ -278,49 +282,57 @@ sub select_preset {
         # If they are not compatible and the the current print or filament are dirty, let user decide
         # whether to discard the changes or keep the current printer selection.
         my $new_printer_name = $name // '';
-        my $new_printer_preset = $self->{presets}->find_preset($new_printer_name, 1);
-        # my $new_nozzle_dmrs = $new_printer_preset->config->get('nozzle_diameter');
-        my $print_presets = wxTheApp->{preset_bundle}->print;
-        if ($print_presets->current_is_dirty &&
-            ! $print_presets->get_edited_preset->is_compatible_with_printer($new_printer_name)) {
-            if ($self->may_discard_current_dirty_preset($print_presets, $new_printer_name)) {
-                $canceled = 1;
-            } else {
-                $print_presets->discard_current_changes;
-            }
+        my $new_printer_preset = $presets->find_preset($new_printer_name, 1);
+        my $print_presets           = wxTheApp->{preset_bundle}->print;
+        my $print_preset_dirty      = $print_presets->current_is_dirty;
+        my $print_preset_compatible = $print_presets->get_edited_preset->is_compatible_with_printer($new_printer_name);
+        $canceled = $print_preset_dirty && ! $print_preset_compatible &&
+            ! $self->may_discard_current_dirty_preset($print_presets, $new_printer_name);
+        my $filament_presets        = wxTheApp->{preset_bundle}->filament;
+        my $filament_preset_dirty   = $filament_presets->current_is_dirty;
+        my $filament_preset_compatible = $filament_presets->get_edited_preset->is_compatible_with_printer($new_printer_name);
+        if (! $canceled) {
+            $canceled = $filament_preset_dirty && ! $filament_preset_compatible &&
+                ! $self->may_discard_current_dirty_preset($filament_presets, $new_printer_name);
         }
-        my $filament_presets = wxTheApp->{preset_bundle}->filament;
-        # if ((@$new_nozzle_dmrs <= 1) && 
-        if (! $canceled && $filament_presets->current_is_dirty &&
-            ! $filament_presets->get_edited_preset->is_compatible_with_printer($new_printer_name)) {
-            if ($self->may_discard_current_dirty_preset($filament_presets, $new_printer_name)) {
-                $canceled = 1;
-            } else {
-                $filament_presets->discard_current_changes;
+        if (! $canceled) {
+            if (! $print_preset_compatible) {
+                # The preset will be switched to a different, compatible preset, or the '-- default --'.
+                push @reload_dependent_tabs, 'print';
+                $print_presets->discard_current_changes if $print_preset_dirty;                
+            }
+            if (! $filament_preset_compatible) {
+                # The preset will be switched to a different, compatible preset, or the '-- default --'.
+                push @reload_dependent_tabs, 'filament';
+                $filament_presets->discard_current_changes if $filament_preset_dirty;
             }
         }
     }
     if ($canceled) {
-        $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
-        # Trigger the on_presets_changed event so that we also restore the previous value in the plater selector.
+        $self->update_tab_ui;
+        # Trigger the on_presets_changed event so that we also restore the previous value in the plater selector, 
+        # if this action was initiated from the platter.
         $self->_on_presets_changed;
     } else {
+        $presets->discard_current_changes if $current_dirty;
         if (defined $name) {
-            $self->{presets}->select_preset_by_name($name);
+            $presets->select_preset_by_name($name);
         } else {
-            $self->{presets}->select_preset(0);
+            $presets->select_preset(0);
         }
         # Mark the print & filament enabled if they are compatible with the currently selected preset.
+        # The following method should not discard changes of current print or filament presets on change of a printer profile,
+        # if they are compatible with the current printer.
         wxTheApp->{preset_bundle}->update_compatible_with_printer(1)
             if $current_dirty || $printer_tab;
         # Initialize the UI from the current preset.
-        $self->load_current_preset;
+        $self->load_current_preset(\@reload_dependent_tabs);
     }
 }
 
 # Initialize the UI from the current preset.
 sub load_current_preset {
-    my ($self) = @_;
+    my ($self, $dependent_tab_names) = @_;
     my $preset = $self->{presets}->get_current_preset;
     eval {
         local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
@@ -337,8 +349,8 @@ sub load_current_preset {
     # preset dirty again
     # (not sure this is true anymore now that update_dirty is idempotent)
     wxTheApp->CallAfter(sub {
-        $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
-        $self->_on_presets_changed;
+        $self->update_tab_ui;
+        $self->_on_presets_changed($dependent_tab_names);
     });
 }
 
@@ -430,8 +442,13 @@ sub _load_key_value {
     $self->{config}->set($opt_key, $value);
     # Mark the print & filament enabled if they are compatible with the currently selected preset.
     if ($opt_key eq 'compatible_printers') {
+        my $was_compatible = $self->{presets}->get_edited_preset->compatible;
         wxTheApp->{preset_bundle}->update_compatible_with_printer(0);
-        $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
+        if ($was_compatible != $self->{presets}->get_edited_preset->compatible) {
+            # This is certainly not a tab page.
+            # Trigger the on_presets_changed event so that we also update the "compatible" flag at the plater selector.
+            $self->_on_presets_changed;
+        }
     } else {
         $self->{presets}->update_dirty_ui($self->{presets_choice});
     }
@@ -538,9 +555,13 @@ sub update_ui_from_settings {
     } else {
         if ($self->{show_incompatible_presets}) {
             $self->{show_incompatible_presets} = 0;
-            $self->{presets}->update_tab_ui($self->{presets_choice}, 0);
+            $self->update_tab_ui;
         }
     }
+}
+sub update_tab_ui {
+    my ($self) = @_;
+    $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets})
 }
 
 package Slic3r::GUI::Tab::Print;
