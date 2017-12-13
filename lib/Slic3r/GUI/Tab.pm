@@ -1243,6 +1243,12 @@ sub _update {
         for qw(min_fan_speed disable_fan_first_layers);
 }
 
+sub OnActivate {
+    my ($self) = @_;
+    $self->{volumetric_speed_description_line}->SetText(
+        Slic3r::GUI::PresetHints::maximum_volumetric_flow_description(wxTheApp->{preset_bundle}));
+}
+
 package Slic3r::GUI::Tab::Printer;
 use base 'Slic3r::GUI::Tab';
 use Wx qw(wxTheApp :sizer :button :bitmap :misc :id :icon :dialog);
