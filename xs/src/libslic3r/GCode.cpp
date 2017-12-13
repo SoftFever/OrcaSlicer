@@ -501,23 +501,21 @@ void GCode::_do_export(Print &print, FILE *file)
             fprintf(file, "\n");
     }
     // Write some terse information on the slicing parameters.
-    {
-        const PrintObject *first_object = print.objects.front();
-        const double       layer_height = first_object->config.layer_height.value;
-        const double       first_layer_height = first_object->config.first_layer_height.get_abs_value(layer_height);
-        for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
-            auto region = print.regions[region_id];
-            fprintf(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(frExternalPerimeter, layer_height, false, false, -1., *first_object).width);
-            fprintf(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(frPerimeter,         layer_height, false, false, -1., *first_object).width);
-            fprintf(file, "; infill extrusion width = %.2fmm\n",              region->flow(frInfill,            layer_height, false, false, -1., *first_object).width);
-            fprintf(file, "; solid infill extrusion width = %.2fmm\n",        region->flow(frSolidInfill,       layer_height, false, false, -1., *first_object).width);
-            fprintf(file, "; top infill extrusion width = %.2fmm\n",          region->flow(frTopSolidInfill,    layer_height, false, false, -1., *first_object).width);
-            if (print.has_support_material())
-                fprintf(file, "; support material extrusion width = %.2fmm\n", support_material_flow(first_object).width);
-            if (print.config.first_layer_extrusion_width.value > 0)
-                fprintf(file, "; first layer extrusion width = %.2fmm\n",   region->flow(frPerimeter, first_layer_height, false, true, -1., *first_object).width);
-            fprintf(file, "\n");
-        }
+    const PrintObject *first_object         = print.objects.front();
+    const double       layer_height         = first_object->config.layer_height.value;
+    const double       first_layer_height   = first_object->config.first_layer_height.get_abs_value(layer_height);
+    for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
+        auto region = print.regions[region_id];
+        fprintf(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(frExternalPerimeter, layer_height, false, false, -1., *first_object).width);
+        fprintf(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(frPerimeter,         layer_height, false, false, -1., *first_object).width);
+        fprintf(file, "; infill extrusion width = %.2fmm\n",              region->flow(frInfill,            layer_height, false, false, -1., *first_object).width);
+        fprintf(file, "; solid infill extrusion width = %.2fmm\n",        region->flow(frSolidInfill,       layer_height, false, false, -1., *first_object).width);
+        fprintf(file, "; top infill extrusion width = %.2fmm\n",          region->flow(frTopSolidInfill,    layer_height, false, false, -1., *first_object).width);
+        if (print.has_support_material())
+            fprintf(file, "; support material extrusion width = %.2fmm\n", support_material_flow(first_object).width);
+        if (print.config.first_layer_extrusion_width.value > 0)
+            fprintf(file, "; first layer extrusion width = %.2fmm\n",   region->flow(frPerimeter, first_layer_height, false, true, -1., *first_object).width);
+        fprintf(file, "\n");
     }
     
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
@@ -718,6 +716,7 @@ void GCode::_do_export(Print &print, FILE *file)
         // Prusa Multi-Material wipe tower.
         if (has_wipe_tower && ! layers_to_print.empty()) {
             m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
+            write(file, m_writer.travel_to_z(first_layer_height + m_config.z_offset.value, "Move to the first layer height"));
 		    write(file, m_wipe_tower->prime(*this));
             // Verify, whether the print overaps the priming extrusions.
             BoundingBoxf bbox_print(get_print_extrusions_extents(print));
