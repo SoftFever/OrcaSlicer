@@ -20,89 +20,114 @@
 #include <wx/bmpbuttn.h>
 #include <wx/treectrl.h>
 #include <wx/imaglist.h>
+#include <wx/statbox.h>
 
 #include <map>
 #include <vector>
+#include <memory>
+
+#include "OptionsGroup.hpp"
+
+//!enum { ID_TAB_TREE = wxID_HIGHEST + 1 };
 
 namespace Slic3r {
 namespace GUI {
 
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
+using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
 class CPage : public wxScrolledWindow
 {
-	const char*	_title;
-	wxWindow*	_parent;
-	wxBoxSizer*	_vsizer;
-	size_t		_iconID;
-//	const OptionsGroup opt;  // $self->{optgroups} = [];
+	wxWindow*		parent_;
+	wxString		title_;
+	size_t			iconID_;
+	wxBoxSizer*		vsizer_;
 public:
-	CPage(){};
-	CPage(wxWindow* parent, const char* title, int iconID) :
-			_parent(parent), 
-			_title(title), 
-			_iconID(iconID)
+	CPage(wxWindow* parent, const wxString title, const int iconID) :
+			parent_(parent), 
+			title_(title), 
+			iconID_(iconID)
 	{
-		Create(_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-		this->SetScrollbars(1, 1, 1, 1);
-		_vsizer = new wxBoxSizer(wxVERTICAL);
-		this->SetSizer(_vsizer);
+		Create(parent_, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);		
+		vsizer_ = new wxBoxSizer(wxVERTICAL);
+		SetSizer(vsizer_);
 	}
-	~CPage(){};
-	wxBoxSizer * vsizer(){ return this->_vsizer; }	
-	wxString title(){ return wxString(_title); }
+	~CPage(){}
+
+public:
+	std::vector <ConfigOptionsGroupShp> optgroups;  // $self->{optgroups} = [];
+	DynamicPrintConfig* config_;
+
+	wxBoxSizer*	vsizer() const { return vsizer_; }	
+	wxWindow*	parent() const { return parent_; }
+	wxString	title()	 const { return title_; }
+	size_t		iconID() const { return iconID_; }
+	void		set_config(DynamicPrintConfig* config_in) { config_ = config_in; }
+
+	ConfigOptionsGroupShp new_optgroup(std::string title, size_t label_width = 0);
 };
 
 // Slic3r::GUI::Tab;
+
+using CPageShp = std::shared_ptr<CPage>;
 class CTab: public wxPanel
 {
+	wxNotebook*			parent_;
 protected:
-	const char* _title;
-	wxBitmapComboBox*	presets_choice;
-	wxBitmap*	bmp_show_incompatible_presets;
-	wxBitmap*	bmp_hide_incompatible_presets;
-	wxBitmapButton*		btn_hide_incompatible_presets;
-	wxBoxSizer*	hsizer;
-	wxBoxSizer*	left_sizer;
-	wxTreeCtrl*	treectrl;
-	wxImageList*	icons;
-	int			icon_count;
-//	std::map<size_t, wxImageList*> icon_index;
-	std::vector<CPage>	pages;
-	bool	disable_tree_sel_changed_event;
-public:
-	CTab(){};
-	CTab(wxNotebook* parent, const char *title/*, someParams*/){}
-	~CTab(){};
-	
-	void create_preset_tab();
-	void OnTreeSelChange(wxCommandEvent& event);
-	void OnKeyDown(wxKeyEvent& event);
-	void OnComboBox(wxCommandEvent& event){ /*$self->select_preset(presets_choice->GetStringSelection)*/ };
-	void save_preset(wxCommandEvent &event);
-	void delete_preset(wxCommandEvent &event);
-	void _toggle_show_hide_incompatible(wxCommandEvent &event);
+	const char*			title_;
+	wxBitmapComboBox*	presets_choice_;
+	wxBitmapButton*		btn_save_preset_;
+	wxBitmapButton*		btn_delete_preset_;
+	wxBitmap*			bmp_show_incompatible_presets_;
+	wxBitmap*			bmp_hide_incompatible_presets_;
+	wxBitmapButton*		btn_hide_incompatible_presets_;
+	wxBoxSizer*			hsizer_;
+	wxBoxSizer*			left_sizer_;
+	wxTreeCtrl*			treectrl_;
+	wxImageList*		icons_;
+	int					icon_count;
+	std::map<wxString, size_t>				icon_index_;		// Map from an icon file name to its index in $self->{icons}.
+	std::vector<CPageShp>		pages_;	// $self->{pages} = [];
+	bool				disable_tree_sel_changed_event_;
 
-//	virtual void build(/*%params*/);
-//	virtual void rebuild_page_tree();
+public:
+	DynamicPrintConfig config_;
+
+public:
+	CTab() {}
+	CTab(wxNotebook* parent, const char *title) : parent_(parent), title_(title) { 
+		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+	}
+	~CTab(){}
+
+	wxWindow*	parent() const { return parent_; }
+	
+	void		create_preset_tab();
+	void		rebuild_page_tree();
+	void		select_preset(wxString preset_name){};
+
+	void		OnTreeSelChange(wxTreeEvent& event);
+	void		OnKeyDown(wxKeyEvent& event);
+	void		OnComboBox(wxCommandEvent& event) { select_preset(presets_choice_->GetStringSelection()); 	}
+	void		save_preset(wxCommandEvent &event);
+	void		delete_preset(wxCommandEvent &event);
+	void		_toggle_show_hide_incompatible(wxCommandEvent &event);
+
+	std::shared_ptr<CPage> add_options_page(wxString title, wxString icon);
+
+	virtual void build() = 0;
 //	virtual void _update();
-private:
-//	DECLARE_EVENT_TABLE()
 };
 
 //Slic3r::GUI::Tab::Print;
 class CTabPrint : public CTab
 {
 public:
-	CTabPrint() {};
-	CTabPrint(wxNotebook* parent, const char *title/*, someParams*/)
-	{
-		_title = title;
-		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
-		create_preset_tab();
-	}
-	~CTabPrint(){};
-//	void  build(/*%params*/){};
+	CTabPrint() {}
+	CTabPrint(wxNotebook* parent, const char *title/*, someParams*/) : CTab(parent, title) {}
+	~CTabPrint(){}
+
+	void  build() override;
 };
 
 } // GUI

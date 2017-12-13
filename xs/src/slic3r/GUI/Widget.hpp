@@ -1,6 +1,10 @@
 #ifndef WIDGET_HPP
 #define WIDGET_HPP
-#include "wxinit.h"
+#include <wx/wxprec.h>
+#ifndef WX_PRECOM
+#include <wx/wx.h>
+#endif
+
 class Widget {
 protected:
     wxSizer* _sizer;

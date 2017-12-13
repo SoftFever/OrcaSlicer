@@ -1,124 +1,125 @@
 #include "OptionsGroup.hpp"
-#include "OptionsGroup/Field.hpp"
-#include "Config.hpp"
+#include "ConfigExceptions.hpp"
 
-// Translate the ifdef 
-#ifdef __WXOSX__
-    #define wxOSX true
-#else
-    #define wxOSX false
-#endif
-
-#define BORDER(a, b) ((wxOSX ? a : b))
+#include <utility>
+#include <wx/tooltip.h>
 
 namespace Slic3r { namespace GUI {
 
+const t_field& OptionsGroup::build_field(const Option& opt) {
+    return build_field(opt.opt_id, opt.opt);
+}
+const t_field& OptionsGroup::build_field(const t_config_option_key& id) {
+	const ConfigOptionDef& opt = options.at(id);
+    return build_field(id, opt);
+}
 
-void OptionsGroup::BUILD() {
-    if (staticbox) {
-        wxStaticBox* box = new wxStaticBox(_parent, -1, title);
-        _sizer = new wxStaticBoxSizer(box, wxVERTICAL);
-    } else {
-        _sizer = new wxBoxSizer(wxVERTICAL);
+const t_field& OptionsGroup::build_field(const t_config_option_key& id, const ConfigOptionDef& opt) {
+    // Check the gui_type field first, fall through
+    // is the normal type.
+    if (opt.gui_type.compare("select") == 0) {
+    } else if (opt.gui_type.compare("select_open") == 0) {
+    } else if (opt.gui_type.compare("color") == 0) {
+    } else if (opt.gui_type.compare("f_enum_open") == 0 || 
+                opt.gui_type.compare("i_enum_open") == 0 ||
+                opt.gui_type.compare("i_enum_closed") == 0) {
+    } else if (opt.gui_type.compare("slider") == 0) {
+    } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
+    } else { 
+        switch (opt.type) {
+            case coFloatOrPercent:
+            case coPercent:
+            case coFloat:
+            case coString:
+//!                    fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(_parent, opt,id)));
+                break;
+            case coNone:   break;
+            default:
+				break;//! throw ConfigGUITypeError(""); break;
+        }
     }
-    size_t num_columns = 1;
-    if (label_width != 0) ++num_columns;
-    if (extra_column != 0) ++num_columns;
-
-    _grid_sizer = new wxFlexGridSizer(0, num_columns, 0, 0);
-    _grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-    _grid_sizer->AddGrowableCol(label_width > 0);
-    _sizer->Add(_grid_sizer, 0, wxEXPAND | wxALL, BORDER(0,5));
+    // Grab a reference to fields for convenience
+    const t_field& field = fields[id];
+//!        field->on_change = [this](std::string id, boost::any val) {   };
+    field->parent = parent();
+    // assign function objects for callbacks, etc.
+    return field;
 }
 
 void OptionsGroup::append_line(const Line& line) {
-    if (line.has_sizer() || (line.has_widget() && line.full_width)) {
-        wxASSERT(line.sizer() != nullptr);
-        _sizer->Add( (line.has_sizer() ? line.sizer() : line.widget().sizer()), 0, wxEXPAND | wxALL, BORDER(0, 15));
-        return;
+    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)){
+        if (line.sizer != nullptr) {
+            sizer->Add(line.sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+            return;
+        }
+        if (line.widget != nullptr) {
+            sizer->Add(line.widget(_parent), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+            return;
+        }
     }
-    wxSizer* grid_sizer = _grid_sizer;
-    // If we have an extra column, build it.
-    // If there's a label, build it.
+
+    auto grid_sizer = _grid_sizer;
+
+    // Build a label if we have it
     if (label_width != 0) {
-        wxStaticText* label = new wxStaticText(_parent, -1, (line.label) + ":", wxDefaultPosition);
-        label->Wrap(label_width);
-        if (wxIsEmpty(line.tooltip())) { label->SetToolTip(line.tooltip()); }
-        grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
+        auto label = new wxStaticText(parent(), wxID_ANY, line.label , wxDefaultPosition, wxSize(label_width, -1));
+        label->SetFont(label_font);
+        label->Wrap(label_width); // avoid a Linux/GTK bug
+        grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL,0);
+        if (line.label_tooltip.compare("") != 0)
+            label->SetToolTip(line.label_tooltip);
     }
-    // If we have a widget, add it to the sizer
-    if (line.has_widget()) {
-        grid_sizer->Add(line.widget().sizer(), 0, wxEXPAND | wxALL, BORDER(0,15));
+
+    // If there's a widget, build it and add the result to the sizer.
+    if (line.widget != nullptr) {
+        auto wgt = line.widget(parent());
+        grid_sizer->Add(wgt, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
         return;
     }
-    // If we have a single option with no sidetext just add it directly to the grid sizer
-    if (line.options().size() == 1) {
-        const ConfigOptionDef& opt = line.options()[0];
-        if (line.extra_widgets().size() && !wxIsEmpty(opt.sidetext) && line.extra_widgets().size() == 0) {
-            Field* field = _build_field(opt);
-            if (field != nullptr) {
-                if (field->has_sizer()) {
-                    grid_sizer->Add(field->sizer(), 0, (opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
-                } else if (field->has_window()) {
-                    grid_sizer->Add(field->window(), 0, (opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
-                }
-            }
-        }
+
+    
+    // if we have a single option with no sidetext just add it directly to the grid sizer
+    auto option_set = line.get_options();
+    if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
+        option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
+        const auto& option = option_set.front();
+        const auto& field = build_field(option);
+        std::cerr << "single option, no sidetext.\n";
+        std::cerr << "field parent is not null?: " << (field->parent != nullptr) << "\n";
+
+        if (is_window_field(field)) 
+            grid_sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+        if (is_sizer_field(field)) 
+            grid_sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+        return;
     }
-    // Otherwise, there's more than one option or a single option with sidetext -- make
-    // a horizontal sizer to arrange things.
-    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // if we're here, we have more than one option or a single option with sidetext
+    // so we need a horizontal sizer to arrange these things
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
     grid_sizer->Add(sizer, 0, 0, 0);
-    for (auto& option : line.options()) {
-        // add label if any
-        if (!wxIsEmpty(option.label)) {
-            wxStaticText* field_label = new wxStaticText(_parent, -1, __(option.label) + ":", wxDefaultPosition, wxDefaultSize);
-            sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL,0);
-        }
-
-        // add field
-        Field* field = _build_field(option);
-        if (field != nullptr) {
-            if (field->has_sizer()) {
-                sizer->Add(field->sizer(), 0, (option.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
-            } else if (field->has_window()) {
-                sizer->Add(field->window(), 0, (option.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
-            }
-        }
-
-        if (!wxIsEmpty(option.sidetext)) {
-        }
-		// !!! side_widget !!! find out the purpose
-//        if (option.side_widget.valid()) {
-//           sizer->Add(option.side_widget.sizer(), 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);
-//       }
-        if (&option != &line.options().back()) {
-            sizer->AddSpacer(4);
-        }
-
-        // add side text if any
-        // add side widget if any
+    for (auto opt : option_set) {
+            
     }
-    // Append extra sizers
-    for (auto& widget : line.extra_widgets()) {
-        _sizer->Add(widget.sizer(), 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
-    }
+
+        
+}
+Line OptionsGroup::create_single_option_line(const Option& option) const {
+    Line retval {option.opt.label, option.opt.tooltip};
+    Option tmp(option);
+    tmp.opt.label = std::string("");
+    retval.append_option(tmp);
+    return retval;
 }
 
-Field* OptionsGroup::_build_field(const ConfigOptionDef& opt) {
-    Field* built_field = nullptr;
-    switch (opt.type) {
-        case coString:
-            {
-            printf("Making new textctrl\n");
-            TextCtrl* temp = new TextCtrl(_parent, opt);
-            printf("recasting textctrl\n");
-            built_field = dynamic_cast<Field*>(temp);
-            }
-            break;
-        default:
-            break;
-    }
-    return built_field;
+//!    void OptionsGroup::_on_change(t_config_option_key id, config_value value) {
+//!        if (on_change != nullptr)
+//!            on_change(id, value);
+//!   }
+
+void OptionsGroup::_on_kill_focus (t_config_option_key id) { 
+    // do nothing.
 }
-} }
+
+
+}}

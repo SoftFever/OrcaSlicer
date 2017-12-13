@@ -9,6 +9,15 @@
 #import <IOKit/pwr_mgt/IOPMLib.h>
 #elif _WIN32
 #include <Windows.h>
+// Undefine min/max macros incompatible with the standard library
+// For example, std::numeric_limits<std::streamsize>::max()
+// produces some weird errors
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
 #include "boost/nowide/convert.hpp"
 #pragma comment(lib, "user32.lib")
 #endif
@@ -20,6 +29,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/window.h>
 
 #include "Tab.h"
 
@@ -181,8 +191,25 @@ void add_debug_menu(wxMenuBar *menu)
 //
 void create_preset_tab(const char *name)
 {
-	CTabPrint* panel = new CTabPrint(g_wxTabPanel, name/*, someParams*/);
+	CTabPrint* panel = new CTabPrint(g_wxTabPanel, name);
+	panel->create_preset_tab();
 	g_wxTabPanel->AddPage(panel, name);
+
+	//!------------Exp
+	// parse all command line options into a DynamicConfig
+/*	
+	DynamicPrintConfig print_config;
+//!	const DynamicPrintConfig &print_config    = preset_bundle.prints   .get_edited_preset().config;
+
+	auto vsizer = new wxBoxSizer(wxVERTICAL);
+	this->SetSizer(vsizer);
+	auto optgroup = GUI::ConfigOptionsGroup(this, "Custom GCode", &print_config);
+	optgroup.on_change = ON_CHANGE(= , {});
+	vsizer->Add(optgroup.sizer, 0, wxEXPAND | wxALL, 10);
+
+	optgroup.append_single_option_line(GUI::Option(*(config.def->get("before_layer_gcode")), "before_layer_gcode"));
+*/	//!------------Exp
+
 }
 
 } }
