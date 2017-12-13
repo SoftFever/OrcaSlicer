@@ -1,6 +1,6 @@
-How to build Slic3r on Mac OS X 10.7 Lion 64bit
+How to build Slic3r on Mac OS X 10.9 Maveric
 ---------------------------------------------
-Vojtech Bubnik, 2016-04-26
+Vojtech Bubnik, 2017-12-12
 
 
 1) Install Mac OS X 10.7 Lion 64 bit with X Code
@@ -55,6 +55,9 @@ brew install boost --universal
 Install dylibbundler tool. The dylibbundler tool serves to collect dependent dynamic libraries and fix their linkage. Execute
 brew install dylibbundler
 
+Install cmake
+brew install cmake
+
 3) Install perl
 ---------------
 
@@ -62,18 +65,31 @@ We don't want to distribute perl pre-installed on the Mac OS box. First, the sys
 http://perlbrew.pl/
 
 First install perlbrew
-\curl -L http://install.perlbrew.pl | bash
+curl -L http://install.perlbrew.pl | bash
 Then compile the newest perl with the rellocatable @INC path and with multithreading enabled, execute following line:
-perlbrew install --threads -Duserelocatableinc --switch perl-5.22.0
+perlbrew install --threads -Duserelocatableinc --switch perl-5.26.1
 The --switch parameter switches the active perl to the currently compiled one.
 Available perl versions could be listed by calling
 perlbrew available
+Switch to the newly compiled perl
+perl5/perlbrew/bin/perlbrew switch perl-5.26.1
+Install cpanm
+perlbrew install-cpanm
 
 Initialize CPAN, install PAR and PAR::Packer modules
 execute cpan command, from the cpan prompt, run
 install App::cpanminus
+install ExtUtils::CppGuess
+install ExtUtils::Typemaps
+install ExtUtils::Typemaps::Basic
 install PAR
 install PAR::Packer
+install Module::Build
+install Module::Pluggable
+install Module::Runtime
+install Moo
+install Test::Pod
+install Test::Pod::Coverage
 quit
 
 4) Download and install Slic3r
@@ -91,6 +107,21 @@ to have the model sliced.
 
 5) Download and compile the GUI libraries needed to execute Slic3r in GUI mode
 ------------------------------------------------------------------------------
+
+Building the Perl Alien-Wx containing a wxWidgets library:
+We use wxWidgets-3.0.3.
+patch wxWidgets-3.0.3//src/osx/cocoa/textctrl.mm , see https://github.com/prusa3d/Slic3r/issues/600
+perl -I. Build.PL --wxWidgets-extraflags="--with-osx_cocoa --with-macosx-version-min=10.9 --with-macosx-sdk=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk --with-libjpeg=builtin --with-libpng=builtin --with-regex=builtin --with-libtiff=builtin --with-zlib=builtin --with-expat=builtin --with-opengl"
+perl -I. Build
+perl -I. Build test
+perl -I. Build 
+
+Building the Perl Wx package:
+cpan install Wx
+
+Building the Perl OpenGL package:
+OpenGL needs to be patched to support MSAA, see the Windows patch.
+
 
 For the current Slic3r 1.2.30 code base, set the environment variable SLIC3R_STATIC to link a static version of the boost library:
 export SLIC3R_STATIC=1
