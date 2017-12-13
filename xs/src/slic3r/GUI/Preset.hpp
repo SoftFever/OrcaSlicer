@@ -159,7 +159,7 @@ public:
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
     Preset&         preset(size_t idx)          { return (int(idx) == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
-    void            discard_current_changes()   { m_edited_preset = m_presets[m_idx_selected]; }
+    void            discard_current_changes()   { m_presets[m_idx_selected].reset_dirty(); m_edited_preset = m_presets[m_idx_selected]; }
     
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
     // If a preset is not found by its name, null is returned.
@@ -185,9 +185,9 @@ public:
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
-    bool                        current_is_dirty() { return ! this->current_dirty_options().empty(); }
+    bool                        current_is_dirty() const { return ! this->current_dirty_options().empty(); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_dirty_options() { return this->get_selected_preset().config.diff(this->get_edited_preset().config); }
+    std::vector<std::string>    current_dirty_options() const;
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.

@@ -442,16 +442,9 @@ sub _load_key_value {
     $self->{config}->set($opt_key, $value);
     # Mark the print & filament enabled if they are compatible with the currently selected preset.
     if ($opt_key eq 'compatible_printers') {
-        my $was_compatible = $self->{presets}->get_edited_preset->compatible;
         wxTheApp->{preset_bundle}->update_compatible_with_printer(0);
-        if ($was_compatible != $self->{presets}->get_edited_preset->compatible) {
-            # This is certainly not a tab page.
-            # Trigger the on_presets_changed event so that we also update the "compatible" flag at the plater selector.
-            $self->_on_presets_changed;
-        }
-    } else {
-        $self->{presets}->update_dirty_ui($self->{presets_choice});
     }
+    $self->{presets}->update_dirty_ui($self->{presets_choice});
     $self->_on_presets_changed;
     $self->_update;
 }

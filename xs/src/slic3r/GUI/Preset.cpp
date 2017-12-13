@@ -484,6 +484,18 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
     return was_dirty != is_dirty;
 }
 
+std::vector<std::string> PresetCollection::current_dirty_options() const
+{ 
+    std::vector<std::string> changed = this->get_selected_preset().config.diff(this->get_edited_preset().config);
+    // The "compatible_printers" option key is handled differently from the others:
+    // It is not mandatory. If the key is missing, it means it is compatible with any printer.
+    // If the key exists and it is empty, it means it is compatible with no printer.
+    const char compatible_printers[] = "compatible_printers";
+    if (this->get_selected_preset().config.has(compatible_printers) != this->get_edited_preset().config.has(compatible_printers))
+        changed.emplace_back(compatible_printers);
+    return changed;
+}
+
 // Select a new preset. This resets all the edits done to the currently selected preset.
 // If the preset with index idx does not exist, a first visible preset is selected.
 Preset& PresetCollection::select_preset(size_t idx)
