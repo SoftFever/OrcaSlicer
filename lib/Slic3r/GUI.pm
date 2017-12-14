@@ -116,9 +116,6 @@ sub OnInit {
         no_plater       => $no_plater,
     );
     $self->SetTopWindow($frame);
-    if ($run_wizard) {
-        $self->{mainframe}->config_wizard;
-    }
 
     EVT_IDLE($frame, sub {
         while (my $cb = shift @cb) {
@@ -126,6 +123,14 @@ sub OnInit {
         }
         $self->{app_config}->save if $self->{app_config}->dirty;
     });
+
+    if ($run_wizard) {
+        # On OSX the UI was not initialized correctly if the wizard was called
+        # before the UI was up and running.
+        $self->CallAfter(sub {
+            $self->{mainframe}->config_wizard;
+        });
+    }
     
     return 1;
 }
