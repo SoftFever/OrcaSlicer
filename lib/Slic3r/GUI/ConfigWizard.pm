@@ -274,8 +274,27 @@ sub new {
     my $self = $class->SUPER::new($parent, "Welcome to the Slic3r Configuration $wizard", 'Welcome');
     $self->{full_wizard_workflow} = 1;
 
+    # Test for the existence of the old config path.
+    my $message_has_legacy;
+    {
+        my $datadir = Slic3r::data_dir;
+        if ($datadir =~ /Slic3rPE/) {
+            # Check for existence of the legacy Slic3r directory.
+            my $datadir_legacy = substr $datadir, 0, -2;
+            my $dir_enc = Slic3r::encode_path($datadir_legacy);
+            if (-e $dir_enc && -d $dir_enc && 
+                -e ($dir_enc . '/print')    && -d ($dir_enc . '/print')    &&
+                -e ($dir_enc . '/filament') && -d ($dir_enc . '/filament') &&
+                -e ($dir_enc . '/printer')  && -d ($dir_enc . '/printer')  &&
+                -e ($dir_enc . '/slic3r.ini')) {
+                $message_has_legacy = "Starting with Slic3r 1.38.4, the user profile directory has been renamed to $datadir. You may consider closing Slic3r and renaming $datadir_legacy to $datadir.";
+            }
+        }
+    }
+
     $self->append_text('Hello, welcome to Slic3r Prusa Edition! This '.lc($wizard).' helps you with the initial configuration; just a few settings and you will be ready to print.');
     $self->append_text('Please select your printer vendor and printer type. If your printer is not listed, you may try your luck and select a similar one. If you select "Other", this ' . lc($wizard) . ' will let you set the basic 3D printer parameters.');
+    $self->append_text($message_has_legacy) if defined $message_has_legacy;
         # To import an existing configuration instead, cancel this '.lc($wizard).' and use the Open Config menu item found in the File menu.');
     $self->append_text('If you received a configuration file or a config bundle from your 3D printer vendor, cancel this '.lc($wizard).' and use the "File->Load Config" or "File->Load Config Bundle" menu.');
 

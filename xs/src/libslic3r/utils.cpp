@@ -193,6 +193,7 @@ confess_at(const char *file, int line, const char *func,
 
 namespace Slic3r {
 
+// Encode an UTF-8 string to the local code page.
 std::string encode_path(const char *src)
 {    
 #ifdef WIN32
@@ -210,6 +211,7 @@ std::string encode_path(const char *src)
 #endif /* WIN32 */
 }
 
+// Encode an 8-bit string from a local code page to UTF-8.
 std::string decode_path(const char *src)
 {  
 #ifdef WIN32
