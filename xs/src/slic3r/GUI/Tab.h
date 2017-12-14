@@ -91,7 +91,8 @@ protected:
 	bool				disable_tree_sel_changed_event_;
 
 public:
-	DynamicPrintConfig config_;
+	DynamicPrintConfig config_;		//! tmp_val
+	const ConfigDef* config_def;	//! tmp_val
 
 public:
 	CTab() {}
@@ -117,6 +118,10 @@ public:
 
 	virtual void build() = 0;
 //	virtual void _update();
+
+	Option get_option_(const std::string title){
+		return Option(*config_def->get(title), title);
+	}
 };
 
 //Slic3r::GUI::Tab::Print;

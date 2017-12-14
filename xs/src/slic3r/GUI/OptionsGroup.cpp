@@ -31,7 +31,8 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
             case coPercent:
             case coFloat:
             case coString:
-//!                    fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(_parent, opt,id)));
+//!				fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(_parent, opt, id)));
+//				fields.emplace(id, std::make_unique<TextCtrl>(_parent, opt, id));
                 break;
             case coNone:   break;
             default:
@@ -62,7 +63,7 @@ void OptionsGroup::append_line(const Line& line) {
 
     // Build a label if we have it
     if (label_width != 0) {
-        auto label = new wxStaticText(parent(), wxID_ANY, line.label , wxDefaultPosition, wxSize(label_width, -1));
+		auto label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":" ), wxDefaultPosition, wxSize(label_width, -1));
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
         grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL,0);
@@ -83,14 +84,14 @@ void OptionsGroup::append_line(const Line& line) {
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
         const auto& option = option_set.front();
-        const auto& field = build_field(option);
-        std::cerr << "single option, no sidetext.\n";
-        std::cerr << "field parent is not null?: " << (field->parent != nullptr) << "\n";
-
-        if (is_window_field(field)) 
-            grid_sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
-        if (is_sizer_field(field)) 
-            grid_sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+//         const auto& field = build_field(option);
+//         std::cerr << "single option, no sidetext.\n";
+//         std::cerr << "field parent is not null?: " << (field->parent != nullptr) << "\n";
+// 
+//         if (is_window_field(field)) 
+//             grid_sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+//         if (is_sizer_field(field)) 
+//             grid_sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
         return;
     }
 
@@ -98,12 +99,44 @@ void OptionsGroup::append_line(const Line& line) {
     // so we need a horizontal sizer to arrange these things
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     grid_sizer->Add(sizer, 0, 0, 0);
-    for (auto opt : option_set) {
-            
-    }
+	for (auto opt : option_set) {
+		ConfigOptionDef option = opt.opt;
+		// add label if any
+		if (option.label != "") {
+			auto field_label = new wxStaticText(parent(), wxID_ANY, wxString(option.label) + ":", wxDefaultPosition, wxDefaultSize);
+			field_label->SetFont(sidetext_font);
+			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
+		}
 
-        
+		// add field
+// 		const Option& opt_ref = opt;
+// 		auto field = build_field(opt_ref).get();		;
+// 		sizer->Add(field, 0, wxALIGN_CENTER_VERTICAL, 0);
+		
+		// add sidetext if any
+		if (option.sidetext != "") {
+			auto sidetext = new wxStaticText(parent(), wxID_ANY, option.sidetext, wxDefaultPosition, wxDefaultSize);
+			sidetext->SetFont(sidetext_font);
+			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
+		}
+
+		// add side widget if any
+		if (opt.side_widget != nullptr) {
+			sizer->Add(opt.side_widget.target<wxWindow>(), 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
+		}
+
+		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
+		{
+			sizer->AddSpacer(4);
+	    }
+
+		 // add extra sizers if any
+		for (auto extra_widget : line.get_extra_widgets()) {
+			sizer->Add(extra_widget.target<wxWindow>(), 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);		//! requires verification
+		}
+	}
 }
+
 Line OptionsGroup::create_single_option_line(const Option& option) const {
     Line retval {option.opt.label, option.opt.tooltip};
     Option tmp(option);

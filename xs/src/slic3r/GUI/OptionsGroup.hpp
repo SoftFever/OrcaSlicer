@@ -33,7 +33,7 @@ class StaticText;
 
 /// Wraps a ConfigOptionDef and adds function object for creating a side_widget.
 struct Option {
-    ConfigOptionDef opt {ConfigOptionDef()}; 
+	ConfigOptionDef opt { ConfigOptionDef() };
 	t_config_option_key opt_id;//! {""};
     widget_t side_widget {nullptr};
     bool readonly {false};

@@ -179,6 +179,9 @@ CPageShp CTab::add_options_page(wxString title, wxString icon)
 	page->Hide();
 	hsizer_->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
 	pages_.push_back(page);
+
+	page->set_config(&config_);
+
 	return page;
 }
 
@@ -189,262 +192,208 @@ void CTabPrint::build()
 
 	PresetCollection *prints = new PresetCollection(Preset::TYPE_PRINT, Preset::print_options());
 	config_ = prints->get_edited_preset().config;
+	config_def = config_.def();
 
 	auto page = add_options_page("Layers and perimeters", "layers.png");
-	page->set_config(&config_);
-// 	{
+
 		auto optgroup = page->new_optgroup("Layer height");
-// 		optgroup->append_single_option_line("layer_height");
-// 		optgroup->append_single_option_line("first_layer_height");
-// 	}
-// 	{
+		optgroup->append_single_option_line(get_option_("layer_height"));
+		optgroup->append_single_option_line(get_option_("first_layer_height"));
+
 		optgroup = page->new_optgroup("Vertical shells");
-// 		$optgroup->append_single_option_line("perimeters");
-// 		$optgroup->append_single_option_line("spiral_vase");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Horizontal shells");
-// 		my $line = Slic3r::GUI::OptionsGroup::Line->new(
-// 			label = > "Solid layers",
-// 			);
-// 		$line->append_option($optgroup->get_option("top_solid_layers"));
-// 		$line->append_option($optgroup->get_option("bottom_solid_layers"));
-// 		$optgroup->append_line($line);
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Quality (slower slicing)");
-// 		$optgroup->append_single_option_line("extra_perimeters");
-// 		$optgroup->append_single_option_line("ensure_vertical_shell_thickness");
-// 		$optgroup->append_single_option_line("avoid_crossing_perimeters");
-// 		$optgroup->append_single_option_line("thin_walls");
-// 		$optgroup->append_single_option_line("overhangs");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Advanced");
-// 		$optgroup->append_single_option_line("seam_position");
-// 		$optgroup->append_single_option_line("external_perimeters_first");
-// 	}
+		optgroup->append_single_option_line(get_option_("perimeters"));
+		optgroup->append_single_option_line(get_option_("spiral_vase"));
+
+		optgroup = page->new_optgroup("Horizontal shells");
+		Line line{ "Solid layers", "" };
+		line.append_option(get_option_("top_solid_layers"));
+		line.append_option(get_option_("bottom_solid_layers"));
+		optgroup->append_line(line);
+
+		optgroup = page->new_optgroup("Quality (slower slicing)");
+		optgroup->append_single_option_line(get_option_("extra_perimeters"));
+		optgroup->append_single_option_line(get_option_("ensure_vertical_shell_thickness"));
+		optgroup->append_single_option_line(get_option_("avoid_crossing_perimeters"));
+		optgroup->append_single_option_line(get_option_("thin_walls"));
+		optgroup->append_single_option_line(get_option_("overhangs"));
+
+		optgroup = page->new_optgroup("Advanced");
+		optgroup->append_single_option_line(get_option_("seam_position"));
+		optgroup->append_single_option_line(get_option_("external_perimeters_first"));
 
 	page = add_options_page("Infill", "infill.png");
-	page->set_config(&config_);
-// 	{
+
 		optgroup = page->new_optgroup("Infill");
-// 		$optgroup->append_single_option_line("fill_density");
-// 		$optgroup->append_single_option_line("fill_pattern");
-// 		$optgroup->append_single_option_line("external_fill_pattern");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Reducing printing time");
-// 		$optgroup->append_single_option_line("infill_every_layers");
-// 		$optgroup->append_single_option_line("infill_only_where_needed");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Advanced");
-// 		$optgroup->append_single_option_line("solid_infill_every_layers");
-// 		$optgroup->append_single_option_line("fill_angle");
-// 		$optgroup->append_single_option_line("solid_infill_below_area");
-// 		$optgroup->append_single_option_line("bridge_angle");
-// 		$optgroup->append_single_option_line("only_retract_when_crossing_perimeters");
-// 		$optgroup->append_single_option_line("infill_first");
-// 	}
+		optgroup->append_single_option_line(get_option_("fill_density"));
+		optgroup->append_single_option_line(get_option_("fill_pattern"));
+		optgroup->append_single_option_line(get_option_("external_fill_pattern"));
+
+		optgroup = page->new_optgroup("Reducing printing time");
+		optgroup->append_single_option_line(get_option_("infill_every_layers"));
+		optgroup->append_single_option_line(get_option_("infill_only_where_needed"));
+
+		optgroup = page->new_optgroup("Advanced");
+		optgroup->append_single_option_line(get_option_("solid_infill_every_layers"));
+		optgroup->append_single_option_line(get_option_("fill_angle"));
+		optgroup->append_single_option_line(get_option_("solid_infill_below_area"));
+		optgroup->append_single_option_line(get_option_("bridge_angle"));
+		optgroup->append_single_option_line(get_option_("only_retract_when_crossing_perimeters"));
+		optgroup->append_single_option_line(get_option_("infill_first"));
 
 		page = add_options_page("Skirt and brim", "box.png");
-		page->set_config(&config_);
-// 	{
- 		optgroup = page->new_optgroup("Skirt");
-// 		$optgroup->append_single_option_line("skirts");
-// 		$optgroup->append_single_option_line("skirt_distance");
-// 		$optgroup->append_single_option_line("skirt_height");
-// 		$optgroup->append_single_option_line("min_skirt_length");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Brim");
-// 		$optgroup->append_single_option_line("brim_width");
-// 	}
+
+		optgroup = page->new_optgroup("Skirt");
+		optgroup->append_single_option_line(get_option_("skirts"));
+		optgroup->append_single_option_line(get_option_("skirt_distance"));
+		optgroup->append_single_option_line(get_option_("skirt_height"));
+		optgroup->append_single_option_line(get_option_("min_skirt_length"));
+
+		optgroup = page->new_optgroup("Brim");
+		optgroup->append_single_option_line(get_option_("brim_width"));
 
 	page = add_options_page("Support material", "building.png");
 	page->set_config(&config_);
-// 	{
- 		optgroup = page->new_optgroup("Support material");
-// 		$optgroup->append_single_option_line("support_material");
-// 		$optgroup->append_single_option_line("support_material_threshold");
-// 		$optgroup->append_single_option_line("support_material_enforce_layers");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Raft");
-// 		$optgroup->append_single_option_line("raft_layers");
-// 		#            $optgroup->append_single_option_line("raft_contact_distance");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Options for support material and raft");
-// 		$optgroup->append_single_option_line("support_material_contact_distance");
-// 		$optgroup->append_single_option_line("support_material_pattern");
-// 		$optgroup->append_single_option_line("support_material_with_sheath");
-// 		$optgroup->append_single_option_line("support_material_spacing");
-// 		$optgroup->append_single_option_line("support_material_angle");
-// 		$optgroup->append_single_option_line("support_material_interface_layers");
-// 		$optgroup->append_single_option_line("support_material_interface_spacing");
-// 		$optgroup->append_single_option_line("support_material_interface_contact_loops");
-// 		$optgroup->append_single_option_line("support_material_buildplate_only");
-// 		$optgroup->append_single_option_line("support_material_xy_spacing");
-// 		$optgroup->append_single_option_line("dont_support_bridges");
-// 		$optgroup->append_single_option_line("support_material_synchronize_layers");
-// 	}
+
+		optgroup = page->new_optgroup("Support material");
+		optgroup->append_single_option_line(get_option_("support_material"));
+		optgroup->append_single_option_line(get_option_("support_material_threshold"));
+		optgroup->append_single_option_line(get_option_("support_material_enforce_layers"));
+
+		optgroup = page->new_optgroup("Raft");
+ 		optgroup->append_single_option_line(get_option_("raft_layers"));
+// 		# optgroup->append_single_option_line(get_option_("raft_contact_distance"));
+
+		optgroup = page->new_optgroup("Options for support material and raft");
+		optgroup->append_single_option_line(get_option_("support_material_contact_distance"));
+		optgroup->append_single_option_line(get_option_("support_material_pattern"));
+		optgroup->append_single_option_line(get_option_("support_material_with_sheath"));
+		optgroup->append_single_option_line(get_option_("support_material_spacing"));
+		optgroup->append_single_option_line(get_option_("support_material_angle"));
+		optgroup->append_single_option_line(get_option_("support_material_interface_layers"));
+		optgroup->append_single_option_line(get_option_("support_material_interface_spacing"));
+		optgroup->append_single_option_line(get_option_("support_material_interface_contact_loops"));
+		optgroup->append_single_option_line(get_option_("support_material_buildplate_only"));
+		optgroup->append_single_option_line(get_option_("support_material_xy_spacing"));
+		optgroup->append_single_option_line(get_option_("dont_support_bridges"));
+		optgroup->append_single_option_line(get_option_("support_material_synchronize_layers"));
 
 	page = add_options_page("Speed", "time.png");
-	page->set_config(&config_);
-// 	{
- 		optgroup = page->new_optgroup("Speed for print moves");
-// 		$optgroup->append_single_option_line("perimeter_speed");
-// 		$optgroup->append_single_option_line("small_perimeter_speed");
-// 		$optgroup->append_single_option_line("external_perimeter_speed");
-// 		$optgroup->append_single_option_line("infill_speed");
-// 		$optgroup->append_single_option_line("solid_infill_speed");
-// 		$optgroup->append_single_option_line("top_solid_infill_speed");
-// 		$optgroup->append_single_option_line("support_material_speed");
-// 		$optgroup->append_single_option_line("support_material_interface_speed");
-// 		$optgroup->append_single_option_line("bridge_speed");
-// 		$optgroup->append_single_option_line("gap_fill_speed");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Speed for non-print moves");
-// 		$optgroup->append_single_option_line("travel_speed");
-// 	}
-// 	{
+
+		optgroup = page->new_optgroup("Speed for print moves");
+		optgroup->append_single_option_line(get_option_("perimeter_speed"));
+		optgroup->append_single_option_line(get_option_("small_perimeter_speed"));
+		optgroup->append_single_option_line(get_option_("external_perimeter_speed"));
+		optgroup->append_single_option_line(get_option_("infill_speed"));
+		optgroup->append_single_option_line(get_option_("solid_infill_speed"));
+		optgroup->append_single_option_line(get_option_("top_solid_infill_speed"));
+		optgroup->append_single_option_line(get_option_("support_material_speed"));
+		optgroup->append_single_option_line(get_option_("support_material_interface_speed"));
+		optgroup->append_single_option_line(get_option_("bridge_speed"));
+		optgroup->append_single_option_line(get_option_("gap_fill_speed"));
+
+		optgroup = page->new_optgroup("Speed for non-print moves");
+		optgroup->append_single_option_line(get_option_("travel_speed"));
+
 		optgroup = page->new_optgroup("Modifiers");
-// 		$optgroup->append_single_option_line("first_layer_speed");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Acceleration control (advanced)");
-// 		$optgroup->append_single_option_line("perimeter_acceleration");
-// 		$optgroup->append_single_option_line("infill_acceleration");
-// 		$optgroup->append_single_option_line("bridge_acceleration");
-// 		$optgroup->append_single_option_line("first_layer_acceleration");
-// 		$optgroup->append_single_option_line("default_acceleration");
-// 	}
-// 	{
+		optgroup->append_single_option_line(get_option_("first_layer_speed"));
+
+		optgroup = page->new_optgroup("Acceleration control (advanced)");
+		optgroup->append_single_option_line(get_option_("perimeter_acceleration"));
+		optgroup->append_single_option_line(get_option_("infill_acceleration"));
+		optgroup->append_single_option_line(get_option_("bridge_acceleration"));
+		optgroup->append_single_option_line(get_option_("first_layer_acceleration"));
+		optgroup->append_single_option_line(get_option_("default_acceleration"));
+
 		optgroup = page->new_optgroup("Autospeed (advanced)");
-// 		$optgroup->append_single_option_line("max_print_speed");
-// 		$optgroup->append_single_option_line("max_volumetric_speed");
-// 		$optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
-// 		$optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
-// 	}
+		optgroup->append_single_option_line(get_option_("max_print_speed"));
+		optgroup->append_single_option_line(get_option_("max_volumetric_speed"));
+		optgroup->append_single_option_line(get_option_("max_volumetric_extrusion_rate_slope_positive"));
+		optgroup->append_single_option_line(get_option_("max_volumetric_extrusion_rate_slope_negative"));
 
 	page = add_options_page("Multiple Extruders", "funnel.png");
-	page->set_config(&config_);
-// 	{
+
 		optgroup = page->new_optgroup("Extruders");
-// 		$optgroup->append_single_option_line("perimeter_extruder");
-// 		$optgroup->append_single_option_line("infill_extruder");
-// 		$optgroup->append_single_option_line("solid_infill_extruder");
-// 		$optgroup->append_single_option_line("support_material_extruder");
-// 		$optgroup->append_single_option_line("support_material_interface_extruder");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Ooze prevention");
-// 		$optgroup->append_single_option_line("ooze_prevention");
-// 		$optgroup->append_single_option_line("standby_temperature_delta");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Wipe tower");
-// 		$optgroup->append_single_option_line("wipe_tower");
-// 		$optgroup->append_single_option_line("wipe_tower_x");
-// 		$optgroup->append_single_option_line("wipe_tower_y");
-// 		$optgroup->append_single_option_line("wipe_tower_width");
-// 		$optgroup->append_single_option_line("wipe_tower_per_color_wipe");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Advanced");
-// 		$optgroup->append_single_option_line("interface_shells");
-// 	}
+		optgroup->append_single_option_line(get_option_("perimeter_extruder"));
+		optgroup->append_single_option_line(get_option_("infill_extruder"));
+		optgroup->append_single_option_line(get_option_("solid_infill_extruder"));
+		optgroup->append_single_option_line(get_option_("support_material_extruder"));
+		optgroup->append_single_option_line(get_option_("support_material_interface_extruder"));
+
+		optgroup = page->new_optgroup("Ooze prevention");
+		optgroup->append_single_option_line(get_option_("ooze_prevention"));
+		optgroup->append_single_option_line(get_option_("standby_temperature_delta"));
+
+		optgroup = page->new_optgroup("Wipe tower");
+		optgroup->append_single_option_line(get_option_("wipe_tower"));
+		optgroup->append_single_option_line(get_option_("wipe_tower_x"));
+		optgroup->append_single_option_line(get_option_("wipe_tower_y"));
+		optgroup->append_single_option_line(get_option_("wipe_tower_width"));
+		optgroup->append_single_option_line(get_option_("wipe_tower_per_color_wipe"));
+
+		optgroup = page->new_optgroup("Advanced");
+		optgroup->append_single_option_line(get_option_("interface_shells"));
 
 	page = add_options_page("Advanced", "wrench.png");
-	page->set_config(&config_);
-// 	{
+
 		optgroup = page->new_optgroup("Extrusion width", 180);
-// 		$optgroup->append_single_option_line("extrusion_width");
-// 		$optgroup->append_single_option_line("first_layer_extrusion_width");
-// 		$optgroup->append_single_option_line("perimeter_extrusion_width");
-// 		$optgroup->append_single_option_line("external_perimeter_extrusion_width");
-// 		$optgroup->append_single_option_line("infill_extrusion_width");
-// 		$optgroup->append_single_option_line("solid_infill_extrusion_width");
-// 		$optgroup->append_single_option_line("top_infill_extrusion_width");
-// 		$optgroup->append_single_option_line("support_material_extrusion_width");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Overlap");
-// 		$optgroup->append_single_option_line("infill_overlap");
-// 	}
-// 	{
+		optgroup->append_single_option_line(get_option_("extrusion_width"));
+		optgroup->append_single_option_line(get_option_("first_layer_extrusion_width"));
+		optgroup->append_single_option_line(get_option_("perimeter_extrusion_width"));
+		optgroup->append_single_option_line(get_option_("external_perimeter_extrusion_width"));
+		optgroup->append_single_option_line(get_option_("infill_extrusion_width"));
+		optgroup->append_single_option_line(get_option_("solid_infill_extrusion_width"));
+		optgroup->append_single_option_line(get_option_("top_infill_extrusion_width"));
+		optgroup->append_single_option_line(get_option_("support_material_extrusion_width"));
+
+		optgroup = page->new_optgroup("Overlap");
+		optgroup->append_single_option_line(get_option_("infill_overlap"));
+
 		optgroup = page->new_optgroup("Flow");
-// 		$optgroup->append_single_option_line("bridge_flow_ratio");
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Other");
-// 		$optgroup->append_single_option_line("clip_multipart_objects");
-// 		$optgroup->append_single_option_line("elefant_foot_compensation");
-// 		$optgroup->append_single_option_line("xy_size_compensation");
-// 		#            $optgroup->append_single_option_line("threads");
-// 		$optgroup->append_single_option_line("resolution");
-// 	}
+		optgroup->append_single_option_line(get_option_("bridge_flow_ratio"));
+
+		optgroup = page->new_optgroup("Other");
+		optgroup->append_single_option_line(get_option_("clip_multipart_objects"));
+		optgroup->append_single_option_line(get_option_("elefant_foot_compensation"));
+		optgroup->append_single_option_line(get_option_("xy_size_compensation"));
+//		#            optgroup->append_single_option_line(get_option_("threads"));
+		optgroup->append_single_option_line(get_option_("resolution"));
 
 	page = add_options_page("Output options", "page_white_go.png");
-	page->set_config(&config_);
-// 	{
  		optgroup = page->new_optgroup("Sequential printing");
-// 		$optgroup->append_single_option_line("complete_objects");
-// 		my $line = Slic3r::GUI::OptionsGroup::Line->new(
-// 			label = > "Extruder clearance (mm)",
-// 			);
-// 		foreach my $opt_key(qw(extruder_clearance_radius extruder_clearance_height)) {
-// 			my $option = $optgroup->get_option($opt_key);
-// 			$option->width(60);
-// 			$line->append_option($option);
-// 		}
-// 		$optgroup->append_line($line);
-// 	}
-// 	{
- 		optgroup = page->new_optgroup("Output file");
-// 		$optgroup->append_single_option_line("gcode_comments");
-// 
-// 		{
-// 			my $option = $optgroup->get_option("output_filename_format");
-// 			$option->full_width(1);
-// 			$optgroup->append_single_option_line($option);
-// 		}
-// 	}
-// 	{
-		optgroup = page->new_optgroup("Post-processing scripts");
-// 			label_width = > 0,
-// 			);
-// 		my $option = $optgroup->get_option("post_process");
-// 		$option->full_width(1);
-// 		$option->height(50);
-// 		$optgroup->append_single_option_line($option);
-// 	}
+		optgroup->append_single_option_line(get_option_("complete_objects"));
+		line = Line{ "Extruder clearance (mm)", "" };
+		Option option = get_option_("extruder_clearance_radius");
+		option.opt.width = 60;
+		line.append_option(option);
+		option = get_option_("extruder_clearance_height");
+		option.opt.width = 60;
+		line.append_option(option);
+		optgroup->append_line(line);
+
+		optgroup = page->new_optgroup("Output file");
+		optgroup->append_single_option_line(get_option_("gcode_comments"));
+		option = get_option_("output_filename_format");
+		option.opt.full_width = 1;
+		optgroup->append_single_option_line(option);
+
+		optgroup = page->new_optgroup("Post-processing scripts");	//! 			label_width = > 0,
+		option = get_option_("post_process");
+		option.opt.full_width = 1;
+		option.opt.height = 50;
+		optgroup->append_single_option_line(option);
 
 	page = add_options_page("Notes", "note.png");
-	page->set_config(&config_);
-// 	{
-	optgroup = page->new_optgroup("Notes");	//label_width = > 0,
-// 		my $option = $optgroup->get_option("notes");
-// 		$option->full_width(1);
-// 		$option->height(250);
-// 		$optgroup->append_single_option_line($option);
-// 	}
+		optgroup = page->new_optgroup("Notes");						//!				label_width = > 0,
+		option = get_option_("notes");
+		option.opt.full_width = 1;
+		option.opt.height = 250;
+		optgroup->append_single_option_line(option);
 
 	page = add_options_page("Dependencies", "wrench.png");
-	page->set_config(&config_);
-// 	{
  		optgroup = page->new_optgroup("Profile dependencies");
-// 		{
-// 			my $line = Slic3r::GUI::OptionsGroup::Line->new(
-// 				label = > "Compatible printers",
-// 				widget = > $self->_compatible_printers_widget,
-// 				);
-// 			$optgroup->append_line($line);
-// 		}
-// 	}
+		line = Line{ "Compatible printers", "" };
+//		line.widget = ? ? ? ; //!		 widget = > $self->_compatible_printers_widget,
+		optgroup->append_line(line);
 }
 
 
@@ -510,7 +459,7 @@ void CTab::_toggle_show_hide_incompatible(wxCommandEvent &event){};
 ConfigOptionsGroupShp CPage::new_optgroup(std::string title, size_t label_width /*= 0*/)
 {
 	//! config_ have to be "right"
-	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(/*parent()*/this, title, config_);
+	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, config_);
 	if (label_width != 0)
 		optgroup->label_width = label_width;
 
