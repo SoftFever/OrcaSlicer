@@ -25,6 +25,10 @@
 #include "../../libslic3r/PlaceholderParser.hpp"
 #include "../../libslic3r/Utils.hpp"
 
+// Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
+// This breaks compatibility with the upstream Slic3r if the --datadir is used to switch between the two versions.
+// #define SLIC3R_PROFILE_USE_PRESETS_SUBDIR
+
 namespace Slic3r {
 
 PresetBundle::PresetBundle() :
@@ -68,10 +72,19 @@ void PresetBundle::setup_directories()
     boost::filesystem::path data_dir = boost::filesystem::path(Slic3r::data_dir());
     std::initializer_list<boost::filesystem::path> paths = { 
         data_dir, 
+#ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
+        // Store the print/filament/printer presets into a "presets" directory.
         data_dir / "presets", 
         data_dir / "presets" / "print", 
         data_dir / "presets" / "filament", 
-        data_dir / "presets" / "printer" };
+        data_dir / "presets" / "printer" 
+#else
+        // Store the print/filament/printer presets at the same location as the upstream Slic3r.
+        data_dir / "print", 
+        data_dir / "filament", 
+        data_dir / "printer" 
+#endif
+    };
     for (const boost::filesystem::path &path : paths) {
 		boost::filesystem::path subdir = path;
         subdir.make_preferred();
@@ -84,7 +97,14 @@ void PresetBundle::setup_directories()
 void PresetBundle::load_presets()
 {
     std::string errors_cummulative;
-    const std::string dir_path = data_dir() + "/presets";
+    const std::string dir_path = data_dir()
+#ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
+        // Store the print/filament/printer presets into a "presets" directory.
+        + "/presets"
+#else
+        // Store the print/filament/printer presets at the same location as the upstream Slic3r.
+#endif
+        ;
     try {
         this->prints.load_presets(dir_path, "print");
     } catch (const std::runtime_error &err) {
@@ -473,7 +493,14 @@ size_t PresetBundle::load_configbundle(const std::string &path)
             Preset::normalize(config);
             // Decide a full path to this .ini file.
             auto file_name = boost::algorithm::iends_with(preset_name, ".ini") ? preset_name : preset_name + ".ini";
-            auto file_path = (boost::filesystem::path(data_dir()) / "presets" / presets->name() / file_name).make_preferred();
+            auto file_path = (boost::filesystem::path(data_dir()) 
+#ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
+                // Store the print/filament/printer presets into a "presets" directory.
+                / "presets" 
+#else
+                // Store the print/filament/printer presets at the same location as the upstream Slic3r.
+#endif
+                / presets->name() / file_name).make_preferred();
             // Load the preset into the list of presets, save it to disk.
             presets->load_preset(file_path.string(), preset_name, std::move(config), false).save();
             ++ presets_loaded;
