@@ -35,7 +35,7 @@ my %opt = ();
     # load config
     my $config = Slic3r::Config::new_from_defaults;
     if ($opt{load}) {
-        $config->apply(Slic3r::Config->load($opt{load}));
+        $config->apply(Slic3r::Config::load($opt{load}));
     }
     
     # init print

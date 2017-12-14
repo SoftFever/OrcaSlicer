@@ -71,10 +71,10 @@ my @external_configs = ();
 if ($opt{load}) {
     foreach my $configfile (@{$opt{load}}) {
         if (-e $configfile) {
-            push @external_configs, Slic3r::Config->load($configfile);
+            push @external_configs, Slic3r::Config::load($configfile);
         } elsif (-e "$FindBin::Bin/$configfile") {
             printf STDERR "Loading $FindBin::Bin/$configfile\n";
-            push @external_configs, Slic3r::Config->load("$FindBin::Bin/$configfile");
+            push @external_configs, Slic3r::Config::load("$FindBin::Bin/$configfile");
         } else {
             $opt{ignore_nonexistent_config} or die "Cannot find specified configuration file ($configfile).\n";
         }
