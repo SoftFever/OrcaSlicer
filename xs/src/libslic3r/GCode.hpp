@@ -277,6 +277,17 @@ protected:
     // Time estimator
     GCodeTimeEstimator m_time_estimator;
 
+    // Write a string into a file.
+    void _write(FILE* file, const std::string& what);
+
+    // Write a string into a file. 
+    // Add a newline, if the string does not end with a newline already.
+    // Used to export a custom G-code section processed by the PlaceholderParser.
+    void _writeln(FILE* file, const std::string& what);
+
+    // Formats and write into a file the given data. 
+    void _write_format(FILE* file, const char* format, ...);
+
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
     void _print_first_layer_bed_temperature(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);

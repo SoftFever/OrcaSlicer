@@ -184,6 +184,9 @@ namespace Slic3r {
     // Calculates the time estimate from the gcode contained in the file with the given filename
     void calculate_time_from_file(const std::string& file);
 
+    // Calculates the time estimate from the gcode contained in given list of gcode lines
+    void calculate_time_from_lines(const std::vector<std::string>& gcode_lines);
+
     // Adds the given gcode line
     void add_gcode_line(const std::string& gcode_line);
 
@@ -252,7 +255,7 @@ namespace Slic3r {
     // Calculates the time estimate
     void _calculate_time();
 
-    // Processes GCode line
+    // Processes the given gcode line
     void _process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line);
 
     // Move

@@ -157,6 +157,16 @@ namespace Slic3r {
     reset();
   }
 
+  void GCodeTimeEstimator::calculate_time_from_lines(const std::vector<std::string>& gcode_lines)
+  {
+    for (const std::string& line : gcode_lines)
+    {
+      _parser.parse_line(line, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+    }
+    _calculate_time();
+    reset();
+  }
+
   void GCodeTimeEstimator::add_gcode_line(const std::string& gcode_line)
   {
     _parser.parse_line(gcode_line, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
@@ -354,8 +364,14 @@ namespace Slic3r {
     int minutes = (int)(timeinsecs / 60.0f);
     timeinsecs -= (float)minutes * 60.0f;
 
-    char buffer[16];
-    ::sprintf(buffer, "%02d:%02d:%02d", hours, minutes, (int)timeinsecs);
+    char buffer[64];
+    if (hours > 0)
+      ::sprintf(buffer, "%dh %dm %ds", hours, minutes, (int)timeinsecs);
+    else if (minutes > 0)
+      ::sprintf(buffer, "%dm %ds", minutes, (int)timeinsecs);
+    else
+      ::sprintf(buffer, "%ds", (int)timeinsecs);
+
     return buffer;
   }
 
@@ -393,7 +409,7 @@ namespace Slic3r {
   {
     if (line.cmd.length() > 1)
     {
-      switch (line.cmd[0])
+      switch (::toupper(line.cmd[0]))
       {
       case 'G':
         {
