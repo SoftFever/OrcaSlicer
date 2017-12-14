@@ -579,7 +579,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 				  .extrude(box.ld, 3200).extrude(box.rd)
 				  .extrude(box.ru).extrude(box.lu);
 			// Wipe the nozzle.
-			if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
+			//if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
+			// Always wipe the nozzle with a long wipe to reduce stringing when moving away from the wipe tower.
 				writer.travel(box.ru, 7200)
 			  		  .travel(box.lu);
 		} else
@@ -686,8 +687,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 		// Move to the front left corner.
 		writer.travel(wipeTower_box.ld, 7000);
 
-		if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
+		//if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
 			// Wipe along the front edge.
+		// Always wipe the nozzle with a long wipe to reduce stringing when moving away from the wipe tower.
 			writer.travel(wipeTower_box.rd)
 			      .travel(wipeTower_box.ld);
 			  
@@ -1004,8 +1006,10 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 				  .extrude(fill_box.rd + xy(- m_perimeter_width,       m_perimeter_width));
 		}
 
-		if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
+		// if (purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE)
+		if (true)
 	       	// Wipe along the front side of the current wiping box.
+			// Always wipe the nozzle with a long wipe to reduce stringing when moving away from the wipe tower.
 			writer.travel(fill_box.ld + xy(  m_perimeter_width, m_perimeter_width / 2), 7200)
 			  	  .travel(fill_box.rd + xy(- m_perimeter_width, m_perimeter_width / 2));
 		else
