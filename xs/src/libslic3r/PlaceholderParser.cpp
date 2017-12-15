@@ -22,6 +22,7 @@
 #endif
 
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
 // Unicode iterator to iterate over utf8.
 #include <boost/regex/pending/unicode_iterator.hpp>
 
@@ -382,8 +383,36 @@ namespace client
             lhs.type = TYPE_BOOL;
             lhs.data.b = (op == '=') ? value : !value;
         }
-        static void equal(expr &lhs, expr &rhs) { compare_op(lhs, rhs, '='); }
+        static void equal    (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '='); }
         static void not_equal(expr &lhs, expr &rhs) { compare_op(lhs, rhs, '!'); }
+
+        static void regex_op(expr &lhs, boost::iterator_range<Iterator> &rhs, char op)
+        {
+            const std::string *subject  = nullptr;
+            const std::string *mask     = nullptr;
+            if (lhs.type == TYPE_STRING) {
+                // One type is string, the other could be converted to string.
+                subject = &lhs.s();
+            } else {
+                lhs.throw_exception("Left hand side of a regex match must be a string.");
+            }
+            try {
+                std::string pattern(++ rhs.begin(), -- rhs.end());
+                bool result = boost::regex_match(*subject, boost::regex(pattern));
+                if (op == '!')
+                    result = ! result;
+                lhs.reset();
+                lhs.type = TYPE_BOOL;
+                lhs.data.b = result;
+            } catch (boost::regex_error &ex) {
+                // Syntax error in the regular expression
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    rhs.begin(), rhs.end(), spirit::info(std::string("*Regular expression compilation failed: ") + ex.what())));
+            }
+        }
+
+        static void regex_matches     (expr &lhs, boost::iterator_range<Iterator> &rhs) { return regex_op(lhs, rhs, '='); }
+        static void regex_doesnt_match(expr &lhs, boost::iterator_range<Iterator> &rhs) { return regex_op(lhs, rhs, '!'); }
 
         static void set_if(bool &cond, bool &not_yet_consumed, std::string &str_in, std::string &str_out)
         {
@@ -810,6 +839,8 @@ namespace client
                 >> *(   ("==" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::equal,     _val, _1)]
                     |   ("!=" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
                     |   ("<>" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
+                    |   ("=~" > regular_expression       ) [px::bind(&expr<Iterator>::regex_matches, _val, _1)]
+                    |   ("!~" > regular_expression       ) [px::bind(&expr<Iterator>::regex_doesnt_match, _val, _1)]
                     );
             bool_expr.name("bool expression");
 
@@ -877,6 +908,9 @@ namespace client
                 [ px::bind(&MyContext::resolve_variable<Iterator>, _r1, _1, _val) ];
             variable_reference.name("variable reference");
 
+            regular_expression = raw[lexeme['/' > *((utf8char - char_('\\') - char_('/')) | ('\\' > char_)) > '/']];
+            regular_expression.name("regular_expression");
+
             keywords.add
                 ("and")
                 ("if")
@@ -905,6 +939,7 @@ namespace client
                 debug(factor);
                 debug(scalar_variable_reference);
                 debug(variable_reference);
+                debug(regular_expression);
             }
         }
 
@@ -919,9 +954,11 @@ namespace client
         // Legacy variable expansion of the original Slic3r, in the form of [scalar_variable] or [vector_variable_index].
         qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> legacy_variable_expansion;
         // Parsed identifier name.
-        qi::rule<Iterator,  boost::iterator_range<Iterator>(), spirit::ascii::space_type> identifier;
+        qi::rule<Iterator, boost::iterator_range<Iterator>(), spirit::ascii::space_type> identifier;
         // Math expression consisting of +- operators over terms.
         qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> additive_expression;
+        // Rule to capture a regular expression enclosed in //.
+        qi::rule<Iterator, boost::iterator_range<Iterator>(), spirit::ascii::space_type> regular_expression;
         // Boolean expressions over expressions.
         qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> bool_expr;
         // Evaluate boolean expression into bool.
