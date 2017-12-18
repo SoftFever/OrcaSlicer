@@ -86,60 +86,6 @@ void CTab::create_preset_tab()
 	treectrl_->SetIndent(0);
 	disable_tree_sel_changed_event_ = 0;
 
-	//!-----------------------EXP
-	// Vertical sizer to hold selected page
-// 	auto *scrolled_win = new wxScrolledWindow(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-// 	wxBoxSizer *vs = new wxBoxSizer(wxVERTICAL);
-// 	scrolled_win->SetSizer(vs);
-// 	scrolled_win->SetScrollbars(1, 1, 1, 1);
-// 	hsizer_->Add(scrolled_win, 1, wxEXPAND | wxLEFT, 5);
-// 
-// 	wxSizer* sbs = new wxStaticBoxSizer(new wxStaticBox(scrolled_win, wxID_ANY, "Trulala"), wxVERTICAL);
-// 	vs->Add(sbs, 0, wxEXPAND | wxALL, 10);
-// 	sbs = new wxBoxSizer(wxVERTICAL);
-// 	vs->Add(sbs, 0, wxEXPAND | wxALL, 10);
-// 	sbs = new wxStaticBoxSizer(new wxStaticBox(scrolled_win, wxID_ANY, "LuTrulala"), wxVERTICAL);
-// 	vs->Add(sbs, 0, wxEXPAND | wxALL, 10);
-
-
-// 	auto *page_sizer = new wxBoxSizer(wxVERTICAL);
-// 	hsizer_->Add(page_sizer, 1, wxEXPAND | wxLEFT, 5);
-
-// 	wxStaticBox* box = new wxStaticBox(panel, wxID_ANY, "Filament");
-// 	page_sizer->Add(new wxStaticBoxSizer(box, wxHORIZONTAL), 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT | wxBOTTOM, 10);
-// 
-// 	//Horizontal sizer to hold the tree and the selected page.
-// 	wxStaticBoxSizer* tmp_hsizer = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Experimental Box");
-// 	page_sizer->Add(tmp_hsizer, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT | wxBOTTOM, 10);
-// 
-// 	auto *grid_sizer = new wxFlexGridSizer(0, 4, 0, 0);
-// 	grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-// 	tmp_hsizer->Add(grid_sizer, 0, wxEXPAND | wxALL, /*&Wx::wxMAC ? 0 :*/ 5);
-// 
-// 	wxStaticText *label = new wxStaticText(panel, wxID_ANY, "Label1", wxDefaultPosition, wxSize(200,-1));
-// 	auto *textctrl = new wxTextCtrl(panel, wxID_ANY, "TruLaLa1");
-// 	grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
-// 	grid_sizer->Add(textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
-// 
-// 	label = new wxStaticText(panel, wxID_ANY, "Labelszdfdghhjk2");
-// 	textctrl = new wxTextCtrl(panel, wxID_ANY, "TruLaLa2");
-// 	grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
-// 	grid_sizer->Add(textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
-// 
-// 	label = new wxStaticText(panel, wxID_ANY, "Label3");
-// 	textctrl = new wxTextCtrl(panel, wxID_ANY, "TruLaLa3");
-// 	grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
-// 	grid_sizer->Add(textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
-// 
-// 	label = new wxStaticText(panel, wxID_ANY, "Label4");
-// 	textctrl = new wxTextCtrl(panel, wxID_ANY, "TruLaLa4");
-// 	grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
-// 	grid_sizer->Add(textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
-// 
-// 	box = new wxStaticBox(panel, wxID_ANY, "Print");
-// 	page_sizer->Add(new wxStaticBoxSizer(box, wxHORIZONTAL), 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT | wxBOTTOM, 10);
-	//!------------------------
-
 	treectrl_->Bind(wxEVT_TREE_SEL_CHANGED, &CTab::OnTreeSelChange, this);
 	treectrl_->Bind(wxEVT_KEY_DOWN, &CTab::OnKeyDown, this);
 	treectrl_->Bind(wxEVT_COMBOBOX, &CTab::OnComboBox, this); 
@@ -153,9 +99,6 @@ void CTab::create_preset_tab()
 	build();
 	rebuild_page_tree();
 //	_update();
-
-
-	return;//$self;
 }
 
 CPageShp CTab::add_options_page(wxString title, wxString icon)
@@ -188,14 +131,11 @@ CPageShp CTab::add_options_page(wxString title, wxString icon)
 void CTabPrint::build()
 {
 //	$self->{presets} = wxTheApp->{preset_bundle}->print;
-//	$self->{config} = $self->{presets}->get_edited_preset->config;
-
 	PresetCollection *prints = new PresetCollection(Preset::TYPE_PRINT, Preset::print_options());
 	config_ = prints->get_edited_preset().config;
-	config_def = config_.def();
+	config_def = config_.def();		// initialization. It will be used in get_option_(const std::string title)
 
 	auto page = add_options_page("Layers and perimeters", "layers.png");
-
 		auto optgroup = page->new_optgroup("Layer height");
 		optgroup->append_single_option_line(get_option_("layer_height"));
 		optgroup->append_single_option_line(get_option_("first_layer_height"));
@@ -211,37 +151,35 @@ void CTabPrint::build()
 		optgroup->append_line(line);
 
 		optgroup = page->new_optgroup("Quality (slower slicing)");
-		optgroup->append_single_option_line(get_option_("extra_perimeters"));
-		optgroup->append_single_option_line(get_option_("ensure_vertical_shell_thickness"));
-		optgroup->append_single_option_line(get_option_("avoid_crossing_perimeters"));
-		optgroup->append_single_option_line(get_option_("thin_walls"));
+ 		optgroup->append_single_option_line(get_option_("extra_perimeters"));
+ 		optgroup->append_single_option_line(get_option_("ensure_vertical_shell_thickness"));
+ 		optgroup->append_single_option_line(get_option_("avoid_crossing_perimeters"));
+ 		optgroup->append_single_option_line(get_option_("thin_walls"));
 		optgroup->append_single_option_line(get_option_("overhangs"));
 
 		optgroup = page->new_optgroup("Advanced");
-		optgroup->append_single_option_line(get_option_("seam_position"));
-		optgroup->append_single_option_line(get_option_("external_perimeters_first"));
+ 		optgroup->append_single_option_line(get_option_("seam_position"));
+ 		optgroup->append_single_option_line(get_option_("external_perimeters_first"));
 
 	page = add_options_page("Infill", "infill.png");
-
 		optgroup = page->new_optgroup("Infill");
-		optgroup->append_single_option_line(get_option_("fill_density"));
+ 		optgroup->append_single_option_line(get_option_("fill_density"));
 		optgroup->append_single_option_line(get_option_("fill_pattern"));
 		optgroup->append_single_option_line(get_option_("external_fill_pattern"));
 
 		optgroup = page->new_optgroup("Reducing printing time");
-		optgroup->append_single_option_line(get_option_("infill_every_layers"));
-		optgroup->append_single_option_line(get_option_("infill_only_where_needed"));
+ 		optgroup->append_single_option_line(get_option_("infill_every_layers"));
+ 		optgroup->append_single_option_line(get_option_("infill_only_where_needed"));
 
 		optgroup = page->new_optgroup("Advanced");
 		optgroup->append_single_option_line(get_option_("solid_infill_every_layers"));
 		optgroup->append_single_option_line(get_option_("fill_angle"));
 		optgroup->append_single_option_line(get_option_("solid_infill_below_area"));
 		optgroup->append_single_option_line(get_option_("bridge_angle"));
-		optgroup->append_single_option_line(get_option_("only_retract_when_crossing_perimeters"));
-		optgroup->append_single_option_line(get_option_("infill_first"));
+ 		optgroup->append_single_option_line(get_option_("only_retract_when_crossing_perimeters"));
+ 		optgroup->append_single_option_line(get_option_("infill_first"));
 
-		page = add_options_page("Skirt and brim", "box.png");
-
+	page = add_options_page("Skirt and brim", "box.png");
 		optgroup = page->new_optgroup("Skirt");
 		optgroup->append_single_option_line(get_option_("skirts"));
 		optgroup->append_single_option_line(get_option_("skirt_distance"));
@@ -252,10 +190,8 @@ void CTabPrint::build()
 		optgroup->append_single_option_line(get_option_("brim_width"));
 
 	page = add_options_page("Support material", "building.png");
-	page->set_config(&config_);
-
 		optgroup = page->new_optgroup("Support material");
-		optgroup->append_single_option_line(get_option_("support_material"));
+ 		optgroup->append_single_option_line(get_option_("support_material"));
 		optgroup->append_single_option_line(get_option_("support_material_threshold"));
 		optgroup->append_single_option_line(get_option_("support_material_enforce_layers"));
 
@@ -264,21 +200,20 @@ void CTabPrint::build()
 // 		# optgroup->append_single_option_line(get_option_("raft_contact_distance"));
 
 		optgroup = page->new_optgroup("Options for support material and raft");
-		optgroup->append_single_option_line(get_option_("support_material_contact_distance"));
+ 		optgroup->append_single_option_line(get_option_("support_material_contact_distance"));
 		optgroup->append_single_option_line(get_option_("support_material_pattern"));
-		optgroup->append_single_option_line(get_option_("support_material_with_sheath"));
+ 		optgroup->append_single_option_line(get_option_("support_material_with_sheath"));
 		optgroup->append_single_option_line(get_option_("support_material_spacing"));
 		optgroup->append_single_option_line(get_option_("support_material_angle"));
 		optgroup->append_single_option_line(get_option_("support_material_interface_layers"));
 		optgroup->append_single_option_line(get_option_("support_material_interface_spacing"));
 		optgroup->append_single_option_line(get_option_("support_material_interface_contact_loops"));
-		optgroup->append_single_option_line(get_option_("support_material_buildplate_only"));
+ 		optgroup->append_single_option_line(get_option_("support_material_buildplate_only"));
 		optgroup->append_single_option_line(get_option_("support_material_xy_spacing"));
-		optgroup->append_single_option_line(get_option_("dont_support_bridges"));
-		optgroup->append_single_option_line(get_option_("support_material_synchronize_layers"));
+ 		optgroup->append_single_option_line(get_option_("dont_support_bridges"));
+ 		optgroup->append_single_option_line(get_option_("support_material_synchronize_layers"));
 
 	page = add_options_page("Speed", "time.png");
-
 		optgroup = page->new_optgroup("Speed for print moves");
 		optgroup->append_single_option_line(get_option_("perimeter_speed"));
 		optgroup->append_single_option_line(get_option_("small_perimeter_speed"));
@@ -311,31 +246,29 @@ void CTabPrint::build()
 		optgroup->append_single_option_line(get_option_("max_volumetric_extrusion_rate_slope_negative"));
 
 	page = add_options_page("Multiple Extruders", "funnel.png");
-
 		optgroup = page->new_optgroup("Extruders");
-		optgroup->append_single_option_line(get_option_("perimeter_extruder"));
-		optgroup->append_single_option_line(get_option_("infill_extruder"));
+ 		optgroup->append_single_option_line(get_option_("perimeter_extruder"));
+ 		optgroup->append_single_option_line(get_option_("infill_extruder"));
 		optgroup->append_single_option_line(get_option_("solid_infill_extruder"));
 		optgroup->append_single_option_line(get_option_("support_material_extruder"));
 		optgroup->append_single_option_line(get_option_("support_material_interface_extruder"));
 
 		optgroup = page->new_optgroup("Ooze prevention");
-		optgroup->append_single_option_line(get_option_("ooze_prevention"));
+ 		optgroup->append_single_option_line(get_option_("ooze_prevention"));
 		optgroup->append_single_option_line(get_option_("standby_temperature_delta"));
 
 		optgroup = page->new_optgroup("Wipe tower");
-		optgroup->append_single_option_line(get_option_("wipe_tower"));
+ 		optgroup->append_single_option_line(get_option_("wipe_tower"));
 		optgroup->append_single_option_line(get_option_("wipe_tower_x"));
 		optgroup->append_single_option_line(get_option_("wipe_tower_y"));
 		optgroup->append_single_option_line(get_option_("wipe_tower_width"));
 		optgroup->append_single_option_line(get_option_("wipe_tower_per_color_wipe"));
 
 		optgroup = page->new_optgroup("Advanced");
-		optgroup->append_single_option_line(get_option_("interface_shells"));
+ 		optgroup->append_single_option_line(get_option_("interface_shells"));
 
 	page = add_options_page("Advanced", "wrench.png");
-
-		optgroup = page->new_optgroup("Extrusion width", 180);
+		optgroup = page->new_optgroup("Extrusion width", 200);
 		optgroup->append_single_option_line(get_option_("extrusion_width"));
 		optgroup->append_single_option_line(get_option_("first_layer_extrusion_width"));
 		optgroup->append_single_option_line(get_option_("perimeter_extrusion_width"));
@@ -349,10 +282,10 @@ void CTabPrint::build()
 		optgroup->append_single_option_line(get_option_("infill_overlap"));
 
 		optgroup = page->new_optgroup("Flow");
-		optgroup->append_single_option_line(get_option_("bridge_flow_ratio"));
+ 		optgroup->append_single_option_line(get_option_("bridge_flow_ratio"));
 
 		optgroup = page->new_optgroup("Other");
-		optgroup->append_single_option_line(get_option_("clip_multipart_objects"));
+ 		optgroup->append_single_option_line(get_option_("clip_multipart_objects"));
 		optgroup->append_single_option_line(get_option_("elefant_foot_compensation"));
 		optgroup->append_single_option_line(get_option_("xy_size_compensation"));
 //		#            optgroup->append_single_option_line(get_option_("threads"));
@@ -360,7 +293,7 @@ void CTabPrint::build()
 
 	page = add_options_page("Output options", "page_white_go.png");
  		optgroup = page->new_optgroup("Sequential printing");
-		optgroup->append_single_option_line(get_option_("complete_objects"));
+ 		optgroup->append_single_option_line(get_option_("complete_objects"));
 		line = Line{ "Extruder clearance (mm)", "" };
 		Option option = get_option_("extruder_clearance_radius");
 		option.opt.width = 60;
@@ -371,21 +304,21 @@ void CTabPrint::build()
 		optgroup->append_line(line);
 
 		optgroup = page->new_optgroup("Output file");
-		optgroup->append_single_option_line(get_option_("gcode_comments"));
+ 		optgroup->append_single_option_line(get_option_("gcode_comments"));
 		option = get_option_("output_filename_format");
-		option.opt.full_width = 1;
+		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup("Post-processing scripts");	//! 			label_width = > 0,
 		option = get_option_("post_process");
-		option.opt.full_width = 1;
+		option.opt.full_width = true;
 		option.opt.height = 50;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page("Notes", "note.png");
 		optgroup = page->new_optgroup("Notes");						//!				label_width = > 0,
 		option = get_option_("notes");
-		option.opt.full_width = 1;
+		option.opt.full_width = true;
 		option.opt.height = 250;
 		optgroup->append_single_option_line(option);
 
@@ -395,7 +328,6 @@ void CTabPrint::build()
 //		line.widget = ? ? ? ; //!		 widget = > $self->_compatible_printers_widget,
 		optgroup->append_line(line);
 }
-
 
 //Regerenerate content of the page tree.
 void CTab::rebuild_page_tree()

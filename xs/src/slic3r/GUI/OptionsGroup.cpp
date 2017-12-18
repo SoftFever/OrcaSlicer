@@ -23,20 +23,32 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     } else if (opt.gui_type.compare("f_enum_open") == 0 || 
                 opt.gui_type.compare("i_enum_open") == 0 ||
                 opt.gui_type.compare("i_enum_closed") == 0) {
+		fields.emplace(id, STDMOVE(Choice::Create<Choice>(_parent, opt, id)));
     } else if (opt.gui_type.compare("slider") == 0) {
     } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
     } else { 
         switch (opt.type) {
             case coFloatOrPercent:
-            case coPercent:
             case coFloat:
-            case coString:
-//!				fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(_parent, opt, id)));
-//				fields.emplace(id, std::make_unique<TextCtrl>(_parent, opt, id));
+			case coPercent:
+			case coString:
+			case coStrings:
+				fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(_parent, opt, id)));
                 break;
+			case coBool:
+			case coBools:
+				fields.emplace(id, STDMOVE(CheckBox::Create<CheckBox>(_parent, opt, id)));
+				break;
+			case coInt:
+			case coInts:
+				fields.emplace(id, STDMOVE(SpinCtrl::Create<SpinCtrl>(_parent, opt, id)));
+				break;
+            case coEnum:
+				fields.emplace(id, STDMOVE(Choice::Create<Choice>(_parent, opt, id)));
+				break;
             case coNone:   break;
             default:
-				break;//! throw ConfigGUITypeError(""); break;
+				throw /*//!ConfigGUITypeError("")*/std::logic_error("This control doesn't exist till now"); break;
         }
     }
     // Grab a reference to fields for convenience
@@ -84,14 +96,14 @@ void OptionsGroup::append_line(const Line& line) {
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
         const auto& option = option_set.front();
-//         const auto& field = build_field(option);
-//         std::cerr << "single option, no sidetext.\n";
-//         std::cerr << "field parent is not null?: " << (field->parent != nullptr) << "\n";
-// 
-//         if (is_window_field(field)) 
-//             grid_sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
-//         if (is_sizer_field(field)) 
-//             grid_sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+        const auto& field = build_field(option);
+//!         std::cerr << "single option, no sidetext.\n";
+//!         std::cerr << "field parent is not null?: " << (field->parent != nullptr) << "\n";
+
+        if (is_window_field(field)) 
+            grid_sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+        if (is_sizer_field(field)) 
+            grid_sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
         return;
     }
 
@@ -109,9 +121,9 @@ void OptionsGroup::append_line(const Line& line) {
 		}
 
 		// add field
-// 		const Option& opt_ref = opt;
-// 		auto field = build_field(opt_ref).get();		;
-// 		sizer->Add(field, 0, wxALIGN_CENTER_VERTICAL, 0);
+		const Option& opt_ref = opt;
+		auto field = build_field(opt_ref)->getWindow();		;
+		sizer->Add(field, 0, wxALIGN_CENTER_VERTICAL, 0);
 		
 		// add sidetext if any
 		if (option.sidetext != "") {

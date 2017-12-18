@@ -142,7 +142,7 @@ public:
     /// reference to libslic3r config, non-owning pointer (?).
     const DynamicPrintConfig* config {nullptr};
     bool full_labels {0};
-	ConfigOptionsGroup(wxWindow* parent, std::string title, DynamicPrintConfig* _config) : OptionsGroup(parent, title, *(_config->def())), config(_config) {}; //!OptionsGroup(parent, title, *(_config->def)), config(_config) {};
+	ConfigOptionsGroup(wxWindow* parent, std::string title, DynamicPrintConfig* _config) : OptionsGroup(parent, title, *(_config->def())), config(_config) {}
 };
 
 }}

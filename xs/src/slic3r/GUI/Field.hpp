@@ -10,6 +10,8 @@
 #include <functional>
 #include <boost/any.hpp>
 
+#include <wx/spinctrl.h>
+
 #include "../../libslic3r/libslic3r.h"
 #include "../../libslic3r/Config.hpp"
 
@@ -32,7 +34,7 @@ class Field;
 using t_field = std::unique_ptr<Field>;
 
 class Field { 
-    protected:
+protected:
     // factory function to defer and enforce creation of derived type. 
     virtual void PostInitialize() { BUILD(); }
     
@@ -44,8 +46,7 @@ class Field {
     /// Call the attached on_change method. 
     void _on_change(wxCommandEvent& event);
 
-    public:
-    
+public:    
     /// parent wx item, opportunity to refactor (probably not necessary - data duplication)
     wxWindow* parent {nullptr};
 
@@ -78,7 +79,6 @@ class Field {
 
     virtual void set_tooltip(const wxString& tip) = 0;
 
-
     Field(const ConfigOptionDef& opt, const t_config_option_key& id) : opt(opt), opt_id(id) {};
     Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : parent(parent), opt(opt), opt_id(id) {};
 
@@ -86,6 +86,7 @@ class Field {
     virtual wxSizer*  getSizer()  { return nullptr; }
     virtual wxWindow* getWindow() { return nullptr; }
 
+	bool		is_matched(std::string string, std::string pattern);
 
     /// Factory method for generating new derived classes.
     template<class T>
@@ -93,9 +94,8 @@ class Field {
     {
         auto p = std::make_unique<T>(parent, opt, id);
         p->PostInitialize();
-        return p;
+		return std::move(p); //!p;
     }
-
 };
 
 /// Convenience function, accepts a const reference to t_field and checks to see whether 
@@ -111,9 +111,11 @@ inline bool is_sizer_field(const t_field& obj) { return !is_bad_field(obj) && ob
 class TextCtrl : public Field {
     using Field::Field;
 public:
+	TextCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt,  id) {}
+	TextCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+
     void BUILD();
     wxWindow* window {nullptr};
-
 
     virtual void set_value(std::string value) { 
         dynamic_cast<wxTextCtrl*>(window)->SetValue(wxString(value));
@@ -122,7 +124,7 @@ public:
         dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
     }
 
-    boost::any get_value() { return boost::any(dynamic_cast<wxTextCtrl*>(window)->GetValue()); }
+	boost::any get_value() override { return boost::any(dynamic_cast<wxTextCtrl*>(window)->GetValue()); }
 
     virtual void enable();
     virtual void disable();
@@ -131,7 +133,87 @@ public:
 
 };
 
+class CheckBox : public Field {
+	using Field::Field;
+public:
+	CheckBox(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
+	CheckBox(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+
+	wxWindow*		window{ nullptr };
+	void			BUILD() override;
+
+	void			set_value (const bool value) {
+		dynamic_cast<wxCheckBox*>(window)->SetValue(value);
+	}
+	void			set_value(boost::any value) {
+		dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<bool>(value));
+	}
+	boost::any		get_value() override {
+		return boost::any(dynamic_cast<wxCheckBox*>(window)->GetValue());
+	}
+
+	void			enable() override { dynamic_cast<wxCheckBox*>(window)->Enable(); }
+	void			disable() override { dynamic_cast<wxCheckBox*>(window)->Disable(); }
+	void			set_tooltip(const wxString& tip) override {};
+	wxWindow*		getWindow() override { return window; }
+};
+
+class SpinCtrl : public Field {
+	using Field::Field;
+public:
+	SpinCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id), tmp_value(-9999) {}
+	SpinCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id), tmp_value(-9999) {}
+
+	int				tmp_value;
+
+	wxWindow*		window{ nullptr };
+	void			BUILD() override;
+
+	void			set_value(const std::string value) {
+		dynamic_cast<wxSpinCtrl*>(window)->SetValue(value);
+	}
+	void			set_value(boost::any value) {
+		dynamic_cast<wxSpinCtrl*>(window)->SetValue(boost::any_cast<std::string>(value));
+	}
+	boost::any		get_value() override {
+		return boost::any(dynamic_cast<wxSpinCtrl*>(window)->GetValue());
+	}
+
+	void			enable() override { dynamic_cast<wxSpinCtrl*>(window)->Enable(); }
+	void			disable() override { dynamic_cast<wxSpinCtrl*>(window)->Disable(); }
+	wxWindow*		getWindow() override { return window; }
+	void			set_tooltip(const wxString& tip) override{};
+};
+
+class Choice : public Field {
+	using Field::Field;
+public:
+	Choice(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
+	Choice(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+
+	wxWindow*		window{ nullptr };
+	void			BUILD()  override;
+
+	void			set_selection();
+	void			set_value(const std::string value);// {
+// 		dynamic_cast<wxComboBox*>(window)->SetValue(value);
+// 	}
+	void			set_value(boost::any value) {
+		dynamic_cast<wxComboBox*>(window)->SetValue(boost::any_cast<std::string>(value));
+	}
+	void			set_values(const std::vector<std::string> values);
+	boost::any		get_value() override	{
+		return boost::any(dynamic_cast<wxComboBox*>(window)->GetValue());
+	}
+
+	void			enable() override { dynamic_cast<wxComboBox*>(window)->Enable(); };
+	void			disable() override{ dynamic_cast<wxComboBox*>(window)->Disable(); };
+	wxWindow*		getWindow() override { return window; }
+ 	void			set_tooltip(const wxString& tip) override {}; //! Redundant
+};
 
 #endif 
-}}
+} // GUI
+} // Slic3r
+
 
