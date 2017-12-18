@@ -15,7 +15,8 @@
     bool                        visible()       %code%{ RETVAL = THIS->is_visible;  %};
     bool                        dirty()         %code%{ RETVAL = THIS->is_dirty;    %};
     bool                        compatible()    %code%{ RETVAL = THIS->is_compatible; %};
-    bool                        is_compatible_with_printer(char *active_printer) const;
+    bool                        is_compatible_with_printer(Preset *active_printer)
+        %code%{ RETVAL = THIS->is_compatible_with_printer(*active_printer); %};
 
     const char*                 name()          %code%{ RETVAL = THIS->name.c_str(); %};
     const char*                 file()          %code%{ RETVAL = THIS->file.c_str(); %};

@@ -79,9 +79,9 @@ public:
     void                set_dirty(bool dirty = true) { this->is_dirty = dirty; }
     void                reset_dirty() { this->is_dirty = false; }
 
-    bool                is_compatible_with_printer(const std::string &active_printer) const;
+    bool                is_compatible_with_printer(const Preset &active_printer) const;
     // Mark this preset as compatible if it is compatible with active_printer.
-    bool                update_compatible_with_printer(const std::string &active_printer);
+    bool                update_compatible_with_printer(const Preset &active_printer);
 
     // Resize the extruder specific fields, initialize them with the content of the 1st extruder.
     void                set_num_extruders(unsigned int n) { set_num_extruders(this->config, n); }
@@ -180,7 +180,7 @@ public:
     size_t          size() const                { return this->m_presets.size(); }
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
-    void            update_compatible_with_printer(const std::string &active_printer, bool select_other_if_incompatible);
+    void            update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible);
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 

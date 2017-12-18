@@ -21,6 +21,7 @@
 
 #include "../../libslic3r/libslic3r.h"
 #include "../../libslic3r/Utils.hpp"
+#include "../../libslic3r/PlaceholderParser.hpp"
 
 namespace Slic3r {
 
@@ -141,16 +142,26 @@ std::string Preset::label() const
     return this->name + (this->is_dirty ? g_suffix_modified : "");
 }
 
-bool Preset::is_compatible_with_printer(const std::string &active_printer) const
+bool Preset::is_compatible_with_printer(const Preset &active_printer) const
 {
+    auto *condition = dynamic_cast<const ConfigOptionString*>(this->config.option("compatible_printers_condition"));
+    if (condition != nullptr && ! condition->value.empty()) {
+        try {
+            return PlaceholderParser::evaluate_boolean_expression(condition->value, active_printer.config);
+        } catch (const std::runtime_error &err) {
+            //FIXME in case of an error, return "compatible with everything".
+            printf("Preset::is_compatible_with_printer - parsing error of compatible_printers_condition %s:\n%s\n", active_printer.name.c_str(), err.what());
+            return true;
+        }
+    }
     auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(this->config.option("compatible_printers"));
-    return this->is_default || active_printer.empty() ||
+    return this->is_default || active_printer.name.empty() ||
         compatible_printers == nullptr || compatible_printers->values.empty() ||
-        std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer) != 
+        std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.name) != 
             compatible_printers->values.end();
 }
 
-bool Preset::update_compatible_with_printer(const std::string &active_printer)
+bool Preset::update_compatible_with_printer(const Preset &active_printer)
 {
     return this->is_compatible = is_compatible_with_printer(active_printer);
 }
@@ -180,7 +191,7 @@ const std::vector<std::string>& Preset::print_options()
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
         "wipe_tower_width", "wipe_tower_per_color_wipe",
-        "compatible_printers"
+        "compatible_printers", "compatible_printers_condition"
     };
     return s_opts;
 }
@@ -193,7 +204,7 @@ const std::vector<std::string>& Preset::filament_options()
         "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", 
         "disable_fan_first_layers", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", 
         "end_filament_gcode",
-        "compatible_printers"
+        "compatible_printers", "compatible_printers_condition"
     };
     return s_opts;
 }
@@ -395,7 +406,7 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
     }
 }
 
-void PresetCollection::update_compatible_with_printer(const std::string &active_printer, bool select_other_if_incompatible)
+void PresetCollection::update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible)
 {
     for (size_t idx_preset = 1; idx_preset < m_presets.size(); ++ idx_preset) {
         bool    selected        = idx_preset == m_idx_selected;
@@ -490,9 +501,11 @@ std::vector<std::string> PresetCollection::current_dirty_options() const
     // The "compatible_printers" option key is handled differently from the others:
     // It is not mandatory. If the key is missing, it means it is compatible with any printer.
     // If the key exists and it is empty, it means it is compatible with no printer.
-    const char compatible_printers[] = "compatible_printers";
-    if (this->get_selected_preset().config.has(compatible_printers) != this->get_edited_preset().config.has(compatible_printers))
-        changed.emplace_back(compatible_printers);
+    std::initializer_list<const char*> optional_keys { "compatible_printers", "compatible_printers_condition" };
+    for (auto &opt_key : optional_keys) {
+        if (this->get_selected_preset().config.has(opt_key) != this->get_edited_preset().config.has(opt_key))
+            changed.emplace_back(opt_key);
+    }
     return changed;
 }
 

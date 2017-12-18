@@ -302,3 +302,14 @@ Debugging the C++ code works fine using the latest Eclipse for C++ and the gdb o
 It is yet a bit more complicated. The Strawberry MINGW is compiled for a different C++ exception passing model (SJLJ) than the other MINGWs, so one cannot simply combine MINGWs on Windows. For an unknown reason the nice debugger of the QT Creator hangs when debugging the C++ compiled by the Strawberry MINGW. Mabe it is because of the different exception passing models.
 
 And to disable optimization of the C/C++ code, one has to manually modify Config_heavy.pl in the Perl central installation. The SLIC3R_DEBUG environment variable did not override all the -O2 and -O3 flags that the perl build adds the gcc execution line.
+
+----------------------------------------------------------------------
+
+Building boost.
+
+One may save compilation time by compiling just what Slic3r needs.
+./bootstrap.sh --with-libraries=system,filesystem,thread,log,locale,regex
+The -fPIC flag is required on Linux to make the static libraries rellocatable,
+so they could be embedded into a shared library.
+./bjam -a link=static variant=release threading=multi cxxflags=-fPIC cflags=-fPIC
+To install on Linux to /usr/local/..., run the line above with the additional install keyword and with sudo.

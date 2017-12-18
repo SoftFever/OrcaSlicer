@@ -47,7 +47,9 @@ PresetBundle::PresetBundle() :
     this->printers.preset(0).config.opt_string("print_settings_id", true);
     // Create the "compatible printers" keys, as they are not part of the Static print config classes.
     this->filaments.preset(0).config.optptr("compatible_printers", true);
+    this->filaments.preset(0).config.optptr("compatible_printers_condition", true);
     this->prints.preset(0).config.optptr("compatible_printers", true);
+    this->prints.preset(0).config.optptr("compatible_printers_condition", true);
 
     this->prints   .load_bitmap_default("cog.png");
     this->filaments.load_bitmap_default("spool.png");
@@ -537,8 +539,8 @@ void PresetBundle::update_multi_material_filament_presets()
 
 void PresetBundle::update_compatible_with_printer(bool select_other_if_incompatible)
 {
-    this->prints.update_compatible_with_printer(this->printers.get_selected_preset().name, select_other_if_incompatible);
-    this->filaments.update_compatible_with_printer(this->printers.get_selected_preset().name, select_other_if_incompatible);
+    this->prints.update_compatible_with_printer(this->printers.get_edited_preset(), select_other_if_incompatible);
+    this->filaments.update_compatible_with_printer(this->printers.get_edited_preset(), select_other_if_incompatible);
     if (select_other_if_incompatible) {
         // Verify validity of the current filament presets.
         for (std::string &filament_name : this->filament_presets) {

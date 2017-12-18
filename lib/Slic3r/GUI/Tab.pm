@@ -150,6 +150,8 @@ sub save_preset {
     # Save the preset into Slic3r::data_dir/presets/section_name/preset_name.ini
     eval { $self->{presets}->save_current_preset($name); };
     Slic3r::GUI::catch_error($self) and return;
+    # Mark the print & filament enabled if they are compatible with the currently selected preset.
+    wxTheApp->{preset_bundle}->update_compatible_with_printer(0);
     # Add the new item into the UI component, remove dirty flags and activate the saved item.
     $self->update_tab_ui;
     # Update the selection boxes at the platter.
@@ -285,12 +287,12 @@ sub select_preset {
         my $new_printer_preset = $presets->find_preset($new_printer_name, 1);
         my $print_presets           = wxTheApp->{preset_bundle}->print;
         my $print_preset_dirty      = $print_presets->current_is_dirty;
-        my $print_preset_compatible = $print_presets->get_edited_preset->is_compatible_with_printer($new_printer_name);
+        my $print_preset_compatible = $print_presets->get_edited_preset->is_compatible_with_printer($new_printer_preset);
         $canceled = $print_preset_dirty && ! $print_preset_compatible &&
             ! $self->may_discard_current_dirty_preset($print_presets, $new_printer_name);
         my $filament_presets        = wxTheApp->{preset_bundle}->filament;
         my $filament_preset_dirty   = $filament_presets->current_is_dirty;
-        my $filament_preset_compatible = $filament_presets->get_edited_preset->is_compatible_with_printer($new_printer_name);
+        my $filament_preset_compatible = $filament_presets->get_edited_preset->is_compatible_with_printer($new_printer_preset);
         if (! $canceled) {
             $canceled = $filament_preset_dirty && ! $filament_preset_compatible &&
                 ! $self->may_discard_current_dirty_preset($filament_presets, $new_printer_name);
@@ -442,6 +444,7 @@ sub _load_key_value {
     $self->{config}->set($opt_key, $value);
     # Mark the print & filament enabled if they are compatible with the currently selected preset.
     if ($opt_key eq 'compatible_printers') {
+#        $opt_key eq 'compatible_printers_condition') {
         wxTheApp->{preset_bundle}->update_compatible_with_printer(0);
     }
     $self->{presets}->update_dirty_ui($self->{presets_choice});
@@ -838,6 +841,10 @@ sub build {
                     widget      => $self->_compatible_printers_widget,
                 );
                 $optgroup->append_line($line);
+
+                my $option = $optgroup->get_option('compatible_printers_condition');
+                $option->full_width(1);
+                $optgroup->append_single_option_line($option);
             }
         }
     }
@@ -1207,6 +1214,10 @@ sub build {
                     widget      => $self->_compatible_printers_widget,
                 );
                 $optgroup->append_line($line);
+
+                my $option = $optgroup->get_option('compatible_printers_condition');
+                $option->full_width(1);
+                $optgroup->append_single_option_line($option);
             }
         }
     }

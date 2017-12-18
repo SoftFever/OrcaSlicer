@@ -139,6 +139,13 @@ PrintConfigDef::PrintConfigDef()
     def->label = "Compatible printers";
     def->default_value = new ConfigOptionStrings();
 
+    def = this->add("compatible_printers_condition", coString);
+    def->label = "Compatible printers condition";
+    def->tooltip = "A boolean expression using the configuration values of an active printer profile. "
+                   "If this expression evaluates to true, this profile is considered compatible "
+                   "with the active printer profile.";
+    def->default_value = new ConfigOptionString();
+
     def = this->add("complete_objects", coBool);
     def->label = "Complete individual objects";
     def->tooltip = "When printing multiple objects or copies, this feature will complete "
