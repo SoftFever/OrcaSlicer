@@ -21,4 +21,13 @@
                 croak(e.what());
             }
         %};
+
+    bool evaluate_boolean_expression(const char *str) const
+        %code%{
+            try {
+                RETVAL = THIS->evaluate_boolean_expression(str, THIS->config());
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};        
 };

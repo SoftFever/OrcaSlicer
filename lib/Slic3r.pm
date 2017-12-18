@@ -80,6 +80,10 @@ my $paused = 0;
 $Slic3r::loglevel = (defined($ENV{'SLIC3R_LOGLEVEL'}) && $ENV{'SLIC3R_LOGLEVEL'} =~ /^[1-9]/) ? $ENV{'SLIC3R_LOGLEVEL'} : 0;
 set_logging_level($Slic3r::loglevel);
 
+# Let the palceholder parser evaluate one expression to initialize its local static macro_processor 
+# class instance in a thread safe manner.
+Slic3r::GCode::PlaceholderParser->new->evaluate_boolean_expression('1==1');
+
 sub spawn_thread {
     my ($cb) = @_;
     @_ = ();

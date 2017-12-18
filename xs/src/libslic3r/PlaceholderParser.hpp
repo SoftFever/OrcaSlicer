@@ -26,11 +26,17 @@ public:
     void set(const std::string &key, double value)              { this->set(key, new ConfigOptionFloat(value)); }
     void set(const std::string &key, const std::vector<std::string> &values) { this->set(key, new ConfigOptionStrings(values)); }
     void set(const std::string &key, ConfigOption *opt)         { m_config.set_key_value(key, opt); }
-    const ConfigOption* option(const std::string &key) const    { return m_config.option(key); }
+    const DynamicConfig&    config() const                      { return m_config; }
+    const ConfigOption*     option(const std::string &key) const { return m_config.option(key); }
 
-    // Fill in the template.
+    // Fill in the template using a macro processing language.
+    // Throws std::runtime_error on syntax or runtime error.
     std::string process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr) const;
     
+    // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
+    // Throws std::runtime_error on syntax or runtime error.
+    static bool evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config);
+
 private:
     DynamicConfig m_config;
 };

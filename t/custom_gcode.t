@@ -1,4 +1,4 @@
-use Test::More tests => 49;
+use Test::More tests => 55;
 use strict;
 use warnings;
 
@@ -67,6 +67,14 @@ use Slic3r::Test;
     is $parser->process('{2*foo*(3-12)}'), '0', 'math: 2*foo*(3-12)';
     is $parser->process('{2*bar*(3-12)}'), '-36', 'math: 2*bar*(3-12)';
     ok abs($parser->process('{2.5*bar*(3-12)}') - -45) < 1e-7, 'math: 2.5*bar*(3-12)';
+
+    # Test the boolean expression parser.
+    is $parser->evaluate_boolean_expression('12 == 12'), 1, 'boolean expression parser: 12 == 12';
+    is $parser->evaluate_boolean_expression('12 != 12'), 0, 'boolean expression parser: 12 != 12';
+    is $parser->evaluate_boolean_expression('"has some PATTERN embedded" =~ /.*PATTERN.*/'), 1, 'boolean expression parser: regex matches';
+    is $parser->evaluate_boolean_expression('"has some PATTERN embedded" =~ /.*PTRN.*/'),    0, 'boolean expression parser: regex does not match';
+    is $parser->evaluate_boolean_expression('foo + 2 == bar'),                               1, 'boolean expression parser: accessing variables, equal';
+    is $parser->evaluate_boolean_expression('foo + 3 == bar'),                               0, 'boolean expression parser: accessing variables, not equal';
 }
 
 {

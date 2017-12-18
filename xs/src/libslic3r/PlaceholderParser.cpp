@@ -361,6 +361,13 @@ namespace client
             out = self.b();
         }
 
+        static void evaluate_boolean_to_string(expr &self, std::string &out)
+        {
+            if (self.type != TYPE_BOOL)
+                self.throw_exception("Not a boolean expression");
+            out = self.b() ? "true" : "false";
+        }
+
         // Is lhs==rhs? Store the result into lhs.
         static void compare_op(expr &lhs, expr &rhs, char op)
         {
@@ -452,10 +459,15 @@ namespace client
     }
 
     struct MyContext {
-        const PlaceholderParser *pp = nullptr;
-        const DynamicConfig     *config_override = nullptr;
-        const size_t             current_extruder_id = 0;
+        const DynamicConfig     *config                 = nullptr;
+        const DynamicConfig     *config_override        = nullptr;
+        size_t                   current_extruder_id    = 0;
+        // If false, the macro_processor will evaluate a full macro.
+        // If true, the macro processor will evaluate just a boolean condition using the full expressive power of the macro processor.
+        bool                     just_boolean_expression = false;
         std::string              error_message;
+
+        static void             evaluate_full_macro(const MyContext *ctx, bool &result) { result = ! ctx->just_boolean_expression; }
 
         const ConfigOption*     resolve_symbol(const std::string &opt_key) const
         {
@@ -463,7 +475,7 @@ namespace client
             if (config_override != nullptr)
                 opt = config_override->option(opt_key);
             if (opt == nullptr)
-                opt = pp->option(opt_key);
+                opt = config->option(opt_key);
             return opt;
         }
 
@@ -734,13 +746,13 @@ namespace client
     };
 
     ///////////////////////////////////////////////////////////////////////////
-    //  Our calculator grammar
+    //  Our macro_processor grammar
     ///////////////////////////////////////////////////////////////////////////
     // Inspired by the C grammar rules https://www.lysator.liu.se/c/ANSI-C-grammar-y.html
     template <typename Iterator>
-    struct calculator : qi::grammar<Iterator, std::string(const MyContext*), spirit::ascii::space_type>
+    struct macro_processor : qi::grammar<Iterator, std::string(const MyContext*), qi::locals<bool>, spirit::ascii::space_type>
     {
-        calculator() : calculator::base_type(start)
+        macro_processor() : macro_processor::base_type(start)
         {
             using namespace qi::labels;
             qi::alpha_type              alpha;
@@ -772,7 +784,13 @@ namespace client
             // Starting symbol of the grammer.
             // The leading eps is required by the "expectation point" operator ">".
             // Without it, some of the errors would not trigger the error handler.
-            start = eps > text_block(_r1);
+            // Also the start symbol switches between the "full macro syntax" and a "boolean expression only",
+            // depending on the context->just_boolean_expression flag. This way a single static expression parser
+            // could serve both purposes.
+            start = eps[px::bind(&MyContext::evaluate_full_macro, _r1, _a)] >
+                (       eps(_a==true) > text_block(_r1) [_val=_1]
+                    |   bool_expr(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean_to_string, _1, _val) ]
+                );
             start.name("start");
             qi::on_error<qi::fail>(start, px::bind(&MyContext::process_error_message<Iterator>, _r1, _4, _1, _2, _3));
 
@@ -944,7 +962,7 @@ namespace client
         }
 
         // The start of the grammar.
-        qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> start;
+        qi::rule<Iterator, std::string(const MyContext*), qi::locals<bool>, spirit::ascii::space_type> start;
         // A free-form text.
         qi::rule<Iterator, std::string(), spirit::ascii::space_type> text;
         // A free-form text, possibly empty, possibly containing macro expansions.
@@ -979,30 +997,49 @@ namespace client
     };
 }
 
-std::string PlaceholderParser::process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override) const
+static std::string process_macro(const std::string &templ, client::MyContext &context)
 {
     typedef std::string::const_iterator iterator_type;
-    typedef client::calculator<iterator_type> calculator;
+    typedef client::macro_processor<iterator_type> macro_processor;
 
     // Our whitespace skipper.
     spirit::ascii::space_type   space;
-    // Our grammar.
-    calculator                  calc;
+    // Our grammar, statically allocated inside the method, meaning it will be allocated the first time
+    // PlaceholderParser::process() runs.
+    //FIXME this kind of initialization is not thread safe!
+    static macro_processor      macro_processor_instance;
     // Iterators over the source template.
     std::string::const_iterator iter = templ.begin();
     std::string::const_iterator end  = templ.end();
     // Accumulator for the processed template.
     std::string                 output;
-    client::MyContext context;
-    context.pp = this;
-    context.config_override = config_override;
-    bool res = phrase_parse(iter, end, calc(&context), space, output);
+    bool res = phrase_parse(iter, end, macro_processor_instance(&context), space, output);
     if (! context.error_message.empty()) {
         if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
             context.error_message += '\n';
         throw std::runtime_error(context.error_message);
     }
     return output;
+}
+
+std::string PlaceholderParser::process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override) const
+{
+    client::MyContext context;
+    context.config              = &this->config();
+    context.config_override     = config_override;
+    context.current_extruder_id = current_extruder_id;
+    return process_macro(templ, context);
+}
+
+// Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
+// Throws std::runtime_error on syntax or runtime error.
+bool PlaceholderParser::evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config)
+{
+    client::MyContext context;
+    context.config                  = &config;
+    // Let the macro processor parse just a boolean expression, not the full macro language.
+    context.just_boolean_expression = true;
+    return process_macro(templ, context) == "true";
 }
 
 }
