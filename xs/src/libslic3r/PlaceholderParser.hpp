@@ -35,7 +35,7 @@ public:
     
     // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
     // Throws std::runtime_error on syntax or runtime error.
-    static bool evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config);
+    static bool evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override = nullptr);
 
 private:
     DynamicConfig m_config;

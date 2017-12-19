@@ -79,9 +79,11 @@ public:
     void                set_dirty(bool dirty = true) { this->is_dirty = dirty; }
     void                reset_dirty() { this->is_dirty = false; }
 
+    bool                is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const;
     bool                is_compatible_with_printer(const Preset &active_printer) const;
+
     // Mark this preset as compatible if it is compatible with active_printer.
-    bool                update_compatible_with_printer(const Preset &active_printer);
+    bool                update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config);
 
     // Resize the extruder specific fields, initialize them with the content of the 1st extruder.
     void                set_num_extruders(unsigned int n) { set_num_extruders(this->config, n); }

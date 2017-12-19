@@ -1,4 +1,4 @@
-use Test::More tests => 55;
+use Test::More tests => 71;
 use strict;
 use warnings;
 
@@ -47,9 +47,13 @@ use Slic3r::Test;
 
 {
     my $parser = Slic3r::GCode::PlaceholderParser->new;
-    $parser->apply_config(my $config = Slic3r::Config::new_from_defaults);
+    my $config = Slic3r::Config::new_from_defaults;
+    $config->set('printer_notes', '  PRINTER_VENDOR_PRUSA3D  PRINTER_MODEL_MK2  ');
+    $config->set('nozzle_diameter', [0.6, 0.6, 0.6, 0.6]);
+    $parser->apply_config($config);
     $parser->set('foo' => 0);
     $parser->set('bar' => 2);
+    $parser->set('num_extruders' => 4);
     is $parser->process('[temperature_[foo]]'),
         $config->temperature->[0],
         "nested config options (legacy syntax)";
@@ -75,6 +79,24 @@ use Slic3r::Test;
     is $parser->evaluate_boolean_expression('"has some PATTERN embedded" =~ /.*PTRN.*/'),    0, 'boolean expression parser: regex does not match';
     is $parser->evaluate_boolean_expression('foo + 2 == bar'),                               1, 'boolean expression parser: accessing variables, equal';
     is $parser->evaluate_boolean_expression('foo + 3 == bar'),                               0, 'boolean expression parser: accessing variables, not equal';
+
+    is $parser->evaluate_boolean_expression('(12 == 12) and (13 != 14)'),                    1, 'boolean expression parser: (12 == 12) and (13 != 14)';
+    is $parser->evaluate_boolean_expression('(12 == 12) && (13 != 14)'),                     1, 'boolean expression parser: (12 == 12) && (13 != 14)';
+    is $parser->evaluate_boolean_expression('(12 == 12) or (13 == 14)'),                     1, 'boolean expression parser: (12 == 12) or (13 == 14)';
+    is $parser->evaluate_boolean_expression('(12 == 12) || (13 == 14)'),                     1, 'boolean expression parser: (12 == 12) || (13 == 14)';
+    is $parser->evaluate_boolean_expression('(12 == 12) and not (13 == 14)'),                1, 'boolean expression parser: (12 == 12) and not (13 == 14)';
+    is $parser->evaluate_boolean_expression('(12 == 12) ? (1 - 1 == 0) : (2 * 2 == 3)'),     1, 'boolean expression parser: ternary true';
+    is $parser->evaluate_boolean_expression('(12 == 21/2) ? (1 - 1 == 0) : (2 * 2 == 3)'),   0, 'boolean expression parser: ternary false';
+    is $parser->evaluate_boolean_expression('(12 == 13) ? (1 - 1 == 3) : (2 * 2 == 4)"'),    1, 'boolean expression parser: ternary false';
+    is $parser->evaluate_boolean_expression('(12 == 2 * 6) ? (1 - 1 == 3) : (2 * 2 == 4)"'), 0, 'boolean expression parser: ternary true';
+    is $parser->evaluate_boolean_expression('12 < 3'), 0, 'boolean expression parser: lower than - false';
+    is $parser->evaluate_boolean_expression('12 < 22'), 1, 'boolean expression parser: lower than - true';
+    is $parser->evaluate_boolean_expression('12 > 3'), 1, 'boolean expression parser: lower than - true';
+    is $parser->evaluate_boolean_expression('12 > 22'), 0, 'boolean expression parser: lower than - false';
+
+    is $parser->evaluate_boolean_expression('printer_notes=~/.*PRINTER_VENDOR_PRUSA3D.*/ and printer_notes=~/.*PRINTER_MODEL_MK2.*/ and nozzle_diameter[0]==0.6 and num_extruders>1'), 1, 'complex expression';
+    is $parser->evaluate_boolean_expression('printer_notes=~/.*PRINTER_VEwerfNDOR_PRUSA3D.*/ or printer_notes=~/.*PRINTertER_MODEL_MK2.*/ or (nozzle_diameter[0]==0.6 and num_extruders>1)'), 1, 'complex expression2';
+    is $parser->evaluate_boolean_expression('printer_notes=~/.*PRINTER_VEwerfNDOR_PRUSA3D.*/ or printer_notes=~/.*PRINTertER_MODEL_MK2.*/ or (nozzle_diameter[0]==0.3 and num_extruders>1)'), 0, 'complex expression3';
 }
 
 {

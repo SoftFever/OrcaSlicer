@@ -369,29 +369,50 @@ namespace client
         }
 
         // Is lhs==rhs? Store the result into lhs.
-        static void compare_op(expr &lhs, expr &rhs, char op)
+        static void compare_op(expr &lhs, expr &rhs, char op, bool invert)
         {
             bool value = false;
             if ((lhs.type == TYPE_INT || lhs.type == TYPE_DOUBLE) &&
                 (rhs.type == TYPE_INT || rhs.type == TYPE_DOUBLE)) {
                 // Both types are numeric.
-                value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ? 
-                    (lhs.as_d() == rhs.as_d()) : (lhs.i() == rhs.i());
+                switch (op) {
+                    case '=':
+                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ? 
+                            (std::abs(lhs.as_d() - rhs.as_d()) < 1e-8) : (lhs.i() == rhs.i());
+                        break;
+                    case '<':
+                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ? 
+                            (lhs.as_d() < rhs.as_d()) : (lhs.i() < rhs.i());
+                        break;
+                    case '>':
+                    default:
+                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ? 
+                            (lhs.as_d() > rhs.as_d()) : (lhs.i() > rhs.i());
+                        break;
+                }
             } else if (lhs.type == TYPE_BOOL && rhs.type == TYPE_BOOL) {
                 // Both type are bool.
+                if (op != '=')
+                    boost::throw_exception(qi::expectation_failure<Iterator>(
+                        lhs.it_range.begin(), rhs.it_range.end(), spirit::info("*Cannot compare the types.")));
                 value = lhs.b() == rhs.b();
             } else if (lhs.type == TYPE_STRING || rhs.type == TYPE_STRING) {
                 // One type is string, the other could be converted to string.
-                value = lhs.to_string() == rhs.to_string();
+                value = (op == '=') ? (lhs.to_string() == rhs.to_string()) : 
+                        (op == '<') ? (lhs.to_string() < rhs.to_string()) : (lhs.to_string() > rhs.to_string());
             } else {
                 boost::throw_exception(qi::expectation_failure<Iterator>(
                     lhs.it_range.begin(), rhs.it_range.end(), spirit::info("*Cannot compare the types.")));
             }
             lhs.type = TYPE_BOOL;
-            lhs.data.b = (op == '=') ? value : !value;
+            lhs.data.b = invert ? ! value : value;
         }
-        static void equal    (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '='); }
-        static void not_equal(expr &lhs, expr &rhs) { compare_op(lhs, rhs, '!'); }
+        static void equal    (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '=', false); }
+        static void not_equal(expr &lhs, expr &rhs) { compare_op(lhs, rhs, '=', true ); }
+        static void lower    (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '<', false); }
+        static void greater  (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '>', false); }
+        static void leq      (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '>', true ); }
+        static void geq      (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '<', true ); }
 
         static void regex_op(expr &lhs, boost::iterator_range<Iterator> &rhs, char op)
         {
@@ -420,6 +441,32 @@ namespace client
 
         static void regex_matches     (expr &lhs, boost::iterator_range<Iterator> &rhs) { return regex_op(lhs, rhs, '='); }
         static void regex_doesnt_match(expr &lhs, boost::iterator_range<Iterator> &rhs) { return regex_op(lhs, rhs, '!'); }
+
+        static void logical_op(expr &lhs, expr &rhs, char op)
+        {
+            bool value = false;
+            if (lhs.type == TYPE_BOOL && rhs.type == TYPE_BOOL) {
+                value = (op == '|') ? (lhs.b() || rhs.b()) : (lhs.b() && rhs.b());
+            } else {
+                boost::throw_exception(qi::expectation_failure<Iterator>(
+                    lhs.it_range.begin(), rhs.it_range.end(), spirit::info("*Cannot apply logical operation to non-boolean operators.")));
+            }
+            lhs.type   = TYPE_BOOL;
+            lhs.data.b = value;
+        }
+        static void logical_or (expr &lhs, expr &rhs) { logical_op(lhs, rhs, '|'); }
+        static void logical_and(expr &lhs, expr &rhs) { logical_op(lhs, rhs, '&'); }
+
+        static void ternary_op(expr &lhs, expr &rhs1, expr &rhs2)
+        {
+            bool value = false;
+            if (lhs.type != TYPE_BOOL)
+                lhs.throw_exception("Not a boolean expression");
+            if (lhs.b())
+                lhs = std::move(rhs1);
+            else
+                lhs = std::move(rhs2);
+        }
 
         static void set_if(bool &cond, bool &not_yet_consumed, std::string &str_in, std::string &str_out)
         {
@@ -789,7 +836,7 @@ namespace client
             // could serve both purposes.
             start = eps[px::bind(&MyContext::evaluate_full_macro, _r1, _a)] >
                 (       eps(_a==true) > text_block(_r1) [_val=_1]
-                    |   bool_expr(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean_to_string, _1, _val) ]
+                    |   conditional_expression(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean_to_string, _1, _val) ]
                 );
             start.name("start");
             qi::on_error<qi::fail>(start, px::bind(&MyContext::process_error_message<Iterator>, _r1, _4, _1, _2, _3));
@@ -852,34 +899,54 @@ namespace client
                 raw[lexeme[(alpha | '_') >> *(alnum | '_')]];
             identifier.name("identifier");
 
-            bool_expr =
-                additive_expression(_r1)                   [_val = _1]
-                >> *(   ("==" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::equal,     _val, _1)]
-                    |   ("!=" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
-                    |   ("<>" > additive_expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
-                    |   ("=~" > regular_expression       ) [px::bind(&expr<Iterator>::regex_matches, _val, _1)]
-                    |   ("!~" > regular_expression       ) [px::bind(&expr<Iterator>::regex_doesnt_match, _val, _1)]
+            conditional_expression =
+                logical_or_expression(_r1)                [_val = _1]
+                >> -('?' > conditional_expression(_r1) > ':' > conditional_expression(_r1)) [px::bind(&expr<Iterator>::ternary_op, _val, _1, _2)];
+
+            logical_or_expression = 
+                logical_and_expression(_r1)                [_val = _1]
+                >> *(   ((kw["or"] | "||") > logical_and_expression(_r1) ) [px::bind(&expr<Iterator>::logical_or, _val, _1)] );
+
+            logical_and_expression = 
+                equality_expression(_r1)                   [_val = _1]
+                >> *(   ((kw["and"] | "&&") > equality_expression(_r1) ) [px::bind(&expr<Iterator>::logical_and, _val, _1)] );
+
+            equality_expression =
+                relational_expression(_r1)                   [_val = _1]
+                >> *(   ("==" > relational_expression(_r1) ) [px::bind(&expr<Iterator>::equal,     _val, _1)]
+                    |   ("!=" > relational_expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
+                    |   ("<>" > relational_expression(_r1) ) [px::bind(&expr<Iterator>::not_equal, _val, _1)]
+                    |   ("=~" > regular_expression         ) [px::bind(&expr<Iterator>::regex_matches, _val, _1)]
+                    |   ("!~" > regular_expression         ) [px::bind(&expr<Iterator>::regex_doesnt_match, _val, _1)]
                     );
-            bool_expr.name("bool expression");
+            equality_expression.name("bool expression");
 
             // Evaluate a boolean expression stored as expr into a boolean value.
-            // Throw if the bool_expr does not produce a expr of boolean type.
-            bool_expr_eval = bool_expr(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean, _1, _val) ];
+            // Throw if the equality_expression does not produce a expr of boolean type.
+            bool_expr_eval = conditional_expression(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean, _1, _val) ];
             bool_expr_eval.name("bool_expr_eval");
 
+            relational_expression = 
+                    additive_expression(_r1)                [_val  = _1]
+                >> *(   (lit('<') > additive_expression(_r1) ) [px::bind(&expr<Iterator>::lower,   _val, _1)]
+                    |   (lit('>') > additive_expression(_r1) ) [px::bind(&expr<Iterator>::greater, _val, _1)]
+                    |   ("<="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::leq,     _val, _1)]
+                    |   (">="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::geq,     _val, _1)]
+                    );
+
             additive_expression =
-                term(_r1)                       [_val  = _1]
-                >> *(   (lit('+') > term(_r1) ) [_val += _1]
-                    |   (lit('-') > term(_r1) ) [_val -= _1]
+                multiplicative_expression(_r1)                       [_val  = _1]
+                >> *(   (lit('+') > multiplicative_expression(_r1) ) [_val += _1]
+                    |   (lit('-') > multiplicative_expression(_r1) ) [_val -= _1]
                     );
             additive_expression.name("additive_expression");
 
-            term =
-                factor(_r1)                       [_val  = _1]
-                >> *(   (lit('*') > factor(_r1) ) [_val *= _1]
-                    |   (lit('/') > factor(_r1) ) [_val /= _1]
+            multiplicative_expression =
+                unary_expression(_r1)                       [_val  = _1]
+                >> *(   (lit('*') > unary_expression(_r1) ) [_val *= _1]
+                    |   (lit('/') > unary_expression(_r1) ) [_val /= _1]
                     );
-            term.name("term");
+            multiplicative_expression.name("multiplicative_expression");
 
             struct FactorActions {
                 static void set_start_pos(Iterator &start_pos, expr<Iterator> &out)
@@ -899,19 +966,19 @@ namespace client
                 static void not_(expr<Iterator> &value, expr<Iterator> &out)
                         { out = value.unary_not(out.it_range.begin()); }
             };
-            factor = iter_pos[px::bind(&FactorActions::set_start_pos, _1, _val)] >> (
-                    scalar_variable_reference(_r1)      [ _val = _1 ]
-                |   (lit('(')  > additive_expression(_r1) > ')' > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
-                |   (lit('-')  > factor(_r1)           ) [ px::bind(&FactorActions::minus_,  _1,     _val) ]
-                |   (lit('+')  > factor(_r1) > iter_pos) [ px::bind(&FactorActions::expr_,   _1, _2, _val) ]
-                |   ((kw["not"] | '!') > factor(_r1) > iter_pos) [ px::bind(&FactorActions::not_, _1, _val) ]
-                |   (strict_double > iter_pos)           [ px::bind(&FactorActions::double_, _1, _2, _val) ]
-                |   (int_      > iter_pos)               [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
-                |   (kw[bool_] > iter_pos)               [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
+            unary_expression = iter_pos[px::bind(&FactorActions::set_start_pos, _1, _val)] >> (
+                    scalar_variable_reference(_r1)                  [ _val = _1 ]
+                |   (lit('(')  > conditional_expression(_r1) > ')' > iter_pos) [ px::bind(&FactorActions::expr_, _1, _2, _val) ]
+                |   (lit('-')  > unary_expression(_r1)           )  [ px::bind(&FactorActions::minus_,  _1,     _val) ]
+                |   (lit('+')  > unary_expression(_r1) > iter_pos)  [ px::bind(&FactorActions::expr_,   _1, _2, _val) ]
+                |   ((kw["not"] | '!') > unary_expression(_r1) > iter_pos) [ px::bind(&FactorActions::not_, _1, _val) ]
+                |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
+                |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
+                |   (kw[bool_] > iter_pos)                          [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
                 |   raw[lexeme['"' > *((utf8char - char_('\\') - char_('"')) | ('\\' > char_)) > '"']]
-                                                         [ px::bind(&FactorActions::string_, _1,     _val) ]
+                                                                    [ px::bind(&FactorActions::string_, _1,     _val) ]
                 );
-            factor.name("factor");
+            unary_expression.name("unary_expression");
 
             scalar_variable_reference = 
                 variable_reference(_r1)[_a=_1] >>
@@ -950,16 +1017,23 @@ namespace client
                 debug(switch_output);
                 debug(legacy_variable_expansion);
                 debug(identifier);
-                debug(bool_expr);
+                debug(conditional_expression);
+                debug(logical_or_expression);
+                debug(logical_and_expression);
+                debug(equality_expression);
                 debug(bool_expr_eval);
+                debug(relational_expression);
                 debug(additive_expression);
-                debug(term);
-                debug(factor);
+                debug(multiplicative_expression);
+                debug(unary_expression);
                 debug(scalar_variable_reference);
                 debug(variable_reference);
                 debug(regular_expression);
             }
         }
+
+        // Generic expression over expr<Iterator>.
+        typedef qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> RuleExpression;
 
         // The start of the grammar.
         qi::rule<Iterator, std::string(const MyContext*), qi::locals<bool>, spirit::ascii::space_type> start;
@@ -973,18 +1047,26 @@ namespace client
         qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> legacy_variable_expansion;
         // Parsed identifier name.
         qi::rule<Iterator, boost::iterator_range<Iterator>(), spirit::ascii::space_type> identifier;
-        // Math expression consisting of +- operators over terms.
-        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> additive_expression;
+        // Ternary operator (?:) over logical_or_expression.
+        RuleExpression conditional_expression;
+        // Logical or over logical_and_expressions.
+        RuleExpression logical_or_expression;
+        // Logical and over relational_expressions.
+        RuleExpression logical_and_expression;
+        // <, >, <=, >=
+        RuleExpression relational_expression;
+        // Math expression consisting of +- operators over multiplicative_expressions.
+        RuleExpression additive_expression;
+        // Boolean expressions over expressions.
+        RuleExpression equality_expression;
+        // Math expression consisting of */ operators over factors.
+        RuleExpression multiplicative_expression;
+        // Number literals, functions, braced expressions, variable references, variable indexing references.
+        RuleExpression unary_expression;
         // Rule to capture a regular expression enclosed in //.
         qi::rule<Iterator, boost::iterator_range<Iterator>(), spirit::ascii::space_type> regular_expression;
-        // Boolean expressions over expressions.
-        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> bool_expr;
         // Evaluate boolean expression into bool.
         qi::rule<Iterator, bool(const MyContext*), spirit::ascii::space_type> bool_expr_eval;
-        // Math expression consisting of */ operators over factors.
-        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> term;
-        // Number literals, functions, braced expressions, variable references, variable indexing references.
-        qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> factor;
         // Reference of a scalar variable, or reference to a field of a vector variable.
         qi::rule<Iterator, expr<Iterator>(const MyContext*), qi::locals<OptWithPos<Iterator>, int>, spirit::ascii::space_type> scalar_variable_reference;
         // Rule to translate an identifier to a ConfigOption, or to fail.
@@ -1033,10 +1115,11 @@ std::string PlaceholderParser::process(const std::string &templ, unsigned int cu
 
 // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
 // Throws std::runtime_error on syntax or runtime error.
-bool PlaceholderParser::evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config)
+bool PlaceholderParser::evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override)
 {
     client::MyContext context;
     context.config                  = &config;
+    context.config_override         = config_override;
     // Let the macro processor parse just a boolean expression, not the full macro language.
     context.just_boolean_expression = true;
     return process_macro(templ, context) == "true";

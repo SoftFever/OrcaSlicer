@@ -142,12 +142,12 @@ std::string Preset::label() const
     return this->name + (this->is_dirty ? g_suffix_modified : "");
 }
 
-bool Preset::is_compatible_with_printer(const Preset &active_printer) const
+bool Preset::is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const
 {
     auto *condition = dynamic_cast<const ConfigOptionString*>(this->config.option("compatible_printers_condition"));
     if (condition != nullptr && ! condition->value.empty()) {
         try {
-            return PlaceholderParser::evaluate_boolean_expression(condition->value, active_printer.config);
+            return PlaceholderParser::evaluate_boolean_expression(condition->value, active_printer.config, extra_config);
         } catch (const std::runtime_error &err) {
             //FIXME in case of an error, return "compatible with everything".
             printf("Preset::is_compatible_with_printer - parsing error of compatible_printers_condition %s:\n%s\n", active_printer.name.c_str(), err.what());
@@ -161,9 +161,18 @@ bool Preset::is_compatible_with_printer(const Preset &active_printer) const
             compatible_printers->values.end();
 }
 
-bool Preset::update_compatible_with_printer(const Preset &active_printer)
+bool Preset::is_compatible_with_printer(const Preset &active_printer) const
 {
-    return this->is_compatible = is_compatible_with_printer(active_printer);
+    DynamicPrintConfig config;
+    config.set_key_value("printer_preset", new ConfigOptionString(active_printer.name));
+    config.set_key_value("num_extruders", new ConfigOptionInt(
+        (int)static_cast<const ConfigOptionFloats*>(active_printer.config.option("nozzle_diameter"))->values.size()));
+    return this->is_compatible_with_printer(active_printer, &config);
+}
+
+bool Preset::update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config)
+{
+    return this->is_compatible = is_compatible_with_printer(active_printer, extra_config);
 }
 
 const std::vector<std::string>& Preset::print_options()
@@ -408,11 +417,15 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
 
 void PresetCollection::update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible)
 {
+    DynamicPrintConfig config;
+    config.set_key_value("printer_preset", new ConfigOptionString(active_printer.name));
+    config.set_key_value("num_extruders", new ConfigOptionInt(
+        (int)static_cast<const ConfigOptionFloats*>(active_printer.config.option("nozzle_diameter"))->values.size()));
     for (size_t idx_preset = 1; idx_preset < m_presets.size(); ++ idx_preset) {
         bool    selected        = idx_preset == m_idx_selected;
         Preset &preset_selected = m_presets[idx_preset];
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
-        if (! preset_edited.update_compatible_with_printer(active_printer) &&
+        if (! preset_edited.update_compatible_with_printer(active_printer, &config) &&
             selected && select_other_if_incompatible)
             m_idx_selected = (size_t)-1;
         if (selected)
