@@ -15,6 +15,10 @@ public:
     PresetBundle();
     ~PresetBundle();
 
+    // Remove all the presets but the "-- default --".
+    // Optionally remove all the files referenced by the presets from the user profile directory.
+    void            reset(bool delete_files);
+
     void            setup_directories();
 
     // Load ini files of all types (print, filament, printer) from Slic3r::data_dir() / presets.
@@ -51,7 +55,14 @@ public:
     // Load settings into the provided settings instance.
     // Activate the presets stored in the config bundle.
     // Returns the number of presets loaded successfully.
-    size_t                      load_configbundle(const std::string &path);
+    enum { 
+        // Save the profiles, which have been loaded.
+        LOAD_CFGBNDLE_SAVE = 1, 
+        // Delete all old config profiles before loading.
+        LOAD_CFGBNDLE_RESET_USER_PROFILE = 2
+    };
+    // Load the config bundle, store it to the user profile directory by default.
+    size_t                      load_configbundle(const std::string &path, unsigned int flags = LOAD_CFGBNDLE_SAVE);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path); // , const DynamicPrintConfig &settings);

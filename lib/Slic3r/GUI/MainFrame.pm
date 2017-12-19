@@ -299,7 +299,8 @@ sub _init_menubar {
     my $helpMenu = Wx::Menu->new;
     {
         $self->_append_menu_item($helpMenu, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard", sub {
-            $self->config_wizard;
+            # Run the config wizard, offer the "reset user profile" checkbox.
+            $self->config_wizard(0);
         });
         $helpMenu->AppendSeparator();
         $self->_append_menu_item($helpMenu, "Prusa 3D Drivers", 'Open the Prusa3D drivers download page in your browser', sub {
@@ -580,7 +581,7 @@ sub export_configbundle {
 # to auto-install a config bundle on a fresh user account,
 # but that behavior was not documented and likely buggy.
 sub load_configbundle {
-    my ($self, $file) = @_;
+    my ($self, $file, $reset_user_profile) = @_;
     return unless $self->check_unsaved_changes;
     if (!$file) {
         my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', 
@@ -595,7 +596,7 @@ sub load_configbundle {
     wxTheApp->{app_config}->update_config_dir(dirname($file));
 
     my $presets_imported = 0;
-    eval { $presets_imported = wxTheApp->{preset_bundle}->load_configbundle($file); };
+    eval { $presets_imported = wxTheApp->{preset_bundle}->load_configbundle($file, $reset_user_profile ? 1 : 0); };
     Slic3r::GUI::catch_error($self) and return;
 
     # Load the currently selected preset into the GUI, update the preset selection box.
@@ -616,7 +617,7 @@ sub load_config {
 }
 
 sub config_wizard {
-    my ($self) = @_;
+    my ($self, $fresh_start) = @_;
     # Exit wizard if there are unsaved changes and the user cancels the action.
     return unless $self->check_unsaved_changes;
     # Enumerate the profiles bundled with the Slic3r installation under resources/profiles.
@@ -632,22 +633,25 @@ sub config_wizard {
         closedir(DIR);
     }
     # Open the wizard.
-    if (my $config = Slic3r::GUI::ConfigWizard->new($self, \@profiles)->run) {
-        if (ref($config)) {
+    if (my $result = Slic3r::GUI::ConfigWizard->new($self, \@profiles, $fresh_start)->run) {
+        if ($result->{reset_user_profile}) {
+            eval { wxTheApp->{preset_bundle}->reset(1) };
+        }
+        if (defined $result->{config}) {
             # Wizard returned a config. Add the config to each of the preset types.
             for my $tab (values %{$self->{options_tabs}}) {
                 # Select the first visible preset, force.
                 $tab->select_preset(undef, 1);
             }
             # Load the config over the previously selected defaults.
-            $self->load_config($config);
+            $self->load_config($result->{config});
             for my $tab (values %{$self->{options_tabs}}) {
                 # Save the settings under a new name, select the name.
                 $tab->save_preset('My Settings');
             }
         } else {
             # Wizard returned a name of a preset bundle bundled with the installation. Unpack it.
-            eval { wxTheApp->{preset_bundle}->load_configbundle($directory . '/' . $config . '.ini'); };
+            eval { wxTheApp->{preset_bundle}->load_configbundle($directory . '/' . $result->{preset_name} . '.ini'); };
             Slic3r::GUI::catch_error($self) and return;
             # Load the currently selected preset into the GUI, update the preset selection box.
             foreach my $tab (values %{$self->{options_tabs}}) {

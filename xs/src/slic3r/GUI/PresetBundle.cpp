@@ -69,6 +69,16 @@ PresetBundle::~PresetBundle()
         delete bitmap.second;
 }
 
+void PresetBundle::reset(bool delete_files)
+{
+    // Clear the existing presets, delete their respective files.
+    this->prints   .reset(delete_files);
+    this->filaments.reset(delete_files);
+    this->printers .reset(delete_files);
+    this->filament_presets.clear();
+    this->filament_presets.emplace_back(this->filaments.get_selected_preset().name);
+}
+
 void PresetBundle::setup_directories()
 {
     boost::filesystem::path data_dir = boost::filesystem::path(Slic3r::data_dir());
@@ -376,7 +386,8 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
 {
     // 1) Load the config bundle into a temp data.
     PresetBundle tmp_bundle;
-    tmp_bundle.load_configbundle(path);
+    // Load the config bundle, don't save the loaded presets to user profile directory.
+    tmp_bundle.load_configbundle(path, 0);
     std::string bundle_name = std::string(" - ") + boost::filesystem::path(path).filename().string();
 
     // 2) Extract active configs from the config bundle, copy them and activate them in this bundle.
@@ -430,8 +441,11 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
 // of the local configuration directory.
-size_t PresetBundle::load_configbundle(const std::string &path)
+size_t PresetBundle::load_configbundle(const std::string &path, unsigned int flags)
 {
+    if (flags & LOAD_CFGBNDLE_RESET_USER_PROFILE)
+        this->reset(flags & LOAD_CFGBNDLE_SAVE);
+
     // 1) Read the complete config file into a boost::property_tree.
     namespace pt = boost::property_tree;
     pt::ptree tree;
@@ -504,7 +518,9 @@ size_t PresetBundle::load_configbundle(const std::string &path)
 #endif
                 / presets->name() / file_name).make_preferred();
             // Load the preset into the list of presets, save it to disk.
-            presets->load_preset(file_path.string(), preset_name, std::move(config), false).save();
+            Preset &loaded = presets->load_preset(file_path.string(), preset_name, std::move(config), false);
+            if (flags & LOAD_CFGBNDLE_SAVE)
+                loaded.save();
             ++ presets_loaded;
         }
     }

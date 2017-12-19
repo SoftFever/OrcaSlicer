@@ -263,6 +263,21 @@ PresetCollection::~PresetCollection()
     m_bitmap_main_frame = nullptr;
 }
 
+void PresetCollection::reset(bool delete_files)
+{
+    if (m_presets.size() > 1) {
+        if (delete_files) {
+            // Erase the preset files.
+            for (Preset &preset : m_presets)
+                if (! preset.is_default && ! preset.is_external)
+                    boost::nowide::remove(preset.file.c_str());
+        }
+        // Don't use m_presets.resize() here as it requires a default constructor for Preset.
+        m_presets.erase(m_presets.begin() + 1, m_presets.end());
+        this->select_preset(0);
+    }
+}
+
 // Load all presets found in dir_path.
 // Throws an exception on error.
 void PresetCollection::load_presets(const std::string &dir_path, const std::string &subdir)
@@ -501,9 +516,11 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
         std::string   preset_name  = Preset::remove_suffix_modified(old_label);
         const Preset *preset       = this->find_preset(preset_name, false);
         assert(preset != nullptr);
-        std::string new_label = preset->is_dirty ? preset->name + g_suffix_modified : preset->name;
-        if (old_label != new_label)
-            ui->SetString(ui_id, wxString::FromUTF8(new_label.c_str()));
+		if (preset != nullptr) {
+			std::string new_label = preset->is_dirty ? preset->name + g_suffix_modified : preset->name;
+			if (old_label != new_label)
+				ui->SetString(ui_id, wxString::FromUTF8(new_label.c_str()));
+		}
     }
     return was_dirty != is_dirty;
 }

@@ -100,6 +100,8 @@ PresetCollection::arrayref()
     PresetBundle();
     ~PresetBundle();
 
+    void                        reset(bool delete_files);
+
     void                        setup_directories()
         %code%{
             try {
@@ -128,7 +130,7 @@ PresetCollection::arrayref()
     size_t                      load_configbundle(const char *path)
         %code%{
             try {
-                RETVAL = THIS->load_configbundle(path);
+                RETVAL = THIS->load_configbundle(path, PresetBundle::LOAD_CFGBNDLE_SAVE);
             } catch (std::exception& e) {
                 croak("Loading of a config bundle %s failed:\n%s\n", path, e.what());
             }

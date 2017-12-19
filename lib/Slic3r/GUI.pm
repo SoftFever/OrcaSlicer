@@ -128,7 +128,8 @@ sub OnInit {
         # On OSX the UI was not initialized correctly if the wizard was called
         # before the UI was up and running.
         $self->CallAfter(sub {
-            $self->{mainframe}->config_wizard;
+            # Run the config wizard, don't offer the "reset user profile" checkbox.
+            $self->{mainframe}->config_wizard(1);
         });
     }
     

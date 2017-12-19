@@ -116,6 +116,8 @@ public:
     PresetCollection(Preset::Type type, const std::vector<std::string> &keys);
     ~PresetCollection();
 
+    void            reset(bool delete_files);
+
     Preset::Type    type() const { return m_type; }
     std::string     name() const;
     const std::deque<Preset>& operator()() const { return m_presets; }
