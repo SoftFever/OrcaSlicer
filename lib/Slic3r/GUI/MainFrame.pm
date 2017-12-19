@@ -641,9 +641,11 @@ sub config_wizard {
         }
         if (defined $result->{config}) {
             # Wizard returned a config. Add the config to each of the preset types.
-            # Select and load the "-- default --" preset.
-            foreach my $tab (values %{$self->{options_tabs}}) {
-                $tab->select_preset(undef, 1);
+            # Select and load the "-- default --" preset, start with the printer tab as it may revert
+            # the print and filament profile to the first visible one, which may have some
+            # printer compatibility configuration set, which we don't want to inherit.
+            foreach my $tab (qw(printer print filament)) {
+                $self->{options_tabs}->$tab->select_preset(undef, 1);
             }
             # Load the config over the previously selected defaults.
             $self->load_config($result->{config});
