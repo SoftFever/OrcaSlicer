@@ -610,6 +610,8 @@ sub load_configbundle {
 
 # Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
 # Also update the platter with the new presets.
+# This method is used to update the configuration from mainpulations in the 3D scene (for example moving the wipe tower),
+# and to load the configuration from the config wizard.
 sub load_config {
     my ($self, $config) = @_;    
     $_->load_config($config) foreach values %{$self->{options_tabs}};
@@ -639,8 +641,8 @@ sub config_wizard {
         }
         if (defined $result->{config}) {
             # Wizard returned a config. Add the config to each of the preset types.
-            for my $tab (values %{$self->{options_tabs}}) {
-                # Select the first visible preset, force.
+            # Select and load the "-- default --" preset.
+            foreach my $tab (values %{$self->{options_tabs}}) {
                 $tab->select_preset(undef, 1);
             }
             # Load the config over the previously selected defaults.

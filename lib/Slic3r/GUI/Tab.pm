@@ -272,6 +272,8 @@ sub select_preset {
     my ($self, $name, $force) = @_;
     $force //= 0;
     my $presets         = $self->{presets};
+    # If no name is provided, select the "-- default --" preset.
+    $name //= $presets->default_preset->name;
     my $current_dirty   = $presets->current_is_dirty;
     my $canceled        = 0;
     my $printer_tab     = $presets->name eq 'printer';
@@ -283,19 +285,18 @@ sub select_preset {
         # are compatible with the new printer.
         # If they are not compatible and the the current print or filament are dirty, let user decide
         # whether to discard the changes or keep the current printer selection.
-        my $new_printer_name = $name // '';
-        my $new_printer_preset = $presets->find_preset($new_printer_name, 1);
+        my $new_printer_preset      = $presets->find_preset($name, 1);
         my $print_presets           = wxTheApp->{preset_bundle}->print;
         my $print_preset_dirty      = $print_presets->current_is_dirty;
         my $print_preset_compatible = $print_presets->get_edited_preset->is_compatible_with_printer($new_printer_preset);
-        $canceled = $print_preset_dirty && ! $print_preset_compatible &&
-            ! $self->may_discard_current_dirty_preset($print_presets, $new_printer_name);
+        $canceled = ! $force && $print_preset_dirty && ! $print_preset_compatible &&
+            ! $self->may_discard_current_dirty_preset($print_presets, $name);
         my $filament_presets        = wxTheApp->{preset_bundle}->filament;
         my $filament_preset_dirty   = $filament_presets->current_is_dirty;
         my $filament_preset_compatible = $filament_presets->get_edited_preset->is_compatible_with_printer($new_printer_preset);
-        if (! $canceled) {
+        if (! $canceled && ! $force) {
             $canceled = $filament_preset_dirty && ! $filament_preset_compatible &&
-                ! $self->may_discard_current_dirty_preset($filament_presets, $new_printer_name);
+                ! $self->may_discard_current_dirty_preset($filament_presets, $name);
         }
         if (! $canceled) {
             if (! $print_preset_compatible) {
@@ -317,11 +318,7 @@ sub select_preset {
         $self->_on_presets_changed;
     } else {
         $presets->discard_current_changes if $current_dirty;
-        if (defined $name) {
-            $presets->select_preset_by_name($name);
-        } else {
-            $presets->select_preset(0);
-        }
+        $presets->select_preset_by_name($name);
         # Mark the print & filament enabled if they are compatible with the currently selected preset.
         # The following method should not discard changes of current print or filament presets on change of a printer profile,
         # if they are compatible with the current printer.
