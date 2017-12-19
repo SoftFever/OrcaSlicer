@@ -4,9 +4,6 @@
 #include "libslic3r.h"
 #include "GCodeReader.hpp"
 
-#define USE_CURA_JUNCTION_VMAX 0
-#define ENABLE_BLOCKS_PRE_PROCESSING 1
-
 namespace Slic3r {
 
   class GCodeTimeEstimator
@@ -38,7 +35,7 @@ namespace Slic3r {
       Num_Dialects
     };
 
-    enum EPositioningType
+    enum EPositioningType : unsigned char
     {
       Absolute,
       Relative
@@ -107,7 +104,6 @@ namespace Slic3r {
         static float speed_from_distance(float initial_feedrate, float distance, float acceleration);
       };
 
-#if ENABLE_BLOCKS_PRE_PROCESSING
       struct Flags
       {
         bool recalculate;
@@ -115,14 +111,11 @@ namespace Slic3r {
       };
 
       Flags flags;
-#endif // ENABLE_BLOCKS_PRE_PROCESSING
 
       float delta_pos[Num_Axis]; // mm
       float acceleration;        // mm/s^2
-#if ENABLE_BLOCKS_PRE_PROCESSING
       float max_entry_speed;     // mm/s
       float safe_feedrate;       // mm/s
-#endif // ENABLE_BLOCKS_PRE_PROCESSING
 
       FeedrateProfile feedrate;
       Trapezoid trapezoid;
@@ -246,7 +239,7 @@ namespace Slic3r {
     // Returns the estimated time, in seconds
     float get_time() const;
 
-    // Returns the estimated time, in format HH:MM:SS
+    // Returns the estimated time, in format HHh MMm SSs
     std::string get_time_hms() const;
 
   private:
@@ -306,15 +299,13 @@ namespace Slic3r {
     // Set allowable instantaneous speed change
     void _processM566(const GCodeReader::GCodeLine& line);
 
-#if ENABLE_BLOCKS_PRE_PROCESSING
-    void forward_pass();
-    void reverse_pass();
+    void _forward_pass();
+    void _reverse_pass();
 
-    void planner_forward_pass_kernel(Block* prev, Block* curr);
-    void planner_reverse_pass_kernel(Block* curr, Block* next);
+    void _planner_forward_pass_kernel(Block* prev, Block* curr);
+    void _planner_reverse_pass_kernel(Block* curr, Block* next);
 
-    void recalculate_trapezoids();
-#endif // ENABLE_BLOCKS_PRE_PROCESSING
+    void _recalculate_trapezoids();
   };
 
 } /* namespace Slic3r */

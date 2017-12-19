@@ -15,10 +15,6 @@ static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.2f, 2.5f }; // fr
 static const float DEFAULT_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
 static const float DEFAULT_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
 
-#if USE_CURA_JUNCTION_VMAX
-static const float MINIMUM_PLANNER_SPEED = 0.05f; // from Cura <<<<<<<< WHAT IS THIS ???
-#endif // USE_CURA_JUNCTION_VMAX
-
 static const float PREVIOUS_FEEDRATE_THRESHOLD = 0.0001f;
 
 namespace Slic3r {
@@ -389,11 +385,9 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_calculate_time()
   {
-#if ENABLE_BLOCKS_PRE_PROCESSING
-    forward_pass();
-    reverse_pass();
-    recalculate_trapezoids();
-#endif // ENABLE_BLOCKS_PRE_PROCESSING
+    _forward_pass();
+    _reverse_pass();
+    _recalculate_trapezoids();
 
     _time = get_additional_time();
 
@@ -601,32 +595,6 @@ namespace Slic3r {
     block.feedrate.exit = _curr.safe_feedrate;
 
     // calculates block entry feedrate
-#if USE_CURA_JUNCTION_VMAX
-    float vmax_junction = _curr.safe_feedrate;
-    if (!_blocks.empty() && (_prev.feedrate > PREVIOUS_FEEDRATE_THRESHOLD))
-    {
-      vmax_junction = block.feedrate.cruise;
-      float vmax_junction_factor = 1.0f;
-
-      for (unsigned char a = X; a < Num_Axis; ++a)
-      {
-        float abs_delta_axis_feedrate = ::abs(_curr.axis_feedrate[a] - _prev.axis_feedrate[a]);
-        float axis_max_jerk = get_axis_max_jerk((EAxis)a);
-        if (abs_delta_axis_feedrate > axis_max_jerk)
-          vmax_junction_factor = std::min(vmax_junction_factor, axis_max_jerk / abs_delta_axis_feedrate);
-      }
-
-      // limit vmax to not exceed previous feedrate
-      vmax_junction = std::min(_prev.feedrate, vmax_junction * vmax_junction_factor);
-    }
-
-#if ENABLE_BLOCKS_PRE_PROCESSING
-    float v_allowable = Block::max_allowable_speed(-acceleration, MINIMUM_PLANNER_SPEED, distance);
-    block.feedrate.entry = std::min(vmax_junction, v_allowable);
-#else
-    block.feedrate.entry = std::min(vmax_junction, Block::max_allowable_speed(-acceleration, MINIMUM_PLANNER_SPEED, distance));
-#endif // ENABLE_BLOCKS_PRE_PROCESSING
-#else
     float vmax_junction = _curr.safe_feedrate;
     if (!_blocks.empty() && (_prev.feedrate > PREVIOUS_FEEDRATE_THRESHOLD))
     {
@@ -688,20 +656,13 @@ namespace Slic3r {
         vmax_junction = _curr.safe_feedrate;
     }
 
-#if ENABLE_BLOCKS_PRE_PROCESSING
     float v_allowable = Block::max_allowable_speed(-acceleration, _curr.safe_feedrate, distance);
     block.feedrate.entry = std::min(vmax_junction, v_allowable);
-#else
-    block.feedrate.entry = std::min(vmax_junction, Block::max_allowable_speed(-acceleration, _curr.safe_feedrate, distance));
-#endif // ENABLE_BLOCKS_PRE_PROCESSING
-#endif // USE_CURA_JUNCTION_VMAX
 
-#if ENABLE_BLOCKS_PRE_PROCESSING
     block.max_entry_speed = vmax_junction;
     block.flags.nominal_length = (block.feedrate.cruise <= v_allowable);
     block.flags.recalculate = true;
     block.safe_feedrate = _curr.safe_feedrate;
-#endif // ENABLE_BLOCKS_PRE_PROCESSING
 
     // calculates block trapezoid
     block.calculate_trapezoid();
@@ -749,7 +710,7 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_processG28(const GCodeReader::GCodeLine& line)
   {
-    // todo
+    // TODO
   }
 
   void GCodeTimeEstimator::_processG90(const GCodeReader::GCodeLine& line)
@@ -759,7 +720,7 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_processG91(const GCodeReader::GCodeLine& line)
   {
-    // >>>>>>>> THERE ARE DIALECT VARIANTS
+    // TODO: THERE ARE DIALECT VARIANTS
 
     set_positioning_xyz_type(Relative);
   }
@@ -814,7 +775,7 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_processM109(const GCodeReader::GCodeLine& line)
   {
-    // todo
+    // TODO
   }
 
   void GCodeTimeEstimator::_processM201(const GCodeReader::GCodeLine& line)
@@ -910,8 +871,7 @@ namespace Slic3r {
       set_axis_max_jerk(E, line.get_float('E') * MMMIN_TO_MMSEC);
   }
 
-#if ENABLE_BLOCKS_PRE_PROCESSING
-  void GCodeTimeEstimator::forward_pass()
+  void GCodeTimeEstimator::_forward_pass()
   {
     Block* block[2] = { nullptr, nullptr };
 
@@ -919,13 +879,13 @@ namespace Slic3r {
     {
       block[0] = block[1];
       block[1] = &b;
-      planner_forward_pass_kernel(block[0], block[1]);
+      _planner_forward_pass_kernel(block[0], block[1]);
     }
 
-    planner_forward_pass_kernel(block[1], nullptr);
+    _planner_forward_pass_kernel(block[1], nullptr);
   }
 
-  void GCodeTimeEstimator::reverse_pass()
+  void GCodeTimeEstimator::_reverse_pass()
   {
     Block* block[2] = { nullptr, nullptr };
 
@@ -933,11 +893,11 @@ namespace Slic3r {
     {
       block[1] = block[0];
       block[0] = &_blocks[i];
-      planner_reverse_pass_kernel(block[0], block[1]);
+      _planner_reverse_pass_kernel(block[0], block[1]);
     }
   }
 
-  void GCodeTimeEstimator::planner_forward_pass_kernel(Block* prev, Block* curr)
+  void GCodeTimeEstimator::_planner_forward_pass_kernel(Block* prev, Block* curr)
   {
     if (prev == nullptr)
       return;
@@ -962,7 +922,7 @@ namespace Slic3r {
     }
   }
 
-  void GCodeTimeEstimator::planner_reverse_pass_kernel(Block* curr, Block* next)
+  void GCodeTimeEstimator::_planner_reverse_pass_kernel(Block* curr, Block* next)
   {
     if ((curr == nullptr) || (next == nullptr))
       return;
@@ -983,7 +943,7 @@ namespace Slic3r {
     }
   }
 
-  void GCodeTimeEstimator::recalculate_trapezoids()
+  void GCodeTimeEstimator::_recalculate_trapezoids()
   {
     Block* curr = nullptr;
     Block* next = nullptr;
@@ -1008,20 +968,14 @@ namespace Slic3r {
       }
     }
 
-    // Last/newest block in buffer. Exit speed is set with MINIMUM_PLANNER_SPEED. Always recalculated.
+    // Last/newest block in buffer. Always recalculated.
     if (next != nullptr)
     {
       Block block = *next;
-#if USE_CURA_JUNCTION_VMAX
-      block.feedrate.exit = MINIMUM_PLANNER_SPEED;
-#else
       block.feedrate.exit = next->safe_feedrate;
-#endif // USE_CURA_JUNCTION_VMAX
       block.calculate_trapezoid();
       next->trapezoid = block.trapezoid;
       next->flags.recalculate = false;
     }
   }
-#endif // ENABLE_BLOCKS_PRE_PROCESSING
-
 }
