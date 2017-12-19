@@ -1443,8 +1443,8 @@ sub do_print {
     my $printer_panel = $controller->add_printer($printer_preset->name, $printer_preset->config);
     
     my $filament_stats = $self->{print}->filament_stats;
-    my @filament_names = wxTheApp->{preset_bundle}->filament_presets;
-    $filament_stats = { map { $filament_names[$_] => $filament_stats->{$_} } keys %$filament_stats };
+    my $filament_names = wxTheApp->{preset_bundle}->filament_presets;
+    $filament_stats = { map { $filament_names->[$_] => $filament_stats->{$_} } keys %$filament_stats };
     $printer_panel->load_print_job($self->{print_file}, $filament_stats);
     
     $self->GetFrame->select_tab(1);
