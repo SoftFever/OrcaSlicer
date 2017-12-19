@@ -193,23 +193,7 @@ void create_preset_tab(const char *name)
 {
 	CTabPrint* panel = new CTabPrint(g_wxTabPanel, name);
 	panel->create_preset_tab();
-	g_wxTabPanel->AddPage(panel, name);
-
-	//!------------Exp
-	// parse all command line options into a DynamicConfig
-/*	
-	DynamicPrintConfig print_config;
-//!	const DynamicPrintConfig &print_config    = preset_bundle.prints   .get_edited_preset().config;
-
-	auto vsizer = new wxBoxSizer(wxVERTICAL);
-	this->SetSizer(vsizer);
-	auto optgroup = GUI::ConfigOptionsGroup(this, "Custom GCode", &print_config);
-	optgroup.on_change = ON_CHANGE(= , {});
-	vsizer->Add(optgroup.sizer, 0, wxEXPAND | wxALL, 10);
-
-	optgroup.append_single_option_line(GUI::Option(*(config.def->get("before_layer_gcode")), "before_layer_gcode"));
-*/	//!------------Exp
-
+	g_wxTabPanel->AddPage(panel, name);	
 }
 
 } }

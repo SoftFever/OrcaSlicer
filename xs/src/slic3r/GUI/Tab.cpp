@@ -316,7 +316,7 @@ void CTabPrint::build()
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page("Notes", "note.png");
-		optgroup = page->new_optgroup("Notes");						//!				label_width = > 0,
+		optgroup = page->new_optgroup("Notes");						
 		option = get_option_("notes");
 		option.opt.full_width = true;
 		option.opt.height = 250;
@@ -325,7 +325,7 @@ void CTabPrint::build()
 	page = add_options_page("Dependencies", "wrench.png");
  		optgroup = page->new_optgroup("Profile dependencies");
 		line = Line{ "Compatible printers", "" };
-//		line.widget = ? ? ? ; //!		 widget = > $self->_compatible_printers_widget,
+		line.widget = compatible_printers_widget_; 
 		optgroup->append_line(line);
 }
 
@@ -386,6 +386,94 @@ void CTab::OnKeyDown(wxKeyEvent& event)
 void CTab::save_preset(wxCommandEvent &event){};
 void CTab::delete_preset(wxCommandEvent &event){};
 void CTab::_toggle_show_hide_incompatible(wxCommandEvent &event){};
+
+//	# Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
+wxSizer* CTab::compatible_printers_widget_(wxWindow* parent)
+{
+	auto checkbox /*= compatible_printers_checkbox*/ = new wxCheckBox(parent, wxID_ANY, "All");
+
+	auto btn /*= compatible_printers_btn*/ = new wxButton(parent, wxID_ANY, "Set…", wxDefaultPosition, wxDefaultSize,
+	wxBU_LEFT | wxBU_EXACTFIT);
+//	btn->SetFont(GUI::small_font);
+	btn->SetBitmap(wxBitmap(wxT("var\\printer_empty.png"), wxBITMAP_TYPE_PNG));
+
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	sizer->Add(checkbox, 0, wxALIGN_CENTER_VERTICAL);
+	sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
+
+	checkbox->Bind(wxEVT_CHECKBOX, ([=](wxCommandEvent e)
+	{
+		 btn->Enable(!checkbox->GetValue());
+	// # All printers have been made compatible with this preset.
+	//	 _load_key_value('compatible_printers', []) if checkbox->GetValue();
+	}) );
+
+	btn->Bind(wxEVT_BUTTON, ([=](wxCommandEvent e)
+	{
+		PresetCollection *prints = new PresetCollection(Preset::TYPE_PRINT, Preset::print_options());
+		prints->preset(0).config.opt_string("print_settings_id", true);
+		prints->preset(0).config.optptr("compatible_printers", true);
+		DynamicPrintConfig config_ = prints->get_edited_preset().config;
+
+		// # Collect names of non-default non-external printer profiles.
+		PresetCollection *printers = new PresetCollection(Preset::TYPE_PRINTER, Preset::print_options());
+		printers->preset(0).config.opt_string("print_settings_id", true);
+		wxArrayString presets;
+		for (size_t idx = 0; idx < printers->size(); ++idx)
+		{
+			Preset& preset = printers->preset(idx);
+			if (!preset.is_default && !preset.is_external)
+				presets.Add(preset.name);
+		}
+
+		auto dlg = new wxMultiChoiceDialog(parent,
+		"Select the printers this profile is compatible with.",
+		"Compatible printers",  presets);
+		// # Collect and set indices of printers marked as compatible.
+		wxArrayInt selections;
+		auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(config_.option("compatible_printers"));
+		if (compatible_printers != nullptr || !compatible_printers->values.empty())
+			for (auto preset_name : compatible_printers->values)
+				for (size_t idx = 0; idx < presets.GetCount(); ++idx)
+					if (presets[idx].compare(preset_name) == 0)
+					{
+						selections.Add(idx);
+						break;
+					}
+		dlg->SetSelections(selections);
+		// # Show the dialog.
+		if (dlg->ShowModal() == wxID_OK) {
+			selections.Clear();
+			selections = dlg->GetSelections();
+			std::vector<std::string> value;
+			for (auto idx : selections)
+				value.push_back(presets[idx].ToStdString());
+			if (/*!@$value*/value.empty()) {
+				checkbox->SetValue(1);
+				btn->Disable();
+			}
+		// # All printers have been made compatible with this preset.
+		// _load_key_value('compatible_printers', $value);
+		}
+	}));
+	return sizer; 
+}
+
+void CTab::load_key_value_(std::string opt_key, std::vector<std::string> value)
+{
+	// # To be called by custom widgets, load a value into a config,
+	// # update the preset selection boxes (the dirty flags)
+	// $self->{config}->set($opt_key, $value);
+	// # Mark the print & filament enabled if they are compatible with the currently selected preset.
+	if (opt_key.compare("compatible_printers")==0) {
+	// wxTheApp->{preset_bundle}->update_compatible_with_printer(0);
+	// $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
+	// } else {
+	// $self->{presets}->update_dirty_ui($self->{presets_choice});
+	}
+	// $self->_on_presets_changed;
+	// $self->_update;
+}
 
 // package Slic3r::GUI::Tab::Page;
 ConfigOptionsGroupShp CPage::new_optgroup(std::string title, size_t label_width /*= 0*/)

@@ -1,4 +1,4 @@
-#include "OptionsGroup.hpp"
+﻿#include "OptionsGroup.hpp"
 #include "ConfigExceptions.hpp"
 
 #include <utility>
@@ -127,7 +127,7 @@ void OptionsGroup::append_line(const Line& line) {
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			auto sidetext = new wxStaticText(parent(), wxID_ANY, option.sidetext, wxDefaultPosition, wxDefaultSize);
+			auto sidetext = new wxStaticText(parent(), wxID_ANY, wxString::FromUTF8(option.sidetext.c_str()), wxDefaultPosition, wxDefaultSize);
 			sidetext->SetFont(sidetext_font);
 			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 		}

@@ -26,7 +26,7 @@
 namespace Slic3r { namespace GUI {
 
 /// Widget type describes a function object that returns a wxWindow (our widget) and accepts a wxWidget (parent window).
-using widget_t = std::function<wxWindow*(wxWindow*)>;
+using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
 using column_t = std::function<wxSizer*(const Line&)>;
 
 class StaticText;
@@ -65,7 +65,6 @@ private:
 };
 
 using t_optionfield_map = std::map<t_config_option_key, t_field>;
-using t_optionoption_map = std::map<t_config_option_key, t_option>;	//!
 
 class OptionsGroup {
 public:
@@ -114,7 +113,7 @@ public:
     };
 
 protected:
-    /*const t_optionoption_map& options;	//*/const t_optiondef_map& options; //!
+    const t_optiondef_map& options; 
     wxWindow* _parent {nullptr};
 
     /// Field list, contains unique_ptrs of the derived type.

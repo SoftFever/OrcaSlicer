@@ -85,6 +85,8 @@ protected:
 	wxBoxSizer*			left_sizer_;
 	wxTreeCtrl*			treectrl_;
 	wxImageList*		icons_;
+	wxCheckBox*			compatible_printers_checkbox_;
+	wxButton*			compatible_printers_btn;
 	int					icon_count;
 	std::map<wxString, size_t>				icon_index_;		// Map from an icon file name to its index in $self->{icons}.
 	std::vector<CPageShp>		pages_;	// $self->{pages} = [];
@@ -106,6 +108,9 @@ public:
 	void		create_preset_tab();
 	void		rebuild_page_tree();
 	void		select_preset(wxString preset_name){};
+
+	static wxSizer*	compatible_printers_widget_(wxWindow* parent);
+	void		load_key_value_(std::string opt_key, std::vector<std::string> value);
 
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
