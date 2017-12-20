@@ -350,11 +350,8 @@ void PresetCollection::save_current_preset(const std::string &new_name)
     } else {
         // Creating a new preset.
 		Preset &preset = *m_presets.insert(it, m_edited_preset);
-        std::string file_name = new_name;
-        if (! boost::iends_with(file_name, ".ini"))
-            file_name += ".ini";
         preset.name = new_name;
-		preset.file = (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+		preset.file = this->path_from_name(new_name);
     }
 	// 2) Activate the saved preset.
 	this->select_preset_by_name(new_name, true);
@@ -589,6 +586,13 @@ std::string PresetCollection::name() const
     case Preset::TYPE_PRINTER:  return "printer";
     default:                    return "invalid";
     }
+}
+
+// Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
+std::string PresetCollection::path_from_name(const std::string &new_name) const
+{
+	std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
+    return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
 }
 
 } // namespace Slic3r

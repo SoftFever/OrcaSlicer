@@ -211,6 +211,9 @@ public:
     // With force, the changes are reverted if the new index is the same as the old index.
     bool            select_preset_by_name(const std::string &name, bool force);
 
+    // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
+    std::string     path_from_name(const std::string &new_name) const;
+
 private:
     PresetCollection();
     PresetCollection(const PresetCollection &other);

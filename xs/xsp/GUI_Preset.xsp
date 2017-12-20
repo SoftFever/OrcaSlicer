@@ -119,6 +119,14 @@ PresetCollection::arrayref()
                     Slic3r::data_dir().c_str(), e.what());
             }
         %};
+    void                        load_config(const char *name, DynamicPrintConfig *config)
+        %code%{
+            try {
+                THIS->load_config(name, *config);
+            } catch (std::exception& e) {
+                croak("Loading a configuration %s failed:\n%s\n", name, e.what());
+            }
+        %};
     void                        load_config_file(const char *path)
         %code%{
             try {

@@ -610,8 +610,6 @@ sub load_configbundle {
 
 # Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
 # Also update the platter with the new presets.
-# This method is used to update the configuration from mainpulations in the 3D scene (for example moving the wipe tower),
-# and to load the configuration from the config wizard.
 sub load_config {
     my ($self, $config) = @_;    
     $_->load_config($config) foreach values %{$self->{options_tabs}};
@@ -636,31 +634,22 @@ sub config_wizard {
     }
     # Open the wizard.
     if (my $result = Slic3r::GUI::ConfigWizard->new($self, \@profiles, $fresh_start)->run) {
-        if ($result->{reset_user_profile}) {
-            eval { wxTheApp->{preset_bundle}->reset(1) };
-        }
-        if (defined $result->{config}) {
-            # Wizard returned a config. Add the config to each of the preset types.
-            # Select and load the "-- default --" preset, start with the printer tab as it may revert
-            # the print and filament profile to the first visible one, which may have some
-            # printer compatibility configuration set, which we don't want to inherit.
-            foreach my $tab (qw(printer print filament)) {
-                $self->{options_tabs}->$tab->select_preset(undef, 1);
+        eval {
+            if ($result->{reset_user_profile}) {
+                wxTheApp->{preset_bundle}->reset(1);
             }
-            # Load the config over the previously selected defaults.
-            $self->load_config($result->{config});
-            for my $tab (values %{$self->{options_tabs}}) {
-                # Save the settings under a new name, select the name.
-                $tab->save_preset('My Settings');
+            if (defined $result->{config}) {
+                # Load and save the settings into print, filament and printer presets.
+                wxTheApp->{preset_bundle}->load_config('My Settings', $result->{config});
+            } else {
+                # Wizard returned a name of a preset bundle bundled with the installation. Unpack it.
+                wxTheApp->{preset_bundle}->load_configbundle($directory . '/' . $result->{preset_name} . '.ini');
             }
-        } else {
-            # Wizard returned a name of a preset bundle bundled with the installation. Unpack it.
-            eval { wxTheApp->{preset_bundle}->load_configbundle($directory . '/' . $result->{preset_name} . '.ini'); };
-            Slic3r::GUI::catch_error($self) and return;
-            # Load the currently selected preset into the GUI, update the preset selection box.
-            foreach my $tab (values %{$self->{options_tabs}}) {
-                $tab->load_current_preset;
-            }
+        };
+        Slic3r::GUI::catch_error($self) and return;
+        # Load the currently selected preset into the GUI, update the preset selection box.
+        foreach my $tab (values %{$self->{options_tabs}}) {
+            $tab->load_current_preset;
         }
     }
 }

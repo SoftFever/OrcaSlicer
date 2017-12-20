@@ -133,6 +133,7 @@ void PresetBundle::load_presets()
         errors_cummulative += err.what();
     }
     this->update_multi_material_filament_presets();
+    this->update_compatible_with_printer(false);
     if (! errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
 }
@@ -163,8 +164,10 @@ void PresetBundle::load_selections(const AppConfig &config)
         this->set_filament_preset(i, remove_ini_suffix(config.get("presets", name)));
     }
     // Update visibility of presets based on their compatibility with the active printer.
-    // This will switch the print or filament presets to compatible if the active presets are incompatible.
-    this->update_compatible_with_printer(false);
+    // Always try to select a compatible print and filament preset to the current printer preset,
+    // as the application may have been closed with an active "external" preset, which does not
+    // exist.
+    this->update_compatible_with_printer(true);
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini
@@ -279,7 +282,7 @@ void PresetBundle::load_config_file(const std::string &path)
 		config.apply(FullPrintConfig::defaults());
 		config.load_from_gcode(path);
 		Preset::normalize(config);
-		load_config_file_config(path, std::move(config));
+		load_config_file_config(path, true, std::move(config));
 		return;
 	}
 
@@ -308,7 +311,7 @@ void PresetBundle::load_config_file(const std::string &path)
 		config.apply(FullPrintConfig::defaults());
 		config.load(tree);
 		Preset::normalize(config);
-		load_config_file_config(path, std::move(config));
+		load_config_file_config(path, true, std::move(config));
 		break;
 	}
     case CONFIG_FILE_TYPE_CONFIG_BUNDLE:
@@ -318,7 +321,7 @@ void PresetBundle::load_config_file(const std::string &path)
 }
 
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
-void PresetBundle::load_config_file_config(const std::string &path, DynamicPrintConfig &&config)
+void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config)
 {
     // The "compatible_printers" field should not have been exported into a config.ini or a G-code anyway, 
     // but some of the alpha versions of Slic3r did.
@@ -333,13 +336,17 @@ void PresetBundle::load_config_file_config(const std::string &path, DynamicPrint
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
-    std::string name = boost::filesystem::path(path).filename().string();
+    std::string name = is_external ? boost::filesystem::path(name_or_path).filename().string() : name_or_path;
 
     // 2) If the loading succeeded, split and load the config into print / filament / printer settings.
     // First load the print and printer presets.
     for (size_t i_group = 0; i_group < 2; ++ i_group) {
         PresetCollection &presets = (i_group == 0) ? this->prints : this->printers;
-        presets.load_preset(path, name, config).is_external = true;
+		Preset &preset = presets.load_preset(is_external ? name_or_path : presets.path_from_name(name), name, config);
+        if (is_external)
+            preset.is_external = true;
+        else
+            preset.save();
     }
 
     // 3) Now load the filaments. If there are multiple filament presets, split them and load them.
@@ -347,7 +354,12 @@ void PresetBundle::load_config_file_config(const std::string &path, DynamicPrint
     auto   *filament_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_diameter"));
     size_t  num_extruders     = std::min(nozzle_diameter->values.size(), filament_diameter->values.size());
     if (num_extruders <= 1) {
-        this->filaments.load_preset(path, name, config).is_external = true;
+        Preset &preset = this->filaments.load_preset(
+			is_external ? name_or_path : this->filaments.path_from_name(name), name, config);
+        if (is_external)
+            preset.is_external = true;
+        else
+            preset.save();
         this->filament_presets.clear();
         this->filament_presets.emplace_back(name);
     } else {
@@ -374,11 +386,20 @@ void PresetBundle::load_config_file_config(const std::string &path, DynamicPrint
                 suffix[0] = 0;
             else
                 sprintf(suffix, " (%d)", i);
+            std::string new_name = name + suffix;
             // Load all filament presets, but only select the first one in the preset dialog.
-            this->filaments.load_preset(path, name + suffix, std::move(configs[i]), i == 0).is_external = true;
-            this->filament_presets.emplace_back(name + suffix);
+            Preset &preset = this->filaments.load_preset(
+				is_external ? name_or_path : this->filaments.path_from_name(new_name),
+                new_name, std::move(configs[i]), i == 0);
+            if (is_external)
+                preset.is_external = true;
+            else
+                preset.save();
+            this->filament_presets.emplace_back(new_name);
         }
     }
+
+    this->update_compatible_with_printer(false);
 }
 
 // Load the active configuration of a config bundle from a boost property_tree. This is a private method called from load_config_file.
@@ -437,6 +458,8 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
     this->update_multi_material_filament_presets();
     for (size_t i = 1; i < std::min(tmp_bundle.filament_presets.size(), this->filament_presets.size()); ++ i)
         this->filament_presets[i] = load_one(this->filaments, tmp_bundle.filaments, tmp_bundle.filament_presets[i], false);
+
+    this->update_compatible_with_printer(false);
 }
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
@@ -537,6 +560,8 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     this->update_multi_material_filament_presets();
     for (size_t i = 0; i < std::min(this->filament_presets.size(), active_filaments.size()); ++ i)
         this->filament_presets[i] = filaments.find_preset(active_filaments[i], true)->name;
+
+    this->update_compatible_with_printer(false);
     return presets_loaded;
 }
 
