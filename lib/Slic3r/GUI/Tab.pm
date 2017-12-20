@@ -495,6 +495,7 @@ sub _compatible_printers_widget {
             $btn->$method;
             # All printers have been made compatible with this preset.
             $self->_load_key_value('compatible_printers', []) if $checkbox->GetValue;
+            $self->get_field('compatible_printers_condition')->toggle($checkbox->GetValue);
         });
         
         EVT_BUTTON($self, $btn, sub {
@@ -516,6 +517,7 @@ sub _compatible_printers_widget {
                 my $value = [ @presets[$dlg->GetSelections] ];
                 if (!@$value) {
                     $checkbox->SetValue(1);
+                    $self->get_field('compatible_printers_condition')->toggle(1);
                     $btn->Disable;
                 }
                 # All printers have been made compatible with this preset.
@@ -533,6 +535,7 @@ sub _reload_compatible_printers_widget {
     my $method = $has_any ? 'Enable' : 'Disable';
     $self->{compatible_printers_checkbox}->SetValue(! $has_any);
     $self->{compatible_printers_btn}->$method;
+    $self->get_field('compatible_printers_condition')->toggle(! $has_any);
 }
 
 sub update_ui_from_settings {

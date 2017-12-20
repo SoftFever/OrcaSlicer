@@ -144,8 +144,10 @@ std::string Preset::label() const
 
 bool Preset::is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const
 {
-    auto *condition = dynamic_cast<const ConfigOptionString*>(this->config.option("compatible_printers_condition"));
-    if (condition != nullptr && ! condition->value.empty()) {
+    auto *condition               = dynamic_cast<const ConfigOptionString*>(this->config.option("compatible_printers_condition"));
+    auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings*>(this->config.option("compatible_printers"));
+    bool  has_compatible_printers = compatible_printers != nullptr && ! compatible_printers->values.empty();
+    if (! has_compatible_printers && condition != nullptr && ! condition->value.empty()) {
         try {
             return PlaceholderParser::evaluate_boolean_expression(condition->value, active_printer.config, extra_config);
         } catch (const std::runtime_error &err) {
@@ -154,9 +156,7 @@ bool Preset::is_compatible_with_printer(const Preset &active_printer, const Dyna
             return true;
         }
     }
-    auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(this->config.option("compatible_printers"));
-    return this->is_default || active_printer.name.empty() ||
-        compatible_printers == nullptr || compatible_printers->values.empty() ||
+    return this->is_default || active_printer.name.empty() || ! has_compatible_printers ||
         std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.name) != 
             compatible_printers->values.end();
 }
