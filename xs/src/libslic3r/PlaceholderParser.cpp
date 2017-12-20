@@ -2,6 +2,7 @@
 #include <cstring>
 #include <ctime>
 #include <iomanip>
+#include <regex>
 #include <sstream>
 #ifdef _MSC_VER
     #include <stdlib.h>  // provides **_environ
@@ -22,9 +23,6 @@
 #endif
 
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
-// Unicode iterator to iterate over utf8.
-#include <boost/regex/pending/unicode_iterator.hpp>
 
 // Spirit v2.5 allows you to suppress automatic generation
 // of predefined terminals to speed up complation. With
@@ -426,13 +424,13 @@ namespace client
             }
             try {
                 std::string pattern(++ rhs.begin(), -- rhs.end());
-                bool result = boost::regex_match(*subject, boost::regex(pattern));
+                bool result = std::regex_match(*subject, std::regex(pattern));
                 if (op == '!')
                     result = ! result;
                 lhs.reset();
                 lhs.type = TYPE_BOOL;
                 lhs.data.b = result;
-            } catch (boost::regex_error &ex) {
+            } catch (std::regex_error &ex) {
                 // Syntax error in the regular expression
                 boost::throw_exception(qi::expectation_failure<Iterator>(
                     rhs.begin(), rhs.end(), spirit::info(std::string("*Regular expression compilation failed: ") + ex.what())));
