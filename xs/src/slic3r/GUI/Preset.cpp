@@ -519,6 +519,11 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
 				ui->SetString(ui_id, wxString::FromUTF8(new_label.c_str()));
 		}
     }
+#ifdef __APPLE__
+    // wxWidgets on OSX do not upload the text of the combo box line automatically.
+    // Force it to update by re-selecting.
+    ui->SetSelection(ui->GetSelection());
+#endif /* __APPLE __ */
     return was_dirty != is_dirty;
 }
 
