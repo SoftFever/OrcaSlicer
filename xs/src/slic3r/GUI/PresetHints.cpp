@@ -55,11 +55,6 @@ static const ConfigOptionFloatOrPercent& first_positive(const ConfigOptionFloatO
     return (v1 != nullptr && v1->value > 0) ? *v1 : ((v2.value > 0) ? v2 : v3);
 }
 
-static double first_positive(double v1, double v2)
-{
-    return (v1 > 0.) ? v1 : v2;
-}
-
 std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle &preset_bundle)
 {
     // Find out, to which nozzle index is the current filament profile assigned.
@@ -106,6 +101,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     const auto &solid_infill_extrusion_width        = *print_config.option<ConfigOptionFloatOrPercent>("solid_infill_extrusion_width");
     const auto &support_material_extrusion_width    = *print_config.option<ConfigOptionFloatOrPercent>("support_material_extrusion_width");
     const auto &top_infill_extrusion_width          = *print_config.option<ConfigOptionFloatOrPercent>("top_infill_extrusion_width");
+    const auto &first_layer_speed                   = *print_config.option<ConfigOptionFloatOrPercent>("first_layer_speed");
 
     // Index of an extruder assigned to a feature. If set to 0, an active extruder will be used for a multi-material print.
     // If different from idx_extruder, it will not be taken into account for this hint.
@@ -136,12 +132,18 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
         const float                       bfr = bridging ? bridge_flow_ratio : 0.f;
         double                            max_flow = 0.;
         std::string                       max_flow_extrusion_type;
+        auto                              limit_by_first_layer_speed = [&first_layer_speed, first_layer](double speed_normal, double speed_max) {
+            if (first_layer && first_layer_speed.value > 0)
+                // Apply the first layer limit.
+                speed_normal = first_layer_speed.get_abs_value(speed_normal);
+            return (speed_normal > 0.) ? speed_normal : speed_max;
+        };
         if (perimeter_extruder_active) {
             double external_perimeter_rate = Flow::new_from_config_width(frExternalPerimeter, 
                 first_positive(first_layer_extrusion_width_ptr, external_perimeter_extrusion_width, extrusion_width), 
                 nozzle_diameter, lh, bfr).mm3_per_mm() *
                 (bridging ? bridge_speed : 
-                    first_positive(std::max(external_perimeter_speed, small_perimeter_speed), max_print_speed));
+                    limit_by_first_layer_speed(std::max(external_perimeter_speed, small_perimeter_speed), max_print_speed));
             if (max_flow < external_perimeter_rate) {
                 max_flow = external_perimeter_rate;
                 max_flow_extrusion_type = "external perimeters";
@@ -150,7 +152,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                 first_positive(first_layer_extrusion_width_ptr, perimeter_extrusion_width, extrusion_width), 
                 nozzle_diameter, lh, bfr).mm3_per_mm() *
                 (bridging ? bridge_speed :
-                    first_positive(std::max(perimeter_speed, small_perimeter_speed), max_print_speed));
+                    limit_by_first_layer_speed(std::max(perimeter_speed, small_perimeter_speed), max_print_speed));
             if (max_flow < perimeter_rate) {
                 max_flow = perimeter_rate;
                 max_flow_extrusion_type = "perimeters";
@@ -159,7 +161,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
         if (! bridging && infill_extruder_active) {
             double infill_rate = Flow::new_from_config_width(frInfill, 
                 first_positive(first_layer_extrusion_width_ptr, infill_extrusion_width, extrusion_width), 
-                nozzle_diameter, lh, bfr).mm3_per_mm() * first_positive(infill_speed, max_print_speed);
+                nozzle_diameter, lh, bfr).mm3_per_mm() * limit_by_first_layer_speed(infill_speed, max_print_speed);
             if (max_flow < infill_rate) {
                 max_flow = infill_rate;
                 max_flow_extrusion_type = "infill";
@@ -169,7 +171,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             double solid_infill_rate = Flow::new_from_config_width(frInfill, 
                 first_positive(first_layer_extrusion_width_ptr, solid_infill_extrusion_width, extrusion_width), 
                 nozzle_diameter, lh, 0).mm3_per_mm() *
-                (bridging ? bridge_speed : first_positive(solid_infill_speed, max_print_speed));
+                (bridging ? bridge_speed : limit_by_first_layer_speed(solid_infill_speed, max_print_speed));
             if (max_flow < solid_infill_rate) {
                 max_flow = solid_infill_rate;
                 max_flow_extrusion_type = "solid infill";
@@ -177,7 +179,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             if (! bridging) {
                 double top_solid_infill_rate = Flow::new_from_config_width(frInfill, 
                     first_positive(first_layer_extrusion_width_ptr, top_infill_extrusion_width, extrusion_width), 
-                    nozzle_diameter, lh, bfr).mm3_per_mm() * first_positive(top_solid_infill_speed, max_print_speed);
+                    nozzle_diameter, lh, bfr).mm3_per_mm() * limit_by_first_layer_speed(top_solid_infill_speed, max_print_speed);
                 if (max_flow < top_solid_infill_rate) {
                     max_flow = top_solid_infill_rate;
                     max_flow_extrusion_type = "top solid infill";
@@ -188,7 +190,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             double support_material_rate = Flow::new_from_config_width(frSupportMaterial,
                 first_positive(first_layer_extrusion_width_ptr, support_material_extrusion_width, extrusion_width), 
                 nozzle_diameter, lh, bfr).mm3_per_mm() *
-                (bridging ? bridge_speed : first_positive(support_material_speed, max_print_speed));
+                (bridging ? bridge_speed : limit_by_first_layer_speed(support_material_speed, max_print_speed));
             if (max_flow < support_material_rate) {
                 max_flow = support_material_rate;
                 max_flow_extrusion_type = "support";
@@ -198,23 +200,23 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             double support_material_interface_rate = Flow::new_from_config_width(frSupportMaterialInterface,
                 first_positive(first_layer_extrusion_width_ptr, support_material_extrusion_width, extrusion_width),
                 nozzle_diameter, lh, bfr).mm3_per_mm() *
-                (bridging ? bridge_speed : first_positive(support_material_interface_speed, max_print_speed));
+                (bridging ? bridge_speed : limit_by_first_layer_speed(support_material_interface_speed, max_print_speed));
             if (max_flow < support_material_interface_rate) {
                 max_flow = support_material_interface_rate;
                 max_flow_extrusion_type = "support interface";
             }
         }
-
         //FIXME handle gap_fill_speed
         if (! out.empty())
             out += "\n";
         out += (first_layer ? "First layer volumetric" : (bridging ? "Bridging volumetric" : "Volumetric"));
         out += " flow rate is maximized ";
-        out += ((max_volumetric_speed > 0 && max_volumetric_speed < max_flow) ? 
+        bool limited_by_max_volumetric_speed = max_volumetric_speed > 0 && max_volumetric_speed < max_flow;
+        out += (limited_by_max_volumetric_speed ? 
             "by the print profile maximum" : 
-            ("when printing " + max_flow_extrusion_type)) 
+            ("when printing " + max_flow_extrusion_type))
             + " with a volumetric rate ";
-        if (max_volumetric_speed > 0 && max_volumetric_speed < max_flow)
+        if (limited_by_max_volumetric_speed)
             max_flow = max_volumetric_speed;
         char buf[2048];
         sprintf(buf, "%3.2f mm³/s", max_flow);
