@@ -2,7 +2,6 @@
 #include <cstring>
 #include <ctime>
 #include <iomanip>
-#include <regex>
 #include <sstream>
 #ifdef _MSC_VER
     #include <stdlib.h>  // provides **_environ
@@ -50,6 +49,15 @@
 
 #include <iostream>
 #include <string>
+
+// #define USE_CPP11_REGEX
+#ifdef USE_CPP11_REGEX
+    #include <regex>
+    #define SLIC3R_REGEX_NAMESPACE std
+#else /* USE_CPP11_REGEX */
+    #include <boost/regex.hpp>
+    #define SLIC3R_REGEX_NAMESPACE boost
+#endif /* USE_CPP11_REGEX */
 
 namespace Slic3r {
 
@@ -424,13 +432,13 @@ namespace client
             }
             try {
                 std::string pattern(++ rhs.begin(), -- rhs.end());
-                bool result = std::regex_match(*subject, std::regex(pattern));
+                bool result = SLIC3R_REGEX_NAMESPACE::regex_match(*subject, SLIC3R_REGEX_NAMESPACE::regex(pattern));
                 if (op == '!')
                     result = ! result;
                 lhs.reset();
                 lhs.type = TYPE_BOOL;
                 lhs.data.b = result;
-            } catch (std::regex_error &ex) {
+            } catch (SLIC3R_REGEX_NAMESPACE::regex_error &ex) {
                 // Syntax error in the regular expression
                 boost::throw_exception(qi::expectation_failure<Iterator>(
                     rhs.begin(), rhs.end(), spirit::info(std::string("*Regular expression compilation failed: ") + ex.what())));
