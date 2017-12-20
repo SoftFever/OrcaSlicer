@@ -180,16 +180,16 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // Inform the G-code writer about the changes done behind its back.
     gcode += tcr.gcode;
     // Let the m_writer know the current extruder_id, but ignore the generated G-code.
-	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id)) {
+	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
         gcodegen.writer().toolchange(new_extruder_id);
-        // Append the filament start G-code.
-        const std::string &start_filament_gcode = gcodegen.config().start_filament_gcode.get_at(new_extruder_id);
-        if (! start_filament_gcode.empty()) {
-            // Process the start_filament_gcode for the active filament only.
-            gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
-            gcode += gcodegen.placeholder_parser_process("start_filament_gcode", start_filament_gcode, new_extruder_id);
-            check_add_eol(gcode);
-        }
+    // Always append the filament start G-code even if the extruder did not switch,
+    // because the wipe tower resets the linear advance and we want it to be re-enabled.
+    const std::string &start_filament_gcode = gcodegen.config().start_filament_gcode.get_at(new_extruder_id);
+    if (! start_filament_gcode.empty()) {
+        // Process the start_filament_gcode for the active filament only.
+        gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
+        gcode += gcodegen.placeholder_parser_process("start_filament_gcode", start_filament_gcode, new_extruder_id);
+        check_add_eol(gcode);
     }
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(Pointf(tcr.end_pos.x, tcr.end_pos.y));
