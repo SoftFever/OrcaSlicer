@@ -1,7 +1,16 @@
 #include "Print.hpp"
 #include "ToolOrdering.hpp"
 
-#include <assert.h>
+// #define SLIC3R_DEBUG
+
+// Make assert active if SLIC3R_DEBUG
+#ifdef SLIC3R_DEBUG
+    #define DEBUG
+    #define _DEBUG
+    #undef NDEBUG
+#endif
+
+#include <cassert>
 #include <limits>
 
 namespace Slic3r {
@@ -256,12 +265,19 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
                     // Insert one additional wipe tower layer between lh.print_z and lt_object.print_z.
                     LayerTools lt_new(0.5f * (lt.print_z + lt_object.print_z));
                     // Find the 1st layer above lt_new.
-                    for (j = i + 1; j < m_layer_tools.size() && m_layer_tools[j].print_z < lt_new.print_z; ++ j);
-                    LayerTools &lt_extra = (m_layer_tools[j].print_z == lt_new.print_z) ? 
-                        m_layer_tools[j] :
-                        *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);
-                    lt_extra.has_wipe_tower = true;
-                    lt_extra.wipe_tower_partitions = lt_object.wipe_tower_partitions;
+                    for (j = i + 1; j < m_layer_tools.size() && m_layer_tools[j].print_z < lt_new.print_z - EPSILON; ++ j);
+					if (std::abs(m_layer_tools[j].print_z - lt_new.print_z) < EPSILON) {
+						m_layer_tools[j].has_wipe_tower = true;
+					} else {
+						LayerTools &lt_extra = *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);
+                        LayerTools &lt_prev  = m_layer_tools[j - 1];
+                        LayerTools &lt_next  = m_layer_tools[j + 1];
+                        assert(! lt_prev.extruders.empty() && ! lt_next.extruders.empty());
+                        assert(lt_prev.extruders.back() == lt_next.extruders.front());
+						lt_extra.has_wipe_tower = true;
+                        lt_extra.extruders.push_back(lt_next.extruders.front());
+						lt_extra.wipe_tower_partitions = lt_next.wipe_tower_partitions;
+					}
                 }
             }
             break;

@@ -9,7 +9,7 @@ use Wx::Event qw(EVT_KEY_DOWN EVT_CHAR);
 use base qw(Slic3r::GUI::3DScene Class::Accessor);
 
 __PACKAGE__->mk_accessors(qw(
-    on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
+    on_arrange on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
     on_remove_object on_increase_objects on_decrease_objects));
 
 sub new {
@@ -88,7 +88,9 @@ sub new {
             $event->Skip;
         } else {
             my $key = $event->GetKeyCode;
-            if ($key == ord('l')) {
+            if ($key == ord('a')) {
+                $self->on_arrange->() if $self->on_arrange;
+            } elsif ($key == ord('l')) {
                 $self->on_rotate_object_left->() if $self->on_rotate_object_left;
             } elsif ($key == ord('r')) {
                 $self->on_rotate_object_right->() if $self->on_rotate_object_right;
@@ -120,6 +122,11 @@ sub set_on_double_click {
 sub set_on_right_click {
     my ($self, $cb) = @_;
     $self->on_right_click($cb);
+}
+
+sub set_on_arrange {
+    my ($self, $cb) = @_;
+    $self->on_arrange($cb);
 }
 
 sub set_on_rotate_object_left {

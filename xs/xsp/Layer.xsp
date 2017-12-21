@@ -50,10 +50,6 @@
     int id();
     void set_id(int id);
     Ref<PrintObject> object();
-    Ref<Layer> upper_layer()
-        %code%{ RETVAL = THIS->upper_layer; %};
-    Ref<Layer> lower_layer()
-        %code%{ RETVAL = THIS->lower_layer; %};
     bool slicing_errors()
         %code%{ RETVAL = THIS->slicing_errors; %};
     coordf_t slice_z()
@@ -63,15 +59,6 @@
     coordf_t height()
         %code%{ RETVAL = THIS->height; %};
 
-    void set_upper_layer(Layer *layer)
-        %code%{ THIS->upper_layer = layer; %};
-    void set_lower_layer(Layer *layer)
-        %code%{ THIS->lower_layer = layer; %};
-    bool has_upper_layer()
-        %code%{ RETVAL = (THIS->upper_layer != NULL); %};
-    bool has_lower_layer()
-        %code%{ RETVAL = (THIS->lower_layer != NULL); %};
-    
     size_t region_count();
     Ref<LayerRegion> get_region(int idx);
     Ref<LayerRegion> add_region(PrintRegion* print_region);
@@ -112,10 +99,6 @@
     int id();
     void set_id(int id);
     Ref<PrintObject> object();
-    Ref<SupportLayer> upper_layer()
-        %code%{ RETVAL = (SupportLayer*)THIS->upper_layer; %};
-    Ref<SupportLayer> lower_layer()
-        %code%{ RETVAL = (SupportLayer*)THIS->lower_layer; %};
     bool slicing_errors()
         %code%{ RETVAL = THIS->slicing_errors; %};
     coordf_t slice_z()
@@ -124,15 +107,6 @@
         %code%{ RETVAL = THIS->print_z; %};
     coordf_t height()
         %code%{ RETVAL = THIS->height; %};
-
-    void set_upper_layer(SupportLayer *layer)
-        %code%{ THIS->upper_layer = layer; %};
-    void set_lower_layer(SupportLayer *layer)
-        %code%{ THIS->lower_layer = layer; %};
-    bool has_upper_layer()
-        %code%{ RETVAL = (THIS->upper_layer != NULL); %};
-    bool has_lower_layer()
-        %code%{ RETVAL = (THIS->lower_layer != NULL); %};
 
     size_t region_count();
     Ref<LayerRegion> get_region(int idx);

@@ -41,7 +41,8 @@ warn "Running Slic3r under Perl 5.16 is neither supported nor recommended\n"
 use FindBin;
 
 # Let the XS module know where the GUI resources reside.
-set_var_dir(decode_path($FindBin::Bin) . "/var");
+set_resources_dir(decode_path($FindBin::Bin) . (($^O eq 'darwin') ? '/../Resources' : '/resources'));
+set_var_dir(resources_dir() . "/icons");
 
 use Moo 1.003001;
 
@@ -78,6 +79,10 @@ my $paused = 0;
 # Set the logging level at the Slic3r XS module.
 $Slic3r::loglevel = (defined($ENV{'SLIC3R_LOGLEVEL'}) && $ENV{'SLIC3R_LOGLEVEL'} =~ /^[1-9]/) ? $ENV{'SLIC3R_LOGLEVEL'} : 0;
 set_logging_level($Slic3r::loglevel);
+
+# Let the palceholder parser evaluate one expression to initialize its local static macro_processor 
+# class instance in a thread safe manner.
+Slic3r::GCode::PlaceholderParser->new->evaluate_boolean_expression('1==1');
 
 sub spawn_thread {
     my ($cb) = @_;

@@ -70,7 +70,7 @@ our $grey = Wx::Colour->new(200,200,200);
 sub OnInit {
     my ($self) = @_;
     
-    $self->SetAppName('Slic3r');
+    $self->SetAppName('Slic3rPE');
     $self->SetAppDisplayName('Slic3r Prusa Edition');
     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
 
@@ -79,6 +79,7 @@ sub OnInit {
     # Windows: "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
     # Mac: "~/Library/Application Support/Slic3r"
     Slic3r::set_data_dir($datadir || Wx::StandardPaths::Get->GetUserDataDir);
+    Slic3r::GUI::set_wxapp($self);
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
@@ -99,29 +100,22 @@ sub OnInit {
 
     # Suppress the '- default -' presets.
     $self->{preset_bundle}->set_default_suppressed($self->{app_config}->get('no_defaults') ? 1 : 0);
-    eval { 
-        $self->{preset_bundle}->load_presets(Slic3r::data_dir);
-    };
+    eval { $self->{preset_bundle}->load_presets };
     if ($@) {
         warn $@ . "\n";
         show_error(undef, $@);
     }
-    eval {
-        $self->{preset_bundle}->load_selections($self->{app_config});
-    };
+    eval { $self->{preset_bundle}->load_selections($self->{app_config}) };
     $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
     
     # application frame
-    Wx::Image::AddHandler(Wx::PNGHandler->new);
+    Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
         no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
     );
     $self->SetTopWindow($frame);
-    if ($run_wizard) {
-        $self->{mainframe}->config_wizard;
-    }
 
     EVT_IDLE($frame, sub {
         while (my $cb = shift @cb) {
@@ -129,6 +123,15 @@ sub OnInit {
         }
         $self->{app_config}->save if $self->{app_config}->dirty;
     });
+
+    if ($run_wizard) {
+        # On OSX the UI was not initialized correctly if the wizard was called
+        # before the UI was up and running.
+        $self->CallAfter(sub {
+            # Run the config wizard, don't offer the "reset user profile" checkbox.
+            $self->{mainframe}->config_wizard(1);
+        });
+    }
     
     return 1;
 }

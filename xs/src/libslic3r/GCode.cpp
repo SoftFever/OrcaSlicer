@@ -30,6 +30,13 @@
 #include <assert.h>
 
 namespace Slic3r {
+
+// Only add a newline in case the current G-code does not end with a newline.
+static inline void check_add_eol(std::string &gcode)
+{
+    if (! gcode.empty() && gcode.back() != '\n')
+        gcode += '\n';    
+}
     
 // Plan a travel move while minimizing the number of perimeter crossings.
 // point is in unscaled coordinates, in the coordinate system of the current active object
@@ -157,6 +164,8 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 {
     std::string gcode;
 
+    // Disable linear advance for the wipe tower operations.
+    gcode += "M900 K0\n";
     // Move over the wipe tower.
     // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
     gcode += gcodegen.retract(true);
@@ -173,6 +182,15 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // Let the m_writer know the current extruder_id, but ignore the generated G-code.
 	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
         gcodegen.writer().toolchange(new_extruder_id);
+    // Always append the filament start G-code even if the extruder did not switch,
+    // because the wipe tower resets the linear advance and we want it to be re-enabled.
+    const std::string &start_filament_gcode = gcodegen.config().start_filament_gcode.get_at(new_extruder_id);
+    if (! start_filament_gcode.empty()) {
+        // Process the start_filament_gcode for the active filament only.
+        gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
+        gcode += gcodegen.placeholder_parser_process("start_filament_gcode", start_filament_gcode, new_extruder_id);
+        check_add_eol(gcode);
+    }
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(Pointf(tcr.end_pos.x, tcr.end_pos.y));
     gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, tcr.end_pos));
@@ -199,15 +217,18 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
     std::string gcode;
 
     if (&m_priming != nullptr && ! m_priming.extrusions.empty()) {
+        // Disable linear advance for the wipe tower operations.
+        gcode += "M900 K0\n";
         // Let the tool change be executed by the wipe tower class.
         // Inform the G-code writer about the changes done behind its back.
         gcode += m_priming.gcode;
         // Let the m_writer know the current extruder_id, but ignore the generated G-code.
-        gcodegen.writer().toolchange(m_priming.extrusions.back().tool);
+        unsigned int current_extruder_id = m_priming.extrusions.back().tool;
+        gcodegen.writer().toolchange(current_extruder_id);
+        gcodegen.placeholder_parser().set("current_extruder", current_extruder_id);
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy(Pointf(m_priming.end_pos.x, m_priming.end_pos.y));
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, m_priming.end_pos));
-
         // Prepare a future wipe.
         gcodegen.m_wipe.path.points.clear();
         // Start the wipe at the current position.
@@ -217,19 +238,6 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
             WipeTower::xy((std::abs(m_left - m_priming.end_pos.x) < std::abs(m_right - m_priming.end_pos.x)) ? m_right : m_left,
             m_priming.end_pos.y)));
     }
-    return gcode;
-}
-
-std::string WipeTowerIntegration::prime_single_color_print(const Print & /* print */, unsigned int initial_tool, GCode & /* gcodegen */)
-{
-    std::string gcode = "\
-G1 Z0.250 F7200.000\n\
-G1 X50.0 E80.0  F1000.0\n\
-G1 X160.0 E20.0  F1000.0\n\
-G1 Z0.200 F7200.000\n\
-G1 X220.0 E13 F1000.0\n\
-G1 X240.0 E0 F1000.0\n\
-G1 E-4 F1000.0\n";
     return gcode;
 }
 
@@ -354,7 +362,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     return layers_to_print;
 }
 
-bool GCode::do_export(Print *print, const char *path)
+void GCode::do_export(Print *print, const char *path)
 {
     // Remove the old g-code if it exists.
     boost::nowide::remove(path);
@@ -364,23 +372,36 @@ bool GCode::do_export(Print *print, const char *path)
 
     FILE *file = boost::nowide::fopen(path_tmp.c_str(), "wb");
     if (file == nullptr)
-        return false;
+        throw std::runtime_error(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
 
-    bool result = this->_do_export(*print, file);
-    fclose(file);
-
-    if (result && boost::nowide::rename(path_tmp.c_str(), path) != 0) {
-        boost::nowide::cerr << "Failed to remove the output G-code file from " << path_tmp << " to " << path
-            << ". Is " << path_tmp << " locked?" << std::endl;
-        result = false;
-    }
-
-    if (! result)
+    this->m_placeholder_parser_failed_templates.clear();
+    this->_do_export(*print, file);
+    fflush(file);
+    if (ferror(file)) {
+        fclose(file);
         boost::nowide::remove(path_tmp.c_str());
-    return result;
+        throw std::runtime_error(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
+    }
+    fclose(file);
+    if (! this->m_placeholder_parser_failed_templates.empty()) {
+        // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
+        std::string msg = std::string("G-code export to ") + path + " failed due to invalid custom G-code sections:\n\n";
+        for (const std::string &name : this->m_placeholder_parser_failed_templates)
+            msg += std::string("\t") + name + "\n";
+        msg += "\nPlease inspect the file ";
+        msg += path_tmp + " for error messages enclosed between\n";
+        msg += "        !!!!! Failed to process the custom G-code template ...\n";
+        msg += "and\n";
+        msg += "        !!!!! End of an error report for the custom G-code template ...\n";
+        throw std::runtime_error(msg);
+    }
+    if (boost::nowide::rename(path_tmp.c_str(), path) != 0)
+        throw std::runtime_error(
+            std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
+            "Is " + path_tmp + " locked?" + '\n');
 }
 
-bool GCode::_do_export(Print &print, FILE *file)
+void GCode::_do_export(Print &print, FILE *file)
 {
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
@@ -480,23 +501,21 @@ bool GCode::_do_export(Print &print, FILE *file)
             fprintf(file, "\n");
     }
     // Write some terse information on the slicing parameters.
-    {
-        const PrintObject *first_object = print.objects.front();
-        const double       layer_height = first_object->config.layer_height.value;
-        const double       first_layer_height = first_object->config.first_layer_height.get_abs_value(layer_height);
-        for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
-            auto region = print.regions[region_id];
-            fprintf(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(frExternalPerimeter, layer_height, false, false, -1., *first_object).width);
-            fprintf(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(frPerimeter,         layer_height, false, false, -1., *first_object).width);
-            fprintf(file, "; infill extrusion width = %.2fmm\n",              region->flow(frInfill,            layer_height, false, false, -1., *first_object).width);
-            fprintf(file, "; solid infill extrusion width = %.2fmm\n",        region->flow(frSolidInfill,       layer_height, false, false, -1., *first_object).width);
-            fprintf(file, "; top infill extrusion width = %.2fmm\n",          region->flow(frTopSolidInfill,    layer_height, false, false, -1., *first_object).width);
-            if (print.has_support_material())
-                fprintf(file, "; support material extrusion width = %.2fmm\n", support_material_flow(first_object).width);
-            if (print.config.first_layer_extrusion_width.value > 0)
-                fprintf(file, "; first layer extrusion width = %.2fmm\n",   region->flow(frPerimeter, first_layer_height, false, true, -1., *first_object).width);
-            fprintf(file, "\n");
-        }
+    const PrintObject *first_object         = print.objects.front();
+    const double       layer_height         = first_object->config.layer_height.value;
+    const double       first_layer_height   = first_object->config.first_layer_height.get_abs_value(layer_height);
+    for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
+        auto region = print.regions[region_id];
+        fprintf(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(frExternalPerimeter, layer_height, false, false, -1., *first_object).width);
+        fprintf(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(frPerimeter,         layer_height, false, false, -1., *first_object).width);
+        fprintf(file, "; infill extrusion width = %.2fmm\n",              region->flow(frInfill,            layer_height, false, false, -1., *first_object).width);
+        fprintf(file, "; solid infill extrusion width = %.2fmm\n",        region->flow(frSolidInfill,       layer_height, false, false, -1., *first_object).width);
+        fprintf(file, "; top infill extrusion width = %.2fmm\n",          region->flow(frTopSolidInfill,    layer_height, false, false, -1., *first_object).width);
+        if (print.has_support_material())
+            fprintf(file, "; support material extrusion width = %.2fmm\n", support_material_flow(first_object).width);
+        if (print.config.first_layer_extrusion_width.value > 0)
+            fprintf(file, "; first layer extrusion width = %.2fmm\n",   region->flow(frPerimeter, first_layer_height, false, true, -1., *first_object).width);
+        fprintf(file, "\n");
     }
     
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
@@ -509,6 +528,7 @@ bool GCode::_do_export(Print &print, FILE *file)
     unsigned int initial_extruder_id = (unsigned int)-1;
     unsigned int final_extruder_id   = (unsigned int)-1;
     size_t       initial_print_object_id = 0;
+    bool         has_wipe_tower      = false;
     if (print.config.complete_objects.value) {
 		// Find the 1st printing object, find its tool ordering and the initial extruder ID.
 		for (; initial_print_object_id < print.objects.size(); ++initial_print_object_id) {
@@ -523,6 +543,7 @@ bool GCode::_do_export(Print &print, FILE *file)
             ToolOrdering(print, initial_extruder_id) :
             print.m_tool_ordering;
 		initial_extruder_id = tool_ordering.first_extruder();
+        has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
     }
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
@@ -545,7 +566,9 @@ bool GCode::_do_export(Print &print, FILE *file)
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
     // Useful for sequential prints.
     m_placeholder_parser.set("current_object_idx", 0);
-    std::string start_gcode = m_placeholder_parser.process(print.config.start_gcode.value, initial_extruder_id);
+    // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
+    m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
+    std::string start_gcode = this->placeholder_parser_process("start_gcode", print.config.start_gcode.value, initial_extruder_id);
     
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
     this->_print_first_layer_bed_temperature(file, print, start_gcode, initial_extruder_id, true);
@@ -554,8 +577,17 @@ bool GCode::_do_export(Print &print, FILE *file)
     // Write the custom start G-code
     writeln(file, start_gcode);
     // Process filament-specific gcode in extruder order.
-    for (const std::string &start_gcode : print.config.start_filament_gcode.values)
-        writeln(file, m_placeholder_parser.process(start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
+    if (print.config.single_extruder_multi_material) {
+        if (has_wipe_tower) {
+            // Wipe tower will control the extruder switching, it will call the start_filament_gcode.
+        } else {
+            // Only initialize the initial extruder.
+            writeln(file, this->placeholder_parser_process("start_filament_gcode", print.config.start_filament_gcode.values[initial_extruder_id], initial_extruder_id));
+        }
+    } else {
+        for (const std::string &start_gcode : print.config.start_filament_gcode.values)
+            writeln(file, this->placeholder_parser_process("start_gcode", start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
+    }
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, true);
     
     // Set other general things.
@@ -647,7 +679,7 @@ bool GCode::_do_export(Print &print, FILE *file)
                     // another one, set first layer temperatures. This happens before the Z move
                     // is triggered, so machine has more time to reach such temperatures.
                     m_placeholder_parser.set("current_object_idx", int(finished_objects));
-                    std::string between_objects_gcode = m_placeholder_parser.process(print.config.between_objects_gcode.value, initial_extruder_id);
+                    std::string between_objects_gcode = this->placeholder_parser_process("between_objects_gcode", print.config.between_objects_gcode.value, initial_extruder_id);
                     // Set first layer bed and extruder temperatures, don't wait for it to reach the temperature.
                     this->_print_first_layer_bed_temperature(file, print, between_objects_gcode, initial_extruder_id, false);
                     this->_print_first_layer_extruder_temperatures(file, print, between_objects_gcode, initial_extruder_id, false);
@@ -682,32 +714,30 @@ bool GCode::_do_export(Print &print, FILE *file)
         // All extrusion moves with the same top layer height are extruded uninterrupted.
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
         // Prusa Multi-Material wipe tower.
-        if (print.has_wipe_tower() && ! layers_to_print.empty()) {
-            if (tool_ordering.has_wipe_tower()) {
-                m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
-			    write(file, m_wipe_tower->prime(*this));
-                // Verify, whether the print overaps the priming extrusions.
-                BoundingBoxf bbox_print(get_print_extrusions_extents(print));
-                coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
-                for (const PrintObject *print_object : print.objects)
-                    bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
-                bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
-                BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));
-                bbox_prime.offset(0.5f);
-                // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
-                write(file, this->retract());
-                fprintf(file, "M300 S800 P500\n");
-                if (bbox_prime.overlap(bbox_print)) {
-                    // Wait for the user to remove the priming extrusions, otherwise they would
-                    // get covered by the print.
-                    fprintf(file, "M1 Remove priming towers and click button.\n");
-                } else {
-                    // Just wait for a bit to let the user check, that the priming succeeded.
-                    //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
-                    fprintf(file, "M1 S10\n");
-                }
-            } else
-                write(file, WipeTowerIntegration::prime_single_color_print(print, initial_extruder_id, *this));
+        if (has_wipe_tower && ! layers_to_print.empty()) {
+            m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
+            write(file, m_writer.travel_to_z(first_layer_height + m_config.z_offset.value, "Move to the first layer height"));
+		    write(file, m_wipe_tower->prime(*this));
+            // Verify, whether the print overaps the priming extrusions.
+            BoundingBoxf bbox_print(get_print_extrusions_extents(print));
+            coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
+            for (const PrintObject *print_object : print.objects)
+                bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
+            bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
+            BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));
+            bbox_prime.offset(0.5f);
+            // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
+            write(file, this->retract());
+            fprintf(file, "M300 S800 P500\n");
+            if (bbox_prime.overlap(bbox_print)) {
+                // Wait for the user to remove the priming extrusions, otherwise they would
+                // get covered by the print.
+                fprintf(file, "M1 Remove priming towers and click button.\n");
+            } else {
+                // Just wait for a bit to let the user check, that the priming succeeded.
+                //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
+                fprintf(file, "M1 S10\n");
+            }
         }
         // Extrude the layers.
         for (auto &layer : layers_to_print) {
@@ -727,9 +757,14 @@ bool GCode::_do_export(Print &print, FILE *file)
     write(file, this->retract());
     write(file, m_writer.set_fan(false));
     // Process filament-specific gcode in extruder order.
-    for (const std::string &end_gcode : print.config.end_filament_gcode.values)
-        writeln(file, m_placeholder_parser.process(end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
-    writeln(file, m_placeholder_parser.process(print.config.end_gcode, m_writer.extruder()->id()));
+    if (print.config.single_extruder_multi_material) {
+        // Process the end_filament_gcode for the active filament only.
+        writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id()));
+    } else {
+        for (const std::string &end_gcode : print.config.end_filament_gcode.values)
+            writeln(file, this->placeholder_parser_process("end_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
+    }
+    writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id()));
     write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     write(file, m_writer.postamble());
 
@@ -766,11 +801,25 @@ bool GCode::_do_export(Print &print, FILE *file)
         for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++ i) {
             StaticPrintConfig *cfg = configs[i];
         for (const std::string &key : cfg->keys())
-            fprintf(file, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
+            if (key != "compatible_printers")
+                fprintf(file, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
         }
     }
+}
 
-    return true;
+std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
+{
+    try {
+        return m_placeholder_parser.process(templ, current_extruder_id, config_override);
+    } catch (std::runtime_error &err) {
+        // Collect the names of failed template substitutions for error reporting.
+        this->m_placeholder_parser_failed_templates.insert(name);
+        // Insert the macro error message into the G-code.
+        return
+            std::string("\n!!!!! Failed to process the custom G-code template ") + name + "\n" + 
+            err.what() + 
+            "!!!!! End of an error report for the custom G-code template " + name + "\n\n";
+    }
 }
 
 // Parse the custom G-code, try to find mcode_set_temp_dont_wait and mcode_set_temp_and_wait inside the custom G-code.
@@ -838,12 +887,12 @@ void GCode::_print_first_layer_bed_temperature(FILE *file, Print &print, const s
     // Is the bed temperature set by the provided custom G-code?
     int  temp_by_gcode     = -1;
     bool temp_set_by_gcode = custom_gcode_sets_temperature(gcode, 140, 190, temp_by_gcode);
-    if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
+    if (temp_set_by_gcode && temp_by_gcode >= 0 && temp_by_gcode < 1000)
         temp = temp_by_gcode;
     // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
     // the custom start G-code emited these.
     std::string set_temp_gcode = m_writer.set_bed_temperature(temp, wait);
-    if (! temp_by_gcode)
+    if (! temp_set_by_gcode)
         write(file, set_temp_gcode);
 }
 
@@ -973,7 +1022,7 @@ void GCode::process_layer(
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index + 1));
         config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
-        gcode += m_placeholder_parser.process(
+        gcode += this->placeholder_parser_process("before_layer_gcode",
             print.config.before_layer_gcode.value, m_writer.extruder()->id(), &config)
             + "\n";
     }
@@ -983,7 +1032,7 @@ void GCode::process_layer(
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
-        gcode += m_placeholder_parser.process(
+        gcode += this->placeholder_parser_process("layer_gcode",
             print.config.layer_gcode.value, m_writer.extruder()->id(), &config)
             + "\n";
     }
@@ -2162,13 +2211,14 @@ GCode::retract(bool toolchange)
 
 std::string GCode::set_extruder(unsigned int extruder_id)
 {
-    m_placeholder_parser.set("current_extruder", extruder_id);
     if (!m_writer.need_toolchange(extruder_id))
         return "";
     
     // if we are running a single-extruder setup, just set the extruder and return nothing
-    if (!m_writer.multiple_extruders)
+    if (!m_writer.multiple_extruders) {
+        m_placeholder_parser.set("current_extruder", extruder_id);
         return m_writer.toolchange(extruder_id);
+    }
     
     // prepend retraction on the current extruder
     std::string gcode = this->retract(true);
@@ -2176,23 +2226,41 @@ std::string GCode::set_extruder(unsigned int extruder_id)
     // Always reset the extrusion path, even if the tool change retract is set to zero.
     m_wipe.reset_path();
     
-    // append custom toolchange G-code
-    if (m_writer.extruder() != nullptr && !m_config.toolchange_gcode.value.empty()) {
+    if (m_writer.extruder() != nullptr) {
+        // Process the custom end_filament_gcode in case of single_extruder_multi_material.
+        unsigned int        old_extruder_id     = m_writer.extruder()->id();
+        const std::string  &end_filament_gcode  = m_config.end_filament_gcode.get_at(old_extruder_id);
+        if (m_config.single_extruder_multi_material && ! end_filament_gcode.empty()) {
+            gcode += placeholder_parser_process("end_filament_gcode", end_filament_gcode, old_extruder_id);
+            check_add_eol(gcode);
+        }
+    }
+
+    m_placeholder_parser.set("current_extruder", extruder_id);
+
+    if (m_writer.extruder() != nullptr && ! m_config.toolchange_gcode.value.empty()) {
+        // Process the custom toolchange_gcode.
         DynamicConfig config;
         config.set_key_value("previous_extruder", new ConfigOptionInt((int)m_writer.extruder()->id()));
         config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
-        gcode += m_placeholder_parser.process(
-            m_config.toolchange_gcode.value, extruder_id, &config)
-            + '\n';
+        gcode += placeholder_parser_process("toolchange_gcode", m_config.toolchange_gcode.value, extruder_id, &config);
+        check_add_eol(gcode);
     }
     
-    // if ooze prevention is enabled, park current extruder in the nearest
-    // standby point and set it to the standby temperature
+    // If ooze prevention is enabled, park current extruder in the nearest
+    // standby point and set it to the standby temperature.
     if (m_ooze_prevention.enable && m_writer.extruder() != nullptr)
         gcode += m_ooze_prevention.pre_toolchange(*this);
-    // append the toolchange command
+    // Append the toolchange command.
     gcode += m_writer.toolchange(extruder_id);
-    // set the new extruder to the operating temperature
+    // Append the filament start G-code for single_extruder_multi_material.
+    const std::string &start_filament_gcode = m_config.start_filament_gcode.get_at(extruder_id);
+    if (m_config.single_extruder_multi_material && ! start_filament_gcode.empty()) {
+        // Process the start_filament_gcode for the active filament only.
+        gcode += this->placeholder_parser_process("start_filament_gcode", start_filament_gcode, extruder_id);
+        check_add_eol(gcode);
+    }
+    // Set the new extruder to the operating temperature.
     if (m_ooze_prevention.enable)
         gcode += m_ooze_prevention.post_toolchange(*this);
     

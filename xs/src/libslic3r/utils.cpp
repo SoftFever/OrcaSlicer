@@ -89,6 +89,18 @@ std::string var(const std::string &file_name)
     return file.string();
 }
 
+static std::string g_resources_dir;
+
+void set_resources_dir(const std::string &dir)
+{
+    g_resources_dir = dir;
+}
+
+const std::string& resources_dir()
+{
+    return g_resources_dir;
+}
+
 static std::string g_data_dir;
 
 void set_data_dir(const std::string &dir)
@@ -99,19 +111,6 @@ void set_data_dir(const std::string &dir)
 const std::string& data_dir()
 {
     return g_data_dir;
-}
-
-std::string config_path(const std::string &file_name)
-{
-    auto file = (boost::filesystem::path(g_data_dir) / file_name).make_preferred();
-    return file.string();
-}
-
-std::string config_path(const std::string &section, const std::string &name)
-{
-    auto file_name = boost::algorithm::iends_with(name, ".ini") ? name : name + ".ini";
-    auto file = (boost::filesystem::path(g_data_dir) / section / file_name).make_preferred();
-    return file.string();
 }
 
 } // namespace Slic3r
@@ -194,6 +193,7 @@ confess_at(const char *file, int line, const char *func,
 
 namespace Slic3r {
 
+// Encode an UTF-8 string to the local code page.
 std::string encode_path(const char *src)
 {    
 #ifdef WIN32
@@ -211,6 +211,7 @@ std::string encode_path(const char *src)
 #endif /* WIN32 */
 }
 
+// Encode an 8-bit string from a local code page to UTF-8.
 std::string decode_path(const char *src)
 {  
 #ifdef WIN32

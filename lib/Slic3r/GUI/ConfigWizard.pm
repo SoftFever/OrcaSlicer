@@ -14,14 +14,14 @@ our $wizard = 'Wizard';
 $wizard = 'Assistant' if &Wx::wxMAC || &Wx::wxGTK;
 
 sub new {
-    my $class = shift;
-    my ($parent) = @_;
+    my ($class, $parent, $presets, $fresh_start) = @_;
     my $self = $class->SUPER::new($parent, -1, "Configuration $wizard");
 
     # initialize an empty repository
     $self->{config} = Slic3r::Config->new;
 
-    $self->add_page(Slic3r::GUI::ConfigWizard::Page::Welcome->new($self));
+    my $welcome_page = Slic3r::GUI::ConfigWizard::Page::Welcome->new($self, $fresh_start);
+    $self->add_page($welcome_page);
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Firmware->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Bed->new($self));
     $self->add_page(Slic3r::GUI::ConfigWizard::Page::Nozzle->new($self));
@@ -32,12 +32,13 @@ sub new {
 
     $_->build_index for @{$self->{pages}};
 
+    $welcome_page->set_selection_presets([@{$presets}, 'Other']);
+
     return $self;
 }
 
 sub add_page {
-    my $self = shift;
-    my ($page) = @_;
+    my ($self, $page) = @_;
 
     my $n = push @{$self->{pages}}, $page;
     # add first page to the page area sizer
@@ -48,13 +49,17 @@ sub add_page {
 }
 
 sub run {
-    my $self = shift;
-    
+    my ($self) = @_;
+    my $result;
     if (Wx::Wizard::RunWizard($self, $self->{pages}[0])) {
-        
-        # it would be cleaner to have these defined inside each page class,
-        # in some event getting called before leaving the page
-        {
+        my $preset_name = $self->{pages}[0]->{preset_name};
+        $result = { 
+            preset_name         => $preset_name,
+            reset_user_profile  => $self->{pages}[0]->{reset_user_profile}
+        };
+        if ($preset_name eq 'Other') {
+            # it would be cleaner to have these defined inside each page class,
+            # in some event getting called before leaving the page
             # set first_layer_height + layer_height based on nozzle_diameter
             my $nozzle = $self->{config}->nozzle_diameter;
             $self->{config}->set('first_layer_height', $nozzle->[0]);
@@ -66,14 +71,11 @@ sub run {
             # set first_layer_bed_temperature to temperature + 5
             $self->{config}->set('first_layer_bed_temperature',
                 [ ($self->{config}->bed_temperature->[0] > 0) ? ($self->{config}->bed_temperature->[0] + 5) : 0 ]);
+            $result->{config} = $self->{config};
         }
-        
-        $self->Destroy;
-        return $self->{config};
-    } else {
-        $self->Destroy;
-        return undef;
     }
+    $self->Destroy;
+    return $result;
 }
 
 package Slic3r::GUI::ConfigWizard::Index;
@@ -127,6 +129,8 @@ sub repaint {
 
         $dc->SetTextForeground(Wx::Colour->new(128, 128, 128)) if $i > $self->{own_index};
         $dc->DrawLabel($_, $bullet, Wx::Rect->new(0, $i * ($label_h + $gap), $label_w, $label_h));
+        # Only show the first bullet if this is the only wizard page to be displayed.
+        last if $i == 0 && $self->{just_welcome};
         $i++;
     }
 
@@ -263,17 +267,85 @@ sub config {
 
 package Slic3r::GUI::ConfigWizard::Page::Welcome;
 use base 'Slic3r::GUI::ConfigWizard::Page';
+use Wx qw(:misc :sizer wxID_FORWARD);
+use Wx::Event qw(EVT_ACTIVATE EVT_CHOICE EVT_CHECKBOX);
 
 sub new {
-    my $class = shift;
-    my ($parent) = @_;
+    my ($class, $parent, $fresh_start) = @_;
     my $self = $class->SUPER::new($parent, "Welcome to the Slic3r Configuration $wizard", 'Welcome');
+    $self->{full_wizard_workflow} = 1;
+    $self->{reset_user_profile} = 0;
 
-    $self->append_text('Hello, welcome to Slic3r! This '.lc($wizard).' helps you with the initial configuration; just a few settings and you will be ready to print.');
-    $self->append_text('To import an existing configuration instead, cancel this '.lc($wizard).' and use the Open Config menu item found in the File menu.');
-    $self->append_text('To continue, click Next.');
+    # Test for the existence of the old config path.
+    my $message_has_legacy;
+    {
+        my $datadir = Slic3r::data_dir;
+        if ($datadir =~ /Slic3rPE/) {
+            # Check for existence of the legacy Slic3r directory.
+            my $datadir_legacy = substr $datadir, 0, -2;
+            my $dir_enc = Slic3r::encode_path($datadir_legacy);
+            if (-e $dir_enc && -d $dir_enc && 
+                -e ($dir_enc . '/print')    && -d ($dir_enc . '/print')    &&
+                -e ($dir_enc . '/filament') && -d ($dir_enc . '/filament') &&
+                -e ($dir_enc . '/printer')  && -d ($dir_enc . '/printer')  &&
+                -e ($dir_enc . '/slic3r.ini')) {
+                $message_has_legacy = "Starting with Slic3r 1.38.4, the user profile directory has been renamed to $datadir. You may consider closing Slic3r and renaming $datadir_legacy to $datadir.";
+            }
+        }
+    }
+
+    $self->append_text('Hello, welcome to Slic3r Prusa Edition! This '.lc($wizard).' helps you with the initial configuration; just a few settings and you will be ready to print.');
+    $self->append_text('Please select your printer vendor and printer type. If your printer is not listed, you may try your luck and select a similar one. If you select "Other", this ' . lc($wizard) . ' will let you set the basic 3D printer parameters.');
+    $self->append_text($message_has_legacy) if defined $message_has_legacy;
+        # To import an existing configuration instead, cancel this '.lc($wizard).' and use the Open Config menu item found in the File menu.');
+    $self->append_text('If you received a configuration file or a config bundle from your 3D printer vendor, cancel this '.lc($wizard).' and use the "File->Load Config" or "File->Load Config Bundle" menu.');
+
+    $self->{choice} = my $choice = Wx::Choice->new($self, -1, wxDefaultPosition, wxDefaultSize, []);
+    $self->{vsizer}->Add($choice, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
+    if (! $fresh_start) {
+        $self->{reset_checkbox} = Wx::CheckBox->new($self, -1, "Reset user profile, install from scratch");
+        $self->{vsizer}->Add($self->{reset_checkbox}, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
+    }
+
+    EVT_CHOICE($parent, $choice, sub {
+        my $sel = $self->{choice}->GetStringSelection;
+        $self->{preset_name} = $sel;
+        $self->set_full_wizard_workflow(($sel eq 'Other') || ($sel eq ''));
+    });
+
+    if (! $fresh_start) {
+        EVT_CHECKBOX($self, $self->{reset_checkbox}, sub {
+            $self->{reset_user_profile} = $self->{reset_checkbox}->GetValue();
+        });
+    }
+
+    EVT_ACTIVATE($parent, sub {
+        $self->set_full_wizard_workflow($self->{preset_name} eq 'Other');
+    });
 
     return $self;
+}
+
+sub set_full_wizard_workflow {
+    my ($self, $full_workflow) = @_;
+    $self->{full_wizard_workflow} = $full_workflow;
+    $self->{index}->{just_welcome} = !$full_workflow;
+    $self->{index}->Refresh;
+    my $next_button = $self->GetParent->FindWindow(wxID_FORWARD);
+    $next_button->SetLabel($full_workflow ? "&Next >" : "&Finish");
+}
+
+# Set the preset names, select the first item.
+sub set_selection_presets {
+    my ($self, $names) = @_;
+    $self->{choice}->Append($names);
+    $self->{choice}->SetSelection(0);
+    $self->{preset_name} = $names->[0];
+}
+
+sub GetNext {
+    my $self = shift;
+    return $self->{full_wizard_workflow} ? $self->{next_page} : undef;
 }
 
 package Slic3r::GUI::ConfigWizard::Page::Firmware;

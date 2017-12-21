@@ -243,7 +243,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
         for (const auto &opt : def->options) {
             for (const t_config_option_key &opt_key2 : opt.second.aliases) {
                 if (opt_key2 == opt_key) {
-                    opt_key = opt_key2;
+                    opt_key = opt.first;
                     optdef = &opt.second;
                     break;
                 }

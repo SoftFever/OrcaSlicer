@@ -15,10 +15,14 @@ public:
     PresetBundle();
     ~PresetBundle();
 
+    // Remove all the presets but the "-- default --".
+    // Optionally remove all the files referenced by the presets from the user profile directory.
+    void            reset(bool delete_files);
+
     void            setup_directories();
 
-    // Load ini files of all types (print, filament, printer) from the provided directory path.
-    void            load_presets(const std::string &dir_path);
+    // Load ini files of all types (print, filament, printer) from Slic3r::data_dir() / presets.
+    void            load_presets();
 
     // Load selections (current print, current filaments, current printer) from config.ini
     // This is done just once on application start up.
@@ -40,6 +44,11 @@ public:
 
     DynamicPrintConfig          full_config() const;
 
+    // Load user configuration and store it into the user profiles.
+    // This method is called by the configuration wizard.
+    void                        load_config(const std::string &name, DynamicPrintConfig config)
+        { this->load_config_file_config(name, false, std::move(config)); }
+
     // Load an external config file containing the print, filament and printer presets.
     // Instead of a config file, a G-code may be loaded containing the full set of parameters.
     // In the future the configuration will likely be read from an AMF file as well.
@@ -51,7 +60,14 @@ public:
     // Load settings into the provided settings instance.
     // Activate the presets stored in the config bundle.
     // Returns the number of presets loaded successfully.
-    size_t                      load_configbundle(const std::string &path);
+    enum { 
+        // Save the profiles, which have been loaded.
+        LOAD_CFGBNDLE_SAVE = 1, 
+        // Delete all old config profiles before loading.
+        LOAD_CFGBNDLE_RESET_USER_PROFILE = 2
+    };
+    // Load the config bundle, store it to the user profile directory by default.
+    size_t                      load_configbundle(const std::string &path, unsigned int flags = LOAD_CFGBNDLE_SAVE);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path); // , const DynamicPrintConfig &settings);
@@ -78,7 +94,10 @@ public:
     void                        update_compatible_with_printer(bool select_other_if_incompatible);
 
 private:
-    void                        load_config_file_config(const std::string &path, const DynamicPrintConfig &config);
+    // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
+    // and the external config is just referenced, not stored into user profile directory.
+    // If it is not an external config, then the config will be stored into the user profile directory.
+    void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config);
     void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
     bool                        load_compatible_bitmaps();
 

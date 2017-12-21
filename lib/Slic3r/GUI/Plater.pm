@@ -99,6 +99,7 @@ sub new {
         $self->{canvas3D}->set_on_select_object($on_select_object);
         $self->{canvas3D}->set_on_double_click($on_double_click);
         $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+        $self->{canvas3D}->set_on_arrange(sub { $self->arrange });
         $self->{canvas3D}->set_on_rotate_object_left(sub { $self->rotate(-45, Z, 'relative') });
         $self->{canvas3D}->set_on_rotate_object_right(sub { $self->rotate( 45, Z, 'relative') });
         $self->{canvas3D}->set_on_scale_object_uniformly(sub { $self->changescale(undef) });
@@ -429,6 +430,7 @@ sub new {
             $grid_sizer->AddGrowableCol(3, 1);
             $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
             my @info = (
+                fil_m   => "Used Filament (m)",
                 fil_mm3 => "Used Filament (mm^3)",
                 fil_g   => "Used Filament (g)",
                 cost    => "Cost",
@@ -504,6 +506,7 @@ sub _on_select_preset {
         wxTheApp->{preset_bundle}->set_filament_preset($idx, $choice->GetStringSelection);
     }
 	if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
+        # Only update the platter UI for the 2nd and other filaments.
         wxTheApp->{preset_bundle}->update_platter_filament_ui($idx, $choice);
 	} else {
     	# call GetSelection() in scalar context as it's context-aware
@@ -1290,9 +1293,11 @@ sub export_gcode {
     
     # select output file
     if ($output_file) {
-        $self->{export_gcode_output_file} = $self->{print}->output_filepath($output_file);
+        $self->{export_gcode_output_file} = eval { $self->{print}->output_filepath($output_file) };
+        Slic3r::GUI::catch_error($self) and return;
     } else {
-        my $default_output_file = $self->{print}->output_filepath($main::opt{output} // '');
+        my $default_output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
+        Slic3r::GUI::catch_error($self) and return;
         my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', 
             wxTheApp->{app_config}->get_last_output_dir(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1423,6 +1428,7 @@ sub on_export_completed {
     $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
     $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
     $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
+    $self->{"print_info_fil_m"}->SetLabel(sprintf("%.2f" , $self->{print}->total_used_filament / 1000));
     $self->{"print_info_box_show"}->(1);
 
     # this updates buttons status
@@ -1437,8 +1443,8 @@ sub do_print {
     my $printer_panel = $controller->add_printer($printer_preset->name, $printer_preset->config);
     
     my $filament_stats = $self->{print}->filament_stats;
-    my @filament_names = wxTheApp->{preset_bundle}->filament_presets;
-    $filament_stats = { map { $filament_names[$_] => $filament_stats->{$_} } keys %$filament_stats };
+    my $filament_names = wxTheApp->{preset_bundle}->filament_presets;
+    $filament_stats = { map { $filament_names->[$_] => $filament_stats->{$_} } keys %$filament_stats };
     $printer_panel->load_print_job($self->{print_file}, $filament_stats);
     
     $self->GetFrame->select_tab(1);
@@ -1494,6 +1500,7 @@ sub reload_from_disk {
     return if !defined $obj_idx;
     
     my $model_object = $self->{model}->objects->[$obj_idx];
+    #FIXME convert to local file encoding
     return if !$model_object->input_file
         || !-e $model_object->input_file;
     
@@ -1504,12 +1511,14 @@ sub reload_from_disk {
         my $o = $self->{model}->objects->[$new_obj_idx];
         $o->clear_instances;
         $o->add_instance($_) for @{$model_object->instances};
+        #$o->invalidate_bounding_box;
         
         if ($o->volumes_count == $model_object->volumes_count) {
             for my $i (0..($o->volumes_count-1)) {
                 $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
             }
         }
+        #FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
     }
     
     $self->remove($obj_idx);
@@ -1540,7 +1549,8 @@ sub export_amf {
 sub _get_export_file {
     my ($self, $format) = @_;    
     my $suffix = $format eq 'STL' ? '.stl' : '.amf.xml';
-    my $output_file = $self->{print}->output_filepath($main::opt{output} // '');
+    my $output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
+    Slic3r::GUI::catch_error($self) and return undef;
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
     my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
         basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1917,23 +1927,24 @@ sub object_menu {
     
     my $frame = $self->GetFrame;
     my $menu = Wx::Menu->new;
-    $frame->_append_menu_item($menu, "Delete\t\xA0Del", 'Remove the selected object', sub {
+    my $accel = ($^O eq 'MSWin32') ? sub { $_[0] . "\t\xA0" . $_[1] } : sub { $_[0] };
+    $frame->_append_menu_item($menu, $accel->('Delete', 'Del'), 'Remove the selected object', sub {
         $self->remove;
     }, undef, 'brick_delete.png');
-    $frame->_append_menu_item($menu, "Increase copies\t\xA0+", 'Place one more copy of the selected object', sub {
+    $frame->_append_menu_item($menu, $accel->('Increase copies', '+'), 'Place one more copy of the selected object', sub {
         $self->increase;
     }, undef, 'add.png');
-    $frame->_append_menu_item($menu, "Decrease copies\t\xA0-", 'Remove one copy of the selected object', sub {
+    $frame->_append_menu_item($menu, $accel->('Decrease copies', '-'), 'Remove one copy of the selected object', sub {
         $self->decrease;
     }, undef, 'delete.png');
     $frame->_append_menu_item($menu, "Set number of copies…", 'Change the number of copies of the selected object', sub {
         $self->set_number_of_copies;
     }, undef, 'textfield.png');
     $menu->AppendSeparator();
-    $frame->_append_menu_item($menu, "Rotate 45° clockwise\t\xA0l", 'Rotate the selected object by 45° clockwise', sub {
+    $frame->_append_menu_item($menu, $accel->('Rotate 45° clockwise', 'l'), 'Rotate the selected object by 45° clockwise', sub {
         $self->rotate(-45, Z, 'relative');
     }, undef, 'arrow_rotate_clockwise.png');
-    $frame->_append_menu_item($menu, "Rotate 45° counter-clockwise\t\xA0r", 'Rotate the selected object by 45° counter-clockwise', sub {
+    $frame->_append_menu_item($menu, $accel->('Rotate 45° counter-clockwise', 'r'), 'Rotate the selected object by 45° counter-clockwise', sub {
         $self->rotate(+45, Z, 'relative');
     }, undef, 'arrow_rotate_anticlockwise.png');
     
@@ -1966,7 +1977,7 @@ sub object_menu {
     my $scaleMenu = Wx::Menu->new;
     my $scaleMenuItem = $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
     $frame->_set_menu_item_icon($scaleMenuItem, 'arrow_out.png');
-    $frame->_append_menu_item($scaleMenu, "Uniformly…\t\xA0s", 'Scale the selected object along the XYZ axes', sub {
+    $frame->_append_menu_item($scaleMenu, $accel->('Uniformly…', 's'), 'Scale the selected object along the XYZ axes', sub {
         $self->changescale(undef);
     });
     $frame->_append_menu_item($scaleMenu, "Along X axis…", 'Scale the selected object along the X axis', sub {

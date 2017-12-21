@@ -447,7 +447,8 @@ void PrintObject::detect_surfaces_type()
                             to_polygons(upper_layer->get_region(idx_region)->slices.surfaces) : 
                             to_polygons(upper_layer->slices);
                         surfaces_append(top,
-                            offset2_ex(diff(layerm_slices_surfaces, upper_slices, true), -offset, offset),
+                            //FIXME implement offset2_ex working over ExPolygons, that should be a bit more efficient than calling offset_ex twice.
+                            offset_ex(offset_ex(diff_ex(layerm_slices_surfaces, upper_slices, true), -offset), offset),
                             stTop);
                     } else {
                         // if no upper layer, all surfaces of this one are solid

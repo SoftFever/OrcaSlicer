@@ -7,7 +7,7 @@ use utf8;
 
 use File::Basename qw(basename dirname);
 use FindBin;
-use List::Util qw(min);
+use List::Util qw(min first);
 use Slic3r::Geometry qw(X Y);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
     :font :icon wxTheApp);
@@ -22,6 +22,7 @@ sub new {
     my ($class, %params) = @_;
     
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
+    Slic3r::GUI::set_main_frame($self);
     if ($^O eq 'MSWin32') {
         # Load the icon either from the exe, or from the ico file.
         my $iconfile = Slic3r::decode_path($FindBin::Bin) . '\slic3r.exe';
@@ -92,6 +93,8 @@ sub _init_tabpanel {
     my ($self) = @_;
     
     $self->{tabpanel} = my $panel = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
+    Slic3r::GUI::set_tab_panel($panel);
+
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{tabpanel}, sub {
         my $panel = $self->{tabpanel}->GetCurrentPage;
         $panel->OnActivate if $panel->can('OnActivate');
@@ -129,12 +132,14 @@ sub _init_tabpanel {
                 $self->{plater}->update_presets($tab_name, @_);
                 if ($tab_name eq 'printer') {
                     # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-                    wxTheApp->{preset_bundle}->print->update_tab_ui(
-                        $self->{options_tabs}{'print'}->{presets_choice},
-                        $self->{options_tabs}{'print'}->{show_incompatible_presets});
-                    wxTheApp->{preset_bundle}->filament->update_tab_ui(
-                        $self->{options_tabs}{'filament'}->{presets_choice},
-                        $self->{options_tabs}{'filament'}->{show_incompatible_presets});
+                    my ($presets, $reload_dependent_tabs) = @_;
+                    for my $tab_name_other (qw(print filament)) {
+                        # If the printer tells us that the print or filament preset has been switched or invalidated,
+                        # refresh the print or filament tab page. Otherwise just refresh the combo box.
+                        my $update_action = ($reload_dependent_tabs && (first { $_ eq $tab_name_other } (@{$reload_dependent_tabs}))) 
+                            ? 'load_current_preset' : 'update_tab_ui';
+                        $self->{options_tabs}{$tab_name_other}->$update_action;
+                    }
                     # Update the controller printers.
                     $self->{controller}->update_presets(@_) if $self->{controller};
                 }
@@ -145,6 +150,9 @@ sub _init_tabpanel {
         $tab->load_current_preset;
         $panel->AddPage($tab, $tab->title);
     }
+
+#TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
+#    Slic3r::GUI::create_preset_tab("print");
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
@@ -165,6 +173,9 @@ sub _init_menubar {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
+        wxTheApp->append_menu_item($fileMenu, "Open STL/OBJ/AMF…\tCtrl+O", 'Open a model', sub {
+            $self->{plater}->add if $self->{plater};
+        }, undef, undef); #'brick_add.png');
         $self->_append_menu_item($fileMenu, "&Load Config…\tCtrl+L", 'Load exported configuration file', sub {
             $self->load_config_file;
         }, undef, 'plugin_add.png');
@@ -274,20 +285,22 @@ sub _init_menubar {
         # \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
         # as the simple numeric accelerators spoil all numeric data entry.
         # The camera control accelerators are captured by 3DScene Perl module instead.
-        $self->_append_menu_item($self->{viewMenu}, "Iso\t\xA00"    , 'Iso View'    , sub { $self->select_view('iso'    ); });
-        $self->_append_menu_item($self->{viewMenu}, "Top\t\xA01"    , 'Top View'    , sub { $self->select_view('top'    ); });
-        $self->_append_menu_item($self->{viewMenu}, "Bottom\t\xA02" , 'Bottom View' , sub { $self->select_view('bottom' ); });
-        $self->_append_menu_item($self->{viewMenu}, "Front\t\xA03"  , 'Front View'  , sub { $self->select_view('front'  ); });
-        $self->_append_menu_item($self->{viewMenu}, "Rear\t\xA04"   , 'Rear View'   , sub { $self->select_view('rear'   ); });
-        $self->_append_menu_item($self->{viewMenu}, "Left\t\xA05"   , 'Left View'   , sub { $self->select_view('left'   ); });
-        $self->_append_menu_item($self->{viewMenu}, "Right\t\xA06"  , 'Right View'  , sub { $self->select_view('right'  ); });
+        my $accel = ($^O eq 'MSWin32') ? sub { $_[0] . "\t\xA0" . $_[1] } : sub { $_[0] };
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Iso',    '0'), 'Iso View'    , sub { $self->select_view('iso'    ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Top',    '1'), 'Top View'    , sub { $self->select_view('top'    ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Bottom', '2'), 'Bottom View' , sub { $self->select_view('bottom' ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Front',  '3'), 'Front View'  , sub { $self->select_view('front'  ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Rear',   '4'), 'Rear View'   , sub { $self->select_view('rear'   ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Left',   '5'), 'Left View'   , sub { $self->select_view('left'   ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->('Right',  '6'), 'Right View'  , sub { $self->select_view('right'  ); });
     }
     
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
         $self->_append_menu_item($helpMenu, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard", sub {
-            $self->config_wizard;
+            # Run the config wizard, offer the "reset user profile" checkbox.
+            $self->config_wizard(0);
         });
         $helpMenu->AppendSeparator();
         $self->_append_menu_item($helpMenu, "Prusa 3D Drivers", 'Open the Prusa3D drivers download page in your browser', sub {
@@ -329,6 +342,8 @@ sub _init_menubar {
         $menubar->Append($windowMenu, "&Window");
         $menubar->Append($self->{viewMenu}, "&View") if $self->{viewMenu};
         $menubar->Append($helpMenu, "&Help");
+        # Add an optional debug menu. In production code, the add_debug_menu() call should do nothing.
+        Slic3r::GUI::add_debug_menu($menubar);
         $self->SetMenuBar($menubar);
     }
 }
@@ -413,6 +428,7 @@ sub quick_slice {
         if ($params{reslice}) {
             $output_file = $qs_last_output_file if defined $qs_last_output_file;
         } elsif ($params{save_as}) {
+            # The following line may die if the output_filename_format template substitution fails.
             $output_file = $sprint->output_filepath;
             $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.svg/ if $params{export_svg};
             my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
@@ -565,7 +581,7 @@ sub export_configbundle {
 # to auto-install a config bundle on a fresh user account,
 # but that behavior was not documented and likely buggy.
 sub load_configbundle {
-    my ($self, $file) = @_;
+    my ($self, $file, $reset_user_profile) = @_;
     return unless $self->check_unsaved_changes;
     if (!$file) {
         my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', 
@@ -580,7 +596,7 @@ sub load_configbundle {
     wxTheApp->{app_config}->update_config_dir(dirname($file));
 
     my $presets_imported = 0;
-    eval { $presets_imported = wxTheApp->{preset_bundle}->load_configbundle($file); };
+    eval { $presets_imported = wxTheApp->{preset_bundle}->load_configbundle($file, $reset_user_profile ? 1 : 0); };
     Slic3r::GUI::catch_error($self) and return;
 
     # Load the currently selected preset into the GUI, update the preset selection box.
@@ -601,19 +617,39 @@ sub load_config {
 }
 
 sub config_wizard {
-    my ($self) = @_;
+    my ($self, $fresh_start) = @_;
     # Exit wizard if there are unsaved changes and the user cancels the action.
     return unless $self->check_unsaved_changes;
-    if (my $config = Slic3r::GUI::ConfigWizard->new($self)->run) {
-        for my $tab (values %{$self->{options_tabs}}) {
-            # Select the first visible preset, force.
-            $tab->select_preset(undef, 1);
+    # Enumerate the profiles bundled with the Slic3r installation under resources/profiles.
+    my $directory = Slic3r::resources_dir() . "/profiles";
+    my @profiles = ();
+    if (opendir(DIR, Slic3r::encode_path($directory))) {
+        while (my $file = readdir(DIR)) {
+            if ($file =~ /\.ini$/) {
+                $file =~ s/\.ini$//;
+                push @profiles, Slic3r::decode_path($file);
+            }
         }
-        # Load the config over the previously selected defaults.
-        $self->load_config($config);
-        for my $tab (values %{$self->{options_tabs}}) {
-            # Save the settings under a new name, select the name.
-            $tab->save_preset('My Settings');
+        closedir(DIR);
+    }
+    # Open the wizard.
+    if (my $result = Slic3r::GUI::ConfigWizard->new($self, \@profiles, $fresh_start)->run) {
+        eval {
+            if ($result->{reset_user_profile}) {
+                wxTheApp->{preset_bundle}->reset(1);
+            }
+            if (defined $result->{config}) {
+                # Load and save the settings into print, filament and printer presets.
+                wxTheApp->{preset_bundle}->load_config('My Settings', $result->{config});
+            } else {
+                # Wizard returned a name of a preset bundle bundled with the installation. Unpack it.
+                wxTheApp->{preset_bundle}->load_configbundle($directory . '/' . $result->{preset_name} . '.ini');
+            }
+        };
+        Slic3r::GUI::catch_error($self) and return;
+        # Load the currently selected preset into the GUI, update the preset selection box.
+        foreach my $tab (values %{$self->{options_tabs}}) {
+            $tab->load_current_preset;
         }
     }
 }

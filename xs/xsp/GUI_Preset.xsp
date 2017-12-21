@@ -14,7 +14,9 @@
     bool                        external()      %code%{ RETVAL = THIS->is_external; %};
     bool                        visible()       %code%{ RETVAL = THIS->is_visible;  %};
     bool                        dirty()         %code%{ RETVAL = THIS->is_dirty;    %};
-    bool                        is_compatible_with_printer(char *active_printer) const;
+    bool                        compatible()    %code%{ RETVAL = THIS->is_compatible; %};
+    bool                        is_compatible_with_printer(Preset *active_printer)
+        %code%{ RETVAL = THIS->is_compatible_with_printer(*active_printer); %};
 
     const char*                 name()          %code%{ RETVAL = THIS->name.c_str(); %};
     const char*                 file()          %code%{ RETVAL = THIS->file.c_str(); %};
@@ -98,6 +100,8 @@ PresetCollection::arrayref()
     PresetBundle();
     ~PresetBundle();
 
+    void                        reset(bool delete_files);
+
     void                        setup_directories()
         %code%{
             try {
@@ -106,12 +110,21 @@ PresetCollection::arrayref()
                 croak("Cannot create configuration directories:\n%s\n", e.what());
             }
         %};
-    void                        load_presets(const char *dir_path)
+    void                        load_presets()
         %code%{
             try {
-                THIS->load_presets(dir_path);
+                THIS->load_presets();
             } catch (std::exception& e) {
-                croak("Loading of Slic3r presets from %s failed.\n\n%s\n", dir_path, e.what());
+                croak("Loading of Slic3r presets from %s failed.\n\n%s\n", 
+                    Slic3r::data_dir().c_str(), e.what());
+            }
+        %};
+    void                        load_config(const char *name, DynamicPrintConfig *config)
+        %code%{
+            try {
+                THIS->load_config(name, *config);
+            } catch (std::exception& e) {
+                croak("Loading a configuration %s failed:\n%s\n", name, e.what());
             }
         %};
     void                        load_config_file(const char *path)
@@ -125,7 +138,7 @@ PresetCollection::arrayref()
     size_t                      load_configbundle(const char *path)
         %code%{
             try {
-                RETVAL = THIS->load_configbundle(path);
+                RETVAL = THIS->load_configbundle(path, PresetBundle::LOAD_CFGBNDLE_SAVE);
             } catch (std::exception& e) {
                 croak("Loading of a config bundle %s failed:\n%s\n", path, e.what());
             }

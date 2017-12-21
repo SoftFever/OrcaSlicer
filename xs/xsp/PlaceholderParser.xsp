@@ -14,5 +14,20 @@
         %code%{ THIS->apply_config(*config); %};
     void set(std::string key, int value);
     std::string process(std::string str) const
-        %code%{ RETVAL = THIS->process(str, 0); %};
+        %code%{
+            try {
+                RETVAL = THIS->process(str, 0);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
+
+    bool evaluate_boolean_expression(const char *str) const
+        %code%{
+            try {
+                RETVAL = THIS->evaluate_boolean_expression(str, THIS->config());
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};        
 };

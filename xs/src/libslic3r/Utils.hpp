@@ -15,15 +15,15 @@ const std::string& var_dir();
 // Return a full resource path for a file_name.
 std::string var(const std::string &file_name);
 
+// Set a path with various static definition data (for example the initial config bundles).
+void set_resources_dir(const std::string &path);
+// Return a full path to the resources directory.
+const std::string& resources_dir();
+
 // Set a path with preset files.
 void set_data_dir(const std::string &path);
 // Return a full path to the GUI resource files.
 const std::string& data_dir();
-// Return a full path to a configuration file given its file name..
-std::string config_path(const std::string &file_name);
-// Return a full path to a configuration file given the section and name.
-// The suffix ".ini" will be added if it is missing in the name.
-std::string config_path(const std::string &section, const std::string &name);
 
 extern std::string encode_path(const char *src);
 extern std::string decode_path(const char *src);

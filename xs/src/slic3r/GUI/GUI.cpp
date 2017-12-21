@@ -13,6 +13,14 @@
 #pragma comment(lib, "user32.lib")
 #endif
 
+#include <wx/app.h>
+#include <wx/button.h>
+#include <wx/frame.h>
+#include <wx/menu.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+
 namespace Slic3r { namespace GUI {
 
 #if __APPLE__
@@ -132,6 +140,47 @@ void break_to_debugger()
     if (IsDebuggerPresent())
         DebugBreak();
     #endif /* _WIN32 */
+}
+
+// Passing the wxWidgets GUI classes instantiated by the Perl part to C++.
+wxApp       *g_wxApp        = nullptr;
+wxFrame     *g_wxMainFrame  = nullptr;
+wxNotebook  *g_wxTabPanel   = nullptr;
+
+void set_wxapp(wxApp *app)
+{
+    g_wxApp = app;
+}
+
+void set_main_frame(wxFrame *main_frame)
+{
+    g_wxMainFrame = main_frame;
+}
+
+void set_tab_panel(wxNotebook *tab_panel)
+{
+    g_wxTabPanel = tab_panel;
+}
+
+void add_debug_menu(wxMenuBar *menu)
+{
+#if 0
+    auto debug_menu = new wxMenu();
+    debug_menu->Append(wxWindow::NewControlId(1), "Some debug");
+    menu->Append(debug_menu, _T("&Debug"));
+#endif
+}
+
+void create_preset_tab(const char *name)
+{
+    auto  *panel  = new wxPanel(g_wxTabPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+    // Vertical sizer to hold the choice menu and the rest of the page.
+    auto  *sizer  = new wxBoxSizer(wxVERTICAL);
+    sizer->SetSizeHints(panel);
+    panel->SetSizer(sizer);
+    auto  *button = new wxButton(panel, wxID_ANY, "Hello World", wxDefaultPosition, wxDefaultSize, 0);
+    sizer->Add(button, 0, 0, 0);
+    g_wxTabPanel->AddPage(panel, name);
 }
 
 } }

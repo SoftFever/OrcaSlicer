@@ -31,6 +31,7 @@ my %cli_options = ();
         
         'debug'                 => \$Slic3r::debug,
         'gui'                   => \$opt{gui},
+        'no-gui'                   => \$opt{no_gui},
         'o|output=s'            => \$opt{output},
         
         'save=s'                => \$opt{save},
@@ -70,10 +71,10 @@ my @external_configs = ();
 if ($opt{load}) {
     foreach my $configfile (@{$opt{load}}) {
         if (-e $configfile) {
-            push @external_configs, Slic3r::Config->load($configfile);
+            push @external_configs, Slic3r::Config::load($configfile);
         } elsif (-e "$FindBin::Bin/$configfile") {
             printf STDERR "Loading $FindBin::Bin/$configfile\n";
-            push @external_configs, Slic3r::Config->load("$FindBin::Bin/$configfile");
+            push @external_configs, Slic3r::Config::load("$FindBin::Bin/$configfile");
         } else {
             $opt{ignore_nonexistent_config} or die "Cannot find specified configuration file ($configfile).\n";
         }
@@ -102,7 +103,7 @@ $config->apply($cli_config);
 
 # launch GUI
 my $gui;
-if ((!@ARGV || $opt{gui}) && !$opt{save} && eval "require Slic3r::GUI; 1") {
+if ((!@ARGV || $opt{gui}) && !$opt{no_gui} && !$opt{save} && eval "require Slic3r::GUI; 1") {
     {
         no warnings 'once';
         $Slic3r::GUI::datadir       = Slic3r::decode_path($opt{datadir} // '');
@@ -218,6 +219,8 @@ if (@ARGV) {  # slicing from command line
             $sprint->export_svg;
         } else {
             my $t0 = [gettimeofday];
+            # The following call may die if the output_filename_format template substitution fails,
+            # if the file cannot be written into, or if the post processing scripts cannot be executed.
             $sprint->export_gcode;
             
             # output some statistics
@@ -267,6 +270,8 @@ Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
     --gui               Forces the GUI launch instead of command line slicing (if you
                         supply a model file, it will be loaded into the plater)
     --no-plater         Disable the plater tab
+    --no-gui            Forces the command line slicing instead of gui. 
+                        This takes precedence over --gui if both are present.
     --autosave <file>   Automatically export current configuration to the specified file
 
   Output options:

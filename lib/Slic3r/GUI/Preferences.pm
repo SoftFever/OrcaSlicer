@@ -72,6 +72,13 @@ sub new {
                        'if they are marked as incompatible with the active printer',
         default     => $app_config->get("show_incompatible_presets"),
     ));
+    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
+        opt_id      => 'use_legacy_opengl',
+        type        => 'bool',
+        label       => 'Use legacy OpenGL 1.1 rendering',
+        tooltip     => 'If you have rendering issues caused by a buggy OpenGL 2.0 driver, you may try to check this checkbox. This will disable the layer height editing and anti aliasing, so it is likely better to upgrade your graphics driver.',
+        default     => $app_config->get("use_legacy_opengl"),
+    ));
     
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
@@ -90,7 +97,8 @@ sub _accept {
     my ($self) = @_;
     
     if (defined($self->{values}{no_controller}) ||
-        defined($self->{values}{no_defaults})) {
+        defined($self->{values}{no_defaults}) ||
+        defined($self->{values}{use_legacy_opengl})) {
         Slic3r::GUI::warning_catcher($self)->("You need to restart Slic3r to make the changes effective.");
     }
     

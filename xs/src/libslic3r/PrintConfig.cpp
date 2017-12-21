@@ -14,6 +14,9 @@ PrintConfigDef::PrintConfigDef()
     t_optiondef_map &Options = this->options;
     
     ConfigOptionDef* def;
+
+    // Maximum extruder temperature, bumped to 1500 to support printing of glass.
+    const int max_temp = 1500;
     
     def = this->add("avoid_crossing_perimeters", coBool);
     def->label = "Avoid crossing perimeters";
@@ -136,6 +139,13 @@ PrintConfigDef::PrintConfigDef()
     def->label = "Compatible printers";
     def->default_value = new ConfigOptionStrings();
 
+    def = this->add("compatible_printers_condition", coString);
+    def->label = "Compatible printers condition";
+    def->tooltip = "A boolean expression using the configuration values of an active printer profile. "
+                   "If this expression evaluates to true, this profile is considered compatible "
+                   "with the active printer profile.";
+    def->default_value = new ConfigOptionString();
+
     def = this->add("complete_objects", coBool);
     def->label = "Complete individual objects";
     def->tooltip = "When printing multiple objects or copies, this feature will complete "
@@ -245,6 +255,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("Hilbert Curve");
     def->enum_labels.push_back("Archimedean Chords");
     def->enum_labels.push_back("Octagram Spiral");
+    // solid_fill_pattern is an obsolete equivalent to external_fill_pattern.
     def->aliases.push_back("solid_fill_pattern");
     def->default_value = new ConfigOptionEnum<InfillPattern>(ipRectilinear);
 
@@ -610,7 +621,7 @@ PrintConfigDef::PrintConfigDef()
                    "during print, set this to zero to disable temperature control commands in the output file.";
     def->cli = "first-layer-temperature=i@";
     def->min = 0;
-    def->max = 500;
+    def->max = max_temp;
     def->default_value = new ConfigOptionInts { 200 };
     
     def = this->add("gap_fill_speed", coFloat);
@@ -1314,8 +1325,8 @@ PrintConfigDef::PrintConfigDef()
                    "Enables a full-height \"sacrificial\" skirt on which the nozzles are periodically wiped.";
     def->sidetext = "∆°C";
     def->cli = "standby-temperature-delta=i";
-    def->min = -500;
-    def->max = 500;
+    def->min = -max_temp;
+    def->max = max_temp;
     def->default_value = new ConfigOptionInt(-5);
 
     def = this->add("start_gcode", coString);
@@ -1555,7 +1566,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "temperature=i@";
     def->full_label = "Temperature";
     def->max = 0;
-    def->max = 500;
+    def->max = max_temp;
     def->default_value = new ConfigOptionInts { 200 };
     
     def = this->add("thin_walls", coBool);

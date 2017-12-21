@@ -79,9 +79,11 @@ public:
     void                set_dirty(bool dirty = true) { this->is_dirty = dirty; }
     void                reset_dirty() { this->is_dirty = false; }
 
-    bool                is_compatible_with_printer(const std::string &active_printer) const;
+    bool                is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const;
+    bool                is_compatible_with_printer(const Preset &active_printer) const;
+
     // Mark this preset as compatible if it is compatible with active_printer.
-    bool                update_compatible_with_printer(const std::string &active_printer);
+    bool                update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config);
 
     // Resize the extruder specific fields, initialize them with the content of the 1st extruder.
     void                set_num_extruders(unsigned int n) { set_num_extruders(this->config, n); }
@@ -113,6 +115,8 @@ public:
     // Initialize the PresetCollection with the "- default -" preset.
     PresetCollection(Preset::Type type, const std::vector<std::string> &keys);
     ~PresetCollection();
+
+    void            reset(bool delete_files);
 
     Preset::Type    type() const { return m_type; }
     std::string     name() const;
@@ -159,7 +163,7 @@ public:
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
     Preset&         preset(size_t idx)          { return (int(idx) == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
-    void            discard_current_changes()   { m_edited_preset = m_presets[m_idx_selected]; }
+    void            discard_current_changes()   { m_presets[m_idx_selected].reset_dirty(); m_edited_preset = m_presets[m_idx_selected]; }
     
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
     // If a preset is not found by its name, null is returned.
@@ -180,14 +184,14 @@ public:
     size_t          size() const                { return this->m_presets.size(); }
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
-    void            update_compatible_with_printer(const std::string &active_printer, bool select_other_if_incompatible);
+    void            update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible);
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
-    bool                        current_is_dirty() { return ! this->current_dirty_options().empty(); }
+    bool                        current_is_dirty() const { return ! this->current_dirty_options().empty(); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_dirty_options() { return this->get_selected_preset().config.diff(this->get_edited_preset().config); }
+    std::vector<std::string>    current_dirty_options() const;
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
@@ -207,10 +211,25 @@ public:
     // With force, the changes are reverted if the new index is the same as the old index.
     bool            select_preset_by_name(const std::string &name, bool force);
 
+    // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
+    std::string     path_from_name(const std::string &new_name) const;
+
 private:
     PresetCollection();
     PresetCollection(const PresetCollection &other);
     PresetCollection& operator=(const PresetCollection &other);
+
+    // Find a preset in the sorted list of presets.
+    // The "-- default -- " preset is always the first, so it needs
+    // to be handled differently.
+    std::deque<Preset>::iterator find_preset_internal(const std::string &name)
+    {
+        Preset key(m_type, name);
+        auto it = std::lower_bound(m_presets.begin() + 1, m_presets.end(), key);
+        return (it == m_presets.end() && m_presets.front().name == name) ? m_presets.begin() : it;
+    }
+    std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
+        { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
 
     // Type of this PresetCollection: TYPE_PRINT, TYPE_FILAMENT or TYPE_PRINTER.
     Preset::Type            m_type;

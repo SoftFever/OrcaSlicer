@@ -161,7 +161,9 @@ public:
     // Is there any valid extrusion assigned to this LayerRegion?
     virtual bool has_extrusions() const { return ! support_fills.empty(); }
 
-protected:
+//protected:
+    // The constructor has been made public to be able to insert additional support layers for the skirt or a wipe tower
+    // between the raft and the object first layer.
     SupportLayer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
         Layer(id, object, height, print_z, slice_z) {}
     virtual ~SupportLayer() {}
