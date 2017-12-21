@@ -9,15 +9,19 @@
 #include "WipeTower.hpp"
 
 // Following is used to calculate extrusion flow - should be taken from config in future
-constexpr float Filament_Diameter = 1.75f; // filament diameter in mm
+constexpr float Filament_Area = M_PI * 1.75f * 1.75f / 4.f; // filament diameter in mm
 constexpr float Nozzle_Diameter = 0.4f;	// nozzle diameter in mm
 // desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
 constexpr float Width_To_Nozzle_Ratio = 1.f;
 // m_perimeter_width was hardcoded until now as 0.5 (for 0.4 nozzle and 0.2 layer height)
 // Konst = 1.25 implies same result
 constexpr float Konst = 1.25f;
+
+// m_perimeter_width is used in plan_toolchange - take care of proper initialization value when changing to variable
 constexpr float m_perimeter_width = Nozzle_Diameter * Width_To_Nozzle_Ratio * Konst;
 
+constexpr float WT_EPSILON = 1e-3f;
+constexpr float min_layer_difference = 2.f;
 
 
 
@@ -75,7 +79,8 @@ public:
 	
 	// _zHop - z hop value in mm
 	void set_zhop(float zhop) { m_zhop = zhop; }
-	
+
+
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp)
 	{
@@ -84,32 +89,39 @@ public:
 		m_first_layer_temperature[idx] = first_layer_temp;
 	}
 
+
+	// Setter for internal structure m_plan containing info about the future wipe tower
+	// to be used before building begins. The entries must be added ordered in z.
+	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool);
+
+	void generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
+
 	// Switch to a next layer.
 	virtual void set_layer(
 		// Print height of this layer.
-		float  print_z,
-		// Layer height, used to calculate extrusion the rate. 
-		float  layer_height, 
+		float print_z,
+		// Layer height, used to calculate extrusion the rate.
+		float layer_height,
 		// Maximum number of tool changes on this layer or the layers below.
-		size_t max_tool_changes, 
+		size_t max_tool_changes,
 		// Is this the first layer of the print? In that case print the brim first.
-		bool   is_first_layer,
+		bool is_first_layer,
 		// Is this the last layer of the waste tower?
-		bool   is_last_layer)
+		bool is_last_layer)
 	{
-		if (is_first_layer)
-			m_wipe_tower_depth = m_wipe_area * max_tool_changes; // tower depth (y-range) of the bottom
-
 		m_z_pos 				= print_z;
 		m_layer_height			= layer_height;
-		m_max_color_changes 	= max_tool_changes;
 		m_is_first_layer 		= is_first_layer;
-		m_is_last_layer			= is_last_layer;
 		// Start counting the color changes from zero. Special case: -1 - extrude a brim first.
-		m_idx_tool_change_in_layer = is_first_layer ? (unsigned int)(-1) : 0;
+		///m_idx_tool_change_in_layer = is_first_layer ? (unsigned int)(-1) : 0;
+		m_print_brim = is_first_layer;
 		m_current_wipe_start_y  = 0.f;
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
 		++ m_num_layer_changes;
+
+
+		///m_max_color_changes 	= max_tool_changes;
+		///m_is_last_layer			= is_last_layer;
 		// Extrusion rate for an extrusion aka perimeter width 0.35mm.
 		// Clamp the extrusion height to a 0.2mm layer height, independent of the nozzle diameter.
 //		m_extrusion_flow = std::min(0.2f, layer_height) * 0.145f;
@@ -117,8 +129,14 @@ public:
 		//m_extrusion_flow = layer_height * 0.145f;
 		
 		// Calculates extrusion flow from desired line width, nozzle diameter, filament diameter and layer_height
-		m_extrusion_flow = 4.f * layer_height * ( Width_To_Nozzle_Ratio * Nozzle_Diameter - layer_height * (1-M_PI/4.f)) /
-					   		(M_PI * pow(Filament_Diameter,2.f));
+		m_extrusion_flow = extrusion_flow(layer_height);
+
+		m_layer_info = nullptr;
+		for (auto &a : m_plan)
+			if ( a.z > print_z - WT_EPSILON && a.z < print_z + WT_EPSILON ) {
+				m_layer_info = &a;
+				break;
+			}
 	}
 
 	// Return the wipe tower position.
@@ -151,8 +169,15 @@ public:
 	// Is the current layer finished? A layer is finished if either the wipe tower is finished, or
 	// the wipe tower has been completely covered by the tool change extrusions,
 	// or the rest of the tower has been filled by a sparse infill with the finish_layer() method.
-	virtual bool 			 layer_finished() const
-		{ return m_idx_tool_change_in_layer == m_max_color_changes; }
+	virtual bool 			 layer_finished() const {
+		
+		if (m_is_first_layer) {
+			return (m_wipe_tower_depth - WT_EPSILON < m_current_wipe_start_y);
+		}
+		else
+			return (m_layer_info->depth - WT_EPSILON < m_current_wipe_start_y);
+	}
+
 
 private:
 	WipeTowerPrusaMM();
@@ -169,7 +194,7 @@ private:
 	// Width of the wipe tower.
 	float  			m_wipe_tower_width;
 	// Depth of the wipe tower (wipe_area * max_color_changes at the base)
-	float			m_wipe_tower_depth;
+	float			m_wipe_tower_depth = 0.f;
 	// Per color Y span.
 	float  			m_wipe_area;
 	// Wipe tower rotation angle in degrees (with respect to x axis
@@ -205,7 +230,8 @@ private:
 	// Tool change change counter for the output statistics.
 	unsigned int 	m_num_tool_changes = 0;
 	// Layer change counter in this layer. Counting up to m_max_color_changes.
-	unsigned int 	m_idx_tool_change_in_layer = 0;
+	///unsigned int 	m_idx_tool_change_in_layer = 0;
+	bool m_print_brim = true;
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
 	unsigned int 	m_current_tool  = 0;
@@ -214,7 +240,18 @@ private:
 	// How much to wipe the 1st extruder over the wipe tower at the 1st layer
 	// after the wipe tower brim has been extruded?
 	float  			m_initial_extra_wipe = 0.f;
+	float			m_last_infill_tan = 1000.f;	// impossibly high value
+	bool 			m_plan_brim_finished = false;
 
+		float
+		extrusion_flow(float layer_height = -1.f)
+	{
+		if ( layer_height < 0 )
+			return m_extrusion_flow;
+		return layer_height * ( Width_To_Nozzle_Ratio * Nozzle_Diameter - layer_height * (1-M_PI/4.f)) / (Filament_Area);
+	}
+
+	
 	struct box_coordinates
 	{
 		box_coordinates(float left, float bottom, float width, float height) :
@@ -246,8 +283,34 @@ private:
 		xy rd;	// right lower
 	};
 
+
+	// to store information about tool changes for a given layer
+	struct WipeTowerInfo{
+		struct ToolChange {
+			unsigned int old_tool;
+			unsigned int new_tool;
+			float required_depth;
+			ToolChange(unsigned int old,unsigned int newtool,float depth) : old_tool{old}, new_tool{newtool}, required_depth{depth} {}
+		};
+		float z;		// z position of the layer
+		float height;	// layer height
+		float depth;	// depth of the layer based on all layers above
+		float toolchanges_depth() const { float sum = 0.f; for (const auto &a : tool_changes) sum += a.required_depth; return sum; }
+
+		std::vector<ToolChange> tool_changes;
+
+		WipeTowerInfo(float z_par, float layer_height_par)
+			: z{z_par}, height{layer_height_par} { }
+	};
+
+	// Stores information about all layers and toolchanges for the future wipe tower (filled by plan_toolchange(...))
+	std::vector<WipeTowerInfo> m_plan;
+
+	WipeTowerInfo* m_layer_info;
+
+
 	// Returns gcode for wipe tower brim
-	// sideOnly			-- set to false -- experimental, draw brim on sides of wipe tower 
+	// sideOnly			-- set to false -- experimental, draw brim on sides of wipe tower
 	// offset			-- set to 0		-- experimental, offset to replace brim in front / rear of wipe tower
 	ToolChangeResult toolchange_Brim(Purpose purpose, bool sideOnly = false, float y_offset = 0.f);
 
@@ -269,9 +332,7 @@ private:
 	void toolchange_Wipe(
 		PrusaMultiMaterial::Writer &writer,
 		const box_coordinates  &cleaning_box,
-		bool skip_initial_y_move);
-	
-	void toolchange_Perimeter();
+		bool skip_initial_y_move);	
 };
 
 }; // namespace Slic3r

@@ -1005,9 +1005,33 @@ void Print::_make_wipe_tower()
     m_wipe_tower_priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
         wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), ! last_priming_wipe_full, WipeTower::PURPOSE_EXTRUDE));
 
+
+    // Lets go through the wipe tower layers and determine pairs of extruder changes for each
+    // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
+    {
+        unsigned int current_extruder_id = initial_extruder_id;
+        for (const auto &layer_tools : m_tool_ordering.layer_tools()) { // for all layers
+            if (!layer_tools.has_wipe_tower) continue;
+            bool first_layer = &layer_tools == &m_tool_ordering.front();
+            wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id);
+            for (const auto extruder_id : layer_tools.extruders) {
+                if ((first_layer && extruder_id == initial_extruder_id) || extruder_id != current_extruder_id) {          
+                    wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id);
+                    current_extruder_id = extruder_id;
+                }
+            }
+            if (&layer_tools == &m_tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
+                break;
+        }
+    }
+
+    
+
     // Generate the wipe tower layers.
     m_wipe_tower_tool_changes.reserve(m_tool_ordering.layer_tools().size());
-    unsigned int current_extruder_id = initial_extruder_id;
+    wipe_tower.generate(m_wipe_tower_tool_changes);
+    
+    /*unsigned int current_extruder_id = initial_extruder_id;
     for (const ToolOrdering::LayerTools &layer_tools : m_tool_ordering.layer_tools()) {
         if (! layer_tools.has_wipe_tower)
             // This is a support only layer, or the wipe tower does not reach to this height.
@@ -1047,7 +1071,7 @@ void Print::_make_wipe_tower()
         m_wipe_tower_tool_changes.emplace_back(std::move(tool_changes));
         if (last_layer)
             break;
-    }
+    }*/
     
     // Unload the current filament over the purge tower.
     coordf_t layer_height = this->objects.front()->config.layer_height.value;
