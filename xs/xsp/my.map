@@ -1,6 +1,7 @@
 coordf_t T_NV
 
 std::string                     T_STD_STRING
+local_encoded_string     		T_STD_STRING_LOCAL_ENCODING
 t_config_option_key             T_STD_STRING
 t_model_material_id             T_STD_STRING
 
@@ -279,6 +280,14 @@ T_STD_STRING
       $var = std::string(c, len);
     }
 
+INPUT
+T_STD_STRING_LOCAL_ENCODING
+    {
+      size_t len;
+      const char * c = SvPV($arg, len);
+      $var = std::string(c, len);
+    }
+
 T_STD_VECTOR_STD_STRING
 	if (SvROK($arg) && SvTYPE(SvRV($arg))==SVt_PVAV) {
 	  AV* av = (AV*)SvRV($arg);
@@ -437,6 +446,9 @@ OUTPUT
 
 T_STD_STRING
     $arg = newSVpvn_utf8( $var.c_str(), $var.length(), true );
+
+T_STD_STRING_LOCAL_ENCODING
+    $arg = newSVpvn( $var.c_str(), $var.length() );
 
 T_STD_VECTOR_STD_STRING
 	AV* av = newAV();

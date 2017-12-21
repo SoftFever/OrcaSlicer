@@ -1460,15 +1460,19 @@ sub send_gcode {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(180);
     
-    my $enc_path = Slic3r::encode_path($self->{send_gcode_file});
     my $res = $ua->post(
         "http://" . $self->{config}->octoprint_host . "/api/files/local",
         Content_Type => 'form-data',
         'X-Api-Key' => $self->{config}->octoprint_apikey,
         Content => [
-            # OctoPrint doesn't like Windows paths so we use basename()
-            # Also, since we need to read from filesystem we process it through encode_path()
-            file => [ $enc_path, basename($enc_path) ],
+            file => [ 
+                # On Windows, the path has to be encoded in local code page for perl to be able to open it.
+                Slic3r::encode_path($self->{send_gcode_file}),
+                # Remove the UTF-8 flag from the perl string, so the LWP::UserAgent can insert 
+                # the UTF-8 encoded string into the request as a byte stream.
+                Encode::encode_utf8(Slic3r::path_to_filename($self->{send_gcode_file}))
+            ],
+            print => $self->{send_gcode_file_print} ? 1 : 0,
         ],
     );
     
