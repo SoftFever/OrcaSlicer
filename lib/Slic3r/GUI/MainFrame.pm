@@ -596,7 +596,7 @@ sub load_configbundle {
     wxTheApp->{app_config}->update_config_dir(dirname($file));
 
     my $presets_imported = 0;
-    eval { $presets_imported = wxTheApp->{preset_bundle}->load_configbundle($file, $reset_user_profile ? 1 : 0); };
+    eval { $presets_imported = wxTheApp->{preset_bundle}->load_configbundle($file); };
     Slic3r::GUI::catch_error($self) and return;
 
     # Load the currently selected preset into the GUI, update the preset selection box.
