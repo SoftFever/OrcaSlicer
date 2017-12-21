@@ -1470,7 +1470,7 @@ sub send_gcode {
                 Slic3r::encode_path($self->{send_gcode_file}),
                 # Remove the UTF-8 flag from the perl string, so the LWP::UserAgent can insert 
                 # the UTF-8 encoded string into the request as a byte stream.
-                Encode::encode_utf8(Slic3r::path_to_filename($self->{send_gcode_file}))
+                Slic3r::path_to_filename_raw($self->{send_gcode_file})
             ],
             print => $self->{send_gcode_file_print} ? 1 : 0,
         ],

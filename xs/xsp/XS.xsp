@@ -119,6 +119,13 @@ path_to_filename(src)
         RETVAL = Slic3r::PerlUtils::path_to_filename(src);
     OUTPUT: RETVAL
 
+local_encoded_string
+path_to_filename_raw(src)
+    const char *src;
+    CODE:
+        RETVAL = Slic3r::PerlUtils::path_to_filename(src);
+    OUTPUT: RETVAL
+
 std::string
 path_to_stem(src)
     const char *src;
