@@ -3,6 +3,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <map>
 #ifdef _MSC_VER
     #include <stdlib.h>  // provides **_environ
 #else
@@ -520,6 +521,9 @@ namespace client
         bool                     just_boolean_expression = false;
         std::string              error_message;
 
+        // Table to translate symbol tag to a human readable error message.
+        static std::map<std::string, std::string> tag_to_error_message;
+
         static void             evaluate_full_macro(const MyContext *ctx, bool &result) { result = ! ctx->just_boolean_expression; }
 
         const ConfigOption*     resolve_symbol(const std::string &opt_key) const
@@ -707,9 +711,16 @@ namespace client
                 msg += ": ";
                 msg += info.tag.substr(1);
             } else {
-                // A generic error report based on the nonterminal or terminal symbol name.
-                msg += ". Expecting tag ";
-                msg += info.tag;
+                auto it = tag_to_error_message.find(info.tag);
+                if (it == tag_to_error_message.end()) {
+                    // A generic error report based on the nonterminal or terminal symbol name.
+                    msg += ". Expecting tag ";
+                    msg += info.tag;
+                } else {
+                    // Use the human readable error message.
+                    msg += ". ";
+                    msg + it->second;
+                }
             }
             msg += '\n';
             msg += error_line;
@@ -718,6 +729,31 @@ namespace client
                 msg += ' ';
             msg += "^\n";
         }
+    };
+
+    // Table to translate symbol tag to a human readable error message.
+    std::map<std::string, std::string> MyContext::tag_to_error_message = {
+        { "eoi",                        "Unknown syntax error" },
+        { "start",                      "Unknown syntax error" },
+        { "text",                       "Invalid text." },
+        { "text_block",                 "Invalid text block." },
+        { "macro",                      "Invalid macro." },
+        { "if_else_output",             "Not an {if}{else}{endif} macro." },
+        { "switch_output",              "Not a {switch} macro." },
+        { "legacy_variable_expansion",  "Expecting a legacy variable expansion format" },
+        { "identifier",                 "Expecting an identifier." },
+        { "conditional_expression",     "Expecting a conditional expression." },
+        { "logical_or_expression",      "Expecting a boolean expression." },
+        { "logical_and_expression",     "Expecting a boolean expression." },
+        { "equality_expression",        "Expecting an expression." },
+        { "bool_expr_eval",             "Expecting a boolean expression."},
+        { "relational_expression",      "Expecting an expression." },
+        { "additive_expression",        "Expecting an expression." },
+        { "multiplicative_expression",  "Expecting an expression." },
+        { "unary_expression",           "Expecting an expression." },
+        { "scalar_variable_reference",  "Expecting a scalar variable reference."},
+        { "variable_reference",         "Expecting a variable reference."},
+        { "regular_expression",         "Expecting a regular expression."}
     };
 
     // For debugging the boost::spirit parsers. Print out the string enclosed in it_range.
@@ -822,7 +858,8 @@ namespace client
             spirit::int_type            int_;
             spirit::double_type         double_;
             spirit::ascii::string_type  string;
-            spirit::repository::qi::iter_pos_type iter_pos;
+			spirit::eoi_type			eoi;
+			spirit::repository::qi::iter_pos_type iter_pos;
             auto                        kw = spirit::repository::qi::distinct(qi::copy(alnum | '_'));
 
             qi::_val_type               _val;
@@ -843,7 +880,7 @@ namespace client
             start = eps[px::bind(&MyContext::evaluate_full_macro, _r1, _a)] >
                 (       eps(_a==true) > text_block(_r1) [_val=_1]
                     |   conditional_expression(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean_to_string, _1, _val) ]
-                );
+				) > eoi;
             start.name("start");
             qi::on_error<qi::fail>(start, px::bind(&MyContext::process_error_message<Iterator>, _r1, _4, _1, _2, _3));
 
@@ -866,7 +903,7 @@ namespace client
             // The macro expansion may contain numeric or string expressions, ifs and cases.
             macro =
                     (kw["if"]     > if_else_output(_r1) [_val = _1])
-                |   (kw["switch"] > switch_output(_r1)  [_val = _1])
+//                |   (kw["switch"] > switch_output(_r1)  [_val = _1])
                 |   additive_expression(_r1) [ px::bind(&expr<Iterator>::to_string2, _1, _val) ];
             macro.name("macro");
 
@@ -908,14 +945,17 @@ namespace client
             conditional_expression =
                 logical_or_expression(_r1)                [_val = _1]
                 >> -('?' > conditional_expression(_r1) > ':' > conditional_expression(_r1)) [px::bind(&expr<Iterator>::ternary_op, _val, _1, _2)];
+            conditional_expression.name("conditional_expression");
 
             logical_or_expression = 
                 logical_and_expression(_r1)                [_val = _1]
                 >> *(   ((kw["or"] | "||") > logical_and_expression(_r1) ) [px::bind(&expr<Iterator>::logical_or, _val, _1)] );
+            logical_or_expression.name("logical_or_expression");
 
             logical_and_expression = 
                 equality_expression(_r1)                   [_val = _1]
                 >> *(   ((kw["and"] | "&&") > equality_expression(_r1) ) [px::bind(&expr<Iterator>::logical_and, _val, _1)] );
+            logical_and_expression.name("logical_and_expression");
 
             equality_expression =
                 relational_expression(_r1)                   [_val = _1]
@@ -939,6 +979,7 @@ namespace client
                     |   ("<="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::leq,     _val, _1)]
                     |   (">="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::geq,     _val, _1)]
                     );
+            relational_expression.name("relational_expression");
 
             additive_expression =
                 multiplicative_expression(_r1)                       [_val  = _1]
@@ -1020,7 +1061,7 @@ namespace client
                 debug(text_block);
                 debug(macro);
                 debug(if_else_output);
-                debug(switch_output);
+//                debug(switch_output);
                 debug(legacy_variable_expansion);
                 debug(identifier);
                 debug(conditional_expression);
@@ -1079,7 +1120,7 @@ namespace client
         qi::rule<Iterator, OptWithPos<Iterator>(const MyContext*), spirit::ascii::space_type> variable_reference;
 
         qi::rule<Iterator, std::string(const MyContext*), qi::locals<bool, bool>, spirit::ascii::space_type> if_else_output;
-        qi::rule<Iterator, std::string(const MyContext*), qi::locals<expr<Iterator>, bool, std::string>, spirit::ascii::space_type> switch_output;
+//        qi::rule<Iterator, std::string(const MyContext*), qi::locals<expr<Iterator>, bool, std::string>, spirit::ascii::space_type> switch_output;
 
         qi::symbols<char> keywords;
     };
@@ -1102,7 +1143,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
     // Accumulator for the processed template.
     std::string                 output;
     bool res = phrase_parse(iter, end, macro_processor_instance(&context), space, output);
-    if (! context.error_message.empty()) {
+	if (!context.error_message.empty()) {
         if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
             context.error_message += '\n';
         throw std::runtime_error(context.error_message);
