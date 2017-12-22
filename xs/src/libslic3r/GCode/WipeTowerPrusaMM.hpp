@@ -92,7 +92,7 @@ public:
 
 	// Setter for internal structure m_plan containing info about the future wipe tower
 	// to be used before building begins. The entries must be added ordered in z.
-	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool);
+	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim);
 
 	void generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
 
@@ -131,6 +131,7 @@ public:
 		// Calculates extrusion flow from desired line width, nozzle diameter, filament diameter and layer_height
 		m_extrusion_flow = extrusion_flow(layer_height);
 
+		// FIXME - ideally get rid of set_layer altogether and iterate through m_plan in generate(...)
 		m_layer_info = nullptr;
 		for (auto &a : m_plan)
 			if ( a.z > print_z - WT_EPSILON && a.z < print_z + WT_EPSILON ) {
@@ -170,12 +171,7 @@ public:
 	// the wipe tower has been completely covered by the tool change extrusions,
 	// or the rest of the tower has been filled by a sparse infill with the finish_layer() method.
 	virtual bool 			 layer_finished() const {
-		
-		if (m_is_first_layer) {
-			return (m_wipe_tower_depth - WT_EPSILON < m_current_wipe_start_y);
-		}
-		else
-			return (m_layer_info->depth - WT_EPSILON < m_current_wipe_start_y);
+		return ( (m_is_first_layer ? m_wipe_tower_depth : m_layer_info->depth) - WT_EPSILON < m_current_wipe_start_y);
 	}
 
 
@@ -241,10 +237,8 @@ private:
 	// after the wipe tower brim has been extruded?
 	float  			m_initial_extra_wipe = 0.f;
 	float			m_last_infill_tan = 1000.f;	// impossibly high value
-	bool 			m_plan_brim_finished = false;
 
-		float
-		extrusion_flow(float layer_height = -1.f)
+	float extrusion_flow(float layer_height = -1.f) const
 	{
 		if ( layer_height < 0 )
 			return m_extrusion_flow;

@@ -92,7 +92,7 @@ public:
 		if (! m_preview_suppressed && e > 0.f && len > 0.) {
 			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
-			float width = float(double(e) * m_filament_area / (len * m_layer_height));
+			float width = float(double(e) * Filament_Area / (len * m_layer_height));
 			// Correct for the roundings of a squished extrusion.
 			width += m_layer_height * float(1. - M_PI / 4.);
 			if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos)
@@ -258,6 +258,25 @@ public:
 		return *this;
 	};
 
+
+	Writer& set_fan(unsigned int speed)
+	{
+		if (speed == m_last_fan_speed)
+			return *this;
+				
+		if (speed == 0)
+			m_gcode += "M107\n";
+		else
+		{
+			m_gcode += "M106 S";
+			char buf[128];
+			sprintf(buf,"%u\n",(unsigned int)(255.0 * speed / 100.0));
+			m_gcode += buf;
+		}
+		m_last_fan_speed = speed;
+		return *this;
+	}
+
 	Writer& comment_material(WipeTowerPrusaMM::material_type material)
 	{
 		m_gcode += "; material : ";
@@ -294,13 +313,15 @@ private:
 	std::string   m_gcode;
 	std::vector<WipeTower::Extrusion> m_extrusions;
 	float         m_elapsed_time;
-	const double  m_filament_area = 0.25*M_PI*1.75*1.75;
 	float   	  m_angle_deg = 0;
 	WipeTower::xy m_wipe_tower_pos;
 	float 		  m_wipe_tower_width;
 	float		  m_wipe_tower_depth;
+	float		  m_last_fan_speed = 0.f;
 
-	std::string   set_format_X(float x) {
+		std::string
+		set_format_X(float x)
+	{
 		char buf[64];
 		sprintf(buf, " X%.3f", x);
 		m_current_pos.x = x;
@@ -1116,7 +1137,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 
 // Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
 
-void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool)
+void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool,bool brim)
 {
 	assert(m_plan.back().z <= z_par);	// refuse to add a layer below the last one
 	
@@ -1131,20 +1152,18 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
 														  { 60, 40, 60,  0}};
 
 	float depth = (wipe_volumes[old_tool][new_tool]) / (m_extrusion_flow * Filament_Area); // length of extrusion
+	depth += 6 * 59; // reserved for ramming
+	depth += 2 * 59; // reserved for loading
+	depth -= 2 * 59; // we will also print borders
 	depth = floor(depth / m_wipe_tower_width + 1);	// number of lines to extrude
-	depth += 6; // reserved for ramming
-	depth += 2; // reserved for loading
-	depth -= 2; // we will also print borders
 	depth *= m_perimeter_width; // conversion to distance
 
 	if (m_plan.empty() || m_plan.back().z + WT_EPSILON < z_par) // if we moved to a new layer, we'll add it to m_plan along with the first toolchange
 		m_plan.push_back(WipeTowerInfo(z_par, layer_height_par));
 
-	if ( old_tool != new_tool )	{
-		if (!m_plan_brim_finished) {	// this toolchange prints brim, we need it in m_plan, but not to count its depth
-			m_plan_brim_finished = true;
+	if ( brim || old_tool != new_tool )	{
+		if (brim) // this toolchange prints brim, we need it in m_plan, but not to count its depth
 			depth = 0.f;
-		}
 		m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth));
 	}
 
@@ -1173,7 +1192,6 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 	
 	for (auto layer : m_plan)
 	{
-
 		set_layer(layer.z,layer.height,0,layer.z == m_plan.front().z,layer.z == m_plan.back().z);
 
 		for (const auto &toolchange : layer.tool_changes)
