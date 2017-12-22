@@ -6,10 +6,17 @@
 
 class wxApp;
 class wxFrame;
+class wxWindow;
 class wxMenuBar;
 class wxNotebook;
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r { 
+
+class PresetBundle;
+
+namespace GUI {
+
+class CTab;
 
 void disable_screensaver();
 void enable_screensaver();
@@ -23,9 +30,14 @@ void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
 
 void add_debug_menu(wxMenuBar *menu);
-// Create a new preset tab (print, filament or printer),
+// Create a new preset tab (print, filament and printer),
+void create_preset_tabs(PresetBundle *preset_bundle);
 // add it at the end of the tab panel.
-void create_preset_tab(const char *name);
+void add_created_tab(CTab* panel, PresetBundle *preset_bundle);
+
+void show_error(wxWindow* parent, std::string message);
+void show_info(wxWindow* parent, std::string message, std::string title);
+
 
 } }
 

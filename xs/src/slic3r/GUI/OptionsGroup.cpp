@@ -19,7 +19,9 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     // is the normal type.
     if (opt.gui_type.compare("select") == 0) {
     } else if (opt.gui_type.compare("select_open") == 0) {
+		fields.emplace(id, STDMOVE(Choice::Create<Choice>(_parent, opt, id)));
     } else if (opt.gui_type.compare("color") == 0) {
+		fields.emplace(id, STDMOVE(ColourPicker::Create<ColourPicker>(_parent, opt, id)));
     } else if (opt.gui_type.compare("f_enum_open") == 0 || 
                 opt.gui_type.compare("i_enum_open") == 0 ||
                 opt.gui_type.compare("i_enum_closed") == 0) {
@@ -30,7 +32,9 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
         switch (opt.type) {
             case coFloatOrPercent:
             case coFloat:
+            case coFloats:
 			case coPercent:
+			case coPercents:
 			case coString:
 			case coStrings:
 				fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(_parent, opt, id)));
@@ -46,6 +50,9 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
             case coEnum:
 				fields.emplace(id, STDMOVE(Choice::Create<Choice>(_parent, opt, id)));
 				break;
+            case coPoints:
+				fields.emplace(id, STDMOVE(Point::Create<Point>(_parent, opt, id)));
+				break;
             case coNone:   break;
             default:
 				throw /*//!ConfigGUITypeError("")*/std::logic_error("This control doesn't exist till now"); break;
@@ -60,8 +67,9 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 }
 
 void OptionsGroup::append_line(const Line& line) {
-    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)){
-        if (line.sizer != nullptr) {
+//!    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)){
+	if ( (line.sizer != nullptr || line.widget != nullptr) && line.full_width){
+		if (line.sizer != nullptr) {
             sizer->Add(line.sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
         }
@@ -70,6 +78,22 @@ void OptionsGroup::append_line(const Line& line) {
             return;
         }
     }
+
+	auto option_set = line.get_options();
+
+	// if we have a single option with no label, no sidetext just add it directly to sizer
+	if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
+		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr && 
+		line.get_extra_widgets().size() == 0) {
+		const auto& option = option_set.front();
+		const auto& field = build_field(option);
+
+		if (is_window_field(field))
+			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+		if (is_sizer_field(field))
+			sizer->Add(field->getSizer(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+		return;
+	}
 
     auto grid_sizer = _grid_sizer;
 
@@ -92,7 +116,7 @@ void OptionsGroup::append_line(const Line& line) {
 
     
     // if we have a single option with no sidetext just add it directly to the grid sizer
-    auto option_set = line.get_options();
+//!    auto option_set = line.get_options();
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
         const auto& option = option_set.front();
@@ -122,8 +146,12 @@ void OptionsGroup::append_line(const Line& line) {
 
 		// add field
 		const Option& opt_ref = opt;
-		auto field = build_field(opt_ref)->getWindow();		;
-		sizer->Add(field, 0, wxALIGN_CENTER_VERTICAL, 0);
+//!		auto field = build_field(opt_ref)->getWindow();		
+//!		sizer->Add(field, 0, wxALIGN_CENTER_VERTICAL, 0);
+		auto& field = build_field(opt_ref);
+		is_sizer_field(field) ? 
+			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
+			sizer->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
@@ -134,23 +162,22 @@ void OptionsGroup::append_line(const Line& line) {
 
 		// add side widget if any
 		if (opt.side_widget != nullptr) {
-			sizer->Add(opt.side_widget.target<wxWindow>(), 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
+			sizer->Add(opt.side_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
 		}
 
 		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
 		{
 			sizer->AddSpacer(4);
 	    }
-
-		 // add extra sizers if any
-		for (auto extra_widget : line.get_extra_widgets()) {
-			sizer->Add(extra_widget.target<wxWindow>(), 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);		//! requires verification
-		}
+	}
+	// add extra sizers if any
+	for (auto extra_widget : line.get_extra_widgets()) {
+		sizer->Add(extra_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);		//! requires verification
 	}
 }
 
 Line OptionsGroup::create_single_option_line(const Option& option) const {
-    Line retval {option.opt.label, option.opt.tooltip};
+    Line retval {option.opt.label, option.opt.tooltip};	
     Option tmp(option);
     tmp.opt.label = std::string("");
     retval.append_option(tmp);

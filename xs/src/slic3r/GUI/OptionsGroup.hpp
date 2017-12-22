@@ -51,8 +51,11 @@ public:
     wxSizer* sizer {nullptr};
     widget_t widget {nullptr};
 
-    inline void append_option(const Option& option) {
+    void append_option(const Option& option) {
         _options.push_back(option);
+    }
+	void append_widget(const widget_t widget) {
+		_extra_widgets.push_back(widget);
     }
     Line(std::string label, std::string tooltip) : label(wxString(label)), label_tooltip(wxString(tooltip)) {} ;
 
@@ -71,7 +74,7 @@ public:
 
     const bool staticbox {true};
     const wxString title {wxString("")};
-    size_t label_width {180};
+    size_t label_width {200};
     wxSizer* sizer {nullptr};
     column_t extra_column {nullptr};
 //    t_change on_change {nullptr};
@@ -86,7 +89,7 @@ public:
 
 
     void append_line(const Line& line);
-    virtual Line create_single_option_line(const Option& option) const;
+    /*virtual*/ Line create_single_option_line(const Option& option) const;
     inline void append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
 
     // return a non-owning pointer reference 

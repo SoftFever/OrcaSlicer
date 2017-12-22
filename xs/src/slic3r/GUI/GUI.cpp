@@ -188,12 +188,27 @@ void add_debug_menu(wxMenuBar *menu)
 #endif
 }
 
-//
-void create_preset_tab(const char *name)
+void create_preset_tabs(PresetBundle *preset_bundle)
 {
-	CTabPrint* panel = new CTabPrint(g_wxTabPanel, name);
-	panel->create_preset_tab();
-	g_wxTabPanel->AddPage(panel, name);	
+	add_created_tab(new CTabPrint   (g_wxTabPanel, "Print"),    preset_bundle);
+	add_created_tab(new CTabFilament(g_wxTabPanel, "Filament"), preset_bundle);
+	add_created_tab(new CTabPrinter (g_wxTabPanel, "Printer"),  preset_bundle);
+}
+
+void add_created_tab(CTab* panel, PresetBundle *preset_bundle)
+{
+	panel->create_preset_tab(preset_bundle);
+	g_wxTabPanel->AddPage(panel, panel->title());
+}
+
+void show_error(wxWindow* parent, std::string message){
+	auto msg_wingow = new wxMessageDialog(parent, message, "Error", wxOK | wxICON_ERROR);
+	msg_wingow->ShowModal();
+}
+
+void show_info(wxWindow* parent, std::string message, std::string title){
+	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? "Notise" : title, wxOK | wxICON_INFORMATION);
+	msg_wingow->ShowModal();
 }
 
 } }

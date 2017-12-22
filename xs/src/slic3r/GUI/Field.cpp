@@ -55,23 +55,43 @@ namespace Slic3r { namespace GUI {
 			text_value = wxString::Format(_T("%i"), int(opt.default_value->getFloat()));
 			text_value += "%";
 			break;
+		}	
+		case coPercents:
+		{
+			const ConfigOptionPercents *vec = static_cast<const ConfigOptionPercents*>(opt.default_value);
+			if (vec == nullptr || vec->empty()) break;
+			if (vec->size() > 1)
+				break;
+			double val = vec->get_at(0);
+			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+			break;
 		}			
 		case coFloat:
 		{
 			double val = opt.default_value->getFloat();
 			text_value = (val - int(val)) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
 			break;
+		}			
+		case coFloats:
+		{
+			const ConfigOptionFloats *vec = static_cast<const ConfigOptionFloats*>(opt.default_value);
+			if (vec == nullptr || vec->empty()) break;
+			if (vec->size() > 1)
+				break;
+			double val = vec->get_at(0);
+			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+			break;
 		}
 		case coString:			
-			text_value += static_cast<const ConfigOptionString*>(opt.default_value)->value;
+			text_value = static_cast<const ConfigOptionString*>(opt.default_value)->value;
 			break;
 		case coStrings:
 		{
-			const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt.default_value);
-			if (vec == nullptr) break;
-			if (vec->empty()) break;
-			for (size_t id = 0; id < vec->size(); ++id)
-				text_value += static_cast<const ConfigOptionString*>(opt.default_value)->value[id];
+			const ConfigOptionStrings *vec = static_cast<const ConfigOptionStrings*>(opt.default_value);
+			if (vec == nullptr || vec->empty()) break;
+			if (vec->size() > 1)
+				break;
+			text_value = vec->values.at(0);
 			break;
 		}
 		default:
@@ -99,8 +119,13 @@ void CheckBox::BUILD() {
 	if (opt.height >= 0) size.SetHeight(opt.height);
 	if (opt.width >= 0) size.SetWidth(opt.width);
 
+	bool check_value =	opt.type == coBool ? 
+						opt.default_value->getBool() : opt.type == coBools ? 
+						static_cast<ConfigOptionBools*>(opt.default_value)->values.at(0) : 
+    					false;
+
 	auto temp = new wxCheckBox(parent, wxID_ANY, wxString(""), wxDefaultPosition, size); 
-	temp->SetValue(opt.default_value->getBool());
+	temp->SetValue(check_value);
 	if (opt.readonly) temp->Disable();
 
 	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) { _on_change(e); }), temp->GetId());
@@ -118,8 +143,31 @@ void SpinCtrl::BUILD() {
 	if (opt.height >= 0) size.SetHeight(opt.height);
 	if (opt.width >= 0) size.SetWidth(opt.width);
 
-	auto temp = new wxSpinCtrl(parent, wxID_ANY, wxString::Format(_T("%i"), opt.default_value->getInt()), wxDefaultPosition, size,
-		0, opt.min >0 ? opt.min : 0, opt.max < 2147483647 ? opt.max : 2147483647, opt.default_value->getInt());
+	wxString	text_value = wxString("");
+	int			default_value = 0;
+
+	switch (opt.type) {
+	case coInt:
+		default_value = opt.default_value->getInt();
+		text_value = wxString::Format(_T("%i"), default_value);
+		break;
+	case coInts:
+	{
+		const ConfigOptionInts *vec = static_cast<const ConfigOptionInts*>(opt.default_value);
+		if (vec == nullptr || vec->empty()) break;
+		for (size_t id = 0; id < vec->size(); ++id)
+		{
+			default_value = vec->get_at(id);
+			text_value += wxString::Format(_T("%i"), default_value);
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+	auto temp = new wxSpinCtrl(parent, wxID_ANY, text_value, wxDefaultPosition, size,
+		0, opt.min >0 ? opt.min : 0, opt.max < 2147483647 ? opt.max : 2147483647, default_value);
 
 	temp->Bind(wxEVT_SPINCTRL, ([=](wxCommandEvent e) { tmp_value = undef_spin_val; _on_change(e); }), temp->GetId());
 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxFocusEvent e) { tmp_value = undef_spin_val; _on_kill_focus(e); }), temp->GetId());
@@ -152,17 +200,17 @@ void Choice::BUILD() {
 	if (opt.width >= 0) size.SetWidth(opt.width);
 
 	auto temp = new wxComboBox(parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
-	if (opt.gui_type.compare("") != 0 && opt.gui_type.compare("select_open") == 0)
-		temp->SetWindowStyle(wxCB_READONLY);
-// 	// recast as a wxWindow to fit the calling convention
+	if (opt.gui_type.compare("select_open") != 0)
+		temp->SetExtraStyle(wxCB_READONLY);
+
+	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
 
-	if (!opt.enum_labels.empty() && !opt.enum_values.empty())
-	{
-		for (auto el : opt.enum_labels)
+	if (opt.enum_labels.empty() && opt.enum_values.empty()){
+	}
+	else{
+		for (auto el : opt.enum_labels.empty() ? opt.enum_values : opt.enum_labels)
 			temp->Append(wxString(el));
-		//	temp->SetSelection(static_cast<const ConfigOptionEnum<SeamPosition>*>(opt.default_value)->value);
-		//set_value(opt.default_value);
 		set_selection();
 	}
  	temp->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { _on_change(e); }), temp->GetId());
@@ -195,6 +243,51 @@ void Choice::set_selection()
 	case coEnum:{
 		int id_value = static_cast<const ConfigOptionEnum<SeamPosition>*>(opt.default_value)->value; //!!
 		dynamic_cast<wxComboBox*>(window)->SetSelection(id_value);
+		break;
+	}
+	case coInt:{
+		int val = opt.default_value->getInt(); //!!
+		text_value = wxString::Format(_T("%i"), int(val));
+		auto idx = 0;
+		for (auto el : opt.enum_values)
+		{
+			if (el.compare(text_value) == 0)
+				break;
+			++idx;
+		}
+		idx == opt.enum_values.size() ?
+			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
+			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+		break;
+	}
+// 	case coString:{
+// 		text_value = static_cast<const ConfigOptionString*>(opt.default_value)->value;
+// 
+// 		auto idx = 0;
+// 		for (auto el : opt.enum_values)
+// 		{
+// 			if (el.compare(text_value) == 0)
+// 				break;
+// 			++idx;
+// 		}
+// 		idx == opt.enum_values.size() ?
+// 			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
+// 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+// 		break;
+// 	}
+	case coStrings:{
+		text_value = static_cast<const ConfigOptionStrings*>(opt.default_value)->values.at(0);
+
+		auto idx = 0;
+		for (auto el : opt.enum_values)
+		{
+			if (el.compare(text_value) == 0)
+				break;
+			++idx;
+		}
+		idx == opt.enum_values.size() ?
+			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
+			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
 		break;
 	}
 	}
@@ -234,6 +327,85 @@ void Choice::set_values(const std::vector<std::string> values)
 	ww->SetValue(value);
 
 	disable_change_event = false;
+}
+
+void ColourPicker::BUILD()
+{
+	auto size = wxSize(wxDefaultSize);
+	if (opt.height >= 0) size.SetHeight(opt.height);
+	if (opt.width >= 0) size.SetWidth(opt.width);
+
+	wxString clr(static_cast<ConfigOptionStrings*>(opt.default_value)->values.at(0));
+	auto temp = new wxColourPickerCtrl(parent, wxID_ANY, clr, wxDefaultPosition, size);
+		
+	// 	// recast as a wxWindow to fit the calling convention
+	window = dynamic_cast<wxWindow*>(temp);
+
+	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([=](wxCommandEvent e) { _on_change(e); }), temp->GetId());
+
+	if (opt.tooltip.length() > 0) temp->SetToolTip(opt.tooltip);
+
+}
+
+void Point::BUILD()
+{
+	auto size = wxSize(wxDefaultSize);
+	if (opt.height >= 0) size.SetHeight(opt.height);
+	if (opt.width >= 0) size.SetWidth(opt.width);
+
+	auto temp = new wxBoxSizer(wxHORIZONTAL);
+	// 	$self->wxSizer($sizer);
+	// 
+	wxSize field_size(40, -1);
+
+	auto default_pt = static_cast<ConfigOptionPoints*>(opt.default_value)->values.at(0);
+	double val = default_pt.x;
+	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+	val = default_pt.y;
+	wxString Y = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+
+	x_textctrl = new wxTextCtrl(parent, wxID_ANY, X, wxDefaultPosition, field_size);
+	y_textctrl = new wxTextCtrl(parent, wxID_ANY, Y, wxDefaultPosition, field_size);
+
+	temp->Add(new wxStaticText(parent, wxID_ANY, "x:")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
+	temp->Add(x_textctrl);
+	temp->Add(new wxStaticText(parent, wxID_ANY, "y:")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
+	temp->Add(y_textctrl);
+
+	x_textctrl->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { _on_change(e/*$self->option->opt_id*/); }), x_textctrl->GetId());
+	y_textctrl->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { _on_change(e/*$self->option->opt_id*/); }), x_textctrl->GetId());
+
+	// 	// recast as a wxWindow to fit the calling convention
+	sizer = dynamic_cast<wxSizer*>(temp);
+
+	if (opt.tooltip.length() > 0)
+	{
+		x_textctrl->SetToolTip(opt.tooltip);
+		y_textctrl->SetToolTip(opt.tooltip);
+	}
+}
+
+void Point::set_value(const Pointf value)
+{
+	disable_change_event = true;
+
+	double val = value.x;
+	x_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2));
+	val = value.y;
+	y_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2));
+
+	disable_change_event = false;
+}
+
+boost::any Point::get_value()
+{
+	Pointf ret_point;
+	double val;
+	x_textctrl->GetValue().ToDouble(&val);
+	ret_point.x = val;
+	y_textctrl->GetValue().ToDouble(&val);
+	ret_point.y = val;
+	return ret_point;
 }
 
 } // GUI

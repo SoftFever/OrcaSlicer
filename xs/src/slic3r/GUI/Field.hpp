@@ -11,6 +11,7 @@
 #include <boost/any.hpp>
 
 #include <wx/spinctrl.h>
+#include <wx/clrpicker.h>
 
 #include "../../libslic3r/libslic3r.h"
 #include "../../libslic3r/Config.hpp"
@@ -211,6 +212,67 @@ public:
 	wxWindow*		getWindow() override { return window; }
  	void			set_tooltip(const wxString& tip) override {}; //! Redundant
 };
+
+class ColourPicker : public Field {
+	using Field::Field;
+public:
+	ColourPicker(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
+	ColourPicker(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+
+	wxWindow*		window{ nullptr };
+	void			BUILD()  override;
+
+	void			set_selection();
+	void			set_value(const std::string value) {
+	 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
+	 	}
+	void			set_value(boost::any value) {
+		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast<std::string>(value));
+	}
+	void			set_values(const std::vector<std::string> values);
+	boost::any		get_value() override	{
+		return boost::any(dynamic_cast<wxColourPickerCtrl*>(window)->GetColour());
+	}
+
+	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
+	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
+	wxWindow*		getWindow() override { return window; }
+	void			set_tooltip(const wxString& tip) override {}; //! Redundant
+};
+
+class Point : public Field {
+	using Field::Field;
+public:
+	Point(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
+	Point(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+
+	wxSizer*		sizer{ nullptr };
+	wxTextCtrl*		x_textctrl;
+	wxTextCtrl*		y_textctrl;
+
+	void			BUILD()  override;
+
+	void			set_value(const Pointf value);// {
+// 	 		dynamic_cast<wxColourPickerCtrl*>(sizer)->SetColour(value);
+
+//	 	}
+	void			set_value(boost::any value) {
+//		dynamic_cast<wxColourPickerCtrl*>(sizer)->SetColour(boost::any_cast<std::string>(value));
+	}
+	boost::any		get_value() override;	//{
+//		return boost::any(dynamic_cast<wxColourPickerCtrl*>(sizer)->GetColour());
+//	}
+
+	void			enable() override { /*dynamic_cast<wxTextCtrl*>(window)*/
+		x_textctrl->Enable(); 
+		y_textctrl->Enable(); };
+	void			disable() override{ /*dynamic_cast<wxTextCtrl*>(window)*/
+		x_textctrl->Disable(); 
+		y_textctrl->Disable(); };
+	wxSizer*		getSizer() override { return sizer; }
+	void			set_tooltip(const wxString& tip) override {}; //! Redundant
+};
+
 
 #endif 
 } // GUI

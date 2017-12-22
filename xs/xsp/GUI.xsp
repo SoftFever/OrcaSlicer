@@ -35,5 +35,5 @@ void set_tab_panel(SV *ui)
 void add_debug_menu(SV *ui)
     %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar")); %};
 
-void create_preset_tab(const char *name)
-    %code%{ Slic3r::GUI::create_preset_tab(name); %};
+void create_preset_tabs(PresetBundle *preset_bundle)
+    %code%{ Slic3r::GUI::create_preset_tabs(preset_bundle); %};

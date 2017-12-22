@@ -8,16 +8,19 @@
 #include <wx/bmpbuttn.h>
 #include <wx/treectrl.h>
 #include <wx/imaglist.h>
+#include <wx/settings.h>
 
 #include "Tab.h"
 #include "PresetBundle.hpp"
+//#include "GCodeSender.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
 // sub new
-void CTab::create_preset_tab()
+void CTab::create_preset_tab(PresetBundle *preset_bundle)
 {
+	preset_bundle_ = preset_bundle;
 	// Vertical sizer to hold the choice menu and the rest of the page.
 	CTab *panel = this;
 	auto  *sizer = new wxBoxSizer(wxVERTICAL);
@@ -128,12 +131,26 @@ CPageShp CTab::add_options_page(wxString title, wxString icon)
 	return page;
 }
 
+void CTab::load_key_value_(std::string opt_key, std::vector<std::string> value)
+{
+	// # To be called by custom widgets, load a value into a config,
+	// # update the preset selection boxes (the dirty flags)
+	// $self->{config}->set($opt_key, $value);
+	// # Mark the print & filament enabled if they are compatible with the currently selected preset.
+	if (opt_key.compare("compatible_printers") == 0) {
+		// wxTheApp->{preset_bundle}->update_compatible_with_printer(0);
+		// $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
+		// } else {
+		// $self->{presets}->update_dirty_ui($self->{presets_choice});
+	}
+	// $self->_on_presets_changed;
+	// $self->_update;
+}
+
 void CTabPrint::build()
 {
-//	$self->{presets} = wxTheApp->{preset_bundle}->print;
-	PresetCollection *prints = new PresetCollection(Preset::TYPE_PRINT, Preset::print_options());
-	config_ = prints->get_edited_preset().config;
-	config_def = config_.def();		// initialization. It will be used in get_option_(const std::string title)
+	config_ = preset_bundle_->prints.get_edited_preset().config;
+	config_def_ = config_.def();
 
 	auto page = add_options_page("Layers and perimeters", "layers.png");
 		auto optgroup = page->new_optgroup("Layer height");
@@ -268,7 +285,7 @@ void CTabPrint::build()
  		optgroup->append_single_option_line(get_option_("interface_shells"));
 
 	page = add_options_page("Advanced", "wrench.png");
-		optgroup = page->new_optgroup("Extrusion width", 200);
+		optgroup = page->new_optgroup("Extrusion width", 180);
 		optgroup->append_single_option_line(get_option_("extrusion_width"));
 		optgroup->append_single_option_line(get_option_("first_layer_extrusion_width"));
 		optgroup->append_single_option_line(get_option_("perimeter_extrusion_width"));
@@ -309,14 +326,14 @@ void CTabPrint::build()
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
 
-		optgroup = page->new_optgroup("Post-processing scripts");	//! 			label_width = > 0,
+		optgroup = page->new_optgroup("Post-processing scripts", 0);	
 		option = get_option_("post_process");
 		option.opt.full_width = true;
 		option.opt.height = 50;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page("Notes", "note.png");
-		optgroup = page->new_optgroup("Notes");						
+		optgroup = page->new_optgroup("Notes", 0);						
 		option = get_option_("notes");
 		option.opt.full_width = true;
 		option.opt.height = 250;
@@ -327,6 +344,382 @@ void CTabPrint::build()
 		line = Line{ "Compatible printers", "" };
 		line.widget = compatible_printers_widget_; 
 		optgroup->append_line(line);
+}
+
+void CTabFilament::build()
+{
+	config_ = preset_bundle_->filaments.get_edited_preset().config;	
+	config_def_ = config_.def();
+
+ 	auto page = add_options_page("Filament", "spool.png");
+		auto optgroup = page->new_optgroup("Filament");
+		optgroup->append_single_option_line(get_option_("filament_colour"));
+		optgroup->append_single_option_line(get_option_("filament_diameter"));
+		optgroup->append_single_option_line(get_option_("extrusion_multiplier"));
+		optgroup->append_single_option_line(get_option_("filament_density"));
+		optgroup->append_single_option_line(get_option_("filament_cost"));
+
+		optgroup = page->new_optgroup("Temperature (°C)");
+ 		Line line = { "Extruder", "" };
+		line.append_option(get_option_("first_layer_temperature"));
+		line.append_option(get_option_("temperature"));
+		optgroup->append_line(line);
+
+		line = { "Bed", "" };
+		line.append_option(get_option_("first_layer_bed_temperature"));
+		line.append_option(get_option_("bed_temperature"));
+		optgroup->append_line(line);
+
+	page = add_options_page("Cooling", "hourglass.png");
+		optgroup = page->new_optgroup("Enable");
+		optgroup->append_single_option_line(get_option_("fan_always_on"));
+		optgroup->append_single_option_line(get_option_("cooling"));
+
+		line = { "", "" }; 
+		line.full_width = 1;
+		line.widget = cooling_description_line_widget_;
+		optgroup->append_line(line);
+
+		optgroup = page->new_optgroup("Fan settings");
+		line = {"Fan speed",""};
+		line.append_option(get_option_("min_fan_speed"));
+		line.append_option(get_option_("max_fan_speed"));
+		optgroup->append_line(line);
+
+		optgroup->append_single_option_line(get_option_("bridge_fan_speed"));
+		optgroup->append_single_option_line(get_option_("disable_fan_first_layers"));
+
+		optgroup = page->new_optgroup("Cooling thresholds", 250);
+		optgroup->append_single_option_line(get_option_("fan_below_layer_time"));
+		optgroup->append_single_option_line(get_option_("slowdown_below_layer_time"));
+		optgroup->append_single_option_line(get_option_("min_print_speed"));
+
+	page = add_options_page("Advanced", "wrench.png");
+		optgroup = page->new_optgroup("Filament properties");
+		optgroup->append_single_option_line(get_option_("filament_type"));
+		optgroup->append_single_option_line(get_option_("filament_soluble"));
+
+ 		optgroup = page->new_optgroup("Print speed override");
+		optgroup->append_single_option_line(get_option_("filament_max_volumetric_speed"));
+
+		line = {"",""};
+		line.full_width = 1;
+		line.widget = volumetric_speed_description_line_widget_;
+		optgroup->append_line(line);
+
+	page = add_options_page("Custom G-code", "cog.png");
+		optgroup = page->new_optgroup("Start G-code", 0);
+		Option option = get_option_("start_filament_gcode");
+		option.opt.full_width = true;
+		option.opt.height = 150;
+		optgroup->append_single_option_line(option);
+
+		optgroup = page->new_optgroup("End G-code", 0);
+		option = get_option_("end_filament_gcode");
+		option.opt.full_width = true;
+		option.opt.height = 150;
+		optgroup->append_single_option_line(option);
+
+	page = add_options_page("Notes", "note.png");
+		optgroup = page->new_optgroup("Notes", 0);
+		optgroup->label_width = 0;
+		option = get_option_("filament_notes");
+		option.opt.full_width = true;
+		option.opt.height = 250;
+ 		optgroup->append_single_option_line(option);
+
+	page = add_options_page("Dependencies", "wrench.png");
+		optgroup = page->new_optgroup("Profile dependencies");
+		line = {"Compatible printers", ""};
+		line.widget =  compatible_printers_widget_;
+		optgroup->append_line(line);
+}
+
+wxStaticText*	CTabFilament::cooling_description_line_;
+wxStaticText*	CTabFilament::volumetric_speed_description_line_;
+wxSizer* CTabFilament::description_line_widget_(wxWindow* parent, wxStaticText* StaticText)
+{
+	StaticText = new wxStaticText(parent, wxID_ANY, "gfghjkkl;\n fgdsufhsreotklg\n iesrftorsikgyfkh\nauiwrhfidj", wxDefaultPosition, wxDefaultSize);
+	auto font = (new wxSystemSettings)->GetFont(wxSYS_DEFAULT_GUI_FONT);
+	StaticText->SetFont(font);
+	StaticText->Wrap(400);
+	StaticText->GetParent()->Layout();
+
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	sizer->Add(StaticText);
+	return sizer;
+}
+
+//#include "../../libslic3r/GCodeSender.hpp";
+void CTabPrinter::build()
+{
+	config_ = preset_bundle_->printers.get_edited_preset().config;
+	config_def_ = config_.def();		// It will be used in get_option_(const std::string title)
+
+// 	$self->{extruders_count} = scalar @{$self->{config}->nozzle_diameter};
+	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config_.option("nozzle_diameter"));
+//	size_t  extruders_count = nozzle_diameter->values.size();
+
+	auto page = add_options_page("General", "printer_empty.png");
+		auto optgroup = page->new_optgroup("Size and coordinates");
+
+		Line line = { "Bed shape", "" };
+		line.widget = bed_shape_widget_;
+		optgroup->append_line(line);
+		optgroup->append_single_option_line(get_option_("z_offset"));
+
+		optgroup = page->new_optgroup("Capabilities");
+		ConfigOptionDef def;
+			def.type =  coInt,
+			def.default_value = new ConfigOptionInt(1); 
+			def.label = "Extruders";
+			def.tooltip = "Number of extruders of the printer.";
+			def.min = 1;
+		Option option(def, "extruders_count");
+		optgroup->append_single_option_line(option);
+		optgroup->append_single_option_line(get_option_("single_extruder_multi_material"));
+
+// 		$optgroup->on_change(sub{
+// 			my($opt_key, $value) = @_;
+// 			wxTheApp->CallAfter(sub{
+// 				if ($opt_key eq 'extruders_count') {
+// 					$self->_extruders_count_changed($optgroup->get_value('extruders_count'));
+// 					$self->update_dirty;
+// 				}
+// 				else {
+// 					$self->update_dirty;
+// 					$self->_on_value_change($opt_key, $value);
+// 				}
+// 			});
+// 		});
+
+// 		if (!$params{ no_controller })
+// 		{
+		optgroup = page->new_optgroup("USB/Serial connection");
+			line = {"Serial port", ""};
+			Option serial_port = get_option_("serial_port");
+			serial_port.side_widget = ([](wxWindow* parent){
+				auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(wxT("var\\arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG),
+					wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+				/*if (btn->can('SetToolTipString')*/btn->SetToolTip("Rescan serial ports");
+				auto sizer = new wxBoxSizer(wxHORIZONTAL);
+				sizer->Add(btn);
+
+				btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent e) {/*_update_serial_ports*/; });
+				return sizer;
+			});
+			auto serial_test = ([/*serial_test_btn*/](wxWindow* parent){
+				auto btn = /*serial_test_btn =*/ new wxButton(parent, wxID_ANY,
+					"Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+//				btn->SetFont($Slic3r::GUI::small_font);
+				btn->SetBitmap(wxBitmap(wxT("var\\wrench.png"), wxBITMAP_TYPE_PNG));
+				auto sizer = new wxBoxSizer(wxHORIZONTAL);
+				sizer->Add(btn);
+
+//				btn->Bind(wxEVT_BUTTON, []{
+// 					auto sender = new GCodeSender();
+// 					auto res = true;// sender->connect(
+// // 						s_cache_HostConfig.serial_port,
+// // 						config_->serial_speed
+// //						);
+// 					if (res && sender->wait_connected()) {
+// 						show_info(parent, "Connection to printer works correctly.", "Success!");
+// 					}
+// 					else {
+// 						show_error(parent, "Connection failed.");
+// 					}
+// 				});
+				return sizer;
+			});
+
+			line.append_option(serial_port);
+			line.append_option(get_option_("serial_speed"));
+			line.append_widget(serial_test);
+			optgroup->append_line(line);
+//		}
+		optgroup = page->new_optgroup("OctoPrint upload");
+		// # append two buttons to the Host line
+		auto octoprint_host_browse = ([] (wxWindow* parent) {
+			auto btn = new wxButton(parent, wxID_ANY, "Browse…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+//			btn->SetFont($Slic3r::GUI::small_font);
+			btn->SetBitmap(wxBitmap(wxT("var\\zoom.png"), wxBITMAP_TYPE_PNG));
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(btn);
+
+// 			if (!eval "use Net::Bonjour; 1") {
+// 				btn->Disable;
+// 			}
+
+//			btn->Bind(wxEVT_BUTTON, []{
+				// # look for devices
+// 				my $entries;
+// 				{
+// 					my $res = Net::Bonjour->new('http');
+// 					$res->discover;
+// 					$entries = [$res->entries];
+// 				}
+// 				if (@{$entries}) {
+// 					my $dlg = Slic3r::GUI::BonjourBrowser->new($self, $entries);
+// 					$self->_load_key_value('octoprint_host', $dlg->GetValue . ":".$dlg->GetPort)
+// 						if $dlg->ShowModal == wxID_OK;
+// 				}
+// 				else {
+// 					auto msg_window = new wxMessageDialog(parent, "No Bonjour device found", "Device Browser", wxOK | wxICON_INFORMATION);
+// 					msg_window->ShowModal();
+// 				}
+//			});
+
+			return sizer;
+		});
+		auto octoprint_host_test = ([/*serial_test_btn*/](wxWindow* parent) {
+			auto btn = /*serial_test_btn =*/ new wxButton(parent, wxID_ANY,
+				"Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+//			btn->SetFont($Slic3r::GUI::small_font);
+			btn->SetBitmap(wxBitmap(wxT("var\\wrench.png"), wxBITMAP_TYPE_PNG));
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(btn);
+
+			btn->Bind(wxEVT_BUTTON, [](wxCommandEvent e) {
+// 				my $ua = LWP::UserAgent->new;
+// 				$ua->timeout(10);
+// 
+// 				my $res = $ua->get(
+// 					"http://".$self->{config}->octoprint_host . "/api/version",
+// 					'X-Api-Key' = > $self->{config}->octoprint_apikey,
+// 					);
+// 				if ($res->is_success) {
+// 					Slic3r::GUI::show_info($self, "Connection to OctoPrint works correctly.", "Success!");
+// 				}
+// 				else {
+// 					Slic3r::GUI::show_error($self,
+// 						"I wasn't able to connect to OctoPrint (".$res->status_line . "). "
+// 						. "Check hostname and OctoPrint version (at least 1.1.0 is required).");
+// 				}
+ 			});
+			return sizer;
+		});
+
+		Line host_line = optgroup->create_single_option_line(get_option_("octoprint_host"));
+		host_line.append_widget(octoprint_host_browse);
+		host_line.append_widget(octoprint_host_test);
+		optgroup->append_line(host_line);
+		optgroup->append_single_option_line(get_option_("octoprint_apikey"));
+
+		optgroup = page->new_optgroup("Firmware");
+		optgroup->append_single_option_line(get_option_("gcode_flavor"));
+
+		optgroup = page->new_optgroup("Advanced");
+		optgroup->append_single_option_line(get_option_("use_relative_e_distances"));
+		optgroup->append_single_option_line(get_option_("use_firmware_retraction"));
+		optgroup->append_single_option_line(get_option_("use_volumetric_e"));
+		optgroup->append_single_option_line(get_option_("variable_layer_height"));
+
+	page = add_options_page("Custom G-code", "cog.png");
+		optgroup = page->new_optgroup("Start G-code", 0);
+		option = get_option_("start_gcode");
+		option.opt.full_width = true;
+		option.opt.height = 150;
+		optgroup->append_single_option_line(option);
+
+		optgroup = page->new_optgroup("End G-code", 0);
+		option = get_option_("end_gcode");
+		option.opt.full_width = true;
+		option.opt.height = 150;
+		optgroup->append_single_option_line(option);
+
+		optgroup = page->new_optgroup("Before layer change G-code", 0);
+		option = get_option_("before_layer_gcode");
+		option.opt.full_width = true;
+		option.opt.height = 150;
+		optgroup->append_single_option_line(option);
+
+		optgroup = page->new_optgroup("After layer change G-code", 0);
+		option = get_option_("layer_gcode");
+		option.opt.full_width = true;
+		option.opt.height = 150;
+		optgroup->append_single_option_line(option);
+
+		optgroup = page->new_optgroup("Tool change G-code", 0);
+		option = get_option_("toolchange_gcode");
+		option.opt.full_width = true;
+		option.opt.height = 150;
+		optgroup->append_single_option_line(option);
+
+		optgroup = page->new_optgroup("Between objects G-code (for sequential printing)", 0);
+		option = get_option_("between_objects_gcode");
+		option.opt.full_width = true;
+		option.opt.height = 150;
+		optgroup->append_single_option_line(option);
+	
+	page = add_options_page("Notes", "note.png");
+		optgroup = page->new_optgroup("Notes", 0);
+		option = get_option_("printer_notes");
+		option.opt.full_width = true;
+		option.opt.height = 250;
+		optgroup->append_single_option_line(option);
+
+// 	$self->{extruder_pages} = [];
+	build_extruder_pages_();
+
+// 	$self->_update_serial_ports if (!$params{ no_controller });
+}
+
+void CTabPrinter::build_extruder_pages_(){
+// 	my $default_config = Slic3r::Config::Full->new;
+// 
+// 	foreach my $extruder_idx(@{$self->{extruder_pages}} ..$self->{extruders_count}-1) {
+		//# build page
+		auto page = /*$self->{extruder_pages}[$extruder_idx] =*/ add_options_page("Extruder "/* . ($extruder_idx + 1)*/, "funnel.png");
+			auto optgroup = page->new_optgroup("Size");
+			optgroup->append_single_option_line(get_option_("nozzle_diameter"/*, $extruder_idx*/));
+		
+			optgroup = page->new_optgroup("Layer height limits");
+			optgroup->append_single_option_line(get_option_("min_layer_height"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("max_layer_height"/*, $extruder_idx*/));
+				
+		
+			optgroup = page->new_optgroup("Position (for multi-extruder printers)");
+			optgroup->append_single_option_line(get_option_("extruder_offset"/*, $extruder_idx*/));
+		
+			optgroup = page->new_optgroup("Retraction");
+			optgroup->append_single_option_line(get_option_("retract_length"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("retract_lift"/*, $extruder_idx*/));
+				Line line = { "Only lift Z", "" };
+				line.append_option(get_option_("retract_lift_above"/*, $extruder_idx*/));
+				line.append_option(get_option_("retract_lift_below"/*, $extruder_idx*/));
+				optgroup->append_line(line);
+			
+			optgroup->append_single_option_line(get_option_("retract_speed"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("deretract_speed"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("retract_restart_extra"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("retract_before_travel"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("retract_layer_change"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("wipe"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("retract_before_wipe"/*, $extruder_idx*/));
+	
+			optgroup = page->new_optgroup("Retraction when tool is disabled (advanced settings for multi-extruder setups)");
+			optgroup->append_single_option_line(get_option_("retract_length_toolchange"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option_("retract_restart_extra_toolchange"/*, $extruder_idx*/));
+
+			optgroup = page->new_optgroup("Preview");
+			optgroup->append_single_option_line(get_option_("extruder_colour"/*, $extruder_idx*/));
+//	}
+// 
+// 	// # remove extra pages
+// 	if ($self->{extruders_count} <= $#{$self->{extruder_pages}}) {
+// 		$_->Destroy for @{$self->{extruder_pages}}[$self->{extruders_count}..$#{$self->{extruder_pages}}];
+// 		splice @{$self->{extruder_pages}}, $self->{extruders_count};
+// 	}
+// 
+// 	// # rebuild page list
+// 	my @pages_without_extruders = (grep $_->{title} !~/ ^Extruder \d + / , @{$self->{pages}});
+// 	my $page_notes = pop @pages_without_extruders;
+// 	@{$self->{pages}} = (
+// 		@pages_without_extruders,
+// 		@{$self->{extruder_pages}}[0 ..$self->{extruders_count}-1],
+// 		$page_notes
+// 		);
+ 	rebuild_page_tree();
 }
 
 //Regerenerate content of the page tree.
@@ -459,29 +852,33 @@ wxSizer* CTab::compatible_printers_widget_(wxWindow* parent)
 	return sizer; 
 }
 
-void CTab::load_key_value_(std::string opt_key, std::vector<std::string> value)
+wxSizer* CTab::bed_shape_widget_(wxWindow* parent)
 {
-	// # To be called by custom widgets, load a value into a config,
-	// # update the preset selection boxes (the dirty flags)
-	// $self->{config}->set($opt_key, $value);
-	// # Mark the print & filament enabled if they are compatible with the currently selected preset.
-	if (opt_key.compare("compatible_printers")==0) {
-	// wxTheApp->{preset_bundle}->update_compatible_with_printer(0);
-	// $self->{presets}->update_tab_ui($self->{presets_choice}, $self->{show_incompatible_presets});
-	// } else {
-	// $self->{presets}->update_dirty_ui($self->{presets_choice});
-	}
-	// $self->_on_presets_changed;
-	// $self->_update;
+		auto btn = new wxButton(parent, wxID_ANY, "Set…", wxDefaultPosition, wxDefaultSize,
+			wxBU_LEFT | wxBU_EXACTFIT);
+//		btn->SetFont(Slic3r::GUI::small_font);
+		btn->SetBitmap(wxBitmap(wxT("var\\printer_empty.png"), wxBITMAP_TYPE_PNG));
+
+		auto sizer = new wxBoxSizer(wxHORIZONTAL);
+		sizer->Add(btn);
+
+		btn->Bind(wxEVT_BUTTON, ([=](wxCommandEvent e)
+		{
+// 			auto dlg = new BedShapeDialog->new($self, $self->{config}->bed_shape);
+// 			if (dlg->ShowModal == wxID_OK)
+				;// load_key_value_("bed_shape", dlg->GetValue);
+		}));
+
+ 		return sizer;
 }
 
 // package Slic3r::GUI::Tab::Page;
-ConfigOptionsGroupShp CPage::new_optgroup(std::string title, size_t label_width /*= 0*/)
+ConfigOptionsGroupShp CPage::new_optgroup(std::string title, int noncommon_label_width /*= -1*/)
 {
 	//! config_ have to be "right"
 	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, config_);
-	if (label_width != 0)
-		optgroup->label_width = label_width;
+	if (noncommon_label_width >= 0)
+		optgroup->label_width = noncommon_label_width;
 
 //         on_change       => sub {
 //             my ($opt_key, $value) = @_;

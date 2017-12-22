@@ -64,7 +64,7 @@ public:
 	size_t		iconID() const { return iconID_; }
 	void		set_config(DynamicPrintConfig* config_in) { config_ = config_in; }
 
-	ConfigOptionsGroupShp new_optgroup(std::string title, size_t label_width = 0);
+	ConfigOptionsGroupShp new_optgroup(std::string title, int noncommon_label_width = -1);
 };
 
 // Slic3r::GUI::Tab;
@@ -74,7 +74,7 @@ class CTab: public wxPanel
 {
 	wxNotebook*			parent_;
 protected:
-	const char*			title_;
+	const wxString		title_;
 	wxBitmapComboBox*	presets_choice_;
 	wxBitmapButton*		btn_save_preset_;
 	wxBitmapButton*		btn_delete_preset_;
@@ -87,14 +87,16 @@ protected:
 	wxImageList*		icons_;
 	wxCheckBox*			compatible_printers_checkbox_;
 	wxButton*			compatible_printers_btn;
+
 	int					icon_count;
 	std::map<wxString, size_t>				icon_index_;		// Map from an icon file name to its index in $self->{icons}.
 	std::vector<CPageShp>		pages_;	// $self->{pages} = [];
 	bool				disable_tree_sel_changed_event_;
 
 public:
-	DynamicPrintConfig config_;		//! tmp_val
-	const ConfigDef* config_def;	//! tmp_val
+	PresetBundle*		preset_bundle_;
+	DynamicPrintConfig	config_;		//! tmp_val
+	const ConfigDef*	config_def_;	// It will be used in get_option_(const std::string title)
 
 public:
 	CTab() {}
@@ -104,12 +106,15 @@ public:
 	~CTab(){}
 
 	wxWindow*	parent() const { return parent_; }
+	wxString	title()	 const { return title_; }
 	
-	void		create_preset_tab();
+	void		create_preset_tab(PresetBundle *preset_bundle);
 	void		rebuild_page_tree();
 	void		select_preset(wxString preset_name){};
 
-	static wxSizer*	compatible_printers_widget_(wxWindow* parent);
+	static wxSizer*		compatible_printers_widget_(wxWindow* parent);
+	static wxSizer*		bed_shape_widget_(wxWindow* parent);
+
 	void		load_key_value_(std::string opt_key, std::vector<std::string> value);
 
 	void		OnTreeSelChange(wxTreeEvent& event);
@@ -125,7 +130,7 @@ public:
 //	virtual void _update();
 
 	Option get_option_(const std::string title){
-		return Option(*config_def->get(title), title);
+		return Option(*config_def_->get(title), title);
 	}
 };
 
@@ -134,10 +139,44 @@ class CTabPrint : public CTab
 {
 public:
 	CTabPrint() {}
-	CTabPrint(wxNotebook* parent, const char *title/*, someParams*/) : CTab(parent, title) {}
+	CTabPrint(wxNotebook* parent, const char *title) : CTab(parent, title) {}
 	~CTabPrint(){}
 
 	void  build() override;
+};
+
+//Slic3r::GUI::Tab::Print;
+class CTabFilament : public CTab
+{
+	static wxStaticText*	cooling_description_line_;
+	static wxStaticText*	volumetric_speed_description_line_;
+public:
+	CTabFilament() {}
+	CTabFilament(wxNotebook* parent, const char *title) : CTab(parent, title) {}
+	~CTabFilament(){}
+
+	static wxSizer*		description_line_widget_(wxWindow* parent, wxStaticText* StaticText);
+	static wxSizer*		cooling_description_line_widget_(wxWindow* parent) { 
+							return description_line_widget_(parent, cooling_description_line_); }
+	static wxSizer*		volumetric_speed_description_line_widget_(wxWindow* parent) {
+							return description_line_widget_(parent, volumetric_speed_description_line_); }
+
+	void  build() override;
+};
+
+//Slic3r::GUI::Tab::Print;
+class CTabPrinter : public CTab
+{
+public:
+	wxButton*	serial_test_btn;
+	wxButton*	octoprint_host_test_btn;
+public:
+	CTabPrinter() {}
+	CTabPrinter(wxNotebook* parent, const char *title) : CTab(parent, title) {}
+	~CTabPrinter(){}
+
+	void	build() override;
+	void	build_extruder_pages_();
 };
 
 } // GUI
