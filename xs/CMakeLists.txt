@@ -177,6 +177,12 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/PresetHints.hpp
     ${LIBDIR}/slic3r/GUI/GUI.cpp
     ${LIBDIR}/slic3r/GUI/GUI.hpp
+    ${LIBDIR}/slic3r/GUI/Tab.cpp
+    ${LIBDIR}/slic3r/GUI/Tab.h
+    ${LIBDIR}/slic3r/GUI/Field.cpp
+    ${LIBDIR}/slic3r/GUI/Field.hpp
+    ${LIBDIR}/slic3r/GUI/OptionsGroup.cpp
+    ${LIBDIR}/slic3r/GUI/OptionsGroup.hpp
 )
 
 add_library(admesh STATIC

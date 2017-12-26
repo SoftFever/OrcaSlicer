@@ -38,31 +38,31 @@ namespace GUI {
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
 class CPage : public wxScrolledWindow
 {
-	wxWindow*		parent_;
-	wxString		title_;
-	size_t			iconID_;
-	wxBoxSizer*		vsizer_;
+	wxWindow*		m_parent;
+	wxString		m_title;
+	size_t			m_iconID;
+	wxBoxSizer*		m_vsizer;
 public:
 	CPage(wxWindow* parent, const wxString title, const int iconID) :
-			parent_(parent), 
-			title_(title), 
-			iconID_(iconID)
+			m_parent(parent),
+			m_title(title),
+			m_iconID(iconID)
 	{
-		Create(parent_, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);		
-		vsizer_ = new wxBoxSizer(wxVERTICAL);
-		SetSizer(vsizer_);
+		Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+		m_vsizer = new wxBoxSizer(wxVERTICAL);
+		SetSizer(m_vsizer);
 	}
 	~CPage(){}
 
 public:
-	std::vector <ConfigOptionsGroupShp> optgroups;  // $self->{optgroups} = [];
-	DynamicPrintConfig* config_;
+	std::vector <ConfigOptionsGroupShp> m_optgroups;  // $self->{optgroups} = [];
+	DynamicPrintConfig* m_config;
 
-	wxBoxSizer*	vsizer() const { return vsizer_; }	
-	wxWindow*	parent() const { return parent_; }
-	wxString	title()	 const { return title_; }
-	size_t		iconID() const { return iconID_; }
-	void		set_config(DynamicPrintConfig* config_in) { config_ = config_in; }
+	wxBoxSizer*	vsizer() const { return m_vsizer; }
+	wxWindow*	parent() const { return m_parent; }
+	wxString	title()	 const { return m_title; }
+	size_t		iconID() const { return m_iconID; }
+	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
 
 	ConfigOptionsGroupShp new_optgroup(std::string title, int noncommon_label_width = -1);
 };
@@ -72,65 +72,64 @@ public:
 using CPageShp = std::shared_ptr<CPage>;
 class CTab: public wxPanel
 {
-	wxNotebook*			parent_;
+	wxNotebook*			m_parent;
 protected:
-	const wxString		title_;
-	wxBitmapComboBox*	presets_choice_;
-	wxBitmapButton*		btn_save_preset_;
-	wxBitmapButton*		btn_delete_preset_;
-	wxBitmap*			bmp_show_incompatible_presets_;
-	wxBitmap*			bmp_hide_incompatible_presets_;
-	wxBitmapButton*		btn_hide_incompatible_presets_;
-	wxBoxSizer*			hsizer_;
-	wxBoxSizer*			left_sizer_;
-	wxTreeCtrl*			treectrl_;
-	wxImageList*		icons_;
-	wxCheckBox*			compatible_printers_checkbox_;
-	wxButton*			compatible_printers_btn;
+	const wxString		m_title;
+	wxBitmapComboBox*	m_presets_choice;
+	wxBitmapButton*		m_btn_save_preset;
+	wxBitmapButton*		m_btn_delete_preset;
+	wxBitmap*			m_bmp_show_incompatible_presets;
+	wxBitmap*			m_bmp_hide_incompatible_presets;
+	wxBitmapButton*		m_btn_hide_incompatible_presets;
+	wxBoxSizer*			m_hsizer;
+	wxBoxSizer*			m_left_sizer;
+	wxTreeCtrl*			m_treectrl;
+	wxImageList*		m_icons;
+	wxCheckBox*			m_compatible_printers_checkbox;
+	wxButton*			m_compatible_printers_btn;
 
-	int					icon_count;
-	std::map<wxString, size_t>				icon_index_;		// Map from an icon file name to its index in $self->{icons}.
-	std::vector<CPageShp>		pages_;	// $self->{pages} = [];
-	bool				disable_tree_sel_changed_event_;
+	int					m_icon_count;
+	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index in $self->{icons}.
+	std::vector<CPageShp>			m_pages;	// $self->{pages} = [];
+	bool				m_disable_tree_sel_changed_event;
 
 public:
-	PresetBundle*		preset_bundle_;
-	DynamicPrintConfig	config_;		//! tmp_val
-	const ConfigDef*	config_def_;	// It will be used in get_option_(const std::string title)
+	PresetBundle*		m_preset_bundle;
+	DynamicPrintConfig	m_config;		//! tmp_val
+	const ConfigDef*	m_config_def;	// It will be used in get_option_(const std::string title)
 
 public:
 	CTab() {}
-	CTab(wxNotebook* parent, const char *title) : parent_(parent), title_(title) { 
+	CTab(wxNotebook* parent, const char *title) : m_parent(parent), m_title(title) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 	}
 	~CTab(){}
 
-	wxWindow*	parent() const { return parent_; }
-	wxString	title()	 const { return title_; }
+	wxWindow*	parent() const { return m_parent; }
+	wxString	title()	 const { return m_title; }
 	
 	void		create_preset_tab(PresetBundle *preset_bundle);
 	void		rebuild_page_tree();
 	void		select_preset(wxString preset_name){};
 
-	static wxSizer*		compatible_printers_widget_(wxWindow* parent);
-	static wxSizer*		bed_shape_widget_(wxWindow* parent);
+	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox, wxButton* btn);
 
-	void		load_key_value_(std::string opt_key, std::vector<std::string> value);
+	void		load_key_value(std::string opt_key, std::vector<std::string> value);
 
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
-	void		OnComboBox(wxCommandEvent& event) { select_preset(presets_choice_->GetStringSelection()); 	}
+	void		OnComboBox(wxCommandEvent& event) { select_preset(m_presets_choice->GetStringSelection()); 	}
 	void		save_preset(wxCommandEvent &event);
 	void		delete_preset(wxCommandEvent &event);
-	void		_toggle_show_hide_incompatible(wxCommandEvent &event);
+	void		toggle_show_hide_incompatible(wxCommandEvent &event);
 
-	std::shared_ptr<CPage> add_options_page(wxString title, wxString icon);
+	CPageShp	add_options_page(wxString title, std::string icon);
 
 	virtual void build() = 0;
-//	virtual void _update();
+//	virtual void update();
 
 	Option get_option_(const std::string title){
-		return Option(*config_def_->get(title), title);
+		return Option(*m_config_def->get(title), title);
 	}
 };
 
@@ -145,26 +144,22 @@ public:
 	void  build() override;
 };
 
-//Slic3r::GUI::Tab::Print;
+//Slic3r::GUI::Tab::Filament;
 class CTabFilament : public CTab
 {
-	static wxStaticText*	cooling_description_line_;
-	static wxStaticText*	volumetric_speed_description_line_;
+	wxStaticText*	m_cooling_description_line;
+	wxStaticText*	m_volumetric_speed_description_line;
 public:
 	CTabFilament() {}
 	CTabFilament(wxNotebook* parent, const char *title) : CTab(parent, title) {}
 	~CTabFilament(){}
 
-	static wxSizer*		description_line_widget_(wxWindow* parent, wxStaticText* StaticText);
-	static wxSizer*		cooling_description_line_widget_(wxWindow* parent) { 
-							return description_line_widget_(parent, cooling_description_line_); }
-	static wxSizer*		volumetric_speed_description_line_widget_(wxWindow* parent) {
-							return description_line_widget_(parent, volumetric_speed_description_line_); }
+	wxSizer*		description_line_widget(wxWindow* parent, wxStaticText* StaticText);
 
 	void  build() override;
 };
 
-//Slic3r::GUI::Tab::Print;
+//Slic3r::GUI::Tab::Printer;
 class CTabPrinter : public CTab
 {
 public:
@@ -176,7 +171,7 @@ public:
 	~CTabPrinter(){}
 
 	void	build() override;
-	void	build_extruder_pages_();
+	void	build_extruder_pages();
 };
 
 } // GUI

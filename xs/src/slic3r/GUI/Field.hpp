@@ -19,22 +19,12 @@
 //#include "slic3r_gui.hpp"
 #include "GUI.hpp"
 
-#if SLIC3R_CPPVER==11
-    // C++14 has make_unique, C++11 doesn't. This is really useful so we're going to steal it.
-    template<class T, class...Args>
-    std::unique_ptr<T> make_unique(Args&&... args)
-    {
-        std::unique_ptr<T> ret (new T(std::forward<Args>(args)...));
-        return ret;
-    }
-#endif
-
 namespace Slic3r { namespace GUI {
 
 class Field;
 using t_field = std::unique_ptr<Field>;
 
-class Field { 
+class Field {
 protected:
     // factory function to defer and enforce creation of derived type. 
     virtual void PostInitialize() { BUILD(); }
@@ -47,7 +37,7 @@ protected:
     /// Call the attached on_change method. 
     void _on_change(wxCommandEvent& event);
 
-public:    
+public:
     /// parent wx item, opportunity to refactor (probably not necessary - data duplication)
     wxWindow* parent {nullptr};
 
@@ -60,7 +50,7 @@ public:
     bool disable_change_event {false};
 
     /// Copy of ConfigOption for deduction purposes
-    const ConfigOptionDef opt {ConfigOptionDef()}; 
+    const ConfigOptionDef opt {ConfigOptionDef()};
 	const t_config_option_key opt_id;//! {""};
 
     /// Sets a value for this control.
@@ -118,10 +108,10 @@ public:
     void BUILD();
     wxWindow* window {nullptr};
 
-    virtual void set_value(std::string value) { 
+    virtual void set_value(std::string value) {
         dynamic_cast<wxTextCtrl*>(window)->SetValue(wxString(value));
     }
-    virtual void set_value(boost::any value) { 
+    virtual void set_value(boost::any value) {
         dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
     }
 
@@ -129,7 +119,7 @@ public:
 
     virtual void enable();
     virtual void disable();
-    virtual wxWindow* getWindow() { return window; } 
+    virtual wxWindow* getWindow() { return window; }
     void set_tooltip(const wxString& tip);
 
 };
@@ -193,12 +183,10 @@ public:
 	Choice(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
 
 	wxWindow*		window{ nullptr };
-	void			BUILD()  override;
+	void			BUILD() override;
 
 	void			set_selection();
-	void			set_value(const std::string value);// {
-// 		dynamic_cast<wxComboBox*>(window)->SetValue(value);
-// 	}
+	void			set_value(const std::string value);
 	void			set_value(boost::any value) {
 		dynamic_cast<wxComboBox*>(window)->SetValue(boost::any_cast<std::string>(value));
 	}
@@ -252,29 +240,24 @@ public:
 
 	void			BUILD()  override;
 
-	void			set_value(const Pointf value);// {
-// 	 		dynamic_cast<wxColourPickerCtrl*>(sizer)->SetColour(value);
-
-//	 	}
+	void			set_value(const Pointf value);
 	void			set_value(boost::any value) {
 //		dynamic_cast<wxColourPickerCtrl*>(sizer)->SetColour(boost::any_cast<std::string>(value));
 	}
-	boost::any		get_value() override;	//{
-//		return boost::any(dynamic_cast<wxColourPickerCtrl*>(sizer)->GetColour());
-//	}
+	boost::any		get_value() override;
 
-	void			enable() override { /*dynamic_cast<wxTextCtrl*>(window)*/
-		x_textctrl->Enable(); 
+	void			enable() override {
+		x_textctrl->Enable();
 		y_textctrl->Enable(); };
-	void			disable() override{ /*dynamic_cast<wxTextCtrl*>(window)*/
-		x_textctrl->Disable(); 
+	void			disable() override{
+		x_textctrl->Disable();
 		y_textctrl->Disable(); };
 	wxSizer*		getSizer() override { return sizer; }
 	void			set_tooltip(const wxString& tip) override {}; //! Redundant
 };
 
 
-#endif 
+#endif
 } // GUI
 } // Slic3r
 
