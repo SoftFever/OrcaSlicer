@@ -786,7 +786,7 @@ void GCode::_do_export(Print &print, FILE *file)
         print.total_extruded_volume = print.total_extruded_volume + extruded_volume;
     }
     _write_format(file, "; total filament cost = %.1lf\n", print.total_cost);
-    _write_format(file, "; estimated printing time = %s\n", m_time_estimator.get_time_hms());
+    _write_format(file, "; estimated printing time = %s\n", m_time_estimator.get_time_hms().c_str());
 
     // Append full config.
     _write(file, "\n");
