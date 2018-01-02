@@ -105,7 +105,7 @@ void CTab::create_preset_tab(PresetBundle *preset_bundle)
 //	_update();
 }
 
-CPageShp CTab::add_options_page(wxString title, std::string icon)
+CPageShp CTab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
 {
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
@@ -125,10 +125,10 @@ CPageShp CTab::add_options_page(wxString title, std::string icon)
 	page->SetScrollbars(1, 1, 1, 1);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
-	m_pages.push_back(page);
+	if (!is_extruder_pages) 
+		m_pages.push_back(page);
 
 	page->set_config(&m_config);
-
 	return page;
 }
 
@@ -155,187 +155,187 @@ void CTabPrint::build()
 
 	auto page = add_options_page("Layers and perimeters", "layers.png");
 		auto optgroup = page->new_optgroup("Layer height");
-		optgroup->append_single_option_line(get_option_("layer_height"));
-		optgroup->append_single_option_line(get_option_("first_layer_height"));
+		optgroup->append_single_option_line(get_option("layer_height"));
+		optgroup->append_single_option_line(get_option("first_layer_height"));
 
 		optgroup = page->new_optgroup("Vertical shells");
-		optgroup->append_single_option_line(get_option_("perimeters"));
-		optgroup->append_single_option_line(get_option_("spiral_vase"));
+		optgroup->append_single_option_line(get_option("perimeters"));
+		optgroup->append_single_option_line(get_option("spiral_vase"));
 
 		optgroup = page->new_optgroup("Horizontal shells");
 		Line line{ "Solid layers", "" };
-		line.append_option(get_option_("top_solid_layers"));
-		line.append_option(get_option_("bottom_solid_layers"));
+		line.append_option(get_option("top_solid_layers"));
+		line.append_option(get_option("bottom_solid_layers"));
 		optgroup->append_line(line);
 
 		optgroup = page->new_optgroup("Quality (slower slicing)");
-		optgroup->append_single_option_line(get_option_("extra_perimeters"));
-		optgroup->append_single_option_line(get_option_("ensure_vertical_shell_thickness"));
-		optgroup->append_single_option_line(get_option_("avoid_crossing_perimeters"));
-		optgroup->append_single_option_line(get_option_("thin_walls"));
-		optgroup->append_single_option_line(get_option_("overhangs"));
+		optgroup->append_single_option_line(get_option("extra_perimeters"));
+		optgroup->append_single_option_line(get_option("ensure_vertical_shell_thickness"));
+		optgroup->append_single_option_line(get_option("avoid_crossing_perimeters"));
+		optgroup->append_single_option_line(get_option("thin_walls"));
+		optgroup->append_single_option_line(get_option("overhangs"));
 
 		optgroup = page->new_optgroup("Advanced");
-		optgroup->append_single_option_line(get_option_("seam_position"));
-		optgroup->append_single_option_line(get_option_("external_perimeters_first"));
+		optgroup->append_single_option_line(get_option("seam_position"));
+		optgroup->append_single_option_line(get_option("external_perimeters_first"));
 
 	page = add_options_page("Infill", "infill.png");
 		optgroup = page->new_optgroup("Infill");
-		optgroup->append_single_option_line(get_option_("fill_density"));
-		optgroup->append_single_option_line(get_option_("fill_pattern"));
-		optgroup->append_single_option_line(get_option_("external_fill_pattern"));
+		optgroup->append_single_option_line(get_option("fill_density"));
+		optgroup->append_single_option_line(get_option("fill_pattern"));
+		optgroup->append_single_option_line(get_option("external_fill_pattern"));
 
 		optgroup = page->new_optgroup("Reducing printing time");
-		optgroup->append_single_option_line(get_option_("infill_every_layers"));
-		optgroup->append_single_option_line(get_option_("infill_only_where_needed"));
+		optgroup->append_single_option_line(get_option("infill_every_layers"));
+		optgroup->append_single_option_line(get_option("infill_only_where_needed"));
 
 		optgroup = page->new_optgroup("Advanced");
-		optgroup->append_single_option_line(get_option_("solid_infill_every_layers"));
-		optgroup->append_single_option_line(get_option_("fill_angle"));
-		optgroup->append_single_option_line(get_option_("solid_infill_below_area"));
-		optgroup->append_single_option_line(get_option_("bridge_angle"));
-		optgroup->append_single_option_line(get_option_("only_retract_when_crossing_perimeters"));
-		optgroup->append_single_option_line(get_option_("infill_first"));
+		optgroup->append_single_option_line(get_option("solid_infill_every_layers"));
+		optgroup->append_single_option_line(get_option("fill_angle"));
+		optgroup->append_single_option_line(get_option("solid_infill_below_area"));
+		optgroup->append_single_option_line(get_option("bridge_angle"));
+		optgroup->append_single_option_line(get_option("only_retract_when_crossing_perimeters"));
+		optgroup->append_single_option_line(get_option("infill_first"));
 
 	page = add_options_page("Skirt and brim", "box.png");
 		optgroup = page->new_optgroup("Skirt");
-		optgroup->append_single_option_line(get_option_("skirts"));
-		optgroup->append_single_option_line(get_option_("skirt_distance"));
-		optgroup->append_single_option_line(get_option_("skirt_height"));
-		optgroup->append_single_option_line(get_option_("min_skirt_length"));
+		optgroup->append_single_option_line(get_option("skirts"));
+		optgroup->append_single_option_line(get_option("skirt_distance"));
+		optgroup->append_single_option_line(get_option("skirt_height"));
+		optgroup->append_single_option_line(get_option("min_skirt_length"));
 
 		optgroup = page->new_optgroup("Brim");
-		optgroup->append_single_option_line(get_option_("brim_width"));
+		optgroup->append_single_option_line(get_option("brim_width"));
 
 	page = add_options_page("Support material", "building.png");
 		optgroup = page->new_optgroup("Support material");
-		optgroup->append_single_option_line(get_option_("support_material"));
-		optgroup->append_single_option_line(get_option_("support_material_threshold"));
-		optgroup->append_single_option_line(get_option_("support_material_enforce_layers"));
+		optgroup->append_single_option_line(get_option("support_material"));
+		optgroup->append_single_option_line(get_option("support_material_threshold"));
+		optgroup->append_single_option_line(get_option("support_material_enforce_layers"));
 
 		optgroup = page->new_optgroup("Raft");
-		optgroup->append_single_option_line(get_option_("raft_layers"));
+		optgroup->append_single_option_line(get_option("raft_layers"));
 //		# optgroup->append_single_option_line(get_option_("raft_contact_distance"));
 
 		optgroup = page->new_optgroup("Options for support material and raft");
-		optgroup->append_single_option_line(get_option_("support_material_contact_distance"));
-		optgroup->append_single_option_line(get_option_("support_material_pattern"));
-		optgroup->append_single_option_line(get_option_("support_material_with_sheath"));
-		optgroup->append_single_option_line(get_option_("support_material_spacing"));
-		optgroup->append_single_option_line(get_option_("support_material_angle"));
-		optgroup->append_single_option_line(get_option_("support_material_interface_layers"));
-		optgroup->append_single_option_line(get_option_("support_material_interface_spacing"));
-		optgroup->append_single_option_line(get_option_("support_material_interface_contact_loops"));
-		optgroup->append_single_option_line(get_option_("support_material_buildplate_only"));
-		optgroup->append_single_option_line(get_option_("support_material_xy_spacing"));
-		optgroup->append_single_option_line(get_option_("dont_support_bridges"));
-		optgroup->append_single_option_line(get_option_("support_material_synchronize_layers"));
+		optgroup->append_single_option_line(get_option("support_material_contact_distance"));
+		optgroup->append_single_option_line(get_option("support_material_pattern"));
+		optgroup->append_single_option_line(get_option("support_material_with_sheath"));
+		optgroup->append_single_option_line(get_option("support_material_spacing"));
+		optgroup->append_single_option_line(get_option("support_material_angle"));
+		optgroup->append_single_option_line(get_option("support_material_interface_layers"));
+		optgroup->append_single_option_line(get_option("support_material_interface_spacing"));
+		optgroup->append_single_option_line(get_option("support_material_interface_contact_loops"));
+		optgroup->append_single_option_line(get_option("support_material_buildplate_only"));
+		optgroup->append_single_option_line(get_option("support_material_xy_spacing"));
+		optgroup->append_single_option_line(get_option("dont_support_bridges"));
+		optgroup->append_single_option_line(get_option("support_material_synchronize_layers"));
 
 	page = add_options_page("Speed", "time.png");
 		optgroup = page->new_optgroup("Speed for print moves");
-		optgroup->append_single_option_line(get_option_("perimeter_speed"));
-		optgroup->append_single_option_line(get_option_("small_perimeter_speed"));
-		optgroup->append_single_option_line(get_option_("external_perimeter_speed"));
-		optgroup->append_single_option_line(get_option_("infill_speed"));
-		optgroup->append_single_option_line(get_option_("solid_infill_speed"));
-		optgroup->append_single_option_line(get_option_("top_solid_infill_speed"));
-		optgroup->append_single_option_line(get_option_("support_material_speed"));
-		optgroup->append_single_option_line(get_option_("support_material_interface_speed"));
-		optgroup->append_single_option_line(get_option_("bridge_speed"));
-		optgroup->append_single_option_line(get_option_("gap_fill_speed"));
+		optgroup->append_single_option_line(get_option("perimeter_speed"));
+		optgroup->append_single_option_line(get_option("small_perimeter_speed"));
+		optgroup->append_single_option_line(get_option("external_perimeter_speed"));
+		optgroup->append_single_option_line(get_option("infill_speed"));
+		optgroup->append_single_option_line(get_option("solid_infill_speed"));
+		optgroup->append_single_option_line(get_option("top_solid_infill_speed"));
+		optgroup->append_single_option_line(get_option("support_material_speed"));
+		optgroup->append_single_option_line(get_option("support_material_interface_speed"));
+		optgroup->append_single_option_line(get_option("bridge_speed"));
+		optgroup->append_single_option_line(get_option("gap_fill_speed"));
 
 		optgroup = page->new_optgroup("Speed for non-print moves");
-		optgroup->append_single_option_line(get_option_("travel_speed"));
+		optgroup->append_single_option_line(get_option("travel_speed"));
 
 		optgroup = page->new_optgroup("Modifiers");
-		optgroup->append_single_option_line(get_option_("first_layer_speed"));
+		optgroup->append_single_option_line(get_option("first_layer_speed"));
 
 		optgroup = page->new_optgroup("Acceleration control (advanced)");
-		optgroup->append_single_option_line(get_option_("perimeter_acceleration"));
-		optgroup->append_single_option_line(get_option_("infill_acceleration"));
-		optgroup->append_single_option_line(get_option_("bridge_acceleration"));
-		optgroup->append_single_option_line(get_option_("first_layer_acceleration"));
-		optgroup->append_single_option_line(get_option_("default_acceleration"));
+		optgroup->append_single_option_line(get_option("perimeter_acceleration"));
+		optgroup->append_single_option_line(get_option("infill_acceleration"));
+		optgroup->append_single_option_line(get_option("bridge_acceleration"));
+		optgroup->append_single_option_line(get_option("first_layer_acceleration"));
+		optgroup->append_single_option_line(get_option("default_acceleration"));
 
 		optgroup = page->new_optgroup("Autospeed (advanced)");
-		optgroup->append_single_option_line(get_option_("max_print_speed"));
-		optgroup->append_single_option_line(get_option_("max_volumetric_speed"));
-		optgroup->append_single_option_line(get_option_("max_volumetric_extrusion_rate_slope_positive"));
-		optgroup->append_single_option_line(get_option_("max_volumetric_extrusion_rate_slope_negative"));
+		optgroup->append_single_option_line(get_option("max_print_speed"));
+		optgroup->append_single_option_line(get_option("max_volumetric_speed"));
+		optgroup->append_single_option_line(get_option("max_volumetric_extrusion_rate_slope_positive"));
+		optgroup->append_single_option_line(get_option("max_volumetric_extrusion_rate_slope_negative"));
 
 	page = add_options_page("Multiple Extruders", "funnel.png");
 		optgroup = page->new_optgroup("Extruders");
-		optgroup->append_single_option_line(get_option_("perimeter_extruder"));
-		optgroup->append_single_option_line(get_option_("infill_extruder"));
-		optgroup->append_single_option_line(get_option_("solid_infill_extruder"));
-		optgroup->append_single_option_line(get_option_("support_material_extruder"));
-		optgroup->append_single_option_line(get_option_("support_material_interface_extruder"));
+		optgroup->append_single_option_line(get_option("perimeter_extruder"));
+		optgroup->append_single_option_line(get_option("infill_extruder"));
+		optgroup->append_single_option_line(get_option("solid_infill_extruder"));
+		optgroup->append_single_option_line(get_option("support_material_extruder"));
+		optgroup->append_single_option_line(get_option("support_material_interface_extruder"));
 
 		optgroup = page->new_optgroup("Ooze prevention");
-		optgroup->append_single_option_line(get_option_("ooze_prevention"));
-		optgroup->append_single_option_line(get_option_("standby_temperature_delta"));
+		optgroup->append_single_option_line(get_option("ooze_prevention"));
+		optgroup->append_single_option_line(get_option("standby_temperature_delta"));
 
 		optgroup = page->new_optgroup("Wipe tower");
-		optgroup->append_single_option_line(get_option_("wipe_tower"));
-		optgroup->append_single_option_line(get_option_("wipe_tower_x"));
-		optgroup->append_single_option_line(get_option_("wipe_tower_y"));
-		optgroup->append_single_option_line(get_option_("wipe_tower_width"));
-		optgroup->append_single_option_line(get_option_("wipe_tower_per_color_wipe"));
+		optgroup->append_single_option_line(get_option("wipe_tower"));
+		optgroup->append_single_option_line(get_option("wipe_tower_x"));
+		optgroup->append_single_option_line(get_option("wipe_tower_y"));
+		optgroup->append_single_option_line(get_option("wipe_tower_width"));
+		optgroup->append_single_option_line(get_option("wipe_tower_per_color_wipe"));
 
 		optgroup = page->new_optgroup("Advanced");
-		optgroup->append_single_option_line(get_option_("interface_shells"));
+		optgroup->append_single_option_line(get_option("interface_shells"));
 
 	page = add_options_page("Advanced", "wrench.png");
 		optgroup = page->new_optgroup("Extrusion width", 180);
-		optgroup->append_single_option_line(get_option_("extrusion_width"));
-		optgroup->append_single_option_line(get_option_("first_layer_extrusion_width"));
-		optgroup->append_single_option_line(get_option_("perimeter_extrusion_width"));
-		optgroup->append_single_option_line(get_option_("external_perimeter_extrusion_width"));
-		optgroup->append_single_option_line(get_option_("infill_extrusion_width"));
-		optgroup->append_single_option_line(get_option_("solid_infill_extrusion_width"));
-		optgroup->append_single_option_line(get_option_("top_infill_extrusion_width"));
-		optgroup->append_single_option_line(get_option_("support_material_extrusion_width"));
+		optgroup->append_single_option_line(get_option("extrusion_width"));
+		optgroup->append_single_option_line(get_option("first_layer_extrusion_width"));
+		optgroup->append_single_option_line(get_option("perimeter_extrusion_width"));
+		optgroup->append_single_option_line(get_option("external_perimeter_extrusion_width"));
+		optgroup->append_single_option_line(get_option("infill_extrusion_width"));
+		optgroup->append_single_option_line(get_option("solid_infill_extrusion_width"));
+		optgroup->append_single_option_line(get_option("top_infill_extrusion_width"));
+		optgroup->append_single_option_line(get_option("support_material_extrusion_width"));
 
 		optgroup = page->new_optgroup("Overlap");
-		optgroup->append_single_option_line(get_option_("infill_overlap"));
+		optgroup->append_single_option_line(get_option("infill_overlap"));
 
 		optgroup = page->new_optgroup("Flow");
-		optgroup->append_single_option_line(get_option_("bridge_flow_ratio"));
+		optgroup->append_single_option_line(get_option("bridge_flow_ratio"));
 
 		optgroup = page->new_optgroup("Other");
-		optgroup->append_single_option_line(get_option_("clip_multipart_objects"));
-		optgroup->append_single_option_line(get_option_("elefant_foot_compensation"));
-		optgroup->append_single_option_line(get_option_("xy_size_compensation"));
+		optgroup->append_single_option_line(get_option("clip_multipart_objects"));
+		optgroup->append_single_option_line(get_option("elefant_foot_compensation"));
+		optgroup->append_single_option_line(get_option("xy_size_compensation"));
 //		#            optgroup->append_single_option_line(get_option_("threads"));
-		optgroup->append_single_option_line(get_option_("resolution"));
+		optgroup->append_single_option_line(get_option("resolution"));
 
 	page = add_options_page("Output options", "page_white_go.png");
 		optgroup = page->new_optgroup("Sequential printing");
-		optgroup->append_single_option_line(get_option_("complete_objects"));
+		optgroup->append_single_option_line(get_option("complete_objects"));
 		line = Line{ "Extruder clearance (mm)", "" };
-		Option option = get_option_("extruder_clearance_radius");
+		Option option = get_option("extruder_clearance_radius");
 		option.opt.width = 60;
 		line.append_option(option);
-		option = get_option_("extruder_clearance_height");
+		option = get_option("extruder_clearance_height");
 		option.opt.width = 60;
 		line.append_option(option);
 		optgroup->append_line(line);
 
 		optgroup = page->new_optgroup("Output file");
-		optgroup->append_single_option_line(get_option_("gcode_comments"));
-		option = get_option_("output_filename_format");
+		optgroup->append_single_option_line(get_option("gcode_comments"));
+		option = get_option("output_filename_format");
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup("Post-processing scripts", 0);	
-		option = get_option_("post_process");
+		option = get_option("post_process");
 		option.opt.full_width = true;
 		option.opt.height = 50;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page("Notes", "note.png");
 		optgroup = page->new_optgroup("Notes", 0);						
-		option = get_option_("notes");
+		option = get_option("notes");
 		option.opt.full_width = true;
 		option.opt.height = 250;
 		optgroup->append_single_option_line(option);
@@ -356,27 +356,27 @@ void CTabFilament::build()
 
 	auto page = add_options_page("Filament", "spool.png");
 		auto optgroup = page->new_optgroup("Filament");
-		optgroup->append_single_option_line(get_option_("filament_colour"));
-		optgroup->append_single_option_line(get_option_("filament_diameter"));
-		optgroup->append_single_option_line(get_option_("extrusion_multiplier"));
-		optgroup->append_single_option_line(get_option_("filament_density"));
-		optgroup->append_single_option_line(get_option_("filament_cost"));
+		optgroup->append_single_option_line(get_option("filament_colour"));
+		optgroup->append_single_option_line(get_option("filament_diameter"));
+		optgroup->append_single_option_line(get_option("extrusion_multiplier"));
+		optgroup->append_single_option_line(get_option("filament_density"));
+		optgroup->append_single_option_line(get_option("filament_cost"));
 
 		optgroup = page->new_optgroup("Temperature (°C)");
 		Line line = { "Extruder", "" };
-		line.append_option(get_option_("first_layer_temperature"));
-		line.append_option(get_option_("temperature"));
+		line.append_option(get_option("first_layer_temperature"));
+		line.append_option(get_option("temperature"));
 		optgroup->append_line(line);
 
 		line = { "Bed", "" };
-		line.append_option(get_option_("first_layer_bed_temperature"));
-		line.append_option(get_option_("bed_temperature"));
+		line.append_option(get_option("first_layer_bed_temperature"));
+		line.append_option(get_option("bed_temperature"));
 		optgroup->append_line(line);
 
 	page = add_options_page("Cooling", "hourglass.png");
 		optgroup = page->new_optgroup("Enable");
-		optgroup->append_single_option_line(get_option_("fan_always_on"));
-		optgroup->append_single_option_line(get_option_("cooling"));
+		optgroup->append_single_option_line(get_option("fan_always_on"));
+		optgroup->append_single_option_line(get_option("cooling"));
 
 		line = { "", "" }; 
 		line.full_width = 1;
@@ -387,25 +387,25 @@ void CTabFilament::build()
 
 		optgroup = page->new_optgroup("Fan settings");
 		line = {"Fan speed",""};
-		line.append_option(get_option_("min_fan_speed"));
-		line.append_option(get_option_("max_fan_speed"));
+		line.append_option(get_option("min_fan_speed"));
+		line.append_option(get_option("max_fan_speed"));
 		optgroup->append_line(line);
 
-		optgroup->append_single_option_line(get_option_("bridge_fan_speed"));
-		optgroup->append_single_option_line(get_option_("disable_fan_first_layers"));
+		optgroup->append_single_option_line(get_option("bridge_fan_speed"));
+		optgroup->append_single_option_line(get_option("disable_fan_first_layers"));
 
 		optgroup = page->new_optgroup("Cooling thresholds", 250);
-		optgroup->append_single_option_line(get_option_("fan_below_layer_time"));
-		optgroup->append_single_option_line(get_option_("slowdown_below_layer_time"));
-		optgroup->append_single_option_line(get_option_("min_print_speed"));
+		optgroup->append_single_option_line(get_option("fan_below_layer_time"));
+		optgroup->append_single_option_line(get_option("slowdown_below_layer_time"));
+		optgroup->append_single_option_line(get_option("min_print_speed"));
 
 	page = add_options_page("Advanced", "wrench.png");
 		optgroup = page->new_optgroup("Filament properties");
-		optgroup->append_single_option_line(get_option_("filament_type"));
-		optgroup->append_single_option_line(get_option_("filament_soluble"));
+		optgroup->append_single_option_line(get_option("filament_type"));
+		optgroup->append_single_option_line(get_option("filament_soluble"));
 
 		optgroup = page->new_optgroup("Print speed override");
-		optgroup->append_single_option_line(get_option_("filament_max_volumetric_speed"));
+		optgroup->append_single_option_line(get_option("filament_max_volumetric_speed"));
 
 		line = {"",""};
 		line.full_width = 1;
@@ -416,13 +416,13 @@ void CTabFilament::build()
 
 	page = add_options_page("Custom G-code", "cog.png");
 		optgroup = page->new_optgroup("Start G-code", 0);
-		Option option = get_option_("start_filament_gcode");
+		Option option = get_option("start_filament_gcode");
 		option.opt.full_width = true;
 		option.opt.height = 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup("End G-code", 0);
-		option = get_option_("end_filament_gcode");
+		option = get_option("end_filament_gcode");
 		option.opt.full_width = true;
 		option.opt.height = 150;
 		optgroup->append_single_option_line(option);
@@ -430,7 +430,7 @@ void CTabFilament::build()
 	page = add_options_page("Notes", "note.png");
 		optgroup = page->new_optgroup("Notes", 0);
 		optgroup->label_width = 0;
-		option = get_option_("filament_notes");
+		option = get_option("filament_notes");
 		option.opt.full_width = true;
 		option.opt.height = 250;
 		optgroup->append_single_option_line(option);
@@ -463,9 +463,8 @@ void CTabPrinter::build()
 	m_config = m_preset_bundle->printers.get_edited_preset().config;
 	m_config_def = m_config.def();		// It will be used in get_option_(const std::string title)
 
-// 	$self->{extruders_count} = scalar @{$self->{config}->nozzle_diameter};
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config.option("nozzle_diameter"));
-//	size_t  extruders_count = nozzle_diameter->values.size();
+	m_extruders_count = nozzle_diameter->values.size();
 
 	auto page = add_options_page("General", "printer_empty.png");
 		auto optgroup = page->new_optgroup("Size and coordinates");
@@ -490,7 +489,7 @@ void CTabPrinter::build()
 			return sizer;
 		};
 		optgroup->append_line(line);
-		optgroup->append_single_option_line(get_option_("z_offset"));
+		optgroup->append_single_option_line(get_option("z_offset"));
 
 		optgroup = page->new_optgroup("Capabilities");
 		ConfigOptionDef def;
@@ -501,7 +500,7 @@ void CTabPrinter::build()
 			def.min = 1;
 		Option option(def, "extruders_count");
 		optgroup->append_single_option_line(option);
-		optgroup->append_single_option_line(get_option_("single_extruder_multi_material"));
+		optgroup->append_single_option_line(get_option("single_extruder_multi_material"));
 
 // 		$optgroup->on_change(sub{
 // 			my($opt_key, $value) = @_;
@@ -521,7 +520,7 @@ void CTabPrinter::build()
 // 		{
 		optgroup = page->new_optgroup("USB/Serial connection");
 			line = {"Serial port", ""};
-			Option serial_port = get_option_("serial_port");
+			Option serial_port = get_option("serial_port");
 			serial_port.side_widget = ([](wxWindow* parent){
 				auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(wxString::FromUTF8(Slic3r::var("arrow_rotate_clockwise.png").c_str()), wxBITMAP_TYPE_PNG),
 					wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
@@ -557,7 +556,7 @@ void CTabPrinter::build()
 			};
 
 			line.append_option(serial_port);
-			line.append_option(get_option_("serial_speed"));
+			line.append_option(get_option("serial_speed"));
 			line.append_widget(serial_test);
 			optgroup->append_line(line);
 //		}
@@ -624,127 +623,128 @@ void CTabPrinter::build()
 			return sizer;
 		};
 
-		Line host_line = optgroup->create_single_option_line(get_option_("octoprint_host"));
+		Line host_line = optgroup->create_single_option_line(get_option("octoprint_host"));
 		host_line.append_widget(octoprint_host_browse);
 		host_line.append_widget(octoprint_host_test);
 		optgroup->append_line(host_line);
-		optgroup->append_single_option_line(get_option_("octoprint_apikey"));
+		optgroup->append_single_option_line(get_option("octoprint_apikey"));
 
 		optgroup = page->new_optgroup("Firmware");
-		optgroup->append_single_option_line(get_option_("gcode_flavor"));
+		optgroup->append_single_option_line(get_option("gcode_flavor"));
 
 		optgroup = page->new_optgroup("Advanced");
-		optgroup->append_single_option_line(get_option_("use_relative_e_distances"));
-		optgroup->append_single_option_line(get_option_("use_firmware_retraction"));
-		optgroup->append_single_option_line(get_option_("use_volumetric_e"));
-		optgroup->append_single_option_line(get_option_("variable_layer_height"));
+		optgroup->append_single_option_line(get_option("use_relative_e_distances"));
+		optgroup->append_single_option_line(get_option("use_firmware_retraction"));
+		optgroup->append_single_option_line(get_option("use_volumetric_e"));
+		optgroup->append_single_option_line(get_option("variable_layer_height"));
 
 	page = add_options_page("Custom G-code", "cog.png");
 		optgroup = page->new_optgroup("Start G-code", 0);
-		option = get_option_("start_gcode");
+		option = get_option("start_gcode");
 		option.opt.full_width = true;
 		option.opt.height = 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup("End G-code", 0);
-		option = get_option_("end_gcode");
+		option = get_option("end_gcode");
 		option.opt.full_width = true;
 		option.opt.height = 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup("Before layer change G-code", 0);
-		option = get_option_("before_layer_gcode");
+		option = get_option("before_layer_gcode");
 		option.opt.full_width = true;
 		option.opt.height = 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup("After layer change G-code", 0);
-		option = get_option_("layer_gcode");
+		option = get_option("layer_gcode");
 		option.opt.full_width = true;
 		option.opt.height = 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup("Tool change G-code", 0);
-		option = get_option_("toolchange_gcode");
+		option = get_option("toolchange_gcode");
 		option.opt.full_width = true;
 		option.opt.height = 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup("Between objects G-code (for sequential printing)", 0);
-		option = get_option_("between_objects_gcode");
+		option = get_option("between_objects_gcode");
 		option.opt.full_width = true;
 		option.opt.height = 150;
 		optgroup->append_single_option_line(option);
 	
 	page = add_options_page("Notes", "note.png");
 		optgroup = page->new_optgroup("Notes", 0);
-		option = get_option_("printer_notes");
+		option = get_option("printer_notes");
 		option.opt.full_width = true;
 		option.opt.height = 250;
 		optgroup->append_single_option_line(option);
 
-// 	$self->{extruder_pages} = [];
 	build_extruder_pages();
 
 // 	$self->_update_serial_ports if (!$params{ no_controller });
 }
 
 void CTabPrinter::build_extruder_pages(){
-// 	my $default_config = Slic3r::Config::Full->new;
-// 
-// 	foreach my $extruder_idx(@{$self->{extruder_pages}} ..$self->{extruders_count}-1) {
+//	auto default_config = m_preset_bundle->full_config();
+
+	std::vector<CPageShp>	extruder_pages;	
+
+	for (auto extruder_idx = 0; extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
-		auto page = /*$self->{extruder_pages}[$extruder_idx] =*/ add_options_page("Extruder "/* . ($extruder_idx + 1)*/, "funnel.png");
+		auto page = add_options_page("Extruder " + wxString::Format(_T("%i"), extruder_idx + 1), "funnel.png", true);
+		extruder_pages.push_back(page);
+			
 			auto optgroup = page->new_optgroup("Size");
-			optgroup->append_single_option_line(get_option_("nozzle_diameter"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option("nozzle_diameter", extruder_idx));
 		
 			optgroup = page->new_optgroup("Layer height limits");
-			optgroup->append_single_option_line(get_option_("min_layer_height"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("max_layer_height"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option("min_layer_height", extruder_idx));
+			optgroup->append_single_option_line(get_option("max_layer_height", extruder_idx));
 				
 		
 			optgroup = page->new_optgroup("Position (for multi-extruder printers)");
-			optgroup->append_single_option_line(get_option_("extruder_offset"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option("extruder_offset", extruder_idx));
 		
 			optgroup = page->new_optgroup("Retraction");
-			optgroup->append_single_option_line(get_option_("retract_length"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("retract_lift"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option("retract_length", extruder_idx));
+			optgroup->append_single_option_line(get_option("retract_lift", extruder_idx));
 				Line line = { "Only lift Z", "" };
-				line.append_option(get_option_("retract_lift_above"/*, $extruder_idx*/));
-				line.append_option(get_option_("retract_lift_below"/*, $extruder_idx*/));
+				line.append_option(get_option("retract_lift_above", extruder_idx));
+				line.append_option(get_option("retract_lift_below", extruder_idx));
 				optgroup->append_line(line);
 			
-			optgroup->append_single_option_line(get_option_("retract_speed"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("deretract_speed"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("retract_restart_extra"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("retract_before_travel"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("retract_layer_change"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("wipe"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("retract_before_wipe"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option("retract_speed", extruder_idx));
+			optgroup->append_single_option_line(get_option("deretract_speed", extruder_idx));
+			optgroup->append_single_option_line(get_option("retract_restart_extra", extruder_idx));
+			optgroup->append_single_option_line(get_option("retract_before_travel", extruder_idx));
+			optgroup->append_single_option_line(get_option("retract_layer_change", extruder_idx));
+			optgroup->append_single_option_line(get_option("wipe", extruder_idx));
+			optgroup->append_single_option_line(get_option("retract_before_wipe", extruder_idx));
 	
 			optgroup = page->new_optgroup("Retraction when tool is disabled (advanced settings for multi-extruder setups)");
-			optgroup->append_single_option_line(get_option_("retract_length_toolchange"/*, $extruder_idx*/));
-			optgroup->append_single_option_line(get_option_("retract_restart_extra_toolchange"/*, $extruder_idx*/));
+			optgroup->append_single_option_line(get_option("retract_length_toolchange", extruder_idx));
+			optgroup->append_single_option_line(get_option("retract_restart_extra_toolchange", extruder_idx));
 
 			optgroup = page->new_optgroup("Preview");
-			optgroup->append_single_option_line(get_option_("extruder_colour"/*, $extruder_idx*/));
-//	}
-// 
-// 	// # remove extra pages
-// 	if ($self->{extruders_count} <= $#{$self->{extruder_pages}}) {
-// 		$_->Destroy for @{$self->{extruder_pages}}[$self->{extruders_count}..$#{$self->{extruder_pages}}];
-// 		splice @{$self->{extruder_pages}}, $self->{extruders_count};
-// 	}
-// 
-// 	// # rebuild page list
-// 	my @pages_without_extruders = (grep $_->{title} !~/ ^Extruder \d + / , @{$self->{pages}});
-// 	my $page_notes = pop @pages_without_extruders;
-// 	@{$self->{pages}} = (
-// 		@pages_without_extruders,
-// 		@{$self->{extruder_pages}}[0 ..$self->{extruders_count}-1],
-// 		$page_notes
-// 		);
- 	rebuild_page_tree();
+			optgroup->append_single_option_line(get_option("extruder_colour", extruder_idx));
+	}
+ 
+	// # remove extra pages
+	if (m_extruders_count <= extruder_pages.size()) {
+		extruder_pages.resize(m_extruders_count);
+	}
+
+	// # rebuild page list
+	CPageShp page_note = m_pages.back();
+	m_pages.pop_back();
+	for (auto page_extruder : extruder_pages)
+		m_pages.push_back(page_extruder);
+	m_pages.push_back(page_note);
+
+	rebuild_page_tree();
 }
 
 //Regerenerate content of the page tree.

@@ -123,14 +123,14 @@ public:
 	void		delete_preset(wxCommandEvent &event);
 	void		toggle_show_hide_incompatible(wxCommandEvent &event);
 
-	CPageShp	add_options_page(wxString title, std::string icon);
+	CPageShp	add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
 	virtual void build() = 0;
 //	virtual void update();
 
-	Option get_option_(const std::string title){
-		return Option(*m_config_def->get(title), title);
-	}
+	Option get_option(const std::string title, int idx = -1){
+		return Option(*m_config_def->get(title), idx == -1 ? title : title + std::to_string(idx));
+	}	
 };
 
 //Slic3r::GUI::Tab::Print;
@@ -165,6 +165,9 @@ class CTabPrinter : public CTab
 public:
 	wxButton*	serial_test_btn;
 	wxButton*	octoprint_host_test_btn;
+
+	size_t		m_extruders_count;
+
 public:
 	CTabPrinter() {}
 	CTabPrinter(wxNotebook* parent, const char *title) : CTab(parent, title) {}
