@@ -2,6 +2,8 @@
 #include <boost/bind.hpp>
 #include <cmath>
 
+#include <Shiny/Shiny.h>
+
 static const std::string AXIS_STR = "XYZE";
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float MILLISEC_TO_SEC = 0.001f;
@@ -60,7 +62,7 @@ namespace Slic3r {
   float GCodeTimeEstimator::Block::move_length() const
   {
     float length = ::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
-    return (length > 0.0f) ? length : ::abs(delta_pos[E]);
+    return (length > 0.0f) ? length : std::abs(delta_pos[E]);
   }
 
   float GCodeTimeEstimator::Block::is_extruder_only_move() const
@@ -165,11 +167,13 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::add_gcode_line(const std::string& gcode_line)
   {
+    PROFILE_FUNC();
     _parser.parse_line(gcode_line, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
   }
 
   void GCodeTimeEstimator::calculate_time()
   {
+    PROFILE_FUNC();
     _calculate_time();
     _reset();
   }
@@ -401,6 +405,7 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
   {
+    PROFILE_FUNC();
     if (line.cmd.length() > 1)
     {
       switch (::toupper(line.cmd[0]))
@@ -540,7 +545,7 @@ namespace Slic3r {
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
       block.delta_pos[a] = new_pos[a] - get_axis_position((EAxis)a);
-      max_abs_delta = std::max(max_abs_delta, ::abs(block.delta_pos[a]));
+      max_abs_delta = std::max(max_abs_delta, std::abs(block.delta_pos[a]));
     }
 
     // is it a move ?
@@ -557,7 +562,7 @@ namespace Slic3r {
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
       _curr.axis_feedrate[a] = _curr.feedrate * block.delta_pos[a] * invDistance;
-      _curr.abs_axis_feedrate[a] = ::abs(_curr.axis_feedrate[a]);
+      _curr.abs_axis_feedrate[a] = std::abs(_curr.axis_feedrate[a]);
       if (_curr.abs_axis_feedrate[a] > 0.0f)
         min_feedrate_factor = std::min(min_feedrate_factor, get_axis_max_feedrate((EAxis)a) / _curr.abs_axis_feedrate[a]);
     }
@@ -576,7 +581,7 @@ namespace Slic3r {
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
       float axis_max_acceleration = get_axis_max_acceleration((EAxis)a);
-      if (acceleration * ::abs(block.delta_pos[a]) * invDistance > axis_max_acceleration)
+      if (acceleration * std::abs(block.delta_pos[a]) * invDistance > axis_max_acceleration)
         acceleration = axis_max_acceleration;
     }
 
