@@ -2017,21 +2017,31 @@ void GCode::_write_format(FILE* file, const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    int buflen = 
-#ifdef _MSC_VER
-        _vscprintf(format, args);
-#else
-        vsnprintf(nullptr, 0, format, args);
-#endif
+
+    int buflen;
+    {
+        va_list args2;
+        va_copy(args2, args);
+        buflen =
+    #ifdef _MSC_VER
+            ::_vscprintf(format, args2)
+    #else
+            ::vsnprintf(nullptr, 0, format, args2)
+    #endif
+            + 1;
+        va_end(args2);
+    }
+
     char buffer[1024];
     bool buffer_dynamic = buflen > 1024;
     char *bufptr = buffer_dynamic ? (char*)malloc(buflen) : buffer;
     int res = ::vsnprintf(bufptr, buflen, format, args);
-    if (res >= 0 && bufptr[0] != 0)
-        _write(file, bufptr, buflen);
-    va_end(args);
+    if (res > 0)
+        _write(file, bufptr, res);
     if (buffer_dynamic)
         free(bufptr);
+
+    va_end(args);
 }
 
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)

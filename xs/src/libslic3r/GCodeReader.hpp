@@ -18,8 +18,10 @@ public:
         void reset() { m_mask = 0; memset(m_axis, 0, sizeof(m_axis)); m_raw.clear(); }
 
         const std::string&  raw() const { return m_raw; }
-        const std::string   cmd() const 
-            { size_t pos = m_raw.find_first_of(" \t\n;"); return (pos == std::string::npos) ? m_raw : m_raw.substr(0, pos); }
+        const std::string   cmd() const { 
+            const char *cmd = GCodeReader::skip_whitespaces(m_raw.c_str());
+            return std::string(cmd, GCodeReader::skip_word(cmd));
+        }
         const std::string   comment() const
             { size_t pos = m_raw.find(';'); return (pos == std::string::npos) ? "" : m_raw.substr(pos + 1); }
 
@@ -39,11 +41,9 @@ public:
             return sqrt(x*x + y*y);
         }
         bool cmd_is(const char *cmd_test) const {
+            const char *cmd = GCodeReader::skip_whitespaces(m_raw.c_str());
             int len = strlen(cmd_test); 
-            if (strncmp(m_raw.c_str(), cmd_test, len))
-                return false;
-            char c = m_raw.c_str()[len];
-            return c == 0 || c == ' ' || c == '\t' || c == ';';
+            return strncmp(cmd, cmd_test, len) == 0 && GCodeReader::is_end_of_word(cmd[len]);
         }
         bool extruding(const GCodeReader &reader)  const { return this->cmd_is("G1") && this->dist_E(reader) > 0; }
         bool retracting(const GCodeReader &reader) const { return this->cmd_is("G1") && this->dist_E(reader) < 0; }
@@ -104,6 +104,13 @@ public:
 private:
     const char* parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command);
     void        update_coordinates(GCodeLine &gline, std::pair<const char*, const char*> &command);
+
+    static bool         is_whitespace(char c)           { return c == ' ' || c == '\t'; }
+    static bool         is_end_of_line(char c)          { return c == '\r' || c == '\n' || c == 0; }
+    static bool         is_end_of_gcode_line(char c)    { return c == ';' || is_end_of_line(c); }
+    static bool         is_end_of_word(char c)          { return is_whitespace(c) || is_end_of_gcode_line(c); }
+    static const char*  skip_whitespaces(const char *c) { for (; is_whitespace(*c); ++ c); return c; }
+    static const char*  skip_word(const char *c)        { for (; ! is_end_of_word(*c); ++ c); return c; }
 
     GCodeConfig m_config;
     char        m_extrusion_axis;

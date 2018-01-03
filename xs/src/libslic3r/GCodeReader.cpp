@@ -28,38 +28,6 @@ void GCodeReader::parse(const std::string &gcode, callback_t callback)
         this->parse_line(line, callback);
 }
 
-static inline bool is_whitespace(char c)
-{
-    return c == ' ' || c == '\t';
-}
-
-static inline bool is_end_of_line(char c)
-{
-    return c == '\r' || c == '\n' || c == 0;
-}
-
-static inline bool is_end_of_gcode_line(char c)
-{
-    return c == ';' || is_end_of_line(c);
-}
-
-static inline bool is_end_of_word(char c)
-{
-    return is_whitespace(c) || is_end_of_gcode_line(c);
-}
-
-static inline const char* skip_whitespaces(const char *c)
-{
-    for (; is_whitespace(*c); ++ c);
-    return c;
-}
-
-static inline const char* skip_word(const char *c)
-{
-    for (; ! is_end_of_word(*c); ++ c);
-    return c;
-}
-
 const char* GCodeReader::parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command)
 {
     PROFILE_FUNC();
