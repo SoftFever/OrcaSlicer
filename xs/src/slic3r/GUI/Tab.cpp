@@ -1,3 +1,4 @@
+#include "../../libslic3r/GCodeSender.hpp"
 #include <wx/app.h>
 #include <wx/button.h>
 #include <wx/scrolwin.h>
@@ -13,15 +14,17 @@
 #include "Tab.h"
 #include "PresetBundle.hpp"
 #include "../../libslic3r/Utils.hpp"
+
 //#include "GCodeSender.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
 // sub new
-void CTab::create_preset_tab(PresetBundle *preset_bundle)
+void CTab::create_preset_tab(PresetBundle *preset_bundle, AppConfig *app_config)
 {
 	m_preset_bundle = preset_bundle;
+	m_app_config = app_config;
 	// Vertical sizer to hold the choice menu and the rest of the page.
 	CTab *panel = this;
 	auto  *sizer = new wxBoxSizer(wxVERTICAL);
@@ -457,11 +460,11 @@ wxSizer* CTabFilament::description_line_widget(wxWindow* parent, wxStaticText* S
 	return sizer;
 }
 
-//#include "../../libslic3r/GCodeSender.hpp";
 void CTabPrinter::build()
 {
 	m_config = m_preset_bundle->printers.get_edited_preset().config;
 	m_config_def = m_config.def();		// It will be used in get_option_(const std::string title)
+	auto default_config = m_preset_bundle->full_config();
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config.option("nozzle_diameter"));
 	m_extruders_count = nozzle_diameter->values.size();
@@ -516,22 +519,25 @@ void CTabPrinter::build()
 // 			});
 // 		});
 
-// 		if (!$params{ no_controller })
-// 		{
+		//if (!$params{ no_controller })
+		if (m_app_config->get("no_controller").empty())
+		{
 		optgroup = page->new_optgroup("USB/Serial connection");
 			line = {"Serial port", ""};
 			Option serial_port = get_option("serial_port");
 			serial_port.side_widget = ([](wxWindow* parent){
 				auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(wxString::FromUTF8(Slic3r::var("arrow_rotate_clockwise.png").c_str()), wxBITMAP_TYPE_PNG),
 					wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-				/*if (btn->can('SetToolTipString')*/btn->SetToolTip("Rescan serial ports");
+				btn->SetToolTip("Rescan serial ports");
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
 				sizer->Add(btn);
 
 				btn->Bind(wxEVT_BUTTON, [](wxCommandEvent e) {/*_update_serial_ports*/; });
 				return sizer;
 			});
-			auto serial_test = [this](wxWindow* parent){
+			Option serial_speed = get_option("serial_speed");
+			//! this serial_port & serial_speed have to be config !??
+			auto serial_test = [this, serial_port, serial_speed](wxWindow* parent){
 				auto btn = serial_test_btn = new wxButton(parent, wxID_ANY,
 					"Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //				btn->SetFont($Slic3r::GUI::small_font);
@@ -539,27 +545,28 @@ void CTabPrinter::build()
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
 				sizer->Add(btn);
 
-				btn->Bind(wxEVT_BUTTON, [parent](wxCommandEvent e){
-// 					auto sender = new GCodeSender();
-// 					auto res = true;// sender->connect(
-// // 						s_cache_HostConfig.serial_port,
-// // 						config_->serial_speed
-// //						);
-// 					if (res && sender->wait_connected()) {
+				btn->Bind(wxEVT_BUTTON, [parent, serial_port, serial_speed](wxCommandEvent e){
+					auto sender = new GCodeSender();					
+					auto res = sender->connect(
+						static_cast<const ConfigOptionString*>(serial_port.opt.default_value)->value,	//! m_config.serial_port,
+						serial_speed.opt.default_value->getInt()										//! m_config.serial_speed
+						);
+					if (res && sender->wait_connected()) {
 						show_info(parent, "Connection to printer works correctly.", "Success!");
-// 					}
-// 					else {
-// 						show_error(parent, "Connection failed.");
-// 					}
+					}
+					else {
+						show_error(parent, "Connection failed.");
+					}
 				});
 				return sizer;
 			};
 
 			line.append_option(serial_port);
-			line.append_option(get_option("serial_speed"));
+			line.append_option(serial_speed/*get_option("serial_speed")*/);
 			line.append_widget(serial_test);
 			optgroup->append_line(line);
-//		}
+		}
+
 		optgroup = page->new_optgroup("OctoPrint upload");
 		// # append two buttons to the Host line
 		auto octoprint_host_browse = [] (wxWindow* parent) {
@@ -573,9 +580,9 @@ void CTabPrinter::build()
 // 				btn->Disable;
 // 			}
 
-//			btn->Bind(wxEVT_BUTTON, []{
+			btn->Bind(wxEVT_BUTTON, [parent](wxCommandEvent e){
 				// # look for devices
-// 				my $entries;
+// 				auto entries;
 // 				{
 // 					my $res = Net::Bonjour->new('http');
 // 					$res->discover;
@@ -587,10 +594,10 @@ void CTabPrinter::build()
 // 						if $dlg->ShowModal == wxID_OK;
 // 				}
 // 				else {
-// 					auto msg_window = new wxMessageDialog(parent, "No Bonjour device found", "Device Browser", wxOK | wxICON_INFORMATION);
-// 					msg_window->ShowModal();
-// 				}
-//			});
+					auto msg_window = new wxMessageDialog(parent, "No Bonjour device found", "Device Browser", wxOK | wxICON_INFORMATION);
+					msg_window->ShowModal();
+//				}
+			});
 
 			return sizer;
 		};
@@ -603,7 +610,7 @@ void CTabPrinter::build()
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
-			btn->Bind(wxEVT_BUTTON, [](wxCommandEvent e) {
+			btn->Bind(wxEVT_BUTTON, [parent](wxCommandEvent e) {
 // 				my $ua = LWP::UserAgent->new;
 // 				$ua->timeout(10);
 // 
@@ -612,10 +619,10 @@ void CTabPrinter::build()
 // 					'X-Api-Key' = > $self->{config}->octoprint_apikey,
 // 					);
 // 				if ($res->is_success) {
-// 					Slic3r::GUI::show_info($self, "Connection to OctoPrint works correctly.", "Success!");
+// 					show_info(parent, "Connection to OctoPrint works correctly.", "Success!");
 // 				}
 // 				else {
-// 					Slic3r::GUI::show_error($self,
+// 					show_error(parent, 
 // 						"I wasn't able to connect to OctoPrint (".$res->status_line . "). "
 // 						. "Check hostname and OctoPrint version (at least 1.1.0 is required).");
 // 				}
@@ -685,6 +692,11 @@ void CTabPrinter::build()
 	build_extruder_pages();
 
 // 	$self->_update_serial_ports if (!$params{ no_controller });
+	if (m_app_config->get("no_controller").empty()){
+		Field *field = optgroup->get_field("serial_port");
+		Choice *choice = static_cast<Choice *>(field);
+		choice->set_values(scan_serial_ports());
+	}
 }
 
 void CTabPrinter::build_extruder_pages(){

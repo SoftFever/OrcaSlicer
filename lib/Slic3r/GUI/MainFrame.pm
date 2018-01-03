@@ -152,7 +152,7 @@ sub _init_tabpanel {
     }
 
 #TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
-    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle});
+    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config});
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {

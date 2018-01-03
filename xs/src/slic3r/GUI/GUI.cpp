@@ -188,16 +188,16 @@ void add_debug_menu(wxMenuBar *menu)
 #endif
 }
 
-void create_preset_tabs(PresetBundle *preset_bundle)
+void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config)
 {
-	add_created_tab(new CTabPrint   (g_wxTabPanel, "Print"),    preset_bundle);
-	add_created_tab(new CTabFilament(g_wxTabPanel, "Filament"), preset_bundle);
-	add_created_tab(new CTabPrinter (g_wxTabPanel, "Printer"),  preset_bundle);
+	add_created_tab(new CTabPrint   (g_wxTabPanel, "Print"),    preset_bundle, app_config);
+	add_created_tab(new CTabFilament(g_wxTabPanel, "Filament"), preset_bundle, app_config);
+	add_created_tab(new CTabPrinter (g_wxTabPanel, "Printer"),  preset_bundle, app_config);
 }
 
-void add_created_tab(CTab* panel, PresetBundle *preset_bundle)
+void add_created_tab(CTab* panel, PresetBundle *preset_bundle, AppConfig *app_config)
 {
-	panel->create_preset_tab(preset_bundle);
+	panel->create_preset_tab(preset_bundle, app_config);
 	g_wxTabPanel->AddPage(panel, panel->title());
 }
 

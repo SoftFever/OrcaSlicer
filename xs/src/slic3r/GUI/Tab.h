@@ -95,6 +95,7 @@ protected:
 
 public:
 	PresetBundle*		m_preset_bundle;
+	AppConfig*			m_app_config;
 	DynamicPrintConfig	m_config;		//! tmp_val
 	const ConfigDef*	m_config_def;	// It will be used in get_option_(const std::string title)
 
@@ -108,7 +109,7 @@ public:
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
 	
-	void		create_preset_tab(PresetBundle *preset_bundle);
+	void		create_preset_tab(PresetBundle *preset_bundle, AppConfig *app_config);
 	void		rebuild_page_tree();
 	void		select_preset(wxString preset_name){};
 
@@ -125,8 +126,8 @@ public:
 
 	CPageShp	add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
-	virtual void build() = 0;
-//	virtual void update();
+	virtual void	build() = 0;
+	virtual void	update() = 0;
 
 	Option get_option(const std::string title, int idx = -1){
 		return Option(*m_config_def->get(title), idx == -1 ? title : title + std::to_string(idx));
@@ -141,7 +142,8 @@ public:
 	CTabPrint(wxNotebook* parent, const char *title) : CTab(parent, title) {}
 	~CTabPrint(){}
 
-	void  build() override;
+	void		build() override;
+	void		update() override{};
 };
 
 //Slic3r::GUI::Tab::Filament;
@@ -156,7 +158,8 @@ public:
 
 	wxSizer*		description_line_widget(wxWindow* parent, wxStaticText* StaticText);
 
-	void  build() override;
+	void		build() override;
+	void		update() override{};
 };
 
 //Slic3r::GUI::Tab::Printer;
@@ -173,8 +176,9 @@ public:
 	CTabPrinter(wxNotebook* parent, const char *title) : CTab(parent, title) {}
 	~CTabPrinter(){}
 
-	void	build() override;
-	void	build_extruder_pages();
+	void		build() override;
+	void		update() override{};
+	void		build_extruder_pages();
 };
 
 } // GUI

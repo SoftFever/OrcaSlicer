@@ -13,6 +13,7 @@ class wxNotebook;
 namespace Slic3r { 
 
 class PresetBundle;
+class AppConfig;
 
 namespace GUI {
 
@@ -31,9 +32,9 @@ void set_tab_panel(wxNotebook *tab_panel);
 
 void add_debug_menu(wxMenuBar *menu);
 // Create a new preset tab (print, filament and printer),
-void create_preset_tabs(PresetBundle *preset_bundle);
+void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config);
 // add it at the end of the tab panel.
-void add_created_tab(CTab* panel, PresetBundle *preset_bundle);
+void add_created_tab(CTab* panel, PresetBundle *preset_bundle, AppConfig *app_config);
 
 void show_error(wxWindow* parent, std::string message);
 void show_info(wxWindow* parent, std::string message, std::string title);
