@@ -84,7 +84,7 @@ public:
         return end;
     }
     template<typename Callback>
-    void parse_line(const std::string &line, Callback &callback)
+    void parse_line(const std::string &line, Callback callback)
         { GCodeLine gline; this->parse_line(line.c_str(), gline, callback); }
     void parse_file(const std::string &file, callback_t callback);
 

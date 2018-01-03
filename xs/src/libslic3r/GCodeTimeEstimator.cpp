@@ -156,12 +156,10 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::calculate_time_from_lines(const std::vector<std::string>& gcode_lines)
   {
+    auto action = [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
+                    { this->_process_gcode_line(reader, line); };
     for (const std::string& line : gcode_lines)
-    {
-      _parser.parse_line(line, 
-        [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
-          { this->_process_gcode_line(reader, line); });
-    }
+      _parser.parse_line(line, action);
     _calculate_time();
     reset();
   }
@@ -178,11 +176,11 @@ namespace Slic3r {
   {
     PROFILE_FUNC();
     GCodeReader::GCodeLine gline;
+    auto action = [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
+      { this->_process_gcode_line(reader, line); };
     for (; *ptr != 0;) {
       gline.reset();
-      ptr = _parser.parse_line(ptr, gline, 
-        [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
-          { this->_process_gcode_line(reader, line); });
+      ptr = _parser.parse_line(ptr, gline, action);
     }
   }
 
