@@ -20,14 +20,6 @@ void GCodeReader::apply_config(const DynamicPrintConfig &config)
     m_extrusion_axis = m_config.get_extrusion_axis()[0];
 }
 
-void GCodeReader::parse(const std::string &gcode, callback_t callback)
-{
-    std::istringstream ss(gcode);
-    std::string line;
-    while (std::getline(ss, line))
-        this->parse_line(line, callback);
-}
-
 const char* GCodeReader::parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command)
 {
     PROFILE_FUNC();

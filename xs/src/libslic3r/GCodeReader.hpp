@@ -73,7 +73,21 @@ public:
     GCodeReader() : m_verbose(false), m_extrusion_axis('E') { memset(m_position, 0, sizeof(m_position)); }
     void apply_config(const GCodeConfig &config);
     void apply_config(const DynamicPrintConfig &config);
-    void parse(const std::string &gcode, callback_t callback);
+
+    template<typename Callback>
+    void parse_buffer(const std::string &buffer, Callback callback)
+    {
+        const char *ptr = buffer.c_str();
+        GCodeLine gline;
+        while (*ptr != 0) {
+            gline.reset();
+            ptr = this->parse_line(ptr, gline, callback);
+        }
+    }
+
+    void parse_buffer(const std::string &buffer)
+        { this->parse_buffer(buffer, [](GCodeReader&, const GCodeReader::GCodeLine&){}); }
+
     template<typename Callback>
     const char* parse_line(const char *ptr, GCodeLine &gline, Callback &callback)
     {
@@ -83,9 +97,11 @@ public:
         update_coordinates(gline, cmd);
         return end;
     }
+
     template<typename Callback>
     void parse_line(const std::string &line, Callback callback)
         { GCodeLine gline; this->parse_line(line.c_str(), gline, callback); }
+
     void parse_file(const std::string &file, callback_t callback);
 
     float& x()       { return m_position[X]; }

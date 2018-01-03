@@ -142,7 +142,9 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::calculate_time_from_text(const std::string& gcode)
   {
-    _parser.parse(gcode, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+    _parser.parse_buffer(gcode, 
+      [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
+        { this->_process_gcode_line(reader, line); });
     _calculate_time();
     reset();
   }
@@ -921,7 +923,9 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_planner_forward_pass_kernel(Block* prev, Block* curr)
   {
-    if (prev == nullptr)
+    if (prev == nullptr || curr == nullptr)
+//FIXME something is fishy here. Review and compare with the firmware.
+//    if (prev == nullptr)
       return;
 
     // If the previous block is an acceleration block, but it is not long enough to complete the

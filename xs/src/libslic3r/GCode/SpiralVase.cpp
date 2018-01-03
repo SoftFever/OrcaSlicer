@@ -17,7 +17,7 @@ std::string SpiralVase::process_layer(const std::string &gcode)
     // If we're not going to modify G-code, just feed it to the reader
     // in order to update positions.
     if (!this->enable) {
-        this->_reader.parse(gcode, {});
+        this->_reader.parse_buffer(gcode);
         return gcode;
     }
     
@@ -30,7 +30,7 @@ std::string SpiralVase::process_layer(const std::string &gcode)
     {
         //FIXME Performance warning: This copies the GCodeConfig of the reader.
         GCodeReader r = this->_reader;  // clone
-        r.parse(gcode, [&total_layer_length, &layer_height, &z, &set_z]
+        r.parse_buffer(gcode, [&total_layer_length, &layer_height, &z, &set_z]
             (GCodeReader &reader, const GCodeReader::GCodeLine &line) {
             if (line.cmd_is("G1")) {
                 if (line.extruding(reader)) {
@@ -50,7 +50,7 @@ std::string SpiralVase::process_layer(const std::string &gcode)
     z -= layer_height;
     
     std::string new_gcode;
-    this->_reader.parse(gcode, [&new_gcode, &z, &layer_height, &total_layer_length]
+    this->_reader.parse_buffer(gcode, [&new_gcode, &z, &layer_height, &total_layer_length]
         (GCodeReader &reader, GCodeReader::GCodeLine line) {
         if (line.cmd_is("G1")) {
             if (line.has_z()) {
