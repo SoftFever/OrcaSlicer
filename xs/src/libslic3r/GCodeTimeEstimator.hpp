@@ -183,6 +183,9 @@ namespace Slic3r {
     // Adds the given gcode line
     void add_gcode_line(const std::string& gcode_line);
 
+    void add_gcode_block(const char *ptr);
+    void add_gcode_block(const std::string &str) { this->add_gcode_block(str.c_str()); }
+
     // Calculates the time estimate from the gcode lines added using add_gcode_line()
     void calculate_time();
 

@@ -278,7 +278,8 @@ protected:
     GCodeTimeEstimator m_time_estimator;
 
     // Write a string into a file.
-    void _write(FILE* file, const std::string& what);
+    void _write(FILE* file, const std::string& what) { this->_write(file, what.c_str(), what.size()); }
+    void _write(FILE* file, const char *what, size_t size);
 
     // Write a string into a file. 
     // Add a newline, if the string does not end with a newline already.

@@ -4,7 +4,6 @@
 
 #include <Shiny/Shiny.h>
 
-static const std::string AXIS_STR = "XYZE";
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float MILLISEC_TO_SEC = 0.001f;
 static const float INCHES_TO_MM = 25.4f;
@@ -159,7 +158,9 @@ namespace Slic3r {
   {
     for (const std::string& line : gcode_lines)
     {
-      _parser.parse_line(line, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+      _parser.parse_line(line, 
+        [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
+          { this->_process_gcode_line(reader, line); });
     }
     _calculate_time();
     reset();
@@ -168,7 +169,21 @@ namespace Slic3r {
   void GCodeTimeEstimator::add_gcode_line(const std::string& gcode_line)
   {
     PROFILE_FUNC();
-    _parser.parse_line(gcode_line, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+    _parser.parse_line(gcode_line, 
+      [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
+        { this->_process_gcode_line(reader, line); });
+  }
+
+  void GCodeTimeEstimator::add_gcode_block(const char *ptr)
+  {
+    PROFILE_FUNC();
+    GCodeReader::GCodeLine gline;
+    for (; *ptr != 0;) {
+      gline.reset();
+      ptr = _parser.parse_line(ptr, gline, 
+        [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
+          { this->_process_gcode_line(reader, line); });
+    }
   }
 
   void GCodeTimeEstimator::calculate_time()
@@ -406,13 +421,14 @@ namespace Slic3r {
   void GCodeTimeEstimator::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
   {
     PROFILE_FUNC();
-    if (line.cmd.length() > 1)
+    std::string cmd = line.cmd();
+    if (cmd.length() > 1)
     {
-      switch (::toupper(line.cmd[0]))
+      switch (::toupper(cmd[0]))
       {
       case 'G':
         {
-          switch (::atoi(&line.cmd[1]))
+          switch (::atoi(&cmd[1]))
           {
           case 1: // Move
             {
@@ -460,7 +476,7 @@ namespace Slic3r {
         }
       case 'M':
         {
-          switch (::atoi(&line.cmd[1]))
+          switch (::atoi(&cmd[1]))
           {
           case 82: // Set extruder to absolute mode
             {
@@ -514,9 +530,9 @@ namespace Slic3r {
   float axis_absolute_position_from_G1_line(GCodeTimeEstimator::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeTimeEstimator::EUnits units, GCodeTimeEstimator::EPositioningType type, float current_absolute_position)
   {
     float lengthsScaleFactor = (units == GCodeTimeEstimator::Inches) ? INCHES_TO_MM : 1.0f;
-    if (lineG1.has(AXIS_STR[axis]))
+    if (lineG1.has(Slic3r::Axis(axis)))
     {
-      float ret = lineG1.get_float(AXIS_STR[axis]) * lengthsScaleFactor;
+      float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
       return (type == GCodeTimeEstimator::Absolute) ? ret : current_absolute_position + ret;
     }
     else
@@ -534,8 +550,8 @@ namespace Slic3r {
     }
 
     // updates feedrate from line, if present
-    if (line.has('F'))
-      set_feedrate(std::max(line.get_float('F') * MMMIN_TO_MMSEC, get_minimum_feedrate()));
+    if (line.has_f())
+      set_feedrate(std::max(line.f() * MMMIN_TO_MMSEC, get_minimum_feedrate()));
 
     // fills block data
     Block block;
@@ -682,15 +698,16 @@ namespace Slic3r {
     }
 
     // adds block to blocks list
-    _blocks.push_back(block);
+    _blocks.emplace_back(block);
   }
 
   void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)
   {
     EDialect dialect = get_dialect();
 
-    if (line.has('P'))
-      add_additional_time(line.get_float('P') * MILLISEC_TO_SEC);
+    float value;
+    if (line.has_value('P', value))
+      add_additional_time(value * MILLISEC_TO_SEC);
 
     // see: http://reprap.org/wiki/G-code#G4:_Dwell
     if ((dialect == Repetier) ||
@@ -698,8 +715,8 @@ namespace Slic3r {
         (dialect == Smoothieware) ||
         (dialect == RepRapFirmware))
     {
-      if (line.has('S'))
-        add_additional_time(line.get_float('S'));
+      if (line.has_value('S', value))
+        add_additional_time(value);
     }
   }
 
@@ -745,27 +762,27 @@ namespace Slic3r {
     float lengthsScaleFactor = (get_units() == Inches) ? INCHES_TO_MM : 1.0f;
     bool anyFound = false;
 
-    if (line.has('X'))
+    if (line.has_x())
     {
-      set_axis_position(X, line.get_float('X') * lengthsScaleFactor);
+      set_axis_position(X, line.x() * lengthsScaleFactor);
       anyFound = true;
     }
 
-    if (line.has('Y'))
+    if (line.has_y())
     {
-      set_axis_position(Y, line.get_float('Y') * lengthsScaleFactor);
+      set_axis_position(Y, line.y() * lengthsScaleFactor);
       anyFound = true;
     }
 
-    if (line.has('Z'))
+    if (line.has_z())
     {
-      set_axis_position(Z, line.get_float('Z') * lengthsScaleFactor);
+      set_axis_position(Z, line.z() * lengthsScaleFactor);
       anyFound = true;
     }
 
-    if (line.has('E'))
+    if (line.has_e())
     {
-      set_axis_position(E, line.get_float('E') * lengthsScaleFactor);
+      set_axis_position(E, line.e() * lengthsScaleFactor);
       anyFound = true;
     }
 
@@ -790,17 +807,17 @@ namespace Slic3r {
     // see http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration
     float factor = ((dialect != RepRapFirmware) && (get_units() == GCodeTimeEstimator::Inches)) ? INCHES_TO_MM : 1.0f;
 
-    if (line.has('X'))
-      set_axis_max_acceleration(X, line.get_float('X') * factor);
+    if (line.has_x())
+      set_axis_max_acceleration(X, line.x() * factor);
 
-    if (line.has('Y'))
-      set_axis_max_acceleration(Y, line.get_float('Y') * factor);
+    if (line.has_y())
+      set_axis_max_acceleration(Y, line.y() * factor);
 
-    if (line.has('Z'))
-      set_axis_max_acceleration(Z, line.get_float('Z') * factor);
+    if (line.has_z())
+      set_axis_max_acceleration(Z, line.z() * factor);
 
-    if (line.has('E'))
-      set_axis_max_acceleration(E, line.get_float('E') * factor);
+    if (line.has_e())
+      set_axis_max_acceleration(E, line.e() * factor);
   }
 
   void GCodeTimeEstimator::_processM203(const GCodeReader::GCodeLine& line)
@@ -814,66 +831,68 @@ namespace Slic3r {
     // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
     float factor = (dialect == Marlin) ? 1.0f : MMMIN_TO_MMSEC;
 
-    if (line.has('X'))
-      set_axis_max_feedrate(X, line.get_float('X') * factor);
+    if (line.has_x())
+      set_axis_max_feedrate(X, line.x() * factor);
 
-    if (line.has('Y'))
-      set_axis_max_feedrate(Y, line.get_float('Y') * factor);
+    if (line.has_y())
+      set_axis_max_feedrate(Y, line.y() * factor);
 
-    if (line.has('Z'))
-      set_axis_max_feedrate(Z, line.get_float('Z') * factor);
+    if (line.has_z())
+      set_axis_max_feedrate(Z, line.z() * factor);
 
-    if (line.has('E'))
-      set_axis_max_feedrate(E, line.get_float('E') * factor);
+    if (line.has_e())
+      set_axis_max_feedrate(E, line.e() * factor);
   }
 
   void GCodeTimeEstimator::_processM204(const GCodeReader::GCodeLine& line)
   {
-    if (line.has('S'))
-      set_acceleration(line.get_float('S'));
+    float value;
+    if (line.has_value('S', value))
+      set_acceleration(value);
 
-    if (line.has('T'))
-      set_retract_acceleration(line.get_float('T'));
+    if (line.has_value('T', value))
+      set_retract_acceleration(value);
   }
 
   void GCodeTimeEstimator::_processM205(const GCodeReader::GCodeLine& line)
   {
-    if (line.has('X'))
+    if (line.has_x())
     {
-      float max_jerk = line.get_float('X');
+      float max_jerk = line.x();
       set_axis_max_jerk(X, max_jerk);
       set_axis_max_jerk(Y, max_jerk);
     }
 
-    if (line.has('Y'))
-      set_axis_max_jerk(Y, line.get_float('Y'));
+    if (line.has_y())
+      set_axis_max_jerk(Y, line.y());
 
-    if (line.has('Z'))
-      set_axis_max_jerk(Z, line.get_float('Z'));
+    if (line.has_z())
+      set_axis_max_jerk(Z, line.z());
 
-    if (line.has('E'))
-      set_axis_max_jerk(E, line.get_float('E'));
+    if (line.has_e())
+      set_axis_max_jerk(E, line.e());
 
-    if (line.has('S'))
-      set_minimum_feedrate(line.get_float('S'));
+    float value;
+    if (line.has_value('S', value))
+      set_minimum_feedrate(value);
 
-    if (line.has('T'))
-      set_minimum_travel_feedrate(line.get_float('T'));
+    if (line.has_value('T', value))
+      set_minimum_travel_feedrate(value);
   }
 
   void GCodeTimeEstimator::_processM566(const GCodeReader::GCodeLine& line)
   {
-    if (line.has('X'))
-      set_axis_max_jerk(X, line.get_float('X') * MMMIN_TO_MMSEC);
+    if (line.has_x())
+      set_axis_max_jerk(X, line.x() * MMMIN_TO_MMSEC);
 
-    if (line.has('Y'))
-      set_axis_max_jerk(Y, line.get_float('Y') * MMMIN_TO_MMSEC);
+    if (line.has_y())
+      set_axis_max_jerk(Y, line.y() * MMMIN_TO_MMSEC);
 
-    if (line.has('Z'))
-      set_axis_max_jerk(Z, line.get_float('Z') * MMMIN_TO_MMSEC);
+    if (line.has_z())
+      set_axis_max_jerk(Z, line.z() * MMMIN_TO_MMSEC);
 
-    if (line.has('E'))
-      set_axis_max_jerk(E, line.get_float('E') * MMMIN_TO_MMSEC);
+    if (line.has_e())
+      set_axis_max_jerk(E, line.e() * MMMIN_TO_MMSEC);
   }
 
   void GCodeTimeEstimator::_forward_pass()

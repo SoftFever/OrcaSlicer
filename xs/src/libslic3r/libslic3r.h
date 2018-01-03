@@ -102,7 +102,7 @@ inline std::string debug_out_path(const char *name, ...)
 
 namespace Slic3r {
 
-enum Axis { X=0, Y, Z };
+enum Axis { X=0, Y, Z, E, F, NUM_AXES };
 
 template <class T>
 inline void append_to(std::vector<T> &dst, const std::vector<T> &src)

@@ -20,6 +20,8 @@
 
 #include "SVG.hpp"
 
+#include <Shiny/Shiny.h>
+
 #if 0
 // Enable debugging and asserts, even in the release build.
 #define DEBUG
@@ -348,6 +350,8 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
 
 void GCode::do_export(Print *print, const char *path)
 {
+    PROFILE_CLEAR();
+
     // Remove the old g-code if it exists.
     boost::nowide::remove(path);
 
@@ -384,10 +388,16 @@ void GCode::do_export(Print *print, const char *path)
         throw std::runtime_error(
             std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
+
+    // Write the profiler measurements to file
+    PROFILE_UPDATE();
+    PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
 }
 
 void GCode::_do_export(Print &print, FILE *file)
 {
+    PROFILE_FUNC();
+
     // resets time estimator
     m_time_estimator.reset();
 
@@ -1987,44 +1997,41 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
     return gcode;
 }
 
-void GCode::_write(FILE* file, const std::string& what)
+void GCode::_write(FILE* file, const char *what, size_t size)
 {
-    if (!what.empty()) {
+    if (size > 0) {
         // writes string to file
-        fwrite(what.data(), 1, what.size(), file);
+        fwrite(what, 1, size, file);
         // updates time estimator and gcode lines vector
-        const char endLine = '\n';
-        std::string::size_type beginPos = 0;
-        std::string::size_type endPos = what.find_first_of(endLine, beginPos);
-        while (endPos != std::string::npos) {
-            std::string line = what.substr(beginPos, endPos - beginPos + 1);
-            m_time_estimator.add_gcode_line(line);
-            beginPos = endPos + 1;
-            endPos = what.find_first_of(endLine, beginPos);
-        }
+        m_time_estimator.add_gcode_block(what);
     }
 }
 
-void GCode::_writeln(FILE* file, const std::string& what)
+void GCode::_writeln(FILE* file, const std::string &what)
 {
-    if (!what.empty()) {
-        if (what.back() != '\n')
-            _write_format(file, "%s\n", what.c_str());
-        else
-            _write(file, what);
-    }
+    if (! what.empty())
+        _write(file, (what.back() == '\n') ? what : (what + '\n'));
 }
 
 void GCode::_write_format(FILE* file, const char* format, ...)
 {
-    char buffer[1024];
     va_list args;
     va_start(args, format);
-    int res = ::vsnprintf(buffer, 1024, format, args);
+    int buflen = 
+#ifdef _MSC_VER
+        _vscprintf(format, args);
+#else
+        vsnprintf(nullptr, 0, format, args);
+#endif
+    char buffer[1024];
+    bool buffer_dynamic = buflen > 1024;
+    char *bufptr = buffer_dynamic ? (char*)malloc(buflen) : buffer;
+    int res = ::vsnprintf(bufptr, buflen, format, args);
+    if (res >= 0 && bufptr[0] != 0)
+        _write(file, bufptr, buflen);
     va_end(args);
-
-    if (res >= 0)
-        _writeln(file, buffer);
+    if (buffer_dynamic)
+        free(bufptr);
 }
 
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
