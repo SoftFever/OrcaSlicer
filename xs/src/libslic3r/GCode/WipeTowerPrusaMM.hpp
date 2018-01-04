@@ -237,6 +237,7 @@ private:
 	// after the wipe tower brim has been extruded?
 	float  			m_initial_extra_wipe = 0.f;
 	float			m_last_infill_tan = 1000.f;	// impossibly high value
+	bool 			m_left_to_right = true;
 
 	float extrusion_flow(float layer_height = -1.f) const
 	{

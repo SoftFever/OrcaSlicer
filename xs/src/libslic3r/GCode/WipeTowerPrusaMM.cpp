@@ -15,6 +15,14 @@
 #endif
 
 
+// experimental: ramming speed (mm^3/s) sampled in 0.25s intervals (one filament so far)
+const std::vector<float> ramming_speed = {7.6, 7.6, 7.6, 7.6, 9.0, 9.0, 9.0, 10.7, 10.7, 10.7};
+// experimental: time requested for cooling in seconds (common for all materials so far)
+const float cooling_time = 14; // PVA: 20; SCAFF: 17
+const float loading_volume = 20;
+
+
+
 namespace Slic3r
 {
 
@@ -562,6 +570,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		}
 	}*/
 
+	// Finds this toolchange info
 	if (tool != (unsigned int)(-1)) {
 		for (const auto &b : m_layer_info->tool_changes)
 			if ( b.new_tool == tool )
@@ -779,15 +788,51 @@ void WipeTowerPrusaMM::toolchange_Unload(
 {
 	float xl = cleaning_box.ld.x + 0.5f * m_perimeter_width;
 	float xr = cleaning_box.rd.x - 0.5f * m_perimeter_width;
-	float y_step = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_perimeter_width;
-
+	
 	writer.append("; CP TOOLCHANGE UNLOAD\n");
-
+	
 	// Ram the hot material out of the extruder melt zone.
 	// Current extruder position is on the left, one perimeter inside the cleaning box in both X and Y.
-	float e0 = m_perimeter_width * m_extrusion_flow;
-	float e = (xr - xl) * m_extrusion_flow;
-	switch (current_material)
+	//float e0 = m_perimeter_width * m_extrusion_flow;
+	//float e = (xr - xl) * m_extrusion_flow;
+	//float y_step = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_perimeter_width * ramming_step_multiplicator;
+
+	constexpr float ramming_step_multiplicator = 1.f;				// extra spacing needed for some materials
+	const float line_width = m_line_width * 1.5f;				  	// desired ramming line thickness
+
+	float y_step = (m_current_shape == SHAPE_NORMAL ? 1.f : -1.f) * // spacing between lines in mm
+				   line_width * ramming_step_multiplicator;
+	
+	
+	int i = 0;											// iterates through ramming_speed
+	m_left_to_right = true;								// current direction of ramming
+	float remaining = xr - xl - 2 * m_perimeter_width;  // keeps track of distance to the next turnaround
+	float e_done = 0;									// measures E move done from each segment
+
+	writer.travel(xl + m_perimeter_width, writer.y() + y_step * 0.2); // move to starting position
+
+	while (i < ramming_speed.size()) {
+		const float x = (ramming_speed[i] * 0.25f) / 				// extrusion length to get desired line_width
+						(m_layer_height * (line_width - m_layer_height * (1. - M_PI / 4.)));
+		const float e = ramming_speed[i] * 0.25f / Filament_Area;	// transform volume per sec to E move;
+		const float dist = std::min(x - e_done, remaining);			// distance to travel for the next 0.25s
+		writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), std::hypot(dist, e * (dist / x)) / (0.25 / 60.));
+		remaining -= dist;
+
+		if ( remaining < WT_EPSILON ) {						// we reached a turning point
+			writer.travel(writer.x(), writer.y() + y_step);
+			m_left_to_right = !m_left_to_right;
+			remaining = xr - xl - 2 * m_perimeter_width;
+		}
+		e_done += dist; 				// subtract what was actually transversed		
+		if (e_done > x - WT_EPSILON) {	// current segment finished
+			++i;
+			e_done = 0;
+		}
+	}
+
+
+	/*switch (current_material)
 	{
 	case ABS:
    		// ramming          start                    end                  y increment     amount feedrate
@@ -803,7 +848,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.5f, 0,  1.75f * e, 4800)
 			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.5f, 0,  1.75f * e, 5000);
 		break;
-	case SCAFF:
+	case PET: //!!! SCAFF (PET only used for testing):
 		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 2.f,  0,  1.75f * e, 4000)
 			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 3.f,  0,  2.34f * e, 4600)
 			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 3.f,  0,  2.63f * e, 5200);
@@ -814,7 +859,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 		writer.ram(xl + m_perimeter_width * 2, xr - m_perimeter_width,     y_step * 0.2f, 0,  1.60f * e, 4000)
 			  .ram(xr - m_perimeter_width,     xl + m_perimeter_width,     y_step * 1.2f, e0, 1.65f * e, 4600)
 			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, e0, 1.74f * e, 5200);
-	}
+	}*/
 
 	// Pull the filament end into a cooling tube.
 	writer.retract(15, 5000).retract(50, 5400).retract(15, 3000).retract(12, 2000);
@@ -827,9 +872,45 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	if (std::abs(writer.x() - xl) < std::abs(writer.x() - xr))
 		std::swap(xl, xr);
 	// Horizontal cooling moves will be performed at the following Y coordinate:
-	writer.travel(xr, writer.y() + y_step * 0.8f, 7200)
+	/*writer.travel(xr, writer.y() + y_step * 0.8f, 7200)
+		  .suppress_preview();*/
+
+	/*constexpr float min_cool_speed = 1600;
+	constexpr float max_cool_speed = 2400;
+
+	const int num_of_intervals = 4;
+
+	writer.travel(writer.x(), writer.y() + y_step)
+		  .retract(-3,min_cool_speed)
 		  .suppress_preview();
-	switch (current_material)
+
+	int filament_direction = -1;			// retract first
+	float cool_speed = min_cool_speed;
+	// Numbers 12 (24) below fix velocity in E to 12 times less than in X (total move in X assumed to be >> move in E)
+	
+	for (int counter=0 ; counter < num_of_intervals ; ++counter) {
+		float needed_e_move = cool_speed * (cooling_time / num_of_intervals) / 12.f; // distance yet to move in E axis
+		do {			
+			remaining = ( left_to_right ? xr-m_perimeter_width-writer.x() : -xl-m_perimeter_width+writer.x()); // distance to the turning point
+			float xmove = std::min( std::fabs(needed_e_move) * 12.f, remaining * 2.f);						  // distance to travel
+			printf("posun z %f na %f",writer.x(),writer.x()+xmove / 2.f * (left_to_right ? 1 : -1));
+				writer.cool(writer.x() + xmove / 2.f * (left_to_right ? 1 : -1), writer.x(), filament_direction * xmove / 24.f, filament_direction * xmove / 24.f, cool_speed);
+			printf(", E %f, rychlost %f\n\n",filament_direction * xmove /12.f,cool_speed);
+			needed_e_move -= xmove/12.f;
+			if (needed_e_move > WT_EPSILON)
+				filament_direction *= -1;
+			else
+				left_to_right = !left_to_right;
+
+		} while (needed_e_move > WT_EPSILON);
+		if (filament_direction==-1)
+			cool_speed += (max_cool_speed - min_cool_speed) / num_of_intervals;
+	}
+
+	writer.retract(3, max_cool_speed);*/
+
+	
+	/*switch (current_material)
 	{
 	case PVA:
 		writer.cool(xl, xr, 3, -5, 1600)
@@ -851,7 +932,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 			  .cool(xl, xr, 5, -5, 2000)
 			  .cool(xl, xr, 5, -5, 2400)
 			  .cool(xl, xr, 5, -3, 2400);
-	}
+	}*/
 
 	writer.resume_preview()
 		  .flush_planner_queue();
@@ -881,13 +962,13 @@ void WipeTowerPrusaMM::toolchange_Load(
 	PrusaMultiMaterial::Writer &writer,
 	const box_coordinates  &cleaning_box)
 {
-	float xl = cleaning_box.ld.x + m_perimeter_width;
-	float xr = cleaning_box.rd.x - m_perimeter_width;
+	float xl = cleaning_box.ld.x + m_perimeter_width * 0.75f;
+	float xr = cleaning_box.rd.x - m_perimeter_width * 0.75f;
 	//FIXME flipping left / right side, so that the following toolchange_Wipe will start
 	// where toolchange_Load ends. 
-	std::swap(xl, xr);
+	//std::swap(xl, xr);
 
-	writer.append("; CP TOOLCHANGE LOAD\n")
+	/*writer.append("; CP TOOLCHANGE LOAD\n")
 	// Load the filament while moving left / right,
 	// so the excess material will not create a blob at a single position.
 		  .suppress_preview()
@@ -899,9 +980,9 @@ void WipeTowerPrusaMM::toolchange_Load(
 		  .load_move_x(xr, 20, 1600)
 		  .load_move_x(xl, 10, 1000)
 		  .resume_preview();
-
+*/
 	// Extrude first five lines (just three lines if colorInit is set).
-	writer.extrude(xr, writer.y(), 1600);
+	/*writer.extrude(xr, writer.y(), 1600);
 	bool   colorInit = false;
 	size_t pass = colorInit ? 1 : 2;
 	float dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_line_width;
@@ -910,11 +991,30 @@ void WipeTowerPrusaMM::toolchange_Load(
 		writer.extrude(xl, writer.y(), 		2200);
 		writer.travel (xl, writer.y() + dy, 7200);
 	 	writer.extrude(xr, writer.y(), 		2200);
+	}*/
+
+	float dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_line_width;
+	float x = (loading_volume) / (Filament_Area * m_extrusion_flow); // extrusion length to extrude desired volume
+	while (x > WT_EPSILON) {		
+		float remaining = (m_left_to_right ? xr - writer.x() : writer.x() - xl );
+		float dist = std::min(x, remaining);
+		writer.extrude(writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, writer.y(), 2200);
+		x -= dist;
+		
+		if (x > WT_EPSILON) {	// don't switch it for the last (unfinished) line
+			m_left_to_right = !m_left_to_right;
+			writer.travel(writer.x(), writer.y() + dy, 7200);
+		}
+		else	// advance just a fraction for debugging (to see where the load ends) (FIXME - HAS to be deleted, can pass the edge)
+			writer.travel(writer.x()+(m_left_to_right ? 0.1f : -0.1f),writer.y());
 	}
 
 	// Reset the extruder current to the normal value.
 	writer.set_extruder_trimpot(550);
 }
+
+
+
 
 // Wipe the newly loaded filament until the end of the assigned wipe area.
 void WipeTowerPrusaMM::toolchange_Wipe(
@@ -926,8 +1026,8 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	writer.set_extrusion_flow(m_extrusion_flow * (m_is_first_layer ? 1.18f : 1.f))
 		  .append("; CP TOOLCHANGE WIPE\n");
 	float wipe_coeff = m_is_first_layer ? 0.5f : 1.f;
-	float xl = cleaning_box.ld.x + 2.f * m_perimeter_width;
-	float xr = cleaning_box.rd.x - 2.f * m_perimeter_width;
+	const float& xl = cleaning_box.ld.x; // + 2.f * m_perimeter_width;
+	const float& xr = cleaning_box.rd.x; // - 2.f * m_perimeter_width;
 	// Wipe speed will increase up to 4800.
 	float wipe_speed 	 = 4200.f;
 	float wipe_speed_inc = 50.f;
@@ -935,27 +1035,22 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	// Y increment per wipe line.
 	float dy = ((m_current_shape == SHAPE_NORMAL) ? 1.f : -1.f) * m_line_width;
 
-	for (bool p = true; 
-		// Next wipe line fits the cleaning box (and not forgetting about border)
-		((m_current_shape == SHAPE_NORMAL) ?
-			(writer.y() <= cleaning_box.lu.y - 1.5f * m_perimeter_width) :
-			(writer.y() >= cleaning_box.ld.y + 1.5f * m_perimeter_width));
-		p = ! p)
+	for ( int i = 0 ; true ; ++i )
 	{
 		wipe_speed = std::min(wipe_speed_max, wipe_speed + wipe_speed_inc);
-		if (skip_initial_y_move)
-			skip_initial_y_move = false;
+		if (m_left_to_right)
+			writer.extrude(xr - (i % 4 == 0 ? 0 : m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
 		else
-			writer.extrude(xl - (p ? m_perimeter_width / 2 : m_perimeter_width), writer.y() + dy, wipe_speed * wipe_coeff);
-		writer.extrude(xr + (p ? m_perimeter_width : m_perimeter_width * 2), writer.y(), wipe_speed * wipe_coeff);
-		// Next wipe line fits the cleaning box.
-		if ((m_current_shape == SHAPE_NORMAL) ?
-			(writer.y() > cleaning_box.lu.y - m_perimeter_width) :
-			(writer.y() < cleaning_box.ld.y + m_perimeter_width))
+			writer.extrude(xl + (i % 4 == 1 ? 0 : m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
+		
+		if ((m_current_shape == SHAPE_NORMAL) ?		// in case next line would not fit
+			(writer.y() > cleaning_box.lu.y - m_perimeter_width * 1.5f) :
+			(writer.y() < cleaning_box.ld.y + m_perimeter_width * 1.5f))
 			break;
-		wipe_speed = std::min(wipe_speed_max, wipe_speed + wipe_speed_inc);
-		writer.extrude(xr + m_perimeter_width, writer.y() + dy, wipe_speed * wipe_coeff);
-		writer.extrude(xl - m_perimeter_width, writer.y());
+
+		// stepping to the next line:
+		writer.extrude(writer.x() + (i % 4 == 0 ? -1.f : (i % 4 == 1 ? 1.f : 0.f)) * m_perimeter_width, writer.y() + dy);
+		m_left_to_right = !m_left_to_right;
 	}
 	// Reset the extrusion flow.
 	writer.set_extrusion_flow(m_extrusion_flow);
@@ -1081,10 +1176,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 				const size_t zig_zags_num = (fill_box.rd.x - fill_box.ld.x - m_perimeter_width * 12.f) / max_bridge_distance;
 				const float step = (fill_box.rd.x - fill_box.ld.x - m_perimeter_width * 12.f) / (float)zig_zags_num;
 
-				float offsety = std::max(0.f,  dy - m_last_infill_tan * (step - m_perimeter_width));
+				float offsetx = std::max(0.f, dy / m_last_infill_tan > step / 2.f ? step - dy / m_last_infill_tan : 0.f);
+				float offsety = ( offsetx != 0 ? 0 : std::max(0.f,  dy - m_last_infill_tan * (step - m_perimeter_width)) );
 				if (offsety < m_last_infill_tan * m_perimeter_width + WT_EPSILON || offsety > dy / 2.f)
 					offsety = 0.f;
-				float offsetx = ( offsety != 0 ? 0 : std::max(0.f, dy / m_last_infill_tan > step / 2.f ? step - dy / m_last_infill_tan : 0.f ) );
+				
 				
 				for (size_t i = 0; i < zig_zags_num; ++i)
 				{
@@ -1140,23 +1236,19 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool,bool brim)
 {
 	assert(m_plan.back().z <= z_par);	// refuse to add a layer below the last one
-	
-	// volumes in mm^3 required for ramming
-	// hardcoded so far, in future should be calculated by integrating the speed/time curve
-	const std::vector<float> ram_volumes = {22,22,22,22};
-	
+		
 	// volumes in mm^3 required for wipe: {{from 0 to ...},{from 1 to ...},{from 2 to ...},{from 3 to ...}}, usage [from][to]
-	const std::vector<std::vector<float>> wipe_volumes = {{  0, 40, 60, 80},
-														  {100,  0,120,100},
-														  { 80,107,  0,110},
-														  { 60, 40, 60,  0}};
+	const std::vector<std::vector<float>> wipe_volumes = {{  0, 40, 60,100},
+														  {100,  0,130,100},
+														  { 80, 90,  0,110},
+														  { 50, 40, 60,  0}};
 
-	float depth = (wipe_volumes[old_tool][new_tool]) / (m_extrusion_flow * Filament_Area); // length of extrusion
+	float depth = (wipe_volumes[old_tool][new_tool]) / (extrusion_flow(layer_height_par) * Filament_Area); // length of extrusion
 	depth += 6 * 59; // reserved for ramming
 	depth += 2 * 59; // reserved for loading
 	depth -= 2 * 59; // we will also print borders
 	depth = floor(depth / m_wipe_tower_width + 1);	// number of lines to extrude
-	depth *= m_perimeter_width; // conversion to distance
+	depth *= m_line_width; // conversion to distance
 
 	if (m_plan.empty() || m_plan.back().z + WT_EPSILON < z_par) // if we moved to a new layer, we'll add it to m_plan along with the first toolchange
 		m_plan.push_back(WipeTowerInfo(z_par, layer_height_par));
