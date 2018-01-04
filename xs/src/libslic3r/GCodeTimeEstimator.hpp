@@ -305,8 +305,8 @@ namespace Slic3r {
     void _forward_pass();
     void _reverse_pass();
 
-    void _planner_forward_pass_kernel(Block* prev, Block* curr);
-    void _planner_reverse_pass_kernel(Block* curr, Block* next);
+    void _planner_forward_pass_kernel(Block& prev, Block& curr);
+    void _planner_reverse_pass_kernel(Block& curr, Block& next);
 
     void _recalculate_trapezoids();
   };

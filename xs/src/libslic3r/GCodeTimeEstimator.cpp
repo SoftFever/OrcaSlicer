@@ -897,76 +897,64 @@ namespace Slic3r {
 
   void GCodeTimeEstimator::_forward_pass()
   {
-    Block* block[2] = { nullptr, nullptr };
-
-    for (Block& b : _blocks)
-    {
-      block[0] = block[1];
-      block[1] = &b;
-      _planner_forward_pass_kernel(block[0], block[1]);
-    }
-
-    _planner_forward_pass_kernel(block[1], nullptr);
+      if (_blocks.size() > 1)
+      {
+          for (unsigned int i = 0; i < (unsigned int)_blocks.size() - 1; ++i)
+          {
+              _planner_forward_pass_kernel(_blocks[i], _blocks[i + 1]);
+          }
+      }
   }
 
   void GCodeTimeEstimator::_reverse_pass()
   {
-    Block* block[2] = { nullptr, nullptr };
-
-    for (int i = (int)_blocks.size() - 1; i >= 0; --i)
-    {
-      block[1] = block[0];
-      block[0] = &_blocks[i];
-      _planner_reverse_pass_kernel(block[0], block[1]);
-    }
-  }
-
-  void GCodeTimeEstimator::_planner_forward_pass_kernel(Block* prev, Block* curr)
-  {
-    if (prev == nullptr || curr == nullptr)
-//FIXME something is fishy here. Review and compare with the firmware.
-//    if (prev == nullptr)
-      return;
-
-    // If the previous block is an acceleration block, but it is not long enough to complete the
-    // full speed change within the block, we need to adjust the entry speed accordingly. Entry
-    // speeds have already been reset, maximized, and reverse planned by reverse planner.
-    // If nominal length is true, max junction speed is guaranteed to be reached. No need to recheck.
-    if (!prev->flags.nominal_length)
-    {
-      if (prev->feedrate.entry < curr->feedrate.entry)
+      if (_blocks.size() > 1)
       {
-        float entry_speed = std::min(curr->feedrate.entry, Block::max_allowable_speed(-prev->acceleration, prev->feedrate.entry, prev->move_length()));
-
-        // Check for junction speed change
-        if (curr->feedrate.entry != entry_speed)
-        {
-          curr->feedrate.entry = entry_speed;
-          curr->flags.recalculate = true;
-        }
+          for (int i = (int)_blocks.size() - 1; i >= 1;  --i)
+          {
+              _planner_reverse_pass_kernel(_blocks[i - 1], _blocks[i]);
+          }
       }
-    }
   }
 
-  void GCodeTimeEstimator::_planner_reverse_pass_kernel(Block* curr, Block* next)
+  void GCodeTimeEstimator::_planner_forward_pass_kernel(Block& prev, Block& curr)
   {
-    if ((curr == nullptr) || (next == nullptr))
-      return;
+      // If the previous block is an acceleration block, but it is not long enough to complete the
+      // full speed change within the block, we need to adjust the entry speed accordingly. Entry
+      // speeds have already been reset, maximized, and reverse planned by reverse planner.
+      // If nominal length is true, max junction speed is guaranteed to be reached. No need to recheck.
+      if (!prev.flags.nominal_length)
+      {
+          if (prev.feedrate.entry < curr.feedrate.entry)
+          {
+              float entry_speed = std::min(curr.feedrate.entry, Block::max_allowable_speed(-prev.acceleration, prev.feedrate.entry, prev.move_length()));
 
-    // If entry speed is already at the maximum entry speed, no need to recheck. Block is cruising.
-    // If not, block in state of acceleration or deceleration. Reset entry speed to maximum and
-    // check for maximum allowable speed reductions to ensure maximum possible planned speed.
-    if (curr->feedrate.entry != curr->max_entry_speed)
-    {
-      // If nominal length true, max junction speed is guaranteed to be reached. Only compute
-      // for max allowable speed if block is decelerating and nominal length is false.
-      if (!curr->flags.nominal_length && (curr->max_entry_speed > next->feedrate.entry))
-        curr->feedrate.entry = std::min(curr->max_entry_speed, Block::max_allowable_speed(-curr->acceleration, next->feedrate.entry, curr->move_length()));
-      else
-        curr->feedrate.entry = curr->max_entry_speed;
+              // Check for junction speed change
+              if (curr.feedrate.entry != entry_speed)
+              {
+                  curr.feedrate.entry = entry_speed;
+                  curr.flags.recalculate = true;
+              }
+          }
+      }
+  }
 
-      curr->flags.recalculate = true;
-    }
+  void GCodeTimeEstimator::_planner_reverse_pass_kernel(Block& curr, Block& next)
+  {
+      // If entry speed is already at the maximum entry speed, no need to recheck. Block is cruising.
+      // If not, block in state of acceleration or deceleration. Reset entry speed to maximum and
+      // check for maximum allowable speed reductions to ensure maximum possible planned speed.
+      if (curr.feedrate.entry != curr.max_entry_speed)
+      {
+          // If nominal length true, max junction speed is guaranteed to be reached. Only compute
+          // for max allowable speed if block is decelerating and nominal length is false.
+          if (!curr.flags.nominal_length && (curr.max_entry_speed > next.feedrate.entry))
+              curr.feedrate.entry = std::min(curr.max_entry_speed, Block::max_allowable_speed(-curr.acceleration, next.feedrate.entry, curr.move_length()));
+          else
+              curr.feedrate.entry = curr.max_entry_speed;
+
+          curr.flags.recalculate = true;
+      }
   }
 
   void GCodeTimeEstimator::_recalculate_trapezoids()
