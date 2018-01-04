@@ -184,4 +184,6 @@ PresetCollection::arrayref()
         %code%{ RETVAL = PresetHints::cooling_description(*preset); %};
     static std::string maximum_volumetric_flow_description(PresetBundle *preset) 
         %code%{ RETVAL = PresetHints::maximum_volumetric_flow_description(*preset); %};
+    static std::string recommended_thin_wall_thickness(PresetBundle *preset)
+        %code%{ RETVAL = PresetHints::recommended_thin_wall_thickness(*preset); %};
 };
