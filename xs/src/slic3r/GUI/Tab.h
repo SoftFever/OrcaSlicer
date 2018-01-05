@@ -36,14 +36,14 @@ namespace GUI {
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
-class CPage : public wxScrolledWindow
+class Page : public wxScrolledWindow
 {
 	wxWindow*		m_parent;
 	wxString		m_title;
 	size_t			m_iconID;
 	wxBoxSizer*		m_vsizer;
 public:
-	CPage(wxWindow* parent, const wxString title, const int iconID) :
+	Page(wxWindow* parent, const wxString title, const int iconID) :
 			m_parent(parent),
 			m_title(title),
 			m_iconID(iconID)
@@ -52,7 +52,7 @@ public:
 		m_vsizer = new wxBoxSizer(wxVERTICAL);
 		SetSizer(m_vsizer);
 	}
-	~CPage(){}
+	~Page(){}
 
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;  // $self->{optgroups} = [];
@@ -69,8 +69,8 @@ public:
 
 // Slic3r::GUI::Tab;
 
-using CPageShp = std::shared_ptr<CPage>;
-class CTab: public wxPanel
+using PageShp = std::shared_ptr<Page>;
+class Tab: public wxPanel
 {
 	wxNotebook*			m_parent;
 protected:
@@ -90,26 +90,35 @@ protected:
 
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index in $self->{icons}.
-	std::vector<CPageShp>			m_pages;	// $self->{pages} = [];
+	std::vector<PageShp>			m_pages;	// $self->{pages} = [];
 	bool				m_disable_tree_sel_changed_event;
 
 public:
 	PresetBundle*		m_preset_bundle;
-	AppConfig*			m_app_config;
+	bool				m_no_controller;
+	PresetCollection*	m_presets;
 	DynamicPrintConfig	m_config;		//! tmp_val
 	const ConfigDef*	m_config_def;	// It will be used in get_option_(const std::string title)
+	t_change			m_on_value_change{ nullptr };
 
 public:
-	CTab() {}
-	CTab(wxNotebook* parent, const char *title) : m_parent(parent), m_title(title) {
+	Tab() {}
+	Tab(wxNotebook* parent, const char *title) : m_parent(parent), m_title(title) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 	}
-	~CTab(){}
+	~Tab(){}
 
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
 	
-	void		create_preset_tab(PresetBundle *preset_bundle, AppConfig *app_config);
+	void		create_preset_tab(PresetBundle *preset_bundle);
+	void		on_value_change(std::string opt_key, boost::any value){
+		if (m_on_value_change != nullptr)
+			m_on_value_change(opt_key, value);
+		update();
+	};
+	void		on_presets_changed(){};
+	void		load_current_preset();
 	void		rebuild_page_tree();
 	void		select_preset(wxString preset_name){};
 
@@ -124,37 +133,39 @@ public:
 	void		delete_preset(wxCommandEvent &event);
 	void		toggle_show_hide_incompatible(wxCommandEvent &event);
 
-	CPageShp	add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
+	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
 	virtual void	build() = 0;
 	virtual void	update() = 0;
+	void			update_dirty();
+	void			load_config(DynamicPrintConfig config);
 
-	Option get_option(const std::string title, int idx = -1){
+	Option		get_option(const std::string title, int idx = -1){
 		return Option(*m_config_def->get(title), idx == -1 ? title : title + std::to_string(idx));
 	}	
 };
 
 //Slic3r::GUI::Tab::Print;
-class CTabPrint : public CTab
+class TabPrint : public Tab
 {
 public:
-	CTabPrint() {}
-	CTabPrint(wxNotebook* parent, const char *title) : CTab(parent, title) {}
-	~CTabPrint(){}
+	TabPrint() {}
+	TabPrint(wxNotebook* parent, const char *title) : Tab(parent, title) {}
+	~TabPrint(){}
 
 	void		build() override;
-	void		update() override{};
+	void		update() override;
 };
 
 //Slic3r::GUI::Tab::Filament;
-class CTabFilament : public CTab
+class TabFilament : public Tab
 {
 	wxStaticText*	m_cooling_description_line;
 	wxStaticText*	m_volumetric_speed_description_line;
 public:
-	CTabFilament() {}
-	CTabFilament(wxNotebook* parent, const char *title) : CTab(parent, title) {}
-	~CTabFilament(){}
+	TabFilament() {}
+	TabFilament(wxNotebook* parent, const char *title) : Tab(parent, title) {}
+	~TabFilament(){}
 
 	wxSizer*		description_line_widget(wxWindow* parent, wxStaticText* StaticText);
 
@@ -163,7 +174,7 @@ public:
 };
 
 //Slic3r::GUI::Tab::Printer;
-class CTabPrinter : public CTab
+class TabPrinter : public Tab
 {
 public:
 	wxButton*	serial_test_btn;
@@ -172,9 +183,9 @@ public:
 	size_t		m_extruders_count;
 
 public:
-	CTabPrinter() {}
-	CTabPrinter(wxNotebook* parent, const char *title) : CTab(parent, title) {}
-	~CTabPrinter(){}
+	TabPrinter() {}
+	TabPrinter(wxNotebook* parent, const char *title) : Tab(parent, title) {}
+	~TabPrinter(){}
 
 	void		build() override;
 	void		update() override{};

@@ -21,12 +21,12 @@ namespace Slic3r {
 namespace GUI {
 
 // sub new
-void CTab::create_preset_tab(PresetBundle *preset_bundle, AppConfig *app_config)
+void Tab::create_preset_tab(PresetBundle *preset_bundle)
 {
 	m_preset_bundle = preset_bundle;
-	m_app_config = app_config;
+
 	// Vertical sizer to hold the choice menu and the rest of the page.
-	CTab *panel = this;
+	Tab *panel = this;
 	auto  *sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->SetSizeHints(panel);
 	panel->SetSizer(sizer);
@@ -93,13 +93,13 @@ void CTab::create_preset_tab(PresetBundle *preset_bundle, AppConfig *app_config)
 	m_treectrl->SetIndent(0);
 	m_disable_tree_sel_changed_event = 0;
 
-	m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, &CTab::OnTreeSelChange, this);
-	m_treectrl->Bind(wxEVT_KEY_DOWN, &CTab::OnKeyDown, this);
-	m_treectrl->Bind(wxEVT_COMBOBOX, &CTab::OnComboBox, this); 
+	m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, &Tab::OnTreeSelChange, this);
+	m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
+	m_treectrl->Bind(wxEVT_COMBOBOX, &Tab::OnComboBox, this); 
 
-	m_btn_save_preset->Bind(wxEVT_BUTTON, &CTab::save_preset, this);
-	m_btn_delete_preset->Bind(wxEVT_BUTTON, &CTab::delete_preset, this);
-	m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, &CTab::toggle_show_hide_incompatible, this);
+	m_btn_save_preset->Bind(wxEVT_BUTTON, &Tab::save_preset, this);
+	m_btn_delete_preset->Bind(wxEVT_BUTTON, &Tab::delete_preset, this);
+	m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, &Tab::toggle_show_hide_incompatible, this);
 
 	// Initialize the DynamicPrintConfig by default keys/values.
 	// Possible %params keys: no_controller
@@ -108,7 +108,7 @@ void CTab::create_preset_tab(PresetBundle *preset_bundle, AppConfig *app_config)
 //	_update();
 }
 
-CPageShp CTab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
+PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
 {
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
@@ -124,7 +124,7 @@ CPageShp CTab::add_options_page(wxString title, std::string icon, bool is_extrud
 		}
 	}
 	// Initialize the page.
-	CPageShp page(new CPage(this, title, icon_idx));
+	PageShp page(new Page(this, title, icon_idx));
 	page->SetScrollbars(1, 1, 1, 1);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
@@ -135,7 +135,64 @@ CPageShp CTab::add_options_page(wxString title, std::string icon, bool is_extrud
 	return page;
 }
 
-void CTab::load_key_value(std::string opt_key, std::vector<std::string> value)
+// Update the combo box label of the selected preset based on its "dirty" state,
+// comparing the selected preset config with $self->{config}.
+void Tab::update_dirty(){
+	m_presets->update_dirty_ui(m_presets_choice);
+//	_on_presets_changed;
+}
+
+// Load a provied DynamicConfig into the tab, modifying the active preset.
+// This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
+void Tab::load_config(DynamicPrintConfig config)
+{
+	bool modified = 0;
+	for(auto opt_key : m_config.diff(config)) {
+		ConfigOption* opt;
+		switch ( config.def()->get(opt_key)->type ){
+//		case coFloatOrPercent:
+		case coPercent:
+//		case coPercents:			
+		case coFloat:
+			opt = new ConfigOptionFloat(config.opt_float(opt_key));
+			break;
+//		case coFloats:
+		case coString:
+			opt = new ConfigOptionString(config.opt_string(opt_key));
+			break;
+		case coStrings:
+			break;
+		case coBool:
+			opt = new ConfigOptionBool(config.opt_bool(opt_key));
+			break;
+		case coBools:
+//			opt = new ConfigOptionBools(0, config.opt_bool(opt_key)); //! 0?
+			break;
+		case coInt:
+			opt = new ConfigOptionInt(config.opt_int(opt_key));
+			break;
+		case coInts:
+			break;
+		case coEnum:
+			break;
+		case coPoints:
+			break;
+		case coNone:   break;
+		default:
+			break;
+		}
+		m_config.set_key_value(opt_key, opt);
+		modified = 1;
+	}
+	if (modified) {
+//		update_dirty();
+		//# Initialize UI components with the config values.
+//		_reload_config();
+		update();
+	}
+}
+
+void Tab::load_key_value(std::string opt_key, std::vector<std::string> value)
 {
 	// # To be called by custom widgets, load a value into a config,
 	// # update the preset selection boxes (the dirty flags)
@@ -151,9 +208,10 @@ void CTab::load_key_value(std::string opt_key, std::vector<std::string> value)
 	// $self->_update;
 }
 
-void CTabPrint::build()
+void TabPrint::build()
 {
-	m_config = m_preset_bundle->prints.get_edited_preset().config;
+	m_presets = &m_preset_bundle->prints;
+	m_config = m_presets->get_edited_preset().config;
 	m_config_def = m_config.def();
 
 	auto page = add_options_page("Layers and perimeters", "layers.png");
@@ -352,7 +410,211 @@ void CTabPrint::build()
 		optgroup->append_line(line);
 }
 
-void CTabFilament::build()
+void TabPrint::update()
+{
+	Freeze();
+
+	if ( m_config.opt_bool("spiral_vase") && 
+		!(m_config.opt_int("perimeters") == 1 && m_config.opt_int("top_solid_layers") == 0 && m_config.opt_float("fill_density") == 0)) {
+		std::string msg_text = "The Spiral Vase mode requires:\n"
+			"- one perimeter\n"
+ 			"- no top solid layers\n"
+ 			"- 0% fill density\n"
+ 			"- no support material\n"
+ 			"- no ensure_vertical_shell_thickness\n"
+  			"\nShall I adjust those settings in order to enable Spiral Vase?";
+		auto dialog = new wxMessageDialog(parent(), msg_text, wxT("Spiral Vase"), wxICON_WARNING | wxYES | wxNO);
+		DynamicPrintConfig new_conf = m_config;//new DynamicPrintConfig;
+		if (dialog->ShowModal() == wxID_YES) {
+			new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
+			new_conf.set_key_value("top_solid_layers", new ConfigOptionInt(0));
+			new_conf.set_key_value("fill_density", new ConfigOptionPercent(0));
+			new_conf.set_key_value("support_material", new ConfigOptionBool(false));
+			new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
+		}
+		else {
+			new_conf.set_key_value("spiral_vase", new ConfigOptionBool(false));
+		}
+ 		load_config(new_conf);
+	}
+
+// 	if ($config->wipe_tower &&
+// 		($config->first_layer_height != 0.2 || $config->layer_height < 0.15 || $config->layer_height > 0.35)) {
+// 		my $dialog = Wx::MessageDialog->new($self,
+// 			"The Wipe Tower currently supports only:\n"
+// 			. "- first layer height 0.2mm\n"
+// 			. "- layer height from 0.15mm to 0.35mm\n"
+// 			. "\nShall I adjust those settings in order to enable the Wipe Tower?",
+// 			'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
+// 		my $new_conf = Slic3r::Config->new;
+// 		if ($dialog->ShowModal() == wxID_YES) {
+// 			$new_conf->set("first_layer_height", 0.2);
+// 			$new_conf->set("layer_height", 0.15) if  $config->layer_height < 0.15;
+// 			$new_conf->set("layer_height", 0.35) if  $config->layer_height > 0.35;
+// 		}
+// 		else {
+// 			$new_conf->set("wipe_tower", 0);
+// 		}
+// 		$self->load_config($new_conf);
+// 	}
+// 
+// 	if ($config->wipe_tower && $config->support_material && $config->support_material_contact_distance > 0. &&
+// 		($config->support_material_extruder != 0 || $config->support_material_interface_extruder != 0)) {
+// 		my $dialog = Wx::MessageDialog->new($self,
+// 			"The Wipe Tower currently supports the non-soluble supports only\n"
+// 			. "if they are printed with the current extruder without triggering a tool change.\n"
+// 			. "(both support_material_extruder and support_material_interface_extruder need to be set to 0).\n"
+// 			. "\nShall I adjust those settings in order to enable the Wipe Tower?",
+// 			'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
+// 		my $new_conf = Slic3r::Config->new;
+// 		if ($dialog->ShowModal() == wxID_YES) {
+// 			$new_conf->set("support_material_extruder", 0);
+// 			$new_conf->set("support_material_interface_extruder", 0);
+// 		}
+// 		else {
+// 			$new_conf->set("wipe_tower", 0);
+// 		}
+// 		$self->load_config($new_conf);
+// 	}
+// 
+// 	if ($config->wipe_tower && $config->support_material && $config->support_material_contact_distance == 0 &&
+// 		!$config->support_material_synchronize_layers) {
+// 		my $dialog = Wx::MessageDialog->new($self,
+// 			"For the Wipe Tower to work with the soluble supports, the support layers\n"
+// 			. "need to be synchronized with the object layers.\n"
+// 			. "\nShall I synchronize support layers in order to enable the Wipe Tower?",
+// 			'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
+// 		my $new_conf = Slic3r::Config->new;
+// 		if ($dialog->ShowModal() == wxID_YES) {
+// 			$new_conf->set("support_material_synchronize_layers", 1);
+// 		}
+// 		else {
+// 			$new_conf->set("wipe_tower", 0);
+// 		}
+// 		$self->load_config($new_conf);
+// 	}
+// 
+// 	if ($config->support_material) {
+// 		# Ask only once.
+// 		if (!$self->{support_material_overhangs_queried}) {
+// 			$self->{support_material_overhangs_queried} = 1;
+// 			if ($config->overhangs != 1) {
+// 				my $dialog = Wx::MessageDialog->new($self,
+// 					"Supports work better, if the following feature is enabled:\n"
+// 					. "- Detect bridging perimeters\n"
+// 					. "\nShall I adjust those settings for supports?",
+// 					'Support Generator', wxICON_WARNING | wxYES | wxNO | wxCANCEL);
+// 				my $answer = $dialog->ShowModal();
+// 				my $new_conf = Slic3r::Config->new;
+// 				if ($answer == wxID_YES) {
+// 					# Enable "detect bridging perimeters".
+// 					$new_conf->set("overhangs", 1);
+// 				} elsif($answer == wxID_NO) {
+// 					# Do nothing, leave supports on and "detect bridging perimeters" off.
+// 				} elsif($answer == wxID_CANCEL) {
+// 					# Disable supports.
+// 					$new_conf->set("support_material", 0);
+// 					$self->{support_material_overhangs_queried} = 0;
+// 				}
+// 				$self->load_config($new_conf);
+// 			}
+// 		}
+// 	}
+// 	else {
+// 		$self->{support_material_overhangs_queried} = 0;
+// 	}
+// 
+// 	if ($config->fill_density == 100
+// 		&& !first{ $_ eq $config->fill_pattern } @{$Slic3r::Config::Options->{external_fill_pattern}{values}}) {
+// 		my $dialog = Wx::MessageDialog->new($self,
+// 			"The ".$config->fill_pattern . " infill pattern is not supposed to work at 100% density.\n"
+// 			. "\nShall I switch to rectilinear fill pattern?",
+// 			'Infill', wxICON_WARNING | wxYES | wxNO);
+// 
+// 		my $new_conf = Slic3r::Config->new;
+// 		if ($dialog->ShowModal() == wxID_YES) {
+// 			$new_conf->set("fill_pattern", 'rectilinear');
+// 			$new_conf->set("fill_density", 100);
+// 		}
+// 		else {
+// 			$new_conf->set("fill_density", 40);
+// 		}
+// 		$self->load_config($new_conf);
+// 	}
+// 
+// 	my $have_perimeters = $config->perimeters > 0;
+// 	$self->get_field($_)->toggle($have_perimeters)
+// 		for qw(extra_perimeters ensure_vertical_shell_thickness thin_walls overhangs seam_position external_perimeters_first
+// 			external_perimeter_extrusion_width
+// 			perimeter_speed small_perimeter_speed external_perimeter_speed);
+// 
+// 	my $have_infill = $config->fill_density > 0;
+// 	# infill_extruder uses the same logic as in Print::extruders()
+// 	$self->get_field($_)->toggle($have_infill)
+// 		for qw(fill_pattern infill_every_layers infill_only_where_needed solid_infill_every_layers
+// 			solid_infill_below_area infill_extruder);
+// 
+// 			my $have_solid_infill = ($config->top_solid_layers > 0) || ($config->bottom_solid_layers > 0);
+// 	# solid_infill_extruder uses the same logic as in Print::extruders()
+// 	$self->get_field($_)->toggle($have_solid_infill)
+// 		for qw(external_fill_pattern infill_first solid_infill_extruder solid_infill_extrusion_width
+// 			solid_infill_speed);
+// 
+// 			$self->get_field($_)->toggle($have_infill || $have_solid_infill)
+// 			for qw(fill_angle bridge_angle infill_extrusion_width infill_speed bridge_speed);
+// 
+// 	$self->get_field('gap_fill_speed')->toggle($have_perimeters && $have_infill);
+// 
+// 	my $have_top_solid_infill = $config->top_solid_layers > 0;
+// 	$self->get_field($_)->toggle($have_top_solid_infill)
+// 		for qw(top_infill_extrusion_width top_solid_infill_speed);
+// 
+// 	my $have_default_acceleration = $config->default_acceleration > 0;
+// 	$self->get_field($_)->toggle($have_default_acceleration)
+// 		for qw(perimeter_acceleration infill_acceleration bridge_acceleration first_layer_acceleration);
+// 
+// 	my $have_skirt = $config->skirts > 0 || $config->min_skirt_length > 0;
+// 	$self->get_field($_)->toggle($have_skirt)
+// 		for qw(skirt_distance skirt_height);
+// 
+// 	my $have_brim = $config->brim_width > 0;
+// 	# perimeter_extruder uses the same logic as in Print::extruders()
+// 	$self->get_field('perimeter_extruder')->toggle($have_perimeters || $have_brim);
+// 
+// 	my $have_raft = $config->raft_layers > 0;
+// 	my $have_support_material = $config->support_material || $have_raft;
+// 	my $have_support_interface = $config->support_material_interface_layers > 0;
+// 	my $have_support_soluble = $have_support_material && $config->support_material_contact_distance == 0;
+// 	$self->get_field($_)->toggle($have_support_material)
+// 		for qw(support_material_threshold support_material_pattern support_material_with_sheath
+// 			support_material_spacing support_material_angle
+// 			support_material_interface_layers dont_support_bridges
+// 			support_material_extrusion_width support_material_contact_distance support_material_xy_spacing);
+// 	$self->get_field($_)->toggle($have_support_material && $have_support_interface)
+// 		for qw(support_material_interface_spacing support_material_interface_extruder
+// 			support_material_interface_speed support_material_interface_contact_loops);
+// 			$self->get_field('support_material_synchronize_layers')->toggle($have_support_soluble);
+// 
+// 	$self->get_field('perimeter_extrusion_width')->toggle($have_perimeters || $have_skirt || $have_brim);
+// 	$self->get_field('support_material_extruder')->toggle($have_support_material || $have_skirt);
+// 	$self->get_field('support_material_speed')->toggle($have_support_material || $have_brim || $have_skirt);
+// 
+// 	my $have_sequential_printing = $config->complete_objects;
+// 	$self->get_field($_)->toggle($have_sequential_printing)
+// 		for qw(extruder_clearance_radius extruder_clearance_height);
+// 
+// 	my $have_ooze_prevention = $config->ooze_prevention;
+// 	$self->get_field($_)->toggle($have_ooze_prevention)
+// 		for qw(standby_temperature_delta);
+// 
+// 	my $have_wipe_tower = $config->wipe_tower;
+// 	$self->get_field($_)->toggle($have_wipe_tower)
+// 		for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe);
+
+	Thaw();
+}
+
+void TabFilament::build()
 {
 	m_config = m_preset_bundle->filaments.get_edited_preset().config;
 	m_config_def = m_config.def();
@@ -447,7 +709,7 @@ void CTabFilament::build()
 		optgroup->append_line(line);
 }
 
-wxSizer* CTabFilament::description_line_widget(wxWindow* parent, wxStaticText* StaticText)
+wxSizer* TabFilament::description_line_widget(wxWindow* parent, wxStaticText* StaticText)
 {
 	StaticText = new wxStaticText(parent, wxID_ANY, "gfghjkkl;\n fgdsufhsreotklg\n iesrftorsikgyfkh\nauiwrhfidj", wxDefaultPosition, wxDefaultSize);
 	auto font = (new wxSystemSettings)->GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -460,7 +722,7 @@ wxSizer* CTabFilament::description_line_widget(wxWindow* parent, wxStaticText* S
 	return sizer;
 }
 
-void CTabPrinter::build()
+void TabPrinter::build()
 {
 	m_config = m_preset_bundle->printers.get_edited_preset().config;
 	m_config_def = m_config.def();		// It will be used in get_option_(const std::string title)
@@ -520,7 +782,7 @@ void CTabPrinter::build()
 // 		});
 
 		//if (!$params{ no_controller })
-		if (m_app_config->get("no_controller").empty())
+		if (!m_no_controller/*m_app_config->get("no_controller").empty()*/)
 		{
 		optgroup = page->new_optgroup("USB/Serial connection");
 			line = {"Serial port", ""};
@@ -692,17 +954,17 @@ void CTabPrinter::build()
 	build_extruder_pages();
 
 // 	$self->_update_serial_ports if (!$params{ no_controller });
-	if (m_app_config->get("no_controller").empty()){
+	if (!m_no_controller/*m_app_config->get("no_controller").empty()*/){
 		Field *field = optgroup->get_field("serial_port");
 		Choice *choice = static_cast<Choice *>(field);
 		choice->set_values(scan_serial_ports());
 	}
 }
 
-void CTabPrinter::build_extruder_pages(){
+void TabPrinter::build_extruder_pages(){
 //	auto default_config = m_preset_bundle->full_config();
 
-	std::vector<CPageShp>	extruder_pages;	
+	std::vector<PageShp>	extruder_pages;	
 
 	for (auto extruder_idx = 0; extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
@@ -750,7 +1012,7 @@ void CTabPrinter::build_extruder_pages(){
 	}
 
 	// # rebuild page list
-	CPageShp page_note = m_pages.back();
+	PageShp page_note = m_pages.back();
 	m_pages.pop_back();
 	for (auto page_extruder : extruder_pages)
 		m_pages.push_back(page_extruder);
@@ -759,8 +1021,13 @@ void CTabPrinter::build_extruder_pages(){
 	rebuild_page_tree();
 }
 
+void Tab::load_current_preset()
+{
+	;
+}
+
 //Regerenerate content of the page tree.
-void CTab::rebuild_page_tree()
+void Tab::rebuild_page_tree()
 {
 	Freeze();
 	// get label of the currently selected item
@@ -786,10 +1053,10 @@ void CTab::rebuild_page_tree()
 	Thaw();
 }
 
-void CTab::OnTreeSelChange(wxTreeEvent& event)
+void Tab::OnTreeSelChange(wxTreeEvent& event)
 {
 	if (m_disable_tree_sel_changed_event) return;
-	CPage* page = nullptr;
+	Page* page = nullptr;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	for (auto p : m_pages)
 		if (p->title() == selection)
@@ -806,19 +1073,19 @@ void CTab::OnTreeSelChange(wxTreeEvent& event)
 	Refresh();
 }
 
-void CTab::OnKeyDown(wxKeyEvent& event)
+void Tab::OnKeyDown(wxKeyEvent& event)
 {
 	event.GetKeyCode() == WXK_TAB ?
 		m_treectrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward) :
 		event.Skip();
 };
 
-void CTab::save_preset(wxCommandEvent &event){};
-void CTab::delete_preset(wxCommandEvent &event){};
-void CTab::toggle_show_hide_incompatible(wxCommandEvent &event){};
+void Tab::save_preset(wxCommandEvent &event){};
+void Tab::delete_preset(wxCommandEvent &event){};
+void Tab::toggle_show_hide_incompatible(wxCommandEvent &event){};
 
 //	# Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
-wxSizer* CTab::compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox, wxButton* btn)
+wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox, wxButton* btn)
 {
 	checkbox = new wxCheckBox(parent, wxID_ANY, "All");
 
@@ -890,20 +1157,20 @@ wxSizer* CTab::compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox
 }
 
 // package Slic3r::GUI::Tab::Page;
-ConfigOptionsGroupShp CPage::new_optgroup(std::string title, int noncommon_label_width /*= -1*/)
+ConfigOptionsGroupShp Page::new_optgroup(std::string title, int noncommon_label_width /*= -1*/)
 {
 	//! config_ have to be "right"
 	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config);
 	if (noncommon_label_width >= 0)
 		optgroup->label_width = noncommon_label_width;
 
-//         on_change       => sub {
-//             my ($opt_key, $value) = @_;
-//             wxTheApp->CallAfter(sub {
-//                 $self->GetParent->update_dirty;
-//                 $self->GetParent->_on_value_change($opt_key, $value);
-//             });
-//         },
+	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+		//! This function will be called from OptionGroup.					
+        wxTheApp->CallAfter([this, opt_key, value]() {
+			static_cast<Tab*>(GetParent())->update_dirty();
+			static_cast<Tab*>(GetParent())->on_value_change(opt_key, value);
+        });
+    },
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
 	m_optgroups.push_back(optgroup);

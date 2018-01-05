@@ -23,6 +23,8 @@ namespace Slic3r { namespace GUI {
 
 class Field;
 using t_field = std::unique_ptr<Field>;
+using t_kill_focus = std::function<void(t_config_option_key)>;
+using t_change = std::function<void(t_config_option_key, boost::any)>;
 
 class Field {
 protected:
@@ -35,47 +37,47 @@ protected:
     /// Call the attached on_kill_focus method. 
     void _on_kill_focus(wxFocusEvent& event);
     /// Call the attached on_change method. 
-    void _on_change(wxCommandEvent& event);
+    void on_change_field(wxCommandEvent& event);
 
 public:
     /// parent wx item, opportunity to refactor (probably not necessary - data duplication)
-    wxWindow* parent {nullptr};
+    wxWindow*		m_parent {nullptr};
 
     /// Function object to store callback passed in from owning object.
-//!    t_kill_focus on_kill_focus {nullptr};
+	t_kill_focus	on_kill_focus {nullptr};
 
     /// Function object to store callback passed in from owning object.
-//!    t_change on_change {nullptr};
+	t_change		m_on_change {nullptr};
 
-    bool disable_change_event {false};
+    bool			m_disable_change_event {false};
 
     /// Copy of ConfigOption for deduction purposes
-    const ConfigOptionDef opt {ConfigOptionDef()};
-	const t_config_option_key opt_id;//! {""};
+    const ConfigOptionDef			m_opt {ConfigOptionDef()};
+	const t_config_option_key		m_opt_id;//! {""};
 
     /// Sets a value for this control.
     /// subclasses should overload with a specific version
     /// Postcondition: Method does not fire the on_change event.
-    virtual void set_value(boost::any value) = 0;
+    virtual void		set_value(boost::any value) = 0;
     
     /// Gets a boost::any representing this control.
     /// subclasses should overload with a specific version
-    virtual boost::any get_value() = 0;
+    virtual boost::any	get_value() = 0;
 
-    virtual void enable() = 0;
-    virtual void disable() = 0;
+    virtual void		enable() = 0;
+    virtual void		disable() = 0;
 
     /// Fires the enable or disable function, based on the input.
-    inline void toggle(bool en) { en ? enable() : disable(); }
+    inline void			toggle(bool en) { en ? enable() : disable(); }
 
-    virtual void set_tooltip(const wxString& tip) = 0;
+    virtual void		set_tooltip(const wxString& tip) = 0;
 
-    Field(const ConfigOptionDef& opt, const t_config_option_key& id) : opt(opt), opt_id(id) {};
-    Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : parent(parent), opt(opt), opt_id(id) {};
+    Field(const ConfigOptionDef& opt, const t_config_option_key& id) : m_opt(opt), m_opt_id(id) {};
+    Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : m_parent(parent), m_opt(opt), m_opt_id(id) {};
 
     /// If you don't know what you are getting back, check both methods for nullptr. 
-    virtual wxSizer*  getSizer()  { return nullptr; }
-    virtual wxWindow* getWindow() { return nullptr; }
+    virtual wxSizer*	getSizer()  { return nullptr; }
+    virtual wxWindow*	getWindow() { return nullptr; }
 
 	bool		is_matched(std::string string, std::string pattern);
 
@@ -210,14 +212,14 @@ public:
 	wxWindow*		window{ nullptr };
 	void			BUILD()  override;
 
-	void			set_selection();
+//	void			set_selection();
 	void			set_value(const std::string value) {
 	 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
 	 	}
 	void			set_value(boost::any value) {
 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast<std::string>(value));
 	}
-	void			set_values(const std::vector<std::string> values);
+//	void			set_values(const std::vector<std::string> values);
 	boost::any		get_value() override	{
 		return boost::any(dynamic_cast<wxColourPickerCtrl*>(window)->GetColour());
 	}

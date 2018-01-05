@@ -10,7 +10,7 @@ const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
 }
 const t_field& OptionsGroup::build_field(const t_config_option_key& id) {
-	const ConfigOptionDef& opt = options.at(id);
+	const ConfigOptionDef& opt = m_options_map.at(id);
     return build_field(id, opt);
 }
 
@@ -19,13 +19,13 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     // is the normal type.
     if (opt.gui_type.compare("select") == 0) {
     } else if (opt.gui_type.compare("select_open") == 0) {
-		fields.emplace(id, STDMOVE(Choice::Create<Choice>(_parent, opt, id)));
+		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(m_parent, opt, id)));
     } else if (opt.gui_type.compare("color") == 0) {
-		fields.emplace(id, STDMOVE(ColourPicker::Create<ColourPicker>(_parent, opt, id)));
+		m_fields.emplace(id, STDMOVE(ColourPicker::Create<ColourPicker>(m_parent, opt, id)));
     } else if (opt.gui_type.compare("f_enum_open") == 0 || 
                 opt.gui_type.compare("i_enum_open") == 0 ||
                 opt.gui_type.compare("i_enum_closed") == 0) {
-		fields.emplace(id, STDMOVE(Choice::Create<Choice>(_parent, opt, id)));
+		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(m_parent, opt, id)));
     } else if (opt.gui_type.compare("slider") == 0) {
     } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
     } else { 
@@ -37,21 +37,21 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 			case coPercents:
 			case coString:
 			case coStrings:
-				fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(m_parent, opt, id)));
                 break;
 			case coBool:
 			case coBools:
-				fields.emplace(id, STDMOVE(CheckBox::Create<CheckBox>(_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(CheckBox::Create<CheckBox>(m_parent, opt, id)));
 				break;
 			case coInt:
 			case coInts:
-				fields.emplace(id, STDMOVE(SpinCtrl::Create<SpinCtrl>(_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(SpinCtrl::Create<SpinCtrl>(m_parent, opt, id)));
 				break;
             case coEnum:
-				fields.emplace(id, STDMOVE(Choice::Create<Choice>(_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(m_parent, opt, id)));
 				break;
             case coPoints:
-				fields.emplace(id, STDMOVE(Point::Create<Point>(_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(Point::Create<Point>(m_parent, opt, id)));
 				break;
             case coNone:   break;
             default:
@@ -59,9 +59,14 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
         }
     }
     // Grab a reference to fields for convenience
-    const t_field& field = fields[id];
-//!        field->on_change = [this](std::string id, boost::any val) {   };
-    field->parent = parent();
+    const t_field& field = m_fields[id];
+	field->m_on_change = [this](std::string opt_id, boost::any value){
+			//! This function will be called from Field.					
+			//! Call OptionGroup._on_change(...)
+			if (!this->m_disabled) 
+				this->on_change_OG(opt_id, value);
+	};
+    field->m_parent = parent();
     // assign function objects for callbacks, etc.
     return field;
 }
@@ -74,7 +79,7 @@ void OptionsGroup::append_line(const Line& line) {
             return;
         }
         if (line.widget != nullptr) {
-            sizer->Add(line.widget(_parent), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+            sizer->Add(line.widget(m_parent), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
         }
     }
@@ -95,7 +100,7 @@ void OptionsGroup::append_line(const Line& line) {
 		return;
 	}
 
-    auto grid_sizer = _grid_sizer;
+    auto grid_sizer = m_grid_sizer;
 
     // Build a label if we have it
     if (label_width != 0) {
@@ -146,8 +151,6 @@ void OptionsGroup::append_line(const Line& line) {
 
 		// add field
 		const Option& opt_ref = opt;
-//!		auto field = build_field(opt_ref)->getWindow();		
-//!		sizer->Add(field, 0, wxALIGN_CENTER_VERTICAL, 0);
 		auto& field = build_field(opt_ref);
 		is_sizer_field(field) ? 
 			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
@@ -184,14 +187,45 @@ Line OptionsGroup::create_single_option_line(const Option& option) const {
     return retval;
 }
 
-//!    void OptionsGroup::_on_change(t_config_option_key id, config_value value) {
-//!        if (on_change != nullptr)
-//!            on_change(id, value);
-//!   }
+void OptionsGroup::on_change_OG(t_config_option_key id, /*config_value*/boost::any value) {
+	if (m_on_change != nullptr)
+		m_on_change(id, value);
+}
 
 void OptionsGroup::_on_kill_focus (t_config_option_key id) { 
     // do nothing.
 }
 
+void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any value)
+{
+// 	if (m_options_map.at(opt_id)/*exists $self->_opt_map->{$opt_id}*/) {
+// 		my($opt_key, $opt_index) = @{ $self->_opt_map->{$opt_id} };
+// 		auto option = m_options->{$opt_id};
 
-}}
+		// get value
+		auto field_value = get_value(opt_id);
+// 		if ($option->gui_flags = ~/ \bserialized\b / ) {
+// 			die "Can't set serialized option indexed value" if $opt_index != -1;
+// 			# Split a string to multiple strings by a semi - colon.This is the old way of storing multi - string values.
+// 			# Currently used for the post_process config value only.
+// 			my @values = split / ; / , $field_value;
+// 			$self->config->set($opt_key, \@values);
+// 		}
+// 		else {
+// 			if ($opt_index == -1) {
+//				$self->config->set($opt_key, $field_value);
+//!		m_config->set_key_value(opt_id, new ConfigOption(value));
+// 			}
+// 			else {
+// 				my $value = $self->config->get($opt_key);
+// 				$value->[$opt_index] = $field_value;
+// 				$self->config->set($opt_key, $value);
+// 			}
+// 		}
+// 	}
+
+	OptionsGroup::on_change_OG(opt_id, value);
+}
+
+} // GUI
+} // Slic3r
