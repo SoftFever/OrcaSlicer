@@ -15,6 +15,7 @@ static const float DEFAULT_AXIS_MAX_ACCELERATION[] = { 9000.0f, 9000.0f, 500.0f,
 static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.2f, 2.5f }; // from Prusa Firmware (Configuration.h)
 static const float DEFAULT_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
 static const float DEFAULT_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
+static const float DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 percent
 
 static const float PREVIOUS_FEEDRATE_THRESHOLD = 0.0001f;
 
@@ -291,6 +292,16 @@ namespace Slic3r {
         return _state.minimum_travel_feedrate;
     }
 
+    void GCodeTimeEstimator::set_extrude_factor_override_percentage(float percentage)
+    {
+        _state.extrude_factor_override_percentage = percentage;
+    }
+
+    float GCodeTimeEstimator::get_extrude_factor_override_percentage() const
+    {
+        return _state.extrude_factor_override_percentage;
+    }
+
     void GCodeTimeEstimator::set_dialect(GCodeTimeEstimator::EDialect dialect)
     {
         _state.dialect = dialect;
@@ -358,6 +369,7 @@ namespace Slic3r {
         set_retract_acceleration(DEFAULT_RETRACT_ACCELERATION);
         set_minimum_feedrate(DEFAULT_MINIMUM_FEEDRATE);
         set_minimum_travel_feedrate(DEFAULT_MINIMUM_TRAVEL_FEEDRATE);
+        set_extrude_factor_override_percentage(DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE);
 
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
@@ -528,6 +540,11 @@ namespace Slic3r {
                             _processM205(line);
                             break;
                         }
+                    case 221: // Set extrude factor override percentage
+                        {
+                            _processM221(line);
+                            break;
+                        }
                     case 566: // Set allowable instantaneous speed change
                         {
                             _processM566(line);
@@ -593,6 +610,9 @@ namespace Slic3r {
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
             _curr.axis_feedrate[a] = _curr.feedrate * block.delta_pos[a] * invDistance;
+            if (a == E)
+                _curr.axis_feedrate[a] *= get_extrude_factor_override_percentage();
+
             _curr.abs_axis_feedrate[a] = std::abs(_curr.axis_feedrate[a]);
             if (_curr.abs_axis_feedrate[a] > 0.0f)
                 min_feedrate_factor = std::min(min_feedrate_factor, get_axis_max_feedrate((EAxis)a) / _curr.abs_axis_feedrate[a]);
@@ -902,6 +922,14 @@ namespace Slic3r {
 
         if (line.has_value('T', value))
             set_minimum_travel_feedrate(value);
+    }
+
+    void GCodeTimeEstimator::_processM221(const GCodeReader::GCodeLine& line)
+    {
+        float value_s;
+        float value_t;
+        if (line.has_value('S', value_s) && !line.has_value('T', value_t))
+            set_extrude_factor_override_percentage(value_s * 0.01f);
     }
 
     void GCodeTimeEstimator::_processM566(const GCodeReader::GCodeLine& line)

@@ -73,6 +73,7 @@ namespace Slic3r {
             float additional_time;              // s
             float minimum_feedrate;             // mm/s
             float minimum_travel_feedrate;      // mm/s
+            float extrude_factor_override_percentage; 
         };
 
     public:
@@ -218,6 +219,9 @@ namespace Slic3r {
         void set_minimum_travel_feedrate(float feedrate_mm_sec);
         float get_minimum_travel_feedrate() const;
 
+        void set_extrude_factor_override_percentage(float percentage);
+        float get_extrude_factor_override_percentage() const;
+
         void set_dialect(EDialect dialect);
         EDialect get_dialect() const;
 
@@ -301,6 +305,9 @@ namespace Slic3r {
 
         // Advanced settings
         void _processM205(const GCodeReader::GCodeLine& line);
+
+        // Set extrude factor override percentage
+        void _processM221(const GCodeReader::GCodeLine& line);
 
         // Set allowable instantaneous speed change
         void _processM566(const GCodeReader::GCodeLine& line);
