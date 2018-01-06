@@ -2,6 +2,7 @@
 #define slic3r_GCodeTimeEstimator_hpp_
 
 #include "libslic3r.h"
+#include "PrintConfig.hpp"
 #include "GCodeReader.hpp"
 
 namespace Slic3r {
@@ -22,17 +23,6 @@ namespace Slic3r {
             Z,
             E,
             Num_Axis
-        };
-
-        enum EDialect : unsigned char
-        {
-            Unknown,
-            Marlin,
-            Repetier,
-            Smoothieware,
-            RepRapFirmware,
-            Teacup,
-            Num_Dialects
         };
 
         enum EPositioningType : unsigned char
@@ -62,7 +52,7 @@ namespace Slic3r {
 
         struct State
         {
-            EDialect dialect;
+            GCodeFlavor dialect;
             EUnits units;
             EPositioningType positioning_xyz_type;
             EPositioningType positioning_e_type;
@@ -222,8 +212,8 @@ namespace Slic3r {
         void set_extrude_factor_override_percentage(float percentage);
         float get_extrude_factor_override_percentage() const;
 
-        void set_dialect(EDialect dialect);
-        EDialect get_dialect() const;
+        void set_dialect(GCodeFlavor dialect);
+        GCodeFlavor get_dialect() const;
 
         void set_units(EUnits units);
         EUnits get_units() const;

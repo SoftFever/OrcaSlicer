@@ -302,12 +302,12 @@ namespace Slic3r {
         return _state.extrude_factor_override_percentage;
     }
 
-    void GCodeTimeEstimator::set_dialect(GCodeTimeEstimator::EDialect dialect)
+    void GCodeTimeEstimator::set_dialect(GCodeFlavor dialect)
     {
         _state.dialect = dialect;
     }
 
-    GCodeTimeEstimator::EDialect GCodeTimeEstimator::get_dialect() const
+    GCodeFlavor GCodeTimeEstimator::get_dialect() const
     {
         return _state.dialect;
     }
@@ -360,7 +360,7 @@ namespace Slic3r {
     void GCodeTimeEstimator::set_default()
     {
         set_units(Millimeters);
-        set_dialect(Unknown);
+        set_dialect(gcfRepRap);
         set_positioning_xyz_type(Absolute);
         set_positioning_e_type(Relative);
 
@@ -738,17 +738,17 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)
     {
-        EDialect dialect = get_dialect();
+        GCodeFlavor dialect = get_dialect();
 
         float value;
         if (line.has_value('P', value))
             add_additional_time(value * MILLISEC_TO_SEC);
 
         // see: http://reprap.org/wiki/G-code#G4:_Dwell
-        if ((dialect == Repetier) ||
-            (dialect == Marlin) ||
-            (dialect == Smoothieware) ||
-            (dialect == RepRapFirmware))
+        if ((dialect == gcfRepetier) ||
+            (dialect == gcfMarlin) ||
+            (dialect == gcfSmoothie) ||
+            (dialect == gcfRepRap))
         {
             if (line.has_value('S', value))
                 add_additional_time(value);
@@ -846,10 +846,10 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM201(const GCodeReader::GCodeLine& line)
     {
-        EDialect dialect = get_dialect();
+        GCodeFlavor dialect = get_dialect();
 
         // see http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration
-        float factor = ((dialect != RepRapFirmware) && (get_units() == GCodeTimeEstimator::Inches)) ? INCHES_TO_MM : 1.0f;
+        float factor = ((dialect != gcfRepRap) && (get_units() == GCodeTimeEstimator::Inches)) ? INCHES_TO_MM : 1.0f;
 
         if (line.has_x())
             set_axis_max_acceleration(X, line.x() * factor);
@@ -866,14 +866,14 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM203(const GCodeReader::GCodeLine& line)
     {
-        EDialect dialect = get_dialect();
+        GCodeFlavor dialect = get_dialect();
 
         // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
-        if (dialect == Repetier)
+        if (dialect == gcfRepetier)
             return;
 
         // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
-        float factor = (dialect == Marlin) ? 1.0f : MMMIN_TO_MMSEC;
+        float factor = (dialect == gcfMarlin) ? 1.0f : MMMIN_TO_MMSEC;
 
         if (line.has_x())
             set_axis_max_feedrate(X, line.x() * factor);

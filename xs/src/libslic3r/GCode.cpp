@@ -400,6 +400,7 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // resets time estimator
     m_time_estimator.reset();
+    m_time_estimator.set_dialect(print.config.gcode_flavor);
 
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
