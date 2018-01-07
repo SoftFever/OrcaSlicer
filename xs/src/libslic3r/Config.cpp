@@ -18,10 +18,6 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <string.h>
 
-#if defined(_WIN32) && !defined(setenv) && defined(_putenv_s)
-#define setenv(k, v, o) _putenv_s(k, v)
-#endif
-
 namespace Slic3r {
 
 std::string escape_string_cstyle(const std::string &str)
@@ -309,7 +305,6 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key, double rati
 
 void ConfigBase::setenv_()
 {
-#ifdef setenv
     t_config_option_keys opt_keys = this->keys();
     for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it) {
         // prepend the SLIC3R_ prefix
@@ -322,9 +317,8 @@ void ConfigBase::setenv_()
         for (size_t i = 0; i < envname.size(); ++i)
             envname[i] = (envname[i] <= 'z' && envname[i] >= 'a') ? envname[i]-('a'-'A') : envname[i];
         
-        setenv(envname.c_str(), this->serialize(*it).c_str(), 1);
+        boost::nowide::setenv(envname.c_str(), this->serialize(*it).c_str(), 1);
     }
-#endif
 }
 
 void ConfigBase::load(const std::string &file)
