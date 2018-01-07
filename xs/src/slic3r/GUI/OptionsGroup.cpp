@@ -10,7 +10,7 @@ const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
 }
 const t_field& OptionsGroup::build_field(const t_config_option_key& id) {
-	const ConfigOptionDef& opt = m_options_map.at(id);
+	const ConfigOptionDef& opt = m_options.at(id);
     return build_field(id, opt);
 }
 
@@ -196,33 +196,49 @@ void OptionsGroup::_on_kill_focus (t_config_option_key id) {
     // do nothing.
 }
 
+Option ConfigOptionsGroup::get_option(const std::string opt_key, int opt_index /*= -1*/)
+{
+	if (!m_config->has(opt_key)) {
+		//! exception  ("No $opt_key in ConfigOptionsGroup config");
+	}
+
+	std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);
+	std::pair<std::string, int> pair(opt_key, opt_index);
+	m_opt_map.emplace(opt_id, pair);
+
+	return Option(*m_config->def()->get(opt_key), opt_id);
+}
+
 void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any value)
 {
-// 	if (m_options_map.at(opt_id)/*exists $self->_opt_map->{$opt_id}*/) {
-// 		my($opt_key, $opt_index) = @{ $self->_opt_map->{$opt_id} };
-// 		auto option = m_options->{$opt_id};
+	if (!m_opt_map.empty())
+	{
+		std::string opt_key = m_opt_map.at(opt_id).first;
+		int opt_index = m_opt_map.at(opt_id).second;
+		auto option = m_options.at(opt_id);
 
 		// get value
 		auto field_value = get_value(opt_id);
-// 		if ($option->gui_flags = ~/ \bserialized\b / ) {
-// 			die "Can't set serialized option indexed value" if $opt_index != -1;
-// 			# Split a string to multiple strings by a semi - colon.This is the old way of storing multi - string values.
-// 			# Currently used for the post_process config value only.
-// 			my @values = split / ; / , $field_value;
-// 			$self->config->set($opt_key, \@values);
-// 		}
-// 		else {
-// 			if ($opt_index == -1) {
-//				$self->config->set($opt_key, $field_value);
-//!		m_config->set_key_value(opt_id, new ConfigOption(value));
-// 			}
-// 			else {
-// 				my $value = $self->config->get($opt_key);
+		if (option.gui_flags.compare("serialized")==0) {
+			if (opt_index != -1){
+				// 		die "Can't set serialized option indexed value" ;
+			}
+			// 		# Split a string to multiple strings by a semi - colon.This is the old way of storing multi - string values.
+			// 		# Currently used for the post_process config value only.
+			// 		my @values = split / ; / , $field_value;
+			// 		$self->config->set($opt_key, \@values);
+		}
+		else {
+			if (opt_index == -1) {
+				change_opt_value(*m_config, opt_key, field_value);
+			}
+			else {
+// 				auto value = m_config->get($opt_key);
 // 				$value->[$opt_index] = $field_value;
 // 				$self->config->set($opt_key, $value);
-// 			}
-// 		}
-// 	}
+			}
+		}
+	}
 
 	OptionsGroup::on_change_OG(opt_id, value);
 }

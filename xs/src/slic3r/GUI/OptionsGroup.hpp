@@ -88,9 +88,9 @@ public:
     /// but defining it as const means a lot of const_casts to deal with wx functions.
     inline wxWindow* parent() const { return m_parent; }
 
-    void			append_line(const Line& line);
-    Line			create_single_option_line(const Option& option) const;
-    inline void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
+    void		append_line(const Line& line);
+    Line		create_single_option_line(const Option& option) const;
+    void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
 
     // return a non-owning pointer reference 
     inline /*const*/ Field* get_field(t_config_option_key id) const { try { return m_fields.at(id).get(); } catch (std::out_of_range e) { return nullptr; } }
@@ -103,7 +103,7 @@ public:
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
     OptionsGroup(wxWindow* _parent, std::string title, const ConfigDef& configs) : 
-		m_options_map(configs.options), m_parent(_parent), title(wxString(title)) {
+		m_options(configs.options), m_parent(_parent), title(wxString(title)) {
         sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
@@ -116,7 +116,7 @@ public:
     }
 
 protected:
-    const t_optiondef_map&	m_options_map; 
+    const t_optiondef_map&	m_options;
     wxWindow*				m_parent {nullptr};
 
     /// Field list, contains unique_ptrs of the derived type.
@@ -139,11 +139,27 @@ protected:
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-    /// reference to libslic3r config, non-owning pointer (?).
-    const DynamicPrintConfig*	m_config {nullptr};
-    bool						m_full_labels {0};
 	ConfigOptionsGroup(wxWindow* parent, std::string title, DynamicPrintConfig* _config) : 
-		OptionsGroup(parent, title, *(_config->def())), m_config(_config) {}
+		OptionsGroup(parent, title, *_config->def()), m_config(_config) {}
+
+    /// reference to libslic3r config, non-owning pointer (?).
+    DynamicPrintConfig*		m_config {nullptr};
+    bool					m_full_labels {0};
+	std::map< std::string, std::pair<std::string, int> > m_opt_map;
+
+	Option		get_option(const std::string opt_key, int opt_index = -1);
+	Line		create_single_option_line(const std::string title, int idx = -1) /*const*/{
+		Option option = get_option(title, idx);
+		return OptionsGroup::create_single_option_line(option);
+	}
+	void		append_single_option_line(const Option& option)	{
+		OptionsGroup::append_single_option_line(option);
+	}
+	void		append_single_option_line(const std::string title, int idx = -1)
+	{
+		Option option = get_option(title, idx);
+		append_single_option_line(option);		
+	}
 
 	void		on_change_OG(t_config_option_key opt_id, boost::any value) override;
 };

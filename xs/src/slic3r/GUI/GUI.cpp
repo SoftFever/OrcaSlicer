@@ -4,6 +4,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
@@ -189,6 +190,58 @@ void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config)
 	add_created_tab(new TabPrint   (g_wxTabPanel, "Print"),    preset_bundle, app_config);
 	add_created_tab(new TabFilament(g_wxTabPanel, "Filament"), preset_bundle, app_config);
 	add_created_tab(new TabPrinter (g_wxTabPanel, "Printer"),  preset_bundle, app_config);
+}
+
+void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value)
+{
+	try{
+		switch (config.def()->get(opt_key)->type){
+		case coFloatOrPercent:
+		case coPercent:
+		case coFloat:
+		{
+			double& val = config.opt_float(opt_key);
+			std::string str = boost::any_cast<std::string>(value);
+			val = boost::lexical_cast<double>(str);
+			break;
+		}
+			//		case coPercents:
+			//		case coFloats:
+		case coString:
+			//		opt = new ConfigOptionString(config.opt_string(opt_key));
+			break;
+		case coStrings:
+			break;
+		case coBool:
+			config.set_key_value(opt_key, new ConfigOptionBool(boost::any_cast<bool>(value)));
+			break;
+		case coBools:
+			//			opt = new ConfigOptionBools(0, config.opt_bool(opt_key)); //! 0?
+			break;
+		case coInt:
+			config.set_key_value(opt_key, new ConfigOptionInt(boost::any_cast<int>(value)));
+			break;
+		case coInts:
+			break;
+		case coEnum:
+			break;
+		case coPoints:
+			break;
+		case coNone:
+			break;
+		default:
+			break;
+		}
+	}
+	catch (const std::exception &e)
+	{
+
+	}
+	catch (...)
+	{
+		//std::string
+	}
+
 }
 
 void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config)

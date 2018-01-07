@@ -140,9 +140,6 @@ public:
 	void			update_dirty();
 	void			load_config(DynamicPrintConfig config);
 
-	Option		get_option(const std::string title, int idx = -1){
-		return Option(*m_config_def->get(title), idx == -1 ? title : title + std::to_string(idx));
-	}	
 };
 
 //Slic3r::GUI::Tab::Print;

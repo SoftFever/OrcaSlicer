@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "Config.hpp"
 
 class wxApp;
 class wxFrame;
@@ -15,6 +16,7 @@ namespace Slic3r {
 class PresetBundle;
 class PresetCollection;
 class AppConfig;
+class DynamicPrintConfig;
 
 namespace GUI {
 
@@ -36,6 +38,8 @@ void add_debug_menu(wxMenuBar *menu);
 void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config);
 // add it at the end of the tab panel.
 void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config);
+// Change option value in config
+void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value);
 
 void show_error(wxWindow* parent, std::string message);
 void show_info(wxWindow* parent, std::string message, std::string title);
