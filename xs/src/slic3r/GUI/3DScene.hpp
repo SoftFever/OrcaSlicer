@@ -383,6 +383,7 @@ private:
     static void _load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
     static void _load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
     static void _load_gcode_retractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    static void _load_gcode_unretractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 };

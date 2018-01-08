@@ -880,6 +880,56 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
 #undef TOP
 #undef BOTTOM
 }
+
+static void point_to_indexed_vertex_array(const Point3& point,
+    double width,
+    double height,
+    GLIndexedVertexArray& volume)
+{
+    // builds a double piramid, with vertices on the local axes, around the point
+
+    Pointf3 center = Pointf3::new_unscale(point);
+
+    double scale_factor = 1.0;
+    double w = scale_factor * width;
+    double h = scale_factor * height;
+
+    // new vertices ids
+    int idx_last = int(volume.vertices_and_normals_interleaved.size() / 6);
+    int idxs[6];
+    for (int i = 0; i < 6; ++i)
+    {
+        idxs[i] = idx_last + i;
+    }
+
+    Vectorf3 displacement_x(w, 0.0, 0.0);
+    Vectorf3 displacement_y(0.0, w, 0.0);
+    Vectorf3 displacement_z(0.0, 0.0, h);
+
+    Vectorf3 unit_x(1.0, 0.0, 0.0);
+    Vectorf3 unit_y(0.0, 1.0, 0.0);
+    Vectorf3 unit_z(0.0, 0.0, 1.0);
+
+    // vertices
+    volume.push_geometry(center - displacement_x, -unit_x); // idxs[0]
+    volume.push_geometry(center + displacement_x, unit_x);  // idxs[1]
+    volume.push_geometry(center - displacement_y, -unit_y); // idxs[2]
+    volume.push_geometry(center + displacement_y, unit_y);  // idxs[3]
+    volume.push_geometry(center - displacement_z, -unit_z); // idxs[4]
+    volume.push_geometry(center + displacement_z, unit_z);  // idxs[5]
+
+    // top piramid faces
+    volume.push_triangle(idxs[0], idxs[2], idxs[5]);
+    volume.push_triangle(idxs[2], idxs[1], idxs[5]);
+    volume.push_triangle(idxs[1], idxs[3], idxs[5]);
+    volume.push_triangle(idxs[3], idxs[0], idxs[5]);
+
+    // bottom piramid faces
+    volume.push_triangle(idxs[2], idxs[0], idxs[4]);
+    volume.push_triangle(idxs[1], idxs[2], idxs[4]);
+    volume.push_triangle(idxs[3], idxs[1], idxs[4]);
+    volume.push_triangle(idxs[0], idxs[3], idxs[4]);
+}
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 
@@ -903,6 +953,14 @@ static void thick_lines_to_verts(const Lines3& lines,
     GLVolume& volume)
 {
     thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, volume.indexed_vertex_array);
+}
+
+static void point_to_verts(const Point3& point,
+    double width,
+    double height,
+    GLVolume& volume)
+{
+    point_to_indexed_vertex_array(point, width, height, volume.indexed_vertex_array);
 }
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
@@ -1002,6 +1060,13 @@ static void polyline3_to_verts(const Polyline3& polyline, double width, double h
     std::vector<double> heights(lines.size(), height);
     thick_lines_to_verts(lines, widths, heights, false, volume);
 }
+
+static void point3_to_verts(const Point3& point, double width, double height, const Point& copy, GLVolume& volume)
+{
+    Point3 p = point;
+    p.translate(copy);
+    point_to_verts(p, width, height, volume);
+}
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 
@@ -1044,6 +1109,7 @@ void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volume
     _load_gcode_extrusion_paths(*print, *volumes, use_VBOs);
     _load_gcode_travel_paths(*print, *volumes, use_VBOs);
     _load_gcode_retractions(*print, *volumes, use_VBOs);
+    _load_gcode_unretractions(*print, *volumes, use_VBOs);
 }
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
@@ -1560,6 +1626,55 @@ void _3DScene::_load_gcode_retractions(const Print& print, GLVolumeCollection& v
 {
     if (print.gcode_preview.retraction.is_visible)
     {
+        volumes.volumes.emplace_back(new GLVolume(print.gcode_preview.retraction.color.rgba));
+        GLVolume* volume = volumes.volumes.back();
+
+        if (volume != nullptr)
+        {
+            Point origin(0, 0);
+            for (const GCodeAnalyzer::PreviewData::Retraction::Position& position : print.gcode_preview.retraction.positions)
+            {
+                coordf_t print_z = unscale(position.position.z);
+                volume->print_zs.push_back(print_z);
+                volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
+                volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
+
+                // adds point to volume
+                point3_to_verts(position.position, position.width, position.height, origin, *volume);
+            }
+
+            // finalizes volume
+            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+        }
+    }
+}
+
+void _3DScene::_load_gcode_unretractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
+{
+    if (print.gcode_preview.unretraction.is_visible)
+    {
+        volumes.volumes.emplace_back(new GLVolume(print.gcode_preview.unretraction.color.rgba));
+        GLVolume* volume = volumes.volumes.back();
+
+        if (volume != nullptr)
+        {
+            Point origin(0, 0);
+            for (const GCodeAnalyzer::PreviewData::Retraction::Position& position : print.gcode_preview.unretraction.positions)
+            {
+                coordf_t print_z = unscale(position.position.z);
+                volume->print_zs.push_back(print_z);
+                volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
+                volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
+
+                // adds point to volume
+                point3_to_verts(position.position, position.width, position.height, origin, *volume);
+            }
+
+            // finalizes volume
+            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+        }
     }
 }
 #endif // ENRICO_GCODE_PREVIEW

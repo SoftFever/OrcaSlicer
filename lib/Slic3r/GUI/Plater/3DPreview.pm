@@ -94,8 +94,9 @@ sub new {
       $checklist_features->Check($i, 1);
     }
     
-    my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");    
+    my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");
     my $checkbox_retractions = Wx::CheckBox->new($self, -1, "Retractions");    
+    my $checkbox_unretractions = Wx::CheckBox->new($self, -1, "Unretractions");    
 # ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -116,6 +117,7 @@ sub new {
     $vsizer_outer->Add($checklist_features, 0, wxTOP | wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
     $vsizer_outer->Add($checkbox_travel, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
     $vsizer_outer->Add($checkbox_retractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $vsizer_outer->Add($checkbox_unretractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
 # ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -225,6 +227,11 @@ sub new {
     });    
     EVT_CHECKBOX($self, $checkbox_retractions, sub {
         $self->print->set_gcode_preview_retractions_visible($checkbox_retractions->IsChecked());
+        $self->auto_zoom(0);
+        $self->reload_print;
+    });
+    EVT_CHECKBOX($self, $checkbox_unretractions, sub {
+        $self->print->set_gcode_preview_unretractions_visible($checkbox_unretractions->IsChecked());
         $self->auto_zoom(0);
         $self->reload_print;
     });

@@ -271,6 +271,7 @@ public:
     bool is_gcode_preview_extrusion_role_enabled(ExtrusionRole role);
     void set_gcode_preview_travel_visible(bool visible);
     void set_gcode_preview_retractions_visible(bool visible);
+    void set_gcode_preview_unretractions_visible(bool visible);
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 

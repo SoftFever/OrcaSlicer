@@ -375,7 +375,21 @@ public:
 
         struct Retraction
         {
-            Points3 positions;
+            static const Color Default_Color;
+
+            struct Position
+            {
+                Point3 position;
+                float width;
+                float height;
+
+                Position(const Point3& position, float width, float height);
+            };
+
+            typedef std::vector<Position> PositionsList;
+
+            PositionsList positions;
+            Color color;
             bool is_visible;
 
             void set_default();
@@ -384,6 +398,7 @@ public:
         Extrusion extrusion;
         Travel travel;
         Retraction retraction;
+        Retraction unretraction;
 
         PreviewData();
 
@@ -515,6 +530,7 @@ private:
     void _calc_gcode_preview_extrusion_layers(Print& print);
     void _calc_gcode_preview_travel(Print& print);
     void _calc_gcode_preview_retractions(Print& print);
+    void _calc_gcode_preview_unretractions(Print& print);
 };
 
 GCodeAnalyzer::PreviewData::Color operator + (const GCodeAnalyzer::PreviewData::Color& c1, const GCodeAnalyzer::PreviewData::Color& c2);

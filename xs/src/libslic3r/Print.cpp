@@ -98,6 +98,11 @@ void Print::set_gcode_preview_retractions_visible(bool visible)
 {
     gcode_preview.retraction.is_visible = visible;
 }
+
+void Print::set_gcode_preview_unretractions_visible(bool visible)
+{
+    gcode_preview.unretraction.is_visible = visible;
+}
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 

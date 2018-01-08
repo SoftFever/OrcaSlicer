@@ -567,8 +567,18 @@ void GCodeAnalyzer::PreviewData::Travel::set_default()
     is_visible = false;
 }
 
+const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Retraction::Default_Color = GCodeAnalyzer::PreviewData::Color(1.0f, 1.0f, 1.0f, 1.0f);
+
+GCodeAnalyzer::PreviewData::Retraction::Position::Position(const Point3& position, float width, float height)
+    : position(position)
+    , width(width)
+    , height(height)
+{
+}
+
 void GCodeAnalyzer::PreviewData::Retraction::set_default()
 {
+    color = Default_Color;
     is_visible = false;
 };
 
@@ -582,6 +592,7 @@ void GCodeAnalyzer::PreviewData::set_default()
     extrusion.set_default();
     travel.set_default();
     retraction.set_default();
+    unretraction.set_default();
 }
 
 void GCodeAnalyzer::PreviewData::reset()
@@ -589,6 +600,7 @@ void GCodeAnalyzer::PreviewData::reset()
     extrusion.layers.clear();
     travel.polylines.clear();
     retraction.positions.clear();
+    unretraction.positions.clear();
 }
 
 const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::get_extrusion_role_color(ExtrusionRole role) const
@@ -658,6 +670,9 @@ void GCodeAnalyzer::calc_gcode_preview_data(Print& print)
 
     // calculates retractions
     _calc_gcode_preview_retractions(print);
+
+    // calculates unretractions
+    _calc_gcode_preview_unretractions(print);
 }
 
 void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
@@ -1259,10 +1274,24 @@ void GCodeAnalyzer::_calc_gcode_preview_retractions(Print& print)
 
     for (const GCodeMove& move : retraction_moves->second)
     {
-        print.gcode_preview.retraction.positions.emplace_back(scale_(move.start_position.x), scale_(move.start_position.y), scale_(move.start_position.z));
+        // store position
+        Point3 position(scale_(move.start_position.x), scale_(move.start_position.y), scale_(move.start_position.z));
+        print.gcode_preview.retraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
+}
 
-    int a = 0;
+void GCodeAnalyzer::_calc_gcode_preview_unretractions(Print& print)
+{
+    TypeToMovesMap::iterator unretraction_moves = m_moves_map.find(GCodeMove::Unretract);
+    if (unretraction_moves == m_moves_map.end())
+        return;
+
+    for (const GCodeMove& move : unretraction_moves->second)
+    {
+        // store position
+        Point3 position(scale_(move.start_position.x), scale_(move.start_position.y), scale_(move.start_position.z));
+        print.gcode_preview.unretraction.positions.emplace_back(position, move.data.width, move.data.height);
+    }
 }
 
 GCodeAnalyzer::PreviewData::Color operator + (const GCodeAnalyzer::PreviewData::Color& c1, const GCodeAnalyzer::PreviewData::Color& c2)
