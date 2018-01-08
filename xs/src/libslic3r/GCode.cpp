@@ -400,6 +400,7 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // resets time estimator
     m_time_estimator.reset();
+    m_time_estimator.set_dialect(print.config.gcode_flavor);
 
 //############################################################################################################
 #if ENRICO_GCODE_PREVIEW

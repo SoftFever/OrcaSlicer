@@ -602,8 +602,8 @@ std::string Print::validate() const
             if (std::abs(dmr - 0.4) > EPSILON)
                 return "The Wipe Tower is currently only supported for the 0.4mm nozzle diameter.";
         #endif
-        if (this->config.gcode_flavor != gcfRepRap)
-            return "The Wipe Tower is currently only supported for the RepRap (Marlin / Sprinter) G-code flavor.";
+        if (this->config.gcode_flavor != gcfRepRap && this->config.gcode_flavor != gcfMarlin)
+            return "The Wipe Tower is currently only supported for the Marlin and RepRap/Sprinter G-code flavors.";
         if (! this->config.use_relative_e_distances)
             return "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).";
         SlicingParameters slicing_params0 = this->objects.front()->slicing_parameters();
