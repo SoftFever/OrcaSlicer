@@ -7,6 +7,11 @@
 
 namespace Slic3r {
 
+    //
+    // Some of the algorithms used by class GCodeTimeEstimator were inpired by
+    // Cura Engine's class TimeEstimateCalculator
+    // https://github.com/Ultimaker/CuraEngine/blob/master/src/timeEstimate.h
+    //
     class GCodeTimeEstimator
     {
     public:
