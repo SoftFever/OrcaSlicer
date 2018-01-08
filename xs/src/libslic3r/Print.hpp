@@ -15,6 +15,11 @@
 #include "Slicing.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+#include "GCode/Analyzer.hpp"
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
 
 #include "tbb/atomic.h"
 
@@ -240,6 +245,11 @@ public:
 
     // ordered collections of extrusion paths to build skirt loops and brim
     ExtrusionEntityCollection skirt, brim;
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+    GCodeAnalyzer::PreviewData gcode_preview;
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
 
     Print() : total_used_filament(0), total_extruded_volume(0) { restart(); }
     ~Print() { clear_objects(); }
@@ -252,6 +262,17 @@ public:
     void delete_object(size_t idx);
     void reload_object(size_t idx);
     bool reload_model_instances();
+
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+    void clear_gcode_preview_data();
+    void set_gcode_preview_type(unsigned char type);
+    void set_gcode_preview_extrusion_flags(unsigned int flags);
+    bool is_gcode_preview_extrusion_role_enabled(ExtrusionRole role);
+    void set_gcode_preview_travel_visible(bool visible);
+    void set_gcode_preview_retractions_visible(bool visible);
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
 
     // methods for handling regions
     PrintRegion* get_region(size_t idx) { return regions.at(idx); }

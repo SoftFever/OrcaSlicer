@@ -4,6 +4,9 @@
 
 namespace Slic3r {
 
+//############################################################################################################
+#if !ENRICO_GCODE_PREVIEW
+//############################################################################################################
 template <class PointClass>
 BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> &points)
 {
@@ -20,9 +23,15 @@ BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> &poin
     }
     this->defined = true;
 }
+//############################################################################################################
+#endif // !ENRICO_GCODE_PREVIEW
+//############################################################################################################
 template BoundingBoxBase<Point>::BoundingBoxBase(const std::vector<Point> &points);
 template BoundingBoxBase<Pointf>::BoundingBoxBase(const std::vector<Pointf> &points);
 
+//############################################################################################################
+#if !ENRICO_GCODE_PREVIEW
+//############################################################################################################
 template <class PointClass>
 BoundingBox3Base<PointClass>::BoundingBox3Base(const std::vector<PointClass> &points)
     : BoundingBoxBase<PointClass>(points)
@@ -36,6 +45,9 @@ BoundingBox3Base<PointClass>::BoundingBox3Base(const std::vector<PointClass> &po
         this->max.z = std::max(it->z, this->max.z);
     }
 }
+//############################################################################################################
+#endif // !ENRICO_GCODE_PREVIEW
+//############################################################################################################
 template BoundingBox3Base<Pointf3>::BoundingBox3Base(const std::vector<Pointf3> &points);
 
 BoundingBox::BoundingBox(const Lines &lines)

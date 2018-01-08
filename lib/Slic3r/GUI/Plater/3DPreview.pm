@@ -5,10 +5,16 @@ use utf8;
 
 use Slic3r::Print::State ':steps';
 use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE);
-use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX);
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX EVT_CHOICE EVT_CHECKLISTBOX);
+#use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX);
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer));
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer auto_zoom));
+#__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer));
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
 sub new {
     my $class = shift;
@@ -18,6 +24,9 @@ sub new {
     $self->{config} = $config;
     $self->{number_extruders} = 1;
     $self->{preferred_color_mode} = 'feature';
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+    $self->auto_zoom(1);
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
@@ -60,6 +69,35 @@ sub new {
     my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
     my $checkbox_color_by_extruder = $self->{checkbox_color_by_extruder} = Wx::CheckBox->new($self, -1, "Tool");
     
+# ===================== ENRICO_GCODE_PREVIEW ==================================================
+    my $choice_view_type = Wx::Choice->new($self, -1);
+    $choice_view_type->Append("Feature type");
+    $choice_view_type->Append("Height");
+    $choice_view_type->Append("Width");
+    $choice_view_type->Append("Speed");
+    $choice_view_type->SetSelection(0);
+    
+    my $checklist_features = Wx::CheckListBox->new($self, -1, wxDefaultPosition, [-1, 150]);
+    $checklist_features->Append("Perimeter");
+    $checklist_features->Append("External perimeter");
+    $checklist_features->Append("Overhang perimeter");
+    $checklist_features->Append("Internal infill");
+    $checklist_features->Append("Solid infill");
+    $checklist_features->Append("Top solid infill");
+    $checklist_features->Append("Bridge infill");
+    $checklist_features->Append("Gap fill");
+    $checklist_features->Append("Skirt");
+    $checklist_features->Append("Support material");
+    $checklist_features->Append("Support material interface");
+    for (my $i = 0; $i < $checklist_features->GetCount(); $i += 1)
+    {
+      $checklist_features->Check($i, 1);
+    }
+    
+    my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");    
+    my $checkbox_retractions = Wx::CheckBox->new($self, -1, "Retractions");    
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
     my $vsizer_outer = Wx::BoxSizer->new(wxVERTICAL);
@@ -73,6 +111,12 @@ sub new {
     $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer_outer->Add($checkbox_singlelayer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
     $vsizer_outer->Add($checkbox_color_by_extruder, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+    $vsizer_outer->Add($choice_view_type, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+    $vsizer_outer->Add($checklist_features, 0, wxTOP | wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+    $vsizer_outer->Add($checkbox_travel, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $vsizer_outer->Add($checkbox_retractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $sizer->Add($canvas, 1, wxALL | wxEXPAND, 0);
@@ -152,6 +196,39 @@ sub new {
         $self->{preferred_color_mode} = $self->{color_by_extruder} ? 'tool' : 'feature';
         $self->reload_print;
     });
+    
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+    EVT_CHOICE($self, $choice_view_type, sub {
+        my $selection = $choice_view_type->GetCurrentSelection();
+        $self->print->set_gcode_preview_type($selection);
+        $self->auto_zoom(0);
+        $self->reload_print;
+    });
+    EVT_CHECKLISTBOX($self, $checklist_features, sub {
+        my $flags = 0;
+        for (my $i = 0; $i < $checklist_features->GetCount(); $i += 1)
+        {
+          if ($checklist_features->IsChecked($i))
+          {
+            $flags += 2 ** $i;
+          }
+        }
+        
+        $self->print->set_gcode_preview_extrusion_flags($flags);
+        $self->auto_zoom(0);
+        $self->reload_print;
+    });    
+    EVT_CHECKBOX($self, $checkbox_travel, sub {
+        $self->print->set_gcode_preview_travel_visible($checkbox_travel->IsChecked());
+        $self->auto_zoom(0);
+        $self->reload_print;
+    });    
+    EVT_CHECKBOX($self, $checkbox_retractions, sub {
+        $self->print->set_gcode_preview_retractions_visible($checkbox_retractions->IsChecked());
+        $self->auto_zoom(0);
+        $self->reload_print;
+    });
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
@@ -258,18 +335,30 @@ sub load_print {
     }
 
     if ($self->IsShown) {
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+        $self->canvas->load_gcode_preview($self->print);
+
         # load skirt and brim
-        $self->canvas->load_print_toolpaths($self->print, \@colors);
-        $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);
-        
-        foreach my $object (@{$self->print->objects}) {
-            $self->canvas->load_print_object_toolpaths($object, \@colors);
-            
-            # Show the objects in very transparent color.
-            #my @volume_ids = $self->canvas->load_object($object->model_object);
-            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
-        }
+#        $self->canvas->load_print_toolpaths($self->print, \@colors);
+#        $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);
+#        
+#        foreach my $object (@{$self->print->objects}) {
+#            $self->canvas->load_print_object_toolpaths($object, \@colors);
+#            
+#            # Show the objects in very transparent color.
+#            #my @volume_ids = $self->canvas->load_object($object->model_object);
+#            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
+#        }
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+        if ($self->auto_zoom)
+        {
+# ===================== ENRICO_GCODE_PREVIEW ==================================================            
         $self->canvas->zoom_to_volumes;
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+          $self->auto_zoom(1);
+        }
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         $self->_loaded(1);
     }
     

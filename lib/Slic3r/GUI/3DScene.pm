@@ -1979,6 +1979,15 @@ sub load_wipe_tower_toolpaths {
         if ($print->step_done(STEP_WIPE_TOWER));
 }
 
+# ===================== ENRICO_GCODE_PREVIEW ==================================================
+sub load_gcode_preview {
+    my ($self, $print) = @_;
+
+    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+    Slic3r::GUI::_3DScene::load_gcode_preview($print, $self->volumes, $self->UseVBOs);
+}
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+
 sub set_toolpaths_range {
     my ($self, $min_z, $max_z) = @_;
     $self->volumes->set_range($min_z, $max_z);

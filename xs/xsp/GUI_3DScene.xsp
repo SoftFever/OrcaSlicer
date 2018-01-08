@@ -168,4 +168,12 @@ _load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs)
     CODE:
         _3DScene::_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
 
+void 
+load_gcode_preview(print, volumes, use_VBOs)
+        Print               *print;
+        GLVolumeCollection  *volumes;
+        int                  use_VBOs;
+    CODE:
+        _3DScene::load_gcode_preview(print, volumes, use_VBOs != 0);
+        
 %}

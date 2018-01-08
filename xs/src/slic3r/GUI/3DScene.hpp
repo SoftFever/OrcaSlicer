@@ -106,6 +106,14 @@ public:
         push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
     }
 
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+    inline void push_geometry(const Pointf3& p, const Vectorf3& n) {
+        push_geometry(p.x, p.y, p.z, n.x, n.y, n.z);
+    }
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
+
     inline void push_triangle(int idx1, int idx2, int idx3) {
         if (this->triangle_indices.size() + 3 > this->vertices_and_normals_interleaved.capacity())
             this->triangle_indices.reserve(next_highest_power_of_2(this->triangle_indices.size() + 3));
@@ -344,6 +352,12 @@ class _3DScene
 public:
     static void _glew_init();
 
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+    static void load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs);
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
+
     static void _load_print_toolpaths(
         const Print                     *print,
         GLVolumeCollection              *volumes,
@@ -362,6 +376,15 @@ public:
         GLVolumeCollection             *volumes,
         const std::vector<std::string> &tool_colors_str,
         bool                            use_VBOs);
+
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+private:
+    static void _load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    static void _load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    static void _load_gcode_retractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
 };
 
 }

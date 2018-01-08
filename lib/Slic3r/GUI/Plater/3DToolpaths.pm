@@ -122,16 +122,20 @@ sub load_print {
     }
     
     if ($self->IsShown) {
-        # load skirt and brim
-        $self->canvas->load_print_toolpaths($self->print);
-        
-        foreach my $object (@{$self->print->objects}) {
-            $self->canvas->load_print_object_toolpaths($object);
-            
-            # Show the objects in very transparent color.
-            #my @volume_ids = $self->canvas->load_object($object->model_object);
-            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
-        }
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+        $self->canvas->load_gcode_preview($self->print);
+
+#        # load skirt and brim
+#        $self->canvas->load_print_toolpaths($self->print);
+#        
+#        foreach my $object (@{$self->print->objects}) {
+#            $self->canvas->load_print_object_toolpaths($object);
+#            
+#            # Show the objects in very transparent color.
+#            #my @volume_ids = $self->canvas->load_object($object->model_object);
+#            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
+#        }
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         $self->canvas->zoom_to_volumes;
         $self->_loaded(1);
     }

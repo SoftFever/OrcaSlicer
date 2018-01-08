@@ -66,6 +66,41 @@ bool Print::reload_model_instances()
     return invalidated;
 }
 
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+void Print::clear_gcode_preview_data()
+{
+    gcode_preview.reset();
+}
+
+void Print::set_gcode_preview_type(unsigned char type)
+{
+    if ((0 <= type) && (type < GCodeAnalyzer::PreviewData::Extrusion::Num_View_Types))
+        gcode_preview.extrusion.view_type = (GCodeAnalyzer::PreviewData::Extrusion::EViewType)type;
+}
+
+void Print::set_gcode_preview_extrusion_flags(unsigned int flags)
+{
+    gcode_preview.extrusion.role_flags = flags;
+}
+
+bool Print::is_gcode_preview_extrusion_role_enabled(ExtrusionRole role)
+{
+    return gcode_preview.extrusion.is_role_flag_set(role);
+}
+
+void Print::set_gcode_preview_travel_visible(bool visible)
+{
+    gcode_preview.travel.is_visible = visible;
+}
+
+void Print::set_gcode_preview_retractions_visible(bool visible)
+{
+    gcode_preview.retraction.is_visible = visible;
+}
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
+
 PrintRegion* Print::add_region()
 {
     regions.push_back(new PrintRegion(this));
