@@ -56,7 +56,9 @@ namespace Slic3r {
 
     float GCodeTimeEstimator::Block::Trapezoid::speed_from_distance(float initial_feedrate, float distance, float acceleration)
     {
-        return ::sqrt(sqr(initial_feedrate) + 2.0f * acceleration * distance);
+        // to avoid invalid negative numbers due to numerical imprecision 
+        float value = std::max(0.0f, sqr(initial_feedrate) + 2.0f * acceleration * distance);
+        return ::sqrt(value);
     }
 
     float GCodeTimeEstimator::Block::move_length() const
@@ -122,7 +124,9 @@ namespace Slic3r {
 
     float GCodeTimeEstimator::Block::max_allowable_speed(float acceleration, float target_velocity, float distance)
     {
-        return ::sqrt(sqr(target_velocity) - 2.0f * acceleration * distance);
+        // to avoid invalid negative numbers due to numerical imprecision 
+        float value = std::max(0.0f, sqr(target_velocity) - 2.0f * acceleration * distance);
+        return ::sqrt(value);
     }
 
     float GCodeTimeEstimator::Block::estimate_acceleration_distance(float initial_rate, float target_rate, float acceleration)
