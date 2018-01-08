@@ -246,6 +246,7 @@ namespace Slic3r {
 
     private:
         void _reset();
+        void _reset_blocks();
 
         // Calculates the time estimate
         void _calculate_time();
