@@ -196,27 +196,36 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 {
 	try{
 		switch (config.def()->get(opt_key)->type){
-		case coFloatOrPercent:
+		case coFloatOrPercent:{
+			const auto &val = *config.option<ConfigOptionFloatOrPercent>(opt_key);
+			config.set_key_value(opt_key, new ConfigOptionFloatOrPercent(boost::any_cast</*ConfigOptionFloatOrPercent*/double>(value), val.percent));
+			break;}
 		case coPercent:
-		case coFloat:
-		{
+			config.set_key_value(opt_key, new ConfigOptionPercent(boost::any_cast</*ConfigOptionPercent*/double>(value)));
+			break;
+		case coFloat:{
 			double& val = config.opt_float(opt_key);
 			val = boost::any_cast<double>(value);
 			break;
 		}
-			//		case coPercents:
-			//		case coFloats:
+		case coPercents:
+		case coFloats:{
+			double& val = config.opt_float(opt_key, 0);
+			val = boost::any_cast<double>(value);
+			break;
+		}			
 		case coString:
-			//		opt = new ConfigOptionString(config.opt_string(opt_key));
+			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
 			break;
 		case coStrings:
 			break;
 		case coBool:
 			config.set_key_value(opt_key, new ConfigOptionBool(boost::any_cast<bool>(value)));
 			break;
-		case coBools:
-			//			opt = new ConfigOptionBools(0, config.opt_bool(opt_key)); //! 0?
-			break;
+		case coBools:{
+			ConfigOptionBools* vec_new = new ConfigOptionBools{ boost::any_cast<bool>(value) };
+			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, 0, 0);
+			break;}
 		case coInt:
 			config.set_key_value(opt_key, new ConfigOptionInt(boost::any_cast<int>(value)));
 			break;
@@ -234,7 +243,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 	}
 	catch (const std::exception &e)
 	{
-
+		int i = 0;//no reason, just experiment
 	}
 	catch (...)
 	{

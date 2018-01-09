@@ -80,6 +80,7 @@ public:
     virtual wxWindow*	getWindow() { return nullptr; }
 
 	bool		is_matched(std::string string, std::string pattern);
+	boost::any get_value_by_opt_type(wxString str, ConfigOptionType type);
 
     /// Factory method for generating new derived classes.
     template<class T>
@@ -110,19 +111,19 @@ public:
     void BUILD();
     wxWindow* window {nullptr};
 
-    virtual void set_value(std::string value) {
+    virtual void	set_value(std::string value) {
         dynamic_cast<wxTextCtrl*>(window)->SetValue(wxString(value));
     }
-    virtual void set_value(boost::any value) {
+    virtual void	set_value(boost::any value) {
 		dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
     }
 
-	boost::any get_value() override { return boost::any(dynamic_cast<wxTextCtrl*>(window)->GetValue()); }
+	boost::any		get_value() override;
 
-    virtual void enable();
-    virtual void disable();
+    virtual void	enable();
+    virtual void	disable();
     virtual wxWindow* getWindow() { return window; }
-    void set_tooltip(const wxString& tip);
+    void			set_tooltip(const wxString& tip);
 
 };
 
@@ -191,9 +192,7 @@ public:
 	void			set_value(const std::string value);
 	void			set_value(boost::any value);
 	void			set_values(const std::vector<std::string> values);
-	boost::any		get_value() override	{
-		return boost::any(dynamic_cast<wxComboBox*>(window)->GetValue());
-	}
+	boost::any		get_value() override;
 
 	void			enable() override { dynamic_cast<wxComboBox*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxComboBox*>(window)->Disable(); };
@@ -210,14 +209,13 @@ public:
 	wxWindow*		window{ nullptr };
 	void			BUILD()  override;
 
-//	void			set_selection();
 	void			set_value(const std::string value) {
 	 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
 	 	}
 	void			set_value(boost::any value) {
 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast<std::string>(value));
 	}
-//	void			set_values(const std::vector<std::string> values);
+
 	boost::any		get_value() override	{
 		return boost::any(dynamic_cast<wxColourPickerCtrl*>(window)->GetColour());
 	}

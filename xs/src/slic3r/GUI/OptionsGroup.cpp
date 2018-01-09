@@ -231,7 +231,9 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 		}
 		else {
 			if (opt_index == -1) {
-				change_opt_value(*m_config, opt_key, field_value);
+				// change_opt_value(*m_config, opt_key, field_value);
+				//!? why field_value?? in this case changed value will be lose! No?
+				change_opt_value(*m_config, opt_key, value);
 			}
 			else {
 // 				auto value = m_config->get($opt_key);

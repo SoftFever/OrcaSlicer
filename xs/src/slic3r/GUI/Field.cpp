@@ -31,6 +31,41 @@ namespace Slic3r { namespace GUI {
 		return std::regex_match(string, regex_pattern);
 	}
 
+	boost::any Field::get_value_by_opt_type(wxString str, ConfigOptionType type)
+	{
+		boost::any ret_val;
+		switch (m_opt.type){
+		case coInt:
+		case coPercent:
+			if (m_opt.type == coPercent) str.RemoveLast();
+			ret_val = wxAtoi(str);
+			break;
+		case coPercents:
+		case coFloats:
+		case coFloat:{
+			double val;
+			str.ToCDouble(&val);
+			ret_val = val;
+			break; }
+		case coString:
+		case coStrings:
+			ret_val = str.ToStdString();
+			break;
+		case coFloatOrPercent:{
+			if (str.Last() == '%')
+				str.RemoveLast();
+			double val;
+			str.ToCDouble(&val);
+			ret_val = val;
+			break;
+		}
+		default:
+			break;
+		}
+
+		return ret_val;
+	}
+
 	void TextCtrl::BUILD() {
         auto size = wxSize(wxDefaultSize);
         if (m_opt.height >= 0) size.SetHeight(m_opt.height);
@@ -107,10 +142,17 @@ namespace Slic3r { namespace GUI {
 
         // recast as a wxWindow to fit the calling convention
         window = dynamic_cast<wxWindow*>(temp);
+    }	
 
-    }
+	boost::any TextCtrl::get_value()
+	{
+		wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+		boost::any ret_val = get_value_by_opt_type(ret_str, m_opt.type);
 
-    void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
+		return ret_val;
+	}
+
+	void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
     void TextCtrl::disable() { dynamic_cast<wxTextCtrl*>(window)->Disable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(false); }
     void TextCtrl::set_tooltip(const wxString& tip) { }
 
@@ -260,21 +302,6 @@ void Choice::set_selection()
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
 		break;
 	}
-// 	case coString:{
-// 		text_value = static_cast<const ConfigOptionString*>(opt.default_value)->value;
-// 
-// 		auto idx = 0;
-// 		for (auto el : opt.enum_values)
-// 		{
-// 			if (el.compare(text_value) == 0)
-// 				break;
-// 			++idx;
-// 		}
-// 		idx == opt.enum_values.size() ?
-// 			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
-// 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
-// 		break;
-// 	}
 	case coStrings:{
 		text_value = static_cast<const ConfigOptionStrings*>(m_opt.default_value)->values.at(0);
 
@@ -359,6 +386,18 @@ void Choice::set_values(const std::vector<std::string> values)
 	ww->SetValue(value);
 
 	m_disable_change_event = false;
+}
+
+boost::any Choice::get_value()
+{
+	boost::any ret_val;
+	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();
+
+	ret_val = m_opt.type == coEnum ?
+				static_cast<wxComboBox*>(window)->GetSelection() :
+				get_value_by_opt_type(ret_str, m_opt.type);
+
+	return ret_val;
 }
 
 void ColourPicker::BUILD()

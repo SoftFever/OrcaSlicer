@@ -150,7 +150,11 @@ void Tab::load_config(DynamicPrintConfig config)
 	for(auto opt_key : m_config.diff(config)) {
 		switch ( config.def()->get(opt_key)->type ){
 		case coFloatOrPercent:
+			change_opt_value(m_config, opt_key, config.option<ConfigOptionFloatOrPercent>(opt_key)->value);
+			break;
 		case coPercent:
+			change_opt_value(m_config, opt_key, config.option<ConfigOptionPercent>(opt_key)->value);
+			break;
 		case coFloat:
 			change_opt_value(m_config, opt_key, config.opt_float(opt_key));
 			break;
@@ -422,7 +426,8 @@ void TabPrint::update()
 	Freeze();
 
 	if ( m_config.opt_bool("spiral_vase") && 
-		!(m_config.opt_int("perimeters") == 1 && m_config.opt_int("top_solid_layers") == 0 && m_config.opt_float("fill_density") == 0)) {
+		!(m_config.opt_int("perimeters") == 1 && m_config.opt_int("top_solid_layers") == 0 && /*m_config.opt_float("fill_density") == 0*/
+			m_config.option<ConfigOptionPercent>("fill_density")->value == 0)) {
 		std::string msg_text = "The Spiral Vase mode requires:\n"
 			"- one perimeter\n"
  			"- no top solid layers\n"
