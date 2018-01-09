@@ -63,6 +63,10 @@ public:
 	wxString	title()	 const { return m_title; }
 	size_t		iconID() const { return m_iconID; }
 	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
+	void		reload_config(){
+		for (auto group: m_optgroups)
+			group->reload_config();
+	}
 
 	ConfigOptionsGroupShp new_optgroup(std::string title, int noncommon_label_width = -1);
 };
@@ -139,7 +143,7 @@ public:
 	virtual void	update() = 0;
 	void			update_dirty();
 	void			load_config(DynamicPrintConfig config);
-
+	void			reload_config();
 };
 
 //Slic3r::GUI::Tab::Print;

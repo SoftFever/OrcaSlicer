@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <wx/tooltip.h>
+#include <wx/numformatter.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -241,6 +242,117 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 	}
 
 	OptionsGroup::on_change_OG(opt_id, value);
+}
+
+void ConfigOptionsGroup::reload_config(){
+	for (std::map< std::string, std::pair<std::string, int> >::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
+		auto opt_id = it->first;
+		std::string opt_key = m_opt_map.at(opt_id).first;
+		int opt_index = m_opt_map.at(opt_id).second;
+		auto option = m_options.at(opt_id);
+		set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags.compare("serialized") == 0 ));
+	}
+}
+
+boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, bool deserialize){
+
+	if (deserialize) {
+		// Want to edit a vector value(currently only multi - strings) in a single edit box.
+		// Aggregate the strings the old way.
+		// Currently used for the post_process config value only.
+		if (opt_index != -1)
+			throw std::out_of_range("Can't deserialize option indexed value");
+// 		return join(';', m_config->get(opt_key)});
+		return get_config_value(*m_config, opt_key);
+	}
+	else {
+//		return opt_index == -1 ? m_config->get(opt_key) : m_config->get_at(opt_key, opt_index);
+		return get_config_value(*m_config, opt_key, opt_index);
+	}
+}
+
+boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index/* = -1*/)
+{
+	boost::any ret;
+	wxString text_value = wxString("");
+	const ConfigOptionDef* opt = config.def()->get(opt_key);
+	switch (opt->type){
+	case coFloatOrPercent:{
+		const auto &value = *config.option<ConfigOptionFloatOrPercent>(opt_key);
+		if (value.percent)
+		{
+			text_value = wxString::Format(_T("%i"), int(value.value));
+			text_value += "%";
+		}
+		else
+			text_value = wxNumberFormatter::ToString(value.value, 2);
+		ret = text_value;
+		break;
+	}
+	case coPercent:{
+		double val = config.option<ConfigOptionPercent>(opt_key)->value;
+		text_value = wxString::Format(_T("%i"), int(val));
+		ret = text_value;// += "%";
+	}
+		break;
+	case coPercents:
+	case coFloats:{
+		double val = config.opt_float(opt_key, 0/*opt_index*/);
+		ret = val - int(val) == 0 ? 
+			wxString::Format(_T("%i"), int(val)) : 
+			wxNumberFormatter::ToString(val, 2);
+		}
+		break;
+	case coFloat:
+		ret = wxNumberFormatter::ToString(config.opt_float(opt_key), 2);
+		break;
+	case coString:
+		ret = static_cast<wxString>(config.opt_string(opt_key));
+		break;
+	case coStrings:
+		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
+			ret = text_value;
+		else
+			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(0)/*opt_index*/));
+		break;
+	case coBool:
+		ret = config.opt_bool(opt_key);
+		break;
+	case coBools:
+		ret = config.opt_bool(opt_key, 0/*opt_index*/);
+		break;
+	case coInt:
+		ret = config.opt_int(opt_key);
+		break;
+	case coInts:
+		ret = config.opt_int(opt_key, 0/*opt_index*/);
+		break;
+	case coEnum:{
+		if (opt_key.compare("external_fill_pattern") == 0 ||
+			opt_key.compare("fill_pattern") == 0 ||
+			opt_key.compare("external_fill_pattern") == 0 ){
+			ret = static_cast<int>(config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
+		}
+		else if (opt_key.compare("gcode_flavor") == 0 ){
+			ret = static_cast<int>(config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
+		}
+		else if (opt_key.compare("support_material_pattern") == 0){
+			ret = static_cast<int>(config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value);
+		}
+		else if (opt_key.compare("seam_position") == 0)
+			ret = static_cast<int>(config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value);
+	}
+		break;
+	case coPoints:{
+		const auto &value = *config.option<ConfigOptionPoints>(opt_key);
+		ret = value.values.at(0);
+		}
+		break;
+	case coNone:
+	default:
+		break;
+	}
+	return ret;
 }
 
 } // GUI

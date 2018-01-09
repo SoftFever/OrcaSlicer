@@ -47,7 +47,7 @@ namespace Slic3r { namespace GUI {
 				text_value += "%";
 			}
 			else
-				wxNumberFormatter::ToString(m_opt.default_value->getFloat(), 2);
+				text_value = wxNumberFormatter::ToString(m_opt.default_value->getFloat(), 2);
 			break;
 		}
 		case coPercent:
@@ -310,6 +310,36 @@ void Choice::set_value(const std::string value)  //! Redundant?
 		dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
 	
 	m_disable_change_event = false;
+}
+
+void Choice::set_value(boost::any value)
+{
+	switch (m_opt.type){
+	case coInt:
+	case coFloat:
+	case coPercent:
+	case coStrings:{
+		wxString text_value = boost::any_cast<wxString>(value);
+		auto idx = 0;
+		for (auto el : m_opt.enum_values)
+		{
+			if (el.compare(text_value) == 0)
+				break;
+			++idx;
+		}
+		if (m_opt.type == coPercent) text_value += "%";
+		idx == m_opt.enum_values.size() ?
+			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
+			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+		break;
+	}
+	case coEnum:{
+		dynamic_cast<wxComboBox*>(window)->SetSelection(boost::any_cast<int>(value));
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 //! it's needed for _update_serial_ports()

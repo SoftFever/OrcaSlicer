@@ -162,6 +162,10 @@ public:
 	}
 
 	void		on_change_OG(t_config_option_key opt_id, boost::any value) override;
+	void		reload_config();
+	boost::any	config_value(std::string opt_key, int opt_index, bool deserialize);
+	// return option value from config 
+	boost::any	get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index = -1);
 };
 
 }}

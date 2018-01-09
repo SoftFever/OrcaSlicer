@@ -201,8 +201,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 		case coFloat:
 		{
 			double& val = config.opt_float(opt_key);
-			std::string str = boost::any_cast<std::string>(value);
-			val = boost::lexical_cast<double>(str);
+			val = boost::any_cast<double>(value);
 			break;
 		}
 			//		case coPercents:

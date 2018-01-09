@@ -105,7 +105,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	// Possible %params keys: no_controller
 	build();
 	rebuild_page_tree();
-//	_update();
+	update();
 }
 
 PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
@@ -186,9 +186,17 @@ void Tab::load_config(DynamicPrintConfig config)
 	if (modified) {
 		update_dirty();
 		//# Initialize UI components with the config values.
-//		_reload_config();
+		reload_config();
 		update();
 	}
+}
+
+// Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
+void Tab::reload_config(){
+	Freeze();
+	for (auto page : m_pages)
+		page->reload_config();
+	Thaw();
 }
 
 void Tab::load_key_value(std::string opt_key, std::vector<std::string> value)

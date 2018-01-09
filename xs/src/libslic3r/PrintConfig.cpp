@@ -999,7 +999,8 @@ PrintConfigDef::PrintConfigDef()
     def->gui_flags = "serialized";
     def->multiline = true;
     def->full_width = true;
-    def->height = 60;
+	def->height = 60;
+	def->default_value = new ConfigOptionStrings{ "" };
 
     def = this->add("printer_notes", coString);
     def->label = "Printer notes";

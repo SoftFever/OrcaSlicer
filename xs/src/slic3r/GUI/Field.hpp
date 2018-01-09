@@ -114,7 +114,7 @@ public:
         dynamic_cast<wxTextCtrl*>(window)->SetValue(wxString(value));
     }
     virtual void set_value(boost::any value) {
-        dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
+		dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
     }
 
 	boost::any get_value() override { return boost::any(dynamic_cast<wxTextCtrl*>(window)->GetValue()); }
@@ -166,7 +166,7 @@ public:
 		dynamic_cast<wxSpinCtrl*>(window)->SetValue(value);
 	}
 	void			set_value(boost::any value) {
-		dynamic_cast<wxSpinCtrl*>(window)->SetValue(boost::any_cast<std::string>(value));
+		dynamic_cast<wxSpinCtrl*>(window)->SetValue(boost::any_cast<int>(value));
 	}
 	boost::any		get_value() override {
 		return boost::any(dynamic_cast<wxSpinCtrl*>(window)->GetValue());
@@ -189,9 +189,7 @@ public:
 
 	void			set_selection();
 	void			set_value(const std::string value);
-	void			set_value(boost::any value) {
-		dynamic_cast<wxComboBox*>(window)->SetValue(boost::any_cast<std::string>(value));
-	}
+	void			set_value(boost::any value);
 	void			set_values(const std::vector<std::string> values);
 	boost::any		get_value() override	{
 		return boost::any(dynamic_cast<wxComboBox*>(window)->GetValue());
