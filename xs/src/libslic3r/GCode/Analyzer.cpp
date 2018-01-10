@@ -1181,6 +1181,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
         if ((data != move.data) || (data.feedrate != move.data.feedrate) || (z != move.start_position.z) || (position != move.start_position))
         {
             // store current polyline
+            polyline.remove_duplicate_points();
             Helper::store_polyline(polyline, data, z, print);
 
             // reset current polyline
@@ -1206,6 +1207,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
     }
 
     // store last polyline
+    polyline.remove_duplicate_points();
     Helper::store_polyline(polyline, data, z, print);
 
     // updates preview ranges data
@@ -1244,6 +1246,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
         if ((type != move_type) || (direction != move_direction) || (position != move.start_position))
         {
             // store current polyline
+            polyline.remove_duplicate_points();
             Helper::store_polyline(polyline, type, direction, print);
 
             // reset current polyline
@@ -1263,6 +1266,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
     }
 
     // store last polyline
+    polyline.remove_duplicate_points();
     Helper::store_polyline(polyline, type, direction, print);
 }
 

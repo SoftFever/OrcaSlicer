@@ -658,11 +658,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         Vectorf3 n_right;
         Vectorf3 unit_positive_z(0.0, 0.0, 1.0);
 
-//        float dot_z = dot(unit_v, unit_positive_z);
-//        bool is_vertical = ::fabs(dot_z) > 0.99999;
-
         if ((line.a.x == line.b.x) && (line.a.y == line.b.y))
-//        if (is_vertical)
         {
             // vertical segment
             n_right = (line.a.z < line.b.z) ? Vectorf3(-1.0, 0.0, 0.0) : Vectorf3(1.0, 0.0, 0.0);
@@ -955,12 +951,21 @@ static void thick_lines_to_verts(const Lines3& lines,
     thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, volume.indexed_vertex_array);
 }
 
-static void point_to_verts(const Point3& point,
+static void thick_point_to_verts(const Point3& point,
     double width,
     double height,
     GLVolume& volume)
 {
     point_to_indexed_vertex_array(point, width, height, volume.indexed_vertex_array);
+}
+
+// Fill in the qverts and tverts with quads and triangles for the extrusion_path.
+static inline void extrusionentity_to_verts(const ExtrusionPath &extrusion_path, float print_z, GLVolume &volume)
+{
+    Lines               lines = extrusion_path.polyline.lines();
+    std::vector<double> widths(lines.size(), extrusion_path.width);
+    std::vector<double> heights(lines.size(), extrusion_path.height);
+    thick_lines_to_verts(lines, widths, heights, false, print_z, volume);
 }
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
@@ -1050,22 +1055,17 @@ static void extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity, fl
 
 //############################################################################################################
 #if ENRICO_GCODE_PREVIEW
-static void polyline3_to_verts(const Polyline3& polyline, double width, double height, const Point& copy, GLVolume& volume)
+static void polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume)
 {
-    Polyline3 p = polyline;
-    p.remove_duplicate_points();
-    p.translate(copy);
     Lines3 lines = polyline.lines();
     std::vector<double> widths(lines.size(), width);
     std::vector<double> heights(lines.size(), height);
     thick_lines_to_verts(lines, widths, heights, false, volume);
 }
 
-static void point3_to_verts(const Point3& point, double width, double height, const Point& copy, GLVolume& volume)
+static void point3_to_verts(const Point3& point, double width, double height, GLVolume& volume)
 {
-    Point3 p = point;
-    p.translate(copy);
-    point_to_verts(p, width, height, volume);
+    thick_point_to_verts(point, width, height, volume);
 }
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
@@ -1513,58 +1513,92 @@ void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollectio
         }
     };
 
-    Point origin(0, 0);
-    for (const GCodeAnalyzer::PreviewData::Extrusion::Layer& layer : print.gcode_preview.extrusion.layers)
+    // temporary structure to contain data needed for parallelization
+    struct Ctxt
     {
-        float filter = FLT_MAX;
-        GLVolume* volume = nullptr;
+        const Print* print;
+        const GCodeAnalyzer::PreviewData::Extrusion::LayersList* layers;
+    } ctxt;
 
-        for (const ExtrusionPath& path : layer.paths)
-        {
-            if (print.gcode_preview.extrusion.is_role_flag_set(path.role()))
-            {
-                float path_filter = PathHelper::path_filter(print.gcode_preview.extrusion.view_type, path);
-                if (filter == path_filter)
-                {
-                    // adds path to current volume
-                    if (volume != nullptr)
-                        extrusionentity_to_verts(path, layer.z, origin, *volume);
-                }
-                else
-                {
-                    if (volume != nullptr)
-                    {
-                        // finalizes current volume
-                        volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-                        volume->indexed_vertex_array.finalize_geometry(use_VBOs);
-                        volume = nullptr;
-                    }
+    // fills data in temporary variable
+    ctxt.print = &print;
+    ctxt.layers = &print.gcode_preview.extrusion.layers;
 
-                    // adds new volume
-                    volumes.volumes.emplace_back(new GLVolume(PathHelper::path_color(print.gcode_preview, path).rgba));
-                    volume = volumes.volumes.back();
-                    if (volume != nullptr)
-                    {
-                        volume->print_zs.push_back(layer.z);
-                        volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
-                        volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
-
-                        // adds path to current volume
-                        extrusionentity_to_verts(path, layer.z, origin, *volume);
-                    }
-
-                    // updates current filter
-                    filter = path_filter;
-                }
-            }
-        }
-
+    // lambda for creating new volumes in a thread-safe way
+    tbb::spin_mutex new_volume_mutex;
+    auto new_volume = [&volumes, &new_volume_mutex](const float* color) -> GLVolume*
+    {
+        // allocate a new volume
+        GLVolume* volume = new GLVolume(color);
         if (volume != nullptr)
         {
-            // finalizes last volume on layer
-            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+            // adds the new volume to the collection
+            new_volume_mutex.lock();
+            volumes.volumes.emplace_back(volume);
+            new_volume_mutex.unlock();
         }
+        return volume;
+    };
+
+    size_t initial_volumes_count = volumes.volumes.size();
+
+    // generates volumes using parallelization
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, ctxt.layers->size()), [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range)
+    {
+        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer)
+        {
+            const GCodeAnalyzer::PreviewData::Extrusion::Layer& layer = ctxt.layers->operator[](idx_layer);
+            float filter = FLT_MAX;
+            GLVolume* volume = nullptr;
+
+            for (const ExtrusionPath& path : layer.paths)
+            {
+                if (ctxt.print->gcode_preview.extrusion.is_role_flag_set(path.role()))
+                {
+                    float path_filter = PathHelper::path_filter(ctxt.print->gcode_preview.extrusion.view_type, path);
+                    if (filter == path_filter)
+                    {
+                        // adds path to current volume
+                        if (volume != nullptr)
+                            extrusionentity_to_verts(path, layer.z, *volume);
+                    }
+                    else
+                    {
+                        if (volume != nullptr)
+                        {
+                            // finalizes current volume
+                            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+                            volume = nullptr;
+                        }
+
+                        // adds new volume
+                        volume = new_volume(PathHelper::path_color(ctxt.print->gcode_preview, path).rgba);
+                        if (volume != nullptr)
+                        {
+                            volume->print_zs.push_back(layer.z);
+                            volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
+                            volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
+
+                            // adds path to current volume
+                            extrusionentity_to_verts(path, layer.z, *volume);
+                        }
+
+                        // updates current filter
+                        filter = path_filter;
+                    }
+                }
+            }
+
+            if (volume != nullptr)
+                // finalizes last volume on layer
+                volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+        }
+    });
+
+    // sends geometry to gpu
+    for (size_t i = initial_volumes_count; i < volumes.volumes.size(); ++i)
+    {
+        volumes.volumes[i]->indexed_vertex_array.finalize_geometry(use_VBOs);
     }
 }
 
@@ -1587,36 +1621,71 @@ void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& 
 
     if (print.gcode_preview.travel.is_visible)
     {
-        Point origin(0, 0);
-        for (unsigned int i = (unsigned int)GCodeAnalyzer::PreviewData::Travel::Move; i < (unsigned int)GCodeAnalyzer::PreviewData::Travel::Num_Types; ++i)
+        size_t initial_volumes_count = volumes.volumes.size();
+        unsigned int types_count = (unsigned int)GCodeAnalyzer::PreviewData::Travel::Num_Types;
+
+        // creates a new volume for each travel type
+        for (unsigned int i = 0; i < types_count; ++i)
         {
-            GCodeAnalyzer::PreviewData::Travel::EType type = (GCodeAnalyzer::PreviewData::Travel::EType)i;
-            if (std::count_if(print.gcode_preview.travel.polylines.begin(), print.gcode_preview.travel.polylines.end(), TypeMatch(type)) > 0)
+            GLVolume* volume = new GLVolume(print.gcode_preview.travel.type_colors[i].rgba);
+            if (volume != nullptr)
+                volumes.volumes.emplace_back(volume);
+            else
             {
-                volumes.volumes.emplace_back(new GLVolume(print.gcode_preview.travel.type_colors[i].rgba));
-                GLVolume* volume = volumes.volumes.back();
-
-                if (volume != nullptr)
+                // an error occourred - restore to previous state and return
+                std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
+                std::vector<GLVolume*>::iterator end = volumes.volumes.end();
+                for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
                 {
-                    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
-                    {
-                        if (polyline.type == type)
-                        {
-                            const BoundingBox3& bbox = polyline.polyline.bounding_box();
-                            coordf_t print_z = unscale(bbox.max.z);
-                            volume->print_zs.push_back(print_z);
-                            volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
-                            volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
-
-                            // adds polyline to volume
-                            polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, origin, *volume);
-                        }
-                    }
-
-                    // finalizes volume
-                    volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-                    volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+                    GLVolume* volume = *it;
+                    delete volume;
                 }
+                volumes.volumes.erase(begin, end);
+                return;
+            }
+        }
+
+        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+        {
+            unsigned int type = (unsigned int)polyline.type;
+            if (type < types_count)
+            {
+                const BoundingBox3& bbox = polyline.polyline.bounding_box();
+                coordf_t print_z = unscale(bbox.max.z);
+
+                // selects volume from polyline type
+                GLVolume* volume = volumes.volumes[initial_volumes_count + type];
+                volume->print_zs.push_back(print_z);
+                volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
+                volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
+
+                // adds polyline to volume
+                polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *volume);
+            }
+        }
+
+        // removes empty volumes
+        std::vector<GLVolume*>::iterator it = volumes.volumes.begin() + initial_volumes_count;
+        while (it != volumes.volumes.end())
+        {
+            GLVolume* volume = *it;
+            if (volume->print_zs.empty())
+            {
+                delete volume;
+                it = volumes.volumes.erase(it);
+            }
+            else
+                ++it;
+        }
+
+        // finalize volumes and sends geometry to gpu
+        if (volumes.volumes.size() > initial_volumes_count)
+        {
+            for (size_t i = initial_volumes_count; i < volumes.volumes.size(); ++i)
+            {
+                GLVolume* volume = volumes.volumes[i];
+                volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+                volume->indexed_vertex_array.finalize_geometry(use_VBOs);
             }
         }
     }
@@ -1626,12 +1695,11 @@ void _3DScene::_load_gcode_retractions(const Print& print, GLVolumeCollection& v
 {
     if (print.gcode_preview.retraction.is_visible)
     {
-        volumes.volumes.emplace_back(new GLVolume(print.gcode_preview.retraction.color.rgba));
-        GLVolume* volume = volumes.volumes.back();
-
+        GLVolume* volume = new GLVolume(print.gcode_preview.retraction.color.rgba);
         if (volume != nullptr)
         {
-            Point origin(0, 0);
+            volumes.volumes.emplace_back(volume);
+
             for (const GCodeAnalyzer::PreviewData::Retraction::Position& position : print.gcode_preview.retraction.positions)
             {
                 coordf_t print_z = unscale(position.position.z);
@@ -1640,7 +1708,7 @@ void _3DScene::_load_gcode_retractions(const Print& print, GLVolumeCollection& v
                 volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
 
                 // adds point to volume
-                point3_to_verts(position.position, position.width, position.height, origin, *volume);
+                point3_to_verts(position.position, position.width, position.height, *volume);
             }
 
             // finalizes volume
@@ -1654,12 +1722,11 @@ void _3DScene::_load_gcode_unretractions(const Print& print, GLVolumeCollection&
 {
     if (print.gcode_preview.unretraction.is_visible)
     {
-        volumes.volumes.emplace_back(new GLVolume(print.gcode_preview.unretraction.color.rgba));
-        GLVolume* volume = volumes.volumes.back();
-
+        GLVolume* volume = new GLVolume(print.gcode_preview.unretraction.color.rgba);
         if (volume != nullptr)
         {
-            Point origin(0, 0);
+            volumes.volumes.emplace_back(volume);
+
             for (const GCodeAnalyzer::PreviewData::Retraction::Position& position : print.gcode_preview.unretraction.positions)
             {
                 coordf_t print_z = unscale(position.position.z);
@@ -1668,7 +1735,7 @@ void _3DScene::_load_gcode_unretractions(const Print& print, GLVolumeCollection&
                 volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
 
                 // adds point to volume
-                point3_to_verts(position.position, position.width, position.height, origin, *volume);
+                point3_to_verts(position.position, position.width, position.height, *volume);
             }
 
             // finalizes volume
