@@ -543,11 +543,16 @@ void GCodeAnalyzer::PreviewData::Extrusion::set_default()
 
 bool GCodeAnalyzer::PreviewData::Extrusion::is_role_flag_set(ExtrusionRole role) const
 {
+    return is_role_flag_set(role_flags, role);
+}
+
+bool GCodeAnalyzer::PreviewData::Extrusion::is_role_flag_set(unsigned int flags, ExtrusionRole role)
+{
     if ((role < erPerimeter) || (erSupportMaterialInterface < role))
         return false;
 
     unsigned int flag = (unsigned int)::exp2((double)(role - erPerimeter));
-    return (role_flags & flag) == flag;
+    return (flags & flag) == flag;
 }
 
 const float GCodeAnalyzer::PreviewData::Travel::Default_Width = 0.075f;

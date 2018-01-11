@@ -330,6 +330,8 @@ public:
 
             void set_default();
             bool is_role_flag_set(ExtrusionRole role) const;
+
+            static bool is_role_flag_set(unsigned int flags, ExtrusionRole role);
         };
 
         struct Travel

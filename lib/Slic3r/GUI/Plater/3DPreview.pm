@@ -209,35 +209,33 @@ sub new {
     });
     EVT_CHECKLISTBOX($self, $checklist_features, sub {
         my $flags = 0;
-        for (my $i = 0; $i < $checklist_features->GetCount(); $i += 1)
-        {
-          if ($checklist_features->IsChecked($i))
-          {
+        for (my $i = 0; $i < $checklist_features->GetCount(); $i += 1) {
+          if ($checklist_features->IsChecked($i)) {
             $flags += 2 ** $i;
           }
         }
         
         $self->print->set_gcode_preview_extrusion_flags($flags);
         $self->auto_zoom(0);
-        $self->reload_print;
+        $self->refresh_print;
         $self->auto_zoom(1);
     });    
     EVT_CHECKBOX($self, $checkbox_travel, sub {
         $self->print->set_gcode_preview_travel_visible($checkbox_travel->IsChecked());
         $self->auto_zoom(0);
-        $self->reload_print;
+        $self->refresh_print;
         $self->auto_zoom(1);
     });    
     EVT_CHECKBOX($self, $checkbox_retractions, sub {
         $self->print->set_gcode_preview_retractions_visible($checkbox_retractions->IsChecked());
         $self->auto_zoom(0);
-        $self->reload_print;
+        $self->refresh_print;
         $self->auto_zoom(1);
     });
     EVT_CHECKBOX($self, $checkbox_unretractions, sub {
         $self->print->set_gcode_preview_unretractions_visible($checkbox_unretractions->IsChecked());
         $self->auto_zoom(0);
-        $self->reload_print;
+        $self->refresh_print;
         $self->auto_zoom(1);
     });
 # ===================== ENRICO_GCODE_PREVIEW ==================================================    
@@ -260,12 +258,28 @@ sub reload_print {
     $self->_loaded(0);
 
     if (! $self->IsShown && ! $force) {
-        $self->{reload_delayed} = 1;
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+#        $self->{reload_delayed} = 1;
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         return;
     }
 
     $self->load_print;
 }
+
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+sub refresh_print {
+    my ($self) = @_;
+
+    $self->_loaded(0);
+    
+    if (! $self->IsShown) {
+        return;
+    }
+
+    $self->load_print;
+}
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
 sub load_print {
     my ($self) = @_;
@@ -431,8 +445,10 @@ sub set_number_extruders {
 
 # Called by the Platter wxNotebook when this page is activated.
 sub OnActivate {
-    my ($self) = @_;
-    $self->reload_print(1) if ($self->{reload_delayed});
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+#    my ($self) = @_;
+#    $self->reload_print(1) if ($self->{reload_delayed});
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 }
 
 1;

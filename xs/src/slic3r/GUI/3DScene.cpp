@@ -8,11 +8,13 @@
 #include "../../libslic3r/Geometry.hpp"
 #include "../../libslic3r/Print.hpp"
 #include "../../libslic3r/Slicing.hpp"
-//############################################################################################################
 #if ENRICO_GCODE_PREVIEW
 #include "GCode/Analyzer.hpp"
 #endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#include "enrico/wintimer.h"
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -206,6 +208,13 @@ void GLVolume::set_range(double min_z, double max_z)
 
 void GLVolume::render() const
 {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENRICO_GCODE_PREVIEW
+    if (!is_active)
+        return;
+#endif // ENRICO_GCODE_PREVIEW
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
     glCullFace(GL_BACK);
     glPushMatrix();
     glTranslated(this->origin.x, this->origin.y, this->origin.z);
@@ -336,7 +345,13 @@ void GLVolumeCollection::render_VBOs() const
     GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
 
     for (GLVolume *volume : this->volumes) {
-        if (! volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENRICO_GCODE_PREVIEW
+        if (!volume->is_active)
+            continue;
+#endif // ENRICO_GCODE_PREVIEW
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        if (!volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
             continue;
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
         GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
@@ -374,6 +389,12 @@ void GLVolumeCollection::render_legacy() const
  
     for (GLVolume *volume : this->volumes) {
         assert(! volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENRICO_GCODE_PREVIEW
+        if (!volume->is_active)
+            continue;
+#endif // ENRICO_GCODE_PREVIEW
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
         GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
         if (n_triangles + n_quads == 0)
@@ -1067,6 +1088,20 @@ static void point3_to_verts(const Point3& point, double width, double height, GL
 {
     thick_point_to_verts(point, width, height, volume);
 }
+
+_3DScene::GCodePreviewData::FirstVolume::FirstVolume(_3DScene::GCodePreviewData::EType type, unsigned int flag, unsigned int id)
+    : type(type)
+    , flag(flag)
+    , id(id)
+{
+}
+
+void _3DScene::GCodePreviewData::reset()
+{
+    first_volumes.clear();
+}
+
+_3DScene::GCodePreviewData _3DScene::s_gcode_preview_data;
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 
@@ -1106,10 +1141,30 @@ static inline std::vector<float> parse_colors(const std::vector<std::string> &sc
 #if ENRICO_GCODE_PREVIEW
 void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs)
 {
-    _load_gcode_extrusion_paths(*print, *volumes, use_VBOs);
-    _load_gcode_travel_paths(*print, *volumes, use_VBOs);
-    _load_gcode_retractions(*print, *volumes, use_VBOs);
-    _load_gcode_unretractions(*print, *volumes, use_VBOs);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    WinTimer timer;
+    timer.Start();
+
+    std::cout << "#############################################################################" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    if (volumes->empty())
+    {
+        s_gcode_preview_data.reset();
+
+        _load_gcode_extrusion_paths(*print, *volumes, use_VBOs);
+        _load_gcode_travel_paths(*print, *volumes, use_VBOs);
+        _load_gcode_retractions(*print, *volumes, use_VBOs);
+        _load_gcode_unretractions(*print, *volumes, use_VBOs);
+    }
+
+    _update_gcode_volumes_visibility(*print, *volumes);
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "VOLUMES COUNT = " << volumes->volumes.size() << std::endl;
+    std::cout << "FIRST VOLUMES COUNT = " << s_gcode_preview_data.first_volumes.size() << std::endl;
+    std::cout << "load_gcode_preview() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
@@ -1475,8 +1530,13 @@ void _3DScene::_load_wipe_tower_toolpaths(
 #if ENRICO_GCODE_PREVIEW
 void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
 {
-    // helper functions to extract data from path in dependence of the selected extrusion view type
-    struct PathHelper
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    WinTimer timer;
+    timer.Start();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    // helper functions to select data in dependence of the extrusion view type
+    struct Helper
     {
         static float path_filter(GCodeAnalyzer::PreviewData::Extrusion::EViewType type, const ExtrusionPath& path)
         {
@@ -1495,144 +1555,88 @@ void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollectio
             return 0.0f;
         }
 
-        static const GCodeAnalyzer::PreviewData::Color& path_color(const GCodeAnalyzer::PreviewData& data, const ExtrusionPath& path)
+        static const GCodeAnalyzer::PreviewData::Color& path_color(const GCodeAnalyzer::PreviewData& data, float value)
         {
             switch (data.extrusion.view_type)
             {
             case GCodeAnalyzer::PreviewData::Extrusion::FeatureType:
-                return data.get_extrusion_role_color(path.role());
+                return data.get_extrusion_role_color((ExtrusionRole)(int)value);
             case GCodeAnalyzer::PreviewData::Extrusion::Height:
-                return data.get_extrusion_height_color(path.height);
+                return data.get_extrusion_height_color(value);
             case GCodeAnalyzer::PreviewData::Extrusion::Width:
-                return data.get_extrusion_width_color(path.width);
+                return data.get_extrusion_width_color(value);
             case GCodeAnalyzer::PreviewData::Extrusion::Feedrate:
-                return data.get_extrusion_feedrate_color(path.feedrate);
+                return data.get_extrusion_feedrate_color(value);
             }
 
             return GCodeAnalyzer::PreviewData::Color::Dummy;
         }
     };
 
-    // temporary structure to contain data needed for parallelization
-    struct Ctxt
+    // Helper structure for filters
+    struct Filter
     {
-        const Print* print;
-        const GCodeAnalyzer::PreviewData::Extrusion::LayersList* layers;
-    } ctxt;
+        float value;
+        ExtrusionRole role;
+        GLVolume* volume;
 
-    // fills data in temporary variable
-    ctxt.print = &print;
-    ctxt.layers = &print.gcode_preview.extrusion.layers;
-
-    // lambda for creating new volumes in a thread-safe way
-    tbb::spin_mutex new_volume_mutex;
-    auto new_volume = [&volumes, &new_volume_mutex](const float* color) -> GLVolume*
-    {
-        // allocate a new volume
-        GLVolume* volume = new GLVolume(color);
-        if (volume != nullptr)
+        Filter(float value, ExtrusionRole role)
+            : value(value)
+            , role(role)
+            , volume(nullptr)
         {
-            // adds the new volume to the collection
-            new_volume_mutex.lock();
-            volumes.volumes.emplace_back(volume);
-            new_volume_mutex.unlock();
         }
-        return volume;
+
+        bool operator == (const Filter& other) const
+        {
+            if (value != other.value)
+                return false;
+
+            if (role != other.role)
+                return false;
+
+            return true;
+        }
     };
+
+    typedef std::vector<Filter> FiltersList;
 
     size_t initial_volumes_count = volumes.volumes.size();
 
-    // generates volumes using parallelization
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, ctxt.layers->size()), [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range)
+    // detects filters
+    FiltersList filters;
+    for (const GCodeAnalyzer::PreviewData::Extrusion::Layer& layer : print.gcode_preview.extrusion.layers)
     {
-        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer)
+        for (const ExtrusionPath& path : layer.paths)
         {
-            const GCodeAnalyzer::PreviewData::Extrusion::Layer& layer = ctxt.layers->operator[](idx_layer);
-            float filter = FLT_MAX;
-            GLVolume* volume = nullptr;
-
-            for (const ExtrusionPath& path : layer.paths)
-            {
-                if (ctxt.print->gcode_preview.extrusion.is_role_flag_set(path.role()))
-                {
-                    float path_filter = PathHelper::path_filter(ctxt.print->gcode_preview.extrusion.view_type, path);
-                    if (filter == path_filter)
-                    {
-                        // adds path to current volume
-                        if (volume != nullptr)
-                            extrusionentity_to_verts(path, layer.z, *volume);
-                    }
-                    else
-                    {
-                        if (volume != nullptr)
-                        {
-                            // finalizes current volume
-                            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-                            volume = nullptr;
-                        }
-
-                        // adds new volume
-                        volume = new_volume(PathHelper::path_color(ctxt.print->gcode_preview, path).rgba);
-                        if (volume != nullptr)
-                        {
-                            volume->print_zs.push_back(layer.z);
-                            volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
-                            volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
-
-                            // adds path to current volume
-                            extrusionentity_to_verts(path, layer.z, *volume);
-                        }
-
-                        // updates current filter
-                        filter = path_filter;
-                    }
-                }
-            }
-
-            if (volume != nullptr)
-                // finalizes last volume on layer
-                volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+            ExtrusionRole role = path.role();
+            float path_filter = Helper::path_filter(print.gcode_preview.extrusion.view_type, path);
+            if (std::find(filters.begin(), filters.end(), Filter(path_filter, role)) == filters.end())
+                filters.emplace_back(path_filter, role);
         }
-    });
-
-    // sends geometry to gpu
-    for (size_t i = initial_volumes_count; i < volumes.volumes.size(); ++i)
-    {
-        volumes.volumes[i]->indexed_vertex_array.finalize_geometry(use_VBOs);
     }
-}
 
-void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
-{
-    struct TypeMatch
+    // nothing to render, return
+    if (filters.empty())
+        return;
+
+    // creates a new volume for each filter
+    for (Filter& filter : filters)
     {
-        GCodeAnalyzer::PreviewData::Travel::EType type;
+        s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Extrusion, (unsigned int)filter.role, (unsigned int)volumes.volumes.size());
 
-        TypeMatch(GCodeAnalyzer::PreviewData::Travel::EType type)
-            : type(type)
+        GLVolume* volume = new GLVolume(Helper::path_color(print.gcode_preview, filter.value).rgba);
+        if (volume != nullptr)
         {
+            filter.volume = volume;
+            volumes.volumes.emplace_back(volume);
         }
-
-        bool operator () (const GCodeAnalyzer::PreviewData::Travel::Polyline& p) const
+        else
         {
-            return p.type == type;
-        }
-    };
-
-    if (print.gcode_preview.travel.is_visible)
-    {
-        size_t initial_volumes_count = volumes.volumes.size();
-        unsigned int types_count = (unsigned int)GCodeAnalyzer::PreviewData::Travel::Num_Types;
-
-        // creates a new volume for each travel type
-        for (unsigned int i = 0; i < types_count; ++i)
-        {
-            GLVolume* volume = new GLVolume(print.gcode_preview.travel.type_colors[i].rgba);
-            if (volume != nullptr)
-                volumes.volumes.emplace_back(volume);
-            else
+            // an error occourred - restore to previous state and return
+            s_gcode_preview_data.first_volumes.pop_back();
+            if (initial_volumes_count != volumes.volumes.size())
             {
-                // an error occourred - restore to previous state and return
                 std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
                 std::vector<GLVolume*>::iterator end = volumes.volumes.end();
                 for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
@@ -1644,103 +1648,255 @@ void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& 
                 return;
             }
         }
+    }
 
-        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    // populates volumes
+    for (const GCodeAnalyzer::PreviewData::Extrusion::Layer& layer : print.gcode_preview.extrusion.layers)
+    {
+        for (const ExtrusionPath& path : layer.paths)
         {
-            unsigned int type = (unsigned int)polyline.type;
-            if (type < types_count)
+            float path_filter = Helper::path_filter(print.gcode_preview.extrusion.view_type, path);
+            FiltersList::iterator filter = std::find(filters.begin(), filters.end(), Filter(path_filter, path.role()));
+            if (filter != filters.end())
             {
-                const BoundingBox3& bbox = polyline.polyline.bounding_box();
-                coordf_t print_z = unscale(bbox.max.z);
+                filter->volume->print_zs.push_back(layer.z);
+                filter->volume->offsets.push_back(filter->volume->indexed_vertex_array.quad_indices.size());
+                filter->volume->offsets.push_back(filter->volume->indexed_vertex_array.triangle_indices.size());
 
-                // selects volume from polyline type
-                GLVolume* volume = volumes.volumes[initial_volumes_count + type];
-                volume->print_zs.push_back(print_z);
-                volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
-                volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
-
-                // adds polyline to volume
-                polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *volume);
-            }
-        }
-
-        // removes empty volumes
-        std::vector<GLVolume*>::iterator it = volumes.volumes.begin() + initial_volumes_count;
-        while (it != volumes.volumes.end())
-        {
-            GLVolume* volume = *it;
-            if (volume->print_zs.empty())
-            {
-                delete volume;
-                it = volumes.volumes.erase(it);
-            }
-            else
-                ++it;
-        }
-
-        // finalize volumes and sends geometry to gpu
-        if (volumes.volumes.size() > initial_volumes_count)
-        {
-            for (size_t i = initial_volumes_count; i < volumes.volumes.size(); ++i)
-            {
-                GLVolume* volume = volumes.volumes[i];
-                volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-                volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+                extrusionentity_to_verts(path, layer.z, *filter->volume);
             }
         }
     }
+
+    // finalize volumes and sends geometry to gpu
+    if (volumes.volumes.size() > initial_volumes_count)
+    {
+        for (size_t i = initial_volumes_count; i < volumes.volumes.size(); ++i)
+        {
+            GLVolume* volume = volumes.volumes[i];
+            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+        }
+    }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "_load_gcode_extrusion_paths() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+}
+
+void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
+{
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    WinTimer timer;
+    timer.Start();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    // Helper structure for types
+    struct Type
+    {
+        GCodeAnalyzer::PreviewData::Travel::EType value;
+        GLVolume* volume;
+
+        explicit Type(GCodeAnalyzer::PreviewData::Travel::EType value)
+            : value(value)
+            , volume(nullptr)
+        {
+        }
+
+        bool operator == (const Type& other) const
+        {
+            return value == other.value;
+        }
+    };
+
+    typedef std::vector<Type> TypesList;
+
+    size_t initial_volumes_count = volumes.volumes.size();
+    s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Travel, 0, (unsigned int)initial_volumes_count);
+
+    // detects types
+    TypesList types;
+    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    {
+        if (std::find(types.begin(), types.end(), Type(polyline.type)) == types.end())
+            types.emplace_back(polyline.type);
+    }
+
+    // nothing to render, return
+    if (types.empty())
+        return;
+
+    // creates a new volume for each type
+    for (Type& type : types)
+    {
+        GLVolume* volume = new GLVolume(print.gcode_preview.travel.type_colors[type.value].rgba);
+        if (volume != nullptr)
+        {
+            type.volume = volume;
+            volumes.volumes.emplace_back(volume);
+        }
+        else
+        {
+            // an error occourred - restore to previous state and return
+            if (initial_volumes_count != volumes.volumes.size())
+            {
+                std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
+                std::vector<GLVolume*>::iterator end = volumes.volumes.end();
+                for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
+                {
+                    GLVolume* volume = *it;
+                    delete volume;
+                }
+                volumes.volumes.erase(begin, end);
+                return;
+            }
+        }
+    }
+
+    // populates volumes
+    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    {
+        TypesList::iterator type = std::find(types.begin(), types.end(), Type(polyline.type));
+        if (type != types.end())
+        {
+            type->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+            type->volume->offsets.push_back(type->volume->indexed_vertex_array.quad_indices.size());
+            type->volume->offsets.push_back(type->volume->indexed_vertex_array.triangle_indices.size());
+
+            polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *type->volume);
+        }
+    }
+
+    // finalize volumes and sends geometry to gpu
+    if (volumes.volumes.size() > initial_volumes_count)
+    {
+        for (size_t i = initial_volumes_count; i < volumes.volumes.size(); ++i)
+        {
+            GLVolume* volume = volumes.volumes[i];
+            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+        }
+    }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "_load_gcode_travel_paths() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void _3DScene::_load_gcode_retractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
 {
-    if (print.gcode_preview.retraction.is_visible)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    WinTimer timer;
+    timer.Start();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Retraction, 0, (unsigned int)volumes.volumes.size());
+
+    // nothing to render, return
+    if (print.gcode_preview.retraction.positions.empty())
+        return;
+
+    GLVolume* volume = new GLVolume(print.gcode_preview.retraction.color.rgba);
+    if (volume != nullptr)
     {
-        GLVolume* volume = new GLVolume(print.gcode_preview.retraction.color.rgba);
-        if (volume != nullptr)
+        volumes.volumes.emplace_back(volume);
+
+        for (const GCodeAnalyzer::PreviewData::Retraction::Position& position : print.gcode_preview.retraction.positions)
         {
-            volumes.volumes.emplace_back(volume);
+            volume->print_zs.push_back(unscale(position.position.z));
+            volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
+            volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
 
-            for (const GCodeAnalyzer::PreviewData::Retraction::Position& position : print.gcode_preview.retraction.positions)
-            {
-                coordf_t print_z = unscale(position.position.z);
-                volume->print_zs.push_back(print_z);
-                volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
-                volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
-
-                // adds point to volume
-                point3_to_verts(position.position, position.width, position.height, *volume);
-            }
-
-            // finalizes volume
-            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+            point3_to_verts(position.position, position.width, position.height, *volume);
         }
+
+        // finalize volumes and sends geometry to gpu
+        volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+        volume->indexed_vertex_array.finalize_geometry(use_VBOs);
     }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "_load_gcode_retractions() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void _3DScene::_load_gcode_unretractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
 {
-    if (print.gcode_preview.unretraction.is_visible)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    WinTimer timer;
+    timer.Start();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Unretraction, 0, (unsigned int)volumes.volumes.size());
+
+    // nothing to render, return
+    if (print.gcode_preview.unretraction.positions.empty())
+        return;
+
+    GLVolume* volume = new GLVolume(print.gcode_preview.unretraction.color.rgba);
+    if (volume != nullptr)
     {
-        GLVolume* volume = new GLVolume(print.gcode_preview.unretraction.color.rgba);
-        if (volume != nullptr)
+        volumes.volumes.emplace_back(volume);
+
+        for (const GCodeAnalyzer::PreviewData::Retraction::Position& position : print.gcode_preview.unretraction.positions)
         {
-            volumes.volumes.emplace_back(volume);
+            volume->print_zs.push_back(unscale(position.position.z));
+            volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
+            volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
 
-            for (const GCodeAnalyzer::PreviewData::Retraction::Position& position : print.gcode_preview.unretraction.positions)
+            point3_to_verts(position.position, position.width, position.height, *volume);
+        }
+
+        // finalize volumes and sends geometry to gpu
+        volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+        volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+    }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "_load_gcode_unretractions() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+}
+
+void _3DScene::_update_gcode_volumes_visibility(const Print& print, GLVolumeCollection& volumes)
+{
+    unsigned int size = (unsigned int)s_gcode_preview_data.first_volumes.size();
+    for (unsigned int i = 0; i < size; ++i)
+    {
+        std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + s_gcode_preview_data.first_volumes[i].id;
+        std::vector<GLVolume*>::iterator end = (i + 1 < size) ? volumes.volumes.begin() + s_gcode_preview_data.first_volumes[i + 1].id : volumes.volumes.end();
+
+        for (std::vector<GLVolume*>::iterator it = begin; it != end; ++it)
+        {
+            GLVolume* volume = *it;
+
+            switch (s_gcode_preview_data.first_volumes[i].type)
             {
-                coordf_t print_z = unscale(position.position.z);
-                volume->print_zs.push_back(print_z);
-                volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
-                volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
-
-                // adds point to volume
-                point3_to_verts(position.position, position.width, position.height, *volume);
+            case GCodePreviewData::Extrusion:
+                {
+                    volume->is_active = print.gcode_preview.extrusion.is_role_flag_set((ExtrusionRole)s_gcode_preview_data.first_volumes[i].flag);
+                    break;
+                }
+            case GCodePreviewData::Travel:
+                {
+                    volume->is_active = print.gcode_preview.travel.is_visible;
+                    break;
+                }
+            case GCodePreviewData::Retraction:
+                {
+                    volume->is_active = print.gcode_preview.retraction.is_visible;
+                    break;
+                }
+            case GCodePreviewData::Unretraction:
+                {
+                    volume->is_active = print.gcode_preview.unretraction.is_visible;
+                    break;
+                }
+            default:
+                {
+                    volume->is_active = false;
+                    break;
+                }
             }
-
-            // finalizes volume
-            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
         }
     }
 }

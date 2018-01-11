@@ -215,6 +215,11 @@ public:
         select_group_id(-1),
         drag_group_id(-1),
         selected(false),
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENRICO_GCODE_PREVIEW
+        is_active(true),
+#endif // ENRICO_GCODE_PREVIEW
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         hover(false),
         tverts_range(0, size_t(-1)),
         qverts_range(0, size_t(-1))
@@ -251,6 +256,12 @@ public:
     int                 drag_group_id;
     // Is this object selected?
     bool                selected;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENRICO_GCODE_PREVIEW
+    // Whether or not this volume is active for rendering
+    bool is_active;
+#endif // ENRICO_GCODE_PREVIEW
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // Boolean: Is mouse over this object?
     bool                hover;
 
@@ -265,6 +276,7 @@ public:
     std::vector<coordf_t>       print_zs;
     // Offset into qverts & tverts, or offsets into indices stored into an OpenGL name_index_buffer.
     std::vector<size_t>         offsets;
+
 
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
@@ -349,6 +361,36 @@ private:
 
 class _3DScene
 {
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+    struct GCodePreviewData
+    {
+        enum EType
+        {
+            Extrusion,
+            Travel,
+            Retraction,
+            Unretraction,
+            Num_Geometry_Types
+        };
+
+        struct FirstVolume
+        {
+            EType type;
+            unsigned int flag;
+            unsigned int id;
+
+            FirstVolume(EType type, unsigned int flag, unsigned int id);
+        };
+
+        std::vector<FirstVolume> first_volumes;
+
+        void reset();
+    };
+
+    static GCodePreviewData s_gcode_preview_data;
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
 public:
     static void _glew_init();
 
@@ -380,10 +422,16 @@ public:
 //############################################################################################################
 #if ENRICO_GCODE_PREVIEW
 private:
+    // generates gcode extrusion paths geometry
     static void _load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    // generates gcode travel paths geometry
     static void _load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    // generates gcode retractions geometry
     static void _load_gcode_retractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    // generates gcode unretractions geometry
     static void _load_gcode_unretractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    // sets gcode geometry visibility according to user selection
+    static void _update_gcode_volumes_visibility(const Print& print, GLVolumeCollection& volumes);
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 };
