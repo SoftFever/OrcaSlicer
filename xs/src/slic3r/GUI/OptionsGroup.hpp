@@ -166,6 +166,7 @@ public:
 	boost::any	config_value(std::string opt_key, int opt_index, bool deserialize);
 	// return option value from config 
 	boost::any	get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index = -1);
+	Field*		get_fieldc(t_config_option_key opt_key, int opt_index);
 };
 
 }}

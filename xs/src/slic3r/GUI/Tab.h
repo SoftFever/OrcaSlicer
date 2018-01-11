@@ -63,10 +63,8 @@ public:
 	wxString	title()	 const { return m_title; }
 	size_t		iconID() const { return m_iconID; }
 	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
-	void		reload_config(){
-		for (auto group: m_optgroups)
-			group->reload_config();
-	}
+	void		reload_config();
+	Field*		get_field(t_config_option_key opt_key, int opt_index = -1) const;
 
 	ConfigOptionsGroupShp new_optgroup(std::string title, int noncommon_label_width = -1);
 };
@@ -144,6 +142,7 @@ public:
 	void			update_dirty();
 	void			load_config(DynamicPrintConfig config);
 	void			reload_config();
+	Field*			get_field(t_config_option_key opt_key, int opt_index = -1) const;
 };
 
 //Slic3r::GUI::Tab::Print;
@@ -153,6 +152,8 @@ public:
 	TabPrint() {}
 	TabPrint(wxNotebook* parent, const char *title) : Tab(parent, title) {}
 	~TabPrint(){}
+
+	bool		m_support_material_overhangs_queried = false;
 
 	void		build() override;
 	void		update() override;

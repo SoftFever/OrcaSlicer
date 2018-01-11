@@ -198,10 +198,10 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 		switch (config.def()->get(opt_key)->type){
 		case coFloatOrPercent:{
 			const auto &val = *config.option<ConfigOptionFloatOrPercent>(opt_key);
-			config.set_key_value(opt_key, new ConfigOptionFloatOrPercent(boost::any_cast</*ConfigOptionFloatOrPercent*/double>(value), val.percent));
+			config.set_key_value(opt_key, new ConfigOptionFloatOrPercent(boost::any_cast<double>(value), val.percent));
 			break;}
 		case coPercent:
-			config.set_key_value(opt_key, new ConfigOptionPercent(boost::any_cast</*ConfigOptionPercent*/double>(value)));
+			config.set_key_value(opt_key, new ConfigOptionPercent(boost::any_cast<double>(value)));
 			break;
 		case coFloat:{
 			double& val = config.opt_float(opt_key);
@@ -231,7 +231,17 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			break;
 		case coInts:
 			break;
-		case coEnum:
+		case coEnum:{
+			if (opt_key.compare("external_fill_pattern") == 0 ||
+				opt_key.compare("fill_pattern") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<InfillPattern>(boost::any_cast<InfillPattern>(value))); 
+			else if (opt_key.compare("gcode_flavor") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<GCodeFlavor>(boost::any_cast<GCodeFlavor>(value))); 
+			else if (opt_key.compare("support_material_pattern") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialPattern>(boost::any_cast<SupportMaterialPattern>(value)));
+			else if (opt_key.compare("seam_position") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<SeamPosition>(boost::any_cast<SeamPosition>(value)));
+			}
 			break;
 		case coPoints:
 			break;

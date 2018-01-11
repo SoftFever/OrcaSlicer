@@ -219,7 +219,7 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 		auto option = m_options.at(opt_id);
 
 		// get value
-		auto field_value = get_value(opt_id);
+//!		auto field_value = get_value(opt_id);
 		if (option.gui_flags.compare("serialized")==0) {
 			if (opt_index != -1){
 				// 		die "Can't set serialized option indexed value" ;
@@ -243,7 +243,7 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 		}
 	}
 
-	OptionsGroup::on_change_OG(opt_id, value);
+	OptionsGroup::on_change_OG(opt_id, value); //!? Why doing this
 }
 
 void ConfigOptionsGroup::reload_config(){
@@ -331,8 +331,7 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		break;
 	case coEnum:{
 		if (opt_key.compare("external_fill_pattern") == 0 ||
-			opt_key.compare("fill_pattern") == 0 ||
-			opt_key.compare("external_fill_pattern") == 0 ){
+			opt_key.compare("fill_pattern") == 0 ){
 			ret = static_cast<int>(config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
 		}
 		else if (opt_key.compare("gcode_flavor") == 0 ){
@@ -355,6 +354,17 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		break;
 	}
 	return ret;
+}
+
+Field* ConfigOptionsGroup::get_fieldc(t_config_option_key opt_key, int opt_index){
+	std::string opt_id = "";
+	for (std::map< std::string, std::pair<std::string, int> >::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
+		if (opt_key == m_opt_map.at(it->first).first && opt_index == m_opt_map.at(it->first).second){
+			opt_id = it->first;
+			break;
+		}
+	}
+	return opt_id.empty() ? nullptr : get_field(opt_id);
 }
 
 } // GUI

@@ -15,8 +15,6 @@
 #include "PresetBundle.hpp"
 #include "../../libslic3r/Utils.hpp"
 
-//#include "GCodeSender.hpp"
-
 namespace Slic3r {
 namespace GUI {
 
@@ -176,7 +174,17 @@ void Tab::load_config(DynamicPrintConfig config)
 			break;
 		case coInts:
 			break;
-		case coEnum:
+		case coEnum:{
+			if (opt_key.compare("external_fill_pattern") == 0 ||
+				opt_key.compare("fill_pattern") == 0)
+				change_opt_value(m_config, opt_key, config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
+			else if (opt_key.compare("gcode_flavor") == 0)
+				change_opt_value(m_config, opt_key, config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
+			else if (opt_key.compare("support_material_pattern") == 0)
+				change_opt_value(m_config, opt_key, config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value);
+			else if (opt_key.compare("seam_position") == 0)
+				change_opt_value(m_config, opt_key, config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value);
+		}
 			break;
 		case coPoints:
 			break;
@@ -201,6 +209,17 @@ void Tab::reload_config(){
 	for (auto page : m_pages)
 		page->reload_config();
 	Thaw();
+}
+
+Field* Tab::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
+{
+	Field* field = nullptr;
+	for (auto page : m_pages){
+		field = page->get_field(opt_key);
+		if (field != nullptr)
+			return field;
+	}
+	return field;
 }
 
 void Tab::load_key_value(std::string opt_key, std::vector<std::string> value)
@@ -419,6 +438,10 @@ void TabPrint::build()
 			return compatible_printers_widget(parent, m_compatible_printers_checkbox, m_compatible_printers_btn);
 		};
 		optgroup->append_line(line);
+
+		option = optgroup->get_option("compatible_printers_condition");
+		option.opt.full_width = true;
+		optgroup->append_single_option_line(option);
 }
 
 void TabPrint::update()
@@ -437,7 +460,7 @@ void TabPrint::update()
   			"\nShall I adjust those settings in order to enable Spiral Vase?";
 		auto dialog = new wxMessageDialog(parent(), msg_text, wxT("Spiral Vase"), wxICON_WARNING | wxYES | wxNO);
 		DynamicPrintConfig new_conf = m_config;//new DynamicPrintConfig;
-		if (dialog->ShowModal() == wxID_YES) {
+ 		if (dialog->ShowModal() == wxID_YES) {
 			new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
 			new_conf.set_key_value("top_solid_layers", new ConfigOptionInt(0));
 			new_conf.set_key_value("fill_density", new ConfigOptionPercent(0));
@@ -450,178 +473,217 @@ void TabPrint::update()
  		load_config(new_conf);
 	}
 
-// 	if ($config->wipe_tower &&
-// 		($config->first_layer_height != 0.2 || $config->layer_height < 0.15 || $config->layer_height > 0.35)) {
-// 		my $dialog = Wx::MessageDialog->new($self,
-// 			"The Wipe Tower currently supports only:\n"
-// 			. "- first layer height 0.2mm\n"
-// 			. "- layer height from 0.15mm to 0.35mm\n"
-// 			. "\nShall I adjust those settings in order to enable the Wipe Tower?",
-// 			'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
-// 		my $new_conf = Slic3r::Config->new;
-// 		if ($dialog->ShowModal() == wxID_YES) {
-// 			$new_conf->set("first_layer_height", 0.2);
-// 			$new_conf->set("layer_height", 0.15) if  $config->layer_height < 0.15;
-// 			$new_conf->set("layer_height", 0.35) if  $config->layer_height > 0.35;
-// 		}
-// 		else {
-// 			$new_conf->set("wipe_tower", 0);
-// 		}
-// 		$self->load_config($new_conf);
-// 	}
-// 
-// 	if ($config->wipe_tower && $config->support_material && $config->support_material_contact_distance > 0. &&
-// 		($config->support_material_extruder != 0 || $config->support_material_interface_extruder != 0)) {
-// 		my $dialog = Wx::MessageDialog->new($self,
-// 			"The Wipe Tower currently supports the non-soluble supports only\n"
-// 			. "if they are printed with the current extruder without triggering a tool change.\n"
-// 			. "(both support_material_extruder and support_material_interface_extruder need to be set to 0).\n"
-// 			. "\nShall I adjust those settings in order to enable the Wipe Tower?",
-// 			'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
-// 		my $new_conf = Slic3r::Config->new;
-// 		if ($dialog->ShowModal() == wxID_YES) {
-// 			$new_conf->set("support_material_extruder", 0);
-// 			$new_conf->set("support_material_interface_extruder", 0);
-// 		}
-// 		else {
-// 			$new_conf->set("wipe_tower", 0);
-// 		}
-// 		$self->load_config($new_conf);
-// 	}
-// 
-// 	if ($config->wipe_tower && $config->support_material && $config->support_material_contact_distance == 0 &&
-// 		!$config->support_material_synchronize_layers) {
-// 		my $dialog = Wx::MessageDialog->new($self,
-// 			"For the Wipe Tower to work with the soluble supports, the support layers\n"
-// 			. "need to be synchronized with the object layers.\n"
-// 			. "\nShall I synchronize support layers in order to enable the Wipe Tower?",
-// 			'Wipe Tower', wxICON_WARNING | wxYES | wxNO);
-// 		my $new_conf = Slic3r::Config->new;
-// 		if ($dialog->ShowModal() == wxID_YES) {
-// 			$new_conf->set("support_material_synchronize_layers", 1);
-// 		}
-// 		else {
-// 			$new_conf->set("wipe_tower", 0);
-// 		}
-// 		$self->load_config($new_conf);
-// 	}
-// 
-// 	if ($config->support_material) {
-// 		# Ask only once.
-// 		if (!$self->{support_material_overhangs_queried}) {
-// 			$self->{support_material_overhangs_queried} = 1;
-// 			if ($config->overhangs != 1) {
-// 				my $dialog = Wx::MessageDialog->new($self,
-// 					"Supports work better, if the following feature is enabled:\n"
-// 					. "- Detect bridging perimeters\n"
-// 					. "\nShall I adjust those settings for supports?",
-// 					'Support Generator', wxICON_WARNING | wxYES | wxNO | wxCANCEL);
-// 				my $answer = $dialog->ShowModal();
-// 				my $new_conf = Slic3r::Config->new;
-// 				if ($answer == wxID_YES) {
-// 					# Enable "detect bridging perimeters".
-// 					$new_conf->set("overhangs", 1);
-// 				} elsif($answer == wxID_NO) {
-// 					# Do nothing, leave supports on and "detect bridging perimeters" off.
-// 				} elsif($answer == wxID_CANCEL) {
-// 					# Disable supports.
-// 					$new_conf->set("support_material", 0);
-// 					$self->{support_material_overhangs_queried} = 0;
-// 				}
-// 				$self->load_config($new_conf);
-// 			}
-// 		}
-// 	}
-// 	else {
-// 		$self->{support_material_overhangs_queried} = 0;
-// 	}
-// 
-// 	if ($config->fill_density == 100
-// 		&& !first{ $_ eq $config->fill_pattern } @{$Slic3r::Config::Options->{external_fill_pattern}{values}}) {
-// 		my $dialog = Wx::MessageDialog->new($self,
-// 			"The ".$config->fill_pattern . " infill pattern is not supposed to work at 100% density.\n"
-// 			. "\nShall I switch to rectilinear fill pattern?",
-// 			'Infill', wxICON_WARNING | wxYES | wxNO);
-// 
-// 		my $new_conf = Slic3r::Config->new;
-// 		if ($dialog->ShowModal() == wxID_YES) {
-// 			$new_conf->set("fill_pattern", 'rectilinear');
-// 			$new_conf->set("fill_density", 100);
-// 		}
-// 		else {
-// 			$new_conf->set("fill_density", 40);
-// 		}
-// 		$self->load_config($new_conf);
-// 	}
-// 
-// 	my $have_perimeters = $config->perimeters > 0;
-// 	$self->get_field($_)->toggle($have_perimeters)
-// 		for qw(extra_perimeters ensure_vertical_shell_thickness thin_walls overhangs seam_position external_perimeters_first
-// 			external_perimeter_extrusion_width
-// 			perimeter_speed small_perimeter_speed external_perimeter_speed);
-// 
-// 	my $have_infill = $config->fill_density > 0;
-// 	# infill_extruder uses the same logic as in Print::extruders()
-// 	$self->get_field($_)->toggle($have_infill)
-// 		for qw(fill_pattern infill_every_layers infill_only_where_needed solid_infill_every_layers
-// 			solid_infill_below_area infill_extruder);
-// 
-// 			my $have_solid_infill = ($config->top_solid_layers > 0) || ($config->bottom_solid_layers > 0);
-// 	# solid_infill_extruder uses the same logic as in Print::extruders()
-// 	$self->get_field($_)->toggle($have_solid_infill)
-// 		for qw(external_fill_pattern infill_first solid_infill_extruder solid_infill_extrusion_width
-// 			solid_infill_speed);
-// 
-// 			$self->get_field($_)->toggle($have_infill || $have_solid_infill)
-// 			for qw(fill_angle bridge_angle infill_extrusion_width infill_speed bridge_speed);
-// 
-// 	$self->get_field('gap_fill_speed')->toggle($have_perimeters && $have_infill);
-// 
-// 	my $have_top_solid_infill = $config->top_solid_layers > 0;
-// 	$self->get_field($_)->toggle($have_top_solid_infill)
-// 		for qw(top_infill_extrusion_width top_solid_infill_speed);
-// 
-// 	my $have_default_acceleration = $config->default_acceleration > 0;
-// 	$self->get_field($_)->toggle($have_default_acceleration)
-// 		for qw(perimeter_acceleration infill_acceleration bridge_acceleration first_layer_acceleration);
-// 
-// 	my $have_skirt = $config->skirts > 0 || $config->min_skirt_length > 0;
-// 	$self->get_field($_)->toggle($have_skirt)
-// 		for qw(skirt_distance skirt_height);
-// 
-// 	my $have_brim = $config->brim_width > 0;
-// 	# perimeter_extruder uses the same logic as in Print::extruders()
-// 	$self->get_field('perimeter_extruder')->toggle($have_perimeters || $have_brim);
-// 
-// 	my $have_raft = $config->raft_layers > 0;
-// 	my $have_support_material = $config->support_material || $have_raft;
-// 	my $have_support_interface = $config->support_material_interface_layers > 0;
-// 	my $have_support_soluble = $have_support_material && $config->support_material_contact_distance == 0;
-// 	$self->get_field($_)->toggle($have_support_material)
-// 		for qw(support_material_threshold support_material_pattern support_material_with_sheath
-// 			support_material_spacing support_material_angle
-// 			support_material_interface_layers dont_support_bridges
-// 			support_material_extrusion_width support_material_contact_distance support_material_xy_spacing);
-// 	$self->get_field($_)->toggle($have_support_material && $have_support_interface)
-// 		for qw(support_material_interface_spacing support_material_interface_extruder
-// 			support_material_interface_speed support_material_interface_contact_loops);
-// 			$self->get_field('support_material_synchronize_layers')->toggle($have_support_soluble);
-// 
-// 	$self->get_field('perimeter_extrusion_width')->toggle($have_perimeters || $have_skirt || $have_brim);
-// 	$self->get_field('support_material_extruder')->toggle($have_support_material || $have_skirt);
-// 	$self->get_field('support_material_speed')->toggle($have_support_material || $have_brim || $have_skirt);
-// 
-// 	my $have_sequential_printing = $config->complete_objects;
-// 	$self->get_field($_)->toggle($have_sequential_printing)
-// 		for qw(extruder_clearance_radius extruder_clearance_height);
-// 
-// 	my $have_ooze_prevention = $config->ooze_prevention;
-// 	$self->get_field($_)->toggle($have_ooze_prevention)
-// 		for qw(standby_temperature_delta);
-// 
-// 	my $have_wipe_tower = $config->wipe_tower;
-// 	$self->get_field($_)->toggle($have_wipe_tower)
-// 		for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe);
+	if (m_config.opt_bool("wipe_tower") &&
+		(m_config.option<ConfigOptionFloatOrPercent>("first_layer_height")->value != 0.2 /*$config->first_layer_height != 0.2*/ || 
+			m_config.opt_float("layer_height") < 0.15 || m_config.opt_float("layer_height") > 0.35)) {
+		std::string msg_text = "The Wipe Tower currently supports only:\n"
+			"- first layer height 0.2mm\n"
+			"- layer height from 0.15mm to 0.35mm\n"
+			"\nShall I adjust those settings in order to enable the Wipe Tower?";
+		auto dialog = new wxMessageDialog(parent(), msg_text, wxT("Wipe Tower"), wxICON_WARNING | wxYES | wxNO);
+		DynamicPrintConfig new_conf = m_config;
+		if (dialog->ShowModal() == wxID_YES) {
+			const auto &val = *m_config.option<ConfigOptionFloatOrPercent>("first_layer_height");
+			new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.2, val.percent));
+
+			if (m_config.opt_float("layer_height") < 0.15) new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.15)) ;
+			if (m_config.opt_float("layer_height") > 0.35) new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.35));
+		}
+		else 
+			new_conf.set_key_value("wipe_tower", new ConfigOptionBool(false));
+		load_config(new_conf);
+	}
+
+	if (m_config.opt_bool("wipe_tower") && m_config.opt_bool("support_material") && 
+		m_config.opt_float("support_material_contact_distance") > 0. &&
+		(m_config.opt_int("support_material_extruder") != 0 || m_config.opt_int("support_material_interface_extruder") != 0)) {
+		std::string msg_text = "The Wipe Tower currently supports the non-soluble supports only\n"
+			"if they are printed with the current extruder without triggering a tool change.\n"
+			"(both support_material_extruder and support_material_interface_extruder need to be set to 0).\n"
+			"\nShall I adjust those settings in order to enable the Wipe Tower?";
+		auto dialog = new wxMessageDialog(parent(), msg_text, wxT("Wipe Tower"), wxICON_WARNING | wxYES | wxNO);
+		DynamicPrintConfig new_conf = m_config;
+		if (dialog->ShowModal() == wxID_YES) {
+			new_conf.set_key_value("support_material_extruder", new ConfigOptionInt(0));
+			new_conf.set_key_value("support_material_interface_extruder", new ConfigOptionInt(0));
+		}
+		else 
+			new_conf.set_key_value("wipe_tower", new ConfigOptionBool(false));
+		load_config(new_conf);
+	}
+
+	if (m_config.opt_bool("wipe_tower") && m_config.opt_bool("support_material") && 
+		m_config.opt_float("support_material_contact_distance") == 0 &&
+		!m_config.opt_bool("support_material_synchronize_layers")) {
+		std::string msg_text = "For the Wipe Tower to work with the soluble supports, the support layers\n"
+			"need to be synchronized with the object layers.\n"
+			"\nShall I synchronize support layers in order to enable the Wipe Tower?";
+		auto dialog = new wxMessageDialog(parent(), msg_text, wxT("Wipe Tower"), wxICON_WARNING | wxYES | wxNO);
+		DynamicPrintConfig new_conf = m_config;
+		if (dialog->ShowModal() == wxID_YES) {
+			new_conf.set_key_value("support_material_synchronize_layers", new ConfigOptionBool(true));
+		}
+		else
+			new_conf.set_key_value("wipe_tower", new ConfigOptionBool(false));
+		load_config(new_conf);
+	}
+
+	if (m_config.opt_bool("support_material")) {
+		// Ask only once.
+		if (!m_support_material_overhangs_queried) {
+			m_support_material_overhangs_queried = true;
+			if (!m_config.opt_bool("overhangs")/* != 1*/) {
+				std::string msg_text = "Supports work better, if the following feature is enabled:\n"
+					"- Detect bridging perimeters\n"
+					"\nShall I adjust those settings for supports?";
+				auto dialog = new wxMessageDialog(parent(), msg_text, wxT("Support Generator"), wxICON_WARNING | wxYES | wxNO | wxCANCEL);
+				DynamicPrintConfig new_conf = m_config;
+				auto answer = dialog->ShowModal();
+				if (answer == wxID_YES) {
+					// Enable "detect bridging perimeters".
+					new_conf.set_key_value("overhangs", new ConfigOptionBool(true));
+				} else if(answer == wxID_NO) {
+					// Do nothing, leave supports on and "detect bridging perimeters" off.
+				} else if(answer == wxID_CANCEL) {
+					// Disable supports.
+					new_conf.set_key_value("support_material", new ConfigOptionBool(false));
+					m_support_material_overhangs_queried = false;
+				}
+				load_config(new_conf);
+			}
+		}
+	}
+	else {
+		m_support_material_overhangs_queried = false;
+	}
+
+	if (m_config.option<ConfigOptionPercent>("fill_density")->value == 100) {
+		auto fill_pattern = m_config.option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->value;
+		std::string str_fill_pattern = "";
+		t_config_enum_values map_names = m_config.option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->get_enum_values();
+		for (auto it:map_names) {
+			if (fill_pattern == it.second) {
+				str_fill_pattern = it.first;
+				break;
+			}
+		}
+		if (!str_fill_pattern.empty()){
+			auto external_fill_pattern = m_config.def()->get("external_fill_pattern")->enum_values;
+			bool correct_100p_fill = false;
+			for (auto fill : external_fill_pattern)
+			{
+				if (str_fill_pattern.compare(fill) == 0)
+					correct_100p_fill = true;
+			}
+			// get fill_pattern name from enum_labels for using this one at dialog_msg
+			str_fill_pattern = m_config.def()->get("fill_pattern")->enum_labels[fill_pattern];
+			if (!correct_100p_fill){
+				std::string msg_text = "The " + str_fill_pattern + " infill pattern is not supposed to work at 100% density.\n"
+					"\nShall I switch to rectilinear fill pattern?";
+				auto dialog = new wxMessageDialog(parent(), msg_text, wxT("Infill"), wxICON_WARNING | wxYES | wxNO);
+				DynamicPrintConfig new_conf = m_config;
+				if (dialog->ShowModal() == wxID_YES) {
+					new_conf.set_key_value("fill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+					new_conf.set_key_value("fill_density", new ConfigOptionPercent(100));
+				}
+				else
+					new_conf.set_key_value("fill_density", new ConfigOptionPercent(40));
+				load_config(new_conf);
+			}
+		}
+	}
+
+	bool have_perimeters = m_config.opt_int("perimeters") > 0;
+	std::vector<std::string> vec_enable = { "extra_perimeters", "ensure_vertical_shell_thickness", "thin_walls", "overhangs",
+											"seam_position", "external_perimeters_first", "external_perimeter_extrusion_width",
+											"perimeter_speed", "small_perimeter_speed", "external_perimeter_speed" };
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_perimeters);
+
+	bool have_infill = m_config.option<ConfigOptionPercent>("fill_density")->value > 0;
+	vec_enable.resize(0);
+	vec_enable = {	"fill_pattern", "infill_every_layers", "infill_only_where_needed", 
+					"solid_infill_every_layers", "solid_infill_below_area", "infill_extruder"};
+	// infill_extruder uses the same logic as in Print::extruders()
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_infill);
+
+	bool have_solid_infill = m_config.opt_int("top_solid_layers") > 0 || m_config.opt_int("bottom_solid_layers") > 0;
+	vec_enable.resize(0);
+	vec_enable = { "external_fill_pattern", "infill_first", "solid_infill_extruder",
+		"solid_infill_extrusion_width", "solid_infill_speed" };
+	// solid_infill_extruder uses the same logic as in Print::extruders()
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_solid_infill);
+
+	vec_enable.resize(0);
+	vec_enable = { "fill_angle", "bridge_angle", "infill_extrusion_width", 
+					"infill_speed", "bridge_speed" };
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_infill || have_solid_infill);
+
+	get_field("gap_fill_speed")->toggle(have_perimeters && have_infill);
+
+	bool have_top_solid_infill = m_config.opt_int("top_solid_layers") > 0;
+	vec_enable.resize(0);
+	vec_enable = { "top_infill_extrusion_width", "top_solid_infill_speed" };
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_top_solid_infill);
+
+	bool have_default_acceleration = m_config.opt_float("default_acceleration") > 0;
+	vec_enable.resize(0);
+	vec_enable = {	"perimeter_acceleration", "infill_acceleration", 
+					"bridge_acceleration", "first_layer_acceleration"};
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_default_acceleration);
+
+	bool have_skirt = m_config.opt_int("skirts") > 0 || m_config.opt_float("min_skirt_length") > 0;
+	vec_enable.resize(0);
+	vec_enable = {	"skirt_distance", "skirt_height"};
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_skirt);
+
+	bool have_brim = m_config.opt_float("brim_width") > 0;
+	// perimeter_extruder uses the same logic as in Print::extruders()
+	get_field("perimeter_extruder")->toggle(have_perimeters || have_brim);
+
+	bool have_raft = m_config.opt_int("raft_layers") > 0;
+	bool have_support_material = m_config.opt_bool("support_material") || have_raft;
+	bool have_support_interface = m_config.opt_int("support_material_interface_layers") > 0;
+	bool have_support_soluble = have_support_material && m_config.opt_float("support_material_contact_distance") == 0;
+	vec_enable.resize(0);
+	vec_enable = {	"support_material_threshold", "support_material_pattern", "support_material_with_sheath",
+					"support_material_spacing", "support_material_angle", "support_material_interface_layers", 
+					"dont_support_bridges", "support_material_extrusion_width", "support_material_contact_distance", 
+					"support_material_xy_spacing"};
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_support_material);
+
+	vec_enable.resize(0);
+	vec_enable = {	"support_material_interface_spacing", "support_material_interface_extruder", 
+					"support_material_interface_speed", "support_material_interface_contact_loops"};
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_support_material && have_support_interface);
+	get_field("support_material_synchronize_layers")->toggle(have_support_soluble);
+
+	get_field("perimeter_extrusion_width")->toggle(have_perimeters || have_skirt || have_brim);
+	get_field("support_material_extruder")->toggle(have_support_material || have_skirt);
+	get_field("support_material_speed")->toggle(have_support_material || have_brim || have_skirt);
+
+	bool have_sequential_printing = m_config.opt_bool("complete_objects");
+	vec_enable.resize(0);
+	vec_enable = {	"extruder_clearance_radius", "extruder_clearance_height"};
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_sequential_printing);
+
+	bool have_ooze_prevention = m_config.opt_bool("ooze_prevention");
+	get_field("standby_temperature_delta")->toggle(have_ooze_prevention);
+
+	bool have_wipe_tower = m_config.opt_bool("wipe_tower");
+	vec_enable.resize(0);
+	vec_enable = {	"wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe"};
+	for (auto el : vec_enable)
+		get_field(el)->toggle(have_wipe_tower);
 
 	Thaw();
 }
@@ -1166,6 +1228,23 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox,
 		}
 	}));
 	return sizer; 
+}
+
+void Page::reload_config()
+{
+	for (auto group : m_optgroups)
+		group->reload_config();
+}
+
+Field* Page::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
+{
+	Field* field = nullptr;
+	for (auto opt : m_optgroups){
+		field = opt->get_fieldc(opt_key, opt_index);
+		if (field != nullptr)
+			return field;
+	}
+	return field;
 }
 
 // package Slic3r::GUI::Tab::Page;

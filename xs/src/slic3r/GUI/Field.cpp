@@ -36,13 +36,13 @@ namespace Slic3r { namespace GUI {
 		boost::any ret_val;
 		switch (m_opt.type){
 		case coInt:
-		case coPercent:
-			if (m_opt.type == coPercent) str.RemoveLast();
 			ret_val = wxAtoi(str);
 			break;
+		case coPercent:
 		case coPercents:
 		case coFloats:
 		case coFloat:{
+			if (m_opt.type == coPercent) str.RemoveLast();
 			double val;
 			str.ToCDouble(&val);
 			ret_val = val;
@@ -241,9 +241,11 @@ void Choice::BUILD() {
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	auto temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
-	if (m_opt.gui_type.compare("select_open") != 0)
-		temp->SetExtraStyle(wxCB_READONLY);
+	wxComboBox* temp;	
+	if (!m_opt.gui_type.empty() && m_opt.gui_type.compare("select_open") != 0)
+		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
+	else
+		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, NULL, wxCB_READONLY);
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
@@ -391,11 +393,23 @@ void Choice::set_values(const std::vector<std::string> values)
 boost::any Choice::get_value()
 {
 	boost::any ret_val;
-	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();
+	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
 
-	ret_val = m_opt.type == coEnum ?
-				static_cast<wxComboBox*>(window)->GetSelection() :
-				get_value_by_opt_type(ret_str, m_opt.type);
+	if (m_opt.type != coEnum)
+		ret_val = get_value_by_opt_type(ret_str, m_opt.type);
+	else
+	{
+		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
+		if (m_opt_id.compare("external_fill_pattern") == 0 ||
+			m_opt_id.compare("fill_pattern") == 0)
+			ret_val = static_cast<InfillPattern>(ret_enum);
+		else if (m_opt_id.compare("gcode_flavor") == 0)
+			ret_val = static_cast<GCodeFlavor>(ret_enum);
+		else if (m_opt_id.compare("support_material_pattern") == 0)
+			ret_val = static_cast<SupportMaterialPattern>(ret_enum);
+		else if (m_opt_id.compare("seam_position") == 0)
+			ret_val = static_cast<SeamPosition>(ret_enum);
+	}	
 
 	return ret_val;
 }
