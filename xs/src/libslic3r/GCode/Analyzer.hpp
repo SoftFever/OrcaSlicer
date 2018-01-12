@@ -303,7 +303,7 @@ public:
 
             static const unsigned int Num_Extrusion_Roles = (unsigned int)erMixed + 1;
             static const Color Default_Extrusion_Role_Colors[Num_Extrusion_Roles];
-            static const EViewType Default_View_Type;
+            static const EViewType Default_View_Type; 
 
             struct Ranges
             {
