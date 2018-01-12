@@ -99,7 +99,7 @@ public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_no_controller;
 	PresetCollection*	m_presets;
-	DynamicPrintConfig	m_config;		//! tmp_val
+	DynamicPrintConfig*	m_config;		//! tmp_val
 	const ConfigDef*	m_config_def;	// It will be used in get_option_(const std::string title)
 	t_change			m_on_value_change{ nullptr };
 
@@ -126,7 +126,8 @@ public:
 
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox, wxButton* btn);
 
-	void		load_key_value(std::string opt_key, std::vector<std::string> value);
+	void		load_key_value(std::string opt_key, boost::any value);
+	void		reload_compatible_printers_widget();
 
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
@@ -137,11 +138,12 @@ public:
 
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
+	virtual void	OnActivate(){};
 	virtual void	build() = 0;
 	virtual void	update() = 0;
 	void			update_dirty();
 	void			load_config(DynamicPrintConfig config);
-	void			reload_config();
+	virtual void	reload_config();
 	Field*			get_field(t_config_option_key opt_key, int opt_index = -1) const;
 };
 
@@ -156,14 +158,15 @@ public:
 	bool		m_support_material_overhangs_queried = false;
 
 	void		build() override;
+	void		reload_config() override;
 	void		update() override;
 };
 
 //Slic3r::GUI::Tab::Filament;
 class TabFilament : public Tab
 {
-	wxStaticText*	m_cooling_description_line;
 	wxStaticText*	m_volumetric_speed_description_line;
+	wxStaticText*	m_cooling_description_line;
 public:
 	TabFilament() {}
 	TabFilament(wxNotebook* parent, const char *title) : Tab(parent, title) {}
@@ -172,7 +175,10 @@ public:
 	wxSizer*		description_line_widget(wxWindow* parent, wxStaticText* StaticText);
 
 	void		build() override;
-	void		update() override{};
+	void		reload_config() override;
+	void		update() override;
+
+	void		OnActivate() override;
 };
 
 //Slic3r::GUI::Tab::Printer;

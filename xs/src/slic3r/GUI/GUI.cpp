@@ -190,6 +190,11 @@ void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config)
 	add_created_tab(new TabPrint   (g_wxTabPanel, "Print"),    preset_bundle, app_config);
 	add_created_tab(new TabFilament(g_wxTabPanel, "Filament"), preset_bundle, app_config);
 	add_created_tab(new TabPrinter (g_wxTabPanel, "Printer"),  preset_bundle, app_config);
+	g_wxTabPanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, ([](wxCommandEvent e){
+		Tab* panel = (Tab*)g_wxTabPanel->GetCurrentPage();
+		if (panel->GetName().compare("Filament")==0)
+			panel->OnActivate();
+	}), g_wxTabPanel->GetId() );
 }
 
 void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value)
@@ -217,7 +222,17 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 		case coString:
 			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
 			break;
-		case coStrings:
+		case coStrings:{
+			if (opt_key.compare("compatible_printers") == 0){
+			config.option<ConfigOptionStrings>(opt_key)->values.resize(0);
+			for (auto el : boost::any_cast<std::vector<std::string>>(value))
+				config.option<ConfigOptionStrings>(opt_key)->values.push_back(el);
+			}
+			else{
+			ConfigOptionStrings* vec_new = new ConfigOptionStrings{ boost::any_cast<std::string>(value) };
+			config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, 0, 0);
+			}
+			}
 			break;
 		case coBool:
 			config.set_key_value(opt_key, new ConfigOptionBool(boost::any_cast<bool>(value)));
@@ -229,7 +244,10 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 		case coInt:
 			config.set_key_value(opt_key, new ConfigOptionInt(boost::any_cast<int>(value)));
 			break;
-		case coInts:
+		case coInts:{
+			ConfigOptionInts* vec_new = new ConfigOptionInts{ boost::any_cast<int>(value) };
+			config.option<ConfigOptionInts>(opt_key)->set_at(vec_new, 0, 0);
+			}
 			break;
 		case coEnum:{
 			if (opt_key.compare("external_fill_pattern") == 0 ||
@@ -255,11 +273,6 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 	{
 		int i = 0;//no reason, just experiment
 	}
-	catch (...)
-	{
-		//std::string
-	}
-
 }
 
 void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config)
