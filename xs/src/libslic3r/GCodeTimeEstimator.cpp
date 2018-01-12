@@ -56,7 +56,9 @@ namespace Slic3r {
 
     float GCodeTimeEstimator::Block::Trapezoid::speed_from_distance(float initial_feedrate, float distance, float acceleration)
     {
-        return ::sqrt(sqr(initial_feedrate) + 2.0f * acceleration * distance);
+        // to avoid invalid negative numbers due to numerical imprecision 
+        float value = std::max(0.0f, sqr(initial_feedrate) + 2.0f * acceleration * distance);
+        return ::sqrt(value);
     }
 
     float GCodeTimeEstimator::Block::move_length() const
@@ -122,7 +124,9 @@ namespace Slic3r {
 
     float GCodeTimeEstimator::Block::max_allowable_speed(float acceleration, float target_velocity, float distance)
     {
-        return ::sqrt(sqr(target_velocity) - 2.0f * acceleration * distance);
+        // to avoid invalid negative numbers due to numerical imprecision 
+        float value = std::max(0.0f, sqr(target_velocity) - 2.0f * acceleration * distance);
+        return ::sqrt(value);
     }
 
     float GCodeTimeEstimator::Block::estimate_acceleration_distance(float initial_rate, float target_rate, float acceleration)
@@ -149,6 +153,9 @@ namespace Slic3r {
             [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
         { this->_process_gcode_line(reader, line); });
 
+        _calculate_time();
+
+        _reset_blocks();
         _reset();
     }
 
@@ -159,6 +166,7 @@ namespace Slic3r {
         _parser.parse_file(file, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
         _calculate_time();
 
+        _reset_blocks();
         _reset();
     }
 
@@ -172,6 +180,7 @@ namespace Slic3r {
             _parser.parse_line(line, action);
         _calculate_time();
 
+        _reset_blocks();
         _reset();
     }
 
@@ -199,6 +208,7 @@ namespace Slic3r {
     {
         PROFILE_FUNC();
         _calculate_time();
+        _reset_blocks();
         _reset();
     }
 
@@ -383,6 +393,7 @@ namespace Slic3r {
     void GCodeTimeEstimator::reset()
     {
         _time = 0.0f;
+        _reset_blocks();
         _reset();
     }
 
@@ -412,8 +423,6 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_reset()
     {
-        _blocks.clear();
-
         _curr.reset();
         _prev.reset();
 
@@ -422,6 +431,11 @@ namespace Slic3r {
         set_axis_position(Z, 0.0f);
 
         set_additional_time(0.0f);
+    }
+
+    void GCodeTimeEstimator::_reset_blocks()
+    {
+        _blocks.clear();
     }
 
     void GCodeTimeEstimator::_calculate_time()
@@ -950,7 +964,7 @@ namespace Slic3r {
     void GCodeTimeEstimator::_simulate_st_synchronize()
     {
         _calculate_time();
-        _reset();
+        _reset_blocks();
     }
 
     void GCodeTimeEstimator::_forward_pass()
