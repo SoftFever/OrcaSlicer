@@ -498,7 +498,7 @@ const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::Range::get_
 
 const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::Range::get_color_at(float value) const
 {
-    return empty() ? get_color_at_max() : colors[clamp((unsigned int)0, Colors_Count - 1, unsigned int((value - min) / _step()))];
+    return empty() ? get_color_at_max() : colors[clamp((unsigned int)0, Colors_Count - 1, (unsigned int)((value - min) / _step()))];
 }
 
 float GCodeAnalyzer::PreviewData::Range::_step() const
@@ -910,7 +910,7 @@ void GCodeAnalyzer::_processT(const GCodeReader::GCodeLine& line)
     {
         int id = (int)::strtol(cmd.substr(1).c_str(), nullptr, 10);
         // todo - add id validity check ?
-        if (_get_extruder_id() != id)
+        if (_get_extruder_id() != (unsigned int)id)
         {
             _set_extruder_id(id);
 
