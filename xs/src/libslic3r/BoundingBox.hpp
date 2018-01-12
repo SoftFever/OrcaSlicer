@@ -30,7 +30,7 @@ public:
         if (points.empty())
             CONFESS("Empty point set supplied to BoundingBoxBase constructor");
 
-        std::vector<PointClass>::const_iterator it = points.begin();
+        typename std::vector<PointClass>::const_iterator it = points.begin();
         this->min.x = this->max.x = it->x;
         this->min.y = this->max.y = it->y;
         for (++it; it != points.end(); ++it)
@@ -86,7 +86,7 @@ public:
         if (points.empty())
             CONFESS("Empty point set supplied to BoundingBox3Base constructor");
 
-        std::vector<PointClass>::const_iterator it = points.begin();
+        typename std::vector<PointClass>::const_iterator it = points.begin();
         this->min.z = this->max.z = it->z;
         for (++it; it != points.end(); ++it)
         {
