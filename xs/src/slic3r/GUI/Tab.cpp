@@ -216,7 +216,7 @@ Field* Tab::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
 {
 	Field* field = nullptr;
 	for (auto page : m_pages){
-		field = page->get_field(opt_key);
+		field = page->get_field(opt_key, opt_index);
 		if (field != nullptr)
 			return field;
 	}
@@ -249,7 +249,6 @@ void TabPrint::build()
 {
 	m_presets = &m_preset_bundle->prints;
 	m_config = &m_presets->get_edited_preset().config;
-	m_config_def = m_config->def();
 
 	auto page = add_options_page("Layers and perimeters", "layers.png");
 		auto optgroup = page->new_optgroup("Layer height");
@@ -708,7 +707,6 @@ void TabFilament::build()
 {
 	m_presets = &m_preset_bundle->filaments;
 	m_config = &m_preset_bundle->filaments.get_edited_preset().config;
-	m_config_def = m_config->def();
 
 	auto page = add_options_page("Filament", "spool.png");
 		auto optgroup = page->new_optgroup("Filament");
@@ -855,7 +853,6 @@ void TabPrinter::build()
 {
 	m_presets = &m_preset_bundle->printers;
 	m_config = &m_preset_bundle->printers.get_edited_preset().config;
-	m_config_def = m_config->def();		// It will be used in get_option_(const std::string title)
 	auto default_config = m_preset_bundle->full_config();
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
@@ -897,51 +894,48 @@ void TabPrinter::build()
 		optgroup->append_single_option_line(option);
 		optgroup->append_single_option_line("single_extruder_multi_material");
 
-// 		$optgroup->on_change(sub{
-// 			my($opt_key, $value) = @_;
-// 			wxTheApp->CallAfter(sub{
-// 				if ($opt_key eq 'extruders_count') {
-// 					$self->_extruders_count_changed($optgroup->get_value('extruders_count'));
-// 					$self->update_dirty;
-// 				}
-// 				else {
-// 					$self->update_dirty;
-// 					$self->_on_value_change($opt_key, $value);
-// 				}
-// 			});
-// 		});
+		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value){
+			size_t extruders_count = boost::any_cast<int>(optgroup->get_value("extruders_count"));
+			wxTheApp->CallAfter([this, opt_key, value, extruders_count](){
+				if (opt_key.compare("extruders_count")==0) {
+					extruders_count_changed(extruders_count);
+					update_dirty();
+				}
+				else {
+					update_dirty();
+					on_value_change(opt_key, value);
+				}
+			});
+		};
 
-		//if (!$params{ no_controller })
-		if (!m_no_controller/*m_app_config->get("no_controller").empty()*/)
+		if (!m_no_controller)
 		{
 		optgroup = page->new_optgroup("USB/Serial connection");
 			line = {"Serial port", ""};
 			Option serial_port = optgroup->get_option("serial_port");
-			serial_port.side_widget = ([](wxWindow* parent){
+			serial_port.side_widget = ([this](wxWindow* parent){
 				auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(wxString::FromUTF8(Slic3r::var("arrow_rotate_clockwise.png").c_str()), wxBITMAP_TYPE_PNG),
 					wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 				btn->SetToolTip("Rescan serial ports");
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
 				sizer->Add(btn);
 
-				btn->Bind(wxEVT_BUTTON, [](wxCommandEvent e) {/*_update_serial_ports*/; });
+				btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) {update_serial_ports(); });
 				return sizer;
 			});
-			Option serial_speed = optgroup->get_option("serial_speed");
-			//! this serial_port & serial_speed have to be config !??
-			auto serial_test = [this, serial_port, serial_speed](wxWindow* parent){
-				auto btn = serial_test_btn = new wxButton(parent, wxID_ANY,
+			auto serial_test = [this](wxWindow* parent){
+				auto btn = m_serial_test_btn = new wxButton(parent, wxID_ANY,
 					"Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //				btn->SetFont($Slic3r::GUI::small_font);
 				btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("wrench.png").c_str()), wxBITMAP_TYPE_PNG));
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
 				sizer->Add(btn);
 
-				btn->Bind(wxEVT_BUTTON, [parent, serial_port, serial_speed](wxCommandEvent e){
+				btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e){
 					auto sender = new GCodeSender();					
 					auto res = sender->connect(
-						static_cast<const ConfigOptionString*>(serial_port.opt.default_value)->value,	//! m_config.serial_port,
-						serial_speed.opt.default_value->getInt()										//! m_config.serial_speed
+						m_config->opt_string("serial_port"), 
+						m_config->opt_int("serial_speed")
 						);
 					if (res && sender->wait_connected()) {
 						show_info(parent, "Connection to printer works correctly.", "Success!");
@@ -954,7 +948,7 @@ void TabPrinter::build()
 			};
 
 			line.append_option(serial_port);
-			line.append_option(serial_speed/*get_option("serial_speed")*/);
+			line.append_option(/*serial_speed*/optgroup->get_option("serial_speed"));
 			line.append_widget(serial_test);
 			optgroup->append_line(line);
 		}
@@ -995,7 +989,7 @@ void TabPrinter::build()
 		};
 
 		auto octoprint_host_test = [this](wxWindow* parent) {
-			auto btn = octoprint_host_test_btn = new wxButton(parent, wxID_ANY,
+			auto btn = m_octoprint_host_test_btn = new wxButton(parent, wxID_ANY,
 				"Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //			btn->SetFont($Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("wrench.png").c_str()), wxBITMAP_TYPE_PNG));
@@ -1083,17 +1077,25 @@ void TabPrinter::build()
 
 	build_extruder_pages();
 
-// 	$self->_update_serial_ports if (!$params{ no_controller });
-	if (!m_no_controller/*m_app_config->get("no_controller").empty()*/){
-		Field *field = optgroup->get_field("serial_port");
-		Choice *choice = static_cast<Choice *>(field);
-		choice->set_values(scan_serial_ports());
-	}
+	if (!m_no_controller)
+		update_serial_ports();
+}
+
+void TabPrinter::update_serial_ports(){
+	Field *field = get_field("serial_port");
+	Choice *choice = static_cast<Choice *>(field);
+	choice->set_values(scan_serial_ports());
+}
+
+void TabPrinter::extruders_count_changed(size_t extruders_count){
+	m_extruders_count = extruders_count;
+	m_preset_bundle->printers.get_edited_preset().set_num_extruders(extruders_count);
+	m_preset_bundle->update_multi_material_filament_presets();
+	build_extruder_pages();
+	on_value_change("extruders_count", extruders_count);
 }
 
 void TabPrinter::build_extruder_pages(){
-//	auto default_config = m_preset_bundle->full_config();
-
 	std::vector<PageShp>	extruder_pages;	
 
 	for (auto extruder_idx = 0; extruder_idx < m_extruders_count; ++extruder_idx){
@@ -1149,6 +1151,91 @@ void TabPrinter::build_extruder_pages(){
 	m_pages.push_back(page_note);
 
 	rebuild_page_tree();
+}
+
+void TabPrinter::update(){
+	Freeze();
+
+	bool en;
+	auto serial_speed = get_field("serial_speed");
+	if (serial_speed != nullptr) {
+		en = !m_config->opt_string("serial_port").empty();
+		get_field("serial_speed")->toggle(en);
+		if (m_config->opt_int("serial_speed") != 0 && en)
+			m_serial_test_btn->Enable();
+		else 
+			m_serial_test_btn->Disable();
+	}
+
+	en = !m_config->opt_string("octoprint_host").empty();
+	if ( en/*&& eval "use LWP::UserAgent; 1"*/)
+		m_octoprint_host_test_btn->Enable();
+	else 
+		m_octoprint_host_test_btn->Disable(); 
+	get_field("octoprint_apikey")->toggle(en);
+
+	bool have_multiple_extruders = m_extruders_count > 1;
+	get_field("toolchange_gcode")->toggle(have_multiple_extruders);
+	get_field("single_extruder_multi_material")->toggle(have_multiple_extruders);
+
+	for (size_t i = 0; i < m_extruders_count; ++i) {
+		bool have_retract_length = m_config->opt_float("retract_length", i) > 0;
+
+		// when using firmware retraction, firmware decides retraction length
+		bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
+		get_field("retract_length", i)->toggle(!use_firmware_retraction);
+
+		// user can customize travel length if we have retraction length or we"re using
+		// firmware retraction
+		get_field("retract_before_travel", i)->toggle(have_retract_length || use_firmware_retraction);
+
+		// user can customize other retraction options if retraction is enabled
+		bool retraction = (have_retract_length || use_firmware_retraction);
+		std::vector<std::string> vec = { "retract_lift", "retract_layer_change" };
+		for (auto el : vec)
+			get_field(el, i)->toggle(retraction);
+
+		// retract lift above / below only applies if using retract lift
+		vec.resize(0);
+		vec = { "retract_lift_above", "retract_lift_below" };
+		for (auto el : vec)
+			get_field(el, i)->toggle(retraction && m_config->opt_float("retract_lift", i) > 0);
+
+		// some options only apply when not using firmware retraction
+		vec.resize(0);
+		vec = { "retract_speed", "deretract_speed", "retract_before_wipe", "retract_restart_extra", "wipe" };
+		for (auto el : vec)
+			get_field(el, i)->toggle(retraction && !use_firmware_retraction);
+
+		bool wipe = m_config->opt_bool("wipe", i);
+		get_field("retract_before_wipe", i)->toggle(wipe);
+
+		if (use_firmware_retraction && wipe) {
+			auto dialog = new wxMessageDialog(parent(),
+				"The Wipe option is not available when using the Firmware Retraction mode.\n"
+				"\nShall I disable it in order to enable Firmware Retraction?",
+				"Firmware Retraction", wxICON_WARNING | wxYES | wxNO);
+
+			DynamicPrintConfig new_conf = *m_config;
+			if (dialog->ShowModal() == wxID_YES) {
+				auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe"));
+				wipe->values[i] = 0;
+				new_conf.set_key_value("wipe", wipe);
+			}
+			else {
+				new_conf.set_key_value("use_firmware_retraction", new ConfigOptionBool(false));
+			}
+			load_config(new_conf);
+		}
+
+		get_field("retract_length_toolchange", i)->toggle(have_multiple_extruders);
+
+		bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", i) > 0;
+		get_field("retract_restart_extra_toolchange", i)->toggle
+			(have_multiple_extruders && toolchange_retraction);
+	}
+
+	Thaw();
 }
 
 void Tab::load_current_preset()
@@ -1217,11 +1304,6 @@ void Tab::toggle_show_hide_incompatible(wxCommandEvent &event){};
 //	# Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
 wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox, wxButton* btn)
 {
-// 	checkbox = new wxCheckBox(parent, wxID_ANY, "All");
-// 
-// 	btn = new wxButton(parent, wxID_ANY, "Set…", wxDefaultPosition, wxDefaultSize,
-// 	wxBU_LEFT | wxBU_EXACTFIT);
-//	btn->SetFont(GUI::small_font);
 	btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("printer_empty.png").c_str()), wxBITMAP_TYPE_PNG));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1240,7 +1322,7 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox,
 	btn->Bind(wxEVT_BUTTON, ([this, parent, checkbox, btn](wxCommandEvent e)
 	{
 		// # Collect names of non-default non-external printer profiles.
-		PresetCollection *printers = &m_preset_bundle->printers;//new PresetCollection(Preset::TYPE_PRINTER, Preset::print_options());
+		PresetCollection *printers = &m_preset_bundle->printers;
 		wxArrayString presets;
 		for (size_t idx = 0; idx < printers->size(); ++idx)
 		{

@@ -99,8 +99,7 @@ public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_no_controller;
 	PresetCollection*	m_presets;
-	DynamicPrintConfig*	m_config;		//! tmp_val
-	const ConfigDef*	m_config_def;	// It will be used in get_option_(const std::string title)
+	DynamicPrintConfig*	m_config;
 	t_change			m_on_value_change{ nullptr };
 
 public:
@@ -185,8 +184,8 @@ public:
 class TabPrinter : public Tab
 {
 public:
-	wxButton*	serial_test_btn;
-	wxButton*	octoprint_host_test_btn;
+	wxButton*	m_serial_test_btn;
+	wxButton*	m_octoprint_host_test_btn;
 
 	size_t		m_extruders_count;
 
@@ -196,7 +195,9 @@ public:
 	~TabPrinter(){}
 
 	void		build() override;
-	void		update() override{};
+	void		update() override;
+	void		update_serial_ports();
+	void		extruders_count_changed(size_t extruders_count);
 	void		build_extruder_pages();
 };
 
