@@ -12,10 +12,6 @@
 #include "GCode/Analyzer.hpp"
 #endif // ENRICO_GCODE_PREVIEW
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#include "enrico/wintimer.h"
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -208,12 +204,12 @@ void GLVolume::set_range(double min_z, double max_z)
 
 void GLVolume::render() const
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//############################################################################################################
 #if ENRICO_GCODE_PREVIEW
     if (!is_active)
         return;
 #endif // ENRICO_GCODE_PREVIEW
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//############################################################################################################
 
     glCullFace(GL_BACK);
     glPushMatrix();
@@ -345,12 +341,12 @@ void GLVolumeCollection::render_VBOs() const
     GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
 
     for (GLVolume *volume : this->volumes) {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//############################################################################################################
 #if ENRICO_GCODE_PREVIEW
         if (!volume->is_active)
             continue;
 #endif // ENRICO_GCODE_PREVIEW
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//############################################################################################################
         if (!volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
             continue;
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
@@ -389,12 +385,12 @@ void GLVolumeCollection::render_legacy() const
  
     for (GLVolume *volume : this->volumes) {
         assert(! volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//############################################################################################################
 #if ENRICO_GCODE_PREVIEW
         if (!volume->is_active)
             continue;
 #endif // ENRICO_GCODE_PREVIEW
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//############################################################################################################
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
         GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
         if (n_triangles + n_quads == 0)
@@ -1141,13 +1137,6 @@ static inline std::vector<float> parse_colors(const std::vector<std::string> &sc
 #if ENRICO_GCODE_PREVIEW
 void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs)
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    WinTimer timer;
-    timer.Start();
-
-    std::cout << "#############################################################################" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     if (volumes->empty())
     {
         s_gcode_preview_data.reset();
@@ -1159,12 +1148,6 @@ void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volume
     }
 
     _update_gcode_volumes_visibility(*print, *volumes);
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "VOLUMES COUNT = " << volumes->volumes.size() << std::endl;
-    std::cout << "FIRST VOLUMES COUNT = " << s_gcode_preview_data.first_volumes.size() << std::endl;
-    std::cout << "load_gcode_preview() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
@@ -1530,11 +1513,6 @@ void _3DScene::_load_wipe_tower_toolpaths(
 #if ENRICO_GCODE_PREVIEW
 void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    WinTimer timer;
-    timer.Start();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     // helper functions to select data in dependence of the extrusion view type
     struct Helper
     {
@@ -1678,19 +1656,10 @@ void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollectio
             volume->indexed_vertex_array.finalize_geometry(use_VBOs);
         }
     }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "_load_gcode_extrusion_paths() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    WinTimer timer;
-    timer.Start();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     // Helper structure for types
     struct Type
     {
@@ -1777,19 +1746,10 @@ void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& 
             volume->indexed_vertex_array.finalize_geometry(use_VBOs);
         }
     }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "_load_gcode_travel_paths() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void _3DScene::_load_gcode_retractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    WinTimer timer;
-    timer.Start();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Retraction, 0, (unsigned int)volumes.volumes.size());
 
     // nothing to render, return
@@ -1814,19 +1774,10 @@ void _3DScene::_load_gcode_retractions(const Print& print, GLVolumeCollection& v
         volume->bounding_box = volume->indexed_vertex_array.bounding_box();
         volume->indexed_vertex_array.finalize_geometry(use_VBOs);
     }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "_load_gcode_retractions() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void _3DScene::_load_gcode_unretractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    WinTimer timer;
-    timer.Start();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Unretraction, 0, (unsigned int)volumes.volumes.size());
 
     // nothing to render, return
@@ -1851,10 +1802,6 @@ void _3DScene::_load_gcode_unretractions(const Print& print, GLVolumeCollection&
         volume->bounding_box = volume->indexed_vertex_array.bounding_box();
         volume->indexed_vertex_array.finalize_geometry(use_VBOs);
     }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "_load_gcode_unretractions() = " << timer.GetElapsedTimeMillisec() << " ms" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void _3DScene::_update_gcode_volumes_visibility(const Print& print, GLVolumeCollection& volumes)
