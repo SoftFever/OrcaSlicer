@@ -214,8 +214,17 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 {
 	if (!m_opt_map.empty())
 	{
-		std::string opt_key = m_opt_map.at(opt_id).first;
-		int opt_index = m_opt_map.at(opt_id).second;
+		auto it = m_opt_map.find(opt_id);
+		if (it == m_opt_map.end())
+		{
+			OptionsGroup::on_change_OG(opt_id, value);
+			return;
+		}		
+
+		auto itOption = it->second;
+		std::string opt_key = itOption.first;
+		int opt_index = itOption.second;
+
 		auto option = m_options.at(opt_id);
 
 		// get value
