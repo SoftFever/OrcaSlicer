@@ -586,6 +586,15 @@ sub build {
             my $optgroup = $page->new_optgroup('Vertical shells');
             $optgroup->append_single_option_line('perimeters');
             $optgroup->append_single_option_line('spiral_vase');
+            my $line = Slic3r::GUI::OptionsGroup::Line->new(
+                label       => '',
+                full_width  => 1,
+                widget      => sub {
+                    my ($parent) = @_;
+                    return $self->{recommended_thin_wall_thickness_description_line} = Slic3r::GUI::OptionsGroup::StaticText->new($parent);
+                },
+            );
+            $optgroup->append_line($line);
         }
         {
             my $optgroup = $page->new_optgroup('Horizontal shells');
@@ -1055,7 +1064,18 @@ sub _update {
     $self->get_field($_)->toggle($have_wipe_tower)
         for qw(wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe);
 
+    $self->{recommended_thin_wall_thickness_description_line}->SetText(
+        Slic3r::GUI::PresetHints::recommended_thin_wall_thickness(wxTheApp->{preset_bundle}));
+
     $self->Thaw;
+}
+
+# Update on activation to recalculate the estimates if the nozzle diameter changed
+# and the extrusion width values were left to zero (automatic, nozzle dependent).
+sub OnActivate {
+    my ($self) = @_;
+    $self->{recommended_thin_wall_thickness_description_line}->SetText(
+        Slic3r::GUI::PresetHints::recommended_thin_wall_thickness(wxTheApp->{preset_bundle}));
 }
 
 package Slic3r::GUI::Tab::Filament;

@@ -14,7 +14,7 @@
 #include <boost/thread.hpp>
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
-#define SLIC3R_VERSION "1.38.5"
+#define SLIC3R_VERSION "1.39.0"
 #define SLIC3R_BUILD "UNKNOWN"
 
 typedef long coord_t;
@@ -102,7 +102,7 @@ inline std::string debug_out_path(const char *name, ...)
 
 namespace Slic3r {
 
-enum Axis { X=0, Y, Z };
+enum Axis { X=0, Y, Z, E, F, NUM_AXES };
 
 template <class T>
 inline void append_to(std::vector<T> &dst, const std::vector<T> &src)

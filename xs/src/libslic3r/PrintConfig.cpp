@@ -653,21 +653,23 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("teacup");
     def->enum_values.push_back("makerware");
+    def->enum_values.push_back("marlin");
     def->enum_values.push_back("sailfish");
     def->enum_values.push_back("mach3");
     def->enum_values.push_back("machinekit");
     def->enum_values.push_back("smoothie");
     def->enum_values.push_back("no-extrusion");
-    def->enum_labels.push_back("RepRap (Marlin/Sprinter)");
+    def->enum_labels.push_back("RepRap/Sprinter");
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("Teacup");
     def->enum_labels.push_back("MakerWare (MakerBot)");
+    def->enum_labels.push_back("Marlin");
     def->enum_labels.push_back("Sailfish (MakerBot)");
     def->enum_labels.push_back("Mach3/LinuxCNC");
     def->enum_labels.push_back("Machinekit");
     def->enum_labels.push_back("Smoothie");
     def->enum_labels.push_back("No extrusion");
-    def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfRepRap);
+    def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfMarlin);
 
     def = this->add("infill_acceleration", coFloat);
     def->label = "Infill";
@@ -1920,6 +1922,7 @@ std::string FullPrintConfig::validate()
     if (this->use_firmware_retraction.value && 
         this->gcode_flavor.value != gcfSmoothie &&
         this->gcode_flavor.value != gcfRepRap &&
+        this->gcode_flavor.value != gcfMarlin &&
         this->gcode_flavor.value != gcfMachinekit &&
         this->gcode_flavor.value != gcfRepetier)
         return "--use-firmware-retraction is only supported by Marlin, Smoothie, Repetier and Machinekit firmware";

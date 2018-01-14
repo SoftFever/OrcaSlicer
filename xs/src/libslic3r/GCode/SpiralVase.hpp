@@ -13,7 +13,7 @@ class SpiralVase {
     SpiralVase(const PrintConfig &config)
         : enable(false), _config(&config)
     {
-        this->_reader.Z = this->_config->z_offset;
+        this->_reader.z() = this->_config->z_offset;
         this->_reader.apply_config(*this->_config);
     };
     std::string process_layer(const std::string &gcode);

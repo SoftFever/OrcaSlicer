@@ -1161,6 +1161,8 @@ public:
     const ConfigDef*        def() const override { return nullptr; };
     template<class T> T*    opt(const t_config_option_key &opt_key, bool create = false)
         { return dynamic_cast<T*>(this->option(opt_key, create)); }
+    template<class T> const T* opt(const t_config_option_key &opt_key) const
+        { return dynamic_cast<const T*>(this->option(opt_key)); }
     // Overrides ConfigBase::optptr(). Find ando/or create a ConfigOption instance for a given name.
     ConfigOption*           optptr(const t_config_option_key &opt_key, bool create = false) override;
     // Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store.

@@ -228,4 +228,42 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
  	return out;
 }
 
+std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &preset_bundle)
+{
+    const DynamicPrintConfig &print_config    = preset_bundle.prints   .get_edited_preset().config;
+    const DynamicPrintConfig &printer_config  = preset_bundle.printers .get_edited_preset().config;
+
+    float   layer_height                        = float(print_config.opt_float("layer_height"));
+    int     num_perimeters                      = print_config.opt_int("perimeters");
+    bool    thin_walls                          = print_config.opt_bool("thin_walls");
+    float   nozzle_diameter                     = float(printer_config.opt_float("nozzle_diameter", 0));
+    
+    Flow    external_perimeter_flow             = Flow::new_from_config_width(
+        frExternalPerimeter, 
+        *print_config.opt<ConfigOptionFloatOrPercent>("external_perimeter_extrusion_width"), 
+        nozzle_diameter, layer_height, false);
+    Flow    perimeter_flow                      = Flow::new_from_config_width(
+        frPerimeter, 
+        *print_config.opt<ConfigOptionFloatOrPercent>("perimeter_extrusion_width"), 
+        nozzle_diameter, layer_height, false);
+
+    std::string out;
+    if (num_perimeters > 0) {
+        int num_lines = std::min(num_perimeters * 2, 10);
+        char buf[256];
+        sprintf(buf, "Recommended object thin wall thickness for layer height %.2f and ", layer_height);
+        out += buf;
+        // Start with the width of two closely spaced 
+        double width = external_perimeter_flow.width + external_perimeter_flow.spacing();
+        for (int i = 2; i <= num_lines; thin_walls ? ++ i : i += 2) {
+            if (i > 2)
+                out += ", ";
+            sprintf(buf, "%d lines: %.2lf mm", i, width);
+            out += buf;
+            width += perimeter_flow.spacing() * (thin_walls ? 1.f : 2.f);
+        }
+    }
+    return out;
+}
+
 }; // namespace Slic3r
