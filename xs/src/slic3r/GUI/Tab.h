@@ -123,7 +123,7 @@ public:
 	void		rebuild_page_tree();
 	void		select_preset(wxString preset_name){};
 
-	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox, wxButton* btn);
+	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
 	void		load_key_value(std::string opt_key, boost::any value);
 	void		reload_compatible_printers_widget();
@@ -144,6 +144,7 @@ public:
 	void			load_config(DynamicPrintConfig config);
 	virtual void	reload_config();
 	Field*			get_field(t_config_option_key opt_key, int opt_index = -1) const;
+	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 };
 
 //Slic3r::GUI::Tab::Print;
@@ -154,24 +155,24 @@ public:
 	TabPrint(wxNotebook* parent, const char *title) : Tab(parent, title) {}
 	~TabPrint(){}
 
+	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
 	bool		m_support_material_overhangs_queried = false;
 
 	void		build() override;
 	void		reload_config() override;
 	void		update() override;
+	void		OnActivate();
 };
 
 //Slic3r::GUI::Tab::Filament;
 class TabFilament : public Tab
 {
-	wxStaticText*	m_volumetric_speed_description_line;
-	wxStaticText*	m_cooling_description_line;
+	ogStaticText*	m_volumetric_speed_description_line;
+	ogStaticText*	m_cooling_description_line;
 public:
 	TabFilament() {}
 	TabFilament(wxNotebook* parent, const char *title) : Tab(parent, title) {}
 	~TabFilament(){}
-
-	wxSizer*		description_line_widget(wxWindow* parent, wxStaticText* StaticText);
 
 	void		build() override;
 	void		reload_config() override;
@@ -188,6 +189,7 @@ public:
 	wxButton*	m_octoprint_host_test_btn;
 
 	size_t		m_extruders_count;
+	std::vector<PageShp>	m_extruder_pages;
 
 public:
 	TabPrinter() {}

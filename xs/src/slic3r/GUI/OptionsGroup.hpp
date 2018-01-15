@@ -29,8 +29,6 @@ namespace Slic3r { namespace GUI {
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
 using column_t = std::function<wxSizer*(const Line&)>;
 
-class StaticText;
-
 /// Wraps a ConfigOptionDef and adds function object for creating a side_widget.
 struct Option {
 	ConfigOptionDef			opt { ConfigOptionDef() };
@@ -167,6 +165,17 @@ public:
 	// return option value from config 
 	boost::any	get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index = -1);
 	Field*		get_fieldc(t_config_option_key opt_key, int opt_index);
+};
+
+//  Static text shown among the options.
+//  Currently used for the filament cooling legend only.
+class ogStaticText :public wxStaticText{
+public:
+	ogStaticText() {}
+	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize){}
+	~ogStaticText(){}
+
+	void SetText(wxString value);
 };
 
 }}

@@ -259,8 +259,15 @@ void TabPrint::build()
 		optgroup->append_single_option_line("perimeters");
 		optgroup->append_single_option_line("spiral_vase");
 
+		Line line { "", "" };
+		line.full_width = 1;
+		line.widget = [this](wxWindow* parent) {
+			return description_line_widget(parent, &m_recommended_thin_wall_thickness_description_line);
+		};
+		optgroup->append_line(line);
+
 		optgroup = page->new_optgroup("Horizontal shells");
-		Line line{ "Solid layers", "" };
+		line = { "Solid layers", "" };
 		line.append_option(optgroup->get_option("top_solid_layers"));
 		line.append_option(optgroup->get_option("bottom_solid_layers"));
 		optgroup->append_line(line);
@@ -441,10 +448,7 @@ void TabPrint::build()
 		optgroup = page->new_optgroup("Profile dependencies");
 		line = Line{ "Compatible printers", "" };
 		line.widget = [this](wxWindow* parent){
-			m_compatible_printers_checkbox = new wxCheckBox(parent, wxID_ANY, "All");
-			m_compatible_printers_btn = new wxButton(parent, wxID_ANY, "Set…", wxDefaultPosition,
-				wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-			return compatible_printers_widget(parent, m_compatible_printers_checkbox, m_compatible_printers_btn);
+			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
 		};
 		optgroup->append_line(line);
 
@@ -700,7 +704,15 @@ void TabPrint::update()
 	for (auto el : vec_enable)
 		get_field(el)->toggle(have_wipe_tower);
 
+	m_recommended_thin_wall_thickness_description_line->SetText(
+		PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));
+
 	Thaw();
+}
+
+void TabPrint::OnActivate()
+{
+	m_recommended_thin_wall_thickness_description_line->SetText(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));
 }
 
 void TabFilament::build()
@@ -735,8 +747,7 @@ void TabFilament::build()
 		line = { "", "" }; 
 		line.full_width = 1;
 		line.widget = [this](wxWindow* parent) {
-			m_cooling_description_line = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxSize(400, -1));
-			return description_line_widget(parent, m_cooling_description_line);
+			return description_line_widget(parent, &m_cooling_description_line);
 		};
 		optgroup->append_line(line);
 
@@ -765,8 +776,7 @@ void TabFilament::build()
 		line = {"",""};
 		line.full_width = 1;
 		line.widget = [this](wxWindow* parent) {
-			m_volumetric_speed_description_line = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxSize(400, -1));
-			return description_line_widget(parent, m_volumetric_speed_description_line);
+			return description_line_widget(parent, &m_volumetric_speed_description_line);
 		};
 		optgroup->append_line(line);
 
@@ -795,10 +805,7 @@ void TabFilament::build()
 		optgroup = page->new_optgroup("Profile dependencies");
 		line = {"Compatible printers", ""};
 		line.widget = [this](wxWindow* parent){
-			m_compatible_printers_checkbox = new wxCheckBox(parent, wxID_ANY, "All");
-			m_compatible_printers_btn = new wxButton(parent, wxID_ANY, "Set…", wxDefaultPosition, 
-													wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-			return compatible_printers_widget(parent, m_compatible_printers_checkbox, m_compatible_printers_btn);
+			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
 		};
 		optgroup->append_line(line);
 
@@ -816,9 +823,9 @@ void TabFilament::reload_config(){
 void TabFilament::update()
 {
 	wxString text = wxString::FromUTF8(PresetHints::cooling_description(m_presets->get_edited_preset()).c_str());
-	m_cooling_description_line->SetLabel(text);
+	m_cooling_description_line->SetText(text);
 	text = wxString::FromUTF8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle).c_str());
-	m_volumetric_speed_description_line->SetLabel(text);
+	m_volumetric_speed_description_line->SetText(text);
 
 	bool cooling = m_config->opt_bool("cooling", 0);
 	bool fan_always_on = cooling || m_config->opt_bool("fan_always_on", 0);
@@ -835,17 +842,18 @@ void TabFilament::update()
 
 void TabFilament::OnActivate()
 {
-	m_volumetric_speed_description_line->SetLabel(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
+	m_volumetric_speed_description_line->SetText(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
 }
 
-wxSizer* TabFilament::description_line_widget(wxWindow* parent, wxStaticText* StaticText)
+wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText)
 {
+	*StaticText = new ogStaticText(parent, "");
+
 	auto font = (new wxSystemSettings)->GetFont(wxSYS_DEFAULT_GUI_FONT);
-	StaticText->SetFont(font);
-	StaticText->GetParent()->Layout();
+	(*StaticText)->SetFont(font);
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	sizer->Add(StaticText);
+	sizer->Add(*StaticText);
 	return sizer;
 }
 
@@ -1096,12 +1104,10 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 }
 
 void TabPrinter::build_extruder_pages(){
-	std::vector<PageShp>	extruder_pages;	
-
-	for (auto extruder_idx = 0; extruder_idx < m_extruders_count; ++extruder_idx){
+	for (auto extruder_idx = m_extruder_pages.size()/*0*/; extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
 		auto page = add_options_page("Extruder " + wxString::Format(_T("%i"), extruder_idx + 1), "funnel.png", true);
-		extruder_pages.push_back(page);
+		m_extruder_pages.push_back(page);
 			
 			auto optgroup = page->new_optgroup("Size");
 			optgroup->append_single_option_line("nozzle_diameter", extruder_idx);
@@ -1139,14 +1145,16 @@ void TabPrinter::build_extruder_pages(){
 	}
  
 	// # remove extra pages
-	if (m_extruders_count <= extruder_pages.size()) {
-		extruder_pages.resize(m_extruders_count);
+	if (m_extruders_count <= m_extruder_pages.size()) {
+		m_extruder_pages.resize(m_extruders_count);
 	}
 
 	// # rebuild page list
 	PageShp page_note = m_pages.back();
 	m_pages.pop_back();
-	for (auto page_extruder : extruder_pages)
+	while (m_pages.back()->title().find("Extruder") != std::string::npos)
+		m_pages.pop_back();
+	for (auto page_extruder : m_extruder_pages)
 		m_pages.push_back(page_extruder);
 	m_pages.push_back(page_note);
 
@@ -1302,24 +1310,27 @@ void Tab::delete_preset(wxCommandEvent &event){};
 void Tab::toggle_show_hide_incompatible(wxCommandEvent &event){};
 
 //	# Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
-wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox, wxButton* btn)
+wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn)
 {
-	btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("printer_empty.png").c_str()), wxBITMAP_TYPE_PNG));
+	*checkbox = new wxCheckBox(parent, wxID_ANY, "All");
+	*btn = new wxButton(parent, wxID_ANY, "Set…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+
+	(*btn)->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("printer_empty.png").c_str()), wxBITMAP_TYPE_PNG));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	sizer->Add(checkbox, 0, wxALIGN_CENTER_VERTICAL);
-	sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
+	sizer->Add((*checkbox), 0, wxALIGN_CENTER_VERTICAL);
+	sizer->Add((*btn), 0, wxALIGN_CENTER_VERTICAL);
 
-	checkbox->Bind(wxEVT_CHECKBOX, ([=](wxCommandEvent e)
+	(*checkbox)->Bind(wxEVT_CHECKBOX, ([=](wxCommandEvent e)
 	{
-		btn->Enable(!checkbox->GetValue());
+		(*btn)->Enable(!(*checkbox)->GetValue());
 		// All printers have been made compatible with this preset.
-		if (checkbox->GetValue())
+		if ((*checkbox)->GetValue())
 			load_key_value("compatible_printers", std::vector<std::string> {});
-		get_field("compatible_printers_condition")->toggle(checkbox->GetValue());
+		get_field("compatible_printers_condition")->toggle((*checkbox)->GetValue());
 	}) );
 
-	btn->Bind(wxEVT_BUTTON, ([this, parent, checkbox, btn](wxCommandEvent e)
+	(*btn)->Bind(wxEVT_BUTTON, ([this, parent, checkbox, btn](wxCommandEvent e)
 	{
 		// # Collect names of non-default non-external printer profiles.
 		PresetCollection *printers = &m_preset_bundle->printers;
@@ -1354,8 +1365,8 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox* checkbox,
 			for (auto idx : selections)
 				value.push_back(presets[idx].ToStdString());
 			if (value.empty()) {
-				checkbox->SetValue(1);
-				btn->Disable();
+				(*checkbox)->SetValue(1);
+				(*btn)->Disable();
 			}
 			// All printers have been made compatible with this preset.
 			load_key_value("compatible_printers", value);

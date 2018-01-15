@@ -192,7 +192,8 @@ void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config)
 	add_created_tab(new TabPrinter (g_wxTabPanel, "Printer"),  preset_bundle, app_config);
 	g_wxTabPanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, ([](wxCommandEvent e){
 		Tab* panel = (Tab*)g_wxTabPanel->GetCurrentPage();
-		if (panel->GetName().compare("Filament")==0)
+		if (panel->GetName().compare("Print")==0 ||
+			panel->GetName().compare("Filament") == 0)
 			panel->OnActivate();
 	}), g_wxTabPanel->GetId() );
 }

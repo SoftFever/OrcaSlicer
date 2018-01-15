@@ -376,5 +376,12 @@ Field* ConfigOptionsGroup::get_fieldc(t_config_option_key opt_key, int opt_index
 	return opt_id.empty() ? nullptr : get_field(opt_id);
 }
 
+void ogStaticText::SetText(wxString value)
+{
+	SetLabel(value);
+	Wrap(400);
+	GetParent()->Layout();
+}
+
 } // GUI
 } // Slic3r
