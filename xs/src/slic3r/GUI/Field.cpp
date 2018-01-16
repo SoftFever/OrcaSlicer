@@ -348,7 +348,11 @@ void Choice::set_value(boost::any value)
 	case coFloat:
 	case coPercent:
 	case coStrings:{
-		wxString text_value = boost::any_cast<wxString>(value);
+		wxString text_value;
+		if (m_opt.type == coInt) 
+			text_value = wxString::Format(_T("%i"), int(boost::any_cast<int>(value)));
+		else
+			text_value = boost::any_cast<wxString>(value);
 		auto idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
@@ -454,7 +458,7 @@ void Point::BUILD()
 
 	temp->Add(new wxStaticText(m_parent, wxID_ANY, "x:")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
 	temp->Add(x_textctrl);
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "y:")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
+	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y:")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
 	temp->Add(y_textctrl);
 
 	x_textctrl->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e/*$self->option->opt_id*/); }), x_textctrl->GetId());

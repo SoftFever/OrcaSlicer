@@ -65,7 +65,7 @@ public:
 	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
 	void		reload_config();
 	Field*		get_field(t_config_option_key opt_key, int opt_index = -1) const;
-
+	bool		set_value(t_config_option_key opt_key, boost::any value);
 	ConfigOptionsGroupShp new_optgroup(std::string title, int noncommon_label_width = -1);
 };
 
@@ -94,13 +94,18 @@ protected:
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index in $self->{icons}.
 	std::vector<PageShp>			m_pages;	// $self->{pages} = [];
 	bool				m_disable_tree_sel_changed_event;
+	bool				m_show_incompatible_presets;
+
+	std::vector<std::string>	m_reload_dependent_tabs = {};
 
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_no_controller;
+	bool				m_show_btn_incompatible_presets;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
 	t_change			m_on_value_change{ nullptr };
+	std::function<void(/*PresetCollection*, std::vector<std::string>*/)>	m_on_presets_changed{ nullptr };
 
 public:
 	Tab() {}
@@ -118,32 +123,37 @@ public:
 			m_on_value_change(opt_key, value);
 		update();
 	};
-	void		on_presets_changed(){};
 	void		load_current_preset();
 	void		rebuild_page_tree();
-	void		select_preset(wxString preset_name){};
-
+	void		select_preset(wxString preset_name = "");
+	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, std::string new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
 	void		load_key_value(std::string opt_key, boost::any value);
+	void		on_presets_changed();
 	void		reload_compatible_printers_widget();
 
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
 	void		OnComboBox(wxCommandEvent& event) { select_preset(m_presets_choice->GetStringSelection()); 	}
-	void		save_preset(wxCommandEvent &event);
+	void		save_preset(std::string name = "");
 	void		delete_preset(wxCommandEvent &event);
 	void		toggle_show_hide_incompatible(wxCommandEvent &event);
-
+	void		update_show_hide_incompatible_button();
+	void		update_ui_from_settings();
+	
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
-	virtual void	OnActivate(){};
+	virtual void	OnActivate(){}
+	virtual void	on_preset_loaded(){}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
 	void			update_dirty();
+	void			update_tab_ui();
 	void			load_config(DynamicPrintConfig config);
 	virtual void	reload_config();
 	Field*			get_field(t_config_option_key opt_key, int opt_index = -1) const;
+	bool			set_value(t_config_option_key opt_key, boost::any value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 };
 
@@ -161,7 +171,7 @@ public:
 	void		build() override;
 	void		reload_config() override;
 	void		update() override;
-	void		OnActivate();
+	void		OnActivate() override;
 };
 
 //Slic3r::GUI::Tab::Filament;
@@ -177,7 +187,6 @@ public:
 	void		build() override;
 	void		reload_config() override;
 	void		update() override;
-
 	void		OnActivate() override;
 };
 
@@ -201,6 +210,7 @@ public:
 	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
 	void		build_extruder_pages();
+	void		on_preset_loaded() override;
 };
 
 } // GUI

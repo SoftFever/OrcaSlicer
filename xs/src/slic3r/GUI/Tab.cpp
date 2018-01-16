@@ -31,20 +31,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	panel->SetSizer(sizer);
 
 	// preset chooser
-	//! Add Preset from PrintPreset
-	// choice menu for Experiments
-	wxString choices[] =
-	{
-		_T("First"),
-		_T("Second"),
-		_T("Third")
-	};
-
-	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1)/*, nCntEl, choices, wxCB_READONLY*/);
+	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
 	const wxBitmap* bmp = new wxBitmap(wxString::FromUTF8(Slic3r::var("flag-green-icon.png").c_str()), wxBITMAP_TYPE_PNG);
-	for (auto el:choices)
-		m_presets_choice->Append(wxString::FromUTF8(el).c_str(), *bmp);
-	m_presets_choice->SetSelection(m_presets_choice->GetCount() - 1);
 
 	//buttons
 	wxBitmap bmpMenu;
@@ -53,8 +41,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	bmpMenu = wxBitmap(wxString::FromUTF8(Slic3r::var("delete.png").c_str()), wxBITMAP_TYPE_PNG);
 	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 
-	//	$self->{show_incompatible_presets} = 0;			// !!!
-
+	m_show_incompatible_presets = false;
 	m_bmp_show_incompatible_presets = new wxBitmap(wxString::FromUTF8(Slic3r::var("flag-red-icon.png").c_str()), wxBITMAP_TYPE_PNG);
 	m_bmp_hide_incompatible_presets = new wxBitmap(wxString::FromUTF8(Slic3r::var("flag-green-icon.png").c_str()), wxBITMAP_TYPE_PNG);
 	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, *m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
@@ -96,7 +83,13 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 	m_treectrl->Bind(wxEVT_COMBOBOX, &Tab::OnComboBox, this); 
 
-	m_btn_save_preset->Bind(wxEVT_BUTTON, &Tab::save_preset, this);
+	m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e){
+		select_preset(m_presets_choice->GetStringSelection());
+	}));
+
+	m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){
+		save_preset(m_presets_choice->GetStringSelection().ToStdString());
+	}));
 	m_btn_delete_preset->Bind(wxEVT_BUTTON, &Tab::delete_preset, this);
 	m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, &Tab::toggle_show_hide_incompatible, this);
 
@@ -139,6 +132,11 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
 //	_on_presets_changed;
+}
+
+void Tab::update_tab_ui()
+{
+	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
@@ -223,6 +221,18 @@ Field* Tab::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
 	return field;
 }
 
+// Set a key/value pair on this page. Return true if the value has been modified.
+// Currently used for distributing extruders_count over preset pages of Slic3r::GUI::Tab::Printer
+// after a preset is loaded.
+bool Tab::set_value(t_config_option_key opt_key, boost::any value){
+	bool changed = false;
+	for(auto page: m_pages) {
+		if (page->set_value(opt_key, value))
+		changed = true;
+	}
+	return changed;
+}
+
 // To be called by custom widgets, load a value into a config,
 // update the preset selection boxes (the dirty flags)
 void Tab::load_key_value(std::string opt_key, boost::any value)
@@ -235,6 +245,16 @@ void Tab::load_key_value(std::string opt_key, boost::any value)
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();
 	update();
+}
+
+// Call a callback to update the selection of presets on the platter:
+// To update the content of the selection boxes,
+// to update the filament colors of the selection boxes,
+// to update the "dirty" flags of the selection boxes,
+// to uddate number of "filament" selection boxes when the number of extruders change.
+void Tab::on_presets_changed(/*std::vector<std::string> reload_dependent_tabs*/){
+	if (m_on_presets_changed != nullptr)
+		m_on_presets_changed(/*m_presets, reload_dependent_tabs*/);
 }
 
 void Tab::reload_compatible_printers_widget()
@@ -1161,6 +1181,17 @@ void TabPrinter::build_extruder_pages(){
 	rebuild_page_tree();
 }
 
+// this gets executed after preset is loaded and before GUI fields are updated
+void TabPrinter::on_preset_loaded()
+{
+	// update the extruders count field
+	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
+	int extruders_count = nozzle_diameter->values.size();
+	set_value("extruders_count", extruders_count);
+	// update the GUI field according to the number of nozzle diameters supplied
+	extruders_count_changed(extruders_count);
+}
+
 void TabPrinter::update(){
 	Freeze();
 
@@ -1246,9 +1277,27 @@ void TabPrinter::update(){
 	Thaw();
 }
 
+// Initialize the UI from the current preset
 void Tab::load_current_preset()
 {
-	;
+	auto preset = m_presets->get_edited_preset();
+//	try{
+//		local $SIG{ __WARN__ } = Slic3r::GUI::warning_catcher($self);
+		preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
+		update();
+		// For the printer profile, generate the extruder pages.
+		on_preset_loaded();
+		// Reload preset pages with the new configuration values.
+		reload_config();
+//	};
+	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
+	// and we don't want them to be called after this update_dirty() as they would mark the 
+	// preset dirty again
+	// (not sure this is true anymore now that update_dirty is idempotent)
+	wxTheApp->CallAfter([this]{
+		update_tab_ui();
+		on_presets_changed();
+	});
 }
 
 //Regerenerate content of the page tree.
@@ -1278,6 +1327,111 @@ void Tab::rebuild_page_tree()
 	Thaw();
 }
 
+// Called by the UI combo box when the user switches profiles.
+// Select a preset by a name.If !defined(name), then the default preset is selected.
+// If the current profile is modified, user is asked to save the changes.
+void Tab::select_preset(wxString preset_name)
+{
+	std::string name = preset_name.ToStdString();
+	auto force = false;
+	auto presets = m_presets;
+	// If no name is provided, select the "-- default --" preset.
+	if (name.empty())
+		name= presets->default_preset().name;
+	auto current_dirty = presets->current_is_dirty();
+	auto canceled = false;
+	auto printer_tab = presets->name().compare("printer")==0;
+	m_reload_dependent_tabs = {};
+	if (!force && current_dirty && !may_discard_current_dirty_preset()) {
+		canceled = true;
+	} else if(printer_tab) {
+		// Before switching the printer to a new one, verify, whether the currently active print and filament
+		// are compatible with the new printer.
+		// If they are not compatible and the current print or filament are dirty, let user decide
+		// whether to discard the changes or keep the current printer selection.
+		auto new_printer_preset = presets->find_preset(name, true);
+		auto print_presets = &m_preset_bundle->prints;
+		bool print_preset_dirty = print_presets->current_is_dirty();
+		bool print_preset_compatible = print_presets->get_edited_preset().is_compatible_with_printer(*new_printer_preset);
+		canceled = !force && print_preset_dirty && !print_preset_compatible &&
+			!may_discard_current_dirty_preset(print_presets, name);
+		auto filament_presets = &m_preset_bundle->filaments;
+		bool filament_preset_dirty = filament_presets->current_is_dirty();
+		bool filament_preset_compatible = filament_presets->get_edited_preset().is_compatible_with_printer(*new_printer_preset);
+		if (!canceled && !force) {
+			canceled = filament_preset_dirty && !filament_preset_compatible &&
+				!may_discard_current_dirty_preset(filament_presets, name);
+		}
+		if (!canceled) {
+			if (!print_preset_compatible) {
+				// The preset will be switched to a different, compatible preset, or the '-- default --'.
+				m_reload_dependent_tabs.push_back("Print");
+				if (print_preset_dirty) print_presets->discard_current_changes();
+			}
+			if (!filament_preset_compatible) {
+				// The preset will be switched to a different, compatible preset, or the '-- default --'.
+				m_reload_dependent_tabs.push_back("Filament");
+				if (filament_preset_dirty) filament_presets->discard_current_changes();
+			}
+		}
+	}
+	if (canceled) {
+		update_tab_ui();
+		// Trigger the on_presets_changed event so that we also restore the previous value in the plater selector,
+		// if this action was initiated from the platter.
+		on_presets_changed();
+	}
+	else {
+		if (current_dirty) presets->discard_current_changes() ;
+		presets->select_preset_by_name(name, force);
+		// Mark the print & filament enabled if they are compatible with the currently selected preset.
+		// The following method should not discard changes of current print or filament presets on change of a printer profile,
+		// if they are compatible with the current printer.
+		if (current_dirty || printer_tab)
+			m_preset_bundle->update_compatible_with_printer(true);
+		// Initialize the UI from the current preset.
+		load_current_preset(/*\@reload_dependent_tabs*/);
+	}
+
+}
+
+// If the current preset is dirty, the user is asked whether the changes may be discarded.
+// if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
+bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, std::string new_printer_name /*= ""*/)
+{
+	if (presets == nullptr) presets = m_presets;
+	// Display a dialog showing the dirty options in a human readable form.
+	auto old_preset = presets->get_edited_preset();
+	auto type_name = presets->name();
+	auto tab = "          ";
+	auto name = old_preset.is_default ?
+		("Default " + type_name + " preset") :
+		(type_name + " preset\n" + tab + old_preset.name);
+	// Collect descriptions of the dirty options.
+	std::vector<std::string> option_names;
+	for(auto opt_key: presets->current_dirty_options()) {
+		auto opt = m_config->def()->options.at(opt_key);
+		std::string name = "";
+		if (!opt.category.empty())
+			name += opt.category + " > ";
+		name += !opt.full_label.empty() ?
+				opt.full_label : 
+				opt.label;
+		option_names.push_back(name);
+	}
+	// Show a confirmation dialog with the list of dirty options.
+	std::string changes = "";
+	for (auto changed_name : option_names)
+		changes += tab + changed_name + "\n";
+	auto message = (!new_printer_name.empty()) ?
+		name + "\n\nis not compatible with printer\n" +tab + new_printer_name+ "\n\nand it has the following unsaved changes:" :
+		name + "\n\nhas the following unsaved changes:";
+	auto confirm = new wxMessageDialog(parent(),
+		message + "\n" +changes +"\n\nDiscard changes and continue anyway?",
+		"Unsaved Changes", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+	return confirm->ShowModal() == wxID_YES;
+}
+
 void Tab::OnTreeSelChange(wxTreeEvent& event)
 {
 	if (m_disable_tree_sel_changed_event) return;
@@ -1303,13 +1457,108 @@ void Tab::OnKeyDown(wxKeyEvent& event)
 	event.GetKeyCode() == WXK_TAB ?
 		m_treectrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward) :
 		event.Skip();
-};
+}
 
-void Tab::save_preset(wxCommandEvent &event){};
-void Tab::delete_preset(wxCommandEvent &event){};
-void Tab::toggle_show_hide_incompatible(wxCommandEvent &event){};
+// Save the current preset into file.
+// This removes the "dirty" flag of the preset, possibly creates a new preset under a new name,
+// and activates the new preset.
+// Wizard calls save_preset with a name "My Settings", otherwise no name is provided and this method
+// opens a Slic3r::GUI::SavePresetWindow dialog.
+void Tab::save_preset(std::string name /*= ""*/)
+{
+	// since buttons(and choices too) don't get focus on Mac, we set focus manually
+	// to the treectrl so that the EVT_* events are fired for the input field having
+	// focus currently.is there anything better than this ?
+//!	m_treectrl->OnSetFocus();
 
-//	# Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
+	if (name.empty()) {
+		auto preset = m_presets->get_selected_preset();
+		auto default_name = preset.is_default ? "Untitled" : preset.name;
+// 		$default_name = ~s / \.[iI][nN][iI]$//;
+// 			my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
+// 			title = > lc($self->title),
+// 			default = > $default_name,
+// 			values = > [map $_->name, grep !$_->default && !$_->external, @{$self->{presets}}],
+// 			);
+// 		return unless $dlg->ShowModal == wxID_OK;
+// 		name = $dlg->get_name;
+	}
+	// Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
+	try
+	{
+		m_presets->save_current_preset(name);
+	}
+	catch (const std::exception &e)
+	{
+		return;
+	}
+
+	// Mark the print & filament enabled if they are compatible with the currently selected preset.
+	m_preset_bundle->update_compatible_with_printer(false);
+	// Add the new item into the UI component, remove dirty flags and activate the saved item.
+	update_tab_ui();
+	// Update the selection boxes at the platter.
+	on_presets_changed();
+}
+
+// Called for a currently selected preset.
+void Tab::delete_preset(wxCommandEvent &event)
+{
+	auto current_preset = m_presets->get_selected_preset();
+	// Don't let the user delete the ' - default - ' configuration.
+	std::string action = current_preset.is_external ? "remove" : "delete";
+	std::string msg = "Are you sure you want to " + action + " the selected preset?";
+	action = current_preset.is_external ? "Remove" : "Delete";
+	std::string title = action + " Preset";
+	if (current_preset.is_default ||
+		wxID_YES != /*new*/ (wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)).ShowModal())
+		return;
+	// Delete the file and select some other reasonable preset.
+	// The 'external' presets will only be removed from the preset list, their files will not be deleted.
+	try{ m_presets->delete_current_preset(); }
+	catch (const std::exception &e)
+	{
+		return;
+	}
+	// Load the newly selected preset into the UI, update selection combo boxes with their dirty flags.
+	load_current_preset();
+}
+
+void Tab::toggle_show_hide_incompatible(wxCommandEvent &event)
+{
+	m_show_incompatible_presets = !m_show_incompatible_presets;
+	update_show_hide_incompatible_button();
+	update_tab_ui();
+}
+
+void Tab::update_show_hide_incompatible_button()
+{
+	m_btn_hide_incompatible_presets->SetBitmap(m_show_incompatible_presets ?
+		*m_bmp_show_incompatible_presets : *m_bmp_hide_incompatible_presets);
+	m_btn_hide_incompatible_presets->SetToolTip(m_show_incompatible_presets ?
+		"Both compatible an incompatible presets are shown. Click to hide presets not compatible with the current printer." :
+		"Only compatible presets are shown. Click to show both the presets compatible and not compatible with the current printer.");
+}
+
+void Tab::update_ui_from_settings()
+{
+	// Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
+	// in application preferences.
+	bool show = m_show_btn_incompatible_presets && m_presets->name().compare("printer") != 0;
+	show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
+	// If the 'show / hide presets' button is hidden, hide the incompatible presets.
+	if (show) {
+		update_show_hide_incompatible_button();
+	}
+	else {
+		if (m_show_incompatible_presets) {
+			m_show_incompatible_presets = false;
+			update_tab_ui();
+		}
+	}
+}
+
+// Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
 wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn)
 {
 	*checkbox = new wxCheckBox(parent, wxID_ANY, "All");
@@ -1390,6 +1639,15 @@ Field* Page::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) cons
 			return field;
 	}
 	return field;
+}
+
+bool Page::set_value(t_config_option_key opt_key, boost::any value){
+	bool changed = false;
+	for(auto optgroup: m_optgroups) {
+		if (optgroup->set_value(opt_key, value))
+			changed = 1 ;
+	}
+	return changed;
 }
 
 // package Slic3r::GUI::Tab::Page;

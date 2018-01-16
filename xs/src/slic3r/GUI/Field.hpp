@@ -213,7 +213,7 @@ public:
 	 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
 	 	}
 	void			set_value(boost::any value) {
-		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast<std::string>(value));
+		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast</*std::s*/wxString>(value));
 	}
 
 	boost::any		get_value() override	{

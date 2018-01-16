@@ -279,6 +279,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config)
 {
 	panel->m_no_controller = app_config->get("no_controller").empty();
+	panel->m_show_btn_incompatible_presets = app_config->get("show_incompatible_presets").empty();
 	panel->create_preset_tab(preset_bundle);
 	// Callback to be executed after any of the configuration fields(Perl class Slic3r::GUI::OptionsGroup::Field) change their value.
 	panel->m_on_value_change = [/*this*/](std::string opt_key, boost::any value){
@@ -291,9 +292,9 @@ void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_con
 //		if (loaded && Slic3r::GUI::autosave) m_config->save(Slic3r::GUI::autosave) ;
 	};
 
-// 	# Install a callback for the tab to update the platter and print controller presets, when
-// 	# a preset changes at Slic3r::GUI::Tab.
-// 	$tab->on_presets_changed(sub{
+	// Install a callback for the tab to update the platter and print controller presets, when
+	// a preset changes at Slic3r::GUI::Tab.
+	panel->m_on_presets_changed = [](){
 // 		if ($self->{plater}) {
 // 			# Update preset combo boxes(Print settings, Filament, Printer) from their respective tabs.
 // 			$self->{plater}->update_presets($tab_name, @_);
@@ -312,10 +313,10 @@ void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_con
 // 			}
 // 			$self->{plater}->on_config_change($tab->{presets}->get_current_preset->config);
 // 		}
-// 	});
+	};
 
-	//# Load the currently selected preset into the GUI, update the preset selection box.
-//	panel->load_current_preset;
+	// Load the currently selected preset into the GUI, update the preset selection box.
+	panel->load_current_preset();
 
 	g_wxTabPanel->AddPage(panel, panel->title());
 }

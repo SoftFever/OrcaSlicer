@@ -91,17 +91,15 @@ public:
     void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
 
     // return a non-owning pointer reference 
-    inline /*const*/ Field* get_field(t_config_option_key id) const { try { return m_fields.at(id).get(); } catch (std::out_of_range e) { return nullptr; } }
-//!    inline const Option& get_option(t_config_option_key id) const { try { return options.at(id).get(); } catch (std::out_of_range e) { return nullptr; } }
- //   }
-    inline void		set_value(t_config_option_key id, boost::any value) { try { m_fields.at(id)->set_value(value); } catch (std::out_of_range e) {;}  }
+    inline /*const*/ Field*	get_field(t_config_option_key id) const { try { return m_fields.at(id).get(); } catch (std::out_of_range e) { return nullptr; } }
+	bool			set_value(t_config_option_key id, boost::any value) { try { m_fields.at(id)->set_value(value); return true; } catch (std::out_of_range e) { return false; } }
 	boost::any		get_value(t_config_option_key id) { try { return m_fields.at(id)->get_value(); } catch (std::out_of_range e) { ; } }
 
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
     OptionsGroup(wxWindow* _parent, std::string title, const ConfigDef& configs) : 
-		m_options(configs.options), m_parent(_parent), title(wxString(title)) {
+		m_optiondefs(configs.options), m_parent(_parent), title(wxString(title)) {
         sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
@@ -114,7 +112,8 @@ public:
     }
 
 protected:
-    const t_optiondef_map&	m_options;
+    const t_optiondef_map&	m_optiondefs;	//#WHY
+	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
 
     /// Field list, contains unique_ptrs of the derived type.
@@ -168,7 +167,6 @@ public:
 };
 
 //  Static text shown among the options.
-//  Currently used for the filament cooling legend only.
 class ogStaticText :public wxStaticText{
 public:
 	ogStaticText() {}

@@ -11,7 +11,7 @@ const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
 }
 const t_field& OptionsGroup::build_field(const t_config_option_key& id) {
-	const ConfigOptionDef& opt = m_options.at(id);
+	const ConfigOptionDef& opt = m_options.at(id).opt;
     return build_field(id, opt);
 }
 
@@ -86,6 +86,8 @@ void OptionsGroup::append_line(const Line& line) {
     }
 
 	auto option_set = line.get_options();
+	for (auto opt : option_set) 
+		m_options.emplace(opt.opt_id, opt);
 
 	// if we have a single option with no label, no sidetext just add it directly to sizer
 	if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
@@ -122,7 +124,6 @@ void OptionsGroup::append_line(const Line& line) {
 
     
     // if we have a single option with no sidetext just add it directly to the grid sizer
-//!    auto option_set = line.get_options();
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
         const auto& option = option_set.front();
@@ -225,7 +226,7 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 		std::string opt_key = itOption.first;
 		int opt_index = itOption.second;
 
-		auto option = m_options.at(opt_id);
+		auto option = m_options.at(opt_id).opt;
 
 		// get value
 //!		auto field_value = get_value(opt_id);
@@ -260,7 +261,7 @@ void ConfigOptionsGroup::reload_config(){
 		auto opt_id = it->first;
 		std::string opt_key = m_opt_map.at(opt_id).first;
 		int opt_index = m_opt_map.at(opt_id).second;
-		auto option = m_options.at(opt_id);
+		auto option = m_options.at(opt_id).opt;
 		set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags.compare("serialized") == 0 ));
 	}
 }
@@ -284,6 +285,8 @@ boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, 
 
 boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index/* = -1*/)
 {
+	size_t idx = opt_index == -1 ? 0 : opt_index;
+	
 	boost::any ret;
 	wxString text_value = wxString("");
 	const ConfigOptionDef* opt = config.def()->get(opt_key);
@@ -308,7 +311,9 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		break;
 	case coPercents:
 	case coFloats:{
-		double val = config.opt_float(opt_key, 0/*opt_index*/);
+		double val = opt->type == coFloats ?
+					config.opt_float(opt_key, idx/*0opt_index*/) :
+					config.option<ConfigOptionPercents>(opt_key)->values.at(idx/*0*/);
 		ret = val - int(val) == 0 ? 
 			wxString::Format(_T("%i"), int(val)) : 
 			wxNumberFormatter::ToString(val, 2);
@@ -324,19 +329,19 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
 		else
-			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(0)/*opt_index*/));
+			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(idx/*0*/)/*opt_index*/));
 		break;
 	case coBool:
 		ret = config.opt_bool(opt_key);
 		break;
 	case coBools:
-		ret = config.opt_bool(opt_key, 0/*opt_index*/);
+		ret = config.opt_bool(opt_key, idx/*0opt_index*/);
 		break;
 	case coInt:
 		ret = config.opt_int(opt_key);
 		break;
 	case coInts:
-		ret = config.opt_int(opt_key, 0/*opt_index*/);
+		ret = config.opt_int(opt_key, idx/*0/*opt_index*/);
 		break;
 	case coEnum:{
 		if (opt_key.compare("external_fill_pattern") == 0 ||
@@ -355,7 +360,7 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		break;
 	case coPoints:{
 		const auto &value = *config.option<ConfigOptionPoints>(opt_key);
-		ret = value.values.at(0);
+		ret = value.values.at(idx/*0*/);
 		}
 		break;
 	case coNone:
