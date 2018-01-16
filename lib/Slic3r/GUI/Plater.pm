@@ -153,8 +153,17 @@ sub new {
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
-        $self->{preview3D}->load_print(1) if ($preview == $self->{preview3D});
-        $preview->OnActivate if $preview->can('OnActivate');
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+        if ($preview == $self->{preview3D})
+        {
+            $self->{preview3D}->canvas->set_legend_enabled(1);
+            $self->{preview3D}->load_print(1);
+        } else {
+            $self->{preview3D}->canvas->set_legend_enabled(0);
+        }
+#        $self->{preview3D}->load_print(1) if ($preview == $self->{preview3D});
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+        $preview->OnActivate if $preview->can('OnActivate');        
     });
     
     # toolbar for object manipulation

@@ -141,6 +141,27 @@ _glew_init()
     CODE:
         _3DScene::_glew_init();
 
+unsigned int
+get_legend_texture_id()
+    CODE:
+        RETVAL = _3DScene::get_legend_texture_id();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_legend_texture_width()
+    CODE:
+        RETVAL = _3DScene::get_legend_texture_width();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_legend_texture_height()
+    CODE:
+        RETVAL = _3DScene::get_legend_texture_height();
+    OUTPUT:
+        RETVAL
+                
 void
 _load_print_toolpaths(print, volumes, tool_colors, use_VBOs)
         Print               *print;

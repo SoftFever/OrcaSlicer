@@ -8,9 +8,11 @@
 #include "../../libslic3r/Geometry.hpp"
 #include "../../libslic3r/Print.hpp"
 #include "../../libslic3r/Slicing.hpp"
+//############################################################################################################
 #if ENRICO_GCODE_PREVIEW
 #include "GCode/Analyzer.hpp"
 #endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +24,15 @@
 
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
+
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+#include <wx/bitmap.h>
+#include <wx/dcmemory.h>
+#include <wx/image.h>
+#include <wx/settings.h>
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
 
 namespace Slic3r {
 
@@ -1098,6 +1109,197 @@ void _3DScene::GCodePreviewData::reset()
 }
 
 _3DScene::GCodePreviewData _3DScene::s_gcode_preview_data;
+_3DScene::LegendTexture _3DScene::s_legend_texture;
+
+const unsigned char _3DScene::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
+const unsigned char _3DScene::LegendTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char _3DScene::LegendTexture::Opacity = 255;
+
+_3DScene::LegendTexture::LegendTexture()
+    : m_tex_id(0)
+    , m_tex_width(0)
+    , m_tex_height(0)
+{
+}
+
+_3DScene::LegendTexture::~LegendTexture()
+{
+    _destroy_texture();
+}
+
+bool _3DScene::LegendTexture::generate_texture(const Print& print)
+{
+    _destroy_texture();
+
+    // collects items to render
+    const std::string& title = print.gcode_preview.get_legend_title();
+    const GCodeAnalyzer::PreviewData::LegendItemsList& items = print.gcode_preview.get_legend_items();
+
+    unsigned int items_count = (unsigned int)items.size();
+    if (items_count == 0)
+        // nothing to render, return
+        return false;
+
+    wxMemoryDC memDC;
+    // select default font
+    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+
+    // calculates texture size
+    wxCoord w, h;
+    memDC.GetTextExtent(title, &w, &h);
+    unsigned int title_width = (unsigned int)w;
+    unsigned int title_height = (unsigned int)h;
+
+    unsigned int max_text_width = 0;
+    unsigned int max_text_height = 0;
+    for (const GCodeAnalyzer::PreviewData::LegendItem& item : items)
+    {
+        memDC.GetTextExtent(item.text, &w, &h);
+        max_text_width = std::max(max_text_width, (unsigned int)w);
+        max_text_height = std::max(max_text_height, (unsigned int)h);
+    }
+
+    m_tex_width = std::max(2 * Px_Border + title_width, 2 * (Px_Border + Px_Square_Contour) + Px_Square + Px_Text_Offset + max_text_width);
+    m_tex_height = 2 * (Px_Border + Px_Square_Contour) + title_height + Px_Title_Offset + items_count * Px_Square;
+    if (items_count > 1)
+        m_tex_height += (items_count - 1) * Px_Square_Contour;
+
+    // generates bitmap
+    wxBitmap bitmap(m_tex_width, m_tex_height);
+
+#if defined(__APPLE__) || defined(_MSC_VER)
+    bitmap.UseAlpha();
+#endif
+
+    memDC.SelectObject(bitmap);
+    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    memDC.Clear();
+
+    memDC.SetTextForeground(*wxWHITE);
+
+    // draw title
+    unsigned int title_x = Px_Border;
+    unsigned int title_y = Px_Border;
+    memDC.DrawText(title, title_x, title_y);
+
+    // draw icons contours as background
+    unsigned int squares_contour_x = Px_Border;
+    unsigned int squares_contour_y = Px_Border + title_height + Px_Title_Offset;
+    unsigned int squares_contour_width = Px_Square + 2 * Px_Square_Contour;
+    unsigned int squares_contour_height = items_count * Px_Square + 2 * Px_Square_Contour;
+    if (items_count > 1)
+        squares_contour_height += (items_count - 1) * Px_Square_Contour;
+
+    wxColour color(Squares_Border_Color[0], Squares_Border_Color[1], Squares_Border_Color[2]);
+    wxPen pen(color);
+    wxBrush brush(color);
+    memDC.SetPen(pen);
+    memDC.SetBrush(brush);
+    memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
+
+    // draw items (colored icon + text)
+    unsigned int icon_x = squares_contour_x + Px_Square_Contour;
+    unsigned int icon_x_inner = icon_x + 1;
+    unsigned int icon_y = squares_contour_y + Px_Square_Contour;
+    unsigned int icon_y_step = Px_Square + Px_Square_Contour;
+
+    unsigned int text_x = icon_x + Px_Square + Px_Text_Offset;
+    unsigned int text_y_offset = (Px_Square - max_text_height) / 2;
+
+    unsigned int px_inner_square = Px_Square - 2;
+
+    for (const GCodeAnalyzer::PreviewData::LegendItem& item : items)
+    {
+        // draw darker icon perimeter
+        const std::vector<unsigned char>& item_color_bytes = item.color.as_bytes();
+        wxImage::HSVValue dark_hsv = wxImage::RGBtoHSV(wxImage::RGBValue(item_color_bytes[0], item_color_bytes[1], item_color_bytes[2]));
+        dark_hsv.value *= 0.75;
+        wxImage::RGBValue dark_rgb = wxImage::HSVtoRGB(dark_hsv);
+        color.Set(dark_rgb.red, dark_rgb.green, dark_rgb.blue, item_color_bytes[3]);
+        pen.SetColour(color);
+        brush.SetColour(color);
+        memDC.SetPen(pen);
+        memDC.SetBrush(brush);
+        memDC.DrawRectangle(wxRect(icon_x, icon_y, Px_Square, Px_Square));
+
+        // draw icon interior
+        color.Set(item_color_bytes[0], item_color_bytes[1], item_color_bytes[2], item_color_bytes[3]);
+        pen.SetColour(color);
+        brush.SetColour(color);
+        memDC.SetPen(pen);
+        memDC.SetBrush(brush);
+        memDC.DrawRectangle(wxRect(icon_x_inner, icon_y + 1, px_inner_square, px_inner_square));
+
+        // draw text
+        memDC.DrawText(item.text, text_x, icon_y + text_y_offset);
+
+        // update y
+        icon_y += icon_y_step;
+    }
+
+    memDC.SelectObject(wxNullBitmap);
+
+    return _create_texture(print, bitmap);
+}
+
+unsigned int _3DScene::LegendTexture::get_texture_id() const
+{
+    return m_tex_id;
+}
+
+unsigned int _3DScene::LegendTexture::get_texture_width() const
+{
+    return m_tex_width;
+}
+
+unsigned int _3DScene::LegendTexture::get_texture_height() const
+{
+    return m_tex_height;
+}
+
+bool _3DScene::LegendTexture::_create_texture(const Print& print, const wxBitmap& bitmap)
+{
+    if ((m_tex_width == 0) || (m_tex_height == 0))
+        return false;
+
+    wxImage image = bitmap.ConvertToImage();
+    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+
+    // prepare buffer
+    std::vector<unsigned char> buffer(4 * m_tex_width * m_tex_height, 0);
+    for (unsigned int h = 0; h < m_tex_height; ++h)
+    {
+        unsigned int hh = h * m_tex_width;
+        for (unsigned int w = 0; w < m_tex_width; ++w)
+        {
+            unsigned char* px_ptr = buffer.data() + 4 * (hh + w);
+            *px_ptr++ = image.GetRed(w, h);
+            *px_ptr++ = image.GetGreen(w, h);
+            *px_ptr++ = image.GetBlue(w, h);
+            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+        }
+    }
+
+    // sends buffer to gpu
+    ::glGenTextures(1, &m_tex_id);
+    ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*)buffer.data());
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
+void _3DScene::LegendTexture::_destroy_texture()
+{
+    if (m_tex_id > 0)
+    {
+        ::glDeleteTextures(1, &m_tex_id);
+        m_tex_id = 0;
+    }
+}
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 
@@ -1145,9 +1347,26 @@ void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volume
         _load_gcode_travel_paths(*print, *volumes, use_VBOs);
         _load_gcode_retractions(*print, *volumes, use_VBOs);
         _load_gcode_unretractions(*print, *volumes, use_VBOs);
+
+        _generate_legend_texture(*print);
     }
 
     _update_gcode_volumes_visibility(*print, *volumes);
+}
+
+unsigned int _3DScene::get_legend_texture_id()
+{
+    return s_legend_texture.get_texture_id();
+}
+
+unsigned int _3DScene::get_legend_texture_width()
+{
+    return s_legend_texture.get_texture_width();
+}
+
+unsigned int _3DScene::get_legend_texture_height()
+{
+    return s_legend_texture.get_texture_height();
 }
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
@@ -1846,6 +2065,11 @@ void _3DScene::_update_gcode_volumes_visibility(const Print& print, GLVolumeColl
             }
         }
     }
+}
+
+void _3DScene::_generate_legend_texture(const Print& print)
+{
+    s_legend_texture.generate_texture(print);
 }
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################

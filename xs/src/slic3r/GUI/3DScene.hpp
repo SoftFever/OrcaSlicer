@@ -7,6 +7,12 @@
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
 
+//############################################################################################################
+#if ENRICO_GCODE_PREVIEW
+class wxBitmap;
+#endif // ENRICO_GCODE_PREVIEW
+//############################################################################################################
+
 namespace Slic3r {
 
 class Print;
@@ -389,6 +395,38 @@ class _3DScene
     };
 
     static GCodePreviewData s_gcode_preview_data;
+
+    class LegendTexture
+    {
+        static const unsigned int Px_Title_Offset = 5;
+        static const unsigned int Px_Text_Offset = 5;
+        static const unsigned int Px_Square = 20;
+        static const unsigned int Px_Square_Contour = 1;
+        static const unsigned int Px_Border = Px_Square / 2;
+        static const unsigned char Squares_Border_Color[3];
+        static const unsigned char Background_Color[3];
+        static const unsigned char Opacity;
+
+        unsigned int m_tex_id;
+        unsigned int m_tex_width;
+        unsigned int m_tex_height;
+
+    public:
+        LegendTexture();
+        ~LegendTexture();
+        
+        bool generate_texture(const Print& print);
+
+        unsigned int get_texture_id() const;
+        unsigned int get_texture_width() const;
+        unsigned int get_texture_height() const;
+
+    private:
+        bool _create_texture(const Print& print, const wxBitmap& bitmap);
+        void _destroy_texture();
+    };
+
+    static LegendTexture s_legend_texture;
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 public:
@@ -397,6 +435,9 @@ public:
 //############################################################################################################
 #if ENRICO_GCODE_PREVIEW
     static void load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs);
+    static unsigned int get_legend_texture_id();
+    static unsigned int get_legend_texture_width();
+    static unsigned int get_legend_texture_height();
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 
@@ -432,6 +473,8 @@ private:
     static void _load_gcode_unretractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
     // sets gcode geometry visibility according to user selection
     static void _update_gcode_volumes_visibility(const Print& print, GLVolumeCollection& volumes);
+    // generates the legend texture in dependence of the current shown view type
+    static void _generate_legend_texture(const Print& print);
 #endif // ENRICO_GCODE_PREVIEW
 //############################################################################################################
 };

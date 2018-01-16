@@ -206,9 +206,9 @@ public:
         ExtrusionRole extrusion_role;
         unsigned int extruder_id;
         double mm3_per_mm;
-        float width;
-        float height;
-        float feedrate;
+        float width;     // mm
+        float height;    // mm
+        float feedrate;  // mm/s
 
         Metadata();
         Metadata(ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate);
@@ -264,6 +264,8 @@ public:
             Color();
             Color(float r, float g, float b, float a);
 
+            std::vector<unsigned char> as_bytes() const;
+
             static const Color Dummy;
         };
 
@@ -282,13 +284,21 @@ public:
             bool empty() const;
             void update_from(float value);
             void set_from(const Range& other);
+            float step_size() const;
 
             const Color& get_color_at(float value) const;
             const Color& get_color_at_max() const;
-
-        private:
-            float _step() const;
         };
+
+        struct LegendItem
+        {
+            std::string text;
+            Color color;
+
+            LegendItem(const std::string& text, const Color& color);
+        };
+
+        typedef std::vector<LegendItem> LegendItemsList;
 
         struct Extrusion
         {
@@ -303,7 +313,8 @@ public:
 
             static const unsigned int Num_Extrusion_Roles = (unsigned int)erMixed + 1;
             static const Color Default_Extrusion_Role_Colors[Num_Extrusion_Roles];
-            static const EViewType Default_View_Type; 
+            static const std::string Default_Extrusion_Role_Names[Num_Extrusion_Roles];
+            static const EViewType Default_View_Type;
 
             struct Ranges
             {
@@ -324,6 +335,7 @@ public:
 
             EViewType view_type;
             Color role_colors[Num_Extrusion_Roles];
+            std::string role_names[Num_Extrusion_Roles];
             Ranges ranges;
             LayersList layers;
             unsigned int role_flags;
@@ -411,6 +423,9 @@ public:
         const Color& get_extrusion_height_color(float height) const;
         const Color& get_extrusion_width_color(float width) const;
         const Color& get_extrusion_feedrate_color(float feedrate) const;
+
+        std::string get_legend_title() const;
+        LegendItemsList get_legend_items() const;
     };
 
 private:

@@ -30,6 +30,7 @@ use Slic3r::Geometry qw(PI);
 # _dirty: boolean flag indicating, that the screen has to be redrawn on EVT_IDLE.
 # volumes: reference to vector of Slic3r::GUI::3DScene::Volume.
 # _camera_type: 'perspective' or 'ortho'
+# ===================== ENRICO_GCODE_PREVIEW ==================================================
 __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               enable_picking
                               enable_moving
@@ -66,7 +67,50 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _camera_target
                               _camera_distance
                               _zoom
+                              
+                              _legend_enabled
+                                                            
                               ) );
+                              
+#__PACKAGE__->mk_accessors( qw(_quat _dirty init
+#                              enable_picking
+#                              enable_moving
+#                              use_plain_shader
+#                              on_viewport_changed
+#                              on_hover
+#                              on_select
+#                              on_double_click
+#                              on_right_click
+#                              on_move
+#                              on_model_update
+#                              volumes
+#                              _sphi _stheta
+#                              cutting_plane_z
+#                              cut_lines_vertices
+#                              bed_shape
+#                              bed_triangles
+#                              bed_grid_lines
+#                              bed_polygon
+#                              background
+#                              origin
+#                              _mouse_pos
+#                              _hover_volume_idx
+#
+#                              _drag_volume_idx
+#                              _drag_start_pos
+#                              _drag_volume_center_offset
+#                              _drag_start_xy
+#                              _dragged
+#
+#                              _layer_height_edited
+#
+#                              _camera_type
+#                              _camera_target
+#                              _camera_distance
+#                              _zoom
+#                              
+#                              ) );
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
 use constant TRACKBALLSIZE  => 0.8;
 use constant TURNTABLE_MODE => 1;
@@ -137,6 +181,9 @@ sub new {
     $self->_stheta(45);
     $self->_sphi(45);
     $self->_zoom(1);
+# ===================== ENRICO_GCODE_PREVIEW ==================================================
+    $self->_legend_enabled(0);
+# ===================== ENRICO_GCODE_PREVIEW ==================================================
     $self->use_plain_shader(0);
 
     # Collection of GLVolume objects
@@ -208,6 +255,13 @@ sub new {
     
     return $self;
 }
+
+# ===================== ENRICO_GCODE_PREVIEW ==================================================
+sub set_legend_enabled {
+    my ($self, $value) = @_;
+   $self->_legend_enabled($value);
+}
+# ===================== ENRICO_GCODE_PREVIEW ==================================================
 
 sub Destroy {
     my ($self) = @_;
@@ -1316,6 +1370,11 @@ sub Render {
         glDisable(GL_BLEND);
     }
 
+# ===================== ENRICO_GCODE_PREVIEW ==================================================   
+    # draw gcode preview legend
+    $self->draw_legend;
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+    
     $self->draw_active_object_annotations;
     
     $self->SwapBuffers();
@@ -1449,12 +1508,38 @@ sub _variable_layer_thickness_load_reset_image {
 # Paint the tooltip.
 sub _render_image {
     my ($self, $image, $l, $r, $b, $t) = @_;
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+    $self->_render_texture($image->{texture_id}, $l, $r, $b, $t);
+
+#    glColor4f(1.,1.,1.,1.);
+#    glDisable(GL_LIGHTING);
+#    glEnable(GL_BLEND);
+#    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#    glEnable(GL_TEXTURE_2D);
+#    glBindTexture(GL_TEXTURE_2D, $image->{texture_id});
+#    glBegin(GL_QUADS);
+#    glTexCoord2d(0.,1.); glVertex3f($l, $b, 0);
+#    glTexCoord2d(1.,1.); glVertex3f($r, $b, 0);
+#    glTexCoord2d(1.,0.); glVertex3f($r, $t, 0);
+#    glTexCoord2d(0.,0.); glVertex3f($l, $t, 0);
+#    glEnd();
+#    glBindTexture(GL_TEXTURE_2D, 0);
+#    glDisable(GL_TEXTURE_2D);
+#    glDisable(GL_BLEND);
+#    glEnable(GL_LIGHTING);
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+}
+
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+sub _render_texture {
+    my ($self, $tex_id, $l, $r, $b, $t) = @_;
+    
     glColor4f(1.,1.,1.,1.);
     glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, $image->{texture_id});
+    glBindTexture(GL_TEXTURE_2D, $tex_id);
     glBegin(GL_QUADS);
     glTexCoord2d(0.,1.); glVertex3f($l, $b, 0);
     glTexCoord2d(1.,1.); glVertex3f($r, $b, 0);
@@ -1466,6 +1551,7 @@ sub _render_image {
     glDisable(GL_BLEND);
     glEnable(GL_LIGHTING);
 }
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
 sub draw_active_object_annotations {
     # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
@@ -1578,6 +1664,37 @@ sub draw_active_object_annotations {
     glPopMatrix();
     glEnable(GL_DEPTH_TEST);
 }
+
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+sub draw_legend {
+    my ($self) = @_;
+ 
+    if ($self->_legend_enabled)
+    {
+        my $tex_id = Slic3r::GUI::_3DScene::get_legend_texture_id;
+        if ($tex_id > 0)
+        {
+            glDisable(GL_DEPTH_TEST);
+            glPushMatrix();
+            glLoadIdentity();
+        
+            my $tex_w = Slic3r::GUI::_3DScene::get_legend_texture_width;
+            my $tex_h = Slic3r::GUI::_3DScene::get_legend_texture_height;
+
+            my ($cw, $ch) = $self->GetSizeWH;
+                
+            my $l = (-0.5 * $cw) / $self->_zoom;
+            my $t = (0.5 * $ch) / $self->_zoom;
+            my $r = $l + $tex_w / $self->_zoom;
+            my $b = $t - $tex_h / $self->_zoom;
+            $self->_render_texture($tex_id, $l, $r, $b, $t);
+
+            glPopMatrix();
+            glEnable(GL_DEPTH_TEST);
+        }
+    }
+}
+# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
 sub opengl_info
 {

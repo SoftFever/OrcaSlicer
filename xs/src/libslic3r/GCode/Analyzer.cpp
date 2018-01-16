@@ -436,6 +436,16 @@ GCodeAnalyzer::PreviewData::Color::Color(float r, float g, float b, float a)
     rgba[3] = a;
 }
 
+std::vector<unsigned char> GCodeAnalyzer::PreviewData::Color::as_bytes() const
+{
+    std::vector<unsigned char> ret;
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        ret.push_back((unsigned char)(255.0f * rgba[i]));
+    }
+    return ret;
+}
+
 GCodeAnalyzer::PreviewData::Extrusion::Layer::Layer(float z, const ExtrusionPaths& paths)
     : z(z)
     , paths(paths)
@@ -491,6 +501,11 @@ void GCodeAnalyzer::PreviewData::Range::set_from(const Range& other)
     max = other.max;
 }
 
+float GCodeAnalyzer::PreviewData::Range::step_size() const
+{
+    return (max - min) / (float)Colors_Count;
+}
+
 const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::Range::get_color_at_max() const
 {
     return colors[Colors_Count - 1];
@@ -498,12 +513,13 @@ const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::Range::get_
 
 const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::Range::get_color_at(float value) const
 {
-    return empty() ? get_color_at_max() : colors[clamp((unsigned int)0, Colors_Count - 1, (unsigned int)((value - min) / _step()))];
+    return empty() ? get_color_at_max() : colors[clamp((unsigned int)0, Colors_Count - 1, (unsigned int)((value - min) / step_size()))];
 }
 
-float GCodeAnalyzer::PreviewData::Range::_step() const
+GCodeAnalyzer::PreviewData::LegendItem::LegendItem(const std::string& text, const GCodeAnalyzer::PreviewData::Color& color)
+    : text(text)
+    , color(color)
 {
-    return (max - min) / (float)Colors_Count;
 }
 
 const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Extrusion::Default_Extrusion_Role_Colors[Num_Extrusion_Roles] =
@@ -523,6 +539,23 @@ const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Extrusion::D
     Color(0.0f, 0.0f, 0.0f, 1.0f)  // erMixed
 };
 
+const std::string GCodeAnalyzer::PreviewData::Extrusion::Default_Extrusion_Role_Names[Num_Extrusion_Roles]
+{
+    "None",
+    "Perimeter",
+    "External perimeter",
+    "Overhang perimeter",
+    "Internal infill",
+    "Solid infill",
+    "Top solid infill",
+    "Bridge infill",
+    "Gap fill",
+    "Skirt",
+    "Support material",
+    "Support material interface",
+    "Mixed"
+};
+
 const GCodeAnalyzer::PreviewData::Extrusion::EViewType GCodeAnalyzer::PreviewData::Extrusion::Default_View_Type = GCodeAnalyzer::PreviewData::Extrusion::FeatureType;
 
 void GCodeAnalyzer::PreviewData::Extrusion::set_default()
@@ -533,6 +566,11 @@ void GCodeAnalyzer::PreviewData::Extrusion::set_default()
     ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
     ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
     ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+
+    for (unsigned int i = 0; i < Num_Extrusion_Roles; ++i)
+    {
+        role_names[i] = Default_Extrusion_Role_Names[i];
+    }
 
     role_flags = 0;
     for (unsigned int i = 0; i < Num_Extrusion_Roles; ++i)
@@ -626,6 +664,74 @@ const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::get_extrusi
 const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::get_extrusion_feedrate_color(float feedrate) const
 {
     return extrusion.ranges.feedrate.get_color_at(feedrate);
+}
+
+std::string GCodeAnalyzer::PreviewData::get_legend_title() const
+{
+    switch (extrusion.view_type)
+    {
+    case Extrusion::FeatureType:
+        return "Feature type";
+    case Extrusion::Height:
+        return "Height (mm)";
+    case Extrusion::Width:
+        return "Width (mm)";
+    case Extrusion::Feedrate:
+        return "Speed (mm/min)";
+    }
+
+    return "";
+}
+
+GCodeAnalyzer::PreviewData::LegendItemsList GCodeAnalyzer::PreviewData::get_legend_items() const
+{
+    struct Helper
+    {
+        static void FillListFromRange(LegendItemsList& list, const Range& range, unsigned int decimals, float scale_factor)
+        {
+            list.reserve(Range::Colors_Count);
+            float step = range.step_size();
+            for (unsigned int i = 0; i < Range::Colors_Count; ++i)
+            {
+                char buf[32];
+                sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (range.min + (float)i * step), decimals, scale_factor * (range.min + (float)(i + 1) * step));
+                list.emplace_back(buf, range.colors[i]);
+            }
+        }
+    };
+
+    LegendItemsList items;
+
+    switch (extrusion.view_type)
+    {
+    case Extrusion::FeatureType:
+        {
+            items.reserve(erMixed - erPerimeter + 1);
+            for (unsigned int i = (unsigned int)erPerimeter; i < (unsigned int)erMixed; ++i)
+            {
+                items.emplace_back(extrusion.role_names[i], extrusion.role_colors[i]);
+            }
+
+            break;
+        }
+    case Extrusion::Height:
+        {
+            Helper::FillListFromRange(items, extrusion.ranges.height, 3, 1.0f);            
+            break;
+        }
+    case Extrusion::Width:
+        {
+            Helper::FillListFromRange(items, extrusion.ranges.width, 3, 1.0f);
+            break;
+        }
+    case Extrusion::Feedrate:
+        {
+            Helper::FillListFromRange(items, extrusion.ranges.feedrate, 0, 60.0f);
+            break;
+        }
+    }
+
+    return items;
 }
 
 GCodeAnalyzer::GCodeAnalyzer()
