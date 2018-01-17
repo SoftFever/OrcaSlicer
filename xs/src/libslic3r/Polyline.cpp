@@ -278,8 +278,6 @@ ThickPolyline::reverse()
     std::swap(this->endpoints.first, this->endpoints.second);
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 Lines3 Polyline3::lines() const
 {
     Lines3 lines;
@@ -293,7 +291,5 @@ Lines3 Polyline3::lines() const
     }
     return lines;
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 }

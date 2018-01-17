@@ -402,8 +402,6 @@ void GCode::_do_export(Print &print, FILE *file)
     m_time_estimator.reset();
     m_time_estimator.set_dialect(print.config.gcode_flavor);
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     // resets analyzer
     m_analyzer.reset();
 
@@ -411,8 +409,6 @@ void GCode::_do_export(Print &print, FILE *file)
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
     m_last_width = GCodeAnalyzer::Default_Width;
     m_last_height = GCodeAnalyzer::Default_Height;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
@@ -823,12 +819,8 @@ void GCode::_do_export(Print &print, FILE *file)
         }
     }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     // starts analizer calculations
     m_analyzer.calc_gcode_preview_data(print);
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
@@ -1320,18 +1312,7 @@ void GCode::process_layer(
 			if (print_object == nullptr)
 				// This layer is empty for this particular object, it has neither object extrusions nor support extrusions at this print_z.
 				continue;
-//############################################################################################################
-#if !ENRICO_GCODE_PREVIEW
-//############################################################################################################
-            if (m_enable_analyzer_markers) {
-                // Store the binary pointer to the layer object directly into the G-code to be accessed by the GCodeAnalyzer.
-                char buf[64];
-                sprintf(buf, ";_LAYEROBJ:%p\n", m_layer);
-                gcode += buf;
-            }
-//############################################################################################################
-#endif // !ENRICO_GCODE_PREVIEW
-//############################################################################################################
+
             m_config.apply(print_object->config, true);
             m_layer = layers[layer_id].layer();
             if (m_config.avoid_crossing_perimeters)
@@ -2023,18 +2004,8 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
     return gcode;
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 void GCode::_write(FILE* file, const char *what)
-#else
-//############################################################################################################
-void GCode::_write(FILE* file, const char *what, size_t size)
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 {
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     if (what != nullptr) {
         // apply analyzer, if enabled
         const char* gcode = m_enable_analyzer ? m_analyzer.process_gcode(what).c_str() : what;
@@ -2043,16 +2014,6 @@ void GCode::_write(FILE* file, const char *what, size_t size)
         fwrite(gcode, 1, ::strlen(gcode), file);
         // updates time estimator and gcode lines vector
         m_time_estimator.add_gcode_block(gcode);
-#else
-//############################################################################################################
-    if (size > 0) {
-        // writes string to file
-        fwrite(what, 1, size, file);
-        // updates time estimator and gcode lines vector
-        m_time_estimator.add_gcode_block(what);
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
     }
 }
 
@@ -2086,15 +2047,8 @@ void GCode::_write_format(FILE* file, const char* format, ...)
     char *bufptr = buffer_dynamic ? (char*)malloc(buflen) : buffer;
     int res = ::vsnprintf(bufptr, buflen, format, args);
     if (res > 0)
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
         _write(file, bufptr);
-#else
-//############################################################################################################
-        _write(file, bufptr, res);
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
+
     if (buffer_dynamic)
         free(bufptr);
 
@@ -2179,8 +2133,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     double F = speed * 60;  // convert mm/sec to mm/min
     
     // extrude arc or line
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     if (m_enable_extrusion_role_markers || m_enable_analyzer)
     {
         if (path.role() != m_last_extrusion_role)
@@ -2231,19 +2183,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             gcode += buf;
         }
     }
-#else
-//############################################################################################################
-    if (m_enable_extrusion_role_markers || m_enable_analyzer_markers) {
-        if (path.role() != m_last_extrusion_role) {
-            m_last_extrusion_role = path.role();
-            char buf[32];
-            sprintf(buf, ";_EXTRUSION_ROLE:%d\n", int(path.role()));
-            gcode += buf;
-        }
-    }
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
     std::string comment;
     if (m_enable_cooling_markers) {

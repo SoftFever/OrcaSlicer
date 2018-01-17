@@ -7,20 +7,12 @@
 namespace Slic3r {
 
 class Line;
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 class Line3;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 class Linef3;
 class Polyline;
 class ThickLine;
 typedef std::vector<Line> Lines;
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 typedef std::vector<Line3> Lines3;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 typedef std::vector<ThickLine> ThickLines;
 
 class Line
@@ -66,8 +58,6 @@ class ThickLine : public Line
     ThickLine(Point _a, Point _b) : Line(_a, _b), a_width(0), b_width(0) {};
 };
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 class Line3
 {
 public:
@@ -80,8 +70,6 @@ public:
     double length() const;
     Vector3 vector() const;
 };
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 class Linef
 {

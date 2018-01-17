@@ -23,8 +23,6 @@ public:
     BoundingBoxBase() : defined(false) {};
     BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) : 
         min(pmin), max(pmax), defined(pmin.x < pmax.x && pmin.y < pmax.y) {}
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     BoundingBoxBase(const std::vector<PointClass>& points)
     {
         if (points.empty())
@@ -42,12 +40,6 @@ public:
         }
         this->defined = (this->min.x < this->max.x) && (this->min.y < this->max.y);
     }
-#else
-//############################################################################################################
-    BoundingBoxBase(const std::vector<PointClass> &points);
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
     void merge(const BoundingBoxBase<PointClass> &bb);
@@ -78,8 +70,6 @@ public:
     BoundingBox3Base(const PointClass &pmin, const PointClass &pmax) : 
         BoundingBoxBase<PointClass>(pmin, pmax) 
         { if (pmin.z >= pmax.z) BoundingBoxBase<PointClass>::defined = false; }
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     BoundingBox3Base(const std::vector<PointClass>& points)
         : BoundingBoxBase<PointClass>(points)
     {
@@ -95,12 +85,6 @@ public:
         }
         this->defined &= (this->min.z < this->max.z);
     }
-#else
-//############################################################################################################
-    BoundingBox3Base(const std::vector<PointClass> &points);
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
     void merge(const BoundingBox3Base<PointClass> &bb);
@@ -138,15 +122,7 @@ class BoundingBox3  : public BoundingBox3Base<Point3>
 public:
     BoundingBox3() : BoundingBox3Base<Point3>() {};
     BoundingBox3(const Point3 &pmin, const Point3 &pmax) : BoundingBox3Base<Point3>(pmin, pmax) {};
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     BoundingBox3(const Points3& points) : BoundingBox3Base<Point3>(points) {};
-#else
-//############################################################################################################
-    BoundingBox3(const std::vector<Point3> &points) : BoundingBox3Base<Point3>(points) {};
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 };
 
 class BoundingBoxf : public BoundingBoxBase<Pointf> 

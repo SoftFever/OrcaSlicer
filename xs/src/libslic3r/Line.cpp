@@ -218,8 +218,6 @@ Line::ccw(const Point& point) const
     return point.ccw(*this);
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 double Line3::length() const
 {
     return a.distance_to(b);
@@ -229,8 +227,6 @@ Vector3 Line3::vector() const
 {
     return Vector3(b.x - a.x, b.y - a.y, b.z - a.z);
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 Pointf3
 Linef3::intersect_plane(double z) const

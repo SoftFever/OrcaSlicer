@@ -66,8 +66,6 @@ bool Print::reload_model_instances()
     return invalidated;
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 void Print::clear_gcode_preview_data()
 {
     gcode_preview.reset();
@@ -103,8 +101,6 @@ void Print::set_gcode_preview_unretractions_visible(bool visible)
 {
     gcode_preview.unretraction.is_visible = visible;
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 PrintRegion* Print::add_region()
 {

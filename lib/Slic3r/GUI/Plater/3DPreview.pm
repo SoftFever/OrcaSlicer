@@ -5,16 +5,10 @@ use utf8;
 
 use Slic3r::Print::State ':steps';
 use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE);
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX EVT_CHOICE EVT_CHECKLISTBOX);
-#use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX);
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 use base qw(Wx::Panel Class::Accessor);
 
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 __PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer auto_zoom));
-#__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer));
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
 sub new {
     my $class = shift;
@@ -24,9 +18,7 @@ sub new {
     $self->{config} = $config;
     $self->{number_extruders} = 1;
     $self->{preferred_color_mode} = 'feature';
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     $self->auto_zoom(1);
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
@@ -69,7 +61,6 @@ sub new {
     my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
     my $checkbox_color_by_extruder = $self->{checkbox_color_by_extruder} = Wx::CheckBox->new($self, -1, "Tool");
     
-# ===================== ENRICO_GCODE_PREVIEW ==================================================
     my $choice_view_type = Wx::Choice->new($self, -1);
     $choice_view_type->Append("Feature type");
     $choice_view_type->Append("Height");
@@ -96,8 +87,7 @@ sub new {
     
     my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");
     my $checkbox_retractions = Wx::CheckBox->new($self, -1, "Retractions");    
-    my $checkbox_unretractions = Wx::CheckBox->new($self, -1, "Unretractions");    
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+    my $checkbox_unretractions = Wx::CheckBox->new($self, -1, "Unretractions");
 
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -112,13 +102,11 @@ sub new {
     $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer_outer->Add($checkbox_singlelayer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
     $vsizer_outer->Add($checkbox_color_by_extruder, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     $vsizer_outer->Add($choice_view_type, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
     $vsizer_outer->Add($checklist_features, 0, wxTOP | wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
     $vsizer_outer->Add($checkbox_travel, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
     $vsizer_outer->Add($checkbox_retractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
     $vsizer_outer->Add($checkbox_unretractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $sizer->Add($canvas, 1, wxALL | wxEXPAND, 0);
@@ -199,7 +187,6 @@ sub new {
         $self->reload_print;
     });
     
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     EVT_CHOICE($self, $choice_view_type, sub {
         my $selection = $choice_view_type->GetCurrentSelection();
         $self->print->set_gcode_preview_type($selection);
@@ -238,7 +225,6 @@ sub new {
         $self->refresh_print;
         $self->auto_zoom(1);
     });
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
@@ -258,16 +244,13 @@ sub reload_print {
     $self->_loaded(0);
 
     if (! $self->IsShown && ! $force) {
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 #        $self->{reload_delayed} = 1;
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         return;
     }
 
     $self->load_print;
 }
 
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 sub refresh_print {
     my ($self) = @_;
 
@@ -279,7 +262,6 @@ sub refresh_print {
 
     $self->load_print;
 }
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 
 sub load_print {
     my ($self) = @_;
@@ -361,10 +343,9 @@ sub load_print {
     }
 
     if ($self->IsShown) {
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         $self->canvas->load_gcode_preview($self->print);
 
-        # load skirt and brim
+#        # load skirt and brim
 #        $self->canvas->load_print_toolpaths($self->print, \@colors);
 #        $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);
 #        
@@ -375,15 +356,10 @@ sub load_print {
 #            #my @volume_ids = $self->canvas->load_object($object->model_object);
 #            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
 #        }
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         if ($self->auto_zoom)
         {
-# ===================== ENRICO_GCODE_PREVIEW ==================================================            
-        $self->canvas->zoom_to_volumes;
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+            $self->canvas->zoom_to_volumes;
         }
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         $self->_loaded(1);
     }
     
@@ -445,10 +421,8 @@ sub set_number_extruders {
 
 # Called by the Platter wxNotebook when this page is activated.
 sub OnActivate {
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 #    my ($self) = @_;
 #    $self->reload_print(1) if ($self->{reload_delayed});
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
 }
 
 1;

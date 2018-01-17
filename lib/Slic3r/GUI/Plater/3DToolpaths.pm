@@ -122,7 +122,6 @@ sub load_print {
     }
     
     if ($self->IsShown) {
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         $self->canvas->load_gcode_preview($self->print);
 
 #        # load skirt and brim
@@ -135,7 +134,7 @@ sub load_print {
 #            #my @volume_ids = $self->canvas->load_object($object->model_object);
 #            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
 #        }
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+
         $self->canvas->zoom_to_volumes;
         $self->_loaded(1);
     }

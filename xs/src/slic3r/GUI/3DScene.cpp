@@ -8,11 +8,7 @@
 #include "../../libslic3r/Geometry.hpp"
 #include "../../libslic3r/Print.hpp"
 #include "../../libslic3r/Slicing.hpp"
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 #include "GCode/Analyzer.hpp"
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,14 +21,10 @@
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 #include <wx/bitmap.h>
 #include <wx/dcmemory.h>
 #include <wx/image.h>
 #include <wx/settings.h>
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 namespace Slic3r {
 
@@ -215,12 +207,8 @@ void GLVolume::set_range(double min_z, double max_z)
 
 void GLVolume::render() const
 {
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     if (!is_active)
         return;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
     glCullFace(GL_BACK);
     glPushMatrix();
@@ -352,12 +340,9 @@ void GLVolumeCollection::render_VBOs() const
     GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
 
     for (GLVolume *volume : this->volumes) {
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
         if (!volume->is_active)
             continue;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
+
         if (!volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
             continue;
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
@@ -396,12 +381,9 @@ void GLVolumeCollection::render_legacy() const
  
     for (GLVolume *volume : this->volumes) {
         assert(! volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
         if (!volume->is_active)
             continue;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
+
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
         GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
         if (n_triangles + n_quads == 0)
@@ -638,8 +620,6 @@ static void thick_lines_to_indexed_vertex_array(
 #undef BOTTOM
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 // caller is responsible for supplying NO lines with zero length
 static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
     const std::vector<double>& widths,
@@ -954,8 +934,6 @@ static void point_to_indexed_vertex_array(const Point3& point,
     volume.push_triangle(idxs[3], idxs[1], idxs[4]);
     volume.push_triangle(idxs[0], idxs[3], idxs[4]);
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 static void thick_lines_to_verts(
     const Lines                 &lines, 
@@ -968,8 +946,6 @@ static void thick_lines_to_verts(
     thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, top_z, volume.indexed_vertex_array);
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 static void thick_lines_to_verts(const Lines3& lines,
     const std::vector<double>& widths,
     const std::vector<double>& heights,
@@ -995,8 +971,6 @@ static inline void extrusionentity_to_verts(const ExtrusionPath &extrusion_path,
     std::vector<double> heights(lines.size(), extrusion_path.height);
     thick_lines_to_verts(lines, widths, heights, false, print_z, volume);
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 // Fill in the qverts and tverts with quads and triangles for the extrusion_path.
 static inline void extrusionentity_to_verts(const ExtrusionPath &extrusion_path, float print_z, const Point &copy, GLVolume &volume)
@@ -1081,8 +1055,6 @@ static void extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity, fl
     }
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 static void polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume)
 {
     Lines3 lines = polyline.lines();
@@ -1300,8 +1272,6 @@ void _3DScene::LegendTexture::_destroy_texture()
         m_tex_id = 0;
     }
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 void _3DScene::_glew_init()
 { 
@@ -1335,8 +1305,6 @@ static inline std::vector<float> parse_colors(const std::vector<std::string> &sc
     return output;
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs)
 {
     if (volumes->empty())
@@ -1368,8 +1336,6 @@ unsigned int _3DScene::get_legend_texture_height()
 {
     return s_legend_texture.get_texture_height();
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 // Create 3D thick extrusion lines for a skirt and brim.
 // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
@@ -1728,8 +1694,6 @@ void _3DScene::_load_wipe_tower_toolpaths(
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end"; 
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
 {
     // helper functions to select data in dependence of the extrusion view type
@@ -2071,7 +2035,5 @@ void _3DScene::_generate_legend_texture(const Print& print)
 {
     s_legend_texture.generate_texture(print);
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 }

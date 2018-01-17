@@ -10,11 +10,7 @@
 namespace Slic3r {
 
 class BoundingBox;
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 class BoundingBox3;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 class MultiPoint
 {
@@ -84,8 +80,6 @@ public:
     static Points _douglas_peucker(const Points &points, const double tolerance);
 };
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 class MultiPoint3
 {
 public:
@@ -104,8 +98,6 @@ public:
     // Remove exact duplicates, return true if any duplicate has been removed.
     bool remove_duplicate_points();
 };
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 extern BoundingBox get_extents(const MultiPoint &mp);
 extern BoundingBox get_extents_rotated(const std::vector<Point> &points, double angle);

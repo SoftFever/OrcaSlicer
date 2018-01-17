@@ -7,11 +7,7 @@
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 class wxBitmap;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 namespace Slic3r {
 
@@ -112,13 +108,9 @@ public:
         push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
     }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     inline void push_geometry(const Pointf3& p, const Vectorf3& n) {
         push_geometry(p.x, p.y, p.z, n.x, n.y, n.z);
     }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
     inline void push_triangle(int idx1, int idx2, int idx3) {
         if (this->triangle_indices.size() + 3 > this->vertices_and_normals_interleaved.capacity())
@@ -221,11 +213,7 @@ public:
         select_group_id(-1),
         drag_group_id(-1),
         selected(false),
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
         is_active(true),
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
         hover(false),
         tverts_range(0, size_t(-1)),
         qverts_range(0, size_t(-1))
@@ -262,12 +250,8 @@ public:
     int                 drag_group_id;
     // Is this object selected?
     bool                selected;
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     // Whether or not this volume is active for rendering
-    bool is_active;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
+    bool                is_active;
     // Boolean: Is mouse over this object?
     bool                hover;
 
@@ -367,8 +351,6 @@ private:
 
 class _3DScene
 {
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     struct GCodePreviewData
     {
         enum EType
@@ -427,19 +409,13 @@ class _3DScene
     };
 
     static LegendTexture s_legend_texture;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 public:
     static void _glew_init();
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     static void load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs);
     static unsigned int get_legend_texture_id();
     static unsigned int get_legend_texture_width();
     static unsigned int get_legend_texture_height();
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
     static void _load_print_toolpaths(
         const Print                     *print,
@@ -453,15 +429,12 @@ public:
         const std::vector<std::string>  &tool_colors,
         bool                             use_VBOs);
 
-
     static void _load_wipe_tower_toolpaths(
         const Print                    *print,
         GLVolumeCollection             *volumes,
         const std::vector<std::string> &tool_colors_str,
         bool                            use_VBOs);
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 private:
     // generates gcode extrusion paths geometry
     static void _load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
@@ -475,8 +448,6 @@ private:
     static void _update_gcode_volumes_visibility(const Print& print, GLVolumeCollection& volumes);
     // generates the legend texture in dependence of the current shown view type
     static void _generate_legend_texture(const Print& print);
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 };
 
 }

@@ -165,14 +165,12 @@ _constant()
     size_t object_count()
         %code%{ RETVAL = THIS->objects.size(); %};
 
-// ===================== ENRICO_GCODE_PREVIEW ==================================================
     void clear_gcode_preview_data();
     void set_gcode_preview_type(unsigned char type);
     void set_gcode_preview_extrusion_flags(unsigned int flags);
     void set_gcode_preview_travel_visible(bool visible);
     void set_gcode_preview_retractions_visible(bool visible);
     void set_gcode_preview_unretractions_visible(bool visible);
-// ===================== ENRICO_GCODE_PREVIEW ==================================================
         
     PrintRegionPtrs* regions()
         %code%{ RETVAL = &THIS->regions; %};

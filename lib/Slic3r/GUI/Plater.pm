@@ -153,7 +153,6 @@ sub new {
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
         if ($preview == $self->{preview3D})
         {
             $self->{preview3D}->canvas->set_legend_enabled(1);
@@ -161,8 +160,7 @@ sub new {
         } else {
             $self->{preview3D}->canvas->set_legend_enabled(0);
         }
-#        $self->{preview3D}->load_print(1) if ($preview == $self->{preview3D});
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
+
         $preview->OnActivate if $preview->can('OnActivate');        
     });
     
@@ -785,9 +783,7 @@ sub remove {
     splice @{$self->{objects}}, $obj_idx, 1;
     $self->{model}->delete_object($obj_idx);
     $self->{print}->delete_object($obj_idx);
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     $self->{print}->clear_gcode_preview_data;
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     $self->{list}->DeleteItem($obj_idx);
     $self->object_list_changed;
     
@@ -808,9 +804,7 @@ sub reset {
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
     $self->{print}->clear_objects;
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     $self->{print}->clear_gcode_preview_data;
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     $self->{list}->DeleteAllItems;
     $self->object_list_changed;
     
@@ -1451,11 +1445,9 @@ sub on_export_completed {
     # this updates buttons status
     $self->object_list_changed;
     
-# ===================== ENRICO_GCODE_PREVIEW ==================================================    
     # refresh preview
     $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
     $self->{preview3D}->reload_print if $self->{preview3D};
-# ===================== ENRICO_GCODE_PREVIEW ==================================================        
 }
 
 sub do_print {

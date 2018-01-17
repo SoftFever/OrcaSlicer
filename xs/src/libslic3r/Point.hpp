@@ -14,29 +14,17 @@ class Line;
 class Linef;
 class MultiPoint;
 class Point;
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 class Point3;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 class Pointf;
 class Pointf3;
 typedef Point Vector;
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 typedef Point3 Vector3;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 typedef Pointf Vectorf;
 typedef Pointf3 Vectorf3;
 typedef std::vector<Point> Points;
 typedef std::vector<Point*> PointPtrs;
 typedef std::vector<const Point*> PointConstPtrs;
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 typedef std::vector<Point3> Points3;
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 typedef std::vector<Pointf> Pointfs;
 typedef std::vector<Pointf3> Pointf3s;
 
@@ -201,24 +189,11 @@ public:
     static Point3 new_scale(coordf_t x, coordf_t y, coordf_t z) { return Point3(coord_t(scale_(x)), coord_t(scale_(y)), coord_t(scale_(z))); }
     bool operator==(const Point3 &rhs) const { return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z; }
     bool operator!=(const Point3 &rhs) const { return ! (*this == rhs); }
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     bool coincides_with(const Point3& rhs) const { return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z; }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 private:
     // Hide the following inherited methods:
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     bool operator==(const Point &rhs) const;
     bool operator!=(const Point &rhs) const;
-#else
-//############################################################################################################
-    bool operator==(const Point &rhs);
-    bool operator!=(const Point &rhs);
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 };
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
@@ -273,11 +248,7 @@ public:
     static Pointf3 new_unscale(coord_t x, coord_t y, coord_t z) {
         return Pointf3(unscale(x), unscale(y), unscale(z));
     };
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     static Pointf3 new_unscale(const Point3& p) { return Pointf3(unscale(p.x), unscale(p.y), unscale(p.z)); }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
     void scale(double factor);
     void translate(const Vectorf3 &vector);
     void translate(double x, double y, double z);
@@ -290,21 +261,10 @@ public:
 
 private:
     // Hide the following inherited methods:
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
     bool operator==(const Pointf &rhs) const;
     bool operator!=(const Pointf &rhs) const;
-#else
-//############################################################################################################
-    bool operator==(const Pointf &rhs);
-    bool operator!=(const Pointf &rhs);
-//############################################################################################################
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 };
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 inline Pointf3 operator+(const Pointf3& p1, const Pointf3& p2) { return Pointf3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z); }
 inline Pointf3 operator-(const Pointf3& p1, const Pointf3& p2) { return Pointf3(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z); }
 inline Pointf3 operator-(const Pointf3& p) { return Pointf3(-p.x, -p.y, -p.z); }
@@ -317,8 +277,6 @@ inline Pointf3 normalize(const Pointf3& v)
     coordf_t len = ::sqrt(sqr(v.x) + sqr(v.y) + sqr(v.z));
     return (len != 0.0) ? 1.0 / len * v : Pointf3(0.0, 0.0, 0.0);
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 template<typename TO> inline TO convert_to(const Point &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y)); }
 template<typename TO> inline TO convert_to(const Pointf &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y)); }

@@ -214,8 +214,6 @@ MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
     return results;
 }
 
-//############################################################################################################
-#if ENRICO_GCODE_PREVIEW
 void MultiPoint3::translate(double x, double y)
 {
     for (Point3& p : points)
@@ -270,8 +268,6 @@ bool MultiPoint3::remove_duplicate_points()
 
     return false;
 }
-#endif // ENRICO_GCODE_PREVIEW
-//############################################################################################################
 
 BoundingBox get_extents(const MultiPoint &mp)
 { 
