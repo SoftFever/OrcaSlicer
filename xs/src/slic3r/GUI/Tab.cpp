@@ -146,45 +146,64 @@ void Tab::update_tab_ui()
 void Tab::load_config(DynamicPrintConfig config)
 {
 	bool modified = 0;
+	boost::any value;
 	for(auto opt_key : m_config->diff(config)) {
 		switch ( config.def()->get(opt_key)->type ){
 		case coFloatOrPercent:
-			change_opt_value(*m_config, opt_key, config.option<ConfigOptionFloatOrPercent>(opt_key)->value);
+// 			change_opt_value(*m_config, opt_key, config.option<ConfigOptionFloatOrPercent>(opt_key)->value);
+			value = config.option<ConfigOptionFloatOrPercent>(opt_key)->value;
 			break;
 		case coPercent:
-			change_opt_value(*m_config, opt_key, config.option<ConfigOptionPercent>(opt_key)->value);
+			value = config.option<ConfigOptionPercent>(opt_key)->value;
 			break;
 		case coFloat:
-			change_opt_value(*m_config, opt_key, config.opt_float(opt_key));
+// 			change_opt_value(*m_config, opt_key, config.opt_float(opt_key));
+			value = config.opt_float(opt_key);
 			break;
-//		case coPercents:
-//		case coFloats:
 		case coString:
-			change_opt_value(*m_config, opt_key, config.opt_string(opt_key));
+// 			change_opt_value(*m_config, opt_key, config.opt_string(opt_key));
+			value = config.opt_string(opt_key);
+			break;
+		case coPercents:
+			value = config.option<ConfigOptionPercents>(opt_key)->values.at(0);
+			break;
+		case coFloats:
+			value = config.opt_float(opt_key, 0);
 			break;
 		case coStrings:
+			if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
+				value = "";
+			else
+				value = config.opt_string(opt_key, static_cast<unsigned int>(0));
 			break;
 		case coBool:
-			change_opt_value(*m_config, opt_key, config.opt_bool(opt_key));
+//			change_opt_value(*m_config, opt_key, config.opt_bool(opt_key));
+			value = config.opt_bool(opt_key);
 			break;
 		case coBools:
 //			opt = new ConfigOptionBools(0, config.opt_bool(opt_key)); //! 0?
+			value = config.opt_bool(opt_key, 0);
 			break;
 		case coInt:
-			change_opt_value(*m_config, opt_key, config.opt_int(opt_key));
+			value = config.opt_int(opt_key);
 			break;
 		case coInts:
+			value = config.opt_int(opt_key, 0);
 			break;
 		case coEnum:{
 			if (opt_key.compare("external_fill_pattern") == 0 ||
 				opt_key.compare("fill_pattern") == 0)
-				change_opt_value(*m_config, opt_key, config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
+				value = config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value;
+// 				change_opt_value(*m_config, opt_key, config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
 			else if (opt_key.compare("gcode_flavor") == 0)
-				change_opt_value(*m_config, opt_key, config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
+				value = config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value;
+// 				change_opt_value(*m_config, opt_key, config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
 			else if (opt_key.compare("support_material_pattern") == 0)
-				change_opt_value(*m_config, opt_key, config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value);
+				value = config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value;
+// 				change_opt_value(*m_config, opt_key, config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value);
 			else if (opt_key.compare("seam_position") == 0)
-				change_opt_value(*m_config, opt_key, config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value);
+				value = config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value;
+// 				change_opt_value(*m_config, opt_key, config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value);
 		}
 			break;
 		case coPoints:
@@ -194,6 +213,7 @@ void Tab::load_config(DynamicPrintConfig config)
 		default:
 			break;
 		}
+		change_opt_value(*m_config, opt_key, value);
 		modified = 1;
 	}
 	if (modified) {
@@ -515,7 +535,7 @@ void TabPrint::update()
 	}
 
 	if (m_config->opt_bool("wipe_tower") &&
-		(m_config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value != 0.2 /*$config->first_layer_height != 0.2*/ || 
+		(m_config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value != 0.2 || 
 			m_config->opt_float("layer_height") < 0.15 || m_config->opt_float("layer_height") > 0.35)) {
 		std::string msg_text = "The Wipe Tower currently supports only:\n"
 			"- first layer height 0.2mm\n"
@@ -1678,12 +1698,14 @@ ConfigOptionsGroupShp Page::new_optgroup(std::string title, int noncommon_label_
 		optgroup->label_width = noncommon_label_width;
 
 	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
-		//! This function will be called from OptionGroup.					
-        wxTheApp->CallAfter([this, opt_key, value]() {
+		//! This function will be called from OptionGroup.
+		//! Using of CallAfter is redundant.
+		//! And in some cases it causes undate() function to be recalled again
+//!        wxTheApp->CallAfter([this, opt_key, value]() {
 			static_cast<Tab*>(GetParent())->update_dirty();
 			static_cast<Tab*>(GetParent())->on_value_change(opt_key, value);
-        });
-    },
+//!        });
+	};
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
 	m_optgroups.push_back(optgroup);
