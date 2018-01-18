@@ -15,6 +15,7 @@
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace Slic3r {
 namespace GUI {
@@ -69,7 +70,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
 
 	// tree
-	m_treectrl = new wxTreeCtrl(panel, wxID_ANY/*ID_TAB_TREE*/, wxDefaultPosition, wxSize(185, -1), wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
+	m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(185, -1), 
+		wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
 	m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
 	m_icons = new wxImageList(16, 16, true, 1/*, 1*/);
 	// Index of the last icon inserted into $self->{icons}.
@@ -87,11 +89,11 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		select_preset(m_presets_choice->GetStringSelection());
 	}));
 
-	m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){
-		save_preset(m_presets_choice->GetStringSelection().ToStdString());
+	m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){ save_preset(); }));
+	m_btn_delete_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){ delete_preset(); }));
+	m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){
+		toggle_show_hide_incompatible();
 	}));
-	m_btn_delete_preset->Bind(wxEVT_BUTTON, &Tab::delete_preset, this);
-	m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, &Tab::toggle_show_hide_incompatible, this);
 
 	// Initialize the DynamicPrintConfig by default keys/values.
 	// Possible %params keys: no_controller
@@ -131,7 +133,7 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 // comparing the selected preset config with $self->{config}.
 void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
-//	_on_presets_changed;
+	on_presets_changed();
 }
 
 void Tab::update_tab_ui()
@@ -1475,17 +1477,34 @@ void Tab::save_preset(std::string name /*= ""*/)
 		auto preset = m_presets->get_selected_preset();
 		auto default_name = preset.is_default ? "Untitled" : preset.name;
 // 		$default_name = ~s / \.[iI][nN][iI]$//;
-// 			my $dlg = Slic3r::GUI::SavePresetWindow->new($self,
-// 			title = > lc($self->title),
-// 			default = > $default_name,
-// 			values = > [map $_->name, grep !$_->default && !$_->external, @{$self->{presets}}],
-// 			);
-// 		return unless $dlg->ShowModal == wxID_OK;
-// 		name = $dlg->get_name;
+ 		bool have_extention = boost::iends_with(default_name, ".ini");
+		if (have_extention)
+		{
+			size_t len = default_name.length()-4;
+			default_name.resize(len);
+		}
+		//[map $_->name, grep !$_->default && !$_->external, @{$self->{presets}}],
+		std::vector<std::string> values;
+		for (size_t i = 0; i < m_presets->size(); ++i) {
+			const Preset &preset = m_presets->preset(i);
+			if (preset.is_default || preset.is_external)
+				continue;
+			values.push_back(preset.name);
+		}
+
+		auto dlg = new SavePresetWindow(parent());
+		dlg->build(title(), default_name, values);	
+		if (dlg->ShowModal() != wxID_OK)
+			return;
+		name = dlg->get_name();
+		if (name == ""){
+			show_error(this, "The supplied name is empty. It can't be saved.");
+			return;
+		}
 	}
-	// Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
 	try
 	{
+		// Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
 		m_presets->save_current_preset(name);
 	}
 	catch (const std::exception &e)
@@ -1502,7 +1521,7 @@ void Tab::save_preset(std::string name /*= ""*/)
 }
 
 // Called for a currently selected preset.
-void Tab::delete_preset(wxCommandEvent &event)
+void Tab::delete_preset()
 {
 	auto current_preset = m_presets->get_selected_preset();
 	// Don't let the user delete the ' - default - ' configuration.
@@ -1524,7 +1543,7 @@ void Tab::delete_preset(wxCommandEvent &event)
 	load_current_preset();
 }
 
-void Tab::toggle_show_hide_incompatible(wxCommandEvent &event)
+void Tab::toggle_show_hide_incompatible()
 {
 	m_show_incompatible_presets = !m_show_incompatible_presets;
 	update_show_hide_incompatible_button();
@@ -1670,6 +1689,51 @@ ConfigOptionsGroupShp Page::new_optgroup(std::string title, int noncommon_label_
 	m_optgroups.push_back(optgroup);
 
 	return optgroup;
+}
+
+void SavePresetWindow::build(wxString title, std::string default_name, std::vector<std::string> &values)
+{
+	auto text = new wxStaticText(this, wxID_ANY, "Save " + title + " as:", wxDefaultPosition, wxDefaultSize);
+	m_combo = new wxComboBox(this, wxID_ANY, default_name, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);
+	for (auto value : values)
+		m_combo->Append(value);
+	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+
+	auto sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->Add(text, 0, wxEXPAND | wxALL, 10);
+	sizer->Add(m_combo, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
+	sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 10);
+
+	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
+	btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { accept(); });
+	m_combo->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) { accept(); });
+
+	SetSizer(sizer);
+	sizer->SetSizeHints(this);
+}
+
+void SavePresetWindow::accept()
+{
+	m_chosen_name = normalize_utf8_nfc(m_combo->GetValue().c_str());
+	if (!m_chosen_name.empty()) {
+		const char* unusable_symbols = "<>:/\\|?*\"";
+		bool is_unusable_symbol = false;
+		for (size_t i = 0; i < std::strlen(unusable_symbols); i++){
+			if (m_chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos){
+				is_unusable_symbol = true;
+				break;
+			}
+		}
+		if (is_unusable_symbol) {
+			show_error(this, "The supplied name is not valid; the following characters are not allowed: <>:/\\|?*\"");
+		}
+		else if (m_chosen_name.compare("- default -") == 0) {
+			show_error(this, "The supplied name is not available.");
+		}
+		else {
+			EndModal(wxID_OK);
+		}
+	}
 }
 
 } // GUI

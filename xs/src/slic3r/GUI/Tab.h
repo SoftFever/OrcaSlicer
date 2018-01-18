@@ -105,7 +105,7 @@ public:
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
 	t_change			m_on_value_change{ nullptr };
-	std::function<void(/*PresetCollection*, std::vector<std::string>*/)>	m_on_presets_changed{ nullptr };
+	std::function<void()>	m_on_presets_changed{ nullptr };
 
 public:
 	Tab() {}
@@ -137,8 +137,8 @@ public:
 	void		OnKeyDown(wxKeyEvent& event);
 	void		OnComboBox(wxCommandEvent& event) { select_preset(m_presets_choice->GetStringSelection()); 	}
 	void		save_preset(std::string name = "");
-	void		delete_preset(wxCommandEvent &event);
-	void		toggle_show_hide_incompatible(wxCommandEvent &event);
+	void		delete_preset();
+	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
 	
@@ -211,6 +211,20 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
+};
+
+class SavePresetWindow :public wxDialog
+{
+public:
+	SavePresetWindow(wxWindow* parent ) :wxDialog(parent, wxID_ANY, "Save preset"){}
+	~SavePresetWindow(){}
+
+	std::string		m_chosen_name;
+	wxComboBox*		m_combo;
+
+	void			build(wxString title, std::string default_name, std::vector<std::string> &values);
+	void			accept();
+	std::string		get_name() { return m_chosen_name; }
 };
 
 } // GUI
