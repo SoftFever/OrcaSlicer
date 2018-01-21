@@ -135,7 +135,7 @@ public:
 
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
-	void		OnComboBox(wxCommandEvent& event) { select_preset(m_presets_choice->GetStringSelection()); 	}
+	void		OnComboBox(wxCommandEvent& event) { select_preset(m_presets_choice->wxComboBox::GetStringSelection()); 	}
 	void		save_preset(std::string name = "");
 	void		delete_preset();
 	void		toggle_show_hide_incompatible();

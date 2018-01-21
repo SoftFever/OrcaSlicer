@@ -86,7 +86,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_treectrl->Bind(wxEVT_COMBOBOX, &Tab::OnComboBox, this); 
 
 	m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e){
-		select_preset(m_presets_choice->GetStringSelection());
+		select_preset(m_presets_choice->wxComboBox::GetStringSelection());
 	}));
 
 	m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){ save_preset(); }));
@@ -1476,8 +1476,9 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 
 void Tab::OnKeyDown(wxKeyEvent& event)
 {
-	(event.GetKeyCode() == WXK_TAB) ?
-		m_treectrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward) :
+	if (event.GetKeyCode() == WXK_TAB)
+		m_treectrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
+	else
 		event.Skip();
 }
 
