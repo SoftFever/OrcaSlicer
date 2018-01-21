@@ -88,6 +88,8 @@ sub export_gcode {
         $self->status_cb->(95, "Running post-processing scripts");
         $self->config->setenv;
         for my $script (@{$self->config->post_process}) {
+            # Ignore empty post processing script lines.
+            next if $script =~ /^\s*$/;
             Slic3r::debugf "  '%s' '%s'\n", $script, $output_file;
             # -x doesn't return true on Windows except for .exe files
             if (($^O eq 'MSWin32') ? !(-e $script) : !(-x $script)) {
