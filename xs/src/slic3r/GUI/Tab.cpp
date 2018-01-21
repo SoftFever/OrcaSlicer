@@ -86,7 +86,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_treectrl->Bind(wxEVT_COMBOBOX, &Tab::OnComboBox, this); 
 
 	m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e){
-		select_preset(m_presets_choice->wxComboBox::GetStringSelection());
+		select_preset(static_cast<const wxComboBox*>(m_presets_choice)->GetStringSelection());
 	}));
 
 	m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){ save_preset(); }));

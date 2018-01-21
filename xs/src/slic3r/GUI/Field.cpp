@@ -220,7 +220,7 @@ void SpinCtrl::BUILD() {
 // 		# gets the old one, and on_kill_focus resets the control to the old value.
 // 		# As a workaround, we get the new value from $event->GetString and store
 // 		# here temporarily so that we can return it from $self->get_value
-		std::string value = e.GetString().utf8_str();
+		std::string value = e.GetString().utf8_str().data();
 		if (is_matched(value, "^\\d+$"))
 			tmp_value = std::stoi(value);
 		on_change_field(e);

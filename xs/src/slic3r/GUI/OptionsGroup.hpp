@@ -93,7 +93,7 @@ public:
     // return a non-owning pointer reference 
     inline /*const*/ Field*	get_field(t_config_option_key id) const { try { return m_fields.at(id).get(); } catch (std::out_of_range e) { return nullptr; } }
 	bool			set_value(t_config_option_key id, boost::any value) { try { m_fields.at(id)->set_value(value); return true; } catch (std::out_of_range e) { return false; } }
-	boost::any		get_value(t_config_option_key id) { try { return m_fields.at(id)->get_value(); } catch (std::out_of_range e) { ; } }
+	boost::any		get_value(t_config_option_key id) { boost::any out; try { out = m_fields.at(id)->get_value(); } catch (std::out_of_range e) { ; } return out; }
 
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
