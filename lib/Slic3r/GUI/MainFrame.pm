@@ -11,12 +11,18 @@ use List::Util qw(min first);
 use Slic3r::Geometry qw(X Y);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
     :font :icon wxTheApp);
-use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
+use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Frame';
 
 our $qs_last_input_file;
 our $qs_last_output_file;
 our $last_config;
+
+# Events to be sent from a C++ Tab implementation:
+# 1) To inform about a change of a configuration value.
+our $VALUE_CHANGE_EVENT    = Wx::NewEventType;
+# 2) To inform about a preset selection change or a "modified" status change.
+our $PRESETS_CHANGED_EVENT = Wx::NewEventType;
 
 sub new {
     my ($class, %params) = @_;
@@ -151,8 +157,19 @@ sub _init_tabpanel {
         $panel->AddPage($tab, $tab->title);
     }
 
-#TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
-    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config});
+    #TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
+    # The following event is emited by the C++ Tab implementation on config value change.
+    EVT_COMMAND($self, -1, $VALUE_CHANGE_EVENT, sub {
+        my ($self, $event) = @_;
+        print "VALUE_CHANGE_EVENT: ", $event->GetString, "\n";
+    });
+    # The following event is emited by the C++ Tab implementation on preset selection,
+    # or when the preset's "modified" status changes.
+    EVT_COMMAND($self, -1, $PRESETS_CHANGED_EVENT, sub {
+        my ($self, $event) = @_;
+        print "PRESETS_CHANGED_EVENT: ", $event->GetString, "\n";
+    });
+    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {

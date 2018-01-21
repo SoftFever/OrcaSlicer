@@ -98,14 +98,18 @@ protected:
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 
+	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
+	wxEventType			m_event_value_change = 0;
+	wxEventType 		m_event_presets_changed = 0;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_no_controller;
 	bool				m_show_btn_incompatible_presets;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
-	t_change			m_on_value_change{ nullptr };
-	std::function<void()>	m_on_presets_changed{ nullptr };
+//	t_change			m_on_value_change{ nullptr };
+//	std::function<void()>	m_on_presets_changed{ nullptr };
 
 public:
 	Tab() {}
@@ -116,13 +120,12 @@ public:
 
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
+
+	// Set the events to the callbacks posted to the main frame window (currently implemented in Perl).
+	void 		set_event_value_change(wxEventType evt) { m_event_value_change = evt; }
+	void 		set_event_presets_changed(wxEventType evt) { m_event_presets_changed = evt; }
 	
 	void		create_preset_tab(PresetBundle *preset_bundle);
-	void		on_value_change(std::string opt_key, boost::any value){
-		if (m_on_value_change != nullptr)
-			m_on_value_change(opt_key, value);
-		update();
-	};
 	void		load_current_preset();
 	void		rebuild_page_tree();
 	void		select_preset(wxString preset_name = "");
@@ -130,7 +133,6 @@ public:
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
 	void		load_key_value(std::string opt_key, boost::any value);
-	void		on_presets_changed();
 	void		reload_compatible_printers_widget();
 
 	void		OnTreeSelChange(wxTreeEvent& event);
@@ -155,6 +157,11 @@ public:
 	Field*			get_field(t_config_option_key opt_key, int opt_index = -1) const;
 	bool			set_value(t_config_option_key opt_key, boost::any value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
+
+	void			on_value_change(std::string opt_key, boost::any value);
+
+protected:
+	void			on_presets_changed();
 };
 
 //Slic3r::GUI::Tab::Print;

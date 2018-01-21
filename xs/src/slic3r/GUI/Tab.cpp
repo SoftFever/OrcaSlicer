@@ -269,14 +269,34 @@ void Tab::load_key_value(std::string opt_key, boost::any value)
 	update();
 }
 
+extern wxFrame *g_wxMainFrame;
+
+void Tab::on_value_change(std::string opt_key, boost::any value)
+{
+//	if (m_on_value_change != nullptr)
+//		m_on_value_change(opt_key, value);
+	if (m_event_value_change > 0) {
+		wxCommandEvent event(m_event_value_change);
+		event.SetString(opt_key);
+		g_wxMainFrame->ProcessWindowEvent(event);
+	}
+	update();
+};
+
 // Call a callback to update the selection of presets on the platter:
 // To update the content of the selection boxes,
 // to update the filament colors of the selection boxes,
 // to update the "dirty" flags of the selection boxes,
 // to uddate number of "filament" selection boxes when the number of extruders change.
-void Tab::on_presets_changed(/*std::vector<std::string> reload_dependent_tabs*/){
-	if (m_on_presets_changed != nullptr)
-		m_on_presets_changed(/*m_presets, reload_dependent_tabs*/);
+void Tab::on_presets_changed(/*std::vector<std::string> reload_dependent_tabs*/)
+{
+//	if (m_on_presets_changed != nullptr)
+//		m_on_presets_changed(/*m_presets, reload_dependent_tabs*/);
+	if (m_event_presets_changed > 0) {
+		wxCommandEvent event(m_event_presets_changed);
+		//event.SetString(opt_key);
+		g_wxMainFrame->ProcessWindowEvent(event);
+	}
 }
 
 void Tab::reload_compatible_printers_widget()
