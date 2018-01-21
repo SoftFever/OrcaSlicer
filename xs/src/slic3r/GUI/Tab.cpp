@@ -770,7 +770,7 @@ void TabFilament::build()
 		optgroup->append_single_option_line("filament_density");
 		optgroup->append_single_option_line("filament_cost");
 
-		optgroup = page->new_optgroup("Temperature (°C)");
+		optgroup = page->new_optgroup("Temperature (\u00B0C)"); // degree sign
 		Line line = { "Extruder", "" };
 		line.append_option(optgroup->get_option("first_layer_temperature"));
 		line.append_option(optgroup->get_option("temperature"));
@@ -913,7 +913,7 @@ void TabPrinter::build()
 
 		Line line = { "Bed shape", "" };
 		line.widget = [](wxWindow* parent){
-			auto btn = new wxButton(parent, wxID_ANY, "Set…", wxDefaultPosition, wxDefaultSize,
+			auto btn = new wxButton(parent, wxID_ANY, "Set\u2026", wxDefaultPosition, wxDefaultSize,
 				wxBU_LEFT | wxBU_EXACTFIT);
 //			btn->SetFont(Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("printer_empty.png").c_str()), wxBITMAP_TYPE_PNG));
@@ -1006,7 +1006,7 @@ void TabPrinter::build()
 		optgroup = page->new_optgroup("OctoPrint upload");
 		// # append two buttons to the Host line
 		auto octoprint_host_browse = [] (wxWindow* parent) {
-			auto btn = new wxButton(parent, wxID_ANY, "Browse…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+			auto btn = new wxButton(parent, wxID_ANY, "Browse\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 //			btn->SetFont($Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("zoom.png").c_str()), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1476,7 +1476,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 
 void Tab::OnKeyDown(wxKeyEvent& event)
 {
-	event.GetKeyCode() == WXK_TAB ?
+	(event.GetKeyCode() == WXK_TAB) ?
 		m_treectrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward) :
 		event.Skip();
 }
@@ -1601,7 +1601,7 @@ void Tab::update_ui_from_settings()
 wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn)
 {
 	*checkbox = new wxCheckBox(parent, wxID_ANY, "All");
-	*btn = new wxButton(parent, wxID_ANY, "Set…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+	*btn = new wxButton(parent, wxID_ANY, "Set\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 
 	(*btn)->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("printer_empty.png").c_str()), wxBITMAP_TYPE_PNG));
 

@@ -86,7 +86,7 @@ public:
     template<class T>
     static t_field Create(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id)  // interface for creating shared objects
     {
-        auto p = std::make_unique<T>(parent, opt, id);
+        auto p = Slic3r::make_unique<T>(parent, opt, id);
         p->PostInitialize();
 		return std::move(p); //!p;
     }
