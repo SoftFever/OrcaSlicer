@@ -33,6 +33,7 @@
 #include <wx/window.h>
 
 #include "Tab.h"
+#include "TabIface.hpp"
 #include "AppConfig.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -203,6 +204,19 @@ void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, int 
 		tab->set_event_value_change(wxEventType(event_value_change));
 		tab->set_event_presets_changed(wxEventType(event_presets_changed));
 	}
+}
+
+TabIface* get_preset_tab_iface(char *name)
+{
+	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
+		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
+		if (! tab)
+			continue;
+		if (tab->title().ToStdString() == name) {
+			return new TabIface(tab);
+		}
+	}
+	return new TabIface(nullptr);
 }
 
 void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value)

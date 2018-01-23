@@ -179,6 +179,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/GUI.hpp
     ${LIBDIR}/slic3r/GUI/Tab.cpp
     ${LIBDIR}/slic3r/GUI/Tab.h
+    ${LIBDIR}/slic3r/GUI/TabIface.cpp
+    ${LIBDIR}/slic3r/GUI/TabIface.hpp
     ${LIBDIR}/slic3r/GUI/Field.cpp
     ${LIBDIR}/slic3r/GUI/Field.hpp
     ${LIBDIR}/slic3r/GUI/OptionsGroup.cpp
@@ -295,6 +297,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/GUI_AppConfig.xsp
     ${XSP_DIR}/GUI_3DScene.xsp
     ${XSP_DIR}/GUI_Preset.xsp
+    ${XSP_DIR}/GUI_Tab.xsp
     ${XSP_DIR}/Layer.xsp
     ${XSP_DIR}/Line.xsp
     ${XSP_DIR}/Model.xsp

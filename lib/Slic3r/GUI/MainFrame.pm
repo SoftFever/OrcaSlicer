@@ -170,6 +170,10 @@ sub _init_tabpanel {
         print "PRESETS_CHANGED_EVENT: ", $event->GetString, "\n";
     });
     Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
+    $self->{options_tabs2}{print} = Slic3r::GUI::get_preset_tab("Print");
+    $self->{options_tabs2}{filament} = Slic3r::GUI::get_preset_tab("Filament");
+    $self->{options_tabs2}{printer} = Slic3r::GUI::get_preset_tab("Printer");
+#    $self->{options_tabs2}{print}->rebuild_page_tree();
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {

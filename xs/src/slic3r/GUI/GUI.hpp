@@ -17,6 +17,7 @@ class PresetBundle;
 class PresetCollection;
 class AppConfig;
 class DynamicPrintConfig;
+class TabIface;
 
 namespace GUI {
 
@@ -36,6 +37,8 @@ void set_tab_panel(wxNotebook *tab_panel);
 void add_debug_menu(wxMenuBar *menu);
 // Create a new preset tab (print, filament and printer),
 void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, int event_value_change, int event_presets_changed);
+TabIface* get_preset_tab_iface(char *name);
+
 // add it at the end of the tab panel.
 void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config);
 // Change option value in config
