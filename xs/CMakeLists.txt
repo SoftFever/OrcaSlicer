@@ -178,7 +178,7 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/GUI.cpp
     ${LIBDIR}/slic3r/GUI/GUI.hpp
     ${LIBDIR}/slic3r/GUI/Tab.cpp
-    ${LIBDIR}/slic3r/GUI/Tab.h
+    ${LIBDIR}/slic3r/GUI/Tab.hpp
     ${LIBDIR}/slic3r/GUI/TabIface.cpp
     ${LIBDIR}/slic3r/GUI/TabIface.hpp
     ${LIBDIR}/slic3r/GUI/Field.cpp

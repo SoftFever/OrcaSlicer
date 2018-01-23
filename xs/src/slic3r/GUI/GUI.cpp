@@ -32,7 +32,7 @@
 #include <wx/sizer.h>
 #include <wx/window.h>
 
-#include "Tab.h"
+#include "Tab.hpp"
 #include "TabIface.hpp"
 #include "AppConfig.hpp"
 

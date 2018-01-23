@@ -1,5 +1,5 @@
 #include "TabIface.hpp"
-#include "Tab.h"
+#include "Tab.hpp"
 
 namespace Slic3r {
 

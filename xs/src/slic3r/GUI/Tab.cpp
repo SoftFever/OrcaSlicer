@@ -11,7 +11,7 @@
 #include <wx/imaglist.h>
 #include <wx/settings.h>
 
-#include "Tab.h"
+#include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
 #include "../../libslic3r/Utils.hpp"
