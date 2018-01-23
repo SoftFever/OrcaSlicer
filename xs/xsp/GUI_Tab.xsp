@@ -1,0 +1,13 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/GUI/TabIface.hpp"
+%}
+
+%name{Slic3r::GUI::Tab2} class TabIface {
+    TabIface();
+    ~TabIface();
+    void        load_current_preset();
+    void        rebuild_page_tree();
+};
