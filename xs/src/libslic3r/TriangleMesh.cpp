@@ -197,10 +197,11 @@ TriangleMesh::repair() {
         stl_fill_holes(&stl);
         stl_clear_error(&stl);
     }
-    
-    // normal_directions
-    stl_fix_normal_directions(&stl);
-    
+
+    // commenting out the following call fixes: #574, #413, #269, #262, #259, #230, #228, #206
+//    // normal_directions
+//    stl_fix_normal_directions(&stl);
+
     // normal_values
     stl_fix_normal_values(&stl);
     
