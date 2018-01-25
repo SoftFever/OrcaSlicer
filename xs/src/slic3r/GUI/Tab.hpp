@@ -76,6 +76,7 @@ class Tab: public wxPanel
 {
 	wxNotebook*			m_parent;
 protected:
+	std::string			m_name;
 	const wxString		m_title;
 	wxBitmapComboBox*	m_presets_choice;
 	wxBitmapButton*		m_btn_save_preset;
@@ -108,18 +109,18 @@ public:
 	bool				m_show_btn_incompatible_presets;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
-//	t_change			m_on_value_change{ nullptr };
-//	std::function<void()>	m_on_presets_changed{ nullptr };
 
 public:
 	Tab() {}
-	Tab(wxNotebook* parent, const char *title) : m_parent(parent), m_title(title) {
+	Tab(wxNotebook* parent, const char *title, const char* name) : 
+		m_parent(parent), m_title(title), m_name(name) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 	}
 	~Tab(){}
 
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
+	std::string	name()	 const { return m_name; }
 
 	// Set the events to the callbacks posted to the main frame window (currently implemented in Perl).
 	void 		set_event_value_change(wxEventType evt) { m_event_value_change = evt; }
@@ -138,7 +139,7 @@ public:
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
 	void		OnComboBox(wxCommandEvent& event) {
-		select_preset(static_cast<const wxComboBox*>(m_presets_choice)->GetStringSelection().ToStdString()); }
+					select_preset(static_cast<const wxComboBox*>(m_presets_choice)->GetStringSelection().ToStdString()); }
 	void		save_preset(std::string name = "");
 	void		delete_preset();
 	void		toggle_show_hide_incompatible();
@@ -161,8 +162,7 @@ public:
 	bool			current_preset_is_dirty();
 	DynamicPrintConfig*	get_config() { return m_config; }
 	PresetCollection*	get_presets() { return m_presets; }
-	std::vector<std::string>	get_dependent_tabs() {
-		return m_reload_dependent_tabs; }
+	std::vector<std::string>	get_dependent_tabs() { return m_reload_dependent_tabs; }
 
 	void			on_value_change(std::string opt_key, boost::any value);
 
@@ -175,7 +175,7 @@ class TabPrint : public Tab
 {
 public:
 	TabPrint() {}
-	TabPrint(wxNotebook* parent, const char *title) : Tab(parent, title) {}
+	TabPrint(wxNotebook* parent) : Tab(parent, "Print Settings", "print") {}
 	~TabPrint(){}
 
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
@@ -194,7 +194,7 @@ class TabFilament : public Tab
 	ogStaticText*	m_cooling_description_line;
 public:
 	TabFilament() {}
-	TabFilament(wxNotebook* parent, const char *title) : Tab(parent, title) {}
+	TabFilament(wxNotebook* parent) : Tab(parent, "Filament Settings", "filament") {}
 	~TabFilament(){}
 
 	void		build() override;
@@ -215,7 +215,7 @@ public:
 
 public:
 	TabPrinter() {}
-	TabPrinter(wxNotebook* parent, const char *title) : Tab(parent, title) {}
+	TabPrinter(wxNotebook* parent) : Tab(parent, "Printer Settings", "printer") {}
 	~TabPrinter(){}
 
 	void		build() override;

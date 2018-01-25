@@ -35,8 +35,8 @@ void set_tab_panel(SV *ui)
 void add_debug_menu(SV *ui)
     %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar")); %};
 
-void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, int event_value_change, int event_presets_changed)
-    %code%{ Slic3r::GUI::create_preset_tabs(preset_bundle, app_config, event_value_change, event_presets_changed); %};
+void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, bool no_controller, int event_value_change, int event_presets_changed)
+    %code%{ Slic3r::GUI::create_preset_tabs(preset_bundle, app_config, no_controller, event_value_change, event_presets_changed); %};
 
 Ref<TabIface> get_preset_tab(char *name)
     %code%{ RETVAL=Slic3r::GUI::get_preset_tab_iface(name); %};

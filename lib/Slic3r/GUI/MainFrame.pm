@@ -162,9 +162,9 @@ sub _init_tabpanel {
     EVT_COMMAND($self, -1, $VALUE_CHANGE_EVENT, sub {
         my ($self, $event) = @_;
         my $str = $event->GetString;
-        my ($opt_key, $title) = ($str =~ /(.*) (.*)/);
+        my ($opt_key, $name) = ($str =~ /(.*) (.*)/);
         #print "VALUE_CHANGE_EVENT: ", $opt_key, "\n";
-        my $tab = Slic3r::GUI::get_preset_tab($title);
+        my $tab = Slic3r::GUI::get_preset_tab($name);
         my $config = $tab->get_config;
         if ($self->{plater}) {
             $self->{plater}->on_config_change($config); # propagate config change events to the plater
@@ -180,11 +180,9 @@ sub _init_tabpanel {
     # or when the preset's "modified" status changes.
     EVT_COMMAND($self, -1, $PRESETS_CHANGED_EVENT, sub {
         my ($self, $event) = @_;
-        my $title = $event->GetString;
-        my $tab_name = lc($title);
-        #print "PRESETS_CHANGED_EVENT: ", $tab_name , "\n";
+        my $tab_name = $event->GetString;
 
-        my $tab = Slic3r::GUI::get_preset_tab($title);
+        my $tab = Slic3r::GUI::get_preset_tab($tab_name);
         if ($self->{plater}) {
             # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
             my $presets = $tab->get_presets;
@@ -205,10 +203,10 @@ sub _init_tabpanel {
             $self->{plater}->on_config_change($tab->get_config);
         }
     });
-    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
-    $self->{options_tabs2}{print} = Slic3r::GUI::get_preset_tab("Print");
-    $self->{options_tabs2}{filament} = Slic3r::GUI::get_preset_tab("Filament");
-    $self->{options_tabs2}{printer} = Slic3r::GUI::get_preset_tab("Printer");
+    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config}, $self->{no_controller}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
+    $self->{options_tabs2}{print} = Slic3r::GUI::get_preset_tab("print");
+    $self->{options_tabs2}{filament} = Slic3r::GUI::get_preset_tab("filament");
+    $self->{options_tabs2}{printer} = Slic3r::GUI::get_preset_tab("printer");
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {

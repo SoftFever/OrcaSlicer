@@ -186,15 +186,16 @@ void add_debug_menu(wxMenuBar *menu)
 #endif
 }
 
-void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, int event_value_change, int event_presets_changed)
+void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, 
+						bool no_controller, int event_value_change, int event_presets_changed)
 {	
-	add_created_tab(new TabPrint   (g_wxTabPanel, "Print"),    preset_bundle, app_config);
-	add_created_tab(new TabFilament(g_wxTabPanel, "Filament"), preset_bundle, app_config);
-	add_created_tab(new TabPrinter (g_wxTabPanel, "Printer"),  preset_bundle, app_config);
+	add_created_tab(new TabPrint   (g_wxTabPanel), preset_bundle, app_config, no_controller);
+	add_created_tab(new TabFilament(g_wxTabPanel), preset_bundle, app_config, no_controller);
+	add_created_tab(new TabPrinter (g_wxTabPanel), preset_bundle, app_config, no_controller);
 	g_wxTabPanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, ([](wxCommandEvent e){
 		Tab* panel = (Tab*)g_wxTabPanel->GetCurrentPage();
-		if (panel->GetName().compare("Print")==0 ||
-			panel->GetName().compare("Filament") == 0)
+		if (panel->GetName().compare("Print Settings")==0 ||
+			panel->GetName().compare("Filament Settings") == 0)
 			panel->OnActivate();
 	}), g_wxTabPanel->GetId() );
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
@@ -212,7 +213,7 @@ TabIface* get_preset_tab_iface(char *name)
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
 		if (! tab)
 			continue;
-		if (tab->title().ToStdString() == name) {
+		if (tab->name() == name) {
 			return new TabIface(tab);
 		}
 	}
@@ -297,15 +298,14 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 	}
 }
 
-void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config)
+void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config, bool no_controller)
 {
-	panel->m_no_controller = app_config->get("no_controller").empty();
+	panel->m_no_controller = no_controller;
 	panel->m_show_btn_incompatible_presets = app_config->get("show_incompatible_presets").empty();
 	panel->create_preset_tab(preset_bundle);
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();
-
 	g_wxTabPanel->AddPage(panel, panel->title());
 }
 

@@ -276,14 +276,13 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 {
 	if (m_event_value_change > 0) {
 		wxCommandEvent event(m_event_value_change);
-		std::string str_out = opt_key + " " + m_title;
+		std::string str_out = opt_key + " " + m_name;
 		event.SetString(str_out);
 		if (opt_key == "extruders_count")
 		{
 			int val = boost::any_cast<size_t>(value);
 			event.SetInt(val);
 		}
-			
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
 	update();
@@ -298,7 +297,7 @@ void Tab::on_presets_changed(/*std::vector<std::string> reload_dependent_tabs*/)
 {
 	if (m_event_presets_changed > 0) {
 		wxCommandEvent event(m_event_presets_changed);
-		event.SetString(m_title);
+		event.SetString(m_name);
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
 }
