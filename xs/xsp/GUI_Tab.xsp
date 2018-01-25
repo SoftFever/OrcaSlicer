@@ -8,6 +8,14 @@
 %name{Slic3r::GUI::Tab2} class TabIface {
     TabIface();
     ~TabIface();
-    void        load_current_preset();
-    void        rebuild_page_tree();
+    void		load_current_preset();
+    void		update_tab_ui();
+    void		update_ui_from_settings();
+    void		select_preset(char* name);
+	void		load_config(DynamicPrintConfig* config);
+	bool		current_preset_is_dirty();
+    char*		title();
+	Ref<DynamicPrintConfig>		get_config();
+	Ref<PresetCollection>		get_presets();
+	std::vector<std::string>	get_dependent_tabs();
 };

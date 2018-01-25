@@ -26,7 +26,7 @@
 #include <vector>
 #include <memory>
 
-#include "OptionsGroup.hpp"
+#include "BedShapeDialog.hpp"
 
 //!enum { ID_TAB_TREE = wxID_HIGHEST + 1 };
 
@@ -128,7 +128,7 @@ public:
 	void		create_preset_tab(PresetBundle *preset_bundle);
 	void		load_current_preset();
 	void		rebuild_page_tree();
-	void		select_preset(wxString preset_name = "");
+	void		select_preset(std::string preset_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, std::string new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
@@ -137,7 +137,8 @@ public:
 
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
-	void		OnComboBox(wxCommandEvent& event) { select_preset(static_cast<const wxComboBox*>(m_presets_choice)->GetStringSelection()); 	}
+	void		OnComboBox(wxCommandEvent& event) {
+		select_preset(static_cast<const wxComboBox*>(m_presets_choice)->GetStringSelection().ToStdString()); }
 	void		save_preset(std::string name = "");
 	void		delete_preset();
 	void		toggle_show_hide_incompatible();
@@ -157,6 +158,11 @@ public:
 	Field*			get_field(t_config_option_key opt_key, int opt_index = -1) const;
 	bool			set_value(t_config_option_key opt_key, boost::any value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
+	bool			current_preset_is_dirty();
+	DynamicPrintConfig*	get_config() { return m_config; }
+	PresetCollection*	get_presets() { return m_presets; }
+	std::vector<std::string>	get_dependent_tabs() {
+		return m_reload_dependent_tabs; }
 
 	void			on_value_change(std::string opt_key, boost::any value);
 

@@ -404,8 +404,19 @@ boost::any Choice::get_value()
 	else
 	{
 		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
-		if (m_opt_id.compare("external_fill_pattern") == 0 ||
-			m_opt_id.compare("fill_pattern") == 0)
+		if (m_opt_id.compare("external_fill_pattern") == 0)
+		{
+			if (!m_opt.enum_values.empty()){
+				std::string key = m_opt.enum_values[ret_enum];
+				t_config_enum_values map_names = ConfigOptionEnum<InfillPattern>::get_enum_values();
+				int value = map_names.at(key);
+
+				ret_val = static_cast<InfillPattern>(value);
+			}
+			else
+				ret_val = static_cast<InfillPattern>(0);
+		}
+		if (m_opt_id.compare("fill_pattern") == 0)
 			ret_val = static_cast<InfillPattern>(ret_enum);
 		else if (m_opt_id.compare("gcode_flavor") == 0)
 			ret_val = static_cast<GCodeFlavor>(ret_enum);
@@ -436,7 +447,7 @@ void ColourPicker::BUILD()
 
 }
 
-void Point::BUILD()
+void PointCtrl::BUILD()
 {
 	auto size = wxSize(wxDefaultSize);
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
@@ -456,9 +467,9 @@ void Point::BUILD()
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size);
 	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size);
 
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "x:")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
+	temp->Add(new wxStaticText(m_parent, wxID_ANY, "x : ")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
 	temp->Add(x_textctrl);
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y:")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
+	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y : ")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
 	temp->Add(y_textctrl);
 
 	x_textctrl->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e/*$self->option->opt_id*/); }), x_textctrl->GetId());
@@ -474,7 +485,7 @@ void Point::BUILD()
 	}
 }
 
-void Point::set_value(const Pointf value)
+void PointCtrl::set_value(const Pointf value)
 {
 	m_disable_change_event = true;
 
@@ -486,7 +497,27 @@ void Point::set_value(const Pointf value)
 	m_disable_change_event = false;
 }
 
-boost::any Point::get_value()
+void PointCtrl::set_value(boost::any value)
+{
+	Pointf pt;
+	try
+	{
+		pt = boost::any_cast<ConfigOptionPoints*>(value)->values.at(0);
+	}
+	catch (const std::exception &e)
+	{
+		try{
+			pt = boost::any_cast<Pointf>(value);
+		}
+		catch (const std::exception &e)
+		{
+			int i=0;
+		}		
+	}	
+	set_value(pt);
+}
+
+boost::any PointCtrl::get_value()
 {
 	Pointf ret_point;
 	double val;

@@ -80,7 +80,7 @@ public:
     virtual wxWindow*	getWindow() { return nullptr; }
 
 	bool		is_matched(std::string string, std::string pattern);
-	boost::any get_value_by_opt_type(wxString str, ConfigOptionType type);
+	boost::any	get_value_by_opt_type(wxString str, ConfigOptionType type);
 
     /// Factory method for generating new derived classes.
     template<class T>
@@ -226,11 +226,11 @@ public:
 	void			set_tooltip(const wxString& tip) override {}; //! Redundant
 };
 
-class Point : public Field {
+class PointCtrl : public Field {
 	using Field::Field;
 public:
-	Point(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
-	Point(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	PointCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
+	PointCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
 
 	wxSizer*		sizer{ nullptr };
 	wxTextCtrl*		x_textctrl;
@@ -239,9 +239,7 @@ public:
 	void			BUILD()  override;
 
 	void			set_value(const Pointf value);
-	void			set_value(boost::any value) {
-//		dynamic_cast<wxColourPickerCtrl*>(sizer)->SetColour(boost::any_cast<std::string>(value));
-	}
+	void			set_value(boost::any value);
 	boost::any		get_value() override;
 
 	void			enable() override {

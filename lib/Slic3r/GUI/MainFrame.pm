@@ -161,24 +161,60 @@ sub _init_tabpanel {
     # The following event is emited by the C++ Tab implementation on config value change.
     EVT_COMMAND($self, -1, $VALUE_CHANGE_EVENT, sub {
         my ($self, $event) = @_;
-        print "VALUE_CHANGE_EVENT: ", $event->GetString, "\n";
+        my $str = $event->GetString;
+        my ($opt_key, $title) = ($str =~ /(.*) (.*)/);
+        #print "VALUE_CHANGE_EVENT: ", $opt_key, "\n";
+        my $tab = Slic3r::GUI::get_preset_tab($title);
+        my $config = $tab->get_config;
+        if ($self->{plater}) {
+            $self->{plater}->on_config_change($config); # propagate config change events to the plater
+            if ($opt_key eq 'extruders_count'){
+                my $value = $event->GetInt();
+                $self->{plater}->on_extruders_change($value);
+            }
+        }
+        # don't save while loading for the first time
+        $self->config->save($Slic3r::GUI::autosave) if $Slic3r::GUI::autosave && $self->{loaded};        
     });
     # The following event is emited by the C++ Tab implementation on preset selection,
     # or when the preset's "modified" status changes.
     EVT_COMMAND($self, -1, $PRESETS_CHANGED_EVENT, sub {
         my ($self, $event) = @_;
-        print "PRESETS_CHANGED_EVENT: ", $event->GetString, "\n";
+        my $title = $event->GetString;
+        my $tab_name = lc($title);
+        #print "PRESETS_CHANGED_EVENT: ", $tab_name , "\n";
+
+        my $tab = Slic3r::GUI::get_preset_tab($title);
+        if ($self->{plater}) {
+            # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
+            my $presets = $tab->get_presets;
+            my $reload_dependent_tabs = $tab->get_dependent_tabs;
+            $self->{plater}->update_presets($tab_name, $reload_dependent_tabs, $presets);
+            if ($tab_name eq 'printer') {
+                # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
+                for my $tab_name_other (qw(print filament)) {
+                    # If the printer tells us that the print or filament preset has been switched or invalidated,
+                    # refresh the print or filament tab page. Otherwise just refresh the combo box.
+                    my $update_action = ($reload_dependent_tabs && (first { $_ eq $tab_name_other } (@{$reload_dependent_tabs}))) 
+                        ? 'load_current_preset' : 'update_tab_ui';
+                    $self->{options_tabs2}{$tab_name_other}->$update_action;
+                }
+                # Update the controller printers.
+                $self->{controller}->update_presets($presets) if $self->{controller};
+            }
+            $self->{plater}->on_config_change($tab->get_config);
+        }
     });
     Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     $self->{options_tabs2}{print} = Slic3r::GUI::get_preset_tab("Print");
     $self->{options_tabs2}{filament} = Slic3r::GUI::get_preset_tab("Filament");
     $self->{options_tabs2}{printer} = Slic3r::GUI::get_preset_tab("Printer");
-#    $self->{options_tabs2}{print}->rebuild_page_tree();
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
             my ($group, $name) = @_;
 	        $self->{options_tabs}{$group}->select_preset($name);
+            $self->{options_tabs2}{$group}->select_preset($name);#!
         });
         # load initial config
         my $full_config = wxTheApp->{preset_bundle}->full_config;
@@ -573,6 +609,7 @@ sub load_config_file {
     # Dont proceed further if the config file cannot be loaded.
     return if Slic3r::GUI::catch_error($self);
     $_->load_current_preset for (values %{$self->{options_tabs}});
+    $_->load_current_preset for (values %{$self->{options_tabs2}});#!
     wxTheApp->{app_config}->update_config_dir(dirname($file));
     $last_config = $file;
 }
@@ -624,6 +661,11 @@ sub load_configbundle {
     foreach my $tab (values %{$self->{options_tabs}}) {
         $tab->load_current_preset;
     }
+
+    #! Load the currently selected preset into the GUI, update the preset selection box.
+    foreach my $tab (values %{$self->{options_tabs2}}) {
+        $tab->load_current_preset;
+    }
     
     my $message = sprintf "%d presets successfully imported.", $presets_imported;
     Slic3r::GUI::show_info($self, $message);
@@ -632,8 +674,9 @@ sub load_configbundle {
 # Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
 # Also update the platter with the new presets.
 sub load_config {
-    my ($self, $config) = @_;    
+    my ($self, $config) = @_;
     $_->load_config($config) foreach values %{$self->{options_tabs}};
+    $_->load_config($config) foreach values %{$self->{options_tabs2}};#!
     $self->{plater}->on_config_change($config) if $self->{plater};
 }
 
@@ -672,6 +715,11 @@ sub config_wizard {
         foreach my $tab (values %{$self->{options_tabs}}) {
             $tab->load_current_preset;
         }
+
+        #! Load the currently selected preset into the GUI, update the preset selection box.
+        foreach my $tab (values %{$self->{options_tabs2}}) {
+            $tab->load_current_preset;
+        }
     }
 }
 
@@ -683,6 +731,9 @@ sub check_unsaved_changes {
     my @dirty = ();
     foreach my $tab (values %{$self->{options_tabs}}) {
         push @dirty, $tab->title if $tab->{presets}->current_is_dirty;
+    }
+    foreach my $tab (values %{$self->{options_tabs2}}) { #!
+        push @dirty, $tab->title if $tab->current_preset_is_dirty;
     }
     
     if (@dirty) {
@@ -733,6 +784,9 @@ sub update_ui_from_settings {
     $self->{plater}->update_ui_from_settings if ($self->{plater});
     for my $tab_name (qw(print filament printer)) {
         $self->{options_tabs}{$tab_name}->update_ui_from_settings;
+    }
+    for my $tab_name (qw(print filament printer)) {
+        $self->{options_tabs2}{$tab_name}->update_ui_from_settings;#!
     }
 }
 

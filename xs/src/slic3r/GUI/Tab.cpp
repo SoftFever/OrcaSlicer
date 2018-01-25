@@ -1,4 +1,9 @@
 #include "../../libslic3r/GCodeSender.hpp"
+#include "Tab.hpp"
+#include "PresetBundle.hpp"
+#include "PresetHints.hpp"
+#include "../../libslic3r/Utils.hpp"
+
 #include <wx/app.h>
 #include <wx/button.h>
 #include <wx/scrolwin.h>
@@ -11,10 +16,6 @@
 #include <wx/imaglist.h>
 #include <wx/settings.h>
 
-#include "Tab.hpp"
-#include "PresetBundle.hpp"
-#include "PresetHints.hpp"
-#include "../../libslic3r/Utils.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace Slic3r {
@@ -86,7 +87,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_treectrl->Bind(wxEVT_COMBOBOX, &Tab::OnComboBox, this); 
 
 	m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e){
-		select_preset(static_cast<const wxComboBox*>(m_presets_choice)->GetStringSelection());
+		select_preset(static_cast<const wxComboBox*>(m_presets_choice)->GetStringSelection().ToStdString());
 	}));
 
 	m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){ save_preset(); }));
@@ -273,15 +274,20 @@ extern wxFrame *g_wxMainFrame;
 
 void Tab::on_value_change(std::string opt_key, boost::any value)
 {
-//	if (m_on_value_change != nullptr)
-//		m_on_value_change(opt_key, value);
 	if (m_event_value_change > 0) {
 		wxCommandEvent event(m_event_value_change);
-		event.SetString(opt_key);
+		std::string str_out = opt_key + " " + m_title;
+		event.SetString(str_out);
+		if (opt_key == "extruders_count")
+		{
+			int val = boost::any_cast<size_t>(value);
+			event.SetInt(val);
+		}
+			
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
 	update();
-};
+}
 
 // Call a callback to update the selection of presets on the platter:
 // To update the content of the selection boxes,
@@ -290,11 +296,9 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 // to uddate number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed(/*std::vector<std::string> reload_dependent_tabs*/)
 {
-//	if (m_on_presets_changed != nullptr)
-//		m_on_presets_changed(/*m_presets, reload_dependent_tabs*/);
 	if (m_event_presets_changed > 0) {
 		wxCommandEvent event(m_event_presets_changed);
-		//event.SetString(opt_key);
+		event.SetString(m_title);
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
 }
@@ -919,6 +923,11 @@ wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticTex
 	return sizer;
 }
 
+bool Tab::current_preset_is_dirty()
+{
+	return m_presets->current_is_dirty();
+}
+
 void TabPrinter::build()
 {
 	m_presets = &m_preset_bundle->printers;
@@ -932,7 +941,7 @@ void TabPrinter::build()
 		auto optgroup = page->new_optgroup("Size and coordinates");
 
 		Line line = { "Bed shape", "" };
-		line.widget = [](wxWindow* parent){
+		line.widget = [this](wxWindow* parent){
 			auto btn = new wxButton(parent, wxID_ANY, "Set\u2026", wxDefaultPosition, wxDefaultSize,
 				wxBU_LEFT | wxBU_EXACTFIT);
 //			btn->SetFont(Slic3r::GUI::small_font);
@@ -941,11 +950,13 @@ void TabPrinter::build()
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
-			btn->Bind(wxEVT_BUTTON, ([](wxCommandEvent e)
+			btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
 			{
-				// 			auto dlg = new BedShapeDialog->new($self, $self->{config}->bed_shape);
-				// 			if (dlg->ShowModal == wxID_OK)
-				;// load_key_value_("bed_shape", dlg->GetValue);
+				auto dlg = new BedShapeDialog(this);
+				dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+				if (dlg->ShowModal() == wxID_OK)
+//					load_key_value("bed_shape", dlg->GetValue());
+				;
 			}));
 
 			return sizer;
@@ -1336,10 +1347,10 @@ void Tab::load_current_preset()
 	// and we don't want them to be called after this update_dirty() as they would mark the 
 	// preset dirty again
 	// (not sure this is true anymore now that update_dirty is idempotent)
-	wxTheApp->CallAfter([this]{
+//	wxTheApp->CallAfter([this]{
 		update_tab_ui();
 		on_presets_changed();
-	});
+//	});
 }
 
 //Regerenerate content of the page tree.
@@ -1372,9 +1383,9 @@ void Tab::rebuild_page_tree()
 // Called by the UI combo box when the user switches profiles.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(wxString preset_name)
+void Tab::select_preset(std::string preset_name /*= ""*/)
 {
-	std::string name = preset_name.ToStdString();
+	std::string name = preset_name/*.ToStdString()*/;
 	auto force = false;
 	auto presets = m_presets;
 	// If no name is provided, select the "-- default --" preset.
@@ -1407,12 +1418,12 @@ void Tab::select_preset(wxString preset_name)
 		if (!canceled) {
 			if (!print_preset_compatible) {
 				// The preset will be switched to a different, compatible preset, or the '-- default --'.
-				m_reload_dependent_tabs.push_back("Print");
+				m_reload_dependent_tabs.push_back("print");
 				if (print_preset_dirty) print_presets->discard_current_changes();
 			}
 			if (!filament_preset_compatible) {
 				// The preset will be switched to a different, compatible preset, or the '-- default --'.
-				m_reload_dependent_tabs.push_back("Filament");
+				m_reload_dependent_tabs.push_back("filament");
 				if (filament_preset_dirty) filament_presets->discard_current_changes();
 			}
 		}

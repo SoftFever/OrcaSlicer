@@ -52,7 +52,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 				m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(m_parent, opt, id)));
 				break;
             case coPoints:
-				m_fields.emplace(id, STDMOVE(Point::Create<Point>(m_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(PointCtrl::Create<PointCtrl>(m_parent, opt, id)));
 				break;
             case coNone:   break;
             default:

@@ -185,6 +185,10 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/Field.hpp
     ${LIBDIR}/slic3r/GUI/OptionsGroup.cpp
     ${LIBDIR}/slic3r/GUI/OptionsGroup.hpp
+    ${LIBDIR}/slic3r/GUI/BedShapeDialog.cpp
+    ${LIBDIR}/slic3r/GUI/BedShapeDialog.hpp
+    ${LIBDIR}/slic3r/GUI/2DBed.cpp
+    ${LIBDIR}/slic3r/GUI/2DBed.hpp
 )
 
 add_library(admesh STATIC

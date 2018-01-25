@@ -246,13 +246,13 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			break;
 		case coStrings:{
 			if (opt_key.compare("compatible_printers") == 0){
-			config.option<ConfigOptionStrings>(opt_key)->values.resize(0);
-			for (auto el : boost::any_cast<std::vector<std::string>>(value))
-				config.option<ConfigOptionStrings>(opt_key)->values.push_back(el);
+				config.option<ConfigOptionStrings>(opt_key)->values.resize(0);
+				for (auto el : boost::any_cast<std::vector<std::string>>(value))
+					config.option<ConfigOptionStrings>(opt_key)->values.push_back(el);
 			}
 			else{
-			ConfigOptionStrings* vec_new = new ConfigOptionStrings{ boost::any_cast<std::string>(value) };
-			config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, 0, 0);
+				ConfigOptionStrings* vec_new = new ConfigOptionStrings{ boost::any_cast<std::string>(value) };
+				config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, 0, 0);
 			}
 			}
 			break;
@@ -302,39 +302,6 @@ void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_con
 	panel->m_no_controller = app_config->get("no_controller").empty();
 	panel->m_show_btn_incompatible_presets = app_config->get("show_incompatible_presets").empty();
 	panel->create_preset_tab(preset_bundle);
-	// Callback to be executed after any of the configuration fields(Perl class Slic3r::GUI::OptionsGroup::Field) change their value.
-//	panel->m_on_value_change = [/*this*/](std::string opt_key, boost::any value){
-	//! plater & loaded - variables of MainFrame
-// 		if (plater) {
-// 			plater->on_config_change(m_config); //# propagate config change events to the plater
-// 			if (opt_key.compare("extruders_count")	plater->on_extruders_change(value);
-// 		}
-		// don't save while loading for the first time
-//		if (loaded && Slic3r::GUI::autosave) m_config->save(Slic3r::GUI::autosave) ;
-//	};
-
-	// Install a callback for the tab to update the platter and print controller presets, when
-	// a preset changes at Slic3r::GUI::Tab.
-//	panel->m_on_presets_changed = [](){
-// 		if ($self->{plater}) {
-// 			# Update preset combo boxes(Print settings, Filament, Printer) from their respective tabs.
-// 			$self->{plater}->update_presets($tab_name, @_);
-// 			if ($tab_name eq 'printer') {
-// 				# Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-// 				my($presets, $reload_dependent_tabs) = @_;
-// 				for my $tab_name_other(qw(print filament)) {
-// 					# If the printer tells us that the print or filament preset has been switched or invalidated,
-// 					# refresh the print or filament tab page.Otherwise just refresh the combo box.
-// 					my $update_action = ($reload_dependent_tabs && (first{ $_ eq $tab_name_other } (@{$reload_dependent_tabs})))
-// 						? 'load_current_preset' : 'update_tab_ui';
-// 					$self->{options_tabs}{$tab_name_other}->$update_action;
-// 				}
-// 				# Update the controller printers.
-// 				$self->{controller}->update_presets(@_) if $self->{controller};
-// 			}
-// 			$self->{plater}->on_config_change($tab->{presets}->get_current_preset->config);
-// 		}
-//	};
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();

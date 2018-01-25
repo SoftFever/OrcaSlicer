@@ -98,8 +98,8 @@ public:
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
-    OptionsGroup(wxWindow* _parent, std::string title, const ConfigDef& configs) : 
-		m_optiondefs(configs.options), m_parent(_parent), title(wxString(title)) {
+    OptionsGroup(wxWindow* _parent, std::string title) : 
+		m_parent(_parent), title(wxString(title)) {
         sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
@@ -112,7 +112,6 @@ public:
     }
 
 protected:
-    const t_optiondef_map&	m_optiondefs;	//#WHY
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
 
@@ -136,8 +135,8 @@ protected:
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-	ConfigOptionsGroup(wxWindow* parent, std::string title, DynamicPrintConfig* _config) : 
-		OptionsGroup(parent, title, *_config->def()), m_config(_config) {}
+	ConfigOptionsGroup(wxWindow* parent, std::string title, DynamicPrintConfig* _config = nullptr) : 
+		OptionsGroup(parent, title), m_config(_config) {}
 
     /// reference to libslic3r config, non-owning pointer (?).
     DynamicPrintConfig*		m_config {nullptr};
