@@ -113,7 +113,6 @@ sub new {
             $cfg->set('wipe_tower_x', $new_pos_3f->x);
             $cfg->set('wipe_tower_y', $new_pos_3f->y);
             $self->GetFrame->{options_tabs}{print}->load_config($cfg);
-            $self->GetFrame->{options_tabs2}{print}->load_config($cfg);#!
         });
         $self->{canvas3D}->set_on_model_update(sub {
             if (wxTheApp->{app_config}->get("background_processing")) {
@@ -1748,7 +1747,6 @@ sub filament_color_box_lmouse_down
             $colors->[$extruder_idx] = $dialog->GetColourData->GetColour->GetAsString(wxC2S_HTML_SYNTAX);
             $cfg->set('extruder_colour', $colors);
             $self->GetFrame->{options_tabs}{printer}->load_config($cfg);
-            $self->GetFrame->{options_tabs2}{printer}->load_config($cfg);#!
             wxTheApp->{preset_bundle}->update_platter_filament_ui($extruder_idx, $combobox);
         }
         $dialog->Destroy();

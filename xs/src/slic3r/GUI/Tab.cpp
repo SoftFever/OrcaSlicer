@@ -1354,10 +1354,10 @@ void Tab::load_current_preset()
 	// and we don't want them to be called after this update_dirty() as they would mark the 
 	// preset dirty again
 	// (not sure this is true anymore now that update_dirty is idempotent)
-//	wxTheApp->CallAfter([this]{
+	wxTheApp->CallAfter([this]{
 		update_tab_ui();
 		on_presets_changed();
-//	});
+	});
 }
 
 //Regerenerate content of the page tree.
