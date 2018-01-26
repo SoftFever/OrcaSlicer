@@ -74,7 +74,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(185, -1), 
 		wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
 	m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
-	m_icons = new wxImageList(16, 16, true, 1/*, 1*/);
+	m_icons = new wxImageList(16, 16, true, 1);
 	// Index of the last icon inserted into $self->{icons}.
 	m_icon_count = -1;
 	m_treectrl->AssignImageList(m_icons);
@@ -97,7 +97,6 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	}));
 
 	// Initialize the DynamicPrintConfig by default keys/values.
-	// Possible %params keys: no_controller
 	build();
 	rebuild_page_tree();
 	update();
@@ -112,7 +111,7 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 		catch (std::out_of_range e) { icon_idx = -1; }
 		if (icon_idx == -1) {
 			// Add a new icon to the icon list.
-			const auto img_icon = new wxIcon(wxString::FromUTF8(Slic3r::var(/*"" + */icon).c_str()), wxBITMAP_TYPE_PNG);
+			const auto img_icon = new wxIcon(wxString::FromUTF8(Slic3r::var(icon).c_str()), wxBITMAP_TYPE_PNG);
 			m_icons->Add(*img_icon);
 			icon_idx = ++m_icon_count; //  $icon_idx = $self->{icon_count} + 1; $self->{icon_count} = $icon_idx;
 			m_icon_index[icon] = icon_idx;
@@ -533,7 +532,7 @@ void TabPrint::update()
 	Freeze();
 
 	if ( m_config->opt_bool("spiral_vase") && 
-		!(m_config->opt_int("perimeters") == 1 && m_config->opt_int("top_solid_layers") == 0 && /*m_config->opt_float("fill_density") == 0*/
+		!(m_config->opt_int("perimeters") == 1 && m_config->opt_int("top_solid_layers") == 0 &&
 			m_config->option<ConfigOptionPercent>("fill_density")->value == 0)) {
 		std::string msg_text = "The Spiral Vase mode requires:\n"
 			"- one perimeter\n"
@@ -543,7 +542,7 @@ void TabPrint::update()
  			"- no ensure_vertical_shell_thickness\n"
   			"\nShall I adjust those settings in order to enable Spiral Vase?";
 		auto dialog = new wxMessageDialog(parent(), msg_text, wxT("Spiral Vase"), wxICON_WARNING | wxYES | wxNO);
-		DynamicPrintConfig new_conf = *m_config;//new DynamicPrintConfig;
+		DynamicPrintConfig new_conf = *m_config;
  		if (dialog->ShowModal() == wxID_YES) {
 			new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
 			new_conf.set_key_value("top_solid_layers", new ConfigOptionInt(0));
@@ -1028,26 +1027,30 @@ void TabPrinter::build()
 			};
 
 			line.append_option(serial_port);
-			line.append_option(/*serial_speed*/optgroup->get_option("serial_speed"));
+			line.append_option(optgroup->get_option("serial_speed"));
 			line.append_widget(serial_test);
 			optgroup->append_line(line);
 		}
 
 		optgroup = page->new_optgroup("OctoPrint upload");
 		// # append two buttons to the Host line
-		auto octoprint_host_browse = [] (wxWindow* parent) {
+		auto octoprint_host_browse = [this] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, "Browse\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 //			btn->SetFont($Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("zoom.png").c_str()), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
-// 			if (!eval "use Net::Bonjour; 1") {
-// 				btn->Disable;
-// 			}
+			if (m_is_disabled_button_browse) 
+				btn->Disable();
 
-			btn->Bind(wxEVT_BUTTON, [parent](wxCommandEvent e){
-				// # look for devices
+			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e){
+				if (m_event_button_browse > 0){
+					wxCommandEvent event(m_event_button_browse);
+					event.SetString("Button BROWSE was clicked!");
+					g_wxMainFrame->ProcessWindowEvent(event);
+				}
+// 				// # look for devices
 // 				auto entries;
 // 				{
 // 					my $res = Net::Bonjour->new('http');
@@ -1060,23 +1063,28 @@ void TabPrinter::build()
 // 						if $dlg->ShowModal == wxID_OK;
 // 				}
 // 				else {
-					auto msg_window = new wxMessageDialog(parent, "No Bonjour device found", "Device Browser", wxOK | wxICON_INFORMATION);
-					msg_window->ShowModal();
-//				}
+// 					auto msg_window = new wxMessageDialog(parent, "No Bonjour device found", "Device Browser", wxOK | wxICON_INFORMATION);
+// 					msg_window->ShowModal();
+// 				}
 			});
 
 			return sizer;
 		};
 
 		auto octoprint_host_test = [this](wxWindow* parent) {
-			auto btn = m_octoprint_host_test_btn = new wxButton(parent, wxID_ANY,
-				"Test", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			auto btn = m_octoprint_host_test_btn = new wxButton(parent, wxID_ANY, "Test", 
+				wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //			btn->SetFont($Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("wrench.png").c_str()), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
-			btn->Bind(wxEVT_BUTTON, [parent](wxCommandEvent e) {
+			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e) {
+				if (m_event_button_test > 0){
+					wxCommandEvent event(m_event_button_test);
+					event.SetString("Button TEST was clicked!");
+					g_wxMainFrame->ProcessWindowEvent(event);
+				}
 // 				my $ua = LWP::UserAgent->new;
 // 				$ua->timeout(10);
 // 
@@ -1259,7 +1267,7 @@ void TabPrinter::update(){
 	}
 
 	en = !m_config->opt_string("octoprint_host").empty();
-	if ( en/*&& eval "use LWP::UserAgent; 1"*/)
+	if ( en && m_is_user_agent)
 		m_octoprint_host_test_btn->Enable();
 	else 
 		m_octoprint_host_test_btn->Disable(); 
@@ -1384,7 +1392,7 @@ void Tab::rebuild_page_tree()
 // If the current profile is modified, user is asked to save the changes.
 void Tab::select_preset(std::string preset_name /*= ""*/)
 {
-	std::string name = preset_name/*.ToStdString()*/;
+	std::string name = preset_name;
 	auto force = false;
 	auto presets = m_presets;
 	// If no name is provided, select the "-- default --" preset.
@@ -1442,7 +1450,7 @@ void Tab::select_preset(std::string preset_name /*= ""*/)
 		if (current_dirty || printer_tab)
 			m_preset_bundle->update_compatible_with_printer(true);
 		// Initialize the UI from the current preset.
-		load_current_preset(/*\@reload_dependent_tabs*/);
+		load_current_preset();
 	}
 
 }
@@ -1527,7 +1535,6 @@ void Tab::save_preset(std::string name /*= ""*/)
 	if (name.empty()) {
 		auto preset = m_presets->get_selected_preset();
 		auto default_name = preset.is_default ? "Untitled" : preset.name;
-// 		$default_name = ~s / \.[iI][nN][iI]$//;
  		bool have_extention = boost::iends_with(default_name, ".ini");
 		if (have_extention)
 		{
@@ -1731,7 +1738,7 @@ ConfigOptionsGroupShp Page::new_optgroup(std::string title, int noncommon_label_
 	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 		//! This function will be called from OptionGroup.
 		//! Using of CallAfter is redundant.
-		//! And in some cases it causes undate() function to be recalled again
+		//! And in some cases it causes update() function to be recalled again
 //!        wxTheApp->CallAfter([this, opt_key, value]() {
 			static_cast<Tab*>(GetParent())->update_dirty();
 			static_cast<Tab*>(GetParent())->on_value_change(opt_key, value);

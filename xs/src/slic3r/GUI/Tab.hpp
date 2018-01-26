@@ -96,6 +96,7 @@ protected:
 	std::vector<PageShp>			m_pages;	// $self->{pages} = [];
 	bool				m_disable_tree_sel_changed_event;
 	bool				m_show_incompatible_presets;
+	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 
@@ -105,15 +106,14 @@ protected:
 
 public:
 	PresetBundle*		m_preset_bundle;
-	bool				m_no_controller;
 	bool				m_show_btn_incompatible_presets;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
 
 public:
 	Tab() {}
-	Tab(wxNotebook* parent, const char *title, const char* name) : 
-		m_parent(parent), m_title(title), m_name(name) {
+	Tab(wxNotebook* parent, const char *title, const char* name, bool no_controller) : 
+		m_parent(parent), m_title(title), m_name(name), m_no_controller(no_controller) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 	}
 	~Tab(){}
@@ -175,7 +175,8 @@ class TabPrint : public Tab
 {
 public:
 	TabPrint() {}
-	TabPrint(wxNotebook* parent) : Tab(parent, "Print Settings", "print") {}
+	TabPrint(wxNotebook* parent, bool no_controller) : 
+		Tab(parent, "Print Settings", "print", no_controller) {}
 	~TabPrint(){}
 
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
@@ -194,7 +195,8 @@ class TabFilament : public Tab
 	ogStaticText*	m_cooling_description_line;
 public:
 	TabFilament() {}
-	TabFilament(wxNotebook* parent) : Tab(parent, "Filament Settings", "filament") {}
+	TabFilament(wxNotebook* parent, bool no_controller) : 
+		Tab(parent, "Filament Settings", "filament", no_controller) {}
 	~TabFilament(){}
 
 	void		build() override;
@@ -206,6 +208,11 @@ public:
 //Slic3r::GUI::Tab::Printer;
 class TabPrinter : public Tab
 {
+	bool		m_is_disabled_button_browse;
+	bool		m_is_user_agent;
+	// similar event by clicking Buttons "Browse" & "Test"
+	wxEventType	m_event_button_browse = 0;
+	wxEventType m_event_button_test = 0;
 public:
 	wxButton*	m_serial_test_btn;
 	wxButton*	m_octoprint_host_test_btn;
@@ -213,9 +220,11 @@ public:
 	size_t		m_extruders_count;
 	std::vector<PageShp>	m_extruder_pages;
 
-public:
 	TabPrinter() {}
-	TabPrinter(wxNotebook* parent) : Tab(parent, "Printer Settings", "printer") {}
+	TabPrinter(wxNotebook* parent, bool no_controller, bool is_disabled_btn_browse, bool is_user_agent) :
+		Tab(parent, "Printer Settings", "printer", no_controller),
+		m_is_disabled_button_browse(is_disabled_btn_browse), 
+		m_is_user_agent(is_user_agent) {}
 	~TabPrinter(){}
 
 	void		build() override;
@@ -224,6 +233,10 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
+
+	// Set the events to the callbacks posted to the main frame window (currently implemented in Perl).
+	void		set_event_button_browse(wxEventType evt)	{ m_event_button_browse = evt; }
+	void		set_event_button_test(wxEventType evt)		{ m_event_button_test = evt; }
 };
 
 class SavePresetWindow :public wxDialog

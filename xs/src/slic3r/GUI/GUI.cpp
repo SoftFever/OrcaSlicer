@@ -186,12 +186,15 @@ void add_debug_menu(wxMenuBar *menu)
 #endif
 }
 
-void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, 
-						bool no_controller, int event_value_change, int event_presets_changed)
+void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config,
+						bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
+						int event_value_change, int event_presets_changed,
+						int event_button_browse, int event_button_test)
 {	
-	add_created_tab(new TabPrint   (g_wxTabPanel), preset_bundle, app_config, no_controller);
-	add_created_tab(new TabFilament(g_wxTabPanel), preset_bundle, app_config, no_controller);
-	add_created_tab(new TabPrinter (g_wxTabPanel), preset_bundle, app_config, no_controller);
+	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller), preset_bundle, app_config);
+	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller), preset_bundle, app_config);
+	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller, is_disabled_button_browse, is_user_agent), 
+					preset_bundle, app_config);
 	g_wxTabPanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, ([](wxCommandEvent e){
 		Tab* panel = (Tab*)g_wxTabPanel->GetCurrentPage();
 		if (panel->GetName().compare("Print Settings")==0 ||
@@ -204,6 +207,11 @@ void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config,
 			continue;
 		tab->set_event_value_change(wxEventType(event_value_change));
 		tab->set_event_presets_changed(wxEventType(event_presets_changed));
+		if (tab->name() == "printer"){
+			TabPrinter* tab_printer = static_cast<TabPrinter*>(tab);
+			tab_printer->set_event_button_browse(wxEventType(event_button_browse));
+			tab_printer->set_event_button_test(wxEventType(event_button_test));
+		}
 	}
 }
 
@@ -298,9 +306,8 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 	}
 }
 
-void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config, bool no_controller)
+void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config)
 {
-	panel->m_no_controller = no_controller;
 	panel->m_show_btn_incompatible_presets = app_config->get("show_incompatible_presets").empty();
 	panel->create_preset_tab(preset_bundle);
 
@@ -315,7 +322,7 @@ void show_error(wxWindow* parent, std::string message){
 }
 
 void show_info(wxWindow* parent, std::string message, std::string title){
-	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? "Notise" : title, wxOK | wxICON_INFORMATION);
+	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? "Notice" : title, wxOK | wxICON_INFORMATION);
 	msg_wingow->ShowModal();
 }
 
