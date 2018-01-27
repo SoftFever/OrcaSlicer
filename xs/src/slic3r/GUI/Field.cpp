@@ -5,6 +5,7 @@
 #include <regex>
 #include <wx/numformatter.h>
 #include "PrintConfig.hpp"
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace Slic3r { namespace GUI {
 
@@ -24,6 +25,13 @@ namespace Slic3r { namespace GUI {
             m_on_change(m_opt_id, get_value());
     }
 
+	wxString Field::get_tooltip_text(const wxString& default_string)
+	{
+		wxString tooltip_text("");
+		if (m_opt.tooltip.length() > 0)
+			tooltip_text = m_opt.tooltip + "(default: " + default_string + ")";
+		return tooltip_text;
+	}
 
 	bool Field::is_matched(std::string string, std::string pattern)
 	{
@@ -135,7 +143,7 @@ namespace Slic3r { namespace GUI {
 
 		auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, (m_opt.multiline ? wxTE_MULTILINE : 0));
 
-        if (m_opt.tooltip.length() > 0) { temp->SetToolTip(m_opt.tooltip); }
+		temp->SetToolTip(get_tooltip_text(text_value));
         
         temp->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
         temp->Bind(wxEVT_KILL_FOCUS, ([this](wxFocusEvent e) { _on_kill_focus(e); }), temp->GetId());
@@ -154,7 +162,15 @@ namespace Slic3r { namespace GUI {
 
 	void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
     void TextCtrl::disable() { dynamic_cast<wxTextCtrl*>(window)->Disable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(false); }
-    void TextCtrl::set_tooltip(const wxString& tip) { }
+    wxString TextCtrl::get_tooltip_text(const wxString& default_string)
+    {
+		wxString tooltip_text("");
+		if (m_opt.tooltip.length() > 0)
+			tooltip_text = boost::iends_with(m_opt_id, "_gcode") ? 
+							m_opt.tooltip : // eliminating the g-code pop up text description
+    						m_opt.tooltip + "(default: " + default_string + ")";
+		return tooltip_text;
+    }
 
 void CheckBox::BUILD() {
 	auto size = wxSize(wxDefaultSize);
@@ -172,7 +188,7 @@ void CheckBox::BUILD() {
 
 	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
 
-	if (m_opt.tooltip.length() > 0) { temp->SetToolTip(m_opt.tooltip); }
+	temp->SetToolTip(get_tooltip_text(check_value ? "true" : "false")); 
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
@@ -228,9 +244,8 @@ void SpinCtrl::BUILD() {
 // 		# in the CallAfter queue, and we want the tmp value to be available from
 // 		# them as well.
 	}), temp->GetId());
-
-
-	if (m_opt.tooltip.length() > 0) { temp->SetToolTip(m_opt.tooltip); }
+	
+	temp->SetToolTip(get_tooltip_text(text_value));
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
@@ -260,7 +275,7 @@ void Choice::BUILD() {
  	temp->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
  	temp->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
 
-	if (m_opt.tooltip.length() > 0) temp->SetToolTip(m_opt.tooltip);
+	temp->SetToolTip(get_tooltip_text(temp->GetValue()));
 }
 
 void Choice::set_selection()
@@ -443,8 +458,7 @@ void ColourPicker::BUILD()
 
 	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([=](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
 
-	if (m_opt.tooltip.length() > 0) temp->SetToolTip(m_opt.tooltip);
-
+	temp->SetToolTip(get_tooltip_text(clr));
 }
 
 void PointCtrl::BUILD()
@@ -467,9 +481,9 @@ void PointCtrl::BUILD()
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size);
 	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size);
 
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "x : ")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
+	temp->Add(new wxStaticText(m_parent, wxID_ANY, "x : "));
 	temp->Add(x_textctrl);
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y : ")/*, 0, wxALIGN_CENTER_VERTICAL, 0*/);
+	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y : "));
 	temp->Add(y_textctrl);
 
 	x_textctrl->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e/*$self->option->opt_id*/); }), x_textctrl->GetId());
@@ -478,11 +492,8 @@ void PointCtrl::BUILD()
 	// 	// recast as a wxWindow to fit the calling convention
 	sizer = dynamic_cast<wxSizer*>(temp);
 
-	if (m_opt.tooltip.length() > 0)
-	{
-		x_textctrl->SetToolTip(m_opt.tooltip);
-		y_textctrl->SetToolTip(m_opt.tooltip);
-	}
+	x_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
+	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
 void PointCtrl::set_value(const Pointf value)

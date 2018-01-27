@@ -283,6 +283,15 @@ boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, 
 	}
 }
 
+wxString double_to_string(double const value)
+{
+	return value - int(value) == 0 ?
+		wxString::Format(_T("%i"), int(value)) :
+		10 * value - int(10 * value) == 0 ?
+		wxNumberFormatter::ToString(value, 1) :
+		wxNumberFormatter::ToString(value, 2);
+}
+
 boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index/* = -1*/)
 {
 	size_t idx = opt_index == -1 ? 0 : opt_index;
@@ -299,7 +308,7 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 			text_value += "%";
 		}
 		else
-			text_value = wxNumberFormatter::ToString(value.value, 2);
+			text_value = double_to_string(value.value);
 		ret = text_value;
 		break;
 	}
@@ -310,17 +319,14 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 	}
 		break;
 	case coPercents:
-	case coFloats:{
+	case coFloats:
+	case coFloat:{
 		double val = opt->type == coFloats ?
 					config.opt_float(opt_key, idx/*0opt_index*/) :
-					config.option<ConfigOptionPercents>(opt_key)->values.at(idx/*0*/);
-		ret = val - int(val) == 0 ? 
-			wxString::Format(_T("%i"), int(val)) : 
-			wxNumberFormatter::ToString(val, 2);
+						opt->type == coFloat ? config.opt_float(opt_key) :
+						config.option<ConfigOptionPercents>(opt_key)->values.at(idx/*0*/);
+		ret = double_to_string(val);
 		}
-		break;
-	case coFloat:
-		ret = wxNumberFormatter::ToString(config.opt_float(opt_key), 2);
 		break;
 	case coString:
 		ret = static_cast<wxString>(config.opt_string(opt_key));

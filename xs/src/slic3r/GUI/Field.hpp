@@ -70,7 +70,7 @@ public:
     /// Fires the enable or disable function, based on the input.
     inline void			toggle(bool en) { en ? enable() : disable(); }
 
-    virtual void		set_tooltip(const wxString& tip) = 0;
+	virtual wxString	get_tooltip_text(const wxString& default_string);
 
     Field(const ConfigOptionDef& opt, const t_config_option_key& id) : m_opt(opt), m_opt_id(id) {};
     Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : m_parent(parent), m_opt(opt), m_opt_id(id) {};
@@ -123,7 +123,7 @@ public:
     virtual void	enable();
     virtual void	disable();
     virtual wxWindow* getWindow() { return window; }
-    void			set_tooltip(const wxString& tip);
+    wxString		get_tooltip_text(const wxString& default_string) override;
 
 };
 
@@ -148,7 +148,6 @@ public:
 
 	void			enable() override { dynamic_cast<wxCheckBox*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<wxCheckBox*>(window)->Disable(); }
-	void			set_tooltip(const wxString& tip) override {};
 	wxWindow*		getWindow() override { return window; }
 };
 
@@ -176,7 +175,6 @@ public:
 	void			enable() override { dynamic_cast<wxSpinCtrl*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<wxSpinCtrl*>(window)->Disable(); }
 	wxWindow*		getWindow() override { return window; }
-	void			set_tooltip(const wxString& tip) override{};
 };
 
 class Choice : public Field {
@@ -197,7 +195,6 @@ public:
 	void			enable() override { dynamic_cast<wxComboBox*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxComboBox*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
- 	void			set_tooltip(const wxString& tip) override {}; //! Redundant
 };
 
 class ColourPicker : public Field {
@@ -223,7 +220,6 @@ public:
 	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
-	void			set_tooltip(const wxString& tip) override {}; //! Redundant
 };
 
 class PointCtrl : public Field {
@@ -249,7 +245,6 @@ public:
 		x_textctrl->Disable();
 		y_textctrl->Disable(); };
 	wxSizer*		getSizer() override { return sizer; }
-	void			set_tooltip(const wxString& tip) override {}; //! Redundant
 };
 
 
