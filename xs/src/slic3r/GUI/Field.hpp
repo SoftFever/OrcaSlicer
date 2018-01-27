@@ -49,6 +49,7 @@ public:
     /// Function object to store callback passed in from owning object.
 	t_change		m_on_change {nullptr};
 
+	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
     bool			m_disable_change_event {false};
 
     /// Copy of ConfigOption for deduction purposes
@@ -112,10 +113,14 @@ public:
     wxWindow* window {nullptr};
 
     virtual void	set_value(std::string value) {
+		m_disable_change_event = true;
         dynamic_cast<wxTextCtrl*>(window)->SetValue(wxString(value));
+		m_disable_change_event = false;
     }
     virtual void	set_value(boost::any value) {
+		m_disable_change_event = true;
 		dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
+		m_disable_change_event = false;
     }
 
 	boost::any		get_value() override;
@@ -136,11 +141,15 @@ public:
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;
 
-	void			set_value (const bool value) {
+	void			set_value(const bool value) {
+		m_disable_change_event = true;
 		dynamic_cast<wxCheckBox*>(window)->SetValue(value);
+		m_disable_change_event = false;
 	}
 	void			set_value(boost::any value) {
+		m_disable_change_event = true;
 		dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<bool>(value));
+		m_disable_change_event = false;
 	}
 	boost::any		get_value() override {
 		return boost::any(dynamic_cast<wxCheckBox*>(window)->GetValue());
@@ -163,10 +172,14 @@ public:
 	void			BUILD() override;
 
 	void			set_value(const std::string value) {
+		m_disable_change_event = true;
 		dynamic_cast<wxSpinCtrl*>(window)->SetValue(value);
+		m_disable_change_event = false;
 	}
 	void			set_value(boost::any value) {
+		m_disable_change_event = true;
 		dynamic_cast<wxSpinCtrl*>(window)->SetValue(boost::any_cast<int>(value));
+		m_disable_change_event = false;
 	}
 	boost::any		get_value() override {
 		return boost::any(dynamic_cast<wxSpinCtrl*>(window)->GetValue());
@@ -207,10 +220,14 @@ public:
 	void			BUILD()  override;
 
 	void			set_value(const std::string value) {
-	 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
+		m_disable_change_event = true;
+		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
+		m_disable_change_event = false;
 	 	}
 	void			set_value(boost::any value) {
+		m_disable_change_event = true;
 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast</*std::s*/wxString>(value));
+		m_disable_change_event = false;
 	}
 
 	boost::any		get_value() override	{

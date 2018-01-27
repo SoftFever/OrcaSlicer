@@ -358,6 +358,8 @@ void Choice::set_value(const std::string value)  //! Redundant?
 
 void Choice::set_value(boost::any value)
 {
+	m_disable_change_event = true;
+
 	switch (m_opt.type){
 	case coInt:
 	case coFloat:
@@ -388,6 +390,8 @@ void Choice::set_value(boost::any value)
 	default:
 		break;
 	}
+
+	m_disable_change_event = false;
 }
 
 //! it's needed for _update_serial_ports()
