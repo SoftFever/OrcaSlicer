@@ -24,14 +24,15 @@ public:
 	~BedShapePanel(){}
 
 	void		build_panel(ConfigOptionPoints* default_pt);
-
-	// Returns the resulting bed shape polygon. This value will be stored to the ini file.
-	int			GetValue() { return 1/*m_canvas->bed_shape*/; }
+	
 	ConfigOptionsGroupShp	init_shape_options_page(std::string title);
 	void		set_shape(ConfigOptionPoints* points);
 	void		update_preview();
 	void		update_shape();
 	void		load_stl();
+	
+	// Returns the resulting bed shape polygon. This value will be stored to the ini file.
+	std::vector<Pointf>	GetValue() { return m_canvas->m_bed_shape; }
 };
 
 class BedShapeDialog : public wxDialog
@@ -43,7 +44,7 @@ public:
 	~BedShapeDialog(){}
 
 	void		build_dialog(ConfigOptionPoints* default_pt);
-	int			GetValue() { return m_panel->GetValue(); }
+	std::vector<Pointf>	GetValue() { return m_panel->GetValue(); }
 };
 
 } // GUI

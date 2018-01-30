@@ -953,8 +953,7 @@ void TabPrinter::build()
 				auto dlg = new BedShapeDialog(this);
 				dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
 				if (dlg->ShowModal() == wxID_OK)
-//					load_key_value("bed_shape", dlg->GetValue());
-				;
+					load_key_value("bed_shape", dlg->GetValue());
 			}));
 
 			return sizer;
@@ -1567,6 +1566,7 @@ void Tab::save_preset(std::string name /*= ""*/)
 	}
 	catch (const std::exception &e)
 	{
+		show_error(this, "Something is wrong. It can't be saved.");
 		return;
 	}
 

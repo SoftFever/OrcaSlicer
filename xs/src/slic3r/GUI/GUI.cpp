@@ -292,7 +292,11 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 				config.set_key_value(opt_key, new ConfigOptionEnum<SeamPosition>(boost::any_cast<SeamPosition>(value)));
 			}
 			break;
-		case coPoints:
+		case coPoints:{
+			ConfigOptionPoints points;
+			points.values = boost::any_cast<std::vector<Pointf>>(value);
+			config.set_key_value(opt_key, new ConfigOptionPoints(points));
+			}
 			break;
 		case coNone:
 			break;
