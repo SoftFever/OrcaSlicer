@@ -119,6 +119,7 @@ public:
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Pointf3 &versor);
     void rotate(float angle, const Axis &axis);
+    void transform(const float* matrix3x4);
     void mirror(const Axis &axis);
     size_t materials_count() const;
     size_t facets_count() const;
@@ -244,6 +245,7 @@ public:
     ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
     ModelObject* add_object(const ModelObject &other, bool copy_volumes = true);
     void delete_object(size_t idx);
+    void delete_object(ModelObject* object);
     void clear_objects();
     
     ModelMaterial* add_material(t_model_material_id material_id);

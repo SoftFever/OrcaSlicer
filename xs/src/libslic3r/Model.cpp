@@ -5,6 +5,7 @@
 #include "Format/OBJ.hpp"
 #include "Format/PRUS.hpp"
 #include "Format/STL.hpp"
+#include "Format/3mf.hpp"
 
 #include <float.h>
 
@@ -53,9 +54,11 @@ Model Model::read_from_file(const std::string &input_file, bool add_default_inst
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
 #endif /* SLIC3R_PRUS */
+    else if (boost::algorithm::iends_with(input_file, ".3mf"))
+        result = load_3mf(input_file.c_str(), &model);
     else
-        throw std::runtime_error("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
-    
+        throw std::runtime_error("Unknown file format. Input file must have .stl, .obj, .amf(.xml), .3mf or .prusa extension.");
+
     if (! result)
         throw std::runtime_error("Loading of a model file failed.");
 
@@ -113,6 +116,23 @@ void Model::delete_object(size_t idx)
     ModelObjectPtrs::iterator i = this->objects.begin() + idx;
     delete *i;
     this->objects.erase(i);
+}
+
+void Model::delete_object(ModelObject* object)
+{
+    if (object == nullptr)
+        return;
+
+    for (ModelObjectPtrs::iterator it = objects.begin(); it != objects.end(); ++it)
+    {
+        ModelObject* obj = *it;
+        if (obj == object)
+        {
+            delete obj;
+            objects.erase(it);
+            return;
+        }
+    }
 }
 
 void Model::clear_objects()
@@ -605,6 +625,20 @@ void ModelObject::rotate(float angle, const Axis &axis)
         v->mesh.rotate(angle, axis);
     this->origin_translation = Pointf3(0,0,0);
     this->invalidate_bounding_box();
+}
+
+void ModelObject::transform(const float* matrix3x4)
+{
+    if (matrix3x4 == nullptr)
+        return;
+
+    for (ModelVolume* v : volumes)
+    {
+        v->mesh.transform(matrix3x4);
+    }
+
+    origin_translation = Pointf3(0.0f, 0.0f, 0.0f);
+    invalidate_bounding_box();
 }
 
 void ModelObject::mirror(const Axis &axis)

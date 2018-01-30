@@ -74,6 +74,8 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/Fill/FillRectilinear3.hpp
     ${LIBDIR}/libslic3r/Flow.cpp
     ${LIBDIR}/libslic3r/Flow.hpp
+    ${LIBDIR}/libslic3r/Format/3MF.cpp
+    ${LIBDIR}/libslic3r/Format/3MF.hpp
     ${LIBDIR}/libslic3r/Format/AMF.cpp
     ${LIBDIR}/libslic3r/Format/AMF.hpp
     ${LIBDIR}/libslic3r/Format/OBJ.cpp
