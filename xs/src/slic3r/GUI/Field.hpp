@@ -23,7 +23,7 @@ namespace Slic3r { namespace GUI {
 
 class Field;
 using t_field = std::unique_ptr<Field>;
-using t_kill_focus = std::function<void(t_config_option_key)>;
+using t_kill_focus = std::function<void()>;
 using t_change = std::function<void(t_config_option_key, boost::any)>;
 
 class Field {
@@ -35,7 +35,9 @@ protected:
     virtual void BUILD() = 0;
 
     /// Call the attached on_kill_focus method. 
-    void _on_kill_focus(wxFocusEvent& event);
+	//! It's important to use wxEvent instead of wxFocusEvent,
+	//! in another case we can't unfocused control at all
+	void on_kill_focus(wxEvent& event);
     /// Call the attached on_change method. 
     void on_change_field(wxCommandEvent& event);
 
@@ -44,7 +46,7 @@ public:
     wxWindow*		m_parent {nullptr};
 
     /// Function object to store callback passed in from owning object.
-	t_kill_focus	on_kill_focus {nullptr};
+	t_kill_focus	m_on_kill_focus {nullptr};
 
     /// Function object to store callback passed in from owning object.
 	t_change		m_on_change {nullptr};

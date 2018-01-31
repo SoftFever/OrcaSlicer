@@ -1,4 +1,5 @@
 #include <vector>
+#include <string>
 
 namespace Slic3r {
 	class DynamicPrintConfig;
@@ -22,9 +23,9 @@ public:
 	void		load_config(DynamicPrintConfig* config);
 	void		load_key_value(char* opt_key, char* value);
 	bool		current_preset_is_dirty();
-	DynamicPrintConfig*		get_config();
-	PresetCollection*			TabIface::get_presets();
-	std::vector<std::string>	TabIface::get_dependent_tabs();
+	DynamicPrintConfig*			get_config();
+	PresetCollection*			get_presets();
+	std::vector<std::string>	get_dependent_tabs();
 
 protected:
 	GUI::Tab   *m_tab;

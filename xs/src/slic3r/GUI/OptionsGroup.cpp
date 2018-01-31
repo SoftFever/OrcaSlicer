@@ -67,6 +67,11 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 			if (!this->m_disabled) 
 				this->on_change_OG(opt_id, value);
 	};
+	field->m_on_kill_focus = [this](){
+			//! This function will be called from Field.					
+			if (!this->m_disabled) 
+				this->on_kill_focus();
+	};
     field->m_parent = parent();
     // assign function objects for callbacks, etc.
     return field;
@@ -192,10 +197,6 @@ Line OptionsGroup::create_single_option_line(const Option& option) const {
 void OptionsGroup::on_change_OG(t_config_option_key id, /*config_value*/boost::any value) {
 	if (m_on_change != nullptr)
 		m_on_change(id, value);
-}
-
-void OptionsGroup::_on_kill_focus (t_config_option_key id) { 
-    // do nothing.
 }
 
 Option ConfigOptionsGroup::get_option(const std::string opt_key, int opt_index /*= -1*/)

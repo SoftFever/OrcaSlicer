@@ -11,8 +11,6 @@
 #include "libslic3r/libslic3r.h"
 
 #include "Field.hpp"
-//#include "slic3r_gui.hpp"
-#include "GUI.hpp"
 
 // Translate the ifdef 
 #ifdef __WXOSX__
@@ -129,7 +127,7 @@ protected:
     const t_field&		build_field(const t_config_option_key& id);
     const t_field&		build_field(const Option& opt);
 
-    virtual void		_on_kill_focus (t_config_option_key id);
+    virtual void		on_kill_focus (){};
 	virtual void		on_change_OG(t_config_option_key opt_id, boost::any value);
 };
 
@@ -158,6 +156,10 @@ public:
 	}
 
 	void		on_change_OG(t_config_option_key opt_id, boost::any value) override;
+	void		on_kill_focus() override
+	{
+		reload_config();
+	}
 	void		reload_config();
 	boost::any	config_value(std::string opt_key, int opt_index, bool deserialize);
 	// return option value from config 

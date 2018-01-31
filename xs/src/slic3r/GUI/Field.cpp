@@ -9,15 +9,15 @@
 
 namespace Slic3r { namespace GUI {
 
-    void Field::_on_kill_focus(wxFocusEvent& event) {
+	void Field::on_kill_focus(wxEvent& event) {
         // Without this, there will be nasty focus bugs on Windows.
         // Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
         // non-command events to allow the default handling to take place."
-        event.Skip(1);
-
+		event.Skip();
+		std::cerr << "calling Field::on_kill_focus from " << m_opt_id<< "\n";
         // call the registered function if it is available
-        if (on_kill_focus) 
-            on_kill_focus(m_opt_id);
+        if (m_on_kill_focus!=nullptr) 
+            m_on_kill_focus();
     }
     void Field::on_change_field(wxCommandEvent& event) {
 //        std::cerr << "calling Field::_on_change \n";
@@ -146,7 +146,8 @@ namespace Slic3r { namespace GUI {
 		temp->SetToolTip(get_tooltip_text(text_value));
         
         temp->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
-        temp->Bind(wxEVT_KILL_FOCUS, ([this](wxFocusEvent e) { _on_kill_focus(e); }), temp->GetId());
+
+		temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { on_kill_focus(e); }), temp->GetId());
 
         // recast as a wxWindow to fit the calling convention
         window = dynamic_cast<wxWindow*>(temp);
@@ -228,7 +229,7 @@ void SpinCtrl::BUILD() {
 		0, m_opt.min >0 ? m_opt.min : 0, m_opt.max < 2147483647 ? m_opt.max : 2147483647, default_value);
 
 	temp->Bind(wxEVT_SPINCTRL, ([=](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(e); }), temp->GetId());
-	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxFocusEvent e) { tmp_value = undef_spin_val; _on_kill_focus(e); }), temp->GetId());
+	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { tmp_value = undef_spin_val; on_kill_focus(e); }), temp->GetId());
 	temp->Bind(wxEVT_TEXT, ([=](wxCommandEvent e)
 	{
 // 		# On OSX / Cocoa, wxSpinCtrl::GetValue() doesn't return the new value
