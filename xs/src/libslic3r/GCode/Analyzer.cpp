@@ -348,7 +348,7 @@ std::string GCodeAnalyzer::PreviewData::get_legend_title() const
     case Extrusion::Width:
         return "Width (mm)";
     case Extrusion::Feedrate:
-        return "Speed (mm/min)";
+        return "Speed (mm/s)";
     }
 
     return "";
@@ -397,7 +397,7 @@ GCodeAnalyzer::PreviewData::LegendItemsList GCodeAnalyzer::PreviewData::get_lege
         }
     case Extrusion::Feedrate:
         {
-            Helper::FillListFromRange(items, extrusion.ranges.feedrate, 0, 60.0f);
+            Helper::FillListFromRange(items, extrusion.ranges.feedrate, 0, 1.0f);
             break;
         }
     }
