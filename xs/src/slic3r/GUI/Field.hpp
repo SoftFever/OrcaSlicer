@@ -29,17 +29,17 @@ using t_change = std::function<void(t_config_option_key, boost::any)>;
 class Field {
 protected:
     // factory function to defer and enforce creation of derived type. 
-    virtual void PostInitialize() { BUILD(); }
+    virtual void	PostInitialize() { BUILD(); }
     
     /// Finish constructing the Field's wxWidget-related properties, including setting its own sizer, etc.
-    virtual void BUILD() = 0;
+    virtual void	BUILD() = 0;
 
     /// Call the attached on_kill_focus method. 
 	//! It's important to use wxEvent instead of wxFocusEvent,
 	//! in another case we can't unfocused control at all
-	void on_kill_focus(wxEvent& event);
+	void			on_kill_focus(wxEvent& event);
     /// Call the attached on_change method. 
-    void on_change_field(wxCommandEvent& event);
+    void			on_change_field();
 
 public:
     /// parent wx item, opportunity to refactor (probably not necessary - data duplication)
@@ -130,8 +130,6 @@ public:
     virtual void	enable();
     virtual void	disable();
     virtual wxWindow* getWindow() { return window; }
-    wxString		get_tooltip_text(const wxString& default_string) override;
-
 };
 
 class CheckBox : public Field {

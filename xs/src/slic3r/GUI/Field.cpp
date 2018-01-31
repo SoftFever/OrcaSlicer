@@ -19,7 +19,8 @@ namespace Slic3r { namespace GUI {
         if (m_on_kill_focus!=nullptr) 
             m_on_kill_focus();
     }
-    void Field::on_change_field(wxCommandEvent& event) {
+    void Field::on_change_field()
+	{
 //        std::cerr << "calling Field::_on_change \n";
         if (m_on_change != nullptr  && !m_disable_change_event)
             m_on_change(m_opt_id, get_value());
@@ -29,7 +30,10 @@ namespace Slic3r { namespace GUI {
 	{
 		wxString tooltip_text("");
 		if (m_opt.tooltip.length() > 0)
-			tooltip_text = m_opt.tooltip + "(default: " + default_string + ")";
+			tooltip_text = boost::iends_with(m_opt_id, "_gcode") ?
+						m_opt.tooltip + "(default: \n" + default_string + ")" : 
+						m_opt.tooltip + "(default: " + default_string + ")";
+
 		return tooltip_text;
 	}
 
@@ -145,9 +149,22 @@ namespace Slic3r { namespace GUI {
 
 		temp->SetToolTip(get_tooltip_text(text_value));
         
-        temp->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
+		temp->Bind(wxEVT_LEFT_DOWN, ([temp](wxEvent& event)
+		{
+			//! to allow the default handling
+			event.Skip();
+			//! eliminating the g-code pop up text description
+			temp->GetToolTip()->Enable(false);
+		}), temp->GetId());
 
-		temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { on_kill_focus(e); }), temp->GetId());
+		temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
+		{
+			//! change value after kill focus 
+			//! to avoid update_config during every one changes inside control
+			on_change_field(); 
+			on_kill_focus(e);
+			temp->GetToolTip()->Enable(true);
+		}), temp->GetId());
 
         // recast as a wxWindow to fit the calling convention
         window = dynamic_cast<wxWindow*>(temp);
@@ -163,15 +180,6 @@ namespace Slic3r { namespace GUI {
 
 	void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
     void TextCtrl::disable() { dynamic_cast<wxTextCtrl*>(window)->Disable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(false); }
-    wxString TextCtrl::get_tooltip_text(const wxString& default_string)
-    {
-		wxString tooltip_text("");
-		if (m_opt.tooltip.length() > 0)
-			tooltip_text = boost::iends_with(m_opt_id, "_gcode") ? 
-							m_opt.tooltip : // eliminating the g-code pop up text description
-    						m_opt.tooltip + "(default: " + default_string + ")";
-		return tooltip_text;
-    }
 
 void CheckBox::BUILD() {
 	auto size = wxSize(wxDefaultSize);
@@ -187,7 +195,7 @@ void CheckBox::BUILD() {
 	temp->SetValue(check_value);
 	if (m_opt.readonly) temp->Disable();
 
-	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
+	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
 
 	temp->SetToolTip(get_tooltip_text(check_value ? "true" : "false")); 
 
@@ -228,9 +236,9 @@ void SpinCtrl::BUILD() {
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0, m_opt.min >0 ? m_opt.min : 0, m_opt.max < 2147483647 ? m_opt.max : 2147483647, default_value);
 
-	temp->Bind(wxEVT_SPINCTRL, ([=](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(e); }), temp->GetId());
+	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { tmp_value = undef_spin_val; on_kill_focus(e); }), temp->GetId());
-	temp->Bind(wxEVT_TEXT, ([=](wxCommandEvent e)
+	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
 	{
 // 		# On OSX / Cocoa, wxSpinCtrl::GetValue() doesn't return the new value
 // 		# when it was changed from the text control, so the on_change callback
@@ -240,7 +248,7 @@ void SpinCtrl::BUILD() {
 		std::string value = e.GetString().utf8_str().data();
 		if (is_matched(value, "^\\d+$"))
 			tmp_value = std::stoi(value);
-		on_change_field(e);
+		on_change_field();
 // 		# We don't reset tmp_value here because _on_change might put callbacks
 // 		# in the CallAfter queue, and we want the tmp value to be available from
 // 		# them as well.
@@ -273,8 +281,8 @@ void Choice::BUILD() {
 			temp->Append(wxString(el));
 		set_selection();
 	}
- 	temp->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
- 	temp->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
+ 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
+ 	temp->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
 
 	temp->SetToolTip(get_tooltip_text(temp->GetValue()));
 }
@@ -461,7 +469,7 @@ void ColourPicker::BUILD()
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
 
-	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([=](wxCommandEvent e) { on_change_field(e); }), temp->GetId());
+	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
 
 	temp->SetToolTip(get_tooltip_text(clr));
 }
@@ -491,8 +499,8 @@ void PointCtrl::BUILD()
 	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y : "));
 	temp->Add(y_textctrl);
 
-	x_textctrl->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e/*$self->option->opt_id*/); }), x_textctrl->GetId());
-	y_textctrl->Bind(wxEVT_TEXT, ([=](wxCommandEvent e) { on_change_field(e/*$self->option->opt_id*/); }), y_textctrl->GetId());
+	x_textctrl->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), x_textctrl->GetId());
+	y_textctrl->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), y_textctrl->GetId());
 
 	// 	// recast as a wxWindow to fit the calling convention
 	sizer = dynamic_cast<wxSizer*>(temp);
