@@ -215,9 +215,10 @@ public:
 
                 EType type;
                 EDirection direction;
+                float feedrate;
                 Polyline3 polyline;
 
-                Polyline(EType type, EDirection direction, const Polyline3& polyline);
+                Polyline(EType type, EDirection direction, float feedrate, const Polyline3& polyline);
             };
 
             typedef std::vector<Polyline> PolylinesList;

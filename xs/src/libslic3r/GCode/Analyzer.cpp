@@ -122,9 +122,10 @@ GCodeAnalyzer::PreviewData::Extrusion::Layer::Layer(float z, const ExtrusionPath
 {
 }
 
-GCodeAnalyzer::PreviewData::Travel::Polyline::Polyline(EType type, EDirection direction, const Polyline3& polyline)
+GCodeAnalyzer::PreviewData::Travel::Polyline::Polyline(EType type, EDirection direction, float feedrate, const Polyline3& polyline)
     : type(type)
     , direction(direction)
+    , feedrate(feedrate)
     , polyline(polyline)
 {
 }
@@ -1002,11 +1003,11 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
 {
     struct Helper
     {
-        static void store_polyline(const Polyline3& polyline, PreviewData::Travel::EType type, PreviewData::Travel::Polyline::EDirection direction, Print& print)
+        static void store_polyline(const Polyline3& polyline, PreviewData::Travel::EType type, PreviewData::Travel::Polyline::EDirection direction, float feedrate, Print& print)
         {
             // if the polyline is valid, store it
             if (polyline.is_valid())
-                print.gcode_preview.travel.polylines.emplace_back(type, direction, polyline);
+                print.gcode_preview.travel.polylines.emplace_back(type, direction, feedrate, polyline);
         }
     };
 
@@ -1018,6 +1019,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
     Pointf3 position(FLT_MAX, FLT_MAX, FLT_MAX);
     PreviewData::Travel::EType type = PreviewData::Travel::Num_Types;
     PreviewData::Travel::Polyline::EDirection direction = PreviewData::Travel::Polyline::Num_Directions;
+    float feedrate = FLT_MAX;
 
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : travel_moves->second)
@@ -1025,11 +1027,11 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
         PreviewData::Travel::EType move_type = (move.delta_extruder < 0.0f) ? PreviewData::Travel::Retract : ((move.delta_extruder > 0.0f) ? PreviewData::Travel::Extrude : PreviewData::Travel::Move);
         PreviewData::Travel::Polyline::EDirection move_direction = ((move.start_position.x != move.end_position.x) || (move.start_position.y != move.end_position.y)) ? PreviewData::Travel::Polyline::Generic : PreviewData::Travel::Polyline::Vertical;
 
-        if ((type != move_type) || (direction != move_direction) || (position != move.start_position))
+        if ((type != move_type) || (direction != move_direction) || (feedrate != move.data.feedrate) || (position != move.start_position))
         {
             // store current polyline
             polyline.remove_duplicate_points();
-            Helper::store_polyline(polyline, type, direction, print);
+            Helper::store_polyline(polyline, type, direction, feedrate, print);
 
             // reset current polyline
             polyline = Polyline3();
@@ -1045,11 +1047,12 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
         // update current values
         position = move.end_position;
         type = move_type;
+        feedrate = move.data.feedrate;
     }
 
     // store last polyline
     polyline.remove_duplicate_points();
-    Helper::store_polyline(polyline, type, direction, print);
+    Helper::store_polyline(polyline, type, direction, feedrate, print);
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_retractions(Print& print)

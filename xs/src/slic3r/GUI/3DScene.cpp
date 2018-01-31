@@ -1863,59 +1863,141 @@ void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& 
 
     typedef std::vector<Type> TypesList;
 
+    // Helper structure for feedrate
+    struct Feedrate
+    {
+        float value;
+        GLVolume* volume;
+
+        explicit Feedrate(float value)
+            : value(value)
+            , volume(nullptr)
+        {
+        }
+
+        bool operator == (const Feedrate& other) const
+        {
+            return value == other.value;
+        }
+    };
+
+    typedef std::vector<Feedrate> FeedratesList;
+
     size_t initial_volumes_count = volumes.volumes.size();
     s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Travel, 0, (unsigned int)initial_volumes_count);
 
-    // detects types
-    TypesList types;
-    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    if (print.gcode_preview.extrusion.view_type == GCodeAnalyzer::PreviewData::Extrusion::Feedrate)
     {
-        if (std::find(types.begin(), types.end(), Type(polyline.type)) == types.end())
-            types.emplace_back(polyline.type);
-    }
+        // colors travels by feedrate
 
-    // nothing to render, return
-    if (types.empty())
-        return;
-
-    // creates a new volume for each type
-    for (Type& type : types)
-    {
-        GLVolume* volume = new GLVolume(print.gcode_preview.travel.type_colors[type.value].rgba);
-        if (volume != nullptr)
+        // detects feedrates
+        FeedratesList feedrates;
+        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
         {
-            type.volume = volume;
-            volumes.volumes.emplace_back(volume);
+            if (std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate)) == feedrates.end())
+                feedrates.emplace_back(polyline.feedrate);
         }
-        else
+
+        // nothing to render, return
+        if (feedrates.empty())
+            return;
+
+        // creates a new volume for each feedrate
+        for (Feedrate& feedrate : feedrates)
         {
-            // an error occourred - restore to previous state and return
-            if (initial_volumes_count != volumes.volumes.size())
+            GLVolume* volume = new GLVolume(print.gcode_preview.get_extrusion_feedrate_color(feedrate.value).rgba);
+            if (volume != nullptr)
             {
-                std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
-                std::vector<GLVolume*>::iterator end = volumes.volumes.end();
-                for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
+                feedrate.volume = volume;
+                volumes.volumes.emplace_back(volume);
+            }
+            else
+            {
+                // an error occourred - restore to previous state and return
+                if (initial_volumes_count != volumes.volumes.size())
                 {
-                    GLVolume* volume = *it;
-                    delete volume;
+                    std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
+                    std::vector<GLVolume*>::iterator end = volumes.volumes.end();
+                    for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
+                    {
+                        GLVolume* volume = *it;
+                        delete volume;
+                    }
+                    volumes.volumes.erase(begin, end);
+                    return;
                 }
-                volumes.volumes.erase(begin, end);
-                return;
+            }
+        }
+
+        // populates volumes
+        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+        {
+            FeedratesList::iterator feedrate = std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate));
+            if (feedrate != feedrates.end())
+            {
+                feedrate->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+                feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.quad_indices.size());
+                feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.triangle_indices.size());
+
+                polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *feedrate->volume);
             }
         }
     }
-
-    // populates volumes
-    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    else
     {
-        TypesList::iterator type = std::find(types.begin(), types.end(), Type(polyline.type));
-        if (type != types.end())
-        {
-            type->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
-            type->volume->offsets.push_back(type->volume->indexed_vertex_array.quad_indices.size());
-            type->volume->offsets.push_back(type->volume->indexed_vertex_array.triangle_indices.size());
+        // colors travels by travel type
 
-            polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *type->volume);
+        // detects types
+        TypesList types;
+        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+        {
+            if (std::find(types.begin(), types.end(), Type(polyline.type)) == types.end())
+                types.emplace_back(polyline.type);
+        }
+
+        // nothing to render, return
+        if (types.empty())
+            return;
+
+        // creates a new volume for each type
+        for (Type& type : types)
+        {
+            GLVolume* volume = new GLVolume(print.gcode_preview.travel.type_colors[type.value].rgba);
+            if (volume != nullptr)
+            {
+                type.volume = volume;
+                volumes.volumes.emplace_back(volume);
+            }
+            else
+            {
+                // an error occourred - restore to previous state and return
+                if (initial_volumes_count != volumes.volumes.size())
+                {
+                    std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
+                    std::vector<GLVolume*>::iterator end = volumes.volumes.end();
+                    for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
+                    {
+                        GLVolume* volume = *it;
+                        delete volume;
+                    }
+                    volumes.volumes.erase(begin, end);
+                    return;
+                }
+            }
+        }
+
+        // populates volumes
+        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+        {
+            TypesList::iterator type = std::find(types.begin(), types.end(), Type(polyline.type));
+            if (type != types.end())
+            {
+                type->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+                type->volume->offsets.push_back(type->volume->indexed_vertex_array.quad_indices.size());
+                type->volume->offsets.push_back(type->volume->indexed_vertex_array.triangle_indices.size());
+
+                polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *type->volume);
+            }
         }
     }
 
