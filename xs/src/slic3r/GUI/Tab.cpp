@@ -10,6 +10,7 @@
 #include <wx/menu.h>
 #include <wx/sizer.h>
 
+#include <wx/combobox.h>
 #include <wx/bmpcbox.h>
 #include <wx/bmpbuttn.h>
 #include <wx/treectrl.h>
