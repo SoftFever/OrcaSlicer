@@ -84,10 +84,9 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, &Tab::OnTreeSelChange, this);
 	m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
-	m_treectrl->Bind(wxEVT_COMBOBOX, &Tab::OnComboBox, this); 
 
 	m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e){
-		select_preset(static_cast<const wxBitmapComboBox*>(m_presets_choice)->GetStringSelection().ToStdString());
+		select_preset(static_cast<const wxBitmapComboBox*>(m_presets_choice)->wxComboBox::GetStringSelection().ToStdString());
 	}));
 
 	m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){ save_preset(); }));
