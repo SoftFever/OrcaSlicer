@@ -4,6 +4,7 @@
 //#include <wx/event.h>
 #include <regex>
 #include <wx/numformatter.h>
+#include <wx/tooltip.h>
 #include "PrintConfig.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -295,7 +296,7 @@ void Choice::set_selection()
 	case coPercent:	{
 		double val = m_opt.default_value->getFloat();
 		text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 1);
-		auto idx = 0;
+		size_t idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
 			if (el.compare(text_value) == 0)
@@ -316,7 +317,7 @@ void Choice::set_selection()
 	case coInt:{
 		int val = m_opt.default_value->getInt(); //!!
 		text_value = wxString::Format(_T("%i"), int(val));
-		auto idx = 0;
+		size_t idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
 			if (el.compare(text_value) == 0)
@@ -331,7 +332,7 @@ void Choice::set_selection()
 	case coStrings:{
 		text_value = static_cast<const ConfigOptionStrings*>(m_opt.default_value)->values.at(0);
 
-		auto idx = 0;
+		size_t idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
 			if (el.compare(text_value) == 0)
@@ -350,7 +351,7 @@ void Choice::set_value(const std::string value)  //! Redundant?
 {
 	m_disable_change_event = true;
 
-	auto idx=0;
+	size_t idx=0;
 	for (auto el : m_opt.enum_values)
 	{
 		if (el.compare(value) == 0)
@@ -535,7 +536,8 @@ void PointCtrl::set_value(boost::any value)
 		}
 		catch (const std::exception &e)
 		{
-			int i=0;
+			std::cerr << "Error! Can't cast PointCtrl value" << m_opt_id << "\n";
+			return;
 		}		
 	}	
 	set_value(pt);
