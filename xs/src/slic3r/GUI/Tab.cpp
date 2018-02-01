@@ -10,7 +10,6 @@
 #include <wx/menu.h>
 #include <wx/sizer.h>
 
-#include <wx/combobox.h>
 #include <wx/bmpcbox.h>
 #include <wx/bmpbuttn.h>
 #include <wx/treectrl.h>
@@ -87,7 +86,15 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
 	m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e){
-		select_preset(m_presets_choice->wxComboBox::GetStringSelection().ToStdString());
+		//! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox, 
+		//! but the OSX version derived from wxOwnerDrawnCombo, instead of:
+		//! select_preset(m_presets_choice->GetStringSelection().ToStdString()); 
+		//! we doing next:
+		int selected_item = m_presets_choice->GetSelection();
+		if (selected_item >= 0){
+			std::string slected_string = m_presets_choice->GetString(selected_item).ToStdString();
+			select_preset(slected_string);
+		}
 	}));
 
 	m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e){ save_preset(); }));
