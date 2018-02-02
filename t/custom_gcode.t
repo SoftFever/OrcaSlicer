@@ -1,4 +1,4 @@
-use Test::More tests => 71;
+use Test::More tests => 77;
 use strict;
 use warnings;
 
@@ -91,8 +91,14 @@ use Slic3r::Test;
     is $parser->evaluate_boolean_expression('(12 == 2 * 6) ? (1 - 1 == 3) : (2 * 2 == 4)'),  0, 'boolean expression parser: ternary true';
     is $parser->evaluate_boolean_expression('12 < 3'), 0, 'boolean expression parser: lower than - false';
     is $parser->evaluate_boolean_expression('12 < 22'), 1, 'boolean expression parser: lower than - true';
-    is $parser->evaluate_boolean_expression('12 > 3'), 1, 'boolean expression parser: lower than - true';
-    is $parser->evaluate_boolean_expression('12 > 22'), 0, 'boolean expression parser: lower than - false';
+    is $parser->evaluate_boolean_expression('12 > 3'), 1, 'boolean expression parser: greater than - true';
+    is $parser->evaluate_boolean_expression('12 > 22'), 0, 'boolean expression parser: greater than - false';
+    is $parser->evaluate_boolean_expression('12 <= 3'), 0, 'boolean expression parser: lower than or equal- false';
+    is $parser->evaluate_boolean_expression('12 <= 22'), 1, 'boolean expression parser: lower than or equal - true';
+    is $parser->evaluate_boolean_expression('12 >= 3'), 1, 'boolean expression parser: greater than or equal - true';
+    is $parser->evaluate_boolean_expression('12 >= 22'), 0, 'boolean expression parser: greater than or equal - false';
+    is $parser->evaluate_boolean_expression('12 <= 12'), 1, 'boolean expression parser: lower than or equal (same values) - true';
+    is $parser->evaluate_boolean_expression('12 >= 12'), 1, 'boolean expression parser: greater than or equal (same values) - true';
 
     is $parser->evaluate_boolean_expression('printer_notes=~/.*PRINTER_VENDOR_PRUSA3D.*/ and printer_notes=~/.*PRINTER_MODEL_MK2.*/ and nozzle_diameter[0]==0.6 and num_extruders>1'), 1, 'complex expression';
     is $parser->evaluate_boolean_expression('printer_notes=~/.*PRINTER_VEwerfNDOR_PRUSA3D.*/ or printer_notes=~/.*PRINTertER_MODEL_MK2.*/ or (nozzle_diameter[0]==0.6 and num_extruders>1)'), 1, 'complex expression2';
