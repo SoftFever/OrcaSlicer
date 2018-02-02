@@ -25,7 +25,7 @@
 #include <wx/sizer.h>
 #include <wx/combo.h>
 
-#include "slic3r/gui/wxextensions.hpp"
+#include "../../slic3r/gui/wxextensions.hpp"
 
 namespace Slic3r { namespace GUI {
 
