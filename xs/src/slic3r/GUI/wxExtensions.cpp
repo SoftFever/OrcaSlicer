@@ -62,7 +62,7 @@ void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)
     int selId = GetSelection();
     if (selId != wxNOT_FOUND)
     {
-        Toggle((unsigned int)selId);
+        Check((unsigned int)selId, !IsChecked((unsigned int)selId));
         SetSelection(wxNOT_FOUND);
 
         wxCommandEvent event(wxEVT_CHECKLISTBOX, GetId());
