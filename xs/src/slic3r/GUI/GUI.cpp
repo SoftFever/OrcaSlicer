@@ -5,6 +5,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
+
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
 #elif _WIN32
@@ -20,6 +23,9 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/combo.h>
+
+#include "slic3r/gui/wxextensions.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -181,6 +187,48 @@ void create_preset_tab(const char *name)
     auto  *button = new wxButton(panel, wxID_ANY, "Hello World", wxDefaultPosition, wxDefaultSize, 0);
     sizer->Add(button, 0, 0, 0);
     g_wxTabPanel->AddPage(panel, name);
+}
+
+void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
+{
+    wxCheckListBoxComboPopup* popup = new wxCheckListBoxComboPopup(-1);
+    if (popup != nullptr)
+    {
+        comboCtrl->SetPopupControl(popup);
+        popup->SetStringValue(text);
+        popup->Connect(-1, wxEVT_CHECKLISTBOX, wxCommandEventHandler(wxCheckListBoxComboPopup::OnCheckListBox), nullptr, popup);
+        popup->Connect(-1, wxEVT_LISTBOX, wxCommandEventHandler(wxCheckListBoxComboPopup::OnListBoxSelection), nullptr, popup);
+
+        std::vector<std::string> items_str;
+        boost::split(items_str, items, boost::is_any_of("|"), boost::token_compress_off);
+
+        for (const std::string& item : items_str)
+        {
+            popup->Append(item);
+        }
+
+        for (unsigned int i = 0; i < popup->GetCount(); ++i)
+        {
+            popup->Check(i, initial_value);
+        }
+    }
+}
+
+int combochecklist_get_flags(wxComboCtrl* comboCtrl)
+{
+    int flags = 0;
+
+    wxCheckListBoxComboPopup* popup = wxDynamicCast(comboCtrl->GetPopupControl(), wxCheckListBoxComboPopup);
+    if (popup != nullptr)
+    {
+        for (unsigned int i = 0; i < popup->GetCount(); ++i)
+        {
+            if (popup->IsChecked(i))
+                flags += (int)std::pow(2.0f, (float)i);
+        }
+    }
+
+    return flags;
 }
 
 } }

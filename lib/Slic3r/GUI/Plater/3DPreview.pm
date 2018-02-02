@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use Slic3r::Print::State ':steps';
-use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE);
+use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE wxCB_READONLY);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX EVT_CHOICE EVT_CHECKLISTBOX);
 use base qw(Wx::Panel Class::Accessor);
 
@@ -61,29 +61,24 @@ sub new {
     my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
     my $checkbox_color_by_extruder = $self->{checkbox_color_by_extruder} = Wx::CheckBox->new($self, -1, "Tool");
     
+    my $label_view_type = $self->{label_view_type} = Wx::StaticText->new($self, -1, "View");
+    
     my $choice_view_type = Wx::Choice->new($self, -1);
     $choice_view_type->Append("Feature type");
     $choice_view_type->Append("Height");
     $choice_view_type->Append("Width");
     $choice_view_type->Append("Speed");
     $choice_view_type->SetSelection(0);
+
+    my $label_show_features = $self->{label_show_features} = Wx::StaticText->new($self, -1, "Show");
     
-    my $checklist_features = Wx::CheckListBox->new($self, -1, wxDefaultPosition, [-1, 150]);
-    $checklist_features->Append("Perimeter");
-    $checklist_features->Append("External perimeter");
-    $checklist_features->Append("Overhang perimeter");
-    $checklist_features->Append("Internal infill");
-    $checklist_features->Append("Solid infill");
-    $checklist_features->Append("Top solid infill");
-    $checklist_features->Append("Bridge infill");
-    $checklist_features->Append("Gap fill");
-    $checklist_features->Append("Skirt");
-    $checklist_features->Append("Support material");
-    $checklist_features->Append("Support material interface");
-    for (my $i = 0; $i < $checklist_features->GetCount(); $i += 1)
-    {
-      $checklist_features->Check($i, 1);
-    }
+    my $combochecklist_features = Wx::ComboCtrl->new();
+    $combochecklist_features->Create($self, -1, "Feature types", wxDefaultPosition, [200, -1], wxCB_READONLY);
+    $combochecklist_features->UseAltPopupWindow();
+    $combochecklist_features->EnablePopupAnimation(0);
+    my $feature_text = "Feature types";
+    my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface";
+    Slic3r::GUI::create_combochecklist($combochecklist_features, $feature_text, $feature_items, 1);
     
     my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");
     my $checkbox_retractions = Wx::CheckBox->new($self, -1, "Retractions");    
@@ -102,15 +97,27 @@ sub new {
     $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer_outer->Add($checkbox_singlelayer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
     $vsizer_outer->Add($checkbox_color_by_extruder, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
-    $vsizer_outer->Add($choice_view_type, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
-    $vsizer_outer->Add($checklist_features, 0, wxTOP | wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
-    $vsizer_outer->Add($checkbox_travel, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    $vsizer_outer->Add($checkbox_retractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    $vsizer_outer->Add($checkbox_unretractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
 
+    my $bottom_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    $bottom_sizer->Add($label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->Add($choice_view_type, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(10);
+    $bottom_sizer->Add($label_show_features, 0, wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->Add($combochecklist_features, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(20);
+    $bottom_sizer->Add($checkbox_travel, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(10);
+    $bottom_sizer->Add($checkbox_retractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(10);
+    $bottom_sizer->Add($checkbox_unretractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $sizer->Add($canvas, 1, wxALL | wxEXPAND, 0);
     $sizer->Add($vsizer_outer, 0, wxTOP | wxBOTTOM | wxEXPAND, 5);
+
+    my $main_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $main_sizer->Add($sizer, 1, wxALL | wxEXPAND, 0);
+    $main_sizer->Add($bottom_sizer, 0, wxALL | wxEXPAND, 0); 
     
     EVT_SLIDER($self, $slider_low,  sub {
         $slider_high->SetValue($slider_low->GetValue) if $self->single_layer;
@@ -194,13 +201,8 @@ sub new {
         $self->reload_print;
         $self->auto_zoom(1);
     });
-    EVT_CHECKLISTBOX($self, $checklist_features, sub {
-        my $flags = 0;
-        for (my $i = 0; $i < $checklist_features->GetCount(); $i += 1) {
-          if ($checklist_features->IsChecked($i)) {
-            $flags += 2 ** $i;
-          }
-        }
+    EVT_CHECKLISTBOX($self, $combochecklist_features, sub {
+        my $flags = Slic3r::GUI::combochecklist_get_flags($combochecklist_features);
         
         $self->print->set_gcode_preview_extrusion_flags($flags);
         $self->auto_zoom(0);
@@ -226,7 +228,7 @@ sub new {
         $self->auto_zoom(1);
     });
     
-    $self->SetSizer($sizer);
+    $self->SetSizer($main_sizer);
     $self->SetMinSize($self->GetSize);
     $sizer->SetSizeHints($self);
     
