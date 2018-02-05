@@ -25,6 +25,7 @@ enum ExtrusionRole {
     erSkirt,
     erSupportMaterial,
     erSupportMaterialInterface,
+    erWipeTower,
     // Extrusion role for a collection with multiple extrusion roles.
     erMixed,
 };

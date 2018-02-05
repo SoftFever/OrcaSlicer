@@ -195,19 +195,20 @@ GCodeAnalyzer::PreviewData::LegendItem::LegendItem(const std::string& text, cons
 
 const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Extrusion::Default_Extrusion_Role_Colors[Num_Extrusion_Roles] =
 {
-    Color(0.0f, 0.0f, 0.0f, 1.0f), // erNone
-    Color(1.0f, 0.0f, 0.0f, 1.0f), // erPerimeter
-    Color(0.0f, 1.0f, 0.0f, 1.0f), // erExternalPerimeter
-    Color(0.0f, 0.0f, 1.0f, 1.0f), // erOverhangPerimeter
-    Color(1.0f, 1.0f, 0.0f, 1.0f), // erInternalInfill
-    Color(1.0f, 0.0f, 1.0f, 1.0f), // erSolidInfill
-    Color(0.0f, 1.0f, 1.0f, 1.0f), // erTopSolidInfill
-    Color(0.5f, 0.5f, 0.5f, 1.0f), // erBridgeInfill
-    Color(1.0f, 1.0f, 1.0f, 1.0f), // erGapFill
-    Color(0.5f, 0.0f, 0.0f, 1.0f), // erSkirt
-    Color(0.0f, 0.5f, 0.0f, 1.0f), // erSupportMaterial
-    Color(0.0f, 0.0f, 0.5f, 1.0f), // erSupportMaterialInterface
-    Color(0.0f, 0.0f, 0.0f, 1.0f)  // erMixed
+    Color(0.0f, 0.0f, 0.0f, 1.0f),   // erNone
+    Color(1.0f, 0.0f, 0.0f, 1.0f),   // erPerimeter
+    Color(0.0f, 1.0f, 0.0f, 1.0f),   // erExternalPerimeter
+    Color(0.0f, 0.0f, 1.0f, 1.0f),   // erOverhangPerimeter
+    Color(1.0f, 1.0f, 0.0f, 1.0f),   // erInternalInfill
+    Color(1.0f, 0.0f, 1.0f, 1.0f),   // erSolidInfill
+    Color(0.0f, 1.0f, 1.0f, 1.0f),   // erTopSolidInfill
+    Color(0.5f, 0.5f, 0.5f, 1.0f),   // erBridgeInfill
+    Color(1.0f, 1.0f, 1.0f, 1.0f),   // erGapFill
+    Color(0.5f, 0.0f, 0.0f, 1.0f),   // erSkirt
+    Color(0.0f, 0.5f, 0.0f, 1.0f),   // erSupportMaterial
+    Color(0.0f, 0.0f, 0.5f, 1.0f),   // erSupportMaterialInterface
+    Color(0.7f, 0.89f, 0.67f, 1.0f), // erWipeTower
+    Color(0.0f, 0.0f, 0.0f, 1.0f)    // erMixed
 };
 
 // todo: merge with Slic3r::ExtrusionRole2String() from GCode.cpp
@@ -225,6 +226,7 @@ const std::string GCodeAnalyzer::PreviewData::Extrusion::Default_Extrusion_Role_
     "Skirt",
     "Support material",
     "Support material interface",
+    "Wipe tower",
     "Mixed"
 };
 
@@ -258,7 +260,7 @@ bool GCodeAnalyzer::PreviewData::Extrusion::is_role_flag_set(ExtrusionRole role)
 
 bool GCodeAnalyzer::PreviewData::Extrusion::is_role_flag_set(unsigned int flags, ExtrusionRole role)
 {
-    if ((role < erPerimeter) || (erSupportMaterialInterface < role))
+    if (!is_valid_extrusion_role(role))
         return false;
 
     unsigned int flag = (unsigned int)::exp2((double)(role - erPerimeter));
@@ -458,6 +460,11 @@ void GCodeAnalyzer::calc_gcode_preview_data(Print& print)
     _calc_gcode_preview_unretractions(print);
 }
 
+bool GCodeAnalyzer::is_valid_extrusion_role(ExtrusionRole role)
+{
+    return ((erPerimeter <= role) && (role < erMixed));
+}
+
 void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
 {
     // processes 'special' comments contained in line
@@ -597,7 +604,7 @@ void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
         type = GCodeMove::Move;
 
     ExtrusionRole role = _get_extrusion_role();
-    if ((type == GCodeMove::Extrude) && ((_get_width() == 0.0f) || (_get_height() == 0.0f) || (role < erPerimeter) || (erSupportMaterialInterface < role)))
+    if ((type == GCodeMove::Extrude) && ((_get_width() == 0.0f) || (_get_height() == 0.0f) || !is_valid_extrusion_role(role)))
         type = GCodeMove::Move;
 
     // updates axis positions

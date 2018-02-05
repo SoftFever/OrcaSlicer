@@ -77,7 +77,7 @@ sub new {
     $combochecklist_features->UseAltPopupWindow();
     $combochecklist_features->EnablePopupAnimation(0);
     my $feature_text = "Feature types";
-    my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface";
+    my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface|Wipe tower";
     Slic3r::GUI::create_combochecklist($combochecklist_features, $feature_text, $feature_items, 1);
     
     my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");

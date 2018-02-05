@@ -293,6 +293,8 @@ public:
     // Calculates all data needed for gcode visualization
     void calc_gcode_preview_data(Print& print);
 
+    static bool is_valid_extrusion_role(ExtrusionRole role);
+
 private:
     // Processes the given gcode line
     void _process_gcode_line(GCodeReader& reader, const GCodeReader::GCodeLine& line);

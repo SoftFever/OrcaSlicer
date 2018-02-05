@@ -1454,7 +1454,9 @@ static inline const char* ExtrusionRole2String(const ExtrusionRole role)
     case erSkirt:                       return "erSkirt";
     case erSupportMaterial:             return "erSupportMaterial";
     case erSupportMaterialInterface:    return "erSupportMaterialInterface";
+    case erWipeTower:                   return "erWipeTower";
     case erMixed:                       return "erMixed";
+
     default:                            return "erInvalid";
     };
 }
