@@ -330,4 +330,8 @@ void show_info(wxWindow* parent, std::string message, std::string title){
 	msg_wingow->ShowModal();
 }
 
+wxApp* get_app(){
+	return g_wxApp;
+}
+
 } }

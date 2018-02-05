@@ -37,14 +37,19 @@ public:
 
 class BedShapeDialog : public wxDialog
 {
-	BedShapePanel* m_panel;
+	BedShapePanel*	m_panel;
+	wxLocale*		m_Locale;
+	wxApp*			m_App;
 public:
 	BedShapeDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Bed Shape",
 		wxDefaultPosition, wxSize(350, 700), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER){}
-	~BedShapeDialog(){}
+	~BedShapeDialog(){ if (m_Locale){ wxDELETE(m_Locale);} }
 
 	void		build_dialog(ConfigOptionPoints* default_pt);
 	std::vector<Pointf>	GetValue() { return m_panel->GetValue(); }
+
+	bool	LoadLanguage();
+	void	GetInstalledLanguages(wxArrayString & names, wxArrayLong & identifiers);
 };
 
 } // GUI

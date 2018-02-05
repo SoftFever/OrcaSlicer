@@ -8,12 +8,19 @@
 #include <wx/numformatter.h>
 #include "Model.hpp"
 #include "boost/nowide/iostream.hpp"
+#include <wx/config.h>
+#include <wx/dir.h>
+#include <wx/filename.h>
 
 namespace Slic3r {
 namespace GUI {
 
+//! macro used to localization
+#define _L(s) s
+
 void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 {
+	m_App = get_app();
 	m_panel = new BedShapePanel(this);
 	m_panel->build_panel(default_pt);
 
@@ -32,47 +39,112 @@ void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 	}));
 }
 
+bool BedShapeDialog::LoadLanguage()
+{
+//	wxConfigBase config(m_App->GetAppName());
+	long language;
+// 	if (!config.Read(wxT("wxTranslation_Language"),
+// 		&language, wxLANGUAGE_UNKNOWN))
+// 	{
+	language = wxLANGUAGE_UKRAINIAN;// wxLANGUAGE_UNKNOWN;
+// 	}
+// 	if (language == wxLANGUAGE_UNKNOWN) return false;
+	wxArrayString names;
+	wxArrayLong identifiers;
+	GetInstalledLanguages(names, identifiers);
+	for (size_t i = 0; i < identifiers.Count(); i++)
+	{
+		if (identifiers[i] == language)
+		{
+			if (m_Locale) wxDELETE(m_Locale);
+			m_Locale = new wxLocale;
+			m_Locale->Init(identifiers[i]);
+			m_Locale->AddCatalogLookupPathPrefix(wxPathOnly(m_App->argv[0]));
+			m_Locale->AddCatalog(m_App->GetAppName());
+			return true;
+		}
+	}
+}
+
+void BedShapeDialog::GetInstalledLanguages(wxArrayString & names,
+	wxArrayLong & identifiers)
+{
+	names.Clear();
+	identifiers.Clear();
+	wxDir dir(wxPathOnly(m_App->argv[0]));
+	wxString filename;
+	const wxLanguageInfo * langinfo;
+	wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
+	if (!name.IsEmpty())
+	{
+		names.Add(_L("Default"));
+		identifiers.Add(wxLANGUAGE_DEFAULT);
+	}
+	for (bool cont = dir.GetFirst(&filename, wxT("*.*"), wxDIR_DIRS);
+		cont; cont = dir.GetNext(&filename))
+	{
+		wxLogTrace(wxTraceMask(),
+			_L("L10n: Directory found = \"%s\""),
+			filename.GetData());
+		langinfo = wxLocale::FindLanguageInfo(filename);
+		if (langinfo != NULL)
+		{
+			if (wxFileExists(dir.GetName() + wxFileName::GetPathSeparator() +
+				filename + wxFileName::GetPathSeparator() +
+				m_App->GetAppName() + wxT(".mo")))
+			{
+				names.Add(langinfo->Description);
+				identifiers.Add(langinfo->Language);
+			}
+		}
+	}
+}
+
 void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 {
 //	on_change(nullptr);
 
-	auto box = new wxStaticBox(this, wxID_ANY, "Shape");
+//	auto box = new wxStaticBox(this, wxID_ANY, "Shape");
+	auto box = new wxStaticBox(this, wxID_ANY, _L("Shape"));
 	auto sbsizer = new wxStaticBoxSizer(box, wxVERTICAL);
 
 	// shape options
 	m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(300, -1), wxCHB_TOP);
 	sbsizer->Add(m_shape_options_book);
 
-	auto optgroup = init_shape_options_page("Rectangular");
+//	auto optgroup = init_shape_options_page("Rectangular");
+	auto optgroup = init_shape_options_page(_L("Rectangular"));
 		ConfigOptionDef def;
 		def.type = coPoints;
 		def.default_value = new ConfigOptionPoints{ Pointf(200, 200) };
-		def.label = "Size";
-		def.tooltip = "Size in X and Y of the rectangular plate.";
+// 		def.label = "Size";
+// 		def.tooltip = "Size in X and Y of the rectangular plate.";
+		def.label = _L("Size");
+		def.tooltip = _L("Size in X and Y of the rectangular plate.");
 		Option option(def, "rect_size");
 		optgroup->append_single_option_line(option);
 
 		def.type = coPoints;
 		def.default_value = new ConfigOptionPoints{ Pointf(0, 0) };
-		def.label = "Origin";
-		def.tooltip = "Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.";
+		def.label = _L("Origin");
+		def.tooltip = _L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
 		option = Option(def, "rect_origin");
 		optgroup->append_single_option_line(option);
 
-	optgroup = init_shape_options_page("Circular");
+		optgroup = init_shape_options_page(_L("Circular"));
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat(200);
-		def.sidetext = "mm";
-		def.label = "Diameter";
-		def.tooltip = "Diameter of the print bed. It is assumed that origin (0,0) is located in the center.";
+		def.sidetext = _L("mm");
+		def.label = _L("Diameter");
+		def.tooltip = _L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
 		option = Option(def, "diameter");
 		optgroup->append_single_option_line(option);
 
-	optgroup = init_shape_options_page("Custom"); 
+		optgroup = init_shape_options_page(_L("Custom"));
 		Line line{ "", "" };
 		line.full_width = 1;
 		line.widget = [this](wxWindow* parent) {
-			auto btn = new wxButton(parent, wxID_ANY, "Load shape from STL...", wxDefaultPosition, wxDefaultSize);
+			auto btn = new wxButton(parent, wxID_ANY, _L("Load shape from STL..."), wxDefaultPosition, wxDefaultSize);
 			
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -117,7 +189,7 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(std::string title){
 
 	auto panel = new wxPanel(m_shape_options_book);
 	ConfigOptionsGroupShp optgroup;
-	optgroup = std::make_shared<ConfigOptionsGroup>(panel, "Settings");
+	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Settings"));
 
 	optgroup->label_width = 100;
 	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
@@ -295,7 +367,7 @@ void BedShapePanel::load_stl()
 	for (auto file_type: file_types)
 		MODEL_WILDCARD += vec_FILE_WILDCARDS.at(file_type) + "|";
 
-	auto dialog = new wxFileDialog(this, "Choose a file to import bed shape from (STL/OBJ/AMF/PRUSA):", "", "", 
+	auto dialog = new wxFileDialog(this, _L("Choose a file to import bed shape from (STL/OBJ/AMF/PRUSA):"), "", "",
 		MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (dialog->ShowModal() != wxID_OK) {
 		dialog->Destroy();
@@ -312,7 +384,7 @@ void BedShapePanel::load_stl()
 		model = Model::read_from_file(file_name);
 	}
 	catch (std::exception &e) {
-		std::string msg = "Error! " + file_name + ": " + e.what() + ".";
+		std::string msg = _L("Error! ") + file_name + " : " + e.what() + ".";
 		show_error(this, msg);
 		exit(1);
 	}
@@ -321,11 +393,11 @@ void BedShapePanel::load_stl()
 	auto expolygons = mesh.horizontal_projection();
 
 	if (expolygons.size() == 0) {
-		show_error(this, "The selected file contains no geometry.");
+		show_error(this, _L("The selected file contains no geometry."));
 		return;
 	}
 	if (expolygons.size() > 1) {
-		show_error(this, "The selected file contains several disjoint areas. This is not supported.");
+		show_error(this, _L("The selected file contains several disjoint areas. This is not supported."));
 		return;
 	}
 

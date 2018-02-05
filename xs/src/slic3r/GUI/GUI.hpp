@@ -66,6 +66,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 void show_error(wxWindow* parent, std::string message);
 void show_info(wxWindow* parent, std::string message, std::string title);
 
+wxApp* get_app();
 
 } }
 
