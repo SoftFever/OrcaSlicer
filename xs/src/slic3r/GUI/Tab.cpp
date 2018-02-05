@@ -92,8 +92,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		//! we doing next:
 		int selected_item = m_presets_choice->GetSelection();
 		if (selected_item >= 0){
-			std::string slected_string = m_presets_choice->GetString(selected_item).ToStdString();
-			select_preset(slected_string);
+			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8();
+			select_preset(selected_string);
 		}
 	}));
 
@@ -1761,9 +1761,10 @@ ConfigOptionsGroupShp Page::new_optgroup(std::string title, int noncommon_label_
 void SavePresetWindow::build(wxString title, std::string default_name, std::vector<std::string> &values)
 {
 	auto text = new wxStaticText(this, wxID_ANY, "Save " + title + " as:", wxDefaultPosition, wxDefaultSize);
-	m_combo = new wxComboBox(this, wxID_ANY, default_name, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);
+	m_combo = new wxComboBox(this, wxID_ANY, wxString::FromUTF8(default_name.c_str()), 
+							wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);
 	for (auto value : values)
-		m_combo->Append(value);
+		m_combo->Append(wxString::FromUTF8(value.c_str()));
 	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
@@ -1781,7 +1782,7 @@ void SavePresetWindow::build(wxString title, std::string default_name, std::vect
 
 void SavePresetWindow::accept()
 {
-	m_chosen_name = normalize_utf8_nfc(m_combo->GetValue().c_str());
+	m_chosen_name = normalize_utf8_nfc(m_combo->GetValue().ToUTF8());
 	if (!m_chosen_name.empty()) {
 		const char* unusable_symbols = "<>:/\\|?*\"";
 		bool is_unusable_symbol = false;
