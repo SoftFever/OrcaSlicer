@@ -92,7 +92,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		//! we doing next:
 		int selected_item = m_presets_choice->GetSelection();
 		if (selected_item >= 0){
-			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8();
+			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
 			select_preset(selected_string);
 		}
 	}));
