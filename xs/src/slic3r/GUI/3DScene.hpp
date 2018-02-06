@@ -403,19 +403,25 @@ class _3DScene
         unsigned int get_texture_width() const;
         unsigned int get_texture_height() const;
 
+        void reset_texture();
+
     private:
         bool _create_texture(const Print& print, const wxBitmap& bitmap);
         void _destroy_texture();
     };
 
     static LegendTexture s_legend_texture;
+
 public:
     static void _glew_init();
 
     static void load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs);
+
     static unsigned int get_legend_texture_id();
     static unsigned int get_legend_texture_width();
     static unsigned int get_legend_texture_height();
+
+    static void reset_legend_texture();
 
     static void _load_print_toolpaths(
         const Print                     *print,

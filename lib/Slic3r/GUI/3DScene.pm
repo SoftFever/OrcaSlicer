@@ -1605,23 +1605,25 @@ sub draw_legend {
         my $tex_id = Slic3r::GUI::_3DScene::get_legend_texture_id;
         if ($tex_id > 0)
         {
-            glDisable(GL_DEPTH_TEST);
-            glPushMatrix();
-            glLoadIdentity();
-        
             my $tex_w = Slic3r::GUI::_3DScene::get_legend_texture_width;
             my $tex_h = Slic3r::GUI::_3DScene::get_legend_texture_height;
-
-            my ($cw, $ch) = $self->GetSizeWH;
+            if (($tex_w > 0) && ($tex_h > 0))
+            {
+                glDisable(GL_DEPTH_TEST);
+                glPushMatrix();
+                glLoadIdentity();
+        
+                my ($cw, $ch) = $self->GetSizeWH;
                 
-            my $l = (-0.5 * $cw) / $self->_zoom;
-            my $t = (0.5 * $ch) / $self->_zoom;
-            my $r = $l + $tex_w / $self->_zoom;
-            my $b = $t - $tex_h / $self->_zoom;
-            $self->_render_texture($tex_id, $l, $r, $b, $t);
+                my $l = (-0.5 * $cw) / $self->_zoom;
+                my $t = (0.5 * $ch) / $self->_zoom;
+                my $r = $l + $tex_w / $self->_zoom;
+                my $b = $t - $tex_h / $self->_zoom;
+                $self->_render_texture($tex_id, $l, $r, $b, $t);
 
-            glPopMatrix();
-            glEnable(GL_DEPTH_TEST);
+                glPopMatrix();
+                glEnable(GL_DEPTH_TEST);
+            }
         }
     }
 }
@@ -2036,6 +2038,10 @@ sub load_gcode_preview {
 sub set_toolpaths_range {
     my ($self, $min_z, $max_z) = @_;
     $self->volumes->set_range($min_z, $max_z);
+}
+
+sub reset_legend_texture {
+    Slic3r::GUI::_3DScene::reset_legend_texture();
 }
 
 1;

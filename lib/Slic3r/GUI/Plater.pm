@@ -1261,6 +1261,8 @@ sub reslice {
         $self->stop_background_process;
         # Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
         $self->async_apply_config;
+        # Reset gcode data
+        $self->{print}->clear_gcode_preview_data;
         $self->statusbar->SetCancelCallback(sub {
             $self->stop_background_process;
             $self->statusbar->SetStatusText("Slicing cancelled");

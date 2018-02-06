@@ -290,6 +290,9 @@ sub load_print {
         $self->set_z_range(0,0);
         $self->slider_low->Hide;
         $self->slider_high->Hide;
+        $self->{z_label_low}->SetLabel("");
+        $self->{z_label_high}->SetLabel("");
+        $self->canvas->reset_legend_texture();
         $self->canvas->Refresh;  # clears canvas
         return;
     }

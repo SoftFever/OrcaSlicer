@@ -191,13 +191,16 @@ void create_preset_tab(const char *name)
 
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
 {
-    wxCheckListBoxComboPopup* popup = new wxCheckListBoxComboPopup(-1);
+    if (comboCtrl == nullptr)
+        return;
+
+    wxCheckListBoxComboPopup* popup = new wxCheckListBoxComboPopup;
     if (popup != nullptr)
     {
         comboCtrl->SetPopupControl(popup);
         popup->SetStringValue(text);
-        popup->Connect(-1, wxEVT_CHECKLISTBOX, wxCommandEventHandler(wxCheckListBoxComboPopup::OnCheckListBox), nullptr, popup);
-        popup->Connect(-1, wxEVT_LISTBOX, wxCommandEventHandler(wxCheckListBoxComboPopup::OnListBoxSelection), nullptr, popup);
+        popup->Connect(wxID_ANY, wxEVT_CHECKLISTBOX, wxCommandEventHandler(wxCheckListBoxComboPopup::OnCheckListBox), nullptr, popup);
+        popup->Connect(wxID_ANY, wxEVT_LISTBOX, wxCommandEventHandler(wxCheckListBoxComboPopup::OnListBoxSelection), nullptr, popup);
 
         std::vector<std::string> items_str;
         boost::split(items_str, items, boost::is_any_of("|"), boost::token_compress_off);

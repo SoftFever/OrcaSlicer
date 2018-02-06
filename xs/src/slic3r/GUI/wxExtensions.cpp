@@ -1,16 +1,10 @@
 #include "wxExtensions.hpp"
 
-const unsigned int wxCheckListBoxComboPopup::Height = 200;
-
-wxCheckListBoxComboPopup::wxCheckListBoxComboPopup(wxWindowID id)
-    : m_id(id)
-    , m_text(wxEmptyString)
-{
-}
+const unsigned int wxCheckListBoxComboPopup::Height = 210;
 
 bool wxCheckListBoxComboPopup::Create(wxWindow* parent)
 {
-    return wxCheckListBox::Create(parent, m_id, wxPoint(0, 0));
+    return wxCheckListBox::Create(parent, wxID_HIGHEST + 1, wxPoint(0, 0));
 }
 
 wxWindow* wxCheckListBoxComboPopup::GetControl()
@@ -51,6 +45,7 @@ void wxCheckListBoxComboPopup::OnCheckListBox(wxCommandEvent& evt)
     if (cmb != nullptr)
     {
         wxCommandEvent event(wxEVT_CHECKLISTBOX, cmb->GetId());
+        event.SetEventObject(cmb);
         cmb->ProcessWindowEvent(event);
     }
 }
@@ -68,7 +63,6 @@ void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)
         wxCommandEvent event(wxEVT_CHECKLISTBOX, GetId());
         event.SetInt(selId);
         event.SetEventObject(this);
-        event.SetString(GetString(selId));
         ProcessEvent(event);
     }
 }

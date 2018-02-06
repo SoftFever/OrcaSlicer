@@ -161,7 +161,12 @@ get_legend_texture_height()
         RETVAL = _3DScene::get_legend_texture_height();
     OUTPUT:
         RETVAL
-                
+             
+void
+reset_legend_texture()
+    CODE:
+        _3DScene::reset_legend_texture();
+             
 void
 _load_print_toolpaths(print, volumes, tool_colors, use_VBOs)
         Print               *print;

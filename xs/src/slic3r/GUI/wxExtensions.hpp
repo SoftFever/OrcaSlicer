@@ -8,12 +8,9 @@ class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
     static const unsigned int Height;
 
-    wxWindowID m_id;
     wxString m_text;
 
 public:
-    explicit wxCheckListBoxComboPopup(wxWindowID id);
-
     virtual bool Create(wxWindow* parent);
     virtual wxWindow* GetControl();
     virtual void SetStringValue(const wxString& value);

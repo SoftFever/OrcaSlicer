@@ -1229,6 +1229,11 @@ unsigned int _3DScene::LegendTexture::get_texture_height() const
     return m_tex_height;
 }
 
+void _3DScene::LegendTexture::reset_texture()
+{
+    _destroy_texture();
+}
+
 bool _3DScene::LegendTexture::_create_texture(const Print& print, const wxBitmap& bitmap)
 {
     if ((m_tex_width == 0) || (m_tex_height == 0))
@@ -1270,6 +1275,8 @@ void _3DScene::LegendTexture::_destroy_texture()
     {
         ::glDeleteTextures(1, &m_tex_id);
         m_tex_id = 0;
+        m_tex_height = 0;
+        m_tex_width = 0;
     }
 }
 
@@ -1316,7 +1323,10 @@ void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volume
         _load_gcode_retractions(*print, *volumes, use_VBOs);
         _load_gcode_unretractions(*print, *volumes, use_VBOs);
 
-        _generate_legend_texture(*print);
+        if (volumes->empty())
+            reset_legend_texture();
+        else
+            _generate_legend_texture(*print);
     }
 
     _update_gcode_volumes_visibility(*print, *volumes);
@@ -1335,6 +1345,11 @@ unsigned int _3DScene::get_legend_texture_width()
 unsigned int _3DScene::get_legend_texture_height()
 {
     return s_legend_texture.get_texture_height();
+}
+
+void _3DScene::reset_legend_texture()
+{
+    s_legend_texture.reset_texture();
 }
 
 // Create 3D thick extrusion lines for a skirt and brim.
