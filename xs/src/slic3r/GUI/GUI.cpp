@@ -195,12 +195,12 @@ void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config,
 	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller), preset_bundle, app_config);
 	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller, is_disabled_button_browse, is_user_agent), 
 					preset_bundle, app_config);
-	g_wxTabPanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, ([](wxCommandEvent e){
-		Tab* panel = (Tab*)g_wxTabPanel->GetCurrentPage();
-		if (panel->GetName().compare("Print Settings")==0 ||
-			panel->GetName().compare("Filament Settings") == 0)
-			panel->OnActivate();
-	}), g_wxTabPanel->GetId() );
+// 	g_wxTabPanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, ([](wxCommandEvent e){
+// 		Tab* panel = (Tab*)g_wxTabPanel->GetCurrentPage();
+// 		if (panel->GetName().compare("Print Settings")==0 ||
+// 			panel->GetName().compare("Filament Settings") == 0)
+// 			panel->OnActivate();
+// 	}), g_wxTabPanel->GetId() );
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
 		if (! tab)

@@ -11,6 +11,7 @@ char*	TabIface::title()					{ return (char*)m_tab->title().ToStdString().data();
 void	TabIface::load_config(DynamicPrintConfig* config)	{ m_tab->load_config(*config);}
 void	TabIface::load_key_value(char* opt_key, char* value){ m_tab->load_key_value(opt_key, static_cast<std::string>(value)); }
 bool	TabIface::current_preset_is_dirty()					{ return m_tab->current_preset_is_dirty();}
+void	TabIface::OnActivate()								{ return m_tab->OnActivate();}
 DynamicPrintConfig*			TabIface::get_config()			{ return m_tab->get_config(); }
 PresetCollection*			TabIface::get_presets()			{ return m_tab->get_presets(); }
 std::vector<std::string>	TabIface::get_dependent_tabs()	{ return m_tab->get_dependent_tabs(); }
