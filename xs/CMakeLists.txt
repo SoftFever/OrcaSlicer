@@ -199,6 +199,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/2DBed.hpp
     ${LIBDIR}/slic3r/GUI/wxExtensions.cpp
     ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
+    ${LIBDIR}/slic3r/Utils/Http.cpp
+    ${LIBDIR}/slic3r/Utils/Http.hpp
 )
 
 add_library(admesh STATIC
@@ -521,6 +523,11 @@ if (SLIC3R_PRUSACONTROL)
     add_definitions(-DSLIC3R_GUI -DSLIC3R_PRUS)
     target_link_libraries(XS ${wxWidgets_LIBRARIES})
 endif()
+
+find_package(CURL REQUIRED)
+include_directories(${CURL_INCLUDE_DIRS})
+target_link_libraries(XS ${CURL_LIBRARIES})
+
 
 ## OPTIONAL packages
 
