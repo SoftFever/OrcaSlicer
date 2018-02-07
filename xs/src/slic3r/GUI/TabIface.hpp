@@ -19,7 +19,7 @@ public:
 	void		update_tab_ui();
 	void		update_ui_from_settings();
 	void		select_preset(char* name);
-	char*		title();
+	std::string title();
 	void		load_config(DynamicPrintConfig* config);
 	void		load_key_value(char* opt_key, char* value);
 	bool		current_preset_is_dirty();

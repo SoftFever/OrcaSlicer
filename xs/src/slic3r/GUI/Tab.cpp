@@ -1735,7 +1735,7 @@ bool Page::set_value(t_config_option_key opt_key, boost::any value){
 }
 
 // package Slic3r::GUI::Tab::Page;
-ConfigOptionsGroupShp Page::new_optgroup(std::string title, int noncommon_label_width /*= -1*/)
+ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_width /*= -1*/)
 {
 	//! config_ have to be "right"
 	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config);

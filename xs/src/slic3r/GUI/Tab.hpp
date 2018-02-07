@@ -55,7 +55,7 @@ public:
 	~Page(){}
 
 public:
-	std::vector <ConfigOptionsGroupShp> m_optgroups;  // $self->{optgroups} = [];
+	std::vector <ConfigOptionsGroupShp> m_optgroups;
 	DynamicPrintConfig* m_config;
 
 	wxBoxSizer*	vsizer() const { return m_vsizer; }
@@ -66,7 +66,7 @@ public:
 	void		reload_config();
 	Field*		get_field(t_config_option_key opt_key, int opt_index = -1) const;
 	bool		set_value(t_config_option_key opt_key, boost::any value);
-	ConfigOptionsGroupShp new_optgroup(std::string title, int noncommon_label_width = -1);
+	ConfigOptionsGroupShp	new_optgroup(wxString title, int noncommon_label_width = -1);
 };
 
 // Slic3r::GUI::Tab;

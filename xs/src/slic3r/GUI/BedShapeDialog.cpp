@@ -11,16 +11,15 @@
 #include <wx/config.h>
 #include <wx/dir.h>
 #include <wx/filename.h>
+#include "Utils.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
-//! macro used to localization
-#define _L(s) s
-
 void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 {
 	m_App = get_app();
+	LoadLanguage();
 	m_panel = new BedShapePanel(this);
 	m_panel->build_panel(default_pt);
 
@@ -56,14 +55,14 @@ bool BedShapeDialog::LoadLanguage()
 	{
 		if (identifiers[i] == language)
 		{
-			if (m_Locale) wxDELETE(m_Locale);
-			m_Locale = new wxLocale;
+ 			m_Locale = new wxLocale;
 			m_Locale->Init(identifiers[i]);
-			m_Locale->AddCatalogLookupPathPrefix(wxPathOnly(m_App->argv[0]));
+			m_Locale->AddCatalogLookupPathPrefix(wxPathOnly(m_local_dir));
 			m_Locale->AddCatalog(m_App->GetAppName());
 			return true;
 		}
 	}
+	return false;
 }
 
 void BedShapeDialog::GetInstalledLanguages(wxArrayString & names,
@@ -71,7 +70,9 @@ void BedShapeDialog::GetInstalledLanguages(wxArrayString & names,
 {
 	names.Clear();
 	identifiers.Clear();
-	wxDir dir(wxPathOnly(m_App->argv[0]));
+	m_local_dir = localization_dir();
+
+	wxDir dir(wxPathOnly(m_local_dir));
 	wxString filename;
 	const wxLanguageInfo * langinfo;
 	wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
@@ -80,7 +81,7 @@ void BedShapeDialog::GetInstalledLanguages(wxArrayString & names,
 		names.Add(_L("Default"));
 		identifiers.Add(wxLANGUAGE_DEFAULT);
 	}
-	for (bool cont = dir.GetFirst(&filename, wxT("*.*"), wxDIR_DIRS);
+	for (bool cont = dir.GetFirst(&filename, wxEmptyString/*wxT("*.*")*/, wxDIR_DIRS);
 		cont; cont = dir.GetNext(&filename))
 	{
 		wxLogTrace(wxTraceMask(),
@@ -89,9 +90,10 @@ void BedShapeDialog::GetInstalledLanguages(wxArrayString & names,
 		langinfo = wxLocale::FindLanguageInfo(filename);
 		if (langinfo != NULL)
 		{
-			if (wxFileExists(dir.GetName() + wxFileName::GetPathSeparator() +
+			auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
 				filename + wxFileName::GetPathSeparator() +
-				m_App->GetAppName() + wxT(".mo")))
+				m_App->GetAppName() + wxT(".mo");
+			if (wxFileExists(full_file_name))
 			{
 				names.Add(langinfo->Description);
 				identifiers.Add(langinfo->Language);
@@ -104,7 +106,6 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 {
 //	on_change(nullptr);
 
-//	auto box = new wxStaticBox(this, wxID_ANY, "Shape");
 	auto box = new wxStaticBox(this, wxID_ANY, _L("Shape"));
 	auto sbsizer = new wxStaticBoxSizer(box, wxVERTICAL);
 
@@ -112,31 +113,28 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 	m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(300, -1), wxCHB_TOP);
 	sbsizer->Add(m_shape_options_book);
 
-//	auto optgroup = init_shape_options_page("Rectangular");
 	auto optgroup = init_shape_options_page(_L("Rectangular"));
 		ConfigOptionDef def;
 		def.type = coPoints;
 		def.default_value = new ConfigOptionPoints{ Pointf(200, 200) };
-// 		def.label = "Size";
-// 		def.tooltip = "Size in X and Y of the rectangular plate.";
-		def.label = _L("Size");
-		def.tooltip = _L("Size in X and Y of the rectangular plate.");
+		def.label = _LU8("Size");
+		def.tooltip = _LU8("Size in X and Y of the rectangular plate.");
 		Option option(def, "rect_size");
 		optgroup->append_single_option_line(option);
 
 		def.type = coPoints;
 		def.default_value = new ConfigOptionPoints{ Pointf(0, 0) };
-		def.label = _L("Origin");
-		def.tooltip = _L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
+		def.label = _LU8("Origin");
+		def.tooltip = _LU8("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
 		option = Option(def, "rect_origin");
 		optgroup->append_single_option_line(option);
 
 		optgroup = init_shape_options_page(_L("Circular"));
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat(200);
-		def.sidetext = _L("mm");
-		def.label = _L("Diameter");
-		def.tooltip = _L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
+		def.sidetext = _LU8("mm");
+		def.label = _LU8("Diameter");
+		def.tooltip = _LU8("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
 		option = Option(def, "diameter");
 		optgroup->append_single_option_line(option);
 
@@ -185,7 +183,7 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 
 // Called from the constructor.
 // Create a panel for a rectangular / circular / custom bed shape.
-ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(std::string title){
+ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(wxString title){
 
 	auto panel = new wxPanel(m_shape_options_book);
 	ConfigOptionsGroupShp optgroup;

@@ -112,12 +112,13 @@ void OptionsGroup::append_line(const Line& line) {
 
     // Build a label if we have it
     if (label_width != 0) {
-		auto label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":" ), wxDefaultPosition, wxSize(label_width, -1));
+		auto label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
+							wxDefaultPosition, wxSize(label_width, -1));
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
         grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL,0);
-        if (line.label_tooltip.compare("") != 0)
-            label->SetToolTip(line.label_tooltip);
+		if (line.label_tooltip.compare("") != 0)
+			label->SetToolTip(line.label_tooltip);
     }
 
     // If there's a widget, build it and add the result to the sizer.
@@ -151,7 +152,7 @@ void OptionsGroup::append_line(const Line& line) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {
-			auto field_label = new wxStaticText(parent(), wxID_ANY, wxString(option.label) + ":", wxDefaultPosition, wxDefaultSize);
+			auto field_label = new wxStaticText(parent(), wxID_ANY, wxString::FromUTF8(option.label.c_str()) + ":", wxDefaultPosition, wxDefaultSize);
 			field_label->SetFont(sidetext_font);
 			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
@@ -187,7 +188,7 @@ void OptionsGroup::append_line(const Line& line) {
 }
 
 Line OptionsGroup::create_single_option_line(const Option& option) const {
-    Line retval {option.opt.label, option.opt.tooltip};	
+	Line retval{ wxString::FromUTF8(option.opt.label.c_str()), wxString::FromUTF8(option.opt.tooltip.c_str()) };
     Option tmp(option);
     tmp.opt.label = std::string("");
     retval.append_option(tmp);

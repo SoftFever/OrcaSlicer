@@ -54,8 +54,8 @@ public:
 	void append_widget(const widget_t widget) {
 		m_extra_widgets.push_back(widget);
     }
-    Line(std::string label, std::string tooltip) : 
-		label(wxString(label)), label_tooltip(wxString(tooltip)) {}
+	Line(wxString label, wxString tooltip) :
+		label(label), label_tooltip(tooltip) {}
 
     const std::vector<widget_t>&	get_extra_widgets() const {return m_extra_widgets;}
     const std::vector<Option>&		get_options() const { return m_options; }
@@ -96,8 +96,8 @@ public:
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
-    OptionsGroup(wxWindow* _parent, std::string title) : 
-		m_parent(_parent), title(wxString(title)) {
+    OptionsGroup(wxWindow* _parent, wxString title) : 
+		m_parent(_parent), title(title) {
         sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
@@ -133,7 +133,7 @@ protected:
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-	ConfigOptionsGroup(wxWindow* parent, std::string title, DynamicPrintConfig* _config = nullptr) : 
+	ConfigOptionsGroup(wxWindow* parent, wxString title, DynamicPrintConfig* _config = nullptr) : 
 		OptionsGroup(parent, title), m_config(_config) {}
 
     /// reference to libslic3r config, non-owning pointer (?).

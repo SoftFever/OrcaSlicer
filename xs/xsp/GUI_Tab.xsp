@@ -15,8 +15,8 @@
 	void		load_config(DynamicPrintConfig* config);
 	bool		current_preset_is_dirty();
 	void		load_key_value(char* opt_key, char* value);
-	char*		title();
 	void		OnActivate();
+	std::string	title();
 	Ref<DynamicPrintConfig>		get_config();
 	Ref<PresetCollection>		get_presets();
 	std::vector<std::string>	get_dependent_tabs();

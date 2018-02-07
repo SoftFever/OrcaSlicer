@@ -30,10 +30,11 @@ namespace Slic3r { namespace GUI {
 	wxString Field::get_tooltip_text(const wxString& default_string)
 	{
 		wxString tooltip_text("");
-		if (m_opt.tooltip.length() > 0)
+		wxString tooltip = wxString::FromUTF8(m_opt.tooltip.c_str());
+		if (tooltip.length() > 0)
 			tooltip_text = boost::iends_with(m_opt_id, "_gcode") ?
-						m_opt.tooltip + "(default: \n" + default_string + ")" : 
-						m_opt.tooltip + "(default: " + default_string + ")";
+						tooltip + "(" + _L("default") + ": \n" + default_string + ")" : 
+						tooltip + "(" + _L("default") + ": " + default_string + ")";
 
 		return tooltip_text;
 	}

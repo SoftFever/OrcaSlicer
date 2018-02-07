@@ -103,6 +103,11 @@ const std::string& resources_dir()
     return g_resources_dir;
 }
 
+std::string localization_dir()
+{
+	return resources_dir() + "\\localization\\";
+}
+
 static std::string g_data_dir;
 
 void set_data_dir(const std::string &dir)
