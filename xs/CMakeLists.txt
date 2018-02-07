@@ -201,6 +201,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
+    ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
+    ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
 )
 
 add_library(admesh STATIC
@@ -340,6 +342,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Surface.xsp
     ${XSP_DIR}/SurfaceCollection.xsp
     ${XSP_DIR}/TriangleMesh.xsp
+    ${XSP_DIR}/Utils_OctoPrint.xsp
     ${XSP_DIR}/XS.xsp
 )
 foreach (file ${XS_XSP_FILES})

@@ -5,9 +5,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/format.hpp>
 
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
@@ -568,6 +568,20 @@ wxString L_str(std::string str)
 wxString from_u8(std::string str)
 {
 	return wxString::FromUTF8(str.c_str());
+}
+
+wxWindow *get_widget_by_id(int id)
+{
+    if (g_wxMainFrame == nullptr) {
+        throw std::runtime_error("Main frame not set");
+    }
+
+    wxWindow *window = g_wxMainFrame->FindWindow(id);
+    if (window == nullptr) {
+        throw std::runtime_error((boost::format("Could not find widget by ID: %1%") % id).str());
+    }
+
+    return window;
 }
 
 } }
