@@ -72,7 +72,6 @@ sub new {
     
     my $combochecklist_features = Wx::ComboCtrl->new();
     $combochecklist_features->Create($self, -1, "Feature types", wxDefaultPosition, [200, -1], wxCB_READONLY);
-    $combochecklist_features->UseAltPopupWindow();
     $combochecklist_features->EnablePopupAnimation(0);
     my $feature_text = "Feature types";
     my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface|Wipe tower";
