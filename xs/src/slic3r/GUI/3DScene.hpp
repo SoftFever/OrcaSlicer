@@ -397,7 +397,7 @@ class _3DScene
         LegendTexture();
         ~LegendTexture();
         
-        bool generate_texture(const Print& print);
+        bool generate_texture(const Print& print, const std::vector<float>& tool_colors);
 
         unsigned int get_texture_id() const;
         unsigned int get_texture_width() const;
@@ -415,7 +415,7 @@ class _3DScene
 public:
     static void _glew_init();
 
-    static void load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs);
+    static void load_gcode_preview(const Print* print, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs);
 
     static unsigned int get_legend_texture_id();
     static unsigned int get_legend_texture_width();
@@ -443,9 +443,12 @@ public:
 
 private:
     // generates gcode extrusion paths geometry
-    static void _load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    static void _load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
     // generates gcode travel paths geometry
-    static void _load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    static void _load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
+    static bool _travel_paths_by_type(const Print& print, GLVolumeCollection& volumes);
+    static bool _travel_paths_by_feedrate(const Print& print, GLVolumeCollection& volumes);
+    static bool _travel_paths_by_tool(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors);
     // generates gcode retractions geometry
     static void _load_gcode_retractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
     // generates gcode unretractions geometry
@@ -453,7 +456,7 @@ private:
     // sets gcode geometry visibility according to user selection
     static void _update_gcode_volumes_visibility(const Print& print, GLVolumeCollection& volumes);
     // generates the legend texture in dependence of the current shown view type
-    static void _generate_legend_texture(const Print& print);
+    static void _generate_legend_texture(const Print& print, const std::vector<float>& tool_colors);
 };
 
 }

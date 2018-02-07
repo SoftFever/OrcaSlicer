@@ -1099,13 +1099,13 @@ _3DScene::LegendTexture::~LegendTexture()
     _destroy_texture();
 }
 
-bool _3DScene::LegendTexture::generate_texture(const Print& print)
+bool _3DScene::LegendTexture::generate_texture(const Print& print, const std::vector<float>& tool_colors)
 {
     _destroy_texture();
 
     // collects items to render
     const std::string& title = print.gcode_preview.get_legend_title();
-    const GCodeAnalyzer::PreviewData::LegendItemsList& items = print.gcode_preview.get_legend_items();
+    const GCodeAnalyzer::PreviewData::LegendItemsList& items = print.gcode_preview.get_legend_items(tool_colors);
 
     unsigned int items_count = (unsigned int)items.size();
     if (items_count == 0)
@@ -1312,21 +1312,23 @@ static inline std::vector<float> parse_colors(const std::vector<std::string> &sc
     return output;
 }
 
-void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volumes, bool use_VBOs)
+void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs)
 {
     if (volumes->empty())
     {
+        std::vector<float> tool_colors = parse_colors(str_tool_colors);
+
         s_gcode_preview_data.reset();
 
-        _load_gcode_extrusion_paths(*print, *volumes, use_VBOs);
-        _load_gcode_travel_paths(*print, *volumes, use_VBOs);
+        _load_gcode_extrusion_paths(*print, *volumes, tool_colors, use_VBOs);
+        _load_gcode_travel_paths(*print, *volumes, tool_colors, use_VBOs);
         _load_gcode_retractions(*print, *volumes, use_VBOs);
         _load_gcode_unretractions(*print, *volumes, use_VBOs);
 
         if (volumes->empty())
             reset_legend_texture();
         else
-            _generate_legend_texture(*print);
+            _generate_legend_texture(*print, tool_colors);
     }
 
     _update_gcode_volumes_visibility(*print, *volumes);
@@ -1709,7 +1711,7 @@ void _3DScene::_load_wipe_tower_toolpaths(
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end"; 
 }
 
-void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
+void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs)
 {
     // helper functions to select data in dependence of the extrusion view type
     struct Helper
@@ -1726,12 +1728,14 @@ void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollectio
                 return path.width;
             case GCodeAnalyzer::PreviewData::Extrusion::Feedrate:
                 return path.feedrate;
+            case GCodeAnalyzer::PreviewData::Extrusion::Tool:
+                return (float)path.extruder_id;
             }
 
             return 0.0f;
         }
 
-        static const GCodeAnalyzer::PreviewData::Color& path_color(const GCodeAnalyzer::PreviewData& data, float value)
+        static const GCodeAnalyzer::PreviewData::Color& path_color(const GCodeAnalyzer::PreviewData& data, const std::vector<float>& tool_colors, float value)
         {
             switch (data.extrusion.view_type)
             {
@@ -1743,6 +1747,12 @@ void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollectio
                 return data.get_extrusion_width_color(value);
             case GCodeAnalyzer::PreviewData::Extrusion::Feedrate:
                 return data.get_extrusion_feedrate_color(value);
+            case GCodeAnalyzer::PreviewData::Extrusion::Tool:
+                {
+                    static GCodeAnalyzer::PreviewData::Color color;
+                    ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (unsigned int)value * 4), 4 * sizeof(float));
+                    return color;
+                }
             }
 
             return GCodeAnalyzer::PreviewData::Color::Dummy;
@@ -1801,7 +1811,7 @@ void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollectio
     {
         s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Extrusion, (unsigned int)filter.role, (unsigned int)volumes.volumes.size());
 
-        GLVolume* volume = new GLVolume(Helper::path_color(print.gcode_preview, filter.value).rgba);
+        GLVolume* volume = new GLVolume(Helper::path_color(print.gcode_preview, tool_colors, filter.value).rgba);
         if (volume != nullptr)
         {
             filter.volume = volume;
@@ -1856,7 +1866,62 @@ void _3DScene::_load_gcode_extrusion_paths(const Print& print, GLVolumeCollectio
     }
 }
 
-void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
+void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs)
+{
+    size_t initial_volumes_count = volumes.volumes.size();
+    s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Travel, 0, (unsigned int)initial_volumes_count);
+
+    bool res = true;
+    switch (print.gcode_preview.extrusion.view_type)
+    {
+    case GCodeAnalyzer::PreviewData::Extrusion::Feedrate:
+        {
+            res = _travel_paths_by_feedrate(print, volumes);
+            break;
+        }
+    case GCodeAnalyzer::PreviewData::Extrusion::Tool:
+        {
+            res = _travel_paths_by_tool(print, volumes, tool_colors);
+            break;
+        }
+    default:
+        {
+            res = _travel_paths_by_type(print, volumes);
+            break;
+        }
+    }
+
+    if (!res)
+    {
+        // an error occourred - restore to previous state and return
+        if (initial_volumes_count != volumes.volumes.size())
+        {
+            std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
+            std::vector<GLVolume*>::iterator end = volumes.volumes.end();
+            for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
+            {
+                GLVolume* volume = *it;
+                delete volume;
+            }
+            volumes.volumes.erase(begin, end);
+        }
+
+        return;
+    }
+
+    // finalize volumes and sends geometry to gpu
+    if (volumes.volumes.size() > initial_volumes_count)
+    {
+        for (size_t i = initial_volumes_count; i < volumes.volumes.size(); ++i)
+        {
+            GLVolume* volume = volumes.volumes[i];
+            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
+            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+        }
+    }
+}
+
+bool _3DScene::_travel_paths_by_type(const Print& print, GLVolumeCollection& volumes)
 {
     // Helper structure for types
     struct Type
@@ -1878,6 +1943,52 @@ void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& 
 
     typedef std::vector<Type> TypesList;
 
+    // colors travels by travel type
+
+    // detects types
+    TypesList types;
+    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    {
+        if (std::find(types.begin(), types.end(), Type(polyline.type)) == types.end())
+            types.emplace_back(polyline.type);
+    }
+
+    // nothing to render, return
+    if (types.empty())
+        return true;
+
+    // creates a new volume for each type
+    for (Type& type : types)
+    {
+        GLVolume* volume = new GLVolume(print.gcode_preview.travel.type_colors[type.value].rgba);
+        if (volume == nullptr)
+            return false;
+        else
+        {
+            type.volume = volume;
+            volumes.volumes.emplace_back(volume);
+        }
+    }
+
+    // populates volumes
+    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    {
+        TypesList::iterator type = std::find(types.begin(), types.end(), Type(polyline.type));
+        if (type != types.end())
+        {
+            type->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+            type->volume->offsets.push_back(type->volume->indexed_vertex_array.quad_indices.size());
+            type->volume->offsets.push_back(type->volume->indexed_vertex_array.triangle_indices.size());
+
+            polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *type->volume);
+        }
+    }
+
+    return true;
+}
+
+bool _3DScene::_travel_paths_by_feedrate(const Print& print, GLVolumeCollection& volumes)
+{
     // Helper structure for feedrate
     struct Feedrate
     {
@@ -1898,134 +2009,114 @@ void _3DScene::_load_gcode_travel_paths(const Print& print, GLVolumeCollection& 
 
     typedef std::vector<Feedrate> FeedratesList;
 
-    size_t initial_volumes_count = volumes.volumes.size();
-    s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Travel, 0, (unsigned int)initial_volumes_count);
+    // colors travels by feedrate
 
-    if (print.gcode_preview.extrusion.view_type == GCodeAnalyzer::PreviewData::Extrusion::Feedrate)
+    // detects feedrates
+    FeedratesList feedrates;
+    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
     {
-        // colors travels by feedrate
-
-        // detects feedrates
-        FeedratesList feedrates;
-        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
-        {
-            if (std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate)) == feedrates.end())
-                feedrates.emplace_back(polyline.feedrate);
-        }
-
-        // nothing to render, return
-        if (feedrates.empty())
-            return;
-
-        // creates a new volume for each feedrate
-        for (Feedrate& feedrate : feedrates)
-        {
-            GLVolume* volume = new GLVolume(print.gcode_preview.get_extrusion_feedrate_color(feedrate.value).rgba);
-            if (volume != nullptr)
-            {
-                feedrate.volume = volume;
-                volumes.volumes.emplace_back(volume);
-            }
-            else
-            {
-                // an error occourred - restore to previous state and return
-                if (initial_volumes_count != volumes.volumes.size())
-                {
-                    std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
-                    std::vector<GLVolume*>::iterator end = volumes.volumes.end();
-                    for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
-                    {
-                        GLVolume* volume = *it;
-                        delete volume;
-                    }
-                    volumes.volumes.erase(begin, end);
-                    return;
-                }
-            }
-        }
-
-        // populates volumes
-        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
-        {
-            FeedratesList::iterator feedrate = std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate));
-            if (feedrate != feedrates.end())
-            {
-                feedrate->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
-                feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.quad_indices.size());
-                feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.triangle_indices.size());
-
-                polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *feedrate->volume);
-            }
-        }
+        if (std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate)) == feedrates.end())
+            feedrates.emplace_back(polyline.feedrate);
     }
-    else
+
+    // nothing to render, return
+    if (feedrates.empty())
+        return true;
+
+    // creates a new volume for each feedrate
+    for (Feedrate& feedrate : feedrates)
     {
-        // colors travels by travel type
-
-        // detects types
-        TypesList types;
-        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+        GLVolume* volume = new GLVolume(print.gcode_preview.get_extrusion_feedrate_color(feedrate.value).rgba);
+        if (volume == nullptr)
+            return false;
+        else
         {
-            if (std::find(types.begin(), types.end(), Type(polyline.type)) == types.end())
-                types.emplace_back(polyline.type);
-        }
-
-        // nothing to render, return
-        if (types.empty())
-            return;
-
-        // creates a new volume for each type
-        for (Type& type : types)
-        {
-            GLVolume* volume = new GLVolume(print.gcode_preview.travel.type_colors[type.value].rgba);
-            if (volume != nullptr)
-            {
-                type.volume = volume;
-                volumes.volumes.emplace_back(volume);
-            }
-            else
-            {
-                // an error occourred - restore to previous state and return
-                if (initial_volumes_count != volumes.volumes.size())
-                {
-                    std::vector<GLVolume*>::iterator begin = volumes.volumes.begin() + initial_volumes_count;
-                    std::vector<GLVolume*>::iterator end = volumes.volumes.end();
-                    for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
-                    {
-                        GLVolume* volume = *it;
-                        delete volume;
-                    }
-                    volumes.volumes.erase(begin, end);
-                    return;
-                }
-            }
-        }
-
-        // populates volumes
-        for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
-        {
-            TypesList::iterator type = std::find(types.begin(), types.end(), Type(polyline.type));
-            if (type != types.end())
-            {
-                type->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
-                type->volume->offsets.push_back(type->volume->indexed_vertex_array.quad_indices.size());
-                type->volume->offsets.push_back(type->volume->indexed_vertex_array.triangle_indices.size());
-
-                polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *type->volume);
-            }
+            feedrate.volume = volume;
+            volumes.volumes.emplace_back(volume);
         }
     }
 
-    // finalize volumes and sends geometry to gpu
-    if (volumes.volumes.size() > initial_volumes_count)
+    // populates volumes
+    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
     {
-        for (size_t i = initial_volumes_count; i < volumes.volumes.size(); ++i)
+        FeedratesList::iterator feedrate = std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate));
+        if (feedrate != feedrates.end())
         {
-            GLVolume* volume = volumes.volumes[i];
-            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-            volume->indexed_vertex_array.finalize_geometry(use_VBOs);
+            feedrate->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+            feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.quad_indices.size());
+            feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.triangle_indices.size());
+
+            polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *feedrate->volume);
         }
     }
+
+    return true;
+}
+
+bool _3DScene::_travel_paths_by_tool(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors)
+{
+    // Helper structure for tool
+    struct Tool
+    {
+        unsigned int value;
+        GLVolume* volume;
+
+        explicit Tool(unsigned int value)
+            : value(value)
+            , volume(nullptr)
+        {
+        }
+
+        bool operator == (const Tool& other) const
+        {
+            return value == other.value;
+        }
+    };
+
+    typedef std::vector<Tool> ToolsList;
+
+    // colors travels by tool
+
+    // detects tools
+    ToolsList tools;
+    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    {
+        if (std::find(tools.begin(), tools.end(), Tool(polyline.extruder_id)) == tools.end())
+            tools.emplace_back(polyline.extruder_id);
+    }
+
+    // nothing to render, return
+    if (tools.empty())
+        return true;
+
+    // creates a new volume for each tool
+    for (Tool& tool : tools)
+    {
+        GLVolume* volume = new GLVolume(tool_colors.data() + tool.value * 4);
+        if (volume == nullptr)
+            return false;
+        else
+        {
+            tool.volume = volume;
+            volumes.volumes.emplace_back(volume);
+        }
+    }
+
+    // populates volumes
+    for (const GCodeAnalyzer::PreviewData::Travel::Polyline& polyline : print.gcode_preview.travel.polylines)
+    {
+        ToolsList::iterator tool = std::find(tools.begin(), tools.end(), Tool(polyline.extruder_id));
+        if (tool != tools.end())
+        {
+            tool->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+            tool->volume->offsets.push_back(tool->volume->indexed_vertex_array.quad_indices.size());
+            tool->volume->offsets.push_back(tool->volume->indexed_vertex_array.triangle_indices.size());
+
+            polyline3_to_verts(polyline.polyline, print.gcode_preview.travel.width, print.gcode_preview.travel.height, *tool->volume);
+        }
+    }
+
+    return true;
 }
 
 void _3DScene::_load_gcode_retractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
@@ -2128,9 +2219,9 @@ void _3DScene::_update_gcode_volumes_visibility(const Print& print, GLVolumeColl
     }
 }
 
-void _3DScene::_generate_legend_texture(const Print& print)
+void _3DScene::_generate_legend_texture(const Print& print, const std::vector<float>& tool_colors)
 {
-    s_legend_texture.generate_texture(print);
+    s_legend_texture.generate_texture(print, tool_colors);
 }
 
 }

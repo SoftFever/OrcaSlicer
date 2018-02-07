@@ -17,7 +17,6 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
     $self->{config} = $config;
     $self->{number_extruders} = 1;
-    $self->{preferred_color_mode} = 'feature';
     $self->auto_zoom(1);
 
     # init GUI elements
@@ -57,9 +56,7 @@ sub new {
     $z_label_high->SetFont($Slic3r::GUI::small_font);
 
     $self->single_layer(0);
-    $self->{color_by_extruder} = 0;
     my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
-    my $checkbox_color_by_extruder = $self->{checkbox_color_by_extruder} = Wx::CheckBox->new($self, -1, "Tool");
     
     my $label_view_type = $self->{label_view_type} = Wx::StaticText->new($self, -1, "View");
     
@@ -68,6 +65,7 @@ sub new {
     $choice_view_type->Append("Height");
     $choice_view_type->Append("Width");
     $choice_view_type->Append("Speed");
+    $choice_view_type->Append("Tool");
     $choice_view_type->SetSelection(0);
 
     my $label_show_features = $self->{label_show_features} = Wx::StaticText->new($self, -1, "Show");
@@ -96,7 +94,6 @@ sub new {
     $hsizer->Add($vsizer, 0, wxEXPAND, 0);
     $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer_outer->Add($checkbox_singlelayer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
-    $vsizer_outer->Add($checkbox_color_by_extruder, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
 
     my $bottom_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $bottom_sizer->Add($label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
@@ -188,12 +185,6 @@ sub new {
             $self->set_z_idx_high($slider_high->GetValue);
         }
     });
-    EVT_CHECKBOX($self, $checkbox_color_by_extruder, sub {
-        $self->{color_by_extruder} = $checkbox_color_by_extruder->GetValue();
-        $self->{preferred_color_mode} = $self->{color_by_extruder} ? 'tool' : 'feature';
-        $self->reload_print;
-    });
-    
     EVT_CHOICE($self, $choice_view_type, sub {
         my $selection = $choice_view_type->GetCurrentSelection();
         $self->print->set_gcode_preview_type($selection);
@@ -322,33 +313,19 @@ sub load_print {
     $self->slider_high->Show;
     $self->Layout;
 
-    my $by_tool = $self->{color_by_extruder};
-    if ($self->{preferred_color_mode} eq 'tool_or_feature') {
-        # It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
-        # Color by feature if it is a single extruder print.
-        my $extruders = $self->{print}->extruders;
-        $by_tool = scalar(@{$extruders}) > 1;
-        $self->{color_by_extruder} = $by_tool;
-        $self->{checkbox_color_by_extruder}->SetValue($by_tool);
-        $self->{preferred_color_mode} = 'tool_or_feature';
-    }
-
     # Collect colors per extruder.
-    # Leave it empty, if the print should be colored by a feature.
     my @colors = ();
-    if ($by_tool) {
-        my @extruder_colors = @{$self->{config}->extruder_colour};
-        my @filament_colors = @{$self->{config}->filament_colour};
-        for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
-            my $color = $extruder_colors[$i];
-            $color = $filament_colors[$i] if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
-            $color = '#FFFFFF' if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
-            push @colors, $color;
-        }
+    my @extruder_colors = @{$self->{config}->extruder_colour};
+    my @filament_colors = @{$self->{config}->filament_colour};
+    for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
+        my $color = $extruder_colors[$i];
+        $color = $filament_colors[$i] if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
+        $color = '#FFFFFF' if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
+        push @colors, $color;
     }
 
     if ($self->IsShown) {
-        $self->canvas->load_gcode_preview($self->print);
+        $self->canvas->load_gcode_preview($self->print, \@colors);
 
 #        # load skirt and brim
 #        $self->canvas->load_print_toolpaths($self->print, \@colors);
@@ -417,10 +394,6 @@ sub set_number_extruders {
     my ($self, $number_extruders) = @_;
     if ($self->{number_extruders} != $number_extruders) {
         $self->{number_extruders} = $number_extruders;
-        my $by_tool = $number_extruders > 1;
-        $self->{color_by_extruder} = $by_tool;
-        $self->{checkbox_color_by_extruder}->SetValue($by_tool);
-        $self->{preferred_color_mode} = $by_tool ? 'tool_or_feature' : 'feature';
     }
 }
 

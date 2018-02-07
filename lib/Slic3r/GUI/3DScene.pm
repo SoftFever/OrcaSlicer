@@ -2029,10 +2029,10 @@ sub load_wipe_tower_toolpaths {
 }
 
 sub load_gcode_preview {
-    my ($self, $print) = @_;
+    my ($self, $print, $colors) = @_;
 
     $self->SetCurrent($self->GetContext) if $self->UseVBOs;
-    Slic3r::GUI::_3DScene::load_gcode_preview($print, $self->volumes, $self->UseVBOs);
+    Slic3r::GUI::_3DScene::load_gcode_preview($print, $self->volumes, $colors, $self->UseVBOs);
 }
 
 sub set_toolpaths_range {

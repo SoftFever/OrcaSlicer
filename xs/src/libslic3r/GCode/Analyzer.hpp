@@ -152,6 +152,7 @@ public:
                 Height,
                 Width,
                 Feedrate,
+                Tool,
                 Num_View_Types
             };
 
@@ -216,9 +217,10 @@ public:
                 EType type;
                 EDirection direction;
                 float feedrate;
+                unsigned int extruder_id;
                 Polyline3 polyline;
 
-                Polyline(EType type, EDirection direction, float feedrate, const Polyline3& polyline);
+                Polyline(EType type, EDirection direction, float feedrate, unsigned int extruder_id, const Polyline3& polyline);
             };
 
             typedef std::vector<Polyline> PolylinesList;
@@ -270,7 +272,7 @@ public:
         const Color& get_extrusion_feedrate_color(float feedrate) const;
 
         std::string get_legend_title() const;
-        LegendItemsList get_legend_items() const;
+        LegendItemsList get_legend_items(const std::vector<float>& tool_colors) const;
     };
 
 private:

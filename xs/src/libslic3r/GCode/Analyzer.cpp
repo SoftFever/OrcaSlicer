@@ -122,10 +122,11 @@ GCodeAnalyzer::PreviewData::Extrusion::Layer::Layer(float z, const ExtrusionPath
 {
 }
 
-GCodeAnalyzer::PreviewData::Travel::Polyline::Polyline(EType type, EDirection direction, float feedrate, const Polyline3& polyline)
+GCodeAnalyzer::PreviewData::Travel::Polyline::Polyline(EType type, EDirection direction, float feedrate, unsigned int extruder_id, const Polyline3& polyline)
     : type(type)
     , direction(direction)
     , feedrate(feedrate)
+    , extruder_id(extruder_id)
     , polyline(polyline)
 {
 }
@@ -352,12 +353,14 @@ std::string GCodeAnalyzer::PreviewData::get_legend_title() const
         return "Width (mm)";
     case Extrusion::Feedrate:
         return "Speed (mm/s)";
+    case Extrusion::Tool:
+        return "Tool";
     }
 
     return "";
 }
 
-GCodeAnalyzer::PreviewData::LegendItemsList GCodeAnalyzer::PreviewData::get_legend_items() const
+GCodeAnalyzer::PreviewData::LegendItemsList GCodeAnalyzer::PreviewData::get_legend_items(const std::vector<float>& tool_colors) const
 {
     struct Helper
     {
@@ -401,6 +404,23 @@ GCodeAnalyzer::PreviewData::LegendItemsList GCodeAnalyzer::PreviewData::get_lege
     case Extrusion::Feedrate:
         {
             Helper::FillListFromRange(items, extrusion.ranges.feedrate, 0, 1.0f);
+            break;
+        }
+    case Extrusion::Tool:
+        {
+            unsigned int tools_colors_count = tool_colors.size() / 4;
+            items.reserve(tools_colors_count);
+            for (unsigned int i = 0; i < tools_colors_count; ++i)
+            {
+                char buf[32];
+                sprintf(buf, "Extruder %d", i + 1);
+
+                GCodeAnalyzer::PreviewData::Color color;
+                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
+
+                items.emplace_back(buf, color);
+            }
+
             break;
         }
     }
@@ -693,9 +713,8 @@ void GCodeAnalyzer::_processT(const GCodeReader::GCodeLine& line)
     std::string cmd = line.cmd();
     if (cmd.length() > 1)
     {
-        int id = (int)::strtol(cmd.substr(1).c_str(), nullptr, 10);
-        // todo - add id validity check ?
-        if (_get_extruder_id() != (unsigned int)id)
+        unsigned int id = (unsigned int)::strtol(cmd.substr(1).c_str(), nullptr, 10);
+        if (_get_extruder_id() != id)
         {
             _set_extruder_id(id);
 
@@ -947,6 +966,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
                 ExtrusionPath path(data.extrusion_role, data.mm3_per_mm, data.width, data.height);
                 path.polyline = polyline;
                 path.feedrate = data.feedrate;
+                path.extruder_id = data.extruder_id;
 
                 get_layer_at_z(print.gcode_preview.extrusion.layers, z).paths.push_back(path);
             }
@@ -1010,11 +1030,11 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
 {
     struct Helper
     {
-        static void store_polyline(const Polyline3& polyline, PreviewData::Travel::EType type, PreviewData::Travel::Polyline::EDirection direction, float feedrate, Print& print)
+        static void store_polyline(const Polyline3& polyline, PreviewData::Travel::EType type, PreviewData::Travel::Polyline::EDirection direction, float feedrate, unsigned int extruder_id, Print& print)
         {
             // if the polyline is valid, store it
             if (polyline.is_valid())
-                print.gcode_preview.travel.polylines.emplace_back(type, direction, feedrate, polyline);
+                print.gcode_preview.travel.polylines.emplace_back(type, direction, feedrate, extruder_id, polyline);
         }
     };
 
@@ -1027,6 +1047,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
     PreviewData::Travel::EType type = PreviewData::Travel::Num_Types;
     PreviewData::Travel::Polyline::EDirection direction = PreviewData::Travel::Polyline::Num_Directions;
     float feedrate = FLT_MAX;
+    unsigned int extruder_id = -1;
 
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : travel_moves->second)
@@ -1034,11 +1055,11 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
         PreviewData::Travel::EType move_type = (move.delta_extruder < 0.0f) ? PreviewData::Travel::Retract : ((move.delta_extruder > 0.0f) ? PreviewData::Travel::Extrude : PreviewData::Travel::Move);
         PreviewData::Travel::Polyline::EDirection move_direction = ((move.start_position.x != move.end_position.x) || (move.start_position.y != move.end_position.y)) ? PreviewData::Travel::Polyline::Generic : PreviewData::Travel::Polyline::Vertical;
 
-        if ((type != move_type) || (direction != move_direction) || (feedrate != move.data.feedrate) || (position != move.start_position))
+        if ((type != move_type) || (direction != move_direction) || (feedrate != move.data.feedrate) || (position != move.start_position) || (extruder_id != move.data.extruder_id))
         {
             // store current polyline
             polyline.remove_duplicate_points();
-            Helper::store_polyline(polyline, type, direction, feedrate, print);
+            Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, print);
 
             // reset current polyline
             polyline = Polyline3();
@@ -1055,11 +1076,12 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
         position = move.end_position;
         type = move_type;
         feedrate = move.data.feedrate;
+        extruder_id = move.data.extruder_id;
     }
 
     // store last polyline
     polyline.remove_duplicate_points();
-    Helper::store_polyline(polyline, type, direction, feedrate, print);
+    Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, print);
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_retractions(Print& print)
