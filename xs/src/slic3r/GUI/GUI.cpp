@@ -35,6 +35,10 @@
 #include "Tab.hpp"
 #include "TabIface.hpp"
 #include "AppConfig.hpp"
+//#include <wx/config.h>
+#include <wx/dir.h>
+#include <wx/filename.h>
+#include "Utils.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -162,6 +166,9 @@ wxApp       *g_wxApp        = nullptr;
 wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
 
+wxLocale*		m_Locale;
+std::string		m_local_dir;
+
 void set_wxapp(wxApp *app)
 {
     g_wxApp = app;
@@ -177,13 +184,122 @@ void set_tab_panel(wxNotebook *tab_panel)
     g_wxTabPanel = tab_panel;
 }
 
+bool select_language(wxArrayString & names,
+	wxArrayLong & identifiers)
+{
+	wxCHECK_MSG(names.Count() == identifiers.Count(), false,
+		_L("Array of language names and identifiers should have the same size."));
+	long index = wxGetSingleChoiceIndex(_L("Select the language"),
+		_L("Language"), names);
+	if (index != -1)
+	{
+		m_Locale = new wxLocale;
+		m_Locale->Init(identifiers[index]);
+		m_Locale->AddCatalogLookupPathPrefix(wxPathOnly(m_local_dir));
+		wxLogTrace(wxTraceMask(),
+			_L("Slic3rPE: Path Prefix = \"%s\""),
+			wxPathOnly(m_local_dir).GetData());
+		m_Locale->AddCatalog(g_wxApp->GetAppName());
+		wxLogTrace(wxTraceMask(),
+			_L("Slic3rPE: Catalog Name = \"%s\""),
+			g_wxApp->GetAppName().GetData());
+		return true;
+	}
+	return false;
+}
+
+bool load_language()
+{
+// 	wxConfig config(g_wxApp->GetAppName());
+	long language;
+// 	if (!config.Read(wxT("wxTranslation_Language"),
+// 		&language, wxLANGUAGE_UNKNOWN))
+// 	{
+		language = wxLANGUAGE_UKRAINIAN;// wxLANGUAGE_UNKNOWN;
+// 	}
+// 	if (language == wxLANGUAGE_UNKNOWN) return false;
+	wxArrayString names;
+	wxArrayLong identifiers;
+	get_installed_languages(names, identifiers);
+	for (size_t i = 0; i < identifiers.Count(); i++)
+	{
+		if (identifiers[i] == language)
+		{
+			m_Locale = new wxLocale;
+			m_Locale->Init(identifiers[i]);
+			m_Locale->AddCatalogLookupPathPrefix(wxPathOnly(m_local_dir));
+			m_Locale->AddCatalog(g_wxApp->GetAppName());
+			return true;
+		}
+	}
+	return false;
+}
+
+void save_language(bool bReset)
+{
+//	wxConfig config(g_wxApp->GetAppName());
+	long language = wxLANGUAGE_UNKNOWN;
+	if (!bReset)
+	{
+		if (m_Locale)
+		{
+			language = m_Locale->GetLanguage();
+		}
+	}
+// 	config.Write(wxT("wxTranslation_Language"), language);
+// 	config.Flush();
+}
+
+void get_installed_languages(wxArrayString & names,
+	wxArrayLong & identifiers)
+{
+	names.Clear();
+	identifiers.Clear();
+	m_local_dir = localization_dir();
+
+	wxDir dir(wxPathOnly(m_local_dir));
+	wxString filename;
+	const wxLanguageInfo * langinfo;
+	wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
+	if (!name.IsEmpty())
+	{
+		names.Add(_L("Default"));
+		identifiers.Add(wxLANGUAGE_DEFAULT);
+	}
+	for (bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_DIRS);
+		cont; cont = dir.GetNext(&filename))
+	{
+		wxLogTrace(wxTraceMask(),
+			"L10n: Directory found = \"%s\"",
+			filename.GetData());
+		langinfo = wxLocale::FindLanguageInfo(filename);
+		if (langinfo != NULL)
+		{
+			auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
+				filename + wxFileName::GetPathSeparator() +
+				g_wxApp->GetAppName() + wxT(".mo");
+			if (wxFileExists(full_file_name))
+			{
+				names.Add(langinfo->Description);
+				identifiers.Add(langinfo->Language);
+			}
+		}
+	}
+}
+
 void add_debug_menu(wxMenuBar *menu)
 {
-#if 0
-    auto debug_menu = new wxMenu();
-    debug_menu->Append(wxWindow::NewControlId(1), "Some debug");
-    menu->Append(debug_menu, _T("&Debug"));
-#endif
+//#if 0
+    auto local_menu = new wxMenu();
+	local_menu->Append(wxWindow::NewControlId(1), _L("Change Application Language"));
+	local_menu->Bind(wxEVT_MENU, [](wxEvent&){
+		wxArrayString names;
+		wxArrayLong identifiers;
+		get_installed_languages(names, identifiers);
+		select_language(names, identifiers);
+	});
+	menu->Append(local_menu, _T("&Localization"));
+//#endif
 }
 
 void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config,
@@ -315,12 +431,12 @@ void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_con
 }
 
 void show_error(wxWindow* parent, wxString message){
-	auto msg_wingow = new wxMessageDialog(parent, message, "Error", wxOK | wxICON_ERROR);
+	auto msg_wingow = new wxMessageDialog(parent, message, _L("Error"), wxOK | wxICON_ERROR);
 	msg_wingow->ShowModal();
 }
 
 void show_info(wxWindow* parent, wxString message, wxString title){
-	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? "Notice" : title, wxOK | wxICON_INFORMATION);
+	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? _L("Notice") : title, wxOK | wxICON_INFORMATION);
 	msg_wingow->ShowModal();
 }
 

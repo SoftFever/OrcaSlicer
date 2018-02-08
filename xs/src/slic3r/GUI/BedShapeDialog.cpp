@@ -8,18 +8,12 @@
 #include <wx/numformatter.h>
 #include "Model.hpp"
 #include "boost/nowide/iostream.hpp"
-#include <wx/config.h>
-#include <wx/dir.h>
-#include <wx/filename.h>
-#include "Utils.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
 void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 {
-	m_App = get_app();
-	LoadLanguage();
 	m_panel = new BedShapePanel(this);
 	m_panel->build_panel(default_pt);
 
@@ -36,70 +30,6 @@ void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 		EndModal(wxID_OK);
 		Destroy();
 	}));
-}
-
-bool BedShapeDialog::LoadLanguage()
-{
-//	wxConfigBase config(m_App->GetAppName());
-	long language;
-// 	if (!config.Read(wxT("wxTranslation_Language"),
-// 		&language, wxLANGUAGE_UNKNOWN))
-// 	{
-	language = wxLANGUAGE_UKRAINIAN;// wxLANGUAGE_UNKNOWN;
-// 	}
-// 	if (language == wxLANGUAGE_UNKNOWN) return false;
-	wxArrayString names;
-	wxArrayLong identifiers;
-	GetInstalledLanguages(names, identifiers);
-	for (size_t i = 0; i < identifiers.Count(); i++)
-	{
-		if (identifiers[i] == language)
-		{
- 			m_Locale = new wxLocale;
-			m_Locale->Init(identifiers[i]);
-			m_Locale->AddCatalogLookupPathPrefix(wxPathOnly(m_local_dir));
-			m_Locale->AddCatalog(m_App->GetAppName());
-			return true;
-		}
-	}
-	return false;
-}
-
-void BedShapeDialog::GetInstalledLanguages(wxArrayString & names,
-	wxArrayLong & identifiers)
-{
-	names.Clear();
-	identifiers.Clear();
-	m_local_dir = localization_dir();
-
-	wxDir dir(wxPathOnly(m_local_dir));
-	wxString filename;
-	const wxLanguageInfo * langinfo;
-	wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
-	if (!name.IsEmpty())
-	{
-		names.Add(_L("Default"));
-		identifiers.Add(wxLANGUAGE_DEFAULT);
-	}
-	for (bool cont = dir.GetFirst(&filename, wxEmptyString/*wxT("*.*")*/, wxDIR_DIRS);
-		cont; cont = dir.GetNext(&filename))
-	{
-		wxLogTrace(wxTraceMask(),
-			_L("L10n: Directory found = \"%s\""),
-			filename.GetData());
-		langinfo = wxLocale::FindLanguageInfo(filename);
-		if (langinfo != NULL)
-		{
-			auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
-				filename + wxFileName::GetPathSeparator() +
-				m_App->GetAppName() + wxT(".mo");
-			if (wxFileExists(full_file_name))
-			{
-				names.Add(langinfo->Description);
-				identifiers.Add(langinfo->Language);
-			}
-		}
-	}
 }
 
 void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)

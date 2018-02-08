@@ -11,6 +11,8 @@ class wxWindow;
 class wxMenuBar;
 class wxNotebook;
 class wxString;
+class wxArrayString;
+class wxArrayLong;
 
 namespace Slic3r { 
 
@@ -72,7 +74,14 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 void show_error(wxWindow* parent, wxString message);
 void show_info(wxWindow* parent, wxString message, wxString title);
 
-wxApp* get_app();
+// load language saved at application config 
+bool load_language();
+// save language at application config 
+void save_language(bool bReset);
+// get list of installed languages 
+void get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
+// select language from the list of installed languages
+bool select_language(wxArrayString & names, wxArrayLong & identifiers);
 
 } }
 

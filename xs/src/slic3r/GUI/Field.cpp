@@ -32,9 +32,9 @@ namespace Slic3r { namespace GUI {
 		wxString tooltip_text("");
 		wxString tooltip = wxString::FromUTF8(m_opt.tooltip.c_str());
 		if (tooltip.length() > 0)
-			tooltip_text = boost::iends_with(m_opt_id, "_gcode") ?
-						tooltip + "(" + _L("default") + ": \n" + default_string + ")" : 
-						tooltip + "(" + _L("default") + ": " + default_string + ")";
+			tooltip_text = tooltip + "(" + _L("default") + ": " +
+							(boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + 
+							default_string + ")";
 
 		return tooltip_text;
 	}

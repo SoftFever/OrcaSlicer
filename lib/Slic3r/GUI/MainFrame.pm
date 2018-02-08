@@ -410,9 +410,11 @@ sub _init_menubar {
         $menubar->Append($self->{object_menu}, "&Object") if $self->{object_menu};
         $menubar->Append($windowMenu, "&Window");
         $menubar->Append($self->{viewMenu}, "&View") if $self->{viewMenu};
-        $menubar->Append($helpMenu, "&Help");
-        # Add an optional debug menu. In production code, the add_debug_menu() call should do nothing.
+        # Add an optional debug menu 
+        # (Select application language from the list of installed languages)
+        # In production code, the add_debug_menu() call should do nothing.
         Slic3r::GUI::add_debug_menu($menubar);
+        $menubar->Append($helpMenu, "&Help");
         $self->SetMenuBar($menubar);
     }
 }
