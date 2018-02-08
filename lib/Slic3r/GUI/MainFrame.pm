@@ -244,6 +244,9 @@ sub _init_menubar {
         $self->_append_menu_item($self->{plater_menu}, "Export plate as AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
         }, undef, 'brick_go.png');
+        $self->_append_menu_item($self->{plater_menu}, "Export plate as 3MF...", 'Export current plate as 3MF', sub {
+            $plater->export_3mf;
+        }, undef, 'brick_go.png');
         
         $self->{object_menu} = $self->{plater}->object_menu;
         $self->on_plater_selection_changed(0);

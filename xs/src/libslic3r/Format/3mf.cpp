@@ -5,13 +5,18 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/nowide/fstream.hpp>
 
 #include <expat.h>
 #include <eigen/dense>
 #include <miniz/miniz_zip.h>
 
-const std::string MODEL_FOLDER = "3d\\";
+const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
+const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
+const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
+const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 
 const char* MODEL_TAG = "model";
 const char* RESOURCES_TAG = "resources";
@@ -380,9 +385,12 @@ namespace Slic3r {
             {
                 std::string name(stat.m_filename);
                 std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
-                std::replace(name.begin(), name.end(), '/', '\\');
+                std::replace(name.begin(), name.end(), '\\', '/');
 
-                if ((name.find(MODEL_FOLDER) == 0) && (name.rfind(MODEL_EXTENSION) == name.length() - MODEL_EXTENSION.length()))
+                std::string lc_model_folder(MODEL_FOLDER);
+                std::transform(lc_model_folder.begin(), lc_model_folder.end(), lc_model_folder.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
+
+                if ((name.find(lc_model_folder) == 0) && (name.rfind(MODEL_EXTENSION) == name.length() - MODEL_EXTENSION.length()))
                 {
                     if (!_extract_model_from_archive_miniz(archive, stat))
                     {
@@ -971,7 +979,326 @@ namespace Slic3r {
             importer->_handle_end_xml_element(name);
     }
 
-    bool load_3mf(const char* path, Model* model, const char* object_name)
+    class _3MF_Exporter
+    {
+        struct BuildItem
+        {
+            unsigned int id;
+            Matrix4x4 matrix;
+
+            BuildItem(unsigned int id, const Matrix4x4& matrix);
+        };
+
+        typedef std::vector<BuildItem> BuildItemsList;
+
+        std::vector<std::string> m_errors;
+
+    public:
+        bool save_model_to_file(const std::string& filename, Model& model);
+
+        const std::vector<std::string>& get_errors() const;
+
+    private:
+        bool _save_model_to_file_miniz(const std::string& filename, Model& model);
+        bool _add_content_types_file_to_archive_miniz(mz_zip_archive& archive);
+        bool _add_relationships_file_to_archive_miniz(mz_zip_archive& archive);
+        bool _add_model_file_to_archive_miniz(mz_zip_archive& archive, Model& model);
+        bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items);
+        bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object);
+        bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
+    };
+
+    _3MF_Exporter::BuildItem::BuildItem(unsigned int id, const Matrix4x4& matrix)
+        : id(id)
+        , matrix(matrix)
+    {
+    }
+
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model)
+    {
+        return _save_model_to_file_miniz(filename, model);
+    }
+
+    const std::vector<std::string>& _3MF_Exporter::get_errors() const
+    {
+        return m_errors;
+    }
+
+    bool _3MF_Exporter::_save_model_to_file_miniz(const std::string& filename, Model& model)
+    {
+        mz_zip_archive archive;
+        mz_zip_zero_struct(&archive);
+
+        mz_bool res = mz_zip_writer_init_file(&archive, filename.c_str(), 0);
+        if (res == 0)
+        {
+            m_errors.push_back("Unable to open the file");
+            return false;
+        }
+
+        // adds content types file
+        if (!_add_content_types_file_to_archive_miniz(archive))
+        {
+            mz_zip_writer_end(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // adds relationships file
+        if (!_add_relationships_file_to_archive_miniz(archive))
+        {
+            mz_zip_writer_end(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // adds model file
+        if (!_add_model_file_to_archive_miniz(archive, model))
+        {
+            mz_zip_writer_end(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        if (!mz_zip_writer_finalize_archive(&archive))
+        {
+            mz_zip_writer_end(&archive);
+            boost::filesystem::remove(filename);
+            m_errors.push_back("Unable to finalize the archive");
+            return false;
+        }
+
+        mz_zip_writer_end(&archive);
+
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_content_types_file_to_archive_miniz(mz_zip_archive& archive)
+    {
+        std::stringstream stream;
+        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        stream << "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n";
+        stream << " <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\" />\n";
+        stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\" />\n";
+        stream << "</Types>";
+
+        std::string out = stream.str();
+
+        if (!mz_zip_writer_add_mem(&archive, CONTENT_TYPES_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        {
+            m_errors.push_back("Unable to add content types file to archive");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_relationships_file_to_archive_miniz(mz_zip_archive& archive)
+    {
+        std::stringstream stream;
+        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        stream << "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
+        stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" />\n";
+        stream << "</Relationships>";
+
+        std::string out = stream.str();
+
+        if (!mz_zip_writer_add_mem(&archive, RELATIONSHIPS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        {
+            m_errors.push_back("Unable to add relationships file to archive");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_model_file_to_archive_miniz(mz_zip_archive& archive, Model& model)
+    {
+        std::stringstream stream;
+        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        stream << "<model unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">\n";
+        stream << " <resources>\n";
+
+        BuildItemsList build_items;
+
+        unsigned int object_id = 1;
+        for (ModelObject* obj : model.objects)
+        {
+            if (obj == nullptr)
+                continue;
+
+            if (!_add_object_to_model_stream(stream, object_id, *obj, build_items))
+            {
+                m_errors.push_back("Unable to add object to archive");
+                return false;
+            }
+        }
+
+
+        stream << " </resources>\n";
+
+        if (!_add_build_to_model_stream(stream, build_items))
+        {
+            m_errors.push_back("Unable to add build to archive");
+            return false;
+        }
+
+        stream << "</model>\n";
+
+        std::string out = stream.str();
+
+        if (!mz_zip_writer_add_mem(&archive, MODEL_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        {
+            m_errors.push_back("Unable to add model file to archive");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items)
+    {
+        unsigned int id = 0;
+        for (const ModelInstance* instance : object.instances)
+        {
+            if (instance == nullptr)
+                continue;
+
+            unsigned int instance_id = object_id + id;
+            stream << "  <object id=\"" << instance_id << "\" type=\"model\">\n";
+
+            if (id == 0)
+            {
+                if (!_add_mesh_to_object_stream(stream, object))
+                {
+                    m_errors.push_back("Unable to add mesh to archive");
+                    return false;
+                }
+            }
+            else
+            {
+                stream << "   <components>\n";
+                stream << "    <component objectid=\"" << object_id << "\" />\n";
+                stream << "   </components>\n";
+            }
+
+            Eigen::Affine3f transform;
+            transform = Eigen::Translation3f((float)(instance->offset.x + object.origin_translation.x), (float)(instance->offset.y + object.origin_translation.y), (float)object.origin_translation.z)
+                        * Eigen::AngleAxisf((float)instance->rotation, Eigen::Vector3f::UnitZ())
+                        * Eigen::Scaling((float)instance->scaling_factor);
+            build_items.emplace_back(instance_id, transform.matrix());
+
+            stream << "  </object>\n";
+
+            ++id;
+        }
+
+        object_id += id;
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object)
+    {
+        stream << "   <mesh>\n";
+        stream << "    <vertices>\n";
+
+        typedef std::map<ModelVolume*, unsigned int> VolumeToOffsetMap; 
+        VolumeToOffsetMap volumes_offset;
+        unsigned int vertices_count = 0;
+        for (ModelVolume* volume : object.volumes)
+        {
+            if (volume == nullptr)
+                continue;
+
+            volumes_offset.insert(VolumeToOffsetMap::value_type(volume, vertices_count));
+
+            if (!volume->mesh.repaired)
+                volume->mesh.repair();
+
+            stl_file& stl = volume->mesh.stl;
+            if (stl.v_shared == nullptr)
+                stl_generate_shared_vertices(&stl);
+
+            if (stl.stats.shared_vertices == 0)
+            {
+                m_errors.push_back("Found invalid mesh");
+                return false;
+            }
+
+            vertices_count += stl.stats.shared_vertices;
+
+            for (int i = 0; i < stl.stats.shared_vertices; ++i)
+            {
+                stream << "     <vertex ";
+                // Subtract origin_translation in order to restore the original local coordinates
+                stream << "x=\"" << (stl.v_shared[i].x - object.origin_translation.x) << "\" ";
+                stream << "y=\"" << (stl.v_shared[i].y - object.origin_translation.y) << "\" ";
+                stream << "z=\"" << (stl.v_shared[i].z - object.origin_translation.z) << "\" />\n";
+            }
+        }
+
+        stream << "    </vertices>\n";
+        stream << "    <triangles>\n";
+
+        for (ModelVolume* volume : object.volumes)
+        {
+            if (volume == nullptr)
+                continue;
+
+            VolumeToOffsetMap::const_iterator offset_it = volumes_offset.find(volume);
+            assert(offset_it != volumes_offset.end());
+
+            stl_file& stl = volume->mesh.stl;
+
+            for (uint32_t i = 0; i < stl.stats.number_of_facets; ++i)
+            {
+                stream << "     <triangle ";
+                for (int j = 0; j < 3; ++j)
+                {
+                    stream << "v" << j + 1 << "=\"" << stl.v_indices[i].vertex[j] + offset_it->second << "\" ";
+                }
+                stream << "/>\n";
+            }
+
+        }
+
+        stream << "    </triangles>\n";
+        stream << "   </mesh>\n";
+
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items)
+    {
+        if (build_items.size() == 0)
+        {
+            m_errors.push_back("No build item found");
+            return false;
+        }
+
+        stream << " <build>\n";
+
+        for (const BuildItem& item : build_items)
+        {
+            stream << "  <item objectid=\"" << item.id << "\" transform =\"";
+            for (unsigned c = 0; c < 4; ++c)
+            {
+                for (unsigned r = 0; r < 3; ++r)
+                {
+                    stream << item.matrix(r, c);
+                    if ((r != 2) || (c != 3))
+                        stream << " ";
+                }
+            }
+            stream << "\" />\n";
+        }
+
+        stream << " </build>\n";
+
+        return true;
+    }
+
+    bool load_3mf(const char* path, Model* model)
     {
         if ((path == nullptr) || (model == nullptr))
             return false;
@@ -980,11 +1307,23 @@ namespace Slic3r {
         bool res = importer.load_model_from_file(path, *model);
 
         if (!res)
-        {
             const std::vector<std::string>& errors = importer.get_errors();
-            int a = 0;
-        }
 
         return res;
     }
+
+    bool store_3mf(const char* path, Model* model)
+    {
+        if ((path == nullptr) || (model == nullptr))
+            return false;
+
+        _3MF_Exporter exporter;
+        bool res = exporter.save_model_to_file(path, *model);
+
+        if (!res)
+            const std::vector<std::string>& errors = exporter.get_errors();
+
+        return res;
+    }
+
 } // namespace Slic3r

@@ -6,6 +6,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Slicing.hpp"
 #include "libslic3r/Format/AMF.hpp"
+#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/PRUS.hpp"
 #include "libslic3r/Format/STL.hpp"
@@ -91,6 +92,8 @@
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
     bool store_amf(char *path)
         %code%{ RETVAL = Slic3r::store_amf(path, THIS); %};
+    bool store_3mf(char *path)
+        %code%{ RETVAL = Slic3r::store_3mf(path, THIS); %};
 
 %{
 
@@ -135,6 +138,19 @@ load_amf(CLASS, path)
     OUTPUT:
         RETVAL
 
+Model*
+load_3mf(CLASS, path)
+    char*           CLASS;
+    char*           path;
+    CODE:
+        RETVAL = new Model();
+        if (! load_3mf(path, RETVAL)) {
+            delete RETVAL;
+            RETVAL = NULL;
+        }
+    OUTPUT:
+        RETVAL
+        
 Model*
 load_prus(CLASS, path)
     char*           CLASS;

@@ -1550,11 +1550,39 @@ sub export_amf {
     $self->statusbar->SetStatusText("AMF file exported to $output_file");
 }
 
+sub export_3mf {
+    my ($self) = @_;
+    return if !@{$self->{objects}};
+    # Ask user for a file name to write into.
+    my $output_file = $self->_get_export_file('3MF') or return;
+    my $res = $self->{model}->store_3mf($output_file);
+    if ($res)
+    {
+        $self->statusbar->SetStatusText("3MF file exported to $output_file");
+    }
+    else
+    {
+        $self->statusbar->SetStatusText("Error exporting 3MF file $output_file");
+    }
+}
+
 # Ask user to select an output file for a given file format (STl, AMF, 3MF).
 # Propose a default file name based on the 'output_filename_format' configuration value.
 sub _get_export_file {
     my ($self, $format) = @_;    
-    my $suffix = $format eq 'STL' ? '.stl' : '.amf.xml';
+    my $suffix = '';
+    if ($format eq 'STL')
+    {
+        $suffix = '.stl';
+    }
+    elsif ($format eq 'AMF')
+    {
+        $suffix = '.amf.xml';
+    }
+    elsif ($format eq '3MF')
+    {
+        $suffix = '.3mf';
+    }
     my $output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
     Slic3r::GUI::catch_error($self) and return undef;
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
