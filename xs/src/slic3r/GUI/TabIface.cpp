@@ -13,7 +13,7 @@ bool	TabIface::current_preset_is_dirty()					{ return m_tab->current_preset_is_d
 void	TabIface::OnActivate()								{ return m_tab->OnActivate();}
 std::string					TabIface::title()				{ return m_tab->title().ToStdString();}
 DynamicPrintConfig*			TabIface::get_config()			{ return m_tab->get_config(); }
-PresetCollection*			TabIface::get_presets()			{ return m_tab->get_presets(); }
+PresetCollection*			TabIface::get_presets()			{ return m_tab!=nullptr ? m_tab->get_presets() : nullptr; }
 std::vector<std::string>	TabIface::get_dependent_tabs()	{ return m_tab->get_dependent_tabs(); }
 
 }; // namespace Slic3r

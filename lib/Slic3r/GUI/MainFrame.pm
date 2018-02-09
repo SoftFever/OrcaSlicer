@@ -47,6 +47,7 @@ sub new {
     $self->{no_controller} = $params{no_controller};
     $self->{no_plater} = $params{no_plater};
     $self->{loaded} = 0;
+    $self->{lang_ch_event} = $params{lang_ch_event};
     
     # initialize tabpanel and menubar
     $self->_init_tabpanel;
@@ -146,21 +147,23 @@ sub _init_tabpanel {
         if ($self->{plater}) {
             # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
             my $presets = $tab->get_presets;
-            my $reload_dependent_tabs = $tab->get_dependent_tabs;
-            $self->{plater}->update_presets($tab_name, $reload_dependent_tabs, $presets);
-            if ($tab_name eq 'printer') {
-                # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-                for my $tab_name_other (qw(print filament)) {
-                    # If the printer tells us that the print or filament preset has been switched or invalidated,
-                    # refresh the print or filament tab page. Otherwise just refresh the combo box.
-                    my $update_action = ($reload_dependent_tabs && (first { $_ eq $tab_name_other } (@{$reload_dependent_tabs}))) 
-                        ? 'load_current_preset' : 'update_tab_ui';
-                    $self->{options_tabs}{$tab_name_other}->$update_action;
+            if (defined $presets){
+                my $reload_dependent_tabs = $tab->get_dependent_tabs;
+                $self->{plater}->update_presets($tab_name, $reload_dependent_tabs, $presets);
+                if ($tab_name eq 'printer') {
+                    # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
+                    for my $tab_name_other (qw(print filament)) {
+                        # If the printer tells us that the print or filament preset has been switched or invalidated,
+                        # refresh the print or filament tab page. Otherwise just refresh the combo box.
+                        my $update_action = ($reload_dependent_tabs && (first { $_ eq $tab_name_other } (@{$reload_dependent_tabs}))) 
+                            ? 'load_current_preset' : 'update_tab_ui';
+                        $self->{options_tabs}{$tab_name_other}->$update_action;
+                    }
+                    # Update the controller printers.
+                    $self->{controller}->update_presets($presets) if $self->{controller};
                 }
-                # Update the controller printers.
-                $self->{controller}->update_presets($presets) if $self->{controller};
+                $self->{plater}->on_config_change($tab->get_config);
             }
-            $self->{plater}->on_config_change($tab->get_config);
         }
     });
     # The following event is emited by the C++ Tab implementation ,
@@ -413,7 +416,7 @@ sub _init_menubar {
         # Add an optional debug menu 
         # (Select application language from the list of installed languages)
         # In production code, the add_debug_menu() call should do nothing.
-        Slic3r::GUI::add_debug_menu($menubar);
+        Slic3r::GUI::add_debug_menu($menubar, $self->{lang_ch_event});
         $menubar->Append($helpMenu, "&Help");
         $self->SetMenuBar($menubar);
     }

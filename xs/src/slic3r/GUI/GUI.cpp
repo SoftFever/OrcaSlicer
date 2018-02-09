@@ -166,6 +166,8 @@ wxApp       *g_wxApp        = nullptr;
 wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
 
+std::vector<Tab *> g_tabs_list;
+
 wxLocale*		m_Locale;
 std::string		m_local_dir;
 
@@ -182,6 +184,26 @@ void set_main_frame(wxFrame *main_frame)
 void set_tab_panel(wxNotebook *tab_panel)
 {
     g_wxTabPanel = tab_panel;
+}
+
+std::vector<Tab *>& get_tabs_list()
+{
+	return g_tabs_list;
+}
+
+bool checked_tab(Tab* tab)
+{
+	bool ret = true;
+	if (find(g_tabs_list.begin(), g_tabs_list.end(), tab) == g_tabs_list.end())
+		ret = false;
+	return ret;
+}
+
+void delete_tab_from_list(Tab* tab)
+{
+	std::vector<Tab *>::iterator itr = find(g_tabs_list.begin(), g_tabs_list.end(), tab);
+	if (itr != g_tabs_list.end())
+		g_tabs_list.erase(itr);
 }
 
 bool select_language(wxArrayString & names,
@@ -214,10 +236,10 @@ bool load_language()
 	long language;
 // 	if (!config.Read(wxT("wxTranslation_Language"),
 // 		&language, wxLANGUAGE_UNKNOWN))
-// 	{
-		language = wxLANGUAGE_UKRAINIAN;// wxLANGUAGE_UNKNOWN;
-// 	}
-// 	if (language == wxLANGUAGE_UNKNOWN) return false;
+	{
+		language = wxLANGUAGE_ENGLISH_US;// wxLANGUAGE_UKRAINIAN;// wxLANGUAGE_UNKNOWN;
+	}
+	if (language == wxLANGUAGE_UNKNOWN) return false;
 	wxArrayString names;
 	wxArrayLong identifiers;
 	get_installed_languages(names, identifiers);
@@ -287,16 +309,22 @@ void get_installed_languages(wxArrayString & names,
 	}
 }
 
-void add_debug_menu(wxMenuBar *menu)
+void add_debug_menu(wxMenuBar *menu, int event_language_change)
 {
 //#if 0
     auto local_menu = new wxMenu();
 	local_menu->Append(wxWindow::NewControlId(1), _L("Change Application Language"));
-	local_menu->Bind(wxEVT_MENU, [](wxEvent&){
+	local_menu->Bind(wxEVT_MENU, [event_language_change](wxEvent&){
 		wxArrayString names;
 		wxArrayLong identifiers;
 		get_installed_languages(names, identifiers);
-		select_language(names, identifiers);
+		if (select_language(names, identifiers)){
+			show_info(g_wxTabPanel, "Application will be restarted", "Attention!");
+			if (event_language_change > 0) {
+				wxCommandEvent event(event_language_change);
+				g_wxApp->ProcessEvent(event);
+			}
+		}
 	});
 	menu->Append(local_menu, _T("&Localization"));
 //#endif

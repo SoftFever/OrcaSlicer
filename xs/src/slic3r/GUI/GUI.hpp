@@ -58,7 +58,7 @@ void set_wxapp(wxApp *app);
 void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
 
-void add_debug_menu(wxMenuBar *menu);
+void add_debug_menu(wxMenuBar *menu, int event_language_change);
 // Create a new preset tab (print, filament and printer),
 void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, 
 						bool no_controller, bool is_disabled_button_browse,	bool is_user_agent,
@@ -82,6 +82,10 @@ void save_language(bool bReset);
 void get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
 // select language from the list of installed languages
 bool select_language(wxArrayString & names, wxArrayLong & identifiers);
+
+std::vector<Tab *>& get_tabs_list();
+bool checked_tab(Tab* tab);
+void delete_tab_from_list(Tab* tab);
 
 } }
 

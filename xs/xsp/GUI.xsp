@@ -32,8 +32,8 @@ void set_main_frame(SV *ui)
 void set_tab_panel(SV *ui)
     %code%{ Slic3r::GUI::set_tab_panel((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook")); %};
 
-void add_debug_menu(SV *ui)
-    %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar")); %};
+void add_debug_menu(SV *ui, int event_language_change)
+    %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_language_change); %};
 
 void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, 
                         bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
@@ -46,3 +46,6 @@ void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config,
 
 Ref<TabIface> get_preset_tab(char *name)
     %code%{ RETVAL=Slic3r::GUI::get_preset_tab_iface(name); %};
+
+bool load_language()
+    %code%{ RETVAL=Slic3r::GUI::load_language(); %};

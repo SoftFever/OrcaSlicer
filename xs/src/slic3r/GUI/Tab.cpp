@@ -1238,7 +1238,7 @@ void TabPrinter::build_extruder_pages(){
 	// # rebuild page list
 	PageShp page_note = m_pages.back();
 	m_pages.pop_back();
-	while (m_pages.back()->title().find("Extruder") != std::string::npos)
+	while (m_pages.back()->title().find(_L("Extruder")) != std::string::npos)
 		m_pages.pop_back();
 	for (auto page_extruder : m_extruder_pages)
 		m_pages.push_back(page_extruder);
@@ -1361,6 +1361,9 @@ void Tab::load_current_preset()
 	// preset dirty again
 	// (not sure this is true anymore now that update_dirty is idempotent)
 	wxTheApp->CallAfter([this]{
+		// checking out if this Tab exists till this moment
+		if (!checked_tab(this))
+			return;
 		update_tab_ui();
 		on_presets_changed();
 	});

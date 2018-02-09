@@ -112,11 +112,12 @@ public:
 
 public:
 	Tab() {}
-	Tab(wxNotebook* parent, const char *title, const char* name, bool no_controller) : 
+	Tab(wxNotebook* parent, wxString title, const char* name, bool no_controller) : 
 		m_parent(parent), m_title(title), m_name(name), m_no_controller(no_controller) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+		get_tabs_list().push_back(this);
 	}
-	~Tab(){}
+	~Tab() { delete_tab_from_list(this); }
 
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
@@ -160,7 +161,10 @@ public:
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 	bool			current_preset_is_dirty();
 	DynamicPrintConfig*	get_config() { return m_config; }
-	PresetCollection*	get_presets() { return m_presets; }
+	PresetCollection*	get_presets()
+	{
+		return m_presets;
+	}
 	std::vector<std::string>	get_dependent_tabs() { return m_reload_dependent_tabs; }
 
 	void			on_value_change(std::string opt_key, boost::any value);

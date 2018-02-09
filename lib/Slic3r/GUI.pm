@@ -67,6 +67,10 @@ our $medium_font = Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 $medium_font->SetPointSize(12);
 our $grey = Wx::Colour->new(200,200,200);
 
+# Events to be sent from a C++ menu implementation:
+# 1) To inform about a change of the application language.
+our $LANGUAGE_CHANGE_EVENT    = Wx::NewEventType;
+
 sub OnInit {
     my ($self) = @_;
     
@@ -80,6 +84,7 @@ sub OnInit {
     # Mac: "~/Library/Application Support/Slic3r"
     Slic3r::set_data_dir($datadir || Wx::StandardPaths::Get->GetUserDataDir);
     Slic3r::GUI::set_wxapp($self);
+    Slic3r::GUI::load_language();
     
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
@@ -114,10 +119,12 @@ sub OnInit {
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
         no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
+        lang_ch_event   => $LANGUAGE_CHANGE_EVENT,
     );
     $self->SetTopWindow($frame);
 
-    EVT_IDLE($frame, sub {
+    #EVT_IDLE($frame, sub {
+    EVT_IDLE($self->{mainframe}, sub {
         while (my $cb = shift @cb) {
             $cb->();
         }
@@ -132,8 +139,41 @@ sub OnInit {
             $self->{mainframe}->config_wizard(1);
         });
     }
+
+    # The following event is emited by the C++ menu implementation of application language change.
+    EVT_COMMAND($self, -1, $LANGUAGE_CHANGE_EVENT, sub{
+        $self->recreate_GUI;
+    });
     
     return 1;
+}
+
+sub recreate_GUI{
+    my ($self) = @_;
+    print "Inside recreate_GUI \n";
+    my $topwindow = $self->GetTopWindow();
+    $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
+        # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
+        no_controller   => $self->{app_config}->get('no_controller'),
+        no_plater       => $no_plater,
+        lang_ch_event   => $LANGUAGE_CHANGE_EVENT,
+    );
+
+    if($topwindow)
+    {
+        $self->SetTopWindow($frame);
+        $topwindow->Destroy;
+    }
+
+    my $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
+    if ($run_wizard) {
+        # On OSX the UI was not initialized correctly if the wizard was called
+        # before the UI was up and running.
+        $self->CallAfter(sub {
+            # Run the config wizard, don't offer the "reset user profile" checkbox.
+            $self->{mainframe}->config_wizard(1);
+        });
+    }
 }
 
 sub about {
