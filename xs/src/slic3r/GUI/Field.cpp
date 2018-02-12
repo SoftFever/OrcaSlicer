@@ -112,13 +112,13 @@ namespace Slic3r { namespace GUI {
 			if (vec->size() > 1)
 				break;
 			double val = vec->get_at(0);
-			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 			break;
 		}			
 		case coFloat:
 		{
 			double val = m_opt.default_value->getFloat();
-			text_value = (val - int(val)) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+			text_value = (val - int(val)) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 			break;
 		}			
 		case coFloats:
@@ -128,7 +128,7 @@ namespace Slic3r { namespace GUI {
 			if (vec->size() > 1)
 				break;
 			double val = vec->get_at(0);
-			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 			break;
 		}
 		case coString:			
@@ -161,12 +161,11 @@ namespace Slic3r { namespace GUI {
 
 		temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 		{
-			//! change value after kill focus 
-			//! to avoid update_config during every one changes inside control
-			on_change_field(); 
 			on_kill_focus(e);
 			temp->GetToolTip()->Enable(true);
 		}), temp->GetId());
+
+		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent) { on_change_field(); }), temp->GetId());
 
         // recast as a wxWindow to fit the calling convention
         window = dynamic_cast<wxWindow*>(temp);
@@ -489,9 +488,9 @@ void PointCtrl::BUILD()
 
 	auto default_pt = static_cast<ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
 	double val = default_pt.x;
-	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 	val = default_pt.y;
-	wxString Y = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2);
+	wxString Y = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size);
 	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size);
@@ -516,9 +515,9 @@ void PointCtrl::set_value(const Pointf value)
 	m_disable_change_event = true;
 
 	double val = value.x;
-	x_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2));
+	x_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None));
 	val = value.y;
-	y_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2));
+	y_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None));
 
 	m_disable_change_event = false;
 }
