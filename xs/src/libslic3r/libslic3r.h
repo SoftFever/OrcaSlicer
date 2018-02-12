@@ -17,8 +17,8 @@
 #define SLIC3R_VERSION "1.39.0"
 #define SLIC3R_BUILD "UNKNOWN"
 
-typedef long coord_t;
-typedef double coordf_t;
+typedef int32_t coord_t;
+typedef double  coordf_t;
 
 //FIXME This epsilon value is used for many non-related purposes:
 // For a threshold of a squared Euclidean distance,

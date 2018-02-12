@@ -32,8 +32,7 @@ public:
     coord_t x;
     coord_t y;
     Point(coord_t _x = 0, coord_t _y = 0): x(_x), y(_y) {};
-    Point(int _x, int _y): x(_x), y(_y) {};
-    Point(long long _x, long long _y): x(coord_t(_x)), y(coord_t(_y)) {};  // for Clipper
+    Point(int64_t _x, int64_t _y): x(coord_t(_x)), y(coord_t(_y)) {};  // for Clipper
     Point(double x, double y);
     static Point new_scale(coordf_t x, coordf_t y) { return Point(coord_t(scale_(x)), coord_t(scale_(y))); }
 
@@ -271,23 +270,6 @@ template<typename TO> inline TO convert_to(const Pointf3 &src) { return TO(typen
 #include <boost/version.hpp>
 #include <boost/polygon/polygon.hpp>
 namespace boost { namespace polygon {
-    template <>
-    struct geometry_concept<coord_t> { typedef coordinate_concept type; };
-    
-/* Boost.Polygon already defines a specialization for coordinate_traits<long> as of 1.60:
-   https://github.com/boostorg/polygon/commit/0ac7230dd1f8f34cb12b86c8bb121ae86d3d9b97 */
-#if BOOST_VERSION < 106000
-    template <>
-    struct coordinate_traits<coord_t> {
-        typedef coord_t coordinate_type;
-        typedef long double area_type;
-        typedef long long manhattan_area_type;
-        typedef unsigned long long unsigned_area_type;
-        typedef long long coordinate_difference;
-        typedef long double coordinate_distance;
-    };
-#endif
-
     template <>
     struct geometry_concept<Slic3r::Point> { typedef point_concept type; };
    
