@@ -7,16 +7,36 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
 
-#if defined(__APPLE__) || defined(__linux) || defined(__OpenBSD__)
+#if defined(__APPLE__) || defined(__OpenBSD__)
 #include <termios.h>
 #endif
-#if __APPLE__
+#ifdef __APPLE__
 #include <sys/ioctl.h>
 #include <IOKit/serial/ioss.h>
 #endif
-#ifdef __linux
+#ifdef __linux__
 #include <sys/ioctl.h>
-#include <linux/serial.h>
+#include <fcntl.h>
+#include "/usr/include/asm-generic/ioctls.h"
+
+/* The following definitions are kindly borrowed from:
+   /usr/include/asm-generic/termbits.h
+   Unfortunately we cannot just include that one because
+   it would redefine the "struct termios" already defined
+   the <termios.h> already included by Boost.ASIO. */
+#define K_NCCS 19
+struct termios2 {
+	tcflag_t c_iflag;
+	tcflag_t c_oflag;
+	tcflag_t c_cflag;
+	tcflag_t c_lflag;
+	cc_t c_line;
+	cc_t c_cc[K_NCCS];
+	speed_t c_ispeed;
+	speed_t c_ospeed;
+};
+#define BOTHER CBAUDEX
+
 #endif
 
 //#define DEBUG_SERIAL
@@ -47,26 +67,26 @@ GCodeSender::connect(std::string devname, unsigned int baud_rate)
     this->set_error_status(false);
     try {
         this->serial.open(devname);
+        
+        this->serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::odd));
+        this->serial.set_option(boost::asio::serial_port_base::character_size(boost::asio::serial_port_base::character_size(8)));
+        this->serial.set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+        this->serial.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+        this->set_baud_rate(baud_rate);
+    
+        this->serial.close();
+        this->serial.open(devname);
+        this->serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+    
+        // set baud rate again because set_option overwrote it
+        this->set_baud_rate(baud_rate);
+        this->open = true;
+        this->reset();
     } catch (boost::system::system_error &) {
         this->set_error_status(true);
         return false;
     }
     
-    this->serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::odd));
-    this->serial.set_option(boost::asio::serial_port_base::character_size(boost::asio::serial_port_base::character_size(8)));
-    this->serial.set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
-    this->serial.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-    this->set_baud_rate(baud_rate);
-    
-    this->serial.close();
-    this->serial.open(devname);
-    this->serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
-    
-    // set baud rate again because set_option overwrote it
-    this->set_baud_rate(baud_rate);
-    this->open = true;
-    this->reset();
-
     // a reset firmware expect line numbers to start again from 1
     this->sent = 0;
     this->last_sent.clear();
@@ -83,6 +103,11 @@ GCodeSender::connect(std::string devname, unsigned int baud_rate)
     // start reading in the background thread
     boost::thread t(boost::bind(&boost::asio::io_service::run, &this->io));
     this->background_thread.swap(t);
+    
+    // always send a M105 to check for connection because firmware might be silent on connect
+    //FIXME Vojtech: This is being sent too early, leading to line number synchronization issues,
+    // from which the GCodeSender never recovers.
+    // this->send("M105", true);
     
     return true;
 }
@@ -104,27 +129,17 @@ GCodeSender::set_baud_rate(unsigned int baud_rate)
         ioctl(handle, IOSSIOSPEED, &newSpeed);
         ::tcsetattr(handle, TCSANOW, &ios);
 #elif __linux
-        termios ios;
-        ::tcgetattr(handle, &ios);
-        ::cfsetispeed(&ios, B38400);
-        ::cfsetospeed(&ios, B38400);
-        ::tcflush(handle, TCIFLUSH);
-        ::tcsetattr(handle, TCSANOW, &ios);
-
-        struct serial_struct ss;
-        ioctl(handle, TIOCGSERIAL, &ss);
-        ss.flags = (ss.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
-        ss.custom_divisor = (ss.baud_base + (baud_rate / 2)) / baud_rate;
-        //cout << "bbase " << ss.baud_base << " div " << ss.custom_divisor;
-        long closestSpeed = ss.baud_base / ss.custom_divisor;
-        //cout << " Closest speed " << closestSpeed << endl;
-        ss.reserved_char[0] = 0;
-        if (closestSpeed < baud_rate * 98 / 100 || closestSpeed > baud_rate * 102 / 100) {
-            printf("Failed to set baud rate\n");
-        }
-
-        ioctl(handle, TIOCSSERIAL, &ss);
-		printf("< set_baud_rate: %u\n", baud_rate);
+        termios2 ios;
+        if (ioctl(handle, TCGETS2, &ios))
+            printf("Error in TCGETS2: %s\n", strerror(errno));
+        ios.c_ispeed = ios.c_ospeed = baud_rate;
+        ios.c_cflag &= ~CBAUD;
+        ios.c_cflag |= BOTHER | CLOCAL | CREAD;
+        ios.c_cc[VMIN] = 1; // Minimum of characters to read, prevents eof errors when 0 bytes are read
+        ios.c_cc[VTIME] = 1;
+        if (ioctl(handle, TCSETS2, &ios))
+            printf("Error in TCSETS2: %s\n", strerror(errno));
+		
 #elif __OpenBSD__
 		struct termios ios;
 		::tcgetattr(handle, &ios);
@@ -154,6 +169,7 @@ GCodeSender::disconnect()
     */
     
 #ifdef DEBUG_SERIAL
+    fs << "DISCONNECTED" << std::endl << std::flush;
     fs.close();
 #endif
 }
@@ -292,17 +308,20 @@ GCodeSender::on_read(const boost::system::error_code& error,
 {
     this->set_error_status(false);
     if (error) {
+        #ifdef __APPLE__
         if (error.value() == 45) {
             // OS X bug: http://osdir.com/ml/lib.boost.asio.user/2008-08/msg00004.html
             this->do_read();
-        } else {
-            // printf("ERROR: [%d] %s\n", error.value(), error.message().c_str());
-            // error can be true even because the serial port was closed.
-            // In this case it is not a real error, so ignore.
-            if (this->open) {
-                this->do_close();
-                this->set_error_status(true);
-            }
+            return;
+        }
+        #endif
+    
+        // printf("ERROR: [%d] %s\n", error.value(), error.message().c_str());
+        // error can be true even because the serial port was closed.
+        // In this case it is not a real error, so ignore.
+        if (this->open) {
+            this->do_close();
+            this->set_error_status(true);
         }
         return;
     }
@@ -339,7 +358,8 @@ GCodeSender::on_read(const boost::system::error_code& error,
             // extract the first number from line
             boost::algorithm::trim_left_if(line, !boost::algorithm::is_digit());
             size_t toresend = boost::lexical_cast<size_t>(line.substr(0, line.find_first_not_of("0123456789")));
-            if (toresend >= this->sent - this->last_sent.size()) {
+            ++ toresend; // N is 0-based
+            if (toresend >= this->sent - this->last_sent.size() && toresend < this->last_sent.size()) {
                 {
                     boost::lock_guard<boost::mutex> l(this->queue_mutex);
                     
@@ -457,8 +477,8 @@ GCodeSender::do_send()
     if (line.empty()) return;
     
     // compute full line
-    this->sent++;
     std::string full_line = "N" + boost::lexical_cast<std::string>(this->sent) + " " + line;
+    ++ this->sent;
     
     // calculate checksum
     int cs = 0;
