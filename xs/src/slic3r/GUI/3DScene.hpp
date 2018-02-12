@@ -310,6 +310,28 @@ public:
 class GLVolumeCollection
 {
 public:
+    struct RenderInterleavedOnlyVolumes
+    {
+        bool enabled;
+        float alpha; // [0..1]
+
+        RenderInterleavedOnlyVolumes()
+            : enabled(false)
+            , alpha(0.0f)
+        {
+        }
+
+        RenderInterleavedOnlyVolumes(bool enabled, float alpha)
+            : enabled(enabled)
+            , alpha(alpha)
+        {
+        }
+    };
+
+private:
+    RenderInterleavedOnlyVolumes _render_interleaved_only_volumes;
+
+public:
     std::vector<GLVolume*> volumes;
     
     GLVolumeCollection() {};
@@ -344,6 +366,8 @@ public:
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
 
+    void set_render_interleaved_only_volumes(const RenderInterleavedOnlyVolumes& render_interleaved_only_volumes) { _render_interleaved_only_volumes = render_interleaved_only_volumes; }
+
 private:
     GLVolumeCollection(const GLVolumeCollection &other);
     GLVolumeCollection& operator=(const GLVolumeCollection &);
@@ -359,6 +383,7 @@ class _3DScene
             Travel,
             Retraction,
             Unretraction,
+            Shell,
             Num_Geometry_Types
         };
 
@@ -457,6 +482,8 @@ private:
     static void _update_gcode_volumes_visibility(const Print& print, GLVolumeCollection& volumes);
     // generates the legend texture in dependence of the current shown view type
     static void _generate_legend_texture(const Print& print, const std::vector<float>& tool_colors);
+    // generates objects and wipe tower geometry
+    static void _load_shells(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
 };
 
 }

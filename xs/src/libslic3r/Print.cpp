@@ -102,6 +102,11 @@ void Print::set_gcode_preview_unretractions_visible(bool visible)
     gcode_preview.unretraction.is_visible = visible;
 }
 
+void Print::set_gcode_preview_shells_visible(bool visible)
+{
+    gcode_preview.shell.is_visible = visible;
+}
+
 PrintRegion* Print::add_region()
 {
     regions.push_back(new PrintRegion(this));

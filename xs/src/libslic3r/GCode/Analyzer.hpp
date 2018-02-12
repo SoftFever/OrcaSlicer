@@ -256,10 +256,18 @@ public:
             void set_default();
         };
 
+        struct Shell
+        {
+            bool is_visible;
+
+            void set_default();
+        };
+
         Extrusion extrusion;
         Travel travel;
         Retraction retraction;
         Retraction unretraction;
+        Shell shell;
 
         PreviewData();
 

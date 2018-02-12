@@ -348,7 +348,32 @@ void GLVolumeCollection::render_VBOs() const
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
         GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
         if (n_triangles + n_quads == 0)
+        {
+            if (_render_interleaved_only_volumes.enabled)
+            {
+                ::glDisableClientState(GL_VERTEX_ARRAY);
+                ::glDisableClientState(GL_NORMAL_ARRAY);
+                ::glEnable(GL_BLEND);
+                ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+                if (color_id >= 0)
+                {
+                    float color[4];
+                    ::memcpy((void*)color, (const void*)volume->color, 3 * sizeof(float));
+                    color[3] = _render_interleaved_only_volumes.alpha;
+                    ::glUniform4fv(color_id, 1, (const GLfloat*)color);
+                }
+                else
+                    ::glColor4f(volume->color[0], volume->color[1], volume->color[2], _render_interleaved_only_volumes.alpha);
+
+                volume->render();
+
+                ::glDisable(GL_BLEND);
+                ::glEnableClientState(GL_VERTEX_ARRAY);
+                ::glEnableClientState(GL_NORMAL_ARRAY);
+            }
             continue;
+        }
         if (color_id >= 0)
             glUniform4fv(color_id, 1, (const GLfloat*)volume->color);
         else
@@ -387,7 +412,23 @@ void GLVolumeCollection::render_legacy() const
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
         GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
         if (n_triangles + n_quads == 0)
+        {
+            if (_render_interleaved_only_volumes.enabled)
+            {
+                ::glDisableClientState(GL_VERTEX_ARRAY);
+                ::glDisableClientState(GL_NORMAL_ARRAY);
+                ::glEnable(GL_BLEND);
+                ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+                ::glColor4f(volume->color[0], volume->color[1], volume->color[2], _render_interleaved_only_volumes.alpha);
+                volume->render();
+
+                ::glDisable(GL_BLEND);
+                ::glEnableClientState(GL_VERTEX_ARRAY);
+                ::glEnableClientState(GL_NORMAL_ARRAY);
+            }
             continue;
+        }
         glColor4f(volume->color[0], volume->color[1], volume->color[2], volume->color[3]);
         glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), volume->indexed_vertex_array.vertices_and_normals_interleaved.data() + 3);
         glNormalPointer(GL_FLOAT, 6 * sizeof(float), volume->indexed_vertex_array.vertices_and_normals_interleaved.data());
@@ -1314,6 +1355,9 @@ static inline std::vector<float> parse_colors(const std::vector<std::string> &sc
 
 void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs)
 {
+    if ((print == nullptr) || (volumes == nullptr))
+        return;
+
     if (volumes->empty())
     {
         std::vector<float> tool_colors = parse_colors(str_tool_colors);
@@ -1326,9 +1370,17 @@ void _3DScene::load_gcode_preview(const Print* print, GLVolumeCollection* volume
         _load_gcode_unretractions(*print, *volumes, use_VBOs);
 
         if (volumes->empty())
+        {
             reset_legend_texture();
+            volumes->set_render_interleaved_only_volumes(GLVolumeCollection::RenderInterleavedOnlyVolumes(false, 0.0f));
+        }
         else
+        {
             _generate_legend_texture(*print, tool_colors);
+
+            _load_shells(*print, *volumes, use_VBOs);
+            volumes->set_render_interleaved_only_volumes(GLVolumeCollection::RenderInterleavedOnlyVolumes(true, 0.25f));
+        }
     }
 
     _update_gcode_volumes_visibility(*print, *volumes);
@@ -2209,6 +2261,11 @@ void _3DScene::_update_gcode_volumes_visibility(const Print& print, GLVolumeColl
                     volume->is_active = print.gcode_preview.unretraction.is_visible;
                     break;
                 }
+            case GCodePreviewData::Shell:
+                {
+                    volume->is_active = print.gcode_preview.shell.is_visible;
+                    break;
+                }
             default:
                 {
                     volume->is_active = false;
@@ -2222,6 +2279,43 @@ void _3DScene::_update_gcode_volumes_visibility(const Print& print, GLVolumeColl
 void _3DScene::_generate_legend_texture(const Print& print, const std::vector<float>& tool_colors)
 {
     s_legend_texture.generate_texture(print, tool_colors);
+}
+
+void _3DScene::_load_shells(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)
+{
+    size_t initial_volumes_count = volumes.volumes.size();
+    s_gcode_preview_data.first_volumes.emplace_back(GCodePreviewData::Shell, 0, (unsigned int)initial_volumes_count);
+
+    if (print.objects.empty())
+        // nothing to render, return
+        return;
+
+    // adds objects' volumes 
+    unsigned int object_id = 0;
+    for (PrintObject* obj : print.objects)
+    {
+        ModelObject* model_obj = obj->model_object();
+
+        std::vector<int> instance_ids(model_obj->instances.size());
+        for (int i = 0; i < model_obj->instances.size(); ++i)
+        {
+            instance_ids[i] = i;
+        }
+
+        for (ModelInstance* instance : model_obj->instances)
+        {
+            volumes.load_object(model_obj, object_id, instance_ids, "object", "object", "object", use_VBOs);
+        }
+
+        ++object_id;
+    }
+
+    // adds wipe tower's volume
+    coordf_t max_z = print.objects[0]->model_object()->get_model()->bounding_box().max.z;
+    const PrintConfig& config = print.config;
+    unsigned int extruders_count = config.nozzle_diameter.size();
+    if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects)
+        volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, config.wipe_tower_per_color_wipe * (extruders_count - 1), max_z, use_VBOs);
 }
 
 }

@@ -80,6 +80,7 @@ sub new {
     my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");
     my $checkbox_retractions = Wx::CheckBox->new($self, -1, "Retractions");    
     my $checkbox_unretractions = Wx::CheckBox->new($self, -1, "Unretractions");
+    my $checkbox_shells  = Wx::CheckBox->new($self, -1, "Shells");
 
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -106,6 +107,8 @@ sub new {
     $bottom_sizer->Add($checkbox_retractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
     $bottom_sizer->AddSpacer(10);
     $bottom_sizer->Add($checkbox_unretractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(10);
+    $bottom_sizer->Add($checkbox_shells, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
     
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $sizer->Add($canvas, 1, wxALL | wxEXPAND, 0);
@@ -213,6 +216,12 @@ sub new {
     });
     EVT_CHECKBOX($self, $checkbox_unretractions, sub {
         $self->print->set_gcode_preview_unretractions_visible($checkbox_unretractions->IsChecked());
+        $self->auto_zoom(0);
+        $self->refresh_print;
+        $self->auto_zoom(1);
+    });
+    EVT_CHECKBOX($self, $checkbox_shells, sub {
+        $self->print->set_gcode_preview_shells_visible($checkbox_shells->IsChecked());
         $self->auto_zoom(0);
         $self->refresh_print;
         $self->auto_zoom(1);

@@ -262,6 +262,7 @@ public:
     void set_gcode_preview_travel_visible(bool visible);
     void set_gcode_preview_retractions_visible(bool visible);
     void set_gcode_preview_unretractions_visible(bool visible);
+    void set_gcode_preview_shells_visible(bool visible);
 
     // methods for handling regions
     PrintRegion* get_region(size_t idx) { return regions.at(idx); }

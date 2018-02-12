@@ -298,7 +298,12 @@ void GCodeAnalyzer::PreviewData::Retraction::set_default()
 {
     color = Default_Color;
     is_visible = false;
-};
+}
+
+void GCodeAnalyzer::PreviewData::Shell::set_default()
+{
+    is_visible = false;
+}
 
 GCodeAnalyzer::PreviewData::PreviewData()
 {
@@ -311,6 +316,7 @@ void GCodeAnalyzer::PreviewData::set_default()
     travel.set_default();
     retraction.set_default();
     unretraction.set_default();
+    shell.set_default();
 }
 
 void GCodeAnalyzer::PreviewData::reset()
