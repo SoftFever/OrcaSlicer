@@ -35,7 +35,7 @@
 #include "Tab.hpp"
 #include "TabIface.hpp"
 #include "AppConfig.hpp"
-//#include <wx/config.h>
+#include <wx/config.h>
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include "Utils.hpp"
@@ -168,8 +168,7 @@ wxNotebook  *g_wxTabPanel   = nullptr;
 
 std::vector<Tab *> g_tabs_list;
 
-wxLocale*		m_Locale;
-std::string		m_local_dir;
+wxLocale*	g_wxLocale;
 
 void set_wxapp(wxApp *app)
 {
@@ -211,17 +210,27 @@ bool select_language(wxArrayString & names,
 {
 	wxCHECK_MSG(names.Count() == identifiers.Count(), false,
 		_L("Array of language names and identifiers should have the same size."));
-	long index = wxGetSingleChoiceIndex(_L("Select the language"),
-		_L("Language"), names);
+	int init_selection = 0;
+	long current_language = g_wxLocale ? g_wxLocale->GetLanguage() : wxLANGUAGE_UNKNOWN;
+	for (auto lang : identifiers){
+		if (lang == current_language)
+			break;
+		else
+			++init_selection;
+	}
+	if (init_selection == identifiers.size())
+		init_selection = 0;
+	long index = wxGetSingleChoiceIndex(_L("Select the language"), _L("Language"), 
+										names, init_selection);
 	if (index != -1)
 	{
-		m_Locale = new wxLocale;
-		m_Locale->Init(identifiers[index]);
-		m_Locale->AddCatalogLookupPathPrefix(wxPathOnly(m_local_dir));
+		g_wxLocale = new wxLocale;
+		g_wxLocale->Init(identifiers[index]);
+		g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 		wxLogTrace(wxTraceMask(),
 			_L("Slic3rPE: Path Prefix = \"%s\""),
-			wxPathOnly(m_local_dir).GetData());
-		m_Locale->AddCatalog(g_wxApp->GetAppName());
+			wxPathOnly(localization_dir()).GetData());
+		g_wxLocale->AddCatalog(g_wxApp->GetAppName());
 		wxLogTrace(wxTraceMask(),
 			_L("Slic3rPE: Catalog Name = \"%s\""),
 			g_wxApp->GetAppName().GetData());
@@ -232,44 +241,41 @@ bool select_language(wxArrayString & names,
 
 bool load_language()
 {
-// 	wxConfig config(g_wxApp->GetAppName());
+	wxConfig config(g_wxApp->GetAppName());
 	long language;
-// 	if (!config.Read(wxT("wxTranslation_Language"),
-// 		&language, wxLANGUAGE_UNKNOWN))
+	if (!config.Read(wxT("wxTranslation_Language"),
+		&language, wxLANGUAGE_UNKNOWN))
 	{
-		language = wxLANGUAGE_ENGLISH_US;// wxLANGUAGE_UKRAINIAN;// wxLANGUAGE_UNKNOWN;
+		language = wxLANGUAGE_UNKNOWN;
 	}
-	if (language == wxLANGUAGE_UNKNOWN) return false;
-	wxArrayString names;
-	wxArrayLong identifiers;
+	if (language == wxLANGUAGE_UNKNOWN) 
+		return false;
+	wxArrayString	names;
+	wxArrayLong		identifiers;
 	get_installed_languages(names, identifiers);
 	for (size_t i = 0; i < identifiers.Count(); i++)
 	{
 		if (identifiers[i] == language)
 		{
-			m_Locale = new wxLocale;
-			m_Locale->Init(identifiers[i]);
-			m_Locale->AddCatalogLookupPathPrefix(wxPathOnly(m_local_dir));
-			m_Locale->AddCatalog(g_wxApp->GetAppName());
+			g_wxLocale = new wxLocale;
+			g_wxLocale->Init(identifiers[i]);
+			g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
+			g_wxLocale->AddCatalog(g_wxApp->GetAppName());
 			return true;
 		}
 	}
 	return false;
 }
 
-void save_language(bool bReset)
+void save_language()
 {
-//	wxConfig config(g_wxApp->GetAppName());
+	wxConfig config(g_wxApp->GetAppName());
 	long language = wxLANGUAGE_UNKNOWN;
-	if (!bReset)
-	{
-		if (m_Locale)
-		{
-			language = m_Locale->GetLanguage();
-		}
+	if (g_wxLocale)	{
+		language = g_wxLocale->GetLanguage();
 	}
-// 	config.Write(wxT("wxTranslation_Language"), language);
-// 	config.Flush();
+	config.Write(wxT("wxTranslation_Language"), language);
+	config.Flush();
 }
 
 void get_installed_languages(wxArrayString & names,
@@ -277,9 +283,8 @@ void get_installed_languages(wxArrayString & names,
 {
 	names.Clear();
 	identifiers.Clear();
-	m_local_dir = localization_dir();
 
-	wxDir dir(wxPathOnly(m_local_dir));
+	wxDir dir(wxPathOnly(localization_dir()));
 	wxString filename;
 	const wxLanguageInfo * langinfo;
 	wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
@@ -319,6 +324,7 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change)
 		wxArrayLong identifiers;
 		get_installed_languages(names, identifiers);
 		if (select_language(names, identifiers)){
+			save_language();
 			show_info(g_wxTabPanel, "Application will be restarted", "Attention!");
 			if (event_language_change > 0) {
 				wxCommandEvent event(event_language_change);

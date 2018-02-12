@@ -77,7 +77,7 @@ void show_info(wxWindow* parent, wxString message, wxString title);
 // load language saved at application config 
 bool load_language();
 // save language at application config 
-void save_language(bool bReset);
+void save_language();
 // get list of installed languages 
 void get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
 // select language from the list of installed languages

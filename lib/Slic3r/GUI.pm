@@ -150,7 +150,6 @@ sub OnInit {
 
 sub recreate_GUI{
     my ($self) = @_;
-    print "Inside recreate_GUI \n";
     my $topwindow = $self->GetTopWindow();
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
