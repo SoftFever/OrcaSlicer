@@ -116,7 +116,7 @@ void OptionsGroup::append_line(const Line& line) {
 							wxDefaultPosition, wxSize(label_width, -1));
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
-        grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL,0);
+		grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL,0);
 		if (line.label_tooltip.compare("") != 0)
 			label->SetToolTip(line.label_tooltip);
     }
@@ -124,10 +124,9 @@ void OptionsGroup::append_line(const Line& line) {
     // If there's a widget, build it and add the result to the sizer.
     if (line.widget != nullptr) {
         auto wgt = line.widget(parent());
-        grid_sizer->Add(wgt, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
         return;
     }
-
     
     // if we have a single option with no sidetext just add it directly to the grid sizer
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
@@ -138,7 +137,8 @@ void OptionsGroup::append_line(const Line& line) {
 //!         std::cerr << "field parent is not null?: " << (field->parent != nullptr) << "\n";
 
         if (is_window_field(field)) 
-            grid_sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+			grid_sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) |
+							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, wxOSX ? 0 : 2);
         if (is_sizer_field(field)) 
             grid_sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
         return;
@@ -147,13 +147,13 @@ void OptionsGroup::append_line(const Line& line) {
     // if we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    grid_sizer->Add(sizer, 0, 0, 0);
+	grid_sizer->Add(sizer, 0, wxEXPAND | wxALL, 0);
 	for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {
 			auto field_label = new wxStaticText(parent(), wxID_ANY, wxString::FromUTF8(option.label.c_str()) + ":", wxDefaultPosition, wxDefaultSize);
-			field_label->SetFont(sidetext_font);
+			field_label->SetFont(label_font);
 			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
 
