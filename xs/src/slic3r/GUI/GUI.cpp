@@ -227,7 +227,7 @@ int combochecklist_get_flags(wxComboCtrl* comboCtrl)
         for (unsigned int i = 0; i < popup->GetCount(); ++i)
         {
             if (popup->IsChecked(i))
-                flags += (int)std::pow(2.0f, (float)i);
+                flags |= 1 << i;
         }
     }
 

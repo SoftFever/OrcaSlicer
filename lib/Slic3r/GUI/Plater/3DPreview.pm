@@ -72,6 +72,9 @@ sub new {
     
     my $combochecklist_features = Wx::ComboCtrl->new();
     $combochecklist_features->Create($self, -1, "Feature types", wxDefaultPosition, [200, -1], wxCB_READONLY);
+    #FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
+    # On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
+    $combochecklist_features->UseAltPopupWindow();
     $combochecklist_features->EnablePopupAnimation(0);
     my $feature_text = "Feature types";
     my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface|Wipe tower";
