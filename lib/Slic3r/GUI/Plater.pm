@@ -63,7 +63,10 @@ sub new {
     
     $self->{print}->set_status_cb(sub {
         my ($percent, $message) = @_;
-        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([$percent, $message])));
+        my $event = Wx::CommandEvent->new($PROGRESS_BAR_EVENT);
+        $event->SetString($message);
+        $event->SetInt($percent);
+        Wx::PostEvent($self, $event);
     });
     
     # Initialize preview notebook
@@ -307,23 +310,22 @@ sub new {
     
     EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
         my ($self, $event) = @_;
-        my ($percent, $message) = @{$event->GetData};
-        $self->on_progress_event($percent, $message);
+        $self->on_progress_event($event->GetInt, $event->GetString);
     });
     
     EVT_COMMAND($self, -1, $ERROR_EVENT, sub {
         my ($self, $event) = @_;
-        Slic3r::GUI::show_error($self, @{$event->GetData});
+        Slic3r::GUI::show_error($self, $event->GetString);
     });
     
     EVT_COMMAND($self, -1, $EXPORT_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
-        $self->on_export_completed($event->GetData);
+        $self->on_export_completed($event->GetInt);
     });
     
     EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
-        $self->on_process_completed($event->GetData);
+        $self->on_process_completed($event->GetInt ? undef : $event->GetString);
     });
     
     {
@@ -1184,12 +1186,15 @@ sub start_background_process {
         eval {
             $self->{print}->process;
         };
+        my $event = Wx::CommandEvent->new($PROCESS_COMPLETED_EVENT);
         if ($@) {
             Slic3r::debugf "Background process error: $@\n";
-            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, $@));
+            $event->SetInt(0);
+            $event->SetString($@);
         } else {
-            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, undef));
+            $event->SetInt(1);
         }
+        Wx::PostEvent($self, $event);
         Slic3r::thread_cleanup();
     });
     Slic3r::debugf "Background processing started.\n";
@@ -1367,12 +1372,19 @@ sub on_process_completed {
             eval {
                 $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file});
             };
+            my $export_completed_event = Wx::CommandEvent->new($EXPORT_COMPLETED_EVENT);
             if ($@) {
-                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $ERROR_EVENT, shared_clone([ $@ ])));
-                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 0));
+                {
+                    my $error_event = Wx::CommandEvent->new($ERROR_EVENT);
+                    $error_event->SetString($@);
+                    Wx::PostEvent($_thread_self, $error_event);
+                }
+                $export_completed_event->SetInt(0);
+                $export_completed_event->SetString($@);
             } else {
-                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 1));
+                $export_completed_event->SetInt(1);
             }
+            Wx::PostEvent($_thread_self, $export_completed_event);
             Slic3r::thread_cleanup();
         });
         Slic3r::debugf "Background G-code export started.\n";
