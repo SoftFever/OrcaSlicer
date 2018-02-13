@@ -148,7 +148,7 @@ bool load_prus(const char *path, Model *model)
                 if (scene_xml_data.size() < size_last + size_incr)
                     scene_xml_data.resize(size_last + size_incr);
             }
-            size_last += size_last + zip.LastRead();
+            size_last += zip.LastRead();
             if (scene_xml_data.size() == size_last)
                 scene_xml_data.resize(size_last + 1);
             else if (scene_xml_data.size() > size_last + 1)
