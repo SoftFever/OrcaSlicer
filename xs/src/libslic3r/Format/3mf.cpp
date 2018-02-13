@@ -13,7 +13,7 @@
 #include <boost/nowide/fstream.hpp>
 
 #include <expat.h>
-#include <eigen/dense>
+#include <Eigen/Dense>
 #include <miniz/miniz_zip.h>
 
 const std::string MODEL_FOLDER = "3D/";
