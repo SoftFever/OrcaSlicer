@@ -628,8 +628,19 @@ sub load_files {
         my $input_file = $input_files->[$i];
         $process_dialog->Update(100. * $i / @$input_files, "Processing input file\n" . basename($input_file));
 
-        my $model = eval { Slic3r::Model->read_from_file($input_file, 0) };
-        Slic3r::GUI::show_error($self, $@) if $@;
+        my $model;
+        if ($input_file =~ /.3[mM][fF]$/)
+        {
+            $model = eval { Slic3r::Model->read_from_archive($input_file, wxTheApp->{preset_bundle}, 0) };
+            Slic3r::GUI::show_error($self, $@) if $@;
+            $_->load_current_preset for (values %{$self->GetFrame->{options_tabs}});
+            wxTheApp->{app_config}->update_config_dir(dirname($input_file));
+        }
+        else
+        {
+            $model = eval { Slic3r::Model->read_from_file($input_file, 0) };
+            Slic3r::GUI::show_error($self, $@) if $@;
+        }
 
         next if ! defined $model;
         
@@ -1555,7 +1566,7 @@ sub export_3mf {
     return if !@{$self->{objects}};
     # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('3MF') or return;
-    my $res = $self->{model}->store_3mf($output_file);
+    my $res = $self->{model}->store_3mf($output_file, $self->{print});
     if ($res)
     {
         $self->statusbar->SetStatusText("3MF file exported to $output_file");

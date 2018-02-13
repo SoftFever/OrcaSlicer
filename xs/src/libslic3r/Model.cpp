@@ -54,10 +54,8 @@ Model Model::read_from_file(const std::string &input_file, bool add_default_inst
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
 #endif /* SLIC3R_PRUS */
-    else if (boost::algorithm::iends_with(input_file, ".3mf"))
-        result = load_3mf(input_file.c_str(), &model);
     else
-        throw std::runtime_error("Unknown file format. Input file must have .stl, .obj, .amf(.xml), .3mf or .prusa extension.");
+        throw std::runtime_error("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
 
     if (! result)
         throw std::runtime_error("Loading of a model file failed.");
@@ -68,6 +66,31 @@ Model Model::read_from_file(const std::string &input_file, bool add_default_inst
     for (ModelObject *o : model.objects)
         o->input_file = input_file;
     
+    if (add_default_instances)
+        model.add_default_instances();
+
+    return model;
+}
+
+Model Model::read_from_archive(const std::string &input_file, PresetBundle* bundle, bool add_default_instances)
+{
+    Model model;
+
+    bool result = false;
+    if (boost::algorithm::iends_with(input_file, ".3mf"))
+        result = load_3mf(input_file.c_str(), bundle, &model);
+    else
+        throw std::runtime_error("Unknown file format. Input file must have .3mf extension.");
+
+    if (!result)
+        throw std::runtime_error("Loading of a model file failed.");
+
+    if (model.objects.empty())
+        throw std::runtime_error("The supplied file couldn't be read because it's empty");
+
+    for (ModelObject *o : model.objects)
+        o->input_file = input_file;
+
     if (add_default_instances)
         model.add_default_instances();
 

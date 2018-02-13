@@ -155,6 +155,9 @@ public:
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
+    // append full config to the given string
+    static void append_full_config(const Print& print, std::string& str);
+
 protected:
     void            _do_export(Print &print, FILE *file);
 

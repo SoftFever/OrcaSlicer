@@ -1,10 +1,14 @@
 #include "../libslic3r.h"
 #include "../Model.hpp"
+#include "../Utils.hpp"
+#include "../GCode.hpp"
+#include "../slic3r/GUI/PresetBundle.hpp"
 
 #include "3mf.hpp"
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/nowide/fstream.hpp>
 
@@ -17,6 +21,7 @@ const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
+const std::string CONFIG_FILE = "Metadata/Slic3r_PE.config";
 
 const char* MODEL_TAG = "model";
 const char* RESOURCES_TAG = "resources";
@@ -217,7 +222,7 @@ namespace Slic3r {
         _3MF_Importer();
         ~_3MF_Importer();
 
-        bool load_model_from_file(const std::string& filename, Model& model);
+        bool load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle);
 
         const std::vector<std::string>& get_errors() const;
 
@@ -225,8 +230,9 @@ namespace Slic3r {
         void _destroy_xml_parser();
         void _stop_xml_parser();
 
-        bool _load_model_from_file_miniz(const std::string& filename, Model& model);
-        bool _extract_model_from_archive_miniz(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        bool _load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle);
+        bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        bool _extract_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename);
 
         void _handle_start_xml_element(const char* name, const char** attributes);
         void _handle_end_xml_element(const char* name);
@@ -331,7 +337,7 @@ namespace Slic3r {
         _destroy_xml_parser();
     }
 
-    bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model)
+    bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle)
     {
         m_model = &model;
         m_unit_factor = 1.0f;
@@ -341,7 +347,7 @@ namespace Slic3r {
         m_instances.clear();
         m_errors.clear();
 
-        return _load_model_from_file_miniz(filename, model);
+        return _load_model_from_file(filename, model, bundle);
     }
 
     const std::vector<std::string>& _3MF_Importer::get_errors() const
@@ -364,7 +370,7 @@ namespace Slic3r {
             XML_StopParser(m_xml_parser, false);
     }
 
-    bool _3MF_Importer::_load_model_from_file_miniz(const std::string& filename, Model& model)
+    bool _3MF_Importer::_load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -384,18 +390,25 @@ namespace Slic3r {
             if (mz_zip_reader_file_stat(&archive, i, &stat))
             {
                 std::string name(stat.m_filename);
-                std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
                 std::replace(name.begin(), name.end(), '\\', '/');
 
-                std::string lc_model_folder(MODEL_FOLDER);
-                std::transform(lc_model_folder.begin(), lc_model_folder.end(), lc_model_folder.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
-
-                if ((name.find(lc_model_folder) == 0) && (name.rfind(MODEL_EXTENSION) == name.length() - MODEL_EXTENSION.length()))
+                if (boost::algorithm::istarts_with(name, MODEL_FOLDER) && boost::algorithm::iends_with(name, MODEL_EXTENSION))
                 {
-                    if (!_extract_model_from_archive_miniz(archive, stat))
+                    // valid model name -> extract model
+                    if (!_extract_model_from_archive(archive, stat))
                     {
                         mz_zip_reader_end(&archive);
                         m_errors.push_back("Archive does not contain a valid model");
+                        return false;
+                    }
+                }
+                else if (boost::algorithm::iequals(name, CONFIG_FILE))
+                {
+                    // extract slic3r config file
+                    if (!_extract_config_from_archive(archive, stat, bundle, filename))
+                    {
+                        mz_zip_reader_end(&archive);
+                        m_errors.push_back("Archive does not contain a valid config");
                         return false;
                     }
                 }
@@ -406,7 +419,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Importer::_extract_model_from_archive_miniz(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    bool _3MF_Importer::_extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
     {
         _destroy_xml_parser();
 
@@ -430,7 +443,7 @@ namespace Slic3r {
         mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t)stat.m_uncomp_size, 0);
         if (res == 0)
         {
-            m_errors.push_back("Error while reading data to buffer");
+            m_errors.push_back("Error while reading model data to buffer");
             return false;
         }
 
@@ -440,6 +453,25 @@ namespace Slic3r {
             ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
             m_errors.push_back(error_buf);
             return false;
+        }
+
+        return true;
+    }
+
+    bool _3MF_Importer::_extract_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename)
+    {
+        if (stat.m_uncomp_size > 0)
+        {
+            std::vector<char> buffer((size_t)stat.m_uncomp_size + 1, 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0)
+            {
+                m_errors.push_back("Error while reading config data to buffer");
+                return false;
+            }
+
+            buffer.back() = '\0';
+            bundle.load_config_string(buffer.data(), archive_filename.c_str());
         }
 
         return true;
@@ -994,18 +1026,19 @@ namespace Slic3r {
         std::vector<std::string> m_errors;
 
     public:
-        bool save_model_to_file(const std::string& filename, Model& model);
+        bool save_model_to_file(const std::string& filename, Model& model, const Print& print);
 
         const std::vector<std::string>& get_errors() const;
 
     private:
-        bool _save_model_to_file_miniz(const std::string& filename, Model& model);
-        bool _add_content_types_file_to_archive_miniz(mz_zip_archive& archive);
-        bool _add_relationships_file_to_archive_miniz(mz_zip_archive& archive);
-        bool _add_model_file_to_archive_miniz(mz_zip_archive& archive, Model& model);
+        bool _save_model_to_file(const std::string& filename, Model& model, const Print& print);
+        bool _add_content_types_file_to_archive(mz_zip_archive& archive);
+        bool _add_relationships_file_to_archive(mz_zip_archive& archive);
+        bool _add_model_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items);
         bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
+        bool _add_config_file_to_archive(mz_zip_archive& archive, const Print& print);
     };
 
     _3MF_Exporter::BuildItem::BuildItem(unsigned int id, const Matrix4x4& matrix)
@@ -1014,9 +1047,9 @@ namespace Slic3r {
     {
     }
 
-    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model)
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const Print& print)
     {
-        return _save_model_to_file_miniz(filename, model);
+        return _save_model_to_file(filename, model, print);
     }
 
     const std::vector<std::string>& _3MF_Exporter::get_errors() const
@@ -1024,7 +1057,7 @@ namespace Slic3r {
         return m_errors;
     }
 
-    bool _3MF_Exporter::_save_model_to_file_miniz(const std::string& filename, Model& model)
+    bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const Print& print)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -1037,7 +1070,7 @@ namespace Slic3r {
         }
 
         // adds content types file
-        if (!_add_content_types_file_to_archive_miniz(archive))
+        if (!_add_content_types_file_to_archive(archive))
         {
             mz_zip_writer_end(&archive);
             boost::filesystem::remove(filename);
@@ -1045,7 +1078,7 @@ namespace Slic3r {
         }
 
         // adds relationships file
-        if (!_add_relationships_file_to_archive_miniz(archive))
+        if (!_add_relationships_file_to_archive(archive))
         {
             mz_zip_writer_end(&archive);
             boost::filesystem::remove(filename);
@@ -1053,7 +1086,15 @@ namespace Slic3r {
         }
 
         // adds model file
-        if (!_add_model_file_to_archive_miniz(archive, model))
+        if (!_add_model_file_to_archive(archive, model))
+        {
+            mz_zip_writer_end(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // adds slic3r config file
+        if (!_add_config_file_to_archive(archive, print))
         {
             mz_zip_writer_end(&archive);
             boost::filesystem::remove(filename);
@@ -1073,7 +1114,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Exporter::_add_content_types_file_to_archive_miniz(mz_zip_archive& archive)
+    bool _3MF_Exporter::_add_content_types_file_to_archive(mz_zip_archive& archive)
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -1093,7 +1134,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Exporter::_add_relationships_file_to_archive_miniz(mz_zip_archive& archive)
+    bool _3MF_Exporter::_add_relationships_file_to_archive(mz_zip_archive& archive)
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -1112,7 +1153,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Exporter::_add_model_file_to_archive_miniz(mz_zip_archive& archive, Model& model)
+    bool _3MF_Exporter::_add_model_file_to_archive(mz_zip_archive& archive, Model& model)
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -1298,13 +1339,30 @@ namespace Slic3r {
         return true;
     }
 
-    bool load_3mf(const char* path, Model* model)
+    bool _3MF_Exporter::_add_config_file_to_archive(mz_zip_archive& archive, const Print& print)
     {
-        if ((path == nullptr) || (model == nullptr))
+        char buffer[1024];
+        sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
+        std::string out = buffer;
+
+        GCode::append_full_config(print, out);
+
+        if (!mz_zip_writer_add_mem(&archive, CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        {
+            m_errors.push_back("Unable to add config file to archive");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool load_3mf(const char* path, PresetBundle* bundle, Model* model)
+    {
+        if ((path == nullptr) || (bundle == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Importer importer;
-        bool res = importer.load_model_from_file(path, *model);
+        bool res = importer.load_model_from_file(path, *model, *bundle);
 
         if (!res)
             const std::vector<std::string>& errors = importer.get_errors();
@@ -1312,13 +1370,13 @@ namespace Slic3r {
         return res;
     }
 
-    bool store_3mf(const char* path, Model* model)
+    bool store_3mf(const char* path, Model* model, Print* print)
     {
-        if ((path == nullptr) || (model == nullptr))
+        if ((path == nullptr) || (model == nullptr) || (print == nullptr))
             return false;
 
         _3MF_Exporter exporter;
-        bool res = exporter.save_model_to_file(path, *model);
+        bool res = exporter.save_model_to_file(path, *model, *print);
 
         if (!res)
             const std::vector<std::string>& errors = exporter.get_errors();

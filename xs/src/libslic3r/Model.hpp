@@ -19,6 +19,7 @@ class ModelInstance;
 class ModelMaterial;
 class ModelObject;
 class ModelVolume;
+class PresetBundle;
 
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
@@ -239,6 +240,7 @@ public:
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
     static Model read_from_file(const std::string &input_file, bool add_default_instances = true);
+    static Model read_from_archive(const std::string &input_file, PresetBundle* bundle, bool add_default_instances = true);
 
     ModelObject* add_object();
     ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
