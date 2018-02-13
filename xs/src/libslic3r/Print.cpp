@@ -1080,7 +1080,8 @@ void Print::_make_wipe_tower()
             // Find the position in this->objects.first()->support_layers to insert these new support layers.
             double wipe_tower_new_layer_print_z_first = m_tool_ordering.layer_tools()[idx_begin].print_z;
             SupportLayerPtrs::iterator it_layer = this->objects.front()->support_layers.begin();
-            for (; (*it_layer)->print_z - EPSILON < wipe_tower_new_layer_print_z_first; ++ it_layer) ;
+            SupportLayerPtrs::iterator it_end   = this->objects.front()->support_layers.end();
+            for (; it_layer != it_end && (*it_layer)->print_z - EPSILON < wipe_tower_new_layer_print_z_first; ++ it_layer);
             // Find the stopper of the sequence of wipe tower layers, which do not have a counterpart in an object or a support layer.
             for (size_t i = idx_begin; i < idx_end; ++ i) {
                 ToolOrdering::LayerTools &lt = const_cast<ToolOrdering::LayerTools&>(m_tool_ordering.layer_tools()[i]);
@@ -1088,9 +1089,9 @@ void Print::_make_wipe_tower()
                     break;
                 lt.has_support = true;
                 // Insert the new support layer.
-                //FIXME the support layer ID is duplicated, but Vojtech hopes it is not being used anywhere anyway.
                 double height    = lt.print_z - m_tool_ordering.layer_tools()[i-1].print_z;
-                auto  *new_layer = new SupportLayer((*it_layer)->id(), this->objects.front(), 
+                //FIXME the support layer ID is set to -1, as Vojtech hopes it is not being used anyway.
+                auto  *new_layer = new SupportLayer(size_t(-1), this->objects.front(),
                     height, lt.print_z, lt.print_z - 0.5 * height);
                 it_layer = this->objects.front()->support_layers.insert(it_layer, new_layer);
                 ++ it_layer;

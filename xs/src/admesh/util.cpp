@@ -171,12 +171,11 @@ stl_scale(stl_file *stl, float factor) {
 }
 
 static void calculate_normals(stl_file *stl) {
-  long i;
   float normal[3];
 
   if (stl->error) return;
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
+  for(uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
     stl_calculate_normal(normal, &stl->facet_start[i]);
     stl_normalize_vector(normal);
     stl->facet_start[i].normal.x = normal[0];
@@ -381,7 +380,6 @@ stl_mirror_xz(stl_file *stl) {
 }
 
 static float get_volume(stl_file *stl) {
-  long i;
   stl_vertex p0;
   stl_vertex p;
   stl_normal n;
@@ -396,7 +394,7 @@ static float get_volume(stl_file *stl) {
   p0.y = stl->facet_start[0].vertex[0].y;
   p0.z = stl->facet_start[0].vertex[0].z;
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
+  for(uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
     p.x = stl->facet_start[i].vertex[0].x - p0.x;
     p.y = stl->facet_start[i].vertex[0].y - p0.y;
     p.z = stl->facet_start[i].vertex[0].z - p0.z;

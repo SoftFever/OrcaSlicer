@@ -8,7 +8,7 @@
 %}
 
 %name{Slic3r::Point} class Point {
-    Point(long _x = 0, long _y = 0);
+    Point(int _x = 0, int _y = 0);
     ~Point();
     Clone<Point> clone()
         %code{% RETVAL=THIS; %}; 
@@ -18,13 +18,13 @@
         %code{% RETVAL = to_SV_pureperl(THIS); %};
     SV* pp()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
-    long x()
+    int x()
         %code{% RETVAL = THIS->x; %};
-    long y()
+    int y()
         %code{% RETVAL = THIS->y; %};
-    void set_x(long val)
+    void set_x(int val)
         %code{% THIS->x = val; %};
-    void set_y(long val)
+    void set_y(int val)
         %code{% THIS->y = val; %};
     int nearest_point_index(Points points);
     Clone<Point> nearest_point(Points points)
@@ -77,15 +77,15 @@ Point::coincides_with(point_sv)
 };
 
 %name{Slic3r::Point3} class Point3 {
-    Point3(long _x = 0, long _y = 0, long _z = 0);
+    Point3(int _x = 0, int _y = 0, int _z = 0);
     ~Point3();
     Clone<Point3> clone()
         %code{% RETVAL = THIS; %};
-    long x()
+    int x()
         %code{% RETVAL = THIS->x; %};
-    long y()
+    int y()
         %code{% RETVAL = THIS->y; %};
-    long z()
+    int z()
         %code{% RETVAL = THIS->z; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld,%ld", THIS->x, THIS->y, THIS->z); RETVAL = buf; %};
 };
