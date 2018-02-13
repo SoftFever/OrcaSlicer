@@ -226,7 +226,7 @@ public:
 	 	}
 	void			set_value(boost::any value) {
 		m_disable_change_event = true;
-		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast</*std::s*/wxString>(value));
+		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast<wxString>(value));
 		m_disable_change_event = false;
 	}
 
