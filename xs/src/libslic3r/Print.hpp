@@ -264,6 +264,18 @@ public:
     void set_gcode_preview_unretractions_visible(bool visible);
     void set_gcode_preview_shells_visible(bool visible);
 
+    // Sets the extrusion path colors from the given strings vector.
+    // Data in the vector should be formatted as follows:
+    // std::vector<std::string> role_colors = 
+    // { <role_1>, <color_1>,
+    //   <role_2>, <color_2>,
+    //   <role_3>, <color_3>,
+    //   ...
+    //   <role_N>, <color_N> };
+    // where <role_X> should be a string from GCodeAnalyzer::PreviewData::Extrusion::Default_Extrusion_Role_Names[]
+    // and <color_X> an RGB color in hex format (i.e. red = FF0000)
+    void set_gcode_extrusion_paths_colors(const std::vector<std::string>& colors);
+
     // methods for handling regions
     PrintRegion* get_region(size_t idx) { return regions.at(idx); }
     const PrintRegion* get_region(size_t idx) const  { return regions.at(idx); }

@@ -233,6 +233,24 @@ sub new {
     
     # init canvas
     $self->print($print);
+    
+    # sets colors for gcode preview extrusion roles
+    my @extrusion_roles_colors = (
+                                    'Perimeter'                  => 'FF0000',
+                                    'External perimeter'         => '00FF00',
+                                    'Overhang perimeter'         => '0000FF',
+                                    'Internal infill'            => 'FFFF00',
+                                    'Solid infill'               => 'FF00FF',
+                                    'Top solid infill'           => '00FFFF',
+                                    'Bridge infill'              => '7F7F7F',
+                                    'Gap fill'                   => 'FFFFFF',
+                                    'Skirt'                      => '7F0000',
+                                    'Support material'           => '007F00',
+                                    'Support material interface' => '00007F',
+                                    'Wipe tower'                 => 'B3E3AB',
+                                 );
+    $self->print->set_gcode_extrusion_paths_colors(\@extrusion_roles_colors);
+    
     $self->reload_print;
     
     return $self;

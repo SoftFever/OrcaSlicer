@@ -347,6 +347,18 @@ const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::get_extrusi
     return extrusion.ranges.feedrate.get_color_at(feedrate);
 }
 
+void GCodeAnalyzer::PreviewData::set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha)
+{
+    for (unsigned int i = 0; i < Extrusion::Num_Extrusion_Roles; ++i)
+    {
+        if (role_name == extrusion.role_names[i])
+        {
+            extrusion.role_colors[i] = Color(red, green, blue, alpha);
+            break;
+        }
+    }
+}
+
 std::string GCodeAnalyzer::PreviewData::get_legend_title() const
 {
     switch (extrusion.view_type)

@@ -172,6 +172,7 @@ _constant()
     void set_gcode_preview_retractions_visible(bool visible);
     void set_gcode_preview_unretractions_visible(bool visible);
     void set_gcode_preview_shells_visible(bool visible);
+    void set_gcode_extrusion_paths_colors(std::vector<std::string> colors);
         
     PrintRegionPtrs* regions()
         %code%{ RETVAL = &THIS->regions; %};

@@ -279,6 +279,8 @@ public:
         const Color& get_extrusion_width_color(float width) const;
         const Color& get_extrusion_feedrate_color(float feedrate) const;
 
+        void set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha);
+
         std::string get_legend_title() const;
         LegendItemsList get_legend_items(const std::vector<float>& tool_colors) const;
     };
