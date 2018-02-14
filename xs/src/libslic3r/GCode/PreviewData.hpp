@@ -183,6 +183,7 @@ public:
 
     void set_default();
     void reset();
+    bool empty() const;
 
     const Color& get_extrusion_role_color(ExtrusionRole role) const;
     const Color& get_extrusion_height_color(float height) const;

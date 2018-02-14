@@ -1,5 +1,6 @@
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
+#include <float.h>
 
 namespace Slic3r {
 
@@ -236,6 +237,11 @@ void GCodePreviewData::reset()
     travel.polylines.clear();
     retraction.positions.clear();
     unretraction.positions.clear();
+}
+
+bool GCodePreviewData::empty() const
+{
+    return extrusion.layers.empty() && travel.polylines.empty() && retraction.positions.empty() && unretraction.positions.empty();
 }
 
 const GCodePreviewData::Color& GCodePreviewData::get_extrusion_role_color(ExtrusionRole role) const

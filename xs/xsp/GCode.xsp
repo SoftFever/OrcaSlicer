@@ -18,7 +18,15 @@
 %name{Slic3r::GCode} class GCode {
     GCode();
     ~GCode();
-    void do_export(Print *print, const char *path, GCodePreviewData *preview_data)
+    void do_export(Print *print, const char *path)
+        %code%{
+            try {
+                THIS->do_export(print, path);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
+    void do_export_w_preview(Print *print, const char *path, GCodePreviewData *preview_data)
         %code%{
             try {
                 THIS->do_export(print, path, preview_data);
@@ -56,11 +64,13 @@
     GCodePreviewData();
     ~GCodePreviewData();
     void reset();
+    bool empty() const;
     void set_type(int type)
         %code%{
             if ((0 <= type) && (type < GCodePreviewData::Extrusion::Num_View_Types)) 
                 THIS->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
         %};
+    int type() %code%{ RETVAL = (int)THIS->extrusion.view_type; %};
     void set_extrusion_flags(int flags)
         %code%{ THIS->extrusion.role_flags = (unsigned int)flags; %};
     void set_travel_visible(bool visible)

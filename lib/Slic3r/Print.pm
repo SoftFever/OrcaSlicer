@@ -81,7 +81,12 @@ sub export_gcode {
     $self->status_cb->(90, "Exporting G-code" . ($output_file ? " to $output_file" : ""));
 
     # The following line may die for multiple reasons.
-    Slic3r::GCode->new->do_export($self, $output_file, $params{gcode_preview_data});
+    my $gcode = Slic3r::GCode->new;
+    if (defined $params{gcode_preview_data}) {
+        $gcode->do_export_w_preview($self, $output_file, $params{gcode_preview_data});
+    } else {
+        $gcode->do_export($self, $output_file);
+    }
     
     # run post-processing scripts
     if (@{$self->config->post_process}) {
