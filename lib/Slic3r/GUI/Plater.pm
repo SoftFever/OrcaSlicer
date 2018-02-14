@@ -610,7 +610,7 @@ sub load_files {
     # One of the files is potentionally a bundle of files. Don't bundle them, but load them one by one.
     # Only bundle .stls or .objs if the printer has multiple extruders.
     my $one_by_one = (@$nozzle_dmrs <= 1) || (@$input_files == 1) || 
-        defined(first { $_ =~ /.[aA][mM][fF]$/ || $_ =~ /.3[mM][fF]$/ || $_ =~ /.[pP][rR][uI][sS][aA]$/ } @$input_files);
+       defined(first { $_ =~ /.[aA][mM][fF]$/ || $_ =~ /.[aA][mM][fF].[xX][mM][lL]$/ || $_ =~ /.[zZ][iI][pP].[aA][mM][fF]$/ || $_ =~ /.3[mM][fF]$/ || $_ =~ /.[pP][rR][uI][sS][aA]$/ } @$input_files);
         
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file\n" . basename($input_files->[0]), 100, $self, 0);
     $process_dialog->Pulse;
@@ -629,7 +629,7 @@ sub load_files {
         $process_dialog->Update(100. * $i / @$input_files, "Processing input file\n" . basename($input_file));
 
         my $model;
-        if ($input_file =~ /.3[mM][fF]$/)
+        if (($input_file =~ /.3[mM][fF]$/) || ($input_file =~ /.[zZ][iI][pP].[aA][mM][fF]$/))
         {
             $model = eval { Slic3r::Model->read_from_archive($input_file, wxTheApp->{preset_bundle}, 0) };
             Slic3r::GUI::show_error($self, $@) if $@;
@@ -1557,8 +1557,15 @@ sub export_amf {
     return if !@{$self->{objects}};
     # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('AMF') or return;
-    $self->{model}->store_amf($output_file);
-    $self->statusbar->SetStatusText("AMF file exported to $output_file");
+    my $res = $self->{model}->store_amf($output_file, $self->{print});
+    if ($res)
+    {
+        $self->statusbar->SetStatusText("AMF file exported to $output_file");
+    }
+    else
+    {
+        $self->statusbar->SetStatusText("Error exporting AMF file $output_file");
+    }
 }
 
 sub export_3mf {
@@ -1588,7 +1595,7 @@ sub _get_export_file {
     }
     elsif ($format eq 'AMF')
     {
-        $suffix = '.amf.xml';
+        $suffix = '.zip.amf';
     }
     elsif ($format eq '3MF')
     {
@@ -2102,8 +2109,8 @@ sub OnDropFiles {
     # stop scalars leaking on older perl
     # https://rt.perl.org/rt3/Public/Bug/Display.html?id=70602
     @_ = ();
-    # only accept STL, OBJ, AMF and 3MF files
-    return 0 if grep !/\.(?:[sS][tT][lL]|[oO][bB][jJ]|[aA][mM][fF]|[3][mM][fF](?:\.[xX][mM][lL])?|[pP][rR][uU][sS][aA])$/, @$filenames;
+    # only accept STL, OBJ, AMF, 3MF and PRUSA files
+    return 0 if grep !/\.(?:[sS][tT][lL]|[oO][bB][jJ]|[aA][mM][fF]|[3][mM][fF]|[aA][mM][fF].[xX][mM][lL]|[zZ][iI][pP].[aA][mM][lL]|[pP][rR][uU][sS][aA])$/, @$filenames;
     $self->{window}->load_files($filenames);
 }
 

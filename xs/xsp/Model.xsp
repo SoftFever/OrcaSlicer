@@ -101,8 +101,8 @@
 
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
-    bool store_amf(char *path)
-        %code%{ RETVAL = Slic3r::store_amf(path, THIS); %};
+    bool store_amf(char *path, Print* print)
+        %code%{ RETVAL = Slic3r::store_amf(path, THIS, print); %};
     bool store_3mf(char *path, Print* print)
         %code%{ RETVAL = Slic3r::store_3mf(path, THIS, print); %};
 
@@ -137,12 +137,13 @@ load_obj(CLASS, path, object_name)
         RETVAL
 
 Model*
-load_amf(CLASS, path)
+load_amf(CLASS, bundle, path)
     char*           CLASS;
+    PresetBundle*   bundle;
     char*           path;
     CODE:
         RETVAL = new Model();
-        if (! load_amf(path, RETVAL)) {
+        if (! load_amf(path, bundle, RETVAL)) {
             delete RETVAL;
             RETVAL = NULL;
         }

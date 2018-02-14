@@ -162,7 +162,26 @@ bool is_valid_object_type(const std::string& type)
 
 namespace Slic3r {
 
-    class _3MF_Importer
+    // Base class with error messages management
+    class _3MF_Base
+    {
+        std::vector<std::string> m_errors;
+
+    protected:
+        void add_error(const std::string& error) { m_errors.push_back(error); }
+        void clear_errors() { m_errors.clear(); }
+
+    public:
+        void log_errors()
+        {
+            for (const std::string& error : m_errors)
+            {
+                printf("%s\n", error.c_str());
+            }
+        }
+    };
+
+    class _3MF_Importer : public _3MF_Base
     {
         struct Component
         {
@@ -216,15 +235,12 @@ namespace Slic3r {
         IdToModelObjectMap m_objects;
         IdToAliasesMap m_objects_aliases;
         InstancesList m_instances;
-        std::vector<std::string> m_errors;
 
     public:
         _3MF_Importer();
         ~_3MF_Importer();
 
         bool load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle);
-
-        const std::vector<std::string>& get_errors() const;
 
     private:
         void _destroy_xml_parser();
@@ -345,14 +361,9 @@ namespace Slic3r {
         m_objects.clear();
         m_objects_aliases.clear();
         m_instances.clear();
-        m_errors.clear();
+        clear_errors();
 
         return _load_model_from_file(filename, model, bundle);
-    }
-
-    const std::vector<std::string>& _3MF_Importer::get_errors() const
-    {
-        return m_errors;
     }
 
     void _3MF_Importer::_destroy_xml_parser()
@@ -378,7 +389,7 @@ namespace Slic3r {
         mz_bool res = mz_zip_reader_init_file(&archive, filename.c_str(), 0);
         if (res == 0)
         {
-            m_errors.push_back("Unable to open the file");
+            add_error("Unable to open the file");
             return false;
         }
 
@@ -398,7 +409,7 @@ namespace Slic3r {
                     if (!_extract_model_from_archive(archive, stat))
                     {
                         mz_zip_reader_end(&archive);
-                        m_errors.push_back("Archive does not contain a valid model");
+                        add_error("Archive does not contain a valid model");
                         return false;
                     }
                 }
@@ -408,7 +419,7 @@ namespace Slic3r {
                     if (!_extract_config_from_archive(archive, stat, bundle, filename))
                     {
                         mz_zip_reader_end(&archive);
-                        m_errors.push_back("Archive does not contain a valid config");
+                        add_error("Archive does not contain a valid config");
                         return false;
                     }
                 }
@@ -421,12 +432,18 @@ namespace Slic3r {
 
     bool _3MF_Importer::_extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
     {
+        if (stat.m_uncomp_size == 0)
+        {
+            add_error("Found invalid size");
+            return false;
+        }
+
         _destroy_xml_parser();
 
         m_xml_parser = XML_ParserCreate(nullptr);
         if (m_xml_parser == nullptr)
         {
-            m_errors.push_back("Unable to create parser");
+            add_error("Unable to create parser");
             return false;
         }
 
@@ -436,14 +453,14 @@ namespace Slic3r {
         void* parser_buffer = XML_GetBuffer(m_xml_parser, (int)stat.m_uncomp_size);
         if (parser_buffer == nullptr)
         {
-            m_errors.push_back("Unable to create buffer");
+            add_error("Unable to create buffer");
             return false;
         }
 
         mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t)stat.m_uncomp_size, 0);
         if (res == 0)
         {
-            m_errors.push_back("Error while reading model data to buffer");
+            add_error("Error while reading model data to buffer");
             return false;
         }
 
@@ -451,7 +468,7 @@ namespace Slic3r {
         {
             char error_buf[1024];
             ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
-            m_errors.push_back(error_buf);
+            add_error(error_buf);
             return false;
         }
 
@@ -466,7 +483,7 @@ namespace Slic3r {
             mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
             if (res == 0)
             {
-                m_errors.push_back("Error while reading config data to buffer");
+                add_error("Error while reading config data to buffer");
                 return false;
             }
 
@@ -613,7 +630,7 @@ namespace Slic3r {
             m_curr_object.object = m_model->add_object();
             if (m_curr_object.object == nullptr)
             {
-                m_errors.push_back("Unable to create object");
+                add_error("Unable to create object");
                 return false;
             }
 
@@ -657,7 +674,7 @@ namespace Slic3r {
                 ModelVolume* volume = m_curr_object.object->add_volume(m_curr_object.mesh);
                 if (volume == nullptr)
                 {
-                    m_errors.push_back("Unable to add volume");
+                    add_error("Unable to add volume");
                     return false;
                 }
 
@@ -685,7 +702,7 @@ namespace Slic3r {
                 }
                 else
                 {
-                    m_errors.push_back("Found object with duplicate id");
+                    add_error("Found object with duplicate id");
                     return false;
                 }
             }
@@ -796,7 +813,7 @@ namespace Slic3r {
             IdToAliasesMap::iterator alias_item = m_objects_aliases.find(object_id);
             if (alias_item == m_objects_aliases.end())
             {
-                m_errors.push_back("Found component with invalid object id");
+                add_error("Found component with invalid object id");
                 return false;
             }
         }
@@ -852,14 +869,14 @@ namespace Slic3r {
         // escape from circular aliasing
         if (recur_counter > MAX_RECURSIONS)
         {
-            m_errors.push_back("Too many recursions");
+            add_error("Too many recursions");
             return false;
         }
 
         IdToAliasesMap::iterator it = m_objects_aliases.find(object_id);
         if (it == m_objects_aliases.end())
         {
-            m_errors.push_back("Found item with invalid object id");
+            add_error("Found item with invalid object id");
             return false;
         }
 
@@ -870,7 +887,7 @@ namespace Slic3r {
             IdToModelObjectMap::iterator object_item = m_objects.find(object_id);
             if ((object_item == m_objects.end()) || (object_item->second == nullptr))
             {
-                m_errors.push_back("Found invalid object");
+                add_error("Found invalid object");
                 return false;
             }
             else
@@ -878,7 +895,7 @@ namespace Slic3r {
                 ModelInstance* instance = object_item->second->add_instance();
                 if (instance == nullptr)
                 {
-                    m_errors.push_back("Unable to add object instance");
+                    add_error("Unable to add object instance");
                     return false;
                 }
 
@@ -1011,7 +1028,7 @@ namespace Slic3r {
             importer->_handle_end_xml_element(name);
     }
 
-    class _3MF_Exporter
+    class _3MF_Exporter : public _3MF_Base
     {
         struct BuildItem
         {
@@ -1023,12 +1040,8 @@ namespace Slic3r {
 
         typedef std::vector<BuildItem> BuildItemsList;
 
-        std::vector<std::string> m_errors;
-
     public:
         bool save_model_to_file(const std::string& filename, Model& model, const Print& print);
-
-        const std::vector<std::string>& get_errors() const;
 
     private:
         bool _save_model_to_file(const std::string& filename, Model& model, const Print& print);
@@ -1049,12 +1062,8 @@ namespace Slic3r {
 
     bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const Print& print)
     {
+        clear_errors();
         return _save_model_to_file(filename, model, print);
-    }
-
-    const std::vector<std::string>& _3MF_Exporter::get_errors() const
-    {
-        return m_errors;
     }
 
     bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const Print& print)
@@ -1065,7 +1074,7 @@ namespace Slic3r {
         mz_bool res = mz_zip_writer_init_file(&archive, filename.c_str(), 0);
         if (res == 0)
         {
-            m_errors.push_back("Unable to open the file");
+            add_error("Unable to open the file");
             return false;
         }
 
@@ -1105,7 +1114,7 @@ namespace Slic3r {
         {
             mz_zip_writer_end(&archive);
             boost::filesystem::remove(filename);
-            m_errors.push_back("Unable to finalize the archive");
+            add_error("Unable to finalize the archive");
             return false;
         }
 
@@ -1127,7 +1136,7 @@ namespace Slic3r {
 
         if (!mz_zip_writer_add_mem(&archive, CONTENT_TYPES_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
         {
-            m_errors.push_back("Unable to add content types file to archive");
+            add_error("Unable to add content types file to archive");
             return false;
         }
 
@@ -1146,7 +1155,7 @@ namespace Slic3r {
 
         if (!mz_zip_writer_add_mem(&archive, RELATIONSHIPS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
         {
-            m_errors.push_back("Unable to add relationships file to archive");
+            add_error("Unable to add relationships file to archive");
             return false;
         }
 
@@ -1170,7 +1179,7 @@ namespace Slic3r {
 
             if (!_add_object_to_model_stream(stream, object_id, *obj, build_items))
             {
-                m_errors.push_back("Unable to add object to archive");
+                add_error("Unable to add object to archive");
                 return false;
             }
         }
@@ -1180,7 +1189,7 @@ namespace Slic3r {
 
         if (!_add_build_to_model_stream(stream, build_items))
         {
-            m_errors.push_back("Unable to add build to archive");
+            add_error("Unable to add build to archive");
             return false;
         }
 
@@ -1190,7 +1199,7 @@ namespace Slic3r {
 
         if (!mz_zip_writer_add_mem(&archive, MODEL_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
         {
-            m_errors.push_back("Unable to add model file to archive");
+            add_error("Unable to add model file to archive");
             return false;
         }
 
@@ -1212,7 +1221,7 @@ namespace Slic3r {
             {
                 if (!_add_mesh_to_object_stream(stream, object))
                 {
-                    m_errors.push_back("Unable to add mesh to archive");
+                    add_error("Unable to add mesh to archive");
                     return false;
                 }
             }
@@ -1262,7 +1271,7 @@ namespace Slic3r {
 
             if (stl.stats.shared_vertices == 0)
             {
-                m_errors.push_back("Found invalid mesh");
+                add_error("Found invalid mesh");
                 return false;
             }
 
@@ -1313,7 +1322,7 @@ namespace Slic3r {
     {
         if (build_items.size() == 0)
         {
-            m_errors.push_back("No build item found");
+            add_error("No build item found");
             return false;
         }
 
@@ -1349,7 +1358,7 @@ namespace Slic3r {
 
         if (!mz_zip_writer_add_mem(&archive, CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
         {
-            m_errors.push_back("Unable to add config file to archive");
+            add_error("Unable to add config file to archive");
             return false;
         }
 
@@ -1365,7 +1374,7 @@ namespace Slic3r {
         bool res = importer.load_model_from_file(path, *model, *bundle);
 
         if (!res)
-            const std::vector<std::string>& errors = importer.get_errors();
+            importer.log_errors();
 
         return res;
     }
@@ -1379,7 +1388,7 @@ namespace Slic3r {
         bool res = exporter.save_model_to_file(path, *model, *print);
 
         if (!res)
-            const std::vector<std::string>& errors = exporter.get_errors();
+            exporter.log_errors();
 
         return res;
     }
