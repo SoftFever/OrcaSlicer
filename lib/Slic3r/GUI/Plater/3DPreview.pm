@@ -17,6 +17,8 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
     $self->{config} = $config;
     $self->{number_extruders} = 1;
+    # Show by feature type by default.
+    $self->{preferred_color_mode} = 0;
     $self->auto_zoom(1);
 
     # init GUI elements
@@ -60,7 +62,7 @@ sub new {
     
     my $label_view_type = $self->{label_view_type} = Wx::StaticText->new($self, -1, "View");
     
-    my $choice_view_type = Wx::Choice->new($self, -1);
+    my $choice_view_type = $self->{choice_view_type} = Wx::Choice->new($self, -1);
     $choice_view_type->Append("Feature type");
     $choice_view_type->Append("Height");
     $choice_view_type->Append("Width");
@@ -192,6 +194,7 @@ sub new {
     });
     EVT_CHOICE($self, $choice_view_type, sub {
         my $selection = $choice_view_type->GetCurrentSelection();
+        $self->{preferred_color_mode} = $selection;
         $self->gcode_preview_data->set_type($selection);
         $self->auto_zoom(0);
         $self->reload_print;
@@ -240,17 +243,17 @@ sub new {
     
     # sets colors for gcode preview extrusion roles
     my @extrusion_roles_colors = (
-                                    'Perimeter'                  => 'FF0000',
-                                    'External perimeter'         => '00FF00',
+                                    'Perimeter'                  => 'FFA500',
+                                    'External perimeter'         => 'FFFF66',
                                     'Overhang perimeter'         => '0000FF',
-                                    'Internal infill'            => 'FFFF00',
-                                    'Solid infill'               => 'FF00FF',
-                                    'Top solid infill'           => '00FFFF',
-                                    'Bridge infill'              => '7F7F7F',
+                                    'Internal infill'            => 'FF0000',
+                                    'Solid infill'               => 'CD00CD',
+                                    'Top solid infill'           => 'FF3333',
+                                    'Bridge infill'              => '9999FF',
                                     'Gap fill'                   => 'FFFFFF',
                                     'Skirt'                      => '7F0000',
-                                    'Support material'           => '007F00',
-                                    'Support material interface' => '00007F',
+                                    'Support material'           => '00FF00',
+                                    'Support material interface' => '008000',
                                     'Wipe tower'                 => 'B3E3AB',
                                  );
     $self->gcode_preview_data->set_extrusion_paths_colors(\@extrusion_roles_colors);
@@ -345,31 +348,32 @@ sub load_print {
 
     # Collect colors per extruder.
     my @colors = ();
-    my @extruder_colors = @{$self->{config}->extruder_colour};
-    my @filament_colors = @{$self->{config}->filament_colour};
-    for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
-        my $color = $extruder_colors[$i];
-        $color = $filament_colors[$i] if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
-        $color = '#FFFFFF' if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
-        push @colors, $color;
+    if (! $self->gcode_preview_data->empty() || $self->gcode_preview_data->type == 4) {
+        my @extruder_colors = @{$self->{config}->extruder_colour};
+        my @filament_colors = @{$self->{config}->filament_colour};
+        for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
+            my $color = $extruder_colors[$i];
+            $color = $filament_colors[$i] if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
+            $color = '#FFFFFF' if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
+            push @colors, $color;
+        }
     }
 
     if ($self->IsShown) {
-        $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
-
-#        # load skirt and brim
-#        $self->canvas->load_print_toolpaths($self->print, \@colors);
-#        $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);
-#        
-#        foreach my $object (@{$self->print->objects}) {
-#            $self->canvas->load_print_object_toolpaths($object, \@colors);
-#            
-#            # Show the objects in very transparent color.
-#            #my @volume_ids = $self->canvas->load_object($object->model_object);
-#            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
-#        }
-        if ($self->auto_zoom)
-        {
+        if ($self->gcode_preview_data->empty) {
+            # load skirt and brim
+            $self->canvas->load_print_toolpaths($self->print, \@colors);
+            $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);        
+            foreach my $object (@{$self->print->objects}) {
+                $self->canvas->load_print_object_toolpaths($object, \@colors);            
+                # Show the objects in very transparent color.
+                #my @volume_ids = $self->canvas->load_object($object->model_object);
+                #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
+            }
+        } else {
+            $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
+        }
+        if ($self->auto_zoom) {
             $self->canvas->zoom_to_volumes;
         }
         $self->_loaded(1);
@@ -424,6 +428,11 @@ sub set_number_extruders {
     my ($self, $number_extruders) = @_;
     if ($self->{number_extruders} != $number_extruders) {
         $self->{number_extruders} = $number_extruders;
+        $self->{preferred_color_mode} = ($number_extruders > 1) ?
+              4  # color by a tool number
+            : 0; # color by a feature type
+        $self->{choice_view_type}->SetSelection($self->{preferred_color_mode});
+        $self->gcode_preview_data->set_type($self->{preferred_color_mode});
     }
 }
 
