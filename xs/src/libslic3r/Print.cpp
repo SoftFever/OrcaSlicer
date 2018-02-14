@@ -73,8 +73,8 @@ void Print::clear_gcode_preview_data()
 
 void Print::set_gcode_preview_type(unsigned char type)
 {
-    if ((0 <= type) && (type < GCodeAnalyzer::PreviewData::Extrusion::Num_View_Types))
-        gcode_preview.extrusion.view_type = (GCodeAnalyzer::PreviewData::Extrusion::EViewType)type;
+    if ((0 <= type) && (type < GCodePreviewData::Extrusion::Num_View_Types))
+        gcode_preview.extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
 }
 
 void Print::set_gcode_preview_extrusion_flags(unsigned int flags)

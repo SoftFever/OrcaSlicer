@@ -15,7 +15,7 @@
 #include "Slicing.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
-#include "GCode/Analyzer.hpp"
+#include "GCode/PreviewData.hpp"
 
 #include "tbb/atomic.h"
 
@@ -241,7 +241,7 @@ public:
 
     // ordered collections of extrusion paths to build skirt loops and brim
     ExtrusionEntityCollection skirt, brim;
-    GCodeAnalyzer::PreviewData gcode_preview;
+    GCodePreviewData gcode_preview;
 
     Print() : total_used_filament(0), total_extruded_volume(0) { restart(); }
     ~Print() { clear_objects(); }
@@ -272,7 +272,7 @@ public:
     //   <role_3>, <color_3>,
     //   ...
     //   <role_N>, <color_N> };
-    // where <role_X> should be a string from GCodeAnalyzer::PreviewData::Extrusion::Default_Extrusion_Role_Names[]
+    // where <role_X> should be a string from GCodePreviewData::Extrusion::Default_Extrusion_Role_Names[]
     // and <color_X> an RGB color in hex format (i.e. red = FF0000)
     void set_gcode_extrusion_paths_colors(const std::vector<std::string>& colors);
 

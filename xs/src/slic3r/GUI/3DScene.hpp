@@ -375,7 +375,7 @@ private:
 
 class _3DScene
 {
-    struct GCodePreviewData
+    struct GCodePreviewVolumeIndex
     {
         enum EType
         {
@@ -391,17 +391,18 @@ class _3DScene
         {
             EType type;
             unsigned int flag;
+            // Index of the first volume in a GLVolumeCollection.
             unsigned int id;
 
-            FirstVolume(EType type, unsigned int flag, unsigned int id);
+            FirstVolume(EType type, unsigned int flag, unsigned int id) : type(type), flag(flag), id(id) {}
         };
 
         std::vector<FirstVolume> first_volumes;
 
-        void reset();
+        void reset() { first_volumes.clear(); }
     };
 
-    static GCodePreviewData s_gcode_preview_data;
+    static GCodePreviewVolumeIndex s_gcode_preview_volume_index;
 
     class LegendTexture
     {

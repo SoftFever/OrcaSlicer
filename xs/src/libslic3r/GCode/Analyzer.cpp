@@ -7,6 +7,7 @@
 #include "Print.hpp"
 
 #include "Analyzer.hpp"
+#include "PreviewData.hpp"
 
 static const std::string AXIS_STR = "XYZE";
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
@@ -86,364 +87,6 @@ GCodeAnalyzer::GCodeMove::GCodeMove(GCodeMove::EType type, const GCodeAnalyzer::
     , end_position(end_position)
     , delta_extruder(delta_extruder)
 {
-}
-
-const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Color::Dummy(0.0f, 0.0f, 0.0f, 0.0f);
-
-GCodeAnalyzer::PreviewData::Color::Color()
-{
-    rgba[0] = 1.0f;
-    rgba[1] = 1.0f;
-    rgba[2] = 1.0f;
-    rgba[3] = 1.0f;
-}
-
-GCodeAnalyzer::PreviewData::Color::Color(float r, float g, float b, float a)
-{
-    rgba[0] = r;
-    rgba[1] = g;
-    rgba[2] = b;
-    rgba[3] = a;
-}
-
-std::vector<unsigned char> GCodeAnalyzer::PreviewData::Color::as_bytes() const
-{
-    std::vector<unsigned char> ret;
-    for (unsigned int i = 0; i < 4; ++i)
-    {
-        ret.push_back((unsigned char)(255.0f * rgba[i]));
-    }
-    return ret;
-}
-
-GCodeAnalyzer::PreviewData::Extrusion::Layer::Layer(float z, const ExtrusionPaths& paths)
-    : z(z)
-    , paths(paths)
-{
-}
-
-GCodeAnalyzer::PreviewData::Travel::Polyline::Polyline(EType type, EDirection direction, float feedrate, unsigned int extruder_id, const Polyline3& polyline)
-    : type(type)
-    , direction(direction)
-    , feedrate(feedrate)
-    , extruder_id(extruder_id)
-    , polyline(polyline)
-{
-}
-
-const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Range::Default_Colors[Colors_Count] =
-{
-    Color(0.043f, 0.173f, 0.478f, 1.0f),
-    Color(0.075f, 0.349f, 0.522f, 1.0f),
-    Color(0.110f, 0.533f, 0.569f, 1.0f),
-    Color(0.016f, 0.839f, 0.059f, 1.0f),
-    Color(0.667f, 0.949f, 0.000f, 1.0f),
-    Color(0.988f, 0.975f, 0.012f, 1.0f),
-    Color(0.961f, 0.808f, 0.039f, 1.0f),
-    Color(0.890f, 0.533f, 0.125f, 1.0f),
-    Color(0.820f, 0.408f, 0.188f, 1.0f),
-    Color(0.761f, 0.322f, 0.235f, 1.0f)
-};
-
-GCodeAnalyzer::PreviewData::Range::Range()
-{
-    reset();
-}
-
-void GCodeAnalyzer::PreviewData::Range::reset()
-{
-    min = FLT_MAX;
-    max = -FLT_MAX;
-}
-
-bool GCodeAnalyzer::PreviewData::Range::empty() const
-{
-    return min == max;
-}
-
-void GCodeAnalyzer::PreviewData::Range::update_from(float value)
-{
-    min = std::min(min, value);
-    max = std::max(max, value);
-}
-
-void GCodeAnalyzer::PreviewData::Range::set_from(const Range& other)
-{
-    min = other.min;
-    max = other.max;
-}
-
-float GCodeAnalyzer::PreviewData::Range::step_size() const
-{
-    return (max - min) / (float)Colors_Count;
-}
-
-const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::Range::get_color_at_max() const
-{
-    return colors[Colors_Count - 1];
-}
-
-const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::Range::get_color_at(float value) const
-{
-    return empty() ? get_color_at_max() : colors[clamp((unsigned int)0, Colors_Count - 1, (unsigned int)((value - min) / step_size()))];
-}
-
-GCodeAnalyzer::PreviewData::LegendItem::LegendItem(const std::string& text, const GCodeAnalyzer::PreviewData::Color& color)
-    : text(text)
-    , color(color)
-{
-}
-
-const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Extrusion::Default_Extrusion_Role_Colors[Num_Extrusion_Roles] =
-{
-    Color(0.0f, 0.0f, 0.0f, 1.0f),   // erNone
-    Color(1.0f, 0.0f, 0.0f, 1.0f),   // erPerimeter
-    Color(0.0f, 1.0f, 0.0f, 1.0f),   // erExternalPerimeter
-    Color(0.0f, 0.0f, 1.0f, 1.0f),   // erOverhangPerimeter
-    Color(1.0f, 1.0f, 0.0f, 1.0f),   // erInternalInfill
-    Color(1.0f, 0.0f, 1.0f, 1.0f),   // erSolidInfill
-    Color(0.0f, 1.0f, 1.0f, 1.0f),   // erTopSolidInfill
-    Color(0.5f, 0.5f, 0.5f, 1.0f),   // erBridgeInfill
-    Color(1.0f, 1.0f, 1.0f, 1.0f),   // erGapFill
-    Color(0.5f, 0.0f, 0.0f, 1.0f),   // erSkirt
-    Color(0.0f, 0.5f, 0.0f, 1.0f),   // erSupportMaterial
-    Color(0.0f, 0.0f, 0.5f, 1.0f),   // erSupportMaterialInterface
-    Color(0.7f, 0.89f, 0.67f, 1.0f), // erWipeTower
-    Color(0.0f, 0.0f, 0.0f, 1.0f)    // erMixed
-};
-
-// todo: merge with Slic3r::ExtrusionRole2String() from GCode.cpp
-const std::string GCodeAnalyzer::PreviewData::Extrusion::Default_Extrusion_Role_Names[Num_Extrusion_Roles]
-{
-    "None",
-    "Perimeter",
-    "External perimeter",
-    "Overhang perimeter",
-    "Internal infill",
-    "Solid infill",
-    "Top solid infill",
-    "Bridge infill",
-    "Gap fill",
-    "Skirt",
-    "Support material",
-    "Support material interface",
-    "Wipe tower",
-    "Mixed"
-};
-
-const GCodeAnalyzer::PreviewData::Extrusion::EViewType GCodeAnalyzer::PreviewData::Extrusion::Default_View_Type = GCodeAnalyzer::PreviewData::Extrusion::FeatureType;
-
-void GCodeAnalyzer::PreviewData::Extrusion::set_default()
-{
-    view_type = Default_View_Type;
-
-    ::memcpy((void*)role_colors, (const void*)Default_Extrusion_Role_Colors, Num_Extrusion_Roles * sizeof(Color));
-    ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-
-    for (unsigned int i = 0; i < Num_Extrusion_Roles; ++i)
-    {
-        role_names[i] = Default_Extrusion_Role_Names[i];
-    }
-
-    role_flags = 0;
-    for (unsigned int i = 0; i < Num_Extrusion_Roles; ++i)
-    {
-        role_flags += (unsigned int)::exp2((double)i);
-    }
-}
-
-bool GCodeAnalyzer::PreviewData::Extrusion::is_role_flag_set(ExtrusionRole role) const
-{
-    return is_role_flag_set(role_flags, role);
-}
-
-bool GCodeAnalyzer::PreviewData::Extrusion::is_role_flag_set(unsigned int flags, ExtrusionRole role)
-{
-    if (!is_valid_extrusion_role(role))
-        return false;
-
-    unsigned int flag = (unsigned int)::exp2((double)(role - erPerimeter));
-    return (flags & flag) == flag;
-}
-
-const float GCodeAnalyzer::PreviewData::Travel::Default_Width = 0.075f;
-const float GCodeAnalyzer::PreviewData::Travel::Default_Height = 0.075f;
-const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Travel::Default_Type_Colors[Num_Types] =
-{
-    Color(0.0f, 0.0f, 0.75f, 1.0f), // Move
-    Color(0.0f, 0.75f, 0.0f, 1.0f), // Extrude
-    Color(0.75f, 0.0f, 0.0f, 1.0f), // Retract
-};
-
-void GCodeAnalyzer::PreviewData::Travel::set_default()
-{
-    width = Default_Width;
-    height = Default_Height;
-    ::memcpy((void*)type_colors, (const void*)Default_Type_Colors, Num_Types * sizeof(Color));
-    is_visible = false;
-}
-
-const GCodeAnalyzer::PreviewData::Color GCodeAnalyzer::PreviewData::Retraction::Default_Color = GCodeAnalyzer::PreviewData::Color(1.0f, 1.0f, 1.0f, 1.0f);
-
-GCodeAnalyzer::PreviewData::Retraction::Position::Position(const Point3& position, float width, float height)
-    : position(position)
-    , width(width)
-    , height(height)
-{
-}
-
-void GCodeAnalyzer::PreviewData::Retraction::set_default()
-{
-    color = Default_Color;
-    is_visible = false;
-}
-
-void GCodeAnalyzer::PreviewData::Shell::set_default()
-{
-    is_visible = false;
-}
-
-GCodeAnalyzer::PreviewData::PreviewData()
-{
-    set_default();
-}
-
-void GCodeAnalyzer::PreviewData::set_default()
-{
-    extrusion.set_default();
-    travel.set_default();
-    retraction.set_default();
-    unretraction.set_default();
-    shell.set_default();
-}
-
-void GCodeAnalyzer::PreviewData::reset()
-{
-    extrusion.layers.clear();
-    travel.polylines.clear();
-    retraction.positions.clear();
-    unretraction.positions.clear();
-}
-
-const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::get_extrusion_role_color(ExtrusionRole role) const
-{
-    return extrusion.role_colors[role];
-}
-
-const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::get_extrusion_height_color(float height) const
-{
-    return extrusion.ranges.height.get_color_at(height);
-}
-
-const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::get_extrusion_width_color(float width) const
-{
-    return extrusion.ranges.width.get_color_at(width);
-}
-
-const GCodeAnalyzer::PreviewData::Color& GCodeAnalyzer::PreviewData::get_extrusion_feedrate_color(float feedrate) const
-{
-    return extrusion.ranges.feedrate.get_color_at(feedrate);
-}
-
-void GCodeAnalyzer::PreviewData::set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha)
-{
-    for (unsigned int i = 0; i < Extrusion::Num_Extrusion_Roles; ++i)
-    {
-        if (role_name == extrusion.role_names[i])
-        {
-            extrusion.role_colors[i] = Color(red, green, blue, alpha);
-            break;
-        }
-    }
-}
-
-std::string GCodeAnalyzer::PreviewData::get_legend_title() const
-{
-    switch (extrusion.view_type)
-    {
-    case Extrusion::FeatureType:
-        return "Feature type";
-    case Extrusion::Height:
-        return "Height (mm)";
-    case Extrusion::Width:
-        return "Width (mm)";
-    case Extrusion::Feedrate:
-        return "Speed (mm/s)";
-    case Extrusion::Tool:
-        return "Tool";
-    }
-
-    return "";
-}
-
-GCodeAnalyzer::PreviewData::LegendItemsList GCodeAnalyzer::PreviewData::get_legend_items(const std::vector<float>& tool_colors) const
-{
-    struct Helper
-    {
-        static void FillListFromRange(LegendItemsList& list, const Range& range, unsigned int decimals, float scale_factor)
-        {
-            list.reserve(Range::Colors_Count);
-            float step = range.step_size();
-            for (unsigned int i = 0; i < Range::Colors_Count; ++i)
-            {
-                char buf[32];
-                sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (range.min + (float)i * step), decimals, scale_factor * (range.min + (float)(i + 1) * step));
-                list.emplace_back(buf, range.colors[i]);
-            }
-        }
-    };
-
-    LegendItemsList items;
-
-    switch (extrusion.view_type)
-    {
-    case Extrusion::FeatureType:
-        {
-            items.reserve(erMixed - erPerimeter + 1);
-            for (unsigned int i = (unsigned int)erPerimeter; i < (unsigned int)erMixed; ++i)
-            {
-                items.emplace_back(extrusion.role_names[i], extrusion.role_colors[i]);
-            }
-
-            break;
-        }
-    case Extrusion::Height:
-        {
-            Helper::FillListFromRange(items, extrusion.ranges.height, 3, 1.0f);            
-            break;
-        }
-    case Extrusion::Width:
-        {
-            Helper::FillListFromRange(items, extrusion.ranges.width, 3, 1.0f);
-            break;
-        }
-    case Extrusion::Feedrate:
-        {
-            Helper::FillListFromRange(items, extrusion.ranges.feedrate, 0, 1.0f);
-            break;
-        }
-    case Extrusion::Tool:
-        {
-            unsigned int tools_colors_count = tool_colors.size() / 4;
-            items.reserve(tools_colors_count);
-            for (unsigned int i = 0; i < tools_colors_count; ++i)
-            {
-                char buf[32];
-                sprintf(buf, "Extruder %d", i + 1);
-
-                GCodeAnalyzer::PreviewData::Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
-
-                items.emplace_back(buf, color);
-            }
-
-            break;
-        }
-    }
-
-    return items;
 }
 
 GCodeAnalyzer::GCodeAnalyzer()
@@ -962,9 +605,9 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
 {
     struct Helper
     {
-        static PreviewData::Extrusion::Layer& get_layer_at_z(PreviewData::Extrusion::LayersList& layers, float z)
+        static GCodePreviewData::Extrusion::Layer& get_layer_at_z(GCodePreviewData::Extrusion::LayersList& layers, float z)
         {
-            for (PreviewData::Extrusion::Layer& layer : layers)
+            for (GCodePreviewData::Extrusion::Layer& layer : layers)
             {
                 // if layer found, return it
                 if (layer.z == z)
@@ -999,9 +642,9 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
     float z = FLT_MAX;
     Polyline polyline;
     Pointf3 position(FLT_MAX, FLT_MAX, FLT_MAX);
-    PreviewData::Range height_range;
-    PreviewData::Range width_range;
-    PreviewData::Range feedrate_range;
+    GCodePreviewData::Range height_range;
+    GCodePreviewData::Range width_range;
+    GCodePreviewData::Range feedrate_range;
 
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : extrude_moves->second)
@@ -1048,7 +691,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
 {
     struct Helper
     {
-        static void store_polyline(const Polyline3& polyline, PreviewData::Travel::EType type, PreviewData::Travel::Polyline::EDirection direction, float feedrate, unsigned int extruder_id, Print& print)
+        static void store_polyline(const Polyline3& polyline, GCodePreviewData::Travel::EType type, GCodePreviewData::Travel::Polyline::EDirection direction, float feedrate, unsigned int extruder_id, Print& print)
         {
             // if the polyline is valid, store it
             if (polyline.is_valid())
@@ -1062,16 +705,16 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
 
     Polyline3 polyline;
     Pointf3 position(FLT_MAX, FLT_MAX, FLT_MAX);
-    PreviewData::Travel::EType type = PreviewData::Travel::Num_Types;
-    PreviewData::Travel::Polyline::EDirection direction = PreviewData::Travel::Polyline::Num_Directions;
+    GCodePreviewData::Travel::EType type = GCodePreviewData::Travel::Num_Types;
+    GCodePreviewData::Travel::Polyline::EDirection direction = GCodePreviewData::Travel::Polyline::Num_Directions;
     float feedrate = FLT_MAX;
     unsigned int extruder_id = -1;
 
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : travel_moves->second)
     {
-        PreviewData::Travel::EType move_type = (move.delta_extruder < 0.0f) ? PreviewData::Travel::Retract : ((move.delta_extruder > 0.0f) ? PreviewData::Travel::Extrude : PreviewData::Travel::Move);
-        PreviewData::Travel::Polyline::EDirection move_direction = ((move.start_position.x != move.end_position.x) || (move.start_position.y != move.end_position.y)) ? PreviewData::Travel::Polyline::Generic : PreviewData::Travel::Polyline::Vertical;
+        GCodePreviewData::Travel::EType move_type = (move.delta_extruder < 0.0f) ? GCodePreviewData::Travel::Retract : ((move.delta_extruder > 0.0f) ? GCodePreviewData::Travel::Extrude : GCodePreviewData::Travel::Move);
+        GCodePreviewData::Travel::Polyline::EDirection move_direction = ((move.start_position.x != move.end_position.x) || (move.start_position.y != move.end_position.y)) ? GCodePreviewData::Travel::Polyline::Generic : GCodePreviewData::Travel::Polyline::Vertical;
 
         if ((type != move_type) || (direction != move_direction) || (feedrate != move.data.feedrate) || (position != move.start_position) || (extruder_id != move.data.extruder_id))
         {
@@ -1130,17 +773,17 @@ void GCodeAnalyzer::_calc_gcode_preview_unretractions(Print& print)
     }
 }
 
-GCodeAnalyzer::PreviewData::Color operator + (const GCodeAnalyzer::PreviewData::Color& c1, const GCodeAnalyzer::PreviewData::Color& c2)
+GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2)
 {
-    return GCodeAnalyzer::PreviewData::Color(clamp(0.0f, 1.0f, c1.rgba[0] + c2.rgba[0]),
+    return GCodePreviewData::Color(clamp(0.0f, 1.0f, c1.rgba[0] + c2.rgba[0]),
         clamp(0.0f, 1.0f, c1.rgba[1] + c2.rgba[1]),
         clamp(0.0f, 1.0f, c1.rgba[2] + c2.rgba[2]),
         clamp(0.0f, 1.0f, c1.rgba[3] + c2.rgba[3]));
 }
 
-GCodeAnalyzer::PreviewData::Color operator * (float f, const GCodeAnalyzer::PreviewData::Color& color)
+GCodePreviewData::Color operator * (float f, const GCodePreviewData::Color& color)
 {
-    return GCodeAnalyzer::PreviewData::Color(clamp(0.0f, 1.0f, f * color.rgba[0]),
+    return GCodePreviewData::Color(clamp(0.0f, 1.0f, f * color.rgba[0]),
         clamp(0.0f, 1.0f, f * color.rgba[1]),
         clamp(0.0f, 1.0f, f * color.rgba[2]),
         clamp(0.0f, 1.0f, f * color.rgba[3]));
