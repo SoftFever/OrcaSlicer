@@ -13,6 +13,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/foreach.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -352,6 +353,8 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 {
     PROFILE_CLEAR();
 
+    BOOST_LOG_TRIVIAL(info) << "Exporting G-code...";
+
     // Remove the old g-code if it exists.
     boost::nowide::remove(path);
 
@@ -388,6 +391,8 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
         throw std::runtime_error(
             std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
+
+    BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished";
 
     // Write the profiler measurements to file
     PROFILE_UPDATE();
