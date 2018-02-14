@@ -4,11 +4,11 @@ use warnings;
 use utf8;
 
 use Slic3r::Print::State ':steps';
-use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE);
-use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX);
+use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE wxCB_READONLY);
+use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX EVT_CHOICE EVT_CHECKLISTBOX);
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer));
+__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer auto_zoom));
 
 sub new {
     my $class = shift;
@@ -17,7 +17,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
     $self->{config} = $config;
     $self->{number_extruders} = 1;
-    $self->{preferred_color_mode} = 'feature';
+    $self->auto_zoom(1);
 
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
@@ -56,10 +56,35 @@ sub new {
     $z_label_high->SetFont($Slic3r::GUI::small_font);
 
     $self->single_layer(0);
-    $self->{color_by_extruder} = 0;
     my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
-    my $checkbox_color_by_extruder = $self->{checkbox_color_by_extruder} = Wx::CheckBox->new($self, -1, "Tool");
     
+    my $label_view_type = $self->{label_view_type} = Wx::StaticText->new($self, -1, "View");
+    
+    my $choice_view_type = Wx::Choice->new($self, -1);
+    $choice_view_type->Append("Feature type");
+    $choice_view_type->Append("Height");
+    $choice_view_type->Append("Width");
+    $choice_view_type->Append("Speed");
+    $choice_view_type->Append("Tool");
+    $choice_view_type->SetSelection(0);
+
+    my $label_show_features = $self->{label_show_features} = Wx::StaticText->new($self, -1, "Show");
+    
+    my $combochecklist_features = Wx::ComboCtrl->new();
+    $combochecklist_features->Create($self, -1, "Feature types", wxDefaultPosition, [200, -1], wxCB_READONLY);
+    #FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
+    # On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
+    $combochecklist_features->UseAltPopupWindow();
+    $combochecklist_features->EnablePopupAnimation(0);
+    my $feature_text = "Feature types";
+    my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface|Wipe tower";
+    Slic3r::GUI::create_combochecklist($combochecklist_features, $feature_text, $feature_items, 1);
+    
+    my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");
+    my $checkbox_retractions = Wx::CheckBox->new($self, -1, "Retractions");    
+    my $checkbox_unretractions = Wx::CheckBox->new($self, -1, "Unretractions");
+    my $checkbox_shells  = Wx::CheckBox->new($self, -1, "Shells");
+
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
     my $vsizer_outer = Wx::BoxSizer->new(wxVERTICAL);
@@ -72,11 +97,29 @@ sub new {
     $hsizer->Add($vsizer, 0, wxEXPAND, 0);
     $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer_outer->Add($checkbox_singlelayer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
-    $vsizer_outer->Add($checkbox_color_by_extruder, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
 
+    my $bottom_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    $bottom_sizer->Add($label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->Add($choice_view_type, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(10);
+    $bottom_sizer->Add($label_show_features, 0, wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->Add($combochecklist_features, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(20);
+    $bottom_sizer->Add($checkbox_travel, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(10);
+    $bottom_sizer->Add($checkbox_retractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(10);
+    $bottom_sizer->Add($checkbox_unretractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    $bottom_sizer->AddSpacer(10);
+    $bottom_sizer->Add($checkbox_shells, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    
     my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $sizer->Add($canvas, 1, wxALL | wxEXPAND, 0);
     $sizer->Add($vsizer_outer, 0, wxTOP | wxBOTTOM | wxEXPAND, 5);
+
+    my $main_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $main_sizer->Add($sizer, 1, wxALL | wxEXPAND, 0);
+    $main_sizer->Add($bottom_sizer, 0, wxALL | wxEXPAND, 0); 
     
     EVT_SLIDER($self, $slider_low,  sub {
         $slider_high->SetValue($slider_low->GetValue) if $self->single_layer;
@@ -147,18 +190,70 @@ sub new {
             $self->set_z_idx_high($slider_high->GetValue);
         }
     });
-    EVT_CHECKBOX($self, $checkbox_color_by_extruder, sub {
-        $self->{color_by_extruder} = $checkbox_color_by_extruder->GetValue();
-        $self->{preferred_color_mode} = $self->{color_by_extruder} ? 'tool' : 'feature';
+    EVT_CHOICE($self, $choice_view_type, sub {
+        my $selection = $choice_view_type->GetCurrentSelection();
+        $self->print->set_gcode_preview_type($selection);
+        $self->auto_zoom(0);
         $self->reload_print;
+        $self->auto_zoom(1);
+    });
+    EVT_CHECKLISTBOX($self, $combochecklist_features, sub {
+        my $flags = Slic3r::GUI::combochecklist_get_flags($combochecklist_features);
+        
+        $self->print->set_gcode_preview_extrusion_flags($flags);
+        $self->auto_zoom(0);
+        $self->refresh_print;
+        $self->auto_zoom(1);
+    });    
+    EVT_CHECKBOX($self, $checkbox_travel, sub {
+        $self->print->set_gcode_preview_travel_visible($checkbox_travel->IsChecked());
+        $self->auto_zoom(0);
+        $self->refresh_print;
+        $self->auto_zoom(1);
+    });    
+    EVT_CHECKBOX($self, $checkbox_retractions, sub {
+        $self->print->set_gcode_preview_retractions_visible($checkbox_retractions->IsChecked());
+        $self->auto_zoom(0);
+        $self->refresh_print;
+        $self->auto_zoom(1);
+    });
+    EVT_CHECKBOX($self, $checkbox_unretractions, sub {
+        $self->print->set_gcode_preview_unretractions_visible($checkbox_unretractions->IsChecked());
+        $self->auto_zoom(0);
+        $self->refresh_print;
+        $self->auto_zoom(1);
+    });
+    EVT_CHECKBOX($self, $checkbox_shells, sub {
+        $self->print->set_gcode_preview_shells_visible($checkbox_shells->IsChecked());
+        $self->auto_zoom(0);
+        $self->refresh_print;
+        $self->auto_zoom(1);
     });
     
-    $self->SetSizer($sizer);
+    $self->SetSizer($main_sizer);
     $self->SetMinSize($self->GetSize);
     $sizer->SetSizeHints($self);
     
     # init canvas
     $self->print($print);
+    
+    # sets colors for gcode preview extrusion roles
+    my @extrusion_roles_colors = (
+                                    'Perimeter'                  => 'FF0000',
+                                    'External perimeter'         => '00FF00',
+                                    'Overhang perimeter'         => '0000FF',
+                                    'Internal infill'            => 'FFFF00',
+                                    'Solid infill'               => 'FF00FF',
+                                    'Top solid infill'           => '00FFFF',
+                                    'Bridge infill'              => '7F7F7F',
+                                    'Gap fill'                   => 'FFFFFF',
+                                    'Skirt'                      => '7F0000',
+                                    'Support material'           => '007F00',
+                                    'Support material interface' => '00007F',
+                                    'Wipe tower'                 => 'B3E3AB',
+                                 );
+    $self->print->set_gcode_extrusion_paths_colors(\@extrusion_roles_colors);
+    
     $self->reload_print;
     
     return $self;
@@ -171,7 +266,19 @@ sub reload_print {
     $self->_loaded(0);
 
     if (! $self->IsShown && ! $force) {
-        $self->{reload_delayed} = 1;
+#        $self->{reload_delayed} = 1;
+        return;
+    }
+
+    $self->load_print;
+}
+
+sub refresh_print {
+    my ($self) = @_;
+
+    $self->_loaded(0);
+    
+    if (! $self->IsShown) {
         return;
     }
 
@@ -203,6 +310,9 @@ sub load_print {
         $self->set_z_range(0,0);
         $self->slider_low->Hide;
         $self->slider_high->Hide;
+        $self->{z_label_low}->SetLabel("");
+        $self->{z_label_high}->SetLabel("");
+        $self->canvas->reset_legend_texture();
         $self->canvas->Refresh;  # clears canvas
         return;
     }
@@ -232,44 +342,35 @@ sub load_print {
     $self->slider_high->Show;
     $self->Layout;
 
-    my $by_tool = $self->{color_by_extruder};
-    if ($self->{preferred_color_mode} eq 'tool_or_feature') {
-        # It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
-        # Color by feature if it is a single extruder print.
-        my $extruders = $self->{print}->extruders;
-        $by_tool = scalar(@{$extruders}) > 1;
-        $self->{color_by_extruder} = $by_tool;
-        $self->{checkbox_color_by_extruder}->SetValue($by_tool);
-        $self->{preferred_color_mode} = 'tool_or_feature';
-    }
-
     # Collect colors per extruder.
-    # Leave it empty, if the print should be colored by a feature.
     my @colors = ();
-    if ($by_tool) {
-        my @extruder_colors = @{$self->{config}->extruder_colour};
-        my @filament_colors = @{$self->{config}->filament_colour};
-        for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
-            my $color = $extruder_colors[$i];
-            $color = $filament_colors[$i] if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
-            $color = '#FFFFFF' if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
-            push @colors, $color;
-        }
+    my @extruder_colors = @{$self->{config}->extruder_colour};
+    my @filament_colors = @{$self->{config}->filament_colour};
+    for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
+        my $color = $extruder_colors[$i];
+        $color = $filament_colors[$i] if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
+        $color = '#FFFFFF' if (! defined($color) || $color !~ m/^#[[:xdigit:]]{6}/);
+        push @colors, $color;
     }
 
     if ($self->IsShown) {
-        # load skirt and brim
-        $self->canvas->load_print_toolpaths($self->print, \@colors);
-        $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);
-        
-        foreach my $object (@{$self->print->objects}) {
-            $self->canvas->load_print_object_toolpaths($object, \@colors);
-            
-            # Show the objects in very transparent color.
-            #my @volume_ids = $self->canvas->load_object($object->model_object);
-            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
+        $self->canvas->load_gcode_preview($self->print, \@colors);
+
+#        # load skirt and brim
+#        $self->canvas->load_print_toolpaths($self->print, \@colors);
+#        $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);
+#        
+#        foreach my $object (@{$self->print->objects}) {
+#            $self->canvas->load_print_object_toolpaths($object, \@colors);
+#            
+#            # Show the objects in very transparent color.
+#            #my @volume_ids = $self->canvas->load_object($object->model_object);
+#            #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
+#        }
+        if ($self->auto_zoom)
+        {
+            $self->canvas->zoom_to_volumes;
         }
-        $self->canvas->zoom_to_volumes;
         $self->_loaded(1);
     }
     
@@ -322,17 +423,13 @@ sub set_number_extruders {
     my ($self, $number_extruders) = @_;
     if ($self->{number_extruders} != $number_extruders) {
         $self->{number_extruders} = $number_extruders;
-        my $by_tool = $number_extruders > 1;
-        $self->{color_by_extruder} = $by_tool;
-        $self->{checkbox_color_by_extruder}->SetValue($by_tool);
-        $self->{preferred_color_mode} = $by_tool ? 'tool_or_feature' : 'feature';
     }
 }
 
 # Called by the Platter wxNotebook when this page is activated.
 sub OnActivate {
-    my ($self) = @_;
-    $self->reload_print(1) if ($self->{reload_delayed});
+#    my ($self) = @_;
+#    $self->reload_print(1) if ($self->{reload_delayed});
 }
 
 1;

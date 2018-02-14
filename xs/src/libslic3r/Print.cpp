@@ -66,6 +66,89 @@ bool Print::reload_model_instances()
     return invalidated;
 }
 
+void Print::clear_gcode_preview_data()
+{
+    gcode_preview.reset();
+}
+
+void Print::set_gcode_preview_type(unsigned char type)
+{
+    if ((0 <= type) && (type < GCodeAnalyzer::PreviewData::Extrusion::Num_View_Types))
+        gcode_preview.extrusion.view_type = (GCodeAnalyzer::PreviewData::Extrusion::EViewType)type;
+}
+
+void Print::set_gcode_preview_extrusion_flags(unsigned int flags)
+{
+    gcode_preview.extrusion.role_flags = flags;
+}
+
+bool Print::is_gcode_preview_extrusion_role_enabled(ExtrusionRole role)
+{
+    return gcode_preview.extrusion.is_role_flag_set(role);
+}
+
+void Print::set_gcode_preview_travel_visible(bool visible)
+{
+    gcode_preview.travel.is_visible = visible;
+}
+
+void Print::set_gcode_preview_retractions_visible(bool visible)
+{
+    gcode_preview.retraction.is_visible = visible;
+}
+
+void Print::set_gcode_preview_unretractions_visible(bool visible)
+{
+    gcode_preview.unretraction.is_visible = visible;
+}
+
+void Print::set_gcode_preview_shells_visible(bool visible)
+{
+    gcode_preview.shell.is_visible = visible;
+}
+
+void Print::set_gcode_extrusion_paths_colors(const std::vector<std::string>& colors)
+{
+    unsigned int size = (unsigned int)colors.size();
+
+    if (size % 2 != 0)
+        return;
+
+    for (unsigned int i = 0; i < size; i += 2)
+    {
+        const std::string& color_str = colors[i + 1];
+
+        if (color_str.size() == 6)
+        {
+            bool valid = true;
+            for (int c = 0; c < 6; ++c)
+            {
+                if (::isxdigit(color_str[c]) == 0)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (valid)
+            {
+                unsigned int color;
+                std::stringstream ss;
+                ss << std::hex << color_str;
+                ss >> color;
+
+                float den = 1.0f / 255.0f;
+
+                float r = (float)((color & 0xFF0000) >> 16) * den;
+                float g = (float)((color & 0x00FF00) >> 8) * den;
+                float b = (float)(color & 0x0000FF) * den;
+
+                gcode_preview.set_extrusion_role_color(colors[i], r, g, b, 1.0f);
+            }
+        }
+    }
+}
+
 PrintRegion* Print::add_region()
 {
     regions.push_back(new PrintRegion(this));

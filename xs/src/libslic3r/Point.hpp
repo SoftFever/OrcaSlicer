@@ -14,14 +14,17 @@ class Line;
 class Linef;
 class MultiPoint;
 class Point;
+class Point3;
 class Pointf;
 class Pointf3;
 typedef Point Vector;
+typedef Point3 Vector3;
 typedef Pointf Vectorf;
 typedef Pointf3 Vectorf3;
 typedef std::vector<Point> Points;
 typedef std::vector<Point*> PointPtrs;
 typedef std::vector<const Point*> PointConstPtrs;
+typedef std::vector<Point3> Points3;
 typedef std::vector<Pointf> Pointfs;
 typedef std::vector<Pointf3> Pointf3s;
 
@@ -185,10 +188,11 @@ public:
     static Point3 new_scale(coordf_t x, coordf_t y, coordf_t z) { return Point3(coord_t(scale_(x)), coord_t(scale_(y)), coord_t(scale_(z))); }
     bool operator==(const Point3 &rhs) const { return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z; }
     bool operator!=(const Point3 &rhs) const { return ! (*this == rhs); }
+    bool coincides_with(const Point3& rhs) const { return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z; }
 private:
     // Hide the following inherited methods:
-    bool operator==(const Point &rhs);
-    bool operator!=(const Point &rhs);
+    bool operator==(const Point &rhs) const;
+    bool operator!=(const Point &rhs) const;
 };
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
@@ -243,6 +247,7 @@ public:
     static Pointf3 new_unscale(coord_t x, coord_t y, coord_t z) {
         return Pointf3(unscale(x), unscale(y), unscale(z));
     };
+    static Pointf3 new_unscale(const Point3& p) { return Pointf3(unscale(p.x), unscale(p.y), unscale(p.z)); }
     void scale(double factor);
     void translate(const Vectorf3 &vector);
     void translate(double x, double y, double z);
@@ -255,9 +260,22 @@ public:
 
 private:
     // Hide the following inherited methods:
-    bool operator==(const Pointf &rhs);
-    bool operator!=(const Pointf &rhs);
+    bool operator==(const Pointf &rhs) const;
+    bool operator!=(const Pointf &rhs) const;
 };
+
+inline Pointf3 operator+(const Pointf3& p1, const Pointf3& p2) { return Pointf3(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z); }
+inline Pointf3 operator-(const Pointf3& p1, const Pointf3& p2) { return Pointf3(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z); }
+inline Pointf3 operator-(const Pointf3& p) { return Pointf3(-p.x, -p.y, -p.z); }
+inline Pointf3 operator*(double scalar, const Pointf3& p) { return Pointf3(scalar * p.x, scalar * p.y, scalar * p.z); }
+inline Pointf3 operator*(const Pointf3& p, double scalar) { return Pointf3(scalar * p.x, scalar * p.y, scalar * p.z); }
+inline Pointf3 cross(const Pointf3& v1, const Pointf3& v2) { return Pointf3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x); }
+inline coordf_t dot(const Pointf3& v1, const Pointf3& v2) { return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; }
+inline Pointf3 normalize(const Pointf3& v)
+{
+    coordf_t len = ::sqrt(sqr(v.x) + sqr(v.y) + sqr(v.z));
+    return (len != 0.0) ? 1.0 / len * v : Pointf3(0.0, 0.0, 0.0);
+}
 
 template<typename TO> inline TO convert_to(const Point &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y)); }
 template<typename TO> inline TO convert_to(const Pointf &src) { return TO(typename TO::coord_type(src.x), typename TO::coord_type(src.y)); }

@@ -25,6 +25,7 @@ enum ExtrusionRole {
     erSkirt,
     erSupportMaterial,
     erSupportMaterialInterface,
+    erWipeTower,
     // Extrusion role for a collection with multiple extrusion roles.
     erMixed,
 };
@@ -104,15 +105,19 @@ public:
     float width;
     // Height of the extrusion, used for visualization purposed.
     float height;
-    
-    ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), m_role(role) {};
-    ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height), m_role(role) {};
-    ExtrusionPath(const ExtrusionPath &rhs) : polyline(rhs.polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), m_role(rhs.m_role) {}
-    ExtrusionPath(ExtrusionPath &&rhs) : polyline(std::move(rhs.polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), m_role(rhs.m_role) {}
-//    ExtrusionPath(ExtrusionRole role, const Flow &flow) : m_role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height) {};
+    // Feedrate of the extrusion, used for visualization purposed.
+    float feedrate;
+    // Id of the extruder, used for visualization purposed.
+    unsigned int extruder_id;
 
-    ExtrusionPath& operator=(const ExtrusionPath &rhs) { this->m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->polyline = rhs.polyline; return *this; }
-    ExtrusionPath& operator=(ExtrusionPath &&rhs) { this->m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->polyline = std::move(rhs.polyline); return *this; }
+    ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), feedrate(0.0f), extruder_id(0), m_role(role) {};
+    ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height), feedrate(0.0f), extruder_id(0), m_role(role) {};
+    ExtrusionPath(const ExtrusionPath &rhs) : polyline(rhs.polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), m_role(rhs.m_role) {}
+    ExtrusionPath(ExtrusionPath &&rhs) : polyline(std::move(rhs.polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), m_role(rhs.m_role) {}
+//    ExtrusionPath(ExtrusionRole role, const Flow &flow) : m_role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height), feedrate(0.0f), extruder_id(0) {};
+
+    ExtrusionPath& operator=(const ExtrusionPath &rhs) { this->m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate, this->extruder_id = rhs.extruder_id, this->polyline = rhs.polyline; return *this; }
+    ExtrusionPath& operator=(ExtrusionPath &&rhs) { this->m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate, this->extruder_id = rhs.extruder_id, this->polyline = std::move(rhs.polyline); return *this; }
 
     ExtrusionPath* clone() const { return new ExtrusionPath (*this); }
     void reverse() { this->polyline.reverse(); }

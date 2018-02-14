@@ -156,8 +156,15 @@ sub new {
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
-        $self->{preview3D}->load_print(1) if ($preview == $self->{preview3D});
-        $preview->OnActivate if $preview->can('OnActivate');
+        if ($preview == $self->{preview3D})
+        {
+            $self->{preview3D}->canvas->set_legend_enabled(1);
+            $self->{preview3D}->load_print(1);
+        } else {
+            $self->{preview3D}->canvas->set_legend_enabled(0);
+        }
+
+        $preview->OnActivate if $preview->can('OnActivate');        
     });
     
     # toolbar for object manipulation
@@ -778,6 +785,7 @@ sub remove {
     splice @{$self->{objects}}, $obj_idx, 1;
     $self->{model}->delete_object($obj_idx);
     $self->{print}->delete_object($obj_idx);
+    $self->{print}->clear_gcode_preview_data;
     $self->{list}->DeleteItem($obj_idx);
     $self->object_list_changed;
     
@@ -798,6 +806,7 @@ sub reset {
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
     $self->{print}->clear_objects;
+    $self->{print}->clear_gcode_preview_data;
     $self->{list}->DeleteAllItems;
     $self->object_list_changed;
     
@@ -1257,6 +1266,8 @@ sub reslice {
         $self->stop_background_process;
         # Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
         $self->async_apply_config;
+        # Reset gcode data
+        $self->{print}->clear_gcode_preview_data;
         $self->statusbar->SetCancelCallback(sub {
             $self->stop_background_process;
             $self->statusbar->SetStatusText("Slicing cancelled");
@@ -1447,6 +1458,10 @@ sub on_export_completed {
 
     # this updates buttons status
     $self->object_list_changed;
+    
+    # refresh preview
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
 sub do_print {

@@ -163,11 +163,11 @@ static inline T clamp(const T low, const T high, const T value)
     return std::max(low, std::min(high, value));
 }
 
-template <typename T>
-static inline T lerp(const T a, const T b, const T t)
+template <typename T, typename Number>
+static inline T lerp(const T& a, const T& b, Number t)
 {
-    assert(t >= T(-EPSILON) && t <= T(1.+EPSILON));
-    return (1. - t) * a + t * b;
+    assert((t >= Number(-EPSILON)) && (t <= Number(1) + Number(EPSILON)));
+    return (Number(1) - t) * a + t * b;
 }
 
 } // namespace Slic3r

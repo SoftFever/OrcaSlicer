@@ -278,4 +278,18 @@ ThickPolyline::reverse()
     std::swap(this->endpoints.first, this->endpoints.second);
 }
 
+Lines3 Polyline3::lines() const
+{
+    Lines3 lines;
+    if (points.size() >= 2)
+    {
+        lines.reserve(points.size() - 1);
+        for (Points3::const_iterator it = points.begin(); it != points.end() - 1; ++it)
+        {
+            lines.emplace_back(*it, *(it + 1));
+        }
+    }
+    return lines;
+}
+
 }

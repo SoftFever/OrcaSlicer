@@ -17,6 +17,7 @@
 #include "GCode/WipeTower.hpp"
 #include "GCodeTimeEstimator.hpp"
 #include "EdgeGrid.hpp"
+#include "GCode/Analyzer.hpp"
 
 #include <memory>
 #include <string>
@@ -118,13 +119,16 @@ public:
         m_enable_loop_clipping(true), 
         m_enable_cooling_markers(false), 
         m_enable_extrusion_role_markers(false), 
-        m_enable_analyzer_markers(false),
+        m_enable_analyzer(true),
         m_layer_count(0),
         m_layer_index(-1), 
         m_layer(nullptr), 
         m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
+        m_last_mm3_per_mm(GCodeAnalyzer::Default_mm3_per_mm),
+        m_last_width(GCodeAnalyzer::Default_Width),
+        m_last_height(GCodeAnalyzer::Default_Height),
         m_brim_done(false),
         m_second_layer_things_done(false),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
@@ -149,6 +153,8 @@ public:
     // inside the generated string and after the G-code export finishes.
     std::string     placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr);
     bool            enable_cooling_markers() const { return m_enable_cooling_markers; }
+    bool            enable_analyzer() const { return m_enable_analyzer; }
+    void            enable_analyzer(bool enable) { m_enable_analyzer = enable; }
 
     // For Perl bindings, to be used exclusively by unit tests.
     unsigned int    layer_count() const { return m_layer_count; }
@@ -241,9 +247,10 @@ protected:
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.
     bool                                m_enable_extrusion_role_markers;
-    // Extended markers for the G-code Analyzer.
+    // Enableds the G-code Analyzer.
+    // Extended markers will be added during G-code generation.
     // The G-code Analyzer will remove these comments from the final G-code.
-    bool                                m_enable_analyzer_markers;
+    bool                                m_enable_analyzer;
     // How many times will change_layer() be called?
     // change_layer() will update the progress bar.
     unsigned int                        m_layer_count;
@@ -256,6 +263,10 @@ protected:
     double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
+    // Support for G-Code Analyzer
+    double                              m_last_mm3_per_mm;
+    float                               m_last_width;
+    float                               m_last_height;
 
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
@@ -277,9 +288,12 @@ protected:
     // Time estimator
     GCodeTimeEstimator m_time_estimator;
 
+    // Analyzer
+    GCodeAnalyzer m_analyzer;
+
     // Write a string into a file.
-    void _write(FILE* file, const std::string& what) { this->_write(file, what.c_str(), what.size()); }
-    void _write(FILE* file, const char *what, size_t size);
+    void _write(FILE* file, const std::string& what) { this->_write(file, what.c_str()); }
+    void _write(FILE* file, const char *what);
 
     // Write a string into a file. 
     // Add a newline, if the string does not end with a newline already.

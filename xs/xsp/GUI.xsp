@@ -37,3 +37,10 @@ void add_debug_menu(SV *ui)
 
 void create_preset_tab(const char *name)
     %code%{ Slic3r::GUI::create_preset_tab(name); %};
+
+void create_combochecklist(SV *ui, std::string text, std::string items, bool initial_value)
+    %code%{ Slic3r::GUI::create_combochecklist((wxComboCtrl*)wxPli_sv_2_object(aTHX_ ui, "Wx::ComboCtrl"), text, items, initial_value); %};
+        
+int combochecklist_get_flags(SV *ui)
+    %code%{ RETVAL=Slic3r::GUI::combochecklist_get_flags((wxComboCtrl*)wxPli_sv_2_object(aTHX_ ui, "Wx::ComboCtrl")); %};
+    
