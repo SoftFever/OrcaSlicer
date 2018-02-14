@@ -15,6 +15,7 @@ class Print;
 class PrintObject;
 class Model;
 class ModelObject;
+class GCodePreviewData;
 
 // A container for interleaved arrays of 3D vertices and normals,
 // possibly indexed by triangles and / or quads.
@@ -423,7 +424,7 @@ class _3DScene
         LegendTexture();
         ~LegendTexture();
         
-        bool generate_texture(const Print& print, const std::vector<float>& tool_colors);
+        bool generate_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
 
         unsigned int get_texture_id() const;
         unsigned int get_texture_width() const;
@@ -432,7 +433,7 @@ class _3DScene
         void reset_texture();
 
     private:
-        bool _create_texture(const Print& print, const wxBitmap& bitmap);
+        bool _create_texture(const GCodePreviewData& preview_data, const wxBitmap& bitmap);
         void _destroy_texture();
     };
 
@@ -441,7 +442,7 @@ class _3DScene
 public:
     static void _glew_init();
 
-    static void load_gcode_preview(const Print* print, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs);
+    static void load_gcode_preview(const Print* print, const GCodePreviewData* preview_data, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs);
 
     static unsigned int get_legend_texture_id();
     static unsigned int get_legend_texture_width();
@@ -469,20 +470,20 @@ public:
 
 private:
     // generates gcode extrusion paths geometry
-    static void _load_gcode_extrusion_paths(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
+    static void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
     // generates gcode travel paths geometry
-    static void _load_gcode_travel_paths(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
-    static bool _travel_paths_by_type(const Print& print, GLVolumeCollection& volumes);
-    static bool _travel_paths_by_feedrate(const Print& print, GLVolumeCollection& volumes);
-    static bool _travel_paths_by_tool(const Print& print, GLVolumeCollection& volumes, const std::vector<float>& tool_colors);
+    static void _load_gcode_travel_paths(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
+    static bool _travel_paths_by_type(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
+    static bool _travel_paths_by_feedrate(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
+    static bool _travel_paths_by_tool(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors);
     // generates gcode retractions geometry
-    static void _load_gcode_retractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    static void _load_gcode_retractions(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, bool use_VBOs);
     // generates gcode unretractions geometry
-    static void _load_gcode_unretractions(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    static void _load_gcode_unretractions(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, bool use_VBOs);
     // sets gcode geometry visibility according to user selection
-    static void _update_gcode_volumes_visibility(const Print& print, GLVolumeCollection& volumes);
+    static void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
     // generates the legend texture in dependence of the current shown view type
-    static void _generate_legend_texture(const Print& print, const std::vector<float>& tool_colors);
+    static void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     // generates objects and wipe tower geometry
     static void _load_shells(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
 };

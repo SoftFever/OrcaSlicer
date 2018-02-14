@@ -136,6 +136,7 @@ sub thread_cleanup {
     *Slic3r::Flow::DESTROY                  = sub {};
     *Slic3r::GCode::DESTROY                 = sub {};
     *Slic3r::GCode::PlaceholderParser::DESTROY = sub {};
+    *Slic3r::GCode::PreviewData::DESTROY    = sub {};
     *Slic3r::GCode::Sender::DESTROY         = sub {};
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf::DESTROY = sub {};

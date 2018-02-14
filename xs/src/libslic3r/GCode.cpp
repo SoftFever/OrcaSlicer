@@ -348,7 +348,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     return layers_to_print;
 }
 
-void GCode::do_export(Print *print, const char *path)
+void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_data)
 {
     PROFILE_CLEAR();
 
@@ -363,7 +363,7 @@ void GCode::do_export(Print *print, const char *path)
         throw std::runtime_error(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
 
     this->m_placeholder_parser_failed_templates.clear();
-    this->_do_export(*print, file);
+    this->_do_export(*print, file, preview_data);
     fflush(file);
     if (ferror(file)) {
         fclose(file);
@@ -394,7 +394,7 @@ void GCode::do_export(Print *print, const char *path)
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
 }
 
-void GCode::_do_export(Print &print, FILE *file)
+void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
 {
     PROFILE_FUNC();
 
@@ -404,6 +404,7 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // resets analyzer
     m_analyzer.reset();
+    m_enable_analyzer = preview_data != nullptr;
 
     // resets analyzer's tracking data
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
@@ -820,7 +821,8 @@ void GCode::_do_export(Print &print, FILE *file)
     }
 
     // starts analizer calculations
-    m_analyzer.calc_gcode_preview_data(print);
+    if (preview_data != nullptr)
+        m_analyzer.calc_gcode_preview_data(*preview_data);
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)

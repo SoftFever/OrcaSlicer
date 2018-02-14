@@ -8,11 +8,11 @@ use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE wxCB_READONLY);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX EVT_CHOICE EVT_CHECKLISTBOX);
 use base qw(Wx::Panel Class::Accessor);
 
-__PACKAGE__->mk_accessors(qw(print enabled _loaded canvas slider_low slider_high single_layer auto_zoom));
+__PACKAGE__->mk_accessors(qw(print gcode_preview_data enabled _loaded canvas slider_low slider_high single_layer auto_zoom));
 
 sub new {
     my $class = shift;
-    my ($parent, $print, $config) = @_;
+    my ($parent, $print, $gcode_preview_data, $config) = @_;
     
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition);
     $self->{config} = $config;
@@ -192,7 +192,7 @@ sub new {
     });
     EVT_CHOICE($self, $choice_view_type, sub {
         my $selection = $choice_view_type->GetCurrentSelection();
-        $self->print->set_gcode_preview_type($selection);
+        $self->gcode_preview_data->set_type($selection);
         $self->auto_zoom(0);
         $self->reload_print;
         $self->auto_zoom(1);
@@ -200,31 +200,31 @@ sub new {
     EVT_CHECKLISTBOX($self, $combochecklist_features, sub {
         my $flags = Slic3r::GUI::combochecklist_get_flags($combochecklist_features);
         
-        $self->print->set_gcode_preview_extrusion_flags($flags);
+        $self->gcode_preview_data->set_extrusion_flags($flags);
         $self->auto_zoom(0);
         $self->refresh_print;
         $self->auto_zoom(1);
     });    
     EVT_CHECKBOX($self, $checkbox_travel, sub {
-        $self->print->set_gcode_preview_travel_visible($checkbox_travel->IsChecked());
+        $self->gcode_preview_data->set_travel_visible($checkbox_travel->IsChecked());
         $self->auto_zoom(0);
         $self->refresh_print;
         $self->auto_zoom(1);
     });    
     EVT_CHECKBOX($self, $checkbox_retractions, sub {
-        $self->print->set_gcode_preview_retractions_visible($checkbox_retractions->IsChecked());
+        $self->gcode_preview_data->set_retractions_visible($checkbox_retractions->IsChecked());
         $self->auto_zoom(0);
         $self->refresh_print;
         $self->auto_zoom(1);
     });
     EVT_CHECKBOX($self, $checkbox_unretractions, sub {
-        $self->print->set_gcode_preview_unretractions_visible($checkbox_unretractions->IsChecked());
+        $self->gcode_preview_data->set_unretractions_visible($checkbox_unretractions->IsChecked());
         $self->auto_zoom(0);
         $self->refresh_print;
         $self->auto_zoom(1);
     });
     EVT_CHECKBOX($self, $checkbox_shells, sub {
-        $self->print->set_gcode_preview_shells_visible($checkbox_shells->IsChecked());
+        $self->gcode_preview_data->set_shells_visible($checkbox_shells->IsChecked());
         $self->auto_zoom(0);
         $self->refresh_print;
         $self->auto_zoom(1);
@@ -236,6 +236,7 @@ sub new {
     
     # init canvas
     $self->print($print);
+    $self->gcode_preview_data($gcode_preview_data);
     
     # sets colors for gcode preview extrusion roles
     my @extrusion_roles_colors = (
@@ -252,7 +253,7 @@ sub new {
                                     'Support material interface' => '00007F',
                                     'Wipe tower'                 => 'B3E3AB',
                                  );
-    $self->print->set_gcode_extrusion_paths_colors(\@extrusion_roles_colors);
+    $self->gcode_preview_data->set_extrusion_paths_colors(\@extrusion_roles_colors);
     
     $self->reload_print;
     
@@ -354,7 +355,7 @@ sub load_print {
     }
 
     if ($self->IsShown) {
-        $self->canvas->load_gcode_preview($self->print, \@colors);
+        $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
 
 #        # load skirt and brim
 #        $self->canvas->load_print_toolpaths($self->print, \@colors);

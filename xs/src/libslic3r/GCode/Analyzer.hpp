@@ -10,7 +10,7 @@
 
 namespace Slic3r {
 
-class Print;
+class GCodePreviewData;
 
 class GCodeAnalyzer
 {
@@ -116,7 +116,7 @@ public:
     const std::string& process_gcode(const std::string& gcode);
 
     // Calculates all data needed for gcode visualization
-    void calc_gcode_preview_data(Print& print);
+    void calc_gcode_preview_data(GCodePreviewData& preview_data);
 
     static bool is_valid_extrusion_role(ExtrusionRole role);
 
@@ -216,10 +216,10 @@ private:
     // Checks if the given int is a valid extrusion role (contained into enum ExtrusionRole)
     bool _is_valid_extrusion_role(int value) const;
 
-    void _calc_gcode_preview_extrusion_layers(Print& print);
-    void _calc_gcode_preview_travel(Print& print);
-    void _calc_gcode_preview_retractions(Print& print);
-    void _calc_gcode_preview_unretractions(Print& print);
+    void _calc_gcode_preview_extrusion_layers(GCodePreviewData& preview_data);
+    void _calc_gcode_preview_travel(GCodePreviewData& preview_data);
+    void _calc_gcode_preview_retractions(GCodePreviewData& preview_data);
+    void _calc_gcode_preview_unretractions(GCodePreviewData& preview_data);
 };
 
 } // namespace Slic3r

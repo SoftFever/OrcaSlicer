@@ -26,6 +26,7 @@ namespace Slic3r {
 
 // Forward declarations.
 class GCode;
+class GCodePreviewData;
 
 class AvoidCrossingPerimeters {
 public:
@@ -119,7 +120,7 @@ public:
         m_enable_loop_clipping(true), 
         m_enable_cooling_markers(false), 
         m_enable_extrusion_role_markers(false), 
-        m_enable_analyzer(true),
+        m_enable_analyzer(false),
         m_layer_count(0),
         m_layer_index(-1), 
         m_layer(nullptr), 
@@ -136,7 +137,7 @@ public:
     ~GCode() {}
 
     // throws std::runtime_exception
-    void            do_export(Print *print, const char *path);
+    void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.
     const Pointf&   origin() const { return m_origin; }
@@ -153,8 +154,6 @@ public:
     // inside the generated string and after the G-code export finishes.
     std::string     placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr);
     bool            enable_cooling_markers() const { return m_enable_cooling_markers; }
-    bool            enable_analyzer() const { return m_enable_analyzer; }
-    void            enable_analyzer(bool enable) { m_enable_analyzer = enable; }
 
     // For Perl bindings, to be used exclusively by unit tests.
     unsigned int    layer_count() const { return m_layer_count; }
@@ -162,7 +161,7 @@ public:
     void            apply_print_config(const PrintConfig &print_config);
 
 protected:
-    void            _do_export(Print &print, FILE *file);
+    void            _do_export(Print &print, FILE *file, GCodePreviewData *preview_data);
 
     // Object and support extrusions of the same PrintObject at the same print_z.
     struct LayerToPrint

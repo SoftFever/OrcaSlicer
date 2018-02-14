@@ -60,6 +60,7 @@ sub new {
     $self->{print} = Slic3r::Print->new;
     # List of Perl objects Slic3r::GUI::Plater::Object, representing a 2D preview of the platter.
     $self->{objects} = [];
+    $self->{gcode_preview_data} = Slic3r::GCode::PreviewData->new;
     
     $self->{print}->set_status_cb(sub {
         my ($percent, $message) = @_;
@@ -140,7 +141,7 @@ sub new {
     
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
-        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{config});
+        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
         $self->{preview3D}->canvas->on_viewport_changed(sub {
             $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
         });
@@ -785,7 +786,7 @@ sub remove {
     splice @{$self->{objects}}, $obj_idx, 1;
     $self->{model}->delete_object($obj_idx);
     $self->{print}->delete_object($obj_idx);
-    $self->{print}->clear_gcode_preview_data;
+    $self->{gcode_preview_data}->reset;
     $self->{list}->DeleteItem($obj_idx);
     $self->object_list_changed;
     
@@ -806,7 +807,7 @@ sub reset {
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
     $self->{print}->clear_objects;
-    $self->{print}->clear_gcode_preview_data;
+    $self->{gcode_preview_data}->reset;
     $self->{list}->DeleteAllItems;
     $self->object_list_changed;
     
@@ -1267,7 +1268,7 @@ sub reslice {
         # Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
         $self->async_apply_config;
         # Reset gcode data
-        $self->{print}->clear_gcode_preview_data;
+        $self->{gcode_preview_data}->reset;
         $self->statusbar->SetCancelCallback(sub {
             $self->stop_background_process;
             $self->statusbar->SetStatusText("Slicing cancelled");
@@ -1381,7 +1382,7 @@ sub on_process_completed {
         
         $self->{export_thread} = Slic3r::spawn_thread(sub {
             eval {
-                $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file});
+                $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file}, gcode_preview_data => $_thread_self->{gcode_preview_data});
             };
             my $export_completed_event = Wx::CommandEvent->new($EXPORT_COMPLETED_EVENT);
             if ($@) {

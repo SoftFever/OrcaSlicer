@@ -4,7 +4,7 @@
 # Slic3r::GUI::3DScene;
 #
 # Slic3r::GUI::Plater::3D derives from Slic3r::GUI::3DScene,
-# Slic3r::GUI::Plater::3DPreview, Slic3r::GUI::Plater::3DToolpaths, 
+# Slic3r::GUI::Plater::3DPreview,
 # Slic3r::GUI::Plater::ObjectCutDialog and Slic3r::GUI::Plater::ObjectPartsPanel
 # own $self->{canvas} of the Slic3r::GUI::3DScene type.
 #
@@ -2029,10 +2029,10 @@ sub load_wipe_tower_toolpaths {
 }
 
 sub load_gcode_preview {
-    my ($self, $print, $colors) = @_;
+    my ($self, $print, $gcode_preview_data, $colors) = @_;
 
     $self->SetCurrent($self->GetContext) if $self->UseVBOs;
-    Slic3r::GUI::_3DScene::load_gcode_preview($print, $self->volumes, $colors, $self->UseVBOs);
+    Slic3r::GUI::_3DScene::load_gcode_preview($print, $gcode_preview_data, $self->volumes, $colors, $self->UseVBOs);
 }
 
 sub set_toolpaths_range {

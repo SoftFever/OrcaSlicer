@@ -123,22 +123,22 @@ const std::string& GCodeAnalyzer::process_gcode(const std::string& gcode)
     return m_process_output;
 }
 
-void GCodeAnalyzer::calc_gcode_preview_data(Print& print)
+void GCodeAnalyzer::calc_gcode_preview_data(GCodePreviewData& preview_data)
 {
     // resets preview data
-    print.gcode_preview.reset();
+    preview_data.reset();
 
     // calculates extrusion layers
-    _calc_gcode_preview_extrusion_layers(print);
+    _calc_gcode_preview_extrusion_layers(preview_data);
 
     // calculates travel
-    _calc_gcode_preview_travel(print);
+    _calc_gcode_preview_travel(preview_data);
 
     // calculates retractions
-    _calc_gcode_preview_retractions(print);
+    _calc_gcode_preview_retractions(preview_data);
 
     // calculates unretractions
-    _calc_gcode_preview_unretractions(print);
+    _calc_gcode_preview_unretractions(preview_data);
 }
 
 bool GCodeAnalyzer::is_valid_extrusion_role(ExtrusionRole role)
@@ -601,7 +601,7 @@ bool GCodeAnalyzer::_is_valid_extrusion_role(int value) const
     return ((int)erNone <= value) && (value <= (int)erMixed);
 }
 
-void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
+void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& preview_data)
 {
     struct Helper
     {
@@ -619,7 +619,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
             return layers.back();
         }
 
-        static void store_polyline(const Polyline& polyline, const Metadata& data, float z, Print& print)
+        static void store_polyline(const Polyline& polyline, const Metadata& data, float z, GCodePreviewData& preview_data)
         {
             // if the polyline is valid, create the extrusion path from it and store it
             if (polyline.is_valid())
@@ -629,7 +629,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
                 path.feedrate = data.feedrate;
                 path.extruder_id = data.extruder_id;
 
-                get_layer_at_z(print.gcode_preview.extrusion.layers, z).paths.push_back(path);
+                get_layer_at_z(preview_data.extrusion.layers, z).paths.push_back(path);
             }
         }
     };
@@ -653,7 +653,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
         {
             // store current polyline
             polyline.remove_duplicate_points();
-            Helper::store_polyline(polyline, data, z, print);
+            Helper::store_polyline(polyline, data, z, preview_data);
 
             // reset current polyline
             polyline = Polyline();
@@ -679,23 +679,24 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(Print& print)
 
     // store last polyline
     polyline.remove_duplicate_points();
-    Helper::store_polyline(polyline, data, z, print);
+    Helper::store_polyline(polyline, data, z, preview_data);
 
     // updates preview ranges data
-    print.gcode_preview.extrusion.ranges.height.set_from(height_range);
-    print.gcode_preview.extrusion.ranges.width.set_from(width_range);
-    print.gcode_preview.extrusion.ranges.feedrate.set_from(feedrate_range);
+    preview_data.extrusion.ranges.height.set_from(height_range);
+    preview_data.extrusion.ranges.width.set_from(width_range);
+    preview_data.extrusion.ranges.feedrate.set_from(feedrate_range);
 }
 
-void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
+void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
 {
     struct Helper
     {
-        static void store_polyline(const Polyline3& polyline, GCodePreviewData::Travel::EType type, GCodePreviewData::Travel::Polyline::EDirection direction, float feedrate, unsigned int extruder_id, Print& print)
+        static void store_polyline(const Polyline3& polyline, GCodePreviewData::Travel::EType type, GCodePreviewData::Travel::Polyline::EDirection direction, 
+            float feedrate, unsigned int extruder_id, GCodePreviewData& preview_data)
         {
             // if the polyline is valid, store it
             if (polyline.is_valid())
-                print.gcode_preview.travel.polylines.emplace_back(type, direction, feedrate, extruder_id, polyline);
+                preview_data.travel.polylines.emplace_back(type, direction, feedrate, extruder_id, polyline);
         }
     };
 
@@ -720,7 +721,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
         {
             // store current polyline
             polyline.remove_duplicate_points();
-            Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, print);
+            Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, preview_data);
 
             // reset current polyline
             polyline = Polyline3();
@@ -742,10 +743,10 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(Print& print)
 
     // store last polyline
     polyline.remove_duplicate_points();
-    Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, print);
+    Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, preview_data);
 }
 
-void GCodeAnalyzer::_calc_gcode_preview_retractions(Print& print)
+void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_data)
 {
     TypeToMovesMap::iterator retraction_moves = m_moves_map.find(GCodeMove::Retract);
     if (retraction_moves == m_moves_map.end())
@@ -755,11 +756,11 @@ void GCodeAnalyzer::_calc_gcode_preview_retractions(Print& print)
     {
         // store position
         Point3 position(scale_(move.start_position.x), scale_(move.start_position.y), scale_(move.start_position.z));
-        print.gcode_preview.retraction.positions.emplace_back(position, move.data.width, move.data.height);
+        preview_data.retraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 }
 
-void GCodeAnalyzer::_calc_gcode_preview_unretractions(Print& print)
+void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_data)
 {
     TypeToMovesMap::iterator unretraction_moves = m_moves_map.find(GCodeMove::Unretract);
     if (unretraction_moves == m_moves_map.end())
@@ -769,7 +770,7 @@ void GCodeAnalyzer::_calc_gcode_preview_unretractions(Print& print)
     {
         // store position
         Point3 position(scale_(move.start_position.x), scale_(move.start_position.y), scale_(move.start_position.z));
-        print.gcode_preview.unretraction.positions.emplace_back(position, move.data.width, move.data.height);
+        preview_data.unretraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 }
 

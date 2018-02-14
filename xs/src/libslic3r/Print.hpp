@@ -15,7 +15,6 @@
 #include "Slicing.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
-#include "GCode/PreviewData.hpp"
 
 #include "tbb/atomic.h"
 
@@ -241,7 +240,6 @@ public:
 
     // ordered collections of extrusion paths to build skirt loops and brim
     ExtrusionEntityCollection skirt, brim;
-    GCodePreviewData gcode_preview;
 
     Print() : total_used_filament(0), total_extruded_volume(0) { restart(); }
     ~Print() { clear_objects(); }
@@ -254,27 +252,6 @@ public:
     void delete_object(size_t idx);
     void reload_object(size_t idx);
     bool reload_model_instances();
-
-    void clear_gcode_preview_data();
-    void set_gcode_preview_type(unsigned char type);
-    void set_gcode_preview_extrusion_flags(unsigned int flags);
-    bool is_gcode_preview_extrusion_role_enabled(ExtrusionRole role);
-    void set_gcode_preview_travel_visible(bool visible);
-    void set_gcode_preview_retractions_visible(bool visible);
-    void set_gcode_preview_unretractions_visible(bool visible);
-    void set_gcode_preview_shells_visible(bool visible);
-
-    // Sets the extrusion path colors from the given strings vector.
-    // Data in the vector should be formatted as follows:
-    // std::vector<std::string> role_colors = 
-    // { <role_1>, <color_1>,
-    //   <role_2>, <color_2>,
-    //   <role_3>, <color_3>,
-    //   ...
-    //   <role_N>, <color_N> };
-    // where <role_X> should be a string from GCodePreviewData::Extrusion::Default_Extrusion_Role_Names[]
-    // and <color_X> an RGB color in hex format (i.e. red = FF0000)
-    void set_gcode_extrusion_paths_colors(const std::vector<std::string>& colors);
 
     // methods for handling regions
     PrintRegion* get_region(size_t idx) { return regions.at(idx); }
