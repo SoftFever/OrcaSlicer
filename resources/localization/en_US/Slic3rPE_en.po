@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: SLIC3R PE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-13 17:18+0100\n"
-"PO-Revision-Date: 2018-02-14 16:16+0100\n"
+"PO-Revision-Date: 2018-02-15 18:17+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -853,8 +853,8 @@ msgstr ""
 "displacement."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:448
-msgid "g/cm^3"
-msgstr "g/cm^3"
+msgid "g/cm\\u00B3"
+msgstr "g/cm\\u00B3"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:454
 msgid "Filament type"

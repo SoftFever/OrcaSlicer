@@ -1,5 +1,3 @@
-# Copyright (C) 2018 THE Slic3rPE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Slic3rPE package.
 # Oleksandra Iushchenko <yusanka@gmail.com>, 2018.
 #
 msgid ""
@@ -7,7 +5,7 @@ msgstr ""
 "Project-Id-Version: SLIC3R PE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-13 17:18+0100\n"
-"PO-Revision-Date: 2018-02-15 16:08+0100\n"
+"PO-Revision-Date: 2018-02-15 18:26+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -541,7 +539,6 @@ msgid "Top/bottom fill pattern"
 msgstr "Vzor výplně vrchních/spodních vrstev"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:252
-#, fuzzy
 msgid ""
 "Fill pattern for top/bottom infill. This only affects the external visible "
 "layer, and not its adjacent solid shells."
@@ -624,7 +621,7 @@ msgid "Extra perimeters if needed"
 msgstr "Extra perimetry pokud jsou potřeba"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:303
-#, fuzzy, c-format
+#, no-c-format
 msgid ""
 "Add more perimeters when needed for avoiding gaps in sloping walls. Slic3r "
 "keeps adding perimeters, until more than 70% of the loop immediately above "
@@ -671,7 +668,6 @@ msgid "Radius"
 msgstr "Rádius"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:336
-#, fuzzy
 msgid ""
 "Set this to the clearance radius around your extruder. If the extruder is "
 "not centered, choose the largest value for safety. This setting is used to "
@@ -687,7 +683,6 @@ msgstr "Barva extrudéru"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:347
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:410
-#, fuzzy
 msgid "This is only used in the Slic3r interface as a visual help."
 msgstr "Toto je ve Slic3ru jako názorná pomoc."
 
@@ -834,7 +829,6 @@ msgid "Density"
 msgstr "Hustota"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:445
-#, fuzzy
 msgid ""
 "Enter your filament density here. This is only for statistical information. "
 "A decent way is to weigh a known length of filament and compute the ratio of "
@@ -846,8 +840,8 @@ msgstr ""
 "objemu. Je lepší vypočítat objem přímo přes posun."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:448
-msgid "g/cm^3"
-msgstr "g/cm^3"
+msgid "g/cm\\u00B3"
+msgstr "g/cm\\u00B3"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:454
 msgid "Filament type"
@@ -855,7 +849,6 @@ msgstr "Typ filamentu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:455
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1004
-#, fuzzy
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
 "their absolute paths here. Separate multiple scripts with a semicolon. "
@@ -896,7 +889,6 @@ msgid "Fill angle"
 msgstr "Úhel výplně"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:493
-#, fuzzy
 msgid ""
 "Default base angle for infill orientation. Cross-hatching will be applied to "
 "this. Bridges will be infilled using the best direction Slic3r can detect, "
@@ -911,7 +903,7 @@ msgid "Fill density"
 msgstr "Hustota výplně"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:507
-#, c-format
+#, no-c-format
 msgid "Density of internal infill, expressed in the range 0% - 100%."
 msgstr "Hustota vnitřní výplně, vyjádřená v rozmezí 0% až 100%."
 
@@ -998,7 +990,6 @@ msgid ""
 msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:646
-#, fuzzy
 msgid "Verbose G-code"
 msgstr "Verbose G-code"
 
@@ -1140,7 +1131,7 @@ msgid "This setting represents the maximum speed of your fan."
 msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:799
-#, c-format
+#, no-c-format
 msgid ""
 "This is the highest printable layer height for this extruder, used to cap "
 "the variable layer height and support layer height. Maximum recommended "
@@ -1809,7 +1800,6 @@ msgid ""
 msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1433
-#, fuzzy
 msgid "Enforce support for the first"
 msgstr "Zesílit podpory pro prvních"
 
@@ -2534,7 +2524,7 @@ msgid "Output file"
 msgstr "Výstupní soubor"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:534
-#, c-format
+#, no-c-format
 msgid ""
 "The Spiral Vase mode requires:\n"
 "- one perimeter\n"
@@ -2601,7 +2591,7 @@ msgid "The "
 msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:662
-#, c-format
+#, no-c-format
 msgid ""
 " infill pattern is not supposed to work at 100% density.\n"
 "\n"
