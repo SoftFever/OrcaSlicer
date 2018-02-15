@@ -24,6 +24,12 @@ public:
     explicit Polygon(const Points &points): MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
     Polygon(Polygon &&other) : MultiPoint(std::move(other.points)) {}
+	static Polygon new_scale(std::vector<Pointf> points) { 
+		Points int_points;
+		for (auto pt : points)
+			int_points.push_back(Point::new_scale(pt.x, pt.y));
+		return Polygon(int_points);
+	}
     Polygon& operator=(const Polygon &other) { points = other.points; return *this; }
     Polygon& operator=(Polygon &&other) { points = std::move(other.points); return *this; }
 

@@ -181,6 +181,18 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/PresetHints.hpp
     ${LIBDIR}/slic3r/GUI/GUI.cpp
     ${LIBDIR}/slic3r/GUI/GUI.hpp
+    ${LIBDIR}/slic3r/GUI/Tab.cpp
+    ${LIBDIR}/slic3r/GUI/Tab.hpp
+    ${LIBDIR}/slic3r/GUI/TabIface.cpp
+    ${LIBDIR}/slic3r/GUI/TabIface.hpp
+    ${LIBDIR}/slic3r/GUI/Field.cpp
+    ${LIBDIR}/slic3r/GUI/Field.hpp
+    ${LIBDIR}/slic3r/GUI/OptionsGroup.cpp
+    ${LIBDIR}/slic3r/GUI/OptionsGroup.hpp
+    ${LIBDIR}/slic3r/GUI/BedShapeDialog.cpp
+    ${LIBDIR}/slic3r/GUI/BedShapeDialog.hpp
+    ${LIBDIR}/slic3r/GUI/2DBed.cpp
+    ${LIBDIR}/slic3r/GUI/2DBed.hpp
     ${LIBDIR}/slic3r/GUI/wxExtensions.cpp
     ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
 )
@@ -307,6 +319,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/GUI_AppConfig.xsp
     ${XSP_DIR}/GUI_3DScene.xsp
     ${XSP_DIR}/GUI_Preset.xsp
+    ${XSP_DIR}/GUI_Tab.xsp
     ${XSP_DIR}/Layer.xsp
     ${XSP_DIR}/Line.xsp
     ${XSP_DIR}/Model.xsp

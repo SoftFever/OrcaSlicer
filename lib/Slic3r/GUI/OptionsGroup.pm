@@ -158,7 +158,9 @@ sub _build_field {
     
     my $opt_id = $opt->opt_id;
     my $on_change = sub {
+        #! This function will be called from Field.
         my ($opt_id, $value) = @_;
+        #! Call OptionGroup._on_change(...)
         $self->_on_change($opt_id, $value)
             unless $self->_disabled;
     };
@@ -213,6 +215,8 @@ sub _build_field {
     }
     return undef if !$field;
     
+    #! setting up a function that will be triggered when the field changes
+    #! think of it as $field->on_change = ($on_change)
     $field->on_change($on_change);
     $field->on_kill_focus($on_kill_focus);
     $self->_fields->{$opt_id} = $field;
