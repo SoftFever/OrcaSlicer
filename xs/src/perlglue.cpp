@@ -63,7 +63,7 @@ REGISTER_CLASS(Preset, "GUI::Preset");
 REGISTER_CLASS(PresetCollection, "GUI::PresetCollection");
 REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
 REGISTER_CLASS(PresetHints, "GUI::PresetHints");
-REGISTER_CLASS(TabIface, "GUI::Tab2");
+REGISTER_CLASS(TabIface, "GUI::Tab");
 
 SV* ConfigBase__as_hash(ConfigBase* THIS)
 {
