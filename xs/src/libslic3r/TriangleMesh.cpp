@@ -198,9 +198,8 @@ TriangleMesh::repair() {
         stl_clear_error(&stl);
     }
 
-    // commenting out the following call fixes: #574, #413, #269, #262, #259, #230, #228, #206
-//    // normal_directions
-//    stl_fix_normal_directions(&stl);
+    // normal_directions
+    stl_fix_normal_directions(&stl);
 
     // normal_values
     stl_fix_normal_values(&stl);
@@ -210,7 +209,7 @@ TriangleMesh::repair() {
     
     // neighbors
     stl_verify_neighbors(&stl);
-    
+
     this->repaired = true;
 
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() finished";
