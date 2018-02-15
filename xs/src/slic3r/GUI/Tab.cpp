@@ -226,7 +226,7 @@ void Tab::reload_config(){
 	Freeze();
 	for (auto page : m_pages)
 		page->reload_config();
-	Thaw();
+ 	Thaw();
 }
 
 Field* Tab::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
@@ -1233,7 +1233,6 @@ void TabPrinter::build_extruder_pages(){
 	for (auto page_extruder : m_extruder_pages)
 		m_pages.push_back(page_extruder);
 	m_pages.push_back(page_note);
-
 	rebuild_page_tree();
 }
 

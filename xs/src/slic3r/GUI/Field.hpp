@@ -230,9 +230,7 @@ public:
 		m_disable_change_event = false;
 	}
 
-	boost::any		get_value() override	{
-		return boost::any(dynamic_cast<wxColourPickerCtrl*>(window)->GetColour());
-	}
+	boost::any		get_value() override;
 
 	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };

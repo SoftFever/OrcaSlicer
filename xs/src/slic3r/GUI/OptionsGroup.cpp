@@ -178,7 +178,7 @@ void OptionsGroup::append_line(const Line& line) {
 
 		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
 		{
-			sizer->AddSpacer(4);
+			sizer->AddSpacer(6);
 	    }
 	}
 	// add extra sizers if any
@@ -248,6 +248,7 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 				change_opt_value(*m_config, opt_key, value);
 			}
 			else {
+				change_opt_value(*m_config, opt_key, value, opt_index);
 // 				auto value = m_config->get($opt_key);
 // 				$value->[$opt_index] = $field_value;
 // 				$self->config->set($opt_key, $value);
@@ -266,6 +267,7 @@ void ConfigOptionsGroup::reload_config(){
 		auto option = m_options.at(opt_id).opt;
 		set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags.compare("serialized") == 0 ));
 	}
+
 }
 
 boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, bool deserialize){
@@ -393,6 +395,15 @@ void ogStaticText::SetText(wxString value)
 	SetLabel(value);
 	Wrap(400);
 	GetParent()->Layout();
+}
+
+void Option::translate()
+{
+	opt.label = _LU8(opt.label);
+	opt.tooltip = _LU8(opt.tooltip);
+	opt.sidetext = _LU8(opt.sidetext);
+	opt.full_label = _LU8(opt.full_label);
+	opt.category = _LU8(opt.category);
 }
 
 } // GUI

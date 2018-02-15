@@ -475,6 +475,16 @@ void ColourPicker::BUILD()
 	temp->SetToolTip(get_tooltip_text(clr));
 }
 
+boost::any ColourPicker::get_value(){
+	boost::any ret_val;
+
+	auto colour = static_cast<wxColourPickerCtrl*>(window)->GetColour();
+	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), colour.Red(), colour.Green(), colour.Blue());
+	ret_val = clr_str.ToStdString();
+
+	return ret_val;
+}
+
 void PointCtrl::BUILD()
 {
 	auto size = wxSize(wxDefaultSize);
@@ -495,9 +505,9 @@ void PointCtrl::BUILD()
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size);
 	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size);
 
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "x : "));
+	temp->Add(new wxStaticText(m_parent, wxID_ANY, "x : "), 0, wxALIGN_CENTER_VERTICAL, 0);
 	temp->Add(x_textctrl);
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y : "));
+	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y : "), 0, wxALIGN_CENTER_VERTICAL, 0);
 	temp->Add(y_textctrl);
 
 	x_textctrl->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), x_textctrl->GetId());

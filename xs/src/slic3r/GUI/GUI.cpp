@@ -227,13 +227,7 @@ bool select_language(wxArrayString & names,
 		g_wxLocale = new wxLocale;
 		g_wxLocale->Init(identifiers[index]);
 		g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
-		wxLogTrace(wxTraceMask(),
-			_L("Slic3rPE: Path Prefix = \"%s\""),
-			wxPathOnly(localization_dir()).GetData());
 		g_wxLocale->AddCatalog(g_wxApp->GetAppName());
-		wxLogTrace(wxTraceMask(),
-			_L("Slic3rPE: Catalog Name = \"%s\""),
-			g_wxApp->GetAppName().GetData());
 		return true;
 	}
 	return false;
@@ -372,7 +366,8 @@ TabIface* get_preset_tab_iface(char *name)
 	return new TabIface(nullptr);
 }
 
-void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value)
+// opt_index = 0, by the reason of zero-index in ConfigOptionVector by default (in case only one element)
+void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value, int opt_index /*= 0*/)
 {
 	try{
 		switch (config.def()->get(opt_key)->type){
@@ -405,7 +400,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			}
 			else{
 				ConfigOptionStrings* vec_new = new ConfigOptionStrings{ boost::any_cast<std::string>(value) };
-				config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, 0, 0);
+				config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, opt_index, opt_index);
 			}
 			}
 			break;
@@ -414,14 +409,14 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			break;
 		case coBools:{
 			ConfigOptionBools* vec_new = new ConfigOptionBools{ boost::any_cast<bool>(value) };
-			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, 0, 0);
+			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, opt_index, opt_index);
 			break;}
 		case coInt:
 			config.set_key_value(opt_key, new ConfigOptionInt(boost::any_cast<int>(value)));
 			break;
 		case coInts:{
 			ConfigOptionInts* vec_new = new ConfigOptionInts{ boost::any_cast<int>(value) };
-			config.option<ConfigOptionInts>(opt_key)->set_at(vec_new, 0, 0);
+			config.option<ConfigOptionInts>(opt_key)->set_at(vec_new, opt_index, opt_index);
 			}
 			break;
 		case coEnum:{

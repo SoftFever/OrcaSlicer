@@ -34,8 +34,9 @@ struct Option {
     widget_t				side_widget {nullptr};
     bool					readonly {false};
 
-    Option(const ConfigOptionDef& _opt, t_config_option_key id) : 
-		opt(_opt), opt_id(id) {}
+	Option(const ConfigOptionDef& _opt, t_config_option_key id) :
+		opt(_opt), opt_id(id) { translate(); }
+	void		translate();
 };
 using t_option = std::unique_ptr<Option>;	//!
 
