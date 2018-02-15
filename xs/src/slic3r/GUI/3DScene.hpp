@@ -421,20 +421,25 @@ class _3DScene
         unsigned int m_tex_height;
 
     public:
-        LegendTexture();
-        ~LegendTexture();
+        LegendTexture() : m_tex_id(0), m_tex_width(0), m_tex_height(0) {}
+        ~LegendTexture() { _destroy_texture(); }
         
-        bool generate_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+        // Generate a texture data, but don't load it into the GPU yet, as the glcontext may not be valid yet.
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+        // If not loaded, load the texture data into the GPU. Return a texture ID or 0 if the texture has zero size.
+        unsigned int finalize();
 
-        unsigned int get_texture_id() const;
-        unsigned int get_texture_width() const;
-        unsigned int get_texture_height() const;
+        unsigned int get_texture_id() const { return m_tex_id; }
+        unsigned int get_texture_width() const { return m_tex_width; }
+        unsigned int get_texture_height() const { return m_tex_height; }
 
-        void reset_texture();
+        void reset_texture() { _destroy_texture(); }
 
     private:
         bool _create_texture(const GCodePreviewData& preview_data, const wxBitmap& bitmap);
         void _destroy_texture();
+        // generate() fills in m_data with the pixels, while finalize() moves the data to the GPU before rendering.
+        std::vector<unsigned char> m_data;
     };
 
     static LegendTexture s_legend_texture;
@@ -449,6 +454,7 @@ public:
     static unsigned int get_legend_texture_height();
 
     static void reset_legend_texture();
+    static unsigned int finalize_legend_texture();
 
     static void _load_print_toolpaths(
         const Print                     *print,

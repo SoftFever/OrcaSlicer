@@ -1117,21 +1117,12 @@ const unsigned char _3DScene::LegendTexture::Squares_Border_Color[3] = { 64, 64,
 const unsigned char _3DScene::LegendTexture::Background_Color[3] = { 9, 91, 134 };
 const unsigned char _3DScene::LegendTexture::Opacity = 255;
 
-_3DScene::LegendTexture::LegendTexture()
-    : m_tex_id(0)
-    , m_tex_width(0)
-    , m_tex_height(0)
+// Generate a texture data, but don't load it into the GPU yet, as the GPU context may not yet be valid.
+bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
-}
-
-_3DScene::LegendTexture::~LegendTexture()
-{
-    _destroy_texture();
-}
-
-bool _3DScene::LegendTexture::generate_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
-{
-    _destroy_texture();
+    // Mark the texture as released, but don't release the texture from the GPU yet.
+    m_tex_width = m_tex_height = 0;
+    m_data.clear();
 
     // collects items to render
     const std::string& title = preview_data.get_legend_title();
@@ -1241,62 +1232,43 @@ bool _3DScene::LegendTexture::generate_texture(const GCodePreviewData& preview_d
 
     memDC.SelectObject(wxNullBitmap);
 
-    return _create_texture(preview_data, bitmap);
-}
-
-unsigned int _3DScene::LegendTexture::get_texture_id() const
-{
-    return m_tex_id;
-}
-
-unsigned int _3DScene::LegendTexture::get_texture_width() const
-{
-    return m_tex_width;
-}
-
-unsigned int _3DScene::LegendTexture::get_texture_height() const
-{
-    return m_tex_height;
-}
-
-void _3DScene::LegendTexture::reset_texture()
-{
-    _destroy_texture();
-}
-
-bool _3DScene::LegendTexture::_create_texture(const GCodePreviewData& preview_data, const wxBitmap& bitmap)
-{
-    if ((m_tex_width == 0) || (m_tex_height == 0))
-        return false;
-
-    wxImage image = bitmap.ConvertToImage();
-    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
-
-    // prepare buffer
-    std::vector<unsigned char> buffer(4 * m_tex_width * m_tex_height, 0);
-    for (unsigned int h = 0; h < m_tex_height; ++h)
+    // Convert the bitmap into a linear data ready to be loaded into the GPU.
     {
-        unsigned int hh = h * m_tex_width;
-        for (unsigned int w = 0; w < m_tex_width; ++w)
+        wxImage image = bitmap.ConvertToImage();
+        image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+
+        // prepare buffer
+        m_data.assign(4 * m_tex_width * m_tex_height, 0);
+        for (unsigned int h = 0; h < m_tex_height; ++h)
         {
-            unsigned char* px_ptr = buffer.data() + 4 * (hh + w);
-            *px_ptr++ = image.GetRed(w, h);
-            *px_ptr++ = image.GetGreen(w, h);
-            *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+            unsigned int hh = h * m_tex_width;
+            unsigned char* px_ptr = m_data.data() + 4 * hh;
+            for (unsigned int w = 0; w < m_tex_width; ++w)
+            {
+                *px_ptr++ = image.GetRed(w, h);
+                *px_ptr++ = image.GetGreen(w, h);
+                *px_ptr++ = image.GetBlue(w, h);
+                *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+            }
         }
     }
-
-    // sends buffer to gpu
-    ::glGenTextures(1, &m_tex_id);
-    ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*)buffer.data());
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-    ::glBindTexture(GL_TEXTURE_2D, 0);
-
     return true;
+}
+
+unsigned int _3DScene::LegendTexture::finalize()
+{
+    if (! m_data.empty()) {
+        // sends buffer to gpu
+        ::glGenTextures(1, &m_tex_id);
+        ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
+        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*)m_data.data());
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+        ::glBindTexture(GL_TEXTURE_2D, 0);
+        m_data.clear();
+    }
+    return (m_tex_width > 0 && m_tex_height > 0) ? m_tex_id : 0;
 }
 
 void _3DScene::LegendTexture::_destroy_texture()
@@ -1308,6 +1280,7 @@ void _3DScene::LegendTexture::_destroy_texture()
         m_tex_height = 0;
         m_tex_width = 0;
     }
+    m_data.clear();
 }
 
 void _3DScene::_glew_init()
@@ -2267,7 +2240,12 @@ void _3DScene::_update_gcode_volumes_visibility(const GCodePreviewData& preview_
 
 void _3DScene::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
-    s_legend_texture.generate_texture(preview_data, tool_colors);
+    s_legend_texture.generate(preview_data, tool_colors);
+}
+
+unsigned int _3DScene::finalize_legend_texture()
+{
+    return s_legend_texture.finalize();
 }
 
 void _3DScene::_load_shells(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)

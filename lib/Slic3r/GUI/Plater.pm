@@ -786,7 +786,6 @@ sub remove {
     splice @{$self->{objects}}, $obj_idx, 1;
     $self->{model}->delete_object($obj_idx);
     $self->{print}->delete_object($obj_idx);
-    $self->{gcode_preview_data}->reset;
     $self->{list}->DeleteItem($obj_idx);
     $self->object_list_changed;
     
@@ -807,7 +806,6 @@ sub reset {
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
     $self->{print}->clear_objects;
-    $self->{gcode_preview_data}->reset;
     $self->{list}->DeleteAllItems;
     $self->object_list_changed;
     
@@ -1161,6 +1159,7 @@ sub async_apply_config {
     # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
     # Otherwise they will be just refreshed.
     if ($invalidated) {
+        $self->{gcode_preview_data}->reset;
         $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
         $self->{preview3D}->reload_print if $self->{preview3D};
     }
@@ -1267,8 +1266,6 @@ sub reslice {
         $self->stop_background_process;
         # Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
         $self->async_apply_config;
-        # Reset gcode data
-        $self->{gcode_preview_data}->reset;
         $self->statusbar->SetCancelCallback(sub {
             $self->stop_background_process;
             $self->statusbar->SetStatusText("Slicing cancelled");
