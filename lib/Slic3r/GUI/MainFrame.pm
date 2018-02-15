@@ -244,6 +244,9 @@ sub _init_menubar {
         $self->_append_menu_item($self->{plater_menu}, "Export plate as AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
         }, undef, 'brick_go.png');
+        $self->_append_menu_item($self->{plater_menu}, "Export plate as 3MF...", 'Export current plate as 3MF', sub {
+            $plater->export_3mf;
+        }, undef, 'brick_go.png');
         
         $self->{object_menu} = $self->{plater}->object_menu;
         $self->on_plater_selection_changed(0);
@@ -374,7 +377,7 @@ sub quick_slice {
         # select input file
         my $input_file;
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF/PRUSA):', 
+            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):', 
                 wxTheApp->{app_config}->get_last_dir, "", 
                 &Slic3r::GUI::MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {

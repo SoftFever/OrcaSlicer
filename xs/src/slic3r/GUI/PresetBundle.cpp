@@ -280,8 +280,8 @@ void PresetBundle::load_config_file(const std::string &path)
 	if (boost::iends_with(path, ".gcode") || boost::iends_with(path, ".g")) {
 		DynamicPrintConfig config;
 		config.apply(FullPrintConfig::defaults());
-		config.load_from_gcode(path);
-		Preset::normalize(config);
+        config.load_from_gcode_file(path);
+        Preset::normalize(config);
 		load_config_file_config(path, true, std::move(config));
 		return;
 	}
@@ -317,6 +317,18 @@ void PresetBundle::load_config_file(const std::string &path)
     case CONFIG_FILE_TYPE_CONFIG_BUNDLE:
 		load_config_file_config_bundle(path, tree);
         break;
+    }
+}
+
+void PresetBundle::load_config_string(const char* str, const char* source_filename)
+{
+    if (str != nullptr)
+    {
+        DynamicPrintConfig config;
+        config.apply(FullPrintConfig::defaults());
+        config.load_from_gcode_string(str);
+        Preset::normalize(config);
+        load_config_file_config((source_filename == nullptr) ? "" : source_filename, true, std::move(config));
     }
 }
 
