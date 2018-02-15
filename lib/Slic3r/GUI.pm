@@ -8,7 +8,6 @@ use FindBin;
 use List::Util qw(first);
 use Slic3r::GUI::2DBed;
 use Slic3r::GUI::AboutDialog;
-use Slic3r::GUI::BedShapeDialog;
 use Slic3r::GUI::BonjourBrowser;
 use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Controller;
@@ -31,7 +30,6 @@ use Slic3r::GUI::ProgressStatusBar;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SystemInfo;
-use Slic3r::GUI::Tab;
 
 our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
 our $have_LWP    = eval "use LWP::UserAgent; 1";
