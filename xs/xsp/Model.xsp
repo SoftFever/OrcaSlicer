@@ -3,12 +3,15 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Model.hpp"
+#include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Slicing.hpp"
 #include "libslic3r/Format/AMF.hpp"
+#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/PRUS.hpp"
 #include "libslic3r/Format/STL.hpp"
+#include "slic3r/GUI/PresetBundle.hpp"
 %}
 
 %name{Slic3r::Model} class Model {
@@ -24,6 +27,15 @@
             }
         %};
 
+    %name{read_from_archive} Model(std::string input_file, PresetBundle* bundle, bool add_default_instances = true)
+        %code%{
+            try {
+                RETVAL = new Model(Model::read_from_archive(input_file, bundle, add_default_instances));
+            } catch (std::exception& e) {
+                croak("Error while opening %s: %s\n", input_file.c_str(), e.what());
+            }
+        %};
+        
     Clone<Model> clone()
         %code%{ RETVAL = THIS; %};
     
@@ -89,8 +101,10 @@
 
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
-    bool store_amf(char *path)
-        %code%{ RETVAL = Slic3r::store_amf(path, THIS); %};
+    bool store_amf(char *path, Print* print)
+        %code%{ RETVAL = Slic3r::store_amf(path, THIS, print); %};
+    bool store_3mf(char *path, Print* print)
+        %code%{ RETVAL = Slic3r::store_3mf(path, THIS, print); %};
 
 %{
 
@@ -123,18 +137,33 @@ load_obj(CLASS, path, object_name)
         RETVAL
 
 Model*
-load_amf(CLASS, path)
+load_amf(CLASS, bundle, path)
     char*           CLASS;
+    PresetBundle*   bundle;
     char*           path;
     CODE:
         RETVAL = new Model();
-        if (! load_amf(path, RETVAL)) {
+        if (! load_amf(path, bundle, RETVAL)) {
             delete RETVAL;
             RETVAL = NULL;
         }
     OUTPUT:
         RETVAL
 
+Model*
+load_3mf(CLASS, bundle, path)
+    char*           CLASS;
+    PresetBundle*   bundle;
+    char*           path;
+    CODE:
+        RETVAL = new Model();
+        if (! load_3mf(path, bundle, RETVAL)) {
+            delete RETVAL;
+            RETVAL = NULL;
+        }
+    OUTPUT:
+        RETVAL
+        
 Model*
 load_prus(CLASS, path)
     char*           CLASS;

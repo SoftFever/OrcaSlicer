@@ -20,6 +20,11 @@ void set_resources_dir(const std::string &path);
 // Return a full path to the resources directory.
 const std::string& resources_dir();
 
+// Set a path with GUI localization files.
+void set_local_dir(const std::string &path);
+// Return a full path to the localization directory.
+const std::string& localization_dir();
+
 // Set a path with preset files.
 void set_data_dir(const std::string &path);
 // Return a full path to the GUI resource files.

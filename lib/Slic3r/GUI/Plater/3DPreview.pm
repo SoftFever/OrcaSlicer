@@ -18,7 +18,7 @@ sub new {
     $self->{config} = $config;
     $self->{number_extruders} = 1;
     # Show by feature type by default.
-    $self->{preferred_color_mode} = 0;
+    $self->{preferred_color_mode} = 'feature';
     $self->auto_zoom(1);
 
     # init GUI elements
@@ -72,7 +72,7 @@ sub new {
 
     my $label_show_features = $self->{label_show_features} = Wx::StaticText->new($self, -1, "Show");
     
-    my $combochecklist_features = Wx::ComboCtrl->new();
+    my $combochecklist_features = $self->{combochecklist_features} = Wx::ComboCtrl->new();
     $combochecklist_features->Create($self, -1, "Feature types", wxDefaultPosition, [200, -1], wxCB_READONLY);
     #FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
     # On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
@@ -82,10 +82,10 @@ sub new {
     my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface|Wipe tower";
     Slic3r::GUI::create_combochecklist($combochecklist_features, $feature_text, $feature_items, 1);
     
-    my $checkbox_travel = Wx::CheckBox->new($self, -1, "Travel");
-    my $checkbox_retractions = Wx::CheckBox->new($self, -1, "Retractions");    
-    my $checkbox_unretractions = Wx::CheckBox->new($self, -1, "Unretractions");
-    my $checkbox_shells  = Wx::CheckBox->new($self, -1, "Shells");
+    my $checkbox_travel         = $self->{checkbox_travel}          = Wx::CheckBox->new($self, -1, "Travel");
+    my $checkbox_retractions    = $self->{checkbox_retractions}     = Wx::CheckBox->new($self, -1, "Retractions");    
+    my $checkbox_unretractions  = $self->{checkbox_unretractions}   = Wx::CheckBox->new($self, -1, "Unretractions");
+    my $checkbox_shells         = $self->{checkbox_shells}          = Wx::CheckBox->new($self, -1, "Shells");
 
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -194,7 +194,7 @@ sub new {
     });
     EVT_CHOICE($self, $choice_view_type, sub {
         my $selection = $choice_view_type->GetCurrentSelection();
-        $self->{preferred_color_mode} = $selection;
+        $self->{preferred_color_mode} = ($selection == 4) ? 'tool' : 'feature';
         $self->gcode_preview_data->set_type($selection);
         $self->auto_zoom(0);
         $self->reload_print;
@@ -258,6 +258,7 @@ sub new {
                                  );
     $self->gcode_preview_data->set_extrusion_paths_colors(\@extrusion_roles_colors);
     
+    $self->show_hide_ui_elements('none');
     $self->reload_print;
     
     return $self;
@@ -346,6 +347,17 @@ sub load_print {
     $self->slider_high->Show;
     $self->Layout;
 
+    if ($self->{preferred_color_mode} eq 'tool_or_feature') {
+        # It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
+        # Color by feature if it is a single extruder print.
+        my $extruders = $self->{print}->extruders;
+        my $type = (scalar(@{$extruders}) > 1) ? 4 : 0;
+        $self->gcode_preview_data->set_type($type);
+        $self->{choice_view_type}->SetSelection($type);
+        # If the ->SetSelection changed the following line, revert it to "decide yourself".
+        $self->{preferred_color_mode} = 'tool_or_feature';
+    }
+
     # Collect colors per extruder.
     my @colors = ();
     if (! $self->gcode_preview_data->empty() || $self->gcode_preview_data->type == 4) {
@@ -370,8 +382,10 @@ sub load_print {
                 #my @volume_ids = $self->canvas->load_object($object->model_object);
                 #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
             }
+            $self->show_hide_ui_elements('simple');
         } else {
             $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
+            $self->show_hide_ui_elements('full');
         }
         if ($self->auto_zoom) {
             $self->canvas->zoom_to_volumes;
@@ -428,12 +442,21 @@ sub set_number_extruders {
     my ($self, $number_extruders) = @_;
     if ($self->{number_extruders} != $number_extruders) {
         $self->{number_extruders} = $number_extruders;
-        $self->{preferred_color_mode} = ($number_extruders > 1) ?
+        my $type = ($number_extruders > 1) ?
               4  # color by a tool number
             : 0; # color by a feature type
-        $self->{choice_view_type}->SetSelection($self->{preferred_color_mode});
-        $self->gcode_preview_data->set_type($self->{preferred_color_mode});
+        $self->{choice_view_type}->SetSelection($type);
+        $self->gcode_preview_data->set_type($type);
+        $self->{preferred_color_mode} = ($type == 4) ? 'tool_or_feature' : 'feature';
     }
+}
+
+sub show_hide_ui_elements {
+    my ($self, $what) = @_;
+    my $method = ($what eq 'full') ? 'Enable' : 'Disable';
+    $self->{$_}->$method for qw(label_show_features combochecklist_features checkbox_travel checkbox_retractions checkbox_unretractions checkbox_shells);
+    $method = ($what eq 'none') ? 'Disable' : 'Enable';
+    $self->{$_}->$method for qw(label_view_type choice_view_type);
 }
 
 # Called by the Platter wxNotebook when this page is activated.

@@ -776,7 +776,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         _writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id()));
     } else {
         for (const std::string &end_gcode : print.config.end_filament_gcode.values)
-            _writeln(file, this->placeholder_parser_process("end_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
+            _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
     }
     _writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id()));
     _write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
@@ -816,13 +816,10 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     // Append full config.
     _write(file, "\n");
     {
-        StaticPrintConfig *configs[] = { &print.config, &print.default_object_config, &print.default_region_config };
-        for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++ i) {
-            StaticPrintConfig *cfg = configs[i];
-        for (const std::string &key : cfg->keys())
-            if (key != "compatible_printers")
-                _write_format(file, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
-        }
+        std::string full_config = "";
+        append_full_config(print, full_config);
+        if (!full_config.empty())
+            _write(file, full_config);
     }
 
     // starts analizer calculations
@@ -1383,6 +1380,24 @@ void GCode::apply_print_config(const PrintConfig &print_config)
 {
     m_writer.apply_print_config(print_config);
     m_config.apply(print_config);
+}
+
+void GCode::append_full_config(const Print& print, std::string& str)
+{
+    char buff[1024];
+
+    const StaticPrintConfig *configs[] = { &print.config, &print.default_object_config, &print.default_region_config };
+    for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++i) {
+        const StaticPrintConfig *cfg = configs[i];
+        for (const std::string &key : cfg->keys())
+        {
+            if (key != "compatible_printers")
+            {
+                sprintf(buff, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
+                str += buff;
+            }
+        }
+    }
 }
 
 void GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)

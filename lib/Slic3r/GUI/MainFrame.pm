@@ -11,12 +11,22 @@ use List::Util qw(min first);
 use Slic3r::Geometry qw(X Y);
 use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
     :font :icon wxTheApp);
-use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
+use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Frame';
 
 our $qs_last_input_file;
 our $qs_last_output_file;
 our $last_config;
+
+# Events to be sent from a C++ Tab implementation:
+# 1) To inform about a change of a configuration value.
+our $VALUE_CHANGE_EVENT    = Wx::NewEventType;
+# 2) To inform about a preset selection change or a "modified" status change.
+our $PRESETS_CHANGED_EVENT = Wx::NewEventType;
+# 3) To inform about a click on Browse button
+our $BUTTON_BROWSE_EVENT   = Wx::NewEventType;
+# 4) To inform about a click on Test button
+our $BUTTON_TEST_EVENT     = Wx::NewEventType;
 
 sub new {
     my ($class, %params) = @_;
@@ -37,6 +47,7 @@ sub new {
     $self->{no_controller} = $params{no_controller};
     $self->{no_plater} = $params{no_plater};
     $self->{loaded} = 0;
+    $self->{lang_ch_event} = $params{lang_ch_event};
     
     # initialize tabpanel and menubar
     $self->_init_tabpanel;
@@ -106,33 +117,41 @@ sub _init_tabpanel {
             $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), "Controller");
         }
     }
-    $self->{options_tabs} = {};
     
-    for my $tab_name (qw(print filament printer)) {
-        my $tab;
-        $tab = $self->{options_tabs}{$tab_name} = ("Slic3r::GUI::Tab::" . ucfirst $tab_name)->new(
-            $panel, 
-            no_controller => $self->{no_controller});
-        # Callback to be executed after any of the configuration fields (Perl class Slic3r::GUI::OptionsGroup::Field) change their value.
-        $tab->on_value_change(sub {
-            my ($opt_key, $value) = @_;
-            my $config = $tab->{presets}->get_current_preset->config;
-            if ($self->{plater}) {
-                $self->{plater}->on_config_change($config); # propagate config change events to the plater
-                $self->{plater}->on_extruders_change($value) if $opt_key eq 'extruders_count';
+    #TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
+    # The following event is emited by the C++ Tab implementation on config value change.
+    EVT_COMMAND($self, -1, $VALUE_CHANGE_EVENT, sub {
+        my ($self, $event) = @_;
+        my $str = $event->GetString;
+        my ($opt_key, $name) = ($str =~ /(.*) (.*)/);
+        #print "VALUE_CHANGE_EVENT: ", $opt_key, "\n";
+        my $tab = Slic3r::GUI::get_preset_tab($name);
+        my $config = $tab->get_config;
+        if ($self->{plater}) {
+            $self->{plater}->on_config_change($config); # propagate config change events to the plater
+            if ($opt_key eq 'extruders_count'){
+                my $value = $event->GetInt();
+                $self->{plater}->on_extruders_change($value);
             }
-            # don't save while loading for the first time
-            $self->config->save($Slic3r::GUI::autosave) if $Slic3r::GUI::autosave && $self->{loaded};
-        });
-        # Install a callback for the tab to update the platter and print controller presets, when
-        # a preset changes at Slic3r::GUI::Tab.
-        $tab->on_presets_changed(sub {
-            if ($self->{plater}) {
-                # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
-                $self->{plater}->update_presets($tab_name, @_);
+        }
+        # don't save while loading for the first time
+        $self->config->save($Slic3r::GUI::autosave) if $Slic3r::GUI::autosave && $self->{loaded};        
+    });
+    # The following event is emited by the C++ Tab implementation on preset selection,
+    # or when the preset's "modified" status changes.
+    EVT_COMMAND($self, -1, $PRESETS_CHANGED_EVENT, sub {
+        my ($self, $event) = @_;
+        my $tab_name = $event->GetString;
+
+        my $tab = Slic3r::GUI::get_preset_tab($tab_name);
+        if ($self->{plater}) {
+            # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
+            my $presets = $tab->get_presets;
+            if (defined $presets){
+                my $reload_dependent_tabs = $tab->get_dependent_tabs;
+                $self->{plater}->update_presets($tab_name, $reload_dependent_tabs, $presets);
                 if ($tab_name eq 'printer') {
                     # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-                    my ($presets, $reload_dependent_tabs) = @_;
                     for my $tab_name_other (qw(print filament)) {
                         # If the printer tells us that the print or filament preset has been switched or invalidated,
                         # refresh the print or filament tab page. Otherwise just refresh the combo box.
@@ -141,23 +160,76 @@ sub _init_tabpanel {
                         $self->{options_tabs}{$tab_name_other}->$update_action;
                     }
                     # Update the controller printers.
-                    $self->{controller}->update_presets(@_) if $self->{controller};
+                    $self->{controller}->update_presets($presets) if $self->{controller};
                 }
-                $self->{plater}->on_config_change($tab->{presets}->get_current_preset->config);
+                $self->{plater}->on_config_change($tab->get_config);
             }
-        });
-        # Load the currently selected preset into the GUI, update the preset selection box.
-        $tab->load_current_preset;
-        $panel->AddPage($tab, $tab->title);
-    }
+        }
+    });
+    # The following event is emited by the C++ Tab implementation ,
+    # when the Browse button was clicked
+    EVT_COMMAND($self, -1, $BUTTON_BROWSE_EVENT, sub {
+        my ($self, $event) = @_;
+        my $msg = $event->GetString;
+        print "BUTTON_BROWSE_EVENT: ", $msg, "\n";
 
-#TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
-#    Slic3r::GUI::create_preset_tab("print");
+        # look for devices
+        my $entries;
+        {
+            my $res = Net::Bonjour->new('http');
+            $res->discover;
+            $entries = [ $res->entries ];
+        }
+        if (@{$entries}) {
+            my $dlg = Slic3r::GUI::BonjourBrowser->new($self, $entries);
+            my $tab = Slic3r::GUI::get_preset_tab("printer");
+            $tab->load_key_value('octoprint_host', $dlg->GetValue . ":" . $dlg->GetPort)
+                if $dlg->ShowModal == wxID_OK;
+        } else {
+            Wx::MessageDialog->new($self, 'No Bonjour device found', 'Device Browser', wxOK | wxICON_INFORMATION)->ShowModal;
+        }
+    });
+    # The following event is emited by the C++ Tab implementation ,
+    # when the Test button was clicked
+    EVT_COMMAND($self, -1, $BUTTON_TEST_EVENT, sub {
+        my ($self, $event) = @_;
+        my $msg = $event->GetString;
+        print "BUTTON_TEST_EVENT: ", $msg, "\n";
+
+        my $ua = LWP::UserAgent->new;
+        $ua->timeout(10);
+
+        my $config = Slic3r::GUI::get_preset_tab("printer")->get_config;
+        my $res = $ua->get(
+            "http://" . $config->octoprint_host . "/api/version",
+            'X-Api-Key' => $config->octoprint_apikey,
+        );
+        if ($res->is_success) {
+            Slic3r::GUI::show_info($self, "Connection to OctoPrint works correctly.", "Success!");
+        } else {
+            Slic3r::GUI::show_error($self,
+                "I wasn't able to connect to OctoPrint (" . $res->status_line . "). "
+                . "Check hostname and OctoPrint version (at least 1.1.0 is required).");
+        }
+    });
+    # A variable to inform C++ Tab implementation about disabling of Browse button
+    $self->{is_disabled_button_browse} = (!eval "use Net::Bonjour; 1") ? 1 : 0 ;
+    # A variable to inform C++ Tab implementation about user_agent
+    $self->{is_user_agent} = (eval "use LWP::UserAgent; 1") ? 1 : 0 ;    
+    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config}, 
+                                    $self->{no_controller}, $self->{is_disabled_button_browse},
+                                    $self->{is_user_agent},
+                                    $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT,
+                                    $BUTTON_BROWSE_EVENT, $BUTTON_TEST_EVENT);
+    $self->{options_tabs} = {};
+    for my $tab_name (qw(print filament printer)) {
+        $self->{options_tabs}{$tab_name} = Slic3r::GUI::get_preset_tab("$tab_name");
+    }
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
             my ($group, $name) = @_;
-	        $self->{options_tabs}{$group}->select_preset($name);
+            $self->{options_tabs}{$group}->select_preset($name);
         });
         # load initial config
         my $full_config = wxTheApp->{preset_bundle}->full_config;
@@ -243,6 +315,9 @@ sub _init_menubar {
         }, undef, 'brick_go.png');
         $self->_append_menu_item($self->{plater_menu}, "Export plate as AMF...", 'Export current plate as AMF', sub {
             $plater->export_amf;
+        }, undef, 'brick_go.png');
+        $self->_append_menu_item($self->{plater_menu}, "Export plate as 3MF...", 'Export current plate as 3MF', sub {
+            $plater->export_3mf;
         }, undef, 'brick_go.png');
         
         $self->{object_menu} = $self->{plater}->object_menu;
@@ -341,9 +416,11 @@ sub _init_menubar {
         $menubar->Append($self->{object_menu}, "&Object") if $self->{object_menu};
         $menubar->Append($windowMenu, "&Window");
         $menubar->Append($self->{viewMenu}, "&View") if $self->{viewMenu};
+        # Add an optional debug menu 
+        # (Select application language from the list of installed languages)
+        # In production code, the add_debug_menu() call should do nothing.
+        Slic3r::GUI::add_debug_menu($menubar, $self->{lang_ch_event});
         $menubar->Append($helpMenu, "&Help");
-        # Add an optional debug menu. In production code, the add_debug_menu() call should do nothing.
-        Slic3r::GUI::add_debug_menu($menubar);
         $self->SetMenuBar($menubar);
     }
 }
@@ -374,7 +451,7 @@ sub quick_slice {
         # select input file
         my $input_file;
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF/PRUSA):', 
+            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):', 
                 wxTheApp->{app_config}->get_last_dir, "", 
                 &Slic3r::GUI::MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {
@@ -611,7 +688,7 @@ sub load_configbundle {
 # Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
 # Also update the platter with the new presets.
 sub load_config {
-    my ($self, $config) = @_;    
+    my ($self, $config) = @_;
     $_->load_config($config) foreach values %{$self->{options_tabs}};
     $self->{plater}->on_config_change($config) if $self->{plater};
 }
@@ -661,7 +738,7 @@ sub check_unsaved_changes {
     
     my @dirty = ();
     foreach my $tab (values %{$self->{options_tabs}}) {
-        push @dirty, $tab->title if $tab->{presets}->current_is_dirty;
+        push @dirty, $tab->title if $tab->current_preset_is_dirty;
     }
     
     if (@dirty) {

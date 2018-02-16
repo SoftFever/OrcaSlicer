@@ -142,6 +142,13 @@ _glew_init()
         _3DScene::_glew_init();
 
 unsigned int
+finalize_legend_texture()
+    CODE:
+        RETVAL = _3DScene::finalize_legend_texture();
+    OUTPUT:
+        RETVAL
+
+unsigned int
 get_legend_texture_id()
     CODE:
         RETVAL = _3DScene::get_legend_texture_id();

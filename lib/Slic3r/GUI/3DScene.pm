@@ -1602,7 +1602,8 @@ sub draw_legend {
  
     if ($self->_legend_enabled)
     {
-        my $tex_id = Slic3r::GUI::_3DScene::get_legend_texture_id;
+        # If the legend texture has not been loaded into the GPU, do it now.
+        my $tex_id = Slic3r::GUI::_3DScene::finalize_legend_texture;
         if ($tex_id > 0)
         {
             my $tex_w = Slic3r::GUI::_3DScene::get_legend_texture_width;
