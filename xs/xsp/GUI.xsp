@@ -31,9 +31,27 @@ void set_main_frame(SV *ui)
 
 void set_tab_panel(SV *ui)
     %code%{ Slic3r::GUI::set_tab_panel((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook")); %};
+    
+void add_debug_menu(SV *ui, int event_language_change)
+    %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_language_change); %};
 
-void add_debug_menu(SV *ui)
-    %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar")); %};
+void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, 
+                        bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
+                        int event_value_change, int event_presets_changed,
+                        int event_button_browse, int event_button_test)
+    %code%{ Slic3r::GUI::create_preset_tabs(preset_bundle, app_config, no_controller, 
+                                            is_disabled_button_browse, is_user_agent,
+                                            event_value_change, event_presets_changed, 
+                                            event_button_browse, event_button_test); %};
 
-void create_preset_tab(const char *name)
-    %code%{ Slic3r::GUI::create_preset_tab(name); %};
+Ref<TabIface> get_preset_tab(char *name)
+    %code%{ RETVAL=Slic3r::GUI::get_preset_tab_iface(name); %};
+
+bool load_language()
+    %code%{ RETVAL=Slic3r::GUI::load_language(); %};
+
+void create_combochecklist(SV *ui, std::string text, std::string items, bool initial_value)
+    %code%{ Slic3r::GUI::create_combochecklist((wxComboCtrl*)wxPli_sv_2_object(aTHX_ ui, "Wx::ComboCtrl"), text, items, initial_value); %};
+        
+int combochecklist_get_flags(SV *ui)
+    %code%{ RETVAL=Slic3r::GUI::combochecklist_get_flags((wxComboCtrl*)wxPli_sv_2_object(aTHX_ ui, "Wx::ComboCtrl")); %};

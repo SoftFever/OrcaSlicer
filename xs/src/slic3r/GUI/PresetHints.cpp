@@ -238,6 +238,9 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
     bool    thin_walls                          = print_config.opt_bool("thin_walls");
     float   nozzle_diameter                     = float(printer_config.opt_float("nozzle_diameter", 0));
     
+    if (layer_height <= 0.f)
+        return "Recommended object thin wall thickness: Not available due to invalid layer height.";
+
     Flow    external_perimeter_flow             = Flow::new_from_config_width(
         frExternalPerimeter, 
         *print_config.opt<ConfigOptionFloatOrPercent>("external_perimeter_extrusion_width"), 

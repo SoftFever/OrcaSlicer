@@ -47,6 +47,7 @@ public:
     void mirror_x();
     void mirror_y();
     void mirror_z();
+    void transform(const float* matrix3x4);
     void align_to_origin();
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split() const;

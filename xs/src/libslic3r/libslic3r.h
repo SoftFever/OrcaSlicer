@@ -17,8 +17,8 @@
 #define SLIC3R_VERSION "1.39.0"
 #define SLIC3R_BUILD "UNKNOWN"
 
-typedef long coord_t;
-typedef double coordf_t;
+typedef int32_t coord_t;
+typedef double  coordf_t;
 
 //FIXME This epsilon value is used for many non-related purposes:
 // For a threshold of a squared Euclidean distance,
@@ -163,11 +163,11 @@ static inline T clamp(const T low, const T high, const T value)
     return std::max(low, std::min(high, value));
 }
 
-template <typename T>
-static inline T lerp(const T a, const T b, const T t)
+template <typename T, typename Number>
+static inline T lerp(const T& a, const T& b, Number t)
 {
-    assert(t >= T(-EPSILON) && t <= T(1.+EPSILON));
-    return (1. - t) * a + t * b;
+    assert((t >= Number(-EPSILON)) && (t <= Number(1) + Number(EPSILON)));
+    return (Number(1) - t) * a + t * b;
 }
 
 } // namespace Slic3r

@@ -191,6 +191,10 @@ GCode*                      O_OBJECT_SLIC3R
 Ref<GCode>                  O_OBJECT_SLIC3R_T
 Clone<GCode>                O_OBJECT_SLIC3R_T
 
+GCodePreviewData*			O_OBJECT_SLIC3R
+Ref<GCodePreviewData>		O_OBJECT_SLIC3R_T
+Clone<GCodePreviewData>		O_OBJECT_SLIC3R_T
+
 MotionPlanner*             O_OBJECT_SLIC3R
 Ref<MotionPlanner>         O_OBJECT_SLIC3R_T
 Clone<MotionPlanner>       O_OBJECT_SLIC3R_T
@@ -229,6 +233,8 @@ PresetBundle*	    		O_OBJECT_SLIC3R
 Ref<PresetBundle>    		O_OBJECT_SLIC3R_T
 PresetHints*	    		O_OBJECT_SLIC3R
 Ref<PresetHints>    		O_OBJECT_SLIC3R_T
+TabIface*	   				O_OBJECT_SLIC3R
+Ref<TabIface> 				O_OBJECT_SLIC3R_T
 
 Axis                  T_UV
 ExtrusionLoopRole     T_UV

@@ -43,6 +43,7 @@ use FindBin;
 # Let the XS module know where the GUI resources reside.
 set_resources_dir(decode_path($FindBin::Bin) . (($^O eq 'darwin') ? '/../Resources' : '/resources'));
 set_var_dir(resources_dir() . "/icons");
+set_local_dir(resources_dir() . "/localization/");
 
 use Moo 1.003001;
 
@@ -136,6 +137,7 @@ sub thread_cleanup {
     *Slic3r::Flow::DESTROY                  = sub {};
     *Slic3r::GCode::DESTROY                 = sub {};
     *Slic3r::GCode::PlaceholderParser::DESTROY = sub {};
+    *Slic3r::GCode::PreviewData::DESTROY    = sub {};
     *Slic3r::GCode::Sender::DESTROY         = sub {};
     *Slic3r::Geometry::BoundingBox::DESTROY = sub {};
     *Slic3r::Geometry::BoundingBoxf::DESTROY = sub {};

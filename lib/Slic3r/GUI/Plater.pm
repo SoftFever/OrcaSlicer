@@ -60,10 +60,14 @@ sub new {
     $self->{print} = Slic3r::Print->new;
     # List of Perl objects Slic3r::GUI::Plater::Object, representing a 2D preview of the platter.
     $self->{objects} = [];
+    $self->{gcode_preview_data} = Slic3r::GCode::PreviewData->new;
     
     $self->{print}->set_status_cb(sub {
         my ($percent, $message) = @_;
-        Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROGRESS_BAR_EVENT, shared_clone([$percent, $message])));
+        my $event = Wx::CommandEvent->new($PROGRESS_BAR_EVENT);
+        $event->SetString($message);
+        $event->SetInt($percent);
+        Wx::PostEvent($self, $event);
     });
     
     # Initialize preview notebook
@@ -137,7 +141,7 @@ sub new {
     
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
-        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{config});
+        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
         $self->{preview3D}->canvas->on_viewport_changed(sub {
             $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
         });
@@ -153,8 +157,15 @@ sub new {
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
-        $self->{preview3D}->load_print(1) if ($preview == $self->{preview3D});
-        $preview->OnActivate if $preview->can('OnActivate');
+        if ($preview == $self->{preview3D})
+        {
+            $self->{preview3D}->canvas->set_legend_enabled(1);
+            $self->{preview3D}->load_print(1);
+        } else {
+            $self->{preview3D}->canvas->set_legend_enabled(0);
+        }
+
+        $preview->OnActivate if $preview->can('OnActivate');        
     });
     
     # toolbar for object manipulation
@@ -307,23 +318,22 @@ sub new {
     
     EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
         my ($self, $event) = @_;
-        my ($percent, $message) = @{$event->GetData};
-        $self->on_progress_event($percent, $message);
+        $self->on_progress_event($event->GetInt, $event->GetString);
     });
     
     EVT_COMMAND($self, -1, $ERROR_EVENT, sub {
         my ($self, $event) = @_;
-        Slic3r::GUI::show_error($self, @{$event->GetData});
+        Slic3r::GUI::show_error($self, $event->GetString);
     });
     
     EVT_COMMAND($self, -1, $EXPORT_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
-        $self->on_export_completed($event->GetData);
+        $self->on_export_completed($event->GetInt);
     });
     
     EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
-        $self->on_process_completed($event->GetData);
+        $self->on_process_completed($event->GetInt ? undef : $event->GetString);
     });
     
     {
@@ -365,7 +375,9 @@ sub new {
                 my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
-                EVT_LEFT_DOWN($choice, sub { $self->filament_color_box_lmouse_down(0, @_); } );
+                if ($group eq 'filament') {
+                    EVT_LEFT_DOWN($choice, sub { $self->filament_color_box_lmouse_down(0, @_); } );
+                }
                 $self->{preset_choosers}{$group} = [$choice];
                 # setup the listener
                 EVT_COMBOBOX($choice, $choice, sub {
@@ -431,7 +443,7 @@ sub new {
             $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
             my @info = (
                 fil_m   => "Used Filament (m)",
-                fil_mm3 => "Used Filament (mm^3)",
+                fil_mm3 => "Used Filament (mm\u00B3)",
                 fil_g   => "Used Filament (g)",
                 cost    => "Cost",
                 time    => "Estimated printing time",
@@ -610,7 +622,7 @@ sub load_files {
     # One of the files is potentionally a bundle of files. Don't bundle them, but load them one by one.
     # Only bundle .stls or .objs if the printer has multiple extruders.
     my $one_by_one = (@$nozzle_dmrs <= 1) || (@$input_files == 1) || 
-        defined(first { $_ =~ /.[aA][mM][fF]$/ || $_ =~ /.3[mM][fF]$/ || $_ =~ /.[pP][rR][uI][sS][aA]$/ } @$input_files);
+       defined(first { $_ =~ /.[aA][mM][fF]$/ || $_ =~ /.[aA][mM][fF].[xX][mM][lL]$/ || $_ =~ /.[zZ][iI][pP].[aA][mM][fF]$/ || $_ =~ /.3[mM][fF]$/ || $_ =~ /.[pP][rR][uI][sS][aA]$/ } @$input_files);
         
     my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file\n" . basename($input_files->[0]), 100, $self, 0);
     $process_dialog->Pulse;
@@ -628,8 +640,19 @@ sub load_files {
         my $input_file = $input_files->[$i];
         $process_dialog->Update(100. * $i / @$input_files, "Processing input file\n" . basename($input_file));
 
-        my $model = eval { Slic3r::Model->read_from_file($input_file, 0) };
-        Slic3r::GUI::show_error($self, $@) if $@;
+        my $model;
+        if (($input_file =~ /.3[mM][fF]$/) || ($input_file =~ /.[zZ][iI][pP].[aA][mM][fF]$/))
+        {
+            $model = eval { Slic3r::Model->read_from_archive($input_file, wxTheApp->{preset_bundle}, 0) };
+            Slic3r::GUI::show_error($self, $@) if $@;
+            $_->load_current_preset for (values %{$self->GetFrame->{options_tabs}});
+            wxTheApp->{app_config}->update_config_dir(dirname($input_file));
+        }
+        else
+        {
+            $model = eval { Slic3r::Model->read_from_file($input_file, 0) };
+            Slic3r::GUI::show_error($self, $@) if $@;
+        }
 
         next if ! defined $model;
         
@@ -1149,6 +1172,7 @@ sub async_apply_config {
     # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
     # Otherwise they will be just refreshed.
     if ($invalidated) {
+        $self->{gcode_preview_data}->reset;
         $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
         $self->{preview3D}->reload_print if $self->{preview3D};
     }
@@ -1184,12 +1208,15 @@ sub start_background_process {
         eval {
             $self->{print}->process;
         };
+        my $event = Wx::CommandEvent->new($PROCESS_COMPLETED_EVENT);
         if ($@) {
             Slic3r::debugf "Background process error: $@\n";
-            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, $@));
+            $event->SetInt(0);
+            $event->SetString($@);
         } else {
-            Wx::PostEvent($self, Wx::PlThreadEvent->new(-1, $PROCESS_COMPLETED_EVENT, undef));
+            $event->SetInt(1);
         }
+        Wx::PostEvent($self, $event);
         Slic3r::thread_cleanup();
     });
     Slic3r::debugf "Background processing started.\n";
@@ -1365,14 +1392,21 @@ sub on_process_completed {
         
         $self->{export_thread} = Slic3r::spawn_thread(sub {
             eval {
-                $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file});
+                $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file}, gcode_preview_data => $_thread_self->{gcode_preview_data});
             };
+            my $export_completed_event = Wx::CommandEvent->new($EXPORT_COMPLETED_EVENT);
             if ($@) {
-                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $ERROR_EVENT, shared_clone([ $@ ])));
-                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 0));
+                {
+                    my $error_event = Wx::CommandEvent->new($ERROR_EVENT);
+                    $error_event->SetString($@);
+                    Wx::PostEvent($_thread_self, $error_event);
+                }
+                $export_completed_event->SetInt(0);
+                $export_completed_event->SetString($@);
             } else {
-                Wx::PostEvent($_thread_self, Wx::PlThreadEvent->new(-1, $EXPORT_COMPLETED_EVENT, 1));
+                $export_completed_event->SetInt(1);
             }
+            Wx::PostEvent($_thread_self, $export_completed_event);
             Slic3r::thread_cleanup();
         });
         Slic3r::debugf "Background G-code export started.\n";
@@ -1435,6 +1469,10 @@ sub on_export_completed {
 
     # this updates buttons status
     $self->object_list_changed;
+    
+    # refresh preview
+    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
 sub do_print {
@@ -1546,15 +1584,50 @@ sub export_amf {
     return if !@{$self->{objects}};
     # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('AMF') or return;
-    $self->{model}->store_amf($output_file);
-    $self->statusbar->SetStatusText("AMF file exported to $output_file");
+    my $res = $self->{model}->store_amf($output_file, $self->{print});
+    if ($res)
+    {
+        $self->statusbar->SetStatusText("AMF file exported to $output_file");
+    }
+    else
+    {
+        $self->statusbar->SetStatusText("Error exporting AMF file $output_file");
+    }
+}
+
+sub export_3mf {
+    my ($self) = @_;
+    return if !@{$self->{objects}};
+    # Ask user for a file name to write into.
+    my $output_file = $self->_get_export_file('3MF') or return;
+    my $res = $self->{model}->store_3mf($output_file, $self->{print});
+    if ($res)
+    {
+        $self->statusbar->SetStatusText("3MF file exported to $output_file");
+    }
+    else
+    {
+        $self->statusbar->SetStatusText("Error exporting 3MF file $output_file");
+    }
 }
 
 # Ask user to select an output file for a given file format (STl, AMF, 3MF).
 # Propose a default file name based on the 'output_filename_format' configuration value.
 sub _get_export_file {
     my ($self, $format) = @_;    
-    my $suffix = $format eq 'STL' ? '.stl' : '.amf.xml';
+    my $suffix = '';
+    if ($format eq 'STL')
+    {
+        $suffix = '.stl';
+    }
+    elsif ($format eq 'AMF')
+    {
+        $suffix = '.zip.amf';
+    }
+    elsif ($format eq '3MF')
+    {
+        $suffix = '.3mf';
+    }
     my $output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
     Slic3r::GUI::catch_error($self) and return undef;
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
@@ -2063,8 +2136,8 @@ sub OnDropFiles {
     # stop scalars leaking on older perl
     # https://rt.perl.org/rt3/Public/Bug/Display.html?id=70602
     @_ = ();
-    # only accept STL, OBJ and AMF files
-    return 0 if grep !/\.(?:[sS][tT][lL]|[oO][bB][jJ]|[aA][mM][fF](?:\.[xX][mM][lL])?|[pP][rR][uU][sS][aA])$/, @$filenames;
+    # only accept STL, OBJ, AMF, 3MF and PRUSA files
+    return 0 if grep !/\.(?:[sS][tT][lL]|[oO][bB][jJ]|[aA][mM][fF]|[3][mM][fF]|[aA][mM][fF].[xX][mM][lL]|[zZ][iI][pP].[aA][mM][lL]|[pP][rR][uU][sS][aA])$/, @$filenames;
     $self->{window}->load_files($filenames);
 }
 

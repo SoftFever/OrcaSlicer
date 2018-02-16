@@ -54,6 +54,12 @@ set_var_dir(dir)
     CODE:
         Slic3r::set_var_dir(dir);
 
+void
+set_local_dir(dir)
+    char  *dir;
+    CODE:
+        Slic3r::set_local_dir(dir);
+
 char*
 var_dir()
     CODE:

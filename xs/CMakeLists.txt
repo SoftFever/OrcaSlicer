@@ -74,6 +74,8 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/Fill/FillRectilinear3.hpp
     ${LIBDIR}/libslic3r/Flow.cpp
     ${LIBDIR}/libslic3r/Flow.hpp
+    ${LIBDIR}/libslic3r/Format/3mf.cpp
+    ${LIBDIR}/libslic3r/Format/3mf.hpp
     ${LIBDIR}/libslic3r/Format/AMF.cpp
     ${LIBDIR}/libslic3r/Format/AMF.hpp
     ${LIBDIR}/libslic3r/Format/OBJ.cpp
@@ -90,6 +92,8 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/GCode/CoolingBuffer.hpp
     ${LIBDIR}/libslic3r/GCode/PressureEqualizer.cpp
     ${LIBDIR}/libslic3r/GCode/PressureEqualizer.hpp
+    ${LIBDIR}/libslic3r/GCode/PreviewData.cpp
+    ${LIBDIR}/libslic3r/GCode/PreviewData.hpp
     ${LIBDIR}/libslic3r/GCode/PrintExtents.cpp
     ${LIBDIR}/libslic3r/GCode/PrintExtents.hpp
     ${LIBDIR}/libslic3r/GCode/SpiralVase.cpp
@@ -177,6 +181,20 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/PresetHints.hpp
     ${LIBDIR}/slic3r/GUI/GUI.cpp
     ${LIBDIR}/slic3r/GUI/GUI.hpp
+    ${LIBDIR}/slic3r/GUI/Tab.cpp
+    ${LIBDIR}/slic3r/GUI/Tab.hpp
+    ${LIBDIR}/slic3r/GUI/TabIface.cpp
+    ${LIBDIR}/slic3r/GUI/TabIface.hpp
+    ${LIBDIR}/slic3r/GUI/Field.cpp
+    ${LIBDIR}/slic3r/GUI/Field.hpp
+    ${LIBDIR}/slic3r/GUI/OptionsGroup.cpp
+    ${LIBDIR}/slic3r/GUI/OptionsGroup.hpp
+    ${LIBDIR}/slic3r/GUI/BedShapeDialog.cpp
+    ${LIBDIR}/slic3r/GUI/BedShapeDialog.hpp
+    ${LIBDIR}/slic3r/GUI/2DBed.cpp
+    ${LIBDIR}/slic3r/GUI/2DBed.hpp
+    ${LIBDIR}/slic3r/GUI/wxExtensions.cpp
+    ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
 )
 
 add_library(admesh STATIC
@@ -187,6 +205,18 @@ add_library(admesh STATIC
     ${LIBDIR}/admesh/stl_io.cpp
     ${LIBDIR}/admesh/stlinit.cpp
     ${LIBDIR}/admesh/util.cpp
+)
+
+add_library(miniz STATIC
+    ${LIBDIR}/miniz/miniz.h
+    ${LIBDIR}/miniz/miniz_common.h
+    ${LIBDIR}/miniz/miniz_tdef.h
+    ${LIBDIR}/miniz/miniz_tinfl.h
+    ${LIBDIR}/miniz/miniz_zip.h
+    ${LIBDIR}/miniz/miniz.cpp
+    ${LIBDIR}/miniz/miniz_tdef.cpp
+    ${LIBDIR}/miniz/miniz_tinfl.cpp
+    ${LIBDIR}/miniz/miniz_zip.cpp
 )
 
 add_library(clipper STATIC 
@@ -289,6 +319,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/GUI_AppConfig.xsp
     ${XSP_DIR}/GUI_3DScene.xsp
     ${XSP_DIR}/GUI_Preset.xsp
+    ${XSP_DIR}/GUI_Tab.xsp
     ${XSP_DIR}/Layer.xsp
     ${XSP_DIR}/Line.xsp
     ${XSP_DIR}/Model.xsp
@@ -348,7 +379,7 @@ if(APPLE)
     # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
     target_link_libraries(XS "-undefined dynamic_lookup")
 endif()
-target_link_libraries(XS libslic3r libslic3r_gui admesh clipper nowide polypartition poly2tri)
+target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri)
 if(SLIC3R_PROFILE)
     target_link_libraries(XS Shiny)
 endif()
@@ -551,7 +582,7 @@ endif()
 # Create a slic3r executable
 add_executable(slic3r ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)
 target_include_directories(XS PRIVATE src src/libslic3r)
-target_link_libraries(slic3r libslic3r libslic3r_gui admesh ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
+target_link_libraries(slic3r libslic3r libslic3r_gui admesh miniz ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
 if(SLIC3R_PROFILE)
     target_link_libraries(Shiny)
 endif()

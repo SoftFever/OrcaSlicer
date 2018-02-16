@@ -7,7 +7,13 @@
 
 #include "../libslic3r.h"
 #include "../Model.hpp"
+#include "../GCode.hpp"
+#include "../slic3r/GUI/PresetBundle.hpp"
 #include "AMF.hpp"
+
+#include <boost/filesystem/operations.hpp>
+#include <boost/algorithm/string.hpp>
+#include <miniz/miniz_zip.h>
 
 #if 0
 // Enable debugging and assert in this file.
@@ -18,18 +24,22 @@
 
 #include <assert.h>
 
+const char* SLIC3R_CONFIG_TYPE = "slic3rpe_config";
+
 namespace Slic3r
 {
 
 struct AMFParserContext
 {
-    AMFParserContext(XML_Parser parser, Model *model) :
+    AMFParserContext(XML_Parser parser, const std::string& archive_filename, PresetBundle* preset_bundle, Model *model) :
         m_parser(parser),
         m_model(*model), 
         m_object(nullptr), 
         m_volume(nullptr),
         m_material(nullptr),
-        m_instance(nullptr)
+        m_instance(nullptr),
+        m_preset_bundle(preset_bundle),
+        m_archive_filename(archive_filename)
     {
         m_path.reserve(12);
     }
@@ -149,6 +159,10 @@ struct AMFParserContext
     Instance                *m_instance;
     // Generic string buffer for vertices, face indices, metadata etc.
     std::string              m_value[3];
+    // Pointer to preset bundle to update if config data are stored inside the amf file
+    PresetBundle*            m_preset_bundle;
+    // Fullpath name of the amf file
+    std::string              m_archive_filename;
 
 private:
     AMFParserContext& operator=(AMFParserContext&);
@@ -403,7 +417,10 @@ void AMFParserContext::endElement(const char * /* name */)
         break;
 
     case NODE_TYPE_METADATA:
-        if (strncmp(m_value[0].c_str(), "slic3r.", 7) == 0) {
+        if ((m_preset_bundle != nullptr) && strncmp(m_value[0].c_str(), SLIC3R_CONFIG_TYPE, strlen(SLIC3R_CONFIG_TYPE)) == 0) {
+            m_preset_bundle->load_config_string(m_value[1].c_str(), m_archive_filename.c_str());
+        }
+        else if (strncmp(m_value[0].c_str(), "slic3r.", 7) == 0) {
             const char *opt_key = m_value[0].c_str() + 7;
             if (print_config_def.options.find(opt_key) != print_config_def.options.end()) {
                 DynamicPrintConfig *config = nullptr;
@@ -474,10 +491,13 @@ void AMFParserContext::endDocument()
 }
 
 // Load an AMF file into a provided model.
-bool load_amf(const char *path, Model *model)
+bool load_amf_file(const char *path, PresetBundle* bundle, Model *model)
 {
+    if ((path == nullptr) || (model == nullptr))
+        return false;
+
     XML_Parser parser = XML_ParserCreate(nullptr); // encoding
-    if (! parser) {
+    if (!parser) {
         printf("Couldn't allocate memory for parser\n");
         return false;
     }
@@ -488,7 +508,7 @@ bool load_amf(const char *path, Model *model)
         return false;
     }
 
-    AMFParserContext ctx(parser, model);
+    AMFParserContext ctx(parser, path, bundle, model);
     XML_SetUserData(parser, (void*)&ctx);
     XML_SetElementHandler(parser, AMFParserContext::startElement, AMFParserContext::endElement);
     XML_SetCharacterDataHandler(parser, AMFParserContext::characters);
@@ -519,49 +539,163 @@ bool load_amf(const char *path, Model *model)
 
     if (result)
         ctx.endDocument();
+
     return result;
 }
 
-bool store_amf(const char *path, Model *model)
+// Load an AMF archive into a provided model.
+bool load_amf_archive(const char *path, PresetBundle* bundle, Model *model)
 {
-    FILE *file = boost::nowide::fopen(path, "wb");
-    if (file == nullptr)
+    if ((path == nullptr) || (model == nullptr))
         return false;
 
-    fprintf(file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    fprintf(file, "<amf unit=\"millimeter\">\n");
-    fprintf(file, "<metadata type=\"cad\">Slic3r %s</metadata>\n", SLIC3R_VERSION);
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+
+    mz_bool res = mz_zip_reader_init_file(&archive, path, 0);
+    if (res == 0)
+    {
+        printf("Unable to init zip reader\n");
+        return false;
+    }
+
+    mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
+    if (num_entries != 1)
+    {
+        printf("Found invalid number of entries\n");
+        mz_zip_reader_end(&archive);
+        return false;
+    }
+
+    mz_zip_archive_file_stat stat;
+    res = mz_zip_reader_file_stat(&archive, 0, &stat);
+    if (res == 0)
+    {
+        printf("Unable to extract entry statistics\n");
+        mz_zip_reader_end(&archive);
+        return false;
+    }
+
+    std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(path).filename().string(), ".zip.amf", ".amf");
+    if (internal_amf_filename != stat.m_filename)
+    {
+        printf("Found invalid internal filename\n");
+        mz_zip_reader_end(&archive);
+        return false;
+    }
+
+    if (stat.m_uncomp_size == 0)
+    {
+        printf("Found invalid size\n");
+        mz_zip_reader_end(&archive);
+        return false;
+    }
+
+    XML_Parser parser = XML_ParserCreate(nullptr); // encoding
+    if (!parser) {
+        printf("Couldn't allocate memory for parser\n");
+        mz_zip_reader_end(&archive);
+        return false;
+    }
+
+    AMFParserContext ctx(parser, path, bundle, model);
+    XML_SetUserData(parser, (void*)&ctx);
+    XML_SetElementHandler(parser, AMFParserContext::startElement, AMFParserContext::endElement);
+    XML_SetCharacterDataHandler(parser, AMFParserContext::characters);
+
+    void* parser_buffer = XML_GetBuffer(parser, (int)stat.m_uncomp_size);
+    if (parser_buffer == nullptr)
+    {
+        printf("Unable to create buffer\n");
+        mz_zip_reader_end(&archive);
+        return false;
+    }
+
+    res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t)stat.m_uncomp_size, 0);
+    if (res == 0)
+    {
+        printf("Error while reading model data to buffer\n");
+        mz_zip_reader_end(&archive);
+        return false;
+    }
+
+    if (!XML_ParseBuffer(parser, (int)stat.m_uncomp_size, 1))
+    {
+        printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
+        mz_zip_reader_end(&archive);
+        return false;
+    }
+
+    ctx.endDocument();
+
+    mz_zip_reader_end(&archive);
+    return true;
+}
+
+// Load an AMF file into a provided model.
+// If bundle is not a null pointer, updates it if the amf file/archive contains config data
+bool load_amf(const char *path, PresetBundle* bundle, Model *model)
+{
+    if (boost::iends_with(path, ".zip.amf"))
+        return load_amf_archive(path, bundle, model);
+    else if (boost::iends_with(path, ".amf") || boost::iends_with(path, ".amf.xml"))
+        return load_amf_file(path, bundle, model);
+    else
+        return false;
+}
+
+bool store_amf(const char *path, Model *model, Print* print)
+{
+    if ((path == nullptr) || (model == nullptr) || (print == nullptr))
+        return false;
+
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+
+    mz_bool res = mz_zip_writer_init_file(&archive, path, 0);
+    if (res == 0)
+        return false;
+
+    std::stringstream stream;
+    stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    stream << "<amf unit=\"millimeter\">\n";
+    stream << "<metadata type=\"cad\">Slic3r " << SLIC3R_VERSION << "</metadata>\n";
+
+    std::string config = "\n";
+    GCode::append_full_config(*print, config);
+    stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << config << "</metadata>\n";
+
     for (const auto &material : model->materials) {
         if (material.first.empty())
             continue;
         // note that material-id must never be 0 since it's reserved by the AMF spec
-        fprintf(file, "  <material id=\"%s\">\n", material.first.c_str());
+        stream << "  <material id=\"" << material.first << "\">\n";
         for (const auto &attr : material.second->attributes)
-             fprintf(file, "    <metadata type=\"%s\">%s</metadata>\n", attr.first.c_str(), attr.second.c_str());
+            stream << "    <metadata type=\"" << attr.first << "\">" << attr.second << "</metadata>\n";
         for (const std::string &key : material.second->config.keys())
-             fprintf(file, "    <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), material.second->config.serialize(key).c_str());
-        fprintf(file, "  </material>\n");
+            stream << "    <metadata type=\"slic3r." << key << "\">" << material.second->config.serialize(key) << "</metadata>\n";
+        stream << "  </material>\n";
     }
     std::string instances;
     for (size_t object_id = 0; object_id < model->objects.size(); ++ object_id) {
         ModelObject *object = model->objects[object_id];
-        fprintf(file, "  <object id=\"" PRINTF_ZU "\">\n", object_id);
+        stream << "  <object id=\"" << object_id << "\">\n";
         for (const std::string &key : object->config.keys())
-             fprintf(file, "    <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), object->config.serialize(key).c_str());
-        if (! object->name.empty())
-            fprintf(file, "    <metadata type=\"name\">%s</metadata>\n", object->name.c_str());
+            stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.serialize(key) << "</metadata>\n";
+        if (!object->name.empty())
+            stream << "    <metadata type=\"name\">" << object->name << "</metadata>\n";
         std::vector<double> layer_height_profile = object->layer_height_profile_valid ? object->layer_height_profile : std::vector<double>();
         if (layer_height_profile.size() >= 4 && (layer_height_profile.size() % 2) == 0) {
             // Store the layer height profile as a single semicolon separated list.
-            fprintf(file, "    <metadata type=\"slic3r.layer_height_profile\">");
-            fprintf(file, "%f", layer_height_profile.front());
-            for (size_t i = 1; i < layer_height_profile.size(); ++ i)
-                fprintf(file, ";%f", layer_height_profile[i]);
-            fprintf(file, "\n    </metadata>\n");
+            stream << "    <metadata type=\"slic3r.layer_height_profile\">";
+            stream << layer_height_profile.front();
+            for (size_t i = 1; i < layer_height_profile.size(); ++i)
+                stream << ";" << layer_height_profile[i];
+                stream << "\n    </metadata>\n";
         }
         //FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
-        fprintf(file, "    <mesh>\n");
-        fprintf(file, "      <vertices>\n");
+        stream << "    <mesh>\n";
+        stream << "      <vertices>\n";
         std::vector<int> vertices_offsets;
         int              num_vertices = 0;
         for (ModelVolume *volume : object->volumes) {
@@ -572,41 +706,41 @@ bool store_amf(const char *path, Model *model)
             if (stl.v_shared == nullptr)
                 stl_generate_shared_vertices(&stl);
             for (size_t i = 0; i < stl.stats.shared_vertices; ++ i) {
-                fprintf(file, "         <vertex>\n");
-                fprintf(file, "           <coordinates>\n");
-                fprintf(file, "             <x>%f</x>\n", stl.v_shared[i].x);
-                fprintf(file, "             <y>%f</y>\n", stl.v_shared[i].y);
-                fprintf(file, "             <z>%f</z>\n", stl.v_shared[i].z);
-                fprintf(file, "           </coordinates>\n");
-                fprintf(file, "         </vertex>\n");
+                stream << "         <vertex>\n";
+                stream << "           <coordinates>\n";
+                stream << "             <x>" << stl.v_shared[i].x << "</x>\n";
+                stream << "             <y>" << stl.v_shared[i].y << "</y>\n";
+                stream << "             <z>" << stl.v_shared[i].z << "</z>\n";
+                stream << "           </coordinates>\n";
+                stream << "         </vertex>\n";
             }
             num_vertices += stl.stats.shared_vertices;
         }
-        fprintf(file, "      </vertices>\n");
-        for (size_t i_volume = 0; i_volume < object->volumes.size(); ++ i_volume) {
+        stream << "      </vertices>\n";
+        for (size_t i_volume = 0; i_volume < object->volumes.size(); ++i_volume) {
             ModelVolume *volume = object->volumes[i_volume];
             int vertices_offset = vertices_offsets[i_volume];
             if (volume->material_id().empty())
-                fprintf(file, "      <volume>\n");
+                stream << "      <volume>\n";
             else
-                fprintf(file, "      <volume materialid=\"%s\">\n", volume->material_id().c_str());
+                stream << "      <volume materialid=\"" << volume->material_id() << "\">\n";
             for (const std::string &key : volume->config.keys())
-                fprintf(file, "        <metadata type=\"slic3r.%s\">%s</metadata>\n", key.c_str(), volume->config.serialize(key).c_str());
-            if (! volume->name.empty())
-                fprintf(file, "        <metadata type=\"name\">%s</metadata>\n", volume->name.c_str());
+                stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.serialize(key) << "</metadata>\n";
+            if (!volume->name.empty())
+                stream << "        <metadata type=\"name\">" << volume->name << "</metadata>\n";
             if (volume->modifier)
-                fprintf(file, "        <metadata type=\"slic3r.modifier\">1</metadata>\n");
-            for (int i = 0; i < volume->mesh.stl.stats.number_of_facets; ++ i) {
-                fprintf(file, "        <triangle>\n");
-                for (int j = 0; j < 3; ++ j)
-                    fprintf(file, "          <v%d>%d</v%d>\n", j+1, volume->mesh.stl.v_indices[i].vertex[j] + vertices_offset, j+1);
-                fprintf(file, "        </triangle>\n");
+                stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
+            for (int i = 0; i < volume->mesh.stl.stats.number_of_facets; ++i) {
+                stream << "        <triangle>\n";
+                for (int j = 0; j < 3; ++j)
+                stream << "          <v" << j + 1 << ">" << volume->mesh.stl.v_indices[i].vertex[j] + vertices_offset << "</v" << j + 1 << ">\n";
+                stream << "        </triangle>\n";
             }
-            fprintf(file, "      </volume>\n");
+            stream << "      </volume>\n";
         }
-        fprintf(file, "    </mesh>\n");
-        fprintf(file, "  </object>\n");
-        if (! object->instances.empty()) {
+        stream << "    </mesh>\n";
+        stream << "  </object>\n";
+        if (!object->instances.empty()) {
             for (ModelInstance *instance : object->instances) {
                 char buf[512];
                 sprintf(buf,
@@ -627,12 +761,31 @@ bool store_amf(const char *path, Model *model)
         }
     }
     if (! instances.empty()) {
-        fprintf(file, "  <constellation id=\"1\">\n");
-        fwrite(instances.data(), instances.size(), 1, file);
-        fprintf(file, "  </constellation>\n");
+        stream << "  <constellation id=\"1\">\n";
+        stream << instances;
+        stream << "  </constellation>\n";
     }
-    fprintf(file, "</amf>\n");
-    fclose(file);
+    stream << "</amf>\n";
+
+    std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(path).filename().string(), ".zip.amf", ".amf");
+    std::string out = stream.str();
+
+    if (!mz_zip_writer_add_mem(&archive, internal_amf_filename.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+    {
+        mz_zip_writer_end(&archive);
+        boost::filesystem::remove(path);
+        return false;
+    }
+
+    if (!mz_zip_writer_finalize_archive(&archive))
+    {
+        mz_zip_writer_end(&archive);
+        boost::filesystem::remove(path);
+        return false;
+    }
+
+    mz_zip_writer_end(&archive);
+
     return true;
 }
 
