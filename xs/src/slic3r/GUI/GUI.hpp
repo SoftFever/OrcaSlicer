@@ -24,8 +24,9 @@ class TabIface;
 
 //! macro used to localization, return wxString
 #define _L(s) wxGetTranslation(s)
-//! macro used to localization, return const CharType *
-#define _LU8(s) wxGetTranslation(s).ToUTF8().data()
+//! macro used to mark string used at localization, 
+//! return same string
+#define _LS(s) s
 
 namespace GUI {
 

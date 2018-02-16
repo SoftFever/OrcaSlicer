@@ -47,24 +47,24 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 		ConfigOptionDef def;
 		def.type = coPoints;
 		def.default_value = new ConfigOptionPoints{ Pointf(200, 200) };
-		def.label = _LU8("Size");
-		def.tooltip = _LU8("Size in X and Y of the rectangular plate.");
+		def.label = _LS("Size");
+		def.tooltip = _LS("Size in X and Y of the rectangular plate.");
 		Option option(def, "rect_size");
 		optgroup->append_single_option_line(option);
 
 		def.type = coPoints;
 		def.default_value = new ConfigOptionPoints{ Pointf(0, 0) };
-		def.label = _LU8("Origin");
-		def.tooltip = _LU8("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
+		def.label = _LS("Origin");
+		def.tooltip = _LS("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
 		option = Option(def, "rect_origin");
 		optgroup->append_single_option_line(option);
 
 		optgroup = init_shape_options_page(_L("Circular"));
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat(200);
-		def.sidetext = _LU8("mm");
-		def.label = _LU8("Diameter");
-		def.tooltip = _LU8("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
+		def.sidetext = _LS("mm");
+		def.label = _LS("Diameter");
+		def.tooltip = _LS("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
 		option = Option(def, "diameter");
 		optgroup->append_single_option_line(option);
 

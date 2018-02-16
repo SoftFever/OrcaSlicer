@@ -113,8 +113,8 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
 	if (!icon.empty()) {
-		try { icon_idx = m_icon_index.at(icon);}
-		catch (std::out_of_range e) { icon_idx = -1; }
+		if (m_icon_index.find(icon) == m_icon_index.end())
+			icon_idx = -1;
 		if (icon_idx == -1) {
 			// Add a new icon to the icon list.
 			const auto img_icon = new wxIcon(wxString::FromUTF8(Slic3r::var(icon).c_str()), wxBITMAP_TYPE_PNG);
@@ -962,8 +962,8 @@ void TabPrinter::build()
 		ConfigOptionDef def;
 			def.type =  coInt,
 			def.default_value = new ConfigOptionInt(1); 
-			def.label = _LU8("Extruders");
-			def.tooltip = _LU8("Number of extruders of the printer.");
+			def.label = _LS("Extruders");
+			def.tooltip = _LS("Number of extruders of the printer.");
 			def.min = 1;
 		Option option(def, "extruders_count");
 		optgroup->append_single_option_line(option);
@@ -1558,17 +1558,9 @@ void Tab::save_preset(std::string name /*= ""*/)
 			return;
 		}
 	}
-	try
-	{
-		// Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-		m_presets->save_current_preset(name);
-	}
-	catch (const std::exception &e)
-	{
-		show_error(this, _L("Something is wrong. It can't be saved."));
-		return;
-	}
 
+	// Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
+	m_presets->save_current_preset(name);
 	// Mark the print & filament enabled if they are compatible with the currently selected preset.
 	m_preset_bundle->update_compatible_with_printer(false);
 	// Add the new item into the UI component, remove dirty flags and activate the saved item.

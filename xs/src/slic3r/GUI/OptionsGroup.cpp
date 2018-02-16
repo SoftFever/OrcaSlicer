@@ -7,6 +7,9 @@
 
 namespace Slic3r { namespace GUI {
 
+//! macro used to localization, return const CharType *
+#define _LU8(s) wxGetTranslation(s).ToUTF8().data()
+
 const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
 }

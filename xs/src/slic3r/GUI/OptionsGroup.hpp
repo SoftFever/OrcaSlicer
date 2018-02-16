@@ -90,9 +90,21 @@ public:
     void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
 
     // return a non-owning pointer reference 
-    inline /*const*/ Field*	get_field(t_config_option_key id) const { try { return m_fields.at(id).get(); } catch (std::out_of_range e) { return nullptr; } }
-	bool			set_value(t_config_option_key id, boost::any value) { try { m_fields.at(id)->set_value(value); return true; } catch (std::out_of_range e) { return false; } }
-	boost::any		get_value(t_config_option_key id) { boost::any out; try { out = m_fields.at(id)->get_value(); } catch (std::out_of_range e) { ; } return out; }
+    inline Field*	get_field(t_config_option_key id) const{
+							if (m_fields.find(id) == m_fields.end()) return nullptr;
+							return m_fields.at(id).get();
+    }
+	bool			set_value(t_config_option_key id, boost::any value) {
+							if (m_fields.find(id) == m_fields.end()) return false;
+							return true;
+    }
+	boost::any		get_value(t_config_option_key id) {
+							boost::any out; 
+    						if (m_fields.find(id) == m_fields.end()) ;
+							else 
+								out = m_fields.at(id)->get_value();
+							return out;
+    }
 
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
