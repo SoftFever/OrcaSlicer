@@ -443,7 +443,7 @@ sub new {
             $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
             my @info = (
                 fil_m   => "Used Filament (m)",
-                fil_mm3 => "Used Filament (mm\u00B3)",
+                fil_mm3 => "Used Filament (mm\x{00B3})",
                 fil_g   => "Used Filament (g)",
                 cost    => "Cost",
                 time    => "Estimated printing time",
