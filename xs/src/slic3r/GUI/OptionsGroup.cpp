@@ -7,9 +7,6 @@
 
 namespace Slic3r { namespace GUI {
 
-//! macro used to localization, return const CharType *
-#define _LU8(s) wxGetTranslation(s).ToUTF8().data()
-
 const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
 }
@@ -155,7 +152,7 @@ void OptionsGroup::append_line(const Line& line) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {
-			auto field_label = new wxStaticText(parent(), wxID_ANY, wxString::FromUTF8(option.label.c_str()) + ":", wxDefaultPosition, wxDefaultSize);
+			auto field_label = new wxStaticText(parent(), wxID_ANY, _L(option.label) + ":", wxDefaultPosition, wxDefaultSize);
 			field_label->SetFont(label_font);
 			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
@@ -169,7 +166,9 @@ void OptionsGroup::append_line(const Line& line) {
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			auto sidetext = new wxStaticText(parent(), wxID_ANY, wxString::FromUTF8(option.sidetext.c_str()), wxDefaultPosition, wxDefaultSize);
+			// Explicitly specify that the source string is already in UTF-8 encoding
+			wxString sidetext_str(option.sidetext.c_str(), wxConvUTF8);
+			auto sidetext = new wxStaticText(parent(), wxID_ANY, _L(sidetext_str), wxDefaultPosition, wxDefaultSize);
 			sidetext->SetFont(sidetext_font);
 			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 		}
@@ -191,7 +190,7 @@ void OptionsGroup::append_line(const Line& line) {
 }
 
 Line OptionsGroup::create_single_option_line(const Option& option) const {
-	Line retval{ wxString::FromUTF8(option.opt.label.c_str()), wxString::FromUTF8(option.opt.tooltip.c_str()) };
+	Line retval{ _L(option.opt.label), _L(option.opt.tooltip) };
     Option tmp(option);
     tmp.opt.label = std::string("");
     retval.append_option(tmp);
@@ -206,7 +205,7 @@ void OptionsGroup::on_change_OG(t_config_option_key id, /*config_value*/boost::a
 Option ConfigOptionsGroup::get_option(const std::string opt_key, int opt_index /*= -1*/)
 {
 	if (!m_config->has(opt_key)) {
-		//! exception  ("No $opt_key in ConfigOptionsGroup config");
+		std::cerr << "No " << opt_key << " in ConfigOptionsGroup config.";
 	}
 
 	std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);
@@ -328,9 +327,9 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 	case coFloats:
 	case coFloat:{
 		double val = opt->type == coFloats ?
-					config.opt_float(opt_key, idx/*0opt_index*/) :
+					config.opt_float(opt_key, idx) :
 						opt->type == coFloat ? config.opt_float(opt_key) :
-						config.option<ConfigOptionPercents>(opt_key)->values.at(idx/*0*/);
+						config.option<ConfigOptionPercents>(opt_key)->values.at(idx);
 		ret = double_to_string(val);
 		}
 		break;
@@ -341,19 +340,19 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
 		else
-			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(idx/*0*/)/*opt_index*/));
+			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(idx)));
 		break;
 	case coBool:
 		ret = config.opt_bool(opt_key);
 		break;
 	case coBools:
-		ret = config.opt_bool(opt_key, idx/*0opt_index*/);
+		ret = config.opt_bool(opt_key, idx);
 		break;
 	case coInt:
 		ret = config.opt_int(opt_key);
 		break;
 	case coInts:
-		ret = config.opt_int(opt_key, idx/*0/*opt_index*/);
+		ret = config.opt_int(opt_key, idx);
 		break;
 	case coEnum:{
 		if (opt_key.compare("external_fill_pattern") == 0 ||
@@ -372,7 +371,7 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		break;
 	case coPoints:{
 		const auto &value = *config.option<ConfigOptionPoints>(opt_key);
-		ret = value.values.at(idx/*0*/);
+		ret = value.values.at(idx);
 		}
 		break;
 	case coNone:
@@ -398,15 +397,6 @@ void ogStaticText::SetText(wxString value)
 	SetLabel(value);
 	Wrap(400);
 	GetParent()->Layout();
-}
-
-void Option::translate()
-{
-	opt.label = _LU8(opt.label);
-	opt.tooltip = _LU8(opt.tooltip);
-	opt.sidetext = _LU8(opt.sidetext);
-	opt.full_label = _LU8(opt.full_label);
-	opt.category = _LU8(opt.category);
 }
 
 } // GUI

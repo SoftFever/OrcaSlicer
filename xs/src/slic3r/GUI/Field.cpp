@@ -56,7 +56,8 @@ namespace Slic3r { namespace GUI {
 		case coPercents:
 		case coFloats:
 		case coFloat:{
-			if (m_opt.type == coPercent) str.RemoveLast();
+			if (m_opt.type == coPercent && str.Last() == '%') 
+				str.RemoveLast();
 			double val;
 			str.ToCDouble(&val);
 			ret_val = val;
@@ -87,7 +88,7 @@ namespace Slic3r { namespace GUI {
 
 		wxString text_value = wxString(""); 
 
-		switch (m_opt.type) {
+/*		switch (m_opt.type) {
 		case coFloatOrPercent:
 		{
 			if (static_cast<const ConfigOptionFloatOrPercent*>(m_opt.default_value)->percent)
@@ -147,7 +148,7 @@ namespace Slic3r { namespace GUI {
 			break; 
 		}
 
-		auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, (m_opt.multiline ? wxTE_MULTILINE : 0));
+*/		auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, (m_opt.multiline ? wxTE_MULTILINE : 0));
 
 		temp->SetToolTip(get_tooltip_text(text_value));
         
@@ -303,7 +304,7 @@ void Choice::set_selection()
 				break;
 			++idx;
 		}
-		if (m_opt.type == coPercent) text_value += "%";
+//		if (m_opt.type == coPercent) text_value += "%";
 		idx == m_opt.enum_values.size() ?
 			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
@@ -387,7 +388,7 @@ void Choice::set_value(boost::any value)
 				break;
 			++idx;
 		}
-		if (m_opt.type == coPercent) text_value += "%";
+//		if (m_opt.type == coPercent) text_value += "%";
 		idx == m_opt.enum_values.size() ?
 			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
@@ -535,21 +536,29 @@ void PointCtrl::set_value(const Pointf value)
 void PointCtrl::set_value(boost::any value)
 {
 	Pointf pt;
-	try
+	Pointf *ptf = boost::any_cast<Pointf>(&value);
+	if (!ptf)
 	{
-		pt = boost::any_cast<ConfigOptionPoints*>(value)->values.at(0);
+		ConfigOptionPoints* pts = boost::any_cast<ConfigOptionPoints*>(value);
+		pt = pts->values.at(0);
 	}
-	catch (const std::exception &e)
-	{
-		try{
-			pt = boost::any_cast<Pointf>(value);
-		}
-		catch (const std::exception &e)
-		{
-			std::cerr << "Error! Can't cast PointCtrl value" << m_opt_id << "\n";
-			return;
-		}		
-	}	
+	else
+		pt = *ptf;
+// 	try
+// 	{
+// 		pt = boost::any_cast<ConfigOptionPoints*>(value)->values.at(0);
+// 	}
+// 	catch (const std::exception &e)
+// 	{
+// 		try{
+// 			pt = boost::any_cast<Pointf>(value);
+// 		}
+// 		catch (const std::exception &e)
+// 		{
+// 			std::cerr << "Error! Can't cast PointCtrl value" << m_opt_id << "\n";
+// 			return;
+// 		}		
+// 	}	
 	set_value(pt);
 }
 

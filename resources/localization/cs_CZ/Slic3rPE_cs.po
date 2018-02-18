@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: SLIC3R PE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-13 17:18+0100\n"
-"PO-Revision-Date: 2018-02-16 15:23+0100\n"
+"PO-Revision-Date: 2018-02-17 22:28+0100\n"
 "Last-Translator: Filip Hurka <filip.hurka@prusa3d.cz>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -602,7 +602,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1503
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1633
 msgid "mm/s or %"
-msgstr "mm nebo %"
+msgstr "mm/s nebo %"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:293
 msgid "External perimeters first"
@@ -983,9 +983,9 @@ msgid ""
 "the print moves of the first layer, regardless of their type. If expressed "
 "as a percentage (for example: 40%) it will scale the default speeds."
 msgstr ""
-"Pokud je vyjádřena jako absolutní hodnota v mm / s, bude tato rychlost "
-"použita pro všechny pohyby tisku první vrstvy bez ohledu na jejich typ. "
-"Pokud je vyjádřeno jako procento (například: 40%), změní se výchozí rychlost."
+"Pokud je vyjádřena jako absolutní hodnota v mm/s, bude tato rychlost použita "
+"pro všechny pohyby tisku první vrstvy bez ohledu na jejich typ. Pokud je "
+"vyjádřeno jako procento (například: 40%), změní se výchozí rychlost."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:628
 msgid ""

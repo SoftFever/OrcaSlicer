@@ -35,8 +35,7 @@ struct Option {
     bool					readonly {false};
 
 	Option(const ConfigOptionDef& _opt, t_config_option_key id) :
-		opt(_opt), opt_id(id) { translate(); }
-	void		translate();
+		opt(_opt), opt_id(id) {}
 };
 using t_option = std::unique_ptr<Option>;	//!
 
@@ -96,6 +95,7 @@ public:
     }
 	bool			set_value(t_config_option_key id, boost::any value) {
 							if (m_fields.find(id) == m_fields.end()) return false;
+							m_fields.at(id)->set_value(value);
 							return true;
     }
 	boost::any		get_value(t_config_option_key id) {
