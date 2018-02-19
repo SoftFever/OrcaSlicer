@@ -25,10 +25,10 @@
     double radius();
     Clone<Point> min_point() %code{% RETVAL = THIS->min; %};
     Clone<Point> max_point() %code{% RETVAL = THIS->max; %};
-    long x_min() %code{% RETVAL = THIS->min.x; %};
-    long x_max() %code{% RETVAL = THIS->max.x; %};
-    long y_min() %code{% RETVAL = THIS->min.y; %};
-    long y_max() %code{% RETVAL = THIS->max.y; %};
+    int x_min() %code{% RETVAL = THIS->min.x; %};
+    int x_max() %code{% RETVAL = THIS->max.x; %};
+    int y_min() %code{% RETVAL = THIS->min.y; %};
+    int y_max() %code{% RETVAL = THIS->max.y; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld;%ld,%ld", THIS->min.x, THIS->min.y, THIS->max.x, THIS->max.y); RETVAL = buf; %};
     bool defined() %code{% RETVAL = THIS->defined; %};
 

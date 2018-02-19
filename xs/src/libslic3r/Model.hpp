@@ -19,6 +19,7 @@ class ModelInstance;
 class ModelMaterial;
 class ModelObject;
 class ModelVolume;
+class PresetBundle;
 
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
@@ -119,6 +120,7 @@ public:
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Pointf3 &versor);
     void rotate(float angle, const Axis &axis);
+    void transform(const float* matrix3x4);
     void mirror(const Axis &axis);
     size_t materials_count() const;
     size_t facets_count() const;
@@ -238,12 +240,14 @@ public:
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
     static Model read_from_file(const std::string &input_file, bool add_default_instances = true);
+    static Model read_from_archive(const std::string &input_file, PresetBundle* bundle, bool add_default_instances = true);
 
     ModelObject* add_object();
     ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
     ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
     ModelObject* add_object(const ModelObject &other, bool copy_volumes = true);
     void delete_object(size_t idx);
+    void delete_object(ModelObject* object);
     void clear_objects();
     
     ModelMaterial* add_material(t_model_material_id material_id);

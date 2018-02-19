@@ -10,6 +10,7 @@
 namespace Slic3r {
 
 class BoundingBox;
+class BoundingBox3;
 
 class MultiPoint
 {
@@ -77,6 +78,25 @@ public:
     std::string dump_perl() const;
     
     static Points _douglas_peucker(const Points &points, const double tolerance);
+};
+
+class MultiPoint3
+{
+public:
+    Points3 points;
+
+    void append(const Point3& point) { this->points.push_back(point); }
+
+    void translate(double x, double y);
+    void translate(const Point& vector);
+    virtual Lines3 lines() const = 0;
+    double length() const;
+    bool is_valid() const { return this->points.size() >= 2; }
+
+    BoundingBox3 bounding_box() const;
+
+    // Remove exact duplicates, return true if any duplicate has been removed.
+    bool remove_duplicate_points();
 };
 
 extern BoundingBox get_extents(const MultiPoint &mp);

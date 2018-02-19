@@ -4,38 +4,9 @@
 
 namespace Slic3r {
 
-template <class PointClass>
-BoundingBoxBase<PointClass>::BoundingBoxBase(const std::vector<PointClass> &points)
-{
-    if (points.empty()) 
-        CONFESS("Empty point set supplied to BoundingBoxBase constructor");
-    typename std::vector<PointClass>::const_iterator it = points.begin();
-    this->min.x = this->max.x = it->x;
-    this->min.y = this->max.y = it->y;
-    for (++it; it != points.end(); ++it) {
-        this->min.x = std::min(it->x, this->min.x);
-        this->min.y = std::min(it->y, this->min.y);
-        this->max.x = std::max(it->x, this->max.x);
-        this->max.y = std::max(it->y, this->max.y);
-    }
-    this->defined = true;
-}
 template BoundingBoxBase<Point>::BoundingBoxBase(const std::vector<Point> &points);
 template BoundingBoxBase<Pointf>::BoundingBoxBase(const std::vector<Pointf> &points);
 
-template <class PointClass>
-BoundingBox3Base<PointClass>::BoundingBox3Base(const std::vector<PointClass> &points)
-    : BoundingBoxBase<PointClass>(points)
-{
-    if (points.empty())
-        CONFESS("Empty point set supplied to BoundingBox3Base constructor");
-    typename std::vector<PointClass>::const_iterator it = points.begin();
-    this->min.z = this->max.z = it->z;
-    for (++it; it != points.end(); ++it) {
-        this->min.z = std::min(it->z, this->min.z);
-        this->max.z = std::max(it->z, this->max.z);
-    }
-}
 template BoundingBox3Base<Pointf3>::BoundingBox3Base(const std::vector<Pointf3> &points);
 
 BoundingBox::BoundingBox(const Lines &lines)

@@ -582,6 +582,13 @@ public:
     ConfigOptionType            type()  const override { return static_type(); }
     ConfigOption*               clone() const override { return new ConfigOptionFloatOrPercent(*this); }
     ConfigOptionFloatOrPercent& operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                        operator==(const ConfigOption &rhs) const override
+    {
+        if (rhs.type() != this->type())
+            throw std::runtime_error("ConfigOptionFloatOrPercent: Comparing incompatible types");
+        assert(dynamic_cast<const ConfigOptionFloatOrPercent*>(&rhs));
+        return *this == *static_cast<const ConfigOptionFloatOrPercent*>(&rhs);
+    }
     bool                        operator==(const ConfigOptionFloatOrPercent &rhs) const 
         { return this->value == rhs.value && this->percent == rhs.percent; }
     double                      get_abs_value(double ratio_over) const 
@@ -1049,7 +1056,8 @@ public:
     void setenv_();
     void load(const std::string &file);
     void load_from_ini(const std::string &file);
-    void load_from_gcode(const std::string &file);
+    void load_from_gcode_file(const std::string &file);
+    void load_from_gcode_string(const char* str);
     void load(const boost::property_tree::ptree &tree);
     void save(const std::string &file) const;
 

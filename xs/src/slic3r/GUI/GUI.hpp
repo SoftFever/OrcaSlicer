@@ -10,6 +10,7 @@ class wxFrame;
 class wxWindow;
 class wxMenuBar;
 class wxNotebook;
+class wxComboCtrl;
 class wxString;
 class wxArrayString;
 class wxArrayLong;
@@ -88,6 +89,16 @@ std::vector<Tab *>& get_tabs_list();
 bool checked_tab(Tab* tab);
 void delete_tab_from_list(Tab* tab);
 
-} }
+// Creates a wxCheckListBoxComboPopup inside the given wxComboCtrl, filled with the given text and items.
+// Items are all initialized to the given value.
+// Items must be separated by '|', for example "Item1|Item2|Item3", and so on.
+void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value);
+
+// Returns the current state of the items listed in the wxCheckListBoxComboPopup contained in the given wxComboCtrl,
+// encoded inside an int.
+int combochecklist_get_flags(wxComboCtrl* comboCtrl);
+
+}
+}
 
 #endif

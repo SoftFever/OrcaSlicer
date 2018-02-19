@@ -31,7 +31,6 @@ use Slic3r::GUI::ProgressStatusBar;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SystemInfo;
-use Slic3r::GUI::Tab;
 
 our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
 our $have_LWP    = eval "use LWP::UserAgent; 1";
@@ -41,16 +40,17 @@ use Wx::Event qw(EVT_IDLE EVT_COMMAND EVT_MENU);
 use base 'Wx::App';
 
 use constant FILE_WILDCARDS => {
-    known   => 'Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA',
+    known   => 'Known files (*.stl, *.obj, *.amf, *.xml, *.3mf, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.3mf;*.3MF;*.prusa;*.PRUSA',
     stl     => 'STL files (*.stl)|*.stl;*.STL',
     obj     => 'OBJ files (*.obj)|*.obj;*.OBJ',
     amf     => 'AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML',
+    threemf => '3MF files (*.3mf)|*.3mf;*.3MF',
     prusa   => 'Prusa Control files (*.prusa)|*.prusa;*.PRUSA',
     ini     => 'INI files *.ini|*.ini;*.INI',
     gcode   => 'G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC',
     svg     => 'SVG files *.svg|*.svg;*.SVG',
 };
-use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf prusa)};
+use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf threemf prusa)};
 
 # Datadir provided on the command line.
 our $datadir;

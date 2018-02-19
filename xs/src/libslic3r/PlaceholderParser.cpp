@@ -623,7 +623,7 @@ namespace client
             expr<Iterator>                  &output)
         {
             if (opt.opt->is_vector())
-                ctx->throw_exception("Referencing a scalar variable in a vector context", opt.it_range);
+                ctx->throw_exception("Referencing a vector variable when scalar is expected", opt.it_range);
             switch (opt.opt->type()) {
             case coFloat:   output.set_d(opt.opt->getFloat());   break;
             case coInt:     output.set_i(opt.opt->getInt());     break;
@@ -648,7 +648,7 @@ namespace client
             expr<Iterator>                  &output)
         {
             if (opt.opt->is_scalar())
-                ctx->throw_exception("Referencing a vector variable in a scalar context", opt.it_range);
+                ctx->throw_exception("Referencing a scalar variable when vector is expected", opt.it_range);
             const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt.opt);
             if (vec->empty())
                 ctx->throw_exception("Indexing an empty vector variable", opt.it_range);
@@ -974,10 +974,10 @@ namespace client
 
             relational_expression = 
                     additive_expression(_r1)                [_val  = _1]
-                >> *(   (lit('<') > additive_expression(_r1) ) [px::bind(&expr<Iterator>::lower,   _val, _1)]
-                    |   (lit('>') > additive_expression(_r1) ) [px::bind(&expr<Iterator>::greater, _val, _1)]
-                    |   ("<="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::leq,     _val, _1)]
+                >> *(   ("<="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::leq,     _val, _1)]
                     |   (">="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::geq,     _val, _1)]
+                    |   (lit('<') > additive_expression(_r1) ) [px::bind(&expr<Iterator>::lower,   _val, _1)]
+                    |   (lit('>') > additive_expression(_r1) ) [px::bind(&expr<Iterator>::greater, _val, _1)]
                     );
             relational_expression.name("relational_expression");
 

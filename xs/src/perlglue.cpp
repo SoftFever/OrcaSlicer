@@ -15,6 +15,7 @@ REGISTER_CLASS(Filler, "Filler");
 REGISTER_CLASS(Flow, "Flow");
 REGISTER_CLASS(CoolingBuffer, "GCode::CoolingBuffer");
 REGISTER_CLASS(GCode, "GCode");
+REGISTER_CLASS(GCodePreviewData, "GCode::PreviewData");
 REGISTER_CLASS(GCodeSender, "GCode::Sender");
 REGISTER_CLASS(Layer, "Layer");
 REGISTER_CLASS(SupportLayer, "Layer::Support");
@@ -62,7 +63,7 @@ REGISTER_CLASS(Preset, "GUI::Preset");
 REGISTER_CLASS(PresetCollection, "GUI::PresetCollection");
 REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
 REGISTER_CLASS(PresetHints, "GUI::PresetHints");
-REGISTER_CLASS(TabIface, "GUI::Tab2");
+REGISTER_CLASS(TabIface, "GUI::Tab");
 
 SV* ConfigBase__as_hash(ConfigBase* THIS)
 {

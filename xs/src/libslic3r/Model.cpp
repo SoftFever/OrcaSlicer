@@ -5,6 +5,7 @@
 #include "Format/OBJ.hpp"
 #include "Format/PRUS.hpp"
 #include "Format/STL.hpp"
+#include "Format/3mf.hpp"
 
 #include <float.h>
 
@@ -46,16 +47,16 @@ Model Model::read_from_file(const std::string &input_file, bool add_default_inst
         result = load_stl(input_file.c_str(), &model);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
-    else if (boost::algorithm::iends_with(input_file, ".amf") ||
-               boost::algorithm::iends_with(input_file, ".amf.xml"))
-        result = load_amf(input_file.c_str(), &model);
+    else if (!boost::algorithm::iends_with(input_file, ".zip.amf") && (boost::algorithm::iends_with(input_file, ".amf") ||
+        boost::algorithm::iends_with(input_file, ".amf.xml")))
+        result = load_amf(input_file.c_str(), nullptr, &model);
 #ifdef SLIC3R_PRUS
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
 #endif /* SLIC3R_PRUS */
     else
         throw std::runtime_error("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
-    
+
     if (! result)
         throw std::runtime_error("Loading of a model file failed.");
 
@@ -65,6 +66,33 @@ Model Model::read_from_file(const std::string &input_file, bool add_default_inst
     for (ModelObject *o : model.objects)
         o->input_file = input_file;
     
+    if (add_default_instances)
+        model.add_default_instances();
+
+    return model;
+}
+
+Model Model::read_from_archive(const std::string &input_file, PresetBundle* bundle, bool add_default_instances)
+{
+    Model model;
+
+    bool result = false;
+    if (boost::algorithm::iends_with(input_file, ".3mf"))
+        result = load_3mf(input_file.c_str(), bundle, &model);
+    else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
+        result = load_amf(input_file.c_str(), bundle, &model);
+    else
+        throw std::runtime_error("Unknown file format. Input file must have .3mf or .zip.amf extension.");
+
+    if (!result)
+        throw std::runtime_error("Loading of a model file failed.");
+
+    if (model.objects.empty())
+        throw std::runtime_error("The supplied file couldn't be read because it's empty");
+
+    for (ModelObject *o : model.objects)
+        o->input_file = input_file;
+
     if (add_default_instances)
         model.add_default_instances();
 
@@ -113,6 +141,23 @@ void Model::delete_object(size_t idx)
     ModelObjectPtrs::iterator i = this->objects.begin() + idx;
     delete *i;
     this->objects.erase(i);
+}
+
+void Model::delete_object(ModelObject* object)
+{
+    if (object == nullptr)
+        return;
+
+    for (ModelObjectPtrs::iterator it = objects.begin(); it != objects.end(); ++it)
+    {
+        ModelObject* obj = *it;
+        if (obj == object)
+        {
+            delete obj;
+            objects.erase(it);
+            return;
+        }
+    }
 }
 
 void Model::clear_objects()
@@ -605,6 +650,20 @@ void ModelObject::rotate(float angle, const Axis &axis)
         v->mesh.rotate(angle, axis);
     this->origin_translation = Pointf3(0,0,0);
     this->invalidate_bounding_box();
+}
+
+void ModelObject::transform(const float* matrix3x4)
+{
+    if (matrix3x4 == nullptr)
+        return;
+
+    for (ModelVolume* v : volumes)
+    {
+        v->mesh.transform(matrix3x4);
+    }
+
+    origin_translation = Pointf3(0.0f, 0.0f, 0.0f);
+    invalidate_bounding_box();
 }
 
 void ModelObject::mirror(const Axis &axis)

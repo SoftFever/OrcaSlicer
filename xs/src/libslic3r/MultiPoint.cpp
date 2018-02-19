@@ -214,6 +214,61 @@ MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
     return results;
 }
 
+void MultiPoint3::translate(double x, double y)
+{
+    for (Point3& p : points)
+    {
+        p.translate(x, y);
+    }
+}
+
+void MultiPoint3::translate(const Point& vector)
+{
+    translate(vector.x, vector.y);
+}
+
+double MultiPoint3::length() const
+{
+    Lines3 lines = this->lines();
+    double len = 0.0;
+    for (const Line3& line : lines)
+    {
+        len += line.length();
+    }
+    return len;
+}
+
+BoundingBox3 MultiPoint3::bounding_box() const
+{
+    return BoundingBox3(points);
+}
+
+bool MultiPoint3::remove_duplicate_points()
+{
+    size_t j = 0;
+    for (size_t i = 1; i < points.size(); ++i)
+    {
+        if (points[j].coincides_with(points[i]))
+        {
+            // Just increase index i.
+        }
+        else
+        {
+            ++j;
+            if (j < i)
+                points[j] = points[i];
+        }
+    }
+
+    if (++j < points.size())
+    {
+        points.erase(points.begin() + j, points.end());
+        return true;
+    }
+
+    return false;
+}
+
 BoundingBox get_extents(const MultiPoint &mp)
 { 
     return BoundingBox(mp.points);

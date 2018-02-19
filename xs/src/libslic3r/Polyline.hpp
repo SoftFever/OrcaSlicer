@@ -137,6 +137,14 @@ class ThickPolyline : public Polyline {
     void reverse();
 };
 
+class Polyline3 : public MultiPoint3
+{
+public:
+    virtual Lines3 lines() const;
+};
+
+typedef std::vector<Polyline3> Polylines3;
+
 }
 
 #endif

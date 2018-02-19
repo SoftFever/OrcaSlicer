@@ -561,7 +561,7 @@ inline void RangeTest(const IntPoint& Pt, bool& useFullRange)
   if (useFullRange)
   {
     if (Pt.X > hiRange || Pt.Y > hiRange || -Pt.X > hiRange || -Pt.Y > hiRange) 
-      throw "Coordinate outside allowed range";
+      throw clipperException("Coordinate outside allowed range");
   }
   else if (Pt.X > loRange|| Pt.Y > loRange || -Pt.X > loRange || -Pt.Y > loRange) 
   {
@@ -2386,8 +2386,8 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
 
 void Clipper::UpdateEdgeIntoAEL(TEdge *&e)
 {
-  if( !e->NextInLML ) throw
-    clipperException("UpdateEdgeIntoAEL: invalid call");
+  if( !e->NextInLML ) 
+    throw clipperException("UpdateEdgeIntoAEL: invalid call");
 
   e->NextInLML->OutIdx = e->OutIdx;
   TEdge* AelPrev = e->PrevInAEL;

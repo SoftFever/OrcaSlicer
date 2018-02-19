@@ -5,7 +5,7 @@
 #include "slic3r/GUI/TabIface.hpp"
 %}
 
-%name{Slic3r::GUI::Tab2} class TabIface {
+%name{Slic3r::GUI::Tab} class TabIface {
     TabIface();
     ~TabIface();
     void		load_current_preset();
