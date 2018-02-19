@@ -2211,26 +2211,31 @@ void _3DScene::_update_gcode_volumes_visibility(const GCodePreviewData& preview_
             case GCodePreviewVolumeIndex::Travel:
                 {
                     volume->is_active = preview_data.travel.is_visible;
+                    volume->zoom_to_volumes = false;
                     break;
                 }
             case GCodePreviewVolumeIndex::Retraction:
                 {
                     volume->is_active = preview_data.retraction.is_visible;
+                    volume->zoom_to_volumes = false;
                     break;
                 }
             case GCodePreviewVolumeIndex::Unretraction:
                 {
                     volume->is_active = preview_data.unretraction.is_visible;
+                    volume->zoom_to_volumes = false;
                     break;
                 }
             case GCodePreviewVolumeIndex::Shell:
                 {
                     volume->is_active = preview_data.shell.is_visible;
+                    volume->zoom_to_volumes = false;
                     break;
                 }
             default:
                 {
                     volume->is_active = false;
+                    volume->zoom_to_volumes = false;
                     break;
                 }
             }

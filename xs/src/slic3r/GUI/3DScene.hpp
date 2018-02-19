@@ -215,6 +215,7 @@ public:
         drag_group_id(-1),
         selected(false),
         is_active(true),
+        zoom_to_volumes(true),
         hover(false),
         tverts_range(0, size_t(-1)),
         qverts_range(0, size_t(-1))
@@ -253,6 +254,8 @@ public:
     bool                selected;
     // Whether or not this volume is active for rendering
     bool                is_active;
+    // Whether or not to use this volume when applying zoom_to_volumes()
+    bool                zoom_to_volumes;
     // Boolean: Is mouse over this object?
     bool                hover;
 
