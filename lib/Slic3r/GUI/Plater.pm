@@ -1616,23 +1616,27 @@ sub export_3mf {
 sub _get_export_file {
     my ($self, $format) = @_;    
     my $suffix = '';
+    my $wildcard = 'known';
     if ($format eq 'STL')
     {
         $suffix = '.stl';
+        $wildcard = 'stl';
     }
     elsif ($format eq 'AMF')
     {
         $suffix = '.zip.amf';
+        $wildcard = 'amf';
     }
     elsif ($format eq '3MF')
     {
         $suffix = '.3mf';
+        $wildcard = 'threemf';
     }
     my $output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
     Slic3r::GUI::catch_error($self) and return undef;
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
     my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
-        basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        basename($output_file), &Slic3r::GUI::FILE_WILDCARDS->{$wildcard}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal != wxID_OK) {
         $dlg->Destroy;
         return undef;
