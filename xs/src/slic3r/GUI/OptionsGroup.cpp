@@ -289,14 +289,6 @@ boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, 
 	}
 }
 
-wxString double_to_string(double const value)
-{
-	int precision = 10 * value - int(10 * value) == 0 ? 1 : 2; 
-	return value - int(value) == 0 ?
-		wxString::Format(_T("%i"), int(value)) :
-		wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
-}
-
 boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index/* = -1*/)
 {
 	size_t idx = opt_index == -1 ? 0 : opt_index;

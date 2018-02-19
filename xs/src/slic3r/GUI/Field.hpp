@@ -26,6 +26,8 @@ using t_field = std::unique_ptr<Field>;
 using t_kill_focus = std::function<void()>;
 using t_change = std::function<void(t_config_option_key, boost::any)>;
 
+wxString double_to_string(double const value);
+
 class Field {
 protected:
     // factory function to defer and enforce creation of derived type. 

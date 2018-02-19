@@ -10,6 +10,14 @@
 
 namespace Slic3r { namespace GUI {
 
+	wxString double_to_string(double const value)
+	{
+		int precision = 10 * value - int(10 * value) == 0 ? 1 : 2;
+		return value - int(value) == 0 ?
+			wxString::Format(_T("%i"), int(value)) :
+			wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
+	}
+
 	void Field::on_kill_focus(wxEvent& event) {
         // Without this, there will be nasty focus bugs on Windows.
         // Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
@@ -88,16 +96,12 @@ namespace Slic3r { namespace GUI {
 
 		wxString text_value = wxString(""); 
 
-/*		switch (m_opt.type) {
+		switch (m_opt.type) {
 		case coFloatOrPercent:
 		{
-			if (static_cast<const ConfigOptionFloatOrPercent*>(m_opt.default_value)->percent)
-			{
-				text_value = wxString::Format(_T("%i"), int(m_opt.default_value->getFloat()));
-				text_value += "%";
-			}
-			else
-				text_value = wxNumberFormatter::ToString(m_opt.default_value->getFloat(), 2);
+			text_value = double_to_string(m_opt.default_value->getFloat());
+ 			if (static_cast<const ConfigOptionFloatOrPercent*>(m_opt.default_value)->percent)
+ 				text_value += "%";
 			break;
 		}
 		case coPercent:
@@ -107,29 +111,15 @@ namespace Slic3r { namespace GUI {
 			break;
 		}	
 		case coPercents:
-		{
-			const ConfigOptionPercents *vec = static_cast<const ConfigOptionPercents*>(m_opt.default_value);
-			if (vec == nullptr || vec->empty()) break;
-			if (vec->size() > 1)
-				break;
-			double val = vec->get_at(0);
-			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
-			break;
-		}			
+		case coFloats:
 		case coFloat:
 		{
-			double val = m_opt.default_value->getFloat();
-			text_value = (val - int(val)) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
-			break;
-		}			
-		case coFloats:
-		{
-			const ConfigOptionFloats *vec = static_cast<const ConfigOptionFloats*>(m_opt.default_value);
-			if (vec == nullptr || vec->empty()) break;
-			if (vec->size() > 1)
-				break;
-			double val = vec->get_at(0);
-			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
+			double val = m_opt.type == coFloats ?
+				static_cast<const ConfigOptionFloats*>(m_opt.default_value)->get_at(0) :
+				m_opt.type == coFloat ? 
+					m_opt.default_value->getFloat() :
+					static_cast<const ConfigOptionPercents*>(m_opt.default_value)->get_at(0);
+			text_value = double_to_string(val);
 			break;
 		}
 		case coString:			
@@ -148,7 +138,7 @@ namespace Slic3r { namespace GUI {
 			break; 
 		}
 
-*/		auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, (m_opt.multiline ? wxTE_MULTILINE : 0));
+		auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, (m_opt.multiline ? wxTE_MULTILINE : 0));
 
 		temp->SetToolTip(get_tooltip_text(text_value));
         
