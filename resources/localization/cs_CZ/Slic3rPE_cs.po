@@ -1,11 +1,10 @@
-# Filip Hurka <filip.hurka@prusa3d.cz>, 2018.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: SLIC3R PE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-13 17:18+0100\n"
-"PO-Revision-Date: 2018-02-17 22:28+0100\n"
+"PO-Revision-Date: 2018-02-19 14:17+0100\n"
 "Last-Translator: Filip Hurka <filip.hurka@prusa3d.cz>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -210,8 +209,8 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:578
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:686
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:954
-msgid "mm/s\\u00B2"
-msgstr "mm/s\\u00B2"
+msgid "mm/s²"
+msgstr "mm/s²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:90
 msgid "Bridging angle"
@@ -239,11 +238,11 @@ msgstr "Výplň"
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
 "calculated automatically. Otherwise the provided angle will be used for all "
-"bridges. Use 180\\u00B0 for zero angle."
+"bridges. Use 180° for zero angle."
 msgstr ""
 "Přepsání úhlu vytváření mostů. Nastavením hodnoty na nulu se bude úhel "
 "vytváření mostů vypočítávat automaticky. Při zadání jiného úhlu, bude pro "
-"všechny mosty použitý zadaný úhel. Pro nulový úhel zadejte 180\\u00B0."
+"všechny mosty použitý zadaný úhel. Pro nulový úhel zadejte 180°."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:95
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:496
@@ -251,8 +250,8 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1183
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1403
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1559
-msgid "\\u00B0"
-msgstr "\\u00B0"
+msgid "°"
+msgstr "°"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:101
 msgid "Bridges fan speed"
@@ -812,8 +811,8 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:429
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:822
-msgid "mm\\u00B3/s"
-msgstr "mm\\u00B3/s"
+msgid "mm³/s"
+msgstr "mm³/s"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:436
 msgid ""
@@ -841,7 +840,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:448
 msgid "g/cm^3"
-msgstr "g/cm\\u00B3"
+msgstr "g/cm³"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:454
 msgid "Filament type"
@@ -1229,16 +1228,15 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:840
 msgid ""
 "This experimental setting is used to limit the speed of change in extrusion "
-"rate. A value of 1.8 mm\\u00B3/s\\u00B2 ensures, that a change from the "
-"extrusion rate of 1.8 mm\\u00B3/s (0.45mm extrusion width, 0.2mm extrusion "
-"height, feedrate 20 mm/s) to 5.4 mm\\u00B3/s (feedrate 60 mm/s) will take at "
-"least 2 seconds."
+"rate. A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
+"of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/"
+"s) to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds."
 msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:833
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:844
-msgid "mm\\u00B3/s\\u00B2"
-msgstr "mm\\u00B3/s\\u00B2"
+msgid "mm³/s²"
+msgstr "mm³/s²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:839
 msgid "Max volumetric slope negative"
@@ -1782,8 +1780,8 @@ msgstr ""
 "prahová hodnota."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1267
-msgid "mm\\u00B2"
-msgstr "mm\\u00B2"
+msgid "mm²"
+msgstr "mm²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1273
 msgid "Solid infill extruder"
@@ -2118,11 +2116,11 @@ msgstr "Práh přesahu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1554
 msgid ""
-"Support material will not be generated for overhangs whose slope angle "
-"(90\\u00B0 = vertical) is above the given threshold. In other words, this "
-"value represent the most horizontal slope (measured from the horizontal "
-"plane) that you can print without support material. Set to zero for "
-"automatic detection (recommended)."
+"Support material will not be generated for overhangs whose slope angle (90° "
+"= vertical) is above the given threshold. In other words, this value "
+"represent the most horizontal slope (measured from the horizontal plane) "
+"that you can print without support material. Set to zero for automatic "
+"detection (recommended)."
 msgstr ""
 "Podpory nebudou vytvořeny pro převisy, jejichž úhel sklonu (90 \\ u00B0 = "
 "vertikální) je nad danou prahovou hodnotou. Jinými slovy, tato hodnota "

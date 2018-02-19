@@ -25,6 +25,11 @@ class TabIface;
 
 //! macro used to localization, return wxString
 #define _L(s) wxGetTranslation(s)
+
+//! macro used to localization of ConfigOptionDef's std::strings
+//! Explicitly specify that the source string is already in UTF-8 encoding
+#define _LU8(s) wxGetTranslation(wxString(s.c_str(), wxConvUTF8))
+
 //! macro used to mark string used at localization, 
 //! return same string
 #define _LS(s) s

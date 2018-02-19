@@ -1,22 +1,17 @@
-# Copyright (C) 2018 THE Slic3rPE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Slic3rPE package.
-# Oleksandra Iushchenko <yusanka@gmail.com>, 2018.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: SLIC3R PE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-13 17:18+0100\n"
-"PO-Revision-Date: 2018-02-15 18:17+0100\n"
-"Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
+"PO-Revision-Date: 2018-02-19 14:38+0100\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: en_US\n"
-"X-Poedit-KeywordsList: _L\n"
+"Last-Translator: \n"
+"Language: en\n"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:50
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1188
@@ -188,7 +183,7 @@ msgstr "Bottom"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1585
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1641
 msgid "Layers and Perimeters"
-msgstr "Layers and perimeters"
+msgstr "Layers and Perimeters"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:74
 msgid "Number of solid layers to generate on bottom surfaces."
@@ -215,8 +210,8 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:578
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:686
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:954
-msgid "mm/s\\u00B2"
-msgstr "mm/s\\u00B2"
+msgid "mm/s²"
+msgstr "mm/s²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:90
 msgid "Bridging angle"
@@ -244,11 +239,11 @@ msgstr "Infill"
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
 "calculated automatically. Otherwise the provided angle will be used for all "
-"bridges. Use 180\\u00B0 for zero angle."
+"bridges. Use 180° for zero angle."
 msgstr ""
 "Bridging angle override. If left to zero, the bridging angle will be "
 "calculated automatically. Otherwise the provided angle will be used for all "
-"bridges. Use 180\\u00B0 for zero angle."
+"bridges. Use 180° for zero angle."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:95
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:496
@@ -256,8 +251,8 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1183
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1403
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1559
-msgid "\\u00B0"
-msgstr "\\u00B0"
+msgid "°"
+msgstr "°"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:101
 msgid "Bridges fan speed"
@@ -572,7 +567,7 @@ msgstr "External perimeters"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1456
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1616
 msgid "Extrusion Width"
-msgstr "Extrusion width"
+msgstr "Extrusion Width"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:273
 msgid ""
@@ -632,7 +627,7 @@ msgid "Extra perimeters if needed"
 msgstr "Extra perimeters if needed"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:303
-#, c-format
+#, no-c-format
 msgid ""
 "Add more perimeters when needed for avoiding gaps in sloping walls. Slic3r "
 "keeps adding perimeters, until more than 70% of the loop immediately above "
@@ -699,7 +694,7 @@ msgstr "This is only used in the Slic3r interface as a visual help."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:354
 msgid "Extruder offset"
-msgstr "Extruders offset"
+msgstr "Extruder offset"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:355
 msgid ""
@@ -823,8 +818,8 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:429
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:822
-msgid "mm\\u00B3/s"
-msgstr "mm\\u00B3/s"
+msgid "mm³/s"
+msgstr "mm³/s"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:436
 msgid ""
@@ -853,8 +848,8 @@ msgstr ""
 "displacement."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:448
-msgid "g/cm\\u00B3"
-msgstr "g/cm\\u00B3"
+msgid "g/cm³"
+msgstr "g/cm³"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:454
 msgid "Filament type"
@@ -918,7 +913,7 @@ msgid "Fill density"
 msgstr "Fill density"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:507
-#, c-format
+#, no-c-format
 msgid "Density of internal infill, expressed in the range 0% - 100%."
 msgstr "Density of internal infill, expressed in the range 0% - 100%."
 
@@ -935,7 +930,7 @@ msgstr "Fill pattern for general low-density infill."
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:593
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:627
 msgid "First layer"
-msgstr "First layers"
+msgstr "First layer"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:576
 msgid ""
@@ -1201,7 +1196,7 @@ msgid "This setting represents the maximum speed of your fan."
 msgstr "This setting represents the maximum speed of your fan."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:799
-#, c-format
+#, no-c-format
 msgid ""
 "This is the highest printable layer height for this extruder, used to cap "
 "the variable layer height and support layer height. Maximum recommended "
@@ -1243,21 +1238,19 @@ msgstr "Max volumetric slope positive"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:840
 msgid ""
 "This experimental setting is used to limit the speed of change in extrusion "
-"rate. A value of 1.8 mm\\u00B3/s\\u00B2 ensures, that a change from the "
-"extrusion rate of 1.8 mm\\u00B3/s (0.45mm extrusion width, 0.2mm extrusion "
-"height, feedrate 20 mm/s) to 5.4 mm\\u00B3/s (feedrate 60 mm/s) will take at "
-"least 2 seconds."
+"rate. A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
+"of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/"
+"s) to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds."
 msgstr ""
 "This experimental setting is used to limit the speed of change in extrusion "
-"rate. A value of 1.8 mm\\u00B3/s\\u00B2 ensures, that a change from the "
-"extrusion rate of 1.8 mm\\u00B3/s (0.45mm extrusion width, 0.2mm extrusion "
-"height, feedrate 20 mm/s) to 5.4 mm\\u00B3/s (feedrate 60 mm/s) will take at "
-"least 2 seconds."
+"rate. A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
+"of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/"
+"s) to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:833
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:844
-msgid "mm\\u00B3/s\\u00B2"
-msgstr "mm\\u00B3/s\\u00B2"
+msgid "mm³/s²"
+msgstr "mm³/s²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:839
 msgid "Max volumetric slope negative"
@@ -1803,8 +1796,8 @@ msgstr ""
 "threshold."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1267
-msgid "mm\\u00B2"
-msgstr "mm\\u00B2"
+msgid "mm²"
+msgstr "mm²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1273
 msgid "Solid infill extruder"
@@ -2147,17 +2140,17 @@ msgstr "Overhang threshold"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1554
 msgid ""
-"Support material will not be generated for overhangs whose slope angle "
-"(90\\u00B0 = vertical) is above the given threshold. In other words, this "
-"value represent the most horizontal slope (measured from the horizontal "
-"plane) that you can print without support material. Set to zero for "
-"automatic detection (recommended)."
+"Support material will not be generated for overhangs whose slope angle (90° "
+"= vertical) is above the given threshold. In other words, this value "
+"represent the most horizontal slope (measured from the horizontal plane) "
+"that you can print without support material. Set to zero for automatic "
+"detection (recommended)."
 msgstr ""
-"Support material will not be generated for overhangs whose slope angle "
-"(90\\u00B0 = vertical) is above the given threshold. In other words, this "
-"value represent the most horizontal slope (measured from the horizontal "
-"plane) that you can print without support material. Set to zero for "
-"automatic detection (recommended)."
+"Support material will not be generated for overhangs whose slope angle (90° "
+"= vertical) is above the given threshold. In other words, this value "
+"represent the most horizontal slope (measured from the horizontal plane) "
+"that you can print without support material. Set to zero for automatic "
+"detection (recommended)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1566
 msgid "With sheath around the support"
@@ -2432,6 +2425,10 @@ msgstr "Rectangular"
 msgid "Circular"
 msgstr "Circular"
 
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:71
+msgid "Custom"
+msgstr "Custom"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:75
 msgid "Load shape from STL..."
 msgstr "Load shape from STL..."
@@ -2478,6 +2475,14 @@ msgstr "Save current "
 msgid "Delete this preset"
 msgstr "Delete this preset"
 
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:314
+msgid "Layers and perimeters"
+msgstr "Layers and perimeters"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:319
+msgid "Vertical shells"
+msgstr "Vertical shells"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:330
 msgid "Horizontal shells"
 msgstr "Horizontal shells"
@@ -2494,9 +2499,25 @@ msgstr "Reducing printing time"
 msgid "Skirt and brim"
 msgstr "Skirt and brim"
 
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:366
+msgid "Skirt"
+msgstr "Skirt"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:372
+msgid "Brim"
+msgstr "Brim"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:381
 msgid "Raft"
 msgstr "Raft"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:385
+msgid "Options for support material and raft"
+msgstr "Options for support material and raft"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:400
+msgid "Speed for print moves"
+msgstr "Speed for print moves"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:412
 msgid "Speed for non-print moves"
@@ -2522,6 +2543,14 @@ msgstr "Multiple Extruders"
 msgid "Ooze prevention"
 msgstr "Ooze prevention"
 
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:443
+msgid "Wipe tower"
+msgstr "Wipe tower"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:454
+msgid "Extrusion width"
+msgstr "Extrusion width"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:464
 msgid "Overlap"
 msgstr "Overlap"
@@ -2542,6 +2571,10 @@ msgstr "Output options"
 msgid "Sequential printing"
 msgstr "Sequential printing"
 
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:489
+msgid "Output file"
+msgstr "Output file"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:501
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:502
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:858
@@ -2561,6 +2594,11 @@ msgstr "Dependencies"
 msgid "Profile dependencies"
 msgstr "Profile dependencies"
 
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:785
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:786
+msgid "Filament"
+msgstr "Filament"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:799
 msgid "Bed"
 msgstr "Bed"
@@ -2572,6 +2610,14 @@ msgstr "Cooling"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:816
 msgid "Fan settings"
 msgstr "Fan settings"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:825
+msgid "Cooling thresholds"
+msgstr "Cooling thresholds"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:831
+msgid "Filament properties"
+msgstr "Filament properties"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:835
 msgid "Print speed override"
@@ -2599,6 +2645,14 @@ msgstr "Set"
 msgid "Capabilities"
 msgstr "Capabilities"
 
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:988
+msgid "USB/Serial connection"
+msgstr "USB/Serial connection"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:994
+msgid "Rescan serial ports"
+msgstr "Rescan serial ports"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1003
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1071
 msgid "Test"
@@ -2624,17 +2678,17 @@ msgstr "OctoPrint upload"
 msgid "Browse"
 msgstr "Browse"
 
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1046
-msgid "Button BROWSE was clicked!"
-msgstr "Button BROWSE was clicked!"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1081
-msgid "Button TEST was clicked!"
-msgstr "Button TEST was clicked!"
-
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1109
 msgid "Firmware"
 msgstr "Firmware"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1149
+msgid "Between objects G-code (for sequential printing)"
+msgstr "Between objects G-code (for sequential printing)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1185
+msgid "Extruder "
+msgstr "Extruder "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1191
 msgid "Layer height limits"
@@ -2643,6 +2697,14 @@ msgstr "Layer height limits"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1196
 msgid "Position (for multi-extruder printers)"
 msgstr "Position (for multi-extruder printers)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1199
+msgid "Retraction"
+msgstr "Retraction"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1202
+msgid "Only lift Z"
+msgstr "Only lift Z"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1215
 msgid ""
@@ -2665,6 +2727,10 @@ msgstr ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1312
+msgid "Firmware Retraction"
+msgstr "Firmware Retraction"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1558
 msgid "The supplied name is empty. It can't be saved."
@@ -2736,6 +2802,10 @@ msgstr "Print Settings"
 msgid "Filament Settings"
 msgstr "Filament Settings"
 
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:228
+msgid "Printer Settings"
+msgstr "Printer Settings"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:248
 msgid "Save preset"
 msgstr "Save preset"
@@ -2743,10 +2813,6 @@ msgstr "Save preset"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Field.cpp:35
 msgid "default"
 msgstr "default"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:71
-msgid "Custom"
-msgstr "Custom"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:212
 msgid "Array of language names and identifiers should have the same size."
@@ -2764,48 +2830,12 @@ msgstr "Language"
 msgid "Change Application Language"
 msgstr "Change Application Language"
 
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:314
-msgid "Layers and perimeters"
-msgstr "Layers and perimeters"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:319
-msgid "Vertical shells"
-msgstr "Vertical shells"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:366
-msgid "Skirt"
-msgstr "Skirt"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:372
-msgid "Brim"
-msgstr "Brim"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:385
-msgid "Options for support material and raft"
-msgstr "Options for support material and raft"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:400
-msgid "Speed for print moves"
-msgstr "Speed for print moves"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:443
-msgid "Wipe tower"
-msgstr "Wipe tower"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:454
-msgid "Extrusion width"
-msgstr "Extrusion width"
-
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:480
 msgid "Extruder clearance (mm)"
 msgstr "Extruder clearance (mm)"
 
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:489
-msgid "Output file"
-msgstr "Output file"
-
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:534
-#, c-format
+#, no-c-format
 msgid ""
 "The Spiral Vase mode requires:\n"
 "- one perimeter\n"
@@ -2847,7 +2877,7 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:585
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:602
 msgid "Wipe Tower"
-msgstr "Wipe tower"
+msgstr "Wipe Tower"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:581
 msgid ""
@@ -2900,7 +2930,7 @@ msgid "The "
 msgstr "The "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:662
-#, c-format
+#, no-c-format
 msgid ""
 " infill pattern is not supposed to work at 100% density.\n"
 "\n"
@@ -2910,50 +2940,9 @@ msgstr ""
 "\n"
 "Shall I switch to rectilinear fill pattern?"
 
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:785
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:786
-msgid "Filament"
-msgstr "Filament"
-
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:817
 msgid "Fan speed"
 msgstr "Fan speed"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:825
-msgid "Cooling thresholds"
-msgstr "Cooling thresholds"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:831
-msgid "Filament properties"
-msgstr "Filament properties"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:988
-msgid "USB/Serial connection"
-msgstr "USB/Serial connection"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:994
-msgid "Rescan serial ports"
-msgstr "Rescan serial ports"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1149
-msgid "Between objects G-code (for sequential printing)"
-msgstr "Between objects G-code (for sequential printing)"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1185
-msgid "Extruder "
-msgstr "Extruder "
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1199
-msgid "Retraction"
-msgstr "Retraction"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1202
-msgid "Only lift Z"
-msgstr "Only lift Z"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1312
-msgid "Firmware Retraction"
-msgstr "Firmware Retraction"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1467
 msgid "Default "
@@ -3010,7 +2999,3 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1490
 msgid "Unsaved Changes"
 msgstr "Unsaved Changes"
-
-#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:228
-msgid "Printer Settings"
-msgstr "Printer Settings"

@@ -22,12 +22,7 @@ PrintConfigDef::PrintConfigDef()
     // Maximum extruder temperature, bumped to 1500 to support printing of glass.
     const int max_temp = 1500;
 
-	//! On purpose of localization there is that changes at text of tooltip and sidetext:
-	//! - ° -> \u00B0
-	//! - ² -> \u00B2
-	//! - ³ -> \u00B3
-    
-    def = this->add("avoid_crossing_perimeters", coBool);
+	def = this->add("avoid_crossing_perimeters", coBool);
     def->label = _L("Avoid crossing perimeters");
 	def->tooltip = _L("Optimize travel moves in order to minimize the crossing of perimeters. "
                    "This is mostly useful with Bowden extruders which suffer from oozing. "
@@ -82,7 +77,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = _L("Bridge");
     def->tooltip = _L("This is the acceleration your printer will use for bridges. "
                    "Set zero to disable acceleration control for bridges.");
-    def->sidetext = _L("mm/s\u00B2");
+    def->sidetext = _L("mm/s²");
     def->cli = "bridge-acceleration=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
@@ -92,8 +87,8 @@ PrintConfigDef::PrintConfigDef()
     def->category = _L("Infill");
     def->tooltip = _L("Bridging angle override. If left to zero, the bridging angle will be calculated "
                    "automatically. Otherwise the provided angle will be used for all bridges. "
-                   "Use 180\u00B0 for zero angle.");
-    def->sidetext = _L("\u00B0");
+                   "Use 180° for zero angle.");
+	def->sidetext = _L("°");
     def->cli = "bridge-angle=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.);
@@ -176,7 +171,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = _L("This is the acceleration your printer will be reset to after "
                    "the role-specific acceleration values are used (perimeter/infill). "
                    "Set zero to prevent resetting acceleration at all.");
-    def->sidetext = _L("mm/s\u00B2");
+    def->sidetext = _L("mm/s²");
     def->cli = "default-acceleration=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
@@ -427,7 +422,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = _L("Maximum volumetric speed allowed for this filament. Limits the maximum volumetric "
                    "speed of a print to the minimum of print and filament volumetric speed. "
                    "Set to zero for no limit.");
-    def->sidetext = _L("mm\u00B3/s");
+    def->sidetext = _L("mm³/s");
     def->cli = "filament-max-volumetric-speed=f@";
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
@@ -446,7 +441,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = _L("Enter your filament density here. This is only for statistical information. "
                    "A decent way is to weigh a known length of filament and compute the ratio "
                    "of the length to volume. Better is to calculate the volume directly through displacement.");
-    def->sidetext = _L("g/cm\u00B3");
+    def->sidetext = _L("g/cm³");
     def->cli = "filament-density=f@";
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
@@ -494,7 +489,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = _L("Default base angle for infill orientation. Cross-hatching will be applied to this. "
                    "Bridges will be infilled using the best direction Slic3r can detect, so this setting "
                    "does not affect them.");
-    def->sidetext = _L("\u00B0");
+    def->sidetext = _L("°");
     def->cli = "fill-angle=f";
     def->min = 0;
     def->max = 360;
@@ -576,7 +571,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = _L("First layer");
     def->tooltip = _L("This is the acceleration your printer will use for first layer. Set zero "
                    "to disable acceleration control for first layer.");
-    def->sidetext = _L("mm/s\u00B2");
+    def->sidetext = _L("mm/s²");
     def->cli = "first-layer-acceleration=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
@@ -684,7 +679,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = _L("Infill");
     def->tooltip = _L("This is the acceleration your printer will use for infill. Set zero to disable "
                    "acceleration control for infill.");
-    def->sidetext = _L("mm/s\u00B2");
+    def->sidetext = _L("mm/s²");
     def->cli = "infill-acceleration=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
@@ -820,7 +815,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = _L("Max volumetric speed");
     def->tooltip = _L("This experimental setting is used to set the maximum volumetric speed your "
                    "extruder supports.");
-    def->sidetext = _L("mm\u00B3/s");
+    def->sidetext = _L("mm³/s");
     def->cli = "max-volumetric-speed=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
@@ -828,10 +823,10 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("max_volumetric_extrusion_rate_slope_positive", coFloat);
     def->label = _L("Max volumetric slope positive");
     def->tooltip = _L("This experimental setting is used to limit the speed of change in extrusion rate. "
-                   "A value of 1.8 mm\u00B3/s\u00B2 ensures, that a change from the extrusion rate "
-                   "of 1.8 mm\u00B3/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/s) "
-                   "to 5.4 mm\u00B3/s (feedrate 60 mm/s) will take at least 2 seconds.");
-    def->sidetext = _L("mm\u00B3/s\u00B2");
+                   "A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
+                   "of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/s) "
+                   "to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds.");
+    def->sidetext = _L("mm³/s²");
     def->cli = "max-volumetric-extrusion-rate-slope-positive=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
@@ -839,10 +834,10 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("max_volumetric_extrusion_rate_slope_negative", coFloat);
     def->label = _L("Max volumetric slope negative");
     def->tooltip = _L("This experimental setting is used to limit the speed of change in extrusion rate. "
-                   "A value of 1.8 mm\u00B3/s\u00B2 ensures, that a change from the extrusion rate "
-                   "of 1.8 mm\u00B3/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/s) "
-                   "to 5.4 mm\u00B3/s (feedrate 60 mm/s) will take at least 2 seconds.");
-    def->sidetext = _L("mm\u00B3/s\u00B2");
+                   "A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
+                   "of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/s) "
+                   "to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds.");
+    def->sidetext = _L("mm³/s²");
     def->cli = "max-volumetric-extrusion-rate-slope-negative=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
@@ -952,7 +947,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = _L("This is the acceleration your printer will use for perimeters. "
                    "A high value like 9000 usually gives good results if your hardware is up to the job. "
                    "Set zero to disable acceleration control for perimeters.");
-    def->sidetext = _L("mm/s\u00B2");
+    def->sidetext = _L("mm/s²");
     def->cli = "perimeter-acceleration=f";
     def->default_value = new ConfigOptionFloat(0);
 
@@ -1170,7 +1165,7 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("seam_preferred_direction", coFloat);
 //    def->gui_type = "slider";
     def->label = _L("Direction");
-    def->sidetext = _L("\u00B0");
+    def->sidetext = _L("°");
     def->full_label = _L("Preferred direction of the seam");
     def->tooltip = _L("Seam preferred direction");
     def->cli = "seam-preferred-direction=f";
@@ -1181,7 +1176,7 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("seam_preferred_direction_jitter", coFloat);
 //    def->gui_type = "slider";
     def->label = _L("Jitter");
-    def->sidetext = _L("\u00B0");
+    def->sidetext = _L("°");
     def->full_label = _L("Seam preferred direction jitter");
     def->tooltip = _L("Preferred direction of the seam - jitter");
     def->cli = "seam-preferred-direction-jitter=f";
@@ -1265,7 +1260,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = _L("Solid infill threshold area");
     def->category = _L("Infill");
     def->tooltip = _L("Force solid infill for regions having a smaller area than the specified threshold.");
-    def->sidetext = _L("mm\u00B2");
+    def->sidetext = _L("mm²");
     def->cli = "solid-infill-below-area=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(70);
@@ -1401,7 +1396,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = _L("Pattern angle");
     def->category = _L("Support material");
     def->tooltip = _L("Use this setting to rotate the support material pattern on the horizontal plane.");
-    def->sidetext = _L("\u00B0");
+    def->sidetext = _L("°");
     def->cli = "support-material-angle=f";
     def->min = 0;
     def->max = 359;
@@ -1553,11 +1548,11 @@ PrintConfigDef::PrintConfigDef()
     def->label = _L("Overhang threshold");
     def->category = _L("Support material");
     def->tooltip = _L("Support material will not be generated for overhangs whose slope angle "
-                   "(90\u00B0 = vertical) is above the given threshold. In other words, this value "
+                   "(90° = vertical) is above the given threshold. In other words, this value "
                    "represent the most horizontal slope (measured from the horizontal plane) "
                    "that you can print without support material. Set to zero for automatic detection "
                    "(recommended).");
-    def->sidetext = _L("\u00B0");
+    def->sidetext = _L("°");
     def->cli = "support-material-threshold=i";
     def->min = 0;
     def->max = 90;

@@ -152,7 +152,7 @@ void OptionsGroup::append_line(const Line& line) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {
-			auto field_label = new wxStaticText(parent(), wxID_ANY, _L(option.label) + ":", wxDefaultPosition, wxDefaultSize);
+			auto field_label = new wxStaticText(parent(), wxID_ANY, _LU8(option.label) + ":", wxDefaultPosition, wxDefaultSize);
 			field_label->SetFont(label_font);
 			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
@@ -166,9 +166,7 @@ void OptionsGroup::append_line(const Line& line) {
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			// Explicitly specify that the source string is already in UTF-8 encoding
-			wxString sidetext_str(option.sidetext.c_str(), wxConvUTF8);
-			auto sidetext = new wxStaticText(parent(), wxID_ANY, _L(sidetext_str), wxDefaultPosition, wxDefaultSize);
+			auto sidetext = new wxStaticText(parent(), wxID_ANY, _LU8(option.sidetext), wxDefaultPosition, wxDefaultSize);
 			sidetext->SetFont(sidetext_font);
 			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 		}
@@ -190,7 +188,7 @@ void OptionsGroup::append_line(const Line& line) {
 }
 
 Line OptionsGroup::create_single_option_line(const Option& option) const {
-	Line retval{ _L(option.opt.label), _L(option.opt.tooltip) };
+	Line retval{ _LU8(option.opt.label), _LU8(option.opt.tooltip) };
     Option tmp(option);
     tmp.opt.label = std::string("");
     retval.append_option(tmp);
