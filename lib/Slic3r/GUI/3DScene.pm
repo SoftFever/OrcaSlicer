@@ -68,6 +68,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _zoom
                               
                               _legend_enabled
+                              _apply_zoom_to_volumes_filter
                                                             
                               ) );
                               
@@ -142,6 +143,7 @@ sub new {
     $self->_zoom(1);
     $self->_legend_enabled(0);
     $self->use_plain_shader(0);
+    $self->_apply_zoom_to_volumes_filter(0);
 
     # Collection of GLVolume objects
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
@@ -704,14 +706,18 @@ sub zoom_to_volume {
 
 sub zoom_to_volumes {
     my ($self) = @_;
+    $self->_apply_zoom_to_volumes_filter(1);
     $self->zoom_to_bounding_box($self->volumes_bounding_box);
+    $self->_apply_zoom_to_volumes_filter(0);
 }
 
 sub volumes_bounding_box {
     my ($self) = @_;
     
     my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    $bb->merge($_->transformed_bounding_box) for @{$self->volumes};
+    foreach my $v (@{$self->volumes}) {
+        $bb->merge($v->transformed_bounding_box) if (! $self->_apply_zoom_to_volumes_filter || $v->zoom_to_volumes);
+    }
     return $bb;
 }
 
