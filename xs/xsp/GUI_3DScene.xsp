@@ -42,6 +42,8 @@
         %code%{ RETVAL = THIS->hover; %};
     void                set_hover(int i)
         %code%{ THIS->hover = i; %};
+    int                 zoom_to_volumes()
+        %code%{ RETVAL = THIS->zoom_to_volumes; %};
 
     int                 object_idx() const;
     int                 volume_idx() const;

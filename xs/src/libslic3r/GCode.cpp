@@ -1384,7 +1384,7 @@ void GCode::apply_print_config(const PrintConfig &print_config)
 
 void GCode::append_full_config(const Print& print, std::string& str)
 {
-    char buff[1024];
+    char buff[4096];
 
     const StaticPrintConfig *configs[] = { &print.config, &print.default_object_config, &print.default_region_config };
     for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++i) {
