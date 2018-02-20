@@ -489,8 +489,8 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
     {
         comboCtrl->SetPopupControl(popup);
         popup->SetStringValue(text);
-        popup->Connect(wxID_ANY, wxEVT_CHECKLISTBOX, wxCommandEventHandler(wxCheckListBoxComboPopup::OnCheckListBox), nullptr, popup);
-        popup->Connect(wxID_ANY, wxEVT_LISTBOX, wxCommandEventHandler(wxCheckListBoxComboPopup::OnListBoxSelection), nullptr, popup);
+        popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
+        popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
 
         std::vector<std::string> items_str;
         boost::split(items_str, items, boost::is_any_of("|"), boost::token_compress_off);
