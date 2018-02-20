@@ -2,6 +2,7 @@
 
 const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
+const unsigned int wxCheckListBoxComboPopup::DefaultItemHeight = 18;
 
 bool wxCheckListBoxComboPopup::Create(wxWindow* parent)
 {
@@ -35,11 +36,7 @@ wxSize wxCheckListBoxComboPopup::GetAdjustedSize(int minWidth, int prefHeight, i
 
         unsigned int count = GetCount();
         if (count > 0)
-        {
-            wxRect first_rect;
-            GetItemRect(0, first_rect);
-            size.SetHeight((1 + count) * first_rect.GetHeight());
-        }
+            size.SetHeight(count * DefaultItemHeight);
         else
             size.SetHeight(DefaultHeight);
 
