@@ -1,6 +1,7 @@
 #include "wxExtensions.hpp"
 
-const unsigned int wxCheckListBoxComboPopup::Height = 210;
+const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
+const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
 
 bool wxCheckListBoxComboPopup::Create(wxWindow* parent)
 {
@@ -25,16 +26,32 @@ wxString wxCheckListBoxComboPopup::GetStringValue() const
 wxSize wxCheckListBoxComboPopup::GetAdjustedSize(int minWidth, int prefHeight, int maxHeight)
 {
     // matches owner wxComboCtrl's width
+    // and sets height dinamically in dependence of contained items count
 
     wxComboCtrl* cmb = GetComboCtrl();
     if (cmb != nullptr)
     {
         wxSize size = GetComboCtrl()->GetSize();
-        size.SetHeight(Height);
+
+        unsigned int count = GetCount();
+        if (count > 0)
+        {
+            wxRect first_rect;
+            GetItemRect(0, first_rect);
+            size.SetHeight((1 + count) * first_rect.GetHeight());
+        }
+        else
+            size.SetHeight(DefaultHeight);
+
         return size;
     }
     else
-        return wxSize(200, Height);
+        return wxSize(DefaultWidth, DefaultHeight);
+}
+
+void wxCheckListBoxComboPopup::OnKeyEvent(wxKeyEvent& evt)
+{
+    // do nothing, but prevents navigation in the list using arrows keys (which is not working properly)
 }
 
 void wxCheckListBoxComboPopup::OnCheckListBox(wxCommandEvent& evt)
