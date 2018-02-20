@@ -62,6 +62,8 @@ void wxCheckListBoxComboPopup::OnCheckListBox(wxCommandEvent& evt)
         event.SetEventObject(cmb);
         cmb->ProcessWindowEvent(event);
     }
+
+    evt.Skip();
 }
 
 void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)

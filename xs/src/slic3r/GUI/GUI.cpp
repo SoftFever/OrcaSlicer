@@ -487,6 +487,11 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
     wxCheckListBoxComboPopup* popup = new wxCheckListBoxComboPopup;
     if (popup != nullptr)
     {
+        // FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
+        //  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
+        comboCtrl->UseAltPopupWindow();
+
+        comboCtrl->EnablePopupAnimation(false);
         comboCtrl->SetPopupControl(popup);
         popup->SetStringValue(text);
         popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
