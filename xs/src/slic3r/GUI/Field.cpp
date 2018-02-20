@@ -53,7 +53,7 @@ namespace Slic3r { namespace GUI {
 		return std::regex_match(string, regex_pattern);
 	}
 
-	boost::any Field::get_value_by_opt_type(wxString str, ConfigOptionType type)
+	boost::any Field::get_value_by_opt_type(wxString str)
 	{
 		boost::any ret_val;
 		switch (m_opt.type){
@@ -72,16 +72,9 @@ namespace Slic3r { namespace GUI {
 			break; }
 		case coString:
 		case coStrings:
+		case coFloatOrPercent:
 			ret_val = str.ToStdString();
 			break;
-		case coFloatOrPercent:{
-			if (str.Last() == '%')
-				str.RemoveLast();
-			double val;
-			str.ToCDouble(&val);
-			ret_val = val;
-			break;
-		}
 		default:
 			break;
 		}
@@ -165,7 +158,7 @@ namespace Slic3r { namespace GUI {
 	boost::any TextCtrl::get_value()
 	{
 		wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-		boost::any ret_val = get_value_by_opt_type(ret_str, m_opt.type);
+		boost::any ret_val = get_value_by_opt_type(ret_str);
 
 		return ret_val;
 	}
@@ -420,7 +413,7 @@ boost::any Choice::get_value()
 	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
 
 	if (m_opt.type != coEnum)
-		ret_val = get_value_by_opt_type(ret_str, m_opt.type);
+		ret_val = get_value_by_opt_type(ret_str);
 	else
 	{
 		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
