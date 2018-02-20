@@ -1,10 +1,9 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: SLIC3R PE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-13 17:18+0100\n"
-"PO-Revision-Date: 2018-02-19 14:17+0100\n"
+"PO-Revision-Date: 2018-02-20 13:37+0100\n"
 "Last-Translator: Filip Hurka <filip.hurka@prusa3d.cz>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -167,7 +166,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:72
 msgid "Bottom"
-msgstr "Spodek"
+msgstr "Spodních"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:73
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:243
@@ -335,13 +334,13 @@ msgstr "mm/s"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:131
 msgid "Brim width"
-msgstr "Okraj první vrstvy"
+msgstr "Šířka límce"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:132
 msgid ""
 "Horizontal width of the brim that will be printed around each object on the "
 "first layer."
-msgstr "Šírka okraje první vrsty která bude vytištěna okolo každého objektu."
+msgstr "Šírka límce který bude vytištěn v první vrstvě okolo každého objektu."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:139
 msgid "Clip multi-part objects"
@@ -400,7 +399,7 @@ msgid ""
 "This flag enables the automatic cooling logic that adjusts print speed and "
 "fan speed according to layer printing time."
 msgstr ""
-"Zapíná výpočet automatického chlazení který upravuje rychlost tisku a "
+"Zapne výpočet automatického chlazení který upravuje rychlost tisku a "
 "ventilátoru v závislosti na délce tisku jedné vstvy."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:174
@@ -530,8 +529,8 @@ msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)."
 msgstr ""
-"Přidá plnou výplň u šikmých ploch pro garanci vertikální tloušťku obalu "
-"(vrchní a podní plné vrstvy)."
+"Přidá plnou výplň u šikmých ploch pro garanci vertikální tloušťky obalu "
+"(vrchních a spodních plných vrstev)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:250
 msgid "Top/bottom fill pattern"
@@ -727,7 +726,7 @@ msgstr ""
 "Tento faktor mění poměrné množství toku. Možná bude třeba toto nastavení "
 "vyladit, pro dosažení hezkého povrchu a správné šířky jednotlivých stěn. "
 "Obvyklé hodnoty jsou mezi 0,9 a 1,1. Pokud si myslíte, že hodnotu "
-"potřebujete změnit více, zkontrolujte průměr vlákna a E kroky ve firmwaru."
+"potřebujete změnit více, zkontrolujte průměr filamentu a E kroky ve firmwaru."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:380
 msgid "Default extrusion width"
@@ -821,7 +820,7 @@ msgid ""
 "average."
 msgstr ""
 "Zde zadejte průměr filamentu. Je zapotřebí správné přesnosti, proto použijte "
-"šupleru a proveďte několik měření podél vlákna, poté vypočtete průměr."
+"šupleru a proveďte několik měření podél filamentu, poté vypočtete průměr."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:444
 msgid "Density"
@@ -835,11 +834,11 @@ msgid ""
 "displacement."
 msgstr ""
 "Zde zadejte hustotu filamentu. Toto je pouze pro statistické informace. "
-"Přípustný způsob je zvážit známou délku vlákna a vypočítat poměr délky k "
+"Přípustný způsob je zvážit známou délku filamentu a vypočítat poměr délky k "
 "objemu. Je lepší vypočítat objem přímo přes posun."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:448
-msgid "g/cm^3"
+msgid "g/cm³"
 msgstr "g/cm³"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:454
@@ -893,9 +892,9 @@ msgid ""
 "this. Bridges will be infilled using the best direction Slic3r can detect, "
 "so this setting does not affect them."
 msgstr ""
-"Výchozí základní úhel pro orientaci výplně. Na toto bude použito křížové "
-"šrafování. Mosty budou vyplněny nejlepším směrem, který Slic3r dokáže "
-"rozpoznat, takže toto nastavení je neovlivní."
+"Výchozí úhel pro orientaci výplně. Bude pro něj použito křížové šrafování. "
+"Mosty budou vyplněny nejlepším směrem, který Slic3r dokáže rozpoznat, takže "
+"toto nastavení je neovlivní."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:505
 msgid "Fill density"
@@ -982,9 +981,10 @@ msgid ""
 "the print moves of the first layer, regardless of their type. If expressed "
 "as a percentage (for example: 40%) it will scale the default speeds."
 msgstr ""
-"Pokud je vyjádřena jako absolutní hodnota v mm/s, bude tato rychlost použita "
-"pro všechny pohyby tisku první vrstvy bez ohledu na jejich typ. Pokud je "
-"vyjádřeno jako procento (například: 40%), změní se výchozí rychlost."
+"Pokud je vyjádřena jako absolutní hodnota v mm / s, bude tato rychlost "
+"použita pro všechny pohyby tisku první vrstvy bez ohledu na jejich typ. "
+"Pokud je hodnota vyjádřena procenty (například: 40%), změní v závisloti na "
+"výchozích rychlostech."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:628
 msgid ""
@@ -1280,9 +1280,9 @@ msgid ""
 "specified amount of filament on the bottom layer. For multi-extruder "
 "machines, this minimum applies to each extruder."
 msgstr ""
-"Nevygenerovat méně, než počet smyček skirtu, potřebných ke spotřebování "
-"specifikovaného množství vlákna na spodní vrstvu. U strojů s více extrudéry "
-"platí toto minimum pro každý extrudér."
+"Nevygenerovat méně, než počet obrysových čar, potřebných ke spotřebování "
+"specifikovaného množství filamentu na spodní vrstvu. U strojů s více "
+"extrudéry platí toto minimum pro každý extrudér."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:886
 msgid "Configuration notes"
@@ -1338,8 +1338,8 @@ msgid ""
 "Disables retraction when the travel path does not exceed the upper layer's "
 "perimeters (and thus any ooze will be probably invisible)."
 msgstr ""
-"Vypne retrakce, pokud dráha nepřekročí obvod horní vrstvy (a proto budou "
-"pravděpodobně neviditelné jakékoliv ooze)."
+"Vypne retrakce, pokud dráha nepřekročí perimetr vrchní vrstvy (a proto bude "
+"pravděpodobně jakékoliv samovolné vytékání neviditelné)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:924
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1697
@@ -1374,7 +1374,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:942
 msgid "Detect bridging perimeters"
-msgstr ""
+msgstr "Detekovat perimetry přemostění"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:944
 msgid ""
@@ -1397,7 +1397,7 @@ msgid ""
 "like 9000 usually gives good results if your hardware is up to the job. Set "
 "zero to disable acceleration control for perimeters."
 msgstr ""
-"Jedná se o akceleraci, kterou vaše tiskárna použije pro obvody. Vysoká "
+"Jedná se o akceleraci, kterou vaše tiskárna použije pro perimetry. Vysoká "
 "hodnota, jako je 9000, obvykle dává dobré výsledky, pokud je váš hardware v "
 "pořádku. Nastavte nulu pro vypnutí řízení zrychlení pro perimetry."
 
@@ -1409,7 +1409,7 @@ msgstr "Extruder pro perimetry"
 msgid ""
 "The extruder to use when printing perimeters and brim. First extruder is 1."
 msgstr ""
-"Extruder, který se používá při tisku perimetrů a okrajů. První extruder je 1."
+"Extruder, který se používá při tisku perimetrů a límce. První extruder je 1."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:970
 msgid ""
@@ -1707,20 +1707,21 @@ msgid ""
 "Distance between skirt and object(s). Set this to zero to attach the skirt "
 "to the object(s) and get a brim for better adhesion."
 msgstr ""
-"Vzdálenost mezi skirtem a objektem (objekty). Nastavte tuto hodnotu na nulu, "
-"pro sloučení skirtu s předmětem (předměty) a získali tak lepší přilnavost."
+"Vzdálenost mezi obrysovou čárou a objektem (objekty). Nastavte tuto hodnotu "
+"na nulu, pro sloučení obrysové čáry/čar s předmětem (předměty) a tvorbu "
+"límce pro dosažení lepší přilnavosti."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1223
 msgid "Skirt height"
-msgstr "Výška skirtu"
+msgstr "Výška obrysové čáry"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1224
 msgid ""
 "Height of skirt expressed in layers. Set this to a tall value to use skirt "
 "as a shield against drafts."
 msgstr ""
-"Výška skirtu vyjádřená ve vrstvách. Nastavte tuto hodnotu vysokou, pro "
-"použití skirtu jako stínění proti průvanu."
+"Výška obrysové čáry vyjádřená ve vrstvách. Nastavte tuto hodnotu vysokou, "
+"pro použití obrysové čáry jako stínění proti průvanu."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1231
 msgid "Loops (minimum)"
@@ -1728,7 +1729,7 @@ msgstr "Smyček (minimálně)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1232
 msgid "Skirt Loops"
-msgstr "Smyček skirtu"
+msgstr "Počet obrysových čar"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1233
 msgid ""
@@ -1736,9 +1737,9 @@ msgid ""
 "set, the number of loops might be greater than the one configured here. Set "
 "this to zero to disable skirt completely."
 msgstr ""
-"Počet smyček pro skirt. Je-li nastavena možnost Minimální délka extruze, "
-"počet smyček může být větší než počet zde nakonfigurovaných. Nastavte tuto "
-"hodnotu na nulu, pro úplné deaktivování skirtu."
+"Počet obrysových čar. Je-li nastavena možnost Minimální délka extruze, počet "
+"obrysových čar může být větší než počet zde nakonfigurovaných. Nastavte tuto "
+"hodnotu na nulu, pro úplné deaktivování."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1241
 msgid "Slow down if layer print time is below"
@@ -1803,9 +1804,9 @@ msgid ""
 "according to nozzle diameter and layer height."
 msgstr ""
 "Tato funkce umožňuje vynucení plné vrstvy za každý daný počet vrstev. Pro "
-"vypnutí nastavte nulu. Můžete jej nastavit na libovolnou hodnotu (například "
-"9999); Slic3r automaticky zvolí maximální počet vrstev, které se budou "
-"kombinovat podle průměru trysky a výšky vrstvy."
+"vypnutí nastavte nulu. Můžete nastavit libovolnou hodnotu (například 9999); "
+"Slic3r automaticky zvolí maximální počet vrstev, které se budou kombinovat "
+"podle průměru trysky a výšky vrstvy."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1293
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1303
@@ -1841,7 +1842,7 @@ msgstr "Plných vrstev"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1317
 msgid "Number of solid layers to generate on top and bottom surfaces."
-msgstr "Počet plných vstev generovaných vrchních a spodních površích."
+msgstr "Počet plných vstev generovaných na vrchních a spodních površích."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1324
 msgid "Spiral vase"
@@ -1858,8 +1859,8 @@ msgstr ""
 "Tato funkce zvýší postupně Z při tisku jednovrstvého objektu, aby se "
 "odstranil jakýkoli viditelný šev. Tato volba vyžaduje jediný obvod, žádnou "
 "výplň, žádné vrchní plné vrstvy a žádný podpůrný materiál. Můžete stále "
-"nastavit libovolný počet spodních plných vrstev, stejně jako skirt / brim. "
-"Při tisku více než jednoho objektu nebude toto nastavení fungovat."
+"nastavit libovolný počet spodních plných vrstev, stejně jako obrysové čáry / "
+"límec. Při tisku více než jednoho objektu nebude toto nastavení fungovat."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1334
 msgid "Temperature variation"
@@ -1872,8 +1873,8 @@ msgid ""
 "wiped."
 msgstr ""
 "Teplotní rozdíl, který se použije v případě, že extruder není aktivní. "
-"Umožňuje “obětní” skirt v plné výšce, na kterém jsou trysky periodicky "
-"očištěny."
+"Umožňuje “obětní” obrysové čáry v plné výšce objektu, na kterém jsou trysky "
+"periodicky očištěny."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1344
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1359
@@ -1934,7 +1935,7 @@ msgstr "Generovat podpory"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1383
 msgid "Enable support material generation."
-msgstr "Zapíná generování podpor."
+msgstr "Zapne generování podpor."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1388
 msgid "XY separation between an object and its support"
@@ -2006,15 +2007,15 @@ msgstr "Vynucení podpor pro prvních n vrstev"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1446
 msgid "Support material/raft/skirt extruder"
-msgstr "Extruder pro podpory/raft/skirt"
+msgstr "Extruder pro podpory/raft/obrysové čáry"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1448
 msgid ""
 "The extruder to use when printing support material, raft and skirt (1+, 0 to "
 "use the current extruder to minimize tool changes)."
 msgstr ""
-"Extruder, který se používá při tisku podpor, raftu a skirtu (1+, 0 pro "
-"použití aktuálního extrudéru pro co nejméně změn nástroje)."
+"Extruder, který se používá při tisku podpor, raftu a obrysových čar (1+, 0 "
+"pro použití aktuálního extrudéru pro co nejméně změn nástroje)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1457
 msgid ""
@@ -2137,8 +2138,8 @@ msgid ""
 "Add a sheath (a single perimeter line) around the base support. This makes "
 "the support more reliable, but also more difficult to remove."
 msgstr ""
-"Přidá pouzdro (jednu obvodovou čáru) kolem podstavce základny. Díky tomu je "
-"podpora spolehlivější, ale také obtížnější na odrtanění."
+"Přidá pouzdro (jednu obvodovou čáru) kolem podpor. Díky tomu je podpora "
+"spolehlivější, ale také obtížnější na odstranění."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1575
 msgid ""
@@ -2226,7 +2227,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1640
 msgid "Top"
-msgstr "Vrchní"
+msgstr "Vrchních"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1642
 msgid "Number of solid layers to generate on top surfaces."
@@ -2462,7 +2463,7 @@ msgstr "Zkracování tiskového času"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:365
 msgid "Skirt and brim"
-msgstr "Skirt and brim"
+msgstr "Obrysová čára a límec"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:381
 msgid "Raft"
@@ -2744,11 +2745,11 @@ msgstr "Vertical shells"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:366
 msgid "Skirt"
-msgstr "Skirt"
+msgstr "Obrysová čára"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:372
 msgid "Brim"
-msgstr "Brim"
+msgstr "Límec"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:385
 msgid "Options for support material and raft"
