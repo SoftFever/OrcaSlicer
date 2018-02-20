@@ -413,8 +413,7 @@ sub _init_menubar {
     my $hokusMenu = Wx::Menu->new;    # XXX: tmp
     {
         $self->_append_menu_item($hokusMenu, "Pokus", "Pokus", sub {
-            # Slic3r::Http::download();
-            Slic3r::OctoPrint::send_gcode("10.0.0.46", "70E4CFD0E0D7423CB6B1CF055DBAEFA5", "/home/vojta/prog/tisk/jesterka/jesterka.gcode");
+            Slic3r::Http::pokus();
         });
     }
 

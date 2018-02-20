@@ -14,19 +14,19 @@ class Http;
 class OctoPrint
 {
 public:
-    OctoPrint(DynamicPrintConfig *config);
+	OctoPrint(DynamicPrintConfig *config);
 
-    std::string test() const;
-    // XXX: style
-    void send_gcode(int windowId, int completeEvt, int errorEvt, const std::string &filename, bool print = false) const;
+	std::string test() const;
+	// XXX: style
+	void send_gcode(int windowId, int completeEvt, int errorEvt, const std::string &filename, bool print = false) const;
 private:
-    std::string host;
-    std::string apikey;
-    std::string cafile;
+	std::string host;
+	std::string apikey;
+	std::string cafile;
 
-    void set_auth(Http &http) const;
-    std::string make_url(const std::string &path) const;
-    static std::string format_error(std::string error, unsigned status);
+	void set_auth(Http &http) const;
+	std::string make_url(const std::string &path) const;
+	static std::string format_error(std::string error, unsigned status);
 };
 
 

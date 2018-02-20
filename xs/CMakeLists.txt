@@ -203,6 +203,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/Http.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
+    ${LIBDIR}/slic3r/Utils/Bonjour.cpp
+    ${LIBDIR}/slic3r/Utils/Bonjour.hpp
 )
 
 add_library(admesh STATIC
