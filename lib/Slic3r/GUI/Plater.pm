@@ -1624,12 +1624,12 @@ sub _get_export_file {
     }
     elsif ($format eq 'AMF')
     {
-    if ($^O eq 'MacOS') {
-        # It seems that MacOS does not like double extension
-        $suffix = '.amf';
-    } else {
-        $suffix = '.zip.amf';
-    }
+        if (&Wx::wxMAC) {
+            # It seems that MacOS does not like double extension
+            $suffix = '.amf';
+        } else {
+            $suffix = '.zip.amf';
+        }
         $wildcard = 'amf';
     }
     elsif ($format eq '3MF')
