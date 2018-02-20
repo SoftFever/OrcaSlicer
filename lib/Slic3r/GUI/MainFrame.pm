@@ -48,7 +48,7 @@ sub new {
     $self->{no_plater} = $params{no_plater};
     $self->{loaded} = 0;
     $self->{lang_ch_event} = $params{lang_ch_event};
-    
+
     # initialize tabpanel and menubar
     $self->_init_tabpanel;
     $self->_init_menubar;
@@ -216,8 +216,8 @@ sub _init_tabpanel {
     $self->{is_disabled_button_browse} = (!eval "use Net::Bonjour; 1") ? 1 : 0 ;
     # A variable to inform C++ Tab implementation about user_agent
     $self->{is_user_agent} = (eval "use LWP::UserAgent; 1") ? 1 : 0 ;    
-    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config}, 
-                                    $self->{no_controller}, $self->{is_disabled_button_browse},
+    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, $self->{no_controller},
+                                    $self->{is_disabled_button_browse},
                                     $self->{is_user_agent},
                                     $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT,
                                     $BUTTON_BROWSE_EVENT, $BUTTON_TEST_EVENT);

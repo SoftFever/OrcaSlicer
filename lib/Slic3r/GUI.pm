@@ -84,12 +84,11 @@ sub OnInit {
     # Mac: "~/Library/Application Support/Slic3r"
     Slic3r::set_data_dir($datadir || Wx::StandardPaths::Get->GetUserDataDir);
     Slic3r::GUI::set_wxapp($self);
-    Slic3r::GUI::load_language();
-    
+
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
     $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
-    
+
     # just checking for existence of Slic3r::data_dir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
     eval { $self->{preset_bundle}->setup_directories() };
@@ -102,6 +101,9 @@ sub OnInit {
     $self->{app_config}->load if ! $run_wizard;
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
+
+    Slic3r::GUI::set_app_config($self->{app_config});
+    Slic3r::GUI::load_language();
 
     # Suppress the '- default -' presets.
     $self->{preset_bundle}->set_default_suppressed($self->{app_config}->get('no_defaults') ? 1 : 0);

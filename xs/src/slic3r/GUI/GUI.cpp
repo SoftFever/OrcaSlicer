@@ -28,7 +28,6 @@
 
 #include <wx/app.h>
 #include <wx/button.h>
-#include <wx/config.h>
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/frame.h>
@@ -171,6 +170,7 @@ void break_to_debugger()
 wxApp       *g_wxApp        = nullptr;
 wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
+AppConfig	*g_AppConfig	= nullptr;
 
 std::vector<Tab *> g_tabs_list;
 
@@ -189,6 +189,11 @@ void set_main_frame(wxFrame *main_frame)
 void set_tab_panel(wxNotebook *tab_panel)
 {
     g_wxTabPanel = tab_panel;
+}
+
+void set_app_config(AppConfig *app_config)
+{
+	g_AppConfig = app_config;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -241,13 +246,14 @@ bool select_language(wxArrayString & names,
 
 bool load_language()
 {
-	wxConfig config(g_wxApp->GetAppName());
 	long language;
-	if (!config.Read(wxT("wxTranslation_Language"),
-		&language, wxLANGUAGE_UNKNOWN))
-	{
+	if (!g_AppConfig->has("translation_language"))
 		language = wxLANGUAGE_UNKNOWN;
+	else {
+		auto str_language = g_AppConfig->get("translation_language");
+		language = str_language != "" ? stol(str_language) : wxLANGUAGE_UNKNOWN;
 	}
+
 	if (language == wxLANGUAGE_UNKNOWN) 
 		return false;
 	wxArrayString	names;
@@ -269,13 +275,13 @@ bool load_language()
 
 void save_language()
 {
-	wxConfig config(g_wxApp->GetAppName());
 	long language = wxLANGUAGE_UNKNOWN;
 	if (g_wxLocale)	{
 		language = g_wxLocale->GetLanguage();
 	}
-	config.Write(wxT("wxTranslation_Language"), language);
-	config.Flush();
+	std::string str_language = std::to_string(language);
+	g_AppConfig->set("translation_language", str_language);
+	g_AppConfig->save();
 }
 
 void get_installed_languages(wxArrayString & names,
@@ -336,15 +342,15 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change)
 //#endif
 }
 
-void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config,
+void create_preset_tabs(PresetBundle *preset_bundle,
 						bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
 						int event_value_change, int event_presets_changed,
 						int event_button_browse, int event_button_test)
 {	
-	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller), preset_bundle, app_config);
-	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller), preset_bundle, app_config);
+	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller), preset_bundle);
+	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller), preset_bundle);
 	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller, is_disabled_button_browse, is_user_agent), 
-					preset_bundle, app_config);
+					preset_bundle);
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
 		if (! tab)
@@ -455,9 +461,9 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 	}
 }
 
-void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config)
+void add_created_tab(Tab* panel, PresetBundle *preset_bundle)
 {
-	panel->m_show_btn_incompatible_presets = app_config->get("show_incompatible_presets").empty();
+	panel->m_show_btn_incompatible_presets = g_AppConfig->get("show_incompatible_presets").empty();
 	panel->create_preset_tab(preset_bundle);
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
