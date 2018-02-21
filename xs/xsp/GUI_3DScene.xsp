@@ -42,6 +42,8 @@
         %code%{ RETVAL = THIS->hover; %};
     void                set_hover(int i)
         %code%{ THIS->hover = i; %};
+    int                 zoom_to_volumes()
+        %code%{ RETVAL = THIS->zoom_to_volumes; %};
 
     int                 object_idx() const;
     int                 volume_idx() const;
@@ -141,6 +143,39 @@ _glew_init()
     CODE:
         _3DScene::_glew_init();
 
+unsigned int
+finalize_legend_texture()
+    CODE:
+        RETVAL = _3DScene::finalize_legend_texture();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_legend_texture_id()
+    CODE:
+        RETVAL = _3DScene::get_legend_texture_id();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_legend_texture_width()
+    CODE:
+        RETVAL = _3DScene::get_legend_texture_width();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_legend_texture_height()
+    CODE:
+        RETVAL = _3DScene::get_legend_texture_height();
+    OUTPUT:
+        RETVAL
+             
+void
+reset_legend_texture()
+    CODE:
+        _3DScene::reset_legend_texture();
+             
 void
 _load_print_toolpaths(print, volumes, tool_colors, use_VBOs)
         Print               *print;
@@ -168,4 +203,14 @@ _load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs)
     CODE:
         _3DScene::_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
 
+void 
+load_gcode_preview(print, preview_data, volumes, str_tool_colors, use_VBOs)
+        Print                    *print;
+        GCodePreviewData         *preview_data;
+        GLVolumeCollection       *volumes;
+        std::vector<std::string> str_tool_colors;
+        int                      use_VBOs;
+    CODE:
+        _3DScene::load_gcode_preview(print, preview_data, volumes, str_tool_colors, use_VBOs != 0);
+        
 %}

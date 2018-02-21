@@ -25,7 +25,7 @@ while (<>) {
                 my $mm_per_mm   = $e_length / $dist;  # dE/dXY
                 my $mm3_per_mm  = ($filament_diameter[$T] ** 2) * PI/4 * $mm_per_mm;
                 my $vol_speed   = $F/60 * $mm3_per_mm;
-                my $comment = sprintf ' ; dXY = %.3fmm ; dE = %.5fmm ; dE/XY = %.5fmm/mm; volspeed = %.5fmm^3/sec',
+                my $comment = sprintf ' ; dXY = %.3fmm ; dE = %.5fmm ; dE/XY = %.5fmm/mm; volspeed = %.5fmm\x{00B3}/sec',
                     $dist, $e_length, $mm_per_mm, $vol_speed;
                 s/(\R+)/$comment$1/;
             }

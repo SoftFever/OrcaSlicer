@@ -4,7 +4,7 @@
 # Slic3r::GUI::3DScene;
 #
 # Slic3r::GUI::Plater::3D derives from Slic3r::GUI::3DScene,
-# Slic3r::GUI::Plater::3DPreview, Slic3r::GUI::Plater::3DToolpaths, 
+# Slic3r::GUI::Plater::3DPreview,
 # Slic3r::GUI::Plater::ObjectCutDialog and Slic3r::GUI::Plater::ObjectPartsPanel
 # own $self->{canvas} of the Slic3r::GUI::3DScene type.
 #
@@ -66,8 +66,12 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _camera_target
                               _camera_distance
                               _zoom
+                              
+                              _legend_enabled
+                              _apply_zoom_to_volumes_filter
+                                                            
                               ) );
-
+                              
 use constant TRACKBALLSIZE  => 0.8;
 use constant TURNTABLE_MODE => 1;
 use constant GROUND_Z       => -0.02;
@@ -137,7 +141,9 @@ sub new {
     $self->_stheta(45);
     $self->_sphi(45);
     $self->_zoom(1);
+    $self->_legend_enabled(0);
     $self->use_plain_shader(0);
+    $self->_apply_zoom_to_volumes_filter(0);
 
     # Collection of GLVolume objects
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
@@ -207,6 +213,11 @@ sub new {
     });
     
     return $self;
+}
+
+sub set_legend_enabled {
+    my ($self, $value) = @_;
+   $self->_legend_enabled($value);
 }
 
 sub Destroy {
@@ -695,14 +706,18 @@ sub zoom_to_volume {
 
 sub zoom_to_volumes {
     my ($self) = @_;
+    $self->_apply_zoom_to_volumes_filter(1);
     $self->zoom_to_bounding_box($self->volumes_bounding_box);
+    $self->_apply_zoom_to_volumes_filter(0);
 }
 
 sub volumes_bounding_box {
     my ($self) = @_;
     
     my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    $bb->merge($_->transformed_bounding_box) for @{$self->volumes};
+    foreach my $v (@{$self->volumes}) {
+        $bb->merge($v->transformed_bounding_box) if (! $self->_apply_zoom_to_volumes_filter || $v->zoom_to_volumes);
+    }
     return $bb;
 }
 
@@ -1316,6 +1331,9 @@ sub Render {
         glDisable(GL_BLEND);
     }
 
+    # draw gcode preview legend
+    $self->draw_legend;
+    
     $self->draw_active_object_annotations;
     
     $self->SwapBuffers();
@@ -1449,12 +1467,18 @@ sub _variable_layer_thickness_load_reset_image {
 # Paint the tooltip.
 sub _render_image {
     my ($self, $image, $l, $r, $b, $t) = @_;
+    $self->_render_texture($image->{texture_id}, $l, $r, $b, $t);
+}
+
+sub _render_texture {
+    my ($self, $tex_id, $l, $r, $b, $t) = @_;
+    
     glColor4f(1.,1.,1.,1.);
     glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, $image->{texture_id});
+    glBindTexture(GL_TEXTURE_2D, $tex_id);
     glBegin(GL_QUADS);
     glTexCoord2d(0.,1.); glVertex3f($l, $b, 0);
     glTexCoord2d(1.,1.); glVertex3f($r, $b, 0);
@@ -1577,6 +1601,38 @@ sub draw_active_object_annotations {
     # Revert the matrices.
     glPopMatrix();
     glEnable(GL_DEPTH_TEST);
+}
+
+sub draw_legend {
+    my ($self) = @_;
+ 
+    if ($self->_legend_enabled)
+    {
+        # If the legend texture has not been loaded into the GPU, do it now.
+        my $tex_id = Slic3r::GUI::_3DScene::finalize_legend_texture;
+        if ($tex_id > 0)
+        {
+            my $tex_w = Slic3r::GUI::_3DScene::get_legend_texture_width;
+            my $tex_h = Slic3r::GUI::_3DScene::get_legend_texture_height;
+            if (($tex_w > 0) && ($tex_h > 0))
+            {
+                glDisable(GL_DEPTH_TEST);
+                glPushMatrix();
+                glLoadIdentity();
+        
+                my ($cw, $ch) = $self->GetSizeWH;
+                
+                my $l = (-0.5 * $cw) / $self->_zoom;
+                my $t = (0.5 * $ch) / $self->_zoom;
+                my $r = $l + $tex_w / $self->_zoom;
+                my $b = $t - $tex_h / $self->_zoom;
+                $self->_render_texture($tex_id, $l, $r, $b, $t);
+
+                glPopMatrix();
+                glEnable(GL_DEPTH_TEST);
+            }
+        }
+    }
 }
 
 sub opengl_info
@@ -1979,9 +2035,20 @@ sub load_wipe_tower_toolpaths {
         if ($print->step_done(STEP_WIPE_TOWER));
 }
 
+sub load_gcode_preview {
+    my ($self, $print, $gcode_preview_data, $colors) = @_;
+
+    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+    Slic3r::GUI::_3DScene::load_gcode_preview($print, $gcode_preview_data, $self->volumes, $colors, $self->UseVBOs);
+}
+
 sub set_toolpaths_range {
     my ($self, $min_z, $max_z) = @_;
     $self->volumes->set_range($min_z, $max_z);
+}
+
+sub reset_legend_texture {
+    Slic3r::GUI::_3DScene::reset_legend_texture();
 }
 
 1;

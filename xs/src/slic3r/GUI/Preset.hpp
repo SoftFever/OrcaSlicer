@@ -226,7 +226,7 @@ private:
     {
         Preset key(m_type, name);
         auto it = std::lower_bound(m_presets.begin() + 1, m_presets.end(), key);
-        return (it == m_presets.end() && m_presets.front().name == name) ? m_presets.begin() : it;
+        return ((it == m_presets.end() || it->name != name) && m_presets.front().name == name) ? m_presets.begin() : it;
     }
     std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }

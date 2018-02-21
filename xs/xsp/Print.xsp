@@ -152,6 +152,8 @@ _constant()
         %code%{ RETVAL = &THIS->skirt; %};
     Ref<ExtrusionEntityCollection> brim()
         %code%{ RETVAL = &THIS->brim; %};
+    std::string estimated_print_time()
+        %code%{ RETVAL = THIS->estimated_print_time; %};
 
     PrintObjectPtrs* objects()
         %code%{ RETVAL = &THIS->objects; %};
@@ -280,7 +282,6 @@ Print::total_cost(...)
         }
         RETVAL = THIS->total_cost;
     OUTPUT:
-        RETVAL
-
+        RETVAL        
 %}
 };

@@ -15,7 +15,9 @@
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
+#include "GCodeTimeEstimator.hpp"
 #include "EdgeGrid.hpp"
+#include "GCode/Analyzer.hpp"
 
 #include <memory>
 #include <string>
@@ -24,6 +26,7 @@ namespace Slic3r {
 
 // Forward declarations.
 class GCode;
+class GCodePreviewData;
 
 class AvoidCrossingPerimeters {
 public:
@@ -117,13 +120,16 @@ public:
         m_enable_loop_clipping(true), 
         m_enable_cooling_markers(false), 
         m_enable_extrusion_role_markers(false), 
-        m_enable_analyzer_markers(false),
+        m_enable_analyzer(false),
         m_layer_count(0),
         m_layer_index(-1), 
         m_layer(nullptr), 
         m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
+        m_last_mm3_per_mm(GCodeAnalyzer::Default_mm3_per_mm),
+        m_last_width(GCodeAnalyzer::Default_Width),
+        m_last_height(GCodeAnalyzer::Default_Height),
         m_brim_done(false),
         m_second_layer_things_done(false),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
@@ -131,7 +137,7 @@ public:
     ~GCode() {}
 
     // throws std::runtime_exception
-    void            do_export(Print *print, const char *path);
+    void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.
     const Pointf&   origin() const { return m_origin; }
@@ -154,8 +160,11 @@ public:
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
+    // append full config to the given string
+    static void append_full_config(const Print& print, std::string& str);
+
 protected:
-    void            _do_export(Print &print, FILE *file);
+    void            _do_export(Print &print, FILE *file, GCodePreviewData *preview_data);
 
     // Object and support extrusions of the same PrintObject at the same print_z.
     struct LayerToPrint
@@ -240,9 +249,10 @@ protected:
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.
     bool                                m_enable_extrusion_role_markers;
-    // Extended markers for the G-code Analyzer.
+    // Enableds the G-code Analyzer.
+    // Extended markers will be added during G-code generation.
     // The G-code Analyzer will remove these comments from the final G-code.
-    bool                                m_enable_analyzer_markers;
+    bool                                m_enable_analyzer;
     // How many times will change_layer() be called?
     // change_layer() will update the progress bar.
     unsigned int                        m_layer_count;
@@ -255,6 +265,10 @@ protected:
     double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
+    // Support for G-Code Analyzer
+    double                              m_last_mm3_per_mm;
+    float                               m_last_width;
+    float                               m_last_height;
 
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
@@ -272,6 +286,24 @@ protected:
     bool                                m_second_layer_things_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
+
+    // Time estimator
+    GCodeTimeEstimator m_time_estimator;
+
+    // Analyzer
+    GCodeAnalyzer m_analyzer;
+
+    // Write a string into a file.
+    void _write(FILE* file, const std::string& what) { this->_write(file, what.c_str()); }
+    void _write(FILE* file, const char *what);
+
+    // Write a string into a file. 
+    // Add a newline, if the string does not end with a newline already.
+    // Used to export a custom G-code section processed by the PlaceholderParser.
+    void _writeln(FILE* file, const std::string& what);
+
+    // Formats and write into a file the given data. 
+    void _write_format(FILE* file, const char* format, ...);
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
     void _print_first_layer_bed_temperature(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);

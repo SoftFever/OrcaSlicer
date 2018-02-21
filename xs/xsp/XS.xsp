@@ -54,6 +54,12 @@ set_var_dir(dir)
     CODE:
         Slic3r::set_var_dir(dir);
 
+void
+set_local_dir(dir)
+    char  *dir;
+    CODE:
+        Slic3r::set_local_dir(dir);
+
 char*
 var_dir()
     CODE:
@@ -91,7 +97,7 @@ data_dir()
         RETVAL = const_cast<char*>(Slic3r::data_dir().c_str());
     OUTPUT: RETVAL
 
-std::string
+local_encoded_string
 encode_path(src)
     const char *src;
     CODE:
@@ -110,6 +116,41 @@ normalize_utf8_nfc(src)
     const char *src;
     CODE:
         RETVAL = Slic3r::normalize_utf8_nfc(src);
+    OUTPUT: RETVAL
+
+std::string
+path_to_filename(src)
+    const char *src;
+    CODE:
+        RETVAL = Slic3r::PerlUtils::path_to_filename(src);
+    OUTPUT: RETVAL
+
+local_encoded_string
+path_to_filename_raw(src)
+    const char *src;
+    CODE:
+        RETVAL = Slic3r::PerlUtils::path_to_filename(src);
+    OUTPUT: RETVAL
+
+std::string
+path_to_stem(src)
+    const char *src;
+    CODE:
+        RETVAL = Slic3r::PerlUtils::path_to_stem(src);
+    OUTPUT: RETVAL
+
+std::string
+path_to_extension(src)
+    const char *src;
+    CODE:
+        RETVAL = Slic3r::PerlUtils::path_to_extension(src);
+    OUTPUT: RETVAL
+
+std::string
+path_to_parent_path(src)
+    const char *src;
+    CODE:
+        RETVAL = Slic3r::PerlUtils::path_to_parent_path(src);
     OUTPUT: RETVAL
 
 void

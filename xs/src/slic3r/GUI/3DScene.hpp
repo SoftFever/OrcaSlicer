@@ -7,12 +7,15 @@
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
 
+class wxBitmap;
+
 namespace Slic3r {
 
 class Print;
 class PrintObject;
 class Model;
 class ModelObject;
+class GCodePreviewData;
 
 // A container for interleaved arrays of 3D vertices and normals,
 // possibly indexed by triangles and / or quads.
@@ -104,6 +107,10 @@ public:
 
     inline void push_geometry(double x, double y, double z, double nx, double ny, double nz) {
         push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
+    }
+
+    inline void push_geometry(const Pointf3& p, const Vectorf3& n) {
+        push_geometry(p.x, p.y, p.z, n.x, n.y, n.z);
     }
 
     inline void push_triangle(int idx1, int idx2, int idx3) {
@@ -207,6 +214,8 @@ public:
         select_group_id(-1),
         drag_group_id(-1),
         selected(false),
+        is_active(true),
+        zoom_to_volumes(true),
         hover(false),
         tverts_range(0, size_t(-1)),
         qverts_range(0, size_t(-1))
@@ -243,6 +252,10 @@ public:
     int                 drag_group_id;
     // Is this object selected?
     bool                selected;
+    // Whether or not this volume is active for rendering
+    bool                is_active;
+    // Whether or not to use this volume when applying zoom_to_volumes()
+    bool                zoom_to_volumes;
     // Boolean: Is mouse over this object?
     bool                hover;
 
@@ -257,6 +270,7 @@ public:
     std::vector<coordf_t>       print_zs;
     // Offset into qverts & tverts, or offsets into indices stored into an OpenGL name_index_buffer.
     std::vector<size_t>         offsets;
+
 
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
@@ -300,6 +314,28 @@ public:
 class GLVolumeCollection
 {
 public:
+    struct RenderInterleavedOnlyVolumes
+    {
+        bool enabled;
+        float alpha; // [0..1]
+
+        RenderInterleavedOnlyVolumes()
+            : enabled(false)
+            , alpha(0.0f)
+        {
+        }
+
+        RenderInterleavedOnlyVolumes(bool enabled, float alpha)
+            : enabled(enabled)
+            , alpha(alpha)
+        {
+        }
+    };
+
+private:
+    RenderInterleavedOnlyVolumes _render_interleaved_only_volumes;
+
+public:
     std::vector<GLVolume*> volumes;
     
     GLVolumeCollection() {};
@@ -334,6 +370,8 @@ public:
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
 
+    void set_render_interleaved_only_volumes(const RenderInterleavedOnlyVolumes& render_interleaved_only_volumes) { _render_interleaved_only_volumes = render_interleaved_only_volumes; }
+
 private:
     GLVolumeCollection(const GLVolumeCollection &other);
     GLVolumeCollection& operator=(const GLVolumeCollection &);
@@ -341,8 +379,85 @@ private:
 
 class _3DScene
 {
+    struct GCodePreviewVolumeIndex
+    {
+        enum EType
+        {
+            Extrusion,
+            Travel,
+            Retraction,
+            Unretraction,
+            Shell,
+            Num_Geometry_Types
+        };
+
+        struct FirstVolume
+        {
+            EType type;
+            unsigned int flag;
+            // Index of the first volume in a GLVolumeCollection.
+            unsigned int id;
+
+            FirstVolume(EType type, unsigned int flag, unsigned int id) : type(type), flag(flag), id(id) {}
+        };
+
+        std::vector<FirstVolume> first_volumes;
+
+        void reset() { first_volumes.clear(); }
+    };
+
+    static GCodePreviewVolumeIndex s_gcode_preview_volume_index;
+
+    class LegendTexture
+    {
+        static const unsigned int Px_Title_Offset = 5;
+        static const unsigned int Px_Text_Offset = 5;
+        static const unsigned int Px_Square = 20;
+        static const unsigned int Px_Square_Contour = 1;
+        static const unsigned int Px_Border = Px_Square / 2;
+        static const unsigned char Squares_Border_Color[3];
+        static const unsigned char Background_Color[3];
+        static const unsigned char Opacity;
+
+        unsigned int m_tex_id;
+        unsigned int m_tex_width;
+        unsigned int m_tex_height;
+
+    public:
+        LegendTexture() : m_tex_id(0), m_tex_width(0), m_tex_height(0) {}
+        ~LegendTexture() { _destroy_texture(); }
+        
+        // Generate a texture data, but don't load it into the GPU yet, as the glcontext may not be valid yet.
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+        // If not loaded, load the texture data into the GPU. Return a texture ID or 0 if the texture has zero size.
+        unsigned int finalize();
+
+        unsigned int get_texture_id() const { return m_tex_id; }
+        unsigned int get_texture_width() const { return m_tex_width; }
+        unsigned int get_texture_height() const { return m_tex_height; }
+
+        void reset_texture() { _destroy_texture(); }
+
+    private:
+        bool _create_texture(const GCodePreviewData& preview_data, const wxBitmap& bitmap);
+        void _destroy_texture();
+        // generate() fills in m_data with the pixels, while finalize() moves the data to the GPU before rendering.
+        std::vector<unsigned char> m_data;
+    };
+
+    static LegendTexture s_legend_texture;
+
 public:
     static void _glew_init();
+
+    static void load_gcode_preview(const Print* print, const GCodePreviewData* preview_data, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs);
+
+    static unsigned int get_legend_texture_id();
+    static unsigned int get_legend_texture_width();
+    static unsigned int get_legend_texture_height();
+
+    static void reset_legend_texture();
+    static unsigned int finalize_legend_texture();
 
     static void _load_print_toolpaths(
         const Print                     *print,
@@ -356,12 +471,30 @@ public:
         const std::vector<std::string>  &tool_colors,
         bool                             use_VBOs);
 
-
     static void _load_wipe_tower_toolpaths(
         const Print                    *print,
         GLVolumeCollection             *volumes,
         const std::vector<std::string> &tool_colors_str,
         bool                            use_VBOs);
+
+private:
+    // generates gcode extrusion paths geometry
+    static void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
+    // generates gcode travel paths geometry
+    static void _load_gcode_travel_paths(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
+    static bool _travel_paths_by_type(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
+    static bool _travel_paths_by_feedrate(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
+    static bool _travel_paths_by_tool(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors);
+    // generates gcode retractions geometry
+    static void _load_gcode_retractions(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, bool use_VBOs);
+    // generates gcode unretractions geometry
+    static void _load_gcode_unretractions(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, bool use_VBOs);
+    // sets gcode geometry visibility according to user selection
+    static void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
+    // generates the legend texture in dependence of the current shown view type
+    static void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+    // generates objects and wipe tower geometry
+    static void _load_shells(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
 };
 
 }

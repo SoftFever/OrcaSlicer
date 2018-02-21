@@ -10,6 +10,8 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/nowide/fstream.hpp>
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -99,6 +101,18 @@ void set_resources_dir(const std::string &dir)
 const std::string& resources_dir()
 {
     return g_resources_dir;
+}
+
+static std::string g_local_dir;
+
+void set_local_dir(const std::string &dir)
+{
+    g_local_dir = dir;
+}
+
+const std::string& localization_dir()
+{
+	return g_local_dir;
 }
 
 static std::string g_data_dir;
@@ -235,6 +249,17 @@ std::string normalize_utf8_nfc(const char *src)
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
 }
 
+namespace PerlUtils {
+    // Get a file name including the extension.
+    std::string path_to_filename(const char *src)       { return boost::filesystem::path(src).filename().string(); }
+    // Get a file name without the extension.
+    std::string path_to_stem(const char *src)           { return boost::filesystem::path(src).stem().string(); }
+    // Get just the extension.
+    std::string path_to_extension(const char *src)      { return boost::filesystem::path(src).extension().string(); }
+    // Get a directory without the trailing slash.
+    std::string path_to_parent_path(const char *src)    { return boost::filesystem::path(src).parent_path().string(); }
+};
+
 std::string timestamp_str()
 {
     const auto now = boost::posix_time::second_clock::local_time();
@@ -245,6 +270,33 @@ std::string timestamp_str()
         int(now.date().year()), int(now.date().month()), int(now.date().day()),
         int(now.time_of_day().hours()), int(now.time_of_day().minutes()), int(now.time_of_day().seconds()));
     return buf;
+}
+
+std::string octoprint_encode_file_send_request_content(const char *cpath, bool select, bool print, const char *boundary)
+{
+    // Read the complete G-code string into a string buffer.
+    // It will throw if the file cannot be open or read.
+    std::stringstream str_stream;
+    {
+        boost::nowide::ifstream ifs(cpath);
+        str_stream << ifs.rdbuf();
+    }
+
+    boost::filesystem::path path(cpath);
+    std::string request = boundary + '\n';
+    request += "Content-Disposition: form-data; name=\"";
+    request += path.stem().string() + "\"; filename=\"" + path.filename().string() + "\"\n";
+    request += "Content-Type: application/octet-stream\n\n";
+    request += str_stream.str();
+    request += boundary + '\n';
+    request += "Content-Disposition: form-data; name=\"select\"\n\n";
+    request += select ? "true\n" : "false\n";
+    request += boundary + '\n';
+    request += "Content-Disposition: form-data; name=\"print\"\n\n";
+    request += print ? "true\n" : "false\n";
+    request += boundary + '\n';
+
+    return request;
 }
 
 }; // namespace Slic3r

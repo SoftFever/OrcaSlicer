@@ -21,6 +21,8 @@ TODO LIST
 #include <iostream>
 #include <vector>
 
+#include "Analyzer.hpp"
+
 #if defined(__linux) || defined(__GNUC__ )
 #include <strings.h>
 #endif /* __linux */
@@ -510,6 +512,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 		.travel(cleaning_box.ld, 7200)
 		.set_extruder_trimpot(750); 			// Increase the extruder driver current to allow fast ramming.
 
+    // adds tag for analyzer
+    char buf[32];
+    sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
+    writer.append(buf);
+
 	if (purpose == PURPOSE_EXTRUDE || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
 		for (size_t idx_tool = 0; idx_tool < tools.size(); ++ idx_tool) {
 			unsigned int tool = tools[idx_tool];
@@ -658,6 +665,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		writer.set_initial_position(initial_position);
 	}
 
+    // adds tag for analyzer
+    char buf[32];
+    sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
+    writer.append(buf);
+
 	if (purpose == PURPOSE_EXTRUDE || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
 		// Increase the extruder driver current to allow fast ramming.
 		writer.set_extruder_trimpot(750);
@@ -734,6 +746,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 			  .z_hop_reset(7200);
 	else 
 		writer.set_initial_position(initial_position);
+
+    // adds tag for analyzer
+    char buf[32];
+    sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
+    writer.append(buf);
 
 	if (purpose == PURPOSE_EXTRUDE || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
 

@@ -1,0 +1,23 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/GUI/TabIface.hpp"
+%}
+
+%name{Slic3r::GUI::Tab} class TabIface {
+    TabIface();
+    ~TabIface();
+    void		load_current_preset();
+    void		update_tab_ui();
+    void		update_ui_from_settings();
+    void		select_preset(char* name);
+	void		load_config(DynamicPrintConfig* config);
+	bool		current_preset_is_dirty();
+	void		load_key_value(char* opt_key, char* value);
+	void		OnActivate();
+	std::string	title();
+	Ref<DynamicPrintConfig>		get_config();
+	Ref<PresetCollection>		get_presets();
+	std::vector<std::string>	get_dependent_tabs();
+};

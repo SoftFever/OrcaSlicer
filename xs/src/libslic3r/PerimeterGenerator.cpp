@@ -483,8 +483,9 @@ PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRo
             if (path.polyline.points.empty()) {
                 path.polyline.append(line.a);
                 path.polyline.append(line.b);
-                
-                flow.width = unscale(w);
+                // Convert from spacing to extrusion width based on the extrusion model
+                // of a square extrusion ended with semi circles.
+                flow.width = unscale(w) + flow.height * (1. - 0.25 * PI);
                 #ifdef SLIC3R_DEBUG
                 printf("  filling %f gap\n", flow.width);
                 #endif

@@ -283,6 +283,7 @@ for my $class (qw(
         Slic3r::GUI::_3DScene::GLVolume
         Slic3r::GUI::Preset
         Slic3r::GUI::PresetCollection
+        Slic3r::GUI::Tab
         Slic3r::Layer
         Slic3r::Layer::Region
         Slic3r::Layer::Support

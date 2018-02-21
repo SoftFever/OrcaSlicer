@@ -21,6 +21,14 @@ public:
     Polyline(Polyline &&other) : MultiPoint(std::move(other.points)) {}
     Polyline& operator=(const Polyline &other) { points = other.points; return *this; }
     Polyline& operator=(Polyline &&other) { points = std::move(other.points); return *this; }
+	static Polyline new_scale(std::vector<Pointf> points) {
+		Polyline pl;
+		Points int_points;
+		for (auto pt : points)
+			int_points.push_back(Point::new_scale(pt.x, pt.y));
+		pl.append(int_points);
+		return pl;
+    }
     
     void append(const Point &point) { this->points.push_back(point); }
     void append(const Points &src) { this->append(src.begin(), src.end()); }
@@ -128,6 +136,14 @@ class ThickPolyline : public Polyline {
     ThickLines thicklines() const;
     void reverse();
 };
+
+class Polyline3 : public MultiPoint3
+{
+public:
+    virtual Lines3 lines() const;
+};
+
+typedef std::vector<Polyline3> Polylines3;
 
 }
 

@@ -81,13 +81,20 @@ sub export_gcode {
     $self->status_cb->(90, "Exporting G-code" . ($output_file ? " to $output_file" : ""));
 
     # The following line may die for multiple reasons.
-    Slic3r::GCode->new->do_export($self, $output_file);
+    my $gcode = Slic3r::GCode->new;
+    if (defined $params{gcode_preview_data}) {
+        $gcode->do_export_w_preview($self, $output_file, $params{gcode_preview_data});
+    } else {
+        $gcode->do_export($self, $output_file);
+    }
     
     # run post-processing scripts
     if (@{$self->config->post_process}) {
         $self->status_cb->(95, "Running post-processing scripts");
         $self->config->setenv;
         for my $script (@{$self->config->post_process}) {
+            # Ignore empty post processing script lines.
+            next if $script =~ /^\s*$/;
             Slic3r::debugf "  '%s' '%s'\n", $script, $output_file;
             # -x doesn't return true on Windows except for .exe files
             if (($^O eq 'MSWin32') ? !(-e $script) : !(-x $script)) {

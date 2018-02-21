@@ -233,8 +233,9 @@ public:
     PrintRegionPtrs regions;
     PlaceholderParser placeholder_parser;
     // TODO: status_cb
+    std::string                     estimated_print_time;
     double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
-    std::map<size_t,float>          filament_stats;
+    std::map<size_t, float>         filament_stats;
     PrintState<PrintStep, psCount>  state;
 
     // ordered collections of extrusion paths to build skirt loops and brim

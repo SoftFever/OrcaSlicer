@@ -1,0 +1,538 @@
+# This file is distributed under the same license as the Slic3rPE package.
+# Oleksandra Iushchenko <yusanka@gmail.com>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-02-07 20:20+0100\n"
+"PO-Revision-Date: 2018-02-08 01:41+0100\n"
+"Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.6\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: uk\n"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:81
+msgid "Default"
+msgstr "За замовчуванням"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:109
+msgid "Shape"
+msgstr "Вигляд (Форма)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:116
+msgid "Rectangular"
+msgstr "Прямокутний"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:132
+msgid "Circular"
+msgstr "Круговий"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:141
+msgid "Custom"
+msgstr "Користувацький"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:145
+msgid "Load shape from STL..."
+msgstr "Завантажте форму з STL ..."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:190
+msgid "Settings"
+msgstr "Налаштування"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:368
+msgid "Choose a file to import bed shape from (STL/OBJ/AMF/PRUSA):"
+msgstr "Виберіть файл, щоб імпортувати форму подложки з (STL/OBJ/AMF/PRUSA):"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:385
+msgid "Error! "
+msgstr "Помилка! "
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:394
+msgid "The selected file contains no geometry."
+msgstr "Обратний файл не містить геометрії."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:398
+msgid ""
+"The selected file contains several disjoint areas. This is not supported."
+msgstr "Обраний файл містить декілька непересічних областей. Не підтримується."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.hpp:45
+msgid "Bed Shape"
+msgstr "Форма полотна"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:318
+msgid "Error"
+msgstr "Помилка"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:323
+msgid "Notice"
+msgstr "Зауваження"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:51
+msgid "Save current "
+msgstr "Зберегти поточний "
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:52
+msgid "Delete this preset"
+msgstr "Видалити це налаштування"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:324
+msgid "Layers and perimeters"
+msgstr "Шари та периметри"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:325
+msgid "Layer height"
+msgstr "Висота шару"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:329
+msgid "Vertical shells"
+msgstr "Вертикальні оболонки"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:340
+msgid "Horizontal shells"
+msgstr "Горизонтальні оболонки"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:341
+msgid "Solid layers"
+msgstr "Тверді шари"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:346
+msgid "Quality (slower slicing)"
+msgstr "Якість (повільне нарізання)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:353
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:367
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:460
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:463
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:839
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1122
+msgid "Advanced"
+msgstr "Розширений"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:357
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:358
+msgid "Infill"
+msgstr "Заповнення"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:363
+msgid "Reducing printing time"
+msgstr "Зниження часу друку"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:375
+msgid "Skirt and brim"
+msgstr "Плінтус та край"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:376
+msgid "Skirt"
+msgstr "Плінтус"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:382
+msgid "Brim"
+msgstr "Край"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:385
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:386
+msgid "Support material"
+msgstr "Опорний матеріал"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:391
+msgid "Raft"
+msgstr "Пліт"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:395
+msgid "Options for support material and raft"
+msgstr "Варіанти для опорного матеріалу та плоту"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:409
+msgid "Speed"
+msgstr "Швидкість"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:410
+msgid "Speed for print moves"
+msgstr "Швидкість друкарських рухів"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:422
+msgid "Speed for non-print moves"
+msgstr "Швидкість недрукарських рухів"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:425
+msgid "Modifiers"
+msgstr "Модифікатори"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:428
+msgid "Acceleration control (advanced)"
+msgstr "Контроль прискорення (розширений)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:435
+msgid "Autospeed (advanced)"
+msgstr "Автоматична швидкість (розширена)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:441
+msgid "Multiple Extruders"
+msgstr "Кілька екструдерів"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:442
+msgid "Extruders"
+msgstr "Екструдери"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:449
+msgid "Ooze prevention"
+msgstr "Профілактика ?Ooze?"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:453
+msgid "Wipe tower"
+msgstr "Вежа очищення"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:464
+msgid "Extrusion width"
+msgstr "Ширина екструзії"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:474
+msgid "Overlap"
+msgstr "Перекриття"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:477
+msgid "Flow"
+msgstr "Потік"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:480
+msgid "Other"
+msgstr "Інше"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:487
+msgid "Output options"
+msgstr "Параметри виводу"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:488
+msgid "Sequential printing"
+msgstr "Послідовне друкування"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:499
+msgid "Output file"
+msgstr "Вихідний файл"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:505
+msgid "Post-processing scripts"
+msgstr "Скрипти пост-обробки"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:511
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:512
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:867
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:868
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1165
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1166
+msgid "Notes"
+msgstr "Примітки"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:518
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:875
+msgid "Dependencies"
+msgstr "Залежності"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:519
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:876
+msgid "Profile dependencies"
+msgstr "Залежності профілю"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:794
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:795
+msgid "Filament"
+msgstr "Філаметн"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:802
+msgid "Temperature"
+msgstr "Температура"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:803
+msgid "Extruder"
+msgstr "Екструдер"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:808
+msgid "Bed"
+msgstr "Полотно"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:813
+msgid "Cooling"
+msgstr "Охолодження"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:814
+msgid "Enable"
+msgstr "Увімкнути"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:825
+msgid "Fan settings"
+msgstr "Налаштування вентилятора"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:834
+msgid "Cooling thresholds"
+msgstr "Пороги охолодження"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:840
+msgid "Filament properties"
+msgstr "Властивості філаменту"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:844
+msgid "Print speed override"
+msgstr "Перевизначення швидкості друку"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:854
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1128
+msgid "Custom G-code"
+msgstr "Користувацький G-код"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:855
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1129
+msgid "Start G-code"
+msgstr "Початок G-коду"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:861
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1135
+msgid "End G-code"
+msgstr "Закінчення G-коду"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:945
+msgid "General"
+msgstr "Загальне"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:946
+msgid "Size and coordinates"
+msgstr "Розмір і координати"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:948
+msgid "Bed shape"
+msgstr "Форма полотна"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:950
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1649
+msgid "Set"
+msgstr "Встановити"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:971
+msgid "Capabilities"
+msgstr "Можливості"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:998
+msgid "USB/Serial connection"
+msgstr "USB/послідовне з'єднання"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1004
+msgid "Rescan serial ports"
+msgstr "Сканувати ще раз послідовні порти"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1013
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1081
+msgid "Test"
+msgstr "Перевірити"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1026
+msgid "Connection to printer works correctly."
+msgstr "Підключення до принтера працює коректно."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1026
+msgid "Success!"
+msgstr "Успіх!"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1029
+msgid "Connection failed."
+msgstr "Підключення не вдалося."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1041
+msgid "OctoPrint upload"
+msgstr "Завантаження OctoPrint"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1044
+msgid "Browse"
+msgstr "Переглянути"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1119
+msgid "Firmware"
+msgstr "Прошивка"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1141
+msgid "Before layer change G-code"
+msgstr "G-код перед зміною шару "
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1147
+msgid "After layer change G-code"
+msgstr "G-код після зміни шару"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1153
+msgid "Tool change G-code"
+msgstr "G-код зміни інструменту "
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1159
+msgid "Between objects G-code (for sequential printing)"
+msgstr "G-код між об'єктами (для послідовного друку)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1195
+msgid "Extruder "
+msgstr "Екструдер "
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1198
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:120
+msgid "Size"
+msgstr "Розмір"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1201
+msgid "Layer height limits"
+msgstr "Межі висоти шару"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1206
+msgid "Position (for multi-extruder printers)"
+msgstr "Позиція (для мульти-екструдерних принтерів)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1209
+msgid "Retraction"
+msgstr "Утягування/відкликання"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1212
+msgid "Only lift Z"
+msgstr "Межі підняття Z"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1225
+msgid ""
+"Retraction when tool is disabled (advanced settings for multi-extruder "
+"setups)"
+msgstr ""
+"Утягування/відкликання при відключенні інструмента (додаткові налаштування "
+"для налагодження мульти-екструдерів)"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1229
+msgid "Preview"
+msgstr "Попередній перегляд"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1320
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+"Параметр «Очистити» недоступний при використанні режиму програмного "
+"утягування/відкликання.\n"
+"\n"
+"Відключити його для увімкнення програмного утягування/відкликання?"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1322
+msgid "Firmware Retraction"
+msgstr "Програмне утягування/відкликання"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1565
+msgid "The supplied name is empty. It can't be saved."
+msgstr "Надане ім'я порожнє. Не вдається зберегти."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1576
+msgid "Something is wrong. It can't be saved."
+msgstr "Щось не так. Не вдається зберегти."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1593
+msgid "remove"
+msgstr "перемістити"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1593
+msgid "delete"
+msgstr "видалити"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1594
+msgid "Are you sure you want to "
+msgstr "Ви впевнені, що хочете "
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1594
+msgid " the selected preset?"
+msgstr "вибране налаштування?"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1595
+msgid "Remove"
+msgstr "Перемістити"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1595
+msgid "Delete"
+msgstr "Видалити"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1596
+msgid " Preset"
+msgstr " Налаштування"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1648
+msgid "All"
+msgstr "Всі"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1679
+msgid "Select the printers this profile is compatible with."
+msgstr "Оберіть принтери, сумісні з цим профілем."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1680
+msgid "Compatible printers"
+msgstr "Сумісні принтери"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1763
+msgid "Save "
+msgstr "Зберегти "
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1763
+msgid " as:"
+msgstr " як:"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1797
+msgid ""
+"The supplied name is not valid; the following characters are not allowed:"
+msgstr "Надане ім'я недійсне; такі символи не допускаються:"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1800
+msgid "The supplied name is not available."
+msgstr "Надане ім'я недійсне."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:178
+msgid "Print Settings"
+msgstr "Налаштування друку"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:198
+msgid "Filament Settings"
+msgstr "Налаштування філаменту"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:224
+msgid "Printer Settings"
+msgstr "Налаштування принтеру"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:244
+msgid "Save preset"
+msgstr "Зберегти налаштування"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\Field.cpp:35
+msgid "default"
+msgstr "за замовчуванням"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:121
+msgid "Size in X and Y of the rectangular plate."
+msgstr "Розмір прямокутної подложки за X та Y."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:127
+msgid "Origin"
+msgstr "Початок координат"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:128
+msgid ""
+"Distance of the 0,0 G-code coordinate from the front left corner of the "
+"rectangle."
+msgstr "Відстань координат 0,0 G-коду від нижнього лівого кута прямокутника."
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:135
+msgid "mm"
+msgstr "мм"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:136
+msgid "Diameter"
+msgstr "Діаметр"
+
+#: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:137
+msgid ""
+"Diameter of the print bed. It is assumed that origin (0,0) is located in the "
+"center."
+msgstr ""
+"Діаметр подложки. Передбачається, що початок координат (0,0) знаходиться в "
+"центрі."

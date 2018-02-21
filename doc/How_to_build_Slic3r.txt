@@ -311,5 +311,6 @@ One may save compilation time by compiling just what Slic3r needs.
 ./bootstrap.sh --with-libraries=system,filesystem,thread,log,locale,regex
 The -fPIC flag is required on Linux to make the static libraries rellocatable,
 so they could be embedded into a shared library.
-./bjam -a link=static variant=release threading=multi cxxflags=-fPIC cflags=-fPIC
+It is important to disable boost.locale.icu=off when compiling the static boost library.
+./bjam -a link=static variant=release threading=multi boost.locale.icu=off --with-locale cxxflags=-fPIC cflags=-fPIC
 To install on Linux to /usr/local/..., run the line above with the additional install keyword and with sudo.
