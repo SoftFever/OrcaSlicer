@@ -17,6 +17,7 @@ public:
 	struct xy
 	{
 		xy(float x = 0.f, float y = 0.f) : x(x), y(y) {}
+		xy(xy& pos,float xp,float yp) : x(pos.x+xp), y(pos.y+yp) {}
 		xy  operator+(const xy &rhs) const { xy out(*this); out.x += rhs.x; out.y += rhs.y; return out; }
 		xy  operator-(const xy &rhs) const { xy out(*this); out.x -= rhs.x; out.y -= rhs.y; return out; }
 		xy& operator+=(const xy &rhs) { x += rhs.x; y += rhs.y; return *this; }
