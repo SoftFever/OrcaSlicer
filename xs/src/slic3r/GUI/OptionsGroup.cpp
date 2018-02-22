@@ -2,7 +2,6 @@
 #include "ConfigExceptions.hpp"
 
 #include <utility>
-#include <wx/tooltip.h>
 #include <wx/numformatter.h>
 
 namespace Slic3r { namespace GUI {
@@ -122,13 +121,13 @@ void OptionsGroup::append_line(const Line& line) {
     }
 
     // If there's a widget, build it and add the result to the sizer.
-    if (line.widget != nullptr) {
-        auto wgt = line.widget(parent());
+	if (line.widget != nullptr) {
+		auto wgt = line.widget(parent());
 		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
-        return;
-    }
-    
-    // if we have a single option with no sidetext just add it directly to the grid sizer
+		return;
+	}
+	
+	// if we have a single option with no sidetext just add it directly to the grid sizer
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
         const auto& option = option_set.front();
@@ -152,7 +151,7 @@ void OptionsGroup::append_line(const Line& line) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {
-			auto field_label = new wxStaticText(parent(), wxID_ANY, _LU8(option.label) + ":", wxDefaultPosition, wxDefaultSize);
+			auto field_label = new wxStaticText(parent(), wxID_ANY, L_str(option.label) + ":", wxDefaultPosition, wxDefaultSize);
 			field_label->SetFont(label_font);
 			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
@@ -166,7 +165,7 @@ void OptionsGroup::append_line(const Line& line) {
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			auto sidetext = new wxStaticText(parent(), wxID_ANY, _LU8(option.sidetext), wxDefaultPosition, wxDefaultSize);
+			auto sidetext = new wxStaticText(parent(), wxID_ANY, L_str(option.sidetext), wxDefaultPosition, wxDefaultSize);
 			sidetext->SetFont(sidetext_font);
 			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 		}
@@ -188,7 +187,7 @@ void OptionsGroup::append_line(const Line& line) {
 }
 
 Line OptionsGroup::create_single_option_line(const Option& option) const {
-	Line retval{ _LU8(option.opt.label), _LU8(option.opt.tooltip) };
+	Line retval{ L_str(option.opt.label), L_str(option.opt.tooltip) };
     Option tmp(option);
     tmp.opt.label = std::string("");
     retval.append_option(tmp);

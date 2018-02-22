@@ -38,7 +38,7 @@ namespace Slic3r { namespace GUI {
 	wxString Field::get_tooltip_text(const wxString& default_string)
 	{
 		wxString tooltip_text("");
-		wxString tooltip = _LU8(m_opt.tooltip);
+		wxString tooltip = L_str(m_opt.tooltip);
 		if (tooltip.length() > 0)
 			tooltip_text = tooltip + "(" + _L("default") + ": " +
 							(boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + 

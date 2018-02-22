@@ -33,18 +33,18 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
-	const wxBitmap* bmp = new wxBitmap(wxString::FromUTF8(Slic3r::var("flag-green-icon.png").c_str()), wxBITMAP_TYPE_PNG);
+	const wxBitmap* bmp = new wxBitmap(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
 
 	//buttons
 	wxBitmap bmpMenu;
-	bmpMenu = wxBitmap(wxString::FromUTF8(Slic3r::var("disk.png").c_str()), wxBITMAP_TYPE_PNG);
+	bmpMenu = wxBitmap(from_u8(Slic3r::var("disk.png")), wxBITMAP_TYPE_PNG);
 	m_btn_save_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-	bmpMenu = wxBitmap(wxString::FromUTF8(Slic3r::var("delete.png").c_str()), wxBITMAP_TYPE_PNG);
+	bmpMenu = wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG);
 	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 
 	m_show_incompatible_presets = false;
-	m_bmp_show_incompatible_presets = new wxBitmap(wxString::FromUTF8(Slic3r::var("flag-red-icon.png").c_str()), wxBITMAP_TYPE_PNG);
-	m_bmp_hide_incompatible_presets = new wxBitmap(wxString::FromUTF8(Slic3r::var("flag-green-icon.png").c_str()), wxBITMAP_TYPE_PNG);
+	m_bmp_show_incompatible_presets = new wxBitmap(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
+	m_bmp_hide_incompatible_presets = new wxBitmap(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
 	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, *m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 
 	m_btn_save_preset->SetToolTip(_L("Save current ") + m_title);
@@ -117,7 +117,7 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 			icon_idx = -1;
 		if (icon_idx == -1) {
 			// Add a new icon to the icon list.
-			const auto img_icon = new wxIcon(wxString::FromUTF8(Slic3r::var(icon).c_str()), wxBITMAP_TYPE_PNG);
+			const auto img_icon = new wxIcon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
 			m_icons->Add(*img_icon);
 			icon_idx = ++m_icon_count;
 			m_icon_index[icon] = icon_idx;
@@ -545,6 +545,7 @@ void TabPrint::update()
 			new_conf.set_key_value("top_solid_layers", new ConfigOptionInt(0));
 			new_conf.set_key_value("fill_density", new ConfigOptionPercent(0));
 			new_conf.set_key_value("support_material", new ConfigOptionBool(false));
+			new_conf.set_key_value("support_material_enforce_layers", new ConfigOptionInt(0));
 			new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
 		}
 		else {
@@ -790,7 +791,7 @@ void TabFilament::build()
 		optgroup->append_single_option_line("filament_density");
 		optgroup->append_single_option_line("filament_cost");
 
-		optgroup = page->new_optgroup(_L("Temperature") +" (\u00B0C)"); // degree sign
+		optgroup = page->new_optgroup(_L("Temperature (°C)")/* +" (\u00B0C)"*/); // degree sign
 		Line line = { _L("Extruder"), "" };
 		line.append_option(optgroup->get_option("first_layer_temperature"));
 		line.append_option(optgroup->get_option("temperature"));
@@ -884,9 +885,9 @@ void TabFilament::reload_config(){
 
 void TabFilament::update()
 {
-	wxString text = wxString::FromUTF8(PresetHints::cooling_description(m_presets->get_edited_preset()).c_str());
+	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
-	text = wxString::FromUTF8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle).c_str());
+	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
 	m_volumetric_speed_description_line->SetText(text);
 
 	bool cooling = m_config->opt_bool("cooling", 0);
@@ -904,7 +905,7 @@ void TabFilament::update()
 
 void TabFilament::OnActivate()
 {
-	m_volumetric_speed_description_line->SetText(wxString::FromUTF8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle).c_str()));
+	m_volumetric_speed_description_line->SetText(from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle)));
 }
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText)
@@ -938,9 +939,9 @@ void TabPrinter::build()
 
 		Line line{ _L("Bed shape"), "" };
 		line.widget = [this](wxWindow* parent){
-			auto btn = new wxButton(parent, wxID_ANY, _L("Set")+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			auto btn = new wxButton(parent, wxID_ANY, _L(" Set …")/*+"\u2026"*/, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //			btn->SetFont(Slic3r::GUI::small_font);
-			btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("printer_empty.png").c_str()), wxBITMAP_TYPE_PNG));
+			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -989,7 +990,7 @@ void TabPrinter::build()
 			line = {_L("Serial port"), ""};
 			Option serial_port = optgroup->get_option("serial_port");
 			serial_port.side_widget = ([this](wxWindow* parent){
-				auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(wxString::FromUTF8(Slic3r::var("arrow_rotate_clockwise.png").c_str()), wxBITMAP_TYPE_PNG),
+				auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(Slic3r::var("arrow_rotate_clockwise.png")), wxBITMAP_TYPE_PNG),
 					wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 				btn->SetToolTip(_L("Rescan serial ports"));
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1002,7 +1003,7 @@ void TabPrinter::build()
 				auto btn = m_serial_test_btn = new wxButton(parent, wxID_ANY,
 					_L("Test"), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //				btn->SetFont($Slic3r::GUI::small_font);
-				btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("wrench.png").c_str()), wxBITMAP_TYPE_PNG));
+				btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
 				sizer->Add(btn);
 
@@ -1031,9 +1032,9 @@ void TabPrinter::build()
 		optgroup = page->new_optgroup(_L("OctoPrint upload"));
 		// # append two buttons to the Host line
 		auto octoprint_host_browse = [this] (wxWindow* parent) {
-			auto btn = new wxButton(parent, wxID_ANY, _L("Browse")+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+			auto btn = new wxButton(parent, wxID_ANY, _L(" Browse …")/*+"\u2026"*/, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 //			btn->SetFont($Slic3r::GUI::small_font);
-			btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("zoom.png").c_str()), wxBITMAP_TYPE_PNG));
+			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
@@ -1071,7 +1072,7 @@ void TabPrinter::build()
 			auto btn = m_octoprint_host_test_btn = new wxButton(parent, wxID_ANY, _L("Test"), 
 				wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //			btn->SetFont($Slic3r::GUI::small_font);
-			btn->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("wrench.png").c_str()), wxBITMAP_TYPE_PNG));
+			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
@@ -1630,9 +1631,9 @@ void Tab::update_ui_from_settings()
 wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn)
 {
 	*checkbox = new wxCheckBox(parent, wxID_ANY, _L("All"));
-	*btn = new wxButton(parent, wxID_ANY, _L("Set")+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+	*btn = new wxButton(parent, wxID_ANY, _L(" Set …")/*+"\u2026"*/, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 
-	(*btn)->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var("printer_empty.png").c_str()), wxBITMAP_TYPE_PNG));
+	(*btn)->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add((*checkbox), 0, wxALIGN_CENTER_VERTICAL);
@@ -1746,10 +1747,10 @@ void SavePresetWindow::build(wxString title, std::string default_name, std::vect
 {
 	auto text = new wxStaticText(this, wxID_ANY, _L("Save ") + title + _L(" as:"), 
 									wxDefaultPosition, wxDefaultSize);
-	m_combo = new wxComboBox(this, wxID_ANY, wxString::FromUTF8(default_name.c_str()), 
+	m_combo = new wxComboBox(this, wxID_ANY, from_u8(default_name), 
 							wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);
 	for (auto value : values)
-		m_combo->Append(wxString::FromUTF8(value.c_str()));
+		m_combo->Append(from_u8(value));
 	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);

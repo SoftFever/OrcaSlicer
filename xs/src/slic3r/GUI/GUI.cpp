@@ -555,4 +555,14 @@ AppConfig* get_app_config()
 	return g_AppConfig;
 }
 
+wxString L_str(std::string str)
+{
+	return wxGetTranslation(wxString(str.c_str(), wxConvUTF8));
+}
+
+wxString from_u8(std::string str)
+{
+	return wxString::FromUTF8(str.c_str());
+}
+
 } }

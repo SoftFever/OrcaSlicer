@@ -25,13 +25,10 @@ class TabIface;
 
 //! macro used to localization, return wxString
 #define _L(s) wxGetTranslation(s)
-
-//! macro used to localization of ConfigOptionDef's std::strings
-//! Explicitly specify that the source string is already in UTF-8 encoding
-#define _LU8(s) wxGetTranslation(wxString(s.c_str(), wxConvUTF8))
-
-//! macro used to mark string used at localization, 
-//! return same string
+//! macro used to localization, return wxScopedCharBuffer
+//! With wxConvUTF8 explicitly specify that the source string is already in UTF-8 encoding
+#define _LC(s) wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str()
+//! macro used to mark string used at localization, return same string
 #define _LS(s) s
 
 namespace GUI {
@@ -111,6 +108,11 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 // Returns the current state of the items listed in the wxCheckListBoxComboPopup contained in the given wxComboCtrl,
 // encoded inside an int.
 int combochecklist_get_flags(wxComboCtrl* comboCtrl);
+
+// Return translated std::string as a wxString
+wxString	L_str(std::string str);
+// Return wxString from std::string in UTF8
+wxString	from_u8(std::string str);
 
 }
 }
