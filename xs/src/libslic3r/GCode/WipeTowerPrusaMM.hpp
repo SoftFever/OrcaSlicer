@@ -93,10 +93,13 @@ public:
 	// to be used before building begins. The entries must be added ordered in z.
 	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim);
 
+	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
 
+	// Calculates depth for all layers and propagates them downwards
 	void plan_tower();
 
+	// Goes through m_plan and recalculates depths and width of the WT to make it exactly square - experimental
 	void make_wipe_tower_square();
 
 	// Switch to a next layer.
@@ -115,7 +118,7 @@ public:
 		m_z_pos 				= print_z;
 		m_layer_height			= layer_height;
 		m_is_first_layer 		= is_first_layer;
-		// Start counting the color changes from zero. Special case: -1 - extrude a brim first.
+		// Start counting the color changes from zero. Special case -1: extrude a brim first.
 		///m_idx_tool_change_in_layer = is_first_layer ? (unsigned int)(-1) : 0;
 		m_print_brim = is_first_layer;
 		m_depth_traversed  = 0.f; // to make room for perimeter line
@@ -126,14 +129,8 @@ public:
 		// Calculates extrusion flow from desired line width, nozzle diameter, filament diameter and layer_height
 		m_extrusion_flow = extrusion_flow(layer_height);
 
-		// FIXME - ideally get rid of set_layer altogether and iterate through m_plan in generate(...)
-		m_layer_info = nullptr;
-		for (auto &a : m_plan)
-			if ( a.z > print_z - WT_EPSILON && a.z < print_z + WT_EPSILON ) {
-				m_extra_spacing = a.extra_spacing;
-				m_layer_info = &a;
-				break;
-			}
+		while (!m_plan.empty() && m_layer_info->z < print_z - WT_EPSILON && m_layer_info+1!=m_plan.end())
+			++m_layer_info;
 	}
 
 	// Return the wipe tower position.
@@ -159,13 +156,11 @@ public:
 	// On the first layer, extrude a brim around the future wipe tower first.
 	virtual ToolChangeResult tool_change(unsigned int new_tool, bool last_in_layer, Purpose purpose);
 
-	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
+	// Fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.
 	virtual ToolChangeResult finish_layer(Purpose purpose);
 
-	// Is the current layer finished? A layer is finished if either the wipe tower is finished, or
-	// the wipe tower has been completely covered by the tool change extrusions,
-	// or the rest of the tower has been filled by a sparse infill with the finish_layer() method.
+	// Is the current layer finished?
 	virtual bool 			 layer_finished() const {
 		return ( (m_is_first_layer ? m_wipe_tower_depth - m_perimeter_width : m_layer_info->depth) - WT_EPSILON < m_depth_traversed);
 	}
@@ -219,13 +214,15 @@ private:
 	bool 			m_left_to_right = true;
 	float			m_extra_spacing = 1.f;
 
-	float extrusion_flow(float layer_height = -1.f) const
+	// Calculates extrusion flow needed to produce required line width for given layer height
+	float extrusion_flow(float layer_height = -1.f) const	// negative layer_height - return current m_extrusion_flow
 	{
 		if ( layer_height < 0 )
 			return m_extrusion_flow;
 		return layer_height * ( Width_To_Nozzle_Ratio * Nozzle_Diameter - layer_height * (1-M_PI/4.f)) / (Filament_Area);
 	}
 
+	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
 		return volume / (layer_height * (line_width - layer_height * (1. - M_PI / 4.)));
 	}
@@ -269,7 +266,7 @@ private:
 			unsigned int old_tool;
 			unsigned int new_tool;
 			float required_depth;
-			ToolChange(unsigned int old,unsigned int newtool,float depth) : old_tool{old}, new_tool{newtool}, required_depth{depth} {}
+			ToolChange(unsigned int old,unsigned int newtool,float depth=0.f) : old_tool{old}, new_tool{newtool}, required_depth{depth} {}
 		};
 		float z;		// z position of the layer
 		float height;	// layer height
@@ -283,10 +280,8 @@ private:
 			: z{z_par}, height{layer_height_par}, depth{0}, extra_spacing{1.f} {}
 	};
 
-	// Stores information about all layers and toolchanges for the future wipe tower (filled by plan_toolchange(...))
-	std::vector<WipeTowerInfo> m_plan;
-
-	WipeTowerInfo* m_layer_info;
+	std::vector<WipeTowerInfo> m_plan; 	// Stores information about all layers and toolchanges for the future wipe tower (filled by plan_toolchange(...))
+	std::vector<WipeTowerInfo>::iterator m_layer_info;
 
 
 	// Returns gcode for wipe tower brim

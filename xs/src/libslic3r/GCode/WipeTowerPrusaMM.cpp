@@ -1193,26 +1193,32 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
 {	
 	assert(m_plan.back().z <= z_par + WT_EPSILON );	// refuses to add a layer below the last one
 
+	if (m_plan.empty() || m_plan.back().z + WT_EPSILON < z_par) // if we moved to a new layer, we'll add it to m_plan first
+		m_plan.push_back(WipeTowerInfo(z_par, layer_height_par));
+
+	if (brim) {	// this toolchange prints brim - we must add it to m_plan, but not to count its depth
+		m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool));
+		return;
+	}
+
+	if (old_tool==new_tool)	// new layer without toolchanges - we are done
+		return;
+
+	// this is an actual toolchange - let's calculate depth to reserve on the wipe tower
+	float depth = 0.f;			
 	float width = m_wipe_tower_width - 3*m_perimeter_width; 
 	float length_to_extrude = volume_to_length(0.25f * std::accumulate(ramming_speed.begin(), ramming_speed.end(), 0.f),
-										  m_line_width * ramming_line_width_multiplicator,
-										  layer_height_par);
-	float depth = (int(length_to_extrude / width) + 1) * (m_line_width * ramming_line_width_multiplicator * ramming_step_multiplicator);
+										m_line_width * ramming_line_width_multiplicator,
+										layer_height_par);
+	depth = (int(length_to_extrude / width) + 1) * (m_line_width * ramming_line_width_multiplicator * ramming_step_multiplicator);
 	length_to_extrude = width*((length_to_extrude / width)-int(length_to_extrude / width)) - width;
 	length_to_extrude += volume_to_length(wipe_volumes[old_tool][new_tool], m_line_width, layer_height_par);
 	length_to_extrude = std::max(length_to_extrude,0.f);
 	depth += (int(length_to_extrude / width) + 1) * m_line_width;
-	depth *= m_extra_spacing;
+	depth *= m_extra_spacing;	
 
-	if (m_plan.empty() || m_plan.back().z + WT_EPSILON < z_par) // if we moved to a new layer, we'll add it to m_plan along with the first toolchange
-		m_plan.push_back(WipeTowerInfo(z_par, layer_height_par));
-
-	if ( brim || old_tool != new_tool )	{
-		if (brim) // this toolchange prints brim, we need it in m_plan, but not to count its depth
-			depth = 0.f;
-		m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth));
-	}
-
+	m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth));
+	
 	// Calculate m_wipe_tower_depth (maximum depth for all the layers) and propagate depths downwards
 	/*float this_layer_depth = m_plan.back().toolchanges_depth();
 	m_plan.back().depth = this_layer_depth;
@@ -1283,6 +1289,9 @@ void WipeTowerPrusaMM::make_wipe_tower_square()
 // Resulting ToolChangeResults are appended into vector "result"
 void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
 {
+	if (m_plan.empty())	return;
+	else m_layer_info = m_plan.begin();
+
 	m_extra_spacing = 1.f;
 
 	plan_tower();
