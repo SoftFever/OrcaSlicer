@@ -57,7 +57,7 @@ Polyline FillGyroid::makeLineHori(double xPos, double yPos, double width, double
     return polyline;
 }
 
-inline void FillGyroid::correctOrderAndAdd(const int num, Polyline &poly, Polylines &array){
+inline void FillGyroid::correctOrderAndAdd(const int num, Polyline poly, Polylines &array){
     if(num%2==0){
         Points temp(poly.points.rbegin(), poly.points.rend());
         poly.points.assign(temp.begin(),temp.end());
