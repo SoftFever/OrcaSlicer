@@ -50,6 +50,7 @@ sub new {
     $self->{no_plater} = $params{no_plater};
     $self->{loaded} = 0;
     $self->{lang_ch_event} = $params{lang_ch_event};
+    $self->{preferences_event} = $params{preferences_event};
 
     # initialize tabpanel and menubar
     $self->_init_tabpanel;
@@ -296,7 +297,9 @@ sub _init_menubar {
         $fileMenu->AppendSeparator();
         # Cmd+, is standard on OS X - what about other operating systems?
         $self->_append_menu_item($fileMenu, L("Preferences…\tCtrl+,"), L('Application preferences'), sub {
-            Slic3r::GUI::Preferences->new($self)->ShowModal;
+            # Slic3r::GUI::Preferences->new($self)->ShowModal;
+            # It's in C++ part now
+            Slic3r::GUI::open_preferences_dialog($self->{preferences_event});
         }, wxID_PREFERENCES);
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, L("&Quit"), L('Quit Slic3r'), sub {

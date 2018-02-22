@@ -904,7 +904,7 @@ void TabFilament::update()
 
 void TabFilament::OnActivate()
 {
-	m_volumetric_speed_description_line->SetText(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
+	m_volumetric_speed_description_line->SetText(wxString::FromUTF8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle).c_str()));
 }
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText)

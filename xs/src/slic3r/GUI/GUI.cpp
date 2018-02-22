@@ -44,6 +44,7 @@
 #include "TabIface.hpp"
 #include "AppConfig.hpp"
 #include "Utils.hpp"
+#include "Preferences.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -342,6 +343,12 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change)
 //#endif
 }
 
+void open_preferences_dialog(int event_preferences)
+{
+	auto dlg = new PreferencesDialog(g_wxMainFrame, event_preferences);
+	dlg->ShowModal();
+}
+
 void create_preset_tabs(PresetBundle *preset_bundle,
 						bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
 						int event_value_change, int event_presets_changed,
@@ -487,6 +494,13 @@ void show_info(wxWindow* parent, wxString message, wxString title){
 	msg_wingow->ShowModal();
 }
 
+void warning_catcher(wxWindow* parent, wxString message){
+	if (message == _L("GLUquadricObjPtr | Attempt to free unreferenced scalar") )
+		return;
+	auto msg = new wxMessageDialog(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
+	msg->ShowModal();	
+}
+
 wxApp* get_app(){
 	return g_wxApp;
 }
@@ -534,6 +548,11 @@ int combochecklist_get_flags(wxComboCtrl* comboCtrl)
     }
 
     return flags;
+}
+
+AppConfig* get_app_config()
+{
+	return g_AppConfig;
 }
 
 } }

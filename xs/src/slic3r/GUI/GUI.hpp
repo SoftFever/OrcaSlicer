@@ -66,7 +66,14 @@ void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 
+AppConfig*	get_app_config();
+wxApp*		get_app();
+
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
+
+// Create "Preferences" dialog after selecting menu "Preferences" in Perl part
+void open_preferences_dialog(int event_preferences);
+
 // Create a new preset tab (print, filament and printer),
 void create_preset_tabs(PresetBundle *preset_bundle, 
 						bool no_controller, bool is_disabled_button_browse,	bool is_user_agent,
@@ -81,6 +88,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 
 void show_error(wxWindow* parent, wxString message);
 void show_info(wxWindow* parent, wxString message, wxString title);
+void warning_catcher(wxWindow* parent, wxString message);
 
 // load language saved at application config 
 bool load_language();
