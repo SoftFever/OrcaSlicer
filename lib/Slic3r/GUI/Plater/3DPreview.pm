@@ -75,7 +75,7 @@ sub new {
     my $combochecklist_features = $self->{combochecklist_features} = Wx::ComboCtrl->new();
     $combochecklist_features->Create($self, -1, "Feature types", wxDefaultPosition, [200, -1], wxCB_READONLY);
     my $feature_text = "Feature types";
-    my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface|Wipe tower";
+    my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface|Wipe tower|Custom";
     Slic3r::GUI::create_combochecklist($combochecklist_features, $feature_text, $feature_items, 1);
     
     my $checkbox_travel         = $self->{checkbox_travel}          = Wx::CheckBox->new($self, -1, "Travel");
@@ -251,6 +251,7 @@ sub new {
                                     'Support material'           => '00FF00',
                                     'Support material interface' => '008000',
                                     'Wipe tower'                 => 'B3E3AB',
+                                    'Custom'                     => 'FFFF00',
                                  );
     $self->gcode_preview_data->set_extrusion_paths_colors(\@extrusion_roles_colors);
     
@@ -318,31 +319,9 @@ sub load_print {
         return;
     }
     
-    my $z_idx_low = $self->slider_low->GetValue;
-    my $z_idx_high = $self->slider_high->GetValue;
-    $self->enabled(1);
-    $self->slider_low->SetRange(0, $n_layers - 1);
-    $self->slider_high->SetRange(0, $n_layers - 1);
-    if ($z_idx_high < $n_layers && ($self->single_layer || $z_idx_high != 0)) {
-        # use $z_idx
-    } else {
-        # Out of range. Disable 'single layer' view.
-        $self->single_layer(0);
-        $self->{checkbox_singlelayer}->SetValue(0);
-        $z_idx_low = 0;
-        $z_idx_high = $n_layers - 1;
-    }
-    if ($self->single_layer) {
-        $z_idx_low = $z_idx_high;
-    } elsif ($z_idx_low > $z_idx_high) {
-        $z_idx_low = 0;
-    }
-    $self->slider_low->SetValue($z_idx_low);
-    $self->slider_high->SetValue($z_idx_high);
-    $self->slider_low->Show;
-    $self->slider_high->Show;
-    $self->Layout;
-
+    # used to set the sliders to the extremes of the current zs range
+    $self->{force_sliders_full_range} = 0;
+    
     if ($self->{preferred_color_mode} eq 'tool_or_feature') {
         # It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
         # Color by feature if it is a single extruder print.
@@ -380,16 +359,58 @@ sub load_print {
             }
             $self->show_hide_ui_elements('simple');
         } else {
+            $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0) && $self->auto_zoom;
             $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
             $self->show_hide_ui_elements('full');
+
+            # recalculates zs and update sliders accordingly
+            $self->{layers_z} = $self->canvas->get_current_print_zs();
+            $n_layers = scalar(@{$self->{layers_z}});            
         }
+
+        $self->update_sliders($n_layers);
+                
         if ($self->auto_zoom) {
             $self->canvas->zoom_to_volumes;
         }
         $self->_loaded(1);
     }
+}
+
+sub update_sliders
+{
+    my ($self, $n_layers) = @_;
+        
+    my $z_idx_low = $self->slider_low->GetValue;
+    my $z_idx_high = $self->slider_high->GetValue;
+    $self->enabled(1);
+    $self->slider_low->SetRange(0, $n_layers - 1);
+    $self->slider_high->SetRange(0, $n_layers - 1);
     
+    if ($self->{force_sliders_full_range}) {
+        $z_idx_low = 0;
+        $z_idx_high = $n_layers - 1;
+    } elsif ($z_idx_high < $n_layers && ($self->single_layer || $z_idx_high != 0)) {
+        # use $z_idx
+    } else {
+        # Out of range. Disable 'single layer' view.
+        $self->single_layer(0);
+        $self->{checkbox_singlelayer}->SetValue(0);
+        $z_idx_low = 0;
+        $z_idx_high = $n_layers - 1;
+    }
+    if ($self->single_layer) {
+        $z_idx_low = $z_idx_high;
+    } elsif ($z_idx_low > $z_idx_high) {
+        $z_idx_low = 0;
+    }
+    
+    $self->slider_low->SetValue($z_idx_low);
+    $self->slider_high->SetValue($z_idx_high);
+    $self->slider_low->Show;
+    $self->slider_high->Show;
     $self->set_z_range($self->{layers_z}[$z_idx_low], $self->{layers_z}[$z_idx_high]);
+    $self->Layout;    
 }
 
 sub set_z_range

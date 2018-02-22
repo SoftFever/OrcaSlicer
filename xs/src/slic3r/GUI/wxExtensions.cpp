@@ -48,7 +48,34 @@ wxSize wxCheckListBoxComboPopup::GetAdjustedSize(int minWidth, int prefHeight, i
 
 void wxCheckListBoxComboPopup::OnKeyEvent(wxKeyEvent& evt)
 {
-    // do nothing, but prevents navigation in the list using arrows keys (which is not working properly)
+    // filters out all the keys which are not working properly
+    switch (evt.GetKeyCode())
+    {
+    case WXK_LEFT:
+    case WXK_UP:
+    case WXK_RIGHT:
+    case WXK_DOWN:
+    case WXK_PAGEUP:
+    case WXK_PAGEDOWN:
+    case WXK_END:
+    case WXK_HOME:
+    case WXK_NUMPAD_LEFT:
+    case WXK_NUMPAD_UP:
+    case WXK_NUMPAD_RIGHT:
+    case WXK_NUMPAD_DOWN:
+    case WXK_NUMPAD_PAGEUP:
+    case WXK_NUMPAD_PAGEDOWN:
+    case WXK_NUMPAD_END:
+    case WXK_NUMPAD_HOME:
+    {
+        break;
+    }
+    default:
+    {
+        evt.Skip();
+        break;
+    }
+    }
 }
 
 void wxCheckListBoxComboPopup::OnCheckListBox(wxCommandEvent& evt)
