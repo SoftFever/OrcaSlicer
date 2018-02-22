@@ -12,6 +12,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/iostream.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 namespace Slic3r {
 
@@ -91,7 +92,15 @@ Model Model::read_from_archive(const std::string &input_file, PresetBundle* bund
         throw std::runtime_error("The supplied file couldn't be read because it's empty");
 
     for (ModelObject *o : model.objects)
-        o->input_file = input_file;
+    {
+        if (boost::algorithm::iends_with(input_file, ".zip.amf"))
+        {
+            // we remove the .zip part of the extension to avoid it be added to filenames when exporting
+            o->input_file = boost::ireplace_last_copy(input_file, ".zip.", ".");
+        }
+        else
+            o->input_file = input_file;
+    }
 
     if (add_default_instances)
         model.add_default_instances();
