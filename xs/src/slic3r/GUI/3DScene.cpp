@@ -321,11 +321,11 @@ int GLVolumeCollection::load_wipe_tower_preview(
     Point origin_of_rotation(0.f,0.f);
     mesh.rotate(rotation_angle,&origin_of_rotation);
 
-	v.indexed_vertex_array.load_mesh_flat_shading(mesh);
-	v.origin = Pointf3(pos_x, pos_y, 0.);
+    v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+    v.origin = Pointf3(pos_x, pos_y, 0.);
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
-	v.indexed_vertex_array.finalize_geometry(use_VBOs);
+    v.indexed_vertex_array.finalize_geometry(use_VBOs);
     v.composite_id = obj_idx * 1000000;
     v.select_group_id = obj_idx * 1000000;
     v.drag_group_id = obj_idx * 1000;
@@ -2291,7 +2291,7 @@ void _3DScene::_load_shells(const Print& print, GLVolumeCollection& volumes, boo
     const PrintConfig& config = print.config;
     unsigned int extruders_count = config.nozzle_diameter.size();
     if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects)
-        volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, config.wipe_tower_per_color_wipe * (extruders_count - 1), max_z, use_VBOs);
+        volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, config.wipe_tower_per_color_wipe * (extruders_count - 1), max_z, config.wipe_tower_rotation_angle, use_VBOs);
 }
 
 }

@@ -366,8 +366,8 @@ private:
 	float   	  m_angle_deg = 0.f;
 	float		  m_y_shift = 0.f;
 	WipeTower::xy m_wipe_tower_pos;
-	float 		  m_wipe_tower_width;
-	float		  m_wipe_tower_depth;
+	float 		  m_wipe_tower_width = 0.f;
+	float		  m_wipe_tower_depth = 0.f;
 	float		  m_last_fan_speed = 0.f;
 
 		std::string
