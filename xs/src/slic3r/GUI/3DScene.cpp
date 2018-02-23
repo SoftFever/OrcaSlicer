@@ -450,6 +450,25 @@ void GLVolumeCollection::render_legacy() const
     glDisableClientState(GL_NORMAL_ARRAY);
 }
 
+std::vector<double> GLVolumeCollection::get_current_print_zs() const
+{
+    std::vector<double> print_zs;
+
+    for (GLVolume *vol : this->volumes)
+    {
+        for (coordf_t z : vol->print_zs)
+        {
+            double round_z = (double)round(z * 100000.0f) / 100000.0f;
+            if (std::find(print_zs.begin(), print_zs.end(), round_z) == print_zs.end())
+                print_zs.push_back(round_z);
+        }
+    }
+
+    std::sort(print_zs.begin(), print_zs.end());
+
+    return print_zs;
+}
+
 // caller is responsible for supplying NO lines with zero length
 static void thick_lines_to_indexed_vertex_array(
     const Lines                 &lines, 
@@ -2205,6 +2224,9 @@ void _3DScene::_update_gcode_volumes_visibility(const GCodePreviewData& preview_
             {
             case GCodePreviewVolumeIndex::Extrusion:
                 {
+                    if ((ExtrusionRole)s_gcode_preview_volume_index.first_volumes[i].flag == erCustom)
+                        volume->zoom_to_volumes = false;
+                    
                     volume->is_active = preview_data.extrusion.is_role_flag_set((ExtrusionRole)s_gcode_preview_volume_index.first_volumes[i].flag);
                     break;
                 }

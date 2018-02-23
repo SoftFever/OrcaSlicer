@@ -26,6 +26,8 @@ using t_field = std::unique_ptr<Field>;
 using t_kill_focus = std::function<void()>;
 using t_change = std::function<void(t_config_option_key, boost::any)>;
 
+wxString double_to_string(double const value);
+
 class Field {
 protected:
     // factory function to defer and enforce creation of derived type. 
@@ -83,7 +85,7 @@ public:
     virtual wxWindow*	getWindow() { return nullptr; }
 
 	bool		is_matched(std::string string, std::string pattern);
-	boost::any	get_value_by_opt_type(wxString str, ConfigOptionType type);
+	boost::any get_value_by_opt_type(wxString str);
 
     /// Factory method for generating new derived classes.
     template<class T>

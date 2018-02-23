@@ -372,6 +372,9 @@ public:
 
     void set_render_interleaved_only_volumes(const RenderInterleavedOnlyVolumes& render_interleaved_only_volumes) { _render_interleaved_only_volumes = render_interleaved_only_volumes; }
 
+    // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
+    std::vector<double> get_current_print_zs() const;
+
 private:
     GLVolumeCollection(const GLVolumeCollection &other);
     GLVolumeCollection& operator=(const GLVolumeCollection &);
