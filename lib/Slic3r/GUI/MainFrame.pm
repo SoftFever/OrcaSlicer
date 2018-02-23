@@ -378,7 +378,7 @@ sub _init_menubar {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $self->_append_menu_item($helpMenu, L("&Configuration $Slic3r::GUI::ConfigWizard::wizard…"), L("Run Configuration $Slic3r::GUI::ConfigWizard::wizard"), sub {
+        $self->_append_menu_item($helpMenu, L("&Configuration ").$Slic3r::GUI::ConfigWizard::wizard."…", L("Run Configuration ").$Slic3r::GUI::ConfigWizard::wizard, sub {
             # Run the config wizard, offer the "reset user profile" checkbox.
             $self->config_wizard(0);
         });
@@ -526,7 +526,7 @@ sub quick_slice {
         }
         
         # show processbar dialog
-        $progress_dialog = Wx::ProgressDialog->new(L('Slicing…'), L("Processing $input_file_basename…"), 
+        $progress_dialog = Wx::ProgressDialog->new(L('Slicing…'), L("Processing ").$input_file_basename."…", 
             100, $self, 0);
         $progress_dialog->Pulse;
         

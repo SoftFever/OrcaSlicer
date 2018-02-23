@@ -23,13 +23,16 @@ class AppConfig;
 class DynamicPrintConfig;
 class TabIface;
 
-//! macro used to localization, return wxString
-#define _L(s) wxGetTranslation(s)
+// !!! If you needed to translate some wxString,
+// !!! please use _(L(string))
+// !!! _() - is a standard wxWidgets macro to translate
+// !!! L() is used only for marking localizable string 
+// !!! It will be used in "xgettext" to create a Locating Message Catalog.
+#define L(s) s
+
 //! macro used to localization, return wxScopedCharBuffer
 //! With wxConvUTF8 explicitly specify that the source string is already in UTF-8 encoding
-#define _LC(s) wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str()
-//! macro used to mark string used at localization, return same string
-#define _LS(s) s
+#define _CHB(s) wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str()
 
 namespace GUI {
 

@@ -221,7 +221,7 @@ bool select_language(wxArrayString & names,
 	wxArrayLong & identifiers)
 {
 	wxCHECK_MSG(names.Count() == identifiers.Count(), false,
-		_L("Array of language names and identifiers should have the same size."));
+		_(L("Array of language names and identifiers should have the same size.")));
 	int init_selection = 0;
 	long current_language = g_wxLocale ? g_wxLocale->GetLanguage() : wxLANGUAGE_UNKNOWN;
 	for (auto lang : identifiers){
@@ -232,7 +232,7 @@ bool select_language(wxArrayString & names,
 	}
 	if (init_selection == identifiers.size())
 		init_selection = 0;
-	long index = wxGetSingleChoiceIndex(_L("Select the language"), _L("Language"), 
+	long index = wxGetSingleChoiceIndex(_(L("Select the language")), _(L("Language")), 
 										names, init_selection);
 	if (index != -1)
 	{
@@ -297,15 +297,12 @@ void get_installed_languages(wxArrayString & names,
 	wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
 	if (!name.IsEmpty())
 	{
-		names.Add(_L("Default"));
+		names.Add(_(L("Default")));
 		identifiers.Add(wxLANGUAGE_DEFAULT);
 	}
 	for (bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_DIRS);
 		cont; cont = dir.GetNext(&filename))
 	{
-		wxLogTrace(wxTraceMask(),
-			"L10n: Directory found = \"%s\"",
-			filename.GetData());
 		langinfo = wxLocale::FindLanguageInfo(filename);
 		if (langinfo != NULL)
 		{
@@ -325,14 +322,14 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change)
 {
 //#if 0
     auto local_menu = new wxMenu();
-	local_menu->Append(wxWindow::NewControlId(1), _L("Change Application Language"));
+	local_menu->Append(wxWindow::NewControlId(1), _(L("Change Application Language")));
 	local_menu->Bind(wxEVT_MENU, [event_language_change](wxEvent&){
 		wxArrayString names;
 		wxArrayLong identifiers;
 		get_installed_languages(names, identifiers);
 		if (select_language(names, identifiers)){
 			save_language();
-			show_info(g_wxTabPanel, "Application will be restarted", "Attention!");
+			show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
 			if (event_language_change > 0) {
 				wxCommandEvent event(event_language_change);
 				g_wxApp->ProcessEvent(event);
@@ -485,19 +482,19 @@ void add_created_tab(Tab* panel, PresetBundle *preset_bundle)
 }
 
 void show_error(wxWindow* parent, wxString message){
-	auto msg_wingow = new wxMessageDialog(parent, message, _L("Error"), wxOK | wxICON_ERROR);
+	auto msg_wingow = new wxMessageDialog(parent, message, _(L("Error")), wxOK | wxICON_ERROR);
 	msg_wingow->ShowModal();
 }
 
 void show_info(wxWindow* parent, wxString message, wxString title){
-	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? _L("Notice") : title, wxOK | wxICON_INFORMATION);
+	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
 	msg_wingow->ShowModal();
 }
 
 void warning_catcher(wxWindow* parent, wxString message){
-	if (message == _L("GLUquadricObjPtr | Attempt to free unreferenced scalar") )
+	if (message == _(L("GLUquadricObjPtr | Attempt to free unreferenced scalar")) )
 		return;
-	auto msg = new wxMessageDialog(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
+	auto msg = new wxMessageDialog(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
 	msg->ShowModal();	
 }
 
@@ -557,6 +554,7 @@ AppConfig* get_app_config()
 
 wxString L_str(std::string str)
 {
+	//! Explicitly specify that the source string is already in UTF-8 encoding
 	return wxGetTranslation(wxString(str.c_str(), wxConvUTF8));
 }
 

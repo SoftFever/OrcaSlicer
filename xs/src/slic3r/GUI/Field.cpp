@@ -40,7 +40,7 @@ namespace Slic3r { namespace GUI {
 		wxString tooltip_text("");
 		wxString tooltip = L_str(m_opt.tooltip);
 		if (tooltip.length() > 0)
-			tooltip_text = tooltip + "(" + _L("default") + ": " +
+			tooltip_text = tooltip + "(" + _(L("default")) + ": " +
 							(boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + 
 							default_string + ")";
 

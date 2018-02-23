@@ -947,7 +947,7 @@ sub rotate {
     if (!defined $angle) {
         my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
         my $default = $axis == Z ? rad2deg($model_instance->rotation) : 0;
-        $angle = $self->_get_number_from_user(L("Enter the rotation angle:"), L("Rotate around $axis_name axis"), L("Invalid rotation angle entered"), $default);
+        $angle = $self->_get_number_from_user(L("Enter the rotation angle:"), L("Rotate around ").$axis_name.(" axis"), L("Invalid rotation angle entered"), $default);
         return if $angle eq '';
     }
     
@@ -1032,7 +1032,7 @@ sub changescale {
             return if $newsize eq '';
             $scale = $newsize / $cursize * 100;
         } else {
-            $scale = $self->_get_number_from_user(L('Enter the scale % for the selected object:'), L("Scale along $axis_name"), L('Invalid scaling value entered'), 100, 1);
+            $scale = $self->_get_number_from_user(L('Enter the scale % for the selected object:'), L("Scale along ").$axis_name, L('Invalid scaling value entered'), 100, 1);
             return if $scale eq '';
         }
         

@@ -23,31 +23,31 @@ std::string PresetHints::cooling_description(const Preset &preset)
 		int 	max_fan_speed 				= preset.config.opt_int("max_fan_speed", 0);
 		int 	min_print_speed				= int(preset.config.opt_float("min_print_speed", 0) + 0.5);
 		int 	fan_below_layer_time		= preset.config.opt_int("fan_below_layer_time", 0);
-		sprintf(buf, _LC("If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s)."),
+		sprintf(buf, _CHB(L("If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s).")),
             slowdown_below_layer_time, max_fan_speed, slowdown_below_layer_time, min_print_speed);
 		out += buf;
         if (fan_below_layer_time > slowdown_below_layer_time) {
-			sprintf(buf, _LC("\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%."),
+			sprintf(buf, _CHB(L("\nIf estimated layer time is greater, but still below ~%ds, fan will run at a proportionally decreasing speed between %d%% and %d%%.")),
                 fan_below_layer_time, max_fan_speed, min_fan_speed);
             out += buf;
         }
-		out += _LC("\nDuring the other layers, fan ");
+		out += _CHB(L("\nDuring the other layers, fan "));
     } else {
-        out = _LC("Fan ");
+        out = _CHB(L("Fan "));
     }
 	if (preset.config.opt_bool("fan_always_on", 0)) {
 		int 	disable_fan_first_layers 	= preset.config.opt_int("disable_fan_first_layers", 0);
 		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
-        sprintf(buf, _LC("will always run at %d%% "), min_fan_speed);
+        sprintf(buf, _CHB(L("will always run at %d%% ")), min_fan_speed);
         out += buf;
         if (disable_fan_first_layers > 1) {
-        	sprintf(buf, _LC("except for the first %d layers"), disable_fan_first_layers);
+        	sprintf(buf, _CHB(L("except for the first %d layers")), disable_fan_first_layers);
 	        out += buf;
         }
         else if (disable_fan_first_layers == 1)
-        	out += _LC("except for the first layer");
+        	out += _CHB(L("except for the first layer"));
     } else
-    	out += _LC("will be turned off.");
+    	out += _CHB(L("will be turned off."));
 
     return out;
 }
@@ -148,7 +148,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                     limit_by_first_layer_speed(std::max(external_perimeter_speed, small_perimeter_speed), max_print_speed));
             if (max_flow < external_perimeter_rate) {
                 max_flow = external_perimeter_rate;
-                max_flow_extrusion_type = _LC("external perimeters");
+                max_flow_extrusion_type = _CHB(L("external perimeters"));
             }
             double perimeter_rate = Flow::new_from_config_width(frPerimeter, 
                 first_positive(first_layer_extrusion_width_ptr, perimeter_extrusion_width, extrusion_width), 
@@ -157,7 +157,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                     limit_by_first_layer_speed(std::max(perimeter_speed, small_perimeter_speed), max_print_speed));
             if (max_flow < perimeter_rate) {
                 max_flow = perimeter_rate;
-                max_flow_extrusion_type = _LC("perimeters");
+                max_flow_extrusion_type = _CHB(L("perimeters"));
             }
         }
         if (! bridging && infill_extruder_active) {
@@ -166,7 +166,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                 nozzle_diameter, lh, bfr).mm3_per_mm() * limit_by_first_layer_speed(infill_speed, max_print_speed);
             if (max_flow < infill_rate) {
                 max_flow = infill_rate;
-                max_flow_extrusion_type = _LC("infill");
+                max_flow_extrusion_type = _CHB(L("infill"));
             }
         }
         if (solid_infill_extruder_active) {
@@ -176,7 +176,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                 (bridging ? bridge_speed : limit_by_first_layer_speed(solid_infill_speed, max_print_speed));
             if (max_flow < solid_infill_rate) {
                 max_flow = solid_infill_rate;
-                max_flow_extrusion_type = _LC("solid infill");
+                max_flow_extrusion_type = _CHB(L("solid infill"));
             }
             if (! bridging) {
                 double top_solid_infill_rate = Flow::new_from_config_width(frInfill, 
@@ -184,7 +184,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                     nozzle_diameter, lh, bfr).mm3_per_mm() * limit_by_first_layer_speed(top_solid_infill_speed, max_print_speed);
                 if (max_flow < top_solid_infill_rate) {
                     max_flow = top_solid_infill_rate;
-                    max_flow_extrusion_type = _LC("top solid infill");
+                    max_flow_extrusion_type = _CHB(L("top solid infill"));
                 }
             }
         }
@@ -195,7 +195,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                 (bridging ? bridge_speed : limit_by_first_layer_speed(support_material_speed, max_print_speed));
             if (max_flow < support_material_rate) {
                 max_flow = support_material_rate;
-                max_flow_extrusion_type = _LC("support");
+                max_flow_extrusion_type = _CHB(L("support"));
             }
         }
         if (support_material_interface_extruder_active) {
@@ -205,25 +205,25 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                 (bridging ? bridge_speed : limit_by_first_layer_speed(support_material_interface_speed, max_print_speed));
             if (max_flow < support_material_interface_rate) {
                 max_flow = support_material_interface_rate;
-                max_flow_extrusion_type = _LC("support interface");
+                max_flow_extrusion_type = _CHB(L("support interface"));
             }
         }
         //FIXME handle gap_fill_speed
         if (! out.empty())
             out += "\n";
-        out += (first_layer ? _LC("First layer volumetric") : (bridging ? _LC("Bridging volumetric") : _LC("Volumetric")));
-        out += _LC(" flow rate is maximized ");
+        out += (first_layer ? _CHB(L("First layer volumetric")) : (bridging ? _CHB(L("Bridging volumetric")) : _CHB(L("Volumetric"))));
+        out += _CHB(L(" flow rate is maximized "));
         bool limited_by_max_volumetric_speed = max_volumetric_speed > 0 && max_volumetric_speed < max_flow;
         out += (limited_by_max_volumetric_speed ? 
-            _LC("by the print profile maximum") : 
-            (_LC("when printing ") + max_flow_extrusion_type))
-            + _LC(" with a volumetric rate ");
+            _CHB(L("by the print profile maximum")) : 
+            (_CHB(L("when printing ")) + max_flow_extrusion_type))
+            + _CHB(L(" with a volumetric rate "));
         if (limited_by_max_volumetric_speed)
             max_flow = max_volumetric_speed;
         char buf[2048];
-        sprintf(buf, _LC("%3.2f mm³/s"), max_flow);
+        sprintf(buf, _CHB(L("%3.2f mm³/s")), max_flow);
         out += buf;
-        sprintf(buf, _LC(" at filament speed %3.2f mm/s."), max_flow / filament_crossection);
+        sprintf(buf, _CHB(L(" at filament speed %3.2f mm/s.")), max_flow / filament_crossection);
         out += buf;
     }
 
@@ -242,7 +242,7 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
     
     std::string out;
 	if (layer_height <= 0.f){
-		out += _LC("Recommended object thin wall thickness: Not available due to invalid layer height.");
+		out += _CHB(L("Recommended object thin wall thickness: Not available due to invalid layer height."));
 		return out;
 	}
 
@@ -259,14 +259,14 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
     if (num_perimeters > 0) {
         int num_lines = std::min(num_perimeters * 2, 10);
         char buf[256];
-        sprintf(buf, _LC("Recommended object thin wall thickness for layer height %.2f and "), layer_height);
+        sprintf(buf, _CHB(L("Recommended object thin wall thickness for layer height %.2f and ")), layer_height);
         out += buf;
         // Start with the width of two closely spaced 
         double width = external_perimeter_flow.width + external_perimeter_flow.spacing();
         for (int i = 2; i <= num_lines; thin_walls ? ++ i : i += 2) {
             if (i > 2)
                 out += ", ";
-            sprintf(buf, _LC("%d lines: %.2lf mm"), i, width);
+            sprintf(buf, _CHB(L("%d lines: %.2lf mm")), i, width);
             out += buf;
             width += perimeter_flow.spacing() * (thin_walls ? 1.f : 2.f);
         }

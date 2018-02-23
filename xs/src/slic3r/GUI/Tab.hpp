@@ -179,7 +179,7 @@ class TabPrint : public Tab
 public:
 	TabPrint() {}
 	TabPrint(wxNotebook* parent, bool no_controller) : 
-		Tab(parent, _L("Print Settings"), "print", no_controller) {}
+		Tab(parent, _(L("Print Settings")), "print", no_controller) {}
 	~TabPrint(){}
 
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
@@ -199,7 +199,7 @@ class TabFilament : public Tab
 public:
 	TabFilament() {}
 	TabFilament(wxNotebook* parent, bool no_controller) : 
-		Tab(parent, _L("Filament Settings"), "filament", no_controller) {}
+		Tab(parent, _(L("Filament Settings")), "filament", no_controller) {}
 	~TabFilament(){}
 
 	void		build() override;
@@ -225,7 +225,7 @@ public:
 
 	TabPrinter() {}
 	TabPrinter(wxNotebook* parent, bool no_controller, bool is_disabled_btn_browse, bool is_user_agent) :
-		Tab(parent, _L("Printer Settings"), "printer", no_controller),
+		Tab(parent, _(L("Printer Settings")), "printer", no_controller),
 		m_is_disabled_button_browse(is_disabled_btn_browse), 
 		m_is_user_agent(is_user_agent) {}
 	~TabPrinter(){}
@@ -245,7 +245,7 @@ public:
 class SavePresetWindow :public wxDialog
 {
 public:
-	SavePresetWindow(wxWindow* parent) :wxDialog(parent, wxID_ANY, _L("Save preset")){}
+	SavePresetWindow(wxWindow* parent) :wxDialog(parent, wxID_ANY, _(L("Save preset"))){}
 	~SavePresetWindow(){}
 
 	std::string		m_chosen_name;
