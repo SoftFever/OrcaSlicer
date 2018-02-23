@@ -125,6 +125,7 @@ const GCodePreviewData::Color GCodePreviewData::Extrusion::Default_Extrusion_Rol
     Color(0.0f, 0.5f, 0.0f, 1.0f),   // erSupportMaterial
     Color(0.0f, 0.0f, 0.5f, 1.0f),   // erSupportMaterialInterface
     Color(0.7f, 0.89f, 0.67f, 1.0f), // erWipeTower
+    Color(1.0f, 1.0f, 0.0f, 1.0f),   // erCustom
     Color(0.0f, 0.0f, 0.0f, 1.0f)    // erMixed
 };
 
@@ -144,6 +145,7 @@ const std::string GCodePreviewData::Extrusion::Default_Extrusion_Role_Names[Num_
     "Support material",
     "Support material interface",
     "Wipe tower",
+    "Custom",
     "Mixed"
 };
 
@@ -360,8 +362,11 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
     {
     case Extrusion::FeatureType:
         {
-            items.reserve(erMixed - erPerimeter + 1);
-            for (unsigned int i = (unsigned int)erPerimeter; i < (unsigned int)erMixed; ++i)
+            ExtrusionRole first_valid = erPerimeter;
+            ExtrusionRole last_valid = erCustom;
+
+            items.reserve(last_valid - first_valid + 1);
+            for (unsigned int i = (unsigned int)first_valid; i <= (unsigned int)last_valid; ++i)
             {
                 items.emplace_back(extrusion.role_names[i], extrusion.role_colors[i]);
             }

@@ -1,6 +1,8 @@
 #include "wxExtensions.hpp"
 
-const unsigned int wxCheckListBoxComboPopup::Height = 210;
+const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
+const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
+const unsigned int wxCheckListBoxComboPopup::DefaultItemHeight = 18;
 
 bool wxCheckListBoxComboPopup::Create(wxWindow* parent)
 {
@@ -25,16 +27,55 @@ wxString wxCheckListBoxComboPopup::GetStringValue() const
 wxSize wxCheckListBoxComboPopup::GetAdjustedSize(int minWidth, int prefHeight, int maxHeight)
 {
     // matches owner wxComboCtrl's width
+    // and sets height dinamically in dependence of contained items count
 
     wxComboCtrl* cmb = GetComboCtrl();
     if (cmb != nullptr)
     {
         wxSize size = GetComboCtrl()->GetSize();
-        size.SetHeight(Height);
+
+        unsigned int count = GetCount();
+        if (count > 0)
+            size.SetHeight(count * DefaultItemHeight);
+        else
+            size.SetHeight(DefaultHeight);
+
         return size;
     }
     else
-        return wxSize(200, Height);
+        return wxSize(DefaultWidth, DefaultHeight);
+}
+
+void wxCheckListBoxComboPopup::OnKeyEvent(wxKeyEvent& evt)
+{
+    // filters out all the keys which are not working properly
+    switch (evt.GetKeyCode())
+    {
+    case WXK_LEFT:
+    case WXK_UP:
+    case WXK_RIGHT:
+    case WXK_DOWN:
+    case WXK_PAGEUP:
+    case WXK_PAGEDOWN:
+    case WXK_END:
+    case WXK_HOME:
+    case WXK_NUMPAD_LEFT:
+    case WXK_NUMPAD_UP:
+    case WXK_NUMPAD_RIGHT:
+    case WXK_NUMPAD_DOWN:
+    case WXK_NUMPAD_PAGEUP:
+    case WXK_NUMPAD_PAGEDOWN:
+    case WXK_NUMPAD_END:
+    case WXK_NUMPAD_HOME:
+    {
+        break;
+    }
+    default:
+    {
+        evt.Skip();
+        break;
+    }
+    }
 }
 
 void wxCheckListBoxComboPopup::OnCheckListBox(wxCommandEvent& evt)
@@ -48,6 +89,8 @@ void wxCheckListBoxComboPopup::OnCheckListBox(wxCommandEvent& evt)
         event.SetEventObject(cmb);
         cmb->ProcessWindowEvent(event);
     }
+
+    evt.Skip();
 }
 
 void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)

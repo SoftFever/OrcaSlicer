@@ -85,7 +85,11 @@
 
     int count()
         %code{% RETVAL = THIS->volumes.size(); %};
+        
+    std::vector<double> get_current_print_zs()
+        %code{% RETVAL = THIS->get_current_print_zs(); %};
 
+        
     void set_range(double low, double high);
 
     void render_VBOs() const;
