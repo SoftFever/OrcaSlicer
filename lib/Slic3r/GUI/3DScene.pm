@@ -2044,4 +2044,11 @@ sub reset_legend_texture {
     Slic3r::GUI::_3DScene::reset_legend_texture();
 }
 
+sub get_current_print_zs {
+    my ($self) = @_;
+    
+    my $count = $self->volumes->get_current_print_zs();
+    return $count;
+}
+
 1;
