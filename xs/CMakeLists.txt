@@ -603,6 +603,17 @@ elseif (NOT MSVC)
     target_link_libraries(slic3r -lstdc++)
 endif ()
 
+if (MSVC)
+    # Here we associate some additional properties with the MSVC projects to enable compilation and debugging out of the box.
+    # It seems a props file needs to be copied to the same dir as the proj file, otherwise MSVC doesn't load it up.
+    # For copying, the configure_file() function seems to work much better than the file() function.
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl64d.props" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+    set_target_properties(XS PROPERTIES VS_USER_PROPS "xs.wperl64d.props")
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/slic3r.wperl64d.props" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+    set_target_properties(slic3r PROPERTIES VS_USER_PROPS "slic3r.wperl64d.props")
+endif ()
+
+
 # Installation
 install(TARGETS XS DESTINATION lib/slic3r-prusa3d/auto/Slic3r/XS)
 install(FILES lib/Slic3r/XS.pm DESTINATION lib/slic3r-prusa3d/Slic3r)
