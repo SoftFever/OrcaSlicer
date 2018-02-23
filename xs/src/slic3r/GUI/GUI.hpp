@@ -39,8 +39,9 @@ inline t_file_wild_card& get_file_wild_card() {
 		FILE_WILDCARDS["known"] = "Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA";
 		FILE_WILDCARDS["stl"] = "STL files (*.stl)|*.stl;*.STL";
 		FILE_WILDCARDS["obj"] = "OBJ files (*.obj)|*.obj;*.OBJ";
-		FILE_WILDCARDS["amf"] = "AMF files (*.amf)|*.amf;*.AMF;*.xml;*.XML";
-		FILE_WILDCARDS["prusa"] = "Prusa Control files (*.prusa)|*.prusa;*.PRUSA";
+        FILE_WILDCARDS["amf"] = "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML";
+        FILE_WILDCARDS["3mf"] = "3MF files (*.3mf)|*.3mf;*.3MF;";
+        FILE_WILDCARDS["prusa"] = "Prusa Control files (*.prusa)|*.prusa;*.PRUSA";
 		FILE_WILDCARDS["ini"] = "INI files *.ini|*.ini;*.INI";
 		FILE_WILDCARDS["gcode"] = "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC";
 		FILE_WILDCARDS["svg"] = "SVG files *.svg|*.svg;*.SVG";
