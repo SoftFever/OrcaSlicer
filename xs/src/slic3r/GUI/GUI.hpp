@@ -23,10 +23,16 @@ class AppConfig;
 class DynamicPrintConfig;
 class TabIface;
 
-//! macro used to localization, return wxString
-#define _L(s) wxGetTranslation(s)
-//! macro used to localization, return const CharType *
-#define _LU8(s) wxGetTranslation(s).ToUTF8().data()
+// !!! If you needed to translate some wxString,
+// !!! please use _(L(string))
+// !!! _() - is a standard wxWidgets macro to translate
+// !!! L() is used only for marking localizable string 
+// !!! It will be used in "xgettext" to create a Locating Message Catalog.
+#define L(s) s
+
+//! macro used to localization, return wxScopedCharBuffer
+//! With wxConvUTF8 explicitly specify that the source string is already in UTF-8 encoding
+#define _CHB(s) wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str()
 
 namespace GUI {
 
@@ -59,22 +65,31 @@ void break_to_debugger();
 void set_wxapp(wxApp *app);
 void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
+void set_app_config(AppConfig *app_config);
+
+AppConfig*	get_app_config();
+wxApp*		get_app();
 
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
+
+// Create "Preferences" dialog after selecting menu "Preferences" in Perl part
+void open_preferences_dialog(int event_preferences);
+
 // Create a new preset tab (print, filament and printer),
-void create_preset_tabs(PresetBundle *preset_bundle, AppConfig *app_config, 
+void create_preset_tabs(PresetBundle *preset_bundle, 
 						bool no_controller, bool is_disabled_button_browse,	bool is_user_agent,
 						int event_value_change, int event_presets_changed,
 						int event_button_browse, int event_button_test);
 TabIface* get_preset_tab_iface(char *name);
 
 // add it at the end of the tab panel.
-void add_created_tab(Tab* panel, PresetBundle *preset_bundle, AppConfig *app_config);
+void add_created_tab(Tab* panel, PresetBundle *preset_bundle);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value, int opt_index = 0);
 
 void show_error(wxWindow* parent, wxString message);
 void show_info(wxWindow* parent, wxString message, wxString title);
+void warning_catcher(wxWindow* parent, wxString message);
 
 // load language saved at application config 
 bool load_language();
@@ -97,6 +112,11 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 // Returns the current state of the items listed in the wxCheckListBoxComboPopup contained in the given wxComboCtrl,
 // encoded inside an int.
 int combochecklist_get_flags(wxComboCtrl* comboCtrl);
+
+// Return translated std::string as a wxString
+wxString	L_str(std::string str);
+// Return wxString from std::string in UTF8
+wxString	from_u8(std::string str);
 
 }
 }

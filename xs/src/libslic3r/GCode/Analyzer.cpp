@@ -150,7 +150,13 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
 {
     // processes 'special' comments contained in line
     if (_process_tags(line))
+    {
+#if 0
+        // DEBUG ONLY: puts the line back into the gcode
+        m_process_output += line.raw() + "\n";
+#endif
         return;
+    }
 
     // sets new start position/extrusion
     _set_start_position(_get_end_position());

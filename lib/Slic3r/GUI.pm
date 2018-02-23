@@ -26,7 +26,6 @@ use Slic3r::GUI::Plater::ObjectCutDialog;
 use Slic3r::GUI::Plater::ObjectSettingsDialog;
 use Slic3r::GUI::Plater::LambdaObjectDialog;
 use Slic3r::GUI::Plater::OverrideSettingsPanel;
-use Slic3r::GUI::Preferences;
 use Slic3r::GUI::ProgressStatusBar;
 use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::OptionsGroup::Field;
@@ -69,7 +68,9 @@ our $grey = Wx::Colour->new(200,200,200);
 
 # Events to be sent from a C++ menu implementation:
 # 1) To inform about a change of the application language.
-our $LANGUAGE_CHANGE_EVENT    = Wx::NewEventType;
+our $LANGUAGE_CHANGE_EVENT  = Wx::NewEventType;
+# 2) To inform about a change of Preferences.
+our $PREFERENCES_EVENT      = Wx::NewEventType;
 
 sub OnInit {
     my ($self) = @_;
@@ -84,12 +85,11 @@ sub OnInit {
     # Mac: "~/Library/Application Support/Slic3r"
     Slic3r::set_data_dir($datadir || Wx::StandardPaths::Get->GetUserDataDir);
     Slic3r::GUI::set_wxapp($self);
-    Slic3r::GUI::load_language();
-    
+
     $self->{notifier} = Slic3r::GUI::Notifier->new;
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
     $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
-    
+
     # just checking for existence of Slic3r::data_dir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
     eval { $self->{preset_bundle}->setup_directories() };
@@ -102,6 +102,9 @@ sub OnInit {
     $self->{app_config}->load if ! $run_wizard;
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
+
+    Slic3r::GUI::set_app_config($self->{app_config});
+    Slic3r::GUI::load_language();
 
     # Suppress the '- default -' presets.
     $self->{preset_bundle}->set_default_suppressed($self->{app_config}->get('no_defaults') ? 1 : 0);
@@ -120,6 +123,7 @@ sub OnInit {
         no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
         lang_ch_event   => $LANGUAGE_CHANGE_EVENT,
+        preferences_event => $PREFERENCES_EVENT,
     );
     $self->SetTopWindow($frame);
 
@@ -144,6 +148,11 @@ sub OnInit {
     EVT_COMMAND($self, -1, $LANGUAGE_CHANGE_EVENT, sub{
         $self->recreate_GUI;
     });
+
+    # The following event is emited by the C++ menu implementation of preferences change.
+    EVT_COMMAND($self, -1, $PREFERENCES_EVENT, sub{
+        $self->update_ui_from_settings;
+    });
     
     return 1;
 }
@@ -156,6 +165,7 @@ sub recreate_GUI{
         no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
         lang_ch_event   => $LANGUAGE_CHANGE_EVENT,
+        preferences_event => $PREFERENCES_EVENT,
     );
 
     if($topwindow)
