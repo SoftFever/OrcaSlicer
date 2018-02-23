@@ -19,6 +19,18 @@ static const float DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 per
 
 static const float PREVIOUS_FEEDRATE_THRESHOLD = 0.0001f;
 
+#if ENABLE_MOVE_STATS
+static const std::string MOVE_TYPE_STR[Slic3r::GCodeTimeEstimator::Block::Num_Types] =
+{
+    "Noop",
+    "Retract",
+    "Unretract",
+    "Tool_change",
+    "Move",
+    "Extrude"
+};
+#endif // ENABLE_MOVE_STATS
+
 namespace Slic3r {
 
     void GCodeTimeEstimator::Feedrates::reset()
@@ -139,6 +151,14 @@ namespace Slic3r {
         return (acceleration == 0.0f) ? 0.0f : (2.0f * acceleration * distance - sqr(initial_rate) + sqr(final_rate)) / (4.0f * acceleration);
     }
 
+#if ENABLE_MOVE_STATS
+    GCodeTimeEstimator::MoveStats::MoveStats()
+        : count(0)
+        , time(0.0f)
+    {
+    }
+#endif // ENABLE_MOVE_STATS
+
     GCodeTimeEstimator::GCodeTimeEstimator()
     {
         reset();
@@ -155,6 +175,10 @@ namespace Slic3r {
 
         _calculate_time();
 
+#if ENABLE_MOVE_STATS
+        _log_moves_stats();
+#endif // ENABLE_MOVE_STATS
+
         _reset_blocks();
         _reset();
     }
@@ -165,6 +189,10 @@ namespace Slic3r {
 
         _parser.parse_file(file, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
         _calculate_time();
+
+#if ENABLE_MOVE_STATS
+        _log_moves_stats();
+#endif // ENABLE_MOVE_STATS
 
         _reset_blocks();
         _reset();
@@ -179,6 +207,10 @@ namespace Slic3r {
         for (const std::string& line : gcode_lines)
             _parser.parse_line(line, action);
         _calculate_time();
+
+#if ENABLE_MOVE_STATS
+        _log_moves_stats();
+#endif // ENABLE_MOVE_STATS
 
         _reset_blocks();
         _reset();
@@ -208,6 +240,11 @@ namespace Slic3r {
     {
         PROFILE_FUNC();
         _calculate_time();
+
+#if ENABLE_MOVE_STATS
+        _log_moves_stats();
+#endif // ENABLE_MOVE_STATS
+
         _reset_blocks();
         _reset();
     }
@@ -393,6 +430,9 @@ namespace Slic3r {
     void GCodeTimeEstimator::reset()
     {
         _time = 0.0f;
+#if ENABLE_MOVE_STATS
+        _moves_stats.clear();
+#endif // ENABLE_MOVE_STATS
         _reset_blocks();
         _reset();
     }
@@ -448,9 +488,24 @@ namespace Slic3r {
 
         for (const Block& block : _blocks)
         {
+#if ENABLE_MOVE_STATS
+            float block_time = 0.0f;
+            block_time += block.acceleration_time();
+            block_time += block.cruise_time();
+            block_time += block.deceleration_time();
+            _time += block_time;
+
+            MovesStatsMap::iterator it = _moves_stats.find(block.move_type);
+            if (it == _moves_stats.end())
+                it = _moves_stats.insert(MovesStatsMap::value_type(block.move_type, MoveStats())).first;
+
+            it->second.count += 1;
+            it->second.time += block_time;
+#else
             _time += block.acceleration_time();
             _time += block.cruise_time();
             _time += block.deceleration_time();
+#endif // ENABLE_MOVE_STATS
         }
     }
 
@@ -745,6 +800,28 @@ namespace Slic3r {
         {
             set_axis_position((EAxis)a, new_pos[a]);
         }
+
+#if ENABLE_MOVE_STATS
+        // detects block move type
+        block.move_type = Block::Noop;
+
+        if (block.delta_pos[E] < 0.0f)
+        {
+            if ((block.delta_pos[X] != 0.0f) || (block.delta_pos[Y] != 0.0f) || (block.delta_pos[Z] != 0.0f))
+                block.move_type = Block::Move;
+            else
+                block.move_type = Block::Retract;
+        }
+        else if (block.delta_pos[E] > 0.0f)
+        {
+            if ((block.delta_pos[X] == 0.0f) && (block.delta_pos[Y] == 0.0f) && (block.delta_pos[Z] == 0.0f))
+                block.move_type = Block::Unretract;
+            else if ((block.delta_pos[X] != 0.0f) || (block.delta_pos[Y] != 0.0f))
+                block.move_type = Block::Extrude;
+        }
+        else if ((block.delta_pos[X] != 0.0f) || (block.delta_pos[Y] != 0.0f) || (block.delta_pos[Z] != 0.0f))
+            block.move_type = Block::Move;
+#endif // ENABLE_MOVE_STATS
 
         // adds block to blocks list
         _blocks.emplace_back(block);
@@ -1064,4 +1141,24 @@ namespace Slic3r {
             next->flags.recalculate = false;
         }
     }
+
+#if ENABLE_MOVE_STATS
+    void GCodeTimeEstimator::_log_moves_stats() const
+    {
+        float moves_count = 0.0f;
+        for (const MovesStatsMap::value_type& move : _moves_stats)
+        {
+            moves_count += (float)move.second.count;
+        }
+
+        for (const MovesStatsMap::value_type& move : _moves_stats)
+        {
+            std::cout << MOVE_TYPE_STR[move.first];
+            std::cout << ": count " << move.second.count << " (" << 100.0f * (float)move.second.count / moves_count << "%)";
+            std::cout << " - time: " << move.second.time << "s (" << 100.0f * move.second.time / _time << "%)";
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+#endif // ENABLE_MOVE_STATS
 }
