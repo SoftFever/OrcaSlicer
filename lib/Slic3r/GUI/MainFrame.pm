@@ -297,8 +297,7 @@ sub _init_menubar {
         $fileMenu->AppendSeparator();
         # Cmd+, is standard on OS X - what about other operating systems?
         $self->_append_menu_item($fileMenu, L("Preferences…\tCtrl+,"), L('Application preferences'), sub {
-            # Slic3r::GUI::Preferences->new($self)->ShowModal;
-            # It's in C++ part now
+            # Opening the C++ preferences dialog.
             Slic3r::GUI::open_preferences_dialog($self->{preferences_event});
         }, wxID_PREFERENCES);
         $fileMenu->AppendSeparator();
