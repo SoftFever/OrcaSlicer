@@ -405,11 +405,15 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			val = boost::any_cast<double>(value);
 			break;
 		}
-		case coPercents:
-		case coFloats:{
-			double& val = config.opt_float(opt_key, 0);
-			val = boost::any_cast<double>(value);
+		case coPercents:{
+			ConfigOptionPercents* vec_new = new ConfigOptionPercents{ boost::any_cast<double>(value) };
+			config.option<ConfigOptionPercents>(opt_key)->set_at(vec_new, opt_index, opt_index);
 			break;
+		}
+		case coFloats:{
+			ConfigOptionFloats* vec_new = new ConfigOptionFloats{ boost::any_cast<double>(value) };
+			config.option<ConfigOptionFloats>(opt_key)->set_at(vec_new, opt_index, opt_index);
+ 			break;
 		}			
 		case coString:
 			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
