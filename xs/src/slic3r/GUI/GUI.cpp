@@ -336,7 +336,7 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change)
 			}
 		}
 	});
-	menu->Append(local_menu, _T("&Localization"));
+	menu->Append(local_menu, _(L("&Localization")));
 //#endif
 }
 

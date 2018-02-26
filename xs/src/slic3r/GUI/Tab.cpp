@@ -768,14 +768,15 @@ void TabPrint::update()
 		get_field(el)->toggle(have_wipe_tower);
 
 	m_recommended_thin_wall_thickness_description_line->SetText(
-		PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));
+		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 
 	Thaw();
 }
 
 void TabPrint::OnActivate()
 {
-	m_recommended_thin_wall_thickness_description_line->SetText(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));
+	m_recommended_thin_wall_thickness_description_line->SetText(
+		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 }
 
 void TabFilament::build()
@@ -1044,7 +1045,7 @@ void TabPrinter::build()
 			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e){
 				if (m_event_button_browse > 0){
 					wxCommandEvent event(m_event_button_browse);
-					event.SetString(_(L("Button BROWSE was clicked!")));
+					event.SetString("Button BROWSE was clicked!");
 					g_wxMainFrame->ProcessWindowEvent(event);
 				}
 // 				// # look for devices
@@ -1079,7 +1080,7 @@ void TabPrinter::build()
 			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e) {
 				if (m_event_button_test > 0){
 					wxCommandEvent event(m_event_button_test);
-					event.SetString(_(L("Button TEST was clicked!")));
+					event.SetString("Button TEST was clicked!");
 					g_wxMainFrame->ProcessWindowEvent(event);
 				}
 // 				my $ua = LWP::UserAgent->new;
