@@ -1,6 +1,7 @@
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
 #include <float.h>
+#include "slic3r/GUI/GUI.hpp"
 
 namespace Slic3r {
 
@@ -132,21 +133,21 @@ const GCodePreviewData::Color GCodePreviewData::Extrusion::Default_Extrusion_Rol
 // todo: merge with Slic3r::ExtrusionRole2String() from GCode.cpp
 const std::string GCodePreviewData::Extrusion::Default_Extrusion_Role_Names[Num_Extrusion_Roles]
 {
-    "None",
-    "Perimeter",
-    "External perimeter",
-    "Overhang perimeter",
-    "Internal infill",
-    "Solid infill",
-    "Top solid infill",
-    "Bridge infill",
-    "Gap fill",
-    "Skirt",
-    "Support material",
-    "Support material interface",
-    "Wipe tower",
-    "Custom",
-    "Mixed"
+    L("None"),
+    L("Perimeter"),
+    L("External perimeter"),
+    L("Overhang perimeter"),
+    L("Internal infill"),
+    L("Solid infill"),
+    L("Top solid infill"),
+    L("Bridge infill"),
+    L("Gap fill"),
+    L("Skirt"),
+    L("Support material"),
+    L("Support material interface"),
+    L("Wipe tower"),
+    L("Custom"),
+    L("Mixed")
 };
 
 const GCodePreviewData::Extrusion::EViewType GCodePreviewData::Extrusion::Default_View_Type = GCodePreviewData::Extrusion::FeatureType;
@@ -325,15 +326,15 @@ std::string GCodePreviewData::get_legend_title() const
     switch (extrusion.view_type)
     {
     case Extrusion::FeatureType:
-        return "Feature type";
+        return L("Feature type");
     case Extrusion::Height:
-        return "Height (mm)";
+        return L("Height (mm)");
     case Extrusion::Width:
-        return "Width (mm)";
+        return L("Width (mm)");
     case Extrusion::Feedrate:
-        return "Speed (mm/s)";
+        return L("Speed (mm/s)");
     case Extrusion::Tool:
-        return "Tool";
+        return L("Tool");
     }
 
     return "";

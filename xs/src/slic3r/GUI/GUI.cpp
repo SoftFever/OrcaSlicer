@@ -531,7 +531,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 
         for (const std::string& item : items_str)
         {
-            popup->Append(item);
+            popup->Append(from_u8(item));
         }
 
         for (unsigned int i = 0; i < popup->GetCount(); ++i)
