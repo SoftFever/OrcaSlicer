@@ -1732,9 +1732,9 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloat(15.);
 
     def = this->add("wipe_tower_rotation_angle", coFloat);
-    def->label = "Wipe tower rotation angle";
-    def->tooltip = "Wipe tower rotation angle with respect to x-axis ";
-    def->sidetext = "degrees";
+    def->label = _L("Wipe tower rotation angle");
+    def->tooltip = _L("Wipe tower rotation angle with respect to x-axis ");
+    def->sidetext = _L("degrees");
     def->cli = "wipe-tower-rotation-angle=f";
     def->default_value = new ConfigOptionFloat(0.);
 

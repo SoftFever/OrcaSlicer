@@ -446,6 +446,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_y");
 		optgroup->append_single_option_line("wipe_tower_width");
 		optgroup->append_single_option_line("wipe_tower_per_color_wipe");
+		optgroup->append_single_option_line("wipe_tower_rotation_angle");
 
 		optgroup = page->new_optgroup(_L("Advanced"));
 		optgroup->append_single_option_line("interface_shells");
@@ -762,7 +763,7 @@ void TabPrint::update()
 
 	bool have_wipe_tower = m_config->opt_bool("wipe_tower");
 	vec_enable.resize(0);
-	vec_enable = {	"wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe"};
+	vec_enable = {	"wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe", "wipe_tower_rotation_angle"};
 	for (auto el : vec_enable)
 		get_field(el)->toggle(have_wipe_tower);
 
