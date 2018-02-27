@@ -529,10 +529,13 @@ namespace Slic3r {
             {
                 // config data has been found, this model was saved using slic3r pe
 
-                // apply object's config data
+                // apply object's name and config data
                 for (const Metadata& metadata : obj_metadata->second.metadata)
                 {
-                    object.second->config.set_deserialize(metadata.key, metadata.value);
+                    if (metadata.key == "name")
+                        object.second->name = metadata.value;
+                    else
+                        object.second->config.set_deserialize(metadata.key, metadata.value);
                 }
 
                 // select object's detected volumes
@@ -1344,10 +1347,13 @@ namespace Slic3r {
             stl_get_size(&stl);
             volume->mesh.repair();
 
-            // apply volume's config data
+            // apply volume's name and config data
             for (const Metadata& metadata : volume_data.metadata)
             {
-                volume->config.set_deserialize(metadata.key, metadata.value);
+                if (metadata.key == "name")
+                    volume->name = metadata.value;
+                else
+                    volume->config.set_deserialize(metadata.key, metadata.value);
             }
         }
 
@@ -1776,6 +1782,10 @@ namespace Slic3r {
             {
                 stream << " <" << OBJECT_TAG << " id=\"" << obj_metadata.first << "\">\n";
 
+                // stores object's name
+                if (!obj->name.empty())
+                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"name\" " << VALUE_ATTR << "=\"" << obj->name << "\"/>\n";
+
                 // stores object's config data
                 for (const std::string& key : obj->config.keys())
                 {
@@ -1795,11 +1805,16 @@ namespace Slic3r {
                             stream << FIRST_TRIANGLE_ID_ATTR << "=\"" << it->second.first_triangle_id << "\" ";
                             stream << LAST_TRIANGLE_ID_ATTR << "=\"" << it->second.last_triangle_id << "\">\n";
 
+                            // stores volume's name
+                            if (!volume->name.empty())
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"name\" " << VALUE_ATTR << "=\"" << volume->name << "\"/>\n";
+
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys())
                             {
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.serialize(key) << "\"/>\n";
                             }
+
                             stream << "  </" << VOLUME_TAG << ">\n";
                         }
                     }
