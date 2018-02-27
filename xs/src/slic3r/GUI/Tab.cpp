@@ -1614,6 +1614,7 @@ void Tab::update_ui_from_settings()
 {
 	// Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
 	// in application preferences.
+	m_show_btn_incompatible_presets = get_app_config()->get("show_incompatible_presets")[0] == '1' ? true : false;
 	bool show = m_show_btn_incompatible_presets && m_presets->name().compare("printer") != 0;
 	show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
 	// If the 'show / hide presets' button is hidden, hide the incompatible presets.

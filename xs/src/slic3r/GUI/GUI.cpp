@@ -477,7 +477,6 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 
 void add_created_tab(Tab* panel, PresetBundle *preset_bundle)
 {
-	panel->m_show_btn_incompatible_presets = g_AppConfig->get("show_incompatible_presets").empty();
 	panel->create_preset_tab(preset_bundle);
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
