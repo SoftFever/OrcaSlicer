@@ -1,50 +1,46 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-28 13:53+0100\n"
-"PO-Revision-Date: 2018-02-28 14:04+0100\n"
-"Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
-"Language-Team: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"Language: uk\n"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:39
 msgid "Shape"
-msgstr "Вигляд (Форма)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:46
 msgid "Rectangular"
-msgstr "Прямокутний"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:50
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1191
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:408
 msgid "Size"
-msgstr "Розмір"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:51
 msgid "Size in X and Y of the rectangular plate."
-msgstr "Розмір прямокутної подложки за X та Y."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:57
 msgid "Origin"
-msgstr "Початок координат"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:58
 msgid ""
 "Distance of the 0,0 G-code coordinate from the front left corner of the "
 "rectangle."
-msgstr "Відстань координат 0,0 G-коду від нижнього лівого кута прямокутника."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:62
 msgid "Circular"
-msgstr "Круговий"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:65
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:129
@@ -77,98 +73,96 @@ msgstr "Круговий"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1737
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1747
 msgid "mm"
-msgstr "мм"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:66
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:431
 msgid "Diameter"
-msgstr "Діаметр"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:67
 msgid ""
 "Diameter of the print bed. It is assumed that origin (0,0) is located in the "
 "center."
 msgstr ""
-"Діаметр подложки. Передбачається, що початок координат (0,0) знаходиться в "
-"центрі."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:71
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:150
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:92
 msgid "Custom"
-msgstr "Користувацький"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:75
 msgid "Load shape from STL..."
-msgstr "Завантажте форму з STL ..."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:120
 msgid "Settings"
-msgstr "Налаштування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:298
 msgid "Choose a file to import bed shape from (STL/OBJ/AMF/3MF/PRUSA):"
-msgstr "Виберіть файл, щоб імпортувати форму полотна з (STL/OBJ/AMF/PRUSA):"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:315
 msgid "Error! "
-msgstr "Помилка! "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:324
 msgid "The selected file contains no geometry."
-msgstr "Обраний файл не містить геометрії."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:328
 msgid ""
 "The selected file contains several disjoint areas. This is not supported."
-msgstr "Обраний файл містить декілька непересічних областей. Не підтримується."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.hpp:42
 msgid "Bed Shape"
-msgstr "Форма полотна"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:224
 msgid "Array of language names and identifiers should have the same size."
-msgstr "Масив імен мов та їх ідентифікаторів має бути однакового розміру."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:235
 msgid "Select the language"
-msgstr "Оберіть мову"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:235
 msgid "Language"
-msgstr "Мова"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:300
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:170
 msgid "Default"
-msgstr "За замовчуванням"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:325
 msgid "Change Application Language"
-msgstr "Змінити мову застосування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:332
 msgid "Application will be restarted"
-msgstr "Застосування буде перезапущене"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:332
 msgid "Attention!"
-msgstr "Увага!"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:339
 msgid "&Localization"
-msgstr "Локалізація"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:488
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:470
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1300
 msgid "Error"
-msgstr "Помилка"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:493
 msgid "Notice"
-msgstr "Зауваження"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:498
 msgid "GLUquadricObjPtr | Attempt to free unreferenced scalar"
@@ -176,41 +170,41 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:500
 msgid "Warning"
-msgstr "Застереження"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:50
 msgid "Save current "
-msgstr "Зберегти поточний "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:51
 msgid "Delete this preset"
-msgstr "Видалити це налаштування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:313
 msgid "Layers and perimeters"
-msgstr "Шари та периметри"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:314
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:777
 msgid "Layer height"
-msgstr "Висота шару"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:318
 msgid "Vertical shells"
-msgstr "Вертикальні оболонки"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:329
 msgid "Horizontal shells"
-msgstr "Горизонтальні оболонки"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:330
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1314
 msgid "Solid layers"
-msgstr "Суцільні шари"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:335
 msgid "Quality (slower slicing)"
-msgstr "Якість (повільне нарізання)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:342
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:356
@@ -223,7 +217,7 @@ msgstr "Якість (повільне нарізання)"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:736
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1733
 msgid "Advanced"
-msgstr "Розширений"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:346
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:347
@@ -241,25 +235,25 @@ msgstr "Розширений"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1263
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1280
 msgid "Infill"
-msgstr "Заповнення"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:352
 msgid "Reducing printing time"
-msgstr "Зниження часу друку"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:364
 msgid "Skirt and brim"
-msgstr "Плінтус та край"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:365
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:146
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:88
 msgid "Skirt"
-msgstr "Плінтус"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:371
 msgid "Brim"
-msgstr "Край"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:374
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:375
@@ -286,15 +280,15 @@ msgstr "Край"
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:147
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:89
 msgid "Support material"
-msgstr "Підтримка"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:380
 msgid "Raft"
-msgstr "Пліт"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:384
 msgid "Options for support material and raft"
-msgstr "Варіанти для опорного матеріалу та плоту"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:398
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:118
@@ -308,31 +302,31 @@ msgstr "Варіанти для опорного матеріалу та пло�
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1625
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:71
 msgid "Speed"
-msgstr "Швидкість"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:399
 msgid "Speed for print moves"
-msgstr "Швидкість друкарських рухів"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:411
 msgid "Speed for non-print moves"
-msgstr "Швидкість недрукарських рухів"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:414
 msgid "Modifiers"
-msgstr "Модифікатори"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:417
 msgid "Acceleration control (advanced)"
-msgstr "Контроль прискорення (розширений)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:424
 msgid "Autospeed (advanced)"
-msgstr "Автоматична швидкість (розширена)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:430
 msgid "Multiple Extruders"
-msgstr "Кілька екструдерів"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:431
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:966
@@ -343,54 +337,54 @@ msgstr "Кілька екструдерів"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1445
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1471
 msgid "Extruders"
-msgstr "Екструдери"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:438
 msgid "Ooze prevention"
-msgstr "Профілактика просочування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:442
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:149
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:91
 msgid "Wipe tower"
-msgstr "Вежа вичищування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:453
 msgid "Extrusion width"
-msgstr "Ширина екструзії"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:463
 msgid "Overlap"
-msgstr "Перекриття"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:466
 msgid "Flow"
-msgstr "Потік"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:469
 msgid "Other"
-msgstr "Інше"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:476
 msgid "Output options"
-msgstr "Параметри виводу"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:477
 msgid "Sequential printing"
-msgstr "Послідовне друкування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:479
 msgid "Extruder clearance (mm)"
-msgstr "Розмір екструдера (мм)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:488
 msgid "Output file"
-msgstr "Вихідний файл"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:494
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1001
 msgid "Post-processing scripts"
-msgstr "Скрипти пост-обробки"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:500
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:501
@@ -399,24 +393,24 @@ msgstr "Скрипти пост-обробки"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1156
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1157
 msgid "Notes"
-msgstr "Примітки"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:507
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:867
 msgid "Dependencies"
-msgstr "Залежності"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:508
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:868
 msgid "Profile dependencies"
-msgstr "Залежності профілю"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:509
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:869
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1668
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:143
 msgid "Compatible printers"
-msgstr "Сумісні принтери"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:533
 #, no-c-format
@@ -430,18 +424,10 @@ msgid ""
 "\n"
 "Shall I adjust those settings in order to enable Spiral Vase?"
 msgstr ""
-"Режим спіральної вази вимагає:\n"
-"- один периметр\n"
-"- немає верхніх щільних шарів\n"
-"- 0% щільність заповнення\n"
-"- немає підтримуючого матеріалу\n"
-"- не забезпечує товщини вертикальної оболонки\n"
-"\n"
-"Чи потрібно змінити ці налаштування, щоб увімкнути режим Спіральної вази?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:540
 msgid "Spiral Vase"
-msgstr "Спіральна ваза"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:560
 msgid ""
@@ -451,17 +437,12 @@ msgid ""
 "\n"
 "Shall I adjust those settings in order to enable the Wipe Tower?"
 msgstr ""
-"Вичіщуюча веж в даний час підтримує тільки:\n"
-"- висота першого шару 0,2 мм\n"
-"- висота шару від 0,15 мм до 0,35 мм\n"
-"\n"
-"Чи потрібно коригувати ці налаштування, щоб увімкнути вичіщуючу веж?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:564
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:585
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:602
 msgid "Wipe Tower"
-msgstr "Вичіщуюча веж"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:581
 msgid ""
@@ -473,13 +454,6 @@ msgid ""
 "\n"
 "Shall I adjust those settings in order to enable the Wipe Tower?"
 msgstr ""
-"Вичіщуюча веж в даний час підтримує лише нерозчинну підтримку\n"
-"якщо вони друкуються з поточним екструдером, не запускаючи зміну "
-"інструменту.\n"
-"(обидва значення support_material_extruder і "
-"support_material_interface_extruder повинні бути встановлені на 0).\n"
-"\n"
-"Чи потрібно коригувати ці налаштування, щоб увімкнути вичіщуючу веж?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:599
 msgid ""
@@ -488,11 +462,6 @@ msgid ""
 "\n"
 "Shall I synchronize support layers in order to enable the Wipe Tower?"
 msgstr ""
-"Для того, щоб Вичіщуюча веж працювала з розчинними підтримками, шари "
-"підтримки\n"
-"повинні бути синхронізовані з шаром об'єкта.\n"
-"\n"
-"Чи потрібно синхронізувати шари підтримки, щоб увімкнути вичіщуючу веж?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:617
 msgid ""
@@ -501,18 +470,14 @@ msgid ""
 "\n"
 "Shall I adjust those settings for supports?"
 msgstr ""
-"Підтримка працює краще, якщо ввімкнено таку функцію:\n"
-"- Виявлення висячих периметрів(перемичок)\n"
-"\n"
-"Чи потрібно змінити ці налаштування для підтримки?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:620
 msgid "Support Generator"
-msgstr "Створення підтримки"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:662
 msgid "The "
-msgstr "Шаблон наповнення "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:662
 #, no-c-format
@@ -521,202 +486,197 @@ msgid ""
 "\n"
 "Shall I switch to rectilinear fill pattern?"
 msgstr ""
-" не підтримується на 100% щільності.\n"
-"\n"
-"Чи потрібно змінити його на Rectilinear шаблон заповнення?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:786
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:787
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:368
 msgid "Filament"
-msgstr "Філамент"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:794
 msgid "Temperature "
-msgstr "Температура "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:795
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1234
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:307
 msgid "Extruder"
-msgstr "Екструдер"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:800
 msgid "Bed"
-msgstr "Полотно"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:805
 msgid "Cooling"
-msgstr "Охолодження"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:806
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:922
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1695
 msgid "Enable"
-msgstr "Увімкнути"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:817
 msgid "Fan settings"
-msgstr "Налаштування вентилятора"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:818
 msgid "Fan speed"
-msgstr "Швидкість вентилятора"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:826
 msgid "Cooling thresholds"
-msgstr "Пороги охолодження"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:832
 msgid "Filament properties"
-msgstr "Властивості філаменту"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:836
 msgid "Print speed override"
-msgstr "Перевизначення швидкості друку"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:846
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1119
 msgid "Custom G-code"
-msgstr "Користувацький G-код"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:847
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1120
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1342
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1357
 msgid "Start G-code"
-msgstr "Початок G-коду"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:853
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1126
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:217
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:227
 msgid "End G-code"
-msgstr "Закінчення G-коду"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:937
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:11
 msgid "General"
-msgstr "Загальне"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:938
 msgid "Size and coordinates"
-msgstr "Розмір і координати"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:940
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:34
 msgid "Bed shape"
-msgstr "Форма полотна"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:942
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1637
 msgid " Set "
-msgstr " Встановити "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:962
 msgid "Capabilities"
-msgstr "Можливості"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:967
 msgid "Number of extruders of the printer."
-msgstr "Кількість екструдерів у принтері."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:989
 msgid "USB/Serial connection"
-msgstr "USB/послідовне з'єднання"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:990
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1193
 msgid "Serial port"
-msgstr "Послідовний порт"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:995
 msgid "Rescan serial ports"
-msgstr "Сканувати ще раз послідовні порти"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1004
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1072
 msgid "Test"
-msgstr "Перевірити"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1017
 msgid "Connection to printer works correctly."
-msgstr "Підключення до принтера працює коректно."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1017
 msgid "Success!"
-msgstr "Успіх!"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1020
 msgid "Connection failed."
-msgstr "Підключення не вдалося."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1032
 msgid "OctoPrint upload"
-msgstr "Завантаження OctoPrint"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1035
 msgid " Browse "
-msgstr " Переглянути "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1110
 msgid "Firmware"
-msgstr "Прошивка"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1132
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:48
 msgid "Before layer change G-code"
-msgstr "G-код перед зміною шару"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1138
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:766
 msgid "After layer change G-code"
-msgstr "G-код після зміни шару"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1144
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1602
 msgid "Tool change G-code"
-msgstr "G-код зміни інструменту"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1150
 msgid "Between objects G-code (for sequential printing)"
-msgstr "G-код між об'єктами (для послідовного друку)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1187
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:400
-#, c-format
+#, possible-c-format
 msgid "Extruder %d"
-msgstr "Екструдер %d"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1194
 msgid "Layer height limits"
-msgstr "Межі висоти шару"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1199
 msgid "Position (for multi-extruder printers)"
-msgstr "Позиція (для мульти-екструдерних принтерів)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1202
 msgid "Retraction"
-msgstr "Переривання"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1205
 msgid "Only lift Z"
-msgstr "Межі підняття Z"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1218
 msgid ""
 "Retraction when tool is disabled (advanced settings for multi-extruder "
 "setups)"
 msgstr ""
-"Переривання при відключенні інструмента (додаткові налаштування для "
-"налагодження мульти-екструдерів)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1222
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:150
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2125
 msgid "Preview"
-msgstr "Попередній перегляд"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1312
 msgid ""
@@ -724,26 +684,22 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
-"Параметр «Очистити» недоступний при використанні режиму програмного "
-"переривання.\n"
-"\n"
-"Відключити його для увімкнення програмного переривання?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1314
 msgid "Firmware Retraction"
-msgstr "Програмне переривання"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1469
 msgid "Default "
-msgstr "За замовчуванням "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1469
 msgid " preset"
-msgstr " налаштування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1470
 msgid " preset\n"
-msgstr " налаштування\n"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1488
 msgid ""
@@ -751,9 +707,6 @@ msgid ""
 "\n"
 "is not compatible with printer\n"
 msgstr ""
-"\n"
-"\n"
-"є не сумісним з принтером\n"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1488
 msgid ""
@@ -761,9 +714,6 @@ msgid ""
 "\n"
 "and it has the following unsaved changes:"
 msgstr ""
-"\n"
-"\n"
-"і має такі незбережені зміни:"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1489
 msgid ""
@@ -771,9 +721,6 @@ msgid ""
 "\n"
 "has the following unsaved changes:"
 msgstr ""
-"\n"
-"\n"
-"має такі незбережені зміни:"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1491
 msgid ""
@@ -781,274 +728,256 @@ msgid ""
 "\n"
 "Discard changes and continue anyway?"
 msgstr ""
-"\n"
-"\n"
-"Відхилити зміни і продовжувати в будь-якому випадку?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1492
 msgid "Unsaved Changes"
-msgstr "Незбережені зміни"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1560
 msgid "The supplied name is empty. It can't be saved."
-msgstr "Надане ім'я порожнє. Не вдається зберегти."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1580
 msgid "remove"
-msgstr "перемістити"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1580
 msgid "delete"
-msgstr "видалити"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1581
 msgid "Are you sure you want to "
-msgstr "Ви впевнені, що хочете "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1581
 msgid " the selected preset?"
-msgstr " вибране налаштування?"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1582
 msgid "Remove"
-msgstr "Перемістити"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1582
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:178
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:196
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2021
 msgid "Delete"
-msgstr "Видалити"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1583
 msgid " Preset"
-msgstr " Налаштування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1636
 msgid "All"
-msgstr "Всі"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1667
 msgid "Select the printers this profile is compatible with."
-msgstr "Оберіть принтери, сумісні з цим профілем."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1751
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1645
 msgid "Save "
-msgstr "Зберегти "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1751
 msgid " as:"
-msgstr " як:"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1785
 msgid ""
 "The supplied name is not valid; the following characters are not allowed:"
-msgstr "Надане ім'я недійсне; такі символи не допускаються:"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1788
 msgid "The supplied name is not available."
-msgstr "Надане ім'я недійсне."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:182
 msgid "Print Settings"
-msgstr "Параметри друку"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:202
 msgid "Filament Settings"
-msgstr "Параметри філаменту"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:228
 msgid "Printer Settings"
-msgstr "Параметри принтеру"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:248
 msgid "Save preset"
-msgstr "Зберегти налаштування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Field.cpp:42
 msgid "default"
-msgstr "за замовчуванням"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:26
-#, c-format
+#, possible-c-format
 msgid ""
 "If estimated layer time is below ~%ds, fan will run at %d%% and print speed "
 "will be reduced so that no less than %ds are spent on that layer (however, "
 "speed will never be reduced below %dmm/s)."
 msgstr ""
-"Якщо запланований час друку шару нижче ~%dс, вентилятор буде працювати на%d"
-"%%, і швидкість друку буде зменшена, так що на цей шар витрачається не менше "
-"%dс (однак швидкість ніколи не зменшиться нижче %d mm/s) ."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:30
-#, c-format
+#, possible-c-format
 msgid ""
 "\n"
 "If estimated layer time is greater, but still below ~%ds, fan will run at a "
 "proportionally decreasing speed between %d%% and %d%%."
 msgstr ""
-"\n"
-"Якщо запланований час друку шару більше, але все ще нижче ~%dс, вентилятор "
-"буде працювати з пропорційно зменшуваною швидкістю між %d%% та %d%%."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:34
 msgid ""
 "\n"
 "During the other layers, fan "
 msgstr ""
-"\n"
-"Під час друку інших шарів вентилятор "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:36
 msgid "Fan "
-msgstr "Вентилятор "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:41
-#, c-format
+#, possible-c-format
 msgid "will always run at %d%% "
-msgstr "буде завжди працювати на %d%% "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:44
-#, c-format
+#, possible-c-format
 msgid "except for the first %d layers"
-msgstr "за винятком перших %d шарів"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:48
 msgid "except for the first layer"
-msgstr "за винятком першого шару"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:50
 msgid "will be turned off."
-msgstr "буде вимкнено."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:151
 msgid "external perimeters"
-msgstr "зовнішні периметри"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:160
 msgid "perimeters"
-msgstr "периметри"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:169
 msgid "infill"
-msgstr "наповнення"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:179
 msgid "solid infill"
-msgstr "суцільне наповнення"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:187
 msgid "top solid infill"
-msgstr "верхній суцільне наповнення"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:198
 msgid "support"
-msgstr "підтримка"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:208
 msgid "support interface"
-msgstr "інтерфейс підтримки"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "First layer volumetric"
-msgstr "Об'єм першого шару"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "Bridging volumetric"
-msgstr "Об'єм мостів"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "Volumetric"
-msgstr "Об'ємний"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:215
 msgid " flow rate is maximized "
-msgstr " швидкість потоку максимізується "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:218
 msgid "by the print profile maximum"
-msgstr "за профілем друку максимум"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:219
 msgid "when printing "
-msgstr "коли друкуємо "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:220
 msgid " with a volumetric rate "
-msgstr " з об'ємною швидкістю "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:224
-#, c-format
+#, possible-c-format
 msgid "%3.2f mm³/s"
-msgstr "%3.2f мм³/с"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:226
-#, c-format
+#, possible-c-format
 msgid " at filament speed %3.2f mm/s."
-msgstr " при швидкості філаменту %3.2f мм/с."
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:245
 msgid ""
 "Recommended object thin wall thickness: Not available due to invalid layer "
 "height."
 msgstr ""
-"Рекомендований об'єкт товщиною тонкої стінки: Недоступний через невірне "
-"значення висоти шару."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:262
-#, c-format
+#, possible-c-format
 msgid "Recommended object thin wall thickness for layer height %.2f and "
-msgstr "Рекомендована товщина стінки для висоти шару %.2f та "
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:269
-#, c-format
+#, possible-c-format
 msgid "%d lines: %.2lf mm"
-msgstr "%d рядків: %.2lf мм"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.hpp:17
 msgid "Preferences"
-msgstr "Налаштування"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:27
 msgid "Remember output directory"
-msgstr "Пам'ятати вихідний каталог"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:29
 msgid ""
 "If this is enabled, Slic3r will prompt the last output directory instead of "
 "the one containing the input files."
 msgstr ""
-"Якщо вибрано, Slic3r запропонує останню вихідну директорію замість тої, що "
-"вказана у вхідному файлі."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:35
 msgid "Auto-center parts"
-msgstr "Автоцентрувати частини"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:37
 msgid ""
 "If this is enabled, Slic3r will auto-center objects around the print bed "
 "center."
 msgstr ""
-"Якщо вибрано, Slic3r автоматично орієнтує об'єкти навколо центру друку."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:43
 msgid "Background processing"
-msgstr "Фонова обробка"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:45
 msgid ""
 "If this is enabled, Slic3r will pre-process objects as soon as they're "
 "loaded in order to save time when exporting G-code."
 msgstr ""
-"Якщо вибрано, Slic3r буде попередньо обробляти об'єкти, як тільки вони "
-"будуть завантажені, щоб заощадити час при експорті G-коду."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:51
 msgid "Disable USB/serial connection"
-msgstr "Вимкнути USB / послідовне з'єднання"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:53
 msgid ""
@@ -1056,37 +985,30 @@ msgid ""
 "simplifies the user interface in case the printer is never attached to the "
 "computer."
 msgstr ""
-"Відключіть зв'язок із принтером через послідовний / USB-кабель. "
-"Користувальницький інтерфейс спрощує, якщо принтер ніколи не приєднується до "
-"комп'ютера."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:59
 msgid "Suppress \" - default - \" presets"
-msgstr "Заборонити налаштування \"- за замовчуванням -\""
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:61
 msgid ""
 "Suppress \" - default - \" presets in the Print / Filament / Printer "
 "selections once there are any other valid presets available."
 msgstr ""
-"Заборонити налаштування \"- за замовчуванням -\" у параметрах Друк / "
-"Філамент / Принтер, якщо доступні інші діючі налаштування."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:67
 msgid "Show incompatible print and filament presets"
-msgstr "Показувати несумісні налаштування друку та філаменту"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:69
 msgid ""
 "When checked, the print and filament presets are shown in the preset editor "
 "even if they are marked as incompatible with the active printer"
 msgstr ""
-"Якщо вибрано, налаштування друку та філаменту відображаються у списку "
-"налаштувань, навіть якщо вони позначені як несумісні з активним принтером"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:75
 msgid "Use legacy OpenGL 1.1 rendering"
-msgstr "Використовувати застарілий OpenGL 1.1 рендеринг"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:77
 msgid ""
@@ -1094,18 +1016,14 @@ msgid ""
 "try to check this checkbox. This will disable the layer height editing and "
 "anti aliasing, so it is likely better to upgrade your graphics driver."
 msgstr ""
-"Якщо у вас виникають проблеми з візуалізацією, спричинені помилковим "
-"драйвером OpenGL 2.0, спробуйте вибрати цю опцію. Це призведе до вимкнення "
-"редагування висоти шару та згладжування, тому краще оновити графічний "
-"драйвер."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:101
 msgid "You need to restart Slic3r to make the changes effective."
-msgstr "З метою ефективності зміни, Вам потрібно буде перезапустити Slic3r."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:26
 msgid "Avoid crossing perimeters"
-msgstr "Уникати перетинання периметрів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:27
 msgid ""
@@ -1113,26 +1031,21 @@ msgid ""
 "is mostly useful with Bowden extruders which suffer from oozing. This "
 "feature slows down both the print and the G-code generation."
 msgstr ""
-"Оптимізуйте рухи пересувань, щоб мінімізувати перетин периметрів. В "
-"основному це корисно для екструдерів Bowden, які страждають від протікання. "
-"Ця функція уповільнює як друк, так і генерацію G-коду."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:38
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1572
 msgid "Other layers"
-msgstr "Інші шари"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:39
 msgid ""
 "Bed temperature for layers after the first one. Set this to zero to disable "
 "bed temperature control commands in the output."
 msgstr ""
-"Температура полотна для останніх шарів після першого. Установіть 0, щоб "
-"відключити команди керування температурою полотна на виході."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:42
 msgid "Bed temperature"
-msgstr "Температура полотна"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:49
 msgid ""
@@ -1140,13 +1053,10 @@ msgid ""
 "Note that you can use placeholder variables for all Slic3r settings as well "
 "as [layer_num] and [layer_z]."
 msgstr ""
-"Цей користувацький код вставляється при кожній зміні шару перед початком "
-"переміщення Z. Зауважте, що ви можете використовувати змінні-заповнювачі для "
-"всіх параметрів Slic3r, а також [layer_num] і [layer_z]."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:59
 msgid "Between objects G-code"
-msgstr "G-код між об'єктами"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:60
 msgid ""
@@ -1154,21 +1064,14 @@ msgid ""
 "default extruder and bed temperature are reset using non-wait command; "
 "however if M104, M109, M140 or M190 are detected in this custom code, Slic3r "
 "will not add temperature commands. Note that you can use placeholder "
-"variables for all Slic3r settings, so you can put a \"M109 "
-"S[first_layer_temperature]\" command wherever you want."
+"variables for all Slic3r settings, so you can put a \"M109 S"
+"[first_layer_temperature]\" command wherever you want."
 msgstr ""
-"Цей код вставляється між об'єктами при використанні послідовного друку. За "
-"замовчуванням екструдер і температура полотна скидаються за допомогою "
-"команди non-wait; однак, якщо в цьому користувальному коді виявляються M104, "
-"M109, M140 або M190, Slic3r не додаватиме команди температури. Зверніть "
-"увагу, що ви можете використовувати змінні-заповнювачі для всіх параметрів "
-"Slic3r, то ж ви можете вставити команду \"M109 S [first_layer_temperature]\" "
-"де завгодно."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:68
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:370
 msgid "Bottom"
-msgstr "Знизу"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:69
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:239
@@ -1183,27 +1086,25 @@ msgstr "Знизу"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1583
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1639
 msgid "Layers and Perimeters"
-msgstr "Шари та периметри"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:70
 msgid "Number of solid layers to generate on bottom surfaces."
-msgstr "Кількість суцільних шарів, генерованих на нижніх поверхнях."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:72
 msgid "Bottom solid layers"
-msgstr "Нижні суцільні шари"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:77
 msgid "Bridge"
-msgstr "Міст"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:78
 msgid ""
 "This is the acceleration your printer will use for bridges. Set zero to "
 "disable acceleration control for bridges."
 msgstr ""
-"Це прискорення, яке ваш принтер використовуватиме для мостів. Встановити 0, "
-"щоб відключити управління прискоренням для мостів."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:80
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:174
@@ -1211,11 +1112,11 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:684
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:952
 msgid "mm/s²"
-msgstr "мм/с²"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:86
 msgid "Bridging angle"
-msgstr "Кут моста"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:88
 msgid ""
@@ -1223,9 +1124,6 @@ msgid ""
 "calculated automatically. Otherwise the provided angle will be used for all "
 "bridges. Use 180° for zero angle."
 msgstr ""
-"Зміна кута мосту. Якщо встановити на 0, кут мостів буде розрахований "
-"автоматично. Інакше передбачений кут буде використаний для всіх мостів. "
-"Використовуйте 180° для нульового кута."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:91
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:492
@@ -1234,15 +1132,15 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1401
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1557
 msgid "°"
-msgstr "°"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:97
 msgid "Bridges fan speed"
-msgstr "Швидкість вентилятора для мостів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:98
 msgid "This fan speed is enforced during all bridges and overhangs."
-msgstr "Ця швидкість вентилятора виконується для всіх мостів і виступів."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:99
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:504
@@ -1250,11 +1148,11 @@ msgstr "Ця швидкість вентилятора виконується д
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:850
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1060
 msgid "%"
-msgstr "%"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:106
 msgid "Bridge flow ratio"
-msgstr "Співвідношення мостового потоку"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:108
 msgid ""
@@ -1263,18 +1161,14 @@ msgid ""
 "settings are usually good and you should experiment with cooling (use a fan) "
 "before tweaking this."
 msgstr ""
-"Цей фактор впливає на кількість пластику для мостів. Ви можете трохи "
-"зменшити його, щоб витягнути екструдати та не допустити провисання, хоча "
-"стандартні налаштування зазвичай добрі, тому ви маете по-експериментувати з "
-"охолодженням (використовуйте вентилятор), перш ніж їх налаштувати."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:117
 msgid "Bridges"
-msgstr "Мости"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:119
 msgid "Speed for printing bridges."
-msgstr "Швидкість друку мостів."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:120
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:638
@@ -1287,23 +1181,21 @@ msgstr "Швидкість друку мостів."
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1536
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1649
 msgid "mm/s"
-msgstr "мм/с"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:127
 msgid "Brim width"
-msgstr "Ширина краю"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:128
 msgid ""
 "Horizontal width of the brim that will be printed around each object on the "
 "first layer."
 msgstr ""
-"Горизонтальна ширина краю, яка буде надрукована навколо кожного об'єкта на "
-"першому шарі."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:135
 msgid "Clip multi-part objects"
-msgstr "Обрізати об'єкти, що складаються з кількох частин"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:136
 msgid ""
@@ -1311,13 +1203,10 @@ msgid ""
 "the overlapping object parts one by the other (2nd part will be clipped by "
 "the 1st, 3rd part will be clipped by the 1st and 2nd etc)."
 msgstr ""
-"Під час друку багатоматеріальних об'єктів ці налаштування змушують slic3r "
-"обрізати частини, що перекриваються один одною (друга частина буде обрізана "
-"першою, третя - першою та другою, тощо)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:147
 msgid "Compatible printers condition"
-msgstr "Стан сумісних принтерів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:148
 msgid ""
@@ -1325,13 +1214,10 @@ msgid ""
 "profile. If this expression evaluates to true, this profile is considered "
 "compatible with the active printer profile."
 msgstr ""
-"Логічний вираз, що використовує значення конфігурації активного профілю "
-"принтера. Якщо цей вираз оцінюється як Правда, цей профіль вважається "
-"сумісним з активним профілем принтера."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:154
 msgid "Complete individual objects"
-msgstr "Закінчити окремі об'єкти"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:155
 msgid ""
@@ -1340,22 +1226,16 @@ msgid ""
 "This feature is useful to avoid the risk of ruined prints. Slic3r should "
 "warn and prevent you from extruder collisions, but beware."
 msgstr ""
-"Під час друку декількох об'єктів або копій ця функція забезпечить завершення "
-"кожного об'єкту, перш ніж переходити до наступного (і почине його з нижнього "
-"шару). Ця функція корисна для уникнення ризику зіпсованих відбитків. Slic3r "
-"має попередити та запобігти зіткненню екструдера, але будьте обережні."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:163
 msgid "Enable auto cooling"
-msgstr "Увімкнути автоматичне охолодження"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:164
 msgid ""
 "This flag enables the automatic cooling logic that adjusts print speed and "
 "fan speed according to layer printing time."
 msgstr ""
-"Цей прапорець дозволяє автоматичну логіку охолодження, яка регулює швидкість "
-"друку та швидкість вентиляції відповідно до часу друку шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:171
 msgid ""
@@ -1363,22 +1243,16 @@ msgid ""
 "specific acceleration values are used (perimeter/infill). Set zero to "
 "prevent resetting acceleration at all."
 msgstr ""
-"Це прискорення, на яке переключиться ваш принтер після того, як будуть "
-"використані конкретні визначені прискорення (периметру / заповнення). "
-"Встановити 0, щоб запобігти скиданням прискорення взагалі."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:180
 msgid "Disable fan for the first"
-msgstr "Вимкнути вентилятор для першого(их)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:181
 msgid ""
 "You can set this to a positive value to disable fan at all during the first "
 "layers, so that it does not make adhesion worse."
 msgstr ""
-"Ви можете встановити це позитивне значення, щоб взагалі вимкнути вентилятор "
-"протягом друку декількох перших шарів, щоб це не призвело до гіршого "
-"зчеплення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:183
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:694
@@ -1388,47 +1262,41 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1437
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1482
 msgid "layers"
-msgstr "шару(ів)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:190
 msgid "Don't support bridges"
-msgstr "Не підтримувати мости"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:192
 msgid ""
 "Experimental option for preventing support material from being generated "
 "under bridged areas."
 msgstr ""
-"Експериментальний варіант для запобігання утворенню допоміжного матеріалу в "
-"областях під мостами."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:198
 msgid "Distance between copies"
-msgstr "Відстань між копіями"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:199
 msgid "Distance used for the auto-arrange feature of the plater."
-msgstr "Відстань використовується для автоматичного розташування платеру."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:207
 msgid "Elephant foot compensation"
-msgstr "Зрівноваження Стопи слона"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:209
 msgid ""
 "The first layer will be shrunk in the XY plane by the configured value to "
 "compensate for the 1st layer squish aka an Elephant Foot effect."
 msgstr ""
-"Перший шар буде зменшено в площині XY завдяки налаштованому значенню, щоб "
-"компенсувати ефект Ноги Слона для 1-го шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:218
 msgid ""
 "This end procedure is inserted at the end of the output file. Note that you "
 "can use placeholder variables for all Slic3r settings."
 msgstr ""
-"Ця кінцева процедура вставляється в кінці вихідного файлу. Зауважте, що ви "
-"можете використовувати заповнювачі змінних для всіх параметрів Slic3r."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:228
 msgid ""
@@ -1437,39 +1305,31 @@ msgid ""
 "Slic3r settings. If you have multiple extruders, the gcode is processed in "
 "extruder order."
 msgstr ""
-"Ця кінцева процедура вставляється в кінці вихідного файлу перед кінцевим "
-"кодом принтера. Зауважте, що ви можете використовувати заповнювачі змінних "
-"для всіх параметрів Slic3r. Якщо у вас є кілька екструдерів, G-code "
-"обробляється в порядку екструдерів."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:238
 msgid "Ensure vertical shell thickness"
-msgstr "Перевірте товщину вертикальної оболонки"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:240
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)."
 msgstr ""
-"Додайте суцільні наповнювачі біля нахилених поверхонь, щоб гарантувати "
-"товщину вертикальної оболонки (верхній і нижній суцільні шари)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:246
 msgid "Top/bottom fill pattern"
-msgstr "Верхній/нижній шаблон наповнення"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:248
 msgid ""
 "Fill pattern for top/bottom infill. This only affects the external visible "
 "layer, and not its adjacent solid shells."
 msgstr ""
-"Шаблон для верхнього/нижнього наповнення. Це впливає лише на зовнішній "
-"видимий шар, а не на сусідні суцільні оболонки."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:267
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:277
 msgid "External perimeters"
-msgstr "Зовнішні периметри"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:268
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:377
@@ -1480,7 +1340,7 @@ msgstr "Зовнішні периметри"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1454
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1614
 msgid "Extrusion Width"
-msgstr "Ширина екструзії"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:269
 msgid ""
@@ -1489,11 +1349,6 @@ msgid ""
 "otherwise 1.125 x nozzle diameter will be used. If expressed as percentage "
 "(for example 200%), it will be computed over layer height."
 msgstr ""
-"Встановіть значення ненульовим, щоб встановити ручну ширину екструзії для "
-"зовнішніх периметрів. Якщо залишити 0, ширина екструзії за замовчуванням "
-"буде використана, якщо встановлено, інакше буде використано 1,125 x діаметр "
-"сопла. Якщо він виражений у відсотках (наприклад, 200%), він буде "
-"обчислюватися за висотою шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:272
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:597
@@ -1503,7 +1358,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1458
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1619
 msgid "mm or % (leave 0 for default)"
-msgstr "мм або % (залиште 0 за замовчанням)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:279
 msgid ""
@@ -1511,10 +1366,6 @@ msgid ""
 "visible ones). If expressed as percentage (for example: 80%) it will be "
 "calculated on the perimeters speed setting above. Set to zero for auto."
 msgstr ""
-"Цей окремий параметр впливає на швидкість зовнішніх периметрів (видимих). "
-"Якщо вона виражена у відсотках (наприклад: 80%), вона буде розрахована на "
-"налаштування швидкості периметра вище. Встановити 0 для автоматичного "
-"використання."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:282
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:619
@@ -1523,23 +1374,21 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1501
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1631
 msgid "mm/s or %"
-msgstr "мм/с або %"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:289
 msgid "External perimeters first"
-msgstr "Спочатку зовнішні периметри"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:291
 msgid ""
 "Print contour perimeters from the outermost one to the innermost one instead "
 "of the default inverse order."
 msgstr ""
-"Друкувати контури периметра від найзовнішнього до найвнутрішнього, замість "
-"інверсного порядку за замовчанням."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:297
 msgid "Extra perimeters if needed"
-msgstr "Додаткові периметри, якщо необхідно"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:299
 #, no-c-format
@@ -1548,9 +1397,6 @@ msgid ""
 "keeps adding perimeters, until more than 70% of the loop immediately above "
 "is supported."
 msgstr ""
-"За необхідності додайте периметри, щоб уникнути прогалин у похилих стінах. "
-"Slic3r продовжує додавати периметри, поки підтримується більше 70% петель "
-"безпосередньо вище."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:309
 msgid ""
@@ -1558,14 +1404,11 @@ msgid ""
 "This value overrides perimeter and infill extruders, but not the support "
 "extruders."
 msgstr ""
-"Використовуваний екструдер (якщо не вказано більш конкретні параметри "
-"екструдера). Це значення перевизначає екструдери периметра та наповнювача, "
-"але не екструдери підтримки."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:320
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:69
 msgid "Height"
-msgstr "Висота"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:321
 msgid ""
@@ -1574,14 +1417,10 @@ msgid ""
 "cylinder around your extruder, and it represents the maximum depth the "
 "extruder can peek before colliding with other printed objects."
 msgstr ""
-"Установіть значення як вертикальну відстань між наконечником сопла та "
-"(звичайно) шатунами X каретки. Іншими словами, це висота циліндра очищення "
-"навколо вашого екструдера, і це являє собою максимальну глибину, яку "
-"екструдер може розглядати до зіткнення з іншими друкованими предметами."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:331
 msgid "Radius"
-msgstr "Радіус"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:332
 msgid ""
@@ -1589,24 +1428,19 @@ msgid ""
 "not centered, choose the largest value for safety. This setting is used to "
 "check for collisions and to display the graphical preview in the plater."
 msgstr ""
-"Установіть значення як радіус зазорів навколо вашої екструдера. Якщо "
-"екструдер не центрований, для безпеки виберіть найбільше значення . Цей "
-"параметр використовується для перевірки зіткнень та відображення графічного "
-"попереднього перегляду в панелі."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:342
 msgid "Extruder Color"
-msgstr "Колір екструдера"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:343
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:406
 msgid "This is only used in the Slic3r interface as a visual help."
 msgstr ""
-"Ця опція використовується лише у інтерфейсі Slic3r як візуальна допомога."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:350
 msgid "Extruder offset"
-msgstr "Зміщення екструдеру"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:351
 msgid ""
@@ -1615,26 +1449,20 @@ msgid ""
 "of each extruder with respect to the first one. It expects positive "
 "coordinates (they will be subtracted from the XY coordinate)."
 msgstr ""
-"Якщо ваша прошивка не справляється з витісненням екструдера, вам потрібен G-"
-"код, щоб врахувати це. Ця опція дозволяє вказати зміщення кожного екструдера "
-"відносно першого. Він очікує позитивних координат (вони будуть віднімані від "
-"координати XY)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:360
 msgid "Extrusion axis"
-msgstr "Ось екструзії"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:361
 msgid ""
 "Use this option to set the axis letter associated to your printer's extruder "
 "(usually E but some printers use A)."
 msgstr ""
-"Використовуйте цю опцію, щоб встановити букву осей, пов'язану з екструдером "
-"принтера (зазвичай E, але деякі принтери використовують A)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:367
 msgid "Extrusion multiplier"
-msgstr "Коефіцієнт екструзії"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:368
 msgid ""
@@ -1643,15 +1471,10 @@ msgid ""
 "Usual values are between 0.9 and 1.1. If you think you need to change this "
 "more, check filament diameter and your firmware E steps."
 msgstr ""
-"Цей фактор пропорційно змінює величину потоку. Вам може знадобитися "
-"налаштувати цей параметр, щоб отримати хорошу обробку поверхні та правильно "
-"визначити ширину однієї стіни. Звичайні значення - від 0,9 до 1,1. Якщо ви "
-"вважаєте, що його потрібно більше змінити, перевірте діаметр нитки та E "
-"кроки прошивки ."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:376
 msgid "Default extrusion width"
-msgstr "Ширина екструзії за замовчанням"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:378
 msgid ""
@@ -1661,32 +1484,24 @@ msgid ""
 "expressed as percentage (for example: 230%), it will be computed over layer "
 "height."
 msgstr ""
-"Установіть ненульове значення, щоб дозволити ручне налаштування ширини "
-"екструзії. Якщо залишити як 0, Slic3r отримує ширину екструзії від діаметра "
-"сопла (див. Підказки для ширини екструзії периметру, ширини екструзії "
-"наповнювача тощо). Якщо значення виражене у відсотках (наприклад: 230%), "
-"воно буде обчислюватися за висотою шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:382
 msgid "mm or % (leave 0 for auto)"
-msgstr "мм або % (залиште 0 для автообчислення)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:387
 msgid "Keep fan always on"
-msgstr "Тримайте вентилятор завжди"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:388
 msgid ""
 "If this is enabled, fan will never be disabled and will be kept running at "
 "least at its minimum speed. Useful for PLA, harmful for ABS."
 msgstr ""
-"Якщо ця опція ввімкнена, вентилятор ніколи не буде відключений і буде "
-"триматися, як мінімум, на мінімальній швидкості. Корисно для PLA, шкідливо "
-"для ABS."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:394
 msgid "Enable fan if layer print time is below"
-msgstr "Увімкнути вентилятор, якщо час друку шару нижче"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:395
 msgid ""
@@ -1694,31 +1509,28 @@ msgid ""
 "enabled and its speed will be calculated by interpolating the minimum and "
 "maximum speeds."
 msgstr ""
-"Якщо час друку шару оцінюється нижче цієї кількості секунд, вентилятор буде "
-"активований, а його швидкість буде розрахована шляхом інтерполяції "
-"мінімальної та максимальної швидкості."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:397
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1242
 msgid "approximate seconds"
-msgstr "приблизні секунди"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:405
 msgid "Color"
-msgstr "Колір"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:412
 msgid "Filament notes"
-msgstr "Примітки до філаменту"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:413
 msgid "You can put your notes regarding the filament here."
-msgstr "Тут ви можете помістити свої нотатки щодо філаменту."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:421
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:817
 msgid "Max volumetric speed"
-msgstr "Максимальна об'ємна швидкість"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:422
 msgid ""
@@ -1726,14 +1538,11 @@ msgid ""
 "volumetric speed of a print to the minimum of print and filament volumetric "
 "speed. Set to zero for no limit."
 msgstr ""
-"Максимальна об'ємна швидкість, припустима для цього філаметну. Обмежує "
-"максимальну об'ємну швидкість друку до мінімуму об'ємної швидкості друку та "
-"філаметну. Встановити 0 для відсутності обмежень."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:425
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:820
 msgid "mm³/s"
-msgstr "мм³/с"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:432
 msgid ""
@@ -1741,13 +1550,10 @@ msgid ""
 "caliper and do multiple measurements along the filament, then compute the "
 "average."
 msgstr ""
-"Введіть тут діаметр свого філаменту. Необхідна висока точність, тому "
-"використовуйте суматор і виконайте декілька вимірювань вздовж нитки, потім "
-"обчисліть середнє значення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:440
 msgid "Density"
-msgstr "Щільність"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:441
 msgid ""
@@ -1756,18 +1562,14 @@ msgid ""
 "the length to volume. Better is to calculate the volume directly through "
 "displacement."
 msgstr ""
-"Введіть тут щільність свого філаменту. Це тільки для статистичної "
-"інформації. Пристойним способом є зважування відомої довжини нитки та "
-"обчислення співвідношення довжини до обсягу. Краще обчислити об'єм "
-"безпосередньо через зміщення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:444
 msgid "g/cm³"
-msgstr "г/см³"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:450
 msgid "Filament type"
-msgstr "Тип філаменту"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:451
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1002
@@ -1778,40 +1580,33 @@ msgid ""
 "argument, and they can access the Slic3r config settings by reading "
 "environment variables."
 msgstr ""
-"Якщо ви хочете обробляти вихідний G-код через власні сценарії, просто "
-"перелічіть тут їх абсолютні шляхи. Кілька скриптів відокремте крапкою з "
-"комою. Сценарії буде передано абсолютним шляхам до файлу G-коду як перший "
-"аргумент, і вони можуть отримати доступ до параметрів конфігурації Slic3r, "
-"прочитавши змінні середовища."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:470
 msgid "Soluble material"
-msgstr "Розчинний матеріал"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:471
 msgid "Soluble material is most likely used for a soluble support."
-msgstr "Розчинний матеріал переважно використовується для розчинної підтримки."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:476
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:450
 msgid "Cost"
-msgstr "Вартість"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:477
 msgid ""
 "Enter your filament cost per kg here. This is only for statistical "
 "information."
 msgstr ""
-"Введіть тут свою вартість філаменту на кг. Це тільки для статистичної "
-"інформації."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:478
 msgid "money/kg"
-msgstr "грошових одиниць/кг"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:487
 msgid "Fill angle"
-msgstr "Кут наповнення"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:489
 msgid ""
@@ -1819,49 +1614,42 @@ msgid ""
 "this. Bridges will be infilled using the best direction Slic3r can detect, "
 "so this setting does not affect them."
 msgstr ""
-"Основний кут орієнтації наповнення за замовчуванням. Для цього буде "
-"застосовуватися крос-штрих. Мости будуть заповнені, використовуючи найкращий "
-"напрям, який може виявити Slic3r, тому цей параметр на них не впливає."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:501
 msgid "Fill density"
-msgstr "Щільність заповнення"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:503
 #, no-c-format
 msgid "Density of internal infill, expressed in the range 0% - 100%."
-msgstr "Щільність внутрішнього заповнення, виражена в діапазоні 0% - 100%."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:539
 msgid "Fill pattern"
-msgstr "Шаблон заповнення"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:541
 msgid "Fill pattern for general low-density infill."
-msgstr "Шаблон заповнення для загального низько-швидкісного наповнення."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:573
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:582
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:591
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:625
 msgid "First layer"
-msgstr "Перший шар"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:574
 msgid ""
 "This is the acceleration your printer will use for first layer. Set zero to "
 "disable acceleration control for first layer."
 msgstr ""
-"Це прискорення, яке ваш принтер використовуватиме для першого шару. "
-"Встановити 0, щоб вимкнути керування прискоренням для першого шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:583
 msgid ""
 "Heated build plate temperature for the first layer. Set this to zero to "
 "disable bed temperature control commands in the output."
 msgstr ""
-"Температура підігрітої збірної пластини для першого шару. Установіть 0, щоб "
-"відключити команди керування температурою полотна на виході."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:593
 msgid ""
@@ -1870,15 +1658,10 @@ msgid ""
 "expressed as percentage (for example 120%) it will be computed over first "
 "layer height. If set to zero, it will use the default extrusion width."
 msgstr ""
-"Встановіть ненульове значення, щоб встановити ручну ширину екструзії для "
-"першого шару. Ви можете використовувати цю опцію з метою навмисного "
-"пом'якшення екструдату для кращої адгезії. Якщо вона виражена у відсотках "
-"(наприклад, 120%), вона буде обчислена за висотою першого шару. Якщо "
-"встановлено на 0 - використовуватиме стандартну ширину екструзії."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:603
 msgid "First layer height"
-msgstr "Висота першого шару"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:605
 msgid ""
@@ -1887,20 +1670,16 @@ msgid ""
 "plates. This can be expressed as an absolute value or as a percentage (for "
 "example: 150%) over the default layer height."
 msgstr ""
-"Під час друку з дуже низькими висотами шару ви, можливо, все-таки захочете "
-"надрукувати більш товстий нижній шар, щоб поліпшити адгезію та толерантність "
-"до невідповідних збірних пластин. Можна виразити як абсолютне значення або "
-"як відсоток (наприклад: 150%) по висоті шару за замовчуванням."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:609
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:740
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1390
 msgid "mm or %"
-msgstr "мм або %"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:615
 msgid "First layer speed"
-msgstr "Швидкість першого шару"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:616
 msgid ""
@@ -1908,10 +1687,6 @@ msgid ""
 "the print moves of the first layer, regardless of their type. If expressed "
 "as a percentage (for example: 40%) it will scale the default speeds."
 msgstr ""
-"Якщо вона виражена в абсолютному значенні в мм/с, ця швидкість буде "
-"застосована до всіх рухів друку першого шару незалежно від їх типу. Якщо "
-"вона виражена у відсотках (наприклад: 40%), вона буде масштабувати швидкість "
-"за замовчуванням."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:626
 msgid ""
@@ -1919,15 +1694,12 @@ msgid ""
 "manually during print, set this to zero to disable temperature control "
 "commands in the output file."
 msgstr ""
-"Температура екструдеру для першого шару. Якщо ви хочете контролювати "
-"температуру вручну під час друку, встановіть 0, щоб вимкнути команди "
-"керування температурою у вихідному файлі."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:634
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:145
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:87
 msgid "Gap fill"
-msgstr "Заповнення розриву"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:636
 msgid ""
@@ -1935,14 +1707,10 @@ msgid ""
 "low to avoid too much shaking and resonance issues. Set zero to disable gaps "
 "filling."
 msgstr ""
-"Швидкість для заповнення невеликих розривів за допомогою коротких "
-"зигзагоподібних рухів. Дотримуйтесь достатньо низьких значень, щоб уникнути "
-"надмірних потрясінь та резонансних проблем. Встановити 0, щоб вимкнути "
-"заповнення розривів."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:644
 msgid "Verbose G-code"
-msgstr "Докладний G-код"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:645
 msgid ""
@@ -1950,13 +1718,10 @@ msgid ""
 "descriptive text. If you print from SD card, the additional weight of the "
 "file could make your firmware slow down."
 msgstr ""
-"Увімкніть для отримання коментованого файлу G-коду, причому кожен рядок "
-"пояснюється описовим текстом. Якщо ви друкуєте з SD-карти, додаткова вага "
-"файлу може призвести до уповільнення прошивки."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:652
 msgid "G-code flavor"
-msgstr "Особливість G-коду"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:653
 msgid ""
@@ -1965,42 +1730,34 @@ msgid ""
 "output. The \"No extrusion\" flavor prevents Slic3r from exporting any "
 "extrusion value at all."
 msgstr ""
-"Деякі команди G/M-коду, включаючи контроль температури тощо, не є "
-"універсальними. Установіть цей параметр на прошивку принтера, щоб отримати "
-"сумісний вихід. \"Відсутність екструзії\" не дозволяє Slic3r експортувати "
-"будь-яке значення екструзії."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:682
 msgid ""
 "This is the acceleration your printer will use for infill. Set zero to "
 "disable acceleration control for infill."
 msgstr ""
-"Це прискорення, яке ваш принтер використовуватиме для наповнення. Встановити "
-"0, щоб вимкнути регулятор прискорення для заповнення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:690
 msgid "Combine infill every"
-msgstr "Об'єднати наповнення кожні"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:692
 msgid ""
 "This feature allows to combine infill and speed up your print by extruding "
 "thicker infill layers while preserving thin perimeters, thus accuracy."
 msgstr ""
-"Ця функція дозволяє поєднувати наповнення та прискорити друк, екструдуючи "
-"більш товсті шари наповнення, зберігаючи тонкі периметри, а отже, і точністю."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:696
 msgid "Combine infill every n layers"
-msgstr "Об'єднати наповнення кожні n шарів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:701
 msgid "Infill extruder"
-msgstr "Наповнювач екструдера"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:703
 msgid "The extruder to use when printing infill."
-msgstr "Екструдер, використовуваний під час друку наповнення."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:711
 msgid ""
@@ -2010,28 +1767,20 @@ msgid ""
 "up the infill and make your parts stronger. If expressed as percentage (for "
 "example 90%) it will be computed over layer height."
 msgstr ""
-"Встановіть значення як ненульове, щоб встановити ручну ширину екструзії для "
-"наповнення. Якщо залишити 0, ширина екструзії за замовчуванням буде "
-"використана, якщо встановлено, інакше буде використано 1,125 x діаметр "
-"сопла. Можливо, ви захочете використовувати більш товсті екструди, щоб "
-"прискорити наповнення та зміцнити свої деталі. Якщо він виражений у "
-"відсотках (наприклад, 90%), він буде обчислюватися за висотою шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:720
 msgid "Infill before perimeters"
-msgstr "Заповнення перед периметрами"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:721
 msgid ""
 "This option will switch the print order of perimeters and infill, making the "
 "latter first."
 msgstr ""
-"За допомогою цього параметра можна буде змінити порядок друку периметрів та "
-"наповнювачів, зробивши останнє першим."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:726
 msgid "Only infill where needed"
-msgstr "Заповнити тільки там, де потрібно"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:728
 msgid ""
@@ -2039,13 +1788,10 @@ msgid ""
 "ceilings (it will act as internal support material). If enabled, slows down "
 "the G-code generation due to the multiple checks involved."
 msgstr ""
-"Ця опція обмежить заповнення областей, фактично необхідних для підтримки "
-"стель (це буде діяти як внутрішній матеріал підтримки). Якщо це ввімкнено, "
-"сповільнюється генерація G-коду через декілька перевірок."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:735
 msgid "Infill/perimeters overlap"
-msgstr "Перекриття наповнення/периметрів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:737
 msgid ""
@@ -2054,20 +1800,14 @@ msgid ""
 "cause gaps. If expressed as percentage (example: 15%) it is calculated over "
 "perimeter extrusion width."
 msgstr ""
-"Цей параметр застосовує додаткове перекриття між заповненням та периметрами "
-"для кращого зчеплення. Теоретично це не повинно бути необхідним, але люфт "
-"може спричинити розриви. Якщо він виражений у відсотках (приклад: 15%), його "
-"розраховують за шириною екструзії по периметру."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:748
 msgid "Speed for printing the internal fill. Set to zero for auto."
 msgstr ""
-"Швидкість друку внутрішнього заповнення. Встановити 0 для автоматичного "
-"обчислення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:757
 msgid "Interface shells"
-msgstr "Інтерфейсні оболонки"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:758
 msgid ""
@@ -2075,9 +1815,6 @@ msgid ""
 "Useful for multi-extruder prints with translucent materials or manual "
 "soluble support material."
 msgstr ""
-"Примусове створення суцільної оболонки між суміжними матеріалами/обсягами. "
-"Корисно для друку з багатьма екструдерами з напівпрозорими матеріалами або "
-"ручним розчинним матеріалом для підтримки."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:767
 msgid ""
@@ -2086,27 +1823,21 @@ msgid ""
 "use placeholder variables for all Slic3r settings as well as [layer_num] and "
 "[layer_z]."
 msgstr ""
-"Цей користувацький код вставляється при кожній зміні шару відразу після "
-"переміщення Z і перед тим, як екструдер переміститься до точки першого шару. "
-"Зауважте, що ви можете використовувати змінні-заповнювачі для всіх "
-"параметрів Slic3r, а також [layer_num] і [layer_z]."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:779
 msgid ""
 "This setting controls the height (and thus the total number) of the slices/"
 "layers. Thinner layers give better accuracy but take more time to print."
 msgstr ""
-"Цей параметр визначає висоту (і, таким чином, загальну кількість) шарів. "
-"Тонкі шари забезпечують більшу точність, але для друку потрібно більше часу."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:787
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:796
 msgid "Max"
-msgstr "Максимально"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:788
 msgid "This setting represents the maximum speed of your fan."
-msgstr "Цей параметр відображає максимальну швидкість вашого вентилятора."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:797
 #, no-c-format
@@ -2116,15 +1847,10 @@ msgid ""
 "layer height is 75% of the extrusion width to achieve reasonable inter-layer "
 "adhesion. If set to 0, layer height is limited to 75% of the nozzle diameter."
 msgstr ""
-"Це найбільша висота друкованого шару для цього екструдера, що "
-"використовується для обмеження висоти змінного шару та висоти підтримуючого "
-"шару. Максимальна рекомендована висота шару становить 75% ширини екструзії "
-"для досягнення розумної міжшарової адгезії. Якщо встановлено 0, висота шару "
-"обмежена 75% діаметра сопла."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:807
 msgid "Max print speed"
-msgstr "Максимальна швидкість друку"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:808
 msgid ""
@@ -2132,22 +1858,16 @@ msgid ""
 "speed in order to keep constant extruder pressure. This experimental setting "
 "is used to set the highest print speed you want to allow."
 msgstr ""
-"При встановленні інших параметрів швидкості до 0, Slic3r буде автоматично "
-"обчислювати оптимальну швидкість, щоб підтримувати постійний тиск "
-"екструдера. Цей експериментальний параметр використовується для встановлення "
-"максимальної швидкості друку, яку ви хочете дозволити."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:818
 msgid ""
 "This experimental setting is used to set the maximum volumetric speed your "
 "extruder supports."
 msgstr ""
-"Цей експериментальний параметр використовується для встановлення "
-"максимальної об'ємної швидкості, яку підтримує екструдер."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:826
 msgid "Max volumetric slope positive"
-msgstr "Максимальний об'ємний нахил позитивний"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:827
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:838
@@ -2157,31 +1877,24 @@ msgid ""
 "of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/"
 "s) to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds."
 msgstr ""
-"Цей експериментальний параметр використовується для обмеження швидкості "
-"зміни швидкості екструзії. Значення 1,8 мм³/с² гарантує, що зміна швидкості "
-"екструзії 1,8 мм³/с (ширина екструзії 0,45 мм, висота екструзії 0,2 мм, "
-"швидкість подачі 20 мм/с) до 5,4 мм³/с (подача 60 мм/с) займе принаймні 2 "
-"секунди."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:831
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:842
 msgid "mm³/s²"
-msgstr "мм³/с²"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:837
 msgid "Max volumetric slope negative"
-msgstr "Максимальний об'ємний схил негативний"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:848
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:857
 msgid "Min"
-msgstr "Мінімально"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:849
 msgid "This setting represents the minimum PWM your fan needs to work."
 msgstr ""
-"Цей параметр відповідає мінімальній ШІМ, на якій повинен працювати ваш "
-"вентилятор."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:858
 msgid ""
@@ -2189,21 +1902,18 @@ msgid ""
 "resolution for variable layer height. Typical values are between 0.05 mm and "
 "0.1 mm."
 msgstr ""
-"Це найменша висота друкованого шару для цього екструдера та обмежує "
-"роздільну здатність для висоти змінного шару. Типові значення - від 0,05 мм "
-"до 0,1 мм."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:866
 msgid "Min print speed"
-msgstr "Мінімальна швидкість друку"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:867
 msgid "Slic3r will not scale speed down below this speed."
-msgstr "Slic3r не буде масштабувати швидкість нижче цієї швидкості."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:874
 msgid "Minimum extrusion length"
-msgstr "Мінімальна довжина екструзії"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:875
 msgid ""
@@ -2211,66 +1921,55 @@ msgid ""
 "specified amount of filament on the bottom layer. For multi-extruder "
 "machines, this minimum applies to each extruder."
 msgstr ""
-"Створити не менше кількості петель плінтусу, необхідних для споживання "
-"зазначеної кількості філаменту на нижньому шарі. Для машин із декількома "
-"екструдерами цей мінімум застосовується до кожного екструдера."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:884
 msgid "Configuration notes"
-msgstr "Примітки до конфігурації"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:885
 msgid ""
 "You can put here your personal notes. This text will be added to the G-code "
 "header comments."
 msgstr ""
-"Ви можете додати тут свої особисті примітки. Цей текст буде додано до "
-"коментарів заголовка G-коду."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:894
 msgid "Nozzle diameter"
-msgstr "Діаметр сопла"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:895
 msgid ""
 "This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)"
-msgstr "Це діаметр сопла вашого екструдера (наприклад: 0.5, 0.35 тощо)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:901
 msgid "API Key"
-msgstr "Ключ API"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:902
 msgid ""
 "Slic3r can upload G-code files to OctoPrint. This field should contain the "
 "API Key required for authentication."
 msgstr ""
-"Slic3r може завантажувати файли G-коду в OctoPrint. Це поле має містити ключ "
-"API, необхідний для аутентифікації."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:908
 msgid "Host or IP"
-msgstr "Host або IP"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:909
 msgid ""
 "Slic3r can upload G-code files to OctoPrint. This field should contain the "
 "hostname or IP address of the OctoPrint instance."
 msgstr ""
-"Slic3r може завантажувати файли G-коду в OctoPrint. Це поле повинно містити "
-"ім'я хоста або IP-адресу екземпляру OctoPrint."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:915
 msgid "Only retract when crossing perimeters"
-msgstr "Перервати тільки у разі перетину периметрів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:916
 msgid ""
 "Disables retraction when the travel path does not exceed the upper layer's "
 "perimeters (and thus any ooze will be probably invisible)."
 msgstr ""
-"Вимикає переривання, коли шлях не перевищує периметри верхніх шарів (і, "
-"таким чином, будь-який розрядник буде, мабуть, невидимим)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:923
 msgid ""
@@ -2278,13 +1977,10 @@ msgid ""
 "oozing. It will enable a tall skirt automatically and move extruders outside "
 "such skirt when changing temperatures."
 msgstr ""
-"Цей параметр знизить температуру неактивних екструдерів, щоб запобігти "
-"протіканню. Це дозволить автоматично ввімкнути високий плінтус та "
-"перемістить екструдери за межі такого плінтуса у разі зміни температури."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:930
 msgid "Output filename format"
-msgstr "Формат вихідного файлу"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:931
 msgid ""
@@ -2293,30 +1989,23 @@ msgid ""
 "[year], [month], [day], [hour], [minute], [second], [version], "
 "[input_filename], [input_filename_base]."
 msgstr ""
-"Ви можете використовувати всі параметри конфігурації як змінні всередині "
-"цього шаблону. Наприклад: [layer_height], [fill_density] тощо. Ви також "
-"можете використовувати [timestamp], [year], [month], [day], [hour], "
-"[minute], [second], [version], [input_filename] ], [input_filename_base]."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:940
 msgid "Detect bridging perimeters"
-msgstr "Виявлення висячих периметрів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:942
 msgid ""
 "Experimental option to adjust flow for overhangs (bridge flow will be used), "
 "to apply bridge speed to them and enable fan."
 msgstr ""
-"Експериментальний параметр для регулювання потоку для виступів (буде "
-"використано мостовий потік), щоб застосувати до них швидкість мосту та "
-"увімкнути вентилятор."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:948
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:966
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:978
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:988
 msgid "Perimeters"
-msgstr "Периметри"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:949
 msgid ""
@@ -2324,21 +2013,15 @@ msgid ""
 "like 9000 usually gives good results if your hardware is up to the job. Set "
 "zero to disable acceleration control for perimeters."
 msgstr ""
-"Це прискорення, яке ваш принтер використовуватиме для периметрів. Висока "
-"значення, таке як 9000, зазвичай дає хороші результати, якщо ваше апаратне "
-"забезпечення відповідає завданню. Встановити 0, щоб вимкнути регулятор "
-"прискорення для периметрів."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:957
 msgid "Perimeter extruder"
-msgstr "Екструдер периметру"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:959
 msgid ""
 "The extruder to use when printing perimeters and brim. First extruder is 1."
 msgstr ""
-"Екструдер, що використовується при друці периметрів і краю. Перший екструдер "
-"- 1."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:968
 msgid ""
@@ -2348,19 +2031,11 @@ msgid ""
 "nozzle diameter will be used. If expressed as percentage (for example 200%) "
 "it will be computed over layer height."
 msgstr ""
-"Установіть значення ненульовим, щоб встановити ручну ширину екструзії для "
-"периметрів. Ви можете використовувати більш тонкі екструди, щоб отримати "
-"більш точні поверхні. Якщо залишити 0, буде використана ширина екструзії за "
-"замовчуванням, в іншому випадку використовуватиметься значення 1,125 х "
-"діаметр сопла. Якщо він виражений у відсотках (наприклад, 200%), він буде "
-"обчислюватися за висотою шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:980
 msgid ""
 "Speed for perimeters (contours, aka vertical shells). Set to zero for auto."
 msgstr ""
-"Швидкість для периметрів (контури, вертикальні оболонки). Встановити 0 для "
-"автоматичного використання."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:990
 msgid ""
@@ -2369,38 +2044,32 @@ msgid ""
 "surfaces which benefit from a higher number of perimeters if the Extra "
 "Perimeters option is enabled."
 msgstr ""
-"Ця опція визначає кількість периметрів для кожного шару. Зверніть увагу, що "
-"Slic3r може автоматично збільшувати це число, коли виявляє похилі поверхні, "
-"які отримують вигоду від більшої кількості периметрів, якщо опція «Додаткові "
-"периметри» увімкнена."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:994
 msgid "(minimum)"
-msgstr "(мінімум)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1014
 msgid "Printer notes"
-msgstr "Примітки принтера"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1015
 msgid "You can put your notes regarding the printer here."
-msgstr "Тут ви можете помістити свої нотатки щодо принтера."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1029
 msgid "Raft layers"
-msgstr "Плоскі шари"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1031
 msgid ""
 "The object will be raised by this number of layers, and support material "
 "will be generated under it."
 msgstr ""
-"Об'єкт буде піднятий цією кількістю шарів, і під ним буде згенерований "
-"матеріал підтримки."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1039
 msgid "Resolution"
-msgstr "Роздільна здатність"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1040
 msgid ""
@@ -2409,52 +2078,42 @@ msgid ""
 "carry more detail than printers can render. Set to zero to disable any "
 "simplification and use full resolution from input."
 msgstr ""
-"Мінімальна роздільна здатність деталі, що використовується для спрощення "
-"вхідного файлу для прискорення роботи над розрізанням та зменшення "
-"використання пам'яті. Моделі з високою роздільною здатністю часто несуть "
-"більш детальну інформацію, ніж можуть зробити принтери. Встановіть 0, щоб "
-"вимкнути будь-яке спрощення та використовувати повну роздільну здатність від "
-"введення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1050
 msgid "Minimum travel after retraction"
-msgstr "Мінімальне переміщення після переривання"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1051
 msgid ""
 "Retraction is not triggered when travel moves are shorter than this length."
-msgstr "Переривання не спрацьовує, коли переміщення коротше за цю довжину."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1057
 msgid "Retract amount before wipe"
-msgstr "Кількість переривань перед чищенням"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1058
 msgid ""
 "With bowden extruders, it may be wise to do some amount of quick retract "
 "before doing the wipe movement."
 msgstr ""
-"Завдяки екструдерам з бандами, має зміст зробити певну кількість переривань "
-"перед рухами очищення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1065
 msgid "Retract on layer change"
-msgstr "Переривання на зміну шарів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1066
 msgid "This flag enforces a retraction whenever a Z move is done."
 msgstr ""
-"Цей прапор забезпечує переривання кожного разу, коли виконується переміщення "
-"Z."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1071
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1080
 msgid "Length"
-msgstr "Довжина"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1072
 msgid "Retraction Length"
-msgstr "Довжина переривання"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1073
 msgid ""
@@ -2462,18 +2121,15 @@ msgid ""
 "amount (the length is measured on raw filament, before it enters the "
 "extruder)."
 msgstr ""
-"Коли спрацьовує переривання, філамент відтягується назад до вказаної "
-"кількості (довжина вимірюється на сирого філаменту перед тим, як вона "
-"надходить у екструдер)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1075
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1085
 msgid "mm (zero to disable)"
-msgstr "мм (0, щоб вимкнути)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1081
 msgid "Retraction Length (Toolchange)"
-msgstr "Довжина переривання (зміна інструмента)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1082
 msgid ""
@@ -2481,13 +2137,10 @@ msgid ""
 "by the specified amount (the length is measured on raw filament, before it "
 "enters the extruder)."
 msgstr ""
-"Коли спрацьовує переривання на зміну інструмента, філамент відтягується "
-"назад до вказаної кількості (довжина вимірюється на сирого філаменту перед "
-"тим, як вона надходить у екструдер)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1090
 msgid "Lift Z"
-msgstr "Підняти Z"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1091
 msgid ""
@@ -2495,17 +2148,14 @@ msgid ""
 "retraction is triggered. When using multiple extruders, only the setting for "
 "the first extruder will be considered."
 msgstr ""
-"Якщо ви встановите це значення позитивним, Z швидко піднімається щоразу, "
-"коли спрацьовує переривання. При використанні декількох екструдерів буде "
-"розглянуто налаштування лише першого екструдера."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1099
 msgid "Above Z"
-msgstr "Вище Z"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1100
 msgid "Only lift Z above"
-msgstr "Тільки піднімати Z"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1101
 msgid ""
@@ -2513,17 +2163,14 @@ msgid ""
 "specified absolute Z. You can tune this setting for skipping lift on the "
 "first layers."
 msgstr ""
-"Якщо ви встановите це значення позитивним, Z буде лише підніматися нал "
-"вказаним абсолютним Z. Ви можете налаштувати цей параметр так, що підняття "
-"буде пропускатися на перших шарах."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1108
 msgid "Below Z"
-msgstr "Нижче Z"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1109
 msgid "Only lift Z below"
-msgstr "Тільки опускати Z"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1110
 msgid ""
@@ -2531,44 +2178,37 @@ msgid ""
 "specified absolute Z. You can tune this setting for limiting lift to the "
 "first layers."
 msgstr ""
-"Якщо ви встановите це значення позитивним, Z буде лише опускатися нижче "
-"вказаного абсолютного Z. Ви можете налаштувати цей параметр так, що підняття "
-"буде обмежене на перших шарах."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1118
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1126
 msgid "Extra length on restart"
-msgstr "Додаткова довжина при перезапуску"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1119
 msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
 "push this additional amount of filament. This setting is rarely needed."
 msgstr ""
-"Коли переривання компенсується після руху переміщення, екструдер буде "
-"проштовхувати цю додаткову кількість філамента. Цей параметр рідко потрібний."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1127
 msgid ""
 "When the retraction is compensated after changing tool, the extruder will "
 "push this additional amount of filament."
 msgstr ""
-"Коли переривання компенсується після зміни інструмента, екструдер буде "
-"проштовхувати цю додаткову кількість філамента."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1134
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1135
 msgid "Retraction Speed"
-msgstr "Швидкість переривання"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1136
 msgid "The speed for retractions (it only applies to the extruder motor)."
-msgstr "Швидкість переривання (це стосується лише двигуна екструдера)."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1142
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1143
 msgid "Deretraction Speed"
-msgstr "Швидкість після-переривання"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1144
 msgid ""
@@ -2576,85 +2216,78 @@ msgid ""
 "applies to the extruder motor). If left to zero, the retraction speed is "
 "used."
 msgstr ""
-"Швидкість заведення філамента в екструдер після переривання (це стосується "
-"лише двигуна екструдера ). Якщо залишити 0, використовується швидкість "
-"переривання ."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1151
 msgid "Seam position"
-msgstr "Позиція шва"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1153
 msgid "Position of perimeters starting points."
-msgstr "Позиція стартових точок периметра."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1169
 msgid "Direction"
-msgstr "Напрямок"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1171
 msgid "Preferred direction of the seam"
-msgstr "Бажаний напрямок шва"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1172
 msgid "Seam preferred direction"
-msgstr "Бажаний напрямок шва"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1180
 msgid "Jitter"
-msgstr "Джиттер"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1182
 msgid "Seam preferred direction jitter"
-msgstr "Бажаний напрямок шва джитера"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1183
 msgid "Preferred direction of the seam - jitter"
-msgstr "Бажаний напрямок шва - джитера"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1194
 msgid "USB/serial port for printer connection."
-msgstr "USB / послідовний порт для підключення принтера."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1202
 msgid "Serial port speed"
-msgstr "Швидкість послідовного порту"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1203
 msgid "Speed (baud) of USB/serial port for printer connection."
-msgstr "Швидкість (бод) USB / послідовного порту для підключення принтера."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1212
 msgid "Distance from object"
-msgstr "Відстань від об'єкту"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1213
 msgid ""
 "Distance between skirt and object(s). Set this to zero to attach the skirt "
 "to the object(s) and get a brim for better adhesion."
 msgstr ""
-"Відстань між плінтусом та об'єктом (-ами). Установіть 0, щоб прикріпити "
-"плінтус до об'єкта (-ів) і отримати край для кращої адгезії."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1221
 msgid "Skirt height"
-msgstr "Висота плінтусу"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1222
 msgid ""
 "Height of skirt expressed in layers. Set this to a tall value to use skirt "
 "as a shield against drafts."
 msgstr ""
-"Висота плінтусу виражена в шарах. Встановіть це значення на високе, щоб "
-"використовувати плінтус як щит проти протягів."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1229
 msgid "Loops (minimum)"
-msgstr "Петлі (мінімум)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1230
 msgid "Skirt Loops"
-msgstr "Петлі плінтусу"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1231
 msgid ""
@@ -2662,25 +2295,20 @@ msgid ""
 "set, the number of loops might be greater than the one configured here. Set "
 "this to zero to disable skirt completely."
 msgstr ""
-"Кількість петель для плінтусу. Якщо встановлено параметр \"Мінімальна "
-"довжина екструзії\", кількість петель може бути більшою, ніж налаштована "
-"тут. Установіть 0, щоб повністю вимкнути плінтус."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1239
 msgid "Slow down if layer print time is below"
-msgstr "Уповільнення, якщо час друку шару нижче"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1240
 msgid ""
 "If layer print time is estimated below this number of seconds, print moves "
 "speed will be scaled down to extend duration to this value."
 msgstr ""
-"Якщо час друку шару оцінюється нижче цієї кількості секунд, швидкість друку "
-"рухів зменшуватиметься, щоб збільшити тривалість до цього значення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1250
 msgid "Small perimeters"
-msgstr "Маленькі периметри"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1252
 msgid ""
@@ -2688,38 +2316,32 @@ msgid ""
 "6.5mm (usually holes). If expressed as percentage (for example: 80%) it will "
 "be calculated on the perimeters speed setting above. Set to zero for auto."
 msgstr ""
-"Цей окремий параметр впливає на швидкість периметрів, що мають радіус <= 6,5 "
-"мм (як правило, дірки). Якщо вона виражена у відсотках (наприклад: 80%), "
-"вона буде розрахована за наведеним вище параметром швидкості. Встановити 0 "
-"для автоматичного використання."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1262
 msgid "Solid infill threshold area"
-msgstr "Порогова площа суцільного наповнення"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1264
 msgid ""
 "Force solid infill for regions having a smaller area than the specified "
 "threshold."
 msgstr ""
-"Встановити суцільне заповнення для регіонів, що мають площу, меншу "
-"зазначеного порогу."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1265
 msgid "mm²"
-msgstr "мм²"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1271
 msgid "Solid infill extruder"
-msgstr "Екструдер суцільних наповнень"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1273
 msgid "The extruder to use when printing solid infill."
-msgstr "Екструдер для друку суцільних наповнень."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1279
 msgid "Solid infill every"
-msgstr "Суцільне наповнення кожні"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1281
 msgid ""
@@ -2728,17 +2350,13 @@ msgid ""
 "will automatically choose the maximum possible number of layers to combine "
 "according to nozzle diameter and layer height."
 msgstr ""
-"Ця функція дозволяє закріпити суцільні шари на задану кількість шарів. 0 - "
-"щоб відключити. Ви можете встановити будь-яке значення (наприклад, 9999); "
-"Slic3r автоматично вибере максимально можливу кількість шарів для "
-"комбінування відповідно до діаметра сопла та висоти шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1291
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1301
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:142
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:84
 msgid "Solid infill"
-msgstr "Суцільне наповнення"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1293
 msgid ""
@@ -2747,11 +2365,6 @@ msgid ""
 "otherwise 1.125 x nozzle diameter will be used. If expressed as percentage "
 "(for example 90%) it will be computed over layer height."
 msgstr ""
-"Встановіть значення ненульовим, щоб встановити ручну ширину екструзії для "
-"наповнення для твердих поверхонь. Якщо залишити 0, буде використана ширина "
-"екструзії за замовчуванням, в іншому випадку використовуватиметься 1,125 х "
-"діаметр сопла. Якщо він виражений у відсотках (наприклад, 90%), він буде "
-"обчислюватися за висотою шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1303
 msgid ""
@@ -2759,19 +2372,14 @@ msgid ""
 "This can be expressed as a percentage (for example: 80%) over the default "
 "infill speed above. Set to zero for auto."
 msgstr ""
-"Швидкість друку твердих областей (верхня / нижня / внутрішня горизонтальна "
-"оболонка). Може бути виражено у відсотках (наприклад: 80%) від вказаної вище "
-"швидкості заповнення за замовчуванням. Встановити 0 для автоматичного "
-"використання."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1315
 msgid "Number of solid layers to generate on top and bottom surfaces."
 msgstr ""
-"Кількість суцільних шарів для генерування на верхній і нижній поверхні."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1322
 msgid "Spiral vase"
-msgstr "Спіральна ваза"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1323
 msgid ""
@@ -2781,16 +2389,10 @@ msgid ""
 "any number of bottom solid layers as well as skirt/brim loops. It won't work "
 "when printing more than an object."
 msgstr ""
-"Ця функція буде поступово підвищувати Z протягом друку одного-стінного "
-"об'єкта для уникнення будь-якого видимого шву. Цей параметр вимагає "
-"одношарового периметру, відсутнє наповнення, відсутність верхніх суцільних "
-"шарів і відсутність матеріалу підтримки. Ви все ще можете встановити будь-"
-"яку кількість нижніх суцільних шарів, а також петель плінтусу/краю. Це не "
-"спрацює при друку більше, ніж одного об'єкта."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1332
 msgid "Temperature variation"
-msgstr "Варіація температури"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1333
 msgid ""
@@ -2798,8 +2400,6 @@ msgid ""
 "a full-height \"sacrificial\" skirt on which the nozzles are periodically "
 "wiped."
 msgstr ""
-"Відмітка температури, яка застосовується, коли екструдер не активний. Вмикає "
-"\"жертовний\" плінтус на повній висоті, на які періодично очищуються сопла."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1343
 msgid ""
@@ -2811,14 +2411,6 @@ msgid ""
 "you can use placeholder variables for all Slic3r settings, so you can put a "
 "\"M109 S[first_layer_temperature]\" command wherever you want."
 msgstr ""
-"Ця початкова процедура вставляється на початку, після того, як полотно "
-"досягне цільової температури, а екструдер тільки починає нагріватися, і "
-"перед тим, як екструдер закінчить нагрівання. Якщо Slic3r виявляє M104 або "
-"M190 у ваших користувацьких кодах, такі команди не будуть додаватися "
-"автоматично, щоб ви могли вільно налаштовувати порядок команд нагріву та "
-"інших спеціальних дій. Зверніть увагу, що ви можете використовувати змінні-"
-"заповнювачі для всіх параметрів Slic3r, щоб ви могли поставити команду "
-"\"M109 S [first_layer_temperature]\" де завгодно."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1358
 msgid ""
@@ -2827,75 +2419,60 @@ msgid ""
 "detects M104, M109, M140 or M190 in your custom codes, such commands will "
 "not be prepended automatically so you're free to customize the order of "
 "heating commands and other custom actions. Note that you can use placeholder "
-"variables for all Slic3r settings, so you can put a \"M109 "
-"S[first_layer_temperature]\" command wherever you want. If you have multiple "
+"variables for all Slic3r settings, so you can put a \"M109 S"
+"[first_layer_temperature]\" command wherever you want. If you have multiple "
 "extruders, the gcode is processed in extruder order."
 msgstr ""
-"Ця початкова процедура вставляється на початку, після того, як будь-який "
-"принтер запускає G-code. Це використовується для перевизначення параметрів "
-"для певної нитки. Якщо Slic3r виявляє M104, M109, M140 або M190 у ваших "
-"користувацьких кодах, такі команди не будуть автоматично додаватися, тому ви "
-"можете налаштувати порядок команд нагріву та інших спеціальних дій. Зверніть "
-"увагу, що ви можете використовувати змінні-заповнювачі для всіх параметрів "
-"Slic3r, щоб ви могли поставити команду \"M109 S [first_layer_temperature]\" "
-"де завгодно. Якщо у вас є кілька екструдерів, G-code обробляється в порядку "
-"екструдерів."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1373
 msgid "Single Extruder Multi Material"
-msgstr "Одиночний екструдер кількох матеріалів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1374
 msgid "The printer multiplexes filaments into a single hot end."
-msgstr "Принтер мультиплексує нитки в єдиний гарячий кінець."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1379
 msgid "Generate support material"
-msgstr "Створити підтримуючий матеріал"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1381
 msgid "Enable support material generation."
-msgstr "Увімкнути генерацію матеріалів підтримки."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1386
 msgid "XY separation between an object and its support"
-msgstr "Розподіл XY між об'єктом та його підтримкою"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1388
 msgid ""
 "XY separation between an object and its support. If expressed as percentage "
 "(for example 50%), it will be calculated over external perimeter width."
 msgstr ""
-"Розподіл XY між об'єктом та його підтримкою. Якщо вона виражена у відсотках "
-"(наприклад, 50%), вона буде розрахована за зовнішньою шириною периметру."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1398
 msgid "Pattern angle"
-msgstr "Кут шаблону"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1400
 msgid ""
 "Use this setting to rotate the support material pattern on the horizontal "
 "plane."
 msgstr ""
-"Використовуйте цей параметр, щоб повернути шаблон підтримуючого матеріалу на "
-"горизонтальній площині."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1408
 msgid "Support on build plate only"
-msgstr "Підтримка тільки на збірній пластині"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1410
 msgid ""
 "Only create support if it lies on a build plate. Don't create support on a "
 "print."
 msgstr ""
-"Створити підтримку лише, для того, що лежить на збірній пластині. Не "
-"створювати підтримку на друк."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1416
 msgid "Contact Z distance"
-msgstr "Контактна відстань по осі Z"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1418
 msgid ""
@@ -2903,13 +2480,10 @@ msgid ""
 "this to 0 will also prevent Slic3r from using bridge flow and speed for the "
 "first object layer."
 msgstr ""
-"Вертикальна відстань між об'єктом та інтерфейсом матеріалу підтримки. "
-"Встановлення значення 0 також захистить Slic3r від використання потоку "
-"мостів та швидкості для першого шару об'єктну."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1431
 msgid "Enforce support for the first"
-msgstr "Забезпечити підтримку першого(их)"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1433
 msgid ""
@@ -2918,27 +2492,20 @@ msgid ""
 "regardless of any angle threshold. This is useful for getting more adhesion "
 "of objects having a very thin or poor footprint on the build plate."
 msgstr ""
-"Генерувати допоміжний матеріал для зазначеної кількості шарів, що "
-"підраховують знизу, незалежно від того, включено чи ні нормальний матеріал "
-"підтримки, і незалежно від будь-якого порогу кута. Це корисно для отримання "
-"більшої адгезії об'єктів, що мають дуже тонкий або поганий слід на збірній "
-"пластині."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1439
 msgid "Enforce support for the first n layers"
-msgstr "Забезпечити підтримку перших n шарів"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1444
 msgid "Support material/raft/skirt extruder"
-msgstr "Підтримуючий матеріал / пліт / плінтус екструдеру"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1446
 msgid ""
 "The extruder to use when printing support material, raft and skirt (1+, 0 to "
 "use the current extruder to minimize tool changes)."
 msgstr ""
-"Екструдер для друку підтримуючого матеріалу, плоту та плінтусу (1+, 0 для "
-"використання поточного екструдера, щоб мінімізувати зміни інструменту)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1455
 msgid ""
@@ -2947,62 +2514,49 @@ msgid ""
 "otherwise nozzle diameter will be used. If expressed as percentage (for "
 "example 90%) it will be computed over layer height."
 msgstr ""
-"Встановіть значення ненульовим, щоб встановити ручну ширину екструзії "
-"матеріалу для підтримки. Якщо залишити 0, буде використана ширина екструзії, "
-"встановлена за замовчуванням, інакше використовуватиметься діаметр сопла. "
-"Якщо він виражений у відсотках (наприклад, 90%), він буде обчислюватися за "
-"висотою шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1463
 msgid "Interface loops"
-msgstr "Інтерфейсні петлі"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1465
 msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
 msgstr ""
-"Закрити петлями верхній контактний шар підтримки. За замовчанням вимкнено."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1470
 msgid "Support material/raft interface extruder"
-msgstr "Екструдер інтерфейсу підтримуючого матеріалу / плоту"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1472
 msgid ""
 "The extruder to use when printing support material interface (1+, 0 to use "
 "the current extruder to minimize tool changes). This affects raft too."
 msgstr ""
-"Екструдер, що використовується під час друку інтерфейсу матеріалу підтримки "
-"(1+, 0 для використання поточного екструдера, щоб звести до мінімуму зміни "
-"інструменту). Це також впливає на плот."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1479
 msgid "Interface layers"
-msgstr "Інтерфейсні шари"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1481
 msgid ""
 "Number of interface layers to insert between the object(s) and support "
 "material."
 msgstr ""
-"Кількість шарів інтерфейсу для вставки між об'єктом(ами) та підтримуючим "
-"матеріалом."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1488
 msgid "Interface pattern spacing"
-msgstr "Відстань між шаблонами інтерфейсу"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1490
 msgid "Spacing between interface lines. Set zero to get a solid interface."
 msgstr ""
-"Відстань між інтерфейсними лініями. Встановити 0, щоб отримати надійний "
-"інтерфейс."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1497
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:148
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:90
 msgid "Support material interface"
-msgstr "Інтерфейс підтримуючого матеріалу"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1499
 msgid ""
@@ -3010,46 +2564,40 @@ msgid ""
 "percentage (for example 50%) it will be calculated over support material "
 "speed."
 msgstr ""
-"Швидкість друку інтерфейсних шарів підтримуючого матеріалу. Якщо вона "
-"виражена у відсотках (наприклад, 50%), вона буде розрахована за швидкістю "
-"матеріалу підтримки."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1508
 msgid "Pattern"
-msgstr "Шаблон"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1510
 msgid "Pattern used to generate support material."
-msgstr "Шаблон, що використовується для створення матеріалу підтримки."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1524
 msgid "Pattern spacing"
-msgstr "Відстань між шаблонами"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1526
 msgid "Spacing between support material lines."
-msgstr "Відстань між лініями підтримуючого матеріалу."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1535
 msgid "Speed for printing support material."
-msgstr "Швидкість друку підтримуючого матеріалу."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1542
 msgid "Synchronize with object layers"
-msgstr "Синхронізувати з шарами об'єкту"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1544
 msgid ""
 "Synchronize support layers with the object print layers. This is useful with "
 "multi-material printers, where the extruder switch is expensive."
 msgstr ""
-"Синхронізувати шари підтримки з шарами друку об'єкта. Це корисно "
-"використовувати з багато-матеріальними принтерами, де перемикання "
-"екструдерів -затратна процедура."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1550
 msgid "Overhang threshold"
-msgstr "Порог нависання"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1552
 msgid ""
@@ -3059,59 +2607,46 @@ msgid ""
 "that you can print without support material. Set to zero for automatic "
 "detection (recommended)."
 msgstr ""
-"Матеріал підтримки не буде сформований для виступів, кут нахилу (90° = "
-"вертикальний) яких перевищує заданий порог. Іншими словами, це значення "
-"представляє найбільш горизонтальний схил (вимірюваний з горизонтальної "
-"площини), який ви можете надрукувати без підтримуючого матеріалу. Встановити "
-"0 для автоматичного визначення (рекомендовано)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1564
 msgid "With sheath around the support"
-msgstr "З оболонкою навколо підтримки"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1566
 msgid ""
 "Add a sheath (a single perimeter line) around the base support. This makes "
 "the support more reliable, but also more difficult to remove."
 msgstr ""
-"Додати оболонку (одну лінію периметра) навколо базової підтримки. Це робить "
-"підтримку більш надійною, але її важче видалити."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1573
 msgid ""
 "Extruder temperature for layers after the first one. Set this to zero to "
 "disable temperature control commands in the output."
 msgstr ""
-"Температура екструдеру для шарів після першого. Установіть 0, щоб вимкнути "
-"команди керування температурою на виході."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1576
 msgid "Temperature"
-msgstr "Температура"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1582
 msgid "Detect thin walls"
-msgstr "Виявлення тонких стін"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1584
 msgid ""
 "Detect single-width walls (parts where two extrusions don't fit and we need "
 "to collapse them into a single trace)."
 msgstr ""
-"Визначення одношарової стінки (частини, де два екструзії не підходять, і нам "
-"потрібно згорнути їх у єдиний слід)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1590
 msgid "Threads"
-msgstr "Нитки"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1591
 msgid ""
 "Threads are used to parallelize long-running tasks. Optimal threads number "
 "is slightly above the number of available cores/processors."
 msgstr ""
-"Нитки використовуються для паралелізації довготривалих завдань. Оптимальна "
-"кількість ниток трохи перевищує кількість доступних ядер / процесорів."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1603
 msgid ""
@@ -3119,16 +2654,13 @@ msgid ""
 "you can use placeholder variables for all Slic3r settings as well as "
 "[previous_extruder] and [next_extruder]."
 msgstr ""
-"Цей спеціальний код вставляється безпосередньо перед кожною зміненою "
-"екструдера. Зверніть увагу, що ви можете використовувати змінні-заповнювачі "
-"для всіх параметрів Slic3r, а також [previous_extruder] і [next_extruder]."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1613
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1624
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:143
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:85
 msgid "Top solid infill"
-msgstr "Верхнє суцільне наповнення"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1615
 msgid ""
@@ -3138,13 +2670,6 @@ msgid ""
 "will be used if set, otherwise nozzle diameter will be used. If expressed as "
 "percentage (for example 90%) it will be computed over layer height."
 msgstr ""
-"Установіть ненульове значення, щоб встановити ручну ширину екструзії для "
-"наповнення верхньої поверхні. Ви можете використовувати більш тонкі "
-"екструдати, щоб заповнити всі вузькі області і отримати більш гладкий "
-"результат. Якщо залишити 0, буде використана ширина екструзії, встановлена "
-"за замовчуванням, інакше використовуватиметься діаметр сопла. Якщо вона "
-"виражена у відсотках (наприклад, 90%), вона буде обчислюватися за висотою "
-"шару."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1626
 msgid ""
@@ -3154,61 +2679,52 @@ msgid ""
 "percentage (for example: 80%) over the solid infill speed above. Set to zero "
 "for auto."
 msgstr ""
-"Швидкість друку верхніх суцільних шарів (це стосується тільки найвищих "
-"зовнішніх шарів, а не їхніх внутрішніх суцільних шарів). Ви можете захотіти "
-"сповільнення, щоб отримати більш гарну обробку поверхні. Це можна виразити "
-"відсотком (наприклад, 80%) звищення швидкості щільного наповнення . "
-"Встановити 0 для автоматичного обчислення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1638
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:369
 msgid "Top"
-msgstr "Зверху"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1640
 msgid "Number of solid layers to generate on top surfaces."
-msgstr "Кількість суцільних шарів, генерованих на верхніх поверхнях."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1642
 msgid "Top solid layers"
-msgstr "Верхні суцільні шари"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1647
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:95
 msgid "Travel"
-msgstr "Пересування"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1648
 msgid "Speed for travel moves (jumps between distant extrusion points)."
-msgstr "Швидкість рухів пересування (стрибки між далекими точками екструзії)."
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1656
 msgid "Use firmware retraction"
-msgstr "Використовувати відмову прошивки"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1657
 msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
 "handle the retraction. This is only supported in recent Marlin."
 msgstr ""
-"Цей експериментальний параметр використовує команди G10 і G11 для обробки "
-"відмови прошивки. Останнім часом це підтримується лише Marlin-ом."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1663
 msgid "Use relative E distances"
-msgstr "Використовувати відносні E відстані"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1664
 msgid ""
 "If your firmware requires relative E values, check this, otherwise leave it "
 "unchecked. Most firmwares use absolute values."
 msgstr ""
-"Якщо ваша прошивка потребує відносне значення E, зазначте це, інакше залиште "
-"його незазначеним. Більшість прошивок використовують абсолютні значення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1670
 msgid "Use volumetric E"
-msgstr "Використовувати об'ємний Е"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1671
 msgid ""
@@ -3219,74 +2735,61 @@ msgid ""
 "filament diameter associated to the filament selected in Slic3r. This is "
 "only supported in recent Marlin."
 msgstr ""
-"Цей експериментальний параметр використовує виводи значення E в кубічних "
-"міліметрах замість лінійних міліметрів. Якщо ваша прошивку ще не знає "
-"діаметр ниток, ви можете встановити такі команди, як \"M200 D "
-"[filament_diameter_0] T0\" у вашому старті G-коду, щоб включити об'ємний "
-"режим і використовувати діаметр нитки, пов'язаний з вибраною ниткою в "
-"Slic3r. Останнім часом це підтримується лише Marlin-ом."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1681
 msgid "Enable variable layer height feature"
-msgstr "Увімкнути функцію шарів змінної висоти"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1682
 msgid ""
 "Some printers or printer setups may have difficulties printing with a "
 "variable layer height. Enabled by default."
 msgstr ""
-"Деякі принтери або налаштування принтера можуть мати труднощі з друкуванням "
-"шарів змінної висоти. Увімкнено за умовчанням."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1688
 msgid "Wipe while retracting"
-msgstr "Вичіщувати при відмові"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1689
 msgid ""
 "This flag will move the nozzle while retracting to minimize the possible "
 "blob on leaky extruders."
 msgstr ""
-"Цей прапорець перемістить сопло під час відмови, щоб мінімізувати можливість "
-"утворення краплі на витікаючих екструдерах."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1696
 msgid ""
 "Multi material printers may need to prime or purge extruders on tool "
 "changes. Extrude the excess material into the wipe tower."
 msgstr ""
-"Мульти-матеріальні принтери можуть потребувати заправки або вичищення "
-"екструдерів при зміні інструмента. Екструдуйте надлишок матеріалу до "
-"вичищуючої вежі."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1702
 msgid "Position X"
-msgstr "Позиція X"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1703
 msgid "X coordinate of the left front corner of a wipe tower"
-msgstr "X координата лівого переднього кута вичищуючої вежі"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1709
 msgid "Position Y"
-msgstr "Позиція Y"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1710
 msgid "Y coordinate of the left front corner of a wipe tower"
-msgstr "Y координата лівого переднього кута вичищуючої вежі"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1716
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:70
 msgid "Width"
-msgstr "Ширина"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1717
 msgid "Width of a wipe tower"
-msgstr "Ширина вичищуючої вежі"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1723
 msgid "Per color change depth"
-msgstr "Змінити глибину за кольором"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1724
 msgid ""
@@ -3294,13 +2797,10 @@ msgid ""
 "(N-1) tool switches performed, therefore the total depth of the wipe tower "
 "will be (N-1) times this value."
 msgstr ""
-"Глибина вичищення кольору для кожної зміни кольору. Для N кольорів буде "
-"виконано максимум (N-1) інструментальних перемикачів, тому загальна глибина "
-"вичищуючої вежі буде (N-1) разів до цього значення."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1732
 msgid "XY Size Compensation"
-msgstr "Зрівноваження розміру за XY"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1734
 msgid ""
@@ -3308,13 +2808,10 @@ msgid ""
 "(negative = inwards, positive = outwards). This might be useful for fine-"
 "tuning hole sizes."
 msgstr ""
-"Об'єкт буде збільшений / зменшений у площині XY за заданим значенням "
-"(негативний - внутрішній, позитивний - ззовнішній). Це може бути корисним "
-"для точного налаштування розмірів отворів."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1742
 msgid "Z offset"
-msgstr "Зміщення Z"
+msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1743
 msgid ""
@@ -3323,39 +2820,35 @@ msgid ""
 "example, if your endstop zero actually leaves the nozzle 0.3mm far from the "
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
-"Це значення буде додано/вилучено до/з усіх координат Z у вихідному G-коді. "
-"Воно використовується для зрівноваження поганої кінцевої позиції Z: "
-"наприклад, якщо ваш кінцевий нуль фактично залишає сопло на 0,3 мм від "
-"полотна друку, встановіть його на значення -0,3 (або виправте ваш endstop)."
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:137
 msgid "None"
-msgstr "Жадне"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:138
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:80
 msgid "Perimeter"
-msgstr "Периметр"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:139
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:81
 msgid "External perimeter"
-msgstr "Зовнішній периметр"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:140
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:82
 msgid "Overhang perimeter"
-msgstr "Нависаючий периметр"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:141
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:83
 msgid "Internal infill"
-msgstr "Внутрішнє наповнення"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:144
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:86
 msgid "Bridge infill"
-msgstr "Мостове наповнення"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:151
 msgid "Mixed"
@@ -3364,241 +2857,241 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:330
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:68
 msgid "Feature type"
-msgstr "Тип ознаки"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:332
 msgid "Height (mm)"
-msgstr "Висота (мм)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:334
 msgid "Width (mm)"
-msgstr "Ширина (мм)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:336
 msgid "Speed (mm/s)"
-msgstr "Швидкість (мм/с)"
+msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:338
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:72
 msgid "Tool"
-msgstr "Інструмент"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI.pm:286
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
-msgstr "Виберіть один чи кілька файлів (STL/OBJ/AMF/PRUSA):"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:66
 msgid "Version "
-msgstr "Версія "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:66
 msgid ""
 " - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"
-msgstr " - Пам'ятайте оновлювати з http://github.com/prusa3d/slic3r/releases"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:118
 msgid "Plater"
-msgstr "Платер"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:120
 msgid "Controller"
-msgstr "Контролер"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:192
 msgid "No Bonjour device found"
-msgstr "Немає пристрою Bonjour"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:192
 msgid "Device Browser"
-msgstr "Браузер(список) пристроїв"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:211
 msgid "Connection to OctoPrint works correctly."
-msgstr "Підключення до OctoPrint працює правильно."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:214
 msgid "I wasn't able to connect to OctoPrint ("
-msgstr "Не можливо підключитися до OctoPrint ("
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:215
 msgid "). Check hostname and OctoPrint version (at least 1.1.0 is required)."
-msgstr ") Перевірте версію хоста та OctoPrint (принаймні 1.1.0 - обов'язкова)."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:251
 msgid "Open STL/OBJ/AMF…\tCtrl+O"
-msgstr "Відкрити STL/OBJ/AMF…\tCtrl+O"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:251
 msgid "Open a model"
-msgstr "Відкрити модель"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:254
 msgid "&Load Config…\tCtrl+L"
-msgstr "Завантажити конфігурацію... \tCtrl+L"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:254
 msgid "Load exported configuration file"
-msgstr "Завантажити експортований файл конфігурації"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:257
 msgid "&Export Config…\tCtrl+E"
-msgstr "Експортувати конфігурацію...\tCtrl+E"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:257
 msgid "Export current configuration to file"
-msgstr "Експортувати поточну конфігурацію в файл"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:260
 msgid "&Load Config Bundle…"
-msgstr "Завантажити пакет конфігурації…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:260
 msgid "Load presets from a bundle"
-msgstr "Завантажити налаштування з пакету"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:263
 msgid "&Export Config Bundle…"
-msgstr "Експортувати пакет налаштування…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:263
 msgid "Export all presets to file"
-msgstr "Експортувати всі налаштування у файл"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:268
 msgid "Q&uick Slice…\tCtrl+U"
-msgstr "Швидке нарізання…\tCtrl+U"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:268
 msgid "Slice a file into a G-code"
-msgstr "Нарізати файл у G-код"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:274
 msgid "Quick Slice and Save &As…\tCtrl+Alt+U"
-msgstr "Швидко нарізати та зберегти як…\tCtrl+Alt+U"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:274
 msgid "Slice a file into a G-code, save as"
-msgstr "Нарізати файл у G-код, зберегти як"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:280
 msgid "&Repeat Last Quick Slice\tCtrl+Shift+U"
-msgstr "Повторити останнє швидке нарізання\tCtrl+Shift+U"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:280
 msgid "Repeat last quick slice"
-msgstr "Повторити останнє швидке нарізання"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:287
 msgid "Slice to SV&G…\tCtrl+G"
-msgstr "Нарізати в SV&G…\tCtrl+G"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:287
 msgid "Slice file to a multi-layer SVG"
-msgstr "Нарізати файл в багатошаровий SVG"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:291
 msgid "(&Re)Slice Now\tCtrl+S"
-msgstr "(Пере)Нарізати зараз\tCtrl+S"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:291
 msgid "Start new slicing process"
-msgstr "Почати новий процес нарізання"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:294
 msgid "Repair STL file…"
-msgstr "Відновити STL-файл…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:294
 msgid "Automatically repair an STL file"
-msgstr "Автоматично відновити як STL-файл"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:299
 msgid "Preferences…\tCtrl+,"
-msgstr "Преференції…\tCtrl+,"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:299
 msgid "Application preferences"
-msgstr "Преференції застосування"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:304
 msgid "&Quit"
-msgstr "Вихід"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:304
 msgid "Quit Slic3r"
-msgstr "Вийти зі Slic3r"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:314
 msgid "Export G-code..."
-msgstr "Експорт G-code..."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:314
 msgid "Export current plate as G-code"
-msgstr "Експорт поточної пластини як G-код"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:317
 msgid "Export plate as STL..."
-msgstr "Експорт пластини як STL..."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:317
 msgid "Export current plate as STL"
-msgstr "Експорт поточної пластини як STL"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:320
 msgid "Export plate as AMF..."
-msgstr "Експорт пластини як AMF..."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:320
 msgid "Export current plate as AMF"
-msgstr "Експорт поточної пластини як AMF"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:323
 msgid "Export plate as 3MF..."
-msgstr "Експорт пластини як 3MF..."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:323
 msgid "Export current plate as 3MF"
-msgstr "Експорт поточної пластини як 3MF"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:336
 msgid "Select &Plater Tab\tCtrl+1"
-msgstr "Вибрати вкладку Plater\tCtrl+1"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:336
 msgid "Show the plater"
-msgstr "Показати plater"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:342
 msgid "Select &Controller Tab\tCtrl+T"
-msgstr "Вибрати вкладку Контроллер"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:342
 msgid "Show the printer controller"
-msgstr "Показати контролер принтера"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:350
 msgid "Select P&rint Settings Tab\tCtrl+2"
-msgstr "Вибрати вкладку параметрів друку\tCtrl+2"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:350
 msgid "Show the print settings"
-msgstr "Показати параметри друку"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:353
 msgid "Select &Filament Settings Tab\tCtrl+3"
-msgstr "Вибрати вкладку параметрів філаменту\tCtrl+3"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:353
 msgid "Show the filament settings"
-msgstr "Показати параметри філаменту"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:356
 msgid "Select Print&er Settings Tab\tCtrl+4"
-msgstr "Вибрати вкладку параметрів принтеру\tCtrl+4"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:356
 msgid "Show the printer settings"
-msgstr "Показати параметри принтеру"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:368
 msgid "Iso"
@@ -3606,155 +3099,155 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:368
 msgid "Iso View"
-msgstr "Вид Iso"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:369
 msgid "Top View"
-msgstr "Вид зверху"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:370
 msgid "Bottom View"
-msgstr "Вид знизу"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:371
 msgid "Front"
-msgstr "Спереду"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:371
 msgid "Front View"
-msgstr "Вид спереду"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:372
 msgid "Rear"
-msgstr "Ззаду"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:372
 msgid "Rear View"
-msgstr "Вид ззаду"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:373
 msgid "Left"
-msgstr "З лівого боку"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:373
 msgid "Left View"
-msgstr "Вид з лівого боку"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:374
 msgid "Right"
-msgstr "З правого боку"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:374
 msgid "Right View"
-msgstr "Вид з правого боку"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:380
 msgid "&Configuration "
-msgstr "Конфігурація "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:380
 msgid "Run Configuration "
-msgstr "Запустити конфігурацію "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:385
 msgid "Prusa 3D Drivers"
-msgstr "Драйвери Prusa3D"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:385
 msgid "Open the Prusa3D drivers download page in your browser"
-msgstr "Відкрити сторінку завантаження драйверів Prusa3D у своєму браузері"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:388
 msgid "Prusa Edition Releases"
-msgstr "Випуски(релізи) Prusa Edition"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:388
 msgid "Open the Prusa Edition releases page in your browser"
-msgstr "Відкрити сторінку релізів Prusa Edition у своєму браузері"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:395
 msgid "Slic3r &Website"
-msgstr "Веб-сайт Slic3r"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:395
 msgid "Open the Slic3r website in your browser"
-msgstr "Відкрити сторінку Slic3r у своєму браузері"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:398
 msgid "Slic3r &Manual"
-msgstr "Посібник до Slic3r"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:398
 msgid "Open the Slic3r manual in your browser"
-msgstr "Відкрити сторінку посібнику до Slic3r у своєму браузері"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:402
 msgid "System Info"
-msgstr "Інформація про систему"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:402
 msgid "Show system information"
-msgstr "Показати інформацію про систему"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:405
 msgid "Report an Issue"
-msgstr "Повідомити про проблему"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:405
 msgid "Report an issue on the Slic3r Prusa Edition"
-msgstr "Повідомити про проблему на Slic3r Prusa Edition"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:408
 msgid "&About Slic3r"
-msgstr "Про Slic3r"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:408
 msgid "Show about dialog"
-msgstr "Показати діалог Про Slic3r"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:418
 msgid "&File"
-msgstr "Файл"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:419
 msgid "&Plater"
-msgstr "Платер"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:420
 msgid "&Object"
-msgstr "Об'єкт"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:421
 msgid "&Window"
-msgstr "Вікно"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:422
 msgid "&View"
-msgstr "Вид"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:426
 msgid "&Help"
-msgstr "Доромога"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:457
 msgid "Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):"
-msgstr "Вибрати файл для нарізання (STL/OBJ/AMF/3MF/PRUSA):"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:469
 msgid "No previously sliced file."
-msgstr "Немає попередньо нарізаного файлу."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:474
 msgid "Previously sliced file ("
-msgstr "Попередньо нарізаний файл ("
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:474
 msgid ") not found."
-msgstr ") не знайдено."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:475
 msgid "File Not Found"
-msgstr "Файл не знайдено"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 msgid "SVG"
@@ -3762,74 +3255,74 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 msgid "G-code"
-msgstr "G-код"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1645
 msgid " file as:"
-msgstr " файл як:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:528
 msgid "Slicing…"
-msgstr "Нарізання…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:528
 msgid "Processing "
-msgstr "Обробка "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:548
 msgid " was successfully sliced."
-msgstr " був успішно нарізаний."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:550
 msgid "Slicing Done!"
-msgstr "Нарізання завершено!"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:566
 msgid "Select the STL file to repair:"
-msgstr "Вибрати STL-файл для відновлення:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:580
 msgid "Save OBJ file (less prone to coordinate errors than STL) as:"
-msgstr "Зберегти OBJ-файл (менш схильний координувати помилки, ніж STL) як:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:594
 msgid "Your file was repaired."
-msgstr "Ваш файл було відновлено."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:594
 msgid "Repair"
-msgstr "Відновити"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:605
 msgid "Save configuration as:"
-msgstr "Зберегти конфігурацію як:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:623
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:667
 msgid "Select configuration to load:"
-msgstr "Вибрати конфігурацію для завантаження:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:646
 msgid "Save presets bundle as:"
-msgstr "Зберегти набір налаштувань як:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:687
-#, perl-format
+#, possible-perl-format
 msgid "%d presets successfully imported."
-msgstr "%d налаштувань успішно імпортовано."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:749
 msgid "You have unsaved changes "
-msgstr "У вас є незбережені зміни "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:749
 msgid ". Discard changes and continue anyway?"
-msgstr ". Відхилити зміни і продовжити в будь-якому випадку?"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:750
 msgid "Unsaved Presets"
-msgstr "Незбереженні налаштування"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:104
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2124
@@ -3842,162 +3335,162 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:157
 msgid "Layers"
-msgstr "Шари"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:177
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:195
 msgid "Add…"
-msgstr "Додати…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:179
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:197
 msgid "Delete All"
-msgstr "Видалити все"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:180
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:198
 msgid "Arrange"
-msgstr "Організувати"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:182
 msgid "More"
-msgstr "Більше"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:183
 msgid "Fewer"
-msgstr "Менше"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:185
 msgid "45° ccw"
-msgstr "45° пгс"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:186
 msgid "45° cw"
-msgstr "45° згс"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:187
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:203
 msgid "Scale…"
-msgstr "Масштаб…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:188
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:204
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2099
 msgid "Split"
-msgstr "Розділити"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:189
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:205
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2102
 msgid "Cut…"
-msgstr "Вирізати…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:191
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:206
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2106
 msgid "Settings…"
-msgstr "Параметри…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:192
 msgid "Layer Editing"
-msgstr "Редагування шарів"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:207
 msgid "Layer editing"
-msgstr "Редагування шарів"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:220
 msgid "Name"
-msgstr "Ім'я"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:221
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:900
 msgid "Copies"
-msgstr "Копії"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:222
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1056
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1061
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2068
 msgid "Scale"
-msgstr "Масштаб"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:236
 msgid "Export G-code…"
-msgstr "Експортувати G-код…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:237
 msgid "Slice now"
-msgstr "Нарізати зараз"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:238
 msgid "Print…"
-msgstr "Друк…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:239
 msgid "Send to printer"
-msgstr "Надіслати на принтер"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:240
 msgid "Export STL…"
-msgstr "Експортувати STL…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:367
 msgid "Print settings"
-msgstr "Параметри друку"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:369
 msgid "Printer"
-msgstr "Принтер"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:398
 msgid "Info"
-msgstr "Інфо"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:409
 msgid "Volume"
-msgstr "Обсяг"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:410
 msgid "Facets"
-msgstr "Грані"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:411
 msgid "Materials"
-msgstr "Матеріали"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:412
 msgid "Manifold"
-msgstr "Різноманіття"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:438
 msgid "Sliced Info"
-msgstr "Інформація з нарізання"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:447
 msgid "Used Filament (m)"
-msgstr "Використано філаметну (м)"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:448
 msgid "Used Filament (mm³)"
-msgstr "Використано філаметну (мм³)"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:449
 msgid "Used Filament (g)"
-msgstr "Використано філаметну (г)"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:451
 msgid "Estimated printing time"
-msgstr "Приблизний час друку"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:629
 msgid "Loading…"
-msgstr "Завантаження…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:629
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:643
 msgid "Processing input file\n"
-msgstr "Обробка вхідного файлу\n"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:663
 msgid ""
@@ -4005,14 +3498,11 @@ msgid ""
 "of considering them as multiple objects, should I consider\n"
 "this file as a single object having multiple parts?\n"
 msgstr ""
-"Цей файл містить кілька об'єктів, розташованих на декількох висотах. Замість "
-"того, щоб розглядати їх як кілька об'єктів, чи потрібно розглянути\n"
-"цей файл як єдиний об'єкт, що має декілька частин?\n"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:666
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:683
 msgid "Multi-part object detected"
-msgstr "Виявлено об'єкт, що складається з кількох частин"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:680
 msgid ""
@@ -4020,388 +3510,374 @@ msgid ""
 "Instead of considering them as multiple objects, should I consider\n"
 "these files to represent a single object having multiple parts?\n"
 msgstr ""
-"До мульти-матеріального принтеру завантажено кілька об'єктів.\n"
-"Замість того, щоб розглядати їх як кілька об'єктів, чи потрібно розглянути\n"
-"ці файл як єдиний об'єкт, що має декілька частин?\n"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:692
 msgid "Loaded "
-msgstr "Завантажений "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:744
 msgid ""
 "Your object appears to be too large, so it was automatically scaled down to "
 "fit your print bed."
 msgstr ""
-"Ваш об'єкт видався занадто великим, тому він автоматично зменшився "
-"відповідно до вашої полотна друку."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:745
 msgid "Object too large?"
-msgstr "Об'єкт занадто великий?"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:900
 msgid "Enter the number of copies of the selected object:"
-msgstr "Введіть кількість копій обраного об'єкта:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:927
 msgid ""
 "\n"
 "Non-positive value."
 msgstr ""
-"\n"
-"Непозитивне значення."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:928
 msgid ""
 "\n"
 "Not a numeric value."
 msgstr ""
-"\n"
-"Не числове значення."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:929
 msgid "Slic3r Error"
-msgstr "Помилка Slic3r"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:950
 msgid "Enter the rotation angle:"
-msgstr "Введіть кут повороту:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:950
 msgid "Rotate around "
-msgstr "Обертати навколо "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:950
 msgid "Invalid rotation angle entered"
-msgstr "Введено неправильний кут повороту"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1030
-#, perl-format
+#, possible-perl-format
 msgid "Enter the new size for the selected object (print bed: %smm):"
-msgstr "Введіть новий розмір для обраного об'єкта (полотна друку: %smm):"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1031
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1035
 msgid "Scale along "
-msgstr "Масштабувати разом "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1031
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1035
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1056
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1061
 msgid "Invalid scaling value entered"
-msgstr "Введено неправильне значення масштабування"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1035
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1061
 #, no-perl-format
 msgid "Enter the scale % for the selected object:"
-msgstr "Введіть шкалу % для обраного об'єкта:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1056
 msgid "Enter the new max size for the selected object:"
-msgstr "Введіть новий максимальний розмір для обраного об'єкта:"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1112
 msgid ""
 "The selected object can't be split because it contains more than one volume/"
 "material."
 msgstr ""
-"Вибраний об'єкт не можна розділити, оскільки містить більше одного об'єму/"
-"матеріалу."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1121
 msgid ""
 "The selected object couldn't be split because it contains only one part."
 msgstr ""
-"Вибраний об'єкт не можна розділити, оскільки він містить лише одну частину."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1286
 msgid "Slicing cancelled"
-msgstr "Нарізання скасовано"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1300
 msgid "Another export job is currently running."
-msgstr "На даний час виконується інший експорт."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1445
 msgid "File added to print queue"
-msgstr "Файл додано до черги друку"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1448
 msgid "Sending G-code file to the OctoPrint server..."
-msgstr "Відправка файлу G-коду на сервер OctoPrint..."
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1451
 msgid "G-code file exported to "
-msgstr "Файл G-коду експортується до "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1454
 msgid "Export failed"
-msgstr "Експортувати не вдалося"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1524
 msgid "G-code file successfully uploaded to the OctoPrint server"
-msgstr "Файл G-коду успішно завантажений на сервер OctoPrint"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1526
 msgid "Error while uploading to the OctoPrint server: "
-msgstr "Помилка під час завантаження на сервер OctoPrint: "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1539
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1581
 msgid "STL file exported to "
-msgstr "STL-файл експортовано в "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1592
 msgid "AMF file exported to "
-msgstr "AMF-файл експортовано в "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1596
 msgid "Error exporting AMF file "
-msgstr "Помилка експортування AMF-файлу "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1608
 msgid "3MF file exported to "
-msgstr "3MF-файл експортовано в "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1612
 msgid "Error exporting 3MF file "
-msgstr "Помилка експортування 3MF-файлу "
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1958
-#, perl-format
+#, possible-perl-format
 msgid "%d (%d shells)"
-msgstr "%d (%d оболонок)"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1960
-#, perl-format
+#, possible-perl-format
 msgid "Auto-repaired (%d errors)"
-msgstr "Автоматичне відновлення (%d помилок)"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1965
-#, perl-format
+#, possible-perl-format
 msgid ""
 "%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d "
 "facets reversed, %d backwards edges"
 msgstr ""
-"вироджено %d грані, виправлено %d країв, вилучено %d грані, додано %d грані, "
-"змінено %d грані, повернуто %d країв"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1970
 msgid "Yes"
-msgstr "Так"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2021
 msgid "Remove the selected object"
-msgstr "Видалити вибраний об'єкт"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2024
 msgid "Increase copies"
-msgstr "Збільшити копії"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2024
 msgid "Place one more copy of the selected object"
-msgstr "Розташувати ще одну копію обраного об'єкта"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2027
 msgid "Decrease copies"
-msgstr "Зменшити копії"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2027
 msgid "Remove one copy of the selected object"
-msgstr "Вилучіть одну копію обраного об'єкта"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2030
 msgid "Set number of copies…"
-msgstr "Встановити кількість копій…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2030
 msgid "Change the number of copies of the selected object"
-msgstr "Змінити кількість копій обраного об'єкта"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2034
 msgid "Rotate 45° clockwise"
-msgstr "Повернути на 45° за годинниковою стрілкою"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2034
 msgid "Rotate the selected object by 45° clockwise"
-msgstr "Повернути виділений об'єкт на 45° за годинниковою стрілкою"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2037
 msgid "Rotate 45° counter-clockwise"
-msgstr "Повернути 45° проти годинникової стрілки"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2037
 msgid "Rotate the selected object by 45° counter-clockwise"
-msgstr "Повернути виділений об'єкт на 45° проти годинникової стрілки"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2042
 msgid "Rotate"
-msgstr "Повернути"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2042
 msgid "Rotate the selected object by an arbitrary angle"
-msgstr "Повернути виділений об'єкт на довільний кут"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2044
 msgid "Around X axis…"
-msgstr "Навколо осі X…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2044
 msgid "Rotate the selected object by an arbitrary angle around X axis"
-msgstr "Повернути виділений об'єкт на довільний кут навколо осі Х"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2047
 msgid "Around Y axis…"
-msgstr "Навколо осі Y…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2047
 msgid "Rotate the selected object by an arbitrary angle around Y axis"
-msgstr "Повернути виділений об'єкт на довільний кут навколо осі Y"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2050
 msgid "Around Z axis…"
-msgstr "Навколо осі Z…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2050
 msgid "Rotate the selected object by an arbitrary angle around Z axis"
-msgstr "Повернути виділений об'єкт на довільний кут навколо осі Z"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2055
 msgid "Mirror"
-msgstr "Віддзеркалити"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2055
 msgid "Mirror the selected object"
-msgstr "Віддзеркалити виділений об'єкт"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2057
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2073
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2089
 msgid "Along X axis…"
-msgstr "Уздовж осі X…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2057
 msgid "Mirror the selected object along the X axis"
-msgstr "Віддзеркалити виділений об'єкт уздовж осі Х"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2060
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2076
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2092
 msgid "Along Y axis…"
-msgstr "Уздовж осі Y…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2060
 msgid "Mirror the selected object along the Y axis"
-msgstr "Віддзеркалити виділений об'єкт уздовж осі Y"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2063
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2079
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2095
 msgid "Along Z axis…"
-msgstr "Уздовж осі Z…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2063
 msgid "Mirror the selected object along the Z axis"
-msgstr "Віддзеркалити виділений об'єкт уздовж осі Z"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2068
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2084
 msgid "Scale the selected object along a single axis"
-msgstr "Масштабувати виділений об'єкт уздовж осі"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2070
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2086
 msgid "Uniformly…"
-msgstr "Рівномірно…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2070
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2086
 msgid "Scale the selected object along the XYZ axes"
-msgstr "Масштабувати виділений об'єкт уздовж осей XYZ"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2073
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2089
 msgid "Scale the selected object along the X axis"
-msgstr "Масштабувати виділений об'єкт уздовж осі X"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2076
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2092
 msgid "Scale the selected object along the Y axis"
-msgstr "Масштабувати виділений об'єкт уздовж осі Y"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2079
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2095
 msgid "Scale the selected object along the Z axis"
-msgstr "Масштабувати виділений об'єкт уздовж осі Z"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2084
 msgid "Scale to size"
-msgstr "Масштабувати до розміру"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2099
 msgid "Split the selected object into individual parts"
-msgstr "Розділити вибраний об'єкт на окремі частини"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2102
 msgid "Open the 3D cutting tool"
-msgstr "Відкрити інструмент 3D-нарізки"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2106
 msgid "Open the object editor dialog"
-msgstr "Відкрити діалог редактора об'єктів"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2110
 msgid "Reload from Disk"
-msgstr "Перезавантажити з диска"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2110
 msgid "Reload the selected file from Disk"
-msgstr "Перезавантажити вибраний файл із диска"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2113
 msgid "Export object as STL…"
-msgstr "Експортувати об'єкт як STL…"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2113
 msgid "Export this single object as STL file"
-msgstr "Експортувати цей окремий об'єкт як STL-файл"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\2D.pm:131
 msgid "What do you want to print today? ™"
-msgstr "Що б Ви хотіли надрукувати сьогодні? ™"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\2D.pm:132
 msgid "Drag your objects here"
-msgstr "Перетягніть сюди свій об'єкт"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:63
 msgid "1 Layer"
-msgstr "1 Шар"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:65
 msgid "View"
-msgstr "Вид"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:75
 msgid "Show"
-msgstr "Показати"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:78
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:79
 msgid "Feature types"
-msgstr "Типи ознак"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:96
 msgid "Retractions"
-msgstr "Переривання"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:97
 msgid "Unretractions"
-msgstr "Непереривання"
+msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:98
 msgid "Shells"
-msgstr "Оболонки"
+msgstr ""
