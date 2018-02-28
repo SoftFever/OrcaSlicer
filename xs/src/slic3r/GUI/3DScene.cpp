@@ -1168,7 +1168,7 @@ bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, con
     unsigned int max_text_height = 0;
     for (const GCodePreviewData::LegendItem& item : items)
     {
-        memDC.GetTextExtent(GUI::L_str(item.text), &w, &h);
+        memDC.GetTextExtent(GUI::from_u8(item.text), &w, &h);
         max_text_width = std::max(max_text_width, (unsigned int)w);
         max_text_height = std::max(max_text_height, (unsigned int)h);
     }
@@ -1245,7 +1245,7 @@ bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, con
         memDC.DrawRectangle(wxRect(icon_x_inner, icon_y + 1, px_inner_square, px_inner_square));
 
         // draw text
-		memDC.DrawText(GUI::L_str(item.text), text_x, icon_y + text_y_offset);
+		memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
 
         // update y
         icon_y += icon_y_step;

@@ -519,7 +519,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 
         comboCtrl->EnablePopupAnimation(false);
         comboCtrl->SetPopupControl(popup);
-        popup->SetStringValue(text);
+        popup->SetStringValue(from_u8(text));
         popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
         popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
         popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });

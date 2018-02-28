@@ -113,8 +113,7 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
 	if (!icon.empty()) {
-		if (m_icon_index.find(icon) == m_icon_index.end())
-			icon_idx = -1;
+		icon_idx = (m_icon_index.find(icon) == m_icon_index.end()) ? -1 : m_icon_index.at(icon);
 		if (icon_idx == -1) {
 			// Add a new icon to the icon list.
 			const auto img_icon = new wxIcon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
@@ -1184,7 +1183,9 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 void TabPrinter::build_extruder_pages(){
 	for (auto extruder_idx = m_extruder_pages.size(); extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
-		auto page = add_options_page(_(L("Extruder ")) + wxString::Format(_T("%i"), extruder_idx + 1), "funnel.png", true);
+		char buf[MIN_BUF_LENGTH_FOR_L];
+		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
+		auto page = add_options_page(from_u8(buf), "funnel.png", true);
 		m_extruder_pages.push_back(page);
 			
 			auto optgroup = page->new_optgroup(_(L("Size")));

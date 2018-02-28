@@ -1,6 +1,7 @@
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
 #include <float.h>
+#include <wx/intl.h> 
 #include "slic3r/GUI/GUI.hpp"
 
 namespace Slic3r {
@@ -369,7 +370,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             items.reserve(last_valid - first_valid + 1);
             for (unsigned int i = (unsigned int)first_valid; i <= (unsigned int)last_valid; ++i)
             {
-                items.emplace_back(extrusion.role_names[i], extrusion.role_colors[i]);
+                items.emplace_back(_CHB(extrusion.role_names[i].c_str()).data(), extrusion.role_colors[i]);
             }
 
             break;
@@ -395,8 +396,8 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             items.reserve(tools_colors_count);
             for (unsigned int i = 0; i < tools_colors_count; ++i)
             {
-                char buf[32];
-                sprintf(buf, "Extruder %d", i + 1);
+				char buf[MIN_BUF_LENGTH_FOR_L];
+                sprintf(buf, _CHB(L("Extruder %d")), i + 1);
 
                 GCodePreviewData::Color color;
                 ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
