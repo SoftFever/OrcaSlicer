@@ -31,8 +31,7 @@ TODO LIST
 #define strcasecmp _stricmp
 #endif
 
-constexpr bool  peters_wipe_tower = false;	// sparse wipe tower inspired by Peter's post processor - not finished yet
-constexpr float min_layer_difference = 2*m_perimeter_width;
+const bool  peters_wipe_tower = false;	// sparse wipe tower inspired by Peter's post processor - not finished yet
 
 namespace Slic3r
 {
@@ -468,7 +467,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
     // therefore the homing position is shifted inside the bed by 0.2 in the firmware to [0.2, -2.0].
 //	box_coordinates cleaning_box(xy(0.5f, - 1.5f), m_wipe_tower_width, wipe_area);
 	//FIXME: set the width properly
-	constexpr float prime_section_width = 60.f;
+	const float prime_section_width = 60.f;
 	box_coordinates cleaning_box(xy(5.f, 0.f), prime_section_width, 15.f);
 
 	PrusaMultiMaterial::Writer writer;
@@ -1191,18 +1190,6 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
 	depth *= m_extra_spacing;	
 
 	m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth));
-	
-	// Calculate m_wipe_tower_depth (maximum depth for all the layers) and propagate depths downwards
-	/*float this_layer_depth = m_plan.back().toolchanges_depth();
-	m_plan.back().depth = this_layer_depth;
-	
-	if (this_layer_depth > m_wipe_tower_depth - m_perimeter_width)
-		m_wipe_tower_depth = this_layer_depth + m_perimeter_width;
-	for (int i = m_plan.size() - 2; i >= 0 && m_plan[i].depth < this_layer_depth; i-- ) {
-		if ( this_layer_depth - m_plan[i].depth < min_layer_difference && !m_plan[i].tool_changes.empty())
-			m_plan[i].depth += this_layer_depth - m_plan[i].depth;
-		m_plan[i].depth = this_layer_depth;
-	}*/
 }
 
 
@@ -1224,7 +1211,7 @@ void WipeTowerPrusaMM::plan_tower()
 
 		for (int i = layer_index - 1; i >= 0 /*&& m_plan[i].depth < this_layer_depth*/; i--)
 		{
-			if (m_plan[i].depth - this_layer_depth < min_layer_difference )
+			if (m_plan[i].depth - this_layer_depth < 2*m_perimeter_width )
 				m_plan[i].depth = this_layer_depth;
 		}
 	}

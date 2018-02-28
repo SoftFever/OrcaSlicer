@@ -10,22 +10,17 @@
 #include "WipeTower.hpp"
 
 // Following is used to calculate extrusion flow - should be taken from config in future
-constexpr float Filament_Area = M_PI * 1.75f * 1.75f / 4.f; // filament area in mm^3
-constexpr float Nozzle_Diameter = 0.4f;	// nozzle diameter in mm
+const float Filament_Area = M_PI * 1.75f * 1.75f / 4.f; // filament area in mm^3
+const float Nozzle_Diameter = 0.4f;	// nozzle diameter in mm
 // desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
-constexpr float Width_To_Nozzle_Ratio = 1.25f;
+const float Width_To_Nozzle_Ratio = 1.25f;
 
 // m_perimeter_width was hardcoded until now as 0.5 (for 0.4 nozzle and 0.2 layer height)
 // FIXME m_perimeter_width is used in plan_toolchange - take care of proper initialization value when changing to variable
-constexpr float Konst = 1.f;
-constexpr float m_perimeter_width = Nozzle_Diameter * Width_To_Nozzle_Ratio * Konst;
+const float Konst = 1.f;
+const float m_perimeter_width = Nozzle_Diameter * Width_To_Nozzle_Ratio * Konst;
 
-constexpr float WT_EPSILON = 1e-3f;
-
-
-
-
-
+const float WT_EPSILON = 1e-3f;
 
 
 namespace Slic3r
@@ -147,14 +142,14 @@ struct WipeTowerParameters {
         ramming_speed.clear();
         ramming_buttons.clear();
         for (unsigned int i=0;i<4;++i) {
-            ramming_speed.push_back(std::vector<float>{7.6, 7.6, 7.6, 7.6, 9.0, 9.0, 9.0, 10.7, 10.7, 10.7});
-            ramming_buttons.push_back(std::vector<std::pair<float,float>>{{0.05, 6.6},{0.45, 6.8},{0.95, 7.8},{1.45, 8.3},{1.95, 9.7},{2.45,10},{2.95, 7.6},{3.45, 7.6},{3.95, 7.6},{4.45, 7.6},{4.95, 7.6}});
+            ramming_speed.push_back(std::vector<float>{7.6f, 7.6f, 7.6f, 7.6f, 9.f, 9.f, 9.f, 10.7f, 10.7f, 10.7f});
+            ramming_buttons.push_back(std::vector<std::pair<float,float>>{{0.05f, 6.6f},{0.45f, 6.8f},{0.95f, 7.8f},{1.45f, 8.3f},{1.95f, 9.7f},{2.45f,10.f},{2.95f, 7.6f},{3.45f, 7.6f},{3.95f, 7.6f},{4.45f, 7.6f},{4.95f, 7.6f}});
         }
-        wipe_volumes = {{  0, 60, 60, 60},
-                        { 60,  0, 60, 60},
-                        { 60, 60,  0, 60},
-                        { 60, 60, 60,  0}};
-        filament_wipe_volumes = {{30,30},{30,30},{30,30},{30,30}};
+        wipe_volumes = {{  0.f, 60.f, 60.f, 60.f},
+                        { 60.f,  0.f, 60.f, 60.f},
+                        { 60.f, 60.f,  0.f, 60.f},
+                        { 60.f, 60.f, 60.f,  0.f}};
+        filament_wipe_volumes = {{30.f,30.f},{30.f,30.f},{30.f,30.f},{30.f,30.f}};
     }
 
     int bridging = 0.f;

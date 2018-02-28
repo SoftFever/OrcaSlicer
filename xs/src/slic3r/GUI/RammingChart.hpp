@@ -68,7 +68,7 @@ private:
 
     class ButtonToDrag {
     public:
-        bool operator<(ButtonToDrag& a) { return m_pos.m_x < a.m_pos.m_x; }
+        bool operator<(const ButtonToDrag& a) const { return m_pos.m_x < a.m_pos.m_x; }
         ButtonToDrag(wxPoint2DDouble pos) : m_pos{pos} {};
         wxPoint2DDouble get_pos() const { return m_pos; }            
         void move(double x,double y) { m_pos.m_x+=x; m_pos.m_y+=y; }
