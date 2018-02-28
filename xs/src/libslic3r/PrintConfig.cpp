@@ -1701,6 +1701,13 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "wipe-tower!";
     def->default_value = new ConfigOptionBool(false);
 
+    def = this->add("wipe_tower_advanced", coString);
+    def->label = _L("Advanced string");
+    def->tooltip = _L("Advanced tooltip ");
+    def->sidetext = _L("advanced sidetext");
+    def->cli = "wipe-tower-advanced=s";
+    def->default_value = new ConfigOptionString("");
+
     def = this->add("wipe_tower_x", coFloat);
     def->label = _L("Position X");
     def->tooltip = _L("X coordinate of the left front corner of a wipe tower");
@@ -1723,7 +1730,7 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloat(60.);
 
     def = this->add("wipe_tower_per_color_wipe", coFloat);
-    def->label = _L("Per color change depth");
+    def->label = "(Unused and will be likely removed)";//_L("Per color change depth");
     def->tooltip = _L("Depth of a wipe color per color change. For N colors, there will be "
                    "maximum (N-1) tool switches performed, therefore the total depth "
                    "of the wipe tower will be (N-1) times this value.");

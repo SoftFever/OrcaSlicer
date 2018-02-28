@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <sstream>
 #include <utility>
 
 #include "WipeTower.hpp"
@@ -22,12 +23,152 @@ constexpr float m_perimeter_width = Nozzle_Diameter * Width_To_Nozzle_Ratio * Ko
 constexpr float WT_EPSILON = 1e-3f;
 
 
+
+
+
+
+
 namespace Slic3r
 {
 
 namespace PrusaMultiMaterial {
 	class Writer;
 };
+
+
+
+// Operator overload to output std::pairs
+template <typename T>
+std::ostream& operator<<(std::ostream& stream,const std::pair<T,T>& pair) {
+    return stream << pair.first << " " << pair.second;
+}
+
+// Operator overload to output elements of a vector to std::ofstream easily:
+template <typename T>
+std::ostream& operator<<(std::ostream& stream,const std::vector<T>& vect) {
+    for (const auto& element : vect)
+        stream << element << " ";
+    return stream;
+}
+
+// Operator overload to input elements of a vector from std::ifstream easily (reads until a fail)
+template <typename T>
+std::istream& operator>>(std::istream& stream, std::vector<T>& vect) {
+    vect.clear();
+    T value{};
+    bool we_read_something = false;
+    while (stream >> value) {
+        vect.push_back(value);
+        we_read_something = true;
+    }
+    if (!stream.eof() && we_read_something) { // if this is not eof, we might be at separator - let's get rid of it
+        stream.clear();     // if we failed on very first line or reached eof, return stream in !good() state
+        stream.get();       // get() whatever we are stuck at
+    }
+    return stream;
+}
+
+
+// This struct is used to store parameters and to pass it to wipe tower generator
+struct WipeTowerParameters {
+    WipeTowerParameters() {  }           // create new empty object
+    WipeTowerParameters(const std::string& init_data) { // create object and initialize from std::string
+        std::istringstream in(init_data);               // validation of input is left to the caller
+        in >> bridging >> adhesion >> sampling;
+        for (std::vector<float> vect{} ; in >> vect ;) {  // until we get to fail state ("**")...
+            if (vect.size()>=3) {
+                cooling_time.push_back(vect[0]);
+                ramming_line_width_multiplicator.push_back(vect[1]);
+                ramming_step_multiplicator.push_back(vect[2]);
+                vect.erase(vect.begin(),vect.begin()+3);
+            }
+            else vect.clear(); // something's not right, we will restore defaults anyway
+            ramming_speed.push_back(vect);
+
+            if (in.good()) {
+                in >> vect;
+                std::vector<std::pair<float,float>> pairs;
+                for (unsigned int i=0;i<vect.size();++i)
+                    if (i%2==1)
+                        pairs.push_back(std::make_pair(vect[i-1],vect[i]));
+                ramming_buttons.push_back(pairs);
+            }
+        }
+        in.clear();
+        in.get();
+
+        for (std::vector<float> vect{} ; in >> vect ;) {  // let's keep reading
+            wipe_volumes.push_back(vect);
+        }
+        in.clear();
+        in.get();
+
+        std::vector<int> vect{};
+        in >> vect;
+        for (unsigned int i=0;i<vect.size();++i)
+            if (i%2==1)
+                filament_wipe_volumes.push_back(std::make_pair(vect[i-1],vect[i]));
+    }
+
+    std::string to_string() {
+        std::ostringstream out;
+        out << bridging << " " << int(adhesion) << " " << sampling << "\n";
+        for (unsigned extruder=0;extruder<cooling_time.size();++extruder) {
+            out << "\n" << cooling_time[extruder] << " "  << ramming_line_width_multiplicator[extruder] << " " 
+                << ramming_step_multiplicator[extruder] << " " << ramming_speed[extruder]  << "*"
+                << ramming_buttons[extruder] << "*";
+        }
+        out << "*\n";
+        for (auto& radek : wipe_volumes)
+            out << "\n" << radek << "*";
+        out << "*\n";
+        out << filament_wipe_volumes << "*";
+        return out.str();
+    }
+
+    bool validate() const {     // basic check for validity to distinguish most dramatic failures
+        const unsigned int num = cooling_time.size();
+        if ( num < 1 || ramming_line_width_multiplicator.size()!=num || ramming_step_multiplicator.size()!=num ||
+             ramming_buttons.size()!=num || wipe_volumes.size()!=num ||
+             filament_wipe_volumes.size()!=num)
+            return false;
+        for (const auto& row : wipe_volumes)
+            if (row.size()!=num)
+                return false;
+        return true;
+    }
+    void set_defaults() {
+        bridging = 10;
+        adhesion = true;
+        sampling = 0.25f;
+        cooling_time = {15,15,15,15};
+        ramming_line_width_multiplicator = {1.5f, 1.5f, 1.5f, 1.5f};
+        ramming_step_multiplicator = {1.1f, 1.1f, 1.1f, 1.1f};
+        ramming_speed.clear();
+        ramming_buttons.clear();
+        for (unsigned int i=0;i<4;++i) {
+            ramming_speed.push_back(std::vector<float>{7.6, 7.6, 7.6, 7.6, 9.0, 9.0, 9.0, 10.7, 10.7, 10.7});
+            ramming_buttons.push_back(std::vector<std::pair<float,float>>{{0.05, 6.6},{0.45, 6.8},{0.95, 7.8},{1.45, 8.3},{1.95, 9.7},{2.45,10},{2.95, 7.6},{3.45, 7.6},{3.95, 7.6},{4.45, 7.6},{4.95, 7.6}});
+        }
+        wipe_volumes = {{  0, 60, 60, 60},
+                        { 60,  0, 60, 60},
+                        { 60, 60,  0, 60},
+                        { 60, 60, 60,  0}};
+        filament_wipe_volumes = {{30,30},{30,30},{30,30},{30,30}};
+    }
+
+    int bridging = 0.f;
+    bool adhesion  = false;
+    float sampling = 0.25f; // this does not quite work yet, keep it fixed to 0.25f
+    std::vector<int> cooling_time;
+    std::vector<float> ramming_line_width_multiplicator;
+    std::vector<float> ramming_step_multiplicator;
+    std::vector<std::vector<float>> ramming_speed;
+    std::vector<std::vector<std::pair<float,float>>> ramming_buttons;
+    std::vector<std::vector<float>> wipe_volumes;
+    std::vector<std::pair<int,int>> filament_wipe_volumes;
+};
+
 
 class WipeTowerPrusaMM : public WipeTower
 {
@@ -53,15 +194,16 @@ public:
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
-	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, float rotation_angle, unsigned int initial_tool) :
+	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, float rotation_angle, unsigned int initial_tool,std::string& parameters) :
 		m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
 		m_wipe_tower_rotation_angle(rotation_angle),
 		m_y_shift(0.f),
 		m_z_pos(0.f),
 		m_is_first_layer(false),
-		m_is_last_layer(false),		
-		m_current_tool(initial_tool)
+		m_is_last_layer(false),
+		m_current_tool(initial_tool),
+        m_par(parameters)
  	{
 		for (size_t i = 0; i < 4; ++ i) {
 			// Extruder specific parameters.
@@ -206,6 +348,7 @@ private:
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
 	unsigned int 	m_current_tool  = 0;
+    WipeTowerParameters m_par;
 
 	float m_depth_traversed = 0.f; // Current y position at the wipe tower.
 	// How much to wipe the 1st extruder over the wipe tower at the 1st layer
@@ -309,6 +452,9 @@ private:
 		const box_coordinates  &cleaning_box,
 		float wipe_volume);	
 };
+
+
+
 
 }; // namespace Slic3r
 

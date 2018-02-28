@@ -605,6 +605,7 @@ public:
     ConfigOptionInt                 threads;
     ConfigOptionBools               wipe;
     ConfigOptionBool                wipe_tower;
+    ConfigOptionString              wipe_tower_advanced;
     ConfigOptionFloat               wipe_tower_x;
     ConfigOptionFloat               wipe_tower_y;
     ConfigOptionFloat               wipe_tower_width;
@@ -670,6 +671,7 @@ protected:
         OPT_PTR(threads);
         OPT_PTR(wipe);
         OPT_PTR(wipe_tower);
+        OPT_PTR(wipe_tower_advanced);
         OPT_PTR(wipe_tower_x);
         OPT_PTR(wipe_tower_y);
         OPT_PTR(wipe_tower_width);

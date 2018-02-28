@@ -3,6 +3,7 @@
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "WipeTowerDialog.hpp"
 
 #include <wx/app.h>
 #include <wx/button.h>
@@ -440,6 +441,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("ooze_prevention");
 		optgroup->append_single_option_line("standby_temperature_delta");
 
+    if (true) {
 		optgroup = page->new_optgroup(_L("Wipe tower"));
 		optgroup->append_single_option_line("wipe_tower");
 		optgroup->append_single_option_line("wipe_tower_x");
@@ -447,6 +449,27 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_width");
 		optgroup->append_single_option_line("wipe_tower_per_color_wipe");
 		optgroup->append_single_option_line("wipe_tower_rotation_angle");
+        Line line{ _L("Advanced"), "" };
+		line.widget = [this](wxWindow* parent){
+			m_wipe_tower_btn = new wxButton(parent, wxID_ANY, _L("Advanced settings")+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(m_wipe_tower_btn);
+			m_wipe_tower_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+			{
+                std::string init_data = (m_config->option<ConfigOptionString>("wipe_tower_advanced"))->value;
+                std::cout << "dialog init: " << init_data << std::endl;
+				WipeTowerDialog dlg(this,init_data); // dlg lives on stack, no need to call Destroy
+
+				if (dlg.ShowModal() == wxID_OK) {
+                    load_key_value("wipe_tower_advanced", dlg.GetValue());
+                    std::cout << std::endl << "dialog returned: " << dlg.GetValue() << std::endl;
+                }
+			}));
+			return sizer;
+		};
+		optgroup->append_line(line);
+    }
+
 
 		optgroup = page->new_optgroup(_L("Advanced"));
 		optgroup->append_single_option_line("interface_shells");
@@ -766,6 +789,7 @@ void TabPrint::update()
 	vec_enable = {	"wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe", "wipe_tower_rotation_angle"};
 	for (auto el : vec_enable)
 		get_field(el)->toggle(have_wipe_tower);
+    m_wipe_tower_btn->Enable(have_wipe_tower);
 
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));

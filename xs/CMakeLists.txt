@@ -195,6 +195,11 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/2DBed.hpp
     ${LIBDIR}/slic3r/GUI/wxExtensions.cpp
     ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
+    ${LIBDIR}/slic3r/GUI/WipeTowerDialog.cpp
+    ${LIBDIR}/slic3r/GUI/WipeTowerDialog.hpp
+    ${LIBDIR}/slic3r/GUI/RammingChart.cpp
+    ${LIBDIR}/slic3r/GUI/RammingChart.hpp
+
 )
 
 add_library(admesh STATIC

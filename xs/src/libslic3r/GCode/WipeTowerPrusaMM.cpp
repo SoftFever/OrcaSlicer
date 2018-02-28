@@ -33,33 +33,6 @@ TODO LIST
 
 constexpr bool  peters_wipe_tower = false;	// sparse wipe tower inspired by Peter's post processor - not finished yet
 constexpr float min_layer_difference = 2*m_perimeter_width;
-constexpr float max_bridge_distance = 10.f; // in mm
-constexpr bool  improve_first_layer_adhesion = true;
-// experimental: ramming speed (mm^3/s) sampled in 0.25s intervals (one filament so far)
-const std::vector<float> ramming_speed = {7.6, 7.6, 7.6, 7.6, 9.0, 9.0, 9.0, 10.7, 10.7, 10.7};
-constexpr float ramming_step_multiplicator = 1.2f; // extra spacing may be needed for some materials
-constexpr float ramming_line_width_multiplicator = 1.5f;
-
-// experimental: time requested for cooling in seconds (common for all materials so far)
-constexpr float cooling_time = 14; // PVA: 20; SCAFF: 17; PLA+others: 14
-
-
-// volumes in mm^3 required for wipe: {{from 0 to ...},{from 1 to ...},{from 2 to ...},{from 3 to ...}}, usage [from][to]
-const std::vector<std::vector<float>> wipe_volumes = {{  0,120, 10, 50},
-													  { 20,  0, 30, 40},
-													  { 90, 20,  0, 85},
-													  {100,140, 30,  0}};
-
-/*const std::vector<std::vector<float>> wipe_volumes = {{0, 67, 67, 67},
-													  {67, 0, 67, 67},
-													  {67, 67, 0, 67},
-													  {67, 67, 67, 0}};
-*/
-/*const std::vector<std::vector<float>> wipe_volumes = {{0, 10, 10, 10},
-													  {10, 0, 10, 10},
-													  {10, 10, 0, 10},
-													  {10, 10, 10, 0}};
-*/
 
 namespace Slic3r
 {
@@ -614,7 +587,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 	{
 		for (const auto &b : m_layer_info->tool_changes)
 			if ( b.new_tool == tool ) {
-				wipe_volume = wipe_volumes[b.old_tool][b.new_tool];
+				wipe_volume = m_par.wipe_volumes[b.old_tool][b.new_tool];
 				if (tool == m_layer_info->tool_changes.back().new_tool)
 					last_change_in_layer = true;
 				wipe_area = b.required_depth * m_layer_info->extra_spacing;
@@ -804,20 +777,20 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	
 	writer.append("; CP TOOLCHANGE UNLOAD\n");
 	
-	const float line_width = m_line_width * ramming_line_width_multiplicator; // desired ramming line thickness
-	const float y_step = line_width * ramming_step_multiplicator * m_extra_spacing;			  // spacing between lines in mm
+	const float line_width = m_line_width * m_par.ramming_line_width_multiplicator[m_current_tool]; // desired ramming line thickness
+	const float y_step = line_width * m_par.ramming_step_multiplicator[m_current_tool] * m_extra_spacing;			  // spacing between lines in mm
 
 	unsigned i = 0;										// iterates through ramming_speed
 	m_left_to_right = true;								// current direction of ramming
 	float remaining = xr - xl ;							// keeps track of distance to the next turnaround
 	float e_done = 0;									// measures E move done from each segment
-	
+
 	writer.travel(xl, cleaning_box.ld.y + m_depth_traversed + y_step/2.f ); // move to starting position
 
-	while (i < ramming_speed.size())
+	while (i < m_par.ramming_speed[m_current_tool].size())
 	{
-		const float x = volume_to_length(ramming_speed[i] * 0.25f, line_width, m_layer_height);
-		const float e = ramming_speed[i] * 0.25f / Filament_Area; // transform volume per sec to E move;
+		const float x = volume_to_length(m_par.ramming_speed[m_current_tool][i] * 0.25f, line_width, m_layer_height);
+		const float e = m_par.ramming_speed[m_current_tool][i] * 0.25f / Filament_Area; // transform volume per sec to E move;
 		const float dist = std::min(x - e_done, remaining);		  // distance to travel for either the next 0.25s, or to the next turnaround
 		const float actual_time = dist/x * 0.25;
 		writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), std::hypot(dist, e * (dist / x)) / (actual_time / 60.));
@@ -880,21 +853,21 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	const float start_x = writer.x();
 	const float turning_point = ( xr-start_x > start_x-xl ? xr : xl );
 	const float max_x_dist = 2*std::abs(start_x-turning_point);
-	const int N = 4 + (cooling_time-14)/3;
-	float time = cooling_time / N;
-	
+	const unsigned int N = 4 + std::max(0,(m_par.cooling_time[m_current_tool]-14)/3);
+	float time = m_par.cooling_time[m_current_tool] / N;
+
 	i = 0;
-	while (i<N) {		
+	while (i<N) {
 		const float speed = std::min(3.4,2.2 + i*0.3 + (i==0 ? 0 : 0.3)); // mm per second: 2.2, 2.8, 3.1, 3.4, 3.4, 3.4, ...		
 		const float e_dist = std::min(speed * time,10.f); // distance to travel
 		
 		if (speed * time < 10.f) { 	// this move is the last one at this speed
 			++i;
-			time = cooling_time / N;			
+			time = m_par.cooling_time[m_current_tool] / N;
 		}
 		else
 			time -= e_dist / speed; // subtract time this part will really take
-		
+
 		// as for x, we will make sure the feedrate is at most 2000
 		float x_dist = (turning_point - WT_EPSILON < xl ? -1.f : 1.f) * std::min(e_dist * (float)sqrt(pow(2000 / (60 * speed), 2) - 1),max_x_dist);
 		const float feedrate = std::hypot(e_dist, x_dist) / ((e_dist / speed) / 60.f);
@@ -1124,7 +1097,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 			    .extrude(box.ld);
 		}
 
-		if (m_is_first_layer && improve_first_layer_adhesion) {
+		if (m_is_first_layer && m_par.adhesion) {
 			// Extrude a dense infill at the 1st layer to improve 1st layer adhesion of the wipe tower.
 			box.expand(-m_perimeter_width/2.f);
 			unsigned nsteps = int(floor((box.lu.y - box.ld.y) / (2*m_perimeter_width)));
@@ -1150,7 +1123,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 
 				const float left = fill_box.lu.x+2*m_perimeter_width;
 				const float right = fill_box.ru.x - 2 * m_perimeter_width;
-				const int n = 1+(right-left)/max_bridge_distance;
+				const int n = 1+(right-left)/(m_par.bridging);
 				const float dx = (right-left)/n;
 				for (int i=1;i<=n;++i) {
 					float x=left+dx*i;
@@ -1207,12 +1180,12 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
 	// this is an actual toolchange - let's calculate depth to reserve on the wipe tower
 	float depth = 0.f;			
 	float width = m_wipe_tower_width - 3*m_perimeter_width; 
-	float length_to_extrude = volume_to_length(0.25f * std::accumulate(ramming_speed.begin(), ramming_speed.end(), 0.f),
-										m_line_width * ramming_line_width_multiplicator,
+	float length_to_extrude = volume_to_length(0.25f * std::accumulate(m_par.ramming_speed[old_tool].begin(), m_par.ramming_speed[old_tool].end(), 0.f),
+										m_line_width * m_par.ramming_line_width_multiplicator[old_tool],
 										layer_height_par);
-	depth = (int(length_to_extrude / width) + 1) * (m_line_width * ramming_line_width_multiplicator * ramming_step_multiplicator);
+	depth = (int(length_to_extrude / width) + 1) * (m_line_width * m_par.ramming_line_width_multiplicator[old_tool] * m_par.ramming_step_multiplicator[old_tool]);
 	length_to_extrude = width*((length_to_extrude / width)-int(length_to_extrude / width)) - width;
-	length_to_extrude += volume_to_length(wipe_volumes[old_tool][new_tool], m_line_width, layer_height_par);
+	length_to_extrude += volume_to_length(m_par.wipe_volumes[old_tool][new_tool], m_line_width, layer_height_par);
 	length_to_extrude = std::max(length_to_extrude,0.f);
 	depth += (int(length_to_extrude / width) + 1) * m_line_width;
 	depth *= m_extra_spacing;	
