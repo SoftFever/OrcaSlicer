@@ -17,13 +17,13 @@ void Chart::draw(wxDC& dc) {
     
     
     if (!m_line_to_draw->empty()) {
-        for (uint i=0;i<m_line_to_draw->size()-2;++i) {
+        for (unsigned int i=0;i<m_line_to_draw->size()-2;++i) {
             int color = 510*((m_rect.GetBottom()-(*m_line_to_draw)[i])/double(m_rect.GetHeight()));
             dc.SetPen( wxPen( wxColor(std::min(255,color),255-std::max(color-255,0),0), 1 ) );
             dc.DrawLine(m_rect.GetLeft()+1+i,(*m_line_to_draw)[i],m_rect.GetLeft()+1+i,m_rect.GetBottom());        
         }
         dc.SetPen( wxPen( wxColor(0,0,0), 1 ) );
-        for (uint i=0;i<m_line_to_draw->size()-2;++i) {
+        for (unsigned int i=0;i<m_line_to_draw->size()-2;++i) {
             if (splines)
                 dc.DrawLine(m_rect.GetLeft()+i,(*m_line_to_draw)[i],m_rect.GetLeft()+i+1,(*m_line_to_draw)[i+1]);        
             else {

@@ -111,7 +111,7 @@ private:
     void recalculate_volume();
      
     
-    unsigned m_current_extruder = 0;
+    unsigned int m_current_extruder = 0;
     wxRect m_rect;                  // rectangle on screen the chart is mapped into (screen coordinates)
     wxPoint m_previous_mouse;        
     std::vector< std::vector<ButtonToDrag> > m_buttons;
