@@ -491,6 +491,9 @@ public:
     ConfigOptionBool                use_relative_e_distances;
     ConfigOptionBool                use_volumetric_e;
     ConfigOptionBool                variable_layer_height;
+    ConfigOptionFloat               cooling_tube_retraction;
+    ConfigOptionFloat               cooling_tube_length;
+    ConfigOptionFloat               parking_pos_retraction;
     
     std::string get_extrusion_axis() const
     {
@@ -540,6 +543,9 @@ protected:
         OPT_PTR(use_relative_e_distances);
         OPT_PTR(use_volumetric_e);
         OPT_PTR(variable_layer_height);
+        OPT_PTR(cooling_tube_retraction);
+        OPT_PTR(cooling_tube_length);
+        OPT_PTR(parking_pos_retraction);
     }
 };
 

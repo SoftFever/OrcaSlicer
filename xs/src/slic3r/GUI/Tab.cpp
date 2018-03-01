@@ -1139,6 +1139,9 @@ void TabPrinter::build()
 		optgroup->append_single_option_line("use_firmware_retraction");
 		optgroup->append_single_option_line("use_volumetric_e");
 		optgroup->append_single_option_line("variable_layer_height");
+        optgroup->append_single_option_line("cooling_tube_retraction");
+		optgroup->append_single_option_line("cooling_tube_length");
+		optgroup->append_single_option_line("parking_pos_retraction");
 
 	page = add_options_page(_L("Custom G-code"), "cog.png");
 		optgroup = page->new_optgroup(_L("Start G-code"), 0);

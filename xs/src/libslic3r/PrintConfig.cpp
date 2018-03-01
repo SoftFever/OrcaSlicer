@@ -171,6 +171,22 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "cooling!";
     def->default_value = new ConfigOptionBools { true };
 
+    def = this->add("cooling_tube_retraction", coFloat);
+    def->label = _L("Cooling tube position");
+    def->tooltip = _L("Distance of the center-point of the cooling tube from the extruder tip ");
+    def->sidetext = _L("mm");
+    def->cli = "cooling_tube_retraction=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0);
+
+    def = this->add("cooling_tube_length", coFloat);
+    def->label = _L("Cooling tube length");
+    def->tooltip = _L("Length of the cooling tube to limit space for cooling moves inside it ");
+    def->sidetext = _L("mm");
+    def->cli = "cooling_tube_length=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0);
+
     def = this->add("default_acceleration", coFloat);
     def->label = _L("Default");
     def->tooltip = _L("This is the acceleration your printer will be reset to after "
@@ -946,6 +962,15 @@ PrintConfigDef::PrintConfigDef()
                    "to apply bridge speed to them and enable fan.");
     def->cli = "overhangs!";
     def->default_value = new ConfigOptionBool(true);
+
+    def = this->add("parking_pos_retraction", coFloat);
+    def->label = _L("Filament parking position");
+    def->tooltip = _L("Distance of the extruder tip from the position where the filament is parked"
+                      "when unloaded. This should match the value in printer firmware. ");
+    def->sidetext = _L("mm");
+    def->cli = "parking_pos_retraction=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("perimeter_acceleration", coFloat);
     def->label = _L("Perimeters");

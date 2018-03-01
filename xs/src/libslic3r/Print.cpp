@@ -90,6 +90,8 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "bridge_acceleration",
         "bridge_fan_speed",
         "cooling",
+        "cooling_tube_retraction",
+        "cooling_tube_length",
         "default_acceleration",
         "deretract_speed",
         "disable_fan_first_layers",
@@ -128,6 +130,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "notes",
         "only_retract_when_crossing_perimeters",
         "output_filename_format",
+        "parking_pos_retraction",
         "perimeter_acceleration",
         "post_process",
         "printer_notes",
@@ -1022,8 +1025,9 @@ void Print::_make_wipe_tower()
     WipeTowerPrusaMM wipe_tower(
         float(this->config.wipe_tower_x.value),     float(this->config.wipe_tower_y.value), 
         float(this->config.wipe_tower_width.value), float(this->config.wipe_tower_per_color_wipe.value),
-        float(this->config.wipe_tower_rotation_angle.value), m_tool_ordering.first_extruder(),
-        this->config.wipe_tower_advanced.value);
+        float(this->config.wipe_tower_rotation_angle.value), float(this->config.cooling_tube_retraction.value),
+        float(this->config.cooling_tube_length.value), float(this->config.parking_pos_retraction.value),
+        this->config.wipe_tower_advanced.value,m_tool_ordering.first_extruder());
     
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();

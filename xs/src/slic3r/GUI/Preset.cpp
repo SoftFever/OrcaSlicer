@@ -227,7 +227,7 @@ const std::vector<std::string>& Preset::printer_options()
             "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
             "octoprint_host", "octoprint_apikey", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height", 
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
-            "between_objects_gcode", "printer_notes"
+            "between_objects_gcode", "printer_notes", "cooling_tube_retraction", "cooling_tube_length", "parking_pos_retraction"
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }

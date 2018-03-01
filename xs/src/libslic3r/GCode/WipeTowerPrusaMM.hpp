@@ -188,7 +188,9 @@ public:
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
-	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, float rotation_angle, unsigned int initial_tool,std::string& parameters) :
+	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, float rotation_angle, float cooling_tube_retraction,
+                     float cooling_tube_length, float parking_pos_retraction, std::string& parameters,
+                     unsigned int initial_tool) :
 		m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
 		m_wipe_tower_rotation_angle(rotation_angle),
@@ -199,6 +201,7 @@ public:
 		m_current_tool(initial_tool),
         m_par(parameters)
  	{
+        printf("Jsem konstruktor WT a vidim cisla %f,%f,%f\n",cooling_tube_retraction,cooling_tube_length,parking_pos_retraction);
 		for (size_t i = 0; i < 4; ++ i) {
 			// Extruder specific parameters.
 			m_material[i] = PLA;
@@ -325,6 +328,9 @@ private:
 	// G-code generator parameters.
 	float  			m_zhop 			 = 0.5f;
 	float  			m_retract		 = 4.f;
+    float           m_cooling_tube_retraction   = 0.f;
+    float           m_cooling_tube_length       = 0.f;
+    float           m_parking_pos_retraction    = 0.f;
 	
 	float m_line_width = Nozzle_Diameter * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
