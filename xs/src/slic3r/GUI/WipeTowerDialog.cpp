@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "WipeTowerDialog.hpp"
 
 // Human-readable output of Parameters structure

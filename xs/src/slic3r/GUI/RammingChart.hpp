@@ -98,7 +98,7 @@ private:
     int which_button_is_clicked(const wxPoint& point) const {
         if (!m_rect.Contains(point))
             return -1;
-        for (uint i=0;i<m_buttons[m_current_extruder].size();++i) {
+        for (unsigned int i=0;i<m_buttons[m_current_extruder].size();++i) {
             wxRect rect(math_to_screen(m_buttons[m_current_extruder][i].get_pos())-wxPoint(side/2.,side/2.),wxSize(side,side)); // bounding rectangle of this button
             if ( rect.Contains(point) )
                 return i;
