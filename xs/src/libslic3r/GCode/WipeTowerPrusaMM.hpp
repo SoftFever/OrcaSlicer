@@ -1,7 +1,6 @@
 #ifndef WipeTowerPrusaMM_hpp_
 #define WipeTowerPrusaMM_hpp_
 
-#include <algorithm>
 #include <cmath>
 #include <string>
 #include <sstream>

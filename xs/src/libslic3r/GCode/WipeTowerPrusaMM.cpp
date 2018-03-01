@@ -20,6 +20,8 @@ TODO LIST
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <numeric>
+#include <algorithm>
 
 #include "Analyzer.hpp"
 
