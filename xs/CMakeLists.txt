@@ -475,7 +475,7 @@ if(SLIC3R_STATIC)
     # Use boost libraries linked statically to the C++ runtime.
     # set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-set(Boost_DEBUG ON)
+#set(Boost_DEBUG ON)
 find_package(Boost REQUIRED COMPONENTS system filesystem thread log locale regex)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
