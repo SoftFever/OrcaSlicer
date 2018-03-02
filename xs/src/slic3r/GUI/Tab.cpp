@@ -441,7 +441,6 @@ void TabPrint::build()
 		optgroup->append_single_option_line("ooze_prevention");
 		optgroup->append_single_option_line("standby_temperature_delta");
 
-    if (true) {
 		optgroup = page->new_optgroup(_L("Wipe tower"));
 		optgroup->append_single_option_line("wipe_tower");
 		optgroup->append_single_option_line("wipe_tower_x");
@@ -449,8 +448,8 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_width");
 		optgroup->append_single_option_line("wipe_tower_per_color_wipe");
 		optgroup->append_single_option_line("wipe_tower_rotation_angle");
-        Line line{ _L("Advanced"), "" };
-		line.widget = [this](wxWindow* parent){
+        line = { _L("Advanced"), "" };
+        line.widget = [this](wxWindow* parent){
 			m_wipe_tower_btn = new wxButton(parent, wxID_ANY, _L("Advanced settings")+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(m_wipe_tower_btn);
@@ -468,8 +467,6 @@ void TabPrint::build()
 			return sizer;
 		};
 		optgroup->append_line(line);
-    }
-
 
 		optgroup = page->new_optgroup(_L("Advanced"));
 		optgroup->append_single_option_line("interface_shells");
@@ -866,6 +863,11 @@ void TabFilament::build()
 			return description_line_widget(parent, &m_volumetric_speed_description_line);
 		};
 		optgroup->append_line(line);
+
+        optgroup = page->new_optgroup(_L("Toolchange behaviour"));
+		optgroup->append_single_option_line("filament_loading_speed");
+        optgroup->append_single_option_line("filament_unloading_speed");
+        optgroup->append_single_option_line("filament_toolchange_delay");
 
 	page = add_options_page(_L("Custom G-code"), "cog.png");
 		optgroup = page->new_optgroup(_L("Start G-code"), 0);

@@ -845,7 +845,11 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	//writer.retract(15, 5000).retract(50, 5400).retract(15, 3000).retract(12, 2000);
 
     // Pull the filament end to the BEGINNING of the cooling tube
-    writer.retract(15, 5000).retract(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42, 5400).retract(15, 3000).retract(12, 2000);
+    float unloading_feedrate = 5400.f; // Alex's original feedrate was 5400
+    writer.retract(15, 5000)    // just after ramming - fixed speed
+          .retract(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42, unloading_feedrate)
+          .retract(15, unloading_feedrate*0.55f)
+          .retract(12, unloading_feedrate*0.35f);
 
 
 	if (new_temperature != 0) 	// Set the extruder temperature, but don't wait.
@@ -953,17 +957,14 @@ void WipeTowerPrusaMM::toolchange_Load(
 	float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
 	float oldy = writer.y();
 
-	writer.append("; CP TOOLCHANGE LOAD\n")
-	// Load the filament while moving left / right,
+    // Load the filament while moving left / right,
 	// so the excess material will not create a blob at a single position.
+    float loading_feedrate = 3000.f;
+	writer.append("; CP TOOLCHANGE LOAD\n")
 		  .suppress_preview()
-		  // Accelerate the filament loading
-		  .load_move_x(xr, 20, 1400)
-		  // Fast loading phase
-          //.load_move_x(xl, 40, 3000) - Alex
-		  .load_move_x(xl,m_parking_pos_retraction-50-2,3000) // loading is 2mm shorter that previous retraction
-		  // Slowing down
-		  .load_move_x(xr, 20, 1600)
+		  .load_move_x(xr, 20, 1400)  // Accelerate the filament loading
+		  .load_move_x(xl,m_parking_pos_retraction-50-2,3000) // Fast phase - loading is 2mm shorter that previous retraction
+		  .load_move_x(xr, 20, 1600)    // Slowing down
 		  .load_move_x(xl, 10, 1000)
 		  .travel(oldx,oldy)
 		  .resume_preview();

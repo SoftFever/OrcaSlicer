@@ -448,6 +448,33 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
 
+    def = this->add("filament_loading_speed", coFloats);
+    def->label = _L("Loading speed");
+    def->tooltip = _L("Speed used for loading the filament on the wipe tower. ");
+    def->sidetext = _L("mm\u00B3/s");
+    def->cli = "filament-loading-speed=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 0. };
+
+    def = this->add("filament_unloading_speed", coFloats);
+    def->label = _L("Unloading speed");
+    def->tooltip = _L("Speed used for unloading the filament on the wipe tower (does not affect "
+                      " initial part of unloading just after ramming). ");
+    def->sidetext = _L("mm\u00B3/s");
+    def->cli = "filament-unloading-speed=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 0. };
+
+    def = this->add("filament_toolchange_delay", coFloats);
+    def->label = _L("Delay after unloading");
+    def->tooltip = _L("Time to wait after the filament is unloaded. "
+                   "May help to get reliable toolchanges with flexible materials "
+                   "that may need more time to shrink to original dimensions. ");
+    def->sidetext = _L("s");
+    def->cli = "filament-toolchange-delay=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 0. };
+
     def = this->add("filament_diameter", coFloats);
     def->label = _L("Diameter");
     def->tooltip = _L("Enter your filament diameter here. Good precision is required, so use a caliper "

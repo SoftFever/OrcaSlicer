@@ -466,6 +466,9 @@ public:
     ConfigOptionBools               filament_soluble;
     ConfigOptionFloats              filament_cost;
     ConfigOptionFloats              filament_max_volumetric_speed;
+    ConfigOptionFloats              filament_loading_speed;
+    ConfigOptionFloats              filament_unloading_speed;
+    ConfigOptionFloats              filament_toolchange_delay;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
     ConfigOptionString              layer_gcode;
@@ -518,6 +521,9 @@ protected:
         OPT_PTR(filament_soluble);
         OPT_PTR(filament_cost);
         OPT_PTR(filament_max_volumetric_speed);
+        OPT_PTR(filament_loading_speed);
+        OPT_PTR(filament_unloading_speed);
+        OPT_PTR(filament_toolchange_delay);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);
         OPT_PTR(layer_gcode);
