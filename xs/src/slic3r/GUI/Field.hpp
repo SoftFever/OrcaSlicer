@@ -72,6 +72,8 @@ public:
     virtual void		enable() = 0;
     virtual void		disable() = 0;
 
+	wxStaticText*		m_Label = nullptr;
+
     /// Fires the enable or disable function, based on the input.
     inline void			toggle(bool en) { en ? enable() : disable(); }
 
@@ -85,7 +87,7 @@ public:
     virtual wxWindow*	getWindow() { return nullptr; }
 
 	bool		is_matched(std::string string, std::string pattern);
-	boost::any get_value_by_opt_type(wxString str);
+	boost::any	get_value_by_opt_type(wxString str);
 
     /// Factory method for generating new derived classes.
     template<class T>

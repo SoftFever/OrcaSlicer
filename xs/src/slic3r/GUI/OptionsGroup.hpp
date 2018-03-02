@@ -27,6 +27,9 @@ namespace Slic3r { namespace GUI {
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
 using column_t = std::function<wxSizer*(const Line&)>;
 
+//auto default_label_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT); //GetSystemColour
+//auto modified_label_clr = *new wxColour(254, 189, 101);
+
 /// Wraps a ConfigOptionDef and adds function object for creating a side_widget.
 struct Option {
 	ConfigOptionDef			opt { ConfigOptionDef() };
@@ -136,9 +139,9 @@ protected:
     /// Generate a wxSizer or wxWindow from a configuration option
     /// Precondition: opt resolves to a known ConfigOption
     /// Postcondition: fields contains a wx gui object.
-    const t_field&		build_field(const t_config_option_key& id, const ConfigOptionDef& opt);
-    const t_field&		build_field(const t_config_option_key& id);
-    const t_field&		build_field(const Option& opt);
+	const t_field&		build_field(const t_config_option_key& id, const ConfigOptionDef& opt, wxStaticText* label = nullptr);
+	const t_field&		build_field(const t_config_option_key& id, wxStaticText* label = nullptr);
+	const t_field&		build_field(const Option& opt, wxStaticText* label = nullptr);
 
     virtual void		on_kill_focus (){};
 	virtual void		on_change_OG(t_config_option_key opt_id, boost::any value);

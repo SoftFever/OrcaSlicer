@@ -505,6 +505,11 @@ wxApp* get_app(){
 	return g_wxApp;
 }
 
+wxColour* get_modified_label_clr()
+{
+	return new wxColour(254, 189, 101);
+}
+
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
 {
     if (comboCtrl == nullptr)

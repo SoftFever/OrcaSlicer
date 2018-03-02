@@ -6,15 +6,15 @@
 
 namespace Slic3r { namespace GUI {
 
-const t_field& OptionsGroup::build_field(const Option& opt) {
-    return build_field(opt.opt_id, opt.opt);
+const t_field& OptionsGroup::build_field(const Option& opt, wxStaticText* label/* = nullptr*/) {
+    return build_field(opt.opt_id, opt.opt, label);
 }
-const t_field& OptionsGroup::build_field(const t_config_option_key& id) {
+const t_field& OptionsGroup::build_field(const t_config_option_key& id, wxStaticText* label/* = nullptr*/) {
 	const ConfigOptionDef& opt = m_options.at(id).opt;
-    return build_field(id, opt);
+    return build_field(id, opt, label);
 }
 
-const t_field& OptionsGroup::build_field(const t_config_option_key& id, const ConfigOptionDef& opt) {
+const t_field& OptionsGroup::build_field(const t_config_option_key& id, const ConfigOptionDef& opt, wxStaticText* label/* = nullptr*/) {
     // Check the gui_type field first, fall through
     // is the normal type.
     if (opt.gui_type.compare("select") == 0) {
@@ -72,7 +72,11 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 				this->on_kill_focus();
 	};
     field->m_parent = parent();
-    // assign function objects for callbacks, etc.
+	
+	//! Label to change background color, when option is modified
+	field->m_Label = label;		
+    
+	// assign function objects for callbacks, etc.
     return field;
 }
 
@@ -110,9 +114,11 @@ void OptionsGroup::append_line(const Line& line) {
     auto grid_sizer = m_grid_sizer;
 
     // Build a label if we have it
+	wxStaticText* label=nullptr;
     if (label_width != 0) {
-		auto label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
+		/*auto*/ label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
 							wxDefaultPosition, wxSize(label_width, -1));
+// 		label->SetBackgroundColour(*new wxColour(254, 189, 101));
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
 		grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL,0);
@@ -131,7 +137,7 @@ void OptionsGroup::append_line(const Line& line) {
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
         const auto& option = option_set.front();
-        const auto& field = build_field(option);
+        const auto& field = build_field(option, label);
 //!         std::cerr << "single option, no sidetext.\n";
 //!         std::cerr << "field parent is not null?: " << (field->parent != nullptr) << "\n";
 
@@ -156,14 +162,14 @@ void OptionsGroup::append_line(const Line& line) {
 // 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
 // 								wxGETTEXT_IN_CONTEXT("Layers", wxString(option.label.c_str()):
 // 								L_str(option.label);
-			auto field_label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
-			field_label->SetFont(label_font);
-			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
+			/*auto field_*/label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
+			/*field_*/label->SetFont(label_font);
+			sizer->Add(/*field_*/label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
 
 		// add field
 		const Option& opt_ref = opt;
-		auto& field = build_field(opt_ref);
+		auto& field = build_field(opt_ref, label);
 		is_sizer_field(field) ? 
 			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
 			sizer->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);

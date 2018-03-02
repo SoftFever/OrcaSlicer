@@ -14,6 +14,7 @@ class wxComboCtrl;
 class wxString;
 class wxArrayString;
 class wxArrayLong;
+class wxColour;
 
 namespace Slic3r { 
 
@@ -35,7 +36,7 @@ class TabIface;
 #define _CHB(s) wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str()
 
 // Minimal buffer length for translated string (char buf[MIN_BUF_LENGTH_FOR_L])
-#define MIN_BUF_LENGTH_FOR_L	128
+#define MIN_BUF_LENGTH_FOR_L	512
 
 namespace GUI {
 
@@ -72,6 +73,7 @@ void set_app_config(AppConfig *app_config);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
+wxColour*	get_modified_label_clr();
 
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
 

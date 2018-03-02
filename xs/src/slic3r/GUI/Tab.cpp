@@ -139,6 +139,13 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();
+	auto dirty_options = m_presets->current_dirty_options();
+	for (auto opt_key : dirty_options){
+		if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
+			get_field(opt_key)->m_Label->SetBackgroundColour(*get_modified_label_clr());
+			m_dirty_options.push_back(opt_key);
+		}
+	}
 }
 
 void Tab::update_tab_ui()
@@ -211,6 +218,7 @@ void Tab::load_config(DynamicPrintConfig config)
 		}
 		change_opt_value(*m_config, opt_key, value);
 		modified = 1;
+//		get_field(opt_key)->m_Label->SetBackgroundColour(*get_modified_label_clr());
 	}
 	if (modified) {
 		update_dirty();

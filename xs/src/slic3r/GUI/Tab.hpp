@@ -99,6 +99,7 @@ protected:
 	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
+	std::vector<std::string>	m_dirty_options = {};
 
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
