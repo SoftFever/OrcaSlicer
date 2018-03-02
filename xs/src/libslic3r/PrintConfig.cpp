@@ -177,7 +177,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = _L("mm");
     def->cli = "cooling_tube_retraction=f";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(0);
+    def->default_value = new ConfigOptionFloat(91.5f);
 
     def = this->add("cooling_tube_length", coFloat);
     def->label = _L("Cooling tube length");
@@ -185,7 +185,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = _L("mm");
     def->cli = "cooling_tube_length=f";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(0);
+    def->default_value = new ConfigOptionFloat(5.f);
 
     def = this->add("default_acceleration", coFloat);
     def->label = _L("Default");
@@ -970,7 +970,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = _L("mm");
     def->cli = "parking_pos_retraction=f";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(0);
+    def->default_value = new ConfigOptionFloat(92.f);
 
     def = this->add("perimeter_acceleration", coFloat);
     def->label = _L("Perimeters");

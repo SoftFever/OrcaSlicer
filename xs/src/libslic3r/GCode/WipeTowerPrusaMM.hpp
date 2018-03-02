@@ -102,6 +102,9 @@ struct WipeTowerParameters {
         for (unsigned int i=0;i<vect.size();++i)
             if (i%2==1)
                 filament_wipe_volumes.push_back(std::make_pair(vect[i-1],vect[i]));
+
+        if (!validate())    // in case we did not parse the input right
+            set_defaults();
     }
 
     std::string to_string() {
@@ -198,10 +201,12 @@ public:
 		m_z_pos(0.f),
 		m_is_first_layer(false),
 		m_is_last_layer(false),
+        m_cooling_tube_retraction(cooling_tube_retraction),
+        m_cooling_tube_length(cooling_tube_length),
+        m_parking_pos_retraction(parking_pos_retraction),
 		m_current_tool(initial_tool),
         m_par(parameters)
  	{
-        printf("Jsem konstruktor WT a vidim cisla %f,%f,%f\n",cooling_tube_retraction,cooling_tube_length,parking_pos_retraction);
 		for (size_t i = 0; i < 4; ++ i) {
 			// Extruder specific parameters.
 			m_material[i] = PLA;

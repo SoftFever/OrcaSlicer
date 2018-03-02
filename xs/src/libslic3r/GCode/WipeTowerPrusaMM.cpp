@@ -841,14 +841,17 @@ void WipeTowerPrusaMM::toolchange_Unload(
 			  .ram(xl + m_perimeter_width * 2, xr - m_perimeter_width * 2, y_step * 1.2f, e0, 1.74f * e, 5200);
 	}*/
 }
-	// Pull the filament end into a cooling tube.
-	writer.retract(15, 5000).retract(50, 5400).retract(15, 3000).retract(12, 2000);
+	// Pull the filament end into a cooling tube (Alex)
+	//writer.retract(15, 5000).retract(50, 5400).retract(15, 3000).retract(12, 2000);
+
+    // Pull the filament end to the BEGINNING of the cooling tube
+    writer.retract(15, 5000).retract(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42, 5400).retract(15, 3000).retract(12, 2000);
+
 
 	if (new_temperature != 0) 	// Set the extruder temperature, but don't wait.
 		writer.set_extruder_temp(new_temperature, false);
 
 // cooling:
-	writer.retract(2, 2000);
 	writer.suppress_preview();
 	writer.travel(writer.x(), writer.y() + y_step);
 	const float start_x = writer.x();
@@ -860,9 +863,10 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	i = 0;
 	while (i<N) {
 		const float speed = std::min(3.4,2.2 + i*0.3 + (i==0 ? 0 : 0.3)); // mm per second: 2.2, 2.8, 3.1, 3.4, 3.4, 3.4, ...		
-		const float e_dist = std::min(speed * time,10.f); // distance to travel
+		const float e_dist = std::min(speed * time,2*m_cooling_tube_length); // distance to travel
 		
-		if (speed * time < 10.f) { 	// this move is the last one at this speed
+		// this move is the last one at this speed or someone set tube_length to zero
+        if (speed * time < 2*m_cooling_tube_length || m_cooling_tube_length<WT_EPSILON) {
 			++i;
 			time = m_par.cooling_time[m_current_tool] / N;
 		}
@@ -874,7 +878,9 @@ void WipeTowerPrusaMM::toolchange_Unload(
 		const float feedrate = std::hypot(e_dist, x_dist) / ((e_dist / speed) / 60.f);
 		writer.cool(start_x+x_dist/2.f,start_x,e_dist/2.f,-e_dist/2.f, feedrate);
 	}
-	writer.retract(-2, 2000);
+    // we should be at the beginning of the cooling tube again - let's move to parking position:
+    writer.retract(-m_cooling_tube_length/2.f+m_parking_pos_retraction-m_cooling_tube_retraction, 2000);
+
 	writer.travel(writer.x(), writer.y() - y_step,2400);
 
 	// Alex's old cooling:
@@ -944,8 +950,8 @@ void WipeTowerPrusaMM::toolchange_Load(
 {	
 	float xl = cleaning_box.ld.x + m_perimeter_width * 0.75f;
 	float xr = cleaning_box.rd.x - m_perimeter_width * 0.75f;
-	float oldx=writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
-	float oldy=writer.y();
+	float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
+	float oldy = writer.y();
 
 	writer.append("; CP TOOLCHANGE LOAD\n")
 	// Load the filament while moving left / right,
@@ -954,7 +960,8 @@ void WipeTowerPrusaMM::toolchange_Load(
 		  // Accelerate the filament loading
 		  .load_move_x(xr, 20, 1400)
 		  // Fast loading phase
-		  .load_move_x(xl, 40, 3000)
+          //.load_move_x(xl, 40, 3000) - Alex
+		  .load_move_x(xl,m_parking_pos_retraction-50-2,3000) // loading is 2mm shorter that previous retraction
 		  // Slowing down
 		  .load_move_x(xr, 20, 1600)
 		  .load_move_x(xl, 10, 1000)
