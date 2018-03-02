@@ -153,6 +153,7 @@ void Tab::load_config(DynamicPrintConfig config)
 {
 	bool modified = 0;
 	boost::any value;
+	int opt_index = 0;
 	for(auto opt_key : m_config->diff(config)) {
 		switch ( config.def()->get(opt_key)->type ){
 		case coFloatOrPercent:
@@ -167,29 +168,65 @@ void Tab::load_config(DynamicPrintConfig config)
 		case coString:
 			value = config.opt_string(opt_key);
 			break;
-		case coPercents:
-			value = config.option<ConfigOptionPercents>(opt_key)->values.at(0);
+		case coPercents:{
+			for (int i = 0; i < config.option<ConfigOptionPercents>(opt_key)->values.size(); i++)
+				if (config.option<ConfigOptionPercents>(opt_key)->values[i] !=
+					m_config->option<ConfigOptionPercents>(opt_key)->values[i]){
+					value = config.option<ConfigOptionPercents>(opt_key)->values[i];
+					opt_index = i;
+					break;
+				}
+			}
 			break;
-		case coFloats:
-			value = config.opt_float(opt_key, 0);
+		case coFloats:{
+			for (int i = 0; i < config.option<ConfigOptionFloats>(opt_key)->values.size(); i++)
+				if (config.option<ConfigOptionFloats>(opt_key)->values[i] !=
+					m_config->option<ConfigOptionFloats>(opt_key)->values[i]){
+					value = config.option<ConfigOptionFloats>(opt_key)->values[i];
+					opt_index = i;
+					break;
+				}
+			}
 			break;
-		case coStrings:
+		case coStrings:{
 			if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 				value = "";
-			else
-				value = config.opt_string(opt_key, static_cast<unsigned int>(0));
+			else{
+				for (int i = 0; i < config.option<ConfigOptionStrings>(opt_key)->values.size(); i++)
+					if (config.option<ConfigOptionStrings>(opt_key)->values[i] != 
+						m_config->option<ConfigOptionStrings>(opt_key)->values[i]){
+						value = config.option<ConfigOptionStrings>(opt_key)->values[i];
+						opt_index = i;
+						break;
+					}
+				}
+			}
 			break;
 		case coBool:
 			value = config.opt_bool(opt_key);
 			break;
-		case coBools:
-			value = config.opt_bool(opt_key, 0);
+		case coBools:{
+			for (int i = 0; i < config.option<ConfigOptionBools>(opt_key)->values.size(); i++)
+				if (config.option<ConfigOptionBools>(opt_key)->values[i] !=
+					m_config->option<ConfigOptionBools>(opt_key)->values[i]){
+					value = config.option<ConfigOptionBools>(opt_key)->values[i];
+					opt_index = i;
+					break;
+				}
+			}
 			break;
 		case coInt:
 			value = config.opt_int(opt_key);
 			break;
-		case coInts:
-			value = config.opt_int(opt_key, 0);
+		case coInts:{
+			for (int i = 0; i < config.option<ConfigOptionInts>(opt_key)->values.size(); i++)
+				if (config.option<ConfigOptionInts>(opt_key)->values[i] !=
+					m_config->option<ConfigOptionInts>(opt_key)->values[i]){
+					value = config.option<ConfigOptionInts>(opt_key)->values[i];
+					opt_index = i;
+					break;
+				}
+			}
 			break;
 		case coEnum:{
 			if (opt_key.compare("external_fill_pattern") == 0 ||
@@ -210,7 +247,7 @@ void Tab::load_config(DynamicPrintConfig config)
 		default:
 			break;
 		}
-		change_opt_value(*m_config, opt_key, value);
+		change_opt_value(*m_config, opt_key, value, opt_index);
 		modified = 1;
 	}
 	if (modified) {
