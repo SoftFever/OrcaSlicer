@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "Http.hpp"
+// #include "Http.hpp"    // XXX: ?
 
 namespace Slic3r {
 

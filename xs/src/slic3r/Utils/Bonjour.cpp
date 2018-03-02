@@ -1,5 +1,6 @@
 #include "Bonjour.hpp"
 
+#include <iostream>  // XXX
 #include <cstdint>
 #include <algorithm>
 #include <unordered_map>
@@ -22,12 +23,14 @@ namespace asio = boost::asio;
 using boost::asio::ip::udp;
 
 
-// TODO: Fuzzing test
+// TODO: Fuzzing test (done without TXT)
+// FIXME: check char retype to unsigned
+
 
 namespace Slic3r {
 
 
-// Miniman implementation of a MDNS client
+// Minimal implementation of a MDNS/DNS-SD client
 // This implementation is extremely simple, only the bits that are useful
 // for very basic MDNS discovery are present.
 
@@ -38,11 +41,12 @@ struct DnsName: public std::string
 		MAX_RECURSION = 10,     // Keep this low
 	};
 
-	static optional<DnsName> decode(const std::vector<char> &buffer, ptrdiff_t &offset, unsigned depth = 0)
+	static optional<DnsName> decode(const std::vector<char> &buffer, size_t &offset, unsigned depth = 0)
 	{
-		// We trust that the offset passed is bounds-checked properly,
-		// including that there is at least one byte beyond that offset.
-		// Any further arithmetic has to be bounds-checked here though.
+		// Check offset sanity:
+		if (offset + 1 >= buffer.size()) {
+			return boost::none;
+		}
 
 		// Check for recursion depth to prevent parsing names that are nested too deeply
 		// or end up cyclic:
@@ -51,14 +55,15 @@ struct DnsName: public std::string
 		}
 
 		DnsName res;
-		const ptrdiff_t bsize = buffer.size();
+		const size_t bsize = buffer.size();
 
 		while (true) {
 			const char* ptr = buffer.data() + offset;
-			char len = *ptr;
+			unsigned len = static_cast<unsigned char>(*ptr);
 			if (len & 0xc0) {
 				// This is a recursive label
-				ptrdiff_t pointer = (len & 0x3f) << 8 | ptr[1];
+				unsigned len_2 = static_cast<unsigned char>(ptr[1]);
+				size_t pointer = (len & 0x3f) << 8 | len_2;
 				const auto nested = decode(buffer, pointer, depth + 1);
 				if (!nested) {
 					return boost::none;
@@ -155,7 +160,7 @@ struct DnsQuestion
 		qclass(0)
 	{}
 
-	static optional<DnsQuestion> decode(const std::vector<char> &buffer, ptrdiff_t &offset)
+	static optional<DnsQuestion> decode(const std::vector<char> &buffer, size_t &offset)
 	{
 		auto qname = DnsName::decode(buffer, offset);
 		if (!qname) {
@@ -187,14 +192,17 @@ struct DnsResource
 		ttl(0)
 	{}
 
-	static optional<DnsResource> decode(const std::vector<char> &buffer, ptrdiff_t &offset, ptrdiff_t &dataoffset)
+	static optional<DnsResource> decode(const std::vector<char> &buffer, size_t &offset, size_t &dataoffset)
 	{
+		const size_t bsize = buffer.size();
+		if (offset + 1 >= bsize) {
+			return boost::none;
+		}
+
 		auto rname = DnsName::decode(buffer, offset);
 		if (!rname) {
 			return boost::none;
 		}
-
-		const ptrdiff_t bsize = buffer.size();
 
 		if (offset + 10 >= bsize) {
 			return boost::none;
@@ -267,39 +275,98 @@ struct DnsRR_SRV
 	uint16_t priority;
 	uint16_t weight;
 	uint16_t port;
-	std::string name;
-	std::string service;
 	DnsName hostname;
 
-	static void decode(std::vector<DnsRR_SRV> &results, const std::vector<char> &buffer, const DnsResource &rr, ptrdiff_t dataoffset)
+	static optional<DnsRR_SRV> decode(const std::vector<char> &buffer, const DnsResource &rr, size_t dataoffset)
 	{
 		if (rr.data.size() < MIN_SIZE) {
-			return;
+			return boost::none;
 		}
 
 		DnsRR_SRV res;
-
-		{
-			const auto dot_pos = rr.name.find_first_of('.');
-			if (dot_pos > 0 && dot_pos < rr.name.size() - 1) {
-				res.name = rr.name.substr(0, dot_pos);
-				res.service = rr.name.substr(dot_pos + 1);
-			} else {
-				return;
-			}
-		}
 
 		const uint16_t *data_16 = reinterpret_cast<const uint16_t*>(rr.data.data());
 		res.priority = endian::big_to_native(data_16[0]);
 		res.weight = endian::big_to_native(data_16[1]);
 		res.port = endian::big_to_native(data_16[2]);
 
-		ptrdiff_t offset = dataoffset + 6;
+		size_t offset = dataoffset + 6;
 		auto hostname = DnsName::decode(buffer, offset);
 
 		if (hostname) {
 			res.hostname = std::move(*hostname);
-			results.emplace_back(std::move(res));
+			return std::move(res);
+		} else {
+			return boost::none;
+		}
+	}
+};
+
+struct DnsRR_TXT
+{
+	enum
+	{
+		TAG = 0x10,
+	};
+
+	std::vector<std::string> values;
+
+	static optional<DnsRR_TXT> decode(const DnsResource &rr)
+	{
+		const size_t size = rr.data.size();
+		if (size < 2) {
+			return boost::none;
+		}
+
+		DnsRR_TXT res;
+
+		for (auto it = rr.data.begin(); it != rr.data.end(); ) {
+			unsigned val_size = static_cast<unsigned char>(*it);
+			if (val_size == 0 || it + val_size >= rr.data.end()) {
+				return boost::none;
+			}
+			++it;
+
+			std::string value(val_size, ' ');
+			std::copy(it, it + val_size, value.begin());
+			res.values.push_back(std::move(value));
+
+			it += val_size;
+		}
+
+		return std::move(res);
+	}
+};
+
+struct DnsSDPair
+{
+	optional<DnsRR_SRV> srv;
+	optional<DnsRR_TXT> txt;
+};
+
+struct DnsSDMap : public std::map<std::string, DnsSDPair>
+{
+	void insert_srv(std::string &&name, DnsRR_SRV &&srv)
+	{
+		auto hit = this->find(name);
+		if (hit != this->end()) {
+			hit->second.srv = std::move(srv);
+		} else {
+			DnsSDPair pair;
+			pair.srv = std::move(srv);
+			this->insert(std::make_pair(std::move(name), std::move(pair)));
+		}
+	}
+
+	void insert_txt(std::string &&name, DnsRR_TXT &&txt)
+	{
+		auto hit = this->find(name);
+		if (hit != this->end()) {
+			hit->second.txt = std::move(txt);
+		} else {
+			DnsSDPair pair;
+			pair.txt = std::move(txt);
+			this->insert(std::make_pair(std::move(name), std::move(pair)));
 		}
 	}
 };
@@ -314,11 +381,12 @@ struct DnsMessage
 
 	DnsHeader header;
 	optional<DnsQuestion> question;
-	std::vector<DnsResource> answers;
 
 	optional<DnsRR_A> rr_a;
 	optional<DnsRR_AAAA> rr_aaaa;
 	std::vector<DnsRR_SRV> rr_srv;
+
+	DnsSDMap sdmap;
 
 	static optional<DnsMessage> decode(const std::vector<char> &buffer, optional<uint16_t> id_wanted = boost::none)
 	{
@@ -338,31 +406,39 @@ struct DnsMessage
 			return boost::none;
 		}
 
-		ptrdiff_t offset = DnsHeader::SIZE;
+		size_t offset = DnsHeader::SIZE;
 		if (res.header.qdcount == 1) {
 			res.question = DnsQuestion::decode(buffer, offset);
 		}
 
 		for (unsigned i = 0; i < res.header.rrcount(); i++) {
-			ptrdiff_t dataoffset = 0;
+			size_t dataoffset = 0;
 			auto rr = DnsResource::decode(buffer, offset, dataoffset);
 			if (!rr) {
 				return boost::none;
 			} else {
-				res.parse_rr(buffer, *rr, dataoffset);
-				res.answers.push_back(std::move(*rr));
+				res.parse_rr(buffer, std::move(*rr), dataoffset);
 			}
 		}
 
 		return std::move(res);
 	}
 private:
-	void parse_rr(const std::vector<char> &buffer, const DnsResource &rr, ptrdiff_t dataoffset)
+	void parse_rr(const std::vector<char> &buffer, DnsResource &&rr, size_t dataoffset)
 	{
 		switch (rr.type) {
 			case DnsRR_A::TAG: DnsRR_A::decode(this->rr_a, rr); break;
 			case DnsRR_AAAA::TAG: DnsRR_AAAA::decode(this->rr_aaaa, rr); break;
-			case DnsRR_SRV::TAG: DnsRR_SRV::decode(this->rr_srv, buffer, rr, dataoffset); break;
+			case DnsRR_SRV::TAG: {
+				auto srv = DnsRR_SRV::decode(buffer, rr, dataoffset);
+				if (srv) { this->sdmap.insert_srv(std::move(rr.name), std::move(*srv)); }
+				break;
+			}
+			case DnsRR_TXT::TAG: {
+				auto txt = DnsRR_TXT::decode(rr);
+				if (txt) { this->sdmap.insert_txt(std::move(rr.name), std::move(*txt)); }
+				break;
+			}
 		}
 	}
 };
@@ -372,8 +448,6 @@ struct BonjourRequest
 {
 	static const asio::ip::address_v4 MCAST_IP4;
 	static const uint16_t MCAST_PORT;
-
-	static const char rq_template[];
 
 	uint16_t id;
 	std::vector<char> data;
@@ -389,12 +463,6 @@ private:
 
 const asio::ip::address_v4 BonjourRequest::MCAST_IP4{0xe00000fb};
 const uint16_t BonjourRequest::MCAST_PORT = 5353;
-
-const char BonjourRequest::rq_template[] = {
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x5f, 0x68, 0x74,
-	0x74, 0x70, 0x04, 0x5f, 0x74, 0x63, 0x70, 0x05, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x00, 0x00, 0x0c,
-	0x00, 0x01,
-};
 
 optional<BonjourRequest> BonjourRequest::make(const std::string &service, const std::string &protocol)
 {
@@ -416,7 +484,7 @@ optional<BonjourRequest> BonjourRequest::make(const std::string &service, const 
 	data.push_back(id_char[1]);
 
 	// Add metadata
-	static const char rq_meta[] = {
+	static const unsigned char rq_meta[] = {
 		0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	};
 	std::copy(rq_meta, rq_meta + sizeof(rq_meta), std::back_inserter(data));
@@ -430,8 +498,8 @@ optional<BonjourRequest> BonjourRequest::make(const std::string &service, const 
 	data.insert(data.end(), protocol.begin(), protocol.end());
 
 	// Add the rest of PTR record
-	static const char ptr_tail[] = {
-		0x05, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x00, 0x00, 0x0c, 0x00, 0x01,
+	static const unsigned char ptr_tail[] = {
+		0x05, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x00, 0x00, 0x0c, 0x00, 0xff,
 	};
 	std::copy(ptr_tail, ptr_tail + sizeof(ptr_tail), std::back_inserter(data));
 
@@ -456,7 +524,7 @@ struct Bonjour::priv
 
 	priv(std::string service, std::string protocol);
 
-	void udp_receive(const error_code &error, size_t bytes);
+	void udp_receive(udp::endpoint from, size_t bytes);
 	void lookup_perform();
 };
 
@@ -470,23 +538,41 @@ Bonjour::priv::priv(std::string service, std::string protocol) :
 	buffer.resize(DnsMessage::MAX_SIZE);
 }
 
-void Bonjour::priv::udp_receive(const error_code &error, size_t bytes)
+void Bonjour::priv::udp_receive(udp::endpoint from, size_t bytes)
 {
-	if (error || bytes == 0 || !replyfn) {
+	if (bytes == 0 || !replyfn) {
 		return;
 	}
 
 	buffer.resize(bytes);
 	const auto dns_msg = DnsMessage::decode(buffer, rq_id);
 	if (dns_msg) {
-		std::string ip;
-		if (dns_msg->rr_a) { ip = dns_msg->rr_a->ip.to_string(); }
-		else if (dns_msg->rr_aaaa) { ip = dns_msg->rr_aaaa->ip.to_string(); }
+		asio::ip::address ip = from.address();
+		if (dns_msg->rr_a) { ip = dns_msg->rr_a->ip; }
+		else if (dns_msg->rr_aaaa) { ip = dns_msg->rr_aaaa->ip; }
 
-		for (const auto &srv : dns_msg->rr_srv) {
-			if (srv.service == service_dn) {
-				replyfn(std::move(ip), std::move(srv.hostname), std::move(srv.name));
+		for (const auto &sdpair : dns_msg->sdmap) {
+			if (! sdpair.second.srv) {
+				continue;
 			}
+
+			const auto &srv = *sdpair.second.srv;
+			BonjourReply reply(ip, sdpair.first, srv.hostname);
+
+			if (sdpair.second.txt) {
+				static const std::string tag_path = "path=";
+				static const std::string tag_version = "version=";
+
+				for (const auto &value : sdpair.second.txt->values) {
+					if (value.size() > tag_path.size() && value.compare(0, tag_path.size(), tag_path) == 0) {
+						reply.path = value.substr(tag_path.size());
+					} else if (value.size() > tag_version.size() && value.compare(0, tag_version.size(), tag_version) == 0) {
+						reply.version = value.substr(tag_version.size());
+					}
+				}
+			}
+
+			replyfn(std::move(reply));
 		}
 	}
 }
@@ -519,17 +605,18 @@ void Bonjour::priv::lookup_perform()
 			}
 		});
 
-		const auto recv_handler = [=](const error_code &error, size_t bytes) {
-			self->udp_receive(error, bytes);
+		udp::endpoint recv_from;
+		const auto recv_handler = [&](const error_code &error, size_t bytes) {
+			if (!error) { self->udp_receive(recv_from, bytes); }
 		};
-		socket.async_receive(asio::buffer(buffer, buffer.size()), recv_handler);
+		socket.async_receive_from(asio::buffer(buffer, buffer.size()), recv_from, recv_handler);
 
 		while (io_service.run_one()) {
 			if (timeout) {
 				socket.cancel();
 			} else {
 				buffer.resize(DnsMessage::MAX_SIZE);
-				socket.async_receive(asio::buffer(buffer, buffer.size()), recv_handler);
+				socket.async_receive_from(asio::buffer(buffer, buffer.size()), recv_from, recv_handler);
 			}
 		}
 	} catch (std::exception& e) {
@@ -538,6 +625,21 @@ void Bonjour::priv::lookup_perform()
 
 
 // API - public part
+
+BonjourReply::BonjourReply(boost::asio::ip::address ip, std::string service_name, std::string hostname) :
+	ip(std::move(ip)),
+	service_name(std::move(service_name)),
+	hostname(std::move(hostname)),
+	path("/"),
+	version("Unknown")
+{}
+
+std::ostream& operator<<(std::ostream &os, const BonjourReply &reply)
+{
+	os << "BonjourReply(" << reply.ip.to_string() << ", " << reply.service_name << ", "
+		<< reply.hostname << ", " << reply.path << ", " << reply.version << ")";
+	return os;
+}
 
 Bonjour::Bonjour(std::string service, std::string protocol) :
 	p(new priv(std::move(service), std::move(protocol)))
@@ -587,15 +689,15 @@ Bonjour::Ptr Bonjour::lookup()
 
 void Bonjour::pokus()   // XXX
 {
-	// auto bonjour = Bonjour("http")
-	//     .set_timeout(15)
-	//     .on_reply([](std::string ip, std::string host, std::string service_name) {
-	//         std::cerr << "MDNS: " << ip << " = " << host << " : " << service_name << std::endl;
-	//     })
-	//     .on_complete([](){
-	//         std::cerr << "MDNS lookup complete" << std::endl;
-	//     })
-	//     .lookup();
+	auto bonjour = Bonjour("octoprint")
+		.set_timeout(15)
+		.on_reply([](BonjourReply &&reply) {
+			std::cerr << "BonjourReply: " << reply << std::endl;
+		})
+		.on_complete([](){
+			std::cerr << "MDNS lookup complete" << std::endl;
+		})
+		.lookup();
 }
 
 
