@@ -147,6 +147,18 @@ void Tab::update_tab_ui()
 	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 }
 
+template<class T>
+boost::any get_new_value(const DynamicPrintConfig &config_new, const DynamicPrintConfig &config_old, std::string opt_key, int &index)
+{
+	for (int i = 0; i < config_new.option<T>(opt_key)->values.size(); i++)
+		if (config_new.option<T>(opt_key)->values[i] !=
+			config_old.option<T>(opt_key)->values[i]){
+			index = i;
+			break;
+		}
+	return config_new.option<T>(opt_key)->values[index];
+}
+
 // Load a provied DynamicConfig into the tab, modifying the active preset.
 // This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 void Tab::load_config(DynamicPrintConfig config)
@@ -168,65 +180,27 @@ void Tab::load_config(DynamicPrintConfig config)
 		case coString:
 			value = config.opt_string(opt_key);
 			break;
-		case coPercents:{
-			for (int i = 0; i < config.option<ConfigOptionPercents>(opt_key)->values.size(); i++)
-				if (config.option<ConfigOptionPercents>(opt_key)->values[i] !=
-					m_config->option<ConfigOptionPercents>(opt_key)->values[i]){
-					value = config.option<ConfigOptionPercents>(opt_key)->values[i];
-					opt_index = i;
-					break;
-				}
-			}
+		case coPercents:
+			value = get_new_value<ConfigOptionPercents>(config, *m_config, opt_key, opt_index);
 			break;
-		case coFloats:{
-			for (int i = 0; i < config.option<ConfigOptionFloats>(opt_key)->values.size(); i++)
-				if (config.option<ConfigOptionFloats>(opt_key)->values[i] !=
-					m_config->option<ConfigOptionFloats>(opt_key)->values[i]){
-					value = config.option<ConfigOptionFloats>(opt_key)->values[i];
-					opt_index = i;
-					break;
-				}
-			}
+		case coFloats:
+			value = get_new_value<ConfigOptionFloats>(config, *m_config, opt_key, opt_index);
 			break;
-		case coStrings:{
-			if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
-				value = "";
-			else{
-				for (int i = 0; i < config.option<ConfigOptionStrings>(opt_key)->values.size(); i++)
-					if (config.option<ConfigOptionStrings>(opt_key)->values[i] != 
-						m_config->option<ConfigOptionStrings>(opt_key)->values[i]){
-						value = config.option<ConfigOptionStrings>(opt_key)->values[i];
-						opt_index = i;
-						break;
-					}
-				}
-			}
+		case coStrings:
+			value = config.option<ConfigOptionStrings>(opt_key)->values.empty() ? "" :
+				get_new_value<ConfigOptionStrings>(config, *m_config, opt_key, opt_index);
 			break;
 		case coBool:
 			value = config.opt_bool(opt_key);
 			break;
-		case coBools:{
-			for (int i = 0; i < config.option<ConfigOptionBools>(opt_key)->values.size(); i++)
-				if (config.option<ConfigOptionBools>(opt_key)->values[i] !=
-					m_config->option<ConfigOptionBools>(opt_key)->values[i]){
-					value = config.option<ConfigOptionBools>(opt_key)->values[i];
-					opt_index = i;
-					break;
-				}
-			}
+		case coBools:
+			value = get_new_value<ConfigOptionBools>(config, *m_config, opt_key, opt_index);
 			break;
 		case coInt:
 			value = config.opt_int(opt_key);
 			break;
-		case coInts:{
-			for (int i = 0; i < config.option<ConfigOptionInts>(opt_key)->values.size(); i++)
-				if (config.option<ConfigOptionInts>(opt_key)->values[i] !=
-					m_config->option<ConfigOptionInts>(opt_key)->values[i]){
-					value = config.option<ConfigOptionInts>(opt_key)->values[i];
-					opt_index = i;
-					break;
-				}
-			}
+		case coInts:
+			value = get_new_value<ConfigOptionInts>(config, *m_config, opt_key, opt_index);
 			break;
 		case coEnum:{
 			if (opt_key.compare("external_fill_pattern") == 0 ||
