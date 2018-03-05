@@ -675,11 +675,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 			toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].temperature);
 
 		if (last_change_in_layer) // draw perimeter line
-			writer.travel(m_wipe_tower_pos, 7000)
-				.extrude(m_wipe_tower_pos + xy(0, peters_wipe_tower ? m_wipe_tower_depth : m_layer_info->depth + m_perimeter_width), 3200)
-				.extrude(m_wipe_tower_pos + xy(peters_wipe_tower ? m_layer_info->depth + 3*m_perimeter_width : m_wipe_tower_width, peters_wipe_tower ? m_wipe_tower_depth : m_layer_info->depth + m_perimeter_width))
-				.extrude(m_wipe_tower_pos + xy(peters_wipe_tower ? m_layer_info->depth + 3*m_perimeter_width : m_wipe_tower_width, 0))
-				.extrude(m_wipe_tower_pos);
+			writer.travel(m_wipe_tower_pos + xy(peters_wipe_tower ? m_layer_info->depth + 3*m_perimeter_width : m_wipe_tower_width, peters_wipe_tower ? m_wipe_tower_depth : m_layer_info->depth + m_perimeter_width), 7000)
+				.extrude(m_wipe_tower_pos + xy(peters_wipe_tower ? m_layer_info->depth + 3*m_perimeter_width : m_wipe_tower_width, 0), 3200)
+				.extrude(m_wipe_tower_pos)
+				.extrude(m_wipe_tower_pos + xy(0, peters_wipe_tower ? m_wipe_tower_depth : m_layer_info->depth + m_perimeter_width))
+				.extrude(m_wipe_tower_pos + xy(peters_wipe_tower ? m_layer_info->depth + 3*m_perimeter_width : m_wipe_tower_width, peters_wipe_tower ? m_wipe_tower_depth : m_layer_info->depth + m_perimeter_width));
 
 		// Reset the extruder current to a normal value.
 		writer.set_extruder_trimpot(550)
@@ -856,12 +856,21 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	//writer.retract(15, 5000).retract(50, 5400).retract(15, 3000).retract(12, 2000);
 
     // Pull the filament end to the BEGINNING of the cooling tube
-    float unloading_feedrate = 60.f * m_filpar[m_current_tool].unloading_speed;
+    /*float unloading_feedrate = 60.f * m_filpar[m_current_tool].unloading_speed;
     writer.retract(15, 5000)                              // just after ramming - always the same speed
           .retract(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42, unloading_feedrate)
           .retract(15, unloading_feedrate*0.55f)
-          .retract(12, unloading_feedrate*0.35f);
+          .retract(12, unloading_feedrate*0.35f);*/
 
+    // Pull the filament end to the BEGINNING of the cooling tube while still moving the print head
+    float oldx = writer.x();
+    float turning_point = (!m_left_to_right ? std::max(xl,oldx-15.f) : std::min(xr,oldx+15.f) ); // so it's not too far
+    float xdist = std::abs(oldx-turning_point);
+    float edist = -(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42);
+    writer.load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15 * 83 )    // fixed speed after ramming
+          .load_move_x(oldx         ,edist  , 60.f * std::hypot(xdist,edist)/edist * m_filpar[m_current_tool].unloading_speed )
+          .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15       * m_filpar[m_current_tool].unloading_speed*0.55f )
+          .load_move_x(oldx         ,-12    , 60.f * std::hypot(xdist,12)/12       * m_filpar[m_current_tool].unloading_speed*0.35f );
 
 	if (new_temperature != 0) 	// Set the extruder temperature, but don't wait.
 		writer.set_extruder_temp(new_temperature, false);
@@ -870,7 +879,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	writer.suppress_preview();
 	writer.travel(writer.x(), writer.y() + y_step);
 	const float start_x = writer.x();
-	const float turning_point = ( xr-start_x > start_x-xl ? xr : xl );
+	turning_point = ( xr-start_x > start_x-xl ? xr : xl );
 	const float max_x_dist = 2*std::abs(start_x-turning_point);
 	const unsigned int N = 4 + std::max(0,(m_par.cooling_time[m_current_tool]-14)/3);
 	float time = m_par.cooling_time[m_current_tool] / N;
