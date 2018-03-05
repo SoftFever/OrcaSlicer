@@ -407,7 +407,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 		}
 		case coPercents:
 		case coFloats:{
-			double& val = config.opt_float(opt_key, 0);
+			double& val = config.opt_float(opt_key, opt_index);
 			val = boost::any_cast<double>(value);
 			break;
 		}			
@@ -422,7 +422,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			}
 			else{
 				ConfigOptionStrings* vec_new = new ConfigOptionStrings{ boost::any_cast<std::string>(value) };
-				config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, opt_index, opt_index);
+				config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
 			}
 			break;
@@ -431,14 +431,14 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			break;
 		case coBools:{
 			ConfigOptionBools* vec_new = new ConfigOptionBools{ boost::any_cast<bool>(value) };
-			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, opt_index, opt_index);
+			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, opt_index, 0);
 			break;}
 		case coInt:
 			config.set_key_value(opt_key, new ConfigOptionInt(boost::any_cast<int>(value)));
 			break;
 		case coInts:{
 			ConfigOptionInts* vec_new = new ConfigOptionInts{ boost::any_cast<int>(value) };
-			config.option<ConfigOptionInts>(opt_key)->set_at(vec_new, opt_index, opt_index);
+			config.option<ConfigOptionInts>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
 			break;
 		case coEnum:{
