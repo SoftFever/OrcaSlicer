@@ -93,8 +93,8 @@ public:
 	float                x()     const { return m_current_pos.x; }
 	float                y()     const { return m_current_pos.y; }
 	const WipeTower::xy& pos()   const { return m_current_pos; }
-	const WipeTower::xy	 start_pos_rotated() const { return m_start_pos.rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg); }
-	const WipeTower::xy  pos_rotated() const { return m_current_pos.rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg); }
+	const WipeTower::xy	 start_pos_rotated() const { return WipeTower::xy(m_start_pos,0.f,m_y_shift).rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg); }
+	const WipeTower::xy  pos_rotated() const { return WipeTower::xy(m_current_pos,0.f,m_y_shift).rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg); }
 	float 				 elapsed_time() const { return m_elapsed_time; }
 
 	// Extrude with an explicitely provided amount of extrusion.
@@ -882,7 +882,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	turning_point = ( xr-start_x > start_x-xl ? xr : xl );
 	const float max_x_dist = 2*std::abs(start_x-turning_point);
 	const unsigned int N = 4 + std::max(0,(m_par.cooling_time[m_current_tool]-14)/3);
-	float time = m_par.cooling_time[m_current_tool] / N;
+	float time = m_par.cooling_time[m_current_tool] / float(N);
 
 	i = 0;
 	while (i<N) {
@@ -891,8 +891,8 @@ void WipeTowerPrusaMM::toolchange_Unload(
 		
 		// this move is the last one at this speed or someone set tube_length to zero
         if (speed * time < 2*m_cooling_tube_length || m_cooling_tube_length<WT_EPSILON) {
-			++i;
-			time = m_par.cooling_time[m_current_tool] / N;
+            ++i;
+			time = m_par.cooling_time[m_current_tool] / float(N);
 		}
 		else
 			time -= e_dist / speed; // subtract time this part will really take
@@ -1112,7 +1112,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 		}
 	} else {
 		// The print head is inside the wipe tower. Rather move to the start of the following extrusion.
-		writer.set_initial_position(fill_box.ld);
+		writer.set_initial_position(fill_box.lu);
 	}
 
 	if (purpose == PURPOSE_EXTRUDE || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
@@ -1124,11 +1124,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 			}
 			else i=2;	// only draw the inner perimeter
 
-			writer.travel(box.ld,7200)
-			    .extrude(box.lu, 2400 * speed_factor)
-			    .extrude(box.ru)
+			writer.travel(box.lu,7200)
+			    .extrude(box.ru, 2400 * speed_factor)
 			    .extrude(box.rd)
-			    .extrude(box.ld);
+			    .extrude(box.ld)
+			    .extrude(box.lu);
 		}
 
 		if (m_is_first_layer && m_par.adhesion) {
