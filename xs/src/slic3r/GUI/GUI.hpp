@@ -34,6 +34,9 @@ class TabIface;
 //! With wxConvUTF8 explicitly specify that the source string is already in UTF-8 encoding
 #define _CHB(s) wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str()
 
+// Minimal buffer length for translated string (char buf[MIN_BUF_LENGTH_FOR_L])
+#define MIN_BUF_LENGTH_FOR_L	128
+
 namespace GUI {
 
 class Tab;

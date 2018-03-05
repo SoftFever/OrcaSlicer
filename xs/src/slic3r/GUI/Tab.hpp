@@ -106,7 +106,7 @@ protected:
 
 public:
 	PresetBundle*		m_preset_bundle;
-	bool				m_show_btn_incompatible_presets;
+	bool				m_show_btn_incompatible_presets = false;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
 

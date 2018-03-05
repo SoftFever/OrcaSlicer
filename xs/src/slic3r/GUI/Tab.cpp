@@ -113,8 +113,7 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
 	if (!icon.empty()) {
-		if (m_icon_index.find(icon) == m_icon_index.end())
-			icon_idx = -1;
+		icon_idx = (m_icon_index.find(icon) == m_icon_index.end()) ? -1 : m_icon_index.at(icon);
 		if (icon_idx == -1) {
 			// Add a new icon to the icon list.
 			const auto img_icon = new wxIcon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
@@ -779,14 +778,15 @@ void TabPrint::update()
 		get_field(el)->toggle(have_wipe_tower);
 
 	m_recommended_thin_wall_thickness_description_line->SetText(
-		PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));
+		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 
 	Thaw();
 }
 
 void TabPrint::OnActivate()
 {
-	m_recommended_thin_wall_thickness_description_line->SetText(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));
+	m_recommended_thin_wall_thickness_description_line->SetText(
+		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 }
 
 void TabFilament::build()
@@ -1055,7 +1055,7 @@ void TabPrinter::build()
 			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e){
 				if (m_event_button_browse > 0){
 					wxCommandEvent event(m_event_button_browse);
-					event.SetString(_(L("Button BROWSE was clicked!")));
+					event.SetString("Button BROWSE was clicked!");
 					g_wxMainFrame->ProcessWindowEvent(event);
 				}
 // 				// # look for devices
@@ -1090,7 +1090,7 @@ void TabPrinter::build()
 			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e) {
 				if (m_event_button_test > 0){
 					wxCommandEvent event(m_event_button_test);
-					event.SetString(_(L("Button TEST was clicked!")));
+					event.SetString("Button TEST was clicked!");
 					g_wxMainFrame->ProcessWindowEvent(event);
 				}
 // 				my $ua = LWP::UserAgent->new;
@@ -1194,7 +1194,9 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 void TabPrinter::build_extruder_pages(){
 	for (auto extruder_idx = m_extruder_pages.size(); extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
-		auto page = add_options_page(_(L("Extruder ")) + wxString::Format(_T("%i"), extruder_idx + 1), "funnel.png", true);
+		char buf[MIN_BUF_LENGTH_FOR_L];
+		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
+		auto page = add_options_page(from_u8(buf), "funnel.png", true);
 		m_extruder_pages.push_back(page);
 			
 			auto optgroup = page->new_optgroup(_(L("Size")));
@@ -1624,6 +1626,7 @@ void Tab::update_ui_from_settings()
 {
 	// Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
 	// in application preferences.
+	m_show_btn_incompatible_presets = get_app_config()->get("show_incompatible_presets")[0] == '1' ? true : false;
 	bool show = m_show_btn_incompatible_presets && m_presets->name().compare("printer") != 0;
 	show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
 	// If the 'show / hide presets' button is hidden, hide the incompatible presets.

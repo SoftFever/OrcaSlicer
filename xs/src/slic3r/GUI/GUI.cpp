@@ -336,7 +336,7 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change)
 			}
 		}
 	});
-	menu->Append(local_menu, _T("&Localization"));
+	menu->Append(local_menu, _(L("&Localization")));
 //#endif
 }
 
@@ -405,11 +405,15 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			val = boost::any_cast<double>(value);
 			break;
 		}
-		case coPercents:
-		case coFloats:{
-			double& val = config.opt_float(opt_key, opt_index);
-			val = boost::any_cast<double>(value);
+		case coPercents:{
+			ConfigOptionPercents* vec_new = new ConfigOptionPercents{ boost::any_cast<double>(value) };
+			config.option<ConfigOptionPercents>(opt_key)->set_at(vec_new, opt_index, opt_index);
 			break;
+		}
+		case coFloats:{
+			ConfigOptionFloats* vec_new = new ConfigOptionFloats{ boost::any_cast<double>(value) };
+			config.option<ConfigOptionFloats>(opt_key)->set_at(vec_new, opt_index, opt_index);
+ 			break;
 		}			
 		case coString:
 			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
@@ -473,7 +477,6 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 
 void add_created_tab(Tab* panel, PresetBundle *preset_bundle)
 {
-	panel->m_show_btn_incompatible_presets = g_AppConfig->get("show_incompatible_presets").empty();
 	panel->create_preset_tab(preset_bundle);
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
@@ -516,7 +519,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 
         comboCtrl->EnablePopupAnimation(false);
         comboCtrl->SetPopupControl(popup);
-        popup->SetStringValue(text);
+        popup->SetStringValue(from_u8(text));
         popup->Bind(wxEVT_CHECKLISTBOX, [popup](wxCommandEvent& evt) { popup->OnCheckListBox(evt); });
         popup->Bind(wxEVT_LISTBOX, [popup](wxCommandEvent& evt) { popup->OnListBoxSelection(evt); });
         popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
@@ -527,7 +530,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 
         for (const std::string& item : items_str)
         {
-            popup->Append(item);
+            popup->Append(from_u8(item));
         }
 
         for (unsigned int i = 0; i < popup->GetCount(); ++i)
