@@ -624,5 +624,5 @@ endif ()
 
 
 # Installation
-install(TARGETS XS DESTINATION lib/slic3r-prusa3d/auto/Slic3r/XS)
-install(FILES lib/Slic3r/XS.pm DESTINATION lib/slic3r-prusa3d/Slic3r)
+install(TARGETS XS DESTINATION ${PERL_VENDORARCH}/auto/Slic3r/XS)
+install(FILES lib/Slic3r/XS.pm DESTINATION ${PERL_VENDORLIB}/Slic3r)
