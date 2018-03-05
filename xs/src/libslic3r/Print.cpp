@@ -185,6 +185,9 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_type"
             || opt_key == "filament_soluble"
             || opt_key == "first_layer_temperature"
+            || opt_key == "filament_loading_speed"
+            || opt_key == "filament_unloading_speed"
+            || opt_key == "filament_toolchange_delay"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "spiral_vase"
@@ -1038,7 +1041,10 @@ void Print::_make_wipe_tower()
             i, 
             WipeTowerPrusaMM::parse_material(this->config.filament_type.get_at(i).c_str()),
             this->config.temperature.get_at(i),
-            this->config.first_layer_temperature.get_at(i));
+            this->config.first_layer_temperature.get_at(i),
+            this->config.filament_loading_speed.get_at(i),
+            this->config.filament_unloading_speed.get_at(i),
+            this->config.filament_toolchange_delay.get_at(i));
 
     // When printing the first layer's wipe tower, the first extruder is expected to be active and primed.
     // Therefore the number of wipe sections at the wipe tower will be (m_tool_ordering.front().extruders-1) at the 1st layer.

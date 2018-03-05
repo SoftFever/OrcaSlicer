@@ -209,9 +209,9 @@ public:
  	{
 		for (size_t i = 0; i < 4; ++ i) {
 			// Extruder specific parameters.
-			m_material[i] = PLA;
-			m_temperature[i] = 0;
-			m_first_layer_temperature[i] = 0;
+			m_filpar[i].material = PLA;
+			m_filpar[i].temperature = 0;
+			m_filpar[i].first_layer_temperature = 0;
 		}
 	}
 
@@ -225,11 +225,15 @@ public:
 
 
 	// Set the extruder properties.
-	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp)
+	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
+                      float unloading_speed, float delay)
 	{
-		m_material[idx] = material;
-		m_temperature[idx] = temp;
-		m_first_layer_temperature[idx] = first_layer_temp;
+        m_filpar[idx].material = material;
+        m_filpar[idx].temperature = temp;
+        m_filpar[idx].first_layer_temperature = first_layer_temp;
+        m_filpar[idx].loading_speed = loading_speed;
+        m_filpar[idx].unloading_speed = unloading_speed;
+        m_filpar[idx].delay = delay;
 	}
 
 
@@ -336,14 +340,23 @@ private:
     float           m_cooling_tube_retraction   = 0.f;
     float           m_cooling_tube_length       = 0.f;
     float           m_parking_pos_retraction    = 0.f;
-	
+
 	float m_line_width = Nozzle_Diameter * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
 
+
+    struct FilamentParameters {
+        material_type 	material;
+        int  			temperature;
+        int  			first_layer_temperature;
+        float           loading_speed;
+        float           unloading_speed;
+        float           delay;
+    };
+
 	// Extruder specific parameters.
-	material_type 	m_material[4];
-	int  			m_temperature[4];
-	int  			m_first_layer_temperature[4];
+    FilamentParameters m_filpar[4];
+
 
 	// State of the wiper tower generator.
 	unsigned int m_num_layer_changes = 0; // Layer change counter for the output statistics.

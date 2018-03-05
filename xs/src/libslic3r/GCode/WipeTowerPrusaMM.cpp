@@ -243,6 +243,17 @@ public:
 		return *this;
 	};
 
+    // Wait for a period of time (seconds).
+	Writer& wait(float time)
+	{
+        if (time==0)
+            return *this;
+		char buf[128];
+		sprintf(buf, "G4 S%.3f\n", time);
+		m_gcode += buf;
+		return *this;
+	};
+
 	// Set speed factor override percentage.
 	Writer& speed_override(int speed) 
 	{
@@ -495,7 +506,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 		for (size_t idx_tool = 0; idx_tool < tools.size(); ++ idx_tool) {
 			unsigned int tool = tools[idx_tool];
 			m_left_to_right = true;
-			toolchange_Change(writer, tool, m_material[tool]); // Select the tool, set a speed override for soluble and flex materials.
+			toolchange_Change(writer, tool, m_filpar[tool].material); // Select the tool, set a speed override for soluble and flex materials.
 			toolchange_Load(writer, cleaning_box); // Prime the tool.
 			if (idx_tool + 1 == tools.size()) {
 				// Last tool should not be unloaded, but it should be wiped enough to become of a pure color.
@@ -506,7 +517,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 				toolchange_Wipe(writer, cleaning_box , 5.f);
 				box_coordinates box = cleaning_box;
 				box.translate(0.f, writer.y() - cleaning_box.ld.y + m_perimeter_width);
-				toolchange_Unload(writer, box , m_material[m_current_tool], m_first_layer_temperature[tools[idx_tool + 1]]);
+				toolchange_Unload(writer, box , m_filpar[m_current_tool].material, m_filpar[tools[idx_tool + 1]].first_layer_temperature);
 				cleaning_box.translate(prime_section_width, 0.f);
 				writer.travel(cleaning_box.ld, 7200);
 			}
@@ -614,7 +625,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		.append(";--------------------\n"
 				"; CP TOOLCHANGE START\n")
 		.comment_with_value(" toolchange #", m_num_tool_changes)
-		.comment_material(m_material[m_current_tool])
+		.comment_material(m_filpar[m_current_tool].material)
 		.append(";--------------------\n")
 		.speed_override(100);
 
@@ -622,7 +633,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 
 	if (purpose == PURPOSE_MOVE_TO_TOWER || purpose == PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) {
 		// Scaffold leaks terribly, reduce leaking by a full retract when going to the wipe tower.
-		float initial_retract = ((m_material[m_current_tool] == SCAFF) ? 1.f : 0.5f) * m_retract;
+		float initial_retract = ((m_filpar[m_current_tool].material == SCAFF) ? 1.f : 0.5f) * m_retract;
 		writer 	// Lift for a Z hop.
 		  	  	.z_hop(m_zhop, 7200)
 		  		// Additional retract on move to tower.
@@ -650,9 +661,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		
 		// Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
 		if (tool != (unsigned int)-1){ 			// This is not the last change.
-			toolchange_Unload(writer, cleaning_box, m_material[m_current_tool],
-							  m_is_first_layer ? m_first_layer_temperature[tool] : m_temperature[tool]);			
-			toolchange_Change(writer, tool, m_material[tool]); // Change the tool, set a speed override for soluble and flex materials.
+			toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material,
+							  m_is_first_layer ? m_filpar[tool].first_layer_temperature : m_filpar[tool].temperature);
+			toolchange_Change(writer, tool, m_filpar[tool].material); // Change the tool, set a speed override for soluble and flex materials.
 			toolchange_Load(writer, cleaning_box);			
 			toolchange_Wipe(writer, cleaning_box, wipe_volume); // Wipe the newly loaded filament until the end of the assigned wipe area.
 
@@ -661,7 +672,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 			writer.travel(box.ru, 7200)
 					.travel(box.lu);*/
 		} else
-			toolchange_Unload(writer, cleaning_box, m_material[m_current_tool], m_temperature[m_current_tool]);
+			toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].temperature);
 
 		if (last_change_in_layer) // draw perimeter line
 			writer.travel(m_wipe_tower_pos, 7000)
@@ -845,8 +856,8 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	//writer.retract(15, 5000).retract(50, 5400).retract(15, 3000).retract(12, 2000);
 
     // Pull the filament end to the BEGINNING of the cooling tube
-    float unloading_feedrate = 5400.f; // Alex's original feedrate was 5400
-    writer.retract(15, 5000)    // just after ramming - fixed speed
+    float unloading_feedrate = 60.f * m_filpar[m_current_tool].unloading_speed;
+    writer.retract(15, 5000)                              // just after ramming - always the same speed
           .retract(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42, unloading_feedrate)
           .retract(15, unloading_feedrate*0.55f)
           .retract(12, unloading_feedrate*0.35f);
@@ -882,6 +893,9 @@ void WipeTowerPrusaMM::toolchange_Unload(
 		const float feedrate = std::hypot(e_dist, x_dist) / ((e_dist / speed) / 60.f);
 		writer.cool(start_x+x_dist/2.f,start_x,e_dist/2.f,-e_dist/2.f, feedrate);
 	}
+
+    // let's wait is necessary
+    writer.wait(m_filpar[m_current_tool].delay);
     // we should be at the beginning of the cooling tube again - let's move to parking position:
     writer.retract(-m_cooling_tube_length/2.f+m_parking_pos_retraction-m_cooling_tube_retraction, 2000);
 
@@ -957,15 +971,17 @@ void WipeTowerPrusaMM::toolchange_Load(
 	float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
 	float oldy = writer.y();
 
-    // Load the filament while moving left / right,
-	// so the excess material will not create a blob at a single position.
-    float loading_feedrate = 3000.f;
+    // Load the filament while moving left / right, so the excess material will not create a blob at a single position.
+    float loading_speed = m_filpar[m_current_tool].loading_speed; // mm/s in e axis
+    float turning_point = ( oldx-xl < xr-oldx ? xr : xl );
+    float dist = std::abs(oldx-turning_point);
+    float edist = m_parking_pos_retraction-50-2; // loading is 2mm shorter that previous retraction, 50mm reserved for acceleration/deceleration
 	writer.append("; CP TOOLCHANGE LOAD\n")
 		  .suppress_preview()
-		  .load_move_x(xr, 20, 1400)  // Accelerate the filament loading
-		  .load_move_x(xl,m_parking_pos_retraction-50-2,3000) // Fast phase - loading is 2mm shorter that previous retraction
-		  .load_move_x(xr, 20, 1600)    // Slowing down
-		  .load_move_x(xl, 10, 1000)
+		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Acceleration
+		  .load_move_x(oldx,edist,60*std::hypot(dist,edist)/edist * loading_speed)             // Fast phase
+		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Slowing down
+		  .load_move_x(oldx, 10, 60*std::hypot(dist,10.f)/10.f * loading_speed*0.1f)           // Super slow
 		  .travel(oldx,oldy)
 		  .resume_preview();
 
