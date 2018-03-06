@@ -148,8 +148,8 @@ void Tab::update_dirty(){
 	for (auto opt_key : dirty_options){
 		Field* field = get_field(opt_key/*, opt_index*/);
 		if (field != nullptr && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
-			field->m_Label->SetForegroundColour(*get_modified_label_clr()); 
-			field->m_Undo_btn->Show();
+			field->m_Label->SetForegroundColour(*get_modified_label_clr());
+			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(wxMSW ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
 
 			m_dirty_options.push_back(opt_key);
 		}
@@ -157,13 +157,13 @@ void Tab::update_dirty(){
 
 	// Delete undirty options from m_dirty_options
 	size_t cnt = m_dirty_options.size();
-	for (auto i = 0; i < /*cnt*/m_dirty_options.size(); ++i)
+	for (auto i = 0; i < m_dirty_options.size(); ++i)
 	{
 		const std::string &opt_key = m_dirty_options[i];
 		Field* field = get_field(opt_key/*, opt_index*/);
 		if (field != nullptr && find(dirty_options.begin(), dirty_options.end(), opt_key) == dirty_options.end())
 		{		
-			field->m_Undo_btn->Hide();
+			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("Bullet_white.png")), wxBITMAP_TYPE_PNG));
 			field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 			std::vector<std::string>::iterator itr = find(m_dirty_options.begin(), m_dirty_options.end(), opt_key);
 			if (itr != m_dirty_options.end()){
@@ -1772,6 +1772,11 @@ ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_wid
 			static_cast<Tab*>(GetParent())->update_dirty();
 			static_cast<Tab*>(GetParent())->on_value_change(opt_key, value);
 //!        });
+	};
+
+	optgroup->m_get_initial_config = [this](){
+		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset().config;
+		return config;
 	};
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);

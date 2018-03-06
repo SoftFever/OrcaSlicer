@@ -19,6 +19,12 @@
     #define wxOSX false
 #endif
 
+#ifdef __WXMSW__
+#define wxMSW true
+#else
+#define wxMSW false
+#endif
+
 #define BORDER(a, b) ((wxOSX ? a : b))
 
 namespace Slic3r { namespace GUI {
@@ -78,6 +84,7 @@ public:
     wxSizer*		sizer {nullptr};
     column_t		extra_column {nullptr};
     t_change		m_on_change {nullptr};
+	std::function<DynamicPrintConfig()>	m_get_initial_config{ nullptr };
 
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
@@ -145,6 +152,7 @@ protected:
 
     virtual void		on_kill_focus (){};
 	virtual void		on_change_OG(t_config_option_key opt_id, boost::any value);
+	virtual void		back_to_initial_value(const std::string opt_key){};
 };
 
 class ConfigOptionsGroup: public OptionsGroup {
@@ -172,10 +180,8 @@ public:
 	}
 
 	void		on_change_OG(t_config_option_key opt_id, boost::any value) override;
-	void		on_kill_focus() override
-	{
-		reload_config();
-	}
+	void		back_to_initial_value(const std::string opt_key) override;
+	void		on_kill_focus() override{ reload_config();}
 	void		reload_config();
 	boost::any	config_value(std::string opt_key, int opt_index, bool deserialize);
 	// return option value from config 

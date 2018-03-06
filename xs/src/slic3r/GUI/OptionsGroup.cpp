@@ -75,7 +75,11 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     field->m_parent = parent();
 	
 	//! Label to change background color, when option is modified
-	field->m_Label = label;		
+	field->m_Label = label;
+	field->m_back_to_initial_value = [this](std::string opt_id){
+		if (!this->m_disabled)
+			this->back_to_initial_value(opt_id);
+	};
     
 	// assign function objects for callbacks, etc.
     return field;
@@ -268,6 +272,16 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 	}
 
 	OptionsGroup::on_change_OG(opt_id, value); //!? Why doing this
+}
+
+void ConfigOptionsGroup::back_to_initial_value(const std::string opt_key)
+{
+	if (m_get_initial_config == nullptr)
+		return;
+	DynamicPrintConfig config = m_get_initial_config();
+	boost::any value = get_config_value(config, opt_key);
+	set_value(opt_key, value);
+	on_change_OG(opt_key, get_value(opt_key)/*value*/);
 }
 
 void ConfigOptionsGroup::reload_config(){

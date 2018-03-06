@@ -18,6 +18,17 @@ namespace Slic3r { namespace GUI {
 			wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
 	}
 
+	void Field::PostInitialize(){
+		m_Undo_btn = new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+		// use bouth of temporary_icons till don't have "undo_icon" 
+		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+		m_Undo_btn->SetBackgroundColour(color);
+		m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("Bullet_white.png")), wxBITMAP_TYPE_PNG));
+		m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
+
+		BUILD();
+	}
+
 	void Field::on_kill_focus(wxEvent& event) {
         // Without this, there will be nasty focus bugs on Windows.
         // Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
@@ -33,6 +44,12 @@ namespace Slic3r { namespace GUI {
         if (m_on_change != nullptr  && !m_disable_change_event)
             m_on_change(m_opt_id, get_value());
     }
+
+	void Field::on_back_to_initial_value()
+	{
+		if (m_back_to_initial_value != nullptr)
+			m_back_to_initial_value(m_opt_id);
+	}
 
 	wxString Field::get_tooltip_text(const wxString& default_string)
 	{

@@ -26,21 +26,14 @@ class Field;
 using t_field = std::unique_ptr<Field>;
 using t_kill_focus = std::function<void()>;
 using t_change = std::function<void(t_config_option_key, boost::any)>;
+using t_back_to_init = std::function<void(std::string)>;
 
 wxString double_to_string(double const value);
 
 class Field {
 protected:
     // factory function to defer and enforce creation of derived type. 
-    virtual void	PostInitialize(){
-		m_Undo_btn = new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT|wxNO_BORDER);
-		// use bouth of temporary_icons till don't have "undo_icon" 
-		m_Undo_btn->SetBitmap(wxBitmap(from_u8(__WXMSW__ ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
-		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-		m_Undo_btn->SetBackgroundColour(color);
-		m_Undo_btn->Hide();
-    	BUILD();
-    }
+	virtual void	PostInitialize();
     
     /// Finish constructing the Field's wxWidget-related properties, including setting its own sizer, etc.
     virtual void	BUILD() = 0;
@@ -51,6 +44,8 @@ protected:
 	void			on_kill_focus(wxEvent& event);
     /// Call the attached on_change method. 
     void			on_change_field();
+    /// Call the attached m_back_to_initial_value method. 
+	void			on_back_to_initial_value();
 
 public:
     /// parent wx item, opportunity to refactor (probably not necessary - data duplication)
@@ -61,6 +56,9 @@ public:
 
     /// Function object to store callback passed in from owning object.
 	t_change		m_on_change {nullptr};
+
+    /// Function object to store callback passed in from owning object.
+	t_back_to_init	m_back_to_initial_value{ nullptr };
 
 	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
     bool			m_disable_change_event {false};
