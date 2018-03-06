@@ -85,6 +85,12 @@ void GCodePreviewData::Range::update_from(float value)
     max = std::max(max, value);
 }
 
+void GCodePreviewData::Range::update_from(const Range& other)
+{
+    min = std::min(min, other.min);
+    max = std::max(max, other.max);
+}
+
 void GCodePreviewData::Range::set_from(const Range& other)
 {
     min = other.min;
@@ -198,6 +204,11 @@ void GCodePreviewData::Travel::set_default()
     width = Default_Width;
     height = Default_Height;
     ::memcpy((void*)type_colors, (const void*)Default_Type_Colors, Num_Types * sizeof(Color));
+
+    ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+
     is_visible = false;
 }
 
@@ -345,15 +356,26 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
 {
     struct Helper
     {
-        static void FillListFromRange(LegendItemsList& list, const Range& range, unsigned int decimals, float scale_factor)
+        static void FillListFromRange(LegendItemsList& list, const std::vector<const Range*>& ranges, unsigned int decimals, float scale_factor)
         {
+            if (ranges.empty())
+                return;
+
             list.reserve(Range::Colors_Count);
-            float step = range.step_size();
+
+            Range total_range;
+            for (const Range* range : ranges)
+            {
+                if (range != nullptr)
+                    total_range.update_from(*range);
+            }
+
+            float step = total_range.step_size();
             for (unsigned int i = 0; i < Range::Colors_Count; ++i)
             {
-                char buf[32];
-                sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (range.min + (float)i * step), decimals, scale_factor * (range.min + (float)(i + 1) * step));
-                list.emplace_back(buf, range.colors[i]);
+                char buf[1024];
+                sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (total_range.min + (float)i * step), decimals, scale_factor * (total_range.min + (float)(i + 1) * step));
+                list.emplace_back(buf, ranges[0]->colors[i]);
             }
         }
     };
@@ -377,17 +399,26 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
         }
     case Extrusion::Height:
         {
-            Helper::FillListFromRange(items, extrusion.ranges.height, 3, 1.0f);            
+            std::vector<const Range*> ranges;
+            ranges.push_back(&extrusion.ranges.height);
+            ranges.push_back(&travel.ranges.height);
+            Helper::FillListFromRange(items, ranges, 3, 1.0f);
             break;
         }
     case Extrusion::Width:
         {
-            Helper::FillListFromRange(items, extrusion.ranges.width, 3, 1.0f);
+            std::vector<const Range*> ranges;
+            ranges.push_back(&extrusion.ranges.width);
+            ranges.push_back(&travel.ranges.width);
+            Helper::FillListFromRange(items, ranges, 3, 1.0f);
             break;
         }
     case Extrusion::Feedrate:
         {
-            Helper::FillListFromRange(items, extrusion.ranges.feedrate, 0, 1.0f);
+            std::vector<const Range*> ranges;
+            ranges.push_back(&extrusion.ranges.feedrate);
+            ranges.push_back(&travel.ranges.feedrate);
+            Helper::FillListFromRange(items, ranges, 0, 1.0f);
             break;
         }
     case Extrusion::Tool:

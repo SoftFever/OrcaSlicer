@@ -717,6 +717,10 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
     float feedrate = FLT_MAX;
     unsigned int extruder_id = -1;
 
+    GCodePreviewData::Range height_range;
+    GCodePreviewData::Range width_range;
+    GCodePreviewData::Range feedrate_range;
+
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : travel_moves->second)
     {
@@ -745,11 +749,19 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
         type = move_type;
         feedrate = move.data.feedrate;
         extruder_id = move.data.extruder_id;
+        height_range.update_from(move.data.height);
+        width_range.update_from(move.data.width);
+        feedrate_range.update_from(move.data.feedrate);
     }
 
     // store last polyline
     polyline.remove_duplicate_points();
     Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, preview_data);
+
+    // updates preview ranges data
+    preview_data.travel.ranges.height.set_from(height_range);
+    preview_data.travel.ranges.width.set_from(width_range);
+    preview_data.travel.ranges.feedrate.set_from(feedrate_range);
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_data)

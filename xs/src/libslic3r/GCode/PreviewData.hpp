@@ -37,11 +37,19 @@ public:
         void reset();
         bool empty() const;
         void update_from(float value);
+        void update_from(const Range& other);
         void set_from(const Range& other);
         float step_size() const;
 
         const Color& get_color_at(float value) const;
         const Color& get_color_at_max() const;
+    };
+
+    struct Ranges
+    {
+        Range height;
+        Range width;
+        Range feedrate;
     };
 
     struct LegendItem
@@ -70,13 +78,6 @@ public:
         static const Color Default_Extrusion_Role_Colors[Num_Extrusion_Roles];
         static const std::string Default_Extrusion_Role_Names[Num_Extrusion_Roles];
         static const EViewType Default_View_Type;
-
-        struct Ranges
-        {
-            Range height;
-            Range width;
-            Range feedrate;
-        };
 
         struct Layer
         {
@@ -140,6 +141,7 @@ public:
         float height;
         Color type_colors[Num_Types];
         bool is_visible;
+        Ranges ranges;
 
         void set_default();
     };
