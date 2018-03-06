@@ -113,8 +113,7 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
 	if (!icon.empty()) {
-		if (m_icon_index.find(icon) == m_icon_index.end())
-			icon_idx = -1;
+		icon_idx = (m_icon_index.find(icon) == m_icon_index.end()) ? -1 : m_icon_index.at(icon);
 		if (icon_idx == -1) {
 			// Add a new icon to the icon list.
 			const auto img_icon = new wxIcon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
@@ -147,12 +146,25 @@ void Tab::update_tab_ui()
 	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 }
 
+template<class T>
+boost::any get_new_value(const DynamicPrintConfig &config_new, const DynamicPrintConfig &config_old, std::string opt_key, int &index)
+{
+	for (int i = 0; i < config_new.option<T>(opt_key)->values.size(); i++)
+		if (config_new.option<T>(opt_key)->values[i] !=
+			config_old.option<T>(opt_key)->values[i]){
+			index = i;
+			break;
+		}
+	return config_new.option<T>(opt_key)->values[index];
+}
+
 // Load a provied DynamicConfig into the tab, modifying the active preset.
 // This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 void Tab::load_config(DynamicPrintConfig config)
 {
 	bool modified = 0;
 	boost::any value;
+	int opt_index = 0;
 	for(auto opt_key : m_config->diff(config)) {
 		switch ( config.def()->get(opt_key)->type ){
 		case coFloatOrPercent:
@@ -168,28 +180,26 @@ void Tab::load_config(DynamicPrintConfig config)
 			value = config.opt_string(opt_key);
 			break;
 		case coPercents:
-			value = config.option<ConfigOptionPercents>(opt_key)->values.at(0);
+			value = get_new_value<ConfigOptionPercents>(config, *m_config, opt_key, opt_index);
 			break;
 		case coFloats:
-			value = config.opt_float(opt_key, 0);
+			value = get_new_value<ConfigOptionFloats>(config, *m_config, opt_key, opt_index);
 			break;
 		case coStrings:
-			if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
-				value = "";
-			else
-				value = config.opt_string(opt_key, static_cast<unsigned int>(0));
+			value = config.option<ConfigOptionStrings>(opt_key)->values.empty() ? "" :
+				get_new_value<ConfigOptionStrings>(config, *m_config, opt_key, opt_index);
 			break;
 		case coBool:
 			value = config.opt_bool(opt_key);
 			break;
 		case coBools:
-			value = config.opt_bool(opt_key, 0);
+			value = get_new_value<ConfigOptionBools>(config, *m_config, opt_key, opt_index);
 			break;
 		case coInt:
 			value = config.opt_int(opt_key);
 			break;
 		case coInts:
-			value = config.opt_int(opt_key, 0);
+			value = get_new_value<ConfigOptionInts>(config, *m_config, opt_key, opt_index);
 			break;
 		case coEnum:{
 			if (opt_key.compare("external_fill_pattern") == 0 ||
@@ -210,7 +220,7 @@ void Tab::load_config(DynamicPrintConfig config)
 		default:
 			break;
 		}
-		change_opt_value(*m_config, opt_key, value);
+		change_opt_value(*m_config, opt_key, value, opt_index);
 		modified = 1;
 	}
 	if (modified) {
@@ -768,14 +778,15 @@ void TabPrint::update()
 		get_field(el)->toggle(have_wipe_tower);
 
 	m_recommended_thin_wall_thickness_description_line->SetText(
-		PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));
+		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 
 	Thaw();
 }
 
 void TabPrint::OnActivate()
 {
-	m_recommended_thin_wall_thickness_description_line->SetText(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle));
+	m_recommended_thin_wall_thickness_description_line->SetText(
+		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 }
 
 void TabFilament::build()
@@ -1044,7 +1055,7 @@ void TabPrinter::build()
 			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e){
 				if (m_event_button_browse > 0){
 					wxCommandEvent event(m_event_button_browse);
-					event.SetString(_(L("Button BROWSE was clicked!")));
+					event.SetString("Button BROWSE was clicked!");
 					g_wxMainFrame->ProcessWindowEvent(event);
 				}
 // 				// # look for devices
@@ -1079,7 +1090,7 @@ void TabPrinter::build()
 			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e) {
 				if (m_event_button_test > 0){
 					wxCommandEvent event(m_event_button_test);
-					event.SetString(_(L("Button TEST was clicked!")));
+					event.SetString("Button TEST was clicked!");
 					g_wxMainFrame->ProcessWindowEvent(event);
 				}
 // 				my $ua = LWP::UserAgent->new;
@@ -1183,7 +1194,9 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 void TabPrinter::build_extruder_pages(){
 	for (auto extruder_idx = m_extruder_pages.size(); extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
-		auto page = add_options_page(_(L("Extruder ")) + wxString::Format(_T("%i"), extruder_idx + 1), "funnel.png", true);
+		char buf[MIN_BUF_LENGTH_FOR_L];
+		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
+		auto page = add_options_page(from_u8(buf), "funnel.png", true);
 		m_extruder_pages.push_back(page);
 			
 			auto optgroup = page->new_optgroup(_(L("Size")));
@@ -1613,6 +1626,7 @@ void Tab::update_ui_from_settings()
 {
 	// Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
 	// in application preferences.
+	m_show_btn_incompatible_presets = get_app_config()->get("show_incompatible_presets")[0] == '1' ? true : false;
 	bool show = m_show_btn_incompatible_presets && m_presets->name().compare("printer") != 0;
 	show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
 	// If the 'show / hide presets' button is hidden, hide the incompatible presets.
