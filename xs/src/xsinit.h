@@ -59,6 +59,15 @@ extern "C" {
     #undef seek
     #undef send
     #undef write
+    #undef open
+    #undef close
+    #undef seekdir
+    #undef setbuf
+    #undef fread
+    #undef fseek
+    #undef fputc
+    #undef fwrite
+    #undef fclose
 #endif /* _MSC_VER */
 }
 #endif

@@ -64,6 +64,7 @@ REGISTER_CLASS(PresetCollection, "GUI::PresetCollection");
 REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
 REGISTER_CLASS(PresetHints, "GUI::PresetHints");
 REGISTER_CLASS(TabIface, "GUI::Tab");
+REGISTER_CLASS(OctoPrint, "OctoPrint");
 
 SV* ConfigBase__as_hash(ConfigBase* THIS)
 {

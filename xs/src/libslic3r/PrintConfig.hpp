@@ -684,6 +684,7 @@ class HostConfig : public StaticPrintConfig
 public:
     ConfigOptionString              octoprint_host;
     ConfigOptionString              octoprint_apikey;
+    ConfigOptionString              octoprint_cafile;
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
     
@@ -692,6 +693,7 @@ protected:
     {
         OPT_PTR(octoprint_host);
         OPT_PTR(octoprint_apikey);
+        OPT_PTR(octoprint_cafile);
         OPT_PTR(serial_port);
         OPT_PTR(serial_speed);
     }

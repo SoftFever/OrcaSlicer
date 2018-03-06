@@ -1402,18 +1402,13 @@ void GCode::apply_print_config(const PrintConfig &print_config)
 
 void GCode::append_full_config(const Print& print, std::string& str)
 {
-    char buff[4096];
-
     const StaticPrintConfig *configs[] = { &print.config, &print.default_object_config, &print.default_region_config };
     for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++i) {
         const StaticPrintConfig *cfg = configs[i];
         for (const std::string &key : cfg->keys())
         {
             if (key != "compatible_printers")
-            {
-                sprintf(buff, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
-                str += buff;
-            }
+                str += "; " + key + " = " + cfg->serialize(key) + "\n";
         }
     }
 }

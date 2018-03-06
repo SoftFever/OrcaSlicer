@@ -174,7 +174,6 @@ sub _init_tabpanel {
     EVT_COMMAND($self, -1, $BUTTON_BROWSE_EVENT, sub {
         my ($self, $event) = @_;
         my $msg = $event->GetString;
-        print "BUTTON_BROWSE_EVENT: ", $msg, "\n";
 
         # look for devices
         my $entries;
@@ -197,7 +196,6 @@ sub _init_tabpanel {
     EVT_COMMAND($self, -1, $BUTTON_TEST_EVENT, sub {
         my ($self, $event) = @_;
         my $msg = $event->GetString;
-        print "BUTTON_TEST_EVENT: ", $msg, "\n";
 
         my $ua = LWP::UserAgent->new;
         $ua->timeout(10);
@@ -409,7 +407,7 @@ sub _init_menubar {
             wxTheApp->about;
         });
     }
-    
+
     # menubar
     # assign menubar to frame after appending items, otherwise special items
     # will not be handled correctly
@@ -424,6 +422,7 @@ sub _init_menubar {
         # (Select application language from the list of installed languages)
         Slic3r::GUI::add_debug_menu($menubar, $self->{lang_ch_event});
         $menubar->Append($helpMenu, L("&Help"));
+        # Add an optional debug menu. In production code, the add_debug_menu() call should do nothing.
         $self->SetMenuBar($menubar);
     }
 }

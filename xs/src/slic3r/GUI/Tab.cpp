@@ -179,12 +179,25 @@ void Tab::update_tab_ui()
 	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 }
 
+template<class T>
+boost::any get_new_value(const DynamicPrintConfig &config_new, const DynamicPrintConfig &config_old, std::string opt_key, int &index)
+{
+	for (int i = 0; i < config_new.option<T>(opt_key)->values.size(); i++)
+		if (config_new.option<T>(opt_key)->values[i] !=
+			config_old.option<T>(opt_key)->values[i]){
+			index = i;
+			break;
+		}
+	return config_new.option<T>(opt_key)->values[index];
+}
+
 // Load a provied DynamicConfig into the tab, modifying the active preset.
 // This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 void Tab::load_config(DynamicPrintConfig config)
 {
 	bool modified = 0;
 	boost::any value;
+	int opt_index = 0;
 	for(auto opt_key : m_config->diff(config)) {
 		switch ( config.def()->get(opt_key)->type ){
 		case coFloatOrPercent:
@@ -200,28 +213,26 @@ void Tab::load_config(DynamicPrintConfig config)
 			value = config.opt_string(opt_key);
 			break;
 		case coPercents:
-			value = config.option<ConfigOptionPercents>(opt_key)->values.at(0);
+			value = get_new_value<ConfigOptionPercents>(config, *m_config, opt_key, opt_index);
 			break;
 		case coFloats:
-			value = config.opt_float(opt_key, 0);
+			value = get_new_value<ConfigOptionFloats>(config, *m_config, opt_key, opt_index);
 			break;
 		case coStrings:
-			if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
-				value = "";
-			else
-				value = config.opt_string(opt_key, static_cast<unsigned int>(0));
+			value = config.option<ConfigOptionStrings>(opt_key)->values.empty() ? "" :
+				get_new_value<ConfigOptionStrings>(config, *m_config, opt_key, opt_index);
 			break;
 		case coBool:
 			value = config.opt_bool(opt_key);
 			break;
 		case coBools:
-			value = config.opt_bool(opt_key, 0);
+			value = get_new_value<ConfigOptionBools>(config, *m_config, opt_key, opt_index);
 			break;
 		case coInt:
 			value = config.opt_int(opt_key);
 			break;
 		case coInts:
-			value = config.opt_int(opt_key, 0);
+			value = get_new_value<ConfigOptionInts>(config, *m_config, opt_key, opt_index);
 			break;
 		case coEnum:{
 			if (opt_key.compare("external_fill_pattern") == 0 ||
@@ -242,7 +253,7 @@ void Tab::load_config(DynamicPrintConfig config)
 		default:
 			break;
 		}
-		change_opt_value(*m_config, opt_key, value);
+		change_opt_value(*m_config, opt_key, value, opt_index);
 		modified = 1;
 //		get_field(opt_key)->m_Label->SetBackgroundColour(*get_modified_label_clr());
 	}

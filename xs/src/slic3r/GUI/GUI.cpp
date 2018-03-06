@@ -5,9 +5,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/format.hpp>
 
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
@@ -428,7 +428,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			}
 			else{
 				ConfigOptionStrings* vec_new = new ConfigOptionStrings{ boost::any_cast<std::string>(value) };
-				config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, opt_index, opt_index);
+				config.option<ConfigOptionStrings>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
 			}
 			break;
@@ -437,14 +437,14 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			break;
 		case coBools:{
 			ConfigOptionBools* vec_new = new ConfigOptionBools{ boost::any_cast<bool>(value) };
-			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, opt_index, opt_index);
+			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, opt_index, 0);
 			break;}
 		case coInt:
 			config.set_key_value(opt_key, new ConfigOptionInt(boost::any_cast<int>(value)));
 			break;
 		case coInts:{
 			ConfigOptionInts* vec_new = new ConfigOptionInts{ boost::any_cast<int>(value) };
-			config.option<ConfigOptionInts>(opt_key)->set_at(vec_new, opt_index, opt_index);
+			config.option<ConfigOptionInts>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
 			break;
 		case coEnum:{
@@ -578,6 +578,20 @@ wxString L_str(const std::string &str)
 wxString from_u8(const std::string &str)
 {
 	return wxString::FromUTF8(str.c_str());
+}
+
+wxWindow *get_widget_by_id(int id)
+{
+    if (g_wxMainFrame == nullptr) {
+        throw std::runtime_error("Main frame not set");
+    }
+
+    wxWindow *window = g_wxMainFrame->FindWindow(id);
+    if (window == nullptr) {
+        throw std::runtime_error((boost::format("Could not find widget by ID: %1%") % id).str());
+    }
+
+    return window;
 }
 
 } }

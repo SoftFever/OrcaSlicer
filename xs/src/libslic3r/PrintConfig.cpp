@@ -904,10 +904,17 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "octoprint-apikey=s";
     def->default_value = new ConfigOptionString("");
     
+    def = this->add("octoprint_cafile", coString);
+    def->label = "HTTPS CA file";
+    def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
+                   "If left blank, the default OS CA certificate repository is used.";
+    def->cli = "octoprint-cafile=s";
+    def->default_value = new ConfigOptionString("");
+
     def = this->add("octoprint_host", coString);
-    def->label = L("Host or IP");
+    def->label = L("Hostname, IP or URL");
     def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the hostname or IP address of the OctoPrint instance.");
+                   "the hostname, IP address or URL of the OctoPrint instance.");
     def->cli = "octoprint-host=s";
     def->default_value = new ConfigOptionString("");
 
