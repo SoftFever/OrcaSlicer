@@ -572,6 +572,9 @@ namespace Slic3r {
             }
         }
 
+        // fixes the min z of the model if negative
+        model.adjust_min_z();
+
         return true;
     }
 

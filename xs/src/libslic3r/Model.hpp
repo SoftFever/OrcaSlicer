@@ -273,6 +273,9 @@ public:
     bool looks_like_multipart_object() const;
     void convert_multipart_object();
 
+    // Ensures that the min z of the model is not negative
+    void adjust_min_z();
+
     void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
 };
 
