@@ -6,6 +6,7 @@
 #include "Config.hpp"
 
 class wxApp;
+class wxWindow;
 class wxFrame;
 class wxWindow;
 class wxMenuBar;
@@ -120,6 +121,8 @@ int combochecklist_get_flags(wxComboCtrl* comboCtrl);
 wxString	L_str(std::string str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(std::string str);
+
+wxWindow *get_widget_by_id(int id);
 
 }
 }
