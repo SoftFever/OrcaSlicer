@@ -400,6 +400,10 @@ sub mouse_event {
             $self->Refresh;
             $self->Update;
         } else {
+            # The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate $pos->x,y,
+            # an converts the screen space coordinate to unscaled object space.
+            my $pos3d = ($volume_idx == -1) ? undef : $self->mouse_to_3d(@$pos);
+
             # Select volume in this 3D canvas.
             # Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             # during the scene manipulation.
@@ -427,9 +431,6 @@ sub mouse_event {
             
             if ($volume_idx != -1) {
                 if ($e->LeftDown && $self->enable_moving) {
-                    # The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate $pos->x,y,
-                    # an converts the screen space coordinate to unscaled object space.
-                    my $pos3d = $self->mouse_to_3d(@$pos);
                     # Only accept the initial position, if it is inside the volume bounding box.
                     my $volume_bbox = $self->volumes->[$volume_idx]->transformed_bounding_box;
                     $volume_bbox->offset(1.);
@@ -947,6 +948,9 @@ sub mulquats {
 # If the Z screen space coordinate is not provided, a depth buffer value is substituted.
 sub mouse_to_3d {
     my ($self, $x, $y, $z) = @_;
+
+    return unless $self->GetContext;
+    $self->SetCurrent($self->GetContext);
 
     my @viewport    = glGetIntegerv_p(GL_VIEWPORT);             # 4 items
     my @mview       = glGetDoublev_p(GL_MODELVIEW_MATRIX);      # 16 items
