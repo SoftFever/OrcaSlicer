@@ -201,6 +201,10 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
+    ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
+    ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
+    ${LIBDIR}/slic3r/Utils/Bonjour.cpp
+    ${LIBDIR}/slic3r/Utils/Bonjour.hpp
 )
 
 add_library(admesh STATIC
@@ -340,6 +344,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Surface.xsp
     ${XSP_DIR}/SurfaceCollection.xsp
     ${XSP_DIR}/TriangleMesh.xsp
+    ${XSP_DIR}/Utils_OctoPrint.xsp
     ${XSP_DIR}/XS.xsp
 )
 foreach (file ${XS_XSP_FILES})
@@ -529,14 +534,21 @@ find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 target_link_libraries(XS ${CURL_LIBRARIES})
 
-if (SLIC3R_STATIC AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # As of now, our build system produces a statically linked libcurl,
-    # which links the OpenSSL library dynamically.
-    find_package(OpenSSL REQUIRED)
-    message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
-    message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
-    include_directories(${OPENSSL_INCLUDE_DIR})
-    target_link_libraries(XS ${OPENSSL_LIBRARIES})
+if (SLIC3R_STATIC)
+    if (NOT APPLE)
+        # libcurl is always linked dynamically to the system libcurl on OSX.
+        # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
+        add_definitions(-DCURL_STATICLIB)
+    endif()
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        # As of now, our build system produces a statically linked libcurl,
+        # which links the OpenSSL library dynamically.
+        find_package(OpenSSL REQUIRED)
+        message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+        message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
+        include_directories(${OPENSSL_INCLUDE_DIR})
+        target_link_libraries(XS ${OPENSSL_LIBRARIES})
+    endif()
 endif()
 
 ## OPTIONAL packages
