@@ -33,19 +33,23 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
-	const wxBitmap* bmp = new wxBitmap(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
+
+	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
 	//buttons
 	wxBitmap bmpMenu;
 	bmpMenu = wxBitmap(from_u8(Slic3r::var("disk.png")), wxBITMAP_TYPE_PNG);
 	m_btn_save_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	m_btn_save_preset->SetBackgroundColour(color);
 	bmpMenu = wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG);
 	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	m_btn_delete_preset->SetBackgroundColour(color);
 
 	m_show_incompatible_presets = false;
 	m_bmp_show_incompatible_presets = new wxBitmap(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
 	m_bmp_hide_incompatible_presets = new wxBitmap(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
 	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, *m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	m_btn_hide_incompatible_presets->SetBackgroundColour(color);
 
 	m_btn_save_preset->SetToolTip(_(L("Save current ")) + m_title);
 	m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
@@ -140,10 +144,32 @@ void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();
 	auto dirty_options = m_presets->current_dirty_options();
+	// Add new dirty options to m_dirty_options
 	for (auto opt_key : dirty_options){
-		if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
-			get_field(opt_key)->m_Label->SetBackgroundColour(*get_modified_label_clr());
+		Field* field = get_field(opt_key/*, opt_index*/);
+		if (field != nullptr && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
+			field->m_Label->SetForegroundColour(*get_modified_label_clr()); 
+			field->m_Undo_btn->Show();
+
 			m_dirty_options.push_back(opt_key);
+		}
+	}
+
+	// Delete undirty options from m_dirty_options
+	size_t cnt = m_dirty_options.size();
+	for (auto i = 0; i < /*cnt*/m_dirty_options.size(); ++i)
+	{
+		const std::string &opt_key = m_dirty_options[i];
+		Field* field = get_field(opt_key/*, opt_index*/);
+		if (field != nullptr && find(dirty_options.begin(), dirty_options.end(), opt_key) == dirty_options.end())
+		{		
+			field->m_Undo_btn->Hide();
+			field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+			std::vector<std::string>::iterator itr = find(m_dirty_options.begin(), m_dirty_options.end(), opt_key);
+			if (itr != m_dirty_options.end()){
+				m_dirty_options.erase(itr);
+				--i;
+			}
 		}
 	}
 }
@@ -947,7 +973,7 @@ void TabPrinter::build()
 
 		Line line{ _(L("Bed shape")), "" };
 		line.widget = [this](wxWindow* parent){
-	auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 			//			btn->SetFont(Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 

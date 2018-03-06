@@ -12,7 +12,7 @@ BEGIN {
 use File::Basename qw(basename);
 use Getopt::Long qw(:config no_auto_abbrev);
 use List::Util qw(first);
-use POSIX qw(setlocale LC_NUMERIC);
+#use POSIX qw(setlocale LC_NUMERIC);
 use Slic3r;
 use Slic3r::Geometry qw(deg2rad);
 use Time::HiRes qw(gettimeofday tv_interval);
@@ -112,7 +112,7 @@ if ((!@ARGV || $opt{gui}) && !$opt{no_gui} && !$opt{save} && eval "require Slic3
         $Slic3r::GUI::autosave      = $opt{autosave};
     }
     $gui = Slic3r::GUI->new;
-    setlocale(LC_NUMERIC, 'C');
+    #setlocale(LC_NUMERIC, 'C');
     $gui->{mainframe}->load_config_file($_) for @{$opt{load}};
     $gui->{mainframe}->load_config($cli_config);
     my @input_files = @ARGV;

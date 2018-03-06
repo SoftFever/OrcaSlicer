@@ -119,9 +119,9 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 int combochecklist_get_flags(wxComboCtrl* comboCtrl);
 
 // Return translated std::string as a wxString
-wxString	L_str(std::string str);
+wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
-wxString	from_u8(std::string str);
+wxString	from_u8(const std::string &str);
 
 }
 }

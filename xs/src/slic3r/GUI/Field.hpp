@@ -18,6 +18,7 @@
 
 //#include "slic3r_gui.hpp"
 #include "GUI.hpp"
+#include "Utils.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -31,7 +32,15 @@ wxString double_to_string(double const value);
 class Field {
 protected:
     // factory function to defer and enforce creation of derived type. 
-    virtual void	PostInitialize() { BUILD(); }
+    virtual void	PostInitialize(){
+		m_Undo_btn = new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT|wxNO_BORDER);
+		// use bouth of temporary_icons till don't have "undo_icon" 
+		m_Undo_btn->SetBitmap(wxBitmap(from_u8(__WXMSW__ ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
+		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+		m_Undo_btn->SetBackgroundColour(color);
+		m_Undo_btn->Hide();
+    	BUILD();
+    }
     
     /// Finish constructing the Field's wxWidget-related properties, including setting its own sizer, etc.
     virtual void	BUILD() = 0;
@@ -73,6 +82,7 @@ public:
     virtual void		disable() = 0;
 
 	wxStaticText*		m_Label = nullptr;
+	wxButton*			m_Undo_btn = nullptr;
 
     /// Fires the enable or disable function, based on the input.
     inline void			toggle(bool en) { en ? enable() : disable(); }

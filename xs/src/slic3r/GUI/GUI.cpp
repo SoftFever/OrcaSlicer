@@ -240,6 +240,7 @@ bool select_language(wxArrayString & names,
 		g_wxLocale->Init(identifiers[index]);
 		g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 		g_wxLocale->AddCatalog(g_wxApp->GetAppName());
+		wxSetlocale(LC_NUMERIC, "C");
 		return true;
 	}
 	return false;
@@ -268,6 +269,7 @@ bool load_language()
 			g_wxLocale->Init(identifiers[i]);
 			g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 			g_wxLocale->AddCatalog(g_wxApp->GetAppName());
+			wxSetlocale(LC_NUMERIC, "C");
 			return true;
 		}
 	}
@@ -507,7 +509,7 @@ wxApp* get_app(){
 
 wxColour* get_modified_label_clr()
 {
-	return new wxColour(254, 189, 101);
+	return new wxColour(253, 88, 0);
 }
 
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
@@ -567,13 +569,13 @@ AppConfig* get_app_config()
 	return g_AppConfig;
 }
 
-wxString L_str(std::string str)
+wxString L_str(const std::string &str)
 {
 	//! Explicitly specify that the source string is already in UTF-8 encoding
 	return wxGetTranslation(wxString(str.c_str(), wxConvUTF8));
 }
 
-wxString from_u8(std::string str)
+wxString from_u8(const std::string &str)
 {
 	return wxString::FromUTF8(str.c_str());
 }

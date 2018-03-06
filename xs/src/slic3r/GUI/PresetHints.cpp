@@ -13,10 +13,11 @@
 
 namespace Slic3r {
 
+#define MIN_BUF_LENGTH	4096
 std::string PresetHints::cooling_description(const Preset &preset)
 {
 	std::string out;
-	char buf[4096];
+	char buf[MIN_BUF_LENGTH/*4096*/];
 	if (preset.config.opt_bool("cooling", 0)) {
 		int 	slowdown_below_layer_time 	= preset.config.opt_int("slowdown_below_layer_time", 0);
 		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
@@ -220,7 +221,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             + _CHB(L(" with a volumetric rate "));
         if (limited_by_max_volumetric_speed)
             max_flow = max_volumetric_speed;
-        char buf[2048];
+		char buf[MIN_BUF_LENGTH/*2048*/];
         sprintf(buf, _CHB(L("%3.2f mm³/s")), max_flow);
         out += buf;
         sprintf(buf, _CHB(L(" at filament speed %3.2f mm/s.")), max_flow / filament_crossection);
@@ -258,7 +259,7 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
     
     if (num_perimeters > 0) {
         int num_lines = std::min(num_perimeters * 2, 10);
-        char buf[256];
+		char buf[MIN_BUF_LENGTH/*256*/];
         sprintf(buf, _CHB(L("Recommended object thin wall thickness for layer height %.2f and ")), layer_height);
         out += buf;
         // Start with the width of two closely spaced 

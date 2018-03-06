@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <wx/numformatter.h>
+#include "Utils.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -104,6 +105,7 @@ void OptionsGroup::append_line(const Line& line) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
+		sizer->Add(field->m_Undo_btn);
 		if (is_window_field(field))
 			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_sizer_field(field))
@@ -116,9 +118,8 @@ void OptionsGroup::append_line(const Line& line) {
     // Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {
-		/*auto*/ label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
+		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
 							wxDefaultPosition, wxSize(label_width, -1));
-// 		label->SetBackgroundColour(*new wxColour(254, 189, 101));
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
 		grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL,0);
@@ -134,25 +135,24 @@ void OptionsGroup::append_line(const Line& line) {
 	}
 	
 	// if we have a single option with no sidetext just add it directly to the grid sizer
-    if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
-        option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
-        const auto& option = option_set.front();
-        const auto& field = build_field(option, label);
-//!         std::cerr << "single option, no sidetext.\n";
-//!         std::cerr << "field parent is not null?: " << (field->parent != nullptr) << "\n";
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	grid_sizer->Add(sizer, 0, wxEXPAND | wxALL, 0);
+	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
+		option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
+		const auto& option = option_set.front();
+		const auto& field = build_field(option, label);
 
-        if (is_window_field(field)) 
-			grid_sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) |
+		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+		if (is_window_field(field)) 
+			sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) |
 							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, wxOSX ? 0 : 2);
-        if (is_sizer_field(field)) 
-            grid_sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
-        return;
-    }
+		if (is_sizer_field(field)) 
+			sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+		return;
+	}
 
     // if we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
-    auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	grid_sizer->Add(sizer, 0, wxEXPAND | wxALL, 0);
 	for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
@@ -162,14 +162,15 @@ void OptionsGroup::append_line(const Line& line) {
 // 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
 // 								wxGETTEXT_IN_CONTEXT("Layers", wxString(option.label.c_str()):
 // 								L_str(option.label);
-			/*auto field_*/label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
-			/*field_*/label->SetFont(label_font);
-			sizer->Add(/*field_*/label, 0, wxALIGN_CENTER_VERTICAL, 0);
+			label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
+			label->SetFont(label_font);
+			sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
 
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
+		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL, 0);
 		is_sizer_field(field) ? 
 			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
 			sizer->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
