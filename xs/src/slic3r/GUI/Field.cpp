@@ -23,7 +23,7 @@ namespace Slic3r { namespace GUI {
 		// use bouth of temporary_icons till don't have "undo_icon" 
 		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 		if (wxMSW) m_Undo_btn->SetBackgroundColour(color);
-		m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("Bullet_white.png")), wxBITMAP_TYPE_PNG));
+		m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
 		m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
 
 		BUILD();
