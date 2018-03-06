@@ -23,8 +23,7 @@ namespace Slic3r { namespace GUI {
         // Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
         // non-command events to allow the default handling to take place."
 		event.Skip();
-		std::cerr << "calling Field::on_kill_focus from " << m_opt_id<< "\n";
-        // call the registered function if it is available
+		// call the registered function if it is available
         if (m_on_kill_focus!=nullptr) 
             m_on_kill_focus();
     }

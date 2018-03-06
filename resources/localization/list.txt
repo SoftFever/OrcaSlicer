@@ -10,5 +10,9 @@ c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp
 c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.hpp
 c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp
 C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp
+c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp
+c:\src\Slic3r\lib\Slic3r\GUI.pm
 c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm
 c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm
+c:\src\Slic3r\lib\Slic3r\GUI\Plater\2D.pm
+c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm
