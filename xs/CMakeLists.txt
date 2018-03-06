@@ -533,14 +533,21 @@ find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 target_link_libraries(XS ${CURL_LIBRARIES})
 
-if (SLIC3R_STATIC AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # As of now, our build system produces a statically linked libcurl,
-    # which links the OpenSSL library dynamically.
-    find_package(OpenSSL REQUIRED)
-    message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
-    message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
-    include_directories(${OPENSSL_INCLUDE_DIR})
-    target_link_libraries(XS ${OPENSSL_LIBRARIES})
+if (SLIC3R_STATIC)
+    if (NOT APPLE)
+        # libcurl is always linked dynamically to the system libcurl on OSX.
+        # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
+        add_definitions(-DCURL_STATICLIB)
+    endif()
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        # As of now, our build system produces a statically linked libcurl,
+        # which links the OpenSSL library dynamically.
+        find_package(OpenSSL REQUIRED)
+        message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+        message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
+        include_directories(${OPENSSL_INCLUDE_DIR})
+        target_link_libraries(XS ${OPENSSL_LIBRARIES})
+    endif()
 endif()
 
 ## OPTIONAL packages
