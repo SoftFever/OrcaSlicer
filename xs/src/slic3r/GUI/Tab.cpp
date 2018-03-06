@@ -40,16 +40,16 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	wxBitmap bmpMenu;
 	bmpMenu = wxBitmap(from_u8(Slic3r::var("disk.png")), wxBITMAP_TYPE_PNG);
 	m_btn_save_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-	m_btn_save_preset->SetBackgroundColour(color);
+	if (wxMSW) m_btn_save_preset->SetBackgroundColour(color);
 	bmpMenu = wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG);
 	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-	m_btn_delete_preset->SetBackgroundColour(color);
+	if (wxMSW) m_btn_delete_preset->SetBackgroundColour(color);
 
 	m_show_incompatible_presets = false;
 	m_bmp_show_incompatible_presets = new wxBitmap(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
 	m_bmp_hide_incompatible_presets = new wxBitmap(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
 	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, *m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-	m_btn_hide_incompatible_presets->SetBackgroundColour(color);
+	if (wxMSW) m_btn_hide_incompatible_presets->SetBackgroundColour(color);
 
 	m_btn_save_preset->SetToolTip(_(L("Save current ")) + m_title);
 	m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));

@@ -19,12 +19,6 @@
     #define wxOSX false
 #endif
 
-#ifdef __WXMSW__
-#define wxMSW true
-#else
-#define wxMSW false
-#endif
-
 #define BORDER(a, b) ((wxOSX ? a : b))
 
 namespace Slic3r { namespace GUI {

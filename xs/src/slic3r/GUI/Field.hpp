@@ -20,6 +20,12 @@
 #include "GUI.hpp"
 #include "Utils.hpp"
 
+#ifdef __WXMSW__
+#define wxMSW true
+#else
+#define wxMSW false
+#endif
+
 namespace Slic3r { namespace GUI {
 
 class Field;
