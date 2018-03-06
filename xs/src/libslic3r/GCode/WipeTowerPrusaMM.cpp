@@ -613,7 +613,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 	box_coordinates cleaning_box(
 		m_wipe_tower_pos + xy(m_perimeter_width / 2.f, m_perimeter_width / 2.f),
 		m_wipe_tower_width - m_perimeter_width,
-		(tool != (unsigned int)(-1) ? m_layer_info->depth : m_wipe_tower_depth-m_perimeter_width));
+		(tool != (unsigned int)(-1) ? /*m_layer_info->depth*/wipe_area+m_depth_traversed-0.5*m_perimeter_width
+                                    : m_wipe_tower_depth-m_perimeter_width));
 
 	PrusaMultiMaterial::Writer writer;
 	writer.set_extrusion_flow(m_extrusion_flow)
@@ -1049,11 +1050,10 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 			writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
 		else
 			writer.extrude(xl + (i % 4 == 1 ? 0 : 1.5*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
-		
-		/*if ((m_current_shape == SHAPE_NORMAL) ?		// in case next line would not fit
-			(writer.y() > cleaning_box.lu.y - m_perimeter_width * 1.5f) :
-			(writer.y() < cleaning_box.ld.y + m_perimeter_width * 1.5f))
-			break;*/
+
+        if (writer.y()+EPSILON > cleaning_box.lu.y-0.5f*m_perimeter_width)
+            break;		// in case next line would not fit
+
 		traversed_x -= writer.x();
 		x_to_wipe -= fabs(traversed_x);
 		if (x_to_wipe < WT_EPSILON) {
@@ -1218,13 +1218,16 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
 										m_line_width * m_par.ramming_line_width_multiplicator[old_tool],
 										layer_height_par);
 	depth = (int(length_to_extrude / width) + 1) * (m_line_width * m_par.ramming_line_width_multiplicator[old_tool] * m_par.ramming_step_multiplicator[old_tool]);
-	length_to_extrude = width*((length_to_extrude / width)-int(length_to_extrude / width)) - width;
-	length_to_extrude += volume_to_length(m_par.wipe_volumes[old_tool][new_tool], m_line_width, layer_height_par);
-	length_to_extrude = std::max(length_to_extrude,0.f);
-	depth += (int(length_to_extrude / width) + 1) * m_line_width;
-	depth *= m_extra_spacing;	
+    float ramming_depth = depth;
+    length_to_extrude = width*((length_to_extrude / width)-int(length_to_extrude / width)) - width;
+    float first_wipe_line = -length_to_extrude;
+    length_to_extrude += volume_to_length(m_par.wipe_volumes[old_tool][new_tool], m_line_width, layer_height_par);
+    length_to_extrude = std::max(length_to_extrude,0.f);
 
-	m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth));
+	depth += (int(length_to_extrude / width) + 1) * m_line_width;
+	depth *= m_extra_spacing;
+
+	m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth, ramming_depth,first_wipe_line));
 }
 
 
@@ -1251,6 +1254,91 @@ void WipeTowerPrusaMM::plan_tower()
 		}
 	}
 }
+
+void WipeTowerPrusaMM::save_on_last_wipe()
+{
+    for (m_layer_info=m_plan.begin();m_layer_info<m_plan.end();++m_layer_info) {
+        set_layer(m_layer_info->z, m_layer_info->height, 0, m_layer_info->z == m_plan.front().z, m_layer_info->z == m_plan.back().z);
+        if (m_layer_info->tool_changes.size()==0)   // we have no way to save anything on an empty layer
+            continue;
+
+        for (const auto &toolchange : m_layer_info->tool_changes)
+            tool_change(toolchange.new_tool, false, PURPOSE_EXTRUDE);
+
+        float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
+        float length_to_save = 2*(m_wipe_tower_width+m_wipe_tower_depth) + (!layer_finished() ? finish_layer(PURPOSE_EXTRUDE).total_extrusion_length_in_plane() : 0.f);
+        float length_to_wipe = volume_to_length(m_par.wipe_volumes[m_layer_info->tool_changes.back().old_tool][m_layer_info->tool_changes.back().new_tool],
+                              m_line_width,m_layer_info->height)  - m_layer_info->tool_changes.back().first_wipe_line - length_to_save;
+
+        length_to_wipe = std::max(length_to_wipe,0.f);
+        float depth_to_wipe = m_line_width * (std::floor(length_to_wipe/width) + ( length_to_wipe > 0.f ? 1.f : 0.f ) ) * m_extra_spacing;
+
+        //depth += (int(length_to_extrude / width) + 1) * m_line_width;
+        m_layer_info->tool_changes.back().required_depth = m_layer_info->tool_changes.back().ramming_depth + depth_to_wipe;
+    }
+}
+
+
+// Processes vector m_plan and calls respective functions to generate G-code for the wipe tower
+// Resulting ToolChangeResults are appended into vector "result"
+void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
+{
+	if (m_plan.empty())	return;
+
+    m_extra_spacing = 1.f;
+
+	plan_tower();
+    for (int i=0;i<5;++i) {
+        save_on_last_wipe();
+        plan_tower();
+    }
+
+	if (peters_wipe_tower)
+			make_wipe_tower_square();
+
+    m_layer_info = m_plan.begin();
+
+	std::vector<WipeTower::ToolChangeResult> layer_result;
+	for (auto layer : m_plan)
+	{
+		set_layer(layer.z,layer.height,0,layer.z == m_plan.front().z,layer.z == m_plan.back().z);
+
+
+		if (peters_wipe_tower)
+			m_wipe_tower_rotation_angle += 90.f;
+		else
+			m_wipe_tower_rotation_angle += 180.f;
+		if (!peters_wipe_tower && m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
+			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
+
+		for (const auto &toolchange : layer.tool_changes)
+			layer_result.emplace_back(tool_change(toolchange.new_tool, false, WipeTower::PURPOSE_EXTRUDE));
+
+		if (! layer_finished()) {
+			layer_result.emplace_back(finish_layer(WipeTower::PURPOSE_EXTRUDE));
+			if (layer_result.size() > 1) {
+				// Merge the two last tool changes into one.
+				WipeTower::ToolChangeResult &tc1 = layer_result[layer_result.size() - 2];
+				WipeTower::ToolChangeResult &tc2 = layer_result.back();
+				if (tc1.end_pos != tc2.start_pos) {
+					// Add a travel move from tc1.end_pos to tc2.start_pos.
+					char buf[2048];
+					sprintf(buf, "G1 X%.3f Y%.3f F7200\n", tc2.start_pos.x, tc2.start_pos.y);
+					tc1.gcode += buf;
+				}
+				tc1.gcode += tc2.gcode;
+				tc1.extrusions.insert(tc1.extrusions.end(), tc2.extrusions.begin(), tc2.extrusions.end());
+				tc1.end_pos = tc2.end_pos;
+				layer_result.pop_back();
+			}			
+		}
+
+		result.emplace_back(std::move(layer_result));
+		m_is_first_layer = false;
+	}
+}
+
+
 
 
 void WipeTowerPrusaMM::make_wipe_tower_square()
@@ -1279,61 +1367,6 @@ void WipeTowerPrusaMM::make_wipe_tower_square()
 
 }
 
-
-// Processes vector m_plan and calls respective functions to generate G-code for the wipe tower
-// Resulting ToolChangeResults are appended into vector "result"
-void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
-{
-	if (m_plan.empty())	return;
-	else m_layer_info = m_plan.begin();
-
-	m_extra_spacing = 1.f;
-
-	plan_tower();
-	if (peters_wipe_tower)
-			make_wipe_tower_square();
-
-	std::vector<WipeTower::ToolChangeResult> layer_result;
-	for (auto layer : m_plan)
-	{
-		set_layer(layer.z,layer.height,0,layer.z == m_plan.front().z,layer.z == m_plan.back().z);
-
-
-		if (peters_wipe_tower)
-			m_wipe_tower_rotation_angle += 90.f;
-		else
-			m_wipe_tower_rotation_angle += 180.f;
-		if (!peters_wipe_tower && m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
-			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
-
-
-
-		for (const auto &toolchange : layer.tool_changes)
-			layer_result.emplace_back(tool_change(toolchange.new_tool, false, WipeTower::PURPOSE_EXTRUDE));
-
-		if (! layer_finished()) {
-			layer_result.emplace_back(finish_layer(WipeTower::PURPOSE_EXTRUDE));
-			if (layer_result.size() > 1) {
-				// Merge the two last tool changes into one.
-				WipeTower::ToolChangeResult &tc1 = layer_result[layer_result.size() - 2];
-				WipeTower::ToolChangeResult &tc2 = layer_result.back();
-				if (tc1.end_pos != tc2.start_pos) {
-					// Add a travel move from tc1.end_pos to tc2.start_pos.
-					char buf[2048];
-					sprintf(buf, "G1 X%.3f Y%.3f F7200\n", tc2.start_pos.x, tc2.start_pos.y);
-					tc1.gcode += buf;
-				}
-				tc1.gcode += tc2.gcode;
-				tc1.extrusions.insert(tc1.extrusions.end(), tc2.extrusions.begin(), tc2.extrusions.end());
-				tc1.end_pos = tc2.end_pos;
-				layer_result.pop_back();
-			}			
-		}
-
-		result.emplace_back(std::move(layer_result));
-		m_is_first_layer = false;
-	}
-}
 
 
 }; // namespace Slic3r

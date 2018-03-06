@@ -250,6 +250,9 @@ public:
 	// Goes through m_plan and recalculates depths and width of the WT to make it exactly square - experimental
 	void make_wipe_tower_square();
 
+    // Goes through m_plan, calculates border and finish_layer extrusions and subtracts them from last wipe
+    void save_on_last_wipe();
+
 	// Switch to a next layer.
 	virtual void set_layer(
 		// Print height of this layer.
@@ -427,7 +430,10 @@ private:
 			unsigned int old_tool;
 			unsigned int new_tool;
 			float required_depth;
-			ToolChange(unsigned int old,unsigned int newtool,float depth=0.f) : old_tool{old}, new_tool{newtool}, required_depth{depth} {}
+            float ramming_depth;
+            float first_wipe_line;
+			ToolChange(unsigned int old,unsigned int newtool,float depth=0.f,float ramming_depth=0.f,float fwl=0.f)
+            : old_tool{old}, new_tool{newtool}, required_depth{depth}, ramming_depth{ramming_depth},first_wipe_line{fwl} {}
 		};
 		float z;		// z position of the layer
 		float height;	// layer height
