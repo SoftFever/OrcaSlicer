@@ -151,7 +151,12 @@ void OptionsGroup::append_line(const Line& line) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {
-			auto field_label = new wxStaticText(parent(), wxID_ANY, L_str(option.label) + ":", wxDefaultPosition, wxDefaultSize);
+			wxString str_label = L_str(option.label);
+//!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
+// 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
+// 								wxGETTEXT_IN_CONTEXT("Layers", wxString(option.label.c_str()):
+// 								L_str(option.label);
+			auto field_label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
 			field_label->SetFont(label_font);
 			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}

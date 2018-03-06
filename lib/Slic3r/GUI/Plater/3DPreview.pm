@@ -8,6 +8,8 @@ use Wx qw(:misc :sizer :slider :statictext :keycode wxWHITE wxCB_READONLY);
 use Wx::Event qw(EVT_SLIDER EVT_KEY_DOWN EVT_CHECKBOX EVT_CHOICE EVT_CHECKLISTBOX);
 use base qw(Wx::Panel Class::Accessor);
 
+use Wx::Locale gettext => 'L';
+
 __PACKAGE__->mk_accessors(qw(print gcode_preview_data enabled _loaded canvas slider_low slider_high single_layer auto_zoom));
 
 sub new {
@@ -58,30 +60,42 @@ sub new {
     $z_label_high->SetFont($Slic3r::GUI::small_font);
 
     $self->single_layer(0);
-    my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, "1 Layer");
+    my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, L("1 Layer"));
     
-    my $label_view_type = $self->{label_view_type} = Wx::StaticText->new($self, -1, "View");
+    my $label_view_type = $self->{label_view_type} = Wx::StaticText->new($self, -1, L("View"));
     
     my $choice_view_type = $self->{choice_view_type} = Wx::Choice->new($self, -1);
-    $choice_view_type->Append("Feature type");
-    $choice_view_type->Append("Height");
-    $choice_view_type->Append("Width");
-    $choice_view_type->Append("Speed");
-    $choice_view_type->Append("Tool");
+    $choice_view_type->Append(L("Feature type"));
+    $choice_view_type->Append(L("Height"));
+    $choice_view_type->Append(L("Width"));
+    $choice_view_type->Append(L("Speed"));
+    $choice_view_type->Append(L("Tool"));
     $choice_view_type->SetSelection(0);
 
-    my $label_show_features = $self->{label_show_features} = Wx::StaticText->new($self, -1, "Show");
+    my $label_show_features = $self->{label_show_features} = Wx::StaticText->new($self, -1, L("Show"));
     
     my $combochecklist_features = $self->{combochecklist_features} = Wx::ComboCtrl->new();
-    $combochecklist_features->Create($self, -1, "Feature types", wxDefaultPosition, [200, -1], wxCB_READONLY);
-    my $feature_text = "Feature types";
-    my $feature_items = "Perimeter|External perimeter|Overhang perimeter|Internal infill|Solid infill|Top solid infill|Bridge infill|Gap fill|Skirt|Support material|Support material interface|Wipe tower|Custom";
+    $combochecklist_features->Create($self, -1, L("Feature types"), wxDefaultPosition, [200, -1], wxCB_READONLY);
+    my $feature_text = L("Feature types");
+    my $feature_items = L("Perimeter")."|"
+                        .L("External perimeter")."|"
+                        .L("Overhang perimeter")."|"
+                        .L("Internal infill")."|"
+                        .L("Solid infill")."|"
+                        .L("Top solid infill")."|"
+                        .L("Bridge infill")."|"
+                        .L("Gap fill")."|"
+                        .L("Skirt")."|"
+                        .L("Support material")."|"
+                        .L("Support material interface")."|"
+                        .L("Wipe tower")."|"
+                        .L("Custom");
     Slic3r::GUI::create_combochecklist($combochecklist_features, $feature_text, $feature_items, 1);
     
-    my $checkbox_travel         = $self->{checkbox_travel}          = Wx::CheckBox->new($self, -1, "Travel");
-    my $checkbox_retractions    = $self->{checkbox_retractions}     = Wx::CheckBox->new($self, -1, "Retractions");    
-    my $checkbox_unretractions  = $self->{checkbox_unretractions}   = Wx::CheckBox->new($self, -1, "Unretractions");
-    my $checkbox_shells         = $self->{checkbox_shells}          = Wx::CheckBox->new($self, -1, "Shells");
+    my $checkbox_travel         = $self->{checkbox_travel}          = Wx::CheckBox->new($self, -1, L("Travel"));
+    my $checkbox_retractions    = $self->{checkbox_retractions}     = Wx::CheckBox->new($self, -1, L("Retractions"));    
+    my $checkbox_unretractions  = $self->{checkbox_unretractions}   = Wx::CheckBox->new($self, -1, L("Unretractions"));
+    my $checkbox_shells         = $self->{checkbox_shells}          = Wx::CheckBox->new($self, -1, L("Shells"));
 
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);

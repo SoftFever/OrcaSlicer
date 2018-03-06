@@ -31,6 +31,8 @@ use Slic3r::GUI::OptionsGroup;
 use Slic3r::GUI::OptionsGroup::Field;
 use Slic3r::GUI::SystemInfo;
 
+use Wx::Locale gettext => 'L';
+
 our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
 our $have_LWP    = eval "use LWP::UserAgent; 1";
 
@@ -280,8 +282,9 @@ sub update_ui_from_settings {
 
 sub open_model {
     my ($self, $window) = @_;
-    
-    my $dialog = Wx::FileDialog->new($window // $self->GetTopWindow, 'Choose one or more files (STL/OBJ/AMF/PRUSA):', 
+
+    my $dlg_title = L('Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):');   
+    my $dialog = Wx::FileDialog->new($window // $self->GetTopWindow, $dlg_title, 
         $self->{app_config}->get_last_dir, "",
         MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if ($dialog->ShowModal != wxID_OK) {
