@@ -42,6 +42,21 @@ message("PATH: $ENV{PATH}")
 message("PERL5LIB: $ENV{PERL5LIB}")
 find_package(Perl REQUIRED)
 
+# CMAKE_PREFIX_PATH is used to point CMake to the remaining dependencies (Boost, TBB, ...)
+# We pick it from environment if it is not defined in another way
+if(NOT DEFINED CMAKE_PREFIX_PATH)
+	if(DEFINED ENV{CMAKE_PREFIX_PATH})
+		set(CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+	endif()
+endif()
+
+if (MSVC)
+	# By default the startup project in MSVC is the 'ALL_BUILD' cmake-created project,
+	# but we want 'slic3r' as the startup one because debugging run command is associated with it.
+	# (Unfortunatelly it cannot be associated with ALL_BUILD using CMake.)
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT slic3r)
+endif ()
+
 add_subdirectory(xs)
 
 enable_testing ()
