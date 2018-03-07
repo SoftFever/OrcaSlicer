@@ -790,8 +790,8 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	
 	writer.append("; CP TOOLCHANGE UNLOAD\n");
 	
-	const float line_width = m_line_width * m_par.ramming_line_width_multiplicator[m_current_tool]; // desired ramming line thickness
-	const float y_step = line_width * m_par.ramming_step_multiplicator[m_current_tool] * m_extra_spacing;			  // spacing between lines in mm
+	const float line_width = m_line_width * m_par.ramming_line_width_multiplicator[m_current_tool];       // desired ramming line thickness
+	const float y_step = line_width * m_par.ramming_step_multiplicator[m_current_tool] * m_extra_spacing; // spacing between lines in mm
 
 	unsigned i = 0;										// iterates through ramming_speed
 	m_left_to_right = true;								// current direction of ramming
@@ -800,14 +800,54 @@ void WipeTowerPrusaMM::toolchange_Unload(
 
 	writer.travel(xl, cleaning_box.ld.y + m_depth_traversed + y_step/2.f ); // move to starting position
 
-	while (i < m_par.ramming_speed[m_current_tool].size())
-	{
-		const float x = volume_to_length(m_par.ramming_speed[m_current_tool][i] * 0.25f, line_width, m_layer_height);
-		const float e = m_par.ramming_speed[m_current_tool][i] * 0.25f / Filament_Area; // transform volume per sec to E move;
-		const float dist = std::min(x - e_done, remaining);		  // distance to travel for either the next 0.25s, or to the next turnaround
-		const float actual_time = dist/x * 0.25;
-		writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), std::hypot(dist, e * (dist / x)) / (actual_time / 60.));
-		remaining -= dist;
+    // if the ending point of the ram would end up in mid air, align it with the end of the wipe tower:
+    if (m_layer_info > m_plan.begin() && m_layer_info < m_plan.end()) {
+
+        // this is y of the center of first supported line
+        float sparse_beginning_y = m_wipe_tower_pos.y
+                                    + ((m_layer_info-1)->depth - (m_layer_info-1)->toolchanges_depth());
+
+        //debugging:
+        /* float oldx = writer.x();
+        float oldy = writer.y();
+        writer.travel(xr,sparse_beginning_y);
+        writer.extrude(xr+5,writer.y());
+        writer.travel(oldx,oldy);*/
+
+        float sum_of_depths = 0.f;
+        for (const auto& tch : m_layer_info->tool_changes) {  // let's find this toolchange
+            if (tch.old_tool == m_current_tool) {
+                sum_of_depths += tch.ramming_depth;
+                float ramming_end_y = m_wipe_tower_pos.y + sum_of_depths;
+                ramming_end_y -= (y_step/m_extra_spacing-m_line_width) / 2.f;   // center of final ramming line
+
+                // debugging:
+                /*float oldx = writer.x();
+                float oldy = writer.y();
+                writer.travel(xl,ramming_end_y);
+                writer.extrude(xl-15,writer.y());
+                writer.travel(oldx,oldy);*/
+
+                if (ramming_end_y < sparse_beginning_y) {
+                    writer.extrude(xl + tch.first_wipe_line-1.f*m_perimeter_width-0.1f,writer.y());
+                    writer.travel(xl + tch.first_wipe_line-1.f*m_perimeter_width,writer.y());
+                    remaining -= tch.first_wipe_line-1.f*m_perimeter_width;
+                }
+                break;
+            }
+            sum_of_depths += tch.required_depth;
+        }
+    }
+
+    // now the ramming itself:
+    while (i < m_par.ramming_speed[m_current_tool].size())
+    {
+        const float x = volume_to_length(m_par.ramming_speed[m_current_tool][i] * 0.25f, line_width, m_layer_height);
+        const float e = m_par.ramming_speed[m_current_tool][i] * 0.25f / Filament_Area; // transform volume per sec to E move;
+        const float dist = std::min(x - e_done, remaining);		  // distance to travel for either the next 0.25s, or to the next turnaround
+        const float actual_time = dist/x * 0.25;
+        writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), std::hypot(dist, e * (dist / x)) / (actual_time / 60.));
+        remaining -= dist;
 
 		if (remaining < WT_EPSILON)	{ // we reached a turning point
 			writer.travel(writer.x(), writer.y() + y_step, 7200);
@@ -1030,15 +1070,23 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	float wipe_coeff = m_is_first_layer ? 0.5f : 1.f;
 	const float& xl = cleaning_box.ld.x;
 	const float& xr = cleaning_box.rd.x;
-	
-	// DEBUGGING: The function makes sure it always wipes at least the ordered volume, even if it means violating
-	//            the perimeter. This can later be removed and simply wipe until the end of the assigned area.
-	//			  (Variables x_to_wipe and traversed_x)
+
+
+	// Variables x_to_wipe and traversed_x are here to be able to make sure it always wipes at least
+    //   the ordered volume, even if it means violating the box. This can later be removed and simply
+    // wipe until the end of the assigned area.
 
 	float x_to_wipe = volume_to_length(wipe_volume, m_line_width, m_layer_height);
 	float dy = m_extra_spacing*m_line_width;
 	float wipe_speed = 1600.f;
 
+    // if there is less than 2.5*m_perimeter_width to the edge, advance straightaway (there is likely a blob anyway)
+    if ((m_left_to_right ? xr-writer.x() : writer.x()-xl) < 2.5f*m_perimeter_width) {
+        writer.travel((m_left_to_right ? xr-m_perimeter_width : xl+m_perimeter_width),writer.y()+dy);
+        m_left_to_right = !m_left_to_right;
+    }
+
+    // now the wiping itself:
 	for (int i = 0; true; ++i)	{
 		if (i!=0) {
 			if (wipe_speed < 1610.f) wipe_speed = 1800.f;
@@ -1067,9 +1115,6 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 		m_left_to_right = !m_left_to_right;
 	}
 	writer.set_extrusion_flow(m_extrusion_flow); // Reset the extrusion flow.
-
-	// Wipe the nozzle
-
 }
 
 

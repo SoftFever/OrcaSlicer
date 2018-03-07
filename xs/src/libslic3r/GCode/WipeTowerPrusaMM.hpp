@@ -448,7 +448,7 @@ private:
 	};
 
 	std::vector<WipeTowerInfo> m_plan; 	// Stores information about all layers and toolchanges for the future wipe tower (filled by plan_toolchange(...))
-	std::vector<WipeTowerInfo>::iterator m_layer_info;
+	std::vector<WipeTowerInfo>::iterator m_layer_info = m_plan.end();
 
 
 	// Returns gcode for wipe tower brim
