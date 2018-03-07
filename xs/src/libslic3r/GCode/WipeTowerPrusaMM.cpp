@@ -622,7 +622,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		.set_layer_height(m_layer_height)
 		.set_initial_tool(m_current_tool)
 		.set_rotation(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_wipe_tower_rotation_angle)
-		.set_y_shift(m_y_shift)
+		.set_y_shift(m_y_shift + (tool!=(unsigned int)(-1) && (m_layer_parity && !peters_wipe_tower) ? m_layer_info->depth - m_layer_info->toolchanges_depth(): 0.f))
 		.append(";--------------------\n"
 				"; CP TOOLCHANGE START\n")
 		.comment_with_value(" toolchange #", m_num_tool_changes)
@@ -676,7 +676,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 			toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].temperature);
 
 		if (last_change_in_layer) // draw perimeter line
-			writer.travel(m_wipe_tower_pos + xy(peters_wipe_tower ? m_layer_info->depth + 3*m_perimeter_width : m_wipe_tower_width, peters_wipe_tower ? m_wipe_tower_depth : m_layer_info->depth + m_perimeter_width), 7000)
+			writer.set_y_shift(m_y_shift)
+                .travel(m_wipe_tower_pos + xy(peters_wipe_tower ? m_layer_info->depth + 3*m_perimeter_width : m_wipe_tower_width, peters_wipe_tower ? m_wipe_tower_depth : m_layer_info->depth + m_perimeter_width), 7000)
 				.extrude(m_wipe_tower_pos + xy(peters_wipe_tower ? m_layer_info->depth + 3*m_perimeter_width : m_wipe_tower_width, 0), 3200)
 				.extrude(m_wipe_tower_pos)
 				.extrude(m_wipe_tower_pos + xy(0, peters_wipe_tower ? m_wipe_tower_depth : m_layer_info->depth + m_perimeter_width))
@@ -801,11 +802,15 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	writer.travel(xl, cleaning_box.ld.y + m_depth_traversed + y_step/2.f ); // move to starting position
 
     // if the ending point of the ram would end up in mid air, align it with the end of the wipe tower:
-    if (m_layer_info > m_plan.begin() && m_layer_info < m_plan.end()) {
+    if (m_layer_info > m_plan.begin() && m_layer_info < m_plan.end() && (m_layer_info-1!=m_plan.begin() || !m_par.adhesion )) {
 
-        // this is y of the center of first supported line
-        float sparse_beginning_y = m_wipe_tower_pos.y
-                                    + ((m_layer_info-1)->depth - (m_layer_info-1)->toolchanges_depth());
+        // this is y of the center of previous sparse infill border
+        float sparse_beginning_y = m_wipe_tower_pos.y;
+        if (m_layer_parity)
+            sparse_beginning_y += ((m_layer_info-1)->depth - (m_layer_info-1)->toolchanges_depth())
+                                      - ((m_layer_info)->depth-(m_layer_info)->toolchanges_depth()) ;
+        else
+            sparse_beginning_y += (m_layer_info-1)->toolchanges_depth() + m_perimeter_width;
 
         //debugging:
         /* float oldx = writer.x();
@@ -828,9 +833,10 @@ void WipeTowerPrusaMM::toolchange_Unload(
                 writer.extrude(xl-15,writer.y());
                 writer.travel(oldx,oldy);*/
 
-                if (ramming_end_y < sparse_beginning_y) {
-                    writer.extrude(xl + tch.first_wipe_line-1.f*m_perimeter_width-0.1f,writer.y());
-                    writer.travel(xl + tch.first_wipe_line-1.f*m_perimeter_width,writer.y());
+                if ( (m_layer_parity  && ramming_end_y < sparse_beginning_y - 0.5f*m_perimeter_width  ) ||
+                     (!m_layer_parity && ramming_end_y > sparse_beginning_y + 0.5f*m_perimeter_width  )  )
+                {
+                    writer.extrude(xl + tch.first_wipe_line-1.f*m_perimeter_width,writer.y());
                     remaining -= tch.first_wipe_line-1.f*m_perimeter_width;
                 }
                 break;
@@ -1132,7 +1138,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 		.set_layer_height(m_layer_height)
 		.set_initial_tool(m_current_tool)
 		.set_rotation(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_wipe_tower_rotation_angle)
-		.set_y_shift(m_y_shift)
+		.set_y_shift(m_y_shift - (m_layer_parity && !peters_wipe_tower ? m_layer_info->toolchanges_depth() : 0.f))
 		.append(";--------------------\n"
 				"; CP EMPTY GRID START\n")
 		// m_num_layer_changes is incremented by set_z, so it is 1 based.
@@ -1353,8 +1359,11 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 
 		if (peters_wipe_tower)
 			m_wipe_tower_rotation_angle += 90.f;
-		else
-			m_wipe_tower_rotation_angle += 180.f;
+		else {
+            m_layer_parity = !m_layer_parity;
+            m_wipe_tower_rotation_angle += 180.f;
+        }
+
 		if (!peters_wipe_tower && m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
 			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
 

@@ -336,6 +336,7 @@ private:
 	size_t m_max_color_changes 	= 0; 	// Maximum number of color changes per layer.
 	bool   m_is_first_layer 	= false;// Is this the 1st layer of the print? If so, print the brim around the waste tower.
 	bool   m_is_last_layer 		= false;// Is this the last layer of this waste tower?
+    bool   m_layer_parity       = false;
 
 	// G-code generator parameters.
 	float  			m_zhop 			 = 0.5f;
