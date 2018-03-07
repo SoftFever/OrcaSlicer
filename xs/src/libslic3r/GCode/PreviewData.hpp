@@ -92,7 +92,6 @@ public:
         EViewType view_type;
         Color role_colors[Num_Extrusion_Roles];
         std::string role_names[Num_Extrusion_Roles];
-        Ranges ranges;
         LayersList layers;
         unsigned int role_flags;
 
@@ -141,7 +140,6 @@ public:
         float height;
         Color type_colors[Num_Types];
         bool is_visible;
-        Ranges ranges;
 
         void set_default();
     };
@@ -180,6 +178,7 @@ public:
     Retraction retraction;
     Retraction unretraction;
     Shell shell;
+    Ranges ranges;
 
     GCodePreviewData();
 
@@ -188,9 +187,9 @@ public:
     bool empty() const;
 
     const Color& get_extrusion_role_color(ExtrusionRole role) const;
-    const Color& get_extrusion_height_color(float height) const;
-    const Color& get_extrusion_width_color(float width) const;
-    const Color& get_extrusion_feedrate_color(float feedrate) const;
+    const Color& get_height_color(float height) const;
+    const Color& get_width_color(float width) const;
+    const Color& get_feedrate_color(float feedrate) const;
 
     void set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha);
     void set_extrusion_paths_colors(const std::vector<std::string>& colors);

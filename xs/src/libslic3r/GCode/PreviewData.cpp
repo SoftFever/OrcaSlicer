@@ -164,9 +164,6 @@ void GCodePreviewData::Extrusion::set_default()
     view_type = Default_View_Type;
 
     ::memcpy((void*)role_colors, (const void*)Default_Extrusion_Role_Colors, Num_Extrusion_Roles * sizeof(Color));
-    ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
 
     for (unsigned int i = 0; i < Num_Extrusion_Roles; ++i)
     {
@@ -205,10 +202,6 @@ void GCodePreviewData::Travel::set_default()
     height = Default_Height;
     ::memcpy((void*)type_colors, (const void*)Default_Type_Colors, Num_Types * sizeof(Color));
 
-    ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-
     is_visible = false;
 }
 
@@ -239,6 +232,10 @@ GCodePreviewData::GCodePreviewData()
 
 void GCodePreviewData::set_default()
 {
+    ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+
     extrusion.set_default();
     travel.set_default();
     retraction.set_default();
@@ -248,6 +245,9 @@ void GCodePreviewData::set_default()
 
 void GCodePreviewData::reset()
 {
+    ranges.width.reset();
+    ranges.height.reset();
+    ranges.feedrate.reset();
     extrusion.layers.clear();
     travel.polylines.clear();
     retraction.positions.clear();
@@ -264,19 +264,19 @@ const GCodePreviewData::Color& GCodePreviewData::get_extrusion_role_color(Extrus
     return extrusion.role_colors[role];
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_extrusion_height_color(float height) const
+const GCodePreviewData::Color& GCodePreviewData::get_height_color(float height) const
 {
-    return extrusion.ranges.height.get_color_at(height);
+    return ranges.height.get_color_at(height);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_extrusion_width_color(float width) const
+const GCodePreviewData::Color& GCodePreviewData::get_width_color(float width) const
 {
-    return extrusion.ranges.width.get_color_at(width);
+    return ranges.width.get_color_at(width);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_extrusion_feedrate_color(float feedrate) const
+const GCodePreviewData::Color& GCodePreviewData::get_feedrate_color(float feedrate) const
 {
-    return extrusion.ranges.feedrate.get_color_at(feedrate);
+    return ranges.feedrate.get_color_at(feedrate);
 }
 
 void GCodePreviewData::set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha)
@@ -356,26 +356,16 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
 {
     struct Helper
     {
-        static void FillListFromRange(LegendItemsList& list, const std::vector<const Range*>& ranges, unsigned int decimals, float scale_factor)
+        static void FillListFromRange(LegendItemsList& list, const Range& range, unsigned int decimals, float scale_factor)
         {
-            if (ranges.empty())
-                return;
-
             list.reserve(Range::Colors_Count);
 
-            Range total_range;
-            for (const Range* range : ranges)
-            {
-                if (range != nullptr)
-                    total_range.update_from(*range);
-            }
-
-            float step = total_range.step_size();
+            float step = range.step_size();
             for (unsigned int i = 0; i < Range::Colors_Count; ++i)
             {
                 char buf[1024];
-                sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (total_range.min + (float)i * step), decimals, scale_factor * (total_range.min + (float)(i + 1) * step));
-                list.emplace_back(buf, ranges[0]->colors[i]);
+                sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (range.min + (float)i * step), decimals, scale_factor * (range.min + (float)(i + 1) * step));
+                list.emplace_back(buf, range.colors[i]);
             }
         }
     };
@@ -399,26 +389,17 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
         }
     case Extrusion::Height:
         {
-            std::vector<const Range*> ranges;
-            ranges.push_back(&extrusion.ranges.height);
-            ranges.push_back(&travel.ranges.height);
-            Helper::FillListFromRange(items, ranges, 3, 1.0f);
+            Helper::FillListFromRange(items, ranges.height, 3, 1.0f);
             break;
         }
     case Extrusion::Width:
         {
-            std::vector<const Range*> ranges;
-            ranges.push_back(&extrusion.ranges.width);
-            ranges.push_back(&travel.ranges.width);
-            Helper::FillListFromRange(items, ranges, 3, 1.0f);
+            Helper::FillListFromRange(items, ranges.width, 3, 1.0f);
             break;
         }
     case Extrusion::Feedrate:
         {
-            std::vector<const Range*> ranges;
-            ranges.push_back(&extrusion.ranges.feedrate);
-            ranges.push_back(&travel.ranges.feedrate);
-            Helper::FillListFromRange(items, ranges, 0, 1.0f);
+            Helper::FillListFromRange(items, ranges.feedrate, 0, 1.0f);
             break;
         }
     case Extrusion::Tool:

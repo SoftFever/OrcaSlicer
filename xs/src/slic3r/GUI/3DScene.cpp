@@ -1777,11 +1777,11 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
             case GCodePreviewData::Extrusion::FeatureType:
                 return data.get_extrusion_role_color((ExtrusionRole)(int)value);
             case GCodePreviewData::Extrusion::Height:
-                return data.get_extrusion_height_color(value);
+                return data.get_height_color(value);
             case GCodePreviewData::Extrusion::Width:
-                return data.get_extrusion_width_color(value);
+                return data.get_width_color(value);
             case GCodePreviewData::Extrusion::Feedrate:
-                return data.get_extrusion_feedrate_color(value);
+                return data.get_feedrate_color(value);
             case GCodePreviewData::Extrusion::Tool:
                 {
                     static GCodePreviewData::Color color;
@@ -2061,7 +2061,7 @@ bool _3DScene::_travel_paths_by_feedrate(const GCodePreviewData& preview_data, G
     // creates a new volume for each feedrate
     for (Feedrate& feedrate : feedrates)
     {
-        GLVolume* volume = new GLVolume(preview_data.get_extrusion_feedrate_color(feedrate.value).rgba);
+        GLVolume* volume = new GLVolume(preview_data.get_feedrate_color(feedrate.value).rgba);
         if (volume == nullptr)
             return false;
         else
