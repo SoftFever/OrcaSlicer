@@ -868,10 +868,12 @@ void WipeTowerPrusaMM::toolchange_Unload(
     float turning_point = (!m_left_to_right ? std::max(xl,oldx-15.f) : std::min(xr,oldx+15.f) ); // so it's not too far
     float xdist = std::abs(oldx-turning_point);
     float edist = -(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42);
-    writer.load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15 * 83 )    // fixed speed after ramming
+    writer.suppress_preview()
+          .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15 * 83 )    // fixed speed after ramming
           .load_move_x(oldx         ,edist  , 60.f * std::hypot(xdist,edist)/edist * m_filpar[m_current_tool].unloading_speed )
           .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15       * m_filpar[m_current_tool].unloading_speed*0.55f )
-          .load_move_x(oldx         ,-12    , 60.f * std::hypot(xdist,12)/12       * m_filpar[m_current_tool].unloading_speed*0.35f );
+          .load_move_x(oldx         ,-12    , 60.f * std::hypot(xdist,12)/12       * m_filpar[m_current_tool].unloading_speed*0.35f )
+          .resume_preview();
 
 	if (new_temperature != 0) 	// Set the extruder temperature, but don't wait.
 		writer.set_extruder_temp(new_temperature, false);
