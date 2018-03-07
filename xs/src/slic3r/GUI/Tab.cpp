@@ -144,12 +144,24 @@ void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();
 	auto dirty_options = m_presets->current_dirty_options();
+
+	bool change_extruder_data = false;
+
+	if (name() == "printer"){
+		TabPrinter* tab_printer = static_cast<TabPrinter*>(this);
+		if (tab_printer->m_initial_extruders_count != tab_printer->m_extruders_count){
+			dirty_options.emplace_back("extruders_count");
+			change_extruder_data = true;
+		}
+	}
 	// Add new dirty options to m_dirty_options
 	for (auto opt_key : dirty_options){
 		Field* field = get_field(opt_key/*, opt_index*/);
 		if (field != nullptr && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
-			field->m_Label->SetForegroundColour(*get_modified_label_clr());
+			if (field->m_Label != nullptr)
+				field->m_Label->SetForegroundColour(*get_modified_label_clr());
 			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(wxMSW ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
+			field->m_is_modified_value = true;
 
 			m_dirty_options.push_back(opt_key);
 		}
@@ -164,7 +176,9 @@ void Tab::update_dirty(){
 		if (field != nullptr && find(dirty_options.begin(), dirty_options.end(), opt_key) == dirty_options.end())
 		{		
 			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("Bullet_white.png")), wxBITMAP_TYPE_PNG));
-			field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+			if (field->m_Label != nullptr)
+				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+			field->m_is_modified_value = false;
 			std::vector<std::string>::iterator itr = find(m_dirty_options.begin(), m_dirty_options.end(), opt_key);
 			if (itr != m_dirty_options.end()){
 				m_dirty_options.erase(itr);
@@ -200,11 +214,13 @@ void Tab::load_config(DynamicPrintConfig config)
 	int opt_index = 0;
 	for(auto opt_key : m_config->diff(config)) {
 		switch ( config.def()->get(opt_key)->type ){
-		case coFloatOrPercent:
-			value = config.option<ConfigOptionFloatOrPercent>(opt_key)->value;
+		case coFloatOrPercent:{
+			const auto &conf_val = *config.option<ConfigOptionFloatOrPercent>(opt_key);
+			value = conf_val.percent ? std::to_string(int(conf_val.value)) + "%" : std::to_string(conf_val.value);
+			}
 			break;
 		case coPercent:
-			value = config.option<ConfigOptionPercent>(opt_key)->value;
+			value = std::to_string(int(config.option<ConfigOptionPercent>(opt_key)->value));
 			break;
 		case coFloat:
 			value = config.opt_float(opt_key);
@@ -610,7 +626,8 @@ void TabPrint::update()
 		DynamicPrintConfig new_conf = *m_config;
 		if (dialog->ShowModal() == wxID_YES) {
 			const auto &val = *m_config->option<ConfigOptionFloatOrPercent>("first_layer_height");
-			new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.2, val.percent));
+			auto percent = val.percent;
+			new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.2, percent));
 
 			if (m_config->opt_float("layer_height") < 0.15) new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.15));
 			if (m_config->opt_float("layer_height") > 0.35) new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.35));
@@ -977,7 +994,7 @@ void TabPrinter::build()
 	auto default_config = m_preset_bundle->full_config();
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
-	m_extruders_count = nozzle_diameter->values.size();
+	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
 
 	auto page = add_options_page(_(L("General")), "printer_empty.png");
 		auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
@@ -1222,6 +1239,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 	m_preset_bundle->printers.get_edited_preset().set_num_extruders(extruders_count);
 	m_preset_bundle->update_multi_material_filament_presets();
 	build_extruder_pages();
+	reload_config();
 	on_value_change("extruders_count", extruders_count);
 }
 
@@ -1771,7 +1789,7 @@ bool Page::set_value(t_config_option_key opt_key, boost::any value){
 ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_width /*= -1*/)
 {
 	//! config_ have to be "right"
-	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config);
+	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config, true);
 	if (noncommon_label_width >= 0)
 		optgroup->label_width = noncommon_label_width;
 

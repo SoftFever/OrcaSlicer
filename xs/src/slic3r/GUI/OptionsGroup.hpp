@@ -113,8 +113,8 @@ public:
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
-    OptionsGroup(wxWindow* _parent, wxString title) : 
-		m_parent(_parent), title(title) {
+    OptionsGroup(wxWindow* _parent, wxString title, bool is_tab_opt=false) : 
+		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt) {
         sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
@@ -136,6 +136,8 @@ protected:
     t_optionfield_map		m_fields;
     bool					m_disabled {false};
     wxGridSizer*			m_grid_sizer {nullptr};
+	// "true" if option is created in preset tabs
+	bool					m_is_tab_opt{ false };
 
     /// Generate a wxSizer or wxWindow from a configuration option
     /// Precondition: opt resolves to a known ConfigOption
@@ -151,8 +153,8 @@ protected:
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-	ConfigOptionsGroup(wxWindow* parent, wxString title, DynamicPrintConfig* _config = nullptr) : 
-		OptionsGroup(parent, title), m_config(_config) {}
+	ConfigOptionsGroup(wxWindow* parent, wxString title, DynamicPrintConfig* _config = nullptr, bool is_tab_opt = false) :
+		OptionsGroup(parent, title, is_tab_opt), m_config(_config) {}
 
     /// reference to libslic3r config, non-owning pointer (?).
     DynamicPrintConfig*		m_config {nullptr};

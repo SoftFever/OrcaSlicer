@@ -421,9 +421,13 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
 			break;
 		case coStrings:{
-			if (opt_key.compare("compatible_printers") == 0){
+			if (opt_key.compare("compatible_printers") == 0 ||
+				config.def()->get(opt_key)->gui_flags.compare("serialized") == 0){
 				config.option<ConfigOptionStrings>(opt_key)->values.resize(0);
-				for (auto el : boost::any_cast<std::vector<std::string>>(value))
+				std::vector<std::string> values = boost::any_cast<std::vector<std::string>>(value);
+				if (values.size() == 1 && values[0] == "")
+					break;
+				for (auto el : values)
 					config.option<ConfigOptionStrings>(opt_key)->values.push_back(el);
 			}
 			else{

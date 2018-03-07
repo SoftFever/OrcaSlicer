@@ -47,7 +47,7 @@ namespace Slic3r { namespace GUI {
 
 	void Field::on_back_to_initial_value()
 	{
-		if (m_back_to_initial_value != nullptr)
+		if (m_back_to_initial_value != nullptr && m_is_modified_value)
 			m_back_to_initial_value(m_opt_id);
 	}
 

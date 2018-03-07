@@ -68,6 +68,8 @@ public:
 
 	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
     bool			m_disable_change_event {false};
+	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
+    bool			m_is_modified_value {false};
 
     /// Copy of ConfigOption for deduction purposes
     const ConfigOptionDef			m_opt {ConfigOptionDef()};

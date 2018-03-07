@@ -222,6 +222,7 @@ public:
 	wxButton*	m_octoprint_host_test_btn;
 
 	size_t		m_extruders_count;
+	size_t		m_initial_extruders_count;
 	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}

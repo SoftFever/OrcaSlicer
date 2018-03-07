@@ -3,6 +3,8 @@
 
 #include <utility>
 #include <wx/numformatter.h>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include "Utils.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -80,6 +82,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_initial_value(opt_id);
 	};
+	if (!m_is_tab_opt) field->m_Undo_btn->Hide();
     
 	// assign function objects for callbacks, etc.
     return field;
@@ -255,6 +258,12 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 			// 		# Currently used for the post_process config value only.
 			// 		my @values = split / ; / , $field_value;
 			// 		$self->config->set($opt_key, \@values);
+			std::string str = boost::any_cast<std::string>(value);
+			if (str.back() == ';')
+				str.pop_back();
+			std::vector<std::string> values;
+			boost::split(values, str, boost::is_any_of(";"));
+			change_opt_value(*m_config, opt_key, values);
 		}
 		else {
 			if (opt_index == -1) {
@@ -279,9 +288,16 @@ void ConfigOptionsGroup::back_to_initial_value(const std::string opt_key)
 	if (m_get_initial_config == nullptr)
 		return;
 	DynamicPrintConfig config = m_get_initial_config();
-	boost::any value = get_config_value(config, opt_key);
+	boost::any value;
+	if (opt_key == "extruders_count"){
+		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
+		value = int(nozzle_diameter->values.size());
+	}
+	else
+		value = get_config_value(config, opt_key);
+
 	set_value(opt_key, value);
-	on_change_OG(opt_key, get_value(opt_key)/*value*/);
+	on_change_OG(opt_key, get_value(opt_key));
 }
 
 void ConfigOptionsGroup::reload_config(){
@@ -354,6 +370,12 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 	case coStrings:
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
+		else if (opt->gui_flags.compare("serialized") == 0){
+			std::vector<std::string> values = config.option<ConfigOptionStrings>(opt_key)->values;
+			for (auto el : values)
+				text_value += el + ";";
+			ret = text_value;
+		}
 		else
 			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(idx)));
 		break;
@@ -397,6 +419,9 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 }
 
 Field* ConfigOptionsGroup::get_fieldc(t_config_option_key opt_key, int opt_index){
+	Field* field = get_field(opt_key);
+	if (field != nullptr)
+		return field;
 	std::string opt_id = "";
 	for (std::map< std::string, std::pair<std::string, int> >::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
 		if (opt_key == m_opt_map.at(it->first).first && opt_index == m_opt_map.at(it->first).second){
