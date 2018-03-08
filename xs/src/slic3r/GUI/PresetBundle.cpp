@@ -14,6 +14,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/dcmemory.h>
 #include <wx/image.h>
@@ -474,6 +475,125 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
     this->update_compatible_with_printer(false);
 }
 
+// Process the Config Bundle loaded as a Boost property tree.
+// For each print, filament and printer preset (group defined by group_name), apply the inherited presets.
+// The presets starting with '*' are considered non-terminal and they are
+// removed through the flattening process by this function.
+// This function will never fail, but it will produce error messages through boost::log.
+static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, const std::string &group_name)
+{
+    namespace pt = boost::property_tree;
+
+    typedef std::pair<pt::ptree::key_type, pt::ptree> ptree_child_type;
+
+    // 1) For the group given by group_name, initialize the presets.
+    struct Prst {
+        Prst(const std::string &name, pt::ptree *node) : name(name), node(node) {}
+        // Name of this preset. If the name starts with '*', it is an intermediate preset,
+        // which will not make it into the result.
+        const std::string           name;
+        // Link to the source boost property tree node, owned by tree.
+        pt::ptree                  *node;
+        // Link to the presets, from which this preset inherits.
+        std::vector<Prst*>          inherits;
+        // Link to the presets, for which this preset is a direct parent.
+        std::vector<Prst*>          parent_of;
+        // When running the Kahn's Topological sorting algorithm, this counter is decreased from inherits.size() to zero.
+        // A cycle is indicated, if the number does not drop to zero after the Kahn's algorithm finishes.
+        size_t                      num_incoming_edges_left = 0;
+        // Sorting by the name, to be used when inserted into std::set.
+        bool operator==(const Prst &rhs) const { return this->name == rhs.name; }
+        bool operator< (const Prst &rhs) const { return this->name < rhs.name; }
+    };
+    // Find the presets, store them into a std::map, addressed by their names.
+    std::set<Prst> presets;
+    std::string group_name_preset = group_name + ":";
+    for (auto &section : tree)
+        if (boost::starts_with(section.first, group_name_preset) && section.first.size() > group_name_preset.size())
+            presets.emplace(section.first.substr(group_name_preset.size()), &section.second);
+    // Fill in the "inherits" and "parent_of" members, report invalid inheritance fields.
+    for (const Prst &prst : presets) {
+        // Parse the list of comma separated values, possibly enclosed in quotes.
+        std::vector<std::string> inherits_names;
+        if (Slic3r::unescape_strings_cstyle(prst.node->get<std::string>("inherits", ""), inherits_names)) {
+            // Resolve the inheritance by name.
+            std::vector<Prst*> &inherits_nodes = const_cast<Prst&>(prst).inherits;
+            for (const std::string &node_name : inherits_names) {
+                auto it = presets.find(Prst(node_name, nullptr));
+                if (it == presets.end())
+                    BOOST_LOG_TRIVIAL(error) << "flatten_configbundle_hierarchy: The preset " << prst.name << " inherits an unknown preset \"" << node_name << "\"";
+                else {
+                    inherits_nodes.emplace_back(const_cast<Prst*>(&(*it)));
+                    inherits_nodes.back()->parent_of.emplace_back(const_cast<Prst*>(&prst));
+                }
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "flatten_configbundle_hierarchy: The preset " << prst.name << " has an invalid \"inherits\" field";
+        }
+        // Remove the "inherits" key, it has no meaning outside the config bundle.
+        const_cast<pt::ptree*>(prst.node)->erase("inherits");
+    }
+
+    // 2) Create a linear ordering for the directed acyclic graph of preset inheritance.
+    // https://en.wikipedia.org/wiki/Topological_sorting
+    // Kahn's algorithm.
+    std::vector<Prst*> sorted;
+    {
+        // Initialize S with the set of all nodes with no incoming edge.
+        std::deque<Prst*> S;
+        for (const Prst &prst : presets)
+            if (prst.inherits.empty())
+                S.emplace_back(const_cast<Prst*>(&prst));
+            else
+                const_cast<Prst*>(&prst)->num_incoming_edges_left = prst.inherits.size();
+        while (! S.empty()) {
+            Prst *n = S.front();
+            S.pop_front();
+            sorted.emplace_back(n);
+            for (Prst *m : n->parent_of) {
+                assert(m->num_incoming_edges_left > 0);
+                if (-- m->num_incoming_edges_left == 0) {
+                    // We have visited all parents of m.
+                    S.emplace_back(m);
+                }
+            }
+        }
+        if (sorted.size() < presets.size()) {
+            for (const Prst &prst : presets)
+                if (prst.num_incoming_edges_left)
+                    BOOST_LOG_TRIVIAL(error) << "flatten_configbundle_hierarchy: The preset " << prst.name << " has cyclic dependencies";
+        }
+    }
+
+    // Apply the dependencies in their topological ordering.
+    for (Prst *prst : sorted) {
+        // Merge the preset nodes in their order of application.
+        // Iterate in a reverse order, so the last change will be placed first in merged.
+        for (auto it_inherits = prst->inherits.rbegin(); it_inherits != prst->inherits.rend(); ++ it_inherits)
+            for (auto it = (*it_inherits)->node->begin(); it != (*it_inherits)->node->end(); ++ it)
+                if (prst->node->find(it->first) == prst->node->not_found())
+                    prst->node->add_child(it->first, it->second);
+    }
+
+    // Remove the "internal" presets from the ptree. These presets are marked with '*'.
+    group_name_preset += '*';
+    for (auto it_section = tree.begin(); it_section != tree.end(); ) {
+        if (boost::starts_with(it_section->first, group_name_preset) && it_section->first.size() > group_name_preset.size())
+            // Remove the "internal" preset from the ptree.
+            it_section = tree.erase(it_section);
+        else
+            // Keep the preset.
+            ++ it_section;
+    }
+}
+
+static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree)
+{
+    flatten_configbundle_hierarchy(tree, "print");
+    flatten_configbundle_hierarchy(tree, "filament");
+    flatten_configbundle_hierarchy(tree, "printer");
+}
+
 // Load a config bundle file, into presets and store the loaded presets into separate files
 // of the local configuration directory.
 size_t PresetBundle::load_configbundle(const std::string &path, unsigned int flags)
@@ -486,6 +606,8 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     pt::ptree tree;
     boost::nowide::ifstream ifs(path);
     pt::read_ini(ifs, tree);
+    // Flatten the config bundle by applying the inheritance rules. Internal profiles (with names starting with '*') are removed.
+    flatten_configbundle_hierarchy(tree);
 
     // 2) Parse the property_tree, extract the active preset names and the profiles, save them into local config files.
     std::vector<std::string> loaded_prints;
