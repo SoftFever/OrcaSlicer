@@ -138,28 +138,62 @@ PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder
 	return page;
 }
 
+template<class T>
+void add_correct_opts_to_dirty_options(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
+{
+	auto opt_init = static_cast<T*>(tab->m_presets->get_selected_preset().config.option(opt_key));
+	auto opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
+	int opt_init_max_id = opt_init->values.size()-1;
+	for (int i = 0; i < opt_cur->values.size(); i++)
+	{
+		int init_id = i <= opt_init_max_id ? i : 0;
+		if (opt_cur->values[i] != opt_init->values[init_id])
+			vec->emplace_back(opt_key + "#" + std::to_string(i));
+	}
+}
+
 // Update the combo box label of the selected preset based on its "dirty" state,
 // comparing the selected preset config with $self->{config}.
 void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();
+
+	// Update UI according to changes
 	auto dirty_options = m_presets->current_dirty_options();
 
-	bool change_extruder_data = false;
-
 	if (name() == "printer"){
-		TabPrinter* tab_printer = static_cast<TabPrinter*>(this);
-		if (tab_printer->m_initial_extruders_count != tab_printer->m_extruders_count){
+		// Update dirty_options in case changes of Extruder's options 
+		TabPrinter* tab = static_cast<TabPrinter*>(this);
+		std::vector<std::string> new_dirty;
+		for (auto opt_key : dirty_options)
+		{
+			switch (m_config->option(opt_key)->type())
+			{
+			case coInts:	add_correct_opts_to_dirty_options<ConfigOptionInts		>(opt_key, &new_dirty, tab);	break;
+			case coBools:	add_correct_opts_to_dirty_options<ConfigOptionBools		>(opt_key, &new_dirty, tab);	break;
+			case coFloats:	add_correct_opts_to_dirty_options<ConfigOptionFloats	>(opt_key, &new_dirty, tab);	break;
+			case coStrings:	add_correct_opts_to_dirty_options<ConfigOptionStrings	>(opt_key, &new_dirty, tab);	break;
+			case coPercents:add_correct_opts_to_dirty_options<ConfigOptionPercents	>(opt_key, &new_dirty, tab);	break;
+			case coPoints:	add_correct_opts_to_dirty_options<ConfigOptionPoints	>(opt_key, &new_dirty, tab);	break;
+			default:		new_dirty.emplace_back(opt_key);		break;
+			}
+		}
+		
+		dirty_options.resize(0);
+		dirty_options = new_dirty;
+		if (tab->m_initial_extruders_count != tab->m_extruders_count){
 			dirty_options.emplace_back("extruders_count");
-			change_extruder_data = true;
 		}
 	}
+
 	// Add new dirty options to m_dirty_options
 	for (auto opt_key : dirty_options){
-		Field* field = get_field(opt_key/*, opt_index*/);
+		Field* field = get_field(opt_key);
 		if (field != nullptr && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
-			if (field->m_Label != nullptr)
+			if (field->m_Label != nullptr){
 				field->m_Label->SetForegroundColour(*get_modified_label_clr());
+				field->m_Label->Refresh(true);
+			}
 			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(wxMSW ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
 			field->m_is_modified_value = true;
 
@@ -168,16 +202,17 @@ void Tab::update_dirty(){
 	}
 
 	// Delete undirty options from m_dirty_options
-	size_t cnt = m_dirty_options.size();
 	for (auto i = 0; i < m_dirty_options.size(); ++i)
 	{
 		const std::string &opt_key = m_dirty_options[i];
-		Field* field = get_field(opt_key/*, opt_index*/);
+		Field* field = get_field(opt_key);
 		if (field != nullptr && find(dirty_options.begin(), dirty_options.end(), opt_key) == dirty_options.end())
 		{		
 			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("Bullet_white.png")), wxBITMAP_TYPE_PNG));
-			if (field->m_Label != nullptr)
+			if (field->m_Label != nullptr){
 				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+				field->m_Label->Refresh(true);
+			}
 			field->m_is_modified_value = false;
 			std::vector<std::string>::iterator itr = find(m_dirty_options.begin(), m_dirty_options.end(), opt_key);
 			if (itr != m_dirty_options.end()){
@@ -271,7 +306,6 @@ void Tab::load_config(DynamicPrintConfig config)
 		}
 		change_opt_value(*m_config, opt_key, value, opt_index);
 		modified = 1;
-//		get_field(opt_key)->m_Label->SetBackgroundColour(*get_modified_label_clr());
 	}
 	if (modified) {
 		update_dirty();

@@ -464,9 +464,8 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			}
 			break;
 		case coPoints:{
-			ConfigOptionPoints points;
-			points.values = boost::any_cast<std::vector<Pointf>>(value);
-			config.set_key_value(opt_key, new ConfigOptionPoints(points));
+			ConfigOptionPoints* vec_new = new ConfigOptionPoints{ boost::any_cast<Pointf>(value) };
+			config.option<ConfigOptionPoints>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
 			break;
 		case coNone:

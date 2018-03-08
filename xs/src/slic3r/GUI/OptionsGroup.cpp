@@ -293,6 +293,13 @@ void ConfigOptionsGroup::back_to_initial_value(const std::string opt_key)
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
 	}
+	else if (m_opt_map.find(opt_key) != m_opt_map.end())
+	{
+		auto opt_id = m_opt_map.find(opt_key)->first;
+		std::string opt_short_key = m_opt_map.at(opt_id).first;
+		int opt_index = m_opt_map.at(opt_id).second;
+		value = get_config_value(config, opt_short_key, opt_index);
+	}
 	else
 		value = get_config_value(config, opt_key);
 
@@ -360,7 +367,7 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		double val = opt->type == coFloats ?
 					config.opt_float(opt_key, idx) :
 						opt->type == coFloat ? config.opt_float(opt_key) :
-						config.option<ConfigOptionPercents>(opt_key)->values.at(idx);
+						config.option<ConfigOptionPercents>(opt_key)->get_at(idx);
 		ret = double_to_string(val);
 		}
 		break;
@@ -406,10 +413,8 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 			ret = static_cast<int>(config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value);
 	}
 		break;
-	case coPoints:{
-		const auto &value = *config.option<ConfigOptionPoints>(opt_key);
-		ret = value.values.at(idx);
-		}
+	case coPoints:
+		ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
 		break;
 	case coNone:
 	default:
