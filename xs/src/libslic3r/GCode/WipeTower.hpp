@@ -126,17 +126,15 @@ public:
 		const std::vector<unsigned int> &tools,
 		// If true, the last priming are will be the same as the other priming areas, and the rest of the wipe will be performed inside the wipe tower.
 		// If false, the last priming are will be large enough to wipe the last extruder sufficiently.
-		bool 						last_wipe_inside_wipe_tower, 
-		// May be used by a stand alone post processor.
-		Purpose 					purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+		bool 						last_wipe_inside_wipe_tower) = 0;
 
 	// Returns gcode for toolchange and the end position.
 	// if new_tool == -1, just unload the current filament over the wipe tower.
-	virtual ToolChangeResult tool_change(unsigned int new_tool, bool last_in_layer, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+	virtual ToolChangeResult tool_change(unsigned int new_tool, bool last_in_layer) = 0;
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.
-	virtual ToolChangeResult finish_layer(Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+	virtual ToolChangeResult finish_layer() = 0;
 
 	// Is the current layer finished? A layer is finished if either the wipe tower is finished, or
 	// the wipe tower has been completely covered by the tool change extrusions,

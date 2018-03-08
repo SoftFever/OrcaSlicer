@@ -1052,7 +1052,7 @@ void Print::_make_wipe_tower()
     bool last_priming_wipe_full = m_tool_ordering.front().extruders.size() > m_tool_ordering.front().wipe_tower_partitions;
 
     m_wipe_tower_priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), ! last_priming_wipe_full, WipeTower::PURPOSE_EXTRUDE));
+        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), ! last_priming_wipe_full));
 
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each
@@ -1146,7 +1146,7 @@ void Print::_make_wipe_tower()
         wipe_tower.set_layer(float(m_tool_ordering.back().print_z), float(layer_height), 0, false, true);
     }
     m_wipe_tower_final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-		wipe_tower.tool_change((unsigned int)-1, false, WipeTower::PURPOSE_EXTRUDE));
+		wipe_tower.tool_change((unsigned int)-1, false));
 }
 
 std::string Print::output_filename()

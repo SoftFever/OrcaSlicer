@@ -269,8 +269,6 @@ public:
 		m_z_pos 				= print_z;
 		m_layer_height			= layer_height;
 		m_is_first_layer 		= is_first_layer;
-		// Start counting the color changes from zero. Special case -1: extrude a brim first.
-		///m_idx_tool_change_in_layer = is_first_layer ? (unsigned int)(-1) : 0;
 		m_print_brim = is_first_layer;
 		m_depth_traversed  = 0.f; // to make room for perimeter line
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
@@ -299,17 +297,15 @@ public:
 		const std::vector<unsigned int> &tools,
 		// If true, the last priming are will be the same as the other priming areas, and the rest of the wipe will be performed inside the wipe tower.
 		// If false, the last priming are will be large enough to wipe the last extruder sufficiently.
-		bool 						last_wipe_inside_wipe_tower, 
-		// May be used by a stand alone post processor.
-		Purpose 					purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE);
+		bool 						last_wipe_inside_wipe_tower);
 
 	// Returns gcode for a toolchange and a final print head position.
 	// On the first layer, extrude a brim around the future wipe tower first.
-	virtual ToolChangeResult tool_change(unsigned int new_tool, bool last_in_layer, Purpose purpose);
+	virtual ToolChangeResult tool_change(unsigned int new_tool, bool last_in_layer);
 
 	// Fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.
-	virtual ToolChangeResult finish_layer(Purpose purpose);
+	virtual ToolChangeResult finish_layer();
 
 	// Is the current layer finished?
 	virtual bool 			 layer_finished() const {
@@ -455,7 +451,7 @@ private:
 	// Returns gcode for wipe tower brim
 	// sideOnly			-- set to false -- experimental, draw brim on sides of wipe tower
 	// offset			-- set to 0		-- experimental, offset to replace brim in front / rear of wipe tower
-	ToolChangeResult toolchange_Brim(Purpose purpose, bool sideOnly = false, float y_offset = 0.f);
+	ToolChangeResult toolchange_Brim(bool sideOnly = false, float y_offset = 0.f);
 
 	void toolchange_Unload(
 		PrusaMultiMaterial::Writer &writer,
