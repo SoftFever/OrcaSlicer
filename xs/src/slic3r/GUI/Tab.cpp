@@ -255,7 +255,7 @@ void Tab::load_config(DynamicPrintConfig config)
 			}
 			break;
 		case coPercent:
-			value = std::to_string(int(config.option<ConfigOptionPercent>(opt_key)->value));
+			value = config.option<ConfigOptionPercent>(opt_key)->value;// std::to_string(int(config.option<ConfigOptionPercent>(opt_key)->value));
 			break;
 		case coFloat:
 			value = config.opt_float(opt_key);

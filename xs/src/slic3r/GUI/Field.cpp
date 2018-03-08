@@ -234,8 +234,13 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
+	const int min_val = m_opt_id == "standby_temperature_delta" ? 
+						-500 : m_opt.min > 0 ? 
+						m_opt.min : 0;
+	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
+
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
-		0, m_opt.min >0 ? m_opt.min : 0, m_opt.max < 2147483647 ? m_opt.max : 2147483647, default_value);
+		0, min_val, max_val, default_value);
 
 	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { tmp_value = undef_spin_val; on_kill_focus(e); }), temp->GetId());
