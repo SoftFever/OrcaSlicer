@@ -208,7 +208,7 @@ void Tab::update_dirty(){
 		Field* field = get_field(opt_key);
 		if (field != nullptr && find(dirty_options.begin(), dirty_options.end(), opt_key) == dirty_options.end())
 		{		
-			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("Bullet_white.png")), wxBITMAP_TYPE_PNG));
+			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
 			if (field->m_Label != nullptr){
 				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 				field->m_Label->Refresh(true);
