@@ -146,6 +146,7 @@ public:
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
+	void		update_changed_ui();
 	
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 

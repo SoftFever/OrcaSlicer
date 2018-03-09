@@ -97,6 +97,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
 			select_preset(selected_string);
+			update_changed_ui();
 		}
 	}));
 
@@ -152,13 +153,9 @@ void add_correct_opts_to_dirty_options(const std::string &opt_key, std::vector<s
 	}
 }
 
-// Update the combo box label of the selected preset based on its "dirty" state,
-// comparing the selected preset config with $self->{config}.
-void Tab::update_dirty(){
-	m_presets->update_dirty_ui(m_presets_choice);
-	on_presets_changed();
-
-	// Update UI according to changes
+// Update UI according to changes
+void Tab::update_changed_ui()
+{
 	auto dirty_options = m_presets->current_dirty_options();
 
 	if (name() == "printer"){
@@ -178,7 +175,7 @@ void Tab::update_dirty(){
 			default:		new_dirty.emplace_back(opt_key);		break;
 			}
 		}
-		
+
 		dirty_options.resize(0);
 		dirty_options = new_dirty;
 		if (tab->m_initial_extruders_count != tab->m_extruders_count){
@@ -201,13 +198,13 @@ void Tab::update_dirty(){
 		}
 	}
 
-	// Delete undirty options from m_dirty_options
+	// Delete clear options from m_dirty_options
 	for (auto i = 0; i < m_dirty_options.size(); ++i)
 	{
 		const std::string &opt_key = m_dirty_options[i];
 		Field* field = get_field(opt_key);
 		if (field != nullptr && find(dirty_options.begin(), dirty_options.end(), opt_key) == dirty_options.end())
-		{		
+		{
 			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
 			if (field->m_Label != nullptr){
 				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
@@ -221,6 +218,14 @@ void Tab::update_dirty(){
 			}
 		}
 	}
+}
+
+// Update the combo box label of the selected preset based on its "dirty" state,
+// comparing the selected preset config with $self->{config}.
+void Tab::update_dirty(){
+	m_presets->update_dirty_ui(m_presets_choice);
+	on_presets_changed();	
+	update_changed_ui();
 }
 
 void Tab::update_tab_ui()
