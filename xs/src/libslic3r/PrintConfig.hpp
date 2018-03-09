@@ -29,7 +29,7 @@ enum GCodeFlavor {
 
 enum InfillPattern {
     ipRectilinear, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
-    ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral,
+    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral,
 };
 
 enum SupportMaterialPattern {
@@ -73,6 +73,7 @@ template<> inline t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enu
         keys_map["concentric"]          = ipConcentric;
         keys_map["honeycomb"]           = ipHoneycomb;
         keys_map["3dhoneycomb"]         = ip3DHoneycomb;
+        keys_map["gyroid"]              = ipGyroid;
         keys_map["hilbertcurve"]        = ipHilbertCurve;
         keys_map["archimedeanchords"]   = ipArchimedeanChords;
         keys_map["octagramspiral"]      = ipOctagramSpiral;
@@ -699,6 +700,7 @@ class HostConfig : public StaticPrintConfig
 public:
     ConfigOptionString              octoprint_host;
     ConfigOptionString              octoprint_apikey;
+    ConfigOptionString              octoprint_cafile;
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
     
@@ -707,6 +709,7 @@ protected:
     {
         OPT_PTR(octoprint_host);
         OPT_PTR(octoprint_apikey);
+        OPT_PTR(octoprint_cafile);
         OPT_PTR(serial_port);
         OPT_PTR(serial_speed);
     }

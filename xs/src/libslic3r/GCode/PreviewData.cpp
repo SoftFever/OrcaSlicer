@@ -1,6 +1,8 @@
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
 #include <float.h>
+#include <wx/intl.h> 
+#include "slic3r/GUI/GUI.hpp"
 
 namespace Slic3r {
 
@@ -125,26 +127,28 @@ const GCodePreviewData::Color GCodePreviewData::Extrusion::Default_Extrusion_Rol
     Color(0.0f, 0.5f, 0.0f, 1.0f),   // erSupportMaterial
     Color(0.0f, 0.0f, 0.5f, 1.0f),   // erSupportMaterialInterface
     Color(0.7f, 0.89f, 0.67f, 1.0f), // erWipeTower
+    Color(1.0f, 1.0f, 0.0f, 1.0f),   // erCustom
     Color(0.0f, 0.0f, 0.0f, 1.0f)    // erMixed
 };
 
 // todo: merge with Slic3r::ExtrusionRole2String() from GCode.cpp
 const std::string GCodePreviewData::Extrusion::Default_Extrusion_Role_Names[Num_Extrusion_Roles]
 {
-    "None",
-    "Perimeter",
-    "External perimeter",
-    "Overhang perimeter",
-    "Internal infill",
-    "Solid infill",
-    "Top solid infill",
-    "Bridge infill",
-    "Gap fill",
-    "Skirt",
-    "Support material",
-    "Support material interface",
-    "Wipe tower",
-    "Mixed"
+    L("None"),
+    L("Perimeter"),
+    L("External perimeter"),
+    L("Overhang perimeter"),
+    L("Internal infill"),
+    L("Solid infill"),
+    L("Top solid infill"),
+    L("Bridge infill"),
+    L("Gap fill"),
+    L("Skirt"),
+    L("Support material"),
+    L("Support material interface"),
+    L("Wipe tower"),
+    L("Custom"),
+    L("Mixed")
 };
 
 const GCodePreviewData::Extrusion::EViewType GCodePreviewData::Extrusion::Default_View_Type = GCodePreviewData::Extrusion::FeatureType;
@@ -323,15 +327,15 @@ std::string GCodePreviewData::get_legend_title() const
     switch (extrusion.view_type)
     {
     case Extrusion::FeatureType:
-        return "Feature type";
+        return L("Feature type");
     case Extrusion::Height:
-        return "Height (mm)";
+        return L("Height (mm)");
     case Extrusion::Width:
-        return "Width (mm)";
+        return L("Width (mm)");
     case Extrusion::Feedrate:
-        return "Speed (mm/s)";
+        return L("Speed (mm/s)");
     case Extrusion::Tool:
-        return "Tool";
+        return L("Tool");
     }
 
     return "";
@@ -360,10 +364,13 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
     {
     case Extrusion::FeatureType:
         {
-            items.reserve(erMixed - erPerimeter + 1);
-            for (unsigned int i = (unsigned int)erPerimeter; i < (unsigned int)erMixed; ++i)
+            ExtrusionRole first_valid = erPerimeter;
+            ExtrusionRole last_valid = erCustom;
+
+            items.reserve(last_valid - first_valid + 1);
+            for (unsigned int i = (unsigned int)first_valid; i <= (unsigned int)last_valid; ++i)
             {
-                items.emplace_back(extrusion.role_names[i], extrusion.role_colors[i]);
+                items.emplace_back(_CHB(extrusion.role_names[i].c_str()).data(), extrusion.role_colors[i]);
             }
 
             break;
@@ -389,8 +396,8 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             items.reserve(tools_colors_count);
             for (unsigned int i = 0; i < tools_colors_count; ++i)
             {
-                char buf[32];
-                sprintf(buf, "Extruder %d", i + 1);
+				char buf[MIN_BUF_LENGTH_FOR_L];
+                sprintf(buf, _CHB(L("Extruder %d")), i + 1);
 
                 GCodePreviewData::Color color;
                 ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));

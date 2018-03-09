@@ -338,7 +338,6 @@ sub Render {
     glClear(GL_COLOR_BUFFER_BIT);
     
     if (!$self->GetParent->enabled || !$self->layers) {
-        glFlush();
         $self->SwapBuffers;
         return;
     }
@@ -486,7 +485,6 @@ sub Render {
     }
     
     gluDeleteTess($tess) if $tess;
-    glFlush();
     $self->SwapBuffers;
 }
 

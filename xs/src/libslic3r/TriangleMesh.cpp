@@ -198,9 +198,8 @@ TriangleMesh::repair() {
         stl_clear_error(&stl);
     }
 
-    // commenting out the following call fixes: #574, #413, #269, #262, #259, #230, #228, #206
-//    // normal_directions
-//    stl_fix_normal_directions(&stl);
+    // normal_directions
+    stl_fix_normal_directions(&stl);
 
     // normal_values
     stl_fix_normal_values(&stl);
@@ -210,7 +209,7 @@ TriangleMesh::repair() {
     
     // neighbors
     stl_verify_neighbors(&stl);
-    
+
     this->repaired = true;
 
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() finished";
@@ -1187,40 +1186,46 @@ void TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slic
         loops correctly in some edge cases when original model had overlapping facets
     */
 
-    std::vector<double> area;
-    std::vector<size_t> sorted_area;  // vector of indices
-    for (Polygons::const_iterator loop = loops.begin(); loop != loops.end(); ++ loop) {
-        area.push_back(loop->area());
-        sorted_area.push_back(loop - loops.begin());
-    }
-    
-    // outer first
-    std::sort(sorted_area.begin(), sorted_area.end(),
-        [&area](size_t a, size_t b) { return std::abs(area[a]) > std::abs(area[b]); });
+    /* The following lines are commented out because they can generate wrong polygons,
+       see for example issue #661 */
 
-    // we don't perform a safety offset now because it might reverse cw loops
-    Polygons p_slices;
-    for (std::vector<size_t>::const_iterator loop_idx = sorted_area.begin(); loop_idx != sorted_area.end(); ++ loop_idx) {
-        /* we rely on the already computed area to determine the winding order
-           of the loops, since the Orientation() function provided by Clipper
-           would do the same, thus repeating the calculation */
-        Polygons::const_iterator loop = loops.begin() + *loop_idx;
-        if (area[*loop_idx] > +EPSILON)
-            p_slices.push_back(*loop);
-        else if (area[*loop_idx] < -EPSILON)
-            //FIXME This is arbitrary and possibly very slow.
-            // If the hole is inside a polygon, then there is no need to diff.
-            // If the hole intersects a polygon boundary, then diff it, but then
-            // there is no guarantee of an ordering of the loops.
-            // Maybe we can test for the intersection before running the expensive diff algorithm?
-            p_slices = diff(p_slices, *loop);
-    }
+    //std::vector<double> area;
+    //std::vector<size_t> sorted_area;  // vector of indices
+    //for (Polygons::const_iterator loop = loops.begin(); loop != loops.end(); ++ loop) {
+    //    area.push_back(loop->area());
+    //    sorted_area.push_back(loop - loops.begin());
+    //}
+    //
+    //// outer first
+    //std::sort(sorted_area.begin(), sorted_area.end(),
+    //    [&area](size_t a, size_t b) { return std::abs(area[a]) > std::abs(area[b]); });
+
+    //// we don't perform a safety offset now because it might reverse cw loops
+    //Polygons p_slices;
+    //for (std::vector<size_t>::const_iterator loop_idx = sorted_area.begin(); loop_idx != sorted_area.end(); ++ loop_idx) {
+    //    /* we rely on the already computed area to determine the winding order
+    //       of the loops, since the Orientation() function provided by Clipper
+    //       would do the same, thus repeating the calculation */
+    //    Polygons::const_iterator loop = loops.begin() + *loop_idx;
+    //    if (area[*loop_idx] > +EPSILON)
+    //        p_slices.push_back(*loop);
+    //    else if (area[*loop_idx] < -EPSILON)
+    //        //FIXME This is arbitrary and possibly very slow.
+    //        // If the hole is inside a polygon, then there is no need to diff.
+    //        // If the hole intersects a polygon boundary, then diff it, but then
+    //        // there is no guarantee of an ordering of the loops.
+    //        // Maybe we can test for the intersection before running the expensive diff algorithm?
+    //        p_slices = diff(p_slices, *loop);
+    //}
 
     // perform a safety offset to merge very close facets (TODO: find test case for this)
     double safety_offset = scale_(0.0499);
 //FIXME see https://github.com/prusa3d/Slic3r/issues/520
 //    double safety_offset = scale_(0.0001);
-    ExPolygons ex_slices = offset2_ex(p_slices, +safety_offset, -safety_offset);
+
+    /* The following line is commented out because it can generate wrong polygons,
+       see for example issue #661 */
+    //ExPolygons ex_slices = offset2_ex(p_slices, +safety_offset, -safety_offset);
     
     #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     size_t holes_count = 0;
@@ -1231,7 +1236,10 @@ void TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slic
     #endif
     
     // append to the supplied collection
-    expolygons_append(*slices, ex_slices);
+    /* Fix for issue #661 { */
+    expolygons_append(*slices, offset2_ex(union_(loops, false), +safety_offset, -safety_offset));
+    //expolygons_append(*slices, ex_slices);
+    /* } */
 }
 
 void TriangleMeshSlicer::make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices) const

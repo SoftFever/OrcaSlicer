@@ -33,6 +33,8 @@ use constant TB_CUT     => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
 use constant TB_LAYER_EDITING => &Wx::NewId;
 
+use Wx::Locale gettext => 'L';
+
 # package variables to avoid passing lexicals to threads
 our $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
 our $ERROR_EVENT             : shared = Wx::NewEventType;
@@ -50,7 +52,7 @@ sub new {
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config::new_from_defaults_keys([qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
-        serial_port serial_speed octoprint_host octoprint_apikey
+        serial_port serial_speed octoprint_host octoprint_apikey octoprint_cafile
         nozzle_diameter single_extruder_multi_material 
         wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe wipe_tower_rotation_angle extruder_colour filament_colour
     )]);
@@ -99,7 +101,7 @@ sub new {
     # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
-        $self->{preview_notebook}->AddPage($self->{canvas3D}, '3D');
+        $self->{preview_notebook}->AddPage($self->{canvas3D}, L('3D'));
         $self->{canvas3D}->set_on_select_object($on_select_object);
         $self->{canvas3D}->set_on_double_click($on_double_click);
         $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
@@ -133,7 +135,7 @@ sub new {
     
     # Initialize 2D preview canvas
     $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
-    $self->{preview_notebook}->AddPage($self->{canvas}, '2D');
+    $self->{preview_notebook}->AddPage($self->{canvas}, L('2D'));
     $self->{canvas}->on_select_object($on_select_object);
     $self->{canvas}->on_double_click($on_double_click);
     $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
@@ -145,14 +147,14 @@ sub new {
         $self->{preview3D}->canvas->on_viewport_changed(sub {
             $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
         });
-        $self->{preview_notebook}->AddPage($self->{preview3D}, 'Preview');
+        $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
     }
     
     # Initialize toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
-        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, 'Layers');
+        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, L('Layers'));
     }
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
@@ -172,37 +174,37 @@ sub new {
     if (!&Wx::wxMSW) {
         Wx::ToolTip::Enable(1);
         $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE | wxTAB_TRAVERSAL);
-        $self->{htoolbar}->AddTool(TB_ADD, "Add…", Wx::Bitmap->new(Slic3r::var("brick_add.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_REMOVE, "Delete", Wx::Bitmap->new(Slic3r::var("brick_delete.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_RESET, "Delete All", Wx::Bitmap->new(Slic3r::var("cross.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_ARRANGE, "Arrange", Wx::Bitmap->new(Slic3r::var("bricks.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ADD, L("Add…"), Wx::Bitmap->new(Slic3r::var("brick_add.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_REMOVE, L("Delete"), Wx::Bitmap->new(Slic3r::var("brick_delete.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_RESET, L("Delete All"), Wx::Bitmap->new(Slic3r::var("cross.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_ARRANGE, L("Arrange"), Wx::Bitmap->new(Slic3r::var("bricks.png"), wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_MORE, "More", Wx::Bitmap->new(Slic3r::var("add.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_FEWER, "Fewer", Wx::Bitmap->new(Slic3r::var("delete.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_MORE, L("More"), Wx::Bitmap->new(Slic3r::var("add.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_FEWER, L("Fewer"), Wx::Bitmap->new(Slic3r::var("delete.png"), wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_45CCW, "45° ccw", Wx::Bitmap->new(Slic3r::var("arrow_rotate_anticlockwise.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_45CW, "45° cw", Wx::Bitmap->new(Slic3r::var("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_SCALE, "Scale…", Wx::Bitmap->new(Slic3r::var("arrow_out.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_SPLIT, "Split", Wx::Bitmap->new(Slic3r::var("shape_ungroup.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_CUT, "Cut…", Wx::Bitmap->new(Slic3r::var("package.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CCW, L("45° ccw"), Wx::Bitmap->new(Slic3r::var("arrow_rotate_anticlockwise.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_45CW, L("45° cw"), Wx::Bitmap->new(Slic3r::var("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SCALE, L("Scale…"), Wx::Bitmap->new(Slic3r::var("arrow_out.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_SPLIT, L("Split"), Wx::Bitmap->new(Slic3r::var("shape_ungroup.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_CUT, L("Cut…"), Wx::Bitmap->new(Slic3r::var("package.png"), wxBITMAP_TYPE_PNG), '');
         $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_SETTINGS, "Settings…", Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, 'Layer Editing', Wx::Bitmap->new(Slic3r::var("variable_layer_height.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, 0, 'Layer Editing');
+        $self->{htoolbar}->AddTool(TB_SETTINGS, L("Settings…"), Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG), '');
+        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, L('Layer Editing'), Wx::Bitmap->new(Slic3r::var("variable_layer_height.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, 0, 'Layer Editing');
     } else {
         my %tbar_buttons = (
-            add             => "Add…",
-            remove          => "Delete",
-            reset           => "Delete All",
-            arrange         => "Arrange",
+            add             => L("Add…"),
+            remove          => L("Delete"),
+            reset           => L("Delete All"),
+            arrange         => L("Arrange"),
             increase        => "",
             decrease        => "",
             rotate45ccw     => "",
             rotate45cw      => "",
-            changescale     => "Scale…",
-            split           => "Split",
-            cut             => "Cut…",
-            settings        => "Settings…",
-            layer_editing   => "Layer editing",
+            changescale     => L("Scale…"),
+            split           => L("Split"),
+            cut             => L("Cut…"),
+            settings        => L("Settings…"),
+            layer_editing   => L("Layer editing"),
         );
         $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
         for (qw(add remove reset arrange increase decrease rotate45ccw rotate45cw changescale split cut settings)) {
@@ -215,9 +217,9 @@ sub new {
 
     $self->{list} = Wx::ListView->new($self, -1, wxDefaultPosition, wxDefaultSize,
         wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS );
-    $self->{list}->InsertColumn(0, "Name", wxLIST_FORMAT_LEFT, 145);
-    $self->{list}->InsertColumn(1, "Copies", wxLIST_FORMAT_CENTER, 45);
-    $self->{list}->InsertColumn(2, "Scale", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    $self->{list}->InsertColumn(0, L("Name"), wxLIST_FORMAT_LEFT, 145);
+    $self->{list}->InsertColumn(1, L("Copies"), wxLIST_FORMAT_CENTER, 45);
+    $self->{list}->InsertColumn(2, L("Scale"), wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
     EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
     EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
     EVT_LIST_ITEM_ACTIVATED($self, $self->{list}, \&list_item_activated);
@@ -231,11 +233,11 @@ sub new {
     });
     
     # right pane buttons
-    $self->{btn_export_gcode} = Wx::Button->new($self, -1, "Export G-code…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_reslice} = Wx::Button->new($self, -1, "Slice now", wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_print} = Wx::Button->new($self, -1, "Print…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_send_gcode} = Wx::Button->new($self, -1, "Send to printer", wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_reslice} = Wx::Button->new($self, -1, L("Slice now"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_print} = Wx::Button->new($self, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_send_gcode} = Wx::Button->new($self, -1, L("Send to printer"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_export_stl} = Wx::Button->new($self, -1, L("Export STL…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
     #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_print}->Hide;
@@ -362,9 +364,9 @@ sub new {
             $presets->AddGrowableCol(1, 1);
             $presets->SetFlexibleDirection(wxHORIZONTAL);
             my %group_labels = (
-                print       => 'Print settings',
-                filament    => 'Filament',
-                printer     => 'Printer',
+                print       => L('Print settings'),
+                filament    => L('Filament'),
+                printer     => L('Printer'),
             );
             # UI Combo boxes for a print, multiple filaments, and a printer.
             # Initially a single filament combo box is created, but the number of combo boxes for the filament selection may increase,
@@ -393,7 +395,7 @@ sub new {
         
         my $object_info_sizer;
         {
-            my $box = Wx::StaticBox->new($self, -1, "Info");
+            my $box = Wx::StaticBox->new($self, -1, L("Info"));
             $object_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
             $object_info_sizer->SetMinSize([350,-1]);
             my $grid_sizer = Wx::FlexGridSizer->new(3, 4, 5, 5);
@@ -403,11 +405,11 @@ sub new {
             $object_info_sizer->Add($grid_sizer, 0, wxEXPAND);
             
             my @info = (
-                size        => "Size",
-                volume      => "Volume",
-                facets      => "Facets",
-                materials   => "Materials",
-                manifold    => "Manifold",
+                size        => L("Size"),
+                volume      => L("Volume"),
+                facets      => L("Facets"),
+                materials   => L("Materials"),
+                manifold    => L("Manifold"),
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
@@ -433,7 +435,7 @@ sub new {
 
         my $print_info_sizer;
         {
-            my $box = Wx::StaticBox->new($self, -1, "Sliced Info");
+            my $box = Wx::StaticBox->new($self, -1, L("Sliced Info"));
             $print_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
             $print_info_sizer->SetMinSize([350,-1]);
             my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
@@ -442,11 +444,11 @@ sub new {
             $grid_sizer->AddGrowableCol(3, 1);
             $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
             my @info = (
-                fil_m   => "Used Filament (m)",
-                fil_mm3 => "Used Filament (mm\x{00B3})",
-                fil_g   => "Used Filament (g)",
-                cost    => "Cost",
-                time    => "Estimated printing time",
+                fil_m   => L("Used Filament (m)"),
+                fil_mm3 => L("Used Filament (mm³)"),
+                fil_g   => L("Used Filament (g)"),
+                cost    => L("Cost"),
+                time    => L("Estimated printing time"),
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
@@ -624,7 +626,7 @@ sub load_files {
     my $one_by_one = (@$nozzle_dmrs <= 1) || (@$input_files == 1) || 
        defined(first { $_ =~ /.[aA][mM][fF]$/ || $_ =~ /.[aA][mM][fF].[xX][mM][lL]$/ || $_ =~ /.[zZ][iI][pP].[aA][mM][fF]$/ || $_ =~ /.3[mM][fF]$/ || $_ =~ /.[pP][rR][uI][sS][aA]$/ } @$input_files);
         
-    my $process_dialog = Wx::ProgressDialog->new('Loading…', "Processing input file\n" . basename($input_files->[0]), 100, $self, 0);
+    my $process_dialog = Wx::ProgressDialog->new(L('Loading…'), L("Processing input file\n") . basename($input_files->[0]), 100, $self, 0);
     $process_dialog->Pulse;
     local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
 
@@ -638,7 +640,7 @@ sub load_files {
     # For all input files.
     for (my $i = 0; $i < @$input_files; $i += 1) {
         my $input_file = $input_files->[$i];
-        $process_dialog->Update(100. * $i / @$input_files, "Processing input file\n" . basename($input_file));
+        $process_dialog->Update(100. * $i / @$input_files, L("Processing input file\n") . basename($input_file));
 
         my $model;
         if (($input_file =~ /.3[mM][fF]$/) || ($input_file =~ /.[zZ][iI][pP].[aA][mM][fF]$/))
@@ -658,10 +660,10 @@ sub load_files {
         
         if ($model->looks_like_multipart_object) {
             my $dialog = Wx::MessageDialog->new($self,
-                "This file contains several objects positioned at multiple heights. "
+                L("This file contains several objects positioned at multiple heights. "
                 . "Instead of considering them as multiple objects, should I consider\n"
-                . "this file as a single object having multiple parts?\n",
-                'Multi-part object detected', wxICON_WARNING | wxYES | wxNO);
+                . "this file as a single object having multiple parts?\n"),
+                L('Multi-part object detected'), wxICON_WARNING | wxYES | wxNO);
             $model->convert_multipart_object if $dialog->ShowModal() == wxID_YES;
         }
         
@@ -675,10 +677,10 @@ sub load_files {
 
     if ($new_model) {
         my $dialog = Wx::MessageDialog->new($self,
-            "Multiple objects were loaded for a multi-material printer.\n"
+            L("Multiple objects were loaded for a multi-material printer.\n"
             . "Instead of considering them as multiple objects, should I consider\n"
-            . "these files to represent a single object having multiple parts?\n",
-            'Multi-part object detected', wxICON_WARNING | wxYES | wxNO);
+            . "these files to represent a single object having multiple parts?\n"),
+            L('Multi-part object detected'), wxICON_WARNING | wxYES | wxNO);
         $new_model->convert_multipart_object if $dialog->ShowModal() == wxID_YES;
         push @obj_idx, $self->load_model_objects(@{$new_model->objects});
     }
@@ -687,7 +689,7 @@ sub load_files {
     wxTheApp->{app_config}->update_skein_dir(dirname($input_files->[-1]));
     
     $process_dialog->Destroy;
-    $self->statusbar->SetStatusText("Loaded " . join(',', @loaded_files));
+    $self->statusbar->SetStatusText(L("Loaded ") . join(',', @loaded_files));
     return @obj_idx;
 }
 
@@ -739,8 +741,8 @@ sub load_model_objects {
     if ($scaled_down) {
         Slic3r::GUI::show_info(
             $self,
-            'Your object appears to be too large, so it was automatically scaled down to fit your print bed.',
-            'Object too large?',
+            L('Your object appears to be too large, so it was automatically scaled down to fit your print bed.'),
+            L('Object too large?'),
         );
     }
     
@@ -895,7 +897,7 @@ sub set_number_of_copies {
     my $model_object = $self->{model}->objects->[$obj_idx];
     
     # prompt user
-    my $copies = Wx::GetNumberFromUser("", "Enter the number of copies of the selected object:", "Copies", $model_object->instances_count, 0, 1000, $self);
+    my $copies = Wx::GetNumberFromUser("", L("Enter the number of copies of the selected object:"), L("Copies"), $model_object->instances_count, 0, 1000, $self);
     my $diff = $copies - $model_object->instances_count;
     if ($diff == 0) {
         # no variation
@@ -922,9 +924,9 @@ sub _get_number_from_user {
         Wx::MessageBox(
             $error_message . 
             (($only_positive && $value <= 0) ? 
-                ": $value\nNon-positive value." : 
-                ": $value\nNot a numeric value."), 
-            "Slic3r Error", wxOK | wxICON_EXCLAMATION, $self);
+                ": ".$value.L("\nNon-positive value.") : 
+                ": ".$value.L("\nNot a numeric value.")), 
+            L("Slic3r Error"), wxOK | wxICON_EXCLAMATION, $self);
         $default = $value;
     }
 }
@@ -945,7 +947,7 @@ sub rotate {
     if (!defined $angle) {
         my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
         my $default = $axis == Z ? rad2deg($model_instance->rotation) : 0;
-        $angle = $self->_get_number_from_user("Enter the rotation angle:", "Rotate around $axis_name axis", "Invalid rotation angle entered", $default);
+        $angle = $self->_get_number_from_user(L("Enter the rotation angle:"), L("Rotate around ").$axis_name.(" axis"), L("Invalid rotation angle entered"), $default);
         return if $angle eq '';
     }
     
@@ -1025,12 +1027,12 @@ sub changescale {
         if ($tosize) {
             my $cursize = $object_size->[$axis];
             my $newsize = $self->_get_number_from_user(
-                sprintf('Enter the new size for the selected object (print bed: %smm):', unscale($bed_size->[$axis])), 
-                "Scale along $axis_name", 'Invalid scaling value entered', $cursize, 1);
+                sprintf(L('Enter the new size for the selected object (print bed: %smm):'), unscale($bed_size->[$axis])), 
+                L("Scale along ").$axis_name, L('Invalid scaling value entered'), $cursize, 1);
             return if $newsize eq '';
             $scale = $newsize / $cursize * 100;
         } else {
-            $scale = $self->_get_number_from_user('Enter the scale % for the selected object:', "Scale along $axis_name", 'Invalid scaling value entered', 100, 1);
+            $scale = $self->_get_number_from_user(L('Enter the scale % for the selected object:'), L("Scale along ").$axis_name, L('Invalid scaling value entered'), 100, 1);
             return if $scale eq '';
         }
         
@@ -1051,12 +1053,12 @@ sub changescale {
         my $scale;
         if ($tosize) {
             my $cursize = max(@$object_size);
-            my $newsize = $self->_get_number_from_user('Enter the new max size for the selected object:', 'Scale', 'Invalid scaling value entered', $cursize, 1);
+            my $newsize = $self->_get_number_from_user(L('Enter the new max size for the selected object:'), L('Scale'), L('Invalid scaling value entered'), $cursize, 1);
             return if ! defined($newsize) || $newsize eq '';
             $scale = $model_instance->scaling_factor * $newsize / $cursize * 100;
         } else {
             # max scale factor should be above 2540 to allow importing files exported in inches
-            $scale = $self->_get_number_from_user('Enter the scale % for the selected object:', 'Scale', 'Invalid scaling value entered', $model_instance->scaling_factor*100, 1);
+            $scale = $self->_get_number_from_user(L('Enter the scale % for the selected object:'), L('Scale'), L('Invalid scaling value entered'), $model_instance->scaling_factor*100, 1);
             return if ! defined($scale) || $scale eq '';
         }
     
@@ -1107,7 +1109,7 @@ sub split_object {
     my $current_model_object = $new_model->get_object($obj_idx);
     
     if ($current_model_object->volumes_count > 1) {
-        Slic3r::GUI::warning_catcher($self)->("The selected object can't be split because it contains more than one volume/material.");
+        Slic3r::GUI::warning_catcher($self)->(L("The selected object can't be split because it contains more than one volume/material."));
         return;
     }
     
@@ -1116,7 +1118,7 @@ sub split_object {
     my @model_objects = @{$current_model_object->split_object};
     if (@model_objects == 1) {
         $self->resume_background_process;
-        Slic3r::GUI::warning_catcher($self)->("The selected object couldn't be split because it contains only one part.");
+        Slic3r::GUI::warning_catcher($self)->(L("The selected object couldn't be split because it contains only one part."));
         $self->resume_background_process;
         return;
     }
@@ -1281,7 +1283,7 @@ sub reslice {
         $self->async_apply_config;
         $self->statusbar->SetCancelCallback(sub {
             $self->stop_background_process;
-            $self->statusbar->SetStatusText("Slicing cancelled");
+            $self->statusbar->SetStatusText(L("Slicing cancelled"));
             # this updates buttons status
             $self->object_list_changed;
         });
@@ -1295,7 +1297,7 @@ sub export_gcode {
     return if !@{$self->{objects}};
     
     if ($self->{export_gcode_output_file}) {
-        Wx::MessageDialog->new($self, "Another export job is currently running.", 'Error', wxOK | wxICON_ERROR)->ShowModal;
+        Wx::MessageDialog->new($self, L("Another export job is currently running."), L('Error'), wxOK | wxICON_ERROR)->ShowModal;
         return;
     }
     
@@ -1326,7 +1328,7 @@ sub export_gcode {
     } else {
         my $default_output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
         Slic3r::GUI::catch_error($self) and return;
-        my $dlg = Wx::FileDialog->new($self, 'Save G-code file as:', 
+        my $dlg = Wx::FileDialog->new($self, L('Save G-code file as:'), 
             wxTheApp->{app_config}->get_last_output_dir(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
@@ -1343,7 +1345,7 @@ sub export_gcode {
     
     $self->statusbar->SetCancelCallback(sub {
         $self->stop_background_process;
-        $self->statusbar->SetStatusText("Export cancelled");
+        $self->statusbar->SetStatusText(L("Export cancelled"));
         $self->{export_gcode_output_file} = undef;
         $self->{send_gcode_file} = undef;
         
@@ -1440,24 +1442,29 @@ sub on_export_completed {
     if ($result) {
         # G-code file exported successfully.
         if ($self->{print_file}) {
-            $message = "File added to print queue";
+            $message = L("File added to print queue");
             $do_print = 1;
         } elsif ($self->{send_gcode_file}) {
-            $message = "Sending G-code file to the OctoPrint server...";
+            $message = L("Sending G-code file to the OctoPrint server...");
             $send_gcode = 1;
         } else {
-            $message = "G-code file exported to " . $self->{export_gcode_output_file};
+            $message = L("G-code file exported to ") . $self->{export_gcode_output_file};
         }
     } else {
-        $message = "Export failed";
+        $message = L("Export failed");
     }
     $self->{export_gcode_output_file} = undef;
     $self->statusbar->SetStatusText($message);
     wxTheApp->notify($message);
     
     $self->do_print if $do_print;
+
     # Send $self->{send_gcode_file} to OctoPrint.
-    $self->send_gcode if $send_gcode;
+    if ($send_gcode) {
+        my $op = Slic3r::OctoPrint->new($self->{config});
+        $op->send_gcode($self->GetId(), $PROGRESS_BAR_EVENT, $ERROR_EVENT, $self->{send_gcode_file});
+    }
+
     $self->{print_file} = undef;
     $self->{send_gcode_file} = undef;
     $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
@@ -1486,45 +1493,6 @@ sub do_print {
     my $filament_names = wxTheApp->{preset_bundle}->filament_presets;
     $filament_stats = { map { $filament_names->[$_] => $filament_stats->{$_} } keys %$filament_stats };
     $printer_panel->load_print_job($self->{print_file}, $filament_stats);
-    
-    $self->GetFrame->select_tab(1);
-}
-
-# Send $self->{send_gcode_file} to OctoPrint.
-#FIXME Currently this call blocks the UI. Make it asynchronous.
-sub send_gcode {
-    my ($self) = @_;
-    
-    $self->statusbar->StartBusy;
-    
-    my $ua = LWP::UserAgent->new;
-    $ua->timeout(180);
-    
-    my $res = $ua->post(
-        "http://" . $self->{config}->octoprint_host . "/api/files/local",
-        Content_Type => 'form-data',
-        'X-Api-Key' => $self->{config}->octoprint_apikey,
-        Content => [
-            file => [ 
-                # On Windows, the path has to be encoded in local code page for perl to be able to open it.
-                Slic3r::encode_path($self->{send_gcode_file}),
-                # Remove the UTF-8 flag from the perl string, so the LWP::UserAgent can insert 
-                # the UTF-8 encoded string into the request as a byte stream.
-                Slic3r::path_to_filename_raw($self->{send_gcode_file})
-            ],
-            print => $self->{send_gcode_file_print} ? 1 : 0,
-        ],
-    );
-    
-    $self->statusbar->StopBusy;
-    
-    if ($res->is_success) {
-        $self->statusbar->SetStatusText("G-code file successfully uploaded to the OctoPrint server");
-    } else {
-        my $message = "Error while uploading to the OctoPrint server: " . $res->status_line;
-        Slic3r::GUI::show_error($self, $message);
-        $self->statusbar->SetStatusText($message);
-    }
 }
 
 sub export_stl {
@@ -1534,7 +1502,7 @@ sub export_stl {
     my $output_file = $self->_get_export_file('STL') or return;
     # Store a binary STL.
     $self->{model}->store_stl($output_file, 1);
-    $self->statusbar->SetStatusText("STL file exported to $output_file");
+    $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
 }
 
 sub reload_from_disk {
@@ -1576,7 +1544,7 @@ sub export_object_stl {
     # Ask user for a file name to write into.        
     my $output_file = $self->_get_export_file('STL') or return;
     $model_object->mesh->write_binary($output_file);
-    $self->statusbar->SetStatusText("STL file exported to $output_file");
+    $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
 }
 
 sub export_amf {
@@ -1587,11 +1555,11 @@ sub export_amf {
     my $res = $self->{model}->store_amf($output_file, $self->{print});
     if ($res)
     {
-        $self->statusbar->SetStatusText("AMF file exported to $output_file");
+        $self->statusbar->SetStatusText(L("AMF file exported to ").$output_file);
     }
     else
     {
-        $self->statusbar->SetStatusText("Error exporting AMF file $output_file");
+        $self->statusbar->SetStatusText(L("Error exporting AMF file ").$output_file);
     }
 }
 
@@ -1603,11 +1571,11 @@ sub export_3mf {
     my $res = $self->{model}->store_3mf($output_file, $self->{print});
     if ($res)
     {
-        $self->statusbar->SetStatusText("3MF file exported to $output_file");
+        $self->statusbar->SetStatusText(L("3MF file exported to ").$output_file);
     }
     else
     {
-        $self->statusbar->SetStatusText("Error exporting 3MF file $output_file");
+        $self->statusbar->SetStatusText(L("Error exporting 3MF file ").$output_file);
     }
 }
 
@@ -1616,23 +1584,32 @@ sub export_3mf {
 sub _get_export_file {
     my ($self, $format) = @_;    
     my $suffix = '';
+    my $wildcard = 'known';
     if ($format eq 'STL')
     {
         $suffix = '.stl';
+        $wildcard = 'stl';
     }
     elsif ($format eq 'AMF')
     {
-        $suffix = '.zip.amf';
+        if (&Wx::wxMAC) {
+            # It seems that MacOS does not like double extension
+            $suffix = '.amf';
+        } else {
+            $suffix = '.zip.amf';
+        }
+        $wildcard = 'amf';
     }
     elsif ($format eq '3MF')
     {
         $suffix = '.3mf';
+        $wildcard = 'threemf';
     }
     my $output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
     Slic3r::GUI::catch_error($self) and return undef;
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
-    my $dlg = Wx::FileDialog->new($self, "Save $format file as:", dirname($output_file),
-        basename($output_file), &Slic3r::GUI::MODEL_WILDCARD, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    my $dlg = Wx::FileDialog->new($self, L("Save ").$format.L(" file as:"), dirname($output_file),
+        basename($output_file), &Slic3r::GUI::FILE_WILDCARDS->{$wildcard}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if ($dlg->ShowModal != wxID_OK) {
         $dlg->Destroy;
         return undef;
@@ -1834,7 +1811,7 @@ sub object_cut_dialog {
     }
     
     if (!$Slic3r::GUI::have_OpenGL) {
-        Slic3r::GUI::show_error($self, "Please install the OpenGL modules to use this feature (see build instructions).");
+        Slic3r::GUI::show_error($self, L("Please install the OpenGL modules to use this feature (see build instructions)."));
         return;
     }
     
@@ -1944,19 +1921,19 @@ sub selection_changed {
             
             if (my $stats = $model_object->mesh_stats) {
                 $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * ($model_instance->scaling_factor**3)));
-                $self->{object_info_facets}->SetLabel(sprintf('%d (%d shells)', $model_object->facets_count, $stats->{number_of_parts}));
+                $self->{object_info_facets}->SetLabel(sprintf(L('%d (%d shells)'), $model_object->facets_count, $stats->{number_of_parts}));
                 if (my $errors = sum(@$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)})) {
-                    $self->{object_info_manifold}->SetLabel(sprintf("Auto-repaired (%d errors)", $errors));
+                    $self->{object_info_manifold}->SetLabel(sprintf(L("Auto-repaired (%d errors)"), $errors));
                     $self->{object_info_manifold_warning_icon}->Show;
                     
                     # we don't show normals_fixed because we never provide normals
 	                # to admesh, so it generates normals for all facets
-                    my $message = sprintf '%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d facets reversed, %d backwards edges',
+                    my $message = sprintf L('%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d facets reversed, %d backwards edges'),
                         @$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)};
                     $self->{object_info_manifold}->SetToolTipString($message);
                     $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
                 } else {
-                    $self->{object_info_manifold}->SetLabel("Yes");
+                    $self->{object_info_manifold}->SetLabel(L("Yes"));
                 }
             } else {
                 $self->{object_info_facets}->SetLabel($object->facets);
@@ -2007,99 +1984,99 @@ sub object_menu {
     my $frame = $self->GetFrame;
     my $menu = Wx::Menu->new;
     my $accel = ($^O eq 'MSWin32') ? sub { $_[0] . "\t\xA0" . $_[1] } : sub { $_[0] };
-    $frame->_append_menu_item($menu, $accel->('Delete', 'Del'), 'Remove the selected object', sub {
+    $frame->_append_menu_item($menu, $accel->(L('Delete'), 'Del'), L('Remove the selected object'), sub {
         $self->remove;
     }, undef, 'brick_delete.png');
-    $frame->_append_menu_item($menu, $accel->('Increase copies', '+'), 'Place one more copy of the selected object', sub {
+    $frame->_append_menu_item($menu, $accel->(L('Increase copies'), '+'), L('Place one more copy of the selected object'), sub {
         $self->increase;
     }, undef, 'add.png');
-    $frame->_append_menu_item($menu, $accel->('Decrease copies', '-'), 'Remove one copy of the selected object', sub {
+    $frame->_append_menu_item($menu, $accel->(L('Decrease copies'), '-'), L('Remove one copy of the selected object'), sub {
         $self->decrease;
     }, undef, 'delete.png');
-    $frame->_append_menu_item($menu, "Set number of copies…", 'Change the number of copies of the selected object', sub {
+    $frame->_append_menu_item($menu, L("Set number of copies…"), L('Change the number of copies of the selected object'), sub {
         $self->set_number_of_copies;
     }, undef, 'textfield.png');
     $menu->AppendSeparator();
-    $frame->_append_menu_item($menu, $accel->('Rotate 45° clockwise', 'l'), 'Rotate the selected object by 45° clockwise', sub {
+    $frame->_append_menu_item($menu, $accel->(L('Rotate 45° clockwise'), 'l'), L('Rotate the selected object by 45° clockwise'), sub {
         $self->rotate(-45, Z, 'relative');
     }, undef, 'arrow_rotate_clockwise.png');
-    $frame->_append_menu_item($menu, $accel->('Rotate 45° counter-clockwise', 'r'), 'Rotate the selected object by 45° counter-clockwise', sub {
+    $frame->_append_menu_item($menu, $accel->(L('Rotate 45° counter-clockwise'), 'r'), L('Rotate the selected object by 45° counter-clockwise'), sub {
         $self->rotate(+45, Z, 'relative');
     }, undef, 'arrow_rotate_anticlockwise.png');
     
     my $rotateMenu = Wx::Menu->new;
-    my $rotateMenuItem = $menu->AppendSubMenu($rotateMenu, "Rotate", 'Rotate the selected object by an arbitrary angle');
+    my $rotateMenuItem = $menu->AppendSubMenu($rotateMenu, L("Rotate"), L('Rotate the selected object by an arbitrary angle'));
     $frame->_set_menu_item_icon($rotateMenuItem, 'textfield.png');
-    $frame->_append_menu_item($rotateMenu, "Around X axis…", 'Rotate the selected object by an arbitrary angle around X axis', sub {
+    $frame->_append_menu_item($rotateMenu, L("Around X axis…"), L('Rotate the selected object by an arbitrary angle around X axis'), sub {
         $self->rotate(undef, X);
     }, undef, 'bullet_red.png');
-    $frame->_append_menu_item($rotateMenu, "Around Y axis…", 'Rotate the selected object by an arbitrary angle around Y axis', sub {
+    $frame->_append_menu_item($rotateMenu, L("Around Y axis…"), L('Rotate the selected object by an arbitrary angle around Y axis'), sub {
         $self->rotate(undef, Y);
     }, undef, 'bullet_green.png');
-    $frame->_append_menu_item($rotateMenu, "Around Z axis…", 'Rotate the selected object by an arbitrary angle around Z axis', sub {
+    $frame->_append_menu_item($rotateMenu, L("Around Z axis…"), L('Rotate the selected object by an arbitrary angle around Z axis'), sub {
         $self->rotate(undef, Z);
     }, undef, 'bullet_blue.png');
     
     my $mirrorMenu = Wx::Menu->new;
-    my $mirrorMenuItem = $menu->AppendSubMenu($mirrorMenu, "Mirror", 'Mirror the selected object');
+    my $mirrorMenuItem = $menu->AppendSubMenu($mirrorMenu, L("Mirror"), L('Mirror the selected object'));
     $frame->_set_menu_item_icon($mirrorMenuItem, 'shape_flip_horizontal.png');
-    $frame->_append_menu_item($mirrorMenu, "Along X axis…", 'Mirror the selected object along the X axis', sub {
+    $frame->_append_menu_item($mirrorMenu, L("Along X axis…"), L('Mirror the selected object along the X axis'), sub {
         $self->mirror(X);
     }, undef, 'bullet_red.png');
-    $frame->_append_menu_item($mirrorMenu, "Along Y axis…", 'Mirror the selected object along the Y axis', sub {
+    $frame->_append_menu_item($mirrorMenu, L("Along Y axis…"), L('Mirror the selected object along the Y axis'), sub {
         $self->mirror(Y);
     }, undef, 'bullet_green.png');
-    $frame->_append_menu_item($mirrorMenu, "Along Z axis…", 'Mirror the selected object along the Z axis', sub {
+    $frame->_append_menu_item($mirrorMenu, L("Along Z axis…"), L('Mirror the selected object along the Z axis'), sub {
         $self->mirror(Z);
     }, undef, 'bullet_blue.png');
     
     my $scaleMenu = Wx::Menu->new;
-    my $scaleMenuItem = $menu->AppendSubMenu($scaleMenu, "Scale", 'Scale the selected object along a single axis');
+    my $scaleMenuItem = $menu->AppendSubMenu($scaleMenu, L("Scale"), L('Scale the selected object along a single axis'));
     $frame->_set_menu_item_icon($scaleMenuItem, 'arrow_out.png');
-    $frame->_append_menu_item($scaleMenu, $accel->('Uniformly…', 's'), 'Scale the selected object along the XYZ axes', sub {
+    $frame->_append_menu_item($scaleMenu, $accel->(L('Uniformly…'), 's'), L('Scale the selected object along the XYZ axes'), sub {
         $self->changescale(undef);
     });
-    $frame->_append_menu_item($scaleMenu, "Along X axis…", 'Scale the selected object along the X axis', sub {
+    $frame->_append_menu_item($scaleMenu, L("Along X axis…"), L('Scale the selected object along the X axis'), sub {
         $self->changescale(X);
     }, undef, 'bullet_red.png');
-    $frame->_append_menu_item($scaleMenu, "Along Y axis…", 'Scale the selected object along the Y axis', sub {
+    $frame->_append_menu_item($scaleMenu, L("Along Y axis…"), L('Scale the selected object along the Y axis'), sub {
         $self->changescale(Y);
     }, undef, 'bullet_green.png');
-    $frame->_append_menu_item($scaleMenu, "Along Z axis…", 'Scale the selected object along the Z axis', sub {
+    $frame->_append_menu_item($scaleMenu, L("Along Z axis…"), L('Scale the selected object along the Z axis'), sub {
         $self->changescale(Z);
     }, undef, 'bullet_blue.png');
     
     my $scaleToSizeMenu = Wx::Menu->new;
-    my $scaleToSizeMenuItem = $menu->AppendSubMenu($scaleToSizeMenu, "Scale to size", 'Scale the selected object along a single axis');
+    my $scaleToSizeMenuItem = $menu->AppendSubMenu($scaleToSizeMenu, L("Scale to size"), L('Scale the selected object along a single axis'));
     $frame->_set_menu_item_icon($scaleToSizeMenuItem, 'arrow_out.png');
-    $frame->_append_menu_item($scaleToSizeMenu, "Uniformly…", 'Scale the selected object along the XYZ axes', sub {
+    $frame->_append_menu_item($scaleToSizeMenu, L("Uniformly…"), L('Scale the selected object along the XYZ axes'), sub {
         $self->changescale(undef, 1);
     });
-    $frame->_append_menu_item($scaleToSizeMenu, "Along X axis…", 'Scale the selected object along the X axis', sub {
+    $frame->_append_menu_item($scaleToSizeMenu, L("Along X axis…"), L('Scale the selected object along the X axis'), sub {
         $self->changescale(X, 1);
     }, undef, 'bullet_red.png');
-    $frame->_append_menu_item($scaleToSizeMenu, "Along Y axis…", 'Scale the selected object along the Y axis', sub {
+    $frame->_append_menu_item($scaleToSizeMenu, L("Along Y axis…"), L('Scale the selected object along the Y axis'), sub {
         $self->changescale(Y, 1);
     }, undef, 'bullet_green.png');
-    $frame->_append_menu_item($scaleToSizeMenu, "Along Z axis…", 'Scale the selected object along the Z axis', sub {
+    $frame->_append_menu_item($scaleToSizeMenu, L("Along Z axis…"), L('Scale the selected object along the Z axis'), sub {
         $self->changescale(Z, 1);
     }, undef, 'bullet_blue.png');
     
-    $frame->_append_menu_item($menu, "Split", 'Split the selected object into individual parts', sub {
+    $frame->_append_menu_item($menu, L("Split"), L('Split the selected object into individual parts'), sub {
         $self->split_object;
     }, undef, 'shape_ungroup.png');
-    $frame->_append_menu_item($menu, "Cut…", 'Open the 3D cutting tool', sub {
+    $frame->_append_menu_item($menu, L("Cut…"), L('Open the 3D cutting tool'), sub {
         $self->object_cut_dialog;
     }, undef, 'package.png');
     $menu->AppendSeparator();
-    $frame->_append_menu_item($menu, "Settings…", 'Open the object editor dialog', sub {
+    $frame->_append_menu_item($menu, L("Settings…"), L('Open the object editor dialog'), sub {
         $self->object_settings_dialog;
     }, undef, 'cog.png');
     $menu->AppendSeparator();
-    $frame->_append_menu_item($menu, "Reload from Disk", 'Reload the selected file from Disk', sub {
+    $frame->_append_menu_item($menu, L("Reload from Disk"), L('Reload the selected file from Disk'), sub {
         $self->reload_from_disk;
     }, undef, 'arrow_refresh.png');
-    $frame->_append_menu_item($menu, "Export object as STL…", 'Export this single object as STL file', sub {
+    $frame->_append_menu_item($menu, L("Export object as STL…"), L('Export this single object as STL file'), sub {
         $self->export_object_stl;
     }, undef, 'brick_go.png');
     
@@ -2110,8 +2087,8 @@ sub object_menu {
 sub select_view {
     my ($self, $direction) = @_;
     my $idx_page = $self->{preview_notebook}->GetSelection;
-    my $page = ($idx_page == &Wx::wxNOT_FOUND) ? '3D' : $self->{preview_notebook}->GetPageText($idx_page);
-    if ($page eq 'Preview') {
+    my $page = ($idx_page == &Wx::wxNOT_FOUND) ? L('3D') : $self->{preview_notebook}->GetPageText($idx_page);
+    if ($page eq L('Preview')) {
         $self->{preview3D}->canvas->select_view($direction);
         $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
     } else {

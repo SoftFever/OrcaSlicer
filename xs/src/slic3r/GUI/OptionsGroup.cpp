@@ -2,7 +2,6 @@
 #include "ConfigExceptions.hpp"
 
 #include <utility>
-#include <wx/tooltip.h>
 #include <wx/numformatter.h>
 
 namespace Slic3r { namespace GUI {
@@ -122,13 +121,13 @@ void OptionsGroup::append_line(const Line& line) {
     }
 
     // If there's a widget, build it and add the result to the sizer.
-    if (line.widget != nullptr) {
-        auto wgt = line.widget(parent());
+	if (line.widget != nullptr) {
+		auto wgt = line.widget(parent());
 		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
-        return;
-    }
-    
-    // if we have a single option with no sidetext just add it directly to the grid sizer
+		return;
+	}
+	
+	// if we have a single option with no sidetext just add it directly to the grid sizer
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
         const auto& option = option_set.front();
@@ -152,7 +151,12 @@ void OptionsGroup::append_line(const Line& line) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {
-			auto field_label = new wxStaticText(parent(), wxID_ANY, wxString::FromUTF8(option.label.c_str()) + ":", wxDefaultPosition, wxDefaultSize);
+			wxString str_label = L_str(option.label);
+//!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
+// 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
+// 								wxGETTEXT_IN_CONTEXT("Layers", wxString(option.label.c_str()):
+// 								L_str(option.label);
+			auto field_label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
 			field_label->SetFont(label_font);
 			sizer->Add(field_label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
@@ -166,7 +170,7 @@ void OptionsGroup::append_line(const Line& line) {
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			auto sidetext = new wxStaticText(parent(), wxID_ANY, wxString::FromUTF8(option.sidetext.c_str()), wxDefaultPosition, wxDefaultSize);
+			auto sidetext = new wxStaticText(parent(), wxID_ANY, L_str(option.sidetext), wxDefaultPosition, wxDefaultSize);
 			sidetext->SetFont(sidetext_font);
 			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 		}
@@ -188,7 +192,7 @@ void OptionsGroup::append_line(const Line& line) {
 }
 
 Line OptionsGroup::create_single_option_line(const Option& option) const {
-	Line retval{ wxString::FromUTF8(option.opt.label.c_str()), wxString::FromUTF8(option.opt.tooltip.c_str()) };
+	Line retval{ L_str(option.opt.label), L_str(option.opt.tooltip) };
     Option tmp(option);
     tmp.opt.label = std::string("");
     retval.append_option(tmp);
@@ -203,7 +207,7 @@ void OptionsGroup::on_change_OG(t_config_option_key id, /*config_value*/boost::a
 Option ConfigOptionsGroup::get_option(const std::string opt_key, int opt_index /*= -1*/)
 {
 	if (!m_config->has(opt_key)) {
-		//! exception  ("No $opt_key in ConfigOptionsGroup config");
+		std::cerr << "No " << opt_key << " in ConfigOptionsGroup config.";
 	}
 
 	std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);
@@ -287,14 +291,6 @@ boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, 
 	}
 }
 
-wxString double_to_string(double const value)
-{
-	int precision = 10 * value - int(10 * value) == 0 ? 1 : 2; 
-	return value - int(value) == 0 ?
-		wxString::Format(_T("%i"), int(value)) :
-		wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
-}
-
 boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index/* = -1*/)
 {
 	size_t idx = opt_index == -1 ? 0 : opt_index;
@@ -325,9 +321,9 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 	case coFloats:
 	case coFloat:{
 		double val = opt->type == coFloats ?
-					config.opt_float(opt_key, idx/*0opt_index*/) :
+					config.opt_float(opt_key, idx) :
 						opt->type == coFloat ? config.opt_float(opt_key) :
-						config.option<ConfigOptionPercents>(opt_key)->values.at(idx/*0*/);
+						config.option<ConfigOptionPercents>(opt_key)->values.at(idx);
 		ret = double_to_string(val);
 		}
 		break;
@@ -338,19 +334,19 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
 		else
-			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(idx/*0*/)/*opt_index*/));
+			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(idx)));
 		break;
 	case coBool:
 		ret = config.opt_bool(opt_key);
 		break;
 	case coBools:
-		ret = config.opt_bool(opt_key, idx/*0opt_index*/);
+		ret = config.opt_bool(opt_key, idx);
 		break;
 	case coInt:
 		ret = config.opt_int(opt_key);
 		break;
 	case coInts:
-		ret = config.opt_int(opt_key, idx/*0/*opt_index*/);
+		ret = config.opt_int(opt_key, idx);
 		break;
 	case coEnum:{
 		if (opt_key.compare("external_fill_pattern") == 0 ||
@@ -369,7 +365,7 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 		break;
 	case coPoints:{
 		const auto &value = *config.option<ConfigOptionPoints>(opt_key);
-		ret = value.values.at(idx/*0*/);
+		ret = value.values.at(idx);
 		}
 		break;
 	case coNone:
@@ -395,15 +391,6 @@ void ogStaticText::SetText(wxString value)
 	SetLabel(value);
 	Wrap(400);
 	GetParent()->Layout();
-}
-
-void Option::translate()
-{
-	opt.label = _LU8(opt.label);
-	opt.tooltip = _LU8(opt.tooltip);
-	opt.sidetext = _LU8(opt.sidetext);
-	opt.full_label = _LU8(opt.full_label);
-	opt.category = _LU8(opt.category);
 }
 
 } // GUI

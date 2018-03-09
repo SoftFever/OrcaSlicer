@@ -39,7 +39,7 @@ class BedShapeDialog : public wxDialog
 {
 	BedShapePanel*	m_panel;
 public:
-	BedShapeDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, _L("Bed Shape"),
+	BedShapeDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, _(L("Bed Shape")),
 		wxDefaultPosition, wxSize(350, 700), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER){}
 	~BedShapeDialog(){  }
 

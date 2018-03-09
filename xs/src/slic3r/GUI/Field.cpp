@@ -10,13 +10,20 @@
 
 namespace Slic3r { namespace GUI {
 
+	wxString double_to_string(double const value)
+	{
+		int precision = 10 * value - int(10 * value) == 0 ? 1 : 2;
+		return value - int(value) == 0 ?
+			wxString::Format(_T("%i"), int(value)) :
+			wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
+	}
+
 	void Field::on_kill_focus(wxEvent& event) {
         // Without this, there will be nasty focus bugs on Windows.
         // Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
         // non-command events to allow the default handling to take place."
 		event.Skip();
-		std::cerr << "calling Field::on_kill_focus from " << m_opt_id<< "\n";
-        // call the registered function if it is available
+		// call the registered function if it is available
         if (m_on_kill_focus!=nullptr) 
             m_on_kill_focus();
     }
@@ -30,9 +37,9 @@ namespace Slic3r { namespace GUI {
 	wxString Field::get_tooltip_text(const wxString& default_string)
 	{
 		wxString tooltip_text("");
-		wxString tooltip = wxString::FromUTF8(m_opt.tooltip.c_str());
+		wxString tooltip = L_str(m_opt.tooltip);
 		if (tooltip.length() > 0)
-			tooltip_text = tooltip + "(" + _L("default") + ": " +
+			tooltip_text = tooltip + "(" + _(L("default")) + ": " +
 							(boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + 
 							default_string + ")";
 
@@ -45,7 +52,7 @@ namespace Slic3r { namespace GUI {
 		return std::regex_match(string, regex_pattern);
 	}
 
-	boost::any Field::get_value_by_opt_type(wxString str, ConfigOptionType type)
+	boost::any Field::get_value_by_opt_type(wxString str)
 	{
 		boost::any ret_val;
 		switch (m_opt.type){
@@ -56,23 +63,17 @@ namespace Slic3r { namespace GUI {
 		case coPercents:
 		case coFloats:
 		case coFloat:{
-			if (m_opt.type == coPercent) str.RemoveLast();
+			if (m_opt.type == coPercent && str.Last() == '%') 
+				str.RemoveLast();
 			double val;
 			str.ToCDouble(&val);
 			ret_val = val;
 			break; }
 		case coString:
 		case coStrings:
+		case coFloatOrPercent:
 			ret_val = str.ToStdString();
 			break;
-		case coFloatOrPercent:{
-			if (str.Last() == '%')
-				str.RemoveLast();
-			double val;
-			str.ToCDouble(&val);
-			ret_val = val;
-			break;
-		}
 		default:
 			break;
 		}
@@ -90,13 +91,9 @@ namespace Slic3r { namespace GUI {
 		switch (m_opt.type) {
 		case coFloatOrPercent:
 		{
-			if (static_cast<const ConfigOptionFloatOrPercent*>(m_opt.default_value)->percent)
-			{
-				text_value = wxString::Format(_T("%i"), int(m_opt.default_value->getFloat()));
-				text_value += "%";
-			}
-			else
-				text_value = wxNumberFormatter::ToString(m_opt.default_value->getFloat(), 2);
+			text_value = double_to_string(m_opt.default_value->getFloat());
+ 			if (static_cast<const ConfigOptionFloatOrPercent*>(m_opt.default_value)->percent)
+ 				text_value += "%";
 			break;
 		}
 		case coPercent:
@@ -106,29 +103,15 @@ namespace Slic3r { namespace GUI {
 			break;
 		}	
 		case coPercents:
-		{
-			const ConfigOptionPercents *vec = static_cast<const ConfigOptionPercents*>(m_opt.default_value);
-			if (vec == nullptr || vec->empty()) break;
-			if (vec->size() > 1)
-				break;
-			double val = vec->get_at(0);
-			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
-			break;
-		}			
+		case coFloats:
 		case coFloat:
 		{
-			double val = m_opt.default_value->getFloat();
-			text_value = (val - int(val)) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
-			break;
-		}			
-		case coFloats:
-		{
-			const ConfigOptionFloats *vec = static_cast<const ConfigOptionFloats*>(m_opt.default_value);
-			if (vec == nullptr || vec->empty()) break;
-			if (vec->size() > 1)
-				break;
-			double val = vec->get_at(0);
-			text_value = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
+			double val = m_opt.type == coFloats ?
+				static_cast<const ConfigOptionFloats*>(m_opt.default_value)->get_at(0) :
+				m_opt.type == coFloat ? 
+					m_opt.default_value->getFloat() :
+					static_cast<const ConfigOptionPercents*>(m_opt.default_value)->get_at(0);
+			text_value = double_to_string(val);
 			break;
 		}
 		case coString:			
@@ -174,7 +157,7 @@ namespace Slic3r { namespace GUI {
 	boost::any TextCtrl::get_value()
 	{
 		wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-		boost::any ret_val = get_value_by_opt_type(ret_str, m_opt.type);
+		boost::any ret_val = get_value_by_opt_type(ret_str);
 
 		return ret_val;
 	}
@@ -303,7 +286,7 @@ void Choice::set_selection()
 				break;
 			++idx;
 		}
-		if (m_opt.type == coPercent) text_value += "%";
+//		if (m_opt.type == coPercent) text_value += "%";
 		idx == m_opt.enum_values.size() ?
 			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
@@ -387,7 +370,7 @@ void Choice::set_value(boost::any value)
 				break;
 			++idx;
 		}
-		if (m_opt.type == coPercent) text_value += "%";
+//		if (m_opt.type == coPercent) text_value += "%";
 		idx == m_opt.enum_values.size() ?
 			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
@@ -429,7 +412,7 @@ boost::any Choice::get_value()
 	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
 
 	if (m_opt.type != coEnum)
-		ret_val = get_value_by_opt_type(ret_str, m_opt.type);
+		ret_val = get_value_by_opt_type(ret_str);
 	else
 	{
 		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
@@ -535,21 +518,29 @@ void PointCtrl::set_value(const Pointf value)
 void PointCtrl::set_value(boost::any value)
 {
 	Pointf pt;
-	try
+	Pointf *ptf = boost::any_cast<Pointf>(&value);
+	if (!ptf)
 	{
-		pt = boost::any_cast<ConfigOptionPoints*>(value)->values.at(0);
+		ConfigOptionPoints* pts = boost::any_cast<ConfigOptionPoints*>(value);
+		pt = pts->values.at(0);
 	}
-	catch (const std::exception &e)
-	{
-		try{
-			pt = boost::any_cast<Pointf>(value);
-		}
-		catch (const std::exception &e)
-		{
-			std::cerr << "Error! Can't cast PointCtrl value" << m_opt_id << "\n";
-			return;
-		}		
-	}	
+	else
+		pt = *ptf;
+// 	try
+// 	{
+// 		pt = boost::any_cast<ConfigOptionPoints*>(value)->values.at(0);
+// 	}
+// 	catch (const std::exception &e)
+// 	{
+// 		try{
+// 			pt = boost::any_cast<Pointf>(value);
+// 		}
+// 		catch (const std::exception &e)
+// 		{
+// 			std::cerr << "Error! Can't cast PointCtrl value" << m_opt_id << "\n";
+// 			return;
+// 		}		
+// 	}	
 	set_value(pt);
 }
 

@@ -36,43 +36,43 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 {
 //  on_change(nullptr);
 
-	auto box = new wxStaticBox(this, wxID_ANY, _L("Shape"));
+	auto box = new wxStaticBox(this, wxID_ANY, _(L("Shape")));
 	auto sbsizer = new wxStaticBoxSizer(box, wxVERTICAL);
 
 	// shape options
 	m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(300, -1), wxCHB_TOP);
 	sbsizer->Add(m_shape_options_book);
 
-	auto optgroup = init_shape_options_page(_L("Rectangular"));
+	auto optgroup = init_shape_options_page(_(L("Rectangular")));
 		ConfigOptionDef def;
 		def.type = coPoints;
 		def.default_value = new ConfigOptionPoints{ Pointf(200, 200) };
-		def.label = _LU8("Size");
-		def.tooltip = _LU8("Size in X and Y of the rectangular plate.");
+		def.label = L("Size");
+		def.tooltip = L("Size in X and Y of the rectangular plate.");
 		Option option(def, "rect_size");
 		optgroup->append_single_option_line(option);
 
 		def.type = coPoints;
 		def.default_value = new ConfigOptionPoints{ Pointf(0, 0) };
-		def.label = _LU8("Origin");
-		def.tooltip = _LU8("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
+		def.label = L("Origin");
+		def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
 		option = Option(def, "rect_origin");
 		optgroup->append_single_option_line(option);
 
-		optgroup = init_shape_options_page(_L("Circular"));
+		optgroup = init_shape_options_page(_(L("Circular")));
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat(200);
-		def.sidetext = _LU8("mm");
-		def.label = _LU8("Diameter");
-		def.tooltip = _LU8("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
+		def.sidetext = L("mm");
+		def.label = L("Diameter");
+		def.tooltip = L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
 		option = Option(def, "diameter");
 		optgroup->append_single_option_line(option);
 
-		optgroup = init_shape_options_page(_L("Custom"));
+		optgroup = init_shape_options_page(_(L("Custom")));
 		Line line{ "", "" };
 		line.full_width = 1;
 		line.widget = [this](wxWindow* parent) {
-			auto btn = new wxButton(parent, wxID_ANY, _L("Load shape from STL..."), wxDefaultPosition, wxDefaultSize);
+			auto btn = new wxButton(parent, wxID_ANY, _(L("Load shape from STL...")), wxDefaultPosition, wxDefaultSize);
 			
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -117,7 +117,7 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(wxString title){
 
 	auto panel = new wxPanel(m_shape_options_book);
 	ConfigOptionsGroupShp optgroup;
-	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Settings"));
+	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Settings")));
 
 	optgroup->label_width = 100;
 	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
@@ -290,12 +290,12 @@ void BedShapePanel::update_shape()
 void BedShapePanel::load_stl()
 {
 	t_file_wild_card vec_FILE_WILDCARDS = get_file_wild_card();
-	std::vector<std::string> file_types = { "known", "stl", "obj", "amf", "prusa"};
-	wxString MODEL_WILDCARD;
+    std::vector<std::string> file_types = { "known", "stl", "obj", "amf", "3mf", "prusa" };
+    wxString MODEL_WILDCARD;
 	for (auto file_type: file_types)
 		MODEL_WILDCARD += vec_FILE_WILDCARDS.at(file_type) + "|";
 
-	auto dialog = new wxFileDialog(this, _L("Choose a file to import bed shape from (STL/OBJ/AMF/PRUSA):"), "", "",
+	auto dialog = new wxFileDialog(this, _(L("Choose a file to import bed shape from (STL/OBJ/AMF/3MF/PRUSA):")), "", "",
 		MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (dialog->ShowModal() != wxID_OK) {
 		dialog->Destroy();
@@ -312,7 +312,7 @@ void BedShapePanel::load_stl()
 		model = Model::read_from_file(file_name);
 	}
 	catch (std::exception &e) {
-		auto msg = _L("Error! ") + file_name + " : " + e.what() + ".";
+		auto msg = _(L("Error! ")) + file_name + " : " + e.what() + ".";
 		show_error(this, msg);
 		exit(1);
 	}
@@ -321,11 +321,11 @@ void BedShapePanel::load_stl()
 	auto expolygons = mesh.horizontal_projection();
 
 	if (expolygons.size() == 0) {
-		show_error(this, _L("The selected file contains no geometry."));
+		show_error(this, _(L("The selected file contains no geometry.")));
 		return;
 	}
 	if (expolygons.size() > 1) {
-		show_error(this, _L("The selected file contains several disjoint areas. This is not supported."));
+		show_error(this, _(L("The selected file contains several disjoint areas. This is not supported.")));
 		return;
 	}
 

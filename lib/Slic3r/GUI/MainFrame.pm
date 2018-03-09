@@ -14,6 +14,8 @@ use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedi
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Frame';
 
+use Wx::Locale gettext => 'L';
+
 our $qs_last_input_file;
 our $qs_last_output_file;
 our $last_config;
@@ -48,7 +50,8 @@ sub new {
     $self->{no_plater} = $params{no_plater};
     $self->{loaded} = 0;
     $self->{lang_ch_event} = $params{lang_ch_event};
-    
+    $self->{preferences_event} = $params{preferences_event};
+
     # initialize tabpanel and menubar
     $self->_init_tabpanel;
     $self->_init_menubar;
@@ -60,7 +63,7 @@ sub new {
     
     # initialize status bar
     $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($self, -1);
-    $self->{statusbar}->SetStatusText("Version $Slic3r::VERSION - Remember to check for updates at http://github.com/prusa3d/slic3r/releases");
+    $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
     $self->SetStatusBar($self->{statusbar});
     
     $self->{loaded} = 1;
@@ -112,9 +115,9 @@ sub _init_tabpanel {
     });
     
     if (!$self->{no_plater}) {
-        $panel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($panel), "Plater");
+        $panel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($panel), L("Plater"));
         if (!$self->{no_controller}) {
-            $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), "Controller");
+            $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), L("Controller"));
         }
     }
     
@@ -171,7 +174,6 @@ sub _init_tabpanel {
     EVT_COMMAND($self, -1, $BUTTON_BROWSE_EVENT, sub {
         my ($self, $event) = @_;
         my $msg = $event->GetString;
-        print "BUTTON_BROWSE_EVENT: ", $msg, "\n";
 
         # look for devices
         my $entries;
@@ -186,7 +188,7 @@ sub _init_tabpanel {
             $tab->load_key_value('octoprint_host', $dlg->GetValue . ":" . $dlg->GetPort)
                 if $dlg->ShowModal == wxID_OK;
         } else {
-            Wx::MessageDialog->new($self, 'No Bonjour device found', 'Device Browser', wxOK | wxICON_INFORMATION)->ShowModal;
+            Wx::MessageDialog->new($self, L('No Bonjour device found'), L('Device Browser'), wxOK | wxICON_INFORMATION)->ShowModal;
         }
     });
     # The following event is emited by the C++ Tab implementation ,
@@ -194,7 +196,6 @@ sub _init_tabpanel {
     EVT_COMMAND($self, -1, $BUTTON_TEST_EVENT, sub {
         my ($self, $event) = @_;
         my $msg = $event->GetString;
-        print "BUTTON_TEST_EVENT: ", $msg, "\n";
 
         my $ua = LWP::UserAgent->new;
         $ua->timeout(10);
@@ -205,19 +206,19 @@ sub _init_tabpanel {
             'X-Api-Key' => $config->octoprint_apikey,
         );
         if ($res->is_success) {
-            Slic3r::GUI::show_info($self, "Connection to OctoPrint works correctly.", "Success!");
+            Slic3r::GUI::show_info($self, L("Connection to OctoPrint works correctly."), _L("Success!"));
         } else {
             Slic3r::GUI::show_error($self,
-                "I wasn't able to connect to OctoPrint (" . $res->status_line . "). "
-                . "Check hostname and OctoPrint version (at least 1.1.0 is required).");
+                L("I wasn't able to connect to OctoPrint (") . $res->status_line . 
+                L("). Check hostname and OctoPrint version (at least 1.1.0 is required)."));
         }
     });
     # A variable to inform C++ Tab implementation about disabling of Browse button
     $self->{is_disabled_button_browse} = (!eval "use Net::Bonjour; 1") ? 1 : 0 ;
     # A variable to inform C++ Tab implementation about user_agent
     $self->{is_user_agent} = (eval "use LWP::UserAgent; 1") ? 1 : 0 ;    
-    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, wxTheApp->{app_config}, 
-                                    $self->{no_controller}, $self->{is_disabled_button_browse},
+    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, $self->{no_controller},
+                                    $self->{is_disabled_button_browse},
                                     $self->{is_user_agent},
                                     $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT,
                                     $BUTTON_BROWSE_EVENT, $BUTTON_TEST_EVENT);
@@ -245,59 +246,60 @@ sub _init_menubar {
     # File menu
     my $fileMenu = Wx::Menu->new;
     {
-        wxTheApp->append_menu_item($fileMenu, "Open STL/OBJ/AMF…\tCtrl+O", 'Open a model', sub {
+        wxTheApp->append_menu_item($fileMenu, L("Open STL/OBJ/AMF…\tCtrl+O"), L('Open a model'), sub {
             $self->{plater}->add if $self->{plater};
         }, undef, undef); #'brick_add.png');
-        $self->_append_menu_item($fileMenu, "&Load Config…\tCtrl+L", 'Load exported configuration file', sub {
+        $self->_append_menu_item($fileMenu, L("&Load Config…\tCtrl+L"), L('Load exported configuration file'), sub {
             $self->load_config_file;
         }, undef, 'plugin_add.png');
-        $self->_append_menu_item($fileMenu, "&Export Config…\tCtrl+E", 'Export current configuration to file', sub {
+        $self->_append_menu_item($fileMenu, L("&Export Config…\tCtrl+E"), L('Export current configuration to file'), sub {
             $self->export_config;
         }, undef, 'plugin_go.png');
-        $self->_append_menu_item($fileMenu, "&Load Config Bundle…", 'Load presets from a bundle', sub {
+        $self->_append_menu_item($fileMenu, L("&Load Config Bundle…"), L('Load presets from a bundle'), sub {
             $self->load_configbundle;
         }, undef, 'lorry_add.png');
-        $self->_append_menu_item($fileMenu, "&Export Config Bundle…", 'Export all presets to file', sub {
+        $self->_append_menu_item($fileMenu, L("&Export Config Bundle…"), L('Export all presets to file'), sub {
             $self->export_configbundle;
         }, undef, 'lorry_go.png');
         $fileMenu->AppendSeparator();
         my $repeat;
-        $self->_append_menu_item($fileMenu, "Q&uick Slice…\tCtrl+U", 'Slice a file into a G-code', sub {
+        $self->_append_menu_item($fileMenu, L("Q&uick Slice…\tCtrl+U"), L('Slice a file into a G-code'), sub {
             wxTheApp->CallAfter(sub {
                 $self->quick_slice;
                 $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
             });
         }, undef, 'cog_go.png');
-        $self->_append_menu_item($fileMenu, "Quick Slice and Save &As…\tCtrl+Alt+U", 'Slice a file into a G-code, save as', sub {
+        $self->_append_menu_item($fileMenu, L("Quick Slice and Save &As…\tCtrl+Alt+U"), L('Slice a file into a G-code, save as'), sub {
             wxTheApp->CallAfter(sub {
                 $self->quick_slice(save_as => 1);
                 $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
             });
         }, undef, 'cog_go.png');
-        $repeat = $self->_append_menu_item($fileMenu, "&Repeat Last Quick Slice\tCtrl+Shift+U", 'Repeat last quick slice', sub {
+        $repeat = $self->_append_menu_item($fileMenu, L("&Repeat Last Quick Slice\tCtrl+Shift+U"), L('Repeat last quick slice'), sub {
             wxTheApp->CallAfter(sub {
                 $self->quick_slice(reslice => 1);
             });
         }, undef, 'cog_go.png');
         $repeat->Enable(0);
         $fileMenu->AppendSeparator();
-        $self->_append_menu_item($fileMenu, "Slice to SV&G…\tCtrl+G", 'Slice file to a multi-layer SVG', sub {
+        $self->_append_menu_item($fileMenu, L("Slice to SV&G…\tCtrl+G"), L('Slice file to a multi-layer SVG'), sub {
             $self->quick_slice(save_as => 1, export_svg => 1);
         }, undef, 'shape_handles.png');
         $self->{menu_item_reslice_now} = $self->_append_menu_item(
-            $fileMenu, "(&Re)Slice Now\tCtrl+S", 'Start new slicing process', 
+            $fileMenu, L("(&Re)Slice Now\tCtrl+S"), L('Start new slicing process'), 
             sub { $self->reslice_now; }, undef, 'shape_handles.png');
         $fileMenu->AppendSeparator();
-        $self->_append_menu_item($fileMenu, "Repair STL file…", 'Automatically repair an STL file', sub {
+        $self->_append_menu_item($fileMenu, L("Repair STL file…"), L('Automatically repair an STL file'), sub {
             $self->repair_stl;
         }, undef, 'wrench.png');
         $fileMenu->AppendSeparator();
         # Cmd+, is standard on OS X - what about other operating systems?
-        $self->_append_menu_item($fileMenu, "Preferences…\tCtrl+,", 'Application preferences', sub {
-            Slic3r::GUI::Preferences->new($self)->ShowModal;
+        $self->_append_menu_item($fileMenu, L("Preferences…\tCtrl+,"), L('Application preferences'), sub {
+            # Opening the C++ preferences dialog.
+            Slic3r::GUI::open_preferences_dialog($self->{preferences_event});
         }, wxID_PREFERENCES);
         $fileMenu->AppendSeparator();
-        $self->_append_menu_item($fileMenu, "&Quit", 'Quit Slic3r', sub {
+        $self->_append_menu_item($fileMenu, L("&Quit"), L('Quit Slic3r'), sub {
             $self->Close(0);
         }, wxID_EXIT);
     }
@@ -307,16 +309,16 @@ sub _init_menubar {
         my $plater = $self->{plater};
         
         $self->{plater_menu} = Wx::Menu->new;
-        $self->_append_menu_item($self->{plater_menu}, "Export G-code...", 'Export current plate as G-code', sub {
+        $self->_append_menu_item($self->{plater_menu}, L("Export G-code..."), L('Export current plate as G-code'), sub {
             $plater->export_gcode;
         }, undef, 'cog_go.png');
-        $self->_append_menu_item($self->{plater_menu}, "Export plate as STL...", 'Export current plate as STL', sub {
+        $self->_append_menu_item($self->{plater_menu}, L("Export plate as STL..."), L('Export current plate as STL'), sub {
             $plater->export_stl;
         }, undef, 'brick_go.png');
-        $self->_append_menu_item($self->{plater_menu}, "Export plate as AMF...", 'Export current plate as AMF', sub {
+        $self->_append_menu_item($self->{plater_menu}, L("Export plate as AMF..."), L('Export current plate as AMF'), sub {
             $plater->export_amf;
         }, undef, 'brick_go.png');
-        $self->_append_menu_item($self->{plater_menu}, "Export plate as 3MF...", 'Export current plate as 3MF', sub {
+        $self->_append_menu_item($self->{plater_menu}, L("Export plate as 3MF..."), L('Export current plate as 3MF'), sub {
             $plater->export_3mf;
         }, undef, 'brick_go.png');
         
@@ -329,13 +331,13 @@ sub _init_menubar {
     {
         my $tab_offset = 0;
         if (!$self->{no_plater}) {
-            $self->_append_menu_item($windowMenu, "Select &Plater Tab\tCtrl+1", 'Show the plater', sub {
+            $self->_append_menu_item($windowMenu, L("Select &Plater Tab\tCtrl+1"), L('Show the plater'), sub {
                 $self->select_tab(0);
             }, undef, 'application_view_tile.png');
             $tab_offset += 1;
         }
         if (!$self->{no_controller}) {
-            $self->_append_menu_item($windowMenu, "Select &Controller Tab\tCtrl+T", 'Show the printer controller', sub {
+            $self->_append_menu_item($windowMenu, L("Select &Controller Tab\tCtrl+T"), L('Show the printer controller'), sub {
                 $self->select_tab(1);
             }, undef, 'printer_empty.png');
             $tab_offset += 1;
@@ -343,13 +345,13 @@ sub _init_menubar {
         if ($tab_offset > 0) {
             $windowMenu->AppendSeparator();
         }
-        $self->_append_menu_item($windowMenu, "Select P&rint Settings Tab\tCtrl+2", 'Show the print settings', sub {
+        $self->_append_menu_item($windowMenu, L("Select P&rint Settings Tab\tCtrl+2"), L('Show the print settings'), sub {
             $self->select_tab($tab_offset+0);
         }, undef, 'cog.png');
-        $self->_append_menu_item($windowMenu, "Select &Filament Settings Tab\tCtrl+3", 'Show the filament settings', sub {
+        $self->_append_menu_item($windowMenu, L("Select &Filament Settings Tab\tCtrl+3"), L('Show the filament settings'), sub {
             $self->select_tab($tab_offset+1);
         }, undef, 'spool.png');
-        $self->_append_menu_item($windowMenu, "Select Print&er Settings Tab\tCtrl+4", 'Show the printer settings', sub {
+        $self->_append_menu_item($windowMenu, L("Select Print&er Settings Tab\tCtrl+4"), L('Show the printer settings'), sub {
             $self->select_tab($tab_offset+2);
         }, undef, 'printer_empty.png');
     }
@@ -361,66 +363,66 @@ sub _init_menubar {
         # as the simple numeric accelerators spoil all numeric data entry.
         # The camera control accelerators are captured by 3DScene Perl module instead.
         my $accel = ($^O eq 'MSWin32') ? sub { $_[0] . "\t\xA0" . $_[1] } : sub { $_[0] };
-        $self->_append_menu_item($self->{viewMenu}, $accel->('Iso',    '0'), 'Iso View'    , sub { $self->select_view('iso'    ); });
-        $self->_append_menu_item($self->{viewMenu}, $accel->('Top',    '1'), 'Top View'    , sub { $self->select_view('top'    ); });
-        $self->_append_menu_item($self->{viewMenu}, $accel->('Bottom', '2'), 'Bottom View' , sub { $self->select_view('bottom' ); });
-        $self->_append_menu_item($self->{viewMenu}, $accel->('Front',  '3'), 'Front View'  , sub { $self->select_view('front'  ); });
-        $self->_append_menu_item($self->{viewMenu}, $accel->('Rear',   '4'), 'Rear View'   , sub { $self->select_view('rear'   ); });
-        $self->_append_menu_item($self->{viewMenu}, $accel->('Left',   '5'), 'Left View'   , sub { $self->select_view('left'   ); });
-        $self->_append_menu_item($self->{viewMenu}, $accel->('Right',  '6'), 'Right View'  , sub { $self->select_view('right'  ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->(L('Iso'),    '0'), L('Iso View')    , sub { $self->select_view('iso'    ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->(L('Top'),    '1'), L('Top View')    , sub { $self->select_view('top'    ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->(L('Bottom'), '2'), L('Bottom View') , sub { $self->select_view('bottom' ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->(L('Front'),  '3'), L('Front View')  , sub { $self->select_view('front'  ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->(L('Rear'),   '4'), L('Rear View')   , sub { $self->select_view('rear'   ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->(L('Left'),   '5'), L('Left View')   , sub { $self->select_view('left'   ); });
+        $self->_append_menu_item($self->{viewMenu}, $accel->(L('Right'),  '6'), L('Right View')  , sub { $self->select_view('right'  ); });
     }
     
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $self->_append_menu_item($helpMenu, "&Configuration $Slic3r::GUI::ConfigWizard::wizard…", "Run Configuration $Slic3r::GUI::ConfigWizard::wizard", sub {
+        $self->_append_menu_item($helpMenu, L("&Configuration ").$Slic3r::GUI::ConfigWizard::wizard."…", L("Run Configuration ").$Slic3r::GUI::ConfigWizard::wizard, sub {
             # Run the config wizard, offer the "reset user profile" checkbox.
             $self->config_wizard(0);
         });
         $helpMenu->AppendSeparator();
-        $self->_append_menu_item($helpMenu, "Prusa 3D Drivers", 'Open the Prusa3D drivers download page in your browser', sub {
+        $self->_append_menu_item($helpMenu, L("Prusa 3D Drivers"), L('Open the Prusa3D drivers download page in your browser'), sub {
             Wx::LaunchDefaultBrowser('http://www.prusa3d.com/drivers/');
         });
-        $self->_append_menu_item($helpMenu, "Prusa Edition Releases", 'Open the Prusa Edition releases page in your browser', sub {
+        $self->_append_menu_item($helpMenu, L("Prusa Edition Releases"), L('Open the Prusa Edition releases page in your browser'), sub {
             Wx::LaunchDefaultBrowser('http://github.com/prusa3d/slic3r/releases');
         });
 #        my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", 'Check for new Slic3r versions', sub {
 #            wxTheApp->check_version(1);
 #        });
 #        $versioncheck->Enable(wxTheApp->have_version_check);
-        $self->_append_menu_item($helpMenu, "Slic3r &Website", 'Open the Slic3r website in your browser', sub {
+        $self->_append_menu_item($helpMenu, L("Slic3r &Website"), L('Open the Slic3r website in your browser'), sub {
             Wx::LaunchDefaultBrowser('http://slic3r.org/');
         });
-        $self->_append_menu_item($helpMenu, "Slic3r &Manual", 'Open the Slic3r manual in your browser', sub {
+        $self->_append_menu_item($helpMenu, L("Slic3r &Manual"), L('Open the Slic3r manual in your browser'), sub {
             Wx::LaunchDefaultBrowser('http://manual.slic3r.org/');
         });
         $helpMenu->AppendSeparator();
-        $self->_append_menu_item($helpMenu, "System Info", 'Show system information', sub {
+        $self->_append_menu_item($helpMenu, L("System Info"), L('Show system information'), sub {
             wxTheApp->system_info;
         });
-        $self->_append_menu_item($helpMenu, "Report an Issue", 'Report an issue on the Slic3r Prusa Edition', sub {
+        $self->_append_menu_item($helpMenu, L("Report an Issue"), L('Report an issue on the Slic3r Prusa Edition'), sub {
             Wx::LaunchDefaultBrowser('http://github.com/prusa3d/slic3r/issues/new');
         });
-        $self->_append_menu_item($helpMenu, "&About Slic3r", 'Show about dialog', sub {
+        $self->_append_menu_item($helpMenu, L("&About Slic3r"), L('Show about dialog'), sub {
             wxTheApp->about;
         });
     }
-    
+
     # menubar
     # assign menubar to frame after appending items, otherwise special items
     # will not be handled correctly
     {
         my $menubar = Wx::MenuBar->new;
-        $menubar->Append($fileMenu, "&File");
-        $menubar->Append($self->{plater_menu}, "&Plater") if $self->{plater_menu};
-        $menubar->Append($self->{object_menu}, "&Object") if $self->{object_menu};
-        $menubar->Append($windowMenu, "&Window");
-        $menubar->Append($self->{viewMenu}, "&View") if $self->{viewMenu};
+        $menubar->Append($fileMenu, L("&File"));
+        $menubar->Append($self->{plater_menu}, L("&Plater")) if $self->{plater_menu};
+        $menubar->Append($self->{object_menu}, L("&Object")) if $self->{object_menu};
+        $menubar->Append($windowMenu, L("&Window"));
+        $menubar->Append($self->{viewMenu}, L("&View")) if $self->{viewMenu};
         # Add an optional debug menu 
         # (Select application language from the list of installed languages)
-        # In production code, the add_debug_menu() call should do nothing.
         Slic3r::GUI::add_debug_menu($menubar, $self->{lang_ch_event});
-        $menubar->Append($helpMenu, "&Help");
+        $menubar->Append($helpMenu, L("&Help"));
+        # Add an optional debug menu. In production code, the add_debug_menu() call should do nothing.
         $self->SetMenuBar($menubar);
     }
 }
@@ -451,7 +453,7 @@ sub quick_slice {
         # select input file
         my $input_file;
         if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, 'Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):', 
+            my $dialog = Wx::FileDialog->new($self, L('Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):'), 
                 wxTheApp->{app_config}->get_last_dir, "", 
                 &Slic3r::GUI::MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
             if ($dialog->ShowModal != wxID_OK) {
@@ -463,13 +465,13 @@ sub quick_slice {
             $qs_last_input_file = $input_file unless $params{export_svg};
         } else {
             if (!defined $qs_last_input_file) {
-                Wx::MessageDialog->new($self, "No previously sliced file.",
-                                       'Error', wxICON_ERROR | wxOK)->ShowModal();
+                Wx::MessageDialog->new($self, L("No previously sliced file."),
+                                       L('Error'), wxICON_ERROR | wxOK)->ShowModal();
                 return;
             }
             if (! -e $qs_last_input_file) {
-                Wx::MessageDialog->new($self, "Previously sliced file ($qs_last_input_file) not found.",
-                                       'File Not Found', wxICON_ERROR | wxOK)->ShowModal();
+                Wx::MessageDialog->new($self, L("Previously sliced file (").$qs_last_input_file.L(") not found."),
+                                       L('File Not Found'), wxICON_ERROR | wxOK)->ShowModal();
                 return;
             }
             $input_file = $qs_last_input_file;
@@ -508,7 +510,7 @@ sub quick_slice {
             # The following line may die if the output_filename_format template substitution fails.
             $output_file = $sprint->output_filepath;
             $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.svg/ if $params{export_svg};
-            my $dlg = Wx::FileDialog->new($self, 'Save ' . ($params{export_svg} ? 'SVG' : 'G-code') . ' file as:',
+            my $dlg = Wx::FileDialog->new($self, L('Save ') . ($params{export_svg} ? L('SVG') : L('G-code')) . L(' file as:'),
                 wxTheApp->{app_config}->get_last_output_dir(dirname($output_file)),
                 basename($output_file), $params{export_svg} ? &Slic3r::GUI::FILE_WILDCARDS->{svg} : &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if ($dlg->ShowModal != wxID_OK) {
@@ -522,7 +524,7 @@ sub quick_slice {
         }
         
         # show processbar dialog
-        $progress_dialog = Wx::ProgressDialog->new('Slicing…', "Processing $input_file_basename…", 
+        $progress_dialog = Wx::ProgressDialog->new(L('Slicing…'), L("Processing ").$input_file_basename."…", 
             100, $self, 0);
         $progress_dialog->Pulse;
         
@@ -542,9 +544,9 @@ sub quick_slice {
         $progress_dialog->Destroy;
         undef $progress_dialog;
         
-        my $message = "$input_file_basename was successfully sliced.";
+        my $message = $input_file_basename.L(" was successfully sliced.");
         wxTheApp->notify($message);
-        Wx::MessageDialog->new($self, $message, 'Slicing Done!', 
+        Wx::MessageDialog->new($self, $message, L('Slicing Done!'), 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
     Slic3r::GUI::catch_error($self, sub { $progress_dialog->Destroy if $progress_dialog });
@@ -560,7 +562,7 @@ sub repair_stl {
     
     my $input_file;
     {
-        my $dialog = Wx::FileDialog->new($self, 'Select the STL file to repair:',
+        my $dialog = Wx::FileDialog->new($self, L('Select the STL file to repair:'),
             wxTheApp->{app_config}->get_last_dir, "",
             &Slic3r::GUI::FILE_WILDCARDS->{stl}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if ($dialog->ShowModal != wxID_OK) {
@@ -574,7 +576,7 @@ sub repair_stl {
     my $output_file = $input_file;
     {
         $output_file =~ s/\.[sS][tT][lL]$/_fixed.obj/;
-        my $dlg = Wx::FileDialog->new($self, "Save OBJ file (less prone to coordinate errors than STL) as:", dirname($output_file),
+        my $dlg = Wx::FileDialog->new($self, L("Save OBJ file (less prone to coordinate errors than STL) as:"), dirname($output_file),
             basename($output_file), &Slic3r::GUI::FILE_WILDCARDS->{obj}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if ($dlg->ShowModal != wxID_OK) {
             $dlg->Destroy;
@@ -588,7 +590,7 @@ sub repair_stl {
     $tmesh->ReadSTLFile($input_file);
     $tmesh->repair;
     $tmesh->WriteOBJFile($output_file);
-    Slic3r::GUI::show_info($self, "Your file was repaired.", "Repair");
+    Slic3r::GUI::show_info($self, L("Your file was repaired."), L("Repair"));
 }
 
 sub export_config {
@@ -599,7 +601,7 @@ sub export_config {
     eval { $config->validate; };
     Slic3r::GUI::catch_error($self) and return;
     # Ask user for the file name for the config file.
-    my $dlg = Wx::FileDialog->new($self, 'Save configuration as:',
+    my $dlg = Wx::FileDialog->new($self, L('Save configuration as:'),
         $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
         $last_config ? basename($last_config) : "config.ini",
         &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -617,7 +619,7 @@ sub load_config_file {
     my ($self, $file) = @_;
     if (!$file) {
         return unless $self->check_unsaved_changes;
-        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', 
+        my $dlg = Wx::FileDialog->new($self, L('Select configuration to load:'), 
             $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
             "config.ini",
             'INI files (*.ini, *.gcode)|*.ini;*.INI;*.gcode;*.g', wxFD_OPEN | wxFD_FILE_MUST_EXIST);
@@ -640,7 +642,7 @@ sub export_configbundle {
     eval { wxTheApp->{preset_bundle}->full_config->validate; };
     Slic3r::GUI::catch_error($self) and return;
     # Ask user for a file name.
-    my $dlg = Wx::FileDialog->new($self, 'Save presets bundle as:',
+    my $dlg = Wx::FileDialog->new($self, L('Save presets bundle as:'),
         $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
         "Slic3r_config_bundle.ini", 
         &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -661,7 +663,7 @@ sub load_configbundle {
     my ($self, $file, $reset_user_profile) = @_;
     return unless $self->check_unsaved_changes;
     if (!$file) {
-        my $dlg = Wx::FileDialog->new($self, 'Select configuration to load:', 
+        my $dlg = Wx::FileDialog->new($self, L('Select configuration to load:'), 
             $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
             "config.ini", 
             &Slic3r::GUI::FILE_WILDCARDS->{ini}, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
@@ -681,7 +683,7 @@ sub load_configbundle {
         $tab->load_current_preset;
     }
     
-    my $message = sprintf "%d presets successfully imported.", $presets_imported;
+    my $message = sprintf L("%d presets successfully imported."), $presets_imported;
     Slic3r::GUI::show_info($self, $message);
 }
 
@@ -743,8 +745,8 @@ sub check_unsaved_changes {
     
     if (@dirty) {
         my $titles = join ', ', @dirty;
-        my $confirm = Wx::MessageDialog->new($self, "You have unsaved changes ($titles). Discard changes and continue anyway?",
-                                             'Unsaved Presets', wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+        my $confirm = Wx::MessageDialog->new($self, L("You have unsaved changes ").($titles).L(". Discard changes and continue anyway?"),
+                                             L('Unsaved Presets'), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
         return $confirm->ShowModal == wxID_YES;
     }
     

@@ -587,6 +587,15 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     this->_print_first_layer_bed_temperature(file, print, start_gcode, initial_extruder_id, true);
     // Set extruder(s) temperature before and after start G-code.
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, false);
+
+    if (m_enable_analyzer)
+    {
+        // adds tag for analyzer
+        char buf[32];
+        sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
+        _writeln(file, buf);
+    }
+
     // Write the custom start G-code
     _writeln(file, start_gcode);
     // Process filament-specific gcode in extruder order.
@@ -770,6 +779,15 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     // Write end commands to file.
     _write(file, this->retract());
     _write(file, m_writer.set_fan(false));
+
+    if (m_enable_analyzer)
+    {
+        // adds tag for analyzer
+        char buf[32];
+        sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
+        _writeln(file, buf);
+    }
+
     // Process filament-specific gcode in extruder order.
     if (print.config.single_extruder_multi_material) {
         // Process the end_filament_gcode for the active filament only.
@@ -1384,18 +1402,13 @@ void GCode::apply_print_config(const PrintConfig &print_config)
 
 void GCode::append_full_config(const Print& print, std::string& str)
 {
-    char buff[4096];
-
     const StaticPrintConfig *configs[] = { &print.config, &print.default_object_config, &print.default_region_config };
     for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++i) {
         const StaticPrintConfig *cfg = configs[i];
         for (const std::string &key : cfg->keys())
         {
             if (key != "compatible_printers")
-            {
-                sprintf(buff, "; %s = %s\n", key.c_str(), cfg->serialize(key).c_str());
-                str += buff;
-            }
+                str += "; " + key + " = " + cfg->serialize(key) + "\n";
         }
     }
 }

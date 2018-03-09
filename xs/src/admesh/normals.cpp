@@ -107,6 +107,11 @@ stl_fix_normal_directions(stl_file *stl) {
   struct stl_normal *newn;
   struct stl_normal *temp;
 
+  int* reversed_ids;
+  int reversed_count = 0;
+  int id;
+  int force_exit = 0;
+
   if (stl->error) return;
 
   /* Initialize linked list. */
@@ -121,13 +126,18 @@ stl_fix_normal_directions(stl_file *stl) {
   norm_sw = (char*)calloc(stl->stats.number_of_facets, sizeof(char));
   if(norm_sw == NULL) perror("stl_fix_normal_directions");
 
+  /* Initialize list that keeps track of reversed facets. */
+  reversed_ids = (int*)calloc(stl->stats.number_of_facets, sizeof(int));
+  if (reversed_ids == NULL) perror("stl_fix_normal_directions reversed_ids");
 
   facet_num = 0;
   /* If normal vector is not within tolerance and backwards:
      Arbitrarily starts at face 0.  If this one is wrong, we're screwed.  Thankfully, the chances
      of it being wrong randomly are low if most of the triangles are right: */
-  if(stl_check_normal_vector(stl, 0, 0) == 2)
-    stl_reverse_facet(stl, 0);
+  if (stl_check_normal_vector(stl, 0, 0) == 2) {
+      stl_reverse_facet(stl, 0);
+      reversed_ids[reversed_count++] = 0;
+  }
 
   /* Say that we've fixed this facet: */
   norm_sw[facet_num] = 1;
@@ -140,8 +150,19 @@ stl_fix_normal_directions(stl_file *stl) {
       /* Reverse the neighboring facets if necessary. */
       if(stl->neighbors_start[facet_num].which_vertex_not[j] > 2) {
         /* If the facet has a neighbor that is -1, it means that edge isn't shared by another facet */
-        if(stl->neighbors_start[facet_num].neighbor[j] != -1)
-          stl_reverse_facet(stl, stl->neighbors_start[facet_num].neighbor[j]);
+        if(stl->neighbors_start[facet_num].neighbor[j] != -1) {
+            if (norm_sw[stl->neighbors_start[facet_num].neighbor[j]] == 1) {
+                /* trying to modify a facet already marked as fixed, revert all changes made until now and exit (fixes: #716, #574, #413, #269, #262, #259, #230, #228, #206) */
+                for (id = reversed_count - 1; id >= 0; --id) {
+                    stl_reverse_facet(stl, reversed_ids[id]);
+                }
+                force_exit = 1;
+                break;
+            } else {
+                stl_reverse_facet(stl, stl->neighbors_start[facet_num].neighbor[j]);
+                reversed_ids[reversed_count++] = stl->neighbors_start[facet_num].neighbor[j];
+            }
+        }
       }
       /* If this edge of the facet is connected: */
       if(stl->neighbors_start[facet_num].neighbor[j] != -1) {
@@ -156,6 +177,10 @@ stl_fix_normal_directions(stl_file *stl) {
         }
       }
     }
+
+    /* an error occourred, quit the for loop and exit */
+    if (force_exit) break;
+
     /* Get next facet to fix from top of list. */
     if(head->next != tail) {
       facet_num = head->next->facet_num;
@@ -179,7 +204,8 @@ stl_fix_normal_directions(stl_file *stl) {
             /* This is the first facet of the next part. */
             facet_num = i;
             if(stl_check_normal_vector(stl, i, 0) == 2) {
-              stl_reverse_facet(stl, i);
+                stl_reverse_facet(stl, i);
+                reversed_ids[reversed_count++] = i;
             }
 
             norm_sw[facet_num] = 1;
@@ -192,6 +218,7 @@ stl_fix_normal_directions(stl_file *stl) {
   }
   free(head);
   free(tail);
+  free(reversed_ids);
   free(norm_sw);
 }
 

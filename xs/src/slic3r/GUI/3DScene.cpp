@@ -27,6 +27,8 @@
 #include <wx/image.h>
 #include <wx/settings.h>
 
+#include "GUI.hpp"
+
 namespace Slic3r {
 
 void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
@@ -452,6 +454,25 @@ void GLVolumeCollection::render_legacy() const
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+}
+
+std::vector<double> GLVolumeCollection::get_current_print_zs() const
+{
+    std::vector<double> print_zs;
+
+    for (GLVolume *vol : this->volumes)
+    {
+        for (coordf_t z : vol->print_zs)
+        {
+            double round_z = (double)round(z * 100000.0f) / 100000.0f;
+            if (std::find(print_zs.begin(), print_zs.end(), round_z) == print_zs.end())
+                print_zs.push_back(round_z);
+        }
+    }
+
+    std::sort(print_zs.begin(), print_zs.end());
+
+    return print_zs;
 }
 
 // caller is responsible for supplying NO lines with zero length
@@ -1129,7 +1150,7 @@ bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, con
     m_data.clear();
 
     // collects items to render
-    const std::string& title = preview_data.get_legend_title();
+    auto title = GUI::L_str(preview_data.get_legend_title());
     const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors);
 
     unsigned int items_count = (unsigned int)items.size();
@@ -1151,7 +1172,7 @@ bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, con
     unsigned int max_text_height = 0;
     for (const GCodePreviewData::LegendItem& item : items)
     {
-        memDC.GetTextExtent(item.text, &w, &h);
+        memDC.GetTextExtent(GUI::from_u8(item.text), &w, &h);
         max_text_width = std::max(max_text_width, (unsigned int)w);
         max_text_height = std::max(max_text_height, (unsigned int)h);
     }
@@ -1228,7 +1249,7 @@ bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, con
         memDC.DrawRectangle(wxRect(icon_x_inner, icon_y + 1, px_inner_square, px_inner_square));
 
         // draw text
-        memDC.DrawText(item.text, text_x, icon_y + text_y_offset);
+		memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
 
         // update y
         icon_y += icon_y_step;
@@ -2209,6 +2230,9 @@ void _3DScene::_update_gcode_volumes_visibility(const GCodePreviewData& preview_
             {
             case GCodePreviewVolumeIndex::Extrusion:
                 {
+                    if ((ExtrusionRole)s_gcode_preview_volume_index.first_volumes[i].flag == erCustom)
+                        volume->zoom_to_volumes = false;
+                    
                     volume->is_active = preview_data.extrusion.is_role_flag_set((ExtrusionRole)s_gcode_preview_volume_index.first_volumes[i].flag);
                     break;
                 }

@@ -13,6 +13,8 @@ use Wx qw(wxTheApp :misc :pen :brush :sizer :font :cursor wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_MOUSE_EVENTS EVT_PAINT EVT_ERASE_BACKGROUND EVT_SIZE);
 use base 'Wx::Panel';
 
+use Wx::Locale gettext => 'L';
+
 sub new {
     my $class = shift;
     my ($parent, $size, $objects, $model, $config) = @_;
@@ -126,8 +128,8 @@ sub repaint {
         $dc->SetFont(Wx::Font->new(14, wxDEFAULT, wxNORMAL, wxNORMAL));
         $dc->DrawLabel(
             join('-', +(localtime)[3,4]) eq '13-8'
-                ? 'What do you want to print today? ™' # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
-                : 'Drag your objects here',
+                ? L('What do you want to print today? ™') # Sept. 13, 2006. The first part ever printed by a RepRap to make another RepRap.
+                : L('Drag your objects here'),
             Wx::Rect->new(0, 0, $self->GetSize->GetWidth, $self->GetSize->GetHeight), wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
     }
     

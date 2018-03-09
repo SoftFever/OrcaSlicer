@@ -1172,18 +1172,17 @@ sub Render {
     glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
     
     if ($self->enable_picking) {
-        # Render the object for picking.
-        # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
-        # Better to use software ray-casting on a bounding-box hierarchy.
-        glPushAttrib(GL_ENABLE_BIT);
-        glDisable(GL_MULTISAMPLE) if ($self->{can_multisample});
-        glDisable(GL_LIGHTING);
-        glDisable(GL_BLEND);
-        $self->draw_volumes(1);
-        glFlush();
-        glFinish();
-        
         if (my $pos = $self->_mouse_pos) {
+            # Render the object for picking.
+            # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
+            # Better to use software ray-casting on a bounding-box hierarchy.
+            glPushAttrib(GL_ENABLE_BIT);
+            glDisable(GL_MULTISAMPLE) if ($self->{can_multisample});
+            glDisable(GL_LIGHTING);
+            glDisable(GL_BLEND);
+            $self->draw_volumes(1);
+            glPopAttrib();
+            glFlush();
             my $col = [ glReadPixels_p($pos->x, $self->GetSize->GetHeight - $pos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
             my $volume_idx = $col->[0] + $col->[1]*256 + $col->[2]*256*256;
             $self->_hover_volume_idx(undef);
@@ -1199,11 +1198,8 @@ sub Render {
                 
                 $self->on_hover->($volume_idx) if $self->on_hover;
             }
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glFlush();
-        glFinish();
-        glPopAttrib();
     }
     
     # draw fixed background
@@ -1337,9 +1333,6 @@ sub Render {
     $self->draw_active_object_annotations;
     
     $self->SwapBuffers();
-
-    # Calling glFinish has a performance penalty, but it seems to fix some OpenGL driver hang-up with extremely large scenes.
-#    glFinish();
 }
 
 sub draw_volumes {
@@ -2049,6 +2042,13 @@ sub set_toolpaths_range {
 
 sub reset_legend_texture {
     Slic3r::GUI::_3DScene::reset_legend_texture();
+}
+
+sub get_current_print_zs {
+    my ($self) = @_;
+    
+    my $count = $self->volumes->get_current_print_zs();
+    return $count;
 }
 
 1;
