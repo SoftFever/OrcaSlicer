@@ -68,6 +68,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _zoom
                               
                               _legend_enabled
+                              _warning_enabled
                               _apply_zoom_to_volumes_filter
                                                             
                               ) );
@@ -142,6 +143,7 @@ sub new {
     $self->_sphi(45);
     $self->_zoom(1);
     $self->_legend_enabled(0);
+    $self->_warning_enabled(0);
     $self->use_plain_shader(0);
     $self->_apply_zoom_to_volumes_filter(0);
 
@@ -217,7 +219,12 @@ sub new {
 
 sub set_legend_enabled {
     my ($self, $value) = @_;
-   $self->_legend_enabled($value);
+    $self->_legend_enabled($value);
+}
+
+sub set_warning_enabled {
+    my ($self, $value) = @_;
+    $self->_warning_enabled($value);
 }
 
 sub Destroy {
@@ -1296,11 +1303,14 @@ sub Render {
     }
     
     glEnable(GL_LIGHTING);
-    
+        
     # draw objects
     if (! $self->use_plain_shader) {
         $self->draw_volumes;
     } elsif ($self->UseVBOs) {
+        if ($self->enable_picking) {
+            $self->volumes->set_print_box($self->bed_bounding_box->x_min, $self->bed_bounding_box->y_min, 0.0, $self->bed_bounding_box->x_max, $self->bed_bounding_box->y_max, $self->{config}->get('max_print_height'));
+        }
         $self->{plain_shader}->enable if $self->{plain_shader};
         $self->volumes->render_VBOs;
         $self->{plain_shader}->disable;
@@ -1327,6 +1337,9 @@ sub Render {
         glDisable(GL_BLEND);
     }
 
+    # draw warning message
+    $self->draw_warning;
+    
     # draw gcode preview legend
     $self->draw_legend;
     
@@ -1599,31 +1612,65 @@ sub draw_active_object_annotations {
 sub draw_legend {
     my ($self) = @_;
  
-    if ($self->_legend_enabled)
-    {
-        # If the legend texture has not been loaded into the GPU, do it now.
-        my $tex_id = Slic3r::GUI::_3DScene::finalize_legend_texture;
-        if ($tex_id > 0)
-        {
-            my $tex_w = Slic3r::GUI::_3DScene::get_legend_texture_width;
-            my $tex_h = Slic3r::GUI::_3DScene::get_legend_texture_height;
-            if (($tex_w > 0) && ($tex_h > 0))
-            {
-                glDisable(GL_DEPTH_TEST);
-                glPushMatrix();
-                glLoadIdentity();
-        
-                my ($cw, $ch) = $self->GetSizeWH;
-                
-                my $l = (-0.5 * $cw) / $self->_zoom;
-                my $t = (0.5 * $ch) / $self->_zoom;
-                my $r = $l + $tex_w / $self->_zoom;
-                my $b = $t - $tex_h / $self->_zoom;
-                $self->_render_texture($tex_id, $l, $r, $b, $t);
+    if (!$self->_legend_enabled) {
+        return;
+    }
 
-                glPopMatrix();
-                glEnable(GL_DEPTH_TEST);
-            }
+    # If the legend texture has not been loaded into the GPU, do it now.
+    my $tex_id = Slic3r::GUI::_3DScene::finalize_legend_texture;
+    if ($tex_id > 0)
+    {
+        my $tex_w = Slic3r::GUI::_3DScene::get_legend_texture_width;
+        my $tex_h = Slic3r::GUI::_3DScene::get_legend_texture_height;
+        if (($tex_w > 0) && ($tex_h > 0))
+        {
+            glDisable(GL_DEPTH_TEST);
+            glPushMatrix();
+            glLoadIdentity();
+
+            my ($cw, $ch) = $self->GetSizeWH;
+
+            my $l = (-0.5 * $cw) / $self->_zoom;
+            my $t = (0.5 * $ch) / $self->_zoom;
+            my $r = $l + $tex_w / $self->_zoom;
+            my $b = $t - $tex_h / $self->_zoom;
+            $self->_render_texture($tex_id, $l, $r, $b, $t);
+
+            glPopMatrix();
+            glEnable(GL_DEPTH_TEST);
+        }
+    }
+}
+
+sub draw_warning {
+    my ($self) = @_;
+ 
+    if (!$self->_warning_enabled) {
+        return;
+    }
+
+    # If the warning texture has not been loaded into the GPU, do it now.
+    my $tex_id = Slic3r::GUI::_3DScene::finalize_warning_texture;
+    if ($tex_id > 0)
+    {
+        my $tex_w = Slic3r::GUI::_3DScene::get_warning_texture_width;
+        my $tex_h = Slic3r::GUI::_3DScene::get_warning_texture_height;
+        if (($tex_w > 0) && ($tex_h > 0))
+        {
+            glDisable(GL_DEPTH_TEST);
+            glPushMatrix();
+            glLoadIdentity();
+        
+            my ($cw, $ch) = $self->GetSizeWH;
+                
+            my $l = (-0.5 * $tex_w) / $self->_zoom;
+            my $t = (-0.5 * $ch + $tex_h) / $self->_zoom;
+            my $r = $l + $tex_w / $self->_zoom;
+            my $b = $t - $tex_h / $self->_zoom;
+            $self->_render_texture($tex_id, $l, $r, $b, $t);
+
+            glPopMatrix();
+            glEnable(GL_DEPTH_TEST);
         }
     }
 }
@@ -1694,39 +1741,55 @@ sub _vertex_shader_Gouraud {
 
 #define INTENSITY_CORRECTION 0.7
 
-#define LIGHT_TOP_DIR        -0.6/1.31, 0.6/1.31, 1./1.31
+// normalized values for (-0.6/1.31, 0.6/1.31, 1./1.31)
+#define LIGHT_TOP_DIR        vec3(-0.4574957, 0.4574957, 0.7624929)
 #define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
 #define LIGHT_TOP_SPECULAR   (0.5 * INTENSITY_CORRECTION)
 #define LIGHT_TOP_SHININESS  50.
 
-#define LIGHT_FRONT_DIR      1./1.43, 0.2/1.43, 1./1.43
+// normalized values for (1./1.43, 0.2/1.43, 1./1.43)
+#define LIGHT_FRONT_DIR      vec3(0.6985074, 0.1397015, 0.6985074)
 #define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
 #define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
 #define LIGHT_FRONT_SHININESS 50.
 
 #define INTENSITY_AMBIENT    0.3
 
+const vec3 ZERO = vec3(0.0, 0.0, 0.0);
+
+struct PrintBoxDetection
+{
+    vec3 min;
+    vec3 max;
+    // xyz contains the offset, if w == 1.0 detection needs to be performed
+    vec4 volume_origin;
+};
+
+uniform PrintBoxDetection print_box;
+
 varying float intensity_specular;
 varying float intensity_tainted;
 
+varying vec3 delta_box_min;
+varying vec3 delta_box_max;
+
 void main()
 {
-    vec3 eye, normal, lightDir, viewVector, halfVector;
+    vec3 normal, viewVector, halfVector;
     float NdotL, NdotHV;
 
-    eye = vec3(0., 0., 1.);
+    vec3 eye = -(gl_ModelViewMatrix * gl_Vertex).xyz;
 
     // First transform the normal into eye space and normalize the result.
     normal = normalize(gl_NormalMatrix * gl_Normal);
     
     // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
     // Also since we're talking about a directional light, the position field is actually direction.
-    lightDir = vec3(LIGHT_TOP_DIR);
-    halfVector = normalize(lightDir + eye);
+    halfVector = normalize(LIGHT_TOP_DIR + eye);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
-    NdotL = max(dot(normal, lightDir), 0.0);
+    NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
 
     intensity_tainted = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
     intensity_specular = 0.;
@@ -1735,14 +1798,26 @@ void main()
         intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
 
     // Perform the same lighting calculation for the 2nd light source.
-    lightDir = vec3(LIGHT_FRONT_DIR);
-//    halfVector = normalize(lightDir + eye);
-    NdotL = max(dot(normal, lightDir), 0.0);
+//    halfVector = normalize(LIGHT_FRONT_DIR + eye);
+    NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
     intensity_tainted += NdotL * LIGHT_FRONT_DIFFUSE;
 
     // compute the specular term if NdotL is larger than zero
 //    if (NdotL > 0.0)
 //        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_FRONT_SHININESS);
+
+    // compute deltas for out of print volume detection (world coordinates)
+    if (print_box.volume_origin.w == 1.0)
+    {
+        vec3 v = gl_Vertex.xyz + print_box.volume_origin.xyz;
+        delta_box_min = v - print_box.min;
+        delta_box_max = v - print_box.max;
+    }
+    else
+    {
+        delta_box_min = ZERO;
+        delta_box_max = ZERO;
+    }    
 
     gl_Position = ftransform();
 } 
@@ -1756,14 +1831,23 @@ sub _fragment_shader_Gouraud {
 
 varying float intensity_specular;
 varying float intensity_tainted;
+varying vec3 delta_box_min;
+varying vec3 delta_box_max;
 
 uniform vec4 uniform_color;
+
+const vec3 ZERO = vec3(0.0, 0.0, 0.0);
 
 void main()
 {
     gl_FragColor = 
         vec4(intensity_specular, intensity_specular, intensity_specular, 0.) + uniform_color * intensity_tainted;
-    gl_FragColor.a = uniform_color.a;
+
+    // if the fragment is outside the print volume darken it and set it as transparent
+    if (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO)))
+        gl_FragColor = vec4(mix(gl_FragColor.xyz, ZERO, 0.5), 0.5 * uniform_color.a);
+    else
+        gl_FragColor.a = uniform_color.a;
 }
 
 FRAGMENT
@@ -1828,6 +1912,7 @@ void main() {
         // compute the specular term into spec
 //        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(h,normal), 0.0), LIGHT_FRONT_SHININESS);
     }
+    
     gl_FragColor = max(
         vec4(intensity_specular, intensity_specular, intensity_specular, 0.) + uniform_color * intensity_tainted, 
         INTENSITY_AMBIENT * uniform_color);
@@ -1840,12 +1925,12 @@ sub _vertex_shader_variable_layer_height {
     return <<'VERTEX';
 #version 110
 
-#define LIGHT_TOP_DIR        0., 1., 0.
+const vec3 LIGHT_TOP_DIR = vec3(0.0, 1.0, 0.0);
 #define LIGHT_TOP_DIFFUSE    0.2
 #define LIGHT_TOP_SPECULAR   0.3
 #define LIGHT_TOP_SHININESS  50.
 
-#define LIGHT_FRONT_DIR      0., 0., 1.
+const vec3 LIGHT_FRONT_DIR = vec3(0.0, 0.0, 1.0);
 #define LIGHT_FRONT_DIFFUSE  0.5
 #define LIGHT_FRONT_SPECULAR 0.3
 #define LIGHT_FRONT_SHININESS 50.
@@ -1859,7 +1944,7 @@ varying float object_z;
 
 void main()
 {
-    vec3 eye, normal, lightDir, viewVector, halfVector;
+    vec3 eye, normal, viewVector, halfVector;
     float NdotL, NdotHV;
 
 //    eye = gl_ModelViewMatrixInverse[3].xyz;
@@ -1870,12 +1955,11 @@ void main()
     
     // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
     // Also since we're talking about a directional light, the position field is actually direction.
-    lightDir = vec3(LIGHT_TOP_DIR);
-    halfVector = normalize(lightDir + eye);
+    halfVector = normalize(LIGHT_TOP_DIR + eye);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
-    NdotL = max(dot(normal, lightDir), 0.0);
+    NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
 
     intensity_tainted = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
     intensity_specular = 0.;
@@ -1884,9 +1968,8 @@ void main()
 //        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
 
     // Perform the same lighting calculation for the 2nd light source.
-    lightDir = vec3(LIGHT_FRONT_DIR);
-    halfVector = normalize(lightDir + eye);
-    NdotL = max(dot(normal, lightDir), 0.0);
+    halfVector = normalize(LIGHT_FRONT_DIR + eye);
+    NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
     intensity_tainted += NdotL * LIGHT_FRONT_DIFFUSE;
     
     // compute the specular term if NdotL is larger than zero

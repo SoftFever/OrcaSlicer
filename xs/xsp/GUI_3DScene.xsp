@@ -97,6 +97,9 @@
     void finalize_geometry(bool use_VBOs);
     void release_geometry();
 
+    void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z);
+    void update_outside_state(DynamicPrintConfig* config, bool all_inside);
+
     bool move_volume_up(int idx)
         %code%{ 
             if (idx > 0 && idx < int(THIS->volumes.size())) {
@@ -155,13 +158,6 @@ finalize_legend_texture()
         RETVAL
 
 unsigned int
-get_legend_texture_id()
-    CODE:
-        RETVAL = _3DScene::get_legend_texture_id();
-    OUTPUT:
-        RETVAL
-
-unsigned int
 get_legend_texture_width()
     CODE:
         RETVAL = _3DScene::get_legend_texture_width();
@@ -179,7 +175,38 @@ void
 reset_legend_texture()
     CODE:
         _3DScene::reset_legend_texture();
-             
+
+void
+generate_warning_texture(std::string msg)
+    CODE:
+        _3DScene::generate_warning_texture(msg);
+
+unsigned int
+finalize_warning_texture()
+    CODE:
+        RETVAL = _3DScene::finalize_warning_texture();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_warning_texture_width()
+    CODE:
+        RETVAL = _3DScene::get_warning_texture_width();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_warning_texture_height()
+    CODE:
+        RETVAL = _3DScene::get_warning_texture_height();
+    OUTPUT:
+        RETVAL
+
+void
+reset_warning_texture()
+    CODE:
+        _3DScene::reset_warning_texture();
+
 void
 _load_print_toolpaths(print, volumes, tool_colors, use_VBOs)
         Print               *print;

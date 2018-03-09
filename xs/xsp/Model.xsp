@@ -99,6 +99,9 @@
 
     void print_info() const;
 
+    bool fits_print_volume(DynamicPrintConfig* config) const
+        %code%{ RETVAL = THIS->fits_print_volume(config); %};
+
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
     bool store_amf(char *path, Print* print)
@@ -361,9 +364,9 @@ ModelMaterial::attributes()
         %code%{ RETVAL = &THIS->offset; %};
 
     void set_rotation(double val)
-        %code%{ THIS->rotation = val; %};
+        %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
     void set_scaling_factor(double val)
-        %code%{ THIS->scaling_factor = val; %};
+        %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
     void set_offset(Pointf *offset)
         %code%{ THIS->offset = *offset; %};
     

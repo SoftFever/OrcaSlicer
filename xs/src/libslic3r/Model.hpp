@@ -260,7 +260,10 @@ public:
     void delete_material(t_model_material_id material_id);
     void clear_materials();
     bool add_default_instances();
-    BoundingBoxf3 bounding_box();
+    // Returns approximate axis aligned bounding box of this model
+    BoundingBoxf3 bounding_box() const;
+    // Returns tight axis aligned bounding box of this model
+    BoundingBoxf3 transformed_bounding_box() const;
     void center_instances_around_point(const Pointf &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;
@@ -272,6 +275,9 @@ public:
 
     bool looks_like_multipart_object() const;
     void convert_multipart_object();
+
+    // Returs true if this model is contained into the print volume defined inside the given config
+    bool fits_print_volume(const DynamicPrintConfig* config) const;
 
     void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
 };

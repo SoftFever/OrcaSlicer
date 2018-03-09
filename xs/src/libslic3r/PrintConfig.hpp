@@ -583,6 +583,7 @@ public:
     ConfigOptionFloats              max_layer_height;
     ConfigOptionInts                min_fan_speed;
     ConfigOptionFloats              min_layer_height;
+    ConfigOptionFloat               max_print_height;
     ConfigOptionFloats              min_print_speed;
     ConfigOptionFloat               min_skirt_length;
     ConfigOptionString              notes;
@@ -647,6 +648,7 @@ protected:
         OPT_PTR(max_layer_height);
         OPT_PTR(min_fan_speed);
         OPT_PTR(min_layer_height);
+        OPT_PTR(max_print_height);
         OPT_PTR(min_print_speed);
         OPT_PTR(min_skirt_length);
         OPT_PTR(notes);

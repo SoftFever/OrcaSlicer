@@ -222,11 +222,62 @@ bool Model::add_default_instances()
 }
 
 // this returns the bounding box of the *transformed* instances
-BoundingBoxf3 Model::bounding_box()
+BoundingBoxf3 Model::bounding_box() const
 {
     BoundingBoxf3 bb;
     for (ModelObject *o : this->objects)
         bb.merge(o->bounding_box());
+    return bb;
+}
+
+BoundingBoxf3 Model::transformed_bounding_box() const
+{
+    BoundingBoxf3 bb;
+
+    for (const ModelObject* obj : this->objects)
+    {
+        for (const ModelVolume* vol : obj->volumes)
+        {
+            if (!vol->modifier)
+            {
+                for (const ModelInstance* inst : obj->instances)
+                {
+                    double c = cos(inst->rotation);
+                    double s = sin(inst->rotation);
+
+                    for (int f = 0; f < vol->mesh.stl.stats.number_of_facets; ++f)
+                    {
+                        const stl_facet& facet = vol->mesh.stl.facet_start[f];
+
+                        for (int i = 0; i < 3; ++i)
+                        {
+                            // original point
+                            const stl_vertex& v = facet.vertex[i];
+                            Pointf3 p((double)v.x, (double)v.y, (double)v.z);
+
+                            // scale
+                            p.x *= inst->scaling_factor;
+                            p.y *= inst->scaling_factor;
+                            p.z *= inst->scaling_factor;
+
+                            // rotate Z
+                            double x = p.x;
+                            double y = p.y;
+                            p.x = c * x - s * y;
+                            p.y = s * x + c * y;
+
+                            // translate
+                            p.x += inst->offset.x;
+                            p.y += inst->offset.y;
+
+                            bb.merge(p);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return bb;
 }
 
@@ -407,6 +458,23 @@ void Model::convert_multipart_object()
     
     this->clear_objects();
     this->objects.push_back(object);
+}
+
+bool Model::fits_print_volume(const DynamicPrintConfig* config) const
+{
+    if (config == nullptr)
+        return false;
+
+    if (objects.empty())
+        return true;
+
+    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config->option("bed_shape"));
+    if (opt == nullptr)
+        return false;
+
+    BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
+    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config->opt_float("max_print_height")));
+    return print_volume.contains(transformed_bounding_box());
 }
 
 ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes) :  
@@ -671,7 +739,7 @@ void ModelObject::transform(const float* matrix3x4)
         v->mesh.transform(matrix3x4);
     }
 
-    origin_translation = Pointf3(0.0f, 0.0f, 0.0f);
+    origin_translation = Pointf3(0.0, 0.0, 0.0);
     invalidate_bounding_box();
 }
 
