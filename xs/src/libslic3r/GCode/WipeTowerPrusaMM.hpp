@@ -471,7 +471,7 @@ private:
 	void toolchange_Wipe(
 		PrusaMultiMaterial::Writer &writer,
 		const box_coordinates  &cleaning_box,
-		float wipe_volume);	
+		float wipe_volume);
 };
 
 

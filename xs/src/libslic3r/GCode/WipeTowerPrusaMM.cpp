@@ -72,8 +72,11 @@ public:
 	Writer&				 set_rotation(WipeTower::xy& pos, float width, float depth, float angle)
 		{ m_wipe_tower_pos = pos; m_wipe_tower_width = width; m_wipe_tower_depth=depth; m_angle_deg = angle; return (*this); }
 
-	Writer&				 set_y_shift(float shift)
-		{ m_y_shift = shift; return (*this); }
+	Writer&				 set_y_shift(float shift) {
+        m_current_pos.y += shift-m_y_shift;
+        m_y_shift = shift;
+        return (*this);
+    }
 
 	// Suppress / resume G-code preview in Slic3r. Slic3r will have difficulty to differentiate the various
 	// filament loading and cooling moves from normal extrusion moves. Therefore the writer
@@ -481,8 +484,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
     // therefore the homing position is shifted inside the bed by 0.2 in the firmware to [0.2, -2.0].
 //	box_coordinates cleaning_box(xy(0.5f, - 1.5f), m_wipe_tower_width, wipe_area);
 	//FIXME: set the width properly
-	const float prime_section_width = 60.f;
-	box_coordinates cleaning_box(xy(5.f, 0.f), prime_section_width, 15.f);
+	const float prime_section_width = 55.f;
+	box_coordinates cleaning_box(xy(5.f, 0.f), prime_section_width, 100.f);
 
 	PrusaMultiMaterial::Writer writer;
 	writer.set_extrusion_flow(m_extrusion_flow)
@@ -510,11 +513,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
         toolchange_Load(writer, cleaning_box); // Prime the tool.
         if (idx_tool + 1 == tools.size()) {
             // Last tool should not be unloaded, but it should be wiped enough to become of a pure color.
-            toolchange_Wipe(writer, cleaning_box, 20.f);
+            toolchange_Wipe(writer, cleaning_box, m_par.wipe_volumes[tools[idx_tool-1]][tool]);
         } else {
             // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
             //writer.travel(writer.x(), writer.y() + m_perimeter_width, 7200);
-            toolchange_Wipe(writer, cleaning_box , 5.f);
+            toolchange_Wipe(writer, cleaning_box , 20.f);
             box_coordinates box = cleaning_box;
             box.translate(0.f, writer.y() - cleaning_box.ld.y + m_perimeter_width);
             toolchange_Unload(writer, box , m_filpar[m_current_tool].material, m_filpar[tools[idx_tool + 1]].first_layer_temperature);
@@ -611,29 +614,34 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
                           m_is_first_layer ? m_filpar[tool].first_layer_temperature : m_filpar[tool].temperature);
         toolchange_Change(writer, tool, m_filpar[tool].material); // Change the tool, set a speed override for soluble and flex materials.
         toolchange_Load(writer, cleaning_box);
-        toolchange_Wipe(writer, cleaning_box, wipe_volume); // Wipe the newly loaded filament until the end of the assigned wipe area.
+        writer.travel(writer.x(),writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
+        toolchange_Wipe(writer, cleaning_box, wipe_volume);     // Wipe the newly loaded filament until the end of the assigned wipe area.
     } else
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].temperature);
+
+    ++ m_num_tool_changes;
+    m_depth_traversed += wipe_area;
 
     if (last_change_in_layer) {// draw perimeter line
         writer.set_y_shift(m_y_shift);
         if (peters_wipe_tower)
             writer.rectangle(m_wipe_tower_pos,m_layer_info->depth + 3*m_perimeter_width,m_wipe_tower_depth);
-        else
+        else {
+            writer.wait(2.f);
             writer.rectangle(m_wipe_tower_pos,m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
+            if (layer_finished()) { // no finish_layer will be called, we must wipe the nozzle
+                writer.travel(m_wipe_tower_pos.x + (writer.x()>m_wipe_tower_pos.x + EPSILON ? 0.f : m_wipe_tower_width), writer.y());
+            }
+        }
     }
 
-    // Reset the extruder current to a normal value.
-    writer.set_extruder_trimpot(550)
+    writer.set_extruder_trimpot(550)    // Reset the extruder current to a normal value.
           .feedrate(6000)
           .flush_planner_queue()
           .reset_extruder()
           .append("; CP TOOLCHANGE END\n"
                   ";------------------\n"
                   "\n\n");
-
-    ++ m_num_tool_changes;
-    m_depth_traversed += wipe_area;
 
 	ToolChangeResult result;
 	result.print_z 	  	= this->m_z_pos;
@@ -841,7 +849,8 @@ void WipeTowerPrusaMM::toolchange_Unload(
     // we should be at the beginning of the cooling tube again - let's move to parking position:
     writer.retract(-m_cooling_tube_length/2.f+m_parking_pos_retraction-m_cooling_tube_retraction, 2000);
 
-	// this is to align ramming and future loading extrusions, so the future y-steps can be uniform from the start:
+	// this is to align ramming and future wiping extrusions, so the future y-steps can be uniform from the start:
+    // the perimeter_width will later be subtracted, it is there to not load while moving over just extruded material
 	writer.travel(end_of_ramming.x, end_of_ramming.y + (y_step/m_extra_spacing-m_line_width) / 2.f + m_perimeter_width, 2400.f);
 
 	writer.resume_preview()
@@ -877,7 +886,6 @@ void WipeTowerPrusaMM::toolchange_Load(
 	float xl = cleaning_box.ld.x + m_perimeter_width * 0.75f;
 	float xr = cleaning_box.rd.x - m_perimeter_width * 0.75f;
 	float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
-	float oldy = writer.y();
 
     // Load the filament while moving left / right, so the excess material will not create a blob at a single position.
     float loading_speed = m_filpar[m_current_tool].loading_speed; // mm/s in e axis
@@ -886,12 +894,10 @@ void WipeTowerPrusaMM::toolchange_Load(
     float edist = m_parking_pos_retraction-50-2; // loading is 2mm shorter that previous retraction, 50mm reserved for acceleration/deceleration
 	writer.append("; CP TOOLCHANGE LOAD\n")
 		  .suppress_preview()
-          .travel(writer.x(),writer.y() + m_perimeter_width)                                   // So that we move in free space
 		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Acceleration
 		  .load_move_x(oldx,edist,60*std::hypot(dist,edist)/edist * loading_speed)             // Fast phase
 		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Slowing down
 		  .load_move_x(oldx, 10, 60*std::hypot(dist,10.f)/10.f * loading_speed*0.1f)           // Super slow
-		  .travel(oldx,oldy)
 		  .resume_preview();
 
 	// Reset the extruder current to the normal value.
@@ -929,7 +935,6 @@ void WipeTowerPrusaMM::toolchange_Wipe(
         m_left_to_right = !m_left_to_right;
     }
     
-    writer.travel(writer.x(),writer.y()-m_perimeter_width); // cooling & loading was done a fraction down the road
 
     // now the wiping itself:
 	for (int i = 0; true; ++i)	{
@@ -959,6 +964,14 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 		writer.extrude(writer.x() + (i % 4 == 0 ? -1.f : (i % 4 == 1 ? 1.f : 0.f)) * 1.5*m_perimeter_width, writer.y() + dy);
 		m_left_to_right = !m_left_to_right;
 	}
+
+    // this is neither priming nor not the last toolchange on this layer - we are going back to the model - wipe the nozzle
+    if (m_layer_info != m_plan.end() && m_current_tool != m_layer_info->tool_changes.back().new_tool) {
+        m_left_to_right = !m_left_to_right;
+        writer.travel(writer.x(), writer.y() - dy)
+        .travel(m_wipe_tower_pos.x + (m_left_to_right ? m_wipe_tower_width : 0.f), writer.y());
+    }
+
 	writer.set_extrusion_flow(m_extrusion_flow); // Reset the extrusion flow.
 }
 
@@ -989,8 +1002,10 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 	box_coordinates fill_box(m_wipe_tower_pos + xy(m_perimeter_width, m_depth_traversed + m_perimeter_width),
 							 m_wipe_tower_width - 2 * m_perimeter_width, current_depth-m_perimeter_width);
 
-    // The print head is inside the wipe tower. Rather move to the start of the following extrusion.
-    writer.set_initial_position(fill_box.lu);
+    if (m_left_to_right) // so there is never a diagonal travel
+        writer.set_initial_position(fill_box.ru);
+    else
+        writer.set_initial_position(fill_box.lu);
 
 	box_coordinates box = fill_box;
     for (int i=0;i<2;++i) {
@@ -1000,13 +1015,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
         }
         else i=2;	// only draw the inner perimeter, outer has been already drawn by tool_change(...)
         writer.rectangle(box.ld,box.rd.x-box.ld.x,box.ru.y-box.rd.y);
-/*
-        writer.travel(box.lu,7200)
-            .extrude(box.ru, 2400 * speed_factor)
-            .extrude(box.rd)
-            .extrude(box.ld)
-            .extrude(box.lu);*/
     }
+
+    // we are in one of the corners, travel to ld along the perimeter:
+    if (writer.x() > fill_box.ld.x+EPSILON) writer.travel(fill_box.ld.x,writer.y());
+    if (writer.y() > fill_box.ld.y+EPSILON) writer.travel(writer.x(),fill_box.ld.y);
 
     if (m_is_first_layer && m_par.adhesion) {
         // Extrude a dense infill at the 1st layer to improve 1st layer adhesion of the wipe tower.
@@ -1025,14 +1038,14 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
     }
     else {  // Extrude a sparse infill to support the material to be printed above.
         const float dy = (fill_box.lu.y - fill_box.ld.y - m_perimeter_width);
+        const float left = fill_box.lu.x+2*m_perimeter_width;
+        const float right = fill_box.ru.x - 2 * m_perimeter_width;
         if (dy > m_perimeter_width)
         {
             // Extrude an inverse U at the left of the region.
             writer.travel(fill_box.ld + xy(m_perimeter_width * 2, 0.f))
                   .extrude(fill_box.lu + xy(m_perimeter_width * 2, 0.f), 2900 * speed_factor);
 
-            const float left = fill_box.lu.x+2*m_perimeter_width;
-            const float right = fill_box.ru.x - 2 * m_perimeter_width;
             const int n = 1+(right-left)/(m_par.bridging);
             const float dx = (right-left)/n;
             for (int i=1;i<=n;++i) {
@@ -1042,6 +1055,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
             }
             writer.travel(left,writer.y(),7200); // wipes the nozzle before moving away from the wipe tower
         }
+        else
+            writer.travel(right,writer.y(),7200); // wipes the nozzle before moving away from the wipe tower
     }
     writer.append("; CP EMPTY GRID END\n"
                   ";------------------\n\n\n\n\n\n\n");
