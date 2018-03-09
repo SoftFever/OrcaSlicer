@@ -177,6 +177,16 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
                         _processG1(line);
                         break;
                     }
+                case 10: // Retract
+                    {
+                        _processG10(line);
+                        break;
+                    }
+                case 11: // Unretract
+                    {
+                        _processG11(line);
+                        break;
+                    }
                 case 22: // Firmware controlled Retract
                     {
                         _processG22(line);
@@ -303,6 +313,18 @@ void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
     // stores the move
     if (type != GCodeMove::Noop)
         _store_move(type);
+}
+
+void GCodeAnalyzer::_processG10(const GCodeReader::GCodeLine& line)
+{
+    // stores retract move
+    _store_move(GCodeMove::Retract);
+}
+
+void GCodeAnalyzer::_processG11(const GCodeReader::GCodeLine& line)
+{
+    // stores unretract move
+    _store_move(GCodeMove::Unretract);
 }
 
 void GCodeAnalyzer::_processG22(const GCodeReader::GCodeLine& line)
