@@ -16,6 +16,7 @@ class wxString;
 class wxArrayString;
 class wxArrayLong;
 class wxColour;
+class wxBoxSizer;
 
 namespace Slic3r { 
 
@@ -71,6 +72,7 @@ void set_wxapp(wxApp *app);
 void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
+void set_preset_bundle(PresetBundle *preset_bundle);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
@@ -82,14 +84,13 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change);
 void open_preferences_dialog(int event_preferences);
 
 // Create a new preset tab (print, filament and printer),
-void create_preset_tabs(PresetBundle *preset_bundle, 
-						bool no_controller, bool is_disabled_button_browse,	bool is_user_agent,
+void create_preset_tabs(bool no_controller, bool is_disabled_button_browse,	bool is_user_agent,
 						int event_value_change, int event_presets_changed,
 						int event_button_browse, int event_button_test);
 TabIface* get_preset_tab_iface(char *name);
 
 // add it at the end of the tab panel.
-void add_created_tab(Tab* panel, PresetBundle *preset_bundle);
+void add_created_tab(Tab* panel);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value, int opt_index = 0);
 

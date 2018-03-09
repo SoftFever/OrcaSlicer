@@ -117,6 +117,8 @@ sub OnInit {
     }
     eval { $self->{preset_bundle}->load_selections($self->{app_config}) };
     $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
+
+    Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
     
     # application frame
     Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);

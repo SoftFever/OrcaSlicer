@@ -204,6 +204,17 @@ void CheckBox::BUILD() {
 	window = dynamic_cast<wxWindow*>(temp);
 }
 
+boost::any CheckBox::get_value()
+{
+	boost::any ret_val;
+	bool value = dynamic_cast<wxCheckBox*>(window)->GetValue();
+	if (m_opt.type == coBool)
+		ret_val = static_cast<bool>(value);
+	else
+		ret_val = static_cast<unsigned char>(value);
+ 	return ret_val;
+}
+
 int undef_spin_val = -9999;		//! Probably, It's not necessary
 
 void SpinCtrl::BUILD() {

@@ -1417,8 +1417,8 @@ void TabPrinter::update(){
 
 			DynamicPrintConfig new_conf = *m_config;
 			if (dialog->ShowModal() == wxID_YES) {
-				auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe"));
-				wipe->values[i] = 0;
+				auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe")->clone());
+				wipe->values[i] = false;
 				new_conf.set_key_value("wipe", wipe);
 			}
 			else {

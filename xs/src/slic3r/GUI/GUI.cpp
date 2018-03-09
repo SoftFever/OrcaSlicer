@@ -45,6 +45,7 @@
 #include "AppConfig.hpp"
 #include "Utils.hpp"
 #include "Preferences.hpp"
+#include "PresetBundle.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -172,10 +173,13 @@ wxApp       *g_wxApp        = nullptr;
 wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
 AppConfig	*g_AppConfig	= nullptr;
+PresetBundle *g_PresetBundle= nullptr;
 
 std::vector<Tab *> g_tabs_list;
 
 wxLocale*	g_wxLocale;
+
+std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 
 void set_wxapp(wxApp *app)
 {
@@ -195,6 +199,11 @@ void set_tab_panel(wxNotebook *tab_panel)
 void set_app_config(AppConfig *app_config)
 {
 	g_AppConfig = app_config;
+}
+
+void set_preset_bundle(PresetBundle *preset_bundle)
+{
+	g_PresetBundle = preset_bundle;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -348,15 +357,13 @@ void open_preferences_dialog(int event_preferences)
 	dlg->ShowModal();
 }
 
-void create_preset_tabs(PresetBundle *preset_bundle,
-						bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
+void create_preset_tabs(bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
 						int event_value_change, int event_presets_changed,
 						int event_button_browse, int event_button_test)
 {	
-	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller), preset_bundle);
-	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller), preset_bundle);
-	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller, is_disabled_button_browse, is_user_agent), 
-					preset_bundle);
+	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller));
+	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller));
+	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller, is_disabled_button_browse, is_user_agent));
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
 		if (! tab)
@@ -440,7 +447,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			config.set_key_value(opt_key, new ConfigOptionBool(boost::any_cast<bool>(value)));
 			break;
 		case coBools:{
-			ConfigOptionBools* vec_new = new ConfigOptionBools{ boost::any_cast<bool>(value) };
+			ConfigOptionBools* vec_new = new ConfigOptionBools{ (bool)boost::any_cast<unsigned char>(value) };
 			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, opt_index, 0);
 			break;}
 		case coInt:
@@ -480,9 +487,9 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 	}
 }
 
-void add_created_tab(Tab* panel, PresetBundle *preset_bundle)
+void add_created_tab(Tab* panel)
 {
-	panel->create_preset_tab(preset_bundle);
+	panel->create_preset_tab(g_PresetBundle);
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();

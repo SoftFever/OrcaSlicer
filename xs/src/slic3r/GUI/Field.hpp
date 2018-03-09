@@ -171,9 +171,7 @@ public:
 		dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<bool>(value));
 		m_disable_change_event = false;
 	}
-	boost::any		get_value() override {
-		return boost::any(dynamic_cast<wxCheckBox*>(window)->GetValue());
-	}
+	boost::any		get_value() override;
 
 	void			enable() override { dynamic_cast<wxCheckBox*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<wxCheckBox*>(window)->Disable(); }
