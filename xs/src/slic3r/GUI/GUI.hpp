@@ -17,6 +17,7 @@ class wxArrayString;
 class wxArrayLong;
 class wxColour;
 class wxBoxSizer;
+class wxFlexGridSizer;
 
 namespace Slic3r { 
 
@@ -126,6 +127,8 @@ wxString	L_str(const std::string &str);
 wxString	from_u8(const std::string &str);
 
 wxWindow *get_widget_by_id(int id);
+
+void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 
 }
 }

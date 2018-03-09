@@ -62,3 +62,8 @@ void open_preferences_dialog(int preferences_event)
 
 void set_preset_bundle(PresetBundle *preset_bundle)
     %code%{ Slic3r::GUI::set_preset_bundle(preset_bundle); %};
+
+void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_sizer)
+    %code%{ Slic3r::GUI::add_frequently_changed_parameters((wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+                                                           (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"),
+                                                           (wxFlexGridSizer*)wxPli_sv_2_object(aTHX_ ui_p_sizer, "Wx::FlexGridSizer")); %};

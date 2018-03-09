@@ -604,4 +604,40 @@ wxWindow *get_widget_by_id(int id)
     return window;
 }
 
+void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)
+{
+	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
+	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
+	//preset_sizer->RecalcSizes();
+	const wxArrayInt& ar = preset_sizer->GetColWidths();
+	m_optgroup->label_width = 90;//ar.IsEmpty() ? 90 : ar.front();
+	m_optgroup->m_on_change = [](t_config_option_key opt_key, boost::any value){
+		int i=0;// m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+	};
+	m_optgroup->append_single_option_line("fill_density");
+
+	ConfigOptionDef def;
+
+	def.label = L("Support");
+	def.type = coString;
+	def.gui_type = "select_open";
+	def.tooltip = L("Select what kind of support do you need");
+	def.enum_labels.push_back(L("None"));
+	def.enum_labels.push_back(L("Support on build plate only"));
+	def.enum_labels.push_back(L("Everywhere"));
+	def.default_value = new ConfigOptionString(L("None"));
+	Option option(def, "support");
+	m_optgroup->append_single_option_line(option);
+
+	def.label = L("Brim");
+	def.type = coBool;
+	def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
+	def.default_value = new ConfigOptionBool{ false }; // 1;
+	def.gui_type = "";
+	option = Option(def, "brim");
+	m_optgroup->append_single_option_line(option);
+
+	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxBottom, 1);
+}
+
 } }

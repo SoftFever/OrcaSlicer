@@ -394,6 +394,7 @@ sub new {
         }
 
         my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        Slic3r::GUI::add_frequently_changed_parameters($self, $frequently_changed_parameters_sizer, $presets);
         
         my $object_info_sizer;
         {
