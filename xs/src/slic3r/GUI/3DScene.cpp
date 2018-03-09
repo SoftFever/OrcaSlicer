@@ -501,7 +501,7 @@ void GLVolumeCollection::render_VBOs() const
 
             if (print_box_origin_id != -1)
             {
-                float origin[4] = { volume->origin.x, volume->origin.y, volume->origin.z, volume->outside_printer_detection_enabled ? 1.0f : 0.0f };
+                float origin[4] = { (float)volume->origin.x, (float)volume->origin.y, (float)volume->origin.z, volume->outside_printer_detection_enabled ? 1.0f : 0.0f };
                 ::glUniform4fv(print_box_origin_id, 1, (const GLfloat*)origin);
             }
 
@@ -526,7 +526,7 @@ void GLVolumeCollection::render_VBOs() const
 
         if (print_box_origin_id != -1)
         {
-            float origin[4] = { volume->origin.x, volume->origin.y, volume->origin.z, volume->outside_printer_detection_enabled ? 1.0f : 0.0f };
+            float origin[4] = { (float)volume->origin.x, (float)volume->origin.y, (float)volume->origin.z, volume->outside_printer_detection_enabled ? 1.0f : 0.0f };
             ::glUniform4fv(print_box_origin_id, 1, (const GLfloat*)origin);
         }
 
