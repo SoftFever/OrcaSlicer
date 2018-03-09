@@ -19,6 +19,9 @@
     void enable() const;
     void disable() const;
 
+    int shader_program_id() const
+        %code%{ RETVAL = THIS->shader_program_id; %};
+
     std::string last_error() const
         %code%{ RETVAL = THIS->last_error; %};
 };
@@ -44,6 +47,9 @@
         %code%{ THIS->hover = i; %};
     int                 zoom_to_volumes()
         %code%{ RETVAL = THIS->zoom_to_volumes; %};
+
+    void set_layer_height_texture_data(unsigned int texture_id, unsigned int shader_id, PrintObject* print_object, float z_cursor_relative, float edit_band_width);
+    void reset_layer_height_texture_data();
 
     int                 object_idx() const;
     int                 volume_idx() const;

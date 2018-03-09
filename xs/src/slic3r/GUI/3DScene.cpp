@@ -281,6 +281,51 @@ void GLVolume::render() const
     glPopMatrix();
 }
 
+void GLVolume::render_using_layer_height() const
+{
+    if (!is_active)
+        return;
+
+    GLint current_program_id;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
+
+    if ((layer_height_texture_data.shader_id > 0) && (layer_height_texture_data.shader_id != current_program_id))
+        glUseProgram(layer_height_texture_data.shader_id);
+
+    GLint z_to_texture_row_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_to_texture_row") : -1;
+    GLint z_texture_row_to_normalized_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_texture_row_to_normalized") : -1;
+    GLint z_cursor_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_cursor") : -1;
+    GLint z_cursor_band_width_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_cursor_band_width") : -1;
+
+    if (z_to_texture_row_id  >= 0)
+        glUniform1f(z_to_texture_row_id, (GLfloat)layer_height_texture_z_to_row_id());
+
+    if (z_texture_row_to_normalized_id >= 0)
+        glUniform1f(z_texture_row_to_normalized_id, (GLfloat)(1.0f / layer_height_texture_height()));
+
+    if (z_cursor_id >= 0)
+        glUniform1f(z_cursor_id, (GLfloat)(bounding_box.max.z * layer_height_texture_data.z_cursor_relative));
+
+    if (z_cursor_band_width_id >= 0)
+        glUniform1f(z_cursor_band_width_id, (GLfloat)layer_height_texture_data.edit_band_width);
+
+    unsigned int w = layer_height_texture_width();
+    unsigned int h = layer_height_texture_height();
+
+    glBindTexture(GL_TEXTURE_2D, layer_height_texture_data.texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w / 2, h / 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, layer_height_texture_data_ptr_level0());
+    glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, w / 2, h / 2, GL_RGBA, GL_UNSIGNED_BYTE, layer_height_texture_data_ptr_level1());
+
+    render();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    if ((current_program_id > 0) && (layer_height_texture_data.shader_id != current_program_id))
+        glUseProgram(current_program_id);
+}
+
 void GLVolume::generate_layer_height_texture(PrintObject *print_object, bool force)
 {
     GLTexture *tex = this->layer_height_texture.get();
@@ -398,15 +443,15 @@ int GLVolumeCollection::load_wipe_tower_preview(
 
 void GLVolumeCollection::render_VBOs() const
 {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glCullFace(GL_BACK);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
+    ::glCullFace(GL_BACK);
+    ::glEnableClientState(GL_VERTEX_ARRAY);
+    ::glEnableClientState(GL_NORMAL_ARRAY);
  
     GLint current_program_id;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
+    ::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
     GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
     GLint print_box_min_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.min") : -1;
     GLint print_box_max_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.max") : -1;
@@ -418,6 +463,17 @@ void GLVolumeCollection::render_VBOs() const
 
         if (!volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
             continue;
+
+        if (volume->layer_height_texture_data.can_use())
+        {
+            ::glDisableClientState(GL_VERTEX_ARRAY);
+            ::glDisableClientState(GL_NORMAL_ARRAY);
+            volume->generate_layer_height_texture(volume->layer_height_texture_data.print_object, false);
+            volume->render_using_layer_height();
+            ::glEnableClientState(GL_VERTEX_ARRAY);
+            ::glEnableClientState(GL_NORMAL_ARRAY);
+            continue;
+        }
 
         volume->set_render_color();
 
@@ -458,9 +514,9 @@ void GLVolumeCollection::render_VBOs() const
         }
 
         if (color_id >= 0)
-            glUniform4fv(color_id, 1, (const GLfloat*)volume->render_color);
+            ::glUniform4fv(color_id, 1, (const GLfloat*)volume->render_color);
         else
-            glColor4f(volume->render_color[0], volume->render_color[1], volume->render_color[2], volume->render_color[3]);
+            ::glColor4f(volume->render_color[0], volume->render_color[1], volume->render_color[2], volume->render_color[3]);
 
         if (print_box_min_id != -1)
             ::glUniform3fv(print_box_min_id, 1, (const GLfloat*)print_box_min);
@@ -474,36 +530,36 @@ void GLVolumeCollection::render_VBOs() const
             ::glUniform4fv(print_box_origin_id, 1, (const GLfloat*)origin);
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
-        glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float)));
-        glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
+        ::glBindBuffer(GL_ARRAY_BUFFER, volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
+        ::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float)));
+        ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
 
         bool has_offset = (volume->origin.x != 0) || (volume->origin.y != 0) || (volume->origin.z != 0);
         if (has_offset) {
-            glPushMatrix();
-            glTranslated(volume->origin.x, volume->origin.y, volume->origin.z);
+            ::glPushMatrix();
+            ::glTranslated(volume->origin.x, volume->origin.y, volume->origin.z);
         }
 
         if (n_triangles > 0) {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.triangle_indices_VBO_id);
-            glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, (const void*)(volume->tverts_range.first * 4));
+            ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.triangle_indices_VBO_id);
+            ::glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, (const void*)(volume->tverts_range.first * 4));
         }
         if (n_quads > 0) {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.quad_indices_VBO_id);
-            glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, (const void*)(volume->qverts_range.first * 4));
+            ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.quad_indices_VBO_id);
+            ::glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, (const void*)(volume->qverts_range.first * 4));
         }
 
         if (has_offset)
-            glPopMatrix();
+            ::glPopMatrix();
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    ::glBindBuffer(GL_ARRAY_BUFFER, 0);
+    ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
+    ::glDisableClientState(GL_VERTEX_ARRAY);
+    ::glDisableClientState(GL_NORMAL_ARRAY);
 
-    glDisable(GL_BLEND);
+    ::glDisable(GL_BLEND);
 }
 
 void GLVolumeCollection::render_legacy() const

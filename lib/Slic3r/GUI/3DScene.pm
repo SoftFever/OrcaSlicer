@@ -1309,6 +1309,7 @@ sub Render {
         $self->draw_volumes;
     } elsif ($self->UseVBOs) {
         if ($self->enable_picking) {
+            $self->mark_volumes_for_layer_height;
             $self->volumes->set_print_box($self->bed_bounding_box->x_min, $self->bed_bounding_box->y_min, 0.0, $self->bed_bounding_box->x_max, $self->bed_bounding_box->y_max, $self->{config}->get('max_print_height'));
         }
         $self->{plain_shader}->enable if $self->{plain_shader};
@@ -1358,36 +1359,10 @@ sub draw_volumes {
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     
-    my $z_cursor_relative = $self->_variable_layer_thickness_bar_mouse_cursor_z_relative;
     foreach my $volume_idx (0..$#{$self->volumes}) {
         my $volume = $self->volumes->[$volume_idx];
 
-        my $shader_active = 0;
-        my $object_id = int($volume->select_group_id / 1000000);
-        if ($self->layer_editing_enabled && ! $fakecolor && $volume->selected && $self->{layer_height_edit_shader} && 
-            $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
-            # Update the height texture if the ModelObject::layer_height_texture is invalid.
-            $volume->generate_layer_height_texture($self->{print}->get_object($object_id), 0);
-            $self->{layer_height_edit_shader}->enable;
-            $self->{layer_height_edit_shader}->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
-            $self->{layer_height_edit_shader}->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
-            $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $volume->bounding_box->z_max * $z_cursor_relative);
-            $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
-            glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
-#            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_LEVEL, 0);
-#            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-            glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
-                0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-            glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
-                0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-#                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-#                glPixelStorei(GL_UNPACK_ROW_LENGTH, $self->{layer_preview_z_texture_width});
-            glTexSubImage2D_c(GL_TEXTURE_2D, 0, 0, 0, $volume->layer_height_texture_width, $volume->layer_height_texture_height,
-                GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level0);
-            glTexSubImage2D_c(GL_TEXTURE_2D, 1, 0, 0, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
-                GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level1);
-            $shader_active = 1;
-        } elsif ($fakecolor) {
+        if ($fakecolor) {
             # Object picking mode. Render the object with a color encoding the object index.
             my $r = ($volume_idx & 0x000000FF) >>  0;
             my $g = ($volume_idx & 0x0000FF00) >>  8;
@@ -1402,11 +1377,6 @@ sub draw_volumes {
         }
 
         $volume->render;
-
-        if ($shader_active) {
-            glBindTexture(GL_TEXTURE_2D, 0);
-            $self->{layer_height_edit_shader}->disable;
-        }
     }
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisable(GL_BLEND);
@@ -1419,6 +1389,22 @@ sub draw_volumes {
         glVertexPointer_c(3, GL_FLOAT, 0, 0);
     }
     glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+sub mark_volumes_for_layer_height {
+    my ($self) = @_;
+    
+    foreach my $volume_idx (0..$#{$self->volumes}) {
+        my $volume = $self->volumes->[$volume_idx];
+        my $object_id = int($volume->select_group_id / 1000000);
+        if ($self->layer_editing_enabled && $volume->selected && $self->{layer_height_edit_shader} && 
+            $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
+            $volume->set_layer_height_texture_data($self->{layer_preview_z_texture_id}, $self->{layer_height_edit_shader}->shader_program_id,
+                $self->{print}->get_object($object_id), $self->_variable_layer_thickness_bar_mouse_cursor_z_relative, $self->{layer_height_edit_band_width});
+        } else {
+            $volume->reset_layer_height_texture_data();
+        }
+    }
 }
 
 sub _load_image_set_texture {

@@ -210,6 +210,32 @@ public:
 };
 
 class GLVolume {
+    struct LayerHeightTextureData
+    {
+        // ID of the layer height texture
+        unsigned int texture_id;
+        // ID of the shader used to render with the layer height texture
+        unsigned int shader_id;
+        // The print object to update when generating the layer height texture
+        PrintObject* print_object;
+
+        float        z_cursor_relative;
+        float        edit_band_width;
+
+        LayerHeightTextureData() { reset(); }
+
+        void reset()
+        {
+            texture_id = 0;
+            shader_id = 0;
+            print_object = nullptr;
+            z_cursor_relative = 0.0f;
+            edit_band_width = 0.0f;
+        }
+
+        bool can_use() { return (texture_id > 0) && (shader_id > 0) && (print_object != nullptr); }
+    };
+
 public:
     static const float SELECTED_COLOR[4];
     static const float HOVER_COLOR[4];
@@ -301,11 +327,14 @@ public:
 
     void                set_range(coordf_t low, coordf_t high);
     void                render() const;
+    void                render_using_layer_height() const;
     void                finalize_geometry(bool use_VBOs) { this->indexed_vertex_array.finalize_geometry(use_VBOs); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
     /************************************************ Layer height texture ****************************************************/
     std::shared_ptr<GLTexture>  layer_height_texture;
+    // Data to render this volume using the layer height texture
+    LayerHeightTextureData layer_height_texture_data;
 
     bool                has_layer_height_texture() const 
         { return this->layer_height_texture.get() != nullptr; }
@@ -315,11 +344,11 @@ public:
         { return (this->layer_height_texture.get() == nullptr) ? 0 : this->layer_height_texture->height; }
     size_t              layer_height_texture_cells() const 
         { return (this->layer_height_texture.get() == nullptr) ? 0 : this->layer_height_texture->cells; }
-    void*               layer_height_texture_data_ptr_level0() {
+    void*               layer_height_texture_data_ptr_level0() const {
         return (layer_height_texture.get() == nullptr) ? 0 :
             (void*)layer_height_texture->data.data();
     }
-    void*               layer_height_texture_data_ptr_level1() {
+    void*               layer_height_texture_data_ptr_level1() const {
         return (layer_height_texture.get() == nullptr) ? 0 :
             (void*)(layer_height_texture->data.data() + layer_height_texture->width * layer_height_texture->height * 4);
     }
@@ -328,6 +357,17 @@ public:
             double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * bounding_box.max.z);
     }
     void                generate_layer_height_texture(PrintObject *print_object, bool force);
+
+    void set_layer_height_texture_data(unsigned int texture_id, unsigned int shader_id, PrintObject* print_object, float z_cursor_relative, float edit_band_width)
+    {
+        layer_height_texture_data.texture_id = texture_id;
+        layer_height_texture_data.shader_id = shader_id;
+        layer_height_texture_data.print_object = print_object;
+        layer_height_texture_data.z_cursor_relative = z_cursor_relative;
+        layer_height_texture_data.edit_band_width = edit_band_width;
+    }
+
+    void reset_layer_height_texture_data() { layer_height_texture_data.reset(); }
 };
 
 class GLVolumeCollection
