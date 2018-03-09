@@ -12,6 +12,7 @@
 
     bool                        default()       %code%{ RETVAL = THIS->is_default;  %};
     bool                        external()      %code%{ RETVAL = THIS->is_external; %};
+    bool                        system()        %code%{ RETVAL = THIS->is_system;   %};
     bool                        visible()       %code%{ RETVAL = THIS->is_visible;  %};
     bool                        dirty()         %code%{ RETVAL = THIS->is_dirty;    %};
     bool                        compatible()    %code%{ RETVAL = THIS->is_compatible; %};
@@ -110,10 +111,10 @@ PresetCollection::arrayref()
                 croak("Cannot create configuration directories:\n%s\n", e.what());
             }
         %};
-    void                        load_presets()
+    void                        load_presets(AppConfig *config)
         %code%{
             try {
-                THIS->load_presets();
+                THIS->load_presets(*config);
             } catch (std::exception& e) {
                 croak("Loading of Slic3r presets from %s failed.\n\n%s\n", 
                     Slic3r::data_dir().c_str(), e.what());
@@ -143,6 +144,14 @@ PresetCollection::arrayref()
                 croak("Loading of a config bundle %s failed:\n%s\n", path, e.what());
             }
         %};
+    void                        install_vendor_configbundle(const char *path)
+        %code%{
+            try {
+                THIS->install_vendor_configbundle(path);
+            } catch (std::exception& e) {
+                croak("Installing a vendor config bundle %s failed:\n%s\n", path, e.what());
+            }
+        %};
     void                        export_configbundle(char *path)
         %code%{
             try {
@@ -154,7 +163,6 @@ PresetCollection::arrayref()
 
     void                        set_default_suppressed(bool default_suppressed);
 
-    void                        load_selections  (AppConfig *config) %code%{ THIS->load_selections(*config); %};
     void                        export_selections(AppConfig *config) %code%{ THIS->export_selections(*config); %};
     void                        export_selections_pp(PlaceholderParser *pp) %code%{ THIS->export_selections(*pp); %};
 

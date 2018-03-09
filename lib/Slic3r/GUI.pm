@@ -110,12 +110,11 @@ sub OnInit {
 
     # Suppress the '- default -' presets.
     $self->{preset_bundle}->set_default_suppressed($self->{app_config}->get('no_defaults') ? 1 : 0);
-    eval { $self->{preset_bundle}->load_presets };
+    eval { $self->{preset_bundle}->load_presets($self->{app_config}); };
     if ($@) {
         warn $@ . "\n";
         show_error(undef, $@);
     }
-    eval { $self->{preset_bundle}->load_selections($self->{app_config}) };
     $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
     
     # application frame

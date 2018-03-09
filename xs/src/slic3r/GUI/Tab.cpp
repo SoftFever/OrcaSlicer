@@ -1352,7 +1352,7 @@ void Tab::load_current_preset()
 	auto preset = m_presets->get_edited_preset();
 //	try{
 //		local $SIG{ __WARN__ } = Slic3r::GUI::warning_catcher($self);
-		preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
+		(preset.is_default || preset.is_system) ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 		update();
 		// For the printer profile, generate the extruder pages.
 		on_preset_loaded();
@@ -1557,7 +1557,7 @@ void Tab::save_preset(std::string name /*= ""*/)
 		std::vector<std::string> values;
 		for (size_t i = 0; i < m_presets->size(); ++i) {
 			const Preset &preset = m_presets->preset(i);
-			if (preset.is_default || preset.is_external)
+			if (preset.is_default || preset.is_system || preset.is_external)
 				continue;
 			values.push_back(preset.name);
 		}
@@ -1569,6 +1569,15 @@ void Tab::save_preset(std::string name /*= ""*/)
 		name = dlg->get_name();
 		if (name == ""){
 			show_error(this, _(L("The supplied name is empty. It can't be saved.")));
+			return;
+		}
+		const Preset *existing = m_presets->find_preset(name, false);
+		if (existing && (existing->is_default || existing->is_system)) {
+			show_error(this, _(L("Cannot overwrite a system profile.")));
+			return;
+		}
+		if (existing && (existing->is_external)) {
+			show_error(this, _(L("Cannot overwrite an external.")));
 			return;
 		}
 	}
@@ -1670,7 +1679,7 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 		for (size_t idx = 0; idx < printers->size(); ++idx)
 		{
 			Preset& preset = printers->preset(idx);
-			if (!preset.is_default && !preset.is_external)
+			if (!preset.is_default && !preset.is_external && !preset.is_system)
 				presets.Add(preset.name);
 		}
 

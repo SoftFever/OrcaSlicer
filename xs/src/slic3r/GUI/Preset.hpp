@@ -23,6 +23,46 @@ enum ConfigFileType
 
 extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree);
 
+class VendorProfile
+{
+public:
+    std::string                     name;
+    std::string                     id;
+    std::string                     config_version;
+    std::string                     config_update_url;
+
+    struct PrinterVariant {
+        PrinterVariant() {}
+        PrinterVariant(const std::string &name) : name(name) {}
+        std::string                 name;
+        bool                        enabled = true;
+    };
+
+    struct PrinterModel {
+        PrinterModel() {}
+        PrinterModel(const std::string &name) : name(name) {}
+        std::string                 name;
+        bool                        enabled = true;
+        std::vector<PrinterVariant> variants;
+        PrinterVariant*       variant(const std::string &name) {
+            for (auto &v : this->variants)
+                if (v.name == name)
+                    return &v;
+            return nullptr;
+        }
+        const PrinterVariant* variant(const std::string &name) const { return const_cast<PrinterModel*>(this)->variant(name); }
+
+        bool        operator< (const PrinterModel &rhs) const { return this->name <  rhs.name; }
+        bool        operator==(const PrinterModel &rhs) const { return this->name == rhs.name; }
+    };
+    std::set<PrinterModel>          models;
+
+    size_t      num_variants() const { size_t n = 0; for (auto &model : models) n += model.variants.size(); return n; }
+
+    bool        operator< (const VendorProfile &rhs) const { return this->id <  rhs.id; }
+    bool        operator==(const VendorProfile &rhs) const { return this->id == rhs.id; }
+};
+
 class Preset
 {
 public:
@@ -44,6 +84,8 @@ public:
     // External preset points to a configuration, which has been loaded but not imported
     // into the Slic3r default configuration location.
     bool                is_external = false;
+    // System preset is read-only.
+    bool                is_system   = false;
     // Preset is visible, if it is compatible with the active Printer.
     // Also the "default" preset is only visible, if it is the only preset in the list.
     bool                is_visible  = true;
@@ -55,9 +97,14 @@ public:
     // Name of the preset, usually derived form the file name.
     std::string         name;
     // File name of the preset. This could be a Print / Filament / Printer preset, 
-    // or a Configuration file bundling the Print + Filament + Printer presets (in that case is_external will be true),
+    // or a Configuration file bundling the Print + Filament + Printer presets (in that case is_external and possibly is_system will be true),
     // or it could be a G-code (again, is_external will be true).
     std::string         file;
+    // A user profile may inherit its settings either from a system profile, or from a user profile.
+    // A system profile shall never derive from any other profile, as the system profile hierarchy is being flattened during loading.
+    std::string         inherits;
+    // If this is a system profile, then there should be a vendor data available to display at the UI.
+    const VendorProfile *vendor      = nullptr;
 
     // Has this profile been loaded?
     bool                loaded      = false;

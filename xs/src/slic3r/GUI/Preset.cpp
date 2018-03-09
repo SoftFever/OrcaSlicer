@@ -200,7 +200,7 @@ const std::vector<std::string>& Preset::print_options()
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
         "wipe_tower_width", "wipe_tower_per_color_wipe",
-        "compatible_printers", "compatible_printers_condition"
+        "compatible_printers", "compatible_printers_condition", "inherits"
     };
     return s_opts;
 }
@@ -213,7 +213,7 @@ const std::vector<std::string>& Preset::filament_options()
         "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", 
         "disable_fan_first_layers", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", 
         "end_filament_gcode",
-        "compatible_printers", "compatible_printers_condition"
+        "compatible_printers", "compatible_printers_condition", "inherits"
     };
     return s_opts;
 }
@@ -226,7 +226,7 @@ const std::vector<std::string>& Preset::printer_options()
             "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
             "octoprint_host", "octoprint_apikey", "octoprint_cafile", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height",
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
-            "between_objects_gcode", "printer_notes"
+            "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "default_print_profile", "default_filament_profile", "inherits",
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }
@@ -269,7 +269,7 @@ void PresetCollection::reset(bool delete_files)
         if (delete_files) {
             // Erase the preset files.
             for (Preset &preset : m_presets)
-                if (! preset.is_default && ! preset.is_external)
+                if (! preset.is_default && ! preset.is_external && ! preset.is_system)
                     boost::nowide::remove(preset.file.c_str());
         }
         // Don't use m_presets.resize() here as it requires a default constructor for Preset.
@@ -284,7 +284,6 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 {
 	boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
 	m_dir_path = dir.string();
-    m_presets.erase(m_presets.begin()+1, m_presets.end());
     t_config_option_keys keys = this->default_preset().config.keys();
     std::string errors_cummulative;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
@@ -292,6 +291,10 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
             std::string name = dir_entry.path().filename().string();
             // Remove the .ini suffix.
             name.erase(name.size() - 4);
+            if (this->find_preset(name, false)) {
+                errors_cummulative += "The user preset \"" + name + "\" cannot be loaded. A system preset of the same name has already been loaded.";
+                continue;
+            }
             try {
                 Preset preset(m_type, name, false);
                 preset.file = dir_entry.path().string();
@@ -364,7 +367,7 @@ void PresetCollection::delete_current_preset()
     const Preset &selected = this->get_selected_preset();
     if (selected.is_default)
         return;
-	if (! selected.is_external) {
+	if (! selected.is_external && ! selected.is_system) {
 		// Erase the preset file.
 		boost::nowide::remove(selected.file.c_str());
 	}
