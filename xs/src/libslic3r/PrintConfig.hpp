@@ -470,6 +470,7 @@ public:
     ConfigOptionFloats              filament_loading_speed;
     ConfigOptionFloats              filament_unloading_speed;
     ConfigOptionFloats              filament_toolchange_delay;
+    ConfigOptionInts                filament_cooling_time;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
     ConfigOptionString              layer_gcode;
@@ -525,6 +526,7 @@ protected:
         OPT_PTR(filament_loading_speed);
         OPT_PTR(filament_unloading_speed);
         OPT_PTR(filament_toolchange_delay);
+        OPT_PTR(filament_cooling_time);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);
         OPT_PTR(layer_gcode);
@@ -624,6 +626,8 @@ public:
     ConfigOptionFloat               wipe_tower_width;
     ConfigOptionFloat               wipe_tower_per_color_wipe;
     ConfigOptionFloat               wipe_tower_rotation_angle;
+    ConfigOptionFloat               wipe_tower_bridging;
+    ConfigOptionBool                wipe_tower_adhesion;
     ConfigOptionFloat               z_offset;
     
 protected:
@@ -690,6 +694,8 @@ protected:
         OPT_PTR(wipe_tower_width);
         OPT_PTR(wipe_tower_per_color_wipe);
         OPT_PTR(wipe_tower_rotation_angle);
+        OPT_PTR(wipe_tower_bridging);
+        OPT_PTR(wipe_tower_adhesion);
         OPT_PTR(z_offset);
     }
 };

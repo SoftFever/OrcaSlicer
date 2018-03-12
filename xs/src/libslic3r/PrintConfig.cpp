@@ -469,6 +469,15 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-toolchange-delay=f@";
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
+    
+    def = this->add("filament_cooling_time", coInts);
+    def->label = L("Cooling time");
+    def->tooltip = L("The filament is slowly moved back and forth after retraction into the cooling tube "
+                   "for this amount of time.");
+    def->cli = "filament_cooling_time=i@";
+    def->sidetext = L("s");
+    def->min = 0;
+    def->default_value = new ConfigOptionInts { 14 };
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
@@ -1800,6 +1809,20 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = L("degrees");
     def->cli = "wipe-tower-rotation-angle=f";
     def->default_value = new ConfigOptionFloat(0.);
+    
+    def = this->add("wipe_tower_bridging", coFloat);
+    def->label = L("Maximal bridging distance");
+    def->tooltip = L("Maximal distance between supports on sparse infill sections. ");
+    def->sidetext = L("mm");
+    def->cli = "wipe-tower-bridging=f";
+    def->default_value = new ConfigOptionFloat(10.);
+    
+    def = this->add("wipe_tower_adhesion", coBool);
+    def->label = L("Increase first layer adhesion");
+    def->tooltip = L("This prevents using sparse infill on the first layer, if it would be "
+                   "normally applied. Dense infill is used instead. ");
+    def->cli = "wipe-tower_adhesion!";
+    def->default_value = new ConfigOptionBool(true);
 
     def = this->add("xy_size_compensation", coFloat);
     def->label = L("XY Size Compensation");

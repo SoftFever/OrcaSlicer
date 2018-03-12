@@ -734,7 +734,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	writer.travel(xl, cleaning_box.ld.y + m_depth_traversed + y_step/2.f ); // move to starting position
 
     // if the ending point of the ram would end up in mid air, align it with the end of the wipe tower:
-    if (m_layer_info > m_plan.begin() && m_layer_info < m_plan.end() && (m_layer_info-1!=m_plan.begin() || !m_par.adhesion )) {
+    if (m_layer_info > m_plan.begin() && m_layer_info < m_plan.end() && (m_layer_info-1!=m_plan.begin() || !m_adhesion )) {
 
         // this is y of the center of previous sparse infill border
         float sparse_beginning_y = m_wipe_tower_pos.y;
@@ -821,8 +821,8 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	const float start_x = writer.x();
 	turning_point = ( xr-start_x > start_x-xl ? xr : xl );
 	const float max_x_dist = 2*std::abs(start_x-turning_point);
-	const unsigned int N = 4 + std::max(0,(m_par.cooling_time[m_current_tool]-14)/3);
-	float time = m_par.cooling_time[m_current_tool] / float(N);
+	const unsigned int N = 4 + std::max(0,(m_filpar[m_current_tool].cooling_time-14)/3);
+	float time = m_filpar[m_current_tool].cooling_time / float(N);
 
 	i = 0;
 	while (i<N) {
@@ -832,7 +832,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 		// this move is the last one at this speed or someone set tube_length to zero
         if (speed * time < 2*m_cooling_tube_length || m_cooling_tube_length<WT_EPSILON) {
             ++i;
-			time = m_par.cooling_time[m_current_tool] / float(N);
+			time = m_filpar[m_current_tool].cooling_time / float(N);
 		}
 		else
 			time -= e_dist / speed; // subtract time this part will really take
@@ -1020,7 +1020,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
     if (writer.x() > fill_box.ld.x+EPSILON) writer.travel(fill_box.ld.x,writer.y());
     if (writer.y() > fill_box.ld.y+EPSILON) writer.travel(writer.x(),fill_box.ld.y);
 
-    if (m_is_first_layer && m_par.adhesion) {
+    if (m_is_first_layer && m_adhesion) {
         // Extrude a dense infill at the 1st layer to improve 1st layer adhesion of the wipe tower.
         box.expand(-m_perimeter_width/2.f);
         unsigned nsteps = int(floor((box.lu.y - box.ld.y) / (2*m_perimeter_width)));
@@ -1045,7 +1045,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
             writer.travel(fill_box.ld + xy(m_perimeter_width * 2, 0.f))
                   .extrude(fill_box.lu + xy(m_perimeter_width * 2, 0.f), 2900 * speed_factor);
 
-            const int n = 1+(right-left)/(m_par.bridging);
+            const int n = 1+(right-left)/(m_bridging);
             const float dx = (right-left)/n;
             for (int i=1;i<=n;++i) {
                 float x=left+dx*i;

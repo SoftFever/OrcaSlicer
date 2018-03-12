@@ -3,13 +3,8 @@
 
 // Human-readable output of Parameters structure
 std::ostream& operator<<(std::ostream& str,Slic3r::WipeTowerParameters& par) {
-    str << "bridging: " << par.bridging << "\n";
-    str << "adhesion: " << par.adhesion << "\n";
     str << "sampling: " << par.sampling << "\n"; 
    
-    str << "cooling times: ";
-    for (const auto& a : par.cooling_time) str << a << " ";
-    
     str << "line widths: ";
     for (const auto& a : par.ramming_line_width_multiplicator) str << a << " ";
     
@@ -116,30 +111,6 @@ void RammingPanel::line_parameters_changed() {
 
 
 
-
-CoolingPanel::CoolingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
-: wxPanel(parent,wxID_ANY,wxPoint(0,0),wxSize(0,0),wxBORDER_RAISED)
-{
-    new wxStaticText(this,wxID_ANY,wxString("Time (in seconds) reserved for cooling after unload:"),wxPoint(220,50) ,wxSize(400,25),wxALIGN_LEFT);
-    for (int i=0;i<4;++i) {
-        new wxStaticText(this,wxID_ANY,wxString("Filament #")<<i+1<<": ",wxPoint(300,105+30*i) ,wxSize(150,25),wxALIGN_LEFT);
-        m_widget_edits.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(400,100+30*i),wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,30,15));
-    }        
-    for (unsigned int i=0;i<p.cooling_time.size();++i) {
-        if (i>=m_widget_edits.size())
-            break;  // so we don't initialize non-existent widget
-        m_widget_edits[i]->SetValue(p.cooling_time[i]);
-    }
-}
-
-void CoolingPanel::fill_parameters(Slic3r::WipeTowerParameters& p) {
-    p.cooling_time.clear();
-    for (int i=0;i<4;++i)
-        p.cooling_time.push_back(m_widget_edits[i]->GetValue());
-}
-
-
-
 WipingPanel::WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
 : wxPanel(parent,wxID_ANY,wxPoint(0,0),wxSize(0,0),wxBORDER_RAISED)
 {
@@ -208,20 +179,6 @@ void WipingPanel::fill_in_matrix() {
 
 
 
-GeneralPanel::GeneralPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p) : wxPanel(parent,wxID_ANY,wxPoint(0,0),wxSize(0,0),wxBORDER_RAISED) {
-    new wxStaticText(this,wxID_ANY,wxString("Maximum bridging over sparse infill (mm):"),wxPoint(100,105) ,wxSize(280,25),wxALIGN_LEFT);
-    m_widget_bridge = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(380,100),wxSize(50,25),wxALIGN_RIGHT|wxSP_ARROW_KEYS,1,50,10);
-    m_widget_adhesion = new wxCheckBox(this,wxID_ANY,"Increased adhesion of first layer",wxPoint(100,150),wxSize(330,25),wxALIGN_RIGHT);
-    m_widget_bridge->SetValue(p.bridging);
-    m_widget_adhesion->SetValue(p.adhesion);
-}
-
-void GeneralPanel::fill_parameters(Slic3r::WipeTowerParameters& p) {
-    p.bridging = m_widget_bridge->GetValue();
-    p.adhesion = m_widget_adhesion->GetValue();        
-}
-  
-
 
 
 
@@ -238,13 +195,13 @@ WipeTowerDialog::WipeTowerDialog(wxWindow* parent,const std::string& init_data)
             
     wxNotebook* notebook = new wxNotebook(this,wxID_ANY,wxPoint(0,0),wxSize(800,450));
     
-    m_panel_general = new GeneralPanel(notebook,parameters);
+    //m_panel_general = new GeneralPanel(notebook,parameters);
     m_panel_ramming = new RammingPanel(notebook,parameters);
-    m_panel_cooling = new CoolingPanel(notebook,parameters);
+    //m_panel_cooling = new CoolingPanel(notebook,parameters);
     m_panel_wiping  = new WipingPanel(notebook,parameters);
-    notebook->AddPage(m_panel_general,"General");
+    //notebook->AddPage(m_panel_general,"General");
     notebook->AddPage(m_panel_ramming,"Ramming");
-    notebook->AddPage(m_panel_cooling,"Cooling");
+    //notebook->AddPage(m_panel_cooling,"Cooling");
     notebook->AddPage(m_panel_wiping,"Wiping");
     this->Show();
 

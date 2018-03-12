@@ -458,6 +458,8 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_width");
 		optgroup->append_single_option_line("wipe_tower_per_color_wipe");
 		optgroup->append_single_option_line("wipe_tower_rotation_angle");
+        optgroup->append_single_option_line("wipe_tower_bridging");
+        optgroup->append_single_option_line("wipe_tower_adhesion");
         line = { _(L("Advanced")), "" };
         line.widget = [this](wxWindow* parent){
 			m_wipe_tower_btn = new wxButton(parent, wxID_ANY, _(L("Advanced settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
@@ -880,6 +882,27 @@ void TabFilament::build()
 		optgroup->append_single_option_line("filament_loading_speed");
         optgroup->append_single_option_line("filament_unloading_speed");
         optgroup->append_single_option_line("filament_toolchange_delay");
+        optgroup->append_single_option_line("filament_cooling_time");
+        line = { _(L("Ramming")), "" };
+        line.widget = [this](wxWindow* parent){
+			auto ramming_dialog = new wxButton(parent, wxID_ANY, _(L("Advanced settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(ramming_dialog);
+			/*m_wipe_tower_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+			{
+                std::string init_data = (m_config->option<ConfigOptionString>("wipe_tower_advanced"))->value;
+                std::cout << "dialog init: " << init_data << std::endl;
+				WipeTowerDialog dlg(this,init_data); // dlg lives on stack, no need to call Destroy
+
+				if (dlg.ShowModal() == wxID_OK) {
+                    load_key_value("wipe_tower_advanced", dlg.GetValue());
+                    std::cout << std::endl << "dialog returned: " << dlg.GetValue() << std::endl;
+                }
+			}));*/
+			return sizer;
+		};
+		optgroup->append_line(line);
+
 
         page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);

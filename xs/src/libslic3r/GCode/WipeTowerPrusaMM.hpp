@@ -68,13 +68,12 @@ struct WipeTowerParameters {
     WipeTowerParameters() {  }           // create new empty object
     WipeTowerParameters(const std::string& init_data) { // create object and initialize from std::string
         std::istringstream in(init_data);               // validation of input is left to the caller
-        in >> bridging >> adhesion >> sampling;
+        in >> sampling;
         for (std::vector<float> vect{} ; in >> vect ;) {  // until we get to fail state ("**")...
-            if (vect.size()>=3) {
-                cooling_time.push_back(vect[0]);
-                ramming_line_width_multiplicator.push_back(vect[1]);
-                ramming_step_multiplicator.push_back(vect[2]);
-                vect.erase(vect.begin(),vect.begin()+3);
+            if (vect.size()>=2) {
+                ramming_line_width_multiplicator.push_back(vect[0]);
+                ramming_step_multiplicator.push_back(vect[1]);
+                vect.erase(vect.begin(),vect.begin()+2);
             }
             else vect.clear(); // something's not right, we will restore defaults anyway
             ramming_speed.push_back(vect);
@@ -102,16 +101,16 @@ struct WipeTowerParameters {
         for (unsigned int i=0;i<vect.size();++i)
             if (i%2==1)
                 filament_wipe_volumes.push_back(std::make_pair(vect[i-1],vect[i]));
-
+        
         if (!validate())    // in case we did not parse the input right
             set_defaults();
     }
 
     std::string to_string() {
         std::ostringstream out;
-        out << bridging << " " << int(adhesion) << " " << sampling << "\n";
-        for (unsigned extruder=0;extruder<cooling_time.size();++extruder) {
-            out << "\n" << cooling_time[extruder] << " "  << ramming_line_width_multiplicator[extruder] << " " 
+        out << sampling << "\n";
+        for (unsigned extruder=0;extruder<ramming_step_multiplicator.size();++extruder) {
+            out << "\n" << ramming_line_width_multiplicator[extruder] << " " 
                 << ramming_step_multiplicator[extruder] << " " << ramming_speed[extruder]  << "*"
                 << ramming_buttons[extruder] << "*";
         }
@@ -124,7 +123,7 @@ struct WipeTowerParameters {
     }
 
     bool validate() const {     // basic check for validity to distinguish most dramatic failures
-        const unsigned int num = cooling_time.size();
+        const unsigned int num = ramming_step_multiplicator.size();
         if ( num < 1 || ramming_line_width_multiplicator.size()!=num || ramming_step_multiplicator.size()!=num ||
              ramming_buttons.size()!=num || wipe_volumes.size()!=num ||
              filament_wipe_volumes.size()!=num)
@@ -135,10 +134,7 @@ struct WipeTowerParameters {
         return true;
     }
     void set_defaults() {
-        bridging = 10;
-        adhesion = true;
         sampling = 0.25f;
-        cooling_time = {15,15,15,15};
         ramming_line_width_multiplicator = {1.5f, 1.5f, 1.5f, 1.5f};
         ramming_step_multiplicator = {1.1f, 1.1f, 1.1f, 1.1f};
         ramming_speed.clear();
@@ -153,11 +149,8 @@ struct WipeTowerParameters {
                         { 60.f, 60.f, 60.f,  0.f}};
         filament_wipe_volumes = {{30.f,30.f},{30.f,30.f},{30.f,30.f},{30.f,30.f}};
     }
-
-    int bridging = 0.f;
-    bool adhesion  = false;
+    
     float sampling = 0.25f; // this does not quite work yet, keep it fixed to 0.25f
-    std::vector<int> cooling_time;
     std::vector<float> ramming_line_width_multiplicator;
     std::vector<float> ramming_step_multiplicator;
     std::vector<std::vector<float>> ramming_speed;
@@ -192,7 +185,7 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
 	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, float rotation_angle, float cooling_tube_retraction,
-                     float cooling_tube_length, float parking_pos_retraction, std::string& parameters,
+                     float cooling_tube_length, float parking_pos_retraction, float bridging, bool adhesion, std::string& parameters,
                      unsigned int initial_tool) :
 		m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
@@ -205,8 +198,11 @@ public:
         m_cooling_tube_length(cooling_tube_length),
         m_parking_pos_retraction(parking_pos_retraction),
 		m_current_tool(initial_tool),
-        m_par(parameters)
+        m_par(parameters) 
  	{
+        m_bridging = bridging;
+        m_adhesion = adhesion;
+        
 		for (size_t i = 0; i < 4; ++ i) {
 			// Extruder specific parameters.
 			m_filpar[i].material = PLA;
@@ -226,7 +222,7 @@ public:
 
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
-                      float unloading_speed, float delay)
+                      float unloading_speed, float delay, int cooling_time)
 	{
         m_filpar[idx].material = material;
         m_filpar[idx].temperature = temp;
@@ -234,6 +230,7 @@ public:
         m_filpar[idx].loading_speed = loading_speed;
         m_filpar[idx].unloading_speed = unloading_speed;
         m_filpar[idx].delay = delay;
+        m_filpar[idx].cooling_time = cooling_time;
 	}
 
 
@@ -340,6 +337,8 @@ private:
     float           m_cooling_tube_retraction   = 0.f;
     float           m_cooling_tube_length       = 0.f;
     float           m_parking_pos_retraction    = 0.f;
+    float           m_bridging                  = 0.f;
+    bool            m_adhesion                  = true;
 
 	float m_line_width = Nozzle_Diameter * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
@@ -352,6 +351,7 @@ private:
         float           loading_speed;
         float           unloading_speed;
         float           delay;
+        int             cooling_time;
     };
 
 	// Extruder specific parameters.

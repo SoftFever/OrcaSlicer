@@ -40,23 +40,6 @@ private:
 
 
 
-
-
-
-class CoolingPanel : public wxPanel {
-public:
-    CoolingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p);
-    void fill_parameters(Slic3r::WipeTowerParameters& p);
-    
-private:
-    std::vector<wxSpinCtrl*> m_widget_edits;
-};
-
-
-
-
-
-
 class WipingPanel : public wxPanel {
 public:
     WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p);
@@ -74,18 +57,6 @@ private:
 
 
 
-class GeneralPanel : public wxPanel {
-public:
-    GeneralPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p);
-    void fill_parameters(Slic3r::WipeTowerParameters& p);
-    
-private:
-    wxSpinCtrl* m_widget_bridge;
-    wxCheckBox* m_widget_adhesion;
-};
-
-
-
 
 class WipeTowerDialog : public wxDialog {
 public:
@@ -96,17 +67,13 @@ public:
     
 private:
     std::string m_file_name="config_wipe_tower";
-    GeneralPanel* m_panel_general = nullptr;
     RammingPanel* m_panel_ramming = nullptr;
-    CoolingPanel* m_panel_cooling = nullptr;
     WipingPanel*  m_panel_wiping  = nullptr;
     std::string m_output_data = "";
             
     std::string read_dialog_values() {
         Slic3r::WipeTowerParameters p;
-        m_panel_general->fill_parameters(p);
         m_panel_ramming->fill_parameters(p);
-        m_panel_cooling->fill_parameters(p);
         m_panel_wiping ->fill_parameters(p);
         return p.to_string();
     }

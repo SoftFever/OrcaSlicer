@@ -199,8 +199,8 @@ const std::vector<std::string>& Preset::print_options()
         "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", 
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower_advanced", "wipe_tower", "wipe_tower_x",
-        "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe", "wipe_tower_rotation_angle", "compatible_printers",
-        "compatible_printers_condition"
+        "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe", "wipe_tower_rotation_angle", "wipe_tower_adhesion", "wipe_tower_bridging",
+        "compatible_printers", "compatible_printers_condition"
 
     };
     return s_opts;
@@ -211,7 +211,7 @@ const std::vector<std::string>& Preset::filament_options()
     static std::vector<std::string> s_opts {
         "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed", 
         "extrusion_multiplier", "filament_density", "filament_cost", "filament_loading_speed", "filament_unloading_speed", "filament_toolchange_delay",
-        "temperature", "first_layer_temperature", "bed_temperature", "first_layer_bed_temperature", "fan_always_on", "cooling",
+        "filament_cooling_time", "temperature", "first_layer_temperature", "bed_temperature", "first_layer_bed_temperature", "fan_always_on", "cooling",
         "min_fan_speed", "max_fan_speed", "bridge_fan_speed", "disable_fan_first_layers", "fan_below_layer_time", "slowdown_below_layer_time",
         "min_print_speed", "start_filament_gcode", "end_filament_gcode","compatible_printers", "compatible_printers_condition"
     };
