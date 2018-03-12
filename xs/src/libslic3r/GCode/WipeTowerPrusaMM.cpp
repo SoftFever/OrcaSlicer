@@ -627,7 +627,6 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
         if (peters_wipe_tower)
             writer.rectangle(m_wipe_tower_pos,m_layer_info->depth + 3*m_perimeter_width,m_wipe_tower_depth);
         else {
-            writer.wait(2.f);
             writer.rectangle(m_wipe_tower_pos,m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
             if (layer_finished()) { // no finish_layer will be called, we must wipe the nozzle
                 writer.travel(m_wipe_tower_pos.x + (writer.x()>m_wipe_tower_pos.x + EPSILON ? 0.f : m_wipe_tower_width), writer.y());
