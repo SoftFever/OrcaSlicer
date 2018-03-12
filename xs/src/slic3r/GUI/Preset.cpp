@@ -345,16 +345,33 @@ void PresetCollection::save_current_preset(const std::string &new_name)
     if (it != m_presets.end() && it->name == new_name) {
         // Preset with the same name found.
         Preset &preset = *it;
-        if (preset.is_default)
+        if (preset.is_default || preset.is_external || preset.is_system)
             // Cannot overwrite the default preset.
             return;
         // Overwriting an existing preset.
         preset.config = std::move(m_edited_preset.config);
     } else {
         // Creating a new preset.
-		Preset &preset = *m_presets.insert(it, m_edited_preset);
+		Preset       &preset   = *m_presets.insert(it, m_edited_preset);
+        std::string  &inherits = preset.config.opt_string("inherits", true);
+        std::string   old_name = preset.name;
         preset.name = new_name;
 		preset.file = this->path_from_name(new_name);
+        preset.vendor = nullptr;
+        if (preset.is_system) {
+            // Inheriting from a system preset.
+            inherits = /* preset.vendor->name + "/" + */ old_name;
+        } else if (inherits.empty()) {
+            // Inheriting from a user preset. Link the new preset to the old preset.
+            inherits = old_name;
+        } else {
+            // Inherited from a user preset. Just maintain the "inherited" flag, 
+            // meaning it will inherit from either the system preset, or the inherited user preset.
+        }
+        preset.inherits = inherits;
+        preset.is_default  = false;
+        preset.is_system   = false;
+        preset.is_external = false;
     }
 	// 2) Activate the saved preset.
 	this->select_preset_by_name(new_name, true);
@@ -385,6 +402,15 @@ void PresetCollection::delete_current_preset()
 bool PresetCollection::load_bitmap_default(const std::string &file_name)
 {
     return m_bitmap_main_frame->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
+}
+
+const Preset* PresetCollection::get_selected_preset_parent() const
+{
+    auto *inherits = dynamic_cast<const ConfigOptionString*>(this->get_edited_preset().config.option("inherits"));
+    if (inherits == nullptr || inherits->value.empty())
+        return nullptr;
+    const Preset* preset = this->find_preset(inherits->value, false);
+    return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
 }
 
 // Return a preset by its name. If the preset is active, a temporary copy is returned.
@@ -530,16 +556,19 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
     return was_dirty != is_dirty;
 }
 
-std::vector<std::string> PresetCollection::current_dirty_options() const
-{ 
-    std::vector<std::string> changed = this->get_selected_preset().config.diff(this->get_edited_preset().config);
-    // The "compatible_printers" option key is handled differently from the others:
-    // It is not mandatory. If the key is missing, it means it is compatible with any printer.
-    // If the key exists and it is empty, it means it is compatible with no printer.
-    std::initializer_list<const char*> optional_keys { "compatible_printers", "compatible_printers_condition" };
-    for (auto &opt_key : optional_keys) {
-        if (this->get_selected_preset().config.has(opt_key) != this->get_edited_preset().config.has(opt_key))
-            changed.emplace_back(opt_key);
+std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, const Preset *reference)
+{
+    std::vector<std::string> changed;
+    if (edited != nullptr && reference != nullptr) {
+        changed = reference->config.diff(edited->config);
+        // The "compatible_printers" option key is handled differently from the others:
+        // It is not mandatory. If the key is missing, it means it is compatible with any printer.
+        // If the key exists and it is empty, it means it is compatible with no printer.
+        std::initializer_list<const char*> optional_keys { "compatible_printers", "compatible_printers_condition" };
+        for (auto &opt_key : optional_keys) {
+            if (reference->config.has(opt_key) != edited->config.has(opt_key))
+                changed.emplace_back(opt_key);
+        }
     }
     return changed;
 }

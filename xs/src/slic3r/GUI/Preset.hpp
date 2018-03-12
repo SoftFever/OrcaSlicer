@@ -191,6 +191,8 @@ public:
     // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items.
     void            set_bitmap_compatible  (const wxBitmap *bmp) { m_bitmap_compatible   = bmp; }
     void            set_bitmap_incompatible(const wxBitmap *bmp) { m_bitmap_incompatible = bmp; }
+    void            set_bitmap_lock        (const wxBitmap *bmp) { m_bitmap_lock         = bmp; }
+    void            set_bitmap_lock_open   (const wxBitmap *bmp) { m_bitmap_lock_open    = bmp; }
 
     // Enable / disable the "- default -" preset.
     void            set_default_suppressed(bool default_suppressed);
@@ -202,6 +204,11 @@ public:
     Preset&         get_selected_preset()       { return m_presets[m_idx_selected]; }
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
     int             get_selected_idx()    const { return m_idx_selected; }
+    // For the current edited preset, return the parent preset if there is one.
+    // If there is no parent preset, nullptr is returned.
+    // The parent preset may be a system preset or a user preset, which will be
+    // reflected by the UI.
+    const Preset*   get_selected_preset_parent() const;
     // Return the selected preset including the user modifications.
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
@@ -238,7 +245,11 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
     bool                        current_is_dirty() const { return ! this->current_dirty_options().empty(); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_dirty_options() const;
+    std::vector<std::string>    current_dirty_options() const 
+        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset()); }
+    // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
+    std::vector<std::string>    current_different_from_parent_options() const
+        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent()); }
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
@@ -278,6 +289,8 @@ private:
     std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
 
+    static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference);
+
     // Type of this PresetCollection: TYPE_PRINT, TYPE_FILAMENT or TYPE_PRINTER.
     Preset::Type            m_type;
     // List of presets, starting with the "- default -" preset.
@@ -292,8 +305,10 @@ private:
     bool                    m_default_suppressed = true;
     // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items of a Platter.
     // These bitmaps are not owned by PresetCollection, but by a PresetBundle.
-    const wxBitmap         *m_bitmap_compatible = nullptr;
+    const wxBitmap         *m_bitmap_compatible   = nullptr;
     const wxBitmap         *m_bitmap_incompatible = nullptr;
+    const wxBitmap         *m_bitmap_lock         = nullptr;
+    const wxBitmap         *m_bitmap_lock_open    = nullptr;
     // Marks placed at the wxBitmapComboBox of a MainFrame.
     // These bitmaps are owned by PresetCollection.
     wxBitmap               *m_bitmap_main_frame;

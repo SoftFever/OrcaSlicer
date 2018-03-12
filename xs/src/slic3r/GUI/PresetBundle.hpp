@@ -8,6 +8,10 @@
 
 namespace Slic3r {
 
+namespace GUI {
+    class BitmapCache;
+};
+
 class PlaceholderParser;
 
 // Bundle of Print + Filament + Printer presets.
@@ -131,8 +135,12 @@ private:
     wxBitmap                            *m_bitmapCompatible;
     // Indicator, that the preset is NOT compatible with the selected printer.
     wxBitmap                            *m_bitmapIncompatible;
-    // Caching color bitmaps for the 
-    std::map<std::string, wxBitmap*>     m_mapColorToBitmap;
+    // Indicator, that the preset is system and not modified.
+    wxBitmap                            *m_bitmapLock;
+    // Indicator, that the preset is system and user modified.
+    wxBitmap                            *m_bitmapLockOpen;
+    // Caching color bitmaps for the filament combo box.
+    GUI::BitmapCache                    *m_bitmapCache;
 };
 
 } // namespace Slic3r

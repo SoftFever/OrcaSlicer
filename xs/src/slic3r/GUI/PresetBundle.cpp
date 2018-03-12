@@ -2,6 +2,7 @@
 #include <cassert>
 
 #include "PresetBundle.hpp"
+#include "BitmapCache.hpp"
 
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -37,7 +38,10 @@ PresetBundle::PresetBundle() :
     filaments(Preset::TYPE_FILAMENT, Preset::filament_options()), 
     printers(Preset::TYPE_PRINTER, Preset::printer_options()),
     m_bitmapCompatible(new wxBitmap),
-    m_bitmapIncompatible(new wxBitmap)
+    m_bitmapIncompatible(new wxBitmap),
+    m_bitmapLock(new wxBitmap),
+    m_bitmapLockOpen(new wxBitmap),
+    m_bitmapCache(new GUI::BitmapCache)
 {
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler);
@@ -70,12 +74,18 @@ PresetBundle::~PresetBundle()
 {
 	assert(m_bitmapCompatible != nullptr);
 	assert(m_bitmapIncompatible != nullptr);
+    assert(m_bitmapLock != nullptr);
+    assert(m_bitmapLockOpen != nullptr);
 	delete m_bitmapCompatible;
 	m_bitmapCompatible = nullptr;
     delete m_bitmapIncompatible;
 	m_bitmapIncompatible = nullptr;
-    for (std::pair<const std::string, wxBitmap*> &bitmap : m_mapColorToBitmap)
-        delete bitmap.second;
+    delete m_bitmapLock;
+    m_bitmapLock = nullptr;
+    delete m_bitmapLockOpen;
+    m_bitmapLockOpen = nullptr;
+    delete m_bitmapCache;
+    m_bitmapCache = nullptr;
 }
 
 void PresetBundle::reset(bool delete_files)
@@ -244,10 +254,16 @@ bool PresetBundle::load_compatible_bitmaps()
 {
     const std::string path_bitmap_compatible   = "flag-green-icon.png";
     const std::string path_bitmap_incompatible = "flag-red-icon.png";
+    const std::string path_bitmap_lock         = "lock.png";
+    const std::string path_bitmap_lock_open    = "lock_open.png";
     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
         wxString::FromUTF8(Slic3r::var(path_bitmap_incompatible).c_str()), wxBITMAP_TYPE_PNG);
+    bool loaded_lock = m_bitmapLock->LoadFile(
+        wxString::FromUTF8(Slic3r::var(path_bitmap_lock).c_str()), wxBITMAP_TYPE_PNG);
+    bool loaded_lock_open = m_bitmapLockOpen->LoadFile(
+        wxString::FromUTF8(Slic3r::var(path_bitmap_lock_open).c_str()), wxBITMAP_TYPE_PNG);
     if (loaded_compatible) {
         prints   .set_bitmap_compatible(m_bitmapCompatible);
         filaments.set_bitmap_compatible(m_bitmapCompatible);
@@ -258,7 +274,17 @@ bool PresetBundle::load_compatible_bitmaps()
         filaments.set_bitmap_incompatible(m_bitmapIncompatible);
 //        printers .set_bitmap_incompatible(m_bitmapIncompatible);        
     }
-    return loaded_compatible && loaded_incompatible;
+    if (loaded_lock) {
+        prints   .set_bitmap_lock(m_bitmapLock);
+        filaments.set_bitmap_lock(m_bitmapLock);
+        printers .set_bitmap_lock(m_bitmapLock);
+    }
+    if (loaded_lock_open) {
+        prints   .set_bitmap_lock_open(m_bitmapLock);
+        filaments.set_bitmap_lock_open(m_bitmapLock);
+        printers .set_bitmap_lock_open(m_bitmapLock);
+    }
+    return loaded_compatible && loaded_incompatible && loaded_lock && loaded_lock_open;
 }
 
 DynamicPrintConfig PresetBundle::full_config() const
@@ -973,49 +999,26 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
         // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
         // to the filament color image.
         if (wide_icons)
-            bitmap_key += preset.is_compatible ? "comp" : "notcomp";
-        auto          it           = m_mapColorToBitmap.find(bitmap_key);
-        wxBitmap     *bitmap       = (it == m_mapColorToBitmap.end()) ? nullptr : it->second;
+            bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
+        bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
+        wxBitmap     *bitmap       = m_bitmapCache->find(bitmap_key);
         if (bitmap == nullptr) {
             // Create the bitmap with color bars.
-            bitmap = new wxBitmap((wide_icons ? 16 : 0) + 24, 16);
-#if defined(__APPLE__) || defined(_MSC_VER)
-            bitmap->UseAlpha();
-#endif
-            wxMemoryDC memDC;
-            memDC.SelectObject(*bitmap);
-            memDC.SetBackground(*wxTRANSPARENT_BRUSH);
-            memDC.Clear();
-            if (wide_icons && ! preset.is_compatible)
-                // Paint the red flag.
-                memDC.DrawBitmap(*m_bitmapIncompatible, 0, 0, true);
+            std::vector<wxBitmap> bmps;
+            if (wide_icons)
+                // Paint a red flag for incompatible presets.
+                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(16, 16) : *m_bitmapIncompatible);
             // Paint the color bars.
             parse_color(filament_rgb, rgb);
-            wxImage image(24, 16);
-            image.InitAlpha();
-            unsigned char* imgdata = image.GetData();
-            unsigned char* imgalpha = image.GetAlpha();
-            for (size_t i = 0; i < image.GetWidth() * image.GetHeight(); ++ i) {
-                *imgdata ++ = rgb[0];
-                *imgdata ++ = rgb[1];
-                *imgdata ++ = rgb[2];
-                *imgalpha ++ = wxALPHA_OPAQUE;
-            }
+            bmps.emplace_back(m_bitmapCache->mksolid(single_bar ? 24 : 16, 16, rgb));
             if (! single_bar) {
                 parse_color(extruder_rgb, rgb);
-                imgdata = image.GetData();
-                for (size_t r = 0; r < 16; ++ r) {
-                    imgdata = image.GetData() + r * image.GetWidth() * 3;
-                    for (size_t c = 0; c < 16; ++ c) {
-                        *imgdata ++ = rgb[0];
-                        *imgdata ++ = rgb[1];
-                        *imgdata ++ = rgb[2];
-                    }
-                }
+                bmps.emplace_back(m_bitmapCache->mksolid(8,  16, rgb));
             }
-            memDC.DrawBitmap(wxBitmap(image), wide_icons ? 16 : 0, 0, true);
-            memDC.SelectObject(wxNullBitmap);
-            m_mapColorToBitmap[bitmap_key] = bitmap;
+            // Paint a lock at the system presets.
+            bmps.emplace_back(m_bitmapCache->mkclear(4, 16));
+            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(16, 16));
+            bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
 		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
         if (selected)
