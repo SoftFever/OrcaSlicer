@@ -233,83 +233,13 @@ void Tab::update_tab_ui()
 	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 }
 
-template<class T>
-boost::any get_new_value(const DynamicPrintConfig &config_new, const DynamicPrintConfig &config_old, std::string opt_key, int &index)
-{
-	for (int i = 0; i < config_new.option<T>(opt_key)->values.size(); i++)
-		if (config_new.option<T>(opt_key)->values[i] !=
-			config_old.option<T>(opt_key)->values[i]){
-			index = i;
-			break;
-		}
-	return config_new.option<T>(opt_key)->values[index];
-}
-
 // Load a provied DynamicConfig into the tab, modifying the active preset.
 // This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 void Tab::load_config(DynamicPrintConfig config)
 {
 	bool modified = 0;
-	boost::any value;
-	int opt_index = 0;
 	for(auto opt_key : m_config->diff(config)) {
-		switch ( config.def()->get(opt_key)->type ){
-		case coFloatOrPercent:{
-			const auto &conf_val = *config.option<ConfigOptionFloatOrPercent>(opt_key);
-			value = conf_val.percent ? std::to_string(int(conf_val.value)) + "%" : std::to_string(conf_val.value);
-			}
-			break;
-		case coPercent:
-			value = config.option<ConfigOptionPercent>(opt_key)->value;// std::to_string(int(config.option<ConfigOptionPercent>(opt_key)->value));
-			break;
-		case coFloat:
-			value = config.opt_float(opt_key);
-			break;
-		case coString:
-			value = config.opt_string(opt_key);
-			break;
-		case coPercents:
-			value = get_new_value<ConfigOptionPercents>(config, *m_config, opt_key, opt_index);
-			break;
-		case coFloats:
-			value = get_new_value<ConfigOptionFloats>(config, *m_config, opt_key, opt_index);
-			break;
-		case coStrings:
-			value = config.option<ConfigOptionStrings>(opt_key)->values.empty() ? "" :
-				get_new_value<ConfigOptionStrings>(config, *m_config, opt_key, opt_index);
-			break;
-		case coBool:
-			value = config.opt_bool(opt_key);
-			break;
-		case coBools:
-			value = get_new_value<ConfigOptionBools>(config, *m_config, opt_key, opt_index);
-			break;
-		case coInt:
-			value = config.opt_int(opt_key);
-			break;
-		case coInts:
-			value = get_new_value<ConfigOptionInts>(config, *m_config, opt_key, opt_index);
-			break;
-		case coEnum:{
-			if (opt_key.compare("external_fill_pattern") == 0 ||
-				opt_key.compare("fill_pattern") == 0)
-				value = config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value;
-			else if (opt_key.compare("gcode_flavor") == 0)
-				value = config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value;
-			else if (opt_key.compare("support_material_pattern") == 0)
-				value = config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value;
-			else if (opt_key.compare("seam_position") == 0)
-				value = config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value;
-		}
-			break;
-		case coPoints:
-			break;
-		case coNone:
-			break;
-		default:
-			break;
-		}
-		change_opt_value(*m_config, opt_key, value, opt_index);
+		m_config->set_key_value(opt_key, config.option(opt_key)->clone());
 		modified = 1;
 	}
 	if (modified) {
@@ -380,6 +310,22 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 		}
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
+	if (opt_key == "fill_density")
+	{
+		value = get_optgroup()->get_config_value(*m_config, opt_key);
+		get_optgroup()->set_value(opt_key, value);
+	}
+	if (opt_key == "support")
+	{
+		
+	}
+	if (opt_key == "brim_width")
+	{
+		bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
+		get_optgroup()->set_value("brim", val);
+	}
+
+		
 	update();
 }
 
@@ -1418,7 +1364,8 @@ void TabPrinter::update(){
 			DynamicPrintConfig new_conf = *m_config;
 			if (dialog->ShowModal() == wxID_YES) {
 				auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe")->clone());
-				wipe->values[i] = false;
+				for (int w = 0; w < wipe->values.size(); w++)
+					wipe->values[w] = false;
 				new_conf.set_key_value("wipe", wipe);
 			}
 			else {

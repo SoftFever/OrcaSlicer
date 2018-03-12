@@ -44,6 +44,7 @@ class TabIface;
 namespace GUI {
 
 class Tab;
+class ConfigOptionsGroup;
 // Map from an file_type name to full file wildcard name.
 typedef std::map<std::string, std::string> t_file_wild_card;
 inline t_file_wild_card& get_file_wild_card() {
@@ -129,6 +130,8 @@ wxString	from_u8(const std::string &str);
 wxWindow *get_widget_by_id(int id);
 
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
+
+ConfigOptionsGroup* get_optgroup();
 
 }
 }

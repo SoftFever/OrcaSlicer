@@ -611,10 +611,44 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	//preset_sizer->RecalcSizes();
 	const wxArrayInt& ar = preset_sizer->GetColWidths();
 	m_optgroup->label_width = 90;//ar.IsEmpty() ? 90 : ar.front();
-	m_optgroup->m_on_change = [](t_config_option_key opt_key, boost::any value){
-		int i=0;// m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
+		TabPrint* tab_print = nullptr;
+		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
+			Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
+			if (!tab)
+				continue;
+			if (tab->name() == "print"){
+				tab_print = static_cast<TabPrint*>(tab);
+				break;
+			}
+		}
+		if (tab_print == nullptr)
+			return;
+
+		if (opt_key == "fill_density"){
+			value = m_optgroup->get_config_value(*config, opt_key);
+			tab_print->set_value(opt_key, value);
+		}
+
+		if (opt_key == "brim"){
+			if (boost::any_cast<bool>(value) == true)
+			{
+				double brim_width = config->opt_float("brim_width");// m_optgroup->get_config_value(*config, "brim_width");
+				if (brim_width == 0.0)
+					tab_print->set_value("brim_width", wxString("10"));
+			}
+			else
+				tab_print->set_value("brim_width", wxString("0"));
+		}
+
+		tab_print->update_dirty();
+		
 	};
-	m_optgroup->append_single_option_line("fill_density");
+
+	Option option = m_optgroup->get_option("fill_density");
+	option.opt.sidetext = "";
+	option.opt.width = 200;
+	m_optgroup->append_single_option_line(option);
 
 	ConfigOptionDef def;
 
@@ -626,7 +660,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	def.enum_labels.push_back(L("Support on build plate only"));
 	def.enum_labels.push_back(L("Everywhere"));
 	def.default_value = new ConfigOptionString(L("None"));
-	Option option(def, "support");
+	option = Option(def, "support");
+	option.opt.width = 200;
 	m_optgroup->append_single_option_line(option);
 
 	def.label = L("Brim");
@@ -638,6 +673,11 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	m_optgroup->append_single_option_line(option);
 
 	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxBottom, 1);
+}
+
+ConfigOptionsGroup* get_optgroup()
+{
+	return m_optgroup.get();
 }
 
 } }
