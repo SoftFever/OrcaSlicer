@@ -1728,13 +1728,13 @@ sub _vertex_shader_Gouraud {
 #define INTENSITY_CORRECTION 0.7
 
 // normalized values for (-0.6/1.31, 0.6/1.31, 1./1.31)
-#define LIGHT_TOP_DIR        vec3(-0.4574957, 0.4574957, 0.7624929)
+const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
 #define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
 #define LIGHT_TOP_SPECULAR   (0.5 * INTENSITY_CORRECTION)
 #define LIGHT_TOP_SHININESS  50.
 
 // normalized values for (1./1.43, 0.2/1.43, 1./1.43)
-#define LIGHT_FRONT_DIR      vec3(0.6985074, 0.1397015, 0.6985074)
+const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 #define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
 #define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
 #define LIGHT_FRONT_SHININESS 50.
@@ -1753,44 +1753,37 @@ struct PrintBoxDetection
 
 uniform PrintBoxDetection print_box;
 
-varying float intensity_specular;
-varying float intensity_tainted;
+// x = tainted, y = specular;
+varying vec2 intensity;
 
 varying vec3 delta_box_min;
 varying vec3 delta_box_max;
 
 void main()
 {
-    vec3 normal, viewVector, halfVector;
-    float NdotL, NdotHV;
+    // position in camera space
+    vec3 eye = (gl_ModelViewMatrix * gl_Vertex).xyz;
 
-    vec3 eye = -(gl_ModelViewMatrix * gl_Vertex).xyz;
-
-    // First transform the normal into eye space and normalize the result.
-    normal = normalize(gl_NormalMatrix * gl_Normal);
+    // First transform the normal into camera space and normalize the result.
+    vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
     
     // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
     // Also since we're talking about a directional light, the position field is actually direction.
-    halfVector = normalize(LIGHT_TOP_DIR + eye);
+    vec3 halfVector = normalize(LIGHT_TOP_DIR - eye);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
-    NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
+    float NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
 
-    intensity_tainted = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
-    intensity_specular = 0.;
+    intensity.x = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
+    intensity.y = 0.0;
 
     if (NdotL > 0.0)
-        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
+        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
 
-    // Perform the same lighting calculation for the 2nd light source.
-//    halfVector = normalize(LIGHT_FRONT_DIR + eye);
+    // Perform the same lighting calculation for the 2nd light source (no specular applied).
     NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
-    intensity_tainted += NdotL * LIGHT_FRONT_DIFFUSE;
-
-    // compute the specular term if NdotL is larger than zero
-//    if (NdotL > 0.0)
-//        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_FRONT_SHININESS);
+    intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
     // compute deltas for out of print volume detection (world coordinates)
     if (print_box.volume_origin.w == 1.0)
@@ -1815,19 +1808,19 @@ sub _fragment_shader_Gouraud {
     return <<'FRAGMENT';
 #version 110
 
-varying float intensity_specular;
-varying float intensity_tainted;
+const vec3 ZERO = vec3(0.0, 0.0, 0.0);
+
+// x = tainted, y = specular;
+varying vec2 intensity;
+
 varying vec3 delta_box_min;
 varying vec3 delta_box_max;
 
 uniform vec4 uniform_color;
 
-const vec3 ZERO = vec3(0.0, 0.0, 0.0);
-
 void main()
 {
-    gl_FragColor = 
-        vec4(intensity_specular, intensity_specular, intensity_specular, 0.) + uniform_color * intensity_tainted;
+    gl_FragColor = vec4(intensity.y, intensity.y, intensity.y, 0.0) + uniform_color * intensity.x;
 
     // if the fragment is outside the print volume darken it and set it as transparent
     if (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO)))
@@ -1911,12 +1904,12 @@ sub _vertex_shader_variable_layer_height {
     return <<'VERTEX';
 #version 110
 
-const vec3 LIGHT_TOP_DIR = vec3(0.0, 1.0, 0.0);
+const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
 #define LIGHT_TOP_DIFFUSE    0.2
 #define LIGHT_TOP_SPECULAR   0.3
 #define LIGHT_TOP_SHININESS  50.
 
-const vec3 LIGHT_FRONT_DIR = vec3(0.0, 0.0, 1.0);
+const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 #define LIGHT_FRONT_DIFFUSE  0.5
 #define LIGHT_FRONT_SPECULAR 0.3
 #define LIGHT_FRONT_SHININESS 50.
@@ -1924,46 +1917,41 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.0, 0.0, 1.0);
 #define INTENSITY_AMBIENT    0.1
 
 uniform float z_to_texture_row;
-varying float intensity_specular;
-varying float intensity_tainted;
+
+// x = tainted, y = specular;
+varying vec2 intensity;
+
 varying float object_z;
 
 void main()
 {
-    vec3 eye, normal, viewVector, halfVector;
-    float NdotL, NdotHV;
+    // position in camera space
+    vec3 eye = (gl_ModelViewMatrix * gl_Vertex).xyz;
 
-//    eye = gl_ModelViewMatrixInverse[3].xyz;
-    eye = vec3(0., 0., 1.);
-
-    // First transform the normal into eye space and normalize the result.
-    normal = normalize(gl_NormalMatrix * gl_Normal);
+    // First transform the normal into camera space and normalize the result.
+    vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
     
     // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
     // Also since we're talking about a directional light, the position field is actually direction.
-    halfVector = normalize(LIGHT_TOP_DIR + eye);
+    vec3 halfVector = normalize(LIGHT_TOP_DIR - eye);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
-    NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
+    float NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
 
-    intensity_tainted = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
-    intensity_specular = 0.;
+    intensity.x = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
+    intensity.y = 0.0;
 
-//    if (NdotL > 0.0)
-//        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
-
-    // Perform the same lighting calculation for the 2nd light source.
-    halfVector = normalize(LIGHT_FRONT_DIR + eye);
-    NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
-    intensity_tainted += NdotL * LIGHT_FRONT_DIFFUSE;
-    
-    // compute the specular term if NdotL is larger than zero
     if (NdotL > 0.0)
-        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_FRONT_SHININESS);
+        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
 
+    // Perform the same lighting calculation for the 2nd light source (no specular)
+    NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
+    
+    intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
+    
     // Scaled to widths of the Z texture.
-    object_z = gl_Vertex.z / gl_Vertex.w;
+    object_z = gl_Vertex.z;
 
     gl_Position = ftransform();
 } 
@@ -1982,12 +1970,13 @@ uniform sampler2D z_texture;
 // Scaling from the Z texture rows coordinate to the normalized texture row coordinate.
 uniform float z_to_texture_row;
 uniform float z_texture_row_to_normalized;
-
-varying float intensity_specular;
-varying float intensity_tainted;
-varying float object_z;
 uniform float z_cursor;
 uniform float z_cursor_band_width;
+
+// x = tainted, y = specular;
+varying vec2 intensity;
+
+varying float object_z;
 
 void main()
 {
@@ -2007,15 +1996,12 @@ void main()
     float lod           = clamp(0.5 * log2(max(dx_vtc*dx_vtc, dy_vtc*dy_vtc)), 0., 1.);
     // Sample the Z texture. Texture coordinates are normalized to <0, 1>.
     vec4 color       =
-        (1. - lod) * texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row + 0.5    )), -10000.) +
-        lod        * texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row * 2. + 1.)),  10000.);
+        mix(texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row + 0.5    )), -10000.),
+            texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row * 2. + 1.)),  10000.), lod);
+            
     // Mix the final color.
     gl_FragColor = 
-        vec4(intensity_specular, intensity_specular, intensity_specular, 1.) + 
-        (1. - z_blend) * intensity_tainted * color + 
-        z_blend * vec4(1., 1., 0., 0.);
-    // and reset the transparency.
-    gl_FragColor.a = 1.;
+        vec4(intensity.y, intensity.y, intensity.y, 1.0) +  intensity.x * mix(color, vec4(1.0, 1.0, 0.0, 1.0), z_blend);
 }
 
 FRAGMENT
