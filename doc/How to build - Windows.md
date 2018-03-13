@@ -50,7 +50,6 @@ and use these commands to build the Slic3r from the command line:
     cd build
     cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release
     nmake
-    ctest --verbose    # TODO: ???
     cd ..
     perl slic3r.pl
 
@@ -60,27 +59,34 @@ You may also build Slic3r PE with other build tools:
 
 ### Building with Visual Studio
 
-To build, lanuch and/or debug Slic3r PE with Visual Studio (64 bits), replace the `cmake` command with:
+To build and debug Slic3r PE with Visual Studio (64 bits), replace the `cmake` command with:
 
-    cmake .. -G "Visual Studio 12 Win64" -DCMAKE_CONFIGURATION_TYPES=Release;RelWithDebInfo || exit /b
+    cmake .. -G "Visual Studio 12 Win64" -DCMAKE_CONFIGURATION_TYPES=RelWithDebInfo
 
 For the 32-bit variant, use:
 
-    cmake .. -G "Visual Studio 12" -DCMAKE_CONFIGURATION_TYPES=Release;RelWithDebInfo || exit /b
+    cmake .. -G "Visual Studio 12" -DCMAKE_CONFIGURATION_TYPES=RelWithDebInfo
 
-After `cmake` has finished, go to the `Slic3r\build` directory and open the `Slic3r.sln` solution file.
-This should open Visual Studio and load all the Slic3r solution containing all the projects.
+After `cmake` has finished, go to the build directory and open the `Slic3r.sln` solution file.
+This should open Visual Studio and load the Slic3r solution containing all the projects.
 Make sure you use Visual Studio 2013 to open the solution.
 
-You can then use the usual Visual Studio controls to build Slic3r.
-If you want to run or debug Slic3r from within Visual Studio, make sure the `slic3r` project is activated.
-There are multiple projects in the Slic3r solution, but only the `slic3r` project is configured with the right
-commands to run Slic3r.
+You can then use the usual Visual Studio controls to build Slic3r (Hit `F5` to build and run with debugger).
+If you want to run or debug Slic3r from within Visual Studio, make sure the `XS` project is activated.
+It should be set as the Startup project by CMake by default, but you might want to check anyway.
+There are multiple projects in the Slic3r solution, but only the `XS` project is configured with the right
+commands to run and debug Slic3r.
 
+The above cmake commands generate Visual Studio project files with the `RelWithDebInfo` configuration only.
+If you also want to use the `Release` configuration, you can generate Visual Studio projects with:
+
+    -DCMAKE_CONFIGURATION_TYPES=Release;RelWithDebInfo
+
+(The `Debug` configuration is not supported as of now.)
 
 ### Building with ninja
 
-To use [Ninja](TODO), replace the `cmake` and `nmake` commands with:
+To use [Ninja](https://ninja-build.org/), replace the `cmake` and `nmake` commands with:
 
     cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
     ninja
