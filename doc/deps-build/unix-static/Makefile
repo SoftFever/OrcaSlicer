@@ -82,11 +82,11 @@ $(OPENSSL).tar.gz:
 
 libcurl: libopenssl $(CURL).tar.gz
 	tar -zxvf $(CURL).tar.gz
-# XXX: disable shared?
-# Setting PKG_CONFIG_PATH should make libcurl find our previously built openssl
-	cd $(CURL) && PKG_CONFIG_PATH=$(DESTDIR)/usr/local/lib/pkgconfig ./configure \
+#	Note: It seems setting custom openssl path doesn't work when pkg-config and system openssl devel libs are installed
+	cd $(CURL) && ./configure \
 		--enable-static \
 		--enable-shared \
+		--with-ssl=$(DESTDIR)/usr/local \
 		--with-pic \
 		--enable-ipv6 \
 		--enable-versioned-symbols \
