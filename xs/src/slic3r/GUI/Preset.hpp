@@ -40,7 +40,7 @@ public:
 
     struct PrinterModel {
         PrinterModel() {}
-        PrinterModel(const std::string &name) : name(name) {}
+        std::string                 id;
         std::string                 name;
         bool                        enabled = true;
         std::vector<PrinterVariant> variants;
@@ -51,11 +51,10 @@ public:
             return nullptr;
         }
         const PrinterVariant* variant(const std::string &name) const { return const_cast<PrinterModel*>(this)->variant(name); }
-
-        bool        operator< (const PrinterModel &rhs) const { return this->name <  rhs.name; }
-        bool        operator==(const PrinterModel &rhs) const { return this->name == rhs.name; }
     };
-    std::set<PrinterModel>          models;
+    std::vector<PrinterModel>          models;
+
+    VendorProfile(std::string id) : id(std::move(id)) {}
 
     size_t      num_variants() const { size_t n = 0; for (auto &model : models) n += model.variants.size(); return n; }
 

@@ -101,6 +101,8 @@ sub OnInit {
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
 
+    my $slic3r_update_avail = $self->{app_config}->get("version_check") && $self->{app_config}->get("version_online") != $Slic3r::VERSION;
+
     Slic3r::GUI::set_app_config($self->{app_config});
     Slic3r::GUI::load_language();
 
@@ -111,6 +113,7 @@ sub OnInit {
         warn $@ . "\n";
         show_error(undef, $@);
     }
+    # TODO: check previously downloaded updates
     $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
 
     Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
@@ -134,14 +137,19 @@ sub OnInit {
         $self->{app_config}->save if $self->{app_config}->dirty;
     });
 
-    if ($run_wizard) {
-        # On OSX the UI was not initialized correctly if the wizard was called
-        # before the UI was up and running.
-        $self->CallAfter(sub {
+    # On OSX the UI was not initialized correctly if the wizard was called
+    # before the UI was up and running.
+    $self->CallAfter(sub {
+        if ($slic3r_update_avail) {
+            # TODO
+        } elsif ($run_wizard) {
             # Run the config wizard, don't offer the "reset user profile" checkbox.
             $self->{mainframe}->config_wizard(1);
-        });
-    }
+        }
+
+        # XXX: recreate_GUI ???
+        Slic3r::PresetUpdater::download($self->{app_config}, $self->{preset_bundle});
+    });
 
     # The following event is emited by the C++ menu implementation of application language change.
     EVT_COMMAND($self, -1, $LANGUAGE_CHANGE_EVENT, sub{

@@ -81,6 +81,7 @@ public:
         LOAD_CFGBNDLE_RESET_USER_PROFILE = 2,
         // Load a system config bundle.
         LOAD_CFGBNDLE_SYSTEM = 4,
+        LOAD_CFGBUNDLE_VENDOR_ONLY = 8,
     };
     // Load the config bundle, store it to the user profile directory by default.
     size_t                      load_configbundle(const std::string &path, unsigned int flags = LOAD_CFGBNDLE_SAVE);

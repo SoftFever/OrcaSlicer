@@ -95,7 +95,7 @@ sub new {
     });
 
     $self->update_ui_from_settings;
-    
+
     return $self;
 }
 
@@ -643,6 +643,12 @@ sub config_wizard {
     my ($self, $fresh_start) = @_;
     # Exit wizard if there are unsaved changes and the user cancels the action.
     return unless $self->check_unsaved_changes;
+
+
+    # TODO: Offer "reset user profile"
+    Slic3r::GUI::open_config_wizard();
+    return;
+
     # Enumerate the profiles bundled with the Slic3r installation under resources/profiles.
     my $directory = Slic3r::resources_dir() . "/profiles";
     my @profiles = ();

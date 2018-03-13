@@ -42,7 +42,7 @@ void AppConfig::set_defaults()
         set("no_defaults", "1");
     if (get("show_incompatible_presets").empty())
         set("show_incompatible_presets", "0");
-    // Version check is enabled by default in the config, but it is not implemented yet.
+    // Version check is enabled by default in the config, but it is not implemented yet.   // XXX
     if (get("version_check").empty())
         set("version_check", "1");
     // Use OpenGL 1.1 even if OpenGL 2.0 is available. This is mainly to support some buggy Intel HD Graphics drivers.

@@ -54,6 +54,9 @@ int combochecklist_get_flags(SV *ui)
 void set_app_config(AppConfig *app_config)
     %code%{ Slic3r::GUI::set_app_config(app_config); %};
 
+void open_config_wizard()
+    %code%{ Slic3r::GUI::open_config_wizard(); %};
+
 void open_preferences_dialog(int preferences_event)
     %code%{ Slic3r::GUI::open_preferences_dialog(preferences_event); %};
 

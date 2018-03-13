@@ -1,0 +1,18 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/Utils/PresetUpdate.hpp"
+%}
+
+%name{Slic3r::PresetUpdater} class PresetUpdater {
+    static void download(PresetBundle *preset_bundle);
+};
+
+
+# TODO: remove:
+
+%package{Slic3r::Utils};
+
+void preset_update_check()
+    %code%{ Slic3r::Utils::preset_update_check(); %};

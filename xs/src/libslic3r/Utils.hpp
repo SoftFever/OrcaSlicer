@@ -3,6 +3,8 @@
 
 #include <locale>
 
+#include "libslic3r.h"
+
 namespace Slic3r {
 
 extern void set_logging_level(unsigned int level);
