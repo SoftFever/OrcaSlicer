@@ -1001,6 +1001,8 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
         if (wide_icons)
             bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
         bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
+        if (preset.is_dirty)
+            bitmap_key += ",drty";
         wxBitmap     *bitmap       = m_bitmapCache->find(bitmap_key);
         if (bitmap == nullptr) {
             // Create the bitmap with color bars.
@@ -1017,7 +1019,8 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
             }
             // Paint a lock at the system presets.
             bmps.emplace_back(m_bitmapCache->mkclear(4, 16));
-            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(16, 16));
+            bmps.emplace_back((preset.is_system || preset.is_default) ? 
+                (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
 		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);

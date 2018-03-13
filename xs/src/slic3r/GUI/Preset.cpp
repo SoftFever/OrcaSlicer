@@ -226,13 +226,15 @@ const std::vector<std::string>& Preset::printer_options()
             "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
             "octoprint_host", "octoprint_apikey", "octoprint_cafile", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height",
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
-            "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "default_print_profile", "default_filament_profile", "inherits",
+            "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "default_print_profile", "inherits",
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }
     return s_opts;
 }
 
+// The following nozzle options of a printer profile will be adjusted to match the size 
+// of the nozzle_diameter vector.
 const std::vector<std::string>& Preset::nozzle_options()
 {
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
@@ -240,7 +242,8 @@ const std::vector<std::string>& Preset::nozzle_options()
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
         "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
         "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
-        "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour"
+        "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour", 
+        "default_filament_profile"
     };
     return s_opts;
 }
@@ -363,7 +366,7 @@ void PresetCollection::save_current_preset(const std::string &new_name)
             inherits = /* preset.vendor->name + "/" + */ old_name;
         } else if (inherits.empty()) {
             // Inheriting from a user preset. Link the new preset to the old preset.
-            inherits = old_name;
+            // inherits = old_name;
         } else {
             // Inherited from a user preset. Just maintain the "inherited" flag, 
             // meaning it will inherit from either the system preset, or the inherited user preset.
