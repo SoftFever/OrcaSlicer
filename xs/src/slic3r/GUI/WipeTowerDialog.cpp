@@ -40,12 +40,37 @@ std::ostream& operator<<(std::ostream& str,Slic3r::WipeTowerParameters& par) {
         
     return str;
 }
+
+
+RammingDialog::RammingDialog(wxWindow* parent,const std::string& init_data)
+: wxDialog(parent, -1,  wxT("Ramming customization"), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    this->Centre();
+    m_panel_ramming  = new RammingPanel(this,Slic3r::WipeTowerParameters(std::string()));
+    m_panel_ramming->Show(true);
+    this->Show();
+
+    auto main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_panel_ramming, 1, wxEXPAND);
+    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+    SetSizer(main_sizer);
+    SetMinSize(GetSize());
+    main_sizer->SetSizeHints(this);
+  
+    this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
     
+    this->Bind(wxEVT_BUTTON,[this](wxCommandEvent&) {
+       // m_output_data=read_dialog_values();
+        EndModal(wxID_OK);
+        },wxID_OK);
+}
+
+
 
 
 
 RammingPanel::RammingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
-: wxPanel(parent,wxID_ANY,wxPoint(0,0),wxSize(0,0),wxBORDER_RAISED)
+: wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(800,350),wxBORDER_RAISED)
 {
     new wxStaticText(this,wxID_ANY,wxString("Total ramming time (s):"),     wxPoint(500,105),      wxSize(200,25),wxALIGN_LEFT);
     m_widget_time = new wxSpinCtrlDouble(this,wxID_ANY,wxEmptyString,       wxPoint(700,100),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0.,5.0,3.,0.5);        
@@ -55,56 +80,40 @@ RammingPanel::RammingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p
     m_widget_ramming_line_width_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,       wxPoint(700,200),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,10,200,100);        
     new wxStaticText(this,wxID_ANY,wxString("Ramming line spacing (%):"),   wxPoint(500,235),      wxSize(200,25),wxALIGN_LEFT);
     m_widget_ramming_step_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,     wxPoint(700,230),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,10,200,100);        
-    new wxStaticText(this,wxID_ANY,wxString("Extruder #:"),                 wxPoint(500,12),       wxSize(200,25),wxALIGN_LEFT);
     
-    wxArrayString choices;
-    for (unsigned int i=0;i<p.ramming_line_width_multiplicator.size();++i) {            // for all extruders
-        choices.Add(wxString("")<<i+1);
-        m_ramming_line_width_multiplicators.push_back(p.ramming_line_width_multiplicator[i]*100);
-        m_ramming_step_multiplicators.push_back(p.ramming_step_multiplicator[i]*100);
-    }
-    m_widget_extruder = new wxChoice(this,wxID_ANY,wxPoint(580,5),wxSize(50,27),choices);
     
-    m_chart = new Chart(this,wxRect(10,10,480,360),p.ramming_buttons,p.ramming_speed,p.sampling);
+    m_chart = new Chart(this,wxRect(10,10,480,360),p.ramming_buttons[0],p.ramming_speed[0],p.sampling);
     
-    m_chart->set_extruder(0);
     m_widget_time->SetValue(m_chart->get_time());
     m_widget_time->SetDigits(2);
     m_widget_volume->SetValue(m_chart->get_volume());
     m_widget_volume->Disable();
-    m_widget_extruder->SetSelection(0);
-    extruder_selection_changed(); // tell everyone to redraw
+    m_widget_ramming_line_width_multiplicator->SetValue(m_ramming_line_width_multiplicator);
+    m_widget_ramming_step_multiplicator->SetValue(m_ramming_step_multiplicator);        
     
     m_widget_ramming_step_multiplicator->Bind(wxEVT_TEXT,[this](wxCommandEvent&) { line_parameters_changed(); });
     m_widget_ramming_line_width_multiplicator->Bind(wxEVT_TEXT,[this](wxCommandEvent&) { line_parameters_changed(); });
-    m_widget_extruder->Bind(wxEVT_CHOICE,[this](wxCommandEvent&) { extruder_selection_changed(); });
     m_widget_time->Bind(wxEVT_TEXT,[this](wxCommandEvent&) {m_chart->set_xy_range(m_widget_time->GetValue(),-1);});
     m_widget_time->Bind(wxEVT_CHAR,[](wxKeyEvent&){});      // do nothing - prevents the user to change the value
     m_widget_volume->Bind(wxEVT_CHAR,[](wxKeyEvent&){});    // do nothing - prevents the user to change the value   
-    Bind(EVT_WIPE_TOWER_CHART_CHANGED,[this](wxCommandEvent&) {m_widget_volume->SetValue(m_chart->get_volume()); m_widget_time->SetValue(m_chart->get_time());} );        
+    Bind(EVT_WIPE_TOWER_CHART_CHANGED,[this](wxCommandEvent&) {m_widget_volume->SetValue(m_chart->get_volume()); m_widget_time->SetValue(m_chart->get_time());} );
+    Refresh(this);
 }
+
 
 void RammingPanel::fill_parameters(Slic3r::WipeTowerParameters& p)
 {
     if (!m_chart) return;
-    p.ramming_buttons = m_chart->get_buttons();
-    p.ramming_speed   = m_chart->get_ramming_speeds(p.sampling);
-    for (unsigned int i=0;i<m_ramming_line_width_multiplicators.size();++i) {  // we assume m_ramming_line_width_multiplicators.size() == m_ramming_step_multiplicators.size()         
-        p.ramming_line_width_multiplicator.push_back(m_ramming_line_width_multiplicators[i]/100.f);
-        p.ramming_step_multiplicator.push_back(m_ramming_step_multiplicators[i]/100.f);
-    }
-}
-    
-void RammingPanel::extruder_selection_changed() {
-    m_current_extruder = m_widget_extruder->GetSelection();
-    m_chart->set_extruder(m_current_extruder);  // tell our chart to redraw
-    m_widget_ramming_line_width_multiplicator  ->SetValue(m_ramming_line_width_multiplicators[m_current_extruder]);
-    m_widget_ramming_step_multiplicator->SetValue(m_ramming_step_multiplicators[m_current_extruder]);        
+    p.ramming_buttons[0] = m_chart->get_buttons();
+    p.ramming_speed[0]   = m_chart->get_ramming_speed(p.sampling);
+    p.ramming_line_width_multiplicator.push_back(m_ramming_line_width_multiplicator/100.f);
+    p.ramming_step_multiplicator.push_back(m_ramming_step_multiplicator/100.f);
 }
 
+
 void RammingPanel::line_parameters_changed() {
-    m_ramming_line_width_multiplicators[m_current_extruder]=m_widget_ramming_line_width_multiplicator->GetValue();
-    m_ramming_step_multiplicators[m_current_extruder]=m_widget_ramming_step_multiplicator->GetValue();
+    m_ramming_line_width_multiplicator = m_widget_ramming_line_width_multiplicator->GetValue();
+    m_ramming_step_multiplicator = m_widget_ramming_step_multiplicator->GetValue();
 }
 
 
@@ -112,7 +121,7 @@ void RammingPanel::line_parameters_changed() {
 
 
 WipingPanel::WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
-: wxPanel(parent,wxID_ANY,wxPoint(0,0),wxSize(0,0),wxBORDER_RAISED)
+: wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(800,350),wxBORDER_RAISED)
 {
     const int N = 4; // number of extruders
     new wxStaticText(this,wxID_ANY,wxString("Volume to wipe when the filament is being"),wxPoint(40,55) ,wxSize(500,25));
@@ -141,6 +150,7 @@ WipingPanel::WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
     }
     
     m_widget_button->Bind(wxEVT_BUTTON,[this](wxCommandEvent&){fill_in_matrix();});
+    Refresh(this);
 }
 
 void WipingPanel::fill_parameters(Slic3r::WipeTowerParameters& p) {
@@ -183,7 +193,7 @@ void WipingPanel::fill_in_matrix() {
 
 
 WipeTowerDialog::WipeTowerDialog(wxWindow* parent,const std::string& init_data)
-: wxDialog(parent, -1,  wxT("Wipe tower advanced settings"), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+: wxDialog(parent, -1,  wxT("Wiping customization"), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     this->Centre();
             
@@ -192,21 +202,11 @@ WipeTowerDialog::WipeTowerDialog(wxWindow* parent,const std::string& init_data)
         wxMessageDialog(this,"Wipe tower parameters not parsed correctly!\nRestoring default settings.","Error",wxICON_ERROR);
         parameters.set_defaults();
     }
-            
-    wxNotebook* notebook = new wxNotebook(this,wxID_ANY,wxPoint(0,0),wxSize(800,450));
-    
-    //m_panel_general = new GeneralPanel(notebook,parameters);
-    m_panel_ramming = new RammingPanel(notebook,parameters);
-    //m_panel_cooling = new CoolingPanel(notebook,parameters);
-    m_panel_wiping  = new WipingPanel(notebook,parameters);
-    //notebook->AddPage(m_panel_general,"General");
-    notebook->AddPage(m_panel_ramming,"Ramming");
-    //notebook->AddPage(m_panel_cooling,"Cooling");
-    notebook->AddPage(m_panel_wiping,"Wiping");
+    m_panel_wiping  = new WipingPanel(this,parameters);
     this->Show();
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
-    main_sizer->Add(notebook, 1, wxEXPAND);
+    main_sizer->Add(m_panel_wiping, 1, wxEXPAND);
     main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
     SetSizer(main_sizer);
     SetMinSize(GetSize());

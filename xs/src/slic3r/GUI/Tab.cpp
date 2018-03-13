@@ -796,7 +796,7 @@ void TabPrint::update()
 
 	bool have_wipe_tower = m_config->opt_bool("wipe_tower");
 	vec_enable.resize(0);
-	vec_enable = {	"wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe", "wipe_tower_rotation_angle"};
+	vec_enable = {	"wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe", "wipe_tower_rotation_angle", "wipe_tower_bridging"};
 	for (auto el : vec_enable)
 		get_field(el)->toggle(have_wipe_tower);
     m_wipe_tower_btn->Enable(have_wipe_tower);
@@ -885,20 +885,18 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_time");
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
-			auto ramming_dialog = new wxButton(parent, wxID_ANY, _(L("Advanced settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-			auto sizer = new wxBoxSizer(wxHORIZONTAL);
-			sizer->Add(ramming_dialog);
-			/*m_wipe_tower_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(ramming_dialog_btn);
+            
+            ramming_dialog_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
 			{
-                std::string init_data = (m_config->option<ConfigOptionString>("wipe_tower_advanced"))->value;
-                std::cout << "dialog init: " << init_data << std::endl;
-				WipeTowerDialog dlg(this,init_data); // dlg lives on stack, no need to call Destroy
-
-				if (dlg.ShowModal() == wxID_OK) {
-                    load_key_value("wipe_tower_advanced", dlg.GetValue());
-                    std::cout << std::endl << "dialog returned: " << dlg.GetValue() << std::endl;
+                //std::string init_data = (m_config->option<ConfigOptionString>("wipe_tower_advanced"))->value;
+                RammingDialog dlg(this,std::string());
+                if (dlg.ShowModal() == wxID_OK) {
+                    //load_key_value("wipe_tower_advanced", dlg.GetValue());
                 }
-			}));*/
+			}));
 			return sizer;
 		};
 		optgroup->append_line(line);

@@ -15,10 +15,10 @@
 
 // Human-readable output of Parameters structure
 std::ostream& operator<<(std::ostream& str,Slic3r::WipeTowerParameters& par);
-    
 
 class RammingPanel : public wxPanel {
 public:
+    RammingPanel(wxWindow* parent);
     RammingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p);
     void fill_parameters(Slic3r::WipeTowerParameters& p);
 
@@ -28,15 +28,20 @@ private:
     wxSpinCtrl* m_widget_ramming_line_width_multiplicator = nullptr;
     wxSpinCtrl* m_widget_ramming_step_multiplicator = nullptr;
     wxSpinCtrlDouble* m_widget_time = nullptr;
-    wxChoice* m_widget_extruder = nullptr;
-    std::vector<int> m_ramming_step_multiplicators;    
-    std::vector<int> m_ramming_line_width_multiplicators;
-    int m_current_extruder = 0;     // zero-based index
-    
-    void extruder_selection_changed();
-    
+    int m_ramming_step_multiplicator;
+    int m_ramming_line_width_multiplicator;
+      
     void line_parameters_changed();
 };
+
+
+class RammingDialog : public wxDialog {
+public:
+    RammingDialog(wxWindow* parent,const std::string& init_data);    
+private:
+    RammingPanel* m_panel_ramming = nullptr;
+};
+
 
 
 
@@ -67,13 +72,11 @@ public:
     
 private:
     std::string m_file_name="config_wipe_tower";
-    RammingPanel* m_panel_ramming = nullptr;
     WipingPanel*  m_panel_wiping  = nullptr;
     std::string m_output_data = "";
             
     std::string read_dialog_values() {
         Slic3r::WipeTowerParameters p;
-        m_panel_ramming->fill_parameters(p);
         m_panel_wiping ->fill_parameters(p);
         return p.to_string();
     }
