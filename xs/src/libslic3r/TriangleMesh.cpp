@@ -990,21 +990,34 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
     
     // Build a map of lines by edge_a_id and a_id.
     std::vector<IntersectionLine*> by_edge_a_id;
+    std::vector<IntersectionLine*> by_edge_b_id;
     std::vector<IntersectionLine*> by_a_id;
+    std::vector<IntersectionLine*> by_b_id;
     by_edge_a_id.reserve(lines.size());
+    by_edge_b_id.reserve(lines.size());
     by_a_id.reserve(lines.size());
+    by_b_id.reserve(lines.size());
+
     for (IntersectionLines::iterator line = lines.begin(); line != lines.end(); ++ line) {
         if (! line->skip) {
             if (line->edge_a_id != -1)
                 by_edge_a_id.push_back(&(*line)); // [line->edge_a_id].push_back();
-            if (line->a_id != -1) 
+            if (line->edge_b_id != -1)
+                by_edge_b_id.push_back(&(*line));
+            if (line->a_id != -1)
                 by_a_id.push_back(&(*line)); // [line->a_id].push_back(&(*line));
+            if (line->b_id != -1)
+                by_b_id.push_back(&(*line)); // [line->a_id].push_back(&(*line));
         }
     }
     auto by_edge_lower = [](const IntersectionLine* il1, const IntersectionLine *il2) { return il1->edge_a_id < il2->edge_a_id; };
     auto by_vertex_lower = [](const IntersectionLine* il1, const IntersectionLine *il2) { return il1->a_id < il2->a_id; };
+    auto by_edge_b_lower = [](const IntersectionLine* il1, const IntersectionLine *il2) { return il1->edge_b_id < il2->edge_b_id; };
+    auto by_vertex_b_lower = [](const IntersectionLine* il1, const IntersectionLine *il2) { return il1->b_id < il2->b_id; };
     std::sort(by_edge_a_id.begin(), by_edge_a_id.end(), by_edge_lower);
     std::sort(by_a_id.begin(), by_a_id.end(), by_vertex_lower);
+    std::sort(by_edge_b_id.begin(), by_edge_b_id.end(), by_edge_b_lower);
+    std::sort(by_b_id.begin(), by_b_id.end(), by_vertex_b_lower);
 
     IntersectionLines::iterator it_line_seed = lines.begin();
     CYCLE: while (1) {
@@ -1043,6 +1056,29 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                             break;
                         }
                 }
+                if (next_line == nullptr)
+                {
+                    // checks reverted edge
+                    key.edge_b_id = last_line->edge_b_id;
+                    auto it_begin = std::lower_bound(by_edge_b_id.begin(), by_edge_b_id.end(), &key, by_edge_b_lower);
+                    if (it_begin != by_edge_b_id.end()) {
+                        auto it_end = std::upper_bound(it_begin, by_edge_b_id.end(), &key, by_edge_b_lower);
+                        for (auto it_line = it_begin; it_line != it_end; ++it_line)
+                            if (!(*it_line)->skip) {
+                                // reverts edge
+                                std::swap((*it_line)->a, (*it_line)->b);
+                                std::swap((*it_line)->a_id, (*it_line)->b_id);
+                                std::swap((*it_line)->edge_a_id, (*it_line)->edge_b_id);
+                                next_line = *it_line;
+                                // resorts lists
+                                std::sort(by_edge_a_id.begin(), by_edge_a_id.end(), by_edge_lower);
+                                std::sort(by_edge_b_id.begin(), by_edge_b_id.end(), by_edge_b_lower);
+                                std::sort(by_a_id.begin(), by_a_id.end(), by_vertex_lower);
+                                std::sort(by_b_id.begin(), by_b_id.end(), by_vertex_b_lower);
+                                break;
+                            }
+                    }
+                }
             }
             if (next_line == nullptr && last_line->b_id != -1) {
                 key.a_id = last_line->b_id;
@@ -1054,6 +1090,29 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                             next_line = *it_line;
                             break;
                         }
+                }
+                if (next_line == nullptr)
+                {
+                    // checks reverted edge
+                    key.b_id = last_line->b_id;
+                    auto it_begin = std::lower_bound(by_b_id.begin(), by_b_id.end(), &key, by_vertex_b_lower);
+                    if (it_begin != by_b_id.end()) {
+                        auto it_end = std::upper_bound(it_begin, by_b_id.end(), &key, by_vertex_b_lower);
+                        for (auto it_line = it_begin; it_line != it_end; ++it_line)
+                            if (!(*it_line)->skip) {
+                                // reverts edge
+                                std::swap((*it_line)->a, (*it_line)->b);
+                                std::swap((*it_line)->a_id, (*it_line)->b_id);
+                                std::swap((*it_line)->edge_a_id, (*it_line)->edge_b_id);
+                                next_line = *it_line;
+                                // resorts lists
+                                std::sort(by_edge_a_id.begin(), by_edge_a_id.end(), by_edge_lower);
+                                std::sort(by_edge_b_id.begin(), by_edge_b_id.end(), by_edge_b_lower);
+                                std::sort(by_a_id.begin(), by_a_id.end(), by_vertex_lower);
+                                std::sort(by_b_id.begin(), by_b_id.end(), by_vertex_b_lower);
+                                break;
+                            }
+                    }
                 }
             }
             if (next_line == nullptr) {
