@@ -173,6 +173,7 @@ public:
 
 protected:
 	void			on_presets_changed();
+	void			update_frequently_changed_parameters();
 };
 
 //Slic3r::GUI::Tab::Print;

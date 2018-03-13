@@ -294,8 +294,10 @@ void Choice::BUILD() {
 	if (m_opt.enum_labels.empty() && m_opt.enum_values.empty()){
 	}
 	else{
-		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels)
-			temp->Append(wxString(el));
+		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels){
+			const wxString& str = m_opt_id == "support" ? L_str(el) : el;
+			temp->Append(str);
+		}
 		set_selection();
 	}
  	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
@@ -443,6 +445,9 @@ boost::any Choice::get_value()
 {
 	boost::any ret_val;
 	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
+
+	if (m_opt_id == "support")
+		return ret_str;
 
 	if (m_opt.type != coEnum)
 		ret_val = get_value_by_opt_type(ret_str);

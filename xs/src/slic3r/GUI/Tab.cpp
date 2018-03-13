@@ -315,9 +315,14 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 		value = get_optgroup()->get_config_value(*m_config, opt_key);
 		get_optgroup()->set_value(opt_key, value);
 	}
-	if (opt_key == "support")
+	if (opt_key == "support_material" || opt_key == "support_material_buildplate_only")
 	{
-		
+		wxString new_selection = !m_config->opt_bool("support_material") ?
+								_("None") :
+								m_config->opt_bool("support_material_buildplate_only") ?
+									_("Support on build plate only") :
+									_("Everywhere");
+		get_optgroup()->set_value("support", new_selection);
 	}
 	if (opt_key == "brim_width")
 	{
@@ -341,6 +346,22 @@ void Tab::on_presets_changed()
 		event.SetString(m_name);
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
+}
+
+void Tab::update_frequently_changed_parameters()
+{
+	boost::any value = get_optgroup()->get_config_value(*m_config, "fill_density");
+	get_optgroup()->set_value("fill_density", value);
+
+	wxString new_selection = !m_config->opt_bool("support_material") ?
+							_("None") :
+							m_config->opt_bool("support_material_buildplate_only") ?
+								_("Support on build plate only") :
+								_("Everywhere");
+	get_optgroup()->set_value("support", new_selection);
+
+	bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
+	get_optgroup()->set_value("brim", val);
 }
 
 void Tab::reload_compatible_printers_widget()
@@ -1388,15 +1409,13 @@ void TabPrinter::update(){
 void Tab::load_current_preset()
 {
 	auto preset = m_presets->get_edited_preset();
-//	try{
-//		local $SIG{ __WARN__ } = Slic3r::GUI::warning_catcher($self);
-		preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
-		update();
-		// For the printer profile, generate the extruder pages.
-		on_preset_loaded();
-		// Reload preset pages with the new configuration values.
-		reload_config();
-//	};
+	preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
+	update();
+	// For the printer profile, generate the extruder pages.
+	on_preset_loaded();
+	// Reload preset pages with the new configuration values.
+	reload_config();
+
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
 	// preset dirty again
@@ -1407,6 +1426,11 @@ void Tab::load_current_preset()
 			return;
 		update_tab_ui();
 		on_presets_changed();
+
+		if (name() == "print"){
+			update_frequently_changed_parameters();
+			update_changed_ui();
+		}
 	});
 }
 

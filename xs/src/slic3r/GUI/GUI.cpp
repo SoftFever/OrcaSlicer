@@ -180,6 +180,7 @@ std::vector<Tab *> g_tabs_list;
 wxLocale*	g_wxLocale;
 
 std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
+double m_brim_width = 0.0;
 
 void set_wxapp(wxApp *app)
 {
@@ -608,9 +609,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 {
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
-	//preset_sizer->RecalcSizes();
 	const wxArrayInt& ar = preset_sizer->GetColWidths();
-	m_optgroup->label_width = 90;//ar.IsEmpty() ? 90 : ar.front();
+	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front();
 	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
@@ -629,46 +629,71 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 			value = m_optgroup->get_config_value(*config, opt_key);
 			tab_print->set_value(opt_key, value);
 		}
-
-		if (opt_key == "brim"){
-			if (boost::any_cast<bool>(value) == true)
-			{
-				double brim_width = config->opt_float("brim_width");// m_optgroup->get_config_value(*config, "brim_width");
-				if (brim_width == 0.0)
-					tab_print->set_value("brim_width", wxString("10"));
+		else{
+			DynamicPrintConfig new_conf = *config;
+			if (opt_key == "brim"){
+				double new_val;
+				double brim_width = config->opt_float("brim_width");
+				if (boost::any_cast<bool>(value) == true)
+				{
+					new_val = m_brim_width == 0.0 ? 10 :
+						m_brim_width < 0.0 ? m_brim_width * (-1) :
+						m_brim_width;
+				}
+				else{
+					m_brim_width = brim_width * (-1);
+					new_val = 0;
+				}
+				new_conf.set_key_value("brim_width", new ConfigOptionFloat(new_val));
 			}
-			else
-				tab_print->set_value("brim_width", wxString("0"));
+			else{ //(opt_key == "support")
+				const wxString& selection = boost::any_cast<wxString>(value);
+				
+				auto support_material = selection == _("None") ? false : true;
+				new_conf.set_key_value("support_material", new ConfigOptionBool(support_material));
+
+				if (selection == _("Everywhere"))
+					new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+				else if (selection == _("Support on build plate only"))
+					new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));				
+			}
+			tab_print->load_config(new_conf);
 		}
 
 		tab_print->update_dirty();
-		
 	};
 
+	const int width = 250;
 	Option option = m_optgroup->get_option("fill_density");
 	option.opt.sidetext = "";
-	option.opt.width = 200;
+	option.opt.width = width;
 	m_optgroup->append_single_option_line(option);
 
 	ConfigOptionDef def;
 
 	def.label = L("Support");
-	def.type = coString;
+	def.type = coStrings;
 	def.gui_type = "select_open";
 	def.tooltip = L("Select what kind of support do you need");
 	def.enum_labels.push_back(L("None"));
 	def.enum_labels.push_back(L("Support on build plate only"));
 	def.enum_labels.push_back(L("Everywhere"));
-	def.default_value = new ConfigOptionString(L("None"));
+	std::string selection = !config->opt_bool("support_material") ?
+		"None" :
+		config->opt_bool("support_material_buildplate_only") ?
+		"Support on build plate only" :
+		"Everywhere";
+	def.default_value = new ConfigOptionStrings { selection };
 	option = Option(def, "support");
-	option.opt.width = 200;
+	option.opt.width = width;
 	m_optgroup->append_single_option_line(option);
 
+	m_brim_width = config->opt_float("brim_width");
 	def.label = L("Brim");
 	def.type = coBool;
 	def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
-	def.default_value = new ConfigOptionBool{ false }; // 1;
 	def.gui_type = "";
+	def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
 	option = Option(def, "brim");
 	m_optgroup->append_single_option_line(option);
 
