@@ -1311,6 +1311,7 @@ sub Render {
         if ($self->enable_picking) {
             $self->mark_volumes_for_layer_height;
             $self->volumes->set_print_box($self->bed_bounding_box->x_min, $self->bed_bounding_box->y_min, 0.0, $self->bed_bounding_box->x_max, $self->bed_bounding_box->y_max, $self->{config}->get('max_print_height'));
+            $self->volumes->update_outside_state($self->{config}, 0);
         }
         $self->{plain_shader}->enable if $self->{plain_shader};
         $self->volumes->render_VBOs;

@@ -216,7 +216,6 @@ sub reload_scene {
     {
         if (!$self->{model}->fits_print_volume($self->{config})) {
             $self->set_warning_enabled(1);
-            $self->volumes->update_outside_state($self->{config}, 0);
             Slic3r::GUI::_3DScene::generate_warning_texture(L("Detected object outside print volume"));
         } else {
             $self->set_warning_enabled(0);
