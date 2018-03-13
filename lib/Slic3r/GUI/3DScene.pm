@@ -1725,19 +1725,19 @@ sub _vertex_shader_Gouraud {
     return <<'VERTEX';
 #version 110
 
-#define INTENSITY_CORRECTION 0.7
+#define INTENSITY_CORRECTION 0.6
 
 // normalized values for (-0.6/1.31, 0.6/1.31, 1./1.31)
 const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
 #define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SPECULAR   (0.5 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SHININESS  50.
+#define LIGHT_TOP_SPECULAR   (0.25 * INTENSITY_CORRECTION)
+#define LIGHT_TOP_SHININESS  200.0
 
 // normalized values for (1./1.43, 0.2/1.43, 1./1.43)
 const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 #define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
-#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
-#define LIGHT_FRONT_SHININESS 50.
+//#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
+//#define LIGHT_FRONT_SHININESS 5.0
 
 #define INTENSITY_AMBIENT    0.3
 
@@ -1761,15 +1761,14 @@ varying vec3 delta_box_max;
 
 void main()
 {
-    // position in camera space
-    vec3 eye = (gl_ModelViewMatrix * gl_Vertex).xyz;
+    vec3 eye = -normalize((gl_ModelViewMatrix * gl_Vertex).xyz);
 
     // First transform the normal into camera space and normalize the result.
     vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
     
     // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
     // Also since we're talking about a directional light, the position field is actually direction.
-    vec3 halfVector = normalize(LIGHT_TOP_DIR - eye);
+    vec3 halfVector = normalize(LIGHT_TOP_DIR + eye);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
@@ -1904,17 +1903,19 @@ sub _vertex_shader_variable_layer_height {
     return <<'VERTEX';
 #version 110
 
+#define INTENSITY_CORRECTION 0.6
+
 const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
-#define LIGHT_TOP_DIFFUSE    0.2
-#define LIGHT_TOP_SPECULAR   0.3
-#define LIGHT_TOP_SHININESS  50.
+#define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
+#define LIGHT_TOP_SPECULAR   (0.25 * INTENSITY_CORRECTION)
+#define LIGHT_TOP_SHININESS  200.0
 
 const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
-#define LIGHT_FRONT_DIFFUSE  0.5
-#define LIGHT_FRONT_SPECULAR 0.3
-#define LIGHT_FRONT_SHININESS 50.
+#define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
+//#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
+//#define LIGHT_FRONT_SHININESS 5.0
 
-#define INTENSITY_AMBIENT    0.1
+#define INTENSITY_AMBIENT    0.3
 
 uniform float z_to_texture_row;
 
@@ -1925,15 +1926,14 @@ varying float object_z;
 
 void main()
 {
-    // position in camera space
-    vec3 eye = (gl_ModelViewMatrix * gl_Vertex).xyz;
+    vec3 eye = -normalize((gl_ModelViewMatrix * gl_Vertex).xyz);
 
     // First transform the normal into camera space and normalize the result.
     vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
     
     // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
     // Also since we're talking about a directional light, the position field is actually direction.
-    vec3 halfVector = normalize(LIGHT_TOP_DIR - eye);
+    vec3 halfVector = normalize(LIGHT_TOP_DIR + eye);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
