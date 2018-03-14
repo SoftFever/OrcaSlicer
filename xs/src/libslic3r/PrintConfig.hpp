@@ -33,7 +33,7 @@ enum InfillPattern {
 };
 
 enum SupportMaterialPattern {
-    smpRectilinear, smpRectilinearGrid, smpHoneycomb, smpPillars,
+    smpRectilinear, smpRectilinearGrid, smpHoneycomb,
 };
 
 enum SeamPosition {
@@ -87,7 +87,6 @@ template<> inline t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>
         keys_map["rectilinear"]         = smpRectilinear;
         keys_map["rectilinear-grid"]    = smpRectilinearGrid;
         keys_map["honeycomb"]           = smpHoneycomb;
-        keys_map["pillars"]             = smpPillars;
     }
     return keys_map;
 }
