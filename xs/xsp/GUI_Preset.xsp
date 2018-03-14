@@ -161,6 +161,8 @@ PresetCollection::arrayref()
     Ref<PresetCollection>       print()    %code%{ RETVAL = &THIS->prints;   %};
     Ref<PresetCollection>       filament() %code%{ RETVAL = &THIS->filaments; %};
     Ref<PresetCollection>       printer()  %code%{ RETVAL = &THIS->printers;  %};
+    Ref<DynamicPrintConfig>     project_config() %code%{ RETVAL = &THIS->project_config; %};
+
     bool                        has_defauls_only();
 
     std::vector<std::string>    filament_presets() %code%{ RETVAL = THIS->filament_presets; %};

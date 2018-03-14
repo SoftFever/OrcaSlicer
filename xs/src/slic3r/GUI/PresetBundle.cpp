@@ -32,6 +32,9 @@
 
 namespace Slic3r {
 
+static std::vector<std::string> s_project_options {
+};
+
 PresetBundle::PresetBundle() :
     prints(Preset::TYPE_PRINT, Preset::print_options()), 
     filaments(Preset::TYPE_FILAMENT, Preset::filament_options()), 
@@ -56,6 +59,8 @@ PresetBundle::PresetBundle() :
     this->filaments.load_bitmap_default("spool.png");
     this->printers .load_bitmap_default("printer_empty.png");
     this->load_compatible_bitmaps();
+
+    this->project_config.apply_only(FullPrintConfig::defaults(), s_project_options);
 }
 
 PresetBundle::~PresetBundle()
@@ -223,6 +228,7 @@ DynamicPrintConfig PresetBundle::full_config() const
     out.apply(FullPrintConfig());
     out.apply(this->prints.get_edited_preset().config);
     out.apply(this->printers.get_edited_preset().config);
+    out.apply(this->project_config);
 
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();
@@ -411,6 +417,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             this->filament_presets.emplace_back(new_name);
         }
     }
+
+    // 4) Load the project config values (the per extruder wipe matrix etc).
+    this->project_config.apply_only(config, s_project_options);
 
     this->update_compatible_with_printer(false);
 }
