@@ -508,6 +508,13 @@ bool Print::has_skirt() const
 
 std::string Print::validate() const
 {
+    BoundingBox bed_box_2D = get_extents(Polygon::new_scale(config.bed_shape.values));
+    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config.max_print_height));
+    for (PrintObject *po : this->objects) {
+        if (! print_volume.contains(po->model_object()->tight_bounding_box(false)))
+            return "Some objects are outside of the print volume.";
+    }
+
     if (this->config.complete_objects) {
         // Check horizontal clearance.
         {
