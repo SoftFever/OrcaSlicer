@@ -628,6 +628,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		if (opt_key == "fill_density"){
 			value = m_optgroup->get_config_value(*config, opt_key);
 			tab_print->set_value(opt_key, value);
+			tab_print->update();
 		}
 		else{
 			DynamicPrintConfig new_conf = *config;
