@@ -27,6 +27,9 @@ namespace Slic3r { namespace GUI {
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
 using column_t = std::function<wxSizer*(const Line&)>;
 
+//auto default_label_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT); //GetSystemColour
+//auto modified_label_clr = *new wxColour(254, 189, 101);
+
 /// Wraps a ConfigOptionDef and adds function object for creating a side_widget.
 struct Option {
 	ConfigOptionDef			opt { ConfigOptionDef() };
@@ -75,6 +78,7 @@ public:
     wxSizer*		sizer {nullptr};
     column_t		extra_column {nullptr};
     t_change		m_on_change {nullptr};
+	std::function<DynamicPrintConfig()>	m_get_initial_config{ nullptr };
 
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
@@ -109,8 +113,8 @@ public:
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
-    OptionsGroup(wxWindow* _parent, wxString title) : 
-		m_parent(_parent), title(title) {
+    OptionsGroup(wxWindow* _parent, wxString title, bool is_tab_opt=false) : 
+		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!="") {
         sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
@@ -132,22 +136,25 @@ protected:
     t_optionfield_map		m_fields;
     bool					m_disabled {false};
     wxGridSizer*			m_grid_sizer {nullptr};
+	// "true" if option is created in preset tabs
+	bool					m_is_tab_opt{ false };
 
     /// Generate a wxSizer or wxWindow from a configuration option
     /// Precondition: opt resolves to a known ConfigOption
     /// Postcondition: fields contains a wx gui object.
-    const t_field&		build_field(const t_config_option_key& id, const ConfigOptionDef& opt);
-    const t_field&		build_field(const t_config_option_key& id);
-    const t_field&		build_field(const Option& opt);
+	const t_field&		build_field(const t_config_option_key& id, const ConfigOptionDef& opt, wxStaticText* label = nullptr);
+	const t_field&		build_field(const t_config_option_key& id, wxStaticText* label = nullptr);
+	const t_field&		build_field(const Option& opt, wxStaticText* label = nullptr);
 
     virtual void		on_kill_focus (){};
 	virtual void		on_change_OG(t_config_option_key opt_id, boost::any value);
+	virtual void		back_to_initial_value(const std::string opt_key){};
 };
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-	ConfigOptionsGroup(wxWindow* parent, wxString title, DynamicPrintConfig* _config = nullptr) : 
-		OptionsGroup(parent, title), m_config(_config) {}
+	ConfigOptionsGroup(wxWindow* parent, wxString title, DynamicPrintConfig* _config = nullptr, bool is_tab_opt = false) :
+		OptionsGroup(parent, title, is_tab_opt), m_config(_config) {}
 
     /// reference to libslic3r config, non-owning pointer (?).
     DynamicPrintConfig*		m_config {nullptr};
@@ -169,10 +176,8 @@ public:
 	}
 
 	void		on_change_OG(t_config_option_key opt_id, boost::any value) override;
-	void		on_kill_focus() override
-	{
-		reload_config();
-	}
+	void		back_to_initial_value(const std::string opt_key) override;
+	void		on_kill_focus() override{ reload_config();}
 	void		reload_config();
 	boost::any	config_value(std::string opt_key, int opt_index, bool deserialize);
 	// return option value from config 

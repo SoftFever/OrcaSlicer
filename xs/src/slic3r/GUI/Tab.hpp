@@ -99,6 +99,7 @@ protected:
 	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
+	std::vector<std::string>	m_dirty_options = {};
 
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
@@ -145,6 +146,7 @@ public:
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
+	void		update_changed_ui();
 	
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
@@ -171,6 +173,7 @@ public:
 
 protected:
 	void			on_presets_changed();
+	void			update_frequently_changed_parameters();
 };
 
 //Slic3r::GUI::Tab::Print;
@@ -221,6 +224,7 @@ public:
 	wxButton*	m_octoprint_host_test_btn;
 
 	size_t		m_extruders_count;
+	size_t		m_initial_extruders_count;
 	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}
