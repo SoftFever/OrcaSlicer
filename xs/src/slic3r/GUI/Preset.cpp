@@ -80,7 +80,7 @@ void Preset::set_num_extruders(DynamicPrintConfig &config, unsigned int num_extr
         auto *opt = config.option(key, false);
         assert(opt != nullptr);
         assert(opt->is_vector());
-        if (opt != nullptr && opt->is_vector())
+        if (opt != nullptr && opt->is_vector() && key != "default_filament_profile")
             static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
     }
 }
