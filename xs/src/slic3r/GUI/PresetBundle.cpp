@@ -2,6 +2,7 @@
 #include <cassert>
 
 #include "PresetBundle.hpp"
+#include "BitmapCache.hpp"
 
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -37,7 +38,10 @@ PresetBundle::PresetBundle() :
     filaments(Preset::TYPE_FILAMENT, Preset::filament_options()), 
     printers(Preset::TYPE_PRINTER, Preset::printer_options()),
     m_bitmapCompatible(new wxBitmap),
-    m_bitmapIncompatible(new wxBitmap)
+    m_bitmapIncompatible(new wxBitmap),
+    m_bitmapLock(new wxBitmap),
+    m_bitmapLockOpen(new wxBitmap),
+    m_bitmapCache(new GUI::BitmapCache)
 {
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler);
@@ -51,6 +55,14 @@ PresetBundle::PresetBundle() :
     this->filaments.preset(0).config.optptr("compatible_printers_condition", true);
     this->prints.preset(0).config.optptr("compatible_printers", true);
     this->prints.preset(0).config.optptr("compatible_printers_condition", true);
+    // Create the "inherits" keys.
+    this->prints.preset(0).config.optptr("inherits", true);
+    this->filaments.preset(0).config.optptr("inherits", true);
+    this->printers.preset(0).config.optptr("inherits", true);
+    // Create the "printer_vendor", "printer_model" and "printer_variant" keys.
+    this->printers.preset(0).config.optptr("printer_vendor", true);
+    this->printers.preset(0).config.optptr("printer_model", true);
+    this->printers.preset(0).config.optptr("printer_variant", true);
 
     this->prints   .load_bitmap_default("cog.png");
     this->filaments.load_bitmap_default("spool.png");
@@ -62,12 +74,18 @@ PresetBundle::~PresetBundle()
 {
 	assert(m_bitmapCompatible != nullptr);
 	assert(m_bitmapIncompatible != nullptr);
+    assert(m_bitmapLock != nullptr);
+    assert(m_bitmapLockOpen != nullptr);
 	delete m_bitmapCompatible;
 	m_bitmapCompatible = nullptr;
     delete m_bitmapIncompatible;
 	m_bitmapIncompatible = nullptr;
-    for (std::pair<const std::string, wxBitmap*> &bitmap : m_mapColorToBitmap)
-        delete bitmap.second;
+    delete m_bitmapLock;
+    m_bitmapLock = nullptr;
+    delete m_bitmapLockOpen;
+    m_bitmapLockOpen = nullptr;
+    delete m_bitmapCache;
+    m_bitmapCache = nullptr;
 }
 
 void PresetBundle::reset(bool delete_files)
@@ -84,7 +102,8 @@ void PresetBundle::setup_directories()
 {
     boost::filesystem::path data_dir = boost::filesystem::path(Slic3r::data_dir());
     std::initializer_list<boost::filesystem::path> paths = { 
-        data_dir, 
+        data_dir,
+		data_dir / "vendor",
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
         // Store the print/filament/printer presets into a "presets" directory.
         data_dir / "presets", 
@@ -107,10 +126,12 @@ void PresetBundle::setup_directories()
     }
 }
 
-void PresetBundle::load_presets()
+void PresetBundle::load_presets(const AppConfig &config)
 {
-    std::string errors_cummulative;
-    const std::string dir_path = data_dir()
+    // First load the vendor specific system presets.
+    std::string errors_cummulative = this->load_system_presets();
+
+    const std::string dir_user_presets = data_dir()
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
         // Store the print/filament/printer presets into a "presets" directory.
         + "/presets"
@@ -119,17 +140,17 @@ void PresetBundle::load_presets()
 #endif
         ;
     try {
-        this->prints.load_presets(dir_path, "print");
+        this->prints.load_presets(dir_user_presets, "print");
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
     try {
-        this->filaments.load_presets(dir_path, "filament");
+        this->filaments.load_presets(dir_user_presets, "filament");
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
     try {
-        this->printers.load_presets(dir_path, "printer");
+        this->printers.load_presets(dir_user_presets, "printer");
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
@@ -137,6 +158,31 @@ void PresetBundle::load_presets()
     this->update_compatible_with_printer(false);
     if (! errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
+
+    this->load_selections(config);
+}
+
+// Load system presets into this PresetBundle.
+// For each vendor, there will be a single PresetBundle loaded.
+std::string PresetBundle::load_system_presets()
+{
+    // Here the vendor specific read only Config Bundles are stored.
+    boost::filesystem::path dir = (boost::filesystem::path(data_dir()) / "vendor").make_preferred();
+    std::string errors_cummulative;
+    for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
+        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini")) {
+            std::string name = dir_entry.path().filename().string();
+            // Remove the .ini suffix.
+            name.erase(name.size() - 4);
+            try {
+                // Load the config bundle, flatten it.
+                this->load_configbundle(dir_entry.path().string(), LOAD_CFGBNDLE_SYSTEM);
+            } catch (const std::runtime_error &err) {
+                errors_cummulative += err.what();
+                errors_cummulative += "\n";
+            }
+        }
+    return errors_cummulative;
 }
 
 static inline std::string remove_ini_suffix(const std::string &name)
@@ -145,6 +191,14 @@ static inline std::string remove_ini_suffix(const std::string &name)
     if (boost::iends_with(out, ".ini"))
         out.erase(out.end() - 4, out.end());
     return out;
+}
+
+// Set the "enabled" flag for printer vendors, printer models and printer variants
+// based on the user configuration.
+// If the "vendor" section is missing, enable all models and variants of the particular vendor.
+void PresetBundle::load_installed_printers(const AppConfig &config)
+{
+    // m_storage
 }
 
 // Load selections (current print, current filaments, current printer) from config.ini
@@ -200,10 +254,16 @@ bool PresetBundle::load_compatible_bitmaps()
 {
     const std::string path_bitmap_compatible   = "flag-green-icon.png";
     const std::string path_bitmap_incompatible = "flag-red-icon.png";
+    const std::string path_bitmap_lock         = "lock.png";
+    const std::string path_bitmap_lock_open    = "lock_open.png";
     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
         wxString::FromUTF8(Slic3r::var(path_bitmap_incompatible).c_str()), wxBITMAP_TYPE_PNG);
+    bool loaded_lock = m_bitmapLock->LoadFile(
+        wxString::FromUTF8(Slic3r::var(path_bitmap_lock).c_str()), wxBITMAP_TYPE_PNG);
+    bool loaded_lock_open = m_bitmapLockOpen->LoadFile(
+        wxString::FromUTF8(Slic3r::var(path_bitmap_lock_open).c_str()), wxBITMAP_TYPE_PNG);
     if (loaded_compatible) {
         prints   .set_bitmap_compatible(m_bitmapCompatible);
         filaments.set_bitmap_compatible(m_bitmapCompatible);
@@ -214,7 +274,17 @@ bool PresetBundle::load_compatible_bitmaps()
         filaments.set_bitmap_incompatible(m_bitmapIncompatible);
 //        printers .set_bitmap_incompatible(m_bitmapIncompatible);        
     }
-    return loaded_compatible && loaded_incompatible;
+    if (loaded_lock) {
+        prints   .set_bitmap_lock(m_bitmapLock);
+        filaments.set_bitmap_lock(m_bitmapLock);
+        printers .set_bitmap_lock(m_bitmapLock);
+    }
+    if (loaded_lock_open) {
+        prints   .set_bitmap_lock_open(m_bitmapLock);
+        filaments.set_bitmap_lock_open(m_bitmapLock);
+        printers .set_bitmap_lock_open(m_bitmapLock);
+    }
+    return loaded_compatible && loaded_incompatible && loaded_lock && loaded_lock_open;
 }
 
 DynamicPrintConfig PresetBundle::full_config() const
@@ -594,11 +664,54 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree)
     flatten_configbundle_hierarchy(tree, "printer");
 }
 
+static void load_vendor_profile(const boost::property_tree::ptree &tree, VendorProfile &vendor_profile)
+{
+    const std::string printer_model_key = "printer_model:";
+    for (auto &section : tree)
+        if (section.first == "vendor") {
+            // Load the names of the active presets.
+            for (auto &kvp : section.second) {
+                if (kvp.first == "name")
+                    vendor_profile.name = kvp.second.data();
+                else if (kvp.first == "id")
+                    vendor_profile.id = kvp.second.data();
+                else if (kvp.first == "config_version")
+                    vendor_profile.config_version = kvp.second.data();
+                else if (kvp.first == "config_update_url")
+                    vendor_profile.config_update_url = kvp.second.data();
+            }
+        } else if (boost::starts_with(section.first, printer_model_key)) {
+            VendorProfile::PrinterModel model;
+            model.name = section.first.substr(printer_model_key.size());
+            section.second.get<std::string>("variants", "");
+            std::vector<std::string> variants;
+            if (Slic3r::unescape_strings_cstyle(section.second.get<std::string>("variants", ""), variants)) {
+                for (const std::string &variant_name : variants) {
+                    if (model.variant(variant_name) == nullptr)
+                        model.variants.emplace_back(VendorProfile::PrinterVariant(variant_name));
+                }
+            } else {
+                // Log error?
+            }
+            if (! model.name.empty() && ! model.variants.empty())
+                vendor_profile.models.insert(model);
+        }
+}
+
+// Load a config bundle file, into presets and store the loaded presets into separate files
+// of the local configuration directory.
+void PresetBundle::install_vendor_configbundle(const std::string &src_path0)
+{
+    boost::filesystem::path src_path(src_path0);
+    boost::filesystem::copy_file(src_path, (boost::filesystem::path(data_dir()) / "vendor" / src_path.filename()).make_preferred(), boost::filesystem::copy_option::overwrite_if_exists);
+}
+
 // Load a config bundle file, into presets and store the loaded presets into separate files
 // of the local configuration directory.
 size_t PresetBundle::load_configbundle(const std::string &path, unsigned int flags)
 {
-    if (flags & LOAD_CFGBNDLE_RESET_USER_PROFILE)
+    if (flags & (LOAD_CFGBNDLE_RESET_USER_PROFILE | LOAD_CFGBNDLE_SYSTEM))
+        // Reset this bundle, delete user profile files if LOAD_CFGBNDLE_SAVE.
         this->reset(flags & LOAD_CFGBNDLE_SAVE);
 
     // 1) Read the complete config file into a boost::property_tree.
@@ -608,6 +721,17 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     pt::read_ini(ifs, tree);
     // Flatten the config bundle by applying the inheritance rules. Internal profiles (with names starting with '*') are removed.
     flatten_configbundle_hierarchy(tree);
+
+    const VendorProfile *vendor_profile = nullptr;
+    if (flags & LOAD_CFGBNDLE_SYSTEM) {
+        VendorProfile vp;
+        load_vendor_profile(tree, vp);
+        if (vp.name.empty())
+            throw std::runtime_error(std::string("Vendor Config Bundle is not valid: Missing vendor name key."));
+        if (vp.num_variants() == 0)
+            return 0;
+        vendor_profile = &(*this->vendors.insert(vp).first);
+    }
 
     // 2) Parse the property_tree, extract the active preset names and the profiles, save them into local config files.
     std::vector<std::string> loaded_prints;
@@ -622,15 +746,15 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
         std::vector<std::string> *loaded  = nullptr;
         std::string               preset_name;
         if (boost::starts_with(section.first, "print:")) {
-            presets = &prints;
+            presets = &this->prints;
             loaded  = &loaded_prints;
             preset_name = section.first.substr(6);
         } else if (boost::starts_with(section.first, "filament:")) {
-            presets = &filaments;
+            presets = &this->filaments;
             loaded  = &loaded_filaments;
             preset_name = section.first.substr(9);
         } else if (boost::starts_with(section.first, "printer:")) {
-            presets = &printers;
+            presets = &this->printers;
             loaded  = &loaded_printers;
             preset_name = section.first.substr(8);
         } else if (section.first == "presets") {
@@ -664,6 +788,40 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             for (auto &kvp : section.second)
                 config.set_deserialize(kvp.first, kvp.second.data());
             Preset::normalize(config);
+            if ((flags & LOAD_CFGBNDLE_SYSTEM) && presets == &printers) {
+                // Filter out printer presets, which are not mentioned in the vendor profile.
+                // These presets are considered not installed.
+                auto printer_model   = config.opt_string("printer_model");
+                if (printer_model.empty()) {
+                    BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
+                        section.first << "\" defines no printer model, it will be ignored.";
+                    continue;
+                }
+                auto printer_variant = config.opt_string("printer_variant");
+                if (printer_variant.empty()) {
+                    BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
+                        section.first << "\" defines no printer variant, it will be ignored.";
+                    continue;
+                }
+                auto it_model = vendor_profile->models.find(VendorProfile::PrinterModel(printer_model));
+                if (it_model == vendor_profile->models.end()) {
+                    BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
+                        section.first << "\" defines invalid printer model \"" << printer_model << "\", it will be ignored.";
+                    continue;
+                }
+                auto it_variant = it_model->variant(printer_variant);
+                if (it_variant == nullptr) {
+                    BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
+                        section.first << "\" defines invalid printer variant \"" << printer_variant << "\", it will be ignored.";
+                    continue;
+                }
+                const Preset *preset_existing = presets->find_preset(section.first, false);
+                if (preset_existing != nullptr) {
+                    BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
+                        section.first << "\" has already been loaded from another Confing Bundle.";
+                    continue;
+                }
+            }
             // Decide a full path to this .ini file.
             auto file_name = boost::algorithm::iends_with(preset_name, ".ini") ? preset_name : preset_name + ".ini";
             auto file_path = (boost::filesystem::path(data_dir()) 
@@ -678,24 +836,29 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             Preset &loaded = presets->load_preset(file_path.string(), preset_name, std::move(config), false);
             if (flags & LOAD_CFGBNDLE_SAVE)
                 loaded.save();
+            if (flags & LOAD_CFGBNDLE_SYSTEM) {
+                loaded.is_system = true;
+                loaded.vendor = vendor_profile;
+            }
             ++ presets_loaded;
         }
     }
 
     // 3) Activate the presets.
-    if (! active_print.empty()) 
-        prints.select_preset_by_name(active_print, true);
-    if (! active_printer.empty())
-        printers.select_preset_by_name(active_printer, true);
-    // Activate the first filament preset.
-    if (! active_filaments.empty() && ! active_filaments.front().empty())
-        filaments.select_preset_by_name(active_filaments.front(), true);
+    if ((flags & LOAD_CFGBNDLE_SYSTEM) == 0) {
+        if (! active_print.empty()) 
+            prints.select_preset_by_name(active_print, true);
+        if (! active_printer.empty())
+            printers.select_preset_by_name(active_printer, true);
+        // Activate the first filament preset.
+        if (! active_filaments.empty() && ! active_filaments.front().empty())
+            filaments.select_preset_by_name(active_filaments.front(), true);
+        this->update_multi_material_filament_presets();
+        for (size_t i = 0; i < std::min(this->filament_presets.size(), active_filaments.size()); ++ i)
+            this->filament_presets[i] = filaments.find_preset(active_filaments[i], true)->name;
+        this->update_compatible_with_printer(false);
+    }
 
-    this->update_multi_material_filament_presets();
-    for (size_t i = 0; i < std::min(this->filament_presets.size(), active_filaments.size()); ++ i)
-        this->filament_presets[i] = filaments.find_preset(active_filaments[i], true)->name;
-
-    this->update_compatible_with_printer(false);
     return presets_loaded;
 }
 
@@ -836,49 +999,29 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
         // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
         // to the filament color image.
         if (wide_icons)
-            bitmap_key += preset.is_compatible ? "comp" : "notcomp";
-        auto          it           = m_mapColorToBitmap.find(bitmap_key);
-        wxBitmap     *bitmap       = (it == m_mapColorToBitmap.end()) ? nullptr : it->second;
+            bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
+        bitmap_key += (preset.is_system || preset.is_default) ? ",syst" : ",nsyst";
+        if (preset.is_dirty)
+            bitmap_key += ",drty";
+        wxBitmap     *bitmap       = m_bitmapCache->find(bitmap_key);
         if (bitmap == nullptr) {
             // Create the bitmap with color bars.
-            bitmap = new wxBitmap((wide_icons ? 16 : 0) + 24, 16);
-#if defined(__APPLE__) || defined(_MSC_VER)
-            bitmap->UseAlpha();
-#endif
-            wxMemoryDC memDC;
-            memDC.SelectObject(*bitmap);
-            memDC.SetBackground(*wxTRANSPARENT_BRUSH);
-            memDC.Clear();
-            if (wide_icons && ! preset.is_compatible)
-                // Paint the red flag.
-                memDC.DrawBitmap(*m_bitmapIncompatible, 0, 0, true);
+            std::vector<wxBitmap> bmps;
+            if (wide_icons)
+                // Paint a red flag for incompatible presets.
+                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(16, 16) : *m_bitmapIncompatible);
             // Paint the color bars.
             parse_color(filament_rgb, rgb);
-            wxImage image(24, 16);
-            image.InitAlpha();
-            unsigned char* imgdata = image.GetData();
-            unsigned char* imgalpha = image.GetAlpha();
-            for (size_t i = 0; i < image.GetWidth() * image.GetHeight(); ++ i) {
-                *imgdata ++ = rgb[0];
-                *imgdata ++ = rgb[1];
-                *imgdata ++ = rgb[2];
-                *imgalpha ++ = wxALPHA_OPAQUE;
-            }
+            bmps.emplace_back(m_bitmapCache->mksolid(single_bar ? 24 : 16, 16, rgb));
             if (! single_bar) {
                 parse_color(extruder_rgb, rgb);
-                imgdata = image.GetData();
-                for (size_t r = 0; r < 16; ++ r) {
-                    imgdata = image.GetData() + r * image.GetWidth() * 3;
-                    for (size_t c = 0; c < 16; ++ c) {
-                        *imgdata ++ = rgb[0];
-                        *imgdata ++ = rgb[1];
-                        *imgdata ++ = rgb[2];
-                    }
-                }
+                bmps.emplace_back(m_bitmapCache->mksolid(8,  16, rgb));
             }
-            memDC.DrawBitmap(wxBitmap(image), wide_icons ? 16 : 0, 0, true);
-            memDC.SelectObject(wxNullBitmap);
-            m_mapColorToBitmap[bitmap_key] = bitmap;
+            // Paint a lock at the system presets.
+            bmps.emplace_back(m_bitmapCache->mkclear(4, 16));
+            bmps.emplace_back((preset.is_system || preset.is_default) ? 
+                (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
+            bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
 		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
         if (selected)

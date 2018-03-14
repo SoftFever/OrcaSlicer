@@ -722,7 +722,13 @@ sub config_wizard {
                 wxTheApp->{preset_bundle}->load_config('My Settings', $result->{config});
             } else {
                 # Wizard returned a name of a preset bundle bundled with the installation. Unpack it.
-                wxTheApp->{preset_bundle}->load_configbundle($directory . '/' . $result->{preset_name} . '.ini');
+                wxTheApp->{preset_bundle}->install_vendor_configbundle($directory . '/' . $result->{preset_name} . '.ini');
+                # Reset the print / filament / printer selections, so that following line will select some sensible defaults.
+                if ($fresh_start) {
+                    wxTheApp->{app_config}->reset_selections;
+                }
+                # Reload all presets after the vendor config bundle has been installed.
+                wxTheApp->{preset_bundle}->load_presets(wxTheApp->{app_config});
             }
         };
         Slic3r::GUI::catch_error($self) and return;

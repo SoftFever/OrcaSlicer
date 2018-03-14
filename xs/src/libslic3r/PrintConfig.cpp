@@ -176,6 +176,18 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0);
 
+    def = this->add("default_filament_profile", coStrings);
+    def->label = L("Default filament profile");
+    def->tooltip = L("Default filament profile associated with the current printer profile. "
+                   "On selection of the current printer profile, this filament profile will be activated.");
+    def->default_value = new ConfigOptionStrings();
+
+    def = this->add("default_print_profile", coString);
+    def->label = L("Default print profile");
+    def->tooltip = L("Default print profile associated with the current printer profile. "
+                   "On selection of the current printer profile, this print profile will be activated.");
+    def->default_value = new ConfigOptionString();
+
     def = this->add("disable_fan_first_layers", coInts);
     def->label = L("Disable fan for the first");
     def->tooltip = L("You can set this to a positive value to disable fan at all "
@@ -753,6 +765,13 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(80);
 
+    def = this->add("inherits", coString);
+    def->label = L("Inherits profile");
+    def->tooltip = L("Name of the profile, from which this profile inherits.");
+    def->full_width = true;
+    def->height = 50;
+    def->default_value = new ConfigOptionString("");
+
     def = this->add("interface_shells", coBool);
     def->label = L("Interface shells");
     def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
@@ -1017,6 +1036,11 @@ PrintConfigDef::PrintConfigDef()
 	def->height = 60;
 	def->default_value = new ConfigOptionStrings{ "" };
 
+    def = this->add("printer_model", coString);
+    def->label = L("Printer type");
+    def->tooltip = L("Type of the printer.");
+    def->default_value = new ConfigOptionString();
+
     def = this->add("printer_notes", coString);
     def->label = L("Printer notes");
     def->tooltip = L("You can put your notes regarding the printer here.");
@@ -1025,6 +1049,16 @@ PrintConfigDef::PrintConfigDef()
     def->full_width = true;
     def->height = 130;
     def->default_value = new ConfigOptionString("");
+
+    def = this->add("printer_vendor", coString);
+    def->label = L("Printer vendor");
+    def->tooltip = L("Name of the printer vendor.");
+    def->default_value = new ConfigOptionString();
+
+    def = this->add("printer_variant", coString);
+    def->label = L("Printer variant");
+    def->tooltip = L("Name of the printer variant. For example, the printer variants may be differentiated by a nozzle diameter.");
+    def->default_value = new ConfigOptionString();
 
     def = this->add("print_settings_id", coString);
     def->default_value = new ConfigOptionString("");

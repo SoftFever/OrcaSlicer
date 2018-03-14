@@ -1232,17 +1232,22 @@ protected:
 };
 
 /// Specialization of std::exception to indicate that an unknown config option has been encountered.
-class UnknownOptionException : public std::exception
-{
+class UnknownOptionException : public std::runtime_error {
 public:
-    const char* what() const noexcept override { return "Unknown config option"; }
+    UnknownOptionException() :
+        std::runtime_error("Unknown option exception") {}
+    UnknownOptionException(const std::string &opt_key) :
+        std::runtime_error(std::string("Unknown option exception: ") + opt_key) {}
 };
 
 /// Indicate that the ConfigBase derived class does not provide config definition (the method def() returns null).
-class NoDefinitionException : public std::exception
+class NoDefinitionException : public std::runtime_error
 {
 public:
-    const char* what() const noexcept override { return "No config definition"; }
+    NoDefinitionException() :
+        std::runtime_error("No definition exception") {}
+    NoDefinitionException(const std::string &opt_key) :
+        std::runtime_error(std::string("No definition exception: ") + opt_key) {}
 };
 
 }

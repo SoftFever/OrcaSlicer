@@ -280,9 +280,7 @@ public:
 	wxSizer*		getSizer() override { return sizer; }
 };
 
-
-#endif
 } // GUI
 } // Slic3r
 
-
+#endif /* SLIC3R_GUI_FIELD_HPP */

@@ -185,7 +185,7 @@ void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys 
             // This is only possible if other is of DynamicConfig type.
             if (ignore_nonexistent)
                 continue;
-            throw UnknownOptionException();
+            throw UnknownOptionException(opt_key);
         }
 		const ConfigOption *other_opt = other.option(opt_key);
         if (other_opt != nullptr)
@@ -232,7 +232,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
     // Try to deserialize the option by its name.
     const ConfigDef       *def    = this->def();
     if (def == nullptr)
-        throw NoDefinitionException();
+        throw NoDefinitionException(opt_key);
     const ConfigOptionDef *optdef = def->get(opt_key);
     if (optdef == nullptr) {
         // If we didn't find an option, look for any other option having this as an alias.
@@ -248,7 +248,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
                 break;
         }
         if (optdef == nullptr)
-            throw UnknownOptionException();
+            throw UnknownOptionException(opt_key);
     }
     
     if (! optdef->shortcut.empty()) {
@@ -278,7 +278,7 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
         // Get option definition.
         const ConfigDef *def = this->def();
         if (def == nullptr)
-            throw NoDefinitionException();
+            throw NoDefinitionException(opt_key);
         const ConfigOptionDef *opt_def = def->get(opt_key);
         assert(opt_def != nullptr);
         // Compute absolute value over the absolute value of the base option.
@@ -468,7 +468,7 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
     // Try to create a new ConfigOption.
     const ConfigDef       *def    = this->def();
     if (def == nullptr)
-        throw NoDefinitionException();
+        throw NoDefinitionException(opt_key);
     const ConfigOptionDef *optdef = def->get(opt_key);
     if (optdef == nullptr)
 //        throw std::runtime_error(std::string("Invalid option name: ") + opt_key);
