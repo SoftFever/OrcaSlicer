@@ -731,13 +731,16 @@ void TabPrint::update()
 					"\nShall I switch to rectilinear fill pattern?"));
 				auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Infill")), wxICON_WARNING | wxYES | wxNO);
 				DynamicPrintConfig new_conf = *m_config;
+				double fill_density;
 				if (dialog->ShowModal() == wxID_YES) {
 					new_conf.set_key_value("fill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-					new_conf.set_key_value("fill_density", new ConfigOptionPercent(100));
+					fill_density = 100;
 				}
 				else
-					new_conf.set_key_value("fill_density", new ConfigOptionPercent(40));
+					fill_density = 40;
+				new_conf.set_key_value("fill_density", new ConfigOptionPercent(fill_density));
 				load_config(new_conf);
+				on_value_change("fill_density", fill_density);
 			}
 		}
 	}
