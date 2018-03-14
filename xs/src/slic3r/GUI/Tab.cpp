@@ -1028,7 +1028,8 @@ void TabPrinter::build()
 			return sizer;
 		};
 		optgroup->append_line(line);
-		optgroup->append_single_option_line("z_offset");
+        optgroup->append_single_option_line("max_print_height");
+        optgroup->append_single_option_line("z_offset");
 
 		optgroup = page->new_optgroup(_(L("Capabilities")));
 		ConfigOptionDef def;
