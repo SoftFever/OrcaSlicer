@@ -56,7 +56,7 @@ std::istream& operator>>(std::istream& stream, std::vector<T>& vect) {
         we_read_something = true;
     }
     if (!stream.eof() && we_read_something) { // if this is not eof, we might be at separator - let's get rid of it
-        stream.clear();     // if we failed on very first line or reached eof, return stream in !good() state
+        stream.clear();     // if we failed on very first line or reached eof, return stream in good() state
         stream.get();       // get() whatever we are stuck at
     }
     return stream;

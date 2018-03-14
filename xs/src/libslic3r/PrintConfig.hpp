@@ -471,6 +471,8 @@ public:
     ConfigOptionFloats              filament_unloading_speed;
     ConfigOptionFloats              filament_toolchange_delay;
     ConfigOptionInts                filament_cooling_time;
+    ConfigOptionStrings             filament_ramming_parameters;
+    ConfigOptionStrings             filament_ramming_buttons;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
     ConfigOptionString              layer_gcode;
@@ -527,6 +529,8 @@ protected:
         OPT_PTR(filament_unloading_speed);
         OPT_PTR(filament_toolchange_delay);
         OPT_PTR(filament_cooling_time);
+        OPT_PTR(filament_ramming_parameters);
+        OPT_PTR(filament_ramming_buttons);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);
         OPT_PTR(layer_gcode);
