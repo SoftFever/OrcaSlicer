@@ -737,7 +737,7 @@ void TabPrint::update()
 					fill_density = 100;
 				}
 				else
-					fill_density = 40;
+					fill_density = m_presets->get_selected_preset().config.option<ConfigOptionPercent>("fill_density")->value;
 				new_conf.set_key_value("fill_density", new ConfigOptionPercent(fill_density));
 				load_config(new_conf);
 				on_value_change("fill_density", fill_density);
@@ -1431,10 +1431,11 @@ void Tab::load_current_preset()
 		update_tab_ui();
 		on_presets_changed();
 
-		if (name() == "print"){
+		if (name() == "print")
 			update_frequently_changed_parameters();
-			update_changed_ui();
-		}
+		if (m_name == "printer")
+			static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+		update_changed_ui();
 	});
 }
 
