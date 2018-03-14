@@ -1430,10 +1430,11 @@ void Tab::load_current_preset()
 		update_tab_ui();
 		on_presets_changed();
 
-		if (name() == "print"){
+		if (name() == "print")
 			update_frequently_changed_parameters();
-			update_changed_ui();
-		}
+		if (m_name == "printer")
+			static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+		update_changed_ui();
 	});
 }
 
