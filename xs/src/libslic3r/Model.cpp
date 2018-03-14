@@ -409,6 +409,25 @@ void Model::convert_multipart_object()
     this->objects.push_back(object);
 }
 
+void Model::adjust_min_z()
+{
+    if (objects.empty())
+        return;
+
+    if (bounding_box().min.z < 0.0)
+    {
+        for (ModelObject* obj : objects)
+        {
+            if (obj != nullptr)
+            {
+                coordf_t obj_min_z = obj->bounding_box().min.z;
+                if (obj_min_z < 0.0)
+                    obj->translate(0.0, 0.0, -obj_min_z);
+            }
+        }
+    }
+}
+
 ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes) :  
     name(other.name),
     input_file(other.input_file),
@@ -671,7 +690,10 @@ void ModelObject::transform(const float* matrix3x4)
         v->mesh.transform(matrix3x4);
     }
 
-    origin_translation = Pointf3(0.0f, 0.0f, 0.0f);
+//#####################################################################################################
+    origin_translation = Pointf3(0.0, 0.0, 0.0);
+//    origin_translation = Pointf3(0.0f, 0.0f, 0.0f);
+//#####################################################################################################
     invalidate_bounding_box();
 }
 
