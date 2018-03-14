@@ -737,7 +737,7 @@ void TabPrint::update()
 					fill_density = 100;
 				}
 				else
-					fill_density = 40;
+					fill_density = m_presets->get_selected_preset().config.option<ConfigOptionPercent>("fill_density")->value;
 				new_conf.set_key_value("fill_density", new ConfigOptionPercent(fill_density));
 				load_config(new_conf);
 				on_value_change("fill_density", fill_density);
