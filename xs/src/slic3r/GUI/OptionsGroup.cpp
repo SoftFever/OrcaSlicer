@@ -82,7 +82,10 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_initial_value(opt_id);
 	};
-	if (!m_is_tab_opt) field->m_Undo_btn->Hide();
+	if (!m_is_tab_opt) {
+		field->m_Undo_btn->Hide();
+		field->m_Undo_to_sys_btn->Hide();
+	}
     
 	// assign function objects for callbacks, etc.
     return field;
@@ -112,6 +115,7 @@ void OptionsGroup::append_line(const Line& line) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
+		sizer->Add(field->m_Undo_to_sys_btn);
 		sizer->Add(field->m_Undo_btn);
 		if (is_window_field(field))
 			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
@@ -149,6 +153,7 @@ void OptionsGroup::append_line(const Line& line) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option, label);
 
+		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL); 
 		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 		if (is_window_field(field)) 
 			sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) |
@@ -177,6 +182,7 @@ void OptionsGroup::append_line(const Line& line) {
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
+		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL, 0);
 		is_sizer_field(field) ? 
 			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :

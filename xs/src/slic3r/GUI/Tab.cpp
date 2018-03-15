@@ -191,6 +191,7 @@ void Tab::update_changed_ui()
 				field->m_Label->SetForegroundColour(*get_modified_label_clr());
 				field->m_Label->Refresh(true);
 			}
+			// use bouth of temporary_icons till don't have "undo_icon" 
 			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(wxMSW ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
 			field->m_is_modified_value = true;
 

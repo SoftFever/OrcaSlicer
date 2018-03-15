@@ -89,6 +89,7 @@ public:
 
 	wxStaticText*		m_Label = nullptr;
 	wxButton*			m_Undo_btn = nullptr;
+	wxButton*			m_Undo_to_sys_btn = nullptr;
 
     /// Fires the enable or disable function, based on the input.
     inline void			toggle(bool en) { en ? enable() : disable(); }
