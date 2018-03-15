@@ -86,9 +86,7 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change);
 void open_preferences_dialog(int event_preferences);
 
 // Create a new preset tab (print, filament and printer),
-void create_preset_tabs(bool no_controller, bool is_disabled_button_browse,	bool is_user_agent,
-						int event_value_change, int event_presets_changed,
-						int event_button_browse, int event_button_test);
+void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed);
 TabIface* get_preset_tab_iface(char *name);
 
 // add it at the end of the tab panel.
@@ -127,7 +125,6 @@ wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
 
-wxWindow *get_widget_by_id(int id);
 
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 

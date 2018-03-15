@@ -217,11 +217,7 @@ sub _init_tabpanel {
     $self->{is_disabled_button_browse} = (!eval "use Net::Bonjour; 1") ? 1 : 0 ;
     # A variable to inform C++ Tab implementation about user_agent
     $self->{is_user_agent} = (eval "use LWP::UserAgent; 1") ? 1 : 0 ;    
-    Slic3r::GUI::create_preset_tabs($self->{no_controller},
-                                    $self->{is_disabled_button_browse},
-                                    $self->{is_user_agent},
-                                    $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT,
-                                    $BUTTON_BROWSE_EVENT, $BUTTON_TEST_EVENT);
+    Slic3r::GUI::create_preset_tabs($self->{no_controller}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     $self->{options_tabs} = {};
     for my $tab_name (qw(print filament printer)) {
         $self->{options_tabs}{$tab_name} = Slic3r::GUI::get_preset_tab("$tab_name");

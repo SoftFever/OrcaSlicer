@@ -214,11 +214,6 @@ public:
 //Slic3r::GUI::Tab::Printer;
 class TabPrinter : public Tab
 {
-	bool		m_is_disabled_button_browse;
-	bool		m_is_user_agent;
-	// similar event by clicking Buttons "Browse" & "Test"
-	wxEventType	m_event_button_browse = 0;
-	wxEventType m_event_button_test = 0;
 public:
 	wxButton*	m_serial_test_btn;
 	wxButton*	m_octoprint_host_test_btn;
@@ -228,10 +223,7 @@ public:
 	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}
-	TabPrinter(wxNotebook* parent, bool no_controller, bool is_disabled_btn_browse, bool is_user_agent) :
-		Tab(parent, _(L("Printer Settings")), "printer", no_controller),
-		m_is_disabled_button_browse(is_disabled_btn_browse), 
-		m_is_user_agent(is_user_agent) {}
+	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
 	~TabPrinter(){}
 
 	void		build() override;
@@ -240,10 +232,6 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
-
-	// Set the events to the callbacks posted to the main frame window (currently implemented in Perl).
-	void		set_event_button_browse(wxEventType evt)	{ m_event_button_browse = evt; }
-	void		set_event_button_test(wxEventType evt)		{ m_event_button_test = evt; }
 };
 
 class SavePresetWindow :public wxDialog
