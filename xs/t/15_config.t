@@ -99,8 +99,8 @@ foreach my $config (Slic3r::Config->new, Slic3r::Config::Static::new_FullPrintCo
     $config->set_deserialize('fill_pattern', 'line');
     is $config->get('fill_pattern'), 'line', 'deserialize enum (fill_pattern)';
     
-    $config->set_deserialize('support_material_pattern', 'pillars');
-    is $config->get('support_material_pattern'), 'pillars', 'deserialize enum (support_material_pattern)';
+    $config->set_deserialize('support_material_pattern', 'rectilinear');
+    is $config->get('support_material_pattern'), 'rectilinear', 'deserialize enum (support_material_pattern)';
     
     $config->set('extruder_offset', [[10,20],[30,45]]);
     is_deeply [ map $_->pp, @{$config->get('extruder_offset')} ], [[10,20],[30,45]], 'set/get points';

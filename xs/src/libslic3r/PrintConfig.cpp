@@ -822,6 +822,13 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
 
+    def = this->add("max_print_height", coFloat);
+    def->label = L("Max print height");
+    def->tooltip = L("Set this to the maximum height that can be reached by your extruder while printing.");
+    def->sidetext = L("mm");
+    def->cli = "max-print-height=f";
+    def->default_value = new ConfigOptionFloat(200.0);
+
     def = this->add("max_print_speed", coFloat);
     def->label = L("Max print speed");
     def->tooltip = L("When setting other speed settings to 0 Slic3r will autocalculate the optimal speed "
@@ -1554,12 +1561,10 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
-    def->enum_values.push_back("pillars");
     def->enum_labels.push_back("rectilinear");
     def->enum_labels.push_back("rectilinear grid");
     def->enum_labels.push_back("honeycomb");
-    def->enum_labels.push_back("pillars");
-    def->default_value = new ConfigOptionEnum<SupportMaterialPattern>(smpPillars);
+    def->default_value = new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear);
 
     def = this->add("support_material_spacing", coFloat);
     def->label = L("Pattern spacing");
@@ -1831,6 +1836,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
             values is a dirty hack and will need to be removed sometime in the future, but it
             will avoid lots of complaints for now. */
         value = "0";
+    } else if (opt_key == "support_material_pattern" && value == "pillars") {
+        // Slic3r PE does not support the pillars. They never worked well.
+        value = "rectilinear";
     } else if (opt_key == "support_material_threshold" && value == "0") {
         // 0 used to be automatic threshold, but we introduced percent values so let's
         // transform it into the default value
