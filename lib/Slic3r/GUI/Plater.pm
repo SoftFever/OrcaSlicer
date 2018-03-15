@@ -485,8 +485,8 @@ sub new {
         $right_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
         # Callback for showing / hiding the print info box.
         $self->{"print_info_box_show"} = sub {
-            if ($right_sizer->IsShown(4) != $_[0]) { 
-                $right_sizer->Show(4, $_[0]); 
+            if ($right_sizer->IsShown(5) != $_[0]) { 
+                $right_sizer->Show(5, $_[0]); 
                 $self->Layout
             }
         };
