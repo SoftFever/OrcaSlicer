@@ -465,6 +465,7 @@ WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *nam
 	return INVALID;
 }
 
+
 // Returns gcode to prime the nozzles at the front edge of the print bed.
 WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	// print_z of the first layer.
@@ -478,7 +479,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
 	this->m_num_layer_changes 	= 0;
 	this->m_current_tool 		= tools.front();
-
+    
     // The Prusa i3 MK2 has a working space of [0, -2.2] to [250, 210].
     // Due to the XYZ calibration, this working space may shrink slightly from all directions,
     // therefore the homing position is shifted inside the bed by 0.2 in the firmware to [0.2, -2.0].
@@ -723,8 +724,8 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	
 	writer.append("; CP TOOLCHANGE UNLOAD\n");
 	
-	const float line_width = m_line_width * m_par.ramming_line_width_multiplicator[m_current_tool];       // desired ramming line thickness
-	const float y_step = line_width * m_par.ramming_step_multiplicator[m_current_tool] * m_extra_spacing; // spacing between lines in mm
+	const float line_width = m_line_width * m_filpar[m_current_tool].ramming_line_width_multiplicator;       // desired ramming line thickness
+	const float y_step = line_width * m_filpar[m_current_tool].ramming_step_multiplicator * m_extra_spacing; // spacing between lines in mm
 
 	unsigned i = 0;										// iterates through ramming_speed
 	m_left_to_right = true;								// current direction of ramming
@@ -778,10 +779,10 @@ void WipeTowerPrusaMM::toolchange_Unload(
     }
 
     // now the ramming itself:
-    while (i < m_par.ramming_speed[m_current_tool].size())
+    while (i < m_filpar[m_current_tool].ramming_speed.size())
     {
-        const float x = volume_to_length(m_par.ramming_speed[m_current_tool][i] * 0.25f, line_width, m_layer_height);
-        const float e = m_par.ramming_speed[m_current_tool][i] * 0.25f / Filament_Area; // transform volume per sec to E move;
+        const float x = volume_to_length(m_filpar[m_current_tool].ramming_speed[i] * 0.25f, line_width, m_layer_height);
+        const float e = m_filpar[m_current_tool].ramming_speed[i] * 0.25f / Filament_Area; // transform volume per sec to E move;
         const float dist = std::min(x - e_done, remaining);		  // distance to travel for either the next 0.25s, or to the next turnaround
         const float actual_time = dist/x * 0.25;
         writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), std::hypot(dist, e * (dist / x)) / (actual_time / 60.));
@@ -1092,10 +1093,10 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
 	// this is an actual toolchange - let's calculate depth to reserve on the wipe tower
 	float depth = 0.f;			
 	float width = m_wipe_tower_width - 3*m_perimeter_width; 
-	float length_to_extrude = volume_to_length(0.25f * std::accumulate(m_par.ramming_speed[old_tool].begin(), m_par.ramming_speed[old_tool].end(), 0.f),
-										m_line_width * m_par.ramming_line_width_multiplicator[old_tool],
+	float length_to_extrude = volume_to_length(0.25f * std::accumulate(m_filpar[old_tool].ramming_speed.begin(), m_filpar[old_tool].ramming_speed.end(), 0.f),
+										m_line_width * m_filpar[old_tool].ramming_line_width_multiplicator,
 										layer_height_par);
-	depth = (int(length_to_extrude / width) + 1) * (m_line_width * m_par.ramming_line_width_multiplicator[old_tool] * m_par.ramming_step_multiplicator[old_tool]);
+	depth = (int(length_to_extrude / width) + 1) * (m_line_width * m_filpar[old_tool].ramming_line_width_multiplicator * m_filpar[old_tool].ramming_step_multiplicator);
     float ramming_depth = depth;
     length_to_extrude = width*((length_to_extrude / width)-int(length_to_extrude / width)) - width;
     float first_wipe_line = -length_to_extrude;

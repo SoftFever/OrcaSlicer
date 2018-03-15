@@ -67,82 +67,11 @@ std::istream& operator>>(std::istream& stream, std::vector<T>& vect) {
 struct WipeTowerParameters {
     WipeTowerParameters() {  }           // create new empty object
     WipeTowerParameters(const std::string& init_data) { // create object and initialize from std::string
-        std::istringstream in(init_data);               // validation of input is left to the caller
-        in >> sampling;
-        for (std::vector<float> vect{} ; in >> vect ;) {  // until we get to fail state ("**")...
-            if (vect.size()>=2) {
-                ramming_line_width_multiplicator.push_back(vect[0]);
-                ramming_step_multiplicator.push_back(vect[1]);
-                vect.erase(vect.begin(),vect.begin()+2);
-            }
-            else vect.clear(); // something's not right, we will restore defaults anyway
-            ramming_speed.push_back(vect);
-
-            if (in.good()) {
-                in >> vect;
-                std::vector<std::pair<float,float>> pairs;
-                for (unsigned int i=0;i<vect.size();++i)
-                    if (i%2==1)
-                        pairs.push_back(std::make_pair(vect[i-1],vect[i]));
-                ramming_buttons.push_back(pairs);
-            }
-        }
-        in.clear();
-        in.get();
-
-        for (std::vector<float> vect{} ; in >> vect ;) {  // let's keep reading
-            wipe_volumes.push_back(vect);
-        }
-        in.clear();
-        in.get();
-
-        std::vector<int> vect{};
-        in >> vect;
-        for (unsigned int i=0;i<vect.size();++i)
-            if (i%2==1)
-                filament_wipe_volumes.push_back(std::make_pair(vect[i-1],vect[i]));
-        
-        if (!validate())    // in case we did not parse the input right
-            set_defaults();
+        set_defaults();
     }
-
-    std::string to_string() {
-        std::ostringstream out;
-        out << sampling << "\n";
-        for (unsigned extruder=0;extruder<ramming_step_multiplicator.size();++extruder) {
-            out << "\n" << ramming_line_width_multiplicator[extruder] << " " 
-                << ramming_step_multiplicator[extruder] << " " << ramming_speed[extruder]  << "*"
-                << ramming_buttons[extruder] << "*";
-        }
-        out << "*\n";
-        for (auto& radek : wipe_volumes)
-            out << "\n" << radek << "*";
-        out << "*\n";
-        out << filament_wipe_volumes << "*";
-        return out.str();
-    }
-
-    bool validate() const {     // basic check for validity to distinguish most dramatic failures
-        const unsigned int num = ramming_step_multiplicator.size();
-        if ( num < 1 || ramming_line_width_multiplicator.size()!=num || ramming_step_multiplicator.size()!=num ||
-             ramming_buttons.size()!=num || wipe_volumes.size()!=num ||
-             filament_wipe_volumes.size()!=num)
-            return false;
-        for (const auto& row : wipe_volumes)
-            if (row.size()!=num)
-                return false;
-        return true;
-    }
+    
     void set_defaults() {
         sampling = 0.25f;
-        ramming_line_width_multiplicator = {1.5f, 1.5f, 1.5f, 1.5f};
-        ramming_step_multiplicator = {1.1f, 1.1f, 1.1f, 1.1f};
-        ramming_speed.clear();
-        ramming_buttons.clear();
-        for (unsigned int i=0;i<4;++i) {
-            ramming_speed.push_back(std::vector<float>{7.6f, 7.6f, 7.6f, 7.6f, 9.f, 9.f, 9.f, 10.7f, 10.7f, 10.7f});
-            ramming_buttons.push_back(std::vector<std::pair<float,float>>{{0.05f, 6.6f},{0.45f, 6.8f},{0.95f, 7.8f},{1.45f, 8.3f},{1.95f, 9.7f},{2.45f,10.f},{2.95f, 7.6f},{3.45f, 7.6f},{3.95f, 7.6f},{4.45f, 7.6f},{4.95f, 7.6f}});
-        }
         wipe_volumes = {{  0.f, 60.f, 60.f, 60.f},
                         { 60.f,  0.f, 60.f, 60.f},
                         { 60.f, 60.f,  0.f, 60.f},
@@ -151,10 +80,6 @@ struct WipeTowerParameters {
     }
     
     float sampling = 0.25f; // this does not quite work yet, keep it fixed to 0.25f
-    std::vector<float> ramming_line_width_multiplicator;
-    std::vector<float> ramming_step_multiplicator;
-    std::vector<std::vector<float>> ramming_speed;
-    std::vector<std::vector<std::pair<float,float>>> ramming_buttons;
     std::vector<std::vector<float>> wipe_volumes;
     std::vector<std::pair<int,int>> filament_wipe_volumes;
 };
@@ -222,7 +147,7 @@ public:
 
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
-                      float unloading_speed, float delay, int cooling_time)
+                      float unloading_speed, float delay, int cooling_time, std::string ramming_parameters)
 	{
         m_filpar[idx].material = material;
         m_filpar[idx].temperature = temp;
@@ -231,6 +156,14 @@ public:
         m_filpar[idx].unloading_speed = unloading_speed;
         m_filpar[idx].delay = delay;
         m_filpar[idx].cooling_time = cooling_time;
+        
+        std::stringstream stream{ramming_parameters};
+        float speed = 0.f;
+        stream >> m_filpar[idx].ramming_line_width_multiplicator >> m_filpar[idx].ramming_step_multiplicator;
+        m_filpar[idx].ramming_line_width_multiplicator /= 100;
+        m_filpar[idx].ramming_step_multiplicator /= 100;
+        while (stream >> speed)
+            m_filpar[idx].ramming_speed.push_back(speed);
 	}
 
 
@@ -345,13 +278,16 @@ private:
 
 
     struct FilamentParameters {
-        material_type 	material;
-        int  			temperature;
-        int  			first_layer_temperature;
-        float           loading_speed;
-        float           unloading_speed;
-        float           delay;
-        int             cooling_time;
+        material_type 	    material;
+        int  			    temperature;
+        int  			    first_layer_temperature;
+        float               loading_speed;
+        float               unloading_speed;
+        float               delay;
+        int                 cooling_time;
+        float               ramming_line_width_multiplicator;
+        float               ramming_step_multiplicator;
+        std::vector<float>  ramming_speed;
     };
 
 	// Extruder specific parameters.

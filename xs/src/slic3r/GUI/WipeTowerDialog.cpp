@@ -1,52 +1,13 @@
 #include <algorithm>
+#include <sstream>
 #include "WipeTowerDialog.hpp"
 
-// Human-readable output of Parameters structure
-std::ostream& operator<<(std::ostream& str,Slic3r::WipeTowerParameters& par) {
-    str << "sampling: " << par.sampling << "\n"; 
-   
-    str << "line widths: ";
-    for (const auto& a : par.ramming_line_width_multiplicator) str << a << " ";
-    
-    str << "line spacing: ";
-    for (const auto& a : par.ramming_step_multiplicator) str << a << " ";
-    
-    str<<"\n\nramming_speeds:\n";
-    for (const auto& a : par.ramming_speed) {
-        for (const auto& b : a)
-            str << b << " ";
-        str<<"\n";
-    }
-    str<<"\n\nramming_buttons:\n";
-    for (const auto& a : par.ramming_buttons) {
-        for (const auto& b : a) {
-            Slic3r::operator <<(str,b); // temporary hack (this << is in the namespace Slic3r)
-            str << " | ";               // the function will be deleted after everything is debugged, anyway
-        }
-        str<<"\n";
-    }
-    str<<"\n\nwipe volumes:\n";
-    for (const auto& a : par.wipe_volumes) {
-        for (const auto& b : a)
-            str << b << " ";
-        str<<"\n";
-    }
-    str<<"\n\nfilament wipe volumes:\n";
-    for (const auto& a : par.filament_wipe_volumes) {
-        Slic3r::operator <<(str,a);
-        str << " ";
-    }
-    str<<"\n";
-        
-    return str;
-}
 
-
-RammingDialog::RammingDialog(wxWindow* parent,const std::string& init_data)
+RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 : wxDialog(parent, -1,  wxT("Ramming customization"), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     this->Centre();
-    m_panel_ramming  = new RammingPanel(this,Slic3r::WipeTowerParameters(std::string()));
+    m_panel_ramming  = new RammingPanel(this,parameters);
     m_panel_ramming->Show(true);
     this->Show();
 
@@ -60,7 +21,7 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& init_data)
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
     
     this->Bind(wxEVT_BUTTON,[this](wxCommandEvent&) {
-       // m_output_data=read_dialog_values();
+        m_output_data = m_panel_ramming->get_parameters();
         EndModal(wxID_OK);
         },wxID_OK);
 }
@@ -69,7 +30,7 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& init_data)
 
 
 
-RammingPanel::RammingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
+RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 : wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(800,350),wxBORDER_RAISED)
 {
     new wxStaticText(this,wxID_ANY,wxString("Total ramming time (s):"),     wxPoint(500,105),      wxSize(200,25),wxALIGN_LEFT);
@@ -81,8 +42,22 @@ RammingPanel::RammingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p
     new wxStaticText(this,wxID_ANY,wxString("Ramming line spacing (%):"),   wxPoint(500,235),      wxSize(200,25),wxALIGN_LEFT);
     m_widget_ramming_step_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,     wxPoint(700,230),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,10,200,100);        
     
+    std::stringstream stream{parameters};
+    stream >> m_ramming_line_width_multiplicator >> m_ramming_step_multiplicator;
+    int ramming_speed_size = 0;
+    float dummy = 0.f;
+    while (stream >> dummy)
+        ++ramming_speed_size;
+    stream.clear();
+    stream.get();    
     
-    m_chart = new Chart(this,wxRect(10,10,480,360),p.ramming_buttons[0],p.ramming_speed[0],p.sampling);
+    std::vector<std::pair<float,float>> buttons;
+    float x = 0.f;
+    float y = 0.f;
+    while (stream >> x >> y)
+        buttons.push_back(std::make_pair(x,y));        
+    
+    m_chart = new Chart(this,wxRect(10,10,480,360),buttons,ramming_speed_size,0.25f);
     
     m_widget_time->SetValue(m_chart->get_time());
     m_widget_time->SetDigits(2);
@@ -100,23 +75,80 @@ RammingPanel::RammingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p
     Refresh(this);
 }
 
-
-void RammingPanel::fill_parameters(Slic3r::WipeTowerParameters& p)
-{
-    if (!m_chart) return;
-    p.ramming_buttons[0] = m_chart->get_buttons();
-    p.ramming_speed[0]   = m_chart->get_ramming_speed(p.sampling);
-    p.ramming_line_width_multiplicator.push_back(m_ramming_line_width_multiplicator/100.f);
-    p.ramming_step_multiplicator.push_back(m_ramming_step_multiplicator/100.f);
-}
-
-
 void RammingPanel::line_parameters_changed() {
     m_ramming_line_width_multiplicator = m_widget_ramming_line_width_multiplicator->GetValue();
     m_ramming_step_multiplicator = m_widget_ramming_step_multiplicator->GetValue();
 }
 
+std::string RammingPanel::get_parameters()
+{
+    std::vector<float> speeds = m_chart->get_ramming_speed(0.25f);
+    std::vector<std::pair<float,float>> buttons = m_chart->get_buttons();
+    std::stringstream stream;
+    stream << m_ramming_line_width_multiplicator << " " << m_ramming_step_multiplicator;
+    for (const float& speed_value : speeds)
+        stream << " " << speed_value;
+    stream << "|";    
+    for (const auto& button : buttons)
+        stream << " " << button.first << " " << button.second;
+    return stream.str();
+}
 
+
+
+
+
+
+
+
+/*
+void WipingPanel::fill_parameters(Slic3r::WipeTowerParameters& p) {
+    p.wipe_volumes.clear();
+    p.filament_wipe_volumes.clear();
+    for (int i=0;i<4;++i) {
+        // first go through the full matrix:
+        p.wipe_volumes.push_back(std::vector<float>());
+        for (int j=0;j<4;++j) {
+            double val = 0.;
+            edit_boxes[j][i]->GetValue().ToDouble(&val);
+            p.wipe_volumes[i].push_back((float)val);  
+        }
+        
+        // now the filament volumes:
+        p.filament_wipe_volumes.push_back(std::make_pair(m_old[i]->GetValue(),m_new[i]->GetValue()));
+    }
+}
+*/
+
+
+
+WipingDialog::WipingDialog(wxWindow* parent,const std::string& init_data)
+: wxDialog(parent, -1,  wxT("Wiping customization"), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    this->Centre();
+            
+    Slic3r::WipeTowerParameters parameters(init_data);
+    /*if (!parameters.validate()) {
+        wxMessageDialog(this,"Wipe tower parameters not parsed correctly!\nRestoring default settings.","Error",wxICON_ERROR);
+        parameters.set_defaults();
+    }*/
+    m_panel_wiping  = new WipingPanel(this,parameters);
+    this->Show();
+
+    auto main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_panel_wiping, 1, wxEXPAND);
+    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+    SetSizer(main_sizer);
+    SetMinSize(GetSize());
+    main_sizer->SetSizeHints(this);
+    
+    this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
+    
+    this->Bind(wxEVT_BUTTON,[this](wxCommandEvent&) {
+        m_output_data=read_dialog_values();
+        EndModal(wxID_OK);
+        },wxID_OK);
+}
 
 
 
@@ -153,23 +185,6 @@ WipingPanel::WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
     Refresh(this);
 }
 
-void WipingPanel::fill_parameters(Slic3r::WipeTowerParameters& p) {
-    p.wipe_volumes.clear();
-    p.filament_wipe_volumes.clear();
-    for (int i=0;i<4;++i) {
-        // first go through the full matrix:
-        p.wipe_volumes.push_back(std::vector<float>());
-        for (int j=0;j<4;++j) {
-            double val = 0.;
-            edit_boxes[j][i]->GetValue().ToDouble(&val);
-            p.wipe_volumes[i].push_back((float)val);  
-        }
-        
-        // now the filament volumes:
-        p.filament_wipe_volumes.push_back(std::make_pair(m_old[i]->GetValue(),m_new[i]->GetValue()));
-    }
-}
-
 void WipingPanel::fill_in_matrix() {
     wxArrayString choices;
     choices.Add("sum");
@@ -192,31 +207,5 @@ void WipingPanel::fill_in_matrix() {
 
 
 
-WipeTowerDialog::WipeTowerDialog(wxWindow* parent,const std::string& init_data)
-: wxDialog(parent, -1,  wxT("Wiping customization"), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-{
-    this->Centre();
-            
-    Slic3r::WipeTowerParameters parameters(init_data);
-    if (!parameters.validate()) {
-        wxMessageDialog(this,"Wipe tower parameters not parsed correctly!\nRestoring default settings.","Error",wxICON_ERROR);
-        parameters.set_defaults();
-    }
-    m_panel_wiping  = new WipingPanel(this,parameters);
-    this->Show();
 
-    auto main_sizer = new wxBoxSizer(wxVERTICAL);
-    main_sizer->Add(m_panel_wiping, 1, wxEXPAND);
-    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
-    SetSizer(main_sizer);
-    SetMinSize(GetSize());
-    main_sizer->SetSizeHints(this);
-    
-    this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
-    
-    this->Bind(wxEVT_BUTTON,[this](wxCommandEvent&) {
-        m_output_data=read_dialog_values();
-        EndModal(wxID_OK);
-        },wxID_OK);
-}
 

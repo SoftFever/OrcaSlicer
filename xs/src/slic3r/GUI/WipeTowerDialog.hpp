@@ -13,14 +13,13 @@
 #include "RammingChart.hpp"
 
 
-// Human-readable output of Parameters structure
 std::ostream& operator<<(std::ostream& str,Slic3r::WipeTowerParameters& par);
 
 class RammingPanel : public wxPanel {
 public:
     RammingPanel(wxWindow* parent);
-    RammingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p);
-    void fill_parameters(Slic3r::WipeTowerParameters& p);
+    RammingPanel(wxWindow* parent,const std::string& data);
+    std::string get_parameters();
 
 private:
     Chart* m_chart = nullptr;
@@ -37,9 +36,11 @@ private:
 
 class RammingDialog : public wxDialog {
 public:
-    RammingDialog(wxWindow* parent,const std::string& init_data);    
+    RammingDialog(wxWindow* parent,const std::string& parameters);    
+    std::string get_parameters() { return m_output_data; }
 private:
     RammingPanel* m_panel_ramming = nullptr;
+    std::string m_output_data;
 };
 
 
@@ -63,9 +64,9 @@ private:
 
 
 
-class WipeTowerDialog : public wxDialog {
+class WipingDialog : public wxDialog {
 public:
-    WipeTowerDialog(wxWindow* parent,const std::string& init_data);
+    WipingDialog(wxWindow* parent,const std::string& init_data);
     
     std::string GetValue() const { return m_output_data; }
     
@@ -78,7 +79,7 @@ private:
     std::string read_dialog_values() {
         Slic3r::WipeTowerParameters p;
         m_panel_wiping ->fill_parameters(p);
-        return p.to_string();
+        //return p.to_string();
     }
 };
 

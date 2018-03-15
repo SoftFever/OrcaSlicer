@@ -469,7 +469,7 @@ void TabPrint::build()
 			{
                 std::string init_data = (m_config->option<ConfigOptionString>("wipe_tower_advanced"))->value;
                 std::cout << "dialog init: " << init_data << std::endl;
-				WipeTowerDialog dlg(this,init_data); // dlg lives on stack, no need to call Destroy
+				WipingDialog dlg(this,init_data); // dlg lives on stack, no need to call Destroy
 
 				if (dlg.ShowModal() == wxID_OK) {
                     load_key_value("wipe_tower_advanced", dlg.GetValue());
@@ -891,10 +891,10 @@ void TabFilament::build()
             
             ramming_dialog_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
 			{
-                //std::string init_data = (m_config->option<ConfigOptionString>("wipe_tower_advanced"))->value;
-                RammingDialog dlg(this,std::string());
+                RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
                 if (dlg.ShowModal() == wxID_OK) {
-                    //load_key_value("wipe_tower_advanced", dlg.GetValue());
+                    wxMessageBox("DIALOG OK:\n"+dlg.get_parameters());
+                    //load_key_value("wipe_tower_advanced", dlg.get_parameters());
                 }
 			}));
 			return sizer;

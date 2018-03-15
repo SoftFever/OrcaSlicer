@@ -211,7 +211,7 @@ const std::vector<std::string>& Preset::filament_options()
     static std::vector<std::string> s_opts {
         "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed", 
         "extrusion_multiplier", "filament_density", "filament_cost", "filament_loading_speed", "filament_unloading_speed", "filament_toolchange_delay",
-        "filament_cooling_time", "filament_ramming_buttons", "filament_ramming_parameters", "temperature", "first_layer_temperature", "bed_temperature",
+        "filament_cooling_time", "filament_ramming_parameters", "temperature", "first_layer_temperature", "bed_temperature",
         "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", "disable_fan_first_layers",
         "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", "end_filament_gcode","compatible_printers",
         "compatible_printers_condition"
