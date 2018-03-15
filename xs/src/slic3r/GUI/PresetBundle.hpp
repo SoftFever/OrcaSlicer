@@ -39,6 +39,11 @@ public:
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;
 
+    // The project configuration values are kept separated from the print/filament/printer preset,
+    // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode, 
+    // and they are being used by slicing core.
+    DynamicPrintConfig          project_config;
+
     bool                        has_defauls_only() const 
         { return prints.size() <= 1 && filaments.size() <= 1 && printers.size() <= 1; }
 

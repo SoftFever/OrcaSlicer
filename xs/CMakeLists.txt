@@ -630,15 +630,19 @@ elseif (NOT MSVC)
 endif ()
 
 if (MSVC)
-    # Here we associate some additional properties with the MSVC projects to enable compilation and debugging out of the box.
-    # It seems a props file needs to be copied to the same dir as the proj file, otherwise MSVC doesn't load it up.
-    # For copying, the configure_file() function seems to work much better than the file() function.
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl64d.props" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-    set_target_properties(XS PROPERTIES VS_USER_PROPS "xs.wperl64d.props")
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/slic3r.wperl64d.props" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-    set_target_properties(slic3r PROPERTIES VS_USER_PROPS "slic3r.wperl64d.props")
-endif ()
+    # Here we associate some additional properties with the MSVC project to enable compilation and debugging out of the box.
+    set_target_properties(XS PROPERTIES VS_USER_PROPS "${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl64d.props")
+endif()
 
+# l10n
+set(L10N_DIR "${PROJECT_SOURCE_DIR}/resources/localization")
+add_custom_target(pot
+    COMMAND xgettext --keyword=L --from-code=UTF-8 --debug
+        -f "${L10N_DIR}/list.txt"
+        -o "${L10N_DIR}/Slic3rPE.pot"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generate pot file from strings in the source tree"
+)
 
 # Installation
 install(TARGETS XS DESTINATION ${PERL_VENDORARCH}/auto/Slic3r/XS)
