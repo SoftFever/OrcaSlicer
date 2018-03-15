@@ -1942,6 +1942,7 @@ sub selection_changed {
                     $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
                 } else {
                     $self->{object_info_manifold}->SetLabel(L("Yes"));
+                    $self->{object_info_manifold_warning_icon}->Hide;
                 }
             } else {
                 $self->{object_info_facets}->SetLabel($object->facets);
