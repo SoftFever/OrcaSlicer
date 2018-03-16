@@ -97,7 +97,6 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
 			select_preset(selected_string);
-			update_changed_ui();
 		}
 	}));
 
@@ -246,6 +245,20 @@ void Tab::update_changed_ui()
 			field->m_Label->SetForegroundColour(*get_sys_label_clr());
 			field->m_Label->Refresh(true);
 		}
+	}
+	if (sys_options.empty() && !m_sys_options.empty()){
+		for (auto opt_key : m_config->keys()){
+			Field* field = get_field(opt_key);
+			if (field != nullptr){
+				field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(m_nonsys_btn_icon)), wxBITMAP_TYPE_PNG));
+				field->m_is_nonsys_value = false;
+				if (field->m_Label != nullptr){
+					field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+					field->m_Label->Refresh(true);
+				}
+			}
+		}
+		m_sys_options.resize(0);
 	}
 	// Delete clear options from m_dirty_options
 	for (auto i = 0; i < m_sys_options.size(); ++i)
@@ -646,9 +659,11 @@ void TabPrint::update()
 {
 	Freeze();
 
+	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
+
 	if (m_config->opt_bool("spiral_vase") &&
 		!(m_config->opt_int("perimeters") == 1 && m_config->opt_int("top_solid_layers") == 0 &&
-		m_config->option<ConfigOptionPercent>("fill_density")->value == 0)) {
+		fill_density == 0)) {
 		wxString msg_text = _(L("The Spiral Vase mode requires:\n"
 			"- one perimeter\n"
 			"- no top solid layers\n"
@@ -665,11 +680,13 @@ void TabPrint::update()
 			new_conf.set_key_value("support_material", new ConfigOptionBool(false));
 			new_conf.set_key_value("support_material_enforce_layers", new ConfigOptionInt(0));
 			new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
+			fill_density = 0;
 		}
 		else {
 			new_conf.set_key_value("spiral_vase", new ConfigOptionBool(false));
 		}
 		load_config(new_conf);
+		on_value_change("fill_density", fill_density);
 	}
 
 	auto first_layer_height = m_config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value;
@@ -783,7 +800,6 @@ void TabPrint::update()
 					"\nShall I switch to rectilinear fill pattern?"));
 				auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Infill")), wxICON_WARNING | wxYES | wxNO);
 				DynamicPrintConfig new_conf = *m_config;
-				double fill_density;
 				if (dialog->ShowModal() == wxID_YES) {
 					new_conf.set_key_value("fill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 					fill_density = 100;
@@ -1464,15 +1480,16 @@ void TabPrinter::update(){
 void Tab::load_current_preset()
 {
 	auto preset = m_presets->get_edited_preset();
-	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
-					"bullet_white.png" :
-					wxMSW ? "sys_unlock.png" : "lock_open.png";
+
 	preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 	update();
 	// For the printer profile, generate the extruder pages.
 	on_preset_loaded();
 	// Reload preset pages with the new configuration values.
 	reload_config();
+	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
+		"bullet_white.png" :
+		wxMSW ? "sys_unlock.png" : "lock_open.png";
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
@@ -1886,6 +1903,15 @@ ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_wid
 	optgroup->m_get_initial_config = [this](){
 		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset().config;
 		return config;
+	};
+
+	optgroup->m_get_sys_config = [this](){
+		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent()->config;
+		return config;
+	};
+
+	optgroup->have_sys_config = [this](){
+		return static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent() != nullptr;
 	};
 
 	optgroup->nonsys_btn_icon = static_cast<Tab*>(GetParent())->m_nonsys_btn_icon;

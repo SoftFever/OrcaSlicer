@@ -52,6 +52,8 @@ protected:
     void			on_change_field();
     /// Call the attached m_back_to_initial_value method. 
 	void			on_back_to_initial_value();
+    /// Call the attached m_back_to_sys_value method. 
+	void			on_back_to_sys_value();
 
 public:
     /// parent wx item, opportunity to refactor (probably not necessary - data duplication)
@@ -63,13 +65,14 @@ public:
     /// Function object to store callback passed in from owning object.
 	t_change		m_on_change {nullptr};
 
-    /// Function object to store callback passed in from owning object.
+	/// Function object to store callback passed in from owning object.
 	t_back_to_init	m_back_to_initial_value{ nullptr };
+	t_back_to_init	m_back_to_sys_value{ nullptr };
 
 	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
     bool			m_disable_change_event {false};
     bool			m_is_modified_value {false};
-	bool			m_is_nonsys_value;
+	bool			m_is_nonsys_value {true};
 
     /// Copy of ConfigOption for deduction purposes
     const ConfigOptionDef			m_opt {ConfigOptionDef()};

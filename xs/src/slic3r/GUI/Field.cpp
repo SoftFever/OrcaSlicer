@@ -28,7 +28,7 @@ namespace Slic3r { namespace GUI {
 		}
 		m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
 		m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
-		m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ /*on_back_to_sys_value()*/; }));
+		m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
 
 		BUILD();
 	}
@@ -53,10 +53,14 @@ namespace Slic3r { namespace GUI {
             m_on_change(m_opt_id, get_value());
     }
 
-	void Field::on_back_to_initial_value()
-	{
+	void Field::on_back_to_initial_value(){
 		if (m_back_to_initial_value != nullptr && m_is_modified_value)
 			m_back_to_initial_value(m_opt_id);
+	}
+
+	void Field::on_back_to_sys_value(){
+		if (m_back_to_sys_value != nullptr && m_is_nonsys_value)
+			m_back_to_sys_value(m_opt_id);
 	}
 
 	wxString Field::get_tooltip_text(const wxString& default_string)

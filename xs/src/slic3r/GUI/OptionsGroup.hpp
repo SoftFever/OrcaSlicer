@@ -79,6 +79,8 @@ public:
     column_t		extra_column {nullptr};
     t_change		m_on_change {nullptr};
 	std::function<DynamicPrintConfig()>	m_get_initial_config{ nullptr };
+	std::function<DynamicPrintConfig()>	m_get_sys_config{ nullptr };
+	std::function<bool()>	have_sys_config{ nullptr };
 
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
@@ -151,6 +153,7 @@ protected:
     virtual void		on_kill_focus (){};
 	virtual void		on_change_OG(t_config_option_key opt_id, boost::any value);
 	virtual void		back_to_initial_value(const std::string opt_key){};
+	virtual void		back_to_sys_value(const std::string opt_key){};
 };
 
 class ConfigOptionsGroup: public OptionsGroup {
@@ -179,11 +182,13 @@ public:
 
 	void		on_change_OG(t_config_option_key opt_id, boost::any value) override;
 	void		back_to_initial_value(const std::string opt_key) override;
+	void		back_to_sys_value(const std::string opt_key) override;
+	void back_to_config_value(const DynamicPrintConfig& config, const std::string opt_key);
 	void		on_kill_focus() override{ reload_config();}
 	void		reload_config();
 	boost::any	config_value(std::string opt_key, int opt_index, bool deserialize);
 	// return option value from config 
-	boost::any	get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index = -1);
+	boost::any get_config_value(const DynamicPrintConfig& config, std::string opt_key, int opt_index = -1);
 	Field*		get_fieldc(t_config_option_key opt_key, int opt_index);
 };
 

@@ -82,6 +82,10 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_initial_value(opt_id);
 	};
+	field->m_back_to_sys_value = [this](std::string opt_id){
+		if (!this->m_disabled)
+			this->back_to_sys_value(opt_id);
+	};
 	if (!m_is_tab_opt) {
 		field->m_Undo_btn->Hide();
 		field->m_Undo_to_sys_btn->Hide();
@@ -297,7 +301,20 @@ void ConfigOptionsGroup::back_to_initial_value(const std::string opt_key)
 {
 	if (m_get_initial_config == nullptr)
 		return;
-	DynamicPrintConfig config = m_get_initial_config();
+	back_to_config_value(m_get_initial_config(), opt_key);
+}
+
+void ConfigOptionsGroup::back_to_sys_value(const std::string opt_key)
+{
+	if (m_get_sys_config == nullptr)
+		return;
+	if (!have_sys_config())
+		return;
+	back_to_config_value(m_get_sys_config(), opt_key);
+}
+
+void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, const std::string opt_key)
+{
 	boost::any value;
 	if (opt_key == "extruders_count"){
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
@@ -345,7 +362,7 @@ boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, 
 	}
 }
 
-boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index/* = -1*/)
+boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config, std::string opt_key, int opt_index /*= -1*/)
 {
 	size_t idx = opt_index == -1 ? 0 : opt_index;
 	
