@@ -1773,12 +1773,24 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "wipe-tower!";
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("wipe_tower_advanced", coString);
-    def->label = L("Advanced string");
-    def->tooltip = L("Advanced tooltip ");
-    def->sidetext = L("advanced sidetext");
-    def->cli = "wipe-tower-advanced=s";
-    def->default_value = new ConfigOptionString("");
+    def = this->add("wiping_volumes_extruders", coFloats);
+    def->label = L("Extrusion multiplier");
+    def->tooltip = L("This vector saves required volumes to change from/to each tool used on the "
+                     "wipe tower. These values are used to simplify creation of the full purging "
+                     "volumes below. ");
+    def->cli = "wiping-volumes-extruders=f@";
+    def->default_value = new ConfigOptionFloats { 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f  };
+
+    def = this->add("wiping_volumes_matrix", coFloats);
+    def->label = L("Extrusion multiplier");
+    def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
+                     " new filament on the wipe tower for any given pair of tools. ");
+    def->cli = "wiping-volumes-matrix=f@";
+    def->default_value = new ConfigOptionFloats {   0.f, 100.f, 100.f, 100.f, 100.f,
+                                                  100.f,   0.f, 100.f, 100.f, 100.f,
+                                                  100.f, 100.f,   0.f, 100.f, 100.f,
+                                                  100.f, 100.f, 100.f,   0.f, 100.f,
+                                                  100.f, 100.f, 100.f, 100.f,   0.f };
 
     def = this->add("wipe_tower_x", coFloat);
     def->label = L("Position X");

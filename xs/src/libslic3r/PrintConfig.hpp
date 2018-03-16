@@ -500,7 +500,8 @@ public:
     ConfigOptionFloat               cooling_tube_retraction;
     ConfigOptionFloat               cooling_tube_length;
     ConfigOptionFloat               parking_pos_retraction;
-    
+
+
     std::string get_extrusion_axis() const
     {
         return
@@ -622,7 +623,6 @@ public:
     ConfigOptionInt                 threads;
     ConfigOptionBools               wipe;
     ConfigOptionBool                wipe_tower;
-    ConfigOptionString              wipe_tower_advanced;
     ConfigOptionFloat               wipe_tower_x;
     ConfigOptionFloat               wipe_tower_y;
     ConfigOptionFloat               wipe_tower_width;
@@ -690,7 +690,6 @@ protected:
         OPT_PTR(threads);
         OPT_PTR(wipe);
         OPT_PTR(wipe_tower);
-        OPT_PTR(wipe_tower_advanced);
         OPT_PTR(wipe_tower_x);
         OPT_PTR(wipe_tower_y);
         OPT_PTR(wipe_tower_width);
@@ -736,6 +735,7 @@ class FullPrintConfig :
 public:
     // Validate the FullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
     std::string                 validate();
+
 protected:
     // Protected constructor to be called to initialize ConfigCache::m_default.
     FullPrintConfig(int) : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) {}

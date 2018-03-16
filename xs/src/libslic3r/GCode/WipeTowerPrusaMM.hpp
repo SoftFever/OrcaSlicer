@@ -110,7 +110,7 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
 	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, float rotation_angle, float cooling_tube_retraction,
-                     float cooling_tube_length, float parking_pos_retraction, float bridging, bool adhesion, std::string& parameters,
+                     float cooling_tube_length, float parking_pos_retraction, float bridging, bool adhesion, const std::string& parameters,
                      unsigned int initial_tool) :
 		m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),

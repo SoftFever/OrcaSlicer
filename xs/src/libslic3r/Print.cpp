@@ -195,7 +195,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "spiral_vase"
             || opt_key == "temperature"
             || opt_key == "wipe_tower"
-            || opt_key == "wipe_tower_advanced"
             || opt_key == "wipe_tower_x"
             || opt_key == "wipe_tower_y"
             || opt_key == "wipe_tower_width"
@@ -1035,7 +1034,7 @@ void Print::_make_wipe_tower()
         float(this->config.wipe_tower_rotation_angle.value), float(this->config.cooling_tube_retraction.value),
         float(this->config.cooling_tube_length.value), float(this->config.parking_pos_retraction.value),
         float(this->config.wipe_tower_bridging), bool(this->config.wipe_tower_adhesion),
-        this->config.wipe_tower_advanced.value,m_tool_ordering.first_extruder());
+        /*this->config.wipe_tower_advanced.value*/std::string(""),m_tool_ordering.first_extruder());
     
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();

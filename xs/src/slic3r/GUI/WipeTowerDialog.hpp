@@ -48,7 +48,7 @@ private:
 
 class WipingPanel : public wxPanel {
 public:
-    WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p);
+    WipingPanel(wxWindow* parent,const std::vector<float>& data);
     void fill_parameters(Slic3r::WipeTowerParameters& p);
         
 private:
@@ -66,15 +66,13 @@ private:
 
 class WipingDialog : public wxDialog {
 public:
-    WipingDialog(wxWindow* parent,const std::string& init_data);
-    
-    std::string GetValue() const { return m_output_data; }
+    WipingDialog(wxWindow* parent,const std::vector<float>& init_data);
+    std::vector<float> get_value() const { return m_output_data; }
     
     
 private:
-    std::string m_file_name="config_wipe_tower";
     WipingPanel*  m_panel_wiping  = nullptr;
-    std::string m_output_data = "";
+    std::vector<float> m_output_data;
             
     std::string read_dialog_values() {
         Slic3r::WipeTowerParameters p;

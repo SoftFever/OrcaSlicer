@@ -122,17 +122,12 @@ void WipingPanel::fill_parameters(Slic3r::WipeTowerParameters& p) {
 
 
 
-WipingDialog::WipingDialog(wxWindow* parent,const std::string& init_data)
+WipingDialog::WipingDialog(wxWindow* parent,const std::vector<float>& init_data)
 : wxDialog(parent, -1,  wxT("Wiping customization"), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     this->Centre();
-            
-    Slic3r::WipeTowerParameters parameters(init_data);
-    /*if (!parameters.validate()) {
-        wxMessageDialog(this,"Wipe tower parameters not parsed correctly!\nRestoring default settings.","Error",wxICON_ERROR);
-        parameters.set_defaults();
-    }*/
-    m_panel_wiping  = new WipingPanel(this,parameters);
+    
+    m_panel_wiping  = new WipingPanel(this,init_data);
     this->Show();
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -145,14 +140,14 @@ WipingDialog::WipingDialog(wxWindow* parent,const std::string& init_data)
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
     
     this->Bind(wxEVT_BUTTON,[this](wxCommandEvent&) {
-        m_output_data=read_dialog_values();
+        //m_output_data=read_dialog_values();
         EndModal(wxID_OK);
         },wxID_OK);
 }
 
 
 
-WipingPanel::WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
+WipingPanel::WipingPanel(wxWindow* parent,const std::vector<float>& data)
 : wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(800,350),wxBORDER_RAISED)
 {
     const int N = 4; // number of extruders
@@ -162,8 +157,8 @@ WipingPanel::WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
     m_widget_button = new wxButton(this,wxID_ANY,"-> Fill in the matrix ->",wxPoint(300,130),wxSize(175,50));
     for (int i=0;i<N;++i) {
         new wxStaticText(this,wxID_ANY,wxString("Filament #")<<i+1<<": ",wxPoint(20,105+30*i) ,wxSize(150,25),wxALIGN_LEFT);
-        m_old.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(120,100+30*i),wxSize(50,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,100,p.filament_wipe_volumes[i].first));
-        m_new.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(195,100+30*i),wxSize(50,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,100,p.filament_wipe_volumes[i].second));
+        m_old.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(120,100+30*i),wxSize(50,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,100,data[2*i]));
+        m_new.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(195,100+30*i),wxSize(50,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,100,data[2*i+1]));
     }
     
     wxPoint origin(515,55);
@@ -176,7 +171,7 @@ WipingPanel::WipingPanel(wxWindow* parent,const Slic3r::WipeTowerParameters& p)
             if (i==j)
                 edit_boxes[i][j]->Disable();
             else
-                edit_boxes[i][j]->SetValue(wxString("")<<int(p.wipe_volumes[j][i]));
+                edit_boxes[i][j]->SetValue(wxString("")<<int(0));//p.wipe_volumes[j][i]));
         }
         new wxStaticText(this,wxID_ANY,wxString("Filament changed to"),origin+wxPoint(75,0) ,wxSize(500,25));            
     }
