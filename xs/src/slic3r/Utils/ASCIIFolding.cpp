@@ -1,7 +1,7 @@
 #include "ASCIIFolding.hpp"
 
-#include <codecvt>
 #include <locale>
+#include <boost/locale/encoding_utf.hpp>
 
 // Based on http://svn.apache.org/repos/asf/lucene/java/tags/lucene_solr_4_5_1/lucene/analysis/common/src/java/org/apache/lucene/analysis/miscellaneous/ASCIIFoldingFilter.java
 template<typename OUTPUT_ITERATOR>
@@ -1929,14 +1929,24 @@ namespace Slic3r {
 
 std::string fold_utf8_to_ascii(const std::string &src)
 {
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	std::wstring wstr = converter.from_bytes(src);
+	std::wstring wstr = boost::locale::conv::utf_to_utf<wchar_t>(src.c_str(), src.c_str() + src.size());
 	std::wstring dst;
 	dst.reserve(wstr.size());
 	auto out = std::back_insert_iterator<std::wstring>(dst);
 	for (wchar_t c : wstr)
 		fold_to_ascii(c, out);
-	return converter.to_bytes(dst);
+	return boost::locale::conv::utf_to_utf<char>(dst.c_str(), dst.c_str() + dst.size());
+}
+
+std::string fold_utf8_to_ascii(const char *src)
+{
+	std::wstring wstr = boost::locale::conv::utf_to_utf<wchar_t>(src, src + strlen(src));
+	std::wstring dst;
+	dst.reserve(wstr.size());
+	auto out = std::back_insert_iterator<std::wstring>(dst);
+	for (wchar_t c : wstr)
+		fold_to_ascii(c, out);
+	return boost::locale::conv::utf_to_utf<char>(dst.c_str(), dst.c_str() + dst.size());
 }
 
 }; // namespace Slic3r
