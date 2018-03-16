@@ -201,6 +201,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
     ${LIBDIR}/slic3r/GUI/BonjourDialog.cpp
     ${LIBDIR}/slic3r/GUI/BonjourDialog.hpp
+    ${LIBDIR}/slic3r/Utils/ASCIIFolding.cpp
+    ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp

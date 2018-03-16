@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/Utils/ASCIIFolding.hpp"
 %}
 
 
@@ -63,3 +64,6 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
     %code%{ Slic3r::GUI::add_frequently_changed_parameters((wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
                                                            (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"),
                                                            (wxFlexGridSizer*)wxPli_sv_2_object(aTHX_ ui_p_sizer, "Wx::FlexGridSizer")); %};
+
+std::string fold_utf8_to_ascii(const char *src)
+    %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};
