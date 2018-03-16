@@ -34,7 +34,6 @@ use Slic3r::GUI::SystemInfo;
 use Wx::Locale gettext => 'L';
 
 our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
-our $have_LWP    = eval "use LWP::UserAgent; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow :filedialog :font);
 use Wx::Event qw(EVT_IDLE EVT_COMMAND EVT_MENU);
