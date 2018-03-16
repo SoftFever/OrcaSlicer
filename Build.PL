@@ -40,10 +40,7 @@ if ($gui) {
     Socket                          2.016
     );
     %recommends = qw(
-    Growl::GNTP                     0.15
     Wx::GLCanvas                    0
-    LWP::UserAgent                  0
-    Net::Bonjour                    0
     );
     if ($^O eq 'MSWin32') {
         $recommends{"Win32::TieRegistry"} = 0;

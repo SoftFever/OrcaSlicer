@@ -34,7 +34,6 @@ use Slic3r::GUI::SystemInfo;
 use Wx::Locale gettext => 'L';
 
 our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
-our $have_LWP    = eval "use LWP::UserAgent; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow :filedialog :font);
 use Wx::Event qw(EVT_IDLE EVT_COMMAND EVT_MENU);
@@ -117,6 +116,8 @@ sub OnInit {
     }
     eval { $self->{preset_bundle}->load_selections($self->{app_config}) };
     $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
+
+    Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
     
     # application frame
     Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);

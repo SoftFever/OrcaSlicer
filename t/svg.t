@@ -10,6 +10,7 @@ BEGIN {
 
 use Slic3r;
 use Slic3r::Test;
+use IO::Scalar;
 
 {
     my $print = Slic3r::Test::init_print('20mm_cube');

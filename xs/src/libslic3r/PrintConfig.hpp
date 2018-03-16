@@ -33,7 +33,7 @@ enum InfillPattern {
 };
 
 enum SupportMaterialPattern {
-    smpRectilinear, smpRectilinearGrid, smpHoneycomb, smpPillars,
+    smpRectilinear, smpRectilinearGrid, smpHoneycomb,
 };
 
 enum SeamPosition {
@@ -87,7 +87,6 @@ template<> inline t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>
         keys_map["rectilinear"]         = smpRectilinear;
         keys_map["rectilinear-grid"]    = smpRectilinearGrid;
         keys_map["honeycomb"]           = smpHoneycomb;
-        keys_map["pillars"]             = smpPillars;
     }
     return keys_map;
 }
@@ -583,6 +582,7 @@ public:
     ConfigOptionFloats              max_layer_height;
     ConfigOptionInts                min_fan_speed;
     ConfigOptionFloats              min_layer_height;
+    ConfigOptionFloat               max_print_height;
     ConfigOptionFloats              min_print_speed;
     ConfigOptionFloat               min_skirt_length;
     ConfigOptionString              notes;
@@ -647,6 +647,7 @@ protected:
         OPT_PTR(max_layer_height);
         OPT_PTR(min_fan_speed);
         OPT_PTR(min_layer_height);
+        OPT_PTR(max_print_height);
         OPT_PTR(min_print_speed);
         OPT_PTR(min_skirt_length);
         OPT_PTR(notes);
@@ -684,6 +685,7 @@ class HostConfig : public StaticPrintConfig
 public:
     ConfigOptionString              octoprint_host;
     ConfigOptionString              octoprint_apikey;
+    ConfigOptionString              octoprint_cafile;
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
     
@@ -692,6 +694,7 @@ protected:
     {
         OPT_PTR(octoprint_host);
         OPT_PTR(octoprint_apikey);
+        OPT_PTR(octoprint_cafile);
         OPT_PTR(serial_port);
         OPT_PTR(serial_speed);
     }

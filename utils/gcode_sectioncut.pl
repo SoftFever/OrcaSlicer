@@ -11,7 +11,6 @@ BEGIN {
 }
 
 use Getopt::Long qw(:config no_auto_abbrev);
-use IO::All;
 use List::Util qw(max);
 use Slic3r;
 use Slic3r::Geometry qw(X Y);

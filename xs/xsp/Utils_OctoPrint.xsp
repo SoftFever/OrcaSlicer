@@ -1,0 +1,13 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/Utils/OctoPrint.hpp"
+%}
+
+%name{Slic3r::OctoPrint} class OctoPrint {
+    OctoPrint(DynamicPrintConfig *config);
+    ~OctoPrint();
+
+    void send_gcode(int windowId, int completeEvt, int errorEvt, std::string filename, bool print = false) const;
+};

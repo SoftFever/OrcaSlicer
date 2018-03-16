@@ -46,6 +46,25 @@ void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
     }
 }
 
+void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
+{
+    assert(triangle_indices.empty() && vertices_and_normals_interleaved_size == 0);
+    assert(quad_indices.empty() && triangle_indices_size == 0);
+    assert(vertices_and_normals_interleaved.size() % 6 == 0 && quad_indices_size == vertices_and_normals_interleaved.size());
+
+    this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
+
+    unsigned int vertices_count = 0;
+    for (int i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
+        const stl_facet &facet = mesh.stl.facet_start[i];
+        for (int j = 0; j < 3; ++j)
+            this->push_geometry(facet.vertex[j].x, facet.vertex[j].y, facet.vertex[j].z, facet.normal.x, facet.normal.y, facet.normal.z);
+
+        this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
+        vertices_count += 3;
+    }
+}
+
 void GLIndexedVertexArray::finalize_geometry(bool use_VBOs)
 {
     assert(this->vertices_and_normals_interleaved_VBO_id == 0);
@@ -173,6 +192,45 @@ void GLIndexedVertexArray::render(
     glDisableClientState(GL_NORMAL_ARRAY);
 }
 
+const float GLVolume::SELECTED_COLOR[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+const float GLVolume::HOVER_COLOR[4] = { 0.4f, 0.9f, 0.1f, 1.0f };
+const float GLVolume::OUTSIDE_COLOR[4] = { 0.75f, 0.0f, 0.75f, 1.0f };
+const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 1.0f, 0.0f, 1.0f, 1.0f };
+
+void GLVolume::set_render_color(float r, float g, float b, float a)
+{
+    render_color[0] = r;
+    render_color[1] = g;
+    render_color[2] = b;
+    render_color[3] = a;
+}
+
+void GLVolume::set_render_color(const float* rgba, unsigned int size)
+{
+    size = std::min((unsigned int)4, size);
+    for (int i = 0; i < size; ++i)
+    {
+        render_color[i] = rgba[i];
+    }
+}
+
+void GLVolume::set_render_color()
+{
+    if (selected)
+    {
+        if (is_outside)
+            set_render_color(SELECTED_OUTSIDE_COLOR, 4);
+        else
+            set_render_color(SELECTED_COLOR, 4);
+    }
+    else if (hover)
+        set_render_color(HOVER_COLOR, 4);
+    else if (is_outside)
+        set_render_color(OUTSIDE_COLOR, 4);
+    else
+        set_render_color(color, 4);
+}
+
 void GLVolume::set_range(double min_z, double max_z)
 {
     this->qverts_range.first  = 0;
@@ -221,6 +279,51 @@ void GLVolume::render() const
     else
         this->indexed_vertex_array.render();
     glPopMatrix();
+}
+
+void GLVolume::render_using_layer_height() const
+{
+    if (!is_active)
+        return;
+
+    GLint current_program_id;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
+
+    if ((layer_height_texture_data.shader_id > 0) && (layer_height_texture_data.shader_id != current_program_id))
+        glUseProgram(layer_height_texture_data.shader_id);
+
+    GLint z_to_texture_row_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_to_texture_row") : -1;
+    GLint z_texture_row_to_normalized_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_texture_row_to_normalized") : -1;
+    GLint z_cursor_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_cursor") : -1;
+    GLint z_cursor_band_width_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_cursor_band_width") : -1;
+
+    if (z_to_texture_row_id  >= 0)
+        glUniform1f(z_to_texture_row_id, (GLfloat)layer_height_texture_z_to_row_id());
+
+    if (z_texture_row_to_normalized_id >= 0)
+        glUniform1f(z_texture_row_to_normalized_id, (GLfloat)(1.0f / layer_height_texture_height()));
+
+    if (z_cursor_id >= 0)
+        glUniform1f(z_cursor_id, (GLfloat)(bounding_box.max.z * layer_height_texture_data.z_cursor_relative));
+
+    if (z_cursor_band_width_id >= 0)
+        glUniform1f(z_cursor_band_width_id, (GLfloat)layer_height_texture_data.edit_band_width);
+
+    unsigned int w = layer_height_texture_width();
+    unsigned int h = layer_height_texture_height();
+
+    glBindTexture(GL_TEXTURE_2D, layer_height_texture_data.texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w / 2, h / 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, layer_height_texture_data_ptr_level0());
+    glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, w / 2, h / 2, GL_RGBA, GL_UNSIGNED_BYTE, layer_height_texture_data_ptr_level1());
+
+    render();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    if ((current_program_id > 0) && (layer_height_texture_data.shader_id != current_program_id))
+        glUseProgram(current_program_id);
 }
 
 void GLVolume::generate_layer_height_texture(PrintObject *print_object, bool force)
@@ -288,7 +391,11 @@ std::vector<int> GLVolumeCollection::load_object(
             color[3] = model_volume->modifier ? 0.5f : 1.f;
             this->volumes.emplace_back(new GLVolume(color));
             GLVolume &v = *this->volumes.back();
-			v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+            if (use_VBOs)
+                v.indexed_vertex_array.load_mesh_full_shading(mesh);
+            else
+                v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+
             // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
             v.bounding_box = v.indexed_vertex_array.bounding_box();
             v.indexed_vertex_array.finalize_geometry(use_VBOs);
@@ -319,7 +426,11 @@ int GLVolumeCollection::load_wipe_tower_preview(
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
     auto mesh = make_cube(width, depth, height);
-    v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+    if (use_VBOs)
+        v.indexed_vertex_array.load_mesh_full_shading(mesh);
+    else
+        v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+
     v.origin = Pointf3(pos_x, pos_y, 0.);
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
@@ -332,15 +443,19 @@ int GLVolumeCollection::load_wipe_tower_preview(
 
 void GLVolumeCollection::render_VBOs() const
 {
-//    glEnable(GL_BLEND);
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glCullFace(GL_BACK);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    ::glCullFace(GL_BACK);
+    ::glEnableClientState(GL_VERTEX_ARRAY);
+    ::glEnableClientState(GL_NORMAL_ARRAY);
  
     GLint current_program_id;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
+    ::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
     GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
+    GLint print_box_min_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.min") : -1;
+    GLint print_box_max_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.max") : -1;
+    GLint print_box_origin_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.volume_origin") : -1;
 
     for (GLVolume *volume : this->volumes) {
         if (!volume->is_active)
@@ -348,61 +463,110 @@ void GLVolumeCollection::render_VBOs() const
 
         if (!volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
             continue;
+
+        if (volume->layer_height_texture_data.can_use())
+        {
+            ::glDisableClientState(GL_VERTEX_ARRAY);
+            ::glDisableClientState(GL_NORMAL_ARRAY);
+            volume->generate_layer_height_texture(volume->layer_height_texture_data.print_object, false);
+            volume->render_using_layer_height();
+            ::glEnableClientState(GL_VERTEX_ARRAY);
+            ::glEnableClientState(GL_NORMAL_ARRAY);
+            continue;
+        }
+
+        volume->set_render_color();
+
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
         GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
         if (n_triangles + n_quads == 0)
         {
-            if (_render_interleaved_only_volumes.enabled)
+            ::glDisableClientState(GL_VERTEX_ARRAY);
+            ::glDisableClientState(GL_NORMAL_ARRAY);
+
+            if (color_id >= 0)
             {
-                ::glDisableClientState(GL_VERTEX_ARRAY);
-                ::glDisableClientState(GL_NORMAL_ARRAY);
-                ::glEnable(GL_BLEND);
-                ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-                if (color_id >= 0)
-                {
-                    float color[4];
-                    ::memcpy((void*)color, (const void*)volume->color, 3 * sizeof(float));
-                    color[3] = _render_interleaved_only_volumes.alpha;
-                    ::glUniform4fv(color_id, 1, (const GLfloat*)color);
-                }
-                else
-                    ::glColor4f(volume->color[0], volume->color[1], volume->color[2], _render_interleaved_only_volumes.alpha);
-
-                volume->render();
-
-                ::glDisable(GL_BLEND);
-                ::glEnableClientState(GL_VERTEX_ARRAY);
-                ::glEnableClientState(GL_NORMAL_ARRAY);
+                float color[4];
+                ::memcpy((void*)color, (const void*)volume->render_color, 4 * sizeof(float));
+                ::glUniform4fv(color_id, 1, (const GLfloat*)color);
             }
+            else
+                ::glColor4f(volume->render_color[0], volume->render_color[1], volume->render_color[2], volume->render_color[3]);
+
+            if (print_box_min_id != -1)
+                ::glUniform3fv(print_box_min_id, 1, (const GLfloat*)print_box_min);
+
+            if (print_box_max_id != -1)
+                ::glUniform3fv(print_box_max_id, 1, (const GLfloat*)print_box_max);
+
+            if (print_box_origin_id != -1)
+            {
+                float origin[4] = { (float)volume->origin.x, (float)volume->origin.y, (float)volume->origin.z, volume->outside_printer_detection_enabled ? 1.0f : 0.0f };
+                ::glUniform4fv(print_box_origin_id, 1, (const GLfloat*)origin);
+            }
+
+            volume->render();
+
+            ::glEnableClientState(GL_VERTEX_ARRAY);
+            ::glEnableClientState(GL_NORMAL_ARRAY);
+
             continue;
         }
+
         if (color_id >= 0)
-            glUniform4fv(color_id, 1, (const GLfloat*)volume->color);
+            ::glUniform4fv(color_id, 1, (const GLfloat*)volume->render_color);
         else
-            glColor4f(volume->color[0], volume->color[1], volume->color[2], volume->color[3]);            
-        glBindBuffer(GL_ARRAY_BUFFER, volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
-        glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float)));
-        glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
+            ::glColor4f(volume->render_color[0], volume->render_color[1], volume->render_color[2], volume->render_color[3]);
+
+        if (print_box_min_id != -1)
+            ::glUniform3fv(print_box_min_id, 1, (const GLfloat*)print_box_min);
+
+        if (print_box_max_id != -1)
+            ::glUniform3fv(print_box_max_id, 1, (const GLfloat*)print_box_max);
+
+        if (print_box_origin_id != -1)
+        {
+            float origin[4] = { (float)volume->origin.x, (float)volume->origin.y, (float)volume->origin.z, volume->outside_printer_detection_enabled ? 1.0f : 0.0f };
+            ::glUniform4fv(print_box_origin_id, 1, (const GLfloat*)origin);
+        }
+
+        ::glBindBuffer(GL_ARRAY_BUFFER, volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
+        ::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float)));
+        ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
+
+        bool has_offset = (volume->origin.x != 0) || (volume->origin.y != 0) || (volume->origin.z != 0);
+        if (has_offset) {
+            ::glPushMatrix();
+            ::glTranslated(volume->origin.x, volume->origin.y, volume->origin.z);
+        }
+
         if (n_triangles > 0) {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.triangle_indices_VBO_id);
-            glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, (const void*)(volume->tverts_range.first * 4));
+            ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.triangle_indices_VBO_id);
+            ::glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, (const void*)(volume->tverts_range.first * 4));
         }
         if (n_quads > 0) {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.quad_indices_VBO_id);
-            glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, (const void*)(volume->qverts_range.first * 4));
+            ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.quad_indices_VBO_id);
+            ::glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, (const void*)(volume->qverts_range.first * 4));
         }
+
+        if (has_offset)
+            ::glPopMatrix();
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-//    glDisable(GL_BLEND);
+    ::glBindBuffer(GL_ARRAY_BUFFER, 0);
+    ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    ::glDisableClientState(GL_VERTEX_ARRAY);
+    ::glDisableClientState(GL_NORMAL_ARRAY);
+
+    ::glDisable(GL_BLEND);
 }
 
 void GLVolumeCollection::render_legacy() const
 {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glCullFace(GL_BACK);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -412,27 +576,25 @@ void GLVolumeCollection::render_legacy() const
         if (!volume->is_active)
             continue;
 
+        volume->set_render_color();
+
         GLsizei n_triangles = GLsizei(std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first));
         GLsizei n_quads     = GLsizei(std::min(volume->indexed_vertex_array.quad_indices_size,     volume->qverts_range.second - volume->qverts_range.first));
         if (n_triangles + n_quads == 0)
         {
-            if (_render_interleaved_only_volumes.enabled)
-            {
-                ::glDisableClientState(GL_VERTEX_ARRAY);
-                ::glDisableClientState(GL_NORMAL_ARRAY);
-                ::glEnable(GL_BLEND);
-                ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            ::glDisableClientState(GL_VERTEX_ARRAY);
+            ::glDisableClientState(GL_NORMAL_ARRAY);
 
-                ::glColor4f(volume->color[0], volume->color[1], volume->color[2], _render_interleaved_only_volumes.alpha);
-                volume->render();
+            ::glColor4f(volume->render_color[0], volume->render_color[1], volume->render_color[2], volume->render_color[3]);
+            volume->render();
 
-                ::glDisable(GL_BLEND);
-                ::glEnableClientState(GL_VERTEX_ARRAY);
-                ::glEnableClientState(GL_NORMAL_ARRAY);
-            }
+            ::glEnableClientState(GL_VERTEX_ARRAY);
+            ::glEnableClientState(GL_NORMAL_ARRAY);
+
             continue;
         }
-        glColor4f(volume->color[0], volume->color[1], volume->color[2], volume->color[3]);
+
+        glColor4f(volume->render_color[0], volume->render_color[1], volume->render_color[2], volume->render_color[3]);
         glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), volume->indexed_vertex_array.vertices_and_normals_interleaved.data() + 3);
         glNormalPointer(GL_FLOAT, 6 * sizeof(float), volume->indexed_vertex_array.vertices_and_normals_interleaved.data());
         bool has_offset = volume->origin.x != 0 || volume->origin.y != 0 || volume->origin.z != 0;
@@ -445,11 +607,37 @@ void GLVolumeCollection::render_legacy() const
         if (n_quads > 0)
             glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, volume->indexed_vertex_array.quad_indices.data() + volume->qverts_range.first);
         if (has_offset)
-            glPushMatrix();
+            glPopMatrix();
     }
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+
+    glDisable(GL_BLEND);
+}
+
+void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, bool all_inside)
+{
+    if (config == nullptr)
+        return;
+
+    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config->option("bed_shape"));
+    if (opt == nullptr)
+        return;
+
+    BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
+    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config->opt_float("max_print_height")));
+
+    for (GLVolume* volume : this->volumes)
+    {
+        if (all_inside)
+        {
+            volume->is_outside = false;
+            continue;
+        }
+
+        volume->is_outside = !print_volume.contains(volume->transformed_bounding_box());
+    }
 }
 
 std::vector<double> GLVolumeCollection::get_current_print_zs() const
@@ -1133,6 +1321,100 @@ static void point3_to_verts(const Point3& point, double width, double height, GL
 
 _3DScene::GCodePreviewVolumeIndex _3DScene::s_gcode_preview_volume_index;
 _3DScene::LegendTexture _3DScene::s_legend_texture;
+_3DScene::WarningTexture _3DScene::s_warning_texture;
+
+unsigned int _3DScene::TextureBase::finalize()
+{
+    if (!m_data.empty()) {
+        // sends buffer to gpu
+        ::glGenTextures(1, &m_tex_id);
+        ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
+        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*)m_data.data());
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+        ::glBindTexture(GL_TEXTURE_2D, 0);
+        m_data.clear();
+    }
+    return (m_tex_width > 0 && m_tex_height > 0) ? m_tex_id : 0;
+}
+
+void _3DScene::TextureBase::_destroy_texture()
+{
+    if (m_tex_id > 0)
+    {
+        ::glDeleteTextures(1, &m_tex_id);
+        m_tex_id = 0;
+        m_tex_height = 0;
+        m_tex_width = 0;
+    }
+    m_data.clear();
+}
+
+
+const unsigned char _3DScene::WarningTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char _3DScene::WarningTexture::Opacity = 255;
+
+// Generate a texture data, but don't load it into the GPU yet, as the GPU context may not yet be valid.
+bool _3DScene::WarningTexture::generate(const std::string& msg)
+{
+    // Mark the texture as released, but don't release the texture from the GPU yet.
+    m_tex_width = m_tex_height = 0;
+    m_data.clear();
+
+    if (msg.empty())
+        return false;
+
+    wxMemoryDC memDC;
+    // select default font
+    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+
+    // calculates texture size
+    wxCoord w, h;
+    memDC.GetTextExtent(msg, &w, &h);
+    m_tex_width = (unsigned int)w;
+    m_tex_height = (unsigned int)h;
+
+    // generates bitmap
+    wxBitmap bitmap(m_tex_width, m_tex_height);
+
+#if defined(__APPLE__) || defined(_MSC_VER)
+    bitmap.UseAlpha();
+#endif
+
+    memDC.SelectObject(bitmap);
+    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    memDC.Clear();
+
+    memDC.SetTextForeground(*wxWHITE);
+
+    // draw message
+    memDC.DrawText(msg, 0, 0);
+
+    memDC.SelectObject(wxNullBitmap);
+
+    // Convert the bitmap into a linear data ready to be loaded into the GPU.
+    {
+        wxImage image = bitmap.ConvertToImage();
+        image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+
+        // prepare buffer
+        m_data.assign(4 * m_tex_width * m_tex_height, 0);
+        for (unsigned int h = 0; h < m_tex_height; ++h)
+        {
+            unsigned int hh = h * m_tex_width;
+            unsigned char* px_ptr = m_data.data() + 4 * hh;
+            for (unsigned int w = 0; w < m_tex_width; ++w)
+            {
+                *px_ptr++ = image.GetRed(w, h);
+                *px_ptr++ = image.GetGreen(w, h);
+                *px_ptr++ = image.GetBlue(w, h);
+                *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+            }
+        }
+    }
+    return true;
+}
 
 const unsigned char _3DScene::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
 const unsigned char _3DScene::LegendTexture::Background_Color[3] = { 9, 91, 134 };
@@ -1276,34 +1558,6 @@ bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, con
     return true;
 }
 
-unsigned int _3DScene::LegendTexture::finalize()
-{
-    if (! m_data.empty()) {
-        // sends buffer to gpu
-        ::glGenTextures(1, &m_tex_id);
-        ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
-        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*)m_data.data());
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-        ::glBindTexture(GL_TEXTURE_2D, 0);
-        m_data.clear();
-    }
-    return (m_tex_width > 0 && m_tex_height > 0) ? m_tex_id : 0;
-}
-
-void _3DScene::LegendTexture::_destroy_texture()
-{
-    if (m_tex_id > 0)
-    {
-        ::glDeleteTextures(1, &m_tex_id);
-        m_tex_id = 0;
-        m_tex_height = 0;
-        m_tex_width = 0;
-    }
-    m_data.clear();
-}
-
 void _3DScene::_glew_init()
 { 
     glewInit();
@@ -1353,25 +1607,15 @@ void _3DScene::load_gcode_preview(const Print* print, const GCodePreviewData* pr
         _load_gcode_unretractions(*preview_data, *volumes, use_VBOs);
 
         if (volumes->empty())
-        {
             reset_legend_texture();
-            volumes->set_render_interleaved_only_volumes(GLVolumeCollection::RenderInterleavedOnlyVolumes(false, 0.0f));
-        }
         else
         {
             _generate_legend_texture(*preview_data, tool_colors);
-
             _load_shells(*print, *volumes, use_VBOs);
-            volumes->set_render_interleaved_only_volumes(GLVolumeCollection::RenderInterleavedOnlyVolumes(true, 0.25f));
         }
     }
 
     _update_gcode_volumes_visibility(*preview_data, *volumes);
-}
-
-unsigned int _3DScene::get_legend_texture_id()
-{
-    return s_legend_texture.get_texture_id();
 }
 
 unsigned int _3DScene::get_legend_texture_width()
@@ -1387,6 +1631,36 @@ unsigned int _3DScene::get_legend_texture_height()
 void _3DScene::reset_legend_texture()
 {
     s_legend_texture.reset_texture();
+}
+
+unsigned int _3DScene::finalize_legend_texture()
+{
+    return s_legend_texture.finalize();
+}
+
+unsigned int _3DScene::get_warning_texture_width()
+{
+    return s_warning_texture.get_texture_width();
+}
+
+unsigned int _3DScene::get_warning_texture_height()
+{
+    return s_warning_texture.get_texture_height();
+}
+
+void _3DScene::generate_warning_texture(const std::string& msg)
+{
+    s_warning_texture.generate(msg);
+}
+
+void _3DScene::reset_warning_texture()
+{
+    s_warning_texture.reset_texture();
+}
+
+unsigned int _3DScene::finalize_warning_texture()
+{
+    return s_warning_texture.finalize();
 }
 
 // Create 3D thick extrusion lines for a skirt and brim.
@@ -1501,6 +1775,7 @@ void _3DScene::_load_print_object_toolpaths(
     auto            new_volume = [volumes, &new_volume_mutex](const float *color) -> GLVolume* {
         auto *volume = new GLVolume(color);
         new_volume_mutex.lock();
+        volume->outside_printer_detection_enabled = false;
         volumes->volumes.emplace_back(volume);
         new_volume_mutex.unlock();
         return volume;
@@ -1651,6 +1926,7 @@ void _3DScene::_load_wipe_tower_toolpaths(
     auto            new_volume = [volumes, &new_volume_mutex](const float *color) -> GLVolume* {
         auto *volume = new GLVolume(color);
         new_volume_mutex.lock();
+        volume->outside_printer_detection_enabled = false;
         volumes->volumes.emplace_back(volume);
         new_volume_mutex.unlock();
         return volume;
@@ -2221,6 +2497,7 @@ void _3DScene::_update_gcode_volumes_visibility(const GCodePreviewData& preview_
         for (std::vector<GLVolume*>::iterator it = begin; it != end; ++it)
         {
             GLVolume* volume = *it;
+            volume->outside_printer_detection_enabled = false;
 
             switch (s_gcode_preview_volume_index.first_volumes[i].type)
             {
@@ -2253,6 +2530,7 @@ void _3DScene::_update_gcode_volumes_visibility(const GCodePreviewData& preview_
             case GCodePreviewVolumeIndex::Shell:
                 {
                     volume->is_active = preview_data.shell.is_visible;
+                    volume->color[3] = 0.25f;
                     volume->zoom_to_volumes = false;
                     break;
                 }
@@ -2270,11 +2548,6 @@ void _3DScene::_update_gcode_volumes_visibility(const GCodePreviewData& preview_
 void _3DScene::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
     s_legend_texture.generate(preview_data, tool_colors);
-}
-
-unsigned int _3DScene::finalize_legend_texture()
-{
-    return s_legend_texture.finalize();
 }
 
 void _3DScene::_load_shells(const Print& print, GLVolumeCollection& volumes, bool use_VBOs)

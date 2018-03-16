@@ -5,9 +5,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/format.hpp>
 
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
@@ -45,6 +45,7 @@
 #include "AppConfig.hpp"
 #include "Utils.hpp"
 #include "Preferences.hpp"
+#include "PresetBundle.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -172,10 +173,14 @@ wxApp       *g_wxApp        = nullptr;
 wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
 AppConfig	*g_AppConfig	= nullptr;
+PresetBundle *g_PresetBundle= nullptr;
 
 std::vector<Tab *> g_tabs_list;
 
 wxLocale*	g_wxLocale;
+
+std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
+double m_brim_width = 0.0;
 
 void set_wxapp(wxApp *app)
 {
@@ -195,6 +200,11 @@ void set_tab_panel(wxNotebook *tab_panel)
 void set_app_config(AppConfig *app_config)
 {
 	g_AppConfig = app_config;
+}
+
+void set_preset_bundle(PresetBundle *preset_bundle)
+{
+	g_PresetBundle = preset_bundle;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -240,6 +250,7 @@ bool select_language(wxArrayString & names,
 		g_wxLocale->Init(identifiers[index]);
 		g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 		g_wxLocale->AddCatalog(g_wxApp->GetAppName());
+		wxSetlocale(LC_NUMERIC, "C");
 		return true;
 	}
 	return false;
@@ -268,6 +279,7 @@ bool load_language()
 			g_wxLocale->Init(identifiers[i]);
 			g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 			g_wxLocale->AddCatalog(g_wxApp->GetAppName());
+			wxSetlocale(LC_NUMERIC, "C");
 			return true;
 		}
 	}
@@ -346,26 +358,17 @@ void open_preferences_dialog(int event_preferences)
 	dlg->ShowModal();
 }
 
-void create_preset_tabs(PresetBundle *preset_bundle,
-						bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
-						int event_value_change, int event_presets_changed,
-						int event_button_browse, int event_button_test)
+void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
 {	
-	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller), preset_bundle);
-	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller), preset_bundle);
-	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller, is_disabled_button_browse, is_user_agent), 
-					preset_bundle);
+	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller));
+	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller));
+	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller));
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
 		if (! tab)
 			continue;
 		tab->set_event_value_change(wxEventType(event_value_change));
 		tab->set_event_presets_changed(wxEventType(event_presets_changed));
-		if (tab->name() == "printer"){
-			TabPrinter* tab_printer = static_cast<TabPrinter*>(tab);
-			tab_printer->set_event_button_browse(wxEventType(event_button_browse));
-			tab_printer->set_event_button_test(wxEventType(event_button_test));
-		}
 	}
 }
 
@@ -419,9 +422,13 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
 			break;
 		case coStrings:{
-			if (opt_key.compare("compatible_printers") == 0){
+			if (opt_key.compare("compatible_printers") == 0 ||
+				config.def()->get(opt_key)->gui_flags.compare("serialized") == 0){
 				config.option<ConfigOptionStrings>(opt_key)->values.resize(0);
-				for (auto el : boost::any_cast<std::vector<std::string>>(value))
+				std::vector<std::string> values = boost::any_cast<std::vector<std::string>>(value);
+				if (values.size() == 1 && values[0] == "")
+					break;
+				for (auto el : values)
 					config.option<ConfigOptionStrings>(opt_key)->values.push_back(el);
 			}
 			else{
@@ -434,7 +441,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			config.set_key_value(opt_key, new ConfigOptionBool(boost::any_cast<bool>(value)));
 			break;
 		case coBools:{
-			ConfigOptionBools* vec_new = new ConfigOptionBools{ boost::any_cast<bool>(value) };
+			ConfigOptionBools* vec_new = new ConfigOptionBools{ (bool)boost::any_cast<unsigned char>(value) };
 			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, opt_index, 0);
 			break;}
 		case coInt:
@@ -458,9 +465,8 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			}
 			break;
 		case coPoints:{
-			ConfigOptionPoints points;
-			points.values = boost::any_cast<std::vector<Pointf>>(value);
-			config.set_key_value(opt_key, new ConfigOptionPoints(points));
+			ConfigOptionPoints* vec_new = new ConfigOptionPoints{ boost::any_cast<Pointf>(value) };
+			config.option<ConfigOptionPoints>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
 			break;
 		case coNone:
@@ -475,9 +481,9 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 	}
 }
 
-void add_created_tab(Tab* panel, PresetBundle *preset_bundle)
+void add_created_tab(Tab* panel)
 {
-	panel->create_preset_tab(preset_bundle);
+	panel->create_preset_tab(g_PresetBundle);
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();
@@ -503,6 +509,11 @@ void warning_catcher(wxWindow* parent, wxString message){
 
 wxApp* get_app(){
 	return g_wxApp;
+}
+
+wxColour* get_modified_label_clr()
+{
+	return new wxColour(253, 88, 0);
 }
 
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
@@ -562,15 +573,117 @@ AppConfig* get_app_config()
 	return g_AppConfig;
 }
 
-wxString L_str(std::string str)
+wxString L_str(const std::string &str)
 {
 	//! Explicitly specify that the source string is already in UTF-8 encoding
 	return wxGetTranslation(wxString(str.c_str(), wxConvUTF8));
 }
 
-wxString from_u8(std::string str)
+wxString from_u8(const std::string &str)
 {
 	return wxString::FromUTF8(str.c_str());
+}
+
+
+void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)
+{
+	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
+	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
+	const wxArrayInt& ar = preset_sizer->GetColWidths();
+	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front();
+	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
+		TabPrint* tab_print = nullptr;
+		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
+			Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
+			if (!tab)
+				continue;
+			if (tab->name() == "print"){
+				tab_print = static_cast<TabPrint*>(tab);
+				break;
+			}
+		}
+		if (tab_print == nullptr)
+			return;
+
+		if (opt_key == "fill_density"){
+			value = m_optgroup->get_config_value(*config, opt_key);
+			tab_print->set_value(opt_key, value);
+			tab_print->update();
+		}
+		else{
+			DynamicPrintConfig new_conf = *config;
+			if (opt_key == "brim"){
+				double new_val;
+				double brim_width = config->opt_float("brim_width");
+				if (boost::any_cast<bool>(value) == true)
+				{
+					new_val = m_brim_width == 0.0 ? 10 :
+						m_brim_width < 0.0 ? m_brim_width * (-1) :
+						m_brim_width;
+				}
+				else{
+					m_brim_width = brim_width * (-1);
+					new_val = 0;
+				}
+				new_conf.set_key_value("brim_width", new ConfigOptionFloat(new_val));
+			}
+			else{ //(opt_key == "support")
+				const wxString& selection = boost::any_cast<wxString>(value);
+				
+				auto support_material = selection == _("None") ? false : true;
+				new_conf.set_key_value("support_material", new ConfigOptionBool(support_material));
+
+				if (selection == _("Everywhere"))
+					new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+				else if (selection == _("Support on build plate only"))
+					new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));				
+			}
+			tab_print->load_config(new_conf);
+		}
+
+		tab_print->update_dirty();
+	};
+
+	const int width = 250;
+	Option option = m_optgroup->get_option("fill_density");
+	option.opt.sidetext = "";
+	option.opt.width = width;
+	m_optgroup->append_single_option_line(option);
+
+	ConfigOptionDef def;
+
+	def.label = L("Support");
+	def.type = coStrings;
+	def.gui_type = "select_open";
+	def.tooltip = L("Select what kind of support do you need");
+	def.enum_labels.push_back(L("None"));
+	def.enum_labels.push_back(L("Support on build plate only"));
+	def.enum_labels.push_back(L("Everywhere"));
+	std::string selection = !config->opt_bool("support_material") ?
+		"None" :
+		config->opt_bool("support_material_buildplate_only") ?
+		"Support on build plate only" :
+		"Everywhere";
+	def.default_value = new ConfigOptionStrings { selection };
+	option = Option(def, "support");
+	option.opt.width = width;
+	m_optgroup->append_single_option_line(option);
+
+	m_brim_width = config->opt_float("brim_width");
+	def.label = L("Brim");
+	def.type = coBool;
+	def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
+	def.gui_type = "";
+	def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
+	option = Option(def, "brim");
+	m_optgroup->append_single_option_line(option);
+
+	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxBottom, 1);
+}
+
+ConfigOptionsGroup* get_optgroup()
+{
+	return m_optgroup.get();
 }
 
 } }

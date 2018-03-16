@@ -25,10 +25,6 @@ our $last_config;
 our $VALUE_CHANGE_EVENT    = Wx::NewEventType;
 # 2) To inform about a preset selection change or a "modified" status change.
 our $PRESETS_CHANGED_EVENT = Wx::NewEventType;
-# 3) To inform about a click on Browse button
-our $BUTTON_BROWSE_EVENT   = Wx::NewEventType;
-# 4) To inform about a click on Test button
-our $BUTTON_TEST_EVENT     = Wx::NewEventType;
 
 sub new {
     my ($class, %params) = @_;
@@ -169,61 +165,7 @@ sub _init_tabpanel {
             }
         }
     });
-    # The following event is emited by the C++ Tab implementation ,
-    # when the Browse button was clicked
-    EVT_COMMAND($self, -1, $BUTTON_BROWSE_EVENT, sub {
-        my ($self, $event) = @_;
-        my $msg = $event->GetString;
-        print "BUTTON_BROWSE_EVENT: ", $msg, "\n";
-
-        # look for devices
-        my $entries;
-        {
-            my $res = Net::Bonjour->new('http');
-            $res->discover;
-            $entries = [ $res->entries ];
-        }
-        if (@{$entries}) {
-            my $dlg = Slic3r::GUI::BonjourBrowser->new($self, $entries);
-            my $tab = Slic3r::GUI::get_preset_tab("printer");
-            $tab->load_key_value('octoprint_host', $dlg->GetValue . ":" . $dlg->GetPort)
-                if $dlg->ShowModal == wxID_OK;
-        } else {
-            Wx::MessageDialog->new($self, L('No Bonjour device found'), L('Device Browser'), wxOK | wxICON_INFORMATION)->ShowModal;
-        }
-    });
-    # The following event is emited by the C++ Tab implementation ,
-    # when the Test button was clicked
-    EVT_COMMAND($self, -1, $BUTTON_TEST_EVENT, sub {
-        my ($self, $event) = @_;
-        my $msg = $event->GetString;
-        print "BUTTON_TEST_EVENT: ", $msg, "\n";
-
-        my $ua = LWP::UserAgent->new;
-        $ua->timeout(10);
-
-        my $config = Slic3r::GUI::get_preset_tab("printer")->get_config;
-        my $res = $ua->get(
-            "http://" . $config->octoprint_host . "/api/version",
-            'X-Api-Key' => $config->octoprint_apikey,
-        );
-        if ($res->is_success) {
-            Slic3r::GUI::show_info($self, L("Connection to OctoPrint works correctly."), _L("Success!"));
-        } else {
-            Slic3r::GUI::show_error($self,
-                L("I wasn't able to connect to OctoPrint (") . $res->status_line . 
-                L("). Check hostname and OctoPrint version (at least 1.1.0 is required)."));
-        }
-    });
-    # A variable to inform C++ Tab implementation about disabling of Browse button
-    $self->{is_disabled_button_browse} = (!eval "use Net::Bonjour; 1") ? 1 : 0 ;
-    # A variable to inform C++ Tab implementation about user_agent
-    $self->{is_user_agent} = (eval "use LWP::UserAgent; 1") ? 1 : 0 ;    
-    Slic3r::GUI::create_preset_tabs(wxTheApp->{preset_bundle}, $self->{no_controller},
-                                    $self->{is_disabled_button_browse},
-                                    $self->{is_user_agent},
-                                    $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT,
-                                    $BUTTON_BROWSE_EVENT, $BUTTON_TEST_EVENT);
+    Slic3r::GUI::create_preset_tabs($self->{no_controller}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     $self->{options_tabs} = {};
     for my $tab_name (qw(print filament printer)) {
         $self->{options_tabs}{$tab_name} = Slic3r::GUI::get_preset_tab("$tab_name");
@@ -409,7 +351,7 @@ sub _init_menubar {
             wxTheApp->about;
         });
     }
-    
+
     # menubar
     # assign menubar to frame after appending items, otherwise special items
     # will not be handled correctly
@@ -424,6 +366,7 @@ sub _init_menubar {
         # (Select application language from the list of installed languages)
         Slic3r::GUI::add_debug_menu($menubar, $self->{lang_ch_event});
         $menubar->Append($helpMenu, L("&Help"));
+        # Add an optional debug menu. In production code, the add_debug_menu() call should do nothing.
         $self->SetMenuBar($menubar);
     }
 }
