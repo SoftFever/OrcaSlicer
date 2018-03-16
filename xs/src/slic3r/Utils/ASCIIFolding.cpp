@@ -1,5 +1,6 @@
 #include "ASCIIFolding.hpp"
 
+#include <stdio.h>
 #include <locale>
 #include <boost/locale/encoding_utf.hpp>
 
