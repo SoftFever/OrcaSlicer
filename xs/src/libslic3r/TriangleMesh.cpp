@@ -990,7 +990,7 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
 
     struct OpenPolyline {
         OpenPolyline() {};
-        OpenPolyline(IntersectionReference &start, IntersectionReference &end, Points &&points) : 
+        OpenPolyline(const IntersectionReference &start, const IntersectionReference &end, Points &&points) : 
             start(start), end(end), points(std::move(points)), consumed(false) {}
         void reverse() {
             std::swap(start, end);
