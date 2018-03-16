@@ -8,7 +8,6 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z scale unscale deg2rad rad2deg);
-use LWP::UserAgent;
 use threads::shared qw(shared_clone);
 use Wx qw(:button :colour :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
     :panel :sizer :toolbar :window wxTheApp :notebook :combobox wxNullBitmap);
@@ -53,8 +52,9 @@ sub new {
     $self->{config} = Slic3r::Config::new_from_defaults_keys([qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
         serial_port serial_speed octoprint_host octoprint_apikey octoprint_cafile
-        nozzle_diameter single_extruder_multi_material 
-        wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe wipe_tower_rotation_angle extruder_colour filament_colour
+        nozzle_diameter single_extruder_multi_material wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width
+	wipe_tower_per_color_wipe wipe_tower_rotation_angle extruder_colour filament_colour
+        max_print_height
     )]);
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;
@@ -113,6 +113,7 @@ sub new {
         $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
         $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+        $self->{canvas3D}->use_plain_shader(1);
         $self->{canvas3D}->set_on_wipe_tower_moved(sub {
             my ($new_pos_3f) = @_;
             my $cfg = Slic3r::Config->new;
@@ -389,9 +390,12 @@ sub new {
                     });
                 });
                 $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 0);
+                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 1);
             }
         }
+
+        my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        Slic3r::GUI::add_frequently_changed_parameters($self, $frequently_changed_parameters_sizer, $presets);
         
         my $object_info_sizer;
         {
@@ -473,14 +477,15 @@ sub new {
         
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
+        $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 10) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $right_sizer->Add($self->{list}, 1, wxEXPAND, 5);
         $right_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
         $right_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
         # Callback for showing / hiding the print info box.
         $self->{"print_info_box_show"} = sub {
-            if ($right_sizer->IsShown(4) != $_[0]) { 
-                $right_sizer->Show(4, $_[0]); 
+            if ($right_sizer->IsShown(5) != $_[0]) { 
+                $right_sizer->Show(5, $_[0]); 
                 $self->Layout
             }
         };
@@ -1737,6 +1742,8 @@ sub on_config_change {
             $update_scheduled = 1;
             my $extruder_colors = $config->get('extruder_colour');
             $self->{preview3D}->set_number_extruders(scalar(@{$extruder_colors}));
+        } elsif ($opt_key eq 'max_print_height') {
+            $update_scheduled = 1;
         }
     }
 
@@ -1934,6 +1941,7 @@ sub selection_changed {
                     $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
                 } else {
                     $self->{object_info_manifold}->SetLabel(L("Yes"));
+                    $self->{object_info_manifold_warning_icon}->Hide;
                 }
             } else {
                 $self->{object_info_facets}->SetLabel($object->facets);

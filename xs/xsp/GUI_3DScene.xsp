@@ -19,6 +19,9 @@
     void enable() const;
     void disable() const;
 
+    int shader_program_id() const
+        %code%{ RETVAL = THIS->shader_program_id; %};
+
     std::string last_error() const
         %code%{ RETVAL = THIS->last_error; %};
 };
@@ -44,6 +47,9 @@
         %code%{ THIS->hover = i; %};
     int                 zoom_to_volumes()
         %code%{ RETVAL = THIS->zoom_to_volumes; %};
+
+    void set_layer_height_texture_data(unsigned int texture_id, unsigned int shader_id, PrintObject* print_object, float z_cursor_relative, float edit_band_width);
+    void reset_layer_height_texture_data();
 
     int                 object_idx() const;
     int                 volume_idx() const;
@@ -96,6 +102,9 @@
     void render_legacy() const;
     void finalize_geometry(bool use_VBOs);
     void release_geometry();
+
+    void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z);
+    void update_outside_state(DynamicPrintConfig* config, bool all_inside);
 
     bool move_volume_up(int idx)
         %code%{ 
@@ -155,13 +164,6 @@ finalize_legend_texture()
         RETVAL
 
 unsigned int
-get_legend_texture_id()
-    CODE:
-        RETVAL = _3DScene::get_legend_texture_id();
-    OUTPUT:
-        RETVAL
-
-unsigned int
 get_legend_texture_width()
     CODE:
         RETVAL = _3DScene::get_legend_texture_width();
@@ -179,7 +181,38 @@ void
 reset_legend_texture()
     CODE:
         _3DScene::reset_legend_texture();
-             
+
+void
+generate_warning_texture(std::string msg)
+    CODE:
+        _3DScene::generate_warning_texture(msg);
+
+unsigned int
+finalize_warning_texture()
+    CODE:
+        RETVAL = _3DScene::finalize_warning_texture();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_warning_texture_width()
+    CODE:
+        RETVAL = _3DScene::get_warning_texture_width();
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_warning_texture_height()
+    CODE:
+        RETVAL = _3DScene::get_warning_texture_height();
+    OUTPUT:
+        RETVAL
+
+void
+reset_warning_texture()
+    CODE:
+        _3DScene::reset_warning_texture();
+
 void
 _load_print_toolpaths(print, volumes, tool_colors, use_VBOs)
         Print               *print;

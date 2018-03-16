@@ -8,6 +8,8 @@ use Wx qw(:misc :pen :brush :sizer :font :cursor :keycode wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_KEY_DOWN EVT_CHAR);
 use base qw(Slic3r::GUI::3DScene Class::Accessor);
 
+use Wx::Locale gettext => 'L';
+
 __PACKAGE__->mk_accessors(qw(
     on_arrange on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
     on_remove_object on_increase_objects on_decrease_objects));
@@ -206,6 +208,19 @@ sub reload_scene {
                 $self->{config}->wipe_tower_x, $self->{config}->wipe_tower_y, 
                 $self->{config}->wipe_tower_width, $self->{config}->wipe_tower_per_color_wipe * ($extruders_count - 1),
                 $self->{model}->bounding_box->z_max, $self->{config}->wipe_tower_rotation_angle, $self->UseVBOs);
+        }
+    }
+    
+    # checks for geometry outside the print volume to render it accordingly
+    if (scalar @{$self->volumes} > 0)
+    {
+        if (!$self->{model}->fits_print_volume($self->{config})) {
+            $self->set_warning_enabled(1);
+            Slic3r::GUI::_3DScene::generate_warning_texture(L("Detected object outside print volume"));
+        } else {
+            $self->set_warning_enabled(0);
+            $self->volumes->update_outside_state($self->{config}, 1);
+            Slic3r::GUI::_3DScene::reset_warning_texture();
         }
     }
 }
