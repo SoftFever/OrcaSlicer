@@ -100,6 +100,7 @@ protected:
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 	std::vector<std::string>	m_dirty_options = {};
+	std::vector<std::string>	m_sys_options = {};
 
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
@@ -110,6 +111,7 @@ public:
 	bool				m_show_btn_incompatible_presets = false;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
+	std::string			m_nonsys_btn_icon;
 
 public:
 	Tab() {}
@@ -154,6 +156,7 @@ public:
 	virtual void	on_preset_loaded(){}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
+	void			load_initial_data();
 	void			update_dirty();
 	void			update_tab_ui();
 	void			load_config(DynamicPrintConfig config);

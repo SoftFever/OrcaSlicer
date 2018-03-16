@@ -86,6 +86,8 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		field->m_Undo_btn->Hide();
 		field->m_Undo_to_sys_btn->Hide();
 	}
+	if (nonsys_btn_icon != "")
+		field->set_nonsys_btn_icon(nonsys_btn_icon);
     
 	// assign function objects for callbacks, etc.
     return field;
@@ -115,8 +117,10 @@ void OptionsGroup::append_line(const Line& line) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
-		sizer->Add(field->m_Undo_to_sys_btn);
-		sizer->Add(field->m_Undo_btn);
+		auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+		btn_sizer->Add(field->m_Undo_to_sys_btn);
+		btn_sizer->Add(field->m_Undo_btn);
+		sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
 		if (is_window_field(field))
 			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_sizer_field(field))

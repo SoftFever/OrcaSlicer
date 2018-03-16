@@ -206,6 +206,18 @@ t_config_option_keys ConfigBase::diff(const ConfigBase &other) const
     return diff;
 }
 
+t_config_option_keys ConfigBase::equal(const ConfigBase &other) const
+{
+    t_config_option_keys equal;
+    for (const t_config_option_key &opt_key : this->keys()) {
+        const ConfigOption *this_opt  = this->option(opt_key);
+        const ConfigOption *other_opt = other.option(opt_key);
+        if (this_opt != nullptr && other_opt != nullptr && *this_opt == *other_opt)
+            equal.emplace_back(opt_key);
+    }
+    return equal;
+}
+
 std::string ConfigBase::serialize(const t_config_option_key &opt_key) const
 {
     const ConfigOption* opt = this->option(opt_key);

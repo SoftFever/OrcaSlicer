@@ -250,6 +250,8 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
     std::vector<std::string>    current_different_from_parent_options() const
         { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent()); }
+    // Compare the content of get_selected_preset() with get_selected_preset_parent() configs, return the list of keys where they equal.
+	std::vector<std::string>    system_equal_options() const;
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.

@@ -226,7 +226,8 @@ const std::vector<std::string>& Preset::printer_options()
             "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
             "octoprint_host", "octoprint_apikey", "octoprint_cafile", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height",
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
-            "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "default_print_profile", "inherits",
+			"between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "max_print_height", 
+        	"default_print_profile", "inherits",
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }
@@ -411,7 +412,7 @@ const Preset* PresetCollection::get_selected_preset_parent() const
 {
     auto *inherits = dynamic_cast<const ConfigOptionString*>(this->get_edited_preset().config.option("inherits"));
     if (inherits == nullptr || inherits->value.empty())
-        return nullptr;
+		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; // nullptr; 
     const Preset* preset = this->find_preset(inherits->value, false);
     return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
 }
@@ -574,6 +575,25 @@ std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, c
         }
     }
     return changed;
+}
+
+std::vector<std::string>    PresetCollection::system_equal_options() const
+{
+	const Preset *edited = &this->get_edited_preset();
+	const Preset *reference = this->get_selected_preset_parent();
+	std::vector<std::string> equal;
+	if (edited != nullptr && reference != nullptr) {
+		equal = reference->config.equal(edited->config);
+		// The "compatible_printers" option key is handled differently from the others:
+		// It is not mandatory. If the key is missing, it means it is compatible with any printer.
+		// If the key exists and it is empty, it means it is compatible with no printer.
+		std::initializer_list<const char*> optional_keys{ "compatible_printers", "compatible_printers_condition" };
+		for (auto &opt_key : optional_keys) {
+			if (reference->config.has(opt_key) == edited->config.has(opt_key))
+				equal.emplace_back(opt_key);
+		}
+	}
+	return equal;
 }
 
 // Select a new preset. This resets all the edits done to the currently selected preset.

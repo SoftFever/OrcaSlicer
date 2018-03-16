@@ -113,6 +113,14 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	update();
 }
 
+void Tab::load_initial_data()
+{
+	m_config = &m_presets->get_edited_preset().config;
+	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
+		"bullet_white.png" :
+		wxMSW ? "sys_unlock.png" : "lock_open.png";
+}
+
 PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
 {
 	// Index of icon in an icon list $self->{icons}.
@@ -186,16 +194,18 @@ void Tab::update_changed_ui()
 	// Add new dirty options to m_dirty_options
 	for (auto opt_key : dirty_options){
 		Field* field = get_field(opt_key);
-		if (field != nullptr && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
-			if (field->m_Label != nullptr){
-				field->m_Label->SetForegroundColour(*get_modified_label_clr());
-				field->m_Label->Refresh(true);
-			}
+		if (field != nullptr &&
+			find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
 			// use bouth of temporary_icons till don't have "undo_icon" 
 			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(wxMSW ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
 			field->m_is_modified_value = true;
 
 			m_dirty_options.push_back(opt_key);
+		}
+
+		if (field != nullptr && field->m_Label != nullptr){
+			field->m_Label->SetForegroundColour(*get_modified_label_clr());
+			field->m_Label->Refresh(true);
 		}
 	}
 
@@ -219,6 +229,47 @@ void Tab::update_changed_ui()
 			}
 		}
 	}
+	
+
+	//update system options (colored in green)
+	auto sys_options = m_presets->system_equal_options();
+	// Add new system equal options to m_sys_options
+	for (auto opt_key : sys_options){
+		Field* field = get_field(opt_key);
+		if (field != nullptr && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()){
+			field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(wxMSW ? var("sys_lock.png") : var("lock.png")), wxBITMAP_TYPE_PNG));
+			field->m_is_nonsys_value = false;
+
+			m_sys_options.push_back(opt_key);
+		}
+		if (field != nullptr && field->m_Label != nullptr){
+			field->m_Label->SetForegroundColour(*get_sys_label_clr());
+			field->m_Label->Refresh(true);
+		}
+	}
+	// Delete clear options from m_dirty_options
+	for (auto i = 0; i < m_sys_options.size(); ++i)
+	{
+		const std::string &opt_key = m_sys_options[i];
+		Field* field = get_field(opt_key);
+		if (field != nullptr && find(sys_options.begin(), sys_options.end(), opt_key) == sys_options.end())
+		{
+			// use bouth of temporary_icons till don't have "unlock_icon" 
+			field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(m_nonsys_btn_icon)), wxBITMAP_TYPE_PNG));
+			if (field->m_Label != nullptr &&
+				find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
+				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+				field->m_Label->Refresh(true);
+			}
+			field->m_is_nonsys_value = true;
+			std::vector<std::string>::iterator itr = find(m_sys_options.begin(), m_sys_options.end(), opt_key);
+			if (itr != m_sys_options.end()){
+				m_sys_options.erase(itr);
+				--i;
+			}
+		}
+	}
+
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
@@ -376,7 +427,7 @@ void Tab::reload_compatible_printers_widget()
 void TabPrint::build()
 {
 	m_presets = &m_preset_bundle->prints;
-	m_config = &m_presets->get_edited_preset().config;
+	load_initial_data();
 
 	auto page = add_options_page(_(L("Layers and perimeters")), "layers.png");
 		auto optgroup = page->new_optgroup(_(L("Layer height")));
@@ -853,7 +904,7 @@ void TabPrint::OnActivate()
 void TabFilament::build()
 {
 	m_presets = &m_preset_bundle->filaments;
-	m_config = &m_preset_bundle->filaments.get_edited_preset().config;
+	load_initial_data();
 
 	auto page = add_options_page(_(L("Filament")), "spool.png");
 		auto optgroup = page->new_optgroup(_(L("Filament")));
@@ -1000,8 +1051,7 @@ bool Tab::current_preset_is_dirty()
 void TabPrinter::build()
 {
 	m_presets = &m_preset_bundle->printers;
-	m_config = &m_preset_bundle->printers.get_edited_preset().config;
-	auto default_config = m_preset_bundle->full_config();
+	load_initial_data();
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
@@ -1414,6 +1464,9 @@ void TabPrinter::update(){
 void Tab::load_current_preset()
 {
 	auto preset = m_presets->get_edited_preset();
+	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
+					"bullet_white.png" :
+					wxMSW ? "sys_unlock.png" : "lock_open.png";
 	preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 	update();
 	// For the printer profile, generate the extruder pages.
@@ -1658,6 +1711,8 @@ void Tab::save_preset(std::string name /*= ""*/)
 	update_tab_ui();
 	// Update the selection boxes at the platter.
 	on_presets_changed();
+
+	update_changed_ui();
 }
 
 // Called for a currently selected preset.
@@ -1832,6 +1887,8 @@ ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_wid
 		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset().config;
 		return config;
 	};
+
+	optgroup->nonsys_btn_icon = static_cast<Tab*>(GetParent())->m_nonsys_btn_icon;
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
 	m_optgroups.push_back(optgroup);

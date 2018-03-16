@@ -28,10 +28,13 @@ namespace Slic3r { namespace GUI {
 		}
 		m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
 		m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
-		m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
-		m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ /*on_back_to_initial_value()*/; }));
+		m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ /*on_back_to_sys_value()*/; }));
 
 		BUILD();
+	}
+
+	void Field::set_nonsys_btn_icon(const std::string& icon){
+		m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(icon)), wxBITMAP_TYPE_PNG));
 	}
 
 	void Field::on_kill_focus(wxEvent& event) {

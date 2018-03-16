@@ -68,8 +68,8 @@ public:
 
 	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
     bool			m_disable_change_event {false};
-	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
     bool			m_is_modified_value {false};
+	bool			m_is_nonsys_value;
 
     /// Copy of ConfigOption for deduction purposes
     const ConfigOptionDef			m_opt {ConfigOptionDef()};
@@ -95,6 +95,9 @@ public:
     inline void			toggle(bool en) { en ? enable() : disable(); }
 
 	virtual wxString	get_tooltip_text(const wxString& default_string);
+
+    // set icon to "UndoToSystemValue" button according to an inheritance of preset
+	void set_nonsys_btn_icon(const std::string& icon);
 
     Field(const ConfigOptionDef& opt, const t_config_option_key& id) : m_opt(opt), m_opt_id(id) {};
     Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : m_parent(parent), m_opt(opt), m_opt_id(id) {};
