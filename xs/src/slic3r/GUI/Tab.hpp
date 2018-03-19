@@ -228,6 +228,7 @@ public:
 
 	size_t		m_extruders_count;
 	size_t		m_initial_extruders_count;
+	size_t		m_sys_extruders_count;
 	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}

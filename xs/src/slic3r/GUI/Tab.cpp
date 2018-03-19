@@ -160,34 +160,78 @@ void add_correct_opts_to_dirty_options(const std::string &opt_key, std::vector<s
 	}
 }
 
+template<class T>
+void add_correct_opts_to_sys_options(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
+{
+	const Preset* sys_preset = tab->m_presets->get_selected_preset_parent();
+	if (sys_preset == nullptr)
+		return;
+	T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
+	const T *opt_sys = static_cast<const T*>(sys_preset->config.option(opt_key));
+	int opt_max_id = opt_sys->values.size()-1;
+	for (int i = 0; i < opt_cur->values.size(); i++)
+	{
+		int init_id = i <= opt_max_id ? i : 0;
+		if (opt_cur->values[i] == opt_sys->values[init_id])
+			vec->emplace_back(opt_key + "#" + std::to_string(i));
+	}
+}
+
 // Update UI according to changes
 void Tab::update_changed_ui()
 {
 	auto dirty_options = m_presets->current_dirty_options();
 
+	auto sys_options = m_presets->system_equal_options();
+
 	if (name() == "printer"){
 		// Update dirty_options in case changes of Extruder's options 
 		TabPrinter* tab = static_cast<TabPrinter*>(this);
-		std::vector<std::string> new_dirty;
+		std::vector<std::string> new_options;
 		for (auto opt_key : dirty_options)
 		{
 			switch (m_config->option(opt_key)->type())
 			{
-			case coInts:	add_correct_opts_to_dirty_options<ConfigOptionInts		>(opt_key, &new_dirty, tab);	break;
-			case coBools:	add_correct_opts_to_dirty_options<ConfigOptionBools		>(opt_key, &new_dirty, tab);	break;
-			case coFloats:	add_correct_opts_to_dirty_options<ConfigOptionFloats	>(opt_key, &new_dirty, tab);	break;
-			case coStrings:	add_correct_opts_to_dirty_options<ConfigOptionStrings	>(opt_key, &new_dirty, tab);	break;
-			case coPercents:add_correct_opts_to_dirty_options<ConfigOptionPercents	>(opt_key, &new_dirty, tab);	break;
-			case coPoints:	add_correct_opts_to_dirty_options<ConfigOptionPoints	>(opt_key, &new_dirty, tab);	break;
-			default:		new_dirty.emplace_back(opt_key);		break;
+			case coInts:	add_correct_opts_to_dirty_options<ConfigOptionInts		>(opt_key, &new_options, tab);	break;
+			case coBools:	add_correct_opts_to_dirty_options<ConfigOptionBools		>(opt_key, &new_options, tab);	break;
+			case coFloats:	add_correct_opts_to_dirty_options<ConfigOptionFloats	>(opt_key, &new_options, tab);	break;
+			case coStrings:	add_correct_opts_to_dirty_options<ConfigOptionStrings	>(opt_key, &new_options, tab);	break;
+			case coPercents:add_correct_opts_to_dirty_options<ConfigOptionPercents	>(opt_key, &new_options, tab);	break;
+			case coPoints:	add_correct_opts_to_dirty_options<ConfigOptionPoints	>(opt_key, &new_options, tab);	break;
+			default:		new_options.emplace_back(opt_key);		break;
 			}
 		}
 
 		dirty_options.resize(0);
-		dirty_options = new_dirty;
-		if (tab->m_initial_extruders_count != tab->m_extruders_count){
+		dirty_options = new_options;
+		if (tab->m_initial_extruders_count != tab->m_extruders_count)
 			dirty_options.emplace_back("extruders_count");
+
+		new_options.resize(0);
+		std::initializer_list<const char*> optional_keys{"bed_shape", "compatible_printers", "compatible_printers_condition" };
+		for (auto &opt_key : optional_keys) {
+			if (find(sys_options.begin(), sys_options.end(),opt_key) != sys_options.end())
+				new_options.emplace_back(opt_key);
 		}
+		for (auto opt_key : m_config->keys())
+		{
+			if (opt_key == "bed_shape") continue;
+			switch (m_config->option(opt_key)->type())
+			{
+			case coInts:	add_correct_opts_to_sys_options<ConfigOptionInts	>(opt_key, &new_options, tab);	break;
+			case coBools:	add_correct_opts_to_sys_options<ConfigOptionBools	>(opt_key, &new_options, tab);	break;
+			case coFloats:	add_correct_opts_to_sys_options<ConfigOptionFloats	>(opt_key, &new_options, tab);	break;
+			case coStrings:	add_correct_opts_to_sys_options<ConfigOptionStrings	>(opt_key, &new_options, tab);	break;
+			case coPercents:add_correct_opts_to_sys_options<ConfigOptionPercents>(opt_key, &new_options, tab);	break;
+			case coPoints:	add_correct_opts_to_sys_options<ConfigOptionPoints	>(opt_key, &new_options, tab);	break;
+			default:		new_options.emplace_back(opt_key);		break;
+			}
+		}
+
+		sys_options.resize(0);
+		sys_options = new_options;
+		if (tab->m_sys_extruders_count == tab->m_extruders_count)
+			sys_options.emplace_back("extruders_count");		
 	}
 
 	// Add new dirty options to m_dirty_options
@@ -231,7 +275,6 @@ void Tab::update_changed_ui()
 	
 
 	//update system options (colored in green)
-	auto sys_options = m_presets->system_equal_options();
 	// Add new system equal options to m_sys_options
 	for (auto opt_key : sys_options){
 		Field* field = get_field(opt_key);
@@ -265,16 +308,18 @@ void Tab::update_changed_ui()
 	{
 		const std::string &opt_key = m_sys_options[i];
 		Field* field = get_field(opt_key);
-		if (field != nullptr && find(sys_options.begin(), sys_options.end(), opt_key) == sys_options.end())
+		if (find(sys_options.begin(), sys_options.end(), opt_key) == sys_options.end())
 		{
-			// use bouth of temporary_icons till don't have "unlock_icon" 
-			field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(m_nonsys_btn_icon)), wxBITMAP_TYPE_PNG));
-			if (field->m_Label != nullptr &&
-				find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
-				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
-				field->m_Label->Refresh(true);
+			if (field != nullptr){
+				// use bouth of temporary_icons till don't have "unlock_icon" 
+				field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(m_nonsys_btn_icon)), wxBITMAP_TYPE_PNG));
+				if (field->m_Label != nullptr &&
+					find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
+					field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+					field->m_Label->Refresh(true);
+				}
+				field->m_is_nonsys_value = true;
 			}
-			field->m_is_nonsys_value = true;
 			std::vector<std::string>::iterator itr = find(m_sys_options.begin(), m_sys_options.end(), opt_key);
 			if (itr != m_sys_options.end()){
 				m_sys_options.erase(itr);
@@ -1071,6 +1116,7 @@ void TabPrinter::build()
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
+	m_sys_extruders_count = static_cast<const ConfigOptionFloats*>(m_presets->get_selected_preset_parent()->config.option("nozzle_diameter"))->values.size();
 
 	auto page = add_options_page(_(L("General")), "printer_empty.png");
 		auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
@@ -1729,6 +1775,8 @@ void Tab::save_preset(std::string name /*= ""*/)
 	// Update the selection boxes at the platter.
 	on_presets_changed();
 
+	if (m_name == "printer")
+		static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
 	update_changed_ui();
 }
 
