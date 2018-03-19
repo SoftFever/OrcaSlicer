@@ -1840,13 +1840,6 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = L("mm");
     def->cli = "wipe-tower-bridging=f";
     def->default_value = new ConfigOptionFloat(10.);
-    
-    def = this->add("wipe_tower_adhesion", coBool);
-    def->label = L("Increase first layer adhesion");
-    def->tooltip = L("This prevents using sparse infill on the first layer, if it would be "
-                   "normally applied. Dense infill is used instead. ");
-    def->cli = "wipe-tower_adhesion!";
-    def->default_value = new ConfigOptionBool(true);
 
     def = this->add("xy_size_compensation", coFloat);
     def->label = L("XY Size Compensation");

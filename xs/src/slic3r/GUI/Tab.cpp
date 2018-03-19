@@ -520,7 +520,6 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_per_color_wipe");
 		optgroup->append_single_option_line("wipe_tower_rotation_angle");
         optgroup->append_single_option_line("wipe_tower_bridging");
-        optgroup->append_single_option_line("wipe_tower_adhesion");
         line = { _(L("Advanced")), "" };
         line.widget = [this](wxWindow* parent){
 			m_wipe_tower_btn = new wxButton(parent, wxID_ANY, _(L("Advanced settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
