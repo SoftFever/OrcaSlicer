@@ -32,7 +32,7 @@
 
 namespace Slic3r {
 
-static std::vector<std::string> s_project_options {
+static std::vector<std::string> s_project_options {   
 };
 
 PresetBundle::PresetBundle() :

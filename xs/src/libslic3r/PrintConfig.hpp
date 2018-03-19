@@ -630,6 +630,8 @@ public:
     ConfigOptionFloat               wipe_tower_rotation_angle;
     ConfigOptionFloat               wipe_tower_bridging;
     ConfigOptionBool                wipe_tower_adhesion;
+    ConfigOptionFloats              wiping_volumes_matrix;
+    ConfigOptionFloats              wiping_volumes_extruders;
     ConfigOptionFloat               z_offset;
     
 protected:
@@ -698,6 +700,8 @@ protected:
         OPT_PTR(wipe_tower_rotation_angle);
         OPT_PTR(wipe_tower_bridging);
         OPT_PTR(wipe_tower_adhesion);
+        OPT_PTR(wiping_volumes_matrix);
+        OPT_PTR(wiping_volumes_extruders);
         OPT_PTR(z_offset);
     }
 };

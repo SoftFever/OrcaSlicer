@@ -528,11 +528,12 @@ void TabPrint::build()
 			sizer->Add(m_wipe_tower_btn);
 			m_wipe_tower_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
 			{
-                //auto init_data = (m_config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
-				//WipingDialog dlg(this,std::vector<float>(init_data.begin(), init_data.end())); // dlg lives on stack, no need to call Destroy
+                std::vector<double> init_data = (m_config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+                load_key_value("wiping_volumes_matrix", a);
+                WipingDialog dlg(this,std::vector<float>(init_data.begin(), init_data.end())); // dlg lives on stack, no need to call Destroy
 
 				if (dlg.ShowModal() == wxID_OK) {
-                    //load_key_value("wipe_tower_advanced", dlg.GetValue());
+                    //load_key_value("wiping_volumes_matrix", dlg.GetValue());
                     //std::cout << std::endl << "dialog returned: " << dlg.GetValue() << std::endl;
                 }
 			}));
