@@ -1014,7 +1014,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
             else box.expand(-m_perimeter_width);
         }
         else i=2;	// only draw the inner perimeter, outer has been already drawn by tool_change(...)
-        writer.rectangle(box.ld,box.rd.x-box.ld.x,box.ru.y-box.rd.y);
+        writer.rectangle(box.ld,box.rd.x-box.ld.x,box.ru.y-box.rd.y,2900*speed_factor);
     }
 
     // we are in one of the corners, travel to ld along the perimeter:
