@@ -1427,10 +1427,12 @@ Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &
     // Each linear fill covers 1/3 of the target coverage.
     FillParams params2 = params;
     params2.density *= 0.333333333f;
+    FillParams params3 = params2;
+    params3.dont_connect = true;
     Polylines polylines_out;
     if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
         ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0., polylines_out)) {
+        ! fill_surface_by_lines(surface, params3, float(2. * M_PI / 3.), 0., polylines_out)) {
         printf("FillTriangles::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
@@ -1441,10 +1443,12 @@ Polylines FillStars::fill_surface(const Surface *surface, const FillParams &para
     // Each linear fill covers 1/3 of the target coverage.
     FillParams params2 = params;
     params2.density *= 0.333333333f;
+    FillParams params3 = params2;
+    params3.dont_connect = true;
     Polylines polylines_out;
     if (! fill_surface_by_lines(surface, params2, 0.f, 0., polylines_out) ||
         ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), 0., polylines_out) ||
-        ! fill_surface_by_lines(surface, params2, float(2. * M_PI / 3.), 0.5 * this->spacing / params2.density, polylines_out)) {
+        ! fill_surface_by_lines(surface, params3, float(2. * M_PI / 3.), 0.5 * this->spacing / params2.density, polylines_out)) {
         printf("FillStars::fill_surface() failed to fill a region.\n");
     }
     return polylines_out;
@@ -1455,12 +1459,14 @@ Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &para
     // Each linear fill covers 1/3 of the target coverage.
     FillParams params2 = params;
     params2.density *= 0.333333333f;
+    FillParams params3 = params2;
+    params3.dont_connect = true;
     Polylines polylines_out;
     coordf_t dx = sqrt(0.5) * z;
     if (! fill_surface_by_lines(surface, params2, 0.f, dx, polylines_out) ||
         ! fill_surface_by_lines(surface, params2, float(M_PI / 3.), - dx, polylines_out) ||
         // Rotated by PI*2/3 + PI to achieve reverse sloping wall.
-        ! fill_surface_by_lines(surface, params2, float(M_PI * 2. / 3.), dx, polylines_out)) {
+        ! fill_surface_by_lines(surface, params3, float(M_PI * 2. / 3.), dx, polylines_out)) {
         printf("FillCubic::fill_surface() failed to fill a region.\n");
     } 
     return polylines_out; 
