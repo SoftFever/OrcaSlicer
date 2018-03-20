@@ -46,18 +46,28 @@ private:
 
 
 
+
+
+
 class WipingPanel : public wxPanel {
 public:
-    WipingPanel(wxWindow* parent,const std::vector<float>& data);
-    void fill_parameters(Slic3r::WipeTowerParameters& p);
+    WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders);
+    std::vector<float> read_matrix_values();
+    std::vector<float> read_extruders_values();
         
 private:
     void fill_in_matrix();
+    void toggle_advanced(bool user_button = false);
+    bool advanced_matches_simple();
         
     std::vector<wxSpinCtrl*> m_old;
     std::vector<wxSpinCtrl*> m_new;
+    std::vector<wxWindow*>   m_advanced_widgets;
+    std::vector<wxWindow*>   m_notadvanced_widgets;
     std::vector<std::vector<wxTextCtrl*>> edit_boxes;
-    wxButton* m_widget_button=nullptr;    
+    wxButton* m_widget_button           = nullptr;
+    unsigned int m_number_of_extruders  = 0;
+    bool m_advanced                     = false;
 };
 
 
@@ -66,19 +76,15 @@ private:
 
 class WipingDialog : public wxDialog {
 public:
-    WipingDialog(wxWindow* parent,const std::vector<float>& init_data);
-    std::vector<float> get_value() const { return m_output_data; }
-    
-    
+    WipingDialog(wxWindow* parent,const std::vector<float>& matrix, const std::vector<float>& extruders);
+    std::vector<float> get_matrix() const    { return m_output_matrix; }
+    std::vector<float> get_extruders() const { return m_output_extruders; }
+
+
 private:
     WipingPanel*  m_panel_wiping  = nullptr;
-    std::vector<float> m_output_data;
-            
-    std::string read_dialog_values() {
-        Slic3r::WipeTowerParameters p;
-        m_panel_wiping ->fill_parameters(p);
-        //return p.to_string();
-    }
+    std::vector<float> m_output_matrix;
+    std::vector<float> m_output_extruders;
 };
 
 #endif  // _WIPE_TOWER_DIALOG_H_

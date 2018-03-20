@@ -527,12 +527,16 @@ void TabPrint::build()
 			sizer->Add(m_wipe_tower_btn);
 			m_wipe_tower_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
 			{
-                std::vector<double> init_data = (m_config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
-                WipingDialog dlg(this,std::vector<float>(init_data.begin(), init_data.end())); // dlg lives on stack, no need to call Destroy
+                std::vector<double> init_matrix = (m_config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+                std::vector<double> init_extruders = (m_config->option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+
+                WipingDialog dlg(this,std::vector<float>(init_matrix.begin(),init_matrix.end()),std::vector<float>(init_extruders.begin(),init_extruders.end()));
 
 				if (dlg.ShowModal() == wxID_OK) {
-                    //load_key_value("wiping_volumes_matrix", dlg.GetValue());
-                    //std::cout << std::endl << "dialog returned: " << dlg.GetValue() << std::endl;
+                    std::vector<float> matrix = dlg.get_matrix();
+                    std::vector<float> extruders = dlg.get_extruders();
+                    (m_config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(),matrix.end());
+                    (m_config->option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(),extruders.end());
                 }
 			}));
 			return sizer;
