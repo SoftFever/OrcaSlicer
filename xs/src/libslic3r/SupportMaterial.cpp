@@ -2491,7 +2491,6 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         infill_pattern = ipRectilinear;
         break;
     case smpHoneycomb:
-    case smpPillars:
         infill_pattern = ipHoneycomb;
         break;
     }

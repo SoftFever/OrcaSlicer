@@ -233,51 +233,8 @@ BoundingBoxf3 Model::bounding_box() const
 BoundingBoxf3 Model::transformed_bounding_box() const
 {
     BoundingBoxf3 bb;
-
     for (const ModelObject* obj : this->objects)
-    {
-        for (const ModelVolume* vol : obj->volumes)
-        {
-            if (!vol->modifier)
-            {
-                for (const ModelInstance* inst : obj->instances)
-                {
-                    double c = cos(inst->rotation);
-                    double s = sin(inst->rotation);
-
-                    for (int f = 0; f < vol->mesh.stl.stats.number_of_facets; ++f)
-                    {
-                        const stl_facet& facet = vol->mesh.stl.facet_start[f];
-
-                        for (int i = 0; i < 3; ++i)
-                        {
-                            // original point
-                            const stl_vertex& v = facet.vertex[i];
-                            Pointf3 p((double)v.x, (double)v.y, (double)v.z);
-
-                            // scale
-                            p.x *= inst->scaling_factor;
-                            p.y *= inst->scaling_factor;
-                            p.z *= inst->scaling_factor;
-
-                            // rotate Z
-                            double x = p.x;
-                            double y = p.y;
-                            p.x = c * x - s * y;
-                            p.y = s * x + c * y;
-
-                            // translate
-                            p.x += inst->offset.x;
-                            p.y += inst->offset.y;
-
-                            bb.merge(p);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+        bb.merge(obj->tight_bounding_box(false));
     return bb;
 }
 
@@ -460,6 +417,25 @@ void Model::convert_multipart_object()
     this->objects.push_back(object);
 }
 
+void Model::adjust_min_z()
+{
+    if (objects.empty())
+        return;
+
+    if (bounding_box().min.z < 0.0)
+    {
+        for (ModelObject* obj : objects)
+        {
+            if (obj != nullptr)
+            {
+                coordf_t obj_min_z = obj->bounding_box().min.z;
+                if (obj_min_z < 0.0)
+                    obj->translate(0.0, 0.0, -obj_min_z);
+            }
+        }
+    }
+}
+
 bool Model::fits_print_volume(const DynamicPrintConfig* config) const
 {
     if (config == nullptr)
@@ -474,6 +450,15 @@ bool Model::fits_print_volume(const DynamicPrintConfig* config) const
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
     BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config->opt_float("max_print_height")));
+    return print_volume.contains(transformed_bounding_box());
+}
+
+bool Model::fits_print_volume(const FullPrintConfig &config) const
+{
+    if (objects.empty())
+        return true;
+    BoundingBox bed_box_2D = get_extents(Polygon::new_scale(config.bed_shape.values));
+    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config.max_print_height));
     return print_volume.contains(transformed_bounding_box());
 }
 
@@ -607,7 +592,7 @@ void ModelObject::clear_instances()
 
 // Returns the bounding box of the transformed instances.
 // This bounding box is approximate and not snug.
-BoundingBoxf3 ModelObject::bounding_box()
+const BoundingBoxf3& ModelObject::bounding_box()
 {
     if (! m_bounding_box_valid) {
         BoundingBoxf3 raw_bbox;
@@ -621,6 +606,54 @@ BoundingBoxf3 ModelObject::bounding_box()
         m_bounding_box_valid = true;
     }
     return m_bounding_box;
+}
+
+BoundingBoxf3 ModelObject::tight_bounding_box(bool include_modifiers) const
+{
+    BoundingBoxf3 bb;
+
+    for (const ModelVolume* vol : this->volumes)
+    {
+        if (include_modifiers || !vol->modifier)
+        {
+            for (const ModelInstance* inst : this->instances)
+            {
+                double c = cos(inst->rotation);
+                double s = sin(inst->rotation);
+
+                for (int f = 0; f < vol->mesh.stl.stats.number_of_facets; ++f)
+                {
+                    const stl_facet& facet = vol->mesh.stl.facet_start[f];
+
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        // original point
+                        const stl_vertex& v = facet.vertex[i];
+                        Pointf3 p((double)v.x, (double)v.y, (double)v.z);
+
+                        // scale
+                        p.x *= inst->scaling_factor;
+                        p.y *= inst->scaling_factor;
+                        p.z *= inst->scaling_factor;
+
+                        // rotate Z
+                        double x = p.x;
+                        double y = p.y;
+                        p.x = c * x - s * y;
+                        p.y = s * x + c * y;
+
+                        // translate
+                        p.x += inst->offset.x;
+                        p.y += inst->offset.y;
+
+                        bb.merge(p);
+                    }
+                }
+            }
+        }
+    }
+
+    return bb;
 }
 
 // A mesh containing all transformed instances of this object.

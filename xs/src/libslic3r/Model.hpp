@@ -102,8 +102,12 @@ public:
 
     // Returns the bounding box of the transformed instances.
     // This bounding box is approximate and not snug.
-    BoundingBoxf3 bounding_box();
+    // This bounding box is being cached.
+    const BoundingBoxf3& bounding_box();
     void invalidate_bounding_box() { m_bounding_box_valid = false; }
+    // Returns a snug bounding box of the transformed instances.
+    // This bounding box is not being cached.
+    BoundingBoxf3 tight_bounding_box(bool include_modifiers) const;
 
     // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
@@ -276,8 +280,12 @@ public:
     bool looks_like_multipart_object() const;
     void convert_multipart_object();
 
+    // Ensures that the min z of the model is not negative
+    void adjust_min_z();
+
     // Returs true if this model is contained into the print volume defined inside the given config
     bool fits_print_volume(const DynamicPrintConfig* config) const;
+    bool fits_print_volume(const FullPrintConfig &config) const;
 
     void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
 };

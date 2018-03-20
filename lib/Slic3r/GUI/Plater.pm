@@ -8,7 +8,6 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z scale unscale deg2rad rad2deg);
-use LWP::UserAgent;
 use threads::shared qw(shared_clone);
 use Wx qw(:button :colour :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
     :panel :sizer :toolbar :window wxTheApp :notebook :combobox wxNullBitmap);
@@ -391,9 +390,12 @@ sub new {
                     });
                 });
                 $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 0);
+                $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 1);
             }
         }
+
+        my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        Slic3r::GUI::add_frequently_changed_parameters($self, $frequently_changed_parameters_sizer, $presets);
         
         my $object_info_sizer;
         {
@@ -475,14 +477,15 @@ sub new {
         
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
+        $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 10) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $right_sizer->Add($self->{list}, 1, wxEXPAND, 5);
         $right_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
         $right_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
         # Callback for showing / hiding the print info box.
         $self->{"print_info_box_show"} = sub {
-            if ($right_sizer->IsShown(4) != $_[0]) { 
-                $right_sizer->Show(4, $_[0]); 
+            if ($right_sizer->IsShown(5) != $_[0]) { 
+                $right_sizer->Show(5, $_[0]); 
                 $self->Layout
             }
         };
@@ -1330,6 +1333,9 @@ sub export_gcode {
     } else {
         my $default_output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
         Slic3r::GUI::catch_error($self) and return;
+        # If possible, remove accents from accented latin characters.
+        # This function is useful for generating file names to be processed by legacy firmwares.
+        $default_output_file = Slic3r::GUI::fold_utf8_to_ascii($default_output_file);
         my $dlg = Wx::FileDialog->new($self, L('Save G-code file as:'), 
             wxTheApp->{app_config}->get_last_output_dir(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1938,6 +1944,7 @@ sub selection_changed {
                     $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
                 } else {
                     $self->{object_info_manifold}->SetLabel(L("Yes"));
+                    $self->{object_info_manifold_warning_icon}->Hide;
                 }
             } else {
                 $self->{object_info_facets}->SetLabel($object->facets);

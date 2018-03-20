@@ -7,7 +7,6 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(_eq);
 
-use IO::Scalar;
 use List::Util qw(first);
 use Slic3r::Geometry qw(epsilon X Y Z);
 
