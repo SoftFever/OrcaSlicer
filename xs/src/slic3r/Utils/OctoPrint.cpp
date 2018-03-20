@@ -20,16 +20,19 @@ OctoPrint::OctoPrint(DynamicPrintConfig *config) :
 	cafile(config->opt_string("octoprint_cafile"))
 {}
 
-std::string  OctoPrint::test() const
+bool OctoPrint::test(wxString &msg) const
 {
 	// Since the request is performed synchronously here,
-	// it is ok to refer to `res` from within the closure
-	std::string res;
+	// it is ok to refer to `msg` from within the closure
 
-	auto http = Http::get(std::move(make_url("api/version")));
+	bool res = true;
+
+	auto url = std::move(make_url("api/version"));
+	auto http = Http::get(std::move(url));
 	set_auth(http);
 	http.on_error([&](std::string, std::string error, unsigned status) {
-			res = format_error(error, status);
+			res = false;
+			msg = format_error(error, status);
 		})
 		.perform_sync();
 
@@ -43,21 +46,26 @@ void OctoPrint::send_gcode(int windowId, int completeEvt, int errorEvt, const st
 	http.form_add("print", print ? "true" : "false")
 		.form_add_file("file", filename)
 		.on_complete([=](std::string body, unsigned status) {
-			wxWindow *window = GUI::get_widget_by_id(windowId);
+			wxWindow *window = wxWindow::FindWindowById(windowId);
+			if (window == nullptr) { return; }
+
 			wxCommandEvent* evt = new wxCommandEvent(completeEvt);
-			evt->SetString("G-code file successfully uploaded to the OctoPrint server");
+			evt->SetString(_(L("G-code file successfully uploaded to the OctoPrint server")));
 			evt->SetInt(100);
 			wxQueueEvent(window, evt);
 		})
 		.on_error([=](std::string body, std::string error, unsigned status) {
-			wxWindow *window = GUI::get_widget_by_id(windowId);
+			wxWindow *window = wxWindow::FindWindowById(windowId);
+			if (window == nullptr) { return; }
 
 			wxCommandEvent* evt_complete = new wxCommandEvent(completeEvt);
 			evt_complete->SetInt(100);
 			wxQueueEvent(window, evt_complete);
 
 			wxCommandEvent* evt_error = new wxCommandEvent(errorEvt);
-			evt_error->SetString(wxString::Format("Error while uploading to the OctoPrint server: %s", format_error(error, status)));
+			evt_error->SetString(wxString::Format("%s: %s",
+				_(L("Error while uploading to the OctoPrint server")),
+				format_error(error, status)));
 			wxQueueEvent(window, evt_error);
 		})
 		.perform();
@@ -85,19 +93,15 @@ std::string OctoPrint::make_url(const std::string &path) const
 	}
 }
 
-std::string OctoPrint::format_error(std::string error, unsigned status)
+wxString OctoPrint::format_error(std::string error, unsigned status)
 {
+	const wxString wxerror = error;
+
 	if (status != 0) {
-		std::string res{"HTTP "};
-		res.append(std::to_string(status));
-
-		if (status == 401) {
-			res.append(": Invalid API key");
-		}
-
-		return std::move(res);
+		return wxString::Format("HTTP %u: %s", status,
+			(status == 401 ? _(L("Invalid API key")) : wxerror));
 	} else {
-		return std::move(error);
+		return std::move(wxerror);
 	}
 }
 

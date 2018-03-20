@@ -9,6 +9,8 @@ xs/src/slic3r/GUI/2DBed.cpp
 xs/src/slic3r/GUI/PresetHints.cpp
 xs/src/slic3r/GUI/Preferences.hpp
 xs/src/slic3r/GUI/Preferences.cpp
+xs/src/slic3r/GUI/BonjourDialog.cpp
+xs/src/slic3r/Utils/OctoPrint.cpp
 xs/src/libslic3r/PrintConfig.cpp
 xs/src/libslic3r/GCode/PreviewData.cpp
 lib/Slic3r/GUI.pm

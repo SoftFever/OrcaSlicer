@@ -15,6 +15,9 @@ class wxComboCtrl;
 class wxString;
 class wxArrayString;
 class wxArrayLong;
+class wxColour;
+class wxBoxSizer;
+class wxFlexGridSizer;
 
 namespace Slic3r { 
 
@@ -36,11 +39,12 @@ class TabIface;
 #define _CHB(s) wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str()
 
 // Minimal buffer length for translated string (char buf[MIN_BUF_LENGTH_FOR_L])
-#define MIN_BUF_LENGTH_FOR_L	128
+#define MIN_BUF_LENGTH_FOR_L	512
 
 namespace GUI {
 
 class Tab;
+class ConfigOptionsGroup;
 // Map from an file_type name to full file wildcard name.
 typedef std::map<std::string, std::string> t_file_wild_card;
 inline t_file_wild_card& get_file_wild_card() {
@@ -70,9 +74,11 @@ void set_wxapp(wxApp *app);
 void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
+void set_preset_bundle(PresetBundle *preset_bundle);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
+wxColour*	get_modified_label_clr();
 
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
 
@@ -80,14 +86,11 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change);
 void open_preferences_dialog(int event_preferences);
 
 // Create a new preset tab (print, filament and printer),
-void create_preset_tabs(PresetBundle *preset_bundle, 
-						bool no_controller, bool is_disabled_button_browse,	bool is_user_agent,
-						int event_value_change, int event_presets_changed,
-						int event_button_browse, int event_button_test);
+void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed);
 TabIface* get_preset_tab_iface(char *name);
 
 // add it at the end of the tab panel.
-void add_created_tab(Tab* panel, PresetBundle *preset_bundle);
+void add_created_tab(Tab* panel);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value, int opt_index = 0);
 
@@ -118,11 +121,14 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 int combochecklist_get_flags(wxComboCtrl* comboCtrl);
 
 // Return translated std::string as a wxString
-wxString	L_str(std::string str);
+wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
-wxString	from_u8(std::string str);
+wxString	from_u8(const std::string &str);
 
-wxWindow *get_widget_by_id(int id);
+
+void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
+
+ConfigOptionsGroup* get_optgroup();
 
 }
 }

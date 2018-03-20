@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <functional>
 #include <thread>
-#include <iostream>
 #include <tuple>
 #include <boost/format.hpp>
 
@@ -45,7 +44,9 @@ struct Http::priv
 	priv(const std::string &url);
 	~priv();
 
+	static bool ca_file_supported(::CURL *curl);
 	static size_t writecb(void *data, size_t size, size_t nmemb, void *userp);
+	std::string curl_error(CURLcode curlcode);
 	std::string body_size_error();
 	void http_perform();
 };
@@ -71,6 +72,29 @@ Http::priv::~priv()
 	::curl_slist_free_all(headerlist);
 }
 
+bool Http::priv::ca_file_supported(::CURL *curl)
+{
+#ifdef _WIN32
+	bool res = false;
+#else
+	bool res = true;
+#endif
+
+	if (curl == nullptr) { return res; }
+
+#if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 48
+	::curl_tlssessioninfo *tls;
+	if (::curl_easy_getinfo(curl, CURLINFO_TLS_SSL_PTR, &tls) == CURLE_OK) {
+		if (tls->backend == CURLSSLBACKEND_SCHANNEL || tls->backend == CURLSSLBACKEND_DARWINSSL) {
+			// With Windows and OS X native SSL support, cert files cannot be set
+			res = false;
+		}
+	}
+#endif
+
+	return res;
+}
+
 size_t Http::priv::writecb(void *data, size_t size, size_t nmemb, void *userp)
 {
 	auto self = static_cast<priv*>(userp);
@@ -86,6 +110,14 @@ size_t Http::priv::writecb(void *data, size_t size, size_t nmemb, void *userp)
 	self->buffer.append(cdata, realsize);
 
 	return realsize;
+}
+
+std::string Http::priv::curl_error(CURLcode curlcode)
+{
+	return (boost::format("%1% (%2%)")
+		% ::curl_easy_strerror(curlcode)
+		% curlcode
+	).str();
 }
 
 std::string Http::priv::body_size_error()
@@ -121,7 +153,7 @@ void Http::priv::http_perform()
 		if (res == CURLE_WRITE_ERROR) {
 			error = std::move(body_size_error());
 		} else {
-			error = ::curl_easy_strerror(res);
+			error = std::move(curl_error(res));
 		};
 
 		if (errorfn) {
@@ -180,7 +212,7 @@ Http& Http::remove_header(std::string name)
 
 Http& Http::ca_file(const std::string &name)
 {
-	if (p) {
+	if (p && priv::ca_file_supported(p->curl)) {
 		::curl_easy_setopt(p->curl, CURLOPT_CAINFO, name.c_str());
 	}
 
@@ -255,6 +287,14 @@ Http Http::post(std::string url)
 	Http http{std::move(url)};
 	curl_easy_setopt(http.p->curl, CURLOPT_POST, 1L);
 	return http;
+}
+
+bool Http::ca_file_supported()
+{
+	::CURL *curl = ::curl_easy_init();
+	bool res = priv::ca_file_supported(curl);
+	if (curl != nullptr) { ::curl_easy_cleanup(curl); }
+	return res;
 }
 
 

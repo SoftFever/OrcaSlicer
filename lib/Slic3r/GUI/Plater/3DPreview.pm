@@ -253,19 +253,19 @@ sub new {
     
     # sets colors for gcode preview extrusion roles
     my @extrusion_roles_colors = (
-                                    'Perimeter'                  => 'FFA500',
-                                    'External perimeter'         => 'FFFF66',
+                                    'Perimeter'                  => 'FFFF66',
+                                    'External perimeter'         => 'FFA500',
                                     'Overhang perimeter'         => '0000FF',
-                                    'Internal infill'            => 'FF0000',
-                                    'Solid infill'               => 'CD00CD',
-                                    'Top solid infill'           => 'FF3333',
+                                    'Internal infill'            => 'B1302A',
+                                    'Solid infill'               => 'D732D7',
+                                    'Top solid infill'           => 'FF1A1A',
                                     'Bridge infill'              => '9999FF',
                                     'Gap fill'                   => 'FFFFFF',
-                                    'Skirt'                      => '7F0000',
+                                    'Skirt'                      => '845321',
                                     'Support material'           => '00FF00',
                                     'Support material interface' => '008000',
                                     'Wipe tower'                 => 'B3E3AB',
-                                    'Custom'                     => 'FFFF00',
+                                    'Custom'                     => '28CC94',
                                  );
     $self->gcode_preview_data->set_extrusion_paths_colors(\@extrusion_roles_colors);
     
