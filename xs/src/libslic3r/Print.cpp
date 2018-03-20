@@ -202,6 +202,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower_per_color_wipe"
             || opt_key == "wipe_tower_rotation_angle"
             || opt_key == "wipe_tower_bridging"
+            || opt_key == "wiping_volumes_matrix"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
         } else if (
@@ -1043,7 +1044,8 @@ void Print::_make_wipe_tower()
         float(this->config.wipe_tower_rotation_angle.value), float(this->config.cooling_tube_retraction.value),
         float(this->config.cooling_tube_length.value), float(this->config.parking_pos_retraction.value),
         float(this->config.wipe_tower_bridging),
-        /*this->config.wipe_tower_advanced.value*/std::string(""),m_tool_ordering.first_extruder());
+        std::vector<float>((this->config.wiping_volumes_matrix.values).begin(),(this->config.wiping_volumes_matrix.values).end()),
+        m_tool_ordering.first_extruder());
     
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();

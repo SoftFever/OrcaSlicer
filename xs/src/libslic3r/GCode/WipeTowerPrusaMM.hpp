@@ -31,59 +31,6 @@ namespace PrusaMultiMaterial {
 
 
 
-// Operator overload to output std::pairs
-template <typename T>
-std::ostream& operator<<(std::ostream& stream,const std::pair<T,T>& pair) {
-    return stream << pair.first << " " << pair.second;
-}
-
-// Operator overload to output elements of a vector to std::ofstream easily:
-template <typename T>
-std::ostream& operator<<(std::ostream& stream,const std::vector<T>& vect) {
-    for (const auto& element : vect)
-        stream << element << " ";
-    return stream;
-}
-
-// Operator overload to input elements of a vector from std::ifstream easily (reads until a fail)
-template <typename T>
-std::istream& operator>>(std::istream& stream, std::vector<T>& vect) {
-    vect.clear();
-    T value{};
-    bool we_read_something = false;
-    while (stream >> value) {
-        vect.push_back(value);
-        we_read_something = true;
-    }
-    if (!stream.eof() && we_read_something) { // if this is not eof, we might be at separator - let's get rid of it
-        stream.clear();     // if we failed on very first line or reached eof, return stream in good() state
-        stream.get();       // get() whatever we are stuck at
-    }
-    return stream;
-}
-
-
-// This struct is used to store parameters and to pass it to wipe tower generator
-struct WipeTowerParameters {
-    WipeTowerParameters() {  }           // create new empty object
-    WipeTowerParameters(const std::string& init_data) { // create object and initialize from std::string
-        set_defaults();
-    }
-    
-    void set_defaults() {
-        sampling = 0.25f;
-        wipe_volumes = {{  0.f, 60.f, 60.f, 60.f},
-                        { 60.f,  0.f, 60.f, 60.f},
-                        { 60.f, 60.f,  0.f, 60.f},
-                        { 60.f, 60.f, 60.f,  0.f}};
-        filament_wipe_volumes = {{30.f,30.f},{30.f,30.f},{30.f,30.f},{30.f,30.f}};
-    }
-    
-    float sampling = 0.25f; // this does not quite work yet, keep it fixed to 0.25f
-    std::vector<std::vector<float>> wipe_volumes;
-    std::vector<std::pair<int,int>> filament_wipe_volumes;
-};
-
 
 class WipeTowerPrusaMM : public WipeTower
 {
@@ -110,7 +57,7 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
 	WipeTowerPrusaMM(float x, float y, float width, float wipe_area, float rotation_angle, float cooling_tube_retraction,
-                     float cooling_tube_length, float parking_pos_retraction, float bridging, const std::string& parameters,
+                     float cooling_tube_length, float parking_pos_retraction, float bridging, const std::vector<float>& wiping_matrix,
                      unsigned int initial_tool) :
 		m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
@@ -123,9 +70,11 @@ public:
         m_cooling_tube_length(cooling_tube_length),
         m_parking_pos_retraction(parking_pos_retraction),
 		m_current_tool(initial_tool),
-        m_par(parameters) 
+        m_bridging(bridging)
  	{
-        m_bridging = bridging;
+        const unsigned int number_of_extruders = int(sqrt(wiping_matrix.size())+WT_EPSILON);
+        for (unsigned int i = 0; i<number_of_extruders; ++i)
+            wipe_volumes.push_back(std::vector<float>(wiping_matrix.begin()+i*number_of_extruders,wiping_matrix.begin()+(i+1)*number_of_extruders));
         
 		for (size_t i = 0; i < 4; ++ i) {
 			// Extruder specific parameters.
@@ -301,7 +250,7 @@ private:
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
 	unsigned int 	m_current_tool  = 0;
-    WipeTowerParameters m_par;
+    std::vector<std::vector<float>> wipe_volumes;
 
 	float m_depth_traversed = 0.f; // Current y position at the wipe tower.
 	// How much to wipe the 1st extruder over the wipe tower at the 1st layer

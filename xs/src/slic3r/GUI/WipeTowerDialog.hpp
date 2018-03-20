@@ -5,15 +5,10 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
-#include <wx/choicdlg.h>
-#include <wx/notebook.h>
 #include <wx/msgdlg.h>
 
-#include "../../libslic3r/GCode/WipeTowerPrusaMM.hpp"
 #include "RammingChart.hpp"
 
-
-std::ostream& operator<<(std::ostream& str,Slic3r::WipeTowerParameters& par);
 
 class RammingPanel : public wxPanel {
 public:

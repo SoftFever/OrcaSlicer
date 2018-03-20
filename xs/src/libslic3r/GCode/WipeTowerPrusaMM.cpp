@@ -514,7 +514,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
         toolchange_Load(writer, cleaning_box); // Prime the tool.
         if (idx_tool + 1 == tools.size()) {
             // Last tool should not be unloaded, but it should be wiped enough to become of a pure color.
-            toolchange_Wipe(writer, cleaning_box, m_par.wipe_volumes[tools[idx_tool-1]][tool]);
+            toolchange_Wipe(writer, cleaning_box, wipe_volumes[tools[idx_tool-1]][tool]);
         } else {
             // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
             //writer.travel(writer.x(), writer.y() + m_perimeter_width, 7200);
@@ -566,7 +566,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 	{
 		for (const auto &b : m_layer_info->tool_changes)
 			if ( b.new_tool == tool ) {
-				wipe_volume = m_par.wipe_volumes[b.old_tool][b.new_tool];
+				wipe_volume = wipe_volumes[b.old_tool][b.new_tool];
 				if (tool == m_layer_info->tool_changes.back().new_tool)
 					last_change_in_layer = true;
 				wipe_area = b.required_depth * m_layer_info->extra_spacing;
@@ -1100,7 +1100,7 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
     float ramming_depth = depth;
     length_to_extrude = width*((length_to_extrude / width)-int(length_to_extrude / width)) - width;
     float first_wipe_line = -length_to_extrude;
-    length_to_extrude += volume_to_length(m_par.wipe_volumes[old_tool][new_tool], m_line_width, layer_height_par);
+    length_to_extrude += volume_to_length(wipe_volumes[old_tool][new_tool], m_line_width, layer_height_par);
     length_to_extrude = std::max(length_to_extrude,0.f);
 
 	depth += (int(length_to_extrude / width) + 1) * m_line_width;
@@ -1146,7 +1146,7 @@ void WipeTowerPrusaMM::save_on_last_wipe()
 
         float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
         float length_to_save = 2*(m_wipe_tower_width+m_wipe_tower_depth) + (!layer_finished() ? finish_layer().total_extrusion_length_in_plane() : 0.f);
-        float length_to_wipe = volume_to_length(m_par.wipe_volumes[m_layer_info->tool_changes.back().old_tool][m_layer_info->tool_changes.back().new_tool],
+        float length_to_wipe = volume_to_length(wipe_volumes[m_layer_info->tool_changes.back().old_tool][m_layer_info->tool_changes.back().new_tool],
                               m_line_width,m_layer_info->height)  - m_layer_info->tool_changes.back().first_wipe_line - length_to_save;
 
         length_to_wipe = std::max(length_to_wipe,0.f);
