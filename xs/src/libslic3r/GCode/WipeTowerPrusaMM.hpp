@@ -69,19 +69,19 @@ public:
         m_cooling_tube_retraction(cooling_tube_retraction),
         m_cooling_tube_length(cooling_tube_length),
         m_parking_pos_retraction(parking_pos_retraction),
-		m_current_tool(initial_tool),
-        m_bridging(bridging)
+		m_bridging(bridging),
+        m_current_tool(initial_tool)
  	{
         const unsigned int number_of_extruders = int(sqrt(wiping_matrix.size())+WT_EPSILON);
         for (unsigned int i = 0; i<number_of_extruders; ++i)
             wipe_volumes.push_back(std::vector<float>(wiping_matrix.begin()+i*number_of_extruders,wiping_matrix.begin()+(i+1)*number_of_extruders));
         
-		for (size_t i = 0; i < 4; ++ i) {
+		/*for (size_t i = 0; i < number_of_extruders; ++ i) {
 			// Extruder specific parameters.
-			m_filpar[i].material = PLA;
+            m_filpar[i].material = PLA;
 			m_filpar[i].temperature = 0;
 			m_filpar[i].first_layer_temperature = 0;
-		}
+		}*/
 	}
 
 	virtual ~WipeTowerPrusaMM() {}
@@ -97,6 +97,8 @@ public:
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
                       float unloading_speed, float delay, int cooling_time, std::string ramming_parameters)
 	{
+        while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
+            m_filpar.push_back(FilamentParameters());
         m_filpar[idx].material = material;
         m_filpar[idx].temperature = temp;
         m_filpar[idx].first_layer_temperature = first_layer_temp;
@@ -226,20 +228,20 @@ private:
 
 
     struct FilamentParameters {
-        material_type 	    material;
-        int  			    temperature;
-        int  			    first_layer_temperature;
-        float               loading_speed;
-        float               unloading_speed;
-        float               delay;
-        int                 cooling_time;
-        float               ramming_line_width_multiplicator;
-        float               ramming_step_multiplicator;
+        material_type 	    material = PLA;
+        int  			    temperature = 0;
+        int  			    first_layer_temperature = 0;
+        float               loading_speed = 0.f;
+        float               unloading_speed = 0.f;
+        float               delay = 0.f ;
+        int                 cooling_time = 0;
+        float               ramming_line_width_multiplicator = 0.f;
+        float               ramming_step_multiplicator = 0.f;
         std::vector<float>  ramming_speed;
     };
 
 	// Extruder specific parameters.
-    FilamentParameters m_filpar[4];
+    std::vector<FilamentParameters> m_filpar;
 
 
 	// State of the wiper tower generator.

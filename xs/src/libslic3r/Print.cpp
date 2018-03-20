@@ -1037,21 +1037,22 @@ void Print::_make_wipe_tower()
         }
     }
 
+    // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
+    std::vector<float> wiping_volumes((this->config.wiping_volumes_matrix.values).begin(),(this->config.wiping_volumes_matrix.values).end());
+
     // Initialize the wipe tower.
     WipeTowerPrusaMM wipe_tower(
         float(this->config.wipe_tower_x.value),     float(this->config.wipe_tower_y.value), 
         float(this->config.wipe_tower_width.value), float(this->config.wipe_tower_per_color_wipe.value),
         float(this->config.wipe_tower_rotation_angle.value), float(this->config.cooling_tube_retraction.value),
         float(this->config.cooling_tube_length.value), float(this->config.parking_pos_retraction.value),
-        float(this->config.wipe_tower_bridging),
-        std::vector<float>((this->config.wiping_volumes_matrix.values).begin(),(this->config.wiping_volumes_matrix.values).end()),
-        m_tool_ordering.first_extruder());
-    
+        float(this->config.wipe_tower_bridging), wiping_volumes, m_tool_ordering.first_extruder());
+
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();
 
     // Set the extruder & material properties at the wipe tower object.
-    for (size_t i = 0; i < 4; ++ i)
+    for (size_t i = 0; i < (int)(sqrt(wiping_volumes.size())+EPSILON); ++ i)
         wipe_tower.set_extruder(
             i, 
             WipeTowerPrusaMM::parse_material(this->config.filament_type.get_at(i).c_str()),
