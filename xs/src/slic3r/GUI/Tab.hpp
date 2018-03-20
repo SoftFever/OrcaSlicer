@@ -99,6 +99,7 @@ protected:
 	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
+	std::vector<std::string>	m_dirty_options = {};
 
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
@@ -145,6 +146,7 @@ public:
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
+	void		update_changed_ui();
 	
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
@@ -171,6 +173,7 @@ public:
 
 protected:
 	void			on_presets_changed();
+	void			update_frequently_changed_parameters();
 };
 
 //Slic3r::GUI::Tab::Print;
@@ -211,23 +214,16 @@ public:
 //Slic3r::GUI::Tab::Printer;
 class TabPrinter : public Tab
 {
-	bool		m_is_disabled_button_browse;
-	bool		m_is_user_agent;
-	// similar event by clicking Buttons "Browse" & "Test"
-	wxEventType	m_event_button_browse = 0;
-	wxEventType m_event_button_test = 0;
 public:
 	wxButton*	m_serial_test_btn;
 	wxButton*	m_octoprint_host_test_btn;
 
 	size_t		m_extruders_count;
+	size_t		m_initial_extruders_count;
 	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}
-	TabPrinter(wxNotebook* parent, bool no_controller, bool is_disabled_btn_browse, bool is_user_agent) :
-		Tab(parent, _(L("Printer Settings")), "printer", no_controller),
-		m_is_disabled_button_browse(is_disabled_btn_browse), 
-		m_is_user_agent(is_user_agent) {}
+	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
 	~TabPrinter(){}
 
 	void		build() override;
@@ -236,10 +232,6 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
-
-	// Set the events to the callbacks posted to the main frame window (currently implemented in Perl).
-	void		set_event_button_browse(wxEventType evt)	{ m_event_button_browse = evt; }
-	void		set_event_button_test(wxEventType evt)		{ m_event_button_test = evt; }
 };
 
 class SavePresetWindow :public wxDialog

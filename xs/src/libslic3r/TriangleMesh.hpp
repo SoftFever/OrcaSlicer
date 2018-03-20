@@ -85,17 +85,26 @@ enum FacetEdgeType {
     feHorizontal
 };
 
-class IntersectionPoint : public Point
+class IntersectionReference
 {
 public:
-    IntersectionPoint() : point_id(-1), edge_id(-1) {};
-    // Inherits coord_t x, y
+    IntersectionReference() : point_id(-1), edge_id(-1) {};
+    IntersectionReference(int point_id, int edge_id) : point_id(point_id), edge_id(edge_id) {}
     // Where is this intersection point located? On mesh vertex or mesh edge?
     // Only one of the following will be set, the other will remain set to -1.
     // Index of the mesh vertex.
     int point_id;
     // Index of the mesh edge.
     int edge_id;
+};
+
+class IntersectionPoint : public Point, public IntersectionReference
+{
+public:
+    IntersectionPoint() {};
+    IntersectionPoint(int point_id, int edge_id, const Point &pt) : IntersectionReference(point_id, edge_id), Point(pt) {}
+    IntersectionPoint(const IntersectionReference &ir, const Point &pt) : IntersectionReference(ir), Point(pt) {}
+    // Inherits coord_t x, y
 };
 
 class IntersectionLine : public Line

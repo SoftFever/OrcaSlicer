@@ -41,6 +41,7 @@ public:
 	Ptr perform();
 	void perform_sync();
 
+	static bool ca_file_supported();
 private:
 	Http(const std::string &url);
 
