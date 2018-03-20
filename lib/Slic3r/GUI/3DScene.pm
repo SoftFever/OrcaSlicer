@@ -1316,12 +1316,18 @@ sub Render {
             $self->mark_volumes_for_layer_height;
             $self->volumes->set_print_box($self->bed_bounding_box->x_min, $self->bed_bounding_box->y_min, 0.0, $self->bed_bounding_box->x_max, $self->bed_bounding_box->y_max, $self->{config}->get('max_print_height'));
             $self->volumes->update_outside_state($self->{config}, 0);
+            # do not cull backfaces to show broken geometry, if any
+            glDisable(GL_CULL_FACE);
         }
         $self->{plain_shader}->enable if $self->{plain_shader};
         $self->volumes->render_VBOs;
         $self->{plain_shader}->disable;
+        glEnable(GL_CULL_FACE) if ($self->enable_picking);
     } else {
+        # do not cull backfaces to show broken geometry, if any
+        glDisable(GL_CULL_FACE) if ($self->enable_picking);
         $self->volumes->render_legacy;
+        glEnable(GL_CULL_FACE) if ($self->enable_picking);
     }
 
     # draw cutting plane
@@ -1358,6 +1364,9 @@ sub draw_volumes {
     # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
     my ($self, $fakecolor) = @_;
     
+    # do not cull backfaces to show broken geometry, if any
+    glDisable(GL_CULL_FACE);
+    
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
@@ -1385,6 +1394,8 @@ sub draw_volumes {
     }
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisable(GL_BLEND);
+
+    glEnable(GL_CULL_FACE);
     
     if (defined $self->cutting_plane_z) {
         glLineWidth(2);
