@@ -1823,6 +1823,7 @@ sub _fragment_shader_Gouraud {
     return <<'FRAGMENT';
 #version 110
 
+const vec4 OUTSIDE_COLOR = vec4(0.24, 0.42, 0.62, 1.0);
 const vec3 ZERO = vec3(0.0, 0.0, 0.0);
 
 // x = tainted, y = specular;
@@ -1835,13 +1836,11 @@ uniform vec4 uniform_color;
 
 void main()
 {
-    gl_FragColor = vec4(intensity.y, intensity.y, intensity.y, 0.0) + uniform_color * intensity.x;
+    // if the fragment is outside the print volume use predefined color
+    vec4 color = (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO))) ? OUTSIDE_COLOR : uniform_color;
 
-    // if the fragment is outside the print volume darken it and set it as transparent
-    if (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO)))
-        gl_FragColor = vec4(mix(gl_FragColor.xyz, ZERO, 0.5), 0.5 * uniform_color.a);
-    else
-        gl_FragColor.a = uniform_color.a;
+    gl_FragColor = vec4(intensity.y, intensity.y, intensity.y, 0.0) + color * intensity.x;
+    gl_FragColor.a = color.a;
 }
 
 FRAGMENT
