@@ -9,6 +9,5 @@
     OctoPrint(DynamicPrintConfig *config);
     ~OctoPrint();
 
-    std::string test() const;
     void send_gcode(int windowId, int completeEvt, int errorEvt, std::string filename, bool print = false) const;
 };

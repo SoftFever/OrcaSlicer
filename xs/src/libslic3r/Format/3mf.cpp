@@ -21,7 +21,8 @@ const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
-const std::string CONFIG_FILE = "Metadata/Slic3r_PE.config";
+const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
+const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 
 const char* MODEL_TAG = "model";
 const char* RESOURCES_TAG = "resources";
@@ -36,6 +37,10 @@ const char* COMPONENT_TAG = "component";
 const char* BUILD_TAG = "build";
 const char* ITEM_TAG = "item";
 
+const char* CONFIG_TAG = "config";
+const char* METADATA_TAG = "metadata";
+const char* VOLUME_TAG = "volume";
+
 const char* UNIT_ATTR = "unit";
 const char* NAME_ATTR = "name";
 const char* TYPE_ATTR = "type";
@@ -48,6 +53,17 @@ const char* V2_ATTR = "v2";
 const char* V3_ATTR = "v3";
 const char* OBJECTID_ATTR = "objectid";
 const char* TRANSFORM_ATTR = "transform";
+
+const char* KEY_ATTR = "key";
+const char* VALUE_ATTR = "value";
+const char* FIRST_TRIANGLE_ID_ATTR = "firstid";
+const char* LAST_TRIANGLE_ID_ATTR = "lastid";
+
+const char* OBJECT_TYPE = "object";
+const char* VOLUME_TYPE = "volume";
+
+const char* NAME_KEY = "name";
+const char* MODIFIER_KEY = "modifier";
 
 const unsigned int VALID_OBJECT_TYPES_COUNT = 1;
 const char* VALID_OBJECT_TYPES[] =
@@ -188,32 +204,63 @@ namespace Slic3r {
             int object_id;
             Matrix4x4 matrix;
 
-            explicit Component(int object_id);
-            Component(int object_id, const Matrix4x4& matrix);
+            explicit Component(int object_id)
+                : object_id(object_id)
+                , matrix(Matrix4x4::Identity())
+            {
+            }
+
+            Component(int object_id, const Matrix4x4& matrix)
+                : object_id(object_id)
+                , matrix(matrix)
+            {
+            }
         };
 
         typedef std::vector<Component> ComponentsList;
 
+        struct Geometry
+        {
+            std::vector<float> vertices;
+            std::vector<unsigned int> triangles;
+
+            bool empty()
+            {
+                return vertices.empty() || triangles.empty();
+            }
+
+            void reset()
+            {
+                vertices.clear();
+                triangles.clear();
+            }
+        };
+
         struct CurrentObject
         {
-            struct Geometry
-            {
-                std::vector<float> vertices;
-                std::vector<unsigned int> triangles;
-
-                bool empty();
-                void reset();
-            };
-
             int id;
             Geometry geometry;
             ModelObject* object;
-            TriangleMesh mesh;
             ComponentsList components;
 
-            CurrentObject();
+            CurrentObject()
+            {
+                reset();
+            }
 
-            void reset();
+            void reset()
+            {
+                id = -1;
+                geometry.reset();
+                object = nullptr;
+                components.clear();
+            }
+        };
+
+        struct CurrentConfig
+        {
+            int object_id;
+            int volume_id;
         };
 
         struct Instance
@@ -221,12 +268,53 @@ namespace Slic3r {
             ModelInstance* instance;
             Matrix4x4 matrix;
 
-            Instance(ModelInstance* instance, const Matrix4x4& matrix);
+            Instance(ModelInstance* instance, const Matrix4x4& matrix)
+                : instance(instance)
+                , matrix(matrix)
+            {
+            }
+        };
+
+        struct Metadata
+        {
+            std::string key;
+            std::string value;
+
+            Metadata(const std::string& key, const std::string& value)
+                : key(key)
+                , value(value)
+            {
+            }
+        };
+
+        typedef std::vector<Metadata> MetadataList;
+
+        struct ObjectMetadata
+        {
+            struct VolumeMetadata
+            {
+                unsigned int first_triangle_id;
+                unsigned int last_triangle_id;
+                MetadataList metadata;
+
+                VolumeMetadata(unsigned int first_triangle_id, unsigned int last_triangle_id)
+                    : first_triangle_id(first_triangle_id)
+                    , last_triangle_id(last_triangle_id)
+                {
+                }
+            };
+
+            typedef std::vector<VolumeMetadata> VolumeMetadataList;
+
+            MetadataList metadata;
+            VolumeMetadataList volumes;
         };
 
         typedef std::map<int, ModelObject*> IdToModelObjectMap;
         typedef std::map<int, ComponentsList> IdToAliasesMap;
         typedef std::vector<Instance> InstancesList;
+        typedef std::map<int, ObjectMetadata> IdToMetadataMap;
+        typedef std::map<int, Geometry> IdToGeometryMap;
 
         XML_Parser m_xml_parser;
         Model* m_model;
@@ -235,6 +323,9 @@ namespace Slic3r {
         IdToModelObjectMap m_objects;
         IdToAliasesMap m_objects_aliases;
         InstancesList m_instances;
+        IdToGeometryMap m_geometries;
+        CurrentConfig m_curr_config;
+        IdToMetadataMap m_objects_metadata;
 
     public:
         _3MF_Importer();
@@ -248,10 +339,16 @@ namespace Slic3r {
 
         bool _load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
-        bool _extract_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename);
+        bool _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename);
+        bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
 
-        void _handle_start_xml_element(const char* name, const char** attributes);
-        void _handle_end_xml_element(const char* name);
+        // handlers to parse the .model file
+        void _handle_start_model_xml_element(const char* name, const char** attributes);
+        void _handle_end_model_xml_element(const char* name);
+
+        // handlers to parse the MODEL_CONFIG_FILE file
+        void _handle_start_config_xml_element(const char* name, const char** attributes);
+        void _handle_end_config_xml_element(const char* name);
 
         bool _handle_start_model(const char** attributes, unsigned int num_attributes);
         bool _handle_end_model();
@@ -294,52 +391,28 @@ namespace Slic3r {
         void _apply_transform(ModelObject& object, const Matrix4x4& matrix);
         void _apply_transform(ModelInstance& instance, const Matrix4x4& matrix);
 
-        static void XMLCALL _handle_start_xml_element(void* userData, const char* name, const char** attributes);
-        static void XMLCALL _handle_end_xml_element(void* userData, const char* name);
+        bool _handle_start_config(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config();
+
+        bool _handle_start_config_object(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config_object();
+
+        bool _handle_start_config_volume(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config_volume();
+
+        bool _handle_start_config_metadata(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config_metadata();
+
+        bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes);
+
+        // callbacks to parse the .model file
+        static void XMLCALL _handle_start_model_xml_element(void* userData, const char* name, const char** attributes);
+        static void XMLCALL _handle_end_model_xml_element(void* userData, const char* name);
+
+        // callbacks to parse the MODEL_CONFIG_FILE file
+        static void XMLCALL _handle_start_config_xml_element(void* userData, const char* name, const char** attributes);
+        static void XMLCALL _handle_end_config_xml_element(void* userData, const char* name);
     };
-
-    _3MF_Importer::Component::Component(int object_id)
-        : object_id(object_id)
-        , matrix(Matrix4x4::Identity())
-    {
-    }
-
-    _3MF_Importer::Component::Component(int object_id, const Matrix4x4& matrix)
-        : object_id(object_id)
-        , matrix(matrix)
-    {
-    }
-
-    bool _3MF_Importer::CurrentObject::Geometry::empty()
-    {
-        return vertices.empty() || triangles.empty();
-    }
-
-    void _3MF_Importer::CurrentObject::Geometry::reset()
-    {
-        vertices.clear();
-        triangles.clear();
-    }
-
-    _3MF_Importer::CurrentObject::CurrentObject()
-    {
-        reset();
-    }
-
-    void _3MF_Importer::CurrentObject::reset()
-    {
-        id = -1;
-        geometry.reset();
-        object = nullptr;
-        mesh = TriangleMesh();
-        components.clear();
-    }
-
-    _3MF_Importer::Instance::Instance(ModelInstance* instance, const Matrix4x4& matrix)
-        : instance(instance)
-        , matrix(matrix)
-    {
-    }
 
     _3MF_Importer::_3MF_Importer()
         : m_xml_parser(nullptr)
@@ -361,6 +434,10 @@ namespace Slic3r {
         m_objects.clear();
         m_objects_aliases.clear();
         m_instances.clear();
+        m_geometries.clear();
+        m_curr_config.object_id = -1;
+        m_curr_config.volume_id = -1;
+        m_objects_metadata.clear();
         clear_errors();
 
         return _load_model_from_file(filename, model, bundle);
@@ -413,13 +490,23 @@ namespace Slic3r {
                         return false;
                     }
                 }
-                else if (boost::algorithm::iequals(name, CONFIG_FILE))
+                else if (boost::algorithm::iequals(name, PRINT_CONFIG_FILE))
                 {
-                    // extract slic3r config file
-                    if (!_extract_config_from_archive(archive, stat, bundle, filename))
+                    // extract slic3r print config file
+                    if (!_extract_print_config_from_archive(archive, stat, bundle, filename))
                     {
                         mz_zip_reader_end(&archive);
-                        add_error("Archive does not contain a valid config");
+                        add_error("Archive does not contain a valid print config");
+                        return false;
+                    }
+                }
+                else if (boost::algorithm::iequals(name, MODEL_CONFIG_FILE))
+                {
+                    // extract slic3r model config file
+                    if (!_extract_model_config_from_archive(archive, stat, model))
+                    {
+                        mz_zip_reader_end(&archive);
+                        add_error("Archive does not contain a valid model config");
                         return false;
                     }
                 }
@@ -427,6 +514,67 @@ namespace Slic3r {
         }
 
         mz_zip_reader_end(&archive);
+
+        for (const IdToModelObjectMap::value_type& object : m_objects)
+        {
+            ObjectMetadata::VolumeMetadataList volumes;
+            ObjectMetadata::VolumeMetadataList* volumes_ptr = nullptr;
+
+            IdToGeometryMap::const_iterator obj_geometry = m_geometries.find(object.first);
+            if (obj_geometry == m_geometries.end())
+            {
+                add_error("Unable to find object geometry");
+                return false;
+            }
+
+            IdToMetadataMap::iterator obj_metadata = m_objects_metadata.find(object.first);
+            if (obj_metadata != m_objects_metadata.end())
+            {
+                // config data has been found, this model was saved using slic3r pe
+
+                // apply object's name and config data
+                for (const Metadata& metadata : obj_metadata->second.metadata)
+                {
+                    if (metadata.key == "name")
+                        object.second->name = metadata.value;
+                    else
+                        object.second->config.set_deserialize(metadata.key, metadata.value);
+                }
+
+                // select object's detected volumes
+                volumes_ptr = &obj_metadata->second.volumes;
+            }
+            else
+            {
+                // config data not found, this model was not saved using slic3r pe
+
+                // add the entire geometry as the single volume to generate
+                volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() / 3 - 1);
+
+                // select as volumes
+                volumes_ptr = &volumes;
+            }
+
+            if (!_generate_volumes(*object.second, obj_geometry->second, *volumes_ptr))
+                return false;
+
+            // apply transformation if the object contains a single instance
+            if (object.second->instances.size() == 1)
+            {
+                for (const Instance& instance : m_instances)
+                {
+                    if (object.second->instances[0] == instance.instance)
+                    {
+                        _apply_transform(*object.second, instance.matrix);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // fixes the min z of the model if negative
+        model.adjust_min_z();
+
         return true;
     }
 
@@ -448,7 +596,7 @@ namespace Slic3r {
         }
 
         XML_SetUserData(m_xml_parser, (void*)this);
-        XML_SetElementHandler(m_xml_parser, _3MF_Importer::_handle_start_xml_element, _3MF_Importer::_handle_end_xml_element);
+        XML_SetElementHandler(m_xml_parser, _3MF_Importer::_handle_start_model_xml_element, _3MF_Importer::_handle_end_model_xml_element);
 
         void* parser_buffer = XML_GetBuffer(m_xml_parser, (int)stat.m_uncomp_size);
         if (parser_buffer == nullptr)
@@ -475,7 +623,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Importer::_extract_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename)
+    bool _3MF_Importer::_extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename)
     {
         if (stat.m_uncomp_size > 0)
         {
@@ -494,7 +642,52 @@ namespace Slic3r {
         return true;
     }
 
-    void _3MF_Importer::_handle_start_xml_element(const char* name, const char** attributes)
+    bool _3MF_Importer::_extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
+    {
+        if (stat.m_uncomp_size == 0)
+        {
+            add_error("Found invalid size");
+            return false;
+        }
+
+        _destroy_xml_parser();
+
+        m_xml_parser = XML_ParserCreate(nullptr);
+        if (m_xml_parser == nullptr)
+        {
+            add_error("Unable to create parser");
+            return false;
+        }
+
+        XML_SetUserData(m_xml_parser, (void*)this);
+        XML_SetElementHandler(m_xml_parser, _3MF_Importer::_handle_start_config_xml_element, _3MF_Importer::_handle_end_config_xml_element);
+
+        void* parser_buffer = XML_GetBuffer(m_xml_parser, (int)stat.m_uncomp_size);
+        if (parser_buffer == nullptr)
+        {
+            add_error("Unable to create buffer");
+            return false;
+        }
+
+        mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t)stat.m_uncomp_size, 0);
+        if (res == 0)
+        {
+            add_error("Error while reading config data to buffer");
+            return false;
+        }
+
+        if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
+        {
+            char error_buf[1024];
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            add_error(error_buf);
+            return false;
+        }
+
+        return true;
+    }
+
+    void _3MF_Importer::_handle_start_model_xml_element(const char* name, const char** attributes)
     {
         if (m_xml_parser == nullptr)
             return;
@@ -531,7 +724,7 @@ namespace Slic3r {
             _stop_xml_parser();
     }
 
-    void _3MF_Importer::_handle_end_xml_element(const char* name)
+    void _3MF_Importer::_handle_end_model_xml_element(const char* name)
     {
         if (m_xml_parser == nullptr)
             return;
@@ -567,6 +760,47 @@ namespace Slic3r {
             _stop_xml_parser();
     }
 
+    void _3MF_Importer::_handle_start_config_xml_element(const char* name, const char** attributes)
+    {
+        if (m_xml_parser == nullptr)
+            return;
+
+        bool res = true;
+        unsigned int num_attributes = (unsigned int)XML_GetSpecifiedAttributeCount(m_xml_parser);
+
+        if (::strcmp(CONFIG_TAG, name) == 0)
+            res = _handle_start_config(attributes, num_attributes);
+        else if (::strcmp(OBJECT_TAG, name) == 0)
+            res = _handle_start_config_object(attributes, num_attributes);
+        else if (::strcmp(VOLUME_TAG, name) == 0)
+            res = _handle_start_config_volume(attributes, num_attributes);
+        else if (::strcmp(METADATA_TAG, name) == 0)
+            res = _handle_start_config_metadata(attributes, num_attributes);
+
+        if (!res)
+            _stop_xml_parser();
+    }
+
+    void _3MF_Importer::_handle_end_config_xml_element(const char* name)
+    {
+        if (m_xml_parser == nullptr)
+            return;
+
+        bool res = true;
+
+        if (::strcmp(CONFIG_TAG, name) == 0)
+            res = _handle_end_config();
+        else if (::strcmp(OBJECT_TAG, name) == 0)
+            res = _handle_end_config_object();
+        else if (::strcmp(VOLUME_TAG, name) == 0)
+            res = _handle_end_config_volume();
+        else if (::strcmp(METADATA_TAG, name) == 0)
+            res = _handle_end_config_metadata();
+
+        if (!res)
+            _stop_xml_parser();
+    }
+
     bool _3MF_Importer::_handle_start_model(const char** attributes, unsigned int num_attributes)
     {
         m_unit_factor = get_unit_factor(get_attribute_value_string(attributes, num_attributes, UNIT_ATTR));
@@ -588,18 +822,11 @@ namespace Slic3r {
             if (instance.instance != nullptr)
             {
                 ModelObject* object = instance.instance->get_object();
-                if (object != nullptr)
+                if ((object != nullptr) && (object->instances.size() > 1))
                 {
-                    if (object->instances.size() == 1)
-                    {
-                        // single instance -> apply the matrix to object geometry
-                        _apply_transform(*object, instance.matrix);
-                    }
-                    else
-                    {
-                        // multiple instances -> apply the matrix to the instance
-                        _apply_transform(*instance.instance, instance.matrix);
-                    }
+                    // multiple instances -> apply the matrix to the instance
+                    // (for single instance the transformation can be applied only after the volumes have been generated)
+                    _apply_transform(*instance.instance, instance.matrix);
                 }
             }
         }
@@ -669,30 +896,8 @@ namespace Slic3r {
             }
             else
             {
-                // geometry defined, add it to the object
-
-                ModelVolume* volume = m_curr_object.object->add_volume(m_curr_object.mesh);
-                if (volume == nullptr)
-                {
-                    add_error("Unable to add volume");
-                    return false;
-                }
-
-                stl_file& stl = volume->mesh.stl;
-                stl.stats.type = inmemory;
-                stl.stats.number_of_facets = (uint32_t)m_curr_object.geometry.triangles.size() / 3;
-                stl.stats.original_num_facets = (int)stl.stats.number_of_facets;
-                stl_allocate(&stl);
-                for (size_t i = 0; i < m_curr_object.geometry.triangles.size(); /*nothing*/)
-                {
-                    stl_facet& facet = stl.facet_start[i / 3];
-                    for (unsigned int v = 0; v < 3; ++v)
-                    {
-                        ::memcpy((void*)&facet.vertex[v].x, (const void*)&m_curr_object.geometry.vertices[m_curr_object.geometry.triangles[i++] * 3], 3 * sizeof(float));
-                    }
-                }
-                stl_get_size(&stl);
-                volume->mesh.repair();
+                // geometry defined, store it for later use
+                m_geometries.insert(IdToGeometryMap::value_type(m_curr_object.id, std::move(m_curr_object.geometry)));
 
                 // stores the object for later use
                 if (m_objects.find(m_curr_object.id) == m_objects.end())
@@ -1014,18 +1219,181 @@ namespace Slic3r {
         instance.rotation = angle_z;
     }
 
-    void XMLCALL _3MF_Importer::_handle_start_xml_element(void* userData, const char* name, const char** attributes)
+    bool _3MF_Importer::_handle_start_config(const char** attributes, unsigned int num_attributes)
     {
-        _3MF_Importer* importer = (_3MF_Importer*)userData;
-        if (importer != nullptr)
-            importer->_handle_start_xml_element(name, attributes);
+        // do nothing
+        return true;
     }
 
-    void XMLCALL _3MF_Importer::_handle_end_xml_element(void* userData, const char* name)
+    bool _3MF_Importer::_handle_end_config()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_start_config_object(const char** attributes, unsigned int num_attributes)
+    {
+        int object_id = get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+        IdToMetadataMap::iterator object_item = m_objects_metadata.find(object_id);
+        if (object_item != m_objects_metadata.end())
+        {
+            add_error("Found duplicated object id");
+            return false;
+        }
+
+        m_objects_metadata.insert(IdToMetadataMap::value_type(object_id, ObjectMetadata()));
+        m_curr_config.object_id = object_id;
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_end_config_object()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_start_config_volume(const char** attributes, unsigned int num_attributes)
+    {
+        IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
+        if (object == m_objects_metadata.end())
+        {
+            add_error("Cannot assign volume to a valid object");
+            return false;
+        }
+
+        m_curr_config.volume_id = object->second.volumes.size();
+
+        unsigned int first_triangle_id = (unsigned int)get_attribute_value_int(attributes, num_attributes, FIRST_TRIANGLE_ID_ATTR);
+        unsigned int last_triangle_id = (unsigned int)get_attribute_value_int(attributes, num_attributes, LAST_TRIANGLE_ID_ATTR);
+
+        object->second.volumes.emplace_back(first_triangle_id, last_triangle_id);
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_end_config_volume()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_start_config_metadata(const char** attributes, unsigned int num_attributes)
+    {
+        IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
+        if (object == m_objects_metadata.end())
+        {
+            add_error("Cannot assign metadata to valid object id");
+            return false;
+        }
+
+        std::string type = get_attribute_value_string(attributes, num_attributes, TYPE_ATTR);
+        std::string key = get_attribute_value_string(attributes, num_attributes, KEY_ATTR);
+        std::string value = get_attribute_value_string(attributes, num_attributes, VALUE_ATTR);
+
+        if (type == OBJECT_TYPE)
+            object->second.metadata.emplace_back(key, value);
+        else if (type == VOLUME_TYPE)
+        {
+            if (m_curr_config.volume_id < object->second.volumes.size())
+                object->second.volumes[m_curr_config.volume_id].metadata.emplace_back(key, value);
+        }
+        else
+        {
+            add_error("Found invalid metadata type");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_end_config_metadata()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _3MF_Importer::_generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes)
+    {
+        if (!object.volumes.empty())
+        {
+            add_error("Found invalid volumes count");
+            return false;
+        }
+
+        unsigned int geo_tri_count = geometry.triangles.size() / 3;
+
+        for (const ObjectMetadata::VolumeMetadata& volume_data : volumes)
+        {
+            if ((geo_tri_count <= volume_data.first_triangle_id) || (geo_tri_count <= volume_data.last_triangle_id) || (volume_data.last_triangle_id < volume_data.first_triangle_id))
+            {
+                add_error("Found invalid triangle id");
+                return false;
+            }
+
+            // splits volume out of imported geometry
+            unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
+            ModelVolume* volume = object.add_volume(TriangleMesh());
+            stl_file& stl = volume->mesh.stl;
+            stl.stats.type = inmemory;
+            stl.stats.number_of_facets = (uint32_t)triangles_count;
+            stl.stats.original_num_facets = (int)stl.stats.number_of_facets;
+            stl_allocate(&stl);
+
+            unsigned int src_start_id = volume_data.first_triangle_id * 3;
+
+            for (size_t i = 0; i < triangles_count; ++i)
+            {
+                unsigned int ii = i * 3;
+                stl_facet& facet = stl.facet_start[i];
+                for (unsigned int v = 0; v < 3; ++v)
+                {
+                    ::memcpy((void*)&facet.vertex[v].x, (const void*)&geometry.vertices[geometry.triangles[src_start_id + ii + v] * 3], 3 * sizeof(float));
+                }
+            }
+
+            stl_get_size(&stl);
+            volume->mesh.repair();
+
+            // apply volume's name and config data
+            for (const Metadata& metadata : volume_data.metadata)
+            {
+                if (metadata.key == NAME_KEY)
+                    volume->name = metadata.value;
+                else if ((metadata.key == MODIFIER_KEY) && (metadata.value == "1"))
+                    volume->modifier = true;
+                else
+                    volume->config.set_deserialize(metadata.key, metadata.value);
+            }
+        }
+
+        return true;
+    }
+
+    void XMLCALL _3MF_Importer::_handle_start_model_xml_element(void* userData, const char* name, const char** attributes)
     {
         _3MF_Importer* importer = (_3MF_Importer*)userData;
         if (importer != nullptr)
-            importer->_handle_end_xml_element(name);
+            importer->_handle_start_model_xml_element(name, attributes);
+    }
+
+    void XMLCALL _3MF_Importer::_handle_end_model_xml_element(void* userData, const char* name)
+    {
+        _3MF_Importer* importer = (_3MF_Importer*)userData;
+        if (importer != nullptr)
+            importer->_handle_end_model_xml_element(name);
+    }
+
+    void XMLCALL _3MF_Importer::_handle_start_config_xml_element(void* userData, const char* name, const char** attributes)
+    {
+        _3MF_Importer* importer = (_3MF_Importer*)userData;
+        if (importer != nullptr)
+            importer->_handle_start_config_xml_element(name, attributes);
+    }
+    
+    void XMLCALL _3MF_Importer::_handle_end_config_xml_element(void* userData, const char* name)
+    {
+        _3MF_Importer* importer = (_3MF_Importer*)userData;
+        if (importer != nullptr)
+            importer->_handle_end_config_xml_element(name);
     }
 
     class _3MF_Exporter : public _3MF_Base
@@ -1035,10 +1403,44 @@ namespace Slic3r {
             unsigned int id;
             Matrix4x4 matrix;
 
-            BuildItem(unsigned int id, const Matrix4x4& matrix);
+            BuildItem(unsigned int id, const Matrix4x4& matrix)
+                : id(id)
+                , matrix(matrix)
+            {
+            }
+        };
+
+        struct Offsets
+        {
+            unsigned int first_vertex_id;
+            unsigned int first_triangle_id;
+            unsigned int last_triangle_id;
+
+            Offsets(unsigned int first_vertex_id)
+                : first_vertex_id(first_vertex_id)
+                , first_triangle_id(-1)
+                , last_triangle_id(-1)
+            {
+            }
+        };
+
+        typedef std::map<const ModelVolume*, Offsets> VolumeToOffsetsMap;
+
+        struct ObjectData
+        {
+            ModelObject* object;
+            VolumeToOffsetsMap volumes_offsets;
+
+            explicit ObjectData(ModelObject* object)
+                : object(object)
+            {
+            }
         };
 
         typedef std::vector<BuildItem> BuildItemsList;
+        typedef std::map<int, ObjectData> IdToObjectDataMap;
+
+        IdToObjectDataMap m_objects_data;
 
     public:
         bool save_model_to_file(const std::string& filename, Model& model, const Print& print);
@@ -1048,17 +1450,12 @@ namespace Slic3r {
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(mz_zip_archive& archive, Model& model);
-        bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items);
-        bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object);
+        bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
+        bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
-        bool _add_config_file_to_archive(mz_zip_archive& archive, const Print& print);
+        bool _add_print_config_file_to_archive(mz_zip_archive& archive, const Print& print);
+        bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model);
     };
-
-    _3MF_Exporter::BuildItem::BuildItem(unsigned int id, const Matrix4x4& matrix)
-        : id(id)
-        , matrix(matrix)
-    {
-    }
 
     bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const Print& print)
     {
@@ -1070,6 +1467,8 @@ namespace Slic3r {
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
+
+        m_objects_data.clear();
 
         mz_bool res = mz_zip_writer_init_file(&archive, filename.c_str(), 0);
         if (res == 0)
@@ -1102,8 +1501,16 @@ namespace Slic3r {
             return false;
         }
 
-        // adds slic3r config file
-        if (!_add_config_file_to_archive(archive, print))
+        // adds slic3r print config file
+        if (!_add_print_config_file_to_archive(archive, print))
+        {
+            mz_zip_writer_end(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // adds slic3r model config file
+        if (!_add_model_config_file_to_archive(archive, model))
         {
             mz_zip_writer_end(&archive);
             boost::filesystem::remove(filename);
@@ -1166,8 +1573,8 @@ namespace Slic3r {
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        stream << "<model unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">\n";
-        stream << " <resources>\n";
+        stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">\n";
+        stream << " <" << RESOURCES_TAG << ">\n";
 
         BuildItemsList build_items;
 
@@ -1177,15 +1584,17 @@ namespace Slic3r {
             if (obj == nullptr)
                 continue;
 
-            if (!_add_object_to_model_stream(stream, object_id, *obj, build_items))
+            unsigned int curr_id = object_id;
+            IdToObjectDataMap::iterator object_it = m_objects_data.insert(IdToObjectDataMap::value_type(curr_id, ObjectData(obj))).first;
+
+            if (!_add_object_to_model_stream(stream, object_id, *obj, build_items, object_it->second.volumes_offsets))
             {
                 add_error("Unable to add object to archive");
                 return false;
             }
         }
 
-
-        stream << " </resources>\n";
+        stream << " </" << RESOURCES_TAG << ">\n";
 
         if (!_add_build_to_model_stream(stream, build_items))
         {
@@ -1193,7 +1602,7 @@ namespace Slic3r {
             return false;
         }
 
-        stream << "</model>\n";
+        stream << "</" << MODEL_TAG << ">\n";
 
         std::string out = stream.str();
 
@@ -1206,7 +1615,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Exporter::_add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items)
+    bool _3MF_Exporter::_add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets)
     {
         unsigned int id = 0;
         for (const ModelInstance* instance : object.instances)
@@ -1215,11 +1624,11 @@ namespace Slic3r {
                 continue;
 
             unsigned int instance_id = object_id + id;
-            stream << "  <object id=\"" << instance_id << "\" type=\"model\">\n";
+            stream << "  <" << OBJECT_TAG << " id=\"" << instance_id << "\" type=\"model\">\n";
 
             if (id == 0)
             {
-                if (!_add_mesh_to_object_stream(stream, object))
+                if (!_add_mesh_to_object_stream(stream, object, volumes_offsets))
                 {
                     add_error("Unable to add mesh to archive");
                     return false;
@@ -1227,9 +1636,9 @@ namespace Slic3r {
             }
             else
             {
-                stream << "   <components>\n";
-                stream << "    <component objectid=\"" << object_id << "\" />\n";
-                stream << "   </components>\n";
+                stream << "   <" << COMPONENTS_TAG << ">\n";
+                stream << "    <" << COMPONENT_TAG << " objectid=\"" << object_id << "\" />\n";
+                stream << "   </" << COMPONENTS_TAG << ">\n";
             }
 
             Eigen::Affine3f transform;
@@ -1238,7 +1647,7 @@ namespace Slic3r {
                         * Eigen::Scaling((float)instance->scaling_factor);
             build_items.emplace_back(instance_id, transform.matrix());
 
-            stream << "  </object>\n";
+            stream << "  </" << OBJECT_TAG << ">\n";
 
             ++id;
         }
@@ -1247,20 +1656,18 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Exporter::_add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object)
+    bool _3MF_Exporter::_add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets)
     {
-        stream << "   <mesh>\n";
-        stream << "    <vertices>\n";
+        stream << "   <" << MESH_TAG << ">\n";
+        stream << "    <" << VERTICES_TAG << ">\n";
 
-        typedef std::map<ModelVolume*, unsigned int> VolumeToOffsetMap; 
-        VolumeToOffsetMap volumes_offset;
         unsigned int vertices_count = 0;
         for (ModelVolume* volume : object.volumes)
         {
             if (volume == nullptr)
                 continue;
 
-            volumes_offset.insert(VolumeToOffsetMap::value_type(volume, vertices_count));
+            VolumeToOffsetsMap::iterator volume_it = volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 
             if (!volume->mesh.repaired)
                 volume->mesh.repair();
@@ -1279,7 +1686,7 @@ namespace Slic3r {
 
             for (int i = 0; i < stl.stats.shared_vertices; ++i)
             {
-                stream << "     <vertex ";
+                stream << "     <" << VERTEX_TAG << " ";
                 // Subtract origin_translation in order to restore the original local coordinates
                 stream << "x=\"" << (stl.v_shared[i].x - object.origin_translation.x) << "\" ";
                 stream << "y=\"" << (stl.v_shared[i].y - object.origin_translation.y) << "\" ";
@@ -1287,33 +1694,38 @@ namespace Slic3r {
             }
         }
 
-        stream << "    </vertices>\n";
-        stream << "    <triangles>\n";
+        stream << "    </" << VERTICES_TAG << ">\n";
+        stream << "    <" << TRIANGLES_TAG << ">\n";
 
+        unsigned int triangles_count = 0;
         for (ModelVolume* volume : object.volumes)
         {
             if (volume == nullptr)
                 continue;
 
-            VolumeToOffsetMap::const_iterator offset_it = volumes_offset.find(volume);
-            assert(offset_it != volumes_offset.end());
+            VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
+            assert(volume_it != volumes_offsets.end());
 
             stl_file& stl = volume->mesh.stl;
 
+            // updates triangle offsets
+            volume_it->second.first_triangle_id = triangles_count;
+            triangles_count += stl.stats.number_of_facets;
+            volume_it->second.last_triangle_id = triangles_count - 1;
+
             for (uint32_t i = 0; i < stl.stats.number_of_facets; ++i)
             {
-                stream << "     <triangle ";
+                stream << "     <" << TRIANGLE_TAG << " ";
                 for (int j = 0; j < 3; ++j)
                 {
-                    stream << "v" << j + 1 << "=\"" << stl.v_indices[i].vertex[j] + offset_it->second << "\" ";
+                    stream << "v" << j + 1 << "=\"" << stl.v_indices[i].vertex[j] + volume_it->second.first_vertex_id << "\" ";
                 }
                 stream << "/>\n";
             }
-
         }
 
-        stream << "    </triangles>\n";
-        stream << "   </mesh>\n";
+        stream << "    </" << TRIANGLES_TAG << ">\n";
+        stream << "   </" << MESH_TAG << ">\n";
 
         return true;
     }
@@ -1326,11 +1738,11 @@ namespace Slic3r {
             return false;
         }
 
-        stream << " <build>\n";
+        stream << " <" << BUILD_TAG << ">\n";
 
         for (const BuildItem& item : build_items)
         {
-            stream << "  <item objectid=\"" << item.id << "\" transform =\"";
+            stream << "  <" << ITEM_TAG << " objectid=\"" << item.id << "\" transform =\"";
             for (unsigned c = 0; c < 4; ++c)
             {
                 for (unsigned r = 0; r < 3; ++r)
@@ -1343,12 +1755,12 @@ namespace Slic3r {
             stream << "\" />\n";
         }
 
-        stream << " </build>\n";
+        stream << " </" << BUILD_TAG << ">\n";
 
         return true;
     }
 
-    bool _3MF_Exporter::_add_config_file_to_archive(mz_zip_archive& archive, const Print& print)
+    bool _3MF_Exporter::_add_print_config_file_to_archive(mz_zip_archive& archive, const Print& print)
     {
         char buffer[1024];
         sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
@@ -1356,9 +1768,81 @@ namespace Slic3r {
 
         GCode::append_full_config(print, out);
 
-        if (!mz_zip_writer_add_mem(&archive, CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        if (!mz_zip_writer_add_mem(&archive, PRINT_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
         {
-            add_error("Unable to add config file to archive");
+            add_error("Unable to add print config file to archive");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model)
+    {
+        std::stringstream stream;
+        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        stream << "<" << CONFIG_TAG << ">\n";
+
+        for (const IdToObjectDataMap::value_type& obj_metadata : m_objects_data)
+        {
+            const ModelObject* obj = obj_metadata.second.object;
+            if (obj != nullptr)
+            {
+                stream << " <" << OBJECT_TAG << " id=\"" << obj_metadata.first << "\">\n";
+
+                // stores object's name
+                if (!obj->name.empty())
+                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"name\" " << VALUE_ATTR << "=\"" << obj->name << "\"/>\n";
+
+                // stores object's config data
+                for (const std::string& key : obj->config.keys())
+                {
+                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.serialize(key) << "\"/>\n";
+                }
+
+                for (const ModelVolume* volume : obj_metadata.second.object->volumes)
+                {
+                    if (volume != nullptr)
+                    {
+                        const VolumeToOffsetsMap& offsets = obj_metadata.second.volumes_offsets;
+                        VolumeToOffsetsMap::const_iterator it = offsets.find(volume);
+                        if (it != offsets.end())
+                        {
+                            // stores volume's offsets
+                            stream << "  <" << VOLUME_TAG << " ";
+                            stream << FIRST_TRIANGLE_ID_ATTR << "=\"" << it->second.first_triangle_id << "\" ";
+                            stream << LAST_TRIANGLE_ID_ATTR << "=\"" << it->second.last_triangle_id << "\">\n";
+
+                            // stores volume's name
+                            if (!volume->name.empty())
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << NAME_KEY << "\" " << VALUE_ATTR << "=\"" << volume->name << "\"/>\n";
+
+                            // stores volume's modifier field
+                            if (volume->modifier)
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << MODIFIER_KEY << "\" " << VALUE_ATTR << "=\"1\"/>\n";
+
+                            // stores volume's config data
+                            for (const std::string& key : volume->config.keys())
+                            {
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.serialize(key) << "\"/>\n";
+                            }
+
+                            stream << "  </" << VOLUME_TAG << ">\n";
+                        }
+                    }
+                }
+
+                stream << " </" << OBJECT_TAG << ">\n";
+            }
+        }
+
+        stream << "</" << CONFIG_TAG << ">\n";
+
+        std::string out = stream.str();
+
+        if (!mz_zip_writer_add_mem(&archive, MODEL_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        {
+            add_error("Unable to add model config file to archive");
             return false;
         }
 
@@ -1392,5 +1876,4 @@ namespace Slic3r {
 
         return res;
     }
-
 } // namespace Slic3r

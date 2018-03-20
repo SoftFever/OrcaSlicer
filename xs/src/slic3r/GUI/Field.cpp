@@ -18,6 +18,17 @@ namespace Slic3r { namespace GUI {
 			wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
 	}
 
+	void Field::PostInitialize(){
+		m_Undo_btn = new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+		// use bouth of temporary_icons till don't have "undo_icon" 
+		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+		if (wxMSW) m_Undo_btn->SetBackgroundColour(color);
+		m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
+		m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
+
+		BUILD();
+	}
+
 	void Field::on_kill_focus(wxEvent& event) {
         // Without this, there will be nasty focus bugs on Windows.
         // Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
@@ -33,6 +44,12 @@ namespace Slic3r { namespace GUI {
         if (m_on_change != nullptr  && !m_disable_change_event)
             m_on_change(m_opt_id, get_value());
     }
+
+	void Field::on_back_to_initial_value()
+	{
+		if (m_back_to_initial_value != nullptr && m_is_modified_value)
+			m_back_to_initial_value(m_opt_id);
+	}
 
 	wxString Field::get_tooltip_text(const wxString& default_string)
 	{
@@ -187,6 +204,17 @@ void CheckBox::BUILD() {
 	window = dynamic_cast<wxWindow*>(temp);
 }
 
+boost::any CheckBox::get_value()
+{
+	boost::any ret_val;
+	bool value = dynamic_cast<wxCheckBox*>(window)->GetValue();
+	if (m_opt.type == coBool)
+		ret_val = static_cast<bool>(value);
+	else
+		ret_val = static_cast<unsigned char>(value);
+ 	return ret_val;
+}
+
 int undef_spin_val = -9999;		//! Probably, It's not necessary
 
 void SpinCtrl::BUILD() {
@@ -217,8 +245,13 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
+	const int min_val = m_opt_id == "standby_temperature_delta" ? 
+						-500 : m_opt.min > 0 ? 
+						m_opt.min : 0;
+	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
+
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
-		0, m_opt.min >0 ? m_opt.min : 0, m_opt.max < 2147483647 ? m_opt.max : 2147483647, default_value);
+		0, min_val, max_val, default_value);
 
 	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { tmp_value = undef_spin_val; on_kill_focus(e); }), temp->GetId());
@@ -228,7 +261,7 @@ void SpinCtrl::BUILD() {
 // 		# when it was changed from the text control, so the on_change callback
 // 		# gets the old one, and on_kill_focus resets the control to the old value.
 // 		# As a workaround, we get the new value from $event->GetString and store
-// 		# here temporarily so that we can return it from $self->get_value
+// 		# here temporarily so that we can return it from $self->get_value
 		std::string value = e.GetString().utf8_str().data();
 		if (is_matched(value, "^\\d+$"))
 			tmp_value = std::stoi(value);
@@ -261,8 +294,10 @@ void Choice::BUILD() {
 	if (m_opt.enum_labels.empty() && m_opt.enum_values.empty()){
 	}
 	else{
-		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels)
-			temp->Append(wxString(el));
+		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels){
+			const wxString& str = m_opt_id == "support" ? L_str(el) : el;
+			temp->Append(str);
+		}
 		set_selection();
 	}
  	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
@@ -330,9 +365,9 @@ void Choice::set_selection()
 	}
 }
 
-void Choice::set_value(const std::string value)  //! Redundant?
+void Choice::set_value(const std::string value, bool change_event)  //! Redundant?
 {
-	m_disable_change_event = true;
+	m_disable_change_event = !change_event;
 
 	size_t idx=0;
 	for (auto el : m_opt.enum_values)
@@ -349,9 +384,9 @@ void Choice::set_value(const std::string value)  //! Redundant?
 	m_disable_change_event = false;
 }
 
-void Choice::set_value(boost::any value)
+void Choice::set_value(boost::any value, bool change_event)
 {
-	m_disable_change_event = true;
+	m_disable_change_event = !change_event;
 
 	switch (m_opt.type){
 	case coInt:
@@ -394,7 +429,7 @@ void Choice::set_values(const std::vector<std::string> values)
 		return;
 	m_disable_change_event = true;
 
-// 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
+// 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
 // 	# but we want to preserve it
 	auto ww = dynamic_cast<wxComboBox*>(window);
 	auto value = ww->GetValue();
@@ -410,6 +445,9 @@ boost::any Choice::get_value()
 {
 	boost::any ret_val;
 	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
+
+	if (m_opt_id == "support")
+		return ret_str;
 
 	if (m_opt.type != coEnum)
 		ret_val = get_value_by_opt_type(ret_str);
@@ -503,9 +541,9 @@ void PointCtrl::BUILD()
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
-void PointCtrl::set_value(const Pointf value)
+void PointCtrl::set_value(const Pointf value, bool change_event)
 {
-	m_disable_change_event = true;
+	m_disable_change_event = !change_event;
 
 	double val = value.x;
 	x_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None));
@@ -515,7 +553,7 @@ void PointCtrl::set_value(const Pointf value)
 	m_disable_change_event = false;
 }
 
-void PointCtrl::set_value(boost::any value)
+void PointCtrl::set_value(boost::any value, bool change_event)
 {
 	Pointf pt;
 	Pointf *ptf = boost::any_cast<Pointf>(&value);
@@ -541,7 +579,7 @@ void PointCtrl::set_value(boost::any value)
 // 			return;
 // 		}		
 // 	}	
-	set_value(pt);
+	set_value(pt, change_event);
 }
 
 boost::any PointCtrl::get_value()
