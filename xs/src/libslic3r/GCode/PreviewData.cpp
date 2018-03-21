@@ -235,6 +235,7 @@ void GCodePreviewData::set_default()
     ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
     ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
     ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.volumetric_rate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
 
     extrusion.set_default();
     travel.set_default();
@@ -248,6 +249,7 @@ void GCodePreviewData::reset()
     ranges.width.reset();
     ranges.height.reset();
     ranges.feedrate.reset();
+    ranges.volumetric_rate.reset();
     extrusion.layers.clear();
     travel.polylines.clear();
     retraction.positions.clear();
@@ -277,6 +279,11 @@ const GCodePreviewData::Color& GCodePreviewData::get_width_color(float width) co
 const GCodePreviewData::Color& GCodePreviewData::get_feedrate_color(float feedrate) const
 {
     return ranges.feedrate.get_color_at(feedrate);
+}
+
+const GCodePreviewData::Color& GCodePreviewData::get_volumetric_rate_color(float rate) const
+{
+    return ranges.volumetric_rate.get_color_at(rate);
 }
 
 void GCodePreviewData::set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha)
@@ -345,6 +352,8 @@ std::string GCodePreviewData::get_legend_title() const
         return L("Width (mm)");
     case Extrusion::Feedrate:
         return L("Speed (mm/s)");
+    case Extrusion::VolumetricRate:
+        return L("Volumetric flow rate (mm3/s)");
     case Extrusion::Tool:
         return L("Tool");
     }
@@ -400,6 +409,11 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
     case Extrusion::Feedrate:
         {
             Helper::FillListFromRange(items, ranges.feedrate, 0, 1.0f);
+            break;
+        }
+    case Extrusion::VolumetricRate:
+        {
+            Helper::FillListFromRange(items, ranges.volumetric_rate, 3, 1.0f);
             break;
         }
     case Extrusion::Tool:

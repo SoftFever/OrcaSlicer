@@ -50,6 +50,7 @@ public:
         Range height;
         Range width;
         Range feedrate;
+        Range volumetric_rate;
     };
 
     struct LegendItem
@@ -70,6 +71,7 @@ public:
             Height,
             Width,
             Feedrate,
+            VolumetricRate,
             Tool,
             Num_View_Types
         };
@@ -190,6 +192,7 @@ public:
     const Color& get_height_color(float height) const;
     const Color& get_width_color(float width) const;
     const Color& get_feedrate_color(float feedrate) const;
+    const Color& get_volumetric_rate_color(float rate) const;
 
     void set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha);
     void set_extrusion_paths_colors(const std::vector<std::string>& colors);

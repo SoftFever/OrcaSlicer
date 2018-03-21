@@ -2039,6 +2039,8 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
                 return path.width;
             case GCodePreviewData::Extrusion::Feedrate:
                 return path.feedrate;
+            case GCodePreviewData::Extrusion::VolumetricRate:
+                return path.feedrate * (float)path.mm3_per_mm;
             case GCodePreviewData::Extrusion::Tool:
                 return (float)path.extruder_id;
             }
@@ -2058,6 +2060,8 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
                 return data.get_width_color(value);
             case GCodePreviewData::Extrusion::Feedrate:
                 return data.get_feedrate_color(value);
+            case GCodePreviewData::Extrusion::VolumetricRate:
+                return data.get_volumetric_rate_color(value);
             case GCodePreviewData::Extrusion::Tool:
                 {
                     static GCodePreviewData::Color color;
