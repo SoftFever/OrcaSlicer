@@ -719,6 +719,35 @@ void PresetBundle::update_multi_material_filament_presets()
     // Append the rest of filament presets.
 //    if (this->filament_presets.size() < num_extruders)
         this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
+
+
+
+    // Now verify if wiping_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
+    std::vector<double> old_matrix = (prints.get_edited_preset().config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+    size_t old_number_of_extruders = int(sqrt(old_matrix.size())+EPSILON);
+    // First do it for the extruders presets (in-place):
+            std::vector<double>& extruders = (prints.get_edited_preset().config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+            while (extruders.size() < 2*num_extruders) {
+                extruders.push_back(extruders[0]);  // copy the values from the first extruder
+                extruders.push_back(extruders[1]);
+            }
+            while (extruders.size() > 2*num_extruders) {
+                extruders.pop_back();
+                extruders.pop_back();
+            }
+    // Now update the purging volume matrix:
+    if (num_extruders != old_number_of_extruders) {
+        std::vector<double> new_matrix;
+        for (unsigned int i=0;i<num_extruders;++i)
+            for (unsigned int j=0;j<num_extruders;++j) {
+                // append the value for this pair from the old matrix (if it's there):
+                if (i<old_number_of_extruders && j<old_number_of_extruders)
+                    new_matrix.push_back(old_matrix[i*old_number_of_extruders + j]);
+                else
+                    new_matrix.push_back( i==j ? 0. : extruders[2*i]+extruders[2*j+1]); // so it matches new extruder volumes
+            }
+        (prints.get_edited_preset().config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = new_matrix;
+    }
 }
 
 void PresetBundle::update_compatible_with_printer(bool select_other_if_incompatible)
