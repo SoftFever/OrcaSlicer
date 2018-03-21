@@ -18,7 +18,7 @@
             try {
                 RETVAL = THIS->process(str, 0);
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
 
@@ -27,7 +27,7 @@
             try {
                 RETVAL = THIS->evaluate_boolean_expression(str, THIS->config());
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};        
 };
