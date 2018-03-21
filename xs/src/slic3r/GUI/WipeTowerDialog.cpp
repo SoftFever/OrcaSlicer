@@ -40,7 +40,7 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 {
     new wxStaticText(this,wxID_ANY,wxString("Total ramming time (s):"),     wxPoint(500,105),      wxSize(200,25),wxALIGN_LEFT);
     m_widget_time = new wxSpinCtrlDouble(this,wxID_ANY,wxEmptyString,       wxPoint(700,100),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0.,5.0,3.,0.5);        
-    new wxStaticText(this,wxID_ANY,wxString("Total rammed volume (mm3):"),  wxPoint(500,135),      wxSize(200,25),wxALIGN_LEFT);
+    new wxStaticText(this,wxID_ANY,wxString("Total rammed volume (mm\u00B3):"),  wxPoint(500,135),      wxSize(200,25),wxALIGN_LEFT);
     m_widget_volume = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,           wxPoint(700,130),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,10000,0);        
     new wxStaticText(this,wxID_ANY,wxString("Ramming line width (%):"),     wxPoint(500,205),      wxSize(200,25),wxALIGN_LEFT);
     m_widget_ramming_line_width_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,       wxPoint(700,200),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,10,200,100);        

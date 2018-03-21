@@ -1075,7 +1075,6 @@ void Print::_make_wipe_tower()
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each
     // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
-	
     {
         unsigned int current_extruder_id = m_tool_ordering.all_extruders().back();
         for (const auto &layer_tools : m_tool_ordering.layer_tools()) { // for all layers
