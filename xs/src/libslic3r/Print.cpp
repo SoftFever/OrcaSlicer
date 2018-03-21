@@ -624,7 +624,12 @@ std::string Print::validate() const
         for (unsigned int extruder_id : extruders)
             nozzle_diameters.push_back(this->config.nozzle_diameter.get_at(extruder_id));
         double min_nozzle_diameter = *std::min_element(nozzle_diameters.begin(), nozzle_diameters.end());
-        
+
+        unsigned int total_extruders_count = this->config.nozzle_diameter.size();
+        for (const auto& extruder_idx : extruders)
+            if ( extruder_idx >= total_extruders_count )
+                return "One or more object have assigned an extruder that the printer does not have.";
+
         for (PrintObject *object : this->objects) {
             if ((object->config.support_material_extruder == -1 || object->config.support_material_interface_extruder == -1) &&
                 (object->config.raft_layers > 0 || object->config.support_material.value)) {
