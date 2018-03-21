@@ -721,22 +721,21 @@ void PresetBundle::update_multi_material_filament_presets()
         this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
 
 
-
     // Now verify if wiping_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
     std::vector<double> old_matrix = (prints.get_edited_preset().config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
     size_t old_number_of_extruders = int(sqrt(old_matrix.size())+EPSILON);
-    // First do it for the extruders presets (in-place):
+    if (num_extruders != old_number_of_extruders) {
+            // First verify if purging volumes presets for each extruder matches number of extruders
             std::vector<double>& extruders = (prints.get_edited_preset().config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
             while (extruders.size() < 2*num_extruders) {
-                extruders.push_back(extruders[0]);  // copy the values from the first extruder
-                extruders.push_back(extruders[1]);
+                extruders.push_back(extruders.size()>1 ? extruders[0] : 50.);  // copy the values from the first extruder
+                extruders.push_back(extruders.size()>1 ? extruders[1] : 50.);
             }
             while (extruders.size() > 2*num_extruders) {
                 extruders.pop_back();
                 extruders.pop_back();
             }
-    // Now update the purging volume matrix:
-    if (num_extruders != old_number_of_extruders) {
+
         std::vector<double> new_matrix;
         for (unsigned int i=0;i<num_extruders;++i)
             for (unsigned int j=0;j<num_extruders;++j) {
