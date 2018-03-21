@@ -23,7 +23,7 @@
             try {
                 THIS->do_export(print, path);
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
     void do_export_w_preview(Print *print, const char *path, GCodePreviewData *preview_data)
