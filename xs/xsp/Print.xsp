@@ -212,7 +212,7 @@ _constant()
             try {
                 RETVAL = THIS->output_filepath(path);
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
     
