@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: SLIC3R PE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-28 13:53+0100\n"
-"PO-Revision-Date: 2018-02-28 14:07+0100\n"
+"PO-Revision-Date: 2018-03-21 14:27+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -30,17 +30,17 @@ msgstr "Rozměr"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:51
 msgid "Size in X and Y of the rectangular plate."
-msgstr "Rozměr tiskové podložky v ose X a Y."
+msgstr "Rozměr obdélníkové tiskové podložky v ose X a Y."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:57
 msgid "Origin"
-msgstr "Origin"
+msgstr "Počátek"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:58
 msgid ""
 "Distance of the 0,0 G-code coordinate from the front left corner of the "
 "rectangle."
-msgstr "Vzdálenost souřadnice 0,0 G-kódu od předního levého rohu obdélníku."
+msgstr "Vzdálenost souřadnice 0,0 G-code od předního levého rohu obdélníku."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:62
 msgid "Circular"
@@ -89,13 +89,13 @@ msgid ""
 "Diameter of the print bed. It is assumed that origin (0,0) is located in the "
 "center."
 msgstr ""
-"Průměr tiskové podložky.Přepokládaná souřadnice 0,0 je umístěna uprostřed."
+"Průměr tiskové podložky. Přepokládaný počátek (0,0) je umístěn uprostřed."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:71
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:150
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:92
 msgid "Custom"
-msgstr "Upravený"
+msgstr "Vlastní"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:75
 msgid "Load shape from STL..."
@@ -108,6 +108,7 @@ msgstr "Nastavení"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:298
 msgid "Choose a file to import bed shape from (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr ""
+"Vyberte soubor pro import tvaru tiskové podložky z (STL/OBJ/AMF/3MF/PRUSA):"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:315
 msgid "Error! "
@@ -147,7 +148,7 @@ msgstr "Výchozí"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:325
 msgid "Change Application Language"
-msgstr "Změnit Jazyk Aplikace"
+msgstr "Změnit jazyk aplikace"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:332
 msgid "Application will be restarted"
@@ -159,7 +160,7 @@ msgstr "Pozor!"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:339
 msgid "&Localization"
-msgstr ""
+msgstr "&Lokalizace"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:488
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:470
@@ -198,11 +199,11 @@ msgstr "Výška vrstvy"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:318
 msgid "Vertical shells"
-msgstr "Vertical shells"
+msgstr "Svislé stěny"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:329
 msgid "Horizontal shells"
-msgstr "Horizontal shells"
+msgstr "Vodorovné stěny"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:330
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1314
@@ -250,13 +251,13 @@ msgstr "Zkracování tiskového času"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:364
 msgid "Skirt and brim"
-msgstr "Obrysová čára a límec"
+msgstr "Obrys a límec"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:365
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:146
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:88
 msgid "Skirt"
-msgstr "Obrysová čára"
+msgstr "Obrys"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:371
 msgid "Brim"
@@ -295,7 +296,7 @@ msgstr "Raft"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:384
 msgid "Options for support material and raft"
-msgstr "Options for support material and raft"
+msgstr "Volby pro podpory a raft"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:398
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:118
@@ -317,7 +318,7 @@ msgstr "Speed for print moves"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:411
 msgid "Speed for non-print moves"
-msgstr "Speed for non-print moves"
+msgstr "Netiskové rychlosti"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:414
 msgid "Modifiers"
@@ -344,11 +345,11 @@ msgstr "Multiple Extruders"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1445
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1471
 msgid "Extruders"
-msgstr "Extrudér"
+msgstr "Extruder"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:438
 msgid "Ooze prevention"
-msgstr "Ooze prevention"
+msgstr "Prevence odkapávání"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:442
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:149
@@ -382,7 +383,7 @@ msgstr "Sekvenční tisk"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:479
 msgid "Extruder clearance (mm)"
-msgstr "Kolizní oblast extrudéru (mm)"
+msgstr "Kolizní oblast extruderu (mm)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:488
 msgid "Output file"
@@ -391,7 +392,7 @@ msgstr "Výstupní soubor"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:494
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1001
 msgid "Post-processing scripts"
-msgstr "Post-processing scripts"
+msgstr "Postprodukční skripty"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:500
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:501
@@ -420,7 +421,7 @@ msgid "Compatible printers"
 msgstr "Kompatibilní tiskárny"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:533
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "The Spiral Vase mode requires:\n"
 "- one perimeter\n"
@@ -434,7 +435,7 @@ msgstr ""
 "Mód spirálové vázy vyžaduje:\n"
 "- jeden perimeter\n"
 "- žádné plné vrchní vrstvy\n"
-"- 0% výplň\n"
+"- 0% hustota výplně\n"
 "- žádné podpěry\n"
 "- nezjišťování vertikální tloušťky pláště\n"
 "\n"
@@ -476,8 +477,8 @@ msgid ""
 msgstr ""
 "Čistící věž v současné době podporuje pouze nerozpustné podpory\n"
 "pokud jsou vytištěny s aktuálním extrudérem bez spuštění výměny nástroje.\n"
-"(jak extruder pro tisk popor tak extruder pro tisk interface podpor je třeba "
-"nastavit na 0).\n"
+"(jak extruder pro tisk popor tak extruder pro tisk kontaktních podpor je "
+"třeba nastavit na 0).\n"
 "\n"
 "Mám tyto nastavení upravit tak, aby bylo možné zapnout Čistící věž?"
 
@@ -514,7 +515,7 @@ msgid "The "
 msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:662
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 " infill pattern is not supposed to work at 100% density.\n"
 "\n"
@@ -538,7 +539,7 @@ msgstr "Teplota "
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1234
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:307
 msgid "Extruder"
-msgstr "Extrudér"
+msgstr "Extruder"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:800
 msgid "Bed"
@@ -564,7 +565,7 @@ msgstr "Rychlost ventilátoru"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:826
 msgid "Cooling thresholds"
-msgstr "Práh chlazení"
+msgstr "Podmínky chlazení"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:832
 msgid "Filament properties"
@@ -577,14 +578,14 @@ msgstr "Přepsání rychlosti tisku"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:846
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1119
 msgid "Custom G-code"
-msgstr "Upravený G-kód"
+msgstr "Vlastní G-code"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:847
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1120
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1342
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1357
 msgid "Start G-code"
-msgstr "Začátek G-kódu"
+msgstr "Začátek G-code"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:853
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1126
@@ -665,27 +666,27 @@ msgstr "Firmware"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1132
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:48
 msgid "Before layer change G-code"
-msgstr "Before layer change G-code"
+msgstr "G-code před změnou vrstvy"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1138
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:766
 msgid "After layer change G-code"
-msgstr "After layer change G-code"
+msgstr "G-code po změně vrstvy"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1144
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1602
 msgid "Tool change G-code"
-msgstr "Tool change G-code"
+msgstr "G-code pro výměnu nástroje"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1150
 msgid "Between objects G-code (for sequential printing)"
-msgstr "Between objects G-code (for sequential printing)"
+msgstr "G-code mezi objekty (pro sekvenční tisk)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1187
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:400
 #, c-format
 msgid "Extruder %d"
-msgstr "Extrudér %d"
+msgstr "Extruder %d"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1194
 msgid "Layer height limits"
@@ -693,7 +694,7 @@ msgstr "Výskové limity vrstvy"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1199
 msgid "Position (for multi-extruder printers)"
-msgstr "Position (for multi-extruder printers)"
+msgstr "Pozice (pro tiskárny s více extrudery)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1202
 msgid "Retraction"
@@ -708,8 +709,8 @@ msgid ""
 "Retraction when tool is disabled (advanced settings for multi-extruder "
 "setups)"
 msgstr ""
-"Retraction when tool is disabled (advanced settings for multi-extruder "
-"setups)"
+"Retrakce pro neaktivní extruder (pokročilé nastavení pro tiskárny typu "
+"MultiMaterial)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1222
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:150
@@ -723,9 +724,9 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
-"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"Možnost Očistit není k dispozici při použití režimu retrací z firmwaru.\n"
 "\n"
-"Shall I disable it in order to enable Firmware Retraction?"
+"Mám ji deaktivovat, aby bylo možné povolit retrakce z firmwaru?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1314
 msgid "Firmware Retraction"
@@ -789,7 +790,7 @@ msgstr "Neuložené Změny"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1560
 msgid "The supplied name is empty. It can't be saved."
-msgstr "The supplied name is empty. It can't be saved."
+msgstr "Název je prázdný. Nelze uložit."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1580
 msgid "remove"
@@ -828,7 +829,7 @@ msgstr "Vše"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1667
 msgid "Select the printers this profile is compatible with."
-msgstr "Select the printers this profile is compatible with."
+msgstr "Vyberte tiskárny, s nimiž je tento profil kompatibilní."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1751
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
@@ -843,12 +844,11 @@ msgstr " jako:"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1785
 msgid ""
 "The supplied name is not valid; the following characters are not allowed:"
-msgstr ""
-"The supplied name is not valid; the following characters are not allowed:"
+msgstr "Zadaný název je naplatný; následující znaky nejsou povoleny:"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1788
 msgid "The supplied name is not available."
-msgstr "The supplied name is not available."
+msgstr "Zadaný název není dostupný."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:182
 msgid "Print Settings"
@@ -877,6 +877,9 @@ msgid ""
 "will be reduced so that no less than %ds are spent on that layer (however, "
 "speed will never be reduced below %dmm/s)."
 msgstr ""
+"Pokud je odhadovaný čas vrstvy nižší než ~% ds, bude ventilátor pracovat na "
+"%d%% a rychlost tisku bude snížena tak, aby na tuto vrstvu nebylo použito "
+"méně než %ds (rychlost však nikdy nebude snížena pod %dmm/s)."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:30
 #, c-format
@@ -885,6 +888,9 @@ msgid ""
 "If estimated layer time is greater, but still below ~%ds, fan will run at a "
 "proportionally decreasing speed between %d%% and %d%%."
 msgstr ""
+"\n"
+"Pokud je odhadovaný čas vrstvy delší, ale stále pod ~% ds, bude ventilátor "
+"pracovat s plynule klesající rychlostí mezi %d%% a %d%%."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:34
 msgid ""
@@ -901,12 +907,12 @@ msgstr "Ventilátor "
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:41
 #, c-format
 msgid "will always run at %d%% "
-msgstr ""
+msgstr "bude vždy běžet na %d%% "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:44
 #, c-format
 msgid "except for the first %d layers"
-msgstr ""
+msgstr "s výjimkou prvních %d vrstev"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:48
 msgid "except for the first layer"
@@ -918,7 +924,7 @@ msgstr "bude vypnut."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:151
 msgid "external perimeters"
-msgstr "Vnější perimetry"
+msgstr "vnější perimetry"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:160
 msgid "perimeters"
@@ -946,57 +952,59 @@ msgstr "kontaktní vrstva podpor"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "First layer volumetric"
-msgstr ""
+msgstr "Volumetrická hodnota první vrstvy"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "Bridging volumetric"
-msgstr ""
+msgstr "Volumetrická hodnota mostů"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "Volumetric"
-msgstr ""
+msgstr "Volumetrický"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:215
 msgid " flow rate is maximized "
-msgstr ""
+msgstr " průtok je maximalizován "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:218
 msgid "by the print profile maximum"
-msgstr ""
+msgstr "maximem pro profil tisku"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:219
 msgid "when printing "
-msgstr ""
+msgstr "při tisku "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:220
 msgid " with a volumetric rate "
-msgstr ""
+msgstr " s objemovou rychlostí "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:224
 #, c-format
 msgid "%3.2f mm³/s"
-msgstr ""
+msgstr "%3.2f mm³/s"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:226
 #, c-format
 msgid " at filament speed %3.2f mm/s."
-msgstr ""
+msgstr " při rychlosti filamentu %3.2f mm/s."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:245
 msgid ""
 "Recommended object thin wall thickness: Not available due to invalid layer "
 "height."
 msgstr ""
+"Doporučená tloušťka stěny objektu: Není k dispozici kvůli neplatné výšce "
+"vrstvy."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:262
 #, c-format
 msgid "Recommended object thin wall thickness for layer height %.2f and "
-msgstr ""
+msgstr "Doporučená tloušťka stěny objektu pro výšku vrstvy %.2f and "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:269
 #, c-format
 msgid "%d lines: %.2lf mm"
-msgstr ""
+msgstr "%d linie: %.2lf mm"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.hpp:17
 msgid "Preferences"
@@ -1004,13 +1012,15 @@ msgstr "Nastavení"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:27
 msgid "Remember output directory"
-msgstr "Pamatovat výstupní složku"
+msgstr "Pamatovat si výstupní složku"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:29
 msgid ""
 "If this is enabled, Slic3r will prompt the last output directory instead of "
 "the one containing the input files."
 msgstr ""
+"Pokud je tato volba povolena, Slic3r vyvolá poslední výstupní adresář "
+"namísto toho, který obsahuje vstupní soubory."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:35
 msgid "Auto-center parts"
@@ -1021,6 +1031,8 @@ msgid ""
 "If this is enabled, Slic3r will auto-center objects around the print bed "
 "center."
 msgstr ""
+"Pokud je tato možnost povolena, Slic3r bude automaticky centrovat objekty "
+"kolem středu tiskové plochy."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:43
 msgid "Background processing"
@@ -1031,6 +1043,8 @@ msgid ""
 "If this is enabled, Slic3r will pre-process objects as soon as they're "
 "loaded in order to save time when exporting G-code."
 msgstr ""
+"Pokud je tato možnost povolena, Slic3r předprojektuje objekty, jakmile budou "
+"načteny, aby šetřil čas při exportu G-code."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:51
 msgid "Disable USB/serial connection"
@@ -1042,30 +1056,36 @@ msgid ""
 "simplifies the user interface in case the printer is never attached to the "
 "computer."
 msgstr ""
+"Zakázat komunikaci s tiskárnou přes sériový / USB kabel. To zjednodušuje "
+"uživatelské rozhraní v případě, že tiskárna není nikdy připojena k počítači."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:59
 msgid "Suppress \" - default - \" presets"
-msgstr ""
+msgstr "Potlačit “ - výchozí - “ přednastavení"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:61
 msgid ""
 "Suppress \" - default - \" presets in the Print / Filament / Printer "
 "selections once there are any other valid presets available."
 msgstr ""
+"Potlačit “ - výchozí - “ přednastavení v nabídkách Tisk / Filament / "
+"Tiskárna, jakmile budou k dispozici další platné předvolby."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:67
 msgid "Show incompatible print and filament presets"
-msgstr ""
+msgstr "Zobrazit nekompatibilní přednastavení tisku a filamentu"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:69
 msgid ""
 "When checked, the print and filament presets are shown in the preset editor "
 "even if they are marked as incompatible with the active printer"
 msgstr ""
+"Pokud je zaškrtnuto, přednastavení tisku a filamentu se zobrazují v editoru "
+"přednastavení, i když jsou označeny jako nekompatibilní s aktivní tiskárnou"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:75
 msgid "Use legacy OpenGL 1.1 rendering"
-msgstr ""
+msgstr "Použijte historické OpenGL 1.1 vykreslování"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:77
 msgid ""
@@ -1073,10 +1093,13 @@ msgid ""
 "try to check this checkbox. This will disable the layer height editing and "
 "anti aliasing, so it is likely better to upgrade your graphics driver."
 msgstr ""
+"Pokud máte problémy s vykreslováním způsobené chybným ovladačem OpenGL 2.0, "
+"můžete se pokusit zaškrtnout toto políčko. Tím se vypnou úpravy výšky "
+"hladiny a vyhlazení, takže je je lepší upgradovat grafický ovladač."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:101
 msgid "You need to restart Slic3r to make the changes effective."
-msgstr ""
+msgstr "Chcete-li provést změny, musíte restartovat aplikaci Slic3r."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:26
 msgid "Avoid crossing perimeters"
@@ -1088,9 +1111,9 @@ msgid ""
 "is mostly useful with Bowden extruders which suffer from oozing. This "
 "feature slows down both the print and the G-code generation."
 msgstr ""
-"Optimalizovat přesuny do pořadí aby se minimalizovalo přejíždění perimetrů. "
-"Nejvíce užitečné u Bowdenových extruderů které trpí na vytékáné filamentu. "
-"Toto nastavení zpomaluje tisk i generování G-kódu."
+"Optimalizovat rychloposuny do pořadí aby se minimalizovalo přejíždění "
+"perimetrů. Nejvíce užitečné u Bowdenových extruderů které trpí na vytékáné "
+"filamentu. Toto nastavení zpomaluje tisk i generování G-code."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:38
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1572
@@ -1115,13 +1138,13 @@ msgid ""
 "Note that you can use placeholder variables for all Slic3r settings as well "
 "as [layer_num] and [layer_z]."
 msgstr ""
-"Tento upravený kód je vložen pro každou změnu vrstvy, předtím než se pohne "
-"Z. Můžete přidávat zástupné proměnné pro veškeré nastavení Slic3ru stejně "
-"tak jako [layer_num] a [layer_z]."
+"Tento vlastní kód je vložen pro každou změnu vrstvy, předtím než se pohne Z. "
+"Můžete přidávat zástupné proměnné pro veškeré nastavení Slic3ru stejně tak "
+"jako [layer_num] a [layer_z]."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:59
 msgid "Between objects G-code"
-msgstr "G-kód mezi objekty"
+msgstr "G-code mezi objekty"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:60
 msgid ""
@@ -1133,9 +1156,9 @@ msgid ""
 "S[first_layer_temperature]\" command wherever you want."
 msgstr ""
 "Tento kód je vložen mezi objekty, pokud je použit sekvenční tisk. Ve "
-"výchozím nastavení je resetován extrudér a tisková podložka pomocí non-wait "
+"výchozím nastavení je resetován extruder a tisková podložka pomocí non-wait "
 "(nečekacím) příkazem; nicméně pokud jsou příkazy M104, M109, 140 nebo M190 "
-"detekovány v tomto upraveném kódu, Slic3r nebude přidávat teplotní příkazy. "
+"detekovány v tomto vlastním kódu, Slic3r nebude přidávat teplotní příkazy. "
 "Můžete přidávat zástupné proměnné pro veškeré nastavení Slic3ru, takže "
 "můžete vložit příkaz “M109 S[first_layer_temperature]” kamkoliv chcete."
 
@@ -1284,7 +1307,7 @@ msgid ""
 "the overlapping object parts one by the other (2nd part will be clipped by "
 "the 1st, 3rd part will be clipped by the 1st and 2nd etc)."
 msgstr ""
-"Připnutí překrývajících se objektů jednek druhému při multi-materiálovém "
+"Připnutí překrývajících se objektů jeden k druhému při Multimateriálovém "
 "tisku. (Druhá část se připne k první, třetí část k první a druhé, atd)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:147
@@ -1312,7 +1335,7 @@ msgstr ""
 "Při tisku více objektů nebo kopií tiskárna kompletně dokončí jeden objekt, "
 "předtím než začne tisknout druhý (začíná od spodní vstvy). Tato vlastnost je "
 "výhodná z důvodů snížení rizika zničených výtisků. Slic3r by měl varovat při "
-"možné kolizi extrudéru s objektem a zabránit mu, přesto doporučujeme "
+"možné kolizi extruderu s objektem a zabránit mu, přesto doporučujeme "
 "obezřetnost."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:163
@@ -1376,17 +1399,19 @@ msgstr "Vzdálenost mezi kopiemi"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:199
 msgid "Distance used for the auto-arrange feature of the plater."
-msgstr ""
+msgstr "Vzdálenost, použitá pro funkci automatického rozmístění po podložce."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:207
 msgid "Elephant foot compensation"
-msgstr ""
+msgstr "Kompenzace rozplácnutí první vrstvy"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:209
 msgid ""
 "The first layer will be shrunk in the XY plane by the configured value to "
 "compensate for the 1st layer squish aka an Elephant Foot effect."
 msgstr ""
+"První vrstva bude v rovině XY zmenšena nakonfigurovanou hodnotou, která "
+"kompenzuje rozplácnutí první vrstvy."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:218
 msgid ""
@@ -1404,25 +1429,25 @@ msgid ""
 "extruder order."
 msgstr ""
 "Tato ukončovací procedůra je vložena na konec výstupního souboru, před "
-"konečným g-kódem tiskárny. Můžete přidávat zástupné proměnné pro veškeré "
-"nastavení Slic3ru. Pokud máte tiskárnu s více extrudéry, g-kód je zpracován "
-"v pořadí extrudérů."
+"konečným G-code tiskárny. Můžete přidávat zástupné proměnné pro veškeré "
+"nastavení Slic3ru. Pokud máte tiskárnu s více extrudery, G-code je zpracován "
+"v pořadí extruderů."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:238
 msgid "Ensure vertical shell thickness"
-msgstr "Zajistit vertikální tloušťku obalu"
+msgstr "Zajistit tloušťku svislých stěn"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:240
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)."
 msgstr ""
-"Přidá plnou výplň u šikmých ploch pro garanci vertikální tloušťky obalu "
+"Přidá plnou výplň u šikmých ploch pro garanci tloušťky svislých stěn "
 "(vrchních a spodních plných vrstev)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:246
 msgid "Top/bottom fill pattern"
-msgstr "Vzor výplně vrchních/spodních vrstev"
+msgstr "Vzor výplně horních/spodních vrstev"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:248
 msgid ""
@@ -1507,7 +1532,7 @@ msgid "Extra perimeters if needed"
 msgstr "Extra perimetry pokud jsou potřeba"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:299
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "Add more perimeters when needed for avoiding gaps in sloping walls. Slic3r "
 "keeps adding perimeters, until more than 70% of the loop immediately above "
@@ -1523,9 +1548,9 @@ msgid ""
 "This value overrides perimeter and infill extruders, but not the support "
 "extruders."
 msgstr ""
-"Extrudér, který chcete použít (pokud nejsou zvoleny specifičtější nastavení "
+"Extruder, který chcete použít (pokud nejsou zvoleny specifičtější nastavení "
 "extruderu). Tato hodnota přepíše nastavení perimetrového a výplňového "
-"exrtuderu, ale ne nastavení extrudéru pro podpory."
+"exrtuderu, ale ne nastavení extruderu pro podpory."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:320
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:69
@@ -1540,8 +1565,8 @@ msgid ""
 "extruder can peek before colliding with other printed objects."
 msgstr ""
 "Zadejte vertikální vzdálenost mezi tryskou a (obvykle) tyčemi osy X. Jinými "
-"slovy, je to výška kolizního prostoru okolo extrudéru a představuje "
-"maximální hloubku, které může extrudér dosáhnout před kolizí s jinými, již "
+"slovy, je to výška kolizního prostoru okolo extruderu a představuje "
+"maximální hloubku, které může extruder dosáhnout před kolizí s jinými, již "
 "vytištěnými, objekty."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:331
@@ -1554,13 +1579,13 @@ msgid ""
 "not centered, choose the largest value for safety. This setting is used to "
 "check for collisions and to display the graphical preview in the plater."
 msgstr ""
-"Zadejte horizontální rádius kolizního prostoru okolo extrudéru. Pokud tryska "
+"Zadejte horizontální rádius kolizního prostoru okolo extruderu. Pokud tryska "
 "není v centru tohoto rádiusu, zvolte nejdelší vzdálenost. Toto nastavení "
-"slouží ke kontrole kolizí a zobrazení grafického náhledu v Plater."
+"slouží ke kontrole kolizí a zobrazení grafického náhledu na podložce."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:342
 msgid "Extruder Color"
-msgstr "Barva extrudéru"
+msgstr "Barva extruderu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:343
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:406
@@ -1569,7 +1594,7 @@ msgstr "Toto je ve Slic3ru jako názorná pomoc."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:350
 msgid "Extruder offset"
-msgstr "Odsazení extrudéru"
+msgstr "Odsazení extruderu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:351
 msgid ""
@@ -1578,14 +1603,14 @@ msgid ""
 "of each extruder with respect to the first one. It expects positive "
 "coordinates (they will be subtracted from the XY coordinate)."
 msgstr ""
-"Pokud firmware nezpracovává umístění extrudéru správně, potřebujete aby to "
-"vzal G-kód v úvahu. Toto nastavení umožňuje určit odsazení každého extruderu "
-"vzhledem k prvnímu. Očekávají se pozitivní souřadnice (budou odečteny od "
-"souřadnice XY)."
+"Pokud firmware nezpracovává umístění extruderu správně, potřebujete aby to "
+"vzal G-code v úvahu. Toto nastavení umožňuje určit odsazení každého "
+"extruderu vzhledem k prvnímu. Očekávají se pozitivní souřadnice (budou "
+"odečteny od souřadnice XY)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:360
 msgid "Extrusion axis"
-msgstr "Osa extrudéru"
+msgstr "Osa extruderu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:361
 msgid ""
@@ -1606,7 +1631,7 @@ msgid ""
 "Usual values are between 0.9 and 1.1. If you think you need to change this "
 "more, check filament diameter and your firmware E steps."
 msgstr ""
-"Tento faktor mění poměrné množství toku. Možná bude třeba toto nastavení "
+"Tento faktor mění poměrné množství průtoku. Možná bude třeba toto nastavení "
 "vyladit, pro dosažení hezkého povrchu a správné šířky jednotlivých stěn. "
 "Obvyklé hodnoty jsou mezi 0,9 a 1,1. Pokud si myslíte, že hodnotu "
 "potřebujete změnit více, zkontrolujte průměr filamentu a E kroky ve firmwaru."
@@ -1737,9 +1762,9 @@ msgid ""
 "argument, and they can access the Slic3r config settings by reading "
 "environment variables."
 msgstr ""
-"Pokud chcete zpracovat výstupní G-kód pomocí vlastních skriptů, stačí zde "
+"Pokud chcete zpracovat výstupní G-code pomocí vlastních skriptů, stačí zde "
 "uvést jejich absolutní cesty. Oddělte více skriptů středníkem. Skripty "
-"předají absolutní cestu k souboru G-kódu jako první argument a mohou "
+"předají absolutní cestu k souboru G-code jako první argument a mohou "
 "přistupovat k nastavení konfigurace Slic3ru čtením proměnných prostředí."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:470
@@ -1785,7 +1810,7 @@ msgid "Fill density"
 msgstr "Hustota výplně"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:503
-#, fuzzy, no-c-format
+#, no-c-format
 msgid "Density of internal infill, expressed in the range 0% - 100%."
 msgstr "Hustota vnitřní výplně, vyjádřená v rozmezí 0% až 100%."
 
@@ -1876,7 +1901,7 @@ msgid ""
 "manually during print, set this to zero to disable temperature control "
 "commands in the output file."
 msgstr ""
-"Teplota extrudéru pro první vrstvu. Chcete-li během tisku ručně ovládat "
+"Teplota extruderu pro první vrstvu. Chcete-li během tisku ručně ovládat "
 "teplotu, nastavte tuto hodnotu na nulu, aby se ve výstupním souboru zakázaly "
 "příkazy pro řízení teploty."
 
@@ -1884,7 +1909,7 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:145
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:87
 msgid "Gap fill"
-msgstr "Výplň mezer"
+msgstr "Výplň tenkých stěn"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:636
 msgid ""
@@ -1898,7 +1923,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:644
 msgid "Verbose G-code"
-msgstr "Verbose G-code"
+msgstr "Komentáře do G-code"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:645
 msgid ""
@@ -1906,13 +1931,13 @@ msgid ""
 "descriptive text. If you print from SD card, the additional weight of the "
 "file could make your firmware slow down."
 msgstr ""
-"Aktivací získáte komentovaný soubor G-kódu, přičemž každý řádek je doplněn "
+"Aktivací získáte komentovaný soubor G-code, přičemž každý řádek je doplněn "
 "popisným textem. Pokud tisknete z SD karty, dodatečné informace v souboru "
 "můžou zpomalit firmware."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:652
 msgid "G-code flavor"
-msgstr "Druh G-kódu"
+msgstr "Druh G-code"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:653
 msgid ""
@@ -1921,7 +1946,7 @@ msgid ""
 "output. The \"No extrusion\" flavor prevents Slic3r from exporting any "
 "extrusion value at all."
 msgstr ""
-"Některé příkazy G/M kódu, včetně řízení teploty a jiné, nejsou univerzální. "
+"Některé příkazy G/M code, včetně řízení teploty a jiné, nejsou univerzální. "
 "Vyberte typ firmwaru který používá vaše tiskárna pro dosažení kompatibilního "
 "výstupu. Příkazy typu “No extrusion” zabraňují Slic3ru zcela exportovat "
 "jakoukoliv hodnotu extruze."
@@ -1948,7 +1973,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:696
 msgid "Combine infill every n layers"
-msgstr ""
+msgstr "Kombinovat výplň každou n vrstvu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:701
 msgid "Infill extruder"
@@ -1994,7 +2019,7 @@ msgid ""
 msgstr ""
 "Tato volba omezuje výplň na plochy skutečně potřebné pro podporu stropů "
 "(bude se chovat jako vnitřní podpůrný materiál). Je-li tato volba zapnuta, "
-"zpomaluje generování G-kódu kvůli několikanásobným kontrolám."
+"zpomaluje generování G-code kvůli několikanásobným kontrolám."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:735
 msgid "Infill/perimeters overlap"
@@ -2018,7 +2043,7 @@ msgstr "Rychlost tisku vnitřní výplně. Pro automatické nastavení zadejte n
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:757
 msgid "Interface shells"
-msgstr ""
+msgstr "Mezilehlé stěny"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:758
 msgid ""
@@ -2037,7 +2062,7 @@ msgid ""
 "use placeholder variables for all Slic3r settings as well as [layer_num] and "
 "[layer_z]."
 msgstr ""
-"Tento upravený kód je vložen při každé změně vrstvy, hned po pohybu Z a "
+"Tento vlastní kód je vložen při každé změně vrstvy, hned po pohybu Z a "
 "předtím, než se extruder přesune na první bod vrstvy. Můžete přidávat "
 "zástupné proměnné pro veškeré nastavení Slic3ru, stejně tak jako [layer_num] "
 "a [layer_z]."
@@ -2053,21 +2078,21 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:787
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:796
 msgid "Max"
-msgstr "Maximálně"
+msgstr "Maximum"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:788
 msgid "This setting represents the maximum speed of your fan."
 msgstr "Toto nastavení vyjadřuje maximální rychlost ventilátoru."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:797
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "This is the highest printable layer height for this extruder, used to cap "
 "the variable layer height and support layer height. Maximum recommended "
 "layer height is 75% of the extrusion width to achieve reasonable inter-layer "
 "adhesion. If set to 0, layer height is limited to 75% of the nozzle diameter."
 msgstr ""
-"Toto je největší možná výška vrstvy pro tento extrudér, který se používá k "
+"Toto je největší možná výška vrstvy pro tento extruder, který se používá k "
 "zakrytí výšky proměnné vrstvy a výšky podpůrné vrstvy. Maximální doporučená "
 "výška vrstvy činí 75% šířky vytlačování, aby se dosáhlo přiměřené "
 "přilnavosti mezi vrstvami. Pokud je nastavena hodnota 0, je výška vrstvy "
@@ -2098,7 +2123,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:826
 msgid "Max volumetric slope positive"
-msgstr ""
+msgstr "Maximální pozitivní objemový sklon"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:827
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:838
@@ -2116,12 +2141,12 @@ msgstr "mm³/s²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:837
 msgid "Max volumetric slope negative"
-msgstr ""
+msgstr "Maximální negativní objemový sklon"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:848
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:857
 msgid "Min"
-msgstr "Minimálně"
+msgstr "Minimum"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:849
 msgid "This setting represents the minimum PWM your fan needs to work."
@@ -2135,7 +2160,7 @@ msgid ""
 "resolution for variable layer height. Typical values are between 0.05 mm and "
 "0.1 mm."
 msgstr ""
-"Nejmenší tisknutelná výška vrstvy pro tento extrudér. Omezuje rozlišení pro "
+"Nejmenší tisknutelná výška vrstvy pro tento extruder. Omezuje rozlišení pro "
 "výšku proměnné vrstvy. Typické hodnoty jsou mezi 0,05 mm a 0,1 mm."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:866
@@ -2156,13 +2181,13 @@ msgid ""
 "specified amount of filament on the bottom layer. For multi-extruder "
 "machines, this minimum applies to each extruder."
 msgstr ""
-"Nevygenerovat méně, než počet obrysových čar, potřebných ke spotřebování "
+"Nevygenerovat méně, než počet obrysových smyček, potřebných ke spotřebování "
 "specifikovaného množství filamentu na spodní vrstvu. U strojů s více "
-"extrudéry platí toto minimum pro každý extrudér."
+"extrudery platí toto minimum pro každý extruder."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:884
 msgid "Configuration notes"
-msgstr "Configurační poznámky"
+msgstr "Konfigurační poznámky"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:885
 msgid ""
@@ -2170,7 +2195,7 @@ msgid ""
 "header comments."
 msgstr ""
 "Zde můžete zadat své osobní poznámky. Tento text bude přidán do komentáře "
-"záhlaví G kódu."
+"záhlaví G code."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:894
 msgid "Nozzle diameter"
@@ -2179,7 +2204,7 @@ msgstr "Průměr trysky"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:895
 msgid ""
 "This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)"
-msgstr "Průměr trysky extrudéru (například: 0.5, 0.35 atd.)"
+msgstr "Průměr trysky extruderu (například: 0.5, 0.35 atd.)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:901
 msgid "API Key"
@@ -2190,7 +2215,7 @@ msgid ""
 "Slic3r can upload G-code files to OctoPrint. This field should contain the "
 "API Key required for authentication."
 msgstr ""
-"Slic3r může nahrát soubory G kódu do OctoPrintu. Toto pole by mělo obsahovat "
+"Slic3r může nahrát soubory G-code do OctoPrintu. Toto pole by mělo obsahovat "
 "klíč API požadovaný pro ověření."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:908
@@ -2202,7 +2227,7 @@ msgid ""
 "Slic3r can upload G-code files to OctoPrint. This field should contain the "
 "hostname or IP address of the OctoPrint instance."
 msgstr ""
-"Slic3r může nahrát soubory G kódu do OctoPrintu. Toto pole by mělo obsahovat "
+"Slic3r může nahrát soubory G-code do OctoPrintu. Toto pole by mělo obsahovat "
 "název hostitele nebo IP adresu aplikace OctoPrint."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:915
@@ -2215,7 +2240,7 @@ msgid ""
 "perimeters (and thus any ooze will be probably invisible)."
 msgstr ""
 "Vypne retrakce, pokud dráha nepřekročí perimetr vrchní vrstvy (a proto bude "
-"pravděpodobně jakékoliv samovolné vytékání neviditelné)."
+"pravděpodobně jakékoliv odkapávání neviditelné)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:923
 msgid ""
@@ -2228,7 +2253,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:930
 msgid "Output filename format"
-msgstr "Formát výstupního názvu"
+msgstr "Formát názvu výstupního souboru"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:931
 msgid ""
@@ -2299,7 +2324,7 @@ msgstr ""
 msgid ""
 "Speed for perimeters (contours, aka vertical shells). Set to zero for auto."
 msgstr ""
-"Rychlost pro perimetry (obrysy, neboli svislé schránky). Zadejte nulu pro "
+"Rychlost pro perimetry (obrysy, neboli svislé stěny). Zadejte nulu pro "
 "automatické nastavení."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:990
@@ -2357,13 +2382,14 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1050
 msgid "Minimum travel after retraction"
-msgstr "Minimální pohyb po retrakci"
+msgstr "Minimální rychloposun po retrakci"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1051
 msgid ""
 "Retraction is not triggered when travel moves are shorter than this length."
 msgstr ""
-"Retrakce není spuštěna, pokud jsou pohyby pojezdu kratší než tato délka."
+"Retrakce není spuštěna, pokud jsou rychloposuny pojezdu kratší než tato "
+"délka."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1057
 msgid "Retract amount before wipe"
@@ -2473,14 +2499,14 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1118
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1126
 msgid "Extra length on restart"
-msgstr "Extra vzdálenost při restartu"
+msgstr "Extra vzdálenost při návratu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1119
 msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
 "push this additional amount of filament. This setting is rarely needed."
 msgstr ""
-"Když je retrakce kompenzována po pohybu, extruder vytlačuje toto další "
+"Když je retrakce kompenzována po rychloposunu, extruder vytlačuje toto další "
 "množství filamentu. Toto nastavení je zřídkakdy potřeba."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1127
@@ -2536,7 +2562,7 @@ msgstr "Preferovaný směr švu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1180
 msgid "Jitter"
-msgstr ""
+msgstr "Rozkmit (Jitter)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1182
 msgid "Seam preferred direction jitter"
@@ -2567,21 +2593,21 @@ msgid ""
 "Distance between skirt and object(s). Set this to zero to attach the skirt "
 "to the object(s) and get a brim for better adhesion."
 msgstr ""
-"Vzdálenost mezi obrysovou čárou a objektem (objekty). Nastavte tuto hodnotu "
-"na nulu, pro sloučení obrysové čáry/čar s předmětem (předměty) a tvorbu "
-"límce pro dosažení lepší přilnavosti."
+"Vzdálenost mezi obrysem a objektem (objekty). Nastavte tuto hodnotu na nulu, "
+"pro sloučení obrysu s předmětem (předměty) a tvorbu límce pro dosažení lepší "
+"přilnavosti."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1221
 msgid "Skirt height"
-msgstr "Výška obrysové čáry"
+msgstr "Výška obrysu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1222
 msgid ""
 "Height of skirt expressed in layers. Set this to a tall value to use skirt "
 "as a shield against drafts."
 msgstr ""
-"Výška obrysové čáry vyjádřená ve vrstvách. Nastavte tuto hodnotu vysokou, "
-"pro použití obrysové čáry jako stínění proti průvanu."
+"Výška obrysu vyjádřená ve vrstvách. Nastavte tuto hodnotu vysokou, pro "
+"použití obrysu jako stínění proti průvanu."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1229
 msgid "Loops (minimum)"
@@ -2589,7 +2615,7 @@ msgstr "Smyček (minimálně)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1230
 msgid "Skirt Loops"
-msgstr "Počet obrysových čar"
+msgstr "Počet obrysových smyček"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1231
 msgid ""
@@ -2597,9 +2623,9 @@ msgid ""
 "set, the number of loops might be greater than the one configured here. Set "
 "this to zero to disable skirt completely."
 msgstr ""
-"Počet obrysových čar. Je-li nastavena možnost Minimální délka extruze, počet "
-"obrysových čar může být větší než počet zde nakonfigurovaných. Nastavte tuto "
-"hodnotu na nulu, pro úplné deaktivování."
+"Počet obrysových smyček. Je-li nastavena možnost Minimální délka extruze, "
+"počet obrysových smyček může být větší než počet zde nakonfigurovaných. "
+"Nastavte tuto hodnotu na nulu, pro úplné deaktivování."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1239
 msgid "Slow down if layer print time is below"
@@ -2646,11 +2672,11 @@ msgstr "mm²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1271
 msgid "Solid infill extruder"
-msgstr "Extrudér pro plnou výplň"
+msgstr "Extruder pro plnou výplň"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1273
 msgid "The extruder to use when printing solid infill."
-msgstr "Extrudér který bude použit při tisku plných výplní."
+msgstr "Extruder který bude použit při tisku plných výplní."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1279
 msgid "Solid infill every"
@@ -2693,9 +2719,9 @@ msgid ""
 "This can be expressed as a percentage (for example: 80%) over the default "
 "infill speed above. Set to zero for auto."
 msgstr ""
-"Rychlost tisku plných oblastí (vrchní / spodní / vnitřní horizontální "
-"pláště). Může být vyjádřeno procenty (například: 80%) oproti výchozí "
-"rychlosti vyplnění. Pro automatické nastavení zadejte nulu."
+"Rychlost tisku plných oblastí (vrchní / spodní / vnitřní vodorovné stěny). "
+"Může být vyjádřeno procenty (například: 80%) oproti výchozí rychlosti "
+"vyplnění. Pro automatické nastavení zadejte nulu."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1315
 msgid "Number of solid layers to generate on top and bottom surfaces."
@@ -2716,8 +2742,9 @@ msgstr ""
 "Tato funkce zvýší postupně Z při tisku jednovrstvého objektu, aby se "
 "odstranil jakýkoli viditelný šev. Tato volba vyžaduje jediný obvod, žádnou "
 "výplň, žádné vrchní plné vrstvy a žádný podpůrný materiál. Můžete stále "
-"nastavit libovolný počet spodních plných vrstev, stejně jako obrysové čáry / "
-"límec. Při tisku více než jednoho objektu nebude toto nastavení fungovat."
+"nastavit libovolný počet spodních plných vrstev, stejně jako obrysové "
+"smyčky / límec. Při tisku více než jednoho objektu nebude toto nastavení "
+"fungovat."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1332
 msgid "Temperature variation"
@@ -2730,7 +2757,7 @@ msgid ""
 "wiped."
 msgstr ""
 "Teplotní rozdíl, který se použije v případě, že extruder není aktivní. "
-"Umožňuje “obětní” obrysové čáry v plné výšce objektu, na kterém jsou trysky "
+"Umožňuje “obětní” obrysy v plné výšce objektu, na kterém jsou trysky "
 "periodicky očištěny."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1343
@@ -2744,9 +2771,9 @@ msgid ""
 "\"M109 S[first_layer_temperature]\" command wherever you want."
 msgstr ""
 "Tento spouštěcí postup je vložen na začátku, poté, co vyhřívaná tisková "
-"podložka dosáhla cílové teploty a extrudér se právě začal ohřívat a předtím, "
-"než dosáhl cílové teploty extrudér . Pokud Slic3r detekuje M104 nebo M190 ve "
-"vašich upravených kódech, takové příkazy nebudou automaticky předkládány, "
+"podložka dosáhla cílové teploty a extruder se právě začal ohřívat a předtím, "
+"než dosáhl cílové teploty extruder . Pokud Slic3r detekuje M104 nebo M190 ve "
+"vašich vlastních kódech, takové příkazy nebudou automaticky předkládány, "
 "takže máte možnost upravit pořadí příkazů pro vytápění a další vlastní akce. "
 "Pro všechny nastavení Slic3ru můžete použít zástupné proměnné, takže můžete "
 "zadat příkaz “M109 S [first_layer_temperature]” kdekoli chcete."
@@ -2762,18 +2789,18 @@ msgid ""
 "S[first_layer_temperature]\" command wherever you want. If you have multiple "
 "extruders, the gcode is processed in extruder order."
 msgstr ""
-"Tento postup spuštění je vložen na začátku, po každém spuštění G kódu "
+"Tento postup spuštění je vložen na začátku, po každém spuštění G-code "
 "tiskárny. Toto slouží k přepsání nastavení pro konkrétní filament. Pokud "
-"Slic3r detekuje M104, M109, M140 nebo M190 ve vašich uživatelských kódech, "
+"Slic3r detekuje M104, M109, M140 nebo M190 ve vašich vlastních kódech, "
 "takové příkazy nebudou automaticky předkládány, takže máte možnost "
 "přizpůsobit pořadí příkazů k ohřevu a další vlastní akce. Pro všechny "
 "nastavení Slic3ru můžete použít zástupné proměnné, takže můžete zadat příkaz "
 "“M109 S [first_layer_temperature]” kdekoli chcete. Pokud máte více "
-"extruderů, G kód se zpracovává v pořadí extruderů."
+"extruderů, G-code se zpracovává v pořadí extruderů."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1373
 msgid "Single Extruder Multi Material"
-msgstr "Multi Materiálový tisk s jedním extrudérem"
+msgstr "MultiMaterial tisk s jedním extrudérem"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1374
 msgid "The printer multiplexes filaments into a single hot end."
@@ -2823,7 +2850,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1416
 msgid "Contact Z distance"
-msgstr "Kontaktní vzdálenost Z"
+msgstr "Mezera mezi podporami a objektem v ose Z"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1418
 msgid ""
@@ -2857,15 +2884,15 @@ msgstr "Vynucení podpor pro prvních n vrstev"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1444
 msgid "Support material/raft/skirt extruder"
-msgstr "Extruder pro podpory/raft/obrysové čáry"
+msgstr "Extruder pro podpory/raft/obrys"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1446
 msgid ""
 "The extruder to use when printing support material, raft and skirt (1+, 0 to "
 "use the current extruder to minimize tool changes)."
 msgstr ""
-"Extruder, který se používá při tisku podpor, raftu a obrysových čar (1+, 0 "
-"pro použití aktuálního extrudéru pro co nejméně změn nástroje)."
+"Extruder, který se používá při tisku podpor, raftu a obrysu (1+, 0 pro "
+"použití aktuálního extruderu pro co nejméně změn nástroje)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1455
 msgid ""
@@ -2881,26 +2908,31 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1463
 msgid "Interface loops"
-msgstr ""
+msgstr "Kontaktní smyčky"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1465
 msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
 msgstr ""
+"Zakrýt smyčkami horní kontaktní vrstvu podpor. Ve výchozím nastavení "
+"zakázáno."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1470
 msgid "Support material/raft interface extruder"
-msgstr "Extruder pro interface podpory/rafty"
+msgstr "Extruder pro kontaktní podpory/raft"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1472
 msgid ""
 "The extruder to use when printing support material interface (1+, 0 to use "
 "the current extruder to minimize tool changes). This affects raft too."
 msgstr ""
+"Extruder, který se použije při tisku kontaktních vrstev podpor (1+, 0 pro "
+"použití aktuálního extruderu, aby se minimalizovaly změny nástroje). To "
+"ovlivňuje i raft."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1479
 msgid "Interface layers"
-msgstr "Interface vrstvy"
+msgstr "Kontaktní vrstvy"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1481
 msgid ""
@@ -2910,17 +2942,19 @@ msgstr "Počet interface vrstev vložených mezi objekt (objekty) a podpory."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1488
 msgid "Interface pattern spacing"
-msgstr ""
+msgstr "Rozteč kontaktních vrstev"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1490
 msgid "Spacing between interface lines. Set zero to get a solid interface."
 msgstr ""
+"Rozteč linií kontaktních vrstev. Nastavte nulu pro získání plných "
+"kontaktních vrstev."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1497
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:148
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:90
 msgid "Support material interface"
-msgstr "Support material interface"
+msgstr "Kontaktní vrstvy podpor"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1499
 msgid ""
@@ -2941,11 +2975,11 @@ msgstr "Vzor použitý pro generování podpor."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1524
 msgid "Pattern spacing"
-msgstr "Vzdálenost vzoru"
+msgstr "Rozteč podpor"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1526
 msgid "Spacing between support material lines."
-msgstr "Vzdálenost mezi liniemi podpor."
+msgstr "Rozteč linií podpor."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1535
 msgid "Speed for printing support material."
@@ -2965,7 +2999,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1550
 msgid "Overhang threshold"
-msgstr "Práh přesahu"
+msgstr "Mezní úhel převisu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1552
 msgid ""
@@ -2998,7 +3032,7 @@ msgid ""
 "Extruder temperature for layers after the first one. Set this to zero to "
 "disable temperature control commands in the output."
 msgstr ""
-"Teplota extrudéru pro následující vrstvy po vrstvě první. Nastavte tuto "
+"Teplota extruderu pro následující vrstvy po vrstvě první. Nastavte tuto "
 "hodnotu na nulu, abyste zakázali příkazy pro řízení teploty na výstupu."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1576
@@ -3033,7 +3067,7 @@ msgid ""
 "you can use placeholder variables for all Slic3r settings as well as "
 "[previous_extruder] and [next_extruder]."
 msgstr ""
-"Tento upravený kód je vložen těsně před každou změnou extruderu. Můžete "
+"Tento vlastní kód je vložen těsně před každou změnou extruderu. Můžete "
 "použít zástupné proměnné pro všechna nastavení Slic3ru, stejně jako "
 "[previous_extruder] a [next_extruder]."
 
@@ -3042,7 +3076,7 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:143
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:85
 msgid "Top solid infill"
-msgstr "Vrchní plná výplň"
+msgstr "Výplň plných horních"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1615
 msgid ""
@@ -3076,7 +3110,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1638
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:369
 msgid "Top"
-msgstr "Vrchních"
+msgstr "Horních"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1640
 msgid "Number of solid layers to generate on top surfaces."
@@ -3089,15 +3123,15 @@ msgstr "Vrchních plných vrstev"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1647
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:95
 msgid "Travel"
-msgstr "Přesun"
+msgstr "Rychloposun"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1648
 msgid "Speed for travel moves (jumps between distant extrusion points)."
-msgstr "Rychlost přesunů (přejezdy mezi body extruze)."
+msgstr "Rychlost posunů (přejezdy mezi body extruze)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1656
 msgid "Use firmware retraction"
-msgstr "Použít retrakce z firmware"
+msgstr "Použít retrakce z firmwaru"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1657
 msgid ""
@@ -3122,7 +3156,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1670
 msgid "Use volumetric E"
-msgstr "Použije volumetrickou hodnotu E"
+msgstr "Použít volumetrickou hodnotu E"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1671
 msgid ""
@@ -3135,7 +3169,7 @@ msgid ""
 msgstr ""
 "Toto experimentální nastavení používá výstupní hodnoty E v kubických "
 "milimetrech místo lineárních milimetrů. Pokud firmware dosud nezná průměr "
-"(průměry) filamentu, můžete v počátečním G-kódu zadat příkazy jako “M200 D "
+"(průměry) filamentu, můžete v počátečním G-code zadat příkazy jako “M200 D "
 "[filament_diameter_0] T0”, pro se zapnutí volumetrického režimu a použití "
 "průměru filamentu přidruženého k vybranému filamentu ve Slic3ru. Toto je "
 "podporováno pouze v posledních verzích firmwaru Marlin."
@@ -3169,8 +3203,8 @@ msgid ""
 "Multi material printers may need to prime or purge extruders on tool "
 "changes. Extrude the excess material into the wipe tower."
 msgstr ""
-"Multi-materiálové tiskárny mohou potřebovat, aby při výměně nástrojů "
-"vyčistili extrudéry. Vytlačí přebytečný materiál do čistící věže."
+"Multimateriálové tiskárny mohou potřebovat, aby při výměně nástrojů "
+"vyčistili extrudery. Vytlačí přebytečný materiál do čistící věže."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1702
 msgid "Position X"
@@ -3237,81 +3271,83 @@ msgid ""
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
 "Tato hodnota bude přidána (nebo odečtena) ze všech souřadnic Z ve výstupním "
-"G kódu. Používá se ke kompenzování špatné pozice endstopu Z. Například pokud "
+"G-code. Používá se ke kompenzování špatné pozice endstopu Z. Například pokud "
 "endstop 0 skutečně ponechá trysku 0,3 mm daleko od tiskové podložky, "
 "nastavte hodnotu -0,3 (nebo dolaďte svůj koncový doraz)."
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:137
 msgid "None"
-msgstr ""
+msgstr "Žádný"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:138
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:80
 msgid "Perimeter"
-msgstr ""
+msgstr "Perimetr"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:139
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:81
 msgid "External perimeter"
-msgstr ""
+msgstr "Vnější perimetr"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:140
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:82
 msgid "Overhang perimeter"
-msgstr ""
+msgstr "Perimetr převisu"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:141
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:83
 msgid "Internal infill"
-msgstr ""
+msgstr "Vnitřní výplň"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:144
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:86
 msgid "Bridge infill"
-msgstr ""
+msgstr "Výplň mostů"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:151
 msgid "Mixed"
-msgstr ""
+msgstr "Smíšený"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:330
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:68
 msgid "Feature type"
-msgstr ""
+msgstr "Typ"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:332
 msgid "Height (mm)"
-msgstr ""
+msgstr "Výška (mm)"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:334
 msgid "Width (mm)"
-msgstr ""
+msgstr "Šířka (mm)"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:336
 msgid "Speed (mm/s)"
-msgstr ""
+msgstr "Rychlost (mm/s)"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:338
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:72
 msgid "Tool"
-msgstr ""
+msgstr "Nástroj"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI.pm:286
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
-msgstr ""
+msgstr "Vyberte jeden nebo více souborů (STL/OBJ/AMF/3MF/PRUSA):"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:66
 msgid "Version "
-msgstr ""
+msgstr "Verze "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:66
 msgid ""
 " - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"
 msgstr ""
+" - Nezapomeňte zkontrolovat aktualizace na http://github.com/prusa3d/slic3r/"
+"releases"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:118
 msgid "Plater"
-msgstr ""
+msgstr "Podložka"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:120
 msgid "Controller"
@@ -3323,7 +3359,7 @@ msgstr "Nenalezena žádná Bonjour zařízení"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:192
 msgid "Device Browser"
-msgstr ""
+msgstr "Prohlížeč zařízení"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:211
 msgid "Connection to OctoPrint works correctly."
@@ -3331,11 +3367,13 @@ msgstr "Připojení k OctoPrint pracuje správně."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:214
 msgid "I wasn't able to connect to OctoPrint ("
-msgstr ""
+msgstr "Nelze se připojit k aplikaci OctoPrint ("
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:215
 msgid "). Check hostname and OctoPrint version (at least 1.1.0 is required)."
 msgstr ""
+"). Zkontrolujte název hostitele a verzi OctoPrint (vyžaduje se nejméně "
+"1.1.0)."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:251
 msgid "Open STL/OBJ/AMF…\tCtrl+O"
@@ -3371,7 +3409,7 @@ msgstr "Načíst přednastavení z balíku"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:263
 msgid "&Export Config Bundle…"
-msgstr ""
+msgstr "&Exportovat Konfigurační Balík…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:263
 msgid "Export all presets to file"
@@ -3379,43 +3417,43 @@ msgstr "Exportovat všechna přednastavení do souboru"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:268
 msgid "Q&uick Slice…\tCtrl+U"
-msgstr "R&ychlý Řez…\tCtrl+U"
+msgstr "R&ychlé Slicování…\tCtrl+U"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:268
 msgid "Slice a file into a G-code"
-msgstr "Řez souboru do G-kódu"
+msgstr "Slicovat soubor do G-code"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:274
 msgid "Quick Slice and Save &As…\tCtrl+Alt+U"
-msgstr "Rychlý Řez a Uložit &jako…\tCtrl+Alt+U"
+msgstr "Rychlé Slicování a Uložit &jako…\tCtrl+Alt+U"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:274
 msgid "Slice a file into a G-code, save as"
-msgstr "Řez souboru do G-kódu, uložit jako"
+msgstr "Slicovat soubor do G-code, uložit jako"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:280
 msgid "&Repeat Last Quick Slice\tCtrl+Shift+U"
-msgstr "&Opakovat Poslední Rychlý Řez\tCtrl+Shift+U"
+msgstr "&Opakovat Poslední Slicování\tCtrl+Shift+U"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:280
 msgid "Repeat last quick slice"
-msgstr "Opakovat poslední rychlý řez"
+msgstr "Opakovat poslední rychlé slicování"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:287
 msgid "Slice to SV&G…\tCtrl+G"
-msgstr "Řez do SV&G…\tCtrl+G"
+msgstr "Slicovat do SV&G…\tCtrl+G"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:287
 msgid "Slice file to a multi-layer SVG"
-msgstr "Řez souboru do více-vrstvého SVG"
+msgstr "Slicovat soubor do více-vrstvého SVG"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:291
 msgid "(&Re)Slice Now\tCtrl+S"
-msgstr ""
+msgstr "(&Znovu)Slicovat\tCtrl+S"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:291
 msgid "Start new slicing process"
-msgstr ""
+msgstr "Zahájit nový slicovací proces"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:294
 msgid "Repair STL file…"
@@ -3447,39 +3485,39 @@ msgstr "Exportovat G-kód…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:314
 msgid "Export current plate as G-code"
-msgstr ""
+msgstr "Exportovat stávající plochu do G-code"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:317
 msgid "Export plate as STL..."
-msgstr ""
+msgstr "Exportovat plochu jako STL..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:317
 msgid "Export current plate as STL"
-msgstr ""
+msgstr "Exportovat stávající plochu jako STL"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:320
 msgid "Export plate as AMF..."
-msgstr ""
+msgstr "Exportovat plochu jako AMF..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:320
 msgid "Export current plate as AMF"
-msgstr ""
+msgstr "Exportovat stávající plochu jako AMF"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:323
 msgid "Export plate as 3MF..."
-msgstr ""
+msgstr "Exportovat plochu jako 3MF..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:323
 msgid "Export current plate as 3MF"
-msgstr ""
+msgstr "Exportovat stávající plochu jako 3MF"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:336
 msgid "Select &Plater Tab\tCtrl+1"
-msgstr "Zobrazit panel Plater\tCtrl+1"
+msgstr "Zobrazit panel Podložka\tCtrl+1"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:336
 msgid "Show the plater"
-msgstr ""
+msgstr "Zobrazit podložku"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:342
 msgid "Select &Controller Tab\tCtrl+T"
@@ -3487,7 +3525,7 @@ msgstr "Zobrazit panel Ovladač\tCtrl+T"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:342
 msgid "Show the printer controller"
-msgstr ""
+msgstr "Zobrazit ovladač tiskárny"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:350
 msgid "Select P&rint Settings Tab\tCtrl+2"
@@ -3495,7 +3533,7 @@ msgstr "Zobrazit panel Nastavení tisku\tCtrl+2"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:350
 msgid "Show the print settings"
-msgstr ""
+msgstr "Zobrazit nastavení tisku"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:353
 msgid "Select &Filament Settings Tab\tCtrl+3"
@@ -3503,7 +3541,7 @@ msgstr "Zobrazit panel Nastavení filamentu\tCtrl+3"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:353
 msgid "Show the filament settings"
-msgstr ""
+msgstr "Zobrazit nastavení filamentu"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:356
 msgid "Select Print&er Settings Tab\tCtrl+4"
@@ -3511,15 +3549,15 @@ msgstr "Zobrazit panel Nastavení tiskárny\tCtrl+4"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:356
 msgid "Show the printer settings"
-msgstr ""
+msgstr "Zobrazit nastavení tiskárny"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:368
 msgid "Iso"
-msgstr "Iso"
+msgstr "Izometrické"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:368
 msgid "Iso View"
-msgstr "Pohled iso"
+msgstr "Izometrické zobrazení"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:369
 msgid "Top View"
@@ -3575,7 +3613,7 @@ msgstr "Prusa 3D Ovladače"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:385
 msgid "Open the Prusa3D drivers download page in your browser"
-msgstr "Otevřít stránku pro stahování Prusa3D ovladačů ve vašem prohlížeči"
+msgstr "Otevřít stránku pro stahování Prusa 3D ovladačů ve vašem prohlížeči"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:388
 msgid "Prusa Edition Releases"
@@ -3631,7 +3669,7 @@ msgstr "&Soubor"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:419
 msgid "&Plater"
-msgstr ""
+msgstr "&Podložka"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:420
 msgid "&Object"
@@ -3651,19 +3689,19 @@ msgstr "&Pomoc"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:457
 msgid "Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):"
-msgstr "Zvolit soubor k řezu (STL/OBJ/AMF/3MF/PRUSA):"
+msgstr "Zvolit soubor ke slicování (STL/OBJ/AMF/3MF/PRUSA):"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:469
 msgid "No previously sliced file."
-msgstr ""
+msgstr "Žádné dříve slicované soubory."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:474
 msgid "Previously sliced file ("
-msgstr ""
+msgstr "Dříve slicovaný soubor ("
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:474
 msgid ") not found."
-msgstr ""
+msgstr ") nebyl nalezen."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:475
 msgid "File Not Found"
@@ -3675,7 +3713,7 @@ msgstr "SVG"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 msgid "G-code"
-msgstr "G-kód"
+msgstr "G-code"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1645
@@ -3684,19 +3722,19 @@ msgstr " soubor jako:"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:528
 msgid "Slicing…"
-msgstr ""
+msgstr "Slicování…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:528
 msgid "Processing "
-msgstr ""
+msgstr "Zpracovávám "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:548
 msgid " was successfully sliced."
-msgstr ""
+msgstr " byl úspěšně slicován."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:550
 msgid "Slicing Done!"
-msgstr ""
+msgstr "Slicování dokončeno!"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:566
 msgid "Select the STL file to repair:"
@@ -3791,7 +3829,7 @@ msgstr "45° doprava"
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:187
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:203
 msgid "Scale…"
-msgstr "Škálovat"
+msgstr "Velikost…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:188
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:204
@@ -3813,11 +3851,11 @@ msgstr "Nastavení…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:192
 msgid "Layer Editing"
-msgstr "Editování Vrstev"
+msgstr "Vyhlazení vrstev"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:207
 msgid "Layer editing"
-msgstr "Editování vstev"
+msgstr "Vyhlazení vrstev"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:220
 msgid "Name"
@@ -3841,7 +3879,7 @@ msgstr "Exportovat G-kód…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:237
 msgid "Slice now"
-msgstr ""
+msgstr "Slicovat"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:238
 msgid "Print…"
@@ -3873,7 +3911,7 @@ msgstr "Obsah"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:410
 msgid "Facets"
-msgstr "Trojúhelníků"
+msgstr "Facety"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:411
 msgid "Materials"
@@ -3885,7 +3923,7 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:438
 msgid "Sliced Info"
-msgstr ""
+msgstr "Informace o slicování"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:447
 msgid "Used Filament (m)"
@@ -3910,7 +3948,7 @@ msgstr "Načítání…"
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:629
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:643
 msgid "Processing input file\n"
-msgstr ""
+msgstr "Zpracovávám vstupní soubor\n"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:663
 msgid ""
@@ -3918,11 +3956,14 @@ msgid ""
 "of considering them as multiple objects, should I consider\n"
 "this file as a single object having multiple parts?\n"
 msgstr ""
+"Tento soubor obsahuje několik objektů umístěných v různých výškách. Mají být "
+"vloženy jako jeden objekt obsahující více částí,\n"
+"namísto vložení několika objektů?\n"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:666
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:683
 msgid "Multi-part object detected"
-msgstr ""
+msgstr "Detekován objekt obsahující více částí"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:680
 msgid ""
@@ -3940,6 +3981,8 @@ msgid ""
 "Your object appears to be too large, so it was automatically scaled down to "
 "fit your print bed."
 msgstr ""
+"Váš objekt se zdá být příliš velký, takže byl automaticky zmenšen, aby se "
+"vešel na tiskovou podložku."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:745
 msgid "Object too large?"
@@ -3947,23 +3990,27 @@ msgstr "Objekt moc velký?"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:900
 msgid "Enter the number of copies of the selected object:"
-msgstr ""
+msgstr "Zadejte počet kopií pro vybraný objekt:"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:927
 msgid ""
 "\n"
 "Non-positive value."
 msgstr ""
+"\n"
+"Nezáporná hodnota."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:928
 msgid ""
 "\n"
 "Not a numeric value."
 msgstr ""
+"\n"
+"Nečíselná hodnota."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:929
 msgid "Slic3r Error"
-msgstr ""
+msgstr "Chyba Slic3ru"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:950
 msgid "Enter the rotation angle:"
@@ -3980,60 +4027,62 @@ msgstr "Zadán neplatný úhel otočení"
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1030
 #, perl-format
 msgid "Enter the new size for the selected object (print bed: %smm):"
-msgstr ""
+msgstr "Zadejte novou velikost vybraného objektu (tisková podložka: %smm):"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1031
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1035
 msgid "Scale along "
-msgstr "Škálovat podél "
+msgstr "Upravit rozměr podél "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1031
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1035
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1056
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1061
 msgid "Invalid scaling value entered"
-msgstr ""
+msgstr "Zadána neplatná hodnota pro úpravu rozměru"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1035
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1061
 #, no-perl-format
 msgid "Enter the scale % for the selected object:"
-msgstr ""
+msgstr "Zadejte rozměr % pro zvolený objekt:"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1056
 msgid "Enter the new max size for the selected object:"
-msgstr ""
+msgstr "Zvolte nový maximální rozměr pro zvolný objekt:"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1112
 msgid ""
 "The selected object can't be split because it contains more than one volume/"
 "material."
 msgstr ""
+"Vybraný objekt nemůže být rozdělen, protože obsahuje více nez jeden objem/"
+"materiál."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1121
 msgid ""
 "The selected object couldn't be split because it contains only one part."
-msgstr ""
+msgstr "Vybraný objekt nemůže být rozdělen, protože obsahuje pouze jednu část."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1286
 msgid "Slicing cancelled"
-msgstr ""
+msgstr "Slicování zrušeno"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1300
 msgid "Another export job is currently running."
-msgstr ""
+msgstr "V současné době běží jiná úloha exportu."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1445
 msgid "File added to print queue"
-msgstr ""
+msgstr "Soubor byl přidán do tiskové fronty"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1448
 msgid "Sending G-code file to the OctoPrint server..."
-msgstr ""
+msgstr "Odesílání souboru G-code na server OctoPrint…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1451
 msgid "G-code file exported to "
-msgstr ""
+msgstr "Soubor G-code byl exportován do "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1454
 msgid "Export failed"
@@ -4041,37 +4090,37 @@ msgstr "Exportování selhalo"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1524
 msgid "G-code file successfully uploaded to the OctoPrint server"
-msgstr ""
+msgstr "Soubor G-code byl úspěšně odeslán na server OctoPrint"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1526
 msgid "Error while uploading to the OctoPrint server: "
-msgstr ""
+msgstr "Chyba při nahrávání na server OctoPrint: "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1539
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1581
 msgid "STL file exported to "
-msgstr ""
+msgstr "Soubor STL byl exportován do "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1592
 msgid "AMF file exported to "
-msgstr ""
+msgstr "Soubor AMF byl exportován do "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1596
 msgid "Error exporting AMF file "
-msgstr ""
+msgstr "Chyba při exportu souboru AMF "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1608
 msgid "3MF file exported to "
-msgstr ""
+msgstr "Soubor 3MF byl exportován do "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1612
 msgid "Error exporting 3MF file "
-msgstr ""
+msgstr "Chyba při exportu souboru 3MF "
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1958
 #, perl-format
 msgid "%d (%d shells)"
-msgstr ""
+msgstr "%d (%d obalů)"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1960
 #, perl-format
@@ -4111,27 +4160,27 @@ msgstr "Odstaní jednu kopii vybraného objektu"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2030
 msgid "Set number of copies…"
-msgstr "Zadejte počet kopií…"
+msgstr "Zadat počet kopií…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2030
 msgid "Change the number of copies of the selected object"
-msgstr ""
+msgstr "Změňte počet kopií vybraného objektu"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2034
 msgid "Rotate 45° clockwise"
-msgstr ""
+msgstr "Otočit o 45° ve směru hodinových ručiček"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2034
 msgid "Rotate the selected object by 45° clockwise"
-msgstr ""
+msgstr "Otočit vybraný objekt o 45° ve směru hodinových ručiček"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2037
 msgid "Rotate 45° counter-clockwise"
-msgstr ""
+msgstr "Otočit o 45° proti směru hodinových ručiček"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2037
 msgid "Rotate the selected object by 45° counter-clockwise"
-msgstr ""
+msgstr "Otočit vybraný objekt o 45° proti směru hodinových ručiček"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2042
 msgid "Rotate"
@@ -4139,7 +4188,7 @@ msgstr "Otočit"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2042
 msgid "Rotate the selected object by an arbitrary angle"
-msgstr ""
+msgstr "Otočit vybraným objektem o libovolný úhel"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2044
 msgid "Around X axis…"
@@ -4147,7 +4196,7 @@ msgstr "Okolo osy X…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2044
 msgid "Rotate the selected object by an arbitrary angle around X axis"
-msgstr ""
+msgstr "Otočit vybraným objektem o libovolný úhel kolem osy X"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2047
 msgid "Around Y axis…"
@@ -4155,7 +4204,7 @@ msgstr "Okolo osy Y…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2047
 msgid "Rotate the selected object by an arbitrary angle around Y axis"
-msgstr ""
+msgstr "Otočit vybraným objektem o libovolný úhel kolem osy Y"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2050
 msgid "Around Z axis…"
@@ -4163,7 +4212,7 @@ msgstr "Okolo osy Z…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2050
 msgid "Rotate the selected object by an arbitrary angle around Z axis"
-msgstr ""
+msgstr "Otočit vybraným objektem o libovolný úhel kolem osy Z"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2055
 msgid "Mirror"
@@ -4181,7 +4230,7 @@ msgstr "Podél osy X…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2057
 msgid "Mirror the selected object along the X axis"
-msgstr ""
+msgstr "Zrcadlit rozměr vybraného objektu podél osy X"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2060
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2076
@@ -4191,7 +4240,7 @@ msgstr "Podél osy Y…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2060
 msgid "Mirror the selected object along the Y axis"
-msgstr ""
+msgstr "Zrcadlit rozměr vybraného objektu podél osy Y"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2063
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2079
@@ -4201,12 +4250,12 @@ msgstr "Podél osy Z…"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2063
 msgid "Mirror the selected object along the Z axis"
-msgstr ""
+msgstr "Zrcadlit rozměr vybraného objektu podél osy Z"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2068
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2084
 msgid "Scale the selected object along a single axis"
-msgstr ""
+msgstr "Změnit rozměr vybraného objektu podél jedné osy"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2070
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2086
@@ -4216,38 +4265,38 @@ msgstr "Souměrně…"
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2070
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2086
 msgid "Scale the selected object along the XYZ axes"
-msgstr ""
+msgstr "Změnit rozměr vybraného objektu podél os XYZ"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2073
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2089
 msgid "Scale the selected object along the X axis"
-msgstr ""
+msgstr "Změnit rozměr vybraného objektu podél osy X"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2076
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2092
 msgid "Scale the selected object along the Y axis"
-msgstr ""
+msgstr "Změnit rozměr vybraného objektu podél osy Y"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2079
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2095
 msgid "Scale the selected object along the Z axis"
-msgstr ""
+msgstr "Změnit rozměr vybraného objektu podél osy Z"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2084
 msgid "Scale to size"
-msgstr "Škálovat do rozměru"
+msgstr "Upravit do rozměru"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2099
 msgid "Split the selected object into individual parts"
-msgstr ""
+msgstr "Rozdělit vybraný objekt na jednotlivé části"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2102
 msgid "Open the 3D cutting tool"
-msgstr ""
+msgstr "Otevřete nástroj 3D řezání"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2106
 msgid "Open the object editor dialog"
-msgstr ""
+msgstr "Otevře dialogové okno editoru objektů"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2110
 msgid "Reload from Disk"
@@ -4267,37 +4316,37 @@ msgstr "Exportovat tento jediný objekt jako STL soubor"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\2D.pm:131
 msgid "What do you want to print today? ™"
-msgstr ""
+msgstr "Co chcete dnes tisknout? ™"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\2D.pm:132
 msgid "Drag your objects here"
-msgstr ""
+msgstr "Přetáhněte své objekty sem"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:63
 msgid "1 Layer"
-msgstr ""
+msgstr "1 Vrstva"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:65
 msgid "View"
-msgstr ""
+msgstr "Zobrazení"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:75
 msgid "Show"
-msgstr ""
+msgstr "Zobrazit"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:78
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:79
 msgid "Feature types"
-msgstr ""
+msgstr "Typy extruzí"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:96
 msgid "Retractions"
-msgstr ""
+msgstr "Retrakce"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:97
 msgid "Unretractions"
-msgstr ""
+msgstr "Deretrakce"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:98
 msgid "Shells"
-msgstr ""
+msgstr "Skořápky"
