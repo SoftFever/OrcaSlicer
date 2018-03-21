@@ -107,9 +107,11 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
                 TYPE_G1                 = 1 << 5,
                 TYPE_ADJUSTABLE         = 1 << 6,
                 TYPE_EXTERNAL_PERIMETER = 1 << 7,
-                TYPE_WIPE               = 1 << 8,
-                TYPE_G4                 = 1 << 9,
-                TYPE_G92                = 1 << 10,
+                // The line sets a feedrate.
+                TYPE_HAS_F              = 1 << 8,
+                TYPE_WIPE               = 1 << 9,
+                TYPE_G4                 = 1 << 10,
+                TYPE_G92                = 1 << 11,
             };
 
             Line(unsigned int type, size_t  line_start, size_t  line_end) :
@@ -187,9 +189,13 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
                                   (*c == extrusion_axis) ? 3 : (*c == 'F') ? 4 : size_t(-1);
 					if (axis != size_t(-1)) {
 						new_pos[axis] = float(atof(++c));
-						if (axis == 4)
+						if (axis == 4) {
 							// Convert mm/min to mm/sec.
 							new_pos[4] /= 60.f;
+                            if ((line.type & Adjustment::Line::TYPE_G92) == 0)
+                                // This is G0 or G1 line and it sets the feedrate. This mark is used for reducing the duplicate F calls.
+                                line.type |= Adjustment::Line::TYPE_HAS_F;
+                        }
 					}
                     // Skip this word.
                     for (; *c != ' ' && *c != '\t' && *c != 0; ++ c);
@@ -227,6 +233,8 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
 					if ((line.type & Adjustment::Line::TYPE_ADJUSTABLE) || active_speed_modifier != size_t(-1))
                         line.time_max = (min_print_speed == 0.f) ? FLT_MAX : std::max(line.time, line.length / min_print_speed);
 					if (active_speed_modifier < adjustment->lines.size() && (line.type & Adjustment::Line::TYPE_G1)) {
+                        // Inside the ";_EXTRUDE_SET_SPEED" blocks, there must not be a G1 Fxx entry.
+                        assert((line.type & Adjustment::Line::TYPE_HAS_F) == 0);
 						Adjustment::Line &sm = adjustment->lines[active_speed_modifier];
 						sm.length   += line.length;
 						sm.time     += line.time;
@@ -415,17 +423,20 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
     };
 	change_extruder_set_fan();
 
-    size_t pos = 0;
+    const char *pos              = gcode.c_str();
+    int         current_feedrate = 0;
     for (const Adjustment::Line *line : lines) {
-        if (line->line_start > pos)
-            new_gcode.append(gcode.c_str() + pos, line->line_start - pos);
+        const char *line_start  = gcode.c_str() + line->line_start;
+        const char *line_end    = gcode.c_str() + line->line_end;
+        if (line_start > pos)
+            new_gcode.append(pos, line_start - pos);
         if (line->type & Adjustment::Line::TYPE_SET_TOOL) {
-            unsigned int new_extruder = (unsigned int)atoi(gcode.c_str() + line->line_start + toolchange_prefix.size());
+            unsigned int new_extruder = (unsigned int)atoi(line_start + toolchange_prefix.size());
             if (new_extruder != m_current_extruder) {
                 m_current_extruder = new_extruder;
                 change_extruder_set_fan();
             }
-            new_gcode.append(gcode.c_str() + line->line_start, line->line_end - line->line_start);
+            new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & Adjustment::Line::TYPE_BRIDGE_FAN_START) {
             if (bridge_fan_control)
                 new_gcode += m_gcodegen.writer().set_fan(bridge_fan_speed, true);
@@ -434,40 +445,80 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
                 new_gcode += m_gcodegen.writer().set_fan(fan_speed, true);
         } else if (line->type & Adjustment::Line::TYPE_EXTRUDE_END) {
             // Just remove this comment.
-        } else if (line->type & (Adjustment::Line::TYPE_ADJUSTABLE | Adjustment::Line::TYPE_EXTERNAL_PERIMETER | Adjustment::Line::TYPE_WIPE)) {
-            // Start of the comment. The line type indicates there must be some comment present.
-            const char *end = strchr(gcode.c_str() + line->line_start, ';');
+        } else if (line->type & (Adjustment::Line::TYPE_ADJUSTABLE | Adjustment::Line::TYPE_EXTERNAL_PERIMETER | Adjustment::Line::TYPE_WIPE | Adjustment::Line::TYPE_HAS_F)) {
+            // Find the start of a comment, or roll to the end of line.
+			const char *end = line_start;
+			for (; end < line_end && *end != ';'; ++ end);
+			// Find the 'F' word.
+            const char *fpos            = strstr(line_start + 2, " F") + 2;
+            int         new_feedrate    = current_feedrate;
+            bool        modify          = false;
+            assert(fpos != nullptr);
             if (line->slowdown) {
-                // Replace the feedrate.
-                const char *pos = strstr(gcode.c_str() + line->line_start + 2, " F") + 2;
-                new_gcode.append(gcode.c_str() + line->line_start, pos - gcode.c_str() - line->line_start);
-                char buf[64];
-                sprintf(buf, "%d", int(floor(60. * (line->length / line->time) + 0.5)));
-                new_gcode += buf;
-                // Skip the non-whitespaces up to the comment.
-                for (; *pos != ' ' && *pos != ';'; ++ pos);
-                // Append the rest of the line without the comment.
-                if (pos < end)
-                    new_gcode.append(pos, end - pos);
+                modify       = true;
+                new_feedrate = int(floor(60. * (line->length / line->time) + 0.5));
             } else {
-                // Append the line without the comment.
-                new_gcode.append(gcode.c_str() + line->line_start, end - gcode.c_str() - line->line_start);
+                new_feedrate = atoi(fpos);
+                if (new_feedrate != current_feedrate) {
+                    // Append the line without the comment.
+                    new_gcode.append(line_start, end - line_start);
+                    current_feedrate = new_feedrate;
+                } else if ((line->type & (Adjustment::Line::TYPE_ADJUSTABLE | Adjustment::Line::TYPE_EXTERNAL_PERIMETER | Adjustment::Line::TYPE_WIPE)) || line->length == 0.) {
+                    // Feedrate does not change and this line does not move the print head. Skip the complete G-code line including the G-code comment.
+                    end = line_end;
+                } else {
+                    // Remove the feedrate from the G0/G1 line.
+                    modify = true;
+                }
             }
-            // Process the comments, remove ";_EXTRUDE_SET_SPEED", ";_EXTERNAL_PERIMETER", ";_WIPE"
-            std::string comment(end, gcode.c_str() + line->line_end);
-            boost::replace_all(comment, ";_EXTRUDE_SET_SPEED", "");
-            if (line->type & Adjustment::Line::TYPE_EXTERNAL_PERIMETER)
-                boost::replace_all(comment, ";_EXTERNAL_PERIMETER", "");
-            if (line->type & Adjustment::Line::TYPE_WIPE)
-                boost::replace_all(comment, ";_WIPE", "");
-            new_gcode += comment;
+            if (modify) {
+                if (new_feedrate != current_feedrate) {
+                    // Replace the feedrate.
+                    new_gcode.append(line_start, fpos - line_start);
+                    current_feedrate = new_feedrate;
+                    char buf[64];
+                    sprintf(buf, "%d", int(current_feedrate));
+                    new_gcode += buf;
+                } else {
+                    // Remove the feedrate word.
+                    const char *f = fpos;
+                    // Roll the pointer before the 'F' word.
+                    for (f -= 2; f > line_start && (*f == ' ' || *f == '\t'); -- f);
+                    // Append up to the F word, without the trailing whitespace.
+                    new_gcode.append(line_start, f - line_start + 1);
+                }
+                // Skip the non-whitespaces of the F parameter up the comment or end of line.
+				for (; fpos != end && *fpos != ' ' && *fpos != ';' && *fpos != '\n'; ++fpos);
+                // Append the rest of the line without the comment.
+                if (fpos < end)
+                    new_gcode.append(fpos, end - fpos);
+                // There should never be an empty G1 statement emited by the filter. Such lines should be removed completely.
+                assert(new_gcode.size() < 4 || new_gcode.substr(new_gcode.size() - 4) != "G1 \n");
+            }
+            // Process the rest of the line.
+            if (end < line_end) {
+                if (line->type & (Adjustment::Line::TYPE_ADJUSTABLE | Adjustment::Line::TYPE_EXTERNAL_PERIMETER | Adjustment::Line::TYPE_WIPE)) {
+					// Process comments, remove ";_EXTRUDE_SET_SPEED", ";_EXTERNAL_PERIMETER", ";_WIPE"
+					std::string comment(end, line_end);
+					boost::replace_all(comment, ";_EXTRUDE_SET_SPEED", "");
+                    if (line->type & Adjustment::Line::TYPE_EXTERNAL_PERIMETER)
+                        boost::replace_all(comment, ";_EXTERNAL_PERIMETER", "");
+                    if (line->type & Adjustment::Line::TYPE_WIPE)
+                        boost::replace_all(comment, ";_WIPE", "");
+					new_gcode += comment;
+				} else {
+					// Just attach the rest of the source line.
+					new_gcode.append(end, line_end - end);
+				}
+            }
         } else {
-			new_gcode.append(gcode.c_str() + line->line_start, line->line_end - line->line_start);
+			new_gcode.append(line_start, line_end - line_start);
         }
-        pos = line->line_end;
+        pos = line_end;
     }
-    if (pos < gcode.size())
-        new_gcode.append(gcode.c_str() + pos, gcode.size() - pos);
+    const char *gcode_end = gcode.c_str() + gcode.size();
+    if (pos < gcode_end)
+        new_gcode.append(pos, gcode_end - pos);
 
     return new_gcode;
 }
