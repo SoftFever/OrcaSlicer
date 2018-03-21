@@ -69,6 +69,7 @@ private:
 };
 
 using t_optionfield_map = std::map<t_config_option_key, t_field>;
+using t_opt_map = std::map< std::string, std::pair<std::string, int> >;
 
 class OptionsGroup {
 public:
@@ -85,7 +86,7 @@ public:
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 
-	std::string		nonsys_btn_icon = "";
+	std::function<std::string()>	nonsys_btn_icon{ nullptr };
 
     /// Returns a copy of the pointer of the parent wxWindow.
     /// Accessor function is because users are not allowed to change the parent
@@ -164,7 +165,7 @@ public:
     /// reference to libslic3r config, non-owning pointer (?).
     DynamicPrintConfig*		m_config {nullptr};
     bool					m_full_labels {0};
-	std::map< std::string, std::pair<std::string, int> > m_opt_map;
+	t_opt_map				m_opt_map;
 
 	Option		get_option(const std::string opt_key, int opt_index = -1);
 	Line		create_single_option_line(const std::string title, int idx = -1) /*const*/{

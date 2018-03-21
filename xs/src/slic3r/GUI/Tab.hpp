@@ -90,10 +90,12 @@ protected:
 	wxImageList*		m_icons;
 	wxCheckBox*			m_compatible_printers_checkbox;
 	wxButton*			m_compatible_printers_btn;
+	wxButton*			m_undo_btn;
+	wxButton*			m_undo_to_sys_btn;
 
 	int					m_icon_count;
-	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index in $self->{icons}.
-	std::vector<PageShp>			m_pages;	// $self->{pages} = [];
+	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index
+	std::vector<PageShp>			m_pages;
 	bool				m_disable_tree_sel_changed_event;
 	bool				m_show_incompatible_presets;
 	bool				m_no_controller;
@@ -101,6 +103,7 @@ protected:
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 	std::vector<std::string>	m_dirty_options = {};
 	std::vector<std::string>	m_sys_options = {};
+	std::vector<std::string>	m_full_options_list = {};
 
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
@@ -149,7 +152,10 @@ public:
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
 	void		update_changed_ui();
-	
+	void		update_full_options_list();
+	void		update_sys_ui_after_sel_preset();
+	void		update_changed_tree_ui();
+
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
 	virtual void	OnActivate(){}

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-28 13:53+0100\n"
-"PO-Revision-Date: 2018-02-28 14:04+0100\n"
+"PO-Revision-Date: 2018-03-21 16:01+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -3330,7 +3330,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:137
 msgid "None"
-msgstr "Жадне"
+msgstr "Жодне"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:138
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:80
@@ -3718,11 +3718,11 @@ msgstr "Файл"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:419
 msgid "&Plater"
-msgstr "Платер"
+msgstr "&Платер"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:420
 msgid "&Object"
-msgstr "Об'єкт"
+msgstr "&Об'єкт"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:421
 msgid "&Window"

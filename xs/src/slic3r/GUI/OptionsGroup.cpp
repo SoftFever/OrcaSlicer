@@ -90,8 +90,8 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		field->m_Undo_btn->Hide();
 		field->m_Undo_to_sys_btn->Hide();
 	}
-	if (nonsys_btn_icon != "")
-		field->set_nonsys_btn_icon(nonsys_btn_icon);
+	if (nonsys_btn_icon != nullptr)
+		field->set_nonsys_btn_icon(nonsys_btn_icon());
     
 	// assign function objects for callbacks, etc.
     return field;
@@ -335,7 +335,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 }
 
 void ConfigOptionsGroup::reload_config(){
-	for (std::map< std::string, std::pair<std::string, int> >::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
+	for (t_opt_map::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
 		auto opt_id = it->first;
 		std::string opt_key = m_opt_map.at(opt_id).first;
 		int opt_index = m_opt_map.at(opt_id).second;
@@ -455,7 +455,7 @@ Field* ConfigOptionsGroup::get_fieldc(t_config_option_key opt_key, int opt_index
 	if (field != nullptr)
 		return field;
 	std::string opt_id = "";
-	for (std::map< std::string, std::pair<std::string, int> >::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
+	for (t_opt_map::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
 		if (opt_key == m_opt_map.at(it->first).first && opt_index == m_opt_map.at(it->first).second){
 			opt_id = it->first;
 			break;
