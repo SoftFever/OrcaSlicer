@@ -98,6 +98,16 @@ sub new {
         $self->update;
     };
     
+    # callback to enable/disable action buttons
+    my $enable_action_buttons = sub {
+        my ($enable) = @_;
+        $self->{btn_export_gcode}->Enable($enable);
+        $self->{btn_reslice}->Enable($enable);
+        $self->{btn_print}->Enable($enable);
+        $self->{btn_send_gcode}->Enable($enable);
+        $self->{btn_export_stl}->Enable($enable);    
+    };
+    
     # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
@@ -113,6 +123,7 @@ sub new {
         $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
         $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+        $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
         $self->{canvas3D}->use_plain_shader(1);
         $self->{canvas3D}->set_on_wipe_tower_moved(sub {
             my ($new_pos_3f) = @_;
