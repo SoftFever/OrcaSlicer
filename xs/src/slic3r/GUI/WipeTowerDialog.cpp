@@ -2,6 +2,8 @@
 #include <sstream>
 #include "WipeTowerDialog.hpp"
 
+#include <wx/sizer.h>
+
 //! macro used to mark string used at localization,
 //! return same string
 #define L(s) s
@@ -22,9 +24,9 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
     SetSizer(main_sizer);
     SetMinSize(GetSize());
     main_sizer->SetSizeHints(this);
-  
+
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
-    
+
     this->Bind(wxEVT_BUTTON,[this](wxCommandEvent&) {
         m_output_data = m_panel_ramming->get_parameters();
         EndModal(wxID_OK);
@@ -101,74 +103,105 @@ std::string RammingPanel::get_parameters()
 
 
 
-
+// Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
 WipingDialog::WipingDialog(wxWindow* parent,const std::vector<float>& matrix, const std::vector<float>& extruders)
 : wxDialog(parent, -1,  wxT(L("Wipe tower - Purging volume adjustment")), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     this->Centre();
-    
-    m_panel_wiping  = new WipingPanel(this,matrix,extruders);
-    this->Show();
+
+    auto widget_button = new wxButton(this,wxID_ANY,"-",wxPoint(0,0),wxDefaultSize);
+    m_panel_wiping  = new WipingPanel(this,matrix,extruders, widget_button);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_panel_wiping, 1, wxEXPAND);
+
+
+    main_sizer->Add(widget_button,0,wxALIGN_CENTER_HORIZONTAL|wxCENTER,10);
     main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
     SetSizer(main_sizer);
     SetMinSize(GetSize());
     main_sizer->SetSizeHints(this);
-    
+
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
     
-    this->Bind(wxEVT_BUTTON,[this](wxCommandEvent&) {
-        m_output_matrix    = m_panel_wiping->read_matrix_values();
-        m_output_extruders = m_panel_wiping->read_extruders_values();
+    this->Bind(wxEVT_BUTTON,[this](wxCommandEvent&) {                 // if OK button is clicked..
+        m_output_matrix    = m_panel_wiping->read_matrix_values();    // ..query wiping panel and save returned values
+        m_output_extruders = m_panel_wiping->read_extruders_values(); // so they can be recovered later by calling get_...()
         EndModal(wxID_OK);
         },wxID_OK);
+
+    this->Show();
 }
 
 
 
-
-WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders)
+// This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
+WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, wxButton* widget_button)
 : wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(500,350),wxBORDER_RAISED)
 {
-    m_number_of_extruders = (int)(sqrt(matrix.size())+0.001); // number of extruders
-    m_notadvanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString(L("Total purging volume is calculated by summing two values below, depending on which tools are loaded/unloaded.")),wxPoint(40,25) ,wxSize(500,35)));
-    m_notadvanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString(L("Volume to purge (mm\u00B3) when the filament is being")),wxPoint(40,85) ,wxSize(500,25)));
-    m_notadvanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString(L("unloaded")),wxPoint(110,105) ,wxSize(500,25)));
-    m_notadvanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString(L("loaded")),wxPoint(195,105) ,wxSize(500,25)));
-    m_widget_button = new wxButton(this,wxID_ANY,"-",wxPoint(0,0),wxSize(170,20));
+    m_widget_button = widget_button;    // pointer to the button in parent dialog
+    m_widget_button->Bind(wxEVT_BUTTON,[this](wxCommandEvent&){ toggle_advanced(true); });
+
+    m_number_of_extruders = (int)(sqrt(matrix.size())+0.001);
+
+    m_sizer_simple          = new wxBoxSizer(wxVERTICAL);
+    m_sizer_advanced        = new wxBoxSizer(wxVERTICAL);
+    auto gridsizer_simple   = new wxGridSizer(3,10,10);
+    auto gridsizer_advanced = new wxGridSizer(m_number_of_extruders+1,10,10);
+
+
+    // First create controls for simple mode and assign them to m_sizer_simple:
+    m_sizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("Total purging volume is calculated by summing two values below, depending on which tools are loaded/unloaded.")),wxPoint(40,25), wxSize(450,35)),-1,wxEXPAND,10);
+    m_sizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("Volume to purge (mm\u00B3) when the filament is being")),wxPoint(40,85) ,/*wxSize(500,25)*/wxDefaultSize,wxALIGN_LEFT),-1,wxEXPAND|wxALIGN_CENTER,10);
+
+    gridsizer_simple->Add(0,-1,wxALL,10);
+    gridsizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("unloaded")),wxPoint(110,105) ,/*wxSize(80,25)*/wxDefaultSize,wxALIGN_CENTER),-1,wxALIGN_CENTER,10);
+    gridsizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("loaded")),wxPoint(195,105) ,/*wxSize(80,25)*/wxDefaultSize,wxALIGN_CENTER),-1,wxALIGN_CENTER,10);
 
     for (unsigned int i=0;i<m_number_of_extruders;++i) {
-        m_notadvanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString(L("Tool #"))<<i+1<<": ",wxPoint(20,135+30*i) ,wxSize(150,25),wxALIGN_LEFT));
-        m_old.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(120,130+30*i),wxSize(50,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i]));
-        m_new.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(195,130+30*i),wxSize(50,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i+1]));
+        m_old.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(120,130+30*i),/*wxSize(50,25)*/wxDefaultSize,wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i]));
+        m_new.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(195,130+30*i),/*wxSize(50,25)*/wxDefaultSize,wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i+1]));
+        gridsizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("Tool #"))<<i+1<<": ",wxPoint(20,135+30*i) ,/*wxSize(75,25)*/wxDefaultSize,wxALIGN_LEFT),-1,wxALL,10);
+        gridsizer_simple->Add(m_old.back(),-1,wxALIGN_CENTER,10);
+        gridsizer_simple->Add(m_new.back(),-1,wxALIGN_CENTER,10);
     }
 
+    // Now the same for advanced mode:
     wxPoint origin(50,85);
-    m_advanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString(L("Here you can adjust required purging volume (mm\u00B3) for any given pair of tools.")),wxPoint(40,25) ,wxSize(500,35)));
+    m_sizer_advanced->Add(new wxStaticText(this,wxID_ANY,wxString(L("Here you can adjust required purging volume (mm\u00B3) for any given pair of tools.")),wxPoint(40,25) ,/*wxSize(500,35)*/wxDefaultSize),-1,wxALL,10);
+    m_sizer_advanced->Add(new wxStaticText(this,wxID_ANY,wxString(L("Filament changed to")),origin+wxPoint(75,0) ,/*wxSize(500,25)*/wxDefaultSize),-1,wxALL,10);
+
     for (unsigned int i=0;i<m_number_of_extruders;++i) {
         edit_boxes.push_back(std::vector<wxTextCtrl*>(0));
-        m_advanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString("")<<i+1,origin+wxPoint(45+60*i,25) ,wxSize(20,25)));
-        m_advanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString("")<<i+1,origin+wxPoint(0,50+30*i) ,wxSize(500,25)));
+
         for (unsigned int j=0;j<m_number_of_extruders;++j) {
-            edit_boxes.back().push_back(new wxTextCtrl(this,wxID_ANY,wxEmptyString,origin+wxPoint(25+60*i,45+30*j),wxSize(50,25)));
+            edit_boxes.back().push_back(new wxTextCtrl(this,wxID_ANY,wxEmptyString,origin+wxPoint(25+60*i,45+30*j),/*wxSize(50,25)*/wxDefaultSize));
             if (i==j)
                 edit_boxes[i][j]->Disable();
             else
                 edit_boxes[i][j]->SetValue(wxString("")<<int(matrix[m_number_of_extruders*j+i]));
         }
-        m_advanced_widgets.push_back(new wxStaticText(this,wxID_ANY,wxString(L("Filament changed to")),origin+wxPoint(75,0) ,wxSize(500,25)));
     }
 
-    m_widget_button->Bind(wxEVT_BUTTON,[this](wxCommandEvent&){toggle_advanced(true);});
-    toggle_advanced();
+    gridsizer_advanced->Add(0,-1,wxALL,10);
+    for (unsigned int i=0;i<m_number_of_extruders;++i)
+        gridsizer_advanced->Add(new wxStaticText(this,wxID_ANY,wxString("")<<i+1,origin+wxPoint(45+60*i,25) ,/*wxSize(20,25)*/wxDefaultSize),-1,wxALL,10);
+    for (unsigned int i=0;i<m_number_of_extruders;++i) {
+        gridsizer_advanced->Add(new wxStaticText(this,wxID_ANY,wxString("")<<i+1,origin+wxPoint(0,50+30*i) ,/*wxSize(500,25)*/wxDefaultSize),-1,wxALL,10);
+        for (unsigned int j=0;j<m_number_of_extruders;++j)
+            gridsizer_advanced->Add(edit_boxes[j][i],-1,wxALL,10);
+    }
+
+
+    m_sizer_simple->Add(gridsizer_simple,-1,wxALL,10);
+    m_sizer_advanced->Add(gridsizer_advanced,-1,wxALL,10);
+    toggle_advanced(); // to show/hide what is appropriate
 }
 
 
 
 
-
+// Reads values from the (advanced) wiping matrix:
 std::vector<float> WipingPanel::read_matrix_values() {
     if (!m_advanced)
         fill_in_matrix();
@@ -183,7 +216,7 @@ std::vector<float> WipingPanel::read_matrix_values() {
     return output;
 }
 
-
+// Reads values from simple mode to save them for next time:
 std::vector<float> WipingPanel::read_extruders_values() {
     std::vector<float> output;
     for (unsigned int i=0;i<m_number_of_extruders;++i) {
@@ -193,7 +226,7 @@ std::vector<float> WipingPanel::read_extruders_values() {
     return output;
 }
 
-
+// This updates the "advanced" matrix based on values from "simple" mode
 void WipingPanel::fill_in_matrix() {
     for (unsigned i=0;i<m_number_of_extruders;++i) {
         for (unsigned j=0;j<m_number_of_extruders;++j) {
@@ -205,7 +238,7 @@ void WipingPanel::fill_in_matrix() {
 
 
 
-
+// Function to check if simple and advanced settings are matching
 bool WipingPanel::advanced_matches_simple() {
     for (unsigned i=0;i<m_number_of_extruders;++i) {
         for (unsigned j=0;j<m_number_of_extruders;++j) {
@@ -218,40 +251,27 @@ bool WipingPanel::advanced_matches_simple() {
 }
 
 
-
-void WipingPanel::toggle_advanced(bool user_button) {
-    if (m_advanced && !advanced_matches_simple() && user_button) {
+// Switches the dialog from simple to advanced mode and vice versa
+void WipingPanel::toggle_advanced(bool user_action) {
+    if (m_advanced && !advanced_matches_simple() && user_action) {
         if (wxMessageDialog(this,wxString(L("Switching to simple settings will discard changes done in the advanced mode!\n\nDo you want to proceed?")),
                             wxString(L("Warning")),wxYES_NO|wxICON_EXCLAMATION).ShowModal() != wxID_YES)
             return;
     }
-
-    m_advanced = !m_advanced;
-
-    if (!user_button) {                 // we were called from constructor
-        if (advanced_matches_simple())  // advanced and simple match - let's show simple version
-            m_advanced = false;
-        else
-            m_advanced = true;
+    if (user_action)
+        m_advanced = !m_advanced;                // user demands a change -> toggle
+    else {
+        m_advanced = !advanced_matches_simple(); // if called from constructor, show what is appropriate
+        (m_advanced ? m_sizer_advanced : m_sizer_simple)->SetSizeHints(this);
+        SetSizer(m_advanced ? m_sizer_advanced : m_sizer_simple);
     }
 
-    for (unsigned i=0;i<m_number_of_extruders;++i) {        // shows/hides input controls
-            for (unsigned j=0;j<m_number_of_extruders;++j)
-                edit_boxes[i][j]->Show(m_advanced);
-            m_old[i]->Show(!m_advanced);
-            m_new[i]->Show(!m_advanced);
-    }
-    for (const auto& widget : m_advanced_widgets)          // shows/hides other widgets
-        widget->Show(m_advanced);
-    for (const auto& widget : m_notadvanced_widgets)
-        widget->Show(!m_advanced);
+   m_sizer_simple->Show(!m_advanced);
+   m_sizer_advanced->Show(m_advanced);
 
-    if (m_advanced) {
-        if (user_button) fill_in_matrix();  // otherwise keep values loaded from config
-        m_widget_button->SetLabel(L("Show simplified settings"));
-    }
-    else
-        m_widget_button->SetLabel(L("Show advanced settings"));
+    m_widget_button->SetLabel(m_advanced ? L("Show simplified settings") : L("Show advanced settings"));
+    if (m_advanced)
+        if (user_action) fill_in_matrix();  // otherwise keep values loaded from config
 
     this->Refresh();
 }

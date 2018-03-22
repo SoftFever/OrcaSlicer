@@ -46,13 +46,13 @@ private:
 
 class WipingPanel : public wxPanel {
 public:
-    WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders);
+    WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, wxButton* widget_button);
     std::vector<float> read_matrix_values();
     std::vector<float> read_extruders_values();
+    void toggle_advanced(bool user_action = false);
         
 private:
     void fill_in_matrix();
-    void toggle_advanced(bool user_button = false);
     bool advanced_matches_simple();
         
     std::vector<wxSpinCtrl*> m_old;
@@ -60,9 +60,11 @@ private:
     std::vector<wxWindow*>   m_advanced_widgets;
     std::vector<wxWindow*>   m_notadvanced_widgets;
     std::vector<std::vector<wxTextCtrl*>> edit_boxes;
-    wxButton* m_widget_button           = nullptr;
     unsigned int m_number_of_extruders  = 0;
     bool m_advanced                     = false;
+    wxBoxSizer*m_sizer_simple = nullptr;
+    wxBoxSizer*m_sizer_advanced = nullptr;
+    wxButton* m_widget_button     = nullptr;
 };
 
 
