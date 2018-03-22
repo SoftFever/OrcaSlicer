@@ -849,6 +849,13 @@ void TabPrint::build()
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
+
+		line = Line{ "", "" };
+		line.full_width = 1;
+		line.widget = [this](wxWindow* parent) {
+			return description_line_widget(parent, &m_parent_preset_description_line);
+		};
+		optgroup->append_line(line);
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -1216,6 +1223,13 @@ void TabFilament::build()
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
+
+		line = Line{ "", "" };
+		line.full_width = 1;
+		line.widget = [this](wxWindow* parent) {
+			return description_line_widget(parent, &m_parent_preset_description_line);
+		};
+		optgroup->append_line(line);
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -1504,6 +1518,15 @@ void TabPrinter::build()
 		option.opt.height = 250;
 		optgroup->append_single_option_line(option);
 
+	page = add_options_page(_(L("Dependencies")), "wrench.png");
+		optgroup = page->new_optgroup(_(L("Profile dependencies")));
+		line = Line{ "", "" };
+		line.full_width = 1;
+		line.widget = [this](wxWindow* parent) {
+			return description_line_widget(parent, &m_parent_preset_description_line);
+		};
+		optgroup->append_line(line);
+
 	build_extruder_pages();
 
 	if (!m_no_controller)
@@ -1692,9 +1715,15 @@ void Tab::load_current_preset()
 	on_preset_loaded();
 	// Reload preset pages with the new configuration values.
 	reload_config();
-	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
+	const Preset* parent = m_presets->get_selected_preset_parent();
+	m_nonsys_btn_icon = parent == nullptr ?
 		"bullet_white.png" :
 		wxMSW ? "sys_unlock.png" : "lock_open.png";
+
+	wxString description_line = parent == nullptr ?
+		_(L("It's default preset")) :		
+		_(L("Current preset is inherited from")) + ":\n" + parent->name;
+	m_parent_preset_description_line->SetText(description_line);
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 

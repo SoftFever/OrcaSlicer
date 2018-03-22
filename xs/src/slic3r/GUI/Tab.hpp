@@ -121,6 +121,7 @@ public:
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
 	std::string			m_nonsys_btn_icon;
+	ogStaticText*		m_parent_preset_description_line;
 
 public:
 	Tab() {}
