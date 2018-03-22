@@ -8,7 +8,6 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z scale unscale deg2rad rad2deg);
-use LWP::UserAgent;
 use threads::shared qw(shared_clone);
 use Wx qw(:button :colour :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
     :panel :sizer :toolbar :window wxTheApp :notebook :combobox wxNullBitmap);
@@ -1334,6 +1333,9 @@ sub export_gcode {
     } else {
         my $default_output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
         Slic3r::GUI::catch_error($self) and return;
+        # If possible, remove accents from accented latin characters.
+        # This function is useful for generating file names to be processed by legacy firmwares.
+        $default_output_file = Slic3r::GUI::fold_utf8_to_ascii($default_output_file);
         my $dlg = Wx::FileDialog->new($self, L('Save G-code file as:'), 
             wxTheApp->{app_config}->get_last_output_dir(dirname($default_output_file)),
             basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1941,7 +1943,7 @@ sub selection_changed {
                     $self->{object_info_manifold}->SetToolTipString($message);
                     $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
                 } else {
-                    $self->{object_info_manifold}->SetLabel(L("Yes"));                    
+                    $self->{object_info_manifold}->SetLabel(L("Yes"));
                     $self->{object_info_manifold_warning_icon}->Hide;
                 }
             } else {

@@ -102,9 +102,9 @@ public:
 							if (m_fields.find(id) == m_fields.end()) return nullptr;
 							return m_fields.at(id).get();
     }
-	bool			set_value(t_config_option_key id, boost::any value) {
+	bool			set_value(t_config_option_key id, boost::any value, bool change_event = false) {
 							if (m_fields.find(id) == m_fields.end()) return false;
-							m_fields.at(id)->set_value(value);
+							m_fields.at(id)->set_value(value, change_event);
 							return true;
     }
 	boost::any		get_value(t_config_option_key id) {

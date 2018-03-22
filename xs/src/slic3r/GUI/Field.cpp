@@ -273,7 +273,7 @@ void SpinCtrl::BUILD() {
 // 		# when it was changed from the text control, so the on_change callback
 // 		# gets the old one, and on_kill_focus resets the control to the old value.
 // 		# As a workaround, we get the new value from $event->GetString and store
-// 		# here temporarily so that we can return it from $self->get_value
+// 		# here temporarily so that we can return it from $self->get_value
 		std::string value = e.GetString().utf8_str().data();
 		if (is_matched(value, "^\\d+$"))
 			tmp_value = std::stoi(value);
@@ -377,9 +377,9 @@ void Choice::set_selection()
 	}
 }
 
-void Choice::set_value(const std::string value)  //! Redundant?
+void Choice::set_value(const std::string value, bool change_event)  //! Redundant?
 {
-	m_disable_change_event = true;
+	m_disable_change_event = !change_event;
 
 	size_t idx=0;
 	for (auto el : m_opt.enum_values)
@@ -396,9 +396,9 @@ void Choice::set_value(const std::string value)  //! Redundant?
 	m_disable_change_event = false;
 }
 
-void Choice::set_value(boost::any value)
+void Choice::set_value(boost::any value, bool change_event)
 {
-	m_disable_change_event = true;
+	m_disable_change_event = !change_event;
 
 	switch (m_opt.type){
 	case coInt:
@@ -441,7 +441,7 @@ void Choice::set_values(const std::vector<std::string> values)
 		return;
 	m_disable_change_event = true;
 
-// 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
+// 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
 // 	# but we want to preserve it
 	auto ww = dynamic_cast<wxComboBox*>(window);
 	auto value = ww->GetValue();
@@ -553,9 +553,9 @@ void PointCtrl::BUILD()
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
-void PointCtrl::set_value(const Pointf value)
+void PointCtrl::set_value(const Pointf value, bool change_event)
 {
-	m_disable_change_event = true;
+	m_disable_change_event = !change_event;
 
 	double val = value.x;
 	x_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None));
@@ -565,7 +565,7 @@ void PointCtrl::set_value(const Pointf value)
 	m_disable_change_event = false;
 }
 
-void PointCtrl::set_value(boost::any value)
+void PointCtrl::set_value(boost::any value, bool change_event)
 {
 	Pointf pt;
 	Pointf *ptf = boost::any_cast<Pointf>(&value);
@@ -591,7 +591,7 @@ void PointCtrl::set_value(boost::any value)
 // 			return;
 // 		}		
 // 	}	
-	set_value(pt);
+	set_value(pt, change_event);
 }
 
 boost::any PointCtrl::get_value()

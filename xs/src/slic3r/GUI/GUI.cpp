@@ -358,24 +358,17 @@ void open_preferences_dialog(int event_preferences)
 	dlg->ShowModal();
 }
 
-void create_preset_tabs(bool no_controller, bool is_disabled_button_browse, bool is_user_agent,
-						int event_value_change, int event_presets_changed,
-						int event_button_browse, int event_button_test)
+void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
 {	
 	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller));
 	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller));
-	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller, is_disabled_button_browse, is_user_agent));
+	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller));
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
 		if (! tab)
 			continue;
 		tab->set_event_value_change(wxEventType(event_value_change));
 		tab->set_event_presets_changed(wxEventType(event_presets_changed));
-		if (tab->name() == "printer"){
-			TabPrinter* tab_printer = static_cast<TabPrinter*>(tab);
-			tab_printer->set_event_button_browse(wxEventType(event_button_browse));
-			tab_printer->set_event_button_test(wxEventType(event_button_test));
-		}
 	}
 }
 
@@ -594,19 +587,6 @@ wxString from_u8(const std::string &str)
 	return wxString::FromUTF8(str.c_str());
 }
 
-wxWindow *get_widget_by_id(int id)
-{
-    if (g_wxMainFrame == nullptr) {
-        throw std::runtime_error("Main frame not set");
-    }
-
-    wxWindow *window = g_wxMainFrame->FindWindow(id);
-    if (window == nullptr) {
-        throw std::runtime_error((boost::format("Could not find widget by ID: %1%") % id).str());
-    }
-
-    return window;
-}
 
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)
 {

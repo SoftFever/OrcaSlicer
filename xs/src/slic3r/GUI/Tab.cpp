@@ -3,6 +3,9 @@
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "slic3r/Utils/Http.hpp"
+#include "slic3r/Utils/OctoPrint.hpp"
+#include "BonjourDialog.hpp"
 
 #include <wx/app.h>
 #include <wx/button.h>
@@ -14,6 +17,7 @@
 #include <wx/treectrl.h>
 #include <wx/imaglist.h>
 #include <wx/settings.h>
+#include <wx/filedlg.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -1388,39 +1392,18 @@ void TabPrinter::build()
 		}
 
 		optgroup = page->new_optgroup(_(L("OctoPrint upload")));
-		// # append two buttons to the Host line
-		auto octoprint_host_browse = [this] (wxWindow* parent) {
+
+		auto octoprint_host_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-//			btn->SetFont($Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
-			if (m_is_disabled_button_browse) 
-				btn->Disable();
-
-			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e){
-				if (m_event_button_browse > 0){
-					wxCommandEvent event(m_event_button_browse);
-					event.SetString("Button BROWSE was clicked!");
-					g_wxMainFrame->ProcessWindowEvent(event);
+			btn->Bind(wxEVT_BUTTON, [this, parent, optgroup](wxCommandEvent e) {
+				BonjourDialog dialog(parent);
+				if (dialog.show_and_lookup()) {
+					optgroup->set_value("octoprint_host", std::move(dialog.get_selected()), true);
 				}
-// 				// # look for devices
-// 				auto entries;
-// 				{
-// 					my $res = Net::Bonjour->new('http');
-// 					$res->discover;
-// 					$entries = [$res->entries];
-// 				}
-// 				if (@{$entries}) {
-// 					my $dlg = Slic3r::GUI::BonjourBrowser->new($self, $entries);
-// 					$self->_load_key_value('octoprint_host', $dlg->GetValue . ":".$dlg->GetPort)
-// 						if $dlg->ShowModal == wxID_OK;
-// 				}
-// 				else {
-// 					auto msg_window = new wxMessageDialog(parent, "No Bonjour device found", "Device Browser", wxOK | wxICON_INFORMATION);
-// 					msg_window->ShowModal();
-// 				}
 			});
 
 			return sizer;
@@ -1429,33 +1412,23 @@ void TabPrinter::build()
 		auto octoprint_host_test = [this](wxWindow* parent) {
 			auto btn = m_octoprint_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 				wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-//			btn->SetFont($Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
-			btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e) {
-				if (m_event_button_test > 0){
-					wxCommandEvent event(m_event_button_test);
-					event.SetString("Button TEST was clicked!");
-					g_wxMainFrame->ProcessWindowEvent(event);
+			btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) {
+				OctoPrint octoprint(m_config);
+				wxString msg;
+				if (octoprint.test(msg)) {
+					show_info(this, _(L("Connection to OctoPrint works correctly.")), _(L("Success!")));
+				} else {
+					const auto text = wxString::Format("%s: %s\n\n%s",
+						_(L("Could not connect to OctoPrint")), msg, _(L("Note: OctoPrint version at least 1.1.0 is required."))
+					);
+					show_error(this, text);
 				}
-// 				my $ua = LWP::UserAgent->new;
-// 				$ua->timeout(10);
-// 
-// 				my $res = $ua->get(
-// 					"http://".$self->{config}->octoprint_host . "/api/version",
-// 					'X-Api-Key' = > $self->{config}->octoprint_apikey,
-// 					);
-// 				if ($res->is_success) {
-// 					show_info(parent, "Connection to OctoPrint works correctly.", "Success!");
-// 				}
-// 				else {
-// 					show_error(parent, 
-// 						"I wasn't able to connect to OctoPrint (".$res->status_line . "). "
-// 						. "Check hostname and OctoPrint version (at least 1.1.0 is required).");
-// 				}
- 			});
+			});
+
 			return sizer;
 		};
 
@@ -1464,6 +1437,45 @@ void TabPrinter::build()
 		host_line.append_widget(octoprint_host_test);
 		optgroup->append_line(host_line);
 		optgroup->append_single_option_line("octoprint_apikey");
+
+		if (Http::ca_file_supported()) {
+
+			Line cafile_line = optgroup->create_single_option_line("octoprint_cafile");
+
+			auto octoprint_cafile_browse = [this, optgroup] (wxWindow* parent) {
+				auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+				btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+				auto sizer = new wxBoxSizer(wxHORIZONTAL);
+				sizer->Add(btn);
+
+				btn->Bind(wxEVT_BUTTON, [this, optgroup] (wxCommandEvent e){
+					static const auto filemasks = _(L("Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"));
+					wxFileDialog openFileDialog(this, _(L("Open CA certificate file")), "", "", filemasks, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+					if (openFileDialog.ShowModal() != wxID_CANCEL) {
+						optgroup->set_value("octoprint_cafile", std::move(openFileDialog.GetPath()), true);
+					}
+				});
+
+				return sizer;
+			};
+
+			cafile_line.append_widget(octoprint_cafile_browse);
+			optgroup->append_line(cafile_line);
+
+			auto octoprint_cafile_hint = [this, optgroup] (wxWindow* parent) {
+				auto txt = new wxStaticText(parent, wxID_ANY, 
+					_(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate.")));
+				auto sizer = new wxBoxSizer(wxHORIZONTAL);
+				sizer->Add(txt);
+				return sizer;
+			};
+
+			Line cafile_hint { "", "" };
+			cafile_hint.full_width = 1;
+			cafile_hint.widget = std::move(octoprint_cafile_hint);
+			optgroup->append_line(cafile_hint);
+
+		}
 
 		optgroup = page->new_optgroup(_(L("Firmware")));
 		optgroup->append_single_option_line("gcode_flavor");
@@ -1632,13 +1644,8 @@ void TabPrinter::update(){
 			m_serial_test_btn->Disable();
 	}
 
-	en = !m_config->opt_string("octoprint_host").empty();
-	if ( en && m_is_user_agent)
-		m_octoprint_host_test_btn->Enable();
-	else 
-		m_octoprint_host_test_btn->Disable(); 
-	get_field("octoprint_apikey")->toggle(en);
-
+	m_octoprint_host_test_btn->Enable(!m_config->opt_string("octoprint_host").empty());
+	
 	bool have_multiple_extruders = m_extruders_count > 1;
 	get_field("toolchange_gcode")->toggle(have_multiple_extruders);
 	get_field("single_extruder_multi_material")->toggle(have_multiple_extruders);

@@ -9,13 +9,11 @@ use List::Util qw(first);
 use Slic3r::GUI::2DBed;
 use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::BedShapeDialog;
-use Slic3r::GUI::BonjourBrowser;
 use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Controller;
 use Slic3r::GUI::Controller::ManualControlDialog;
 use Slic3r::GUI::Controller::PrinterPanel;
 use Slic3r::GUI::MainFrame;
-use Slic3r::GUI::Notifier;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::Plater::2D;
 use Slic3r::GUI::Plater::2DToolpaths;
@@ -34,7 +32,6 @@ use Slic3r::GUI::SystemInfo;
 use Wx::Locale gettext => 'L';
 
 our $have_OpenGL = eval "use Slic3r::GUI::3DScene; 1";
-our $have_LWP    = eval "use LWP::UserAgent; 1";
 
 use Wx 0.9901 qw(:bitmap :dialog :icon :id :misc :systemsettings :toplevelwindow :filedialog :font);
 use Wx::Event qw(EVT_IDLE EVT_COMMAND EVT_MENU);
@@ -88,7 +85,6 @@ sub OnInit {
     Slic3r::set_data_dir($datadir || Wx::StandardPaths::Get->GetUserDataDir);
     Slic3r::GUI::set_wxapp($self);
 
-    $self->{notifier} = Slic3r::GUI::Notifier->new;
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
     $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
 
@@ -176,6 +172,13 @@ sub recreate_GUI{
         $self->SetTopWindow($frame);
         $topwindow->Destroy;
     }
+
+    EVT_IDLE($self->{mainframe}, sub {
+        while (my $cb = shift @cb) {
+            $cb->();
+        }
+        $self->{app_config}->save if $self->{app_config}->dirty;
+    });
 
     my $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
     if ($run_wizard) {
@@ -271,7 +274,9 @@ sub notify {
     $frame->RequestUserAttention(&Wx::wxMAC ? wxUSER_ATTENTION_ERROR : wxUSER_ATTENTION_INFO)
         unless ($frame->IsActive);
 
-    $self->{notifier}->notify($message);
+    # There used to be notifier using a Growl application for OSX, but Growl is dead.
+    # The notifier also supported the Linux X D-bus notifications, but that support was broken.
+    #TODO use wxNotificationMessage?
 }
 
 # Called after the Preferences dialog is closed and the program settings are saved.
