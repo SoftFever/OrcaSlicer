@@ -784,7 +784,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("interface_shells");
 
 	page = add_options_page(_(L("Advanced")), "wrench.png");
-		optgroup = page->new_optgroup(_(L("Extrusion width")), 180);
+		optgroup = page->new_optgroup(_(L("Extrusion width")));
 		optgroup->append_single_option_line("extrusion_width");
 		optgroup->append_single_option_line("first_layer_extrusion_width");
 		optgroup->append_single_option_line("perimeter_extrusion_width");
