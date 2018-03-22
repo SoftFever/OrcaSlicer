@@ -576,8 +576,7 @@ bool load_amf_archive(const char *path, PresetBundle* bundle, Model *model)
         return false;
     }
 
-    std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(path).filename().string(), ".zip.amf", ".amf");
-    if (internal_amf_filename != stat.m_filename)
+    if (!boost::iends_with(stat.m_filename, ".amf"))
     {
         printf("Found invalid internal filename\n");
         mz_zip_reader_end(&archive);
@@ -644,7 +643,7 @@ bool load_amf(const char *path, PresetBundle* bundle, Model *model)
         return false;
 }
 
-bool store_amf(const char *path, Model *model, Print* print)
+bool store_amf(const char *path, Model *model, Print* print, bool export_print_config)
 {
     if ((path == nullptr) || (model == nullptr) || (print == nullptr))
         return false;
@@ -661,9 +660,12 @@ bool store_amf(const char *path, Model *model, Print* print)
     stream << "<amf unit=\"millimeter\">\n";
     stream << "<metadata type=\"cad\">Slic3r " << SLIC3R_VERSION << "</metadata>\n";
 
-    std::string config = "\n";
-    GCode::append_full_config(*print, config);
-    stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << config << "</metadata>\n";
+    if (export_print_config)
+    {
+        std::string config = "\n";
+        GCode::append_full_config(*print, config);
+        stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << config << "</metadata>\n";
+    }
 
     for (const auto &material : model->materials) {
         if (material.first.empty())
