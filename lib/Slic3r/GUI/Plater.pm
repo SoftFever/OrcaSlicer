@@ -53,8 +53,7 @@ sub new {
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
         serial_port serial_speed octoprint_host octoprint_apikey octoprint_cafile
         nozzle_diameter single_extruder_multi_material wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width
-	wipe_tower_per_color_wipe wipe_tower_rotation_angle extruder_colour filament_colour
-        max_print_height
+	wipe_tower_rotation_angle extruder_colour filament_colour max_print_height
     )]);
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;

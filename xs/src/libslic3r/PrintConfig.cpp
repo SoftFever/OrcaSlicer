@@ -1818,15 +1818,6 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "wipe-tower-width=f";
     def->default_value = new ConfigOptionFloat(60.);
 
-    def = this->add("wipe_tower_per_color_wipe", coFloat);
-    def->label = "(Unused and will be likely removed)";//L("Per color change depth");
-    def->tooltip = L("Depth of a wipe color per color change. For N colors, there will be "
-                   "maximum (N-1) tool switches performed, therefore the total depth "
-                   "of the wipe tower will be (N-1) times this value.");
-    def->sidetext = L("mm");
-    def->cli = "wipe-tower-per-color-wipe=f";
-    def->default_value = new ConfigOptionFloat(15.);
-
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
     def->tooltip = L("Wipe tower rotation angle with respect to x-axis ");

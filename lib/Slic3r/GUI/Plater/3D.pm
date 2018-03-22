@@ -205,8 +205,9 @@ sub reload_scene {
         if ($extruders_count > 1 && $self->{config}->single_extruder_multi_material && $self->{config}->wipe_tower &&
             ! $self->{config}->complete_objects) {
             $self->volumes->load_wipe_tower_preview(1000, 
-                $self->{config}->wipe_tower_x, $self->{config}->wipe_tower_y, 
-                $self->{config}->wipe_tower_width, $self->{config}->wipe_tower_per_color_wipe * ($extruders_count - 1),
+                $self->{config}->wipe_tower_x, $self->{config}->wipe_tower_y, $self->{config}->wipe_tower_width,
+		#$self->{config}->wipe_tower_per_color_wipe# 15 * ($extruders_count - 1), # this is just a hack when the config parameter became obsolete
+		15 * ($extruders_count - 1),
                 $self->{model}->bounding_box->z_max, $self->{config}->wipe_tower_rotation_angle, $self->UseVBOs);
         }
     }

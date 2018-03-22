@@ -199,7 +199,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower_x"
             || opt_key == "wipe_tower_y"
             || opt_key == "wipe_tower_width"
-            || opt_key == "wipe_tower_per_color_wipe"
             || opt_key == "wipe_tower_rotation_angle"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wiping_volumes_matrix"
@@ -1048,7 +1047,7 @@ void Print::_make_wipe_tower()
     // Initialize the wipe tower.
     WipeTowerPrusaMM wipe_tower(
         float(this->config.wipe_tower_x.value),     float(this->config.wipe_tower_y.value), 
-        float(this->config.wipe_tower_width.value), float(this->config.wipe_tower_per_color_wipe.value),
+        float(this->config.wipe_tower_width.value),
         float(this->config.wipe_tower_rotation_angle.value), float(this->config.cooling_tube_retraction.value),
         float(this->config.cooling_tube_length.value), float(this->config.parking_pos_retraction.value),
         float(this->config.wipe_tower_bridging), wiping_volumes, m_tool_ordering.first_extruder());
