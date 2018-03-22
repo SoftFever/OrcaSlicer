@@ -62,9 +62,9 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		m_undo_to_sys_btn->SetBackgroundColour(color);
 	}
 	m_undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
-	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){  }));
+	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
 	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
-	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){  }));
+	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
 
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
@@ -440,6 +440,51 @@ void Tab::update_undo_buttons()
 
 	m_undo_btn->SetBitmap(wxBitmap(from_u8(var(undo_icon)), wxBITMAP_TYPE_PNG));
 	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(undo_to_sys_icon)), wxBITMAP_TYPE_PNG));
+}
+
+void Tab::on_back_to_initial_value()
+{
+	if (!m_is_modified_values) return;
+
+	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+	for (auto page : m_pages)
+		if (page->title() == selection)	{
+			for (auto group : page->m_optgroups){
+				if (group->title == _("Capabilities")){
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), "extruders_count") != m_dirty_options.end())
+						group->back_to_initial_value("extruders_count");
+				}
+				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+					const std::string& opt_key = it->first;
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
+						group->back_to_initial_value(opt_key);
+				}
+			}
+			break;
+		}
+
+}
+
+void Tab::on_back_to_sys_value()
+{
+	if (!m_is_nonsys_values) return;
+
+	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+	for (auto page : m_pages)
+		if (page->title() == selection)	{
+			for (auto group : page->m_optgroups) {
+				if (group->title == _("Capabilities")){
+					if (find(m_sys_options.begin(), m_sys_options.end(), "extruders_count") == m_sys_options.end())
+						group->back_to_sys_value("extruders_count");
+				}
+				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+					const std::string& opt_key = it->first;
+					if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
+						group->back_to_sys_value(opt_key);
+				}
+			}
+			break;
+		}
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,

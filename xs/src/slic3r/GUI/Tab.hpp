@@ -163,6 +163,9 @@ public:
 	void		update_changed_tree_ui();
 	void		update_undo_buttons();
 
+	void		on_back_to_initial_value();
+	void		on_back_to_sys_value();
+
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
 	virtual void	OnActivate(){}

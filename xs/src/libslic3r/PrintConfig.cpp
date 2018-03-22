@@ -418,7 +418,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("This is only used in the Slic3r interface as a visual help.");
     def->cli = "filament-color=s@";
     def->gui_type = "color";
-    def->default_value = new ConfigOptionStrings { "#29b2b2" };
+    def->default_value = new ConfigOptionStrings { "#29B2B2" };
 
     def = this->add("filament_notes", coStrings);
     def->label = L("Filament notes");
