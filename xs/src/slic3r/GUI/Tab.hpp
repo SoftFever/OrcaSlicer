@@ -54,6 +54,9 @@ public:
 	}
 	~Page(){}
 
+	bool				m_is_modified_values{ false };
+	bool				m_is_nonsys_values{ true };
+
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
 	DynamicPrintConfig* m_config;
@@ -109,6 +112,9 @@ protected:
 	wxEventType			m_event_value_change = 0;
 	wxEventType 		m_event_presets_changed = 0;
 
+	bool				m_is_modified_values{ false };
+	bool				m_is_nonsys_values{ true };
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
@@ -155,6 +161,7 @@ public:
 	void		update_full_options_list();
 	void		update_sys_ui_after_sel_preset();
 	void		update_changed_tree_ui();
+	void		update_undo_buttons();
 
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 

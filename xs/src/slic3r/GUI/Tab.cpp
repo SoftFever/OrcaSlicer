@@ -293,7 +293,7 @@ void Tab::update_changed_ui()
 		Field* field = get_field(opt_key);
 		if (field == nullptr) continue;
 		std::string icon = wxMSW ? "sys_lock.png" : "lock.png";
-		wxColor& color = *get_sys_label_clr();
+		wxColour& color = *get_sys_label_clr();
 		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) != m_sys_options.end()) {
 			field->m_is_nonsys_value = false;
 		}
@@ -302,6 +302,8 @@ void Tab::update_changed_ui()
 			icon = m_nonsys_btn_icon;
 			if(find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
 				color = wxSYS_COLOUR_WINDOWTEXT;
+			else
+				color = *get_modified_label_clr();
 		}
 		field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(icon)), wxBITMAP_TYPE_PNG));
 		if (field->m_Label != nullptr){
@@ -379,6 +381,7 @@ void Tab::update_sys_ui_after_sel_preset()
 void Tab::update_changed_tree_ui()
 {
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
+	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	while (cur_item){
 		auto title = m_treectrl->GetItemText(cur_item);
 		int i=0;
@@ -406,19 +409,37 @@ void Tab::update_changed_tree_ui()
 				if (!sys_page && modified_page)
 					break;
 			}
-			if (sys_page){
+			if (sys_page)
 				m_treectrl->SetItemTextColour(cur_item, *get_sys_label_clr());
-			}
-			else if (modified_page){
+			else if (modified_page)
 				m_treectrl->SetItemTextColour(cur_item, *get_modified_label_clr());
-			}
 			else
 				m_treectrl->SetItemTextColour(cur_item, wxSYS_COLOUR_WINDOWTEXT);
+
+			page->m_is_nonsys_values = !sys_page;
+			page->m_is_modified_values = modified_page;
+
+			if (selection == title){
+				m_is_nonsys_values = page->m_is_nonsys_values;
+				m_is_modified_values = page->m_is_modified_values;
+			}
 			break;
 		}
 		auto next_item = m_treectrl->GetNextVisible(cur_item);
 		cur_item = next_item;
 	}
+	update_undo_buttons();
+}
+
+void Tab::update_undo_buttons()
+{
+	const std::string& undo_icon = !m_is_modified_values ? "bullet_white.png" :
+									wxMSW ? "action_undo.png" : "arrow_undo.png";
+	const std::string& undo_to_sys_icon = m_is_nonsys_values ? m_nonsys_btn_icon :
+									wxMSW ? "sys_lock.png" : "lock.png";
+
+	m_undo_btn->SetBitmap(wxBitmap(from_u8(var(undo_icon)), wxBITMAP_TYPE_PNG));
+	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(undo_to_sys_icon)), wxBITMAP_TYPE_PNG));
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
@@ -1796,6 +1817,8 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 		if (p->title() == selection)
 		{
 			page = p.get();
+			m_is_nonsys_values = page->m_is_nonsys_values;
+			m_is_modified_values = page->m_is_modified_values;
 			break;
 		}
 	if (page == nullptr) return;
@@ -1805,6 +1828,8 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	page->Show();
 	m_hsizer->Layout();
 	Refresh();
+
+	update_undo_buttons();
 }
 
 void Tab::OnKeyDown(wxKeyEvent& event)
