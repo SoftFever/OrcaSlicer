@@ -174,6 +174,13 @@ sub recreate_GUI{
         $topwindow->Destroy;
     }
 
+    EVT_IDLE($self->{mainframe}, sub {
+        while (my $cb = shift @cb) {
+            $cb->();
+        }
+        $self->{app_config}->save if $self->{app_config}->dirty;
+    });
+
     my $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
     if ($run_wizard) {
         # On OSX the UI was not initialized correctly if the wizard was called
