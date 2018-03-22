@@ -1099,7 +1099,7 @@ void TabPrinter::build()
 		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value){
 			size_t extruders_count = boost::any_cast<int>(optgroup->get_value("extruders_count"));
 			wxTheApp->CallAfter([this, opt_key, value, extruders_count](){
-				if (opt_key.compare("extruders_count")==0) {
+				if (opt_key.compare("extruders_count")==0 || opt_key.compare("single_extruder_multi_material")==0) {
 					extruders_count_changed(extruders_count);
 					update_dirty();
 				}
@@ -1109,6 +1109,7 @@ void TabPrinter::build()
 				}
 			});
 		};
+
 
 		if (!m_no_controller)
 		{
@@ -1249,9 +1250,6 @@ void TabPrinter::build()
 		optgroup->append_single_option_line("use_firmware_retraction");
 		optgroup->append_single_option_line("use_volumetric_e");
 		optgroup->append_single_option_line("variable_layer_height");
-        optgroup->append_single_option_line("cooling_tube_retraction");
-		optgroup->append_single_option_line("cooling_tube_length");
-		optgroup->append_single_option_line("parking_pos_retraction");
 
 	page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
@@ -1374,6 +1372,25 @@ void TabPrinter::build_extruder_pages(){
 	for (auto page_extruder : m_extruder_pages)
 		m_pages.push_back(page_extruder);
 	m_pages.push_back(page_note);
+
+    {
+        // if we have a single extruder MM setup, add a page with configuration options:
+        for (int i=0;i<m_pages.size();++i) // first make sure it's not there already
+            if (m_pages[i]->title().find(_(L("Single extruder MM setup"))) != std::string::npos) {
+                m_pages.erase(m_pages.begin()+i);
+                break;
+            }
+        if ( m_extruder_pages.size()>1 && m_config->opt_bool("single_extruder_multi_material")) {
+            // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
+            auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png",true);
+                auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
+                optgroup->append_single_option_line("cooling_tube_retraction");
+                optgroup->append_single_option_line("cooling_tube_length");
+                optgroup->append_single_option_line("parking_pos_retraction");
+            m_pages.insert(m_pages.begin()+1,page);
+        }
+    }
+
 	rebuild_page_tree();
 }
 
