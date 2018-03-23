@@ -406,8 +406,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 			ret = text_value;
 		else if (opt->gui_flags.compare("serialized") == 0){
 			std::vector<std::string> values = config.option<ConfigOptionStrings>(opt_key)->values;
-			for (auto el : values)
-				text_value += el + ";";
+			if (!values.empty() && values[0].compare("") != 0)
+				for (auto el : values)
+					text_value += el + ";";
 			ret = text_value;
 		}
 		else

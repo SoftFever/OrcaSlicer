@@ -584,14 +584,6 @@ std::vector<std::string>    PresetCollection::system_equal_options() const
 	std::vector<std::string> equal;
 	if (edited != nullptr && reference != nullptr) {
 		equal = reference->config.equal(edited->config);
-		// The "compatible_printers" option key is handled differently from the others:
-		// It is not mandatory. If the key is missing, it means it is compatible with any printer.
-		// If the key exists and it is empty, it means it is compatible with no printer.
-		std::initializer_list<const char*> optional_keys{ "compatible_printers", "compatible_printers_condition" };
-		for (auto &opt_key : optional_keys) {
-			if (reference->config.has(opt_key) == edited->config.has(opt_key))
-				equal.emplace_back(opt_key);
-		}
 	}
 	return equal;
 }

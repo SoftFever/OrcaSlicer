@@ -404,6 +404,7 @@ void Choice::set_value(boost::any value, bool change_event)
 	case coInt:
 	case coFloat:
 	case coPercent:
+	case coString:
 	case coStrings:{
 		wxString text_value;
 		if (m_opt.type == coInt) 
@@ -417,7 +418,6 @@ void Choice::set_value(boost::any value, bool change_event)
 				break;
 			++idx;
 		}
-//		if (m_opt.type == coPercent) text_value += "%";
 		idx == m_opt.enum_values.size() ?
 			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
@@ -446,6 +446,7 @@ void Choice::set_values(const std::vector<std::string> values)
 	auto ww = dynamic_cast<wxComboBox*>(window);
 	auto value = ww->GetValue();
 	ww->Clear();
+	ww->Append("");
 	for (auto el : values)
 		ww->Append(wxString(el));
 	ww->SetValue(value);

@@ -225,11 +225,6 @@ void Tab::update_changed_ui()
 		m_sys_options.resize(0);
 		const auto sys_preset = m_presets->get_selected_preset_parent();
 		if (sys_preset){
-			std::initializer_list<const char*> optional_keys{"compatible_printers", "compatible_printers_condition" };
-			for (auto &opt_key : optional_keys) {
-				if (m_config->has(opt_key) == sys_preset->config.has(opt_key))
-					m_sys_options.emplace_back(opt_key);
-			}
 			for (auto opt_key : m_config->keys())
 			{
 				if (opt_key == "bed_shape"){ m_sys_options.emplace_back(opt_key);		continue; }
@@ -241,7 +236,13 @@ void Tab::update_changed_ui()
 				case coStrings:	add_correct_opts_to_sys_options<ConfigOptionStrings	>(opt_key, &m_sys_options, tab);	break;
 				case coPercents:add_correct_opts_to_sys_options<ConfigOptionPercents>(opt_key, &m_sys_options, tab);	break;
 				case coPoints:	add_correct_opts_to_sys_options<ConfigOptionPoints	>(opt_key, &m_sys_options, tab);	break;
-				default:		m_sys_options.emplace_back(opt_key);		break;
+				default:{
+					const ConfigOption *opt_cur = tab->m_config->option(opt_key);
+					const ConfigOption *opt_sys = sys_preset->config.option(opt_key);
+					if (opt_cur != nullptr && opt_sys != nullptr && *opt_cur == *opt_sys)
+						m_sys_options.emplace_back(opt_key);		
+					break;
+				}
 				}
 			}
 
@@ -358,12 +359,6 @@ void Tab::update_full_options_list()
 		}
 	}
 	m_full_options_list.emplace_back("extruders_count");
-
-	std::initializer_list<const char*> optional_keys{ "compatible_printers", "compatible_printers_condition" };
-	for (auto &opt_key : optional_keys) {
-		if (m_config->has(opt_key))
-			m_full_options_list.emplace_back(opt_key);
-	}
 }
 
 void Tab::update_sys_ui_after_sel_preset()

@@ -1041,7 +1041,7 @@ PrintConfigDef::PrintConfigDef()
     def->multiline = true;
     def->full_width = true;
 	def->height = 60;
-	def->default_value = new ConfigOptionStrings{ "" };
+	def->default_value = new ConfigOptionStrings();
 
     def = this->add("printer_model", coString);
     def->label = L("Printer type");
