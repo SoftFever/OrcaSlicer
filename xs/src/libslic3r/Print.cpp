@@ -5,11 +5,13 @@
 #include "Flow.hpp"
 #include "Geometry.hpp"
 #include "SupportMaterial.hpp"
+#include "GCode.hpp"
 #include "GCode/WipeTowerPrusaMM.hpp"
 #include <algorithm>
 #include <unordered_set>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 
@@ -793,6 +795,71 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
     }
 }
 
+// Slicing process, running at a background thread.
+void Print::process()
+{
+    BOOST_LOG_TRIVIAL(info) << "Staring the slicing process.";
+    for (PrintObject *obj : this->objects)
+        obj->make_perimeters();
+    this->set_status(70, "Infilling layers");
+    for (PrintObject *obj : this->objects)
+        obj->infill();
+    for (PrintObject *obj : this->objects)
+        obj->generate_support_material();
+    if (! this->state.is_done(psSkirt)) {
+        this->state.set_started(psSkirt);
+        this->skirt.clear();
+        if (this->has_skirt()) {
+            this->set_status(88, "Generating skirt");
+            this->_make_skirt();
+        }
+        this->state.set_done(psSkirt);
+    }
+    if (! this->state.is_done(psBrim)) {
+        this->state.set_started(psBrim);
+        this->brim.clear();
+        if (this->config.brim_width > 0) {
+            this->set_status(88, "Generating brim");
+            this->_make_brim();
+        }
+       this->state.set_done(psBrim);
+    }
+    if (! this->state.is_done(psWipeTower)) {
+        this->state.set_started(psWipeTower);
+        this->_clear_wipe_tower();
+        if (this->has_wipe_tower()) {
+            //this->set_status(95, "Generating wipe tower");
+            this->_make_wipe_tower();
+        }
+       this->state.set_done(psWipeTower);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Slicing process finished.";
+}
+
+// G-code export process, running at a background thread.
+// The export_gcode may die for various reasons (fails to process output_filename_format,
+// write error into the G-code, cannot execute post-processing scripts).
+// It is up to the caller to show an error message.
+void Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
+{
+    // prerequisites
+    this->process();
+    
+    // output everything to a G-code file
+    // The following call may die if the output_filename_format template substitution fails.
+    std::string path = this->output_filepath(path_template);
+    std::string message = "Exporting G-code";
+    if (! path.empty()) {
+        message += " to ";
+        message += path;
+    }
+    this->set_status(90, message);
+
+    // The following line may die for multiple reasons.
+    GCode gcode;
+    gcode.do_export(this, path.c_str(), preview_data);
+}
+
 void Print::_make_skirt()
 {
     // First off we need to decide how tall the skirt must be.
@@ -978,10 +1045,6 @@ void Print::_clear_wipe_tower()
 
 void Print::_make_wipe_tower()
 {
-    this->_clear_wipe_tower();
-    if (! this->has_wipe_tower())
-        return;
-
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     m_tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
     if (! m_tool_ordering.has_wipe_tower())
@@ -1151,11 +1214,6 @@ std::string Print::output_filepath(const std::string &path)
     
     // if we were supplied a file which is not a directory, use it
     return path;
-}
-
-void Print::set_status(int percent, const std::string &message)
-{
-    printf("Print::status %d => %s\n", percent, message.c_str());
 }
 
 }

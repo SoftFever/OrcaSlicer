@@ -8,7 +8,6 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z scale unscale deg2rad rad2deg);
-use threads::shared qw(shared_clone);
 use Wx qw(:button :colour :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
     :panel :sizer :toolbar :window wxTheApp :notebook :combobox wxNullBitmap);
 use Wx::Event qw(EVT_BUTTON EVT_TOGGLEBUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
@@ -34,21 +33,16 @@ use constant TB_LAYER_EDITING => &Wx::NewId;
 
 use Wx::Locale gettext => 'L';
 
-# package variables to avoid passing lexicals to threads
-our $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
-our $ERROR_EVENT             : shared = Wx::NewEventType;
 # Emitted from the worker thread when the G-code export is finished.
-our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
-our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
-
-use constant FILAMENT_CHOOSERS_SPACING => 0;
-use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
+our $SLICING_COMPLETED_EVENT = Wx::NewEventType;
+our $PROCESS_COMPLETED_EVENT = Wx::NewEventType;
 
 my $PreventListEvents = 0;
 
 sub new {
     my ($class, $parent) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    Slic3r::GUI::set_plater($self);
     $self->{config} = Slic3r::Config::new_from_defaults_keys([qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
         serial_port serial_speed octoprint_host octoprint_apikey octoprint_cafile
@@ -63,14 +57,14 @@ sub new {
     # List of Perl objects Slic3r::GUI::Plater::Object, representing a 2D preview of the platter.
     $self->{objects} = [];
     $self->{gcode_preview_data} = Slic3r::GCode::PreviewData->new;
-    
-    $self->{print}->set_status_cb(sub {
-        my ($percent, $message) = @_;
-        my $event = Wx::CommandEvent->new($PROGRESS_BAR_EVENT);
-        $event->SetString($message);
-        $event->SetInt($percent);
-        Wx::PostEvent($self, $event);
-    });
+    $self->{background_slicing_process} = Slic3r::GUI::BackgroundSlicingProcess->new;
+    $self->{background_slicing_process}->set_print($self->{print});
+    $self->{background_slicing_process}->set_gcode_preview_data($self->{gcode_preview_data});
+    $self->{background_slicing_process}->set_sliced_event($SLICING_COMPLETED_EVENT);
+    $self->{background_slicing_process}->set_finished_event($PROCESS_COMPLETED_EVENT);
+
+    # The C++ slicing core will post a wxCommand message to the main window.    
+    Slic3r::GUI::set_print_callback_event($self->{print}, $Slic3r::GUI::MainFrame::PROGRESS_BAR_EVENT);
     
     # Initialize preview notebook
     $self->{preview_notebook} = Wx::Notebook->new($self, -1, wxDefaultPosition, [335,335], wxNB_BOTTOM);
@@ -319,19 +313,9 @@ sub new {
         for grep defined($_),
             $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D}, $self->{list};
     
-    EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
+    EVT_COMMAND($self, -1, $SLICING_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
-        $self->on_progress_event($event->GetInt, $event->GetString);
-    });
-    
-    EVT_COMMAND($self, -1, $ERROR_EVENT, sub {
-        my ($self, $event) = @_;
-        Slic3r::GUI::show_error($self, $event->GetString);
-    });
-    
-    EVT_COMMAND($self, -1, $EXPORT_COMPLETED_EVENT, sub {
-        my ($self, $event) = @_;
-        $self->on_export_completed($event->GetInt);
+        $self->on_update_print_preview;
     });
     
     EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
@@ -788,8 +772,7 @@ sub bed_centerf {
 }
 
 sub remove {
-    my $self = shift;
-    my ($obj_idx) = @_;
+    my ($self, $obj_idx) = @_;
     
     $self->stop_background_process;
     
@@ -797,7 +780,7 @@ sub remove {
     $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
     $self->{preview3D}->enabled(0) if $self->{preview3D};
     
-    # if no object index is supplied, remove the selected one
+    # If no object index is supplied, remove the selected one.
     if (! defined $obj_idx) {
         ($obj_idx, undef) = $self->selected_object;
         return if ! defined $obj_idx;
@@ -811,11 +794,10 @@ sub remove {
     
     $self->select_object(undef);
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub reset {
-    my $self = shift;
+    my ($self) = @_;
     
     $self->stop_background_process;
     
@@ -840,6 +822,7 @@ sub increase {
     return if ! defined $obj_idx;
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $instance = $model_object->instances->[-1];
+    $self->stop_background_process;
     for my $i (1..$copies) {
         $instance = $model_object->add_instance(
             offset          => Slic3r::Pointf->new(map 10+$_, @{$instance->offset}),
@@ -849,15 +832,8 @@ sub increase {
         $self->{print}->objects->[$obj_idx]->add_copy($instance->offset);
     }
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
-    
-    # only autoarrange if user has autocentering enabled
-    $self->stop_background_process;
-    if (wxTheApp->{app_config}->get("autocenter")) {
-        $self->arrange;
-    } else {
-        $self->update;
-    }
-    $self->schedule_background_process;
+    # Only autoarrange if user has autocentering enabled.
+    wxTheApp->{app_config}->get("autocenter") ? $self->arrange : $self->update;
 }
 
 sub decrease {
@@ -866,10 +842,9 @@ sub decrease {
     my ($obj_idx, $object) = $self->selected_object;
     return if ! defined $obj_idx;
 
-    $self->stop_background_process;
-    
     my $model_object = $self->{model}->objects->[$obj_idx];
     if ($model_object->instances_count > $copies) {
+        $self->stop_background_process;
         for my $i (1..$copies) {
             $model_object->delete_last_instance;
             $self->{print}->objects->[$obj_idx]->delete_last_copy;
@@ -877,10 +852,10 @@ sub decrease {
         $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     } elsif (defined $copies_asked) {
         # The "decrease" came from the "set number of copies" dialog.
+        $self->stop_background_process;
         $self->remove;
     } else {
         # The "decrease" came from the "-" button. Don't allow the object to disappear.
-        $self->resume_background_process;
         return;
     }
     
@@ -889,24 +864,18 @@ sub decrease {
         $self->{list}->Select($obj_idx, 1);
     }
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub set_number_of_copies {
     my ($self) = @_;
-    
-    $self->pause_background_process;
-    
     # get current number of copies
     my ($obj_idx, $object) = $self->selected_object;
-    my $model_object = $self->{model}->objects->[$obj_idx];
-    
+    my $model_object = $self->{model}->objects->[$obj_idx];    
     # prompt user
     my $copies = Wx::GetNumberFromUser("", L("Enter the number of copies of the selected object:"), L("Copies"), $model_object->instances_count, 0, 1000, $self);
     my $diff = $copies - $model_object->instances_count;
     if ($diff == 0) {
         # no variation
-        $self->resume_background_process;
     } elsif ($diff > 0) {
         $self->increase($diff);
     } elsif ($diff < 0) {
@@ -981,7 +950,6 @@ sub rotate {
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub mirror {
@@ -1011,7 +979,6 @@ sub mirror {
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub changescale {
@@ -1086,14 +1053,12 @@ sub changescale {
     
     $self->selection_changed(1);  # refresh info (size, volume etc.)
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub arrange {
-    my $self = shift;
+    my ($self) = @_;
     
-    $self->pause_background_process;
-    
+    $self->stop_background_process;
     my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
     my $success = $self->{model}->arrange_objects(wxTheApp->{preset_bundle}->full_config->min_object_distance, $bb);
     # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
@@ -1118,84 +1083,62 @@ sub split_object {
         return;
     }
     
-    $self->pause_background_process;
+    $self->stop_background_process;
     
     my @model_objects = @{$current_model_object->split_object};
     if (@model_objects == 1) {
-        $self->resume_background_process;
         Slic3r::GUI::warning_catcher($self)->(L("The selected object couldn't be split because it contains only one part."));
-        $self->resume_background_process;
-        return;
+        $self->schedule_background_process;
+    } else {
+        $_->center_around_origin for (@model_objects);
+        $self->remove($obj_idx);
+        $current_object = $obj_idx = undef;
+        # load all model objects at once, otherwise the plate would be rearranged after each one
+        # causing original positions not to be kept
+        $self->load_model_objects(@model_objects);
     }
-    
-    $_->center_around_origin for (@model_objects);
-
-    $self->remove($obj_idx);
-    $current_object = $obj_idx = undef;
-    
-    # load all model objects at once, otherwise the plate would be rearranged after each one
-    # causing original positions not to be kept
-    $self->load_model_objects(@model_objects);
 }
 
+# Trigger $self->async_apply_config() after 500ms.
+# The call is delayed to avoid restarting the background processing during typing into an edit field.
 sub schedule_background_process {
     my ($self) = @_;
-    
-    if (defined $self->{apply_config_timer}) {
-        $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
-    }
+    $self->{apply_config_timer}->Start(0.5 * 1000, 1);  # 1 = one shot, every half a second.
 }
 
 # Executed asynchronously by a timer every PROCESS_DELAY (0.5 second).
 # The timer is started by schedule_background_process(), 
 sub async_apply_config {
     my ($self) = @_;
-
-    # pause process thread before applying new config
-    # since we don't want to touch data that is being used by the threads
-    $self->pause_background_process;
-    
-    # apply new config
-    my $invalidated = $self->{print}->apply_config(wxTheApp->{preset_bundle}->full_config);
-
-    # Just redraw the 3D canvas without reloading the scene.
-#    $self->{canvas3D}->Refresh if ($invalidated && $self->{canvas3D}->layer_editing_enabled);
+    # Apply new config to the possibly running background task.
+    my $was_running = $self->{background_slicing_process}->running;
+    my $invalidated = $self->{background_slicing_process}->apply_config(wxTheApp->{preset_bundle}->full_config);
+    # Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     $self->{canvas3D}->Refresh if ($self->{canvas3D}->layer_editing_enabled);
-
-    # Hide the slicing results if the current slicing status is no more valid.    
-    $self->{"print_info_box_show"}->(0) if $invalidated;
-
-    if (wxTheApp->{app_config}->get("background_processing")) {    
-        if ($invalidated) {
-            # kill current thread if any
-            $self->stop_background_process;
-        } else {
-            $self->resume_background_process;
-        }
-        # schedule a new process thread in case it wasn't running
-        $self->start_background_process;
-    }
-
-    # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
-    # Otherwise they will be just refreshed.
+    # If the apply_config caused the calculation to stop, or it was not running yet:
     if ($invalidated) {
-        $self->{gcode_preview_data}->reset;
-        $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
-        $self->{preview3D}->reload_print if $self->{preview3D};
+        if ($was_running) {
+            # Hide the slicing results if the current slicing status is no more valid.
+            $self->{"print_info_box_show"}->(0);
+        }
+        if (wxTheApp->{app_config}->get("background_processing")) {
+            $self->{background_slicing_process}->start;
+        }
+        if ($was_running) {
+            # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
+            # Otherwise they will be just refreshed.
+            $self->{gcode_preview_data}->reset;
+            $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
+            $self->{preview3D}->reload_print if $self->{preview3D};
+        }
     }
 }
 
+# Background processing is started either by the "Slice now" button, by the "Export G-code button" or by async_apply_config().
 sub start_background_process {
     my ($self) = @_;
-    
-    return if !@{$self->{objects}};
-    return if $self->{process_thread};
-    
-    # It looks like declaring a local $SIG{__WARN__} prevents the ugly
-    # "Attempt to free unreferenced scalar" warning...
-    local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-    
-    # don't start process thread if config is not valid
+    return if ! @{$self->{objects}} || $self->{background_slicing_process}->running;
+    # Don't start process thread if config is not valid.
     eval {
         # this will throw errors if config is not valid
         wxTheApp->{preset_bundle}->full_config->validate;
@@ -1204,79 +1147,29 @@ sub start_background_process {
     if ($@) {
         $self->statusbar->SetStatusText($@);
         return;
-    }
-    
+    }   
     # Copy the names of active presets into the placeholder parser.
     wxTheApp->{preset_bundle}->export_selections_pp($self->{print}->placeholder_parser);
-    
-    # start thread
-    @_ = ();
-    $self->{process_thread} = Slic3r::spawn_thread(sub {
-        eval {
-            $self->{print}->process;
-        };
-        my $event = Wx::CommandEvent->new($PROCESS_COMPLETED_EVENT);
-        if ($@) {
-            Slic3r::debugf "Background process error: $@\n";
-            $event->SetInt(0);
-            $event->SetString($@);
-        } else {
-            $event->SetInt(1);
-        }
-        Wx::PostEvent($self, $event);
-        Slic3r::thread_cleanup();
-    });
-    Slic3r::debugf "Background processing started.\n";
+    # Start the background process.
+    $self->{background_slicing_process}->start;
 }
 
+# Stop the background processing
 sub stop_background_process {
     my ($self) = @_;
-    
-    $self->{apply_config_timer}->Stop if defined $self->{apply_config_timer};
+    # Don't call async_apply_config() while stopped.
+    $self->{apply_config_timer}->Stop;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
+    # Stop the background task.
+    $self->{background_slicing_process}->stop;
+    # Update the UI with the slicing results.
     $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
     $self->{preview3D}->reload_print if $self->{preview3D};
-    
-    if ($self->{process_thread}) {
-        Slic3r::debugf "Killing background process.\n";
-        Slic3r::kill_all_threads();
-        $self->{process_thread} = undef;
-    } else {
-        Slic3r::debugf "No background process running.\n";
-    }
-    
-    # if there's an export process, kill that one as well
-    if ($self->{export_thread}) {
-        Slic3r::debugf "Killing background export process.\n";
-        Slic3r::kill_all_threads();
-        $self->{export_thread} = undef;
-    }
 }
 
-sub pause_background_process {
-    my ($self) = @_;
-    
-    if ($self->{process_thread} || $self->{export_thread}) {
-        Slic3r::pause_all_threads();
-        return 1;
-    } elsif (defined $self->{apply_config_timer} && $self->{apply_config_timer}->IsRunning) {
-        $self->{apply_config_timer}->Stop;
-        return 1;
-    }
-    
-    return 0;
-}
-
-sub resume_background_process {
-    my ($self) = @_;
-    
-    if ($self->{process_thread} || $self->{export_thread}) {
-        Slic3r::resume_all_threads();
-    }
-}
-
+# Called by the "Slice now" button, which is visible only if the background processing is disabled.
 sub reslice {
     # explicitly cancel a previous thread and start a new one.
     my ($self) = @_;
@@ -1371,78 +1264,21 @@ sub export_gcode {
     return $self->{export_gcode_output_file};
 }
 
-# This gets called only if we have threads.
-sub on_process_completed {
-    my ($self, $error) = @_;
-    
-    $self->statusbar->SetCancelCallback(undef);
-    $self->statusbar->StopBusy;
-    $self->statusbar->SetStatusText($error // "");
-    
-    Slic3r::debugf "Background processing completed.\n";
-    $self->{process_thread}->detach if $self->{process_thread};
-    $self->{process_thread} = undef;
-    
-    # if we're supposed to perform an explicit export let's display the error in a dialog
-    if ($error && $self->{export_gcode_output_file}) {
-        $self->{export_gcode_output_file} = undef;
-        Slic3r::GUI::show_error($self, $error);
-    }
-    
-    return if $error;
+# This message should be called by the background process synchronously.
+sub on_update_print_preview {
+    my ($self) = @_;
     $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
     $self->{preview3D}->reload_print if $self->{preview3D};
-    
-    # if we have an export filename, start a new thread for exporting G-code
-    if ($self->{export_gcode_output_file}) {
-        @_ = ();
-        
-        # workaround for "Attempt to free un referenced scalar..."
-        our $_thread_self = $self;
-        
-        $self->{export_thread} = Slic3r::spawn_thread(sub {
-            eval {
-                $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file}, gcode_preview_data => $_thread_self->{gcode_preview_data});
-            };
-            my $export_completed_event = Wx::CommandEvent->new($EXPORT_COMPLETED_EVENT);
-            if ($@) {
-                {
-                    my $error_event = Wx::CommandEvent->new($ERROR_EVENT);
-                    $error_event->SetString($@);
-                    Wx::PostEvent($_thread_self, $error_event);
-                }
-                $export_completed_event->SetInt(0);
-                $export_completed_event->SetString($@);
-            } else {
-                $export_completed_event->SetInt(1);
-            }
-            Wx::PostEvent($_thread_self, $export_completed_event);
-            Slic3r::thread_cleanup();
-        });
-        Slic3r::debugf "Background G-code export started.\n";
-    }
-}
-
-# This gets called also if we have no threads.
-sub on_progress_event {
-    my ($self, $percent, $message) = @_;
-    
-    $self->statusbar->SetProgress($percent);
-    $self->statusbar->SetStatusText("$message…");
 }
 
 # Called when the G-code export finishes, either successfully or with an error.
 # This gets called also if we don't have threads.
-sub on_export_completed {
+sub on_process_completed {
     my ($self, $result) = @_;
     
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
-    
-    Slic3r::debugf "Background export process completed.\n";
-    $self->{export_thread}->detach if $self->{export_thread};
-    $self->{export_thread} = undef;
     
     my $message;
     my $send_gcode = 0;
@@ -1470,7 +1306,7 @@ sub on_export_completed {
     # Send $self->{send_gcode_file} to OctoPrint.
     if ($send_gcode) {
         my $op = Slic3r::OctoPrint->new($self->{config});
-        $op->send_gcode($self->GetId(), $PROGRESS_BAR_EVENT, $ERROR_EVENT, $self->{send_gcode_file});
+        $op->send_gcode($self->GetId(), $Slic3r::GUI::MainFrame::PROGRESS_BAR_EVENT, $Slic3r::GUI::MainFrame::ERROR_EVENT, $self->{send_gcode_file});
     }
 
     $self->{print_file} = undef;
@@ -1636,27 +1472,15 @@ sub reset_thumbnail {
 # (i.e. when an object is added/removed/moved/rotated/scaled)
 sub update {
     my ($self, $force_autocenter) = @_;
-
     if (wxTheApp->{app_config}->get("autocenter") || $force_autocenter) {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
-    
-    my $running = $self->pause_background_process;
-    my $invalidated = $self->{print}->reload_model_instances();
-    
-    # The mere fact that no steps were invalidated when reloading model instances 
-    # doesn't mean that all steps were done: for example, validation might have 
-    # failed upon previous instance move, so we have no running thread and no steps
-    # are invalidated on this move, thus we need to schedule a new run.
-    if ($invalidated || !$running) {
-        $self->schedule_background_process;
-    } else {
-        $self->resume_background_process;
-    }
-
+    $self->stop_background_process;
+    $self->{print}->reload_model_instances();
     $self->{canvas}->reload_scene if $self->{canvas};
     $self->{canvas3D}->reload_scene if $self->{canvas3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
+    $self->schedule_background_process;
 }
 
 # When a number of extruders changes, the UI needs to be updated to show a single filament selection combo box per extruder.
@@ -1679,7 +1503,7 @@ sub on_extruders_change {
         $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
         # insert new choice into sizer
         $self->{presets_sizer}->Insert(4 + ($#$choices-1)*2, 0, 0);
-        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choice, 0, wxEXPAND | wxBOTTOM, 0);
         # setup the listener
         EVT_COMBOBOX($choice, $choice, sub {
             my ($choice) = @_;
@@ -1854,7 +1678,7 @@ sub object_settings_dialog {
 		model_object    => $model_object,
         config          => wxTheApp->{preset_bundle}->full_config,
 	);
-	$self->pause_background_process;
+	$self->stop_background_process;
 	$dlg->ShowModal;
 	
     # update thumbnail since parts may have changed
@@ -1866,13 +1690,12 @@ sub object_settings_dialog {
 	
 	# update print
 	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
-	    $self->stop_background_process;
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
         $self->{canvas}->reload_scene if $self->{canvas};
         $self->{canvas3D}->reload_scene if $self->{canvas3D};
     } else {
-        $self->resume_background_process;
+        $self->schedule_background_process;
     }
 }
 

@@ -13,12 +13,6 @@ sub wkt {
         join ',', map "($_)", map { join ',', map "$_->[0] $_->[1]", @$_ } @$self;
 }
 
-sub dump_perl {
-    my $self = shift;
-    return sprintf "[%s]", 
-        join ',', map "[$_]", map { join ',', map "[$_->[0],$_->[1]]", @$_ } @$self;
-}
-
 sub offset {
     my $self = shift;
     return Slic3r::Geometry::Clipper::offset(\@$self, @_);

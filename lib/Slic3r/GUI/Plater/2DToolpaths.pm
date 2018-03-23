@@ -152,12 +152,6 @@ __PACKAGE__->mk_accessors(qw(
     _simulation_mode
 ));
 
-# make OpenGL::Array thread-safe
-{
-    no warnings 'redefine';
-    *OpenGL::Array::CLONE_SKIP = sub { 1 };
-}
-
 sub new {
     my ($class, $parent, $print) = @_;
     

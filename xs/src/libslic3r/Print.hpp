@@ -5,6 +5,7 @@
 #include <set>
 #include <vector>
 #include <string>
+#include <functional>
 #include "BoundingBox.hpp"
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
@@ -23,6 +24,7 @@ namespace Slic3r {
 class Print;
 class PrintObject;
 class ModelObject;
+class GCodePreviewData;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
@@ -190,23 +192,26 @@ public:
     // (layer height, first layer height, raft settings, print nozzle diameter etc).
     SlicingParameters slicing_parameters() const;
 
+private:
+    void slice();
+    void make_perimeters();
+    void prepare_infill();
+    void infill();
+    void generate_support_material();
+
     void _slice();
     std::string _fix_slicing_errors();
     void _simplify_slices(double distance);
-    void _prepare_infill();
     bool has_support_material() const;
     void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();
     void bridge_over_infill();
-    void _make_perimeters();
-    void _infill();
     void clip_fill_surfaces();
     void discover_horizontal_shells();
     void combine_infill();
     void _generate_support_material();
 
-private:
     Print* _print;
     ModelObject* _model_object;
     Points _copies;      // Slic3r::Point objects in scaled G-code coordinates
@@ -232,7 +237,6 @@ public:
     PrintObjectPtrs objects;
     PrintRegionPtrs regions;
     PlaceholderParser placeholder_parser;
-    // TODO: status_cb
     std::string                     estimated_print_time;
     double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
     std::map<size_t, float>         filament_stats;
@@ -283,13 +287,11 @@ public:
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object) const;
 
-    void _make_skirt();
-    void _make_brim();
+    void process();
+    void export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
 
     // Wipe tower support.
     bool has_wipe_tower() const;
-    void _clear_wipe_tower();
-    void _make_wipe_tower();
     // Tool ordering of a non-sequential print has to be known to calculate the wipe tower.
     // Cache it here, so it does not need to be recalculated during the G-code generation.
     ToolOrdering m_tool_ordering;
@@ -301,8 +303,14 @@ public:
     std::string output_filename();
     std::string output_filepath(const std::string &path);
 
+    typedef std::function<void(int, const std::string&)>  status_callback_type;
+    void set_status_callback(status_callback_type cb) { m_status_callback = cb; }
+    void reset_status_callback() { m_status_callback = nullptr; }
     // Calls a registered callback to update the status.
-    void set_status(int percent, const std::string &message);
+    void set_status(int percent, const std::string &message) { 
+        if (m_status_callback) m_status_callback(percent, message);
+        else printf("%d => %s\n", percent, message.c_str());
+    }
     // Cancel the running computation. Stop execution of all the background threads.
     void cancel() { m_canceled = true; }
     // Cancel the running computation. Stop execution of all the background threads.
@@ -314,8 +322,14 @@ private:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
 
+    void _make_skirt();
+    void _make_brim();
+    void _clear_wipe_tower();
+    void _make_wipe_tower();
+
     // Has the calculation been canceled?
-    tbb::atomic<bool>   m_canceled;
+    tbb::atomic<bool>       m_canceled;
+    status_callback_type    m_status_callback;
 };
 
 #define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)

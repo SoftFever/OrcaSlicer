@@ -202,10 +202,6 @@ if (@ARGV) {  # slicing from command line
             duplicate_grid  => $opt{duplicate_grid} // [1,1],
             print_center    => $opt{print_center}   // Slic3r::Pointf->new(100,100),
             dont_arrange    => $opt{dont_arrange}   // 0,
-            status_cb       => sub {
-                my ($percent, $message) = @_;
-                printf "=> %s\n", $message;
-            },
             output_file     => $opt{output},
         );
         

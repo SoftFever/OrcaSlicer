@@ -15,82 +15,16 @@ use Slic3r::Geometry::Clipper qw(diff_ex union_ex intersection_ex intersection o
     union JT_ROUND JT_SQUARE);
 use Slic3r::Print::State ':steps';
 
-our $status_cb;
-
-sub set_status_cb {
-    my ($class, $cb) = @_;
-    $status_cb = $cb;
-}
-
-sub status_cb {
-    return $status_cb // sub {};
-}
-
 sub size {
     my $self = shift;
     return $self->bounding_box->size;
 }
 
-# Slicing process, running at a background thread.
-sub process {
-    my ($self) = @_;
-    
-    Slic3r::trace(3, "Staring the slicing process.");
-    $_->make_perimeters for @{$self->objects};
-    
-    $self->status_cb->(70, "Infilling layers");
-    $_->infill for @{$self->objects};
-    
-    $_->generate_support_material for @{$self->objects};
-    $self->make_skirt;
-    $self->make_brim;  # must come after make_skirt
-    $self->make_wipe_tower;
-    
-    # time to make some statistics
-    if (0) {
-        eval "use Devel::Size";
-        print  "MEMORY USAGE:\n";
-        printf "  meshes        = %.1fMb\n", List::Util::sum(map Devel::Size::total_size($_->meshes), @{$self->objects})/1024/1024;
-        printf "  layer slices  = %.1fMb\n", List::Util::sum(map Devel::Size::total_size($_->slices), map @{$_->layers}, @{$self->objects})/1024/1024;
-        printf "  region slices = %.1fMb\n", List::Util::sum(map Devel::Size::total_size($_->slices), map @{$_->regions}, map @{$_->layers}, @{$self->objects})/1024/1024;
-        printf "  perimeters    = %.1fMb\n", List::Util::sum(map Devel::Size::total_size($_->perimeters), map @{$_->regions}, map @{$_->layers}, @{$self->objects})/1024/1024;
-        printf "  fills         = %.1fMb\n", List::Util::sum(map Devel::Size::total_size($_->fills), map @{$_->regions}, map @{$_->layers}, @{$self->objects})/1024/1024;
-        printf "  print object  = %.1fMb\n", Devel::Size::total_size($self)/1024/1024;
-    }
-    if (0) {
-        eval "use Slic3r::Test::SectionCut";
-        Slic3r::Test::SectionCut->new(print => $self)->export_svg("section_cut.svg");
-    }
-    Slic3r::trace(3, "Slicing process finished.")
-}
-
-# G-code export process, running at a background thread.
-# The export_gcode may die for various reasons (fails to process output_filename_format,
-# write error into the G-code, cannot execute post-processing scripts).
-# It is up to the caller to show an error message.
-sub export_gcode {
-    my $self = shift;
-    my %params = @_;
-    
-    # prerequisites
-    $self->process;
-    
-    # output everything to a G-code file
-    # The following call may die if the output_filename_format template substitution fails.
-    my $output_file = $self->output_filepath($params{output_file} // '');
-    $self->status_cb->(90, "Exporting G-code" . ($output_file ? " to $output_file" : ""));
-
-    # The following line may die for multiple reasons.
-    my $gcode = Slic3r::GCode->new;
-    if (defined $params{gcode_preview_data}) {
-        $gcode->do_export_w_preview($self, $output_file, $params{gcode_preview_data});
-    } else {
-        $gcode->do_export($self, $output_file);
-    }
-    
+sub run_post_process_scripts {
+    my ($self, $output_file) = @_;
     # run post-processing scripts
     if (@{$self->config->post_process}) {
-        $self->status_cb->(95, "Running post-processing scripts");
+#        $self->status_cb->(95, "Running post-processing scripts");
         $self->config->setenv;
         for my $script (@{$self->config->post_process}) {
             # Ignore empty post processing script lines.
@@ -203,69 +137,6 @@ EOF
     print $fh "</svg>\n";
     close $fh;
     print "Done.\n" unless $params{quiet};
-}
-
-sub make_skirt {
-    my $self = shift;
-    
-    # prerequisites
-    $_->make_perimeters for @{$self->objects};
-    $_->infill for @{$self->objects};
-    $_->generate_support_material for @{$self->objects};
-    
-    return if $self->step_done(STEP_SKIRT);
-
-    $self->set_step_started(STEP_SKIRT);
-    $self->skirt->clear;    
-    if ($self->has_skirt) {
-        $self->status_cb->(88, "Generating skirt");
-        $self->_make_skirt();
-    }
-    $self->set_step_done(STEP_SKIRT);
-}
-
-sub make_brim {
-    my $self = shift;
-    
-    # prerequisites
-    $_->make_perimeters for @{$self->objects};
-    $_->infill for @{$self->objects};
-    $_->generate_support_material for @{$self->objects};
-    $self->make_skirt;
-    
-    return if $self->step_done(STEP_BRIM);
-
-    $self->set_step_started(STEP_BRIM);
-    # since this method must be idempotent, we clear brim paths *before*
-    # checking whether we need to generate them
-    $self->brim->clear;
-    if ($self->config->brim_width > 0) {
-        $self->status_cb->(88, "Generating brim");
-        $self->_make_brim;
-    }
-
-    $self->set_step_done(STEP_BRIM);
-}
-
-sub make_wipe_tower {
-    my $self = shift;
-    
-    # prerequisites
-    $_->make_perimeters for @{$self->objects};
-    $_->infill for @{$self->objects};
-    $_->generate_support_material for @{$self->objects};
-    $self->make_skirt;
-    $self->make_brim;
-    
-    return if $self->step_done(STEP_WIPE_TOWER);
-    
-    $self->set_step_started(STEP_WIPE_TOWER);
-    $self->_clear_wipe_tower;
-    if ($self->has_wipe_tower) {
-#       $self->status_cb->(95, "Generating wipe tower");
-        $self->_make_wipe_tower;
-    }
-    $self->set_step_done(STEP_WIPE_TOWER);
 }
 
 1;

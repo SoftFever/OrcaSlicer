@@ -25,6 +25,10 @@ our $last_config;
 our $VALUE_CHANGE_EVENT    = Wx::NewEventType;
 # 2) To inform about a preset selection change or a "modified" status change.
 our $PRESETS_CHANGED_EVENT = Wx::NewEventType;
+# 3) To update the status bar with the progress information.
+our $PROGRESS_BAR_EVENT    = Wx::NewEventType;
+# 4) To display an error dialog box from a thread on the UI thread.
+our $ERROR_EVENT             = Wx::NewEventType;
 
 sub new {
     my ($class, %params) = @_;
@@ -48,6 +52,11 @@ sub new {
     $self->{lang_ch_event} = $params{lang_ch_event};
     $self->{preferences_event} = $params{preferences_event};
 
+    # initialize status bar
+    $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($self, -1);
+    $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
+    $self->SetStatusBar($self->{statusbar});
+
     # initialize tabpanel and menubar
     $self->_init_tabpanel;
     $self->_init_menubar;
@@ -56,12 +65,7 @@ sub new {
     # SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
     # (SetAutoPop is not available on GTK.)
     eval { Wx::ToolTip::SetAutoPop(32767) };
-    
-    # initialize status bar
-    $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($self, -1);
-    $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
-    $self->SetStatusBar($self->{statusbar});
-    
+        
     $self->{loaded} = 1;
     
     # initialize layout
@@ -170,6 +174,24 @@ sub _init_tabpanel {
     for my $tab_name (qw(print filament printer)) {
         $self->{options_tabs}{$tab_name} = Slic3r::GUI::get_preset_tab("$tab_name");
     }
+
+    # Update progress bar with an event sent by the slicing core.
+    EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
+        my ($self, $event) = @_;
+        if (defined $self->{progress_dialog}) {
+            # If a progress dialog is open, update it.
+            $self->{progress_dialog}->Update($event->GetInt, $event->GetString . "…");
+        } else {
+            # Otherwise update the main window status bar.
+            $self->{statusbar}->SetProgress($event->GetInt);
+            $self->{statusbar}->SetStatusText($event->GetString . "…");
+        }
+    });
+
+    EVT_COMMAND($self, -1, $ERROR_EVENT, sub {
+        my ($self, $event) = @_;
+        Slic3r::GUI::show_error($self, $event->GetString);
+    });
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
@@ -388,7 +410,6 @@ sub on_plater_selection_changed {
 sub quick_slice {
     my ($self, %params) = @_;
     
-    my $progress_dialog;
     eval {
         # validate configuration
         my $config = wxTheApp->{preset_bundle}->full_config();
@@ -429,13 +450,9 @@ sub quick_slice {
             $print_center = Slic3r::Pointf->new_unscale(@{$bed_shape->bounding_box->center});
         }
         
-        my $sprint = Slic3r::Print::Simple->new(
-            print_center    => $print_center,
-            status_cb       => sub {
-                my ($percent, $message) = @_;
-                $progress_dialog->Update($percent, "$message…");
-            },
-        );
+        my $sprint = Slic3r::Print::Simple->new(print_center => $print_center);
+        # The C++ slicing core will post a wxCommand message to the main window.
+        Slic3r::GUI::set_print_callback_event($sprint, $PROGRESS_BAR_EVENT);
         
         # keep model around
         my $model = Slic3r::Model->read_from_file($input_file);
@@ -468,9 +485,9 @@ sub quick_slice {
         }
         
         # show processbar dialog
-        $progress_dialog = Wx::ProgressDialog->new(L('Slicing…'), L("Processing ").$input_file_basename."…", 
+        $self->{progress_dialog} = Wx::ProgressDialog->new(L('Slicing…'), L("Processing ").$input_file_basename."…", 
             100, $self, 0);
-        $progress_dialog->Pulse;
+        $self->{progress_dialog}->Pulse;
         
         {
             my @warnings = ();
@@ -482,18 +499,17 @@ sub quick_slice {
             } else {
                 $sprint->export_gcode;
             }
-            $sprint->status_cb(undef);
             Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
         }
-        $progress_dialog->Destroy;
-        undef $progress_dialog;
+        $self->{progress_dialog}->Destroy;
+        undef $self->{progress_dialog};
         
         my $message = $input_file_basename.L(" was successfully sliced.");
         wxTheApp->notify($message);
         Wx::MessageDialog->new($self, $message, L('Slicing Done!'), 
             wxOK | wxICON_INFORMATION)->ShowModal;
     };
-    Slic3r::GUI::catch_error($self, sub { $progress_dialog->Destroy if $progress_dialog });
+    Slic3r::GUI::catch_error($self, sub { $self->{progress_dialog}->Destroy if $self->{progress_dialog} });
 }
 
 sub reslice_now {

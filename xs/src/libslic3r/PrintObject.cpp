@@ -31,6 +31,8 @@
     #include <cassert>
 #endif
 
+#define PARALLEL_FOR_CANCEL do { if (this->print()->canceled()) return; } while (0)
+
 namespace Slic3r {
 
 PrintObject::PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox) :  
@@ -102,6 +104,305 @@ bool PrintObject::reload_model_instances()
     for (const ModelInstance *mi : this->_model_object->instances)
         copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
     return this->set_copies(copies);
+}
+
+// 1) Decides Z positions of the layers,
+// 2) Initializes layers and their regions
+// 3) Slices the object meshes
+// 4) Slices the modifier meshes and reclassifies the slices of the object meshes by the slices of the modifier meshes
+// 5) Applies size compensation (offsets the slices in XY plane)
+// 6) Replaces bad slices by the slices reconstructed from the upper/lower layer
+// Resulting expolygons of layer regions are marked as Internal.
+//
+// this should be idempotent
+void PrintObject::slice()
+{
+    if (this->state.is_done(posSlice))
+        return;
+    this->state.set_started(posSlice);
+    this->_print->set_status(10, "Processing triangulated mesh");
+    this->_slice();
+    // Fix the model.
+    //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
+    std::string warning = this->_fix_slicing_errors();
+    if (! warning.empty())
+        BOOST_LOG_TRIVIAL(info) << warning;
+    // Simplify slices if required.
+    if (this->_print->config.resolution)
+        this->_simplify_slices(scale_(this->_print->config.resolution));   
+    if (this->layers.empty())
+        throw std::runtime_error("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
+    this->state.set_done(posSlice);
+}
+
+// 1) Merges typed region slices into stInternal type.
+// 2) Increases an "extra perimeters" counter at region slices where needed.
+// 3) Generates perimeters, gap fills and fill regions (fill regions of type stInternal).
+void PrintObject::make_perimeters()
+{
+    // prerequisites
+    this->slice();
+
+    if (this->state.is_done(posPerimeters))
+        return;
+
+    this->state.set_started(posPerimeters);
+    this->_print->set_status(20, "Generating perimeters");
+    BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
+    
+    // merge slices if they were split into types
+    if (this->typed_slices) {
+        FOREACH_LAYER(this, layer_it)
+            (*layer_it)->merge_slices();
+        this->typed_slices = false;
+        this->state.invalidate(posPrepareInfill);
+    }
+    
+    // compare each layer to the one below, and mark those slices needing
+    // one additional inner perimeter, like the top of domed objects-
+    
+    // this algorithm makes sure that at least one perimeter is overlapping
+    // but we don't generate any extra perimeter if fill density is zero, as they would be floating
+    // inside the object - infill_only_where_needed should be the method of choice for printing
+    // hollow objects
+    FOREACH_REGION(this->_print, region_it) {
+        size_t region_id = region_it - this->_print->regions.begin();
+        const PrintRegion &region = **region_it;
+        
+        
+        if (!region.config.extra_perimeters
+            || region.config.perimeters == 0
+            || region.config.fill_density == 0
+            || this->layer_count() < 2)
+            continue;
+        
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, this->layers.size() - 1),
+            [this, &region, region_id](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    PARALLEL_FOR_CANCEL;
+                    LayerRegion &layerm                     = *this->layers[layer_idx]->regions[region_id];
+                    const LayerRegion &upper_layerm         = *this->layers[layer_idx+1]->regions[region_id];
+                    const Polygons upper_layerm_polygons    = upper_layerm.slices;
+                    // Filter upper layer polygons in intersection_ppl by their bounding boxes?
+                    // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
+                    const double total_loop_length      = total_length(upper_layerm_polygons);
+                    const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
+                    const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
+                    const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
+                    const coord_t ext_perimeter_spacing = ext_perimeter_flow.scaled_spacing();
+
+                    for (Surface &slice : layerm.slices.surfaces) {
+                        for (;;) {
+                            // compute the total thickness of perimeters
+                            const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
+                                + (region.config.perimeters-1 + slice.extra_perimeters) * perimeter_spacing;
+                            // define a critical area where we don't want the upper slice to fall into
+                            // (it should either lay over our perimeters or outside this area)
+                            const coord_t critical_area_depth = coord_t(perimeter_spacing * 1.5);
+                            const Polygons critical_area = diff(
+                                offset(slice.expolygon, float(- perimeters_thickness)),
+                                offset(slice.expolygon, float(- perimeters_thickness - critical_area_depth))
+                            );
+                            // check whether a portion of the upper slices falls inside the critical area
+                            const Polylines intersection = intersection_pl(to_polylines(upper_layerm_polygons), critical_area);
+                            // only add an additional loop if at least 30% of the slice loop would benefit from it
+                            if (total_length(intersection) <=  total_loop_length*0.3)
+                                break;
+                            /*
+                            if (0) {
+                                require "Slic3r/SVG.pm";
+                                Slic3r::SVG::output(
+                                    "extra.svg",
+                                    no_arrows   => 1,
+                                    expolygons  => union_ex($critical_area),
+                                    polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
+                                );
+                            }
+                            */
+                            ++ slice.extra_perimeters;
+                        }
+                        #ifdef DEBUG
+                            if (slice.extra_perimeters > 0)
+                                printf("  adding %d more perimeter(s) at layer %zu\n", slice.extra_perimeters, layer_idx);
+                        #endif
+                    }
+                }
+            });
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, this->layers.size()),
+        [this](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                PARALLEL_FOR_CANCEL;
+                this->layers[layer_idx]->make_perimeters();
+            }
+        }
+    );
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
+
+    /*
+        simplify slices (both layer and region slices),
+        we only need the max resolution for perimeters
+    ### This makes this method not-idempotent, so we keep it disabled for now.
+    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
+    */
+    
+    this->state.set_done(posPerimeters);
+}
+
+void PrintObject::prepare_infill()
+{
+    if (this->state.is_done(posPrepareInfill))
+        return;
+
+    this->state.set_started(posPrepareInfill);
+    this->_print->set_status(30, "Preparing infill");
+
+    // This will assign a type (top/bottom/internal) to $layerm->slices.
+    // Then the classifcation of $layerm->slices is transfered onto 
+    // the $layerm->fill_surfaces by clipping $layerm->fill_surfaces
+    // by the cummulative area of the previous $layerm->fill_surfaces.
+    this->detect_surfaces_type();
+    
+    // Decide what surfaces are to be filled.
+    // Here the S_TYPE_TOP / S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is turned to just S_TYPE_INTERNAL if zero top / bottom infill layers are configured.
+    // Also tiny S_TYPE_INTERNAL surfaces are turned to S_TYPE_INTERNAL_SOLID.
+    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces...";
+    for (auto *layer : this->layers)
+        for (auto *region : layer->regions)
+            region->prepare_fill_surfaces();
+
+    // this will detect bridges and reverse bridges
+    // and rearrange top/bottom/internal surfaces
+    // It produces enlarged overlapping bridging areas.
+    //
+    // 1) S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
+    // 2) S_TYPE_TOP is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
+    // 3) Clip the internal surfaces by the grown top/bottom surfaces.
+    // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
+    //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
+    this->process_external_surfaces();
+
+    // Add solid fills to ensure the shell vertical thickness.
+    this->discover_vertical_shells();
+
+    // Debugging output.
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
+        for (const Layer *layer : this->layers) {
+            LayerRegion *layerm = layer->regions[region_id];
+            layerm->export_region_slices_to_svg_debug("6_discover_vertical_shells-final");
+            layerm->export_region_fill_surfaces_to_svg_debug("6_discover_vertical_shells-final");
+        } // for each layer
+    } // for each region
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
+    // Detect, which fill surfaces are near external layers.
+    // They will be split in internal and internal-solid surfaces.
+    // The purpose is to add a configurable number of solid layers to support the TOP surfaces
+    // and to add a configurable number of solid layers above the BOTTOM / BOTTOMBRIDGE surfaces
+    // to close these surfaces reliably.
+    //FIXME Vojtech: Is this a good place to add supporting infills below sloping perimeters?
+    this->discover_horizontal_shells();
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
+        for (const Layer *layer : this->layers) {
+            LayerRegion *layerm = layer->regions[region_id];
+            layerm->export_region_slices_to_svg_debug("7_discover_horizontal_shells-final");
+            layerm->export_region_fill_surfaces_to_svg_debug("7_discover_horizontal_shells-final");
+        } // for each layer
+    } // for each region
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
+    // Only active if config->infill_only_where_needed. This step trims the sparse infill,
+    // so it acts as an internal support. It maintains all other infill types intact.
+    // Here the internal surfaces and perimeters have to be supported by the sparse infill.
+    //FIXME The surfaces are supported by a sparse infill, but the sparse infill is only as large as the area to support.
+    // Likely the sparse infill will not be anchored correctly, so it will not work as intended.
+    // Also one wishes the perimeters to be supported by a full infill.
+    this->clip_fill_surfaces();
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
+        for (const Layer *layer : this->layers) {
+            LayerRegion *layerm = layer->regions[region_id];
+            layerm->export_region_slices_to_svg_debug("8_clip_surfaces-final");
+            layerm->export_region_fill_surfaces_to_svg_debug("8_clip_surfaces-final");
+        } // for each layer
+    } // for each region
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+    
+    // the following step needs to be done before combination because it may need
+    // to remove only half of the combined infill
+    this->bridge_over_infill();
+
+    // combine fill surfaces to honor the "infill every N layers" option
+    this->combine_infill();
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
+        for (const Layer *layer : this->layers) {
+            LayerRegion *layerm = layer->regions[region_id];
+            layerm->export_region_slices_to_svg_debug("9_prepare_infill-final");
+            layerm->export_region_fill_surfaces_to_svg_debug("9_prepare_infill-final");
+        } // for each layer
+    } // for each region
+    for (const Layer *layer : this->layers) {
+        layer->export_region_slices_to_svg_debug("9_prepare_infill-final");
+        layer->export_region_fill_surfaces_to_svg_debug("9_prepare_infill-final");
+    } // for each layer
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
+    this->state.set_done(posPrepareInfill);
+}
+
+void PrintObject::infill()
+{
+    // prerequisites
+    this->prepare_infill();
+
+    if (! this->state.is_done(posInfill)) {
+        this->state.set_started(posInfill);        
+        BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, this->layers.size()),
+            [this](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    PARALLEL_FOR_CANCEL;
+                    this->layers[layer_idx]->make_fills();
+                }
+            }
+        );
+        BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - end";
+        /*  we could free memory now, but this would make this step not idempotent
+        ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
+        */
+        this->state.set_done(posInfill);
+    }
+}
+
+void PrintObject::generate_support_material()
+{
+    if (! this->state.is_done(posSupportMaterial)) {
+        this->state.set_started(posSupportMaterial);
+        this->clear_support_layers();
+        if ((this->config.support_material || this->config.raft_layers > 0) && this->layers.size() > 1) {
+            this->_print->set_status(85, "Generating support material");    
+            this->_generate_support_material();
+        }
+        this->state.set_done(posSupportMaterial);
+        char stats[128];
+        //FIXME this does not belong here! Why should the status bar be updated with the object weight
+        // at the end of object's support.?
+        sprintf(stats, "Weight: %.1lfg, Cost: %.1lf", this->_print->total_weight, this->_print->total_cost);
+        this->_print->set_status(85, stats);
+    }
 }
 
 void PrintObject::clear_layers()
@@ -282,105 +583,6 @@ bool PrintObject::has_support_material() const
         || this->config.support_material_enforce_layers > 0;
 }
 
-void PrintObject::_prepare_infill()
-{
-    // This will assign a type (top/bottom/internal) to $layerm->slices.
-    // Then the classifcation of $layerm->slices is transfered onto 
-    // the $layerm->fill_surfaces by clipping $layerm->fill_surfaces
-    // by the cummulative area of the previous $layerm->fill_surfaces.
-    this->detect_surfaces_type();
-    
-    // Decide what surfaces are to be filled.
-    // Here the S_TYPE_TOP / S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is turned to just S_TYPE_INTERNAL if zero top / bottom infill layers are configured.
-    // Also tiny S_TYPE_INTERNAL surfaces are turned to S_TYPE_INTERNAL_SOLID.
-    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces...";
-    for (auto *layer : this->layers)
-        for (auto *region : layer->regions)
-            region->prepare_fill_surfaces();
-
-    // this will detect bridges and reverse bridges
-    // and rearrange top/bottom/internal surfaces
-    // It produces enlarged overlapping bridging areas.
-    //
-    // 1) S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
-    // 2) S_TYPE_TOP is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
-    // 3) Clip the internal surfaces by the grown top/bottom surfaces.
-    // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
-    //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
-    this->process_external_surfaces();
-
-    // Add solid fills to ensure the shell vertical thickness.
-    this->discover_vertical_shells();
-
-    // Debugging output.
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
-        for (const Layer *layer : this->layers) {
-            LayerRegion *layerm = layer->regions[region_id];
-            layerm->export_region_slices_to_svg_debug("6_discover_vertical_shells-final");
-            layerm->export_region_fill_surfaces_to_svg_debug("6_discover_vertical_shells-final");
-        } // for each layer
-    } // for each region
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-
-    // Detect, which fill surfaces are near external layers.
-    // They will be split in internal and internal-solid surfaces.
-    // The purpose is to add a configurable number of solid layers to support the TOP surfaces
-    // and to add a configurable number of solid layers above the BOTTOM / BOTTOMBRIDGE surfaces
-    // to close these surfaces reliably.
-    //FIXME Vojtech: Is this a good place to add supporting infills below sloping perimeters?
-    this->discover_horizontal_shells();
-
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
-        for (const Layer *layer : this->layers) {
-            LayerRegion *layerm = layer->regions[region_id];
-            layerm->export_region_slices_to_svg_debug("7_discover_horizontal_shells-final");
-            layerm->export_region_fill_surfaces_to_svg_debug("7_discover_horizontal_shells-final");
-        } // for each layer
-    } // for each region
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-
-    // Only active if config->infill_only_where_needed. This step trims the sparse infill,
-    // so it acts as an internal support. It maintains all other infill types intact.
-    // Here the internal surfaces and perimeters have to be supported by the sparse infill.
-    //FIXME The surfaces are supported by a sparse infill, but the sparse infill is only as large as the area to support.
-    // Likely the sparse infill will not be anchored correctly, so it will not work as intended.
-    // Also one wishes the perimeters to be supported by a full infill.
-    this->clip_fill_surfaces();
-
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
-        for (const Layer *layer : this->layers) {
-            LayerRegion *layerm = layer->regions[region_id];
-            layerm->export_region_slices_to_svg_debug("8_clip_surfaces-final");
-            layerm->export_region_fill_surfaces_to_svg_debug("8_clip_surfaces-final");
-        } // for each layer
-    } // for each region
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-    
-    // the following step needs to be done before combination because it may need
-    // to remove only half of the combined infill
-    this->bridge_over_infill();
-
-    // combine fill surfaces to honor the "infill every N layers" option
-    this->combine_infill();
-
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
-        for (const Layer *layer : this->layers) {
-            LayerRegion *layerm = layer->regions[region_id];
-            layerm->export_region_slices_to_svg_debug("9_prepare_infill-final");
-            layerm->export_region_fill_surfaces_to_svg_debug("9_prepare_infill-final");
-        } // for each layer
-    } // for each region
-    for (const Layer *layer : this->layers) {
-        layer->export_region_slices_to_svg_debug("9_prepare_infill-final");
-        layer->export_region_fill_surfaces_to_svg_debug("9_prepare_infill-final");
-    } // for each layer
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-}
-
 // This function analyzes slices of a region (SurfaceCollection slices).
 // Each region slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
 // Initially all slices are of type stInternal.
@@ -427,6 +629,7 @@ void PrintObject::detect_surfaces_type()
                     (this->config.support_material.value && this->config.support_material_contact_distance.value == 0) ?
                     stBottom : stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                    PARALLEL_FOR_CANCEL;
                     // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region << " and layer " << layer->print_z;
                     Layer       *layer  = this->layers[idx_layer];
                     LayerRegion *layerm = layer->get_region(idx_region);
@@ -564,6 +767,7 @@ void PrintObject::detect_surfaces_type()
             tbb::blocked_range<size_t>(0, this->layers.size()),
             [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                    PARALLEL_FOR_CANCEL;
                     LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
                     layerm->slices_to_fill_surfaces_clipped();
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -590,6 +794,7 @@ void PrintObject::process_external_surfaces()
             tbb::blocked_range<size_t>(0, this->layers.size()),
             [this, region_id](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    PARALLEL_FOR_CANCEL;
                     // BOOST_LOG_TRIVIAL(trace) << "Processing external surface, layer" << this->layers[layer_idx]->print_z;
                     this->layers[layer_idx]->get_region(region_id)->process_external_surfaces((layer_idx == 0) ? NULL : this->layers[layer_idx - 1]);
                 }
@@ -638,6 +843,7 @@ void PrintObject::discover_vertical_shells()
                 const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                 const size_t num_regions = this->_print->regions.size();
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                    PARALLEL_FOR_CANCEL;
                     const Layer                      &layer = *this->layers[idx_layer];
                     DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[idx_layer];
                     // Simulate single set of perimeters over all merged regions.
@@ -720,6 +926,7 @@ void PrintObject::discover_vertical_shells()
                 [this, idx_region, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
                     const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                     for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+                        PARALLEL_FOR_CANCEL;
                         Layer       &layer                        = *this->layers[idx_layer];
                         LayerRegion &layerm                       = *layer.regions[idx_region];
                         float        min_perimeter_infill_spacing = float(layerm.flow(frSolidInfill).scaled_spacing()) * 1.05f;
@@ -748,7 +955,7 @@ void PrintObject::discover_vertical_shells()
                 // printf("discover_vertical_shells from %d to %d\n", range.begin(), range.end());
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     PROFILE_BLOCK(discover_vertical_shells_region_layer);
-
+                    PARALLEL_FOR_CANCEL;
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         			static size_t debug_idx = 0;
         			++ debug_idx;
@@ -1265,6 +1472,7 @@ end:
         tbb::blocked_range<size_t>(0, this->layers.size()),
         [this](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
+                PARALLEL_FOR_CANCEL;
                 Layer *layer = this->layers[layer_id];
                 // Apply size compensation and perform clipping of multi-part objects.
                 float delta = float(scale_(this->config.xy_size_compensation.value));
@@ -1348,6 +1556,7 @@ std::string PrintObject::_fix_slicing_errors()
         tbb::blocked_range<size_t>(0, buggy_layers.size()),
         [this, &buggy_layers](const tbb::blocked_range<size_t>& range) {
             for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
+                PARALLEL_FOR_CANCEL;
                 size_t idx_layer = buggy_layers[buggy_layer_idx];
                 Layer *layer     = this->layers[idx_layer];
                 assert(layer->slicing_errors);
@@ -1424,6 +1633,7 @@ void PrintObject::_simplify_slices(double distance)
         tbb::blocked_range<size_t>(0, this->layers.size()),
         [this, distance](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                PARALLEL_FOR_CANCEL;
                 Layer *layer = this->layers[layer_idx];
                 for (size_t region_idx = 0; region_idx < layer->regions.size(); ++ region_idx)
                     layer->regions[region_idx]->slices.simplify(distance);
@@ -1431,137 +1641,6 @@ void PrintObject::_simplify_slices(double distance)
             }
         });
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - end";
-}
-
-void PrintObject::_make_perimeters()
-{
-    if (this->state.is_done(posPerimeters)) return;
-    this->state.set_started(posPerimeters);
-
-    BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
-    
-    // merge slices if they were split into types
-    if (this->typed_slices) {
-        FOREACH_LAYER(this, layer_it)
-            (*layer_it)->merge_slices();
-        this->typed_slices = false;
-        this->state.invalidate(posPrepareInfill);
-    }
-    
-    // compare each layer to the one below, and mark those slices needing
-    // one additional inner perimeter, like the top of domed objects-
-    
-    // this algorithm makes sure that at least one perimeter is overlapping
-    // but we don't generate any extra perimeter if fill density is zero, as they would be floating
-    // inside the object - infill_only_where_needed should be the method of choice for printing
-    // hollow objects
-    FOREACH_REGION(this->_print, region_it) {
-        size_t region_id = region_it - this->_print->regions.begin();
-        const PrintRegion &region = **region_it;
-        
-        
-        if (!region.config.extra_perimeters
-            || region.config.perimeters == 0
-            || region.config.fill_density == 0
-            || this->layer_count() < 2)
-            continue;
-        
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, this->layers.size() - 1),
-            [this, &region, region_id](const tbb::blocked_range<size_t>& range) {
-                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                    LayerRegion &layerm                     = *this->layers[layer_idx]->regions[region_id];
-                    const LayerRegion &upper_layerm         = *this->layers[layer_idx+1]->regions[region_id];
-                    const Polygons upper_layerm_polygons    = upper_layerm.slices;
-                    // Filter upper layer polygons in intersection_ppl by their bounding boxes?
-                    // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
-                    const double total_loop_length      = total_length(upper_layerm_polygons);
-                    const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
-                    const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
-                    const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
-                    const coord_t ext_perimeter_spacing = ext_perimeter_flow.scaled_spacing();
-
-                    for (Surface &slice : layerm.slices.surfaces) {
-                        for (;;) {
-                            // compute the total thickness of perimeters
-                            const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
-                                + (region.config.perimeters-1 + slice.extra_perimeters) * perimeter_spacing;
-                            // define a critical area where we don't want the upper slice to fall into
-                            // (it should either lay over our perimeters or outside this area)
-                            const coord_t critical_area_depth = coord_t(perimeter_spacing * 1.5);
-                            const Polygons critical_area = diff(
-                                offset(slice.expolygon, float(- perimeters_thickness)),
-                                offset(slice.expolygon, float(- perimeters_thickness - critical_area_depth))
-                            );
-                            // check whether a portion of the upper slices falls inside the critical area
-                            const Polylines intersection = intersection_pl(to_polylines(upper_layerm_polygons), critical_area);
-                            // only add an additional loop if at least 30% of the slice loop would benefit from it
-                            if (total_length(intersection) <=  total_loop_length*0.3)
-                                break;
-                            /*
-                            if (0) {
-                                require "Slic3r/SVG.pm";
-                                Slic3r::SVG::output(
-                                    "extra.svg",
-                                    no_arrows   => 1,
-                                    expolygons  => union_ex($critical_area),
-                                    polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
-                                );
-                            }
-                            */
-                            ++ slice.extra_perimeters;
-                        }
-                        #ifdef DEBUG
-                            if (slice.extra_perimeters > 0)
-                                printf("  adding %d more perimeter(s) at layer %zu\n", slice.extra_perimeters, layer_idx);
-                        #endif
-                    }
-                }
-            });
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
-    }
-
-    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, this->layers.size()),
-        [this](const tbb::blocked_range<size_t>& range) {
-            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
-                this->layers[layer_idx]->make_perimeters();
-        }
-    );
-    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
-
-    /*
-        simplify slices (both layer and region slices),
-        we only need the max resolution for perimeters
-    ### This makes this method not-idempotent, so we keep it disabled for now.
-    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
-    */
-    
-    this->state.set_done(posPerimeters);
-}
-
-void PrintObject::_infill()
-{
-    if (this->state.is_done(posInfill)) return;
-    this->state.set_started(posInfill);
-    
-    BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, this->layers.size()),
-        [this](const tbb::blocked_range<size_t>& range) {
-            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
-                this->layers[layer_idx]->make_fills();
-        }
-    );
-    BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - end";
-
-    /*  we could free memory now, but this would make this step not idempotent
-    ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
-    */
-    
-    this->state.set_done(posInfill);
 }
 
 // Only active if config->infill_only_where_needed. This step trims the sparse infill,

@@ -11,6 +11,7 @@ class wxFrame;
 class wxWindow;
 class wxMenuBar;
 class wxNotebook;
+class wxPanel;
 class wxComboCtrl;
 class wxString;
 class wxArrayString;
@@ -23,6 +24,7 @@ namespace Slic3r {
 
 class PresetBundle;
 class PresetCollection;
+class Print;
 class AppConfig;
 class DynamicPrintConfig;
 class TabIface;
@@ -73,6 +75,7 @@ void break_to_debugger();
 void set_wxapp(wxApp *app);
 void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
+void set_plater(wxPanel *plater);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 
@@ -97,6 +100,10 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 void show_error(wxWindow* parent, wxString message);
 void show_info(wxWindow* parent, wxString message, wxString title);
 void warning_catcher(wxWindow* parent, wxString message);
+
+// Assign a Lambda to the print object to emit a wxWidgets Command with the provided ID
+// to deliver a progress status message.
+void set_print_callback_event(Print *print, int id);
 
 // load language saved at application config 
 bool load_language();

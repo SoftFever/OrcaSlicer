@@ -27,7 +27,6 @@ _constant()
 
 %}
 
-
 %name{Slic3r::Print::Region} class PrintRegion {
     // owned by Print, no constructor/destructor
 
@@ -39,16 +38,9 @@ _constant()
         %code%{ RETVAL = THIS->flow(role, layer_height, bridge, first_layer, width, *object); %};
 };
 
-
 %name{Slic3r::Print::Object} class PrintObject {
     // owned by Print, no constructor/destructor
 
-    void add_region_volume(int region_id, int volume_id);
-    std::vector<int> get_region_volumes(int region_id)
-        %code%{
-            if (0 <= region_id && region_id < THIS->region_volumes.size())
-                RETVAL = THIS->region_volumes[region_id];
-        %};
     int region_count()
         %code%{ RETVAL = THIS->print()->regions.size(); %};
 
@@ -67,57 +59,22 @@ _constant()
     
     Points _shifted_copies()
         %code%{ RETVAL = THIS->_shifted_copies; %};
-    void set_shifted_copies(Points value)
-        %code%{ THIS->_shifted_copies = value; %};
 
     bool add_copy(Pointf* point)
         %code%{ RETVAL = THIS->add_copy(*point); %};
     bool delete_last_copy();
-    bool delete_all_copies();
-    bool set_copies(Points copies);
     bool reload_model_instances();
     void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
         %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
-    void set_layer_height_profile(std::vector<double> profile)
-        %code%{ THIS->layer_height_profile = profile; %};
 
-    size_t total_layer_count();
     size_t layer_count();
-    void clear_layers();
     Ref<Layer> get_layer(int idx);
-    Ref<Layer> add_layer(int id, coordf_t height, coordf_t print_z,
-        coordf_t slice_z);
 
     size_t support_layer_count();
-    void clear_support_layers();
     Ref<SupportLayer> get_support_layer(int idx);
 
     bool step_done(PrintObjectStep step)
         %code%{ RETVAL = THIS->state.is_done(step); %};
-    void set_step_done(PrintObjectStep step)
-        %code%{ THIS->state.set_done(step); %};
-    void set_step_started(PrintObjectStep step)
-        %code%{ THIS->state.set_started(step); %};
-
-    void _slice();
-    std::string _fix_slicing_errors();
-    void _simplify_slices(double distance);
-    void _prepare_infill();
-    void detect_surfaces_type();
-    void process_external_surfaces();
-    void _make_perimeters();
-    void _infill();
-    void _generate_support_material();
-
-    std::vector<double> get_layer_height_min_max()
-        %code%{ 
-            SlicingParameters slicing_params = THIS->slicing_parameters();
-            RETVAL.push_back(slicing_params.min_layer_height);
-            RETVAL.push_back(slicing_params.max_layer_height);
-            RETVAL.push_back(slicing_params.first_print_layer_height);
-            RETVAL.push_back(slicing_params.first_object_layer_height);
-            RETVAL.push_back(slicing_params.layer_height);
-        %};
 
     void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
         %code%{
@@ -129,11 +86,7 @@ _constant()
         %};
 
     void reset_layer_height_profile();
-    
-    int ptr()
-        %code%{ RETVAL = (int)(intptr_t)THIS; %};
 };
-
 
 %name{Slic3r::Print} class Print {
     Print();
@@ -141,13 +94,8 @@ _constant()
 
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
-    Ref<StaticPrintConfig> default_object_config()
-        %code%{ RETVAL = &THIS->default_object_config; %};
-    Ref<StaticPrintConfig> default_region_config()
-        %code%{ RETVAL = &THIS->default_region_config; %};
     Ref<PlaceholderParser> placeholder_parser()
         %code%{ RETVAL = &THIS->placeholder_parser; %};
-    // TODO: status_cb
     Ref<ExtrusionEntityCollection> skirt()
         %code%{ RETVAL = &THIS->skirt; %};
     Ref<ExtrusionEntityCollection> brim()
@@ -176,20 +124,7 @@ _constant()
         %code%{ RETVAL = THIS->state.is_done(step); %};
     bool object_step_done(PrintObjectStep step)
         %code%{ RETVAL = THIS->step_done(step); %};
-    void set_step_done(PrintStep step)
-        %code%{ THIS->state.set_done(step); %};
-    void set_step_started(PrintStep step)
-        %code%{ THIS->state.set_started(step); %};
     
-    void clear_filament_stats()
-        %code%{
-            THIS->filament_stats.clear();
-        %};
-    void set_filament_stats(int extruder_id, float length)
-        %code%{
-            THIS->filament_stats.insert(std::pair<size_t,float>(extruder_id, 0));
-            THIS->filament_stats[extruder_id] += length;
-        %};
     SV* filament_stats()
         %code%{
             HV* hv = newHV();
@@ -203,7 +138,6 @@ _constant()
                 RETVAL = newRV_noinc((SV*)hv);
             }
         %};
-    void _simplify_slices(double distance);
     double max_allowed_layer_height() const;
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object);
@@ -220,7 +154,6 @@ _constant()
     bool apply_config(DynamicPrintConfig* config)
         %code%{ RETVAL = THIS->apply_config(*config); %};
     bool has_infinite_skirt();
-    bool has_skirt();
     std::vector<unsigned int> extruders() const;
     int validate() %code%{ 
             std::string err = THIS->validate(); 
@@ -230,16 +163,33 @@ _constant()
         %};
     Clone<BoundingBox> bounding_box();
     Clone<BoundingBox> total_bounding_box();
-    double skirt_first_layer_height();
-    Clone<Flow> brim_flow();
-    Clone<Flow> skirt_flow();
 
-    void _make_skirt();
-    void _make_brim();
+    void set_callback_event(int evt) %code%{
+        %};
 
-    bool has_wipe_tower();
-    void _clear_wipe_tower();
-    void _make_wipe_tower();
+    void process() %code%{
+            try {
+                THIS->process();
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
+
+    void export_gcode_with_preview_data(char *path_template, GCodePreviewData *preview_data) %code%{
+            try {
+                THIS->export_gcode(path_template, preview_data);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
+
+    void export_gcode(char *path_template) %code%{
+            try {
+                THIS->export_gcode(path_template, nullptr);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
 
 %{
 

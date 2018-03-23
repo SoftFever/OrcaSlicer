@@ -101,12 +101,6 @@ use constant GIMBALL_LOCK_THETA_MAX => 170;
 use constant VARIABLE_LAYER_THICKNESS_BAR_WIDTH => 70;
 use constant VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT => 22;
 
-# make OpenGL::Array thread-safe
-{
-    no warnings 'redefine';
-    *OpenGL::Array::CLONE_SKIP = sub { 1 };
-}
-
 sub new {
     my ($class, $parent) = @_;
     

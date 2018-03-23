@@ -47,6 +47,8 @@
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
 
+#include "../../libslic3r/Print.hpp"
+
 namespace Slic3r { namespace GUI {
 
 #if __APPLE__
@@ -172,6 +174,7 @@ void break_to_debugger()
 wxApp       *g_wxApp        = nullptr;
 wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
+wxPanel 	*g_wxPlater 	= nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
 
@@ -195,6 +198,11 @@ void set_main_frame(wxFrame *main_frame)
 void set_tab_panel(wxNotebook *tab_panel)
 {
     g_wxTabPanel = tab_panel;
+}
+
+void set_plater(wxPanel *plater)
+{
+	g_wxPlater = plater;
 }
 
 void set_app_config(AppConfig *app_config)
@@ -505,6 +513,18 @@ void warning_catcher(wxWindow* parent, wxString message){
 		return;
 	auto msg = new wxMessageDialog(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
 	msg->ShowModal();	
+}
+
+// Assign a Lambda to the print object to emit a wxWidgets Command with the provided ID
+// to deliver a progress status message.
+void set_print_callback_event(Print *print, int id)
+{
+	print->set_status_callback([id](int percent, const std::string &message){
+		wxCommandEvent event(id);
+		event.SetInt(percent);
+		event.SetString(message);
+        wxQueueEvent(g_wxMainFrame, event.Clone());
+	});
 }
 
 wxApp* get_app(){
