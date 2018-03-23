@@ -327,8 +327,11 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		int opt_index = m_opt_map.at(opt_id).second;
 		value = get_config_value(config, opt_short_key, opt_index);
 	}
-	else
+	else{
 		value = get_config_value(config, opt_key);
+		change_opt_value(*m_config, opt_key, value);
+		return;
+	}
 
 	set_value(opt_key, value);
 	on_change_OG(opt_key, get_value(opt_key));
@@ -442,7 +445,10 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	}
 		break;
 	case coPoints:
-		ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
+		if (opt_key.compare("bed_shape") == 0)
+			ret = config.option<ConfigOptionPoints>(opt_key)->values;
+		else
+			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
 		break;
 	case coNone:
 	default:

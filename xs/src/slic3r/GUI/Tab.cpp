@@ -203,31 +203,34 @@ void Tab::update_changed_ui()
 	if (name() == "printer"){
 		// Update dirty_options in case changes of Extruder's options 
 		TabPrinter* tab = static_cast<TabPrinter*>(this);
-		std::vector<std::string> new_options;
+		m_dirty_options.resize(0);
 		for (auto opt_key : dirty_options)
 		{
+			if (opt_key == "bed_shape"){ m_dirty_options.emplace_back(opt_key);		continue; }
 			switch (m_config->option(opt_key)->type())
 			{
-			case coInts:	add_correct_opts_to_dirty_options<ConfigOptionInts		>(opt_key, &new_options, tab);	break;
-			case coBools:	add_correct_opts_to_dirty_options<ConfigOptionBools		>(opt_key, &new_options, tab);	break;
-			case coFloats:	add_correct_opts_to_dirty_options<ConfigOptionFloats	>(opt_key, &new_options, tab);	break;
-			case coStrings:	add_correct_opts_to_dirty_options<ConfigOptionStrings	>(opt_key, &new_options, tab);	break;
-			case coPercents:add_correct_opts_to_dirty_options<ConfigOptionPercents	>(opt_key, &new_options, tab);	break;
-			case coPoints:	add_correct_opts_to_dirty_options<ConfigOptionPoints	>(opt_key, &new_options, tab);	break;
-			default:		new_options.emplace_back(opt_key);		break;
+			case coInts:	add_correct_opts_to_dirty_options<ConfigOptionInts		>(opt_key, &m_dirty_options, tab);	break;
+			case coBools:	add_correct_opts_to_dirty_options<ConfigOptionBools		>(opt_key, &m_dirty_options, tab);	break;
+			case coFloats:	add_correct_opts_to_dirty_options<ConfigOptionFloats	>(opt_key, &m_dirty_options, tab);	break;
+			case coStrings:	add_correct_opts_to_dirty_options<ConfigOptionStrings	>(opt_key, &m_dirty_options, tab);	break;
+			case coPercents:add_correct_opts_to_dirty_options<ConfigOptionPercents	>(opt_key, &m_dirty_options, tab);	break;
+			case coPoints:	add_correct_opts_to_dirty_options<ConfigOptionPoints	>(opt_key, &m_dirty_options, tab);	break;
+			default:		m_dirty_options.emplace_back(opt_key);		break;
 			}
 		}
-		dirty_options.resize(0);
-		dirty_options = new_options;
 		if (tab->m_initial_extruders_count != tab->m_extruders_count)
-			dirty_options.emplace_back("extruders_count");
+			m_dirty_options.emplace_back("extruders_count");
 
 		m_sys_options.resize(0);
 		const auto sys_preset = m_presets->get_selected_preset_parent();
 		if (sys_preset){
 			for (auto opt_key : m_config->keys())
 			{
-				if (opt_key == "bed_shape"){ m_sys_options.emplace_back(opt_key);		continue; }
+				if (opt_key == "bed_shape"){ 
+					if (*tab->m_config->option(opt_key) == *sys_preset->config.option(opt_key))
+						m_sys_options.emplace_back(opt_key);		
+					continue; 
+				}
 				switch (m_config->option(opt_key)->type())
 				{
 				case coInts:	add_correct_opts_to_sys_options<ConfigOptionInts	>(opt_key, &m_sys_options, tab);	break;
@@ -250,67 +253,38 @@ void Tab::update_changed_ui()
 				m_sys_options.emplace_back("extruders_count");
 		}
 	}
-	else
+	else{
 		m_sys_options = m_presets->system_equal_options();
-
-	// Add new dirty options to m_dirty_options
-	for (auto opt_key : dirty_options){
-		Field* field = get_field(opt_key);
-		if (field != nullptr &&
-			find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
-			// use bouth of temporary_icons till don't have "undo_icon" 
-			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(wxMSW ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
-			field->m_is_modified_value = true;
-
-			m_dirty_options.push_back(opt_key);
-		}
-
-		if (field != nullptr && field->m_Label != nullptr){
-			field->m_Label->SetForegroundColour(*get_modified_label_clr());
-			field->m_Label->Refresh(true);
-		}
+		m_dirty_options = dirty_options;
 	}
 
-	// Delete clear options from m_dirty_options
-	for (auto i = 0; i < m_dirty_options.size(); ++i)
-	{
-		const std::string &opt_key = m_dirty_options[i];
-		Field* field = get_field(opt_key);
-		if (field != nullptr && find(dirty_options.begin(), dirty_options.end(), opt_key) == dirty_options.end())
-		{
-			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
-			if (field->m_Label != nullptr){
-				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
-				field->m_Label->Refresh(true);
-			}
-			field->m_is_modified_value = false;
-			std::vector<std::string>::iterator itr = find(m_dirty_options.begin(), m_dirty_options.end(), opt_key);
-			if (itr != m_dirty_options.end()){
-				m_dirty_options.erase(itr);
-				--i;
-			}
-		}
-	}
-
-	//update system options (colored in green)
+	//update options "decoration"
 	for (const auto opt_key : m_full_options_list)
 	{
-		Field* field = get_field(opt_key);
-		if (field == nullptr) continue;
-		std::string icon = wxMSW ? "sys_lock.png" : "lock.png";
+		bool is_nonsys_value = false;
+		bool is_modified_value = true;
+		std::string sys_icon = wxMSW ? "sys_lock.png" : "lock.png";
+		std::string icon = wxMSW ? "action_undo.png" : "arrow_undo.png";
 		wxColour& color = *get_sys_label_clr();
-		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) != m_sys_options.end()) {
-			field->m_is_nonsys_value = false;
-		}
-		else {
-			field->m_is_nonsys_value = true;
-			icon = m_nonsys_btn_icon;
+		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
+			is_nonsys_value = true;
+			sys_icon = m_nonsys_btn_icon;
 			if(find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
 				color = wxSYS_COLOUR_WINDOWTEXT;
 			else
 				color = *get_modified_label_clr();
 		}
-		field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(icon)), wxBITMAP_TYPE_PNG));
+		if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
+		{
+			is_modified_value = false;
+			icon = "bullet_white.png";
+		}
+		Field* field = get_field(opt_key);
+		if (field == nullptr) continue;
+		field->m_is_nonsys_value = is_nonsys_value;
+		field->m_is_modified_value = is_modified_value;
+		field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var(icon)), wxBITMAP_TYPE_PNG));
+		field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(sys_icon)), wxBITMAP_TYPE_PNG));
 		if (field->m_Label != nullptr){
 			field->m_Label->SetForegroundColour(color);
 			field->m_Label->Refresh(true);
@@ -391,10 +365,13 @@ void Tab::update_changed_tree_ui()
 			bool sys_page = true;
 			bool modified_page = false;
 			if (title == _("General")){
-				if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), "extruders_count") == m_sys_options.end())
-					sys_page = false;
-				if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), "extruders_count") != m_dirty_options.end())
-					modified_page = true;
+				std::initializer_list<const char*> optional_keys{ "extruders_count", "bed_shape" };
+				for (auto &opt_key : optional_keys) {
+					if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
+						sys_page = false;
+					if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
+						modified_page = true;
+				}
 			}
 			for (auto group : page->m_optgroups)
 			{
@@ -453,6 +430,10 @@ void Tab::on_back_to_initial_value()
 					if (find(m_dirty_options.begin(), m_dirty_options.end(), "extruders_count") != m_dirty_options.end())
 						group->back_to_initial_value("extruders_count");
 				}
+				if (group->title == _("Size and coordinates")){
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), "bed_shape") != m_dirty_options.end())
+						group->back_to_initial_value("bed_shape");
+				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
 					if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
@@ -461,7 +442,7 @@ void Tab::on_back_to_initial_value()
 			}
 			break;
 		}
-
+	update_changed_ui();
 }
 
 void Tab::on_back_to_sys_value()
@@ -476,6 +457,10 @@ void Tab::on_back_to_sys_value()
 					if (find(m_sys_options.begin(), m_sys_options.end(), "extruders_count") == m_sys_options.end())
 						group->back_to_sys_value("extruders_count");
 				}
+				if (group->title == _("Size and coordinates")){
+					if (find(m_sys_options.begin(), m_sys_options.end(), "bed_shape") == m_sys_options.end())
+						group->back_to_sys_value("bed_shape");
+				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
 					if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
@@ -484,6 +469,7 @@ void Tab::on_back_to_sys_value()
 			}
 			break;
 		}
+	update_changed_ui();
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
@@ -1313,8 +1299,10 @@ void TabPrinter::build()
 			{
 				auto dlg = new BedShapeDialog(this);
 				dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
-				if (dlg->ShowModal() == wxID_OK)
+				if (dlg->ShowModal() == wxID_OK){
 					load_key_value("bed_shape", dlg->GetValue());
+					update_changed_ui();
+				}
 			}));
 
 			return sizer;
