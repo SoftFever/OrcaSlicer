@@ -617,6 +617,13 @@ void Tab::on_presets_changed()
 		event.SetString(m_name);
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
+
+	const Preset* parent = m_presets->get_selected_preset_parent();
+	const wxString description_line = parent == nullptr ?
+		_(L("It's default preset")) : parent == &m_presets->get_selected_preset() ?
+		_(L("It's system preset")) :
+		_(L("Current preset is inherited from")) + ":\n" + parent->name;
+	m_parent_preset_description_line->SetText(description_line);
 }
 
 void Tab::update_frequently_changed_parameters()
@@ -1726,11 +1733,6 @@ void Tab::load_current_preset()
 	m_nonsys_btn_icon = parent == nullptr ?
 		"bullet_white.png" :
 		wxMSW ? "sys_unlock.png" : "lock_open.png";
-
-	wxString description_line = parent == nullptr ?
-		_(L("It's default preset")) :		
-		_(L("Current preset is inherited from")) + ":\n" + parent->name;
-	m_parent_preset_description_line->SetText(description_line);
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
