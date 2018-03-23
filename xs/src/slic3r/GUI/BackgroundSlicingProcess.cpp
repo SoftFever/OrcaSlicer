@@ -40,13 +40,7 @@ void BackgroundSlicingProcess::thread_proc()
 		    m_print->process();
 		    if (m_print->canceled())
 		    	return;
-		    printf("PReparing m_event_sliced_id command\n");
-			wxCommandEvent evt(m_event_sliced_id);
-		    printf("Issuing m_event_sliced_id command\n");
-		    wxQueueEvent(GUI::g_wxPlater, evt.Clone());
-			GUI::g_wxPlater->ProcessWindowEvent(evt);
-			//GUI::g_wxPlater->ProcessEvent(evt);
-		    printf("Done with m_event_sliced_id command\n");
+			wxQueueEvent(GUI::g_wxPlater, new wxCommandEvent(m_event_sliced_id));
 		    m_print->export_gcode(m_output_path, m_gcode_preview_data);
 		} catch (std::exception &ex) {
 			error = ex.what();
