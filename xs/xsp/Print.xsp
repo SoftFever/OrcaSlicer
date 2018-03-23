@@ -86,6 +86,8 @@ _constant()
         %};
 
     void reset_layer_height_profile();
+
+    void slice();
 };
 
 %name{Slic3r::Print} class Print {
@@ -166,6 +168,7 @@ _constant()
 
     void set_callback_event(int evt) %code%{
         %};
+    void set_status_silent();
 
     void process() %code%{
             try {

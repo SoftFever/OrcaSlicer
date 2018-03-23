@@ -208,8 +208,9 @@ sub gcode {
     my $gcode_temp_path = abs_path($0) . '.gcode.temp';
     # Remove the existing temp file.
     unlink $gcode_temp_path;
+    $print->set_status_silent;
     $print->process;
-    $print->export_gcode(output_file => $gcode_temp_path, quiet => 1);
+    $print->export_gcode($gcode_temp_path);
     # Read the temoprary G-code file.
     my $gcode;
     {

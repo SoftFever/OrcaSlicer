@@ -192,8 +192,10 @@ public:
     // (layer height, first layer height, raft settings, print nozzle diameter etc).
     SlicingParameters slicing_parameters() const;
 
-private:
+    // Called when slicing to SVG (see Print.pm sub export_svg), and used by perimeters.t
     void slice();
+
+private:
     void make_perimeters();
     void prepare_infill();
     void infill();
@@ -304,9 +306,13 @@ public:
     std::string output_filepath(const std::string &path);
 
     typedef std::function<void(int, const std::string&)>  status_callback_type;
+    // Default status console print out in the form of percent => message.
+    void set_status_default() { m_status_callback = nullptr; }
+    // No status output or callback whatsoever.
+    void set_status_silent() { m_status_callback = [](int, const std::string&){}; }
+    // Register a custom status callback.
     void set_status_callback(status_callback_type cb) { m_status_callback = cb; }
-    void reset_status_callback() { m_status_callback = nullptr; }
-    // Calls a registered callback to update the status.
+    // Calls a registered callback to update the status, or print out the default message.
     void set_status(int percent, const std::string &message) { 
         if (m_status_callback) m_status_callback(percent, message);
         else printf("%d => %s\n", percent, message.c_str());

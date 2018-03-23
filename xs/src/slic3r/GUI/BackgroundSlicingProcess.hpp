@@ -18,11 +18,17 @@ class BackgroundSlicingProcess
 {
 public:
 	BackgroundSlicingProcess() {}
+	// Stop the background processing and finalize the bacgkround processing thread.
 	~BackgroundSlicingProcess() { this->stop(); this->join_background_thread(); }
 
 	void set_print(Print *print) { m_print = print; }
 	void set_gcode_preview_data(GCodePreviewData *gpd) { m_gcode_preview_data = gpd; }
+	// The following wxCommandEvent will be sent to the UI thread / Platter window, when the slicing is finished
+	// and the background processing will transition into G-code export.
+	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_sliced_event(int event_id) { m_event_sliced_id = event_id; }
+	// The following wxCommandEvent will be sent to the UI thread / Platter window, when the G-code export is finished.
+	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_finished_event(int event_id) { m_event_finished_id = event_id; }
 
 	// Start the background processing. Returns false if the background processing was already running.
@@ -57,10 +63,10 @@ public:
 
 private:
 	void 	thread_proc();
-	void 	start_background_thread();
 	void 	join_background_thread();
 
 	Print 					   *m_print 			 = nullptr;
+	// Data structure, to which the G-code export writes its annotations.
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
 	std::string 				m_output_path;
 	// Thread, on which the background processing is executed. The thread will always be present
