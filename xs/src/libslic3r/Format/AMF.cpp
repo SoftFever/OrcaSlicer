@@ -648,10 +648,15 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
     if ((path == nullptr) || (model == nullptr) || (print == nullptr))
         return false;
 
+    // forces ".zip.amf" extension
+    std::string export_path = path;
+    if (!boost::iends_with(export_path, ".zip.amf"))
+        export_path = boost::filesystem::path(export_path).replace_extension(".zip.amf").string();
+
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    mz_bool res = mz_zip_writer_init_file(&archive, path, 0);
+    mz_bool res = mz_zip_writer_init_file(&archive, export_path.c_str(), 0);
     if (res == 0)
         return false;
 
@@ -769,20 +774,20 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
     }
     stream << "</amf>\n";
 
-    std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(path).filename().string(), ".zip.amf", ".amf");
+    std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(export_path).filename().string(), ".zip.amf", ".amf");
     std::string out = stream.str();
 
     if (!mz_zip_writer_add_mem(&archive, internal_amf_filename.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
     {
         mz_zip_writer_end(&archive);
-        boost::filesystem::remove(path);
+        boost::filesystem::remove(export_path);
         return false;
     }
 
     if (!mz_zip_writer_finalize_archive(&archive))
     {
         mz_zip_writer_end(&archive);
-        boost::filesystem::remove(path);
+        boost::filesystem::remove(export_path);
         return false;
     }
 
