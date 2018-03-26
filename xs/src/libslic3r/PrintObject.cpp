@@ -397,11 +397,6 @@ void PrintObject::generate_support_material()
             this->_generate_support_material();
         }
         this->state.set_done(posSupportMaterial);
-        char stats[128];
-        //FIXME this does not belong here! Why should the status bar be updated with the object weight
-        // at the end of object's support.?
-        sprintf(stats, "Weight: %.1lfg, Cost: %.1lf", this->_print->total_weight, this->_print->total_cost);
-        this->_print->set_status(85, stats);
     }
 }
 
