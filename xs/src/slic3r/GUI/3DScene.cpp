@@ -643,14 +643,18 @@ void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, 
 std::vector<double> GLVolumeCollection::get_current_print_zs() const
 {
     std::vector<double> print_zs;
+    std::vector<double> rounded_print_zs;
 
     for (GLVolume *vol : this->volumes)
     {
         for (coordf_t z : vol->print_zs)
         {
-            double round_z = (double)round(z * 100000.0f) / 100000.0f;
-            if (std::find(print_zs.begin(), print_zs.end(), round_z) == print_zs.end())
-                print_zs.push_back(round_z);
+            double round_z = ::round(z * 100000.0 + 0.5) / 100000.0;
+            if (std::find(rounded_print_zs.begin(), rounded_print_zs.end(), round_z) == rounded_print_zs.end())
+            {
+                print_zs.push_back(z);
+                rounded_print_zs.push_back(round_z);
+            }
         }
     }
 
