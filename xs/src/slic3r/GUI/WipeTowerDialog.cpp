@@ -38,7 +38,7 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 
 
 RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
-: wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(800,350),wxBORDER_RAISED)
+: wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(800,400),wxBORDER_RAISED)
 {
     new wxStaticText(this,wxID_ANY,wxString("Total ramming time (s):"),     wxPoint(500,105),      wxSize(200,25),wxALIGN_LEFT);
     m_widget_time = new wxSpinCtrlDouble(this,wxID_ANY,wxEmptyString,       wxPoint(700,100),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0.,5.0,3.,0.5);        

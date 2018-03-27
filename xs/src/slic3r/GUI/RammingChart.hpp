@@ -16,7 +16,7 @@ public:
     Chart(wxWindow* parent, wxRect rect,const std::vector<std::pair<float,float>>& initial_buttons,int ramming_speed_size, float sampling) :
         wxWindow(parent,wxID_ANY,rect.GetTopLeft(),rect.GetSize())
     {
-        m_rect=wxRect(wxPoint(30,0),rect.GetSize()-wxSize(30,30));
+        m_rect = wxRect(wxPoint(50,0),rect.GetSize()-wxSize(50,50));
         visible_area = wxRect2DDouble(0.0, 0.0, sampling*ramming_speed_size, 20.);
         m_buttons.clear();
         if (initial_buttons.size()>0)

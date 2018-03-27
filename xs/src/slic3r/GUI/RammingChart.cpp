@@ -2,6 +2,12 @@
 #include "RammingChart.hpp"
 
 
+//! macro used to mark string used at localization,
+//! return same string
+#define L(s) s
+
+
+
 wxDEFINE_EVENT(EVT_WIPE_TOWER_CHART_CHANGED, wxCommandEvent);
 
 
@@ -43,9 +49,9 @@ void Chart::draw(wxDC& dc) {
 
     // draw x-axis:
     float last_mark = -10000;
-    for (float math_x=int(visible_area.m_x*10)/10 ; math_x <= (visible_area.m_x+visible_area.m_width) ; math_x+=0.1) {
+    for (float math_x=int(visible_area.m_x*10)/10 ; math_x < (visible_area.m_x+visible_area.m_width) ; math_x+=0.1) {
         int x = math_to_screen(wxPoint2DDouble(math_x,visible_area.m_y)).x;
-        int y = m_rect.GetBottom(); 
+        int y = m_rect.GetBottom();
         if (x-last_mark < 50) continue;
         dc.DrawLine(x,y+3,x,y-3);
         dc.DrawText(wxString().Format(wxT("%.1f"), math_x),wxPoint(x-10,y+7));
@@ -54,7 +60,7 @@ void Chart::draw(wxDC& dc) {
     
     // draw y-axis:
     last_mark=10000;
-    for (int math_y=visible_area.m_y ; math_y <= (visible_area.m_y+visible_area.m_height) ; math_y+=1) {
+    for (int math_y=visible_area.m_y ; math_y < (visible_area.m_y+visible_area.m_height) ; math_y+=1) {
         int y = math_to_screen(wxPoint2DDouble(visible_area.m_x,math_y)).y;
         int x = m_rect.GetLeft();
         if (last_mark-y < 50) continue;    
@@ -63,8 +69,15 @@ void Chart::draw(wxDC& dc) {
         last_mark = y;
     }
     
-    
-    
+    // axis labels:
+    wxString label = L("Time (s)");
+    int text_width = 0;
+    int text_height = 0;
+    dc.GetTextExtent(label,&text_width,&text_height);
+    dc.DrawText(label,wxPoint(0.5*(m_rect.GetRight()+m_rect.GetLeft())-text_width/2.f, m_rect.GetBottom()+25));
+    label = L("Volumetric speed (mm\u00B3/s)");
+    dc.GetTextExtent(label,&text_width,&text_height);
+    dc.DrawRotatedText(label,wxPoint(0,0.5*(m_rect.GetBottom()+m_rect.GetTop())+text_width/2.f),90);
 }
 
 void Chart::mouse_right_button_clicked(wxMouseEvent& event) {
