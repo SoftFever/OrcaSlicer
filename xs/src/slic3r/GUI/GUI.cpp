@@ -1,4 +1,5 @@
 #include "GUI.hpp"
+#include "WipeTowerDialog.hpp"
 
 #include <assert.h>
 
@@ -677,6 +678,32 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
 	option = Option(def, "brim");
 	m_optgroup->append_single_option_line(option);
+
+
+    Line line = { _(L("")), "" };
+        line.widget = [config](wxWindow* parent){
+			auto wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(wiping_dialog_button);
+			wiping_dialog_button->Bind(wxEVT_BUTTON, ([config, parent](wxCommandEvent& e)
+			{
+                std::vector<double> init_matrix = (config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+                std::vector<double> init_extruders = (config->option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+
+                WipingDialog dlg(parent,std::vector<float>(init_matrix.begin(),init_matrix.end()),std::vector<float>(init_extruders.begin(),init_extruders.end()));
+
+				if (dlg.ShowModal() == wxID_OK) {
+                    std::vector<float> matrix = dlg.get_matrix();
+                    std::vector<float> extruders = dlg.get_extruders();
+                    (config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(),matrix.end());
+                    (config->option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(),extruders.end());
+                }
+			}));
+			return sizer;
+		};
+		m_optgroup->append_line(line);
+
+
 
 	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxBottom, 1);
 }
