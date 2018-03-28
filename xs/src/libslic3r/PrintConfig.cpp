@@ -470,14 +470,14 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
     
-    def = this->add("filament_cooling_time", coInts);
+    def = this->add("filament_cooling_time", coFloats);
     def->label = L("Cooling time");
     def->tooltip = L("The filament is slowly moved back and forth after retraction into the cooling tube "
                    "for this amount of time.");
     def->cli = "filament_cooling_time=i@";
     def->sidetext = L("s");
     def->min = 0;
-    def->default_value = new ConfigOptionInts { 14 };
+    def->default_value = new ConfigOptionFloats { 14.f };
 
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
@@ -1779,7 +1779,7 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionBool(false);
 
     def = this->add("wiping_volumes_extruders", coFloats);
-    def->label = L("Extrusion multiplier");
+    def->label = L("Purging volumes - load/unload volumes");
     def->tooltip = L("This vector saves required volumes to change from/to each tool used on the "
                      "wipe tower. These values are used to simplify creation of the full purging "
                      "volumes below. ");
@@ -1787,7 +1787,7 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloats { 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f  };
 
     def = this->add("wiping_volumes_matrix", coFloats);
-    def->label = L("Extrusion multiplier");
+    def->label = L("Purging volumes - matrix");
     def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
                      " new filament on the wipe tower for any given pair of tools. ");
     def->cli = "wiping-volumes-matrix=f@";

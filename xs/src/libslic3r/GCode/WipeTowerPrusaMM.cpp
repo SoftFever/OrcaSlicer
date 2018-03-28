@@ -800,7 +800,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	const float start_x = writer.x();
 	turning_point = ( xr-start_x > start_x-xl ? xr : xl );
 	const float max_x_dist = 2*std::abs(start_x-turning_point);
-	const unsigned int N = 4 + std::max(0,(m_filpar[m_current_tool].cooling_time-14)/3);
+	const unsigned int N = 4 + std::max(0.f, (m_filpar[m_current_tool].cooling_time-14)/3);
 	float time = m_filpar[m_current_tool].cooling_time / float(N);
 
 	i = 0;

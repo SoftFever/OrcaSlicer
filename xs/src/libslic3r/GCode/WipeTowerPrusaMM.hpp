@@ -67,7 +67,7 @@ public:
 
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
-                      float unloading_speed, float delay, int cooling_time, std::string ramming_parameters)
+                      float unloading_speed, float delay, float cooling_time, std::string ramming_parameters)
 	{
         //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
         m_filpar.push_back(FilamentParameters());
@@ -205,7 +205,7 @@ private:
         float               loading_speed = 0.f;
         float               unloading_speed = 0.f;
         float               delay = 0.f ;
-        int                 cooling_time = 0;
+        float               cooling_time = 0.f;
         float               ramming_line_width_multiplicator = 0.f;
         float               ramming_step_multiplicator = 0.f;
         std::vector<float>  ramming_speed;

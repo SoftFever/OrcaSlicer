@@ -469,7 +469,7 @@ public:
     ConfigOptionFloats              filament_loading_speed;
     ConfigOptionFloats              filament_unloading_speed;
     ConfigOptionFloats              filament_toolchange_delay;
-    ConfigOptionInts                filament_cooling_time;
+    ConfigOptionFloats              filament_cooling_time;
     ConfigOptionStrings             filament_ramming_parameters;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;

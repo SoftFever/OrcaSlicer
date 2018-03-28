@@ -521,7 +521,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wipe_tower_bridging");
         line = { _(L("Advanced")), "" };
         line.widget = [this](wxWindow* parent){
-			m_wipe_tower_btn = new wxButton(parent, wxID_ANY, _(L("Advanced settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			m_wipe_tower_btn = new wxButton(parent, wxID_ANY, _(L("Purging volumes"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(m_wipe_tower_btn);
 			m_wipe_tower_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
@@ -958,10 +958,8 @@ void TabFilament::build()
             ramming_dialog_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
 			{
                 RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
-                if (dlg.ShowModal() == wxID_OK) {
-                    wxMessageBox("DIALOG OK:\n"+dlg.get_parameters());
-                    //load_key_value("wipe_tower_advanced", dlg.get_parameters());
-                }
+                if (dlg.ShowModal() == wxID_OK)
+                    (m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0) = dlg.get_parameters();
 			}));
 			return sizer;
 		};
