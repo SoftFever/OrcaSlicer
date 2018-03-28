@@ -11,7 +11,7 @@
 
 
 RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
-: wxDialog(parent, -1,  wxT("Ramming customization"), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+: wxDialog(parent, wxID_ANY, _(L("Ramming customization")), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     this->Centre();
     m_panel_ramming  = new RammingPanel(this,parameters);
@@ -20,7 +20,7 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_panel_ramming, 1, wxEXPAND);
-    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM | wxTOP, 10);
     SetSizer(main_sizer);
     SetMinSize(GetSize());
     main_sizer->SetSizeHints(this);
@@ -102,24 +102,24 @@ std::string RammingPanel::get_parameters()
 }
 
 
-
+#define	ITEM_WIDTH	60
 // Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
 WipingDialog::WipingDialog(wxWindow* parent,const std::vector<float>& matrix, const std::vector<float>& extruders)
-: wxDialog(parent, -1,  wxT(L("Wipe tower - Purging volume adjustment")), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+: wxDialog(parent, wxID_ANY, _(L("Wipe tower - Purging volume adjustment")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    this->Centre();
-
     auto widget_button = new wxButton(this,wxID_ANY,"-",wxPoint(0,0),wxDefaultSize);
     m_panel_wiping  = new WipingPanel(this,matrix,extruders, widget_button);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
-    main_sizer->Add(m_panel_wiping, 1, wxEXPAND);
 
+	// set min sizer width according to extruders count
+	const auto sizer_width = (int)((sqrt(matrix.size()) + 2.8)*ITEM_WIDTH);
+	main_sizer->SetMinSize(wxSize(sizer_width, -1));
 
-    main_sizer->Add(widget_button,0,wxALIGN_CENTER_HORIZONTAL|wxCENTER,10);
+    main_sizer->Add(m_panel_wiping, 0, wxEXPAND | wxALL, 5);
+	main_sizer->Add(widget_button, 0, wxALIGN_CENTER_HORIZONTAL | wxCENTER | wxBOTTOM, 5);
     main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
     SetSizer(main_sizer);
-    SetMinSize(GetSize());
     main_sizer->SetSizeHints(this);
 
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
@@ -133,68 +133,91 @@ WipingDialog::WipingDialog(wxWindow* parent,const std::vector<float>& matrix, co
     this->Show();
 }
 
-
+// This function allows to "play" with sizers parameters (like align or border)
+void WipingPanel::format_sizer(wxSizer* sizer, wxPanel* page, wxGridSizer* grid_sizer, const wxString& info, const wxString& table_title, int table_lshift/*=0*/)
+{
+	sizer->Add(new wxStaticText(page, wxID_ANY, info), 0, wxEXPAND | wxLEFT, 15);
+	auto table_sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->Add(table_sizer, 0, wxALIGN_LEFT | wxLEFT, table_lshift);
+	table_sizer->Add(new wxStaticText(page, wxID_ANY, table_title), 0, wxALIGN_CENTER | wxTOP, 50);
+	table_sizer->Add(grid_sizer, 0, wxALIGN_CENTER | wxTOP, 10);
+}
 
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
 WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, wxButton* widget_button)
-: wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(500,350),wxBORDER_RAISED)
+: wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize,wxBORDER_RAISED)
 {
     m_widget_button = widget_button;    // pointer to the button in parent dialog
     m_widget_button->Bind(wxEVT_BUTTON,[this](wxCommandEvent&){ toggle_advanced(true); });
 
     m_number_of_extruders = (int)(sqrt(matrix.size())+0.001);
 
+	// Create two switched panels with their own sizers
     m_sizer_simple          = new wxBoxSizer(wxVERTICAL);
     m_sizer_advanced        = new wxBoxSizer(wxVERTICAL);
-    auto gridsizer_simple   = new wxGridSizer(3,10,10);
-    auto gridsizer_advanced = new wxGridSizer(m_number_of_extruders+1,10,10);
+	m_page_simple			= new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	m_page_advanced			= new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	m_page_simple->SetSizer(m_sizer_simple);
+	m_page_advanced->SetSizer(m_sizer_advanced);
 
+    auto gridsizer_simple   = new wxGridSizer(3, 5, 10);
+    auto gridsizer_advanced = new wxGridSizer(m_number_of_extruders+1, 5, 1);
 
-    // First create controls for simple mode and assign them to m_sizer_simple:
-    m_sizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("Total purging volume is calculated by summing two values below, depending on which tools are loaded/unloaded.")),wxPoint(40,25), wxSize(450,35)),-1,wxEXPAND,10);
-    m_sizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("Volume to purge (mm\u00B3) when the filament is being")),wxPoint(40,85) ,/*wxSize(500,25)*/wxDefaultSize,wxALIGN_LEFT),-1,wxEXPAND|wxALIGN_CENTER,10);
+	// First create controls for advanced mode and assign them to m_page_advanced:
+	for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
+		edit_boxes.push_back(std::vector<wxTextCtrl*>(0));
 
-    gridsizer_simple->Add(0,-1,wxALL,10);
-    gridsizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("unloaded")),wxPoint(110,105) ,/*wxSize(80,25)*/wxDefaultSize,wxALIGN_CENTER),-1,wxALIGN_CENTER,10);
-    gridsizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("loaded")),wxPoint(195,105) ,/*wxSize(80,25)*/wxDefaultSize,wxALIGN_CENTER),-1,wxALIGN_CENTER,10);
+		for (unsigned int j = 0; j < m_number_of_extruders; ++j) {
+			edit_boxes.back().push_back(new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(ITEM_WIDTH, -1)));
+			if (i == j)
+				edit_boxes[i][j]->Disable();
+			else
+				edit_boxes[i][j]->SetValue(wxString("") << int(matrix[m_number_of_extruders*j + i]));
+		}
+	}
+	gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("")));
+	for (unsigned int i = 0; i < m_number_of_extruders; ++i)
+		gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("") << i + 1), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
+	for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
+		gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("") << i + 1), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
+		for (unsigned int j = 0; j < m_number_of_extruders; ++j)
+			gridsizer_advanced->Add(edit_boxes[j][i], 0);
+	}
 
-    for (unsigned int i=0;i<m_number_of_extruders;++i) {
-        m_old.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(120,130+30*i),/*wxSize(50,25)*/wxDefaultSize,wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i]));
-        m_new.push_back(new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxPoint(195,130+30*i),/*wxSize(50,25)*/wxDefaultSize,wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i+1]));
-        gridsizer_simple->Add(new wxStaticText(this,wxID_ANY,wxString(L("Tool #"))<<i+1<<": ",wxPoint(20,135+30*i) ,/*wxSize(75,25)*/wxDefaultSize,wxALIGN_LEFT),-1,wxALL,10);
-        gridsizer_simple->Add(m_old.back(),-1,wxALIGN_CENTER,10);
-        gridsizer_simple->Add(m_new.back(),-1,wxALIGN_CENTER,10);
-    }
+	// collect and format sizer
+	format_sizer(m_sizer_advanced, m_page_advanced, gridsizer_advanced,
+		_(L("Here you can adjust required purging volume (mm\u00B3) for any given pair of tools.")),
+		_(L("Filament changed to")));
 
-    // Now the same for advanced mode:
-    wxPoint origin(50,85);
-    m_sizer_advanced->Add(new wxStaticText(this,wxID_ANY,wxString(L("Here you can adjust required purging volume (mm\u00B3) for any given pair of tools.")),wxPoint(40,25) ,/*wxSize(500,35)*/wxDefaultSize),-1,wxALL,10);
-    m_sizer_advanced->Add(new wxStaticText(this,wxID_ANY,wxString(L("Filament changed to")),origin+wxPoint(75,0) ,/*wxSize(500,25)*/wxDefaultSize),-1,wxALL,10);
+	// Hide preview page before new page creating 
+	// It allows to do that from a beginning of the main panel
+	m_page_advanced->Hide(); 
 
-    for (unsigned int i=0;i<m_number_of_extruders;++i) {
-        edit_boxes.push_back(std::vector<wxTextCtrl*>(0));
+	// Now the same for simple mode:
+	gridsizer_simple->Add(new wxStaticText(m_page_simple, wxID_ANY, wxString("")), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
+	gridsizer_simple->Add(new wxStaticText(m_page_simple, wxID_ANY, wxString(_(L("unloaded")))), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
+    gridsizer_simple->Add(new wxStaticText(m_page_simple,wxID_ANY,wxString(_(L("loaded")))), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
 
-        for (unsigned int j=0;j<m_number_of_extruders;++j) {
-            edit_boxes.back().push_back(new wxTextCtrl(this,wxID_ANY,wxEmptyString,origin+wxPoint(25+60*i,45+30*j),/*wxSize(50,25)*/wxDefaultSize));
-            if (i==j)
-                edit_boxes[i][j]->Disable();
-            else
-                edit_boxes[i][j]->SetValue(wxString("")<<int(matrix[m_number_of_extruders*j+i]));
-        }
-    }
+	for (unsigned int i=0;i<m_number_of_extruders;++i) {
+        m_old.push_back(new wxSpinCtrl(m_page_simple,wxID_ANY,wxEmptyString,wxDefaultPosition, wxSize(80, -1),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i]));
+        m_new.push_back(new wxSpinCtrl(m_page_simple,wxID_ANY,wxEmptyString,wxDefaultPosition, wxSize(80, -1),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i+1]));
+		gridsizer_simple->Add(new wxStaticText(m_page_simple, wxID_ANY, wxString(_(L("Tool #"))) << i + 1 << ": "), 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+        gridsizer_simple->Add(m_old.back(),0);
+        gridsizer_simple->Add(m_new.back(),0);
+	}
 
-    gridsizer_advanced->Add(0,-1,wxALL,10);
-    for (unsigned int i=0;i<m_number_of_extruders;++i)
-        gridsizer_advanced->Add(new wxStaticText(this,wxID_ANY,wxString("")<<i+1,origin+wxPoint(45+60*i,25) ,/*wxSize(20,25)*/wxDefaultSize),-1,wxALL,10);
-    for (unsigned int i=0;i<m_number_of_extruders;++i) {
-        gridsizer_advanced->Add(new wxStaticText(this,wxID_ANY,wxString("")<<i+1,origin+wxPoint(0,50+30*i) ,/*wxSize(500,25)*/wxDefaultSize),-1,wxALL,10);
-        for (unsigned int j=0;j<m_number_of_extruders;++j)
-            gridsizer_advanced->Add(edit_boxes[j][i],-1,wxALL,10);
-    }
+	// collect and format sizer
+	format_sizer(m_sizer_simple, m_page_simple, gridsizer_simple,
+		_(L("Total purging volume is calculated by summing two values below, depending on which tools are loaded/unloaded.")),
+		_(L("Volume to purge (mm\u00B3) when the filament is being")), 50);
 
+	m_sizer = new wxBoxSizer(wxVERTICAL);
+	m_sizer->Add(m_page_simple, 0, wxEXPAND | wxALL, 25);
+	m_sizer->Add(m_page_advanced, 0, wxEXPAND | wxALL, 25);
 
-    m_sizer_simple->Add(gridsizer_simple,-1,wxALL,10);
-    m_sizer_advanced->Add(gridsizer_advanced,-1,wxALL,10);
+	m_sizer->SetSizeHints(this);
+	SetSizer(m_sizer);
+
     toggle_advanced(); // to show/hide what is appropriate
 }
 
@@ -260,18 +283,16 @@ void WipingPanel::toggle_advanced(bool user_action) {
     }
     if (user_action)
         m_advanced = !m_advanced;                // user demands a change -> toggle
-    else {
+    else
         m_advanced = !advanced_matches_simple(); // if called from constructor, show what is appropriate
-        (m_advanced ? m_sizer_advanced : m_sizer_simple)->SetSizeHints(this);
-        SetSizer(m_advanced ? m_sizer_advanced : m_sizer_simple);
-    }
 
-   m_sizer_simple->Show(!m_advanced);
-   m_sizer_advanced->Show(m_advanced);
+	(m_advanced ? m_page_advanced : m_page_simple)->Show();
+	(!m_advanced ? m_page_advanced : m_page_simple)->Hide();
 
     m_widget_button->SetLabel(m_advanced ? L("Show simplified settings") : L("Show advanced settings"));
     if (m_advanced)
         if (user_action) fill_in_matrix();  // otherwise keep values loaded from config
 
-    this->Refresh();
+   m_sizer->Layout();
+   Refresh();
 }
