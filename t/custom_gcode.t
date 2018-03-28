@@ -49,6 +49,7 @@ use Slic3r::Test;
     my $parser = Slic3r::GCode::PlaceholderParser->new;
     my $config = Slic3r::Config::new_from_defaults;
     $config->set('printer_notes', '  PRINTER_VENDOR_PRUSA3D  PRINTER_MODEL_MK2  ');
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $parser->apply_config($config);
     $parser->set('foo' => 0);
     $parser->set('bar' => 2);
