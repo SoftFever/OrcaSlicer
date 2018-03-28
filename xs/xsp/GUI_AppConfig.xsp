@@ -43,4 +43,5 @@
     void                        update_last_output_dir(char *dir);
 
     void                        reset_selections();
+    bool                        slic3r_update_avail() const;
 };

@@ -239,6 +239,10 @@ Ref<TabIface> 				O_OBJECT_SLIC3R_T
 # ConfigWizard*               O_OBJECT_SLIC3R
 # Ref<ConfigWizard>           O_OBJECT_SLIC3R_T
 
+PresetUpdater*              O_OBJECT_SLIC3R
+Ref<PresetUpdater>          O_OBJECT_SLIC3R_T
+Clone<PresetUpdater>        O_OBJECT_SLIC3R_T
+
 OctoPrint*                  O_OBJECT_SLIC3R
 Ref<OctoPrint>              O_OBJECT_SLIC3R_T
 Clone<OctoPrint>            O_OBJECT_SLIC3R_T

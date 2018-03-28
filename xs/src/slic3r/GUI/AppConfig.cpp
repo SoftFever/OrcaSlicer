@@ -1,5 +1,3 @@
-#include <GL/glew.h>
-
 #include "../../libslic3r/libslic3r.h"
 #include "../../libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
@@ -9,14 +7,19 @@
 #include <string.h>
 #include <utility>
 #include <assert.h>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace Slic3r {
+
+static const std::string VENDOR_PREFIX = "vendor:";
+static const std::string MODEL_PREFIX = "model:";
 
 void AppConfig::reset()
 {
@@ -45,6 +48,8 @@ void AppConfig::set_defaults()
     // Version check is enabled by default in the config, but it is not implemented yet.   // XXX
     if (get("version_check").empty())
         set("version_check", "1");
+    if (get("preset_update").empty())
+        set("preset_update", "1");
     // Use OpenGL 1.1 even if OpenGL 2.0 is available. This is mainly to support some buggy Intel HD Graphics drivers.
     // https://github.com/prusa3d/Slic3r/issues/233
     if (get("use_legacy_opengl").empty())
@@ -67,6 +72,19 @@ void AppConfig::load()
     		if (! data.empty())
     			// If there is a non-empty data, then it must be a top-level (without a section) config entry.
     			m_storage[""][section.first] = data;
+    	} else if (boost::starts_with(section.first, VENDOR_PREFIX)) {
+            // This is a vendor section listing enabled model / variants
+            const auto vendor_name = section.first.substr(VENDOR_PREFIX.size());
+            auto &vendor = m_vendors[vendor_name];
+            for (const auto &kvp : section.second) {
+                if (! boost::starts_with(kvp.first, MODEL_PREFIX)) { continue; }
+                const auto model_name = kvp.first.substr(MODEL_PREFIX.size());
+                std::vector<std::string> variants;
+                if (! unescape_strings_cstyle(kvp.second.data(), variants)) { continue; }
+                for (const auto &variant : variants) {
+                    vendor[model_name].insert(variant);
+                }
+            }
     	} else {
     		// This must be a section name. Read the entries of a section.
     		std::map<std::string, std::string> &storage = m_storage[section.first];
@@ -96,8 +114,51 @@ void AppConfig::save()
     	for (const std::pair<std::string, std::string> &kvp : category.second)
 	        c << kvp.first << " = " << kvp.second << std::endl;
 	}
+    // Write vendor sections
+    for (const auto &vendor : m_vendors) {
+        size_t size_sum = 0;
+        for (const auto &model : vendor.second) { size_sum += model.second.size(); }
+        if (size_sum == 0) { continue; }
+
+        c << std::endl << "[" << VENDOR_PREFIX << vendor.first << "]" << std::endl;
+
+        for (const auto &model : vendor.second) {
+            if (model.second.size() == 0) { continue; }
+            const std::vector<std::string> variants(model.second.begin(), model.second.end());
+            const auto escaped = escape_strings_cstyle(variants);
+            c << MODEL_PREFIX << model.first << " = " << escaped << std::endl;
+        }
+    }
     c.close();
     m_dirty = false;
+}
+
+bool AppConfig::get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const
+{
+    std::cerr << "AppConfig::get_variant(" << vendor << ", " << model << ", " << variant  << ") ";
+
+    const auto it_v = m_vendors.find(vendor);
+    if (it_v == m_vendors.end()) { return false; }
+    const auto it_m = it_v->second.find(model);
+    return it_m == it_v->second.end() ? false : it_m->second.find(variant) != it_m->second.end();
+}
+
+void AppConfig::set_variant(const std::string &vendor, const std::string &model, const std::string &variant, bool enable)
+{
+    if (enable) {
+        if (get_variant(vendor, model, variant)) { return; }
+        m_vendors[vendor][model].insert(variant);
+    } else {
+        auto it_v = m_vendors.find(vendor);
+        if (it_v == m_vendors.end()) { return; }
+        auto it_m = it_v->second.find(model);
+        if (it_m == it_v->second.end()) { return; }
+        auto it_var = it_m->second.find(variant);
+        if (it_var == it_m->second.end()) { return; }
+        it_m->second.erase(it_var);
+    }
+    // If we got here, there was an update
+    m_dirty = true;
 }
 
 std::string AppConfig::get_last_dir() const
@@ -154,6 +215,16 @@ void AppConfig::reset_selections()
         it->second.erase("printer");
         m_dirty = true;
     }
+}
+
+bool AppConfig::version_check_enabled() const
+{
+    return get("version_check") == "1";
+}
+
+bool AppConfig::slic3r_update_avail() const
+{
+    return version_check_enabled() && get("version_online") != SLIC3R_VERSION;
 }
 
 std::string AppConfig::config_path()

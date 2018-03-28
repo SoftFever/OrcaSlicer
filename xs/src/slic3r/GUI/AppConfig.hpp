@@ -1,8 +1,11 @@
 #ifndef slic3r_AppConfig_hpp_
 #define slic3r_AppConfig_hpp_
 
+#include <set>
 #include <map>
 #include <string>
+
+#include "libslic3r/Config.hpp"
 
 namespace Slic3r {
 
@@ -65,6 +68,13 @@ public:
 	void 				clear_section(const std::string &section)
 		{ m_storage[section].clear(); }
 
+	// TODO: remove / upgrade
+	// ConfigOptionStrings get_strings(const std::string &section, const std::string &key) const;
+	// void set_strings(const std::string &section, const std::string &key, const ConfigOptionStrings &value);
+	// TODO:
+	bool get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const;
+	void set_variant(const std::string &vendor, const std::string &model, const std::string &variant, bool enable);
+
 	// return recent/skein_directory or recent/config_directory or empty string.
 	std::string 		get_last_dir() const;
 	void 				update_config_dir(const std::string &dir);
@@ -78,6 +88,10 @@ public:
 	// the first non-default preset when called.
     void                reset_selections();
 
+	// Whether the Slic3r version available online differs from this one
+	bool version_check_enabled() const;
+	bool slic3r_update_avail() const;
+
 	// Get the default config path from Slic3r::data_dir().
 	static std::string  config_path();
 
@@ -87,6 +101,8 @@ public:
 private:
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;
+	// Map of enabled vendors / models / variants
+	std::map<std::string, std::map<std::string, std::set<std::string>>> m_vendors;
 	// Has any value been modified since the config.ini has been last saved or loaded?
 	bool														m_dirty;
 };
