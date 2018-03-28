@@ -159,7 +159,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "wipe"
     };
 
-    static std::unordered_set<std::string> steps_ignore = {};
+    static std::unordered_set<std::string> steps_ignore;
 
     std::vector<PrintStep> steps;
     std::vector<PrintObjectStep> osteps;
