@@ -31,8 +31,6 @@
     #include <cassert>
 #endif
 
-#define PARALLEL_FOR_CANCEL do { if (this->print()->canceled()) return; } while (0)
-
 namespace Slic3r {
 
 PrintObject::PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox) :  
@@ -117,14 +115,16 @@ bool PrintObject::reload_model_instances()
 // this should be idempotent
 void PrintObject::slice()
 {
-    if (this->state.is_done(posSlice))
+    if (m_state.is_done(posSlice))
         return;
-    this->state.set_started(posSlice);
+    this->set_started(posSlice);
     this->_print->set_status(10, "Processing triangulated mesh");
     this->_slice();
+    this->_print->throw_if_canceled();
     // Fix the model.
     //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
     std::string warning = this->_fix_slicing_errors();
+    this->_print->throw_if_canceled();
     if (! warning.empty())
         BOOST_LOG_TRIVIAL(info) << warning;
     // Simplify slices if required.
@@ -132,7 +132,7 @@ void PrintObject::slice()
         this->_simplify_slices(scale_(this->_print->config.resolution));   
     if (this->layers.empty())
         throw std::runtime_error("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
-    this->state.set_done(posSlice);
+    m_state.set_done(posSlice);
 }
 
 // 1) Merges typed region slices into stInternal type.
@@ -143,19 +143,21 @@ void PrintObject::make_perimeters()
     // prerequisites
     this->slice();
 
-    if (this->state.is_done(posPerimeters))
+    if (m_state.is_done(posPerimeters))
         return;
 
-    this->state.set_started(posPerimeters);
+    this->set_started(posPerimeters);
     this->_print->set_status(20, "Generating perimeters");
     BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
     
     // merge slices if they were split into types
     if (this->typed_slices) {
-        FOREACH_LAYER(this, layer_it)
+        FOREACH_LAYER(this, layer_it) {
             (*layer_it)->merge_slices();
+            this->_print->throw_if_canceled();
+        }
         this->typed_slices = false;
-        this->state.invalidate(posPrepareInfill);
+        m_state.invalidate(posPrepareInfill);
     }
     
     // compare each layer to the one below, and mark those slices needing
@@ -168,8 +170,7 @@ void PrintObject::make_perimeters()
     FOREACH_REGION(this->_print, region_it) {
         size_t region_id = region_it - this->_print->regions.begin();
         const PrintRegion &region = **region_it;
-        
-        
+                
         if (!region.config.extra_perimeters
             || region.config.perimeters == 0
             || region.config.fill_density == 0
@@ -181,7 +182,7 @@ void PrintObject::make_perimeters()
             tbb::blocked_range<size_t>(0, this->layers.size() - 1),
             [this, &region, region_id](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                    PARALLEL_FOR_CANCEL;
+                    this->_print->throw_if_canceled();
                     LayerRegion &layerm                     = *this->layers[layer_idx]->regions[region_id];
                     const LayerRegion &upper_layerm         = *this->layers[layer_idx+1]->regions[region_id];
                     const Polygons upper_layerm_polygons    = upper_layerm.slices;
@@ -230,6 +231,7 @@ void PrintObject::make_perimeters()
                     }
                 }
             });
+        this->_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
     }
 
@@ -238,11 +240,12 @@ void PrintObject::make_perimeters()
         tbb::blocked_range<size_t>(0, this->layers.size()),
         [this](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                PARALLEL_FOR_CANCEL;
+                this->_print->throw_if_canceled();
                 this->layers[layer_idx]->make_perimeters();
             }
         }
     );
+    this->_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
 
     /*
@@ -252,15 +255,15 @@ void PrintObject::make_perimeters()
     ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
     */
     
-    this->state.set_done(posPerimeters);
+    m_state.set_done(posPerimeters);
 }
 
 void PrintObject::prepare_infill()
 {
-    if (this->state.is_done(posPrepareInfill))
+    if (m_state.is_done(posPrepareInfill))
         return;
 
-    this->state.set_started(posPrepareInfill);
+    this->set_started(posPrepareInfill);
     this->_print->set_status(30, "Preparing infill");
 
     // This will assign a type (top/bottom/internal) to $layerm->slices.
@@ -268,14 +271,17 @@ void PrintObject::prepare_infill()
     // the $layerm->fill_surfaces by clipping $layerm->fill_surfaces
     // by the cummulative area of the previous $layerm->fill_surfaces.
     this->detect_surfaces_type();
+    this->_print->throw_if_canceled();
     
     // Decide what surfaces are to be filled.
     // Here the S_TYPE_TOP / S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is turned to just S_TYPE_INTERNAL if zero top / bottom infill layers are configured.
     // Also tiny S_TYPE_INTERNAL surfaces are turned to S_TYPE_INTERNAL_SOLID.
     BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces...";
     for (auto *layer : this->layers)
-        for (auto *region : layer->regions)
+        for (auto *region : layer->regions) {
             region->prepare_fill_surfaces();
+            this->_print->throw_if_canceled();
+        }
 
     // this will detect bridges and reverse bridges
     // and rearrange top/bottom/internal surfaces
@@ -287,9 +293,11 @@ void PrintObject::prepare_infill()
     // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
     //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
     this->process_external_surfaces();
+    this->_print->throw_if_canceled();
 
     // Add solid fills to ensure the shell vertical thickness.
     this->discover_vertical_shells();
+    this->_print->throw_if_canceled();
 
     // Debugging output.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -309,6 +317,7 @@ void PrintObject::prepare_infill()
     // to close these surfaces reliably.
     //FIXME Vojtech: Is this a good place to add supporting infills below sloping perimeters?
     this->discover_horizontal_shells();
+    this->_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
@@ -327,6 +336,7 @@ void PrintObject::prepare_infill()
     // Likely the sparse infill will not be anchored correctly, so it will not work as intended.
     // Also one wishes the perimeters to be supported by a full infill.
     this->clip_fill_surfaces();
+    this->_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
@@ -341,9 +351,11 @@ void PrintObject::prepare_infill()
     // the following step needs to be done before combination because it may need
     // to remove only half of the combined infill
     this->bridge_over_infill();
+    this->_print->throw_if_canceled();
 
     // combine fill surfaces to honor the "infill every N layers" option
     this->combine_infill();
+    this->_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
@@ -359,7 +371,7 @@ void PrintObject::prepare_infill()
     } // for each layer
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-    this->state.set_done(posPrepareInfill);
+    m_state.set_done(posPrepareInfill);
 }
 
 void PrintObject::infill()
@@ -367,36 +379,38 @@ void PrintObject::infill()
     // prerequisites
     this->prepare_infill();
 
-    if (! this->state.is_done(posInfill)) {
-        this->state.set_started(posInfill);        
+    if (! m_state.is_done(posInfill)) {
+        this->set_started(posInfill);        
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, this->layers.size()),
             [this](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                    PARALLEL_FOR_CANCEL;
+                    this->_print->throw_if_canceled();
                     this->layers[layer_idx]->make_fills();
                 }
             }
         );
+        this->_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - end";
         /*  we could free memory now, but this would make this step not idempotent
         ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
         */
-        this->state.set_done(posInfill);
+        m_state.set_done(posInfill);
     }
 }
 
 void PrintObject::generate_support_material()
 {
-    if (! this->state.is_done(posSupportMaterial)) {
-        this->state.set_started(posSupportMaterial);
+    if (! m_state.is_done(posSupportMaterial)) {
+        this->set_started(posSupportMaterial);
         this->clear_support_layers();
         if ((this->config.support_material || this->config.raft_layers > 0) && this->layers.size() > 1) {
             this->_print->set_status(85, "Generating support material");    
             this->_generate_support_material();
+            this->_print->throw_if_canceled();
         }
-        this->state.set_done(posSupportMaterial);
+        m_state.set_done(posSupportMaterial);
     }
 }
 
@@ -545,7 +559,7 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
 
 bool PrintObject::invalidate_step(PrintObjectStep step)
 {
-    bool invalidated = this->state.invalidate(step);
+    bool invalidated = m_state.invalidate(step);
     
     // propagate to dependent steps
     if (step == posPerimeters) {
@@ -624,7 +638,7 @@ void PrintObject::detect_surfaces_type()
                     (this->config.support_material.value && this->config.support_material_contact_distance.value == 0) ?
                     stBottom : stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
-                    PARALLEL_FOR_CANCEL;
+                    this->_print->throw_if_canceled();
                     // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region << " and layer " << layer->print_z;
                     Layer       *layer  = this->layers[idx_layer];
                     LayerRegion *layerm = layer->get_region(idx_region);
@@ -749,6 +763,7 @@ void PrintObject::detect_surfaces_type()
                 }
             }
         ); // for each layer of a region
+        this->_print->throw_if_canceled();
 
         if (interface_shells) {
             // Move surfaces_new to layerm->slices.surfaces
@@ -762,7 +777,7 @@ void PrintObject::detect_surfaces_type()
             tbb::blocked_range<size_t>(0, this->layers.size()),
             [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
-                    PARALLEL_FOR_CANCEL;
+                    this->_print->throw_if_canceled();
                     LayerRegion *layerm = this->layers[idx_layer]->get_region(idx_region);
                     layerm->slices_to_fill_surfaces_clipped();
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -770,6 +785,7 @@ void PrintObject::detect_surfaces_type()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
                 } // for each layer of a region
             });
+        this->_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " - clipping in parallel - end";
     } // for each this->print->region_count
 
@@ -789,12 +805,13 @@ void PrintObject::process_external_surfaces()
             tbb::blocked_range<size_t>(0, this->layers.size()),
             [this, region_id](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                    PARALLEL_FOR_CANCEL;
+                    this->_print->throw_if_canceled();
                     // BOOST_LOG_TRIVIAL(trace) << "Processing external surface, layer" << this->layers[layer_idx]->print_z;
                     this->layers[layer_idx]->get_region(region_id)->process_external_surfaces((layer_idx == 0) ? NULL : this->layers[layer_idx - 1]);
                 }
             }
         );
+        this->_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - end";
     }
 }
@@ -838,7 +855,7 @@ void PrintObject::discover_vertical_shells()
                 const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                 const size_t num_regions = this->_print->regions.size();
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
-                    PARALLEL_FOR_CANCEL;
+                    this->_print->throw_if_canceled();
                     const Layer                      &layer = *this->layers[idx_layer];
                     DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[idx_layer];
                     // Simulate single set of perimeters over all merged regions.
@@ -893,6 +910,7 @@ void PrintObject::discover_vertical_shells()
                     cache.holes = union_(cache.holes, false);
                 }
             });
+        this->_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - end : cache top / bottom";
     }
 
@@ -921,7 +939,7 @@ void PrintObject::discover_vertical_shells()
                 [this, idx_region, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
                     const SurfaceType surfaces_bottom[2] = { stBottom, stBottomBridge };
                     for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
-                        PARALLEL_FOR_CANCEL;
+                        this->_print->throw_if_canceled();
                         Layer       &layer                        = *this->layers[idx_layer];
                         LayerRegion &layerm                       = *layer.regions[idx_region];
                         float        min_perimeter_infill_spacing = float(layerm.flow(frSolidInfill).scaled_spacing()) * 1.05f;
@@ -939,6 +957,7 @@ void PrintObject::discover_vertical_shells()
                         }
                     }
                 });
+            this->_print->throw_if_canceled();
             BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - end : cache top / bottom";
         }
 
@@ -950,7 +969,7 @@ void PrintObject::discover_vertical_shells()
                 // printf("discover_vertical_shells from %d to %d\n", range.begin(), range.end());
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     PROFILE_BLOCK(discover_vertical_shells_region_layer);
-                    PARALLEL_FOR_CANCEL;
+                    this->_print->throw_if_canceled();
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         			static size_t debug_idx = 0;
         			++ debug_idx;
@@ -1163,7 +1182,8 @@ void PrintObject::discover_vertical_shells()
                     layerm->fill_surfaces.append(new_internal_void,  stInternalVoid);
                     layerm->fill_surfaces.append(new_internal_solid, stInternalSolid);
                 } // for each layer
-            }); 
+            });
+        this->_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << idx_region << " in parallel - end";
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -1303,6 +1323,7 @@ void PrintObject::bridge_over_infill()
             layerm->export_region_slices_to_svg_debug("7_bridge_over_infill");
             layerm->export_region_fill_surfaces_to_svg_debug("7_bridge_over_infill");
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+            this->_print->throw_if_canceled();
         }
     }
 }
@@ -1411,9 +1432,11 @@ void PrintObject::_slice()
     for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
         BOOST_LOG_TRIVIAL(debug) << "Slicing objects - region " << region_id;
         std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, false);
+        this->_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Slicing objects - append slices " << region_id << " start";
         for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
             this->layers[layer_id]->regions[region_id]->slices.append(std::move(expolygons_by_layer[layer_id]), stInternal);
+        this->_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Slicing objects - append slices " << region_id << " end";
     }
 
@@ -1422,6 +1445,7 @@ void PrintObject::_slice()
         for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
             BOOST_LOG_TRIVIAL(debug) << "Slicing modifier volumes - region " << region_id;
             std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, true);
+            this->_print->throw_if_canceled();
             // loop through the other regions and 'steal' the slices belonging to this one
             BOOST_LOG_TRIVIAL(debug) << "Slicing modifier volumes - stealing " << region_id << " start";
             for (size_t other_region_id = 0; other_region_id < this->print()->regions.size(); ++ other_region_id) {
@@ -1443,6 +1467,7 @@ void PrintObject::_slice()
                     layerm->slices.append(std::move(my_parts), stInternal);
                 }
             }
+            this->_print->throw_if_canceled();
             BOOST_LOG_TRIVIAL(debug) << "Slicing modifier volumes - stealing " << region_id << " end";
         }
     }
@@ -1459,6 +1484,7 @@ void PrintObject::_slice()
 		if (! this->layers.empty())
 			this->layers.back()->upper_layer = nullptr;
     }
+    this->_print->throw_if_canceled();
 end:
     ;
 
@@ -1467,7 +1493,7 @@ end:
         tbb::blocked_range<size_t>(0, this->layers.size()),
         [this](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
-                PARALLEL_FOR_CANCEL;
+                this->_print->throw_if_canceled();
                 Layer *layer = this->layers[layer_id];
                 // Apply size compensation and perform clipping of multi-part objects.
                 float delta = float(scale_(this->config.xy_size_compensation.value));
@@ -1503,6 +1529,7 @@ end:
                 layer->make_slices();
             }
         });
+    this->_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - make_slices in parallel - end";
 }
 
@@ -1519,6 +1546,7 @@ std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::
                 ModelVolume *volume = this->model_object()->volumes[volume_id];
                 if (volume->modifier == modifier)
                     mesh.merge(volume->mesh);
+                this->_print->throw_if_canceled();
             }
             if (mesh.stl.stats.number_of_facets > 0) {
                 // transform mesh
@@ -1528,8 +1556,12 @@ std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::
                 // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
                 mesh.translate(- float(unscale(this->_copies_shift.x)), - float(unscale(this->_copies_shift.y)), -float(this->model_object()->bounding_box().min.z));
                 // perform actual slicing
-                TriangleMeshSlicer mslicer(&mesh);
-                mslicer.slice(z, &layers);
+				TriangleMeshSlicer mslicer;
+				Print *print = this->print();
+				auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
+				mslicer.init(&mesh, callback);
+                mslicer.slice(z, &layers, callback);
+                this->_print->throw_if_canceled();
             }
         }
     }
@@ -1551,7 +1583,7 @@ std::string PrintObject::_fix_slicing_errors()
         tbb::blocked_range<size_t>(0, buggy_layers.size()),
         [this, &buggy_layers](const tbb::blocked_range<size_t>& range) {
             for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
-                PARALLEL_FOR_CANCEL;
+                this->_print->throw_if_canceled();
                 size_t idx_layer = buggy_layers[buggy_layer_idx];
                 Layer *layer     = this->layers[idx_layer];
                 assert(layer->slicing_errors);
@@ -1602,6 +1634,7 @@ std::string PrintObject::_fix_slicing_errors()
                 layer->make_slices();
             }
         });
+    this->_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - end";
 
     // remove empty layers from bottom
@@ -1628,7 +1661,7 @@ void PrintObject::_simplify_slices(double distance)
         tbb::blocked_range<size_t>(0, this->layers.size()),
         [this, distance](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                PARALLEL_FOR_CANCEL;
+                this->_print->throw_if_canceled();
                 Layer *layer = this->layers[layer_idx];
                 for (size_t region_idx = 0; region_idx < layer->regions.size(); ++ region_idx)
                     layer->regions[region_idx]->slices.simplify(distance);
@@ -1721,6 +1754,7 @@ void PrintObject::clip_fill_surfaces()
             layerm->export_region_fill_surfaces_to_svg_debug("6_clip_fill_surfaces");
 #endif
         }
+        this->_print->throw_if_canceled();
     }
 }
 
@@ -1730,6 +1764,7 @@ void PrintObject::discover_horizontal_shells()
     
     for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
         for (int i = 0; i < int(this->layers.size()); ++ i) {
+            this->_print->throw_if_canceled();
             LayerRegion       *layerm = this->layers[i]->regions[region_id];
             PrintRegionConfig &region_config = layerm->region()->config;
             if (region_config.solid_infill_every_layers.value > 0 && region_config.fill_density.value > 0 &&
@@ -1746,6 +1781,7 @@ void PrintObject::discover_horizontal_shells()
                 continue;
             
             for (int idx_surface_type = 0; idx_surface_type < 3; ++ idx_surface_type) {
+                this->_print->throw_if_canceled();
                 SurfaceType type = (idx_surface_type == 0) ? stTop : (idx_surface_type == 1) ? stBottom : stBottomBridge;
                 // Find slices of current type for current layer.
                 // Use slices instead of fill_surfaces, because they also include the perimeter area,
@@ -1932,6 +1968,7 @@ void PrintObject::combine_infill()
             double current_height = 0.;
             size_t num_layers = 0;
             for (size_t layer_idx = 0; layer_idx < this->layers.size(); ++ layer_idx) {
+                this->_print->throw_if_canceled();
                 const Layer *layer = this->layers[layer_idx];
                 if (layer->id() == 0)
                     // Skip first print layer (which may not be first layer in array because of raft).
@@ -1954,6 +1991,7 @@ void PrintObject::combine_infill()
         
         // loop through layers to which we have assigned layers to combine
         for (size_t layer_idx = 0; layer_idx < this->layers.size(); ++ layer_idx) {
+            this->_print->throw_if_canceled();
             size_t num_layers = combine[layer_idx];
 			if (num_layers <= 1)
                 continue;

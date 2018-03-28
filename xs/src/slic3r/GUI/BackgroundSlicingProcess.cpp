@@ -24,7 +24,7 @@ void BackgroundSlicingProcess::thread_proc()
 	lck.unlock();
 	m_condition.notify_one();
 	for (;;) {
-		assert(m_state == STATE_IDLE);
+		assert(m_state == STATE_IDLE || m_state == STATE_CANCELED || m_state == STATE_FINISHED);
 		// Wait until a new task is ready to be executed, or this thread should be finished.
 		lck.lock();
 		m_condition.wait(lck, [this](){ return m_state == STATE_STARTED || m_state == STATE_EXIT; });
@@ -38,10 +38,13 @@ void BackgroundSlicingProcess::thread_proc()
 		try {
 			assert(m_print != nullptr);
 		    m_print->process();
-		    if (m_print->canceled())
-		    	return;
-			wxQueueEvent(GUI::g_wxPlater, new wxCommandEvent(m_event_sliced_id));
-		    m_print->export_gcode(m_output_path, m_gcode_preview_data);
+		    if (! m_print->canceled()) {
+				wxQueueEvent(GUI::g_wxPlater, new wxCommandEvent(m_event_sliced_id));
+			    m_print->export_gcode(m_output_path, m_gcode_preview_data);
+		    }
+		} catch (CanceledException &ex) {
+			// Canceled, this is all right.
+			assert(m_print->canceled());
 		} catch (std::exception &ex) {
 			error = ex.what();
 		} catch (...) {
@@ -53,6 +56,7 @@ void BackgroundSlicingProcess::thread_proc()
 		evt.SetString(error);
 		evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
 	    wxQueueEvent(GUI::g_wxPlater, evt.Clone());
+	    m_print->restart();
 		lck.unlock();
 		// Let the UI thread wake up if it is waiting for the background task to finish.
 	    m_condition.notify_one();
@@ -112,21 +116,23 @@ bool BackgroundSlicingProcess::stop()
 	if (m_state == STATE_STARTED || m_state == STATE_RUNNING) {
 		m_print->cancel();
 		// Wait until the background processing stops by being canceled.
-		lck.unlock();
 		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
+		// In the "Canceled" state. Reset the state to "Idle".
+		m_state = STATE_IDLE;
+	} else if (m_state == STATE_FINISHED || m_state == STATE_CANCELED) {
+		// In the "Finished" or "Canceled" state. Reset the state to "Idle".
+		m_state = STATE_IDLE;
 	}
 	return true;
 }
 
 // Apply config over the print. Returns false, if the new config values caused any of the already
 // processed steps to be invalidated, therefore the task will need to be restarted.
-bool BackgroundSlicingProcess::apply_config(DynamicPrintConfig *config)
+bool BackgroundSlicingProcess::apply_config(const DynamicPrintConfig &config)
 {
-	/*
-	// apply new config
-    my $invalidated = $self->{print}->apply_config(wxTheApp->{preset_bundle}->full_config);
-	*/
-	return true;
+	this->stop();
+	bool invalidated = this->m_print->apply_config(config);
+	return invalidated;
 }
 
 }; // namespace Slic3r

@@ -365,13 +365,21 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     if (file == nullptr)
         throw std::runtime_error(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
 
-    this->m_placeholder_parser_failed_templates.clear();
-    this->_do_export(*print, file, preview_data);
-    fflush(file);
-    if (ferror(file)) {
+    try {
+        this->m_placeholder_parser_failed_templates.clear();
+        this->_do_export(*print, file, preview_data);
+        fflush(file);
+        if (ferror(file)) {
+            fclose(file);
+            boost::nowide::remove(path_tmp.c_str());
+            throw std::runtime_error(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
+        }
+    } catch (std::exception &ex) {
+        // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
+        // Close and remove the file.
         fclose(file);
         boost::nowide::remove(path_tmp.c_str());
-        throw std::runtime_error(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
+        throw;
     }
     fclose(file);
     if (! this->m_placeholder_parser_failed_templates.empty()) {
@@ -402,6 +410,8 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
 {
     PROFILE_FUNC();
+
+    print.set_started(psGCodeExport);
 
     // resets time estimator
     m_time_estimator.reset();
@@ -444,6 +454,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         std::sort(zs.begin(), zs.end());
         m_layer_count = (unsigned int)(std::unique(zs.begin(), zs.end()) - zs.begin());
     }
+    print.throw_if_canceled();
 
     m_enable_cooling_markers = true;
     this->apply_print_config(print.config);
@@ -475,6 +486,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 for (auto layer : object->support_layers)
                     mm3_per_mm.push_back(layer->support_fills.min_mm3_per_mm());
         }
+        print.throw_if_canceled();
         // filter out 0-width segments
         mm3_per_mm.erase(std::remove_if(mm3_per_mm.begin(), mm3_per_mm.end(), [](double v) { return v < 0.000001; }), mm3_per_mm.end());
         if (! mm3_per_mm.empty()) {
@@ -489,6 +501,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 m_volumetric_speed = std::min(m_volumetric_speed, print.config.max_volumetric_speed.value);
         }
     }
+    print.throw_if_canceled();
     
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     if (print.config.spiral_vase.value)
@@ -513,6 +526,8 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         if (! lines.empty())
             _write(file, "\n");
     }
+    print.throw_if_canceled();
+
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects.front();
     const double       layer_height         = first_object->config.layer_height.value;
@@ -530,6 +545,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             _write_format(file, "; first layer extrusion width = %.2fmm\n",   region->flow(frPerimeter, first_layer_height, false, true, -1., *first_object).width);
         _write_format(file, "\n");
     }
+    print.throw_if_canceled();
     
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser;
@@ -566,6 +582,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         final_extruder_id = tool_ordering.last_extruder();
         assert(final_extruder_id != (unsigned int)-1);
     }
+    print.throw_if_canceled();
 
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 
@@ -611,7 +628,8 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             _writeln(file, this->placeholder_parser_process("start_gcode", start_gcode, (unsigned int)(&start_gcode - &print.config.start_filament_gcode.values.front())));
     }
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, true);
-    
+    print.throw_if_canceled();
+
     // Set other general things.
     _write(file, this->preamble());
 
@@ -629,6 +647,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                     }
         //FIXME Mege the islands in parallel.
         m_avoid_crossing_perimeters.init_external_mp(union_ex(islands));
+        print.throw_if_canceled();
     }
     
     // Calculate wiping points if needed
@@ -659,6 +678,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 );
 #endif
         }
+        print.throw_if_canceled();
     }
     
     // Set initial extruder only after custom start G-code.
@@ -686,6 +706,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                     final_extruder_id   = tool_ordering.last_extruder();
                     assert(final_extruder_id != (unsigned int)-1);
                 }
+                print.throw_if_canceled();
                 this->set_origin(unscale(copy.x), unscale(copy.y));
                 if (finished_objects > 0) {
                     // Move to the origin position for the copy we're going to print.
@@ -716,6 +737,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                     std::vector<LayerToPrint> lrs;
                     lrs.emplace_back(std::move(ltp));
                     this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), &copy - object._shifted_copies.data());
+                    print.throw_if_canceled();
                 }
                 if (m_pressure_equalizer)
                     _write(file, m_pressure_equalizer->process("", true));
@@ -761,6 +783,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
                 _write(file, "M1 S10\n");
             }
+            print.throw_if_canceled();
         }
         // Extrude the layers.
         for (auto &layer : layers_to_print) {
@@ -768,6 +791,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             if (m_wipe_tower && layer_tools.has_wipe_tower)
                 m_wipe_tower->next_layer();
             this->process_layer(file, print, layer.second, layer_tools, size_t(-1));
+            print.throw_if_canceled();
         }
         if (m_pressure_equalizer)
             _write(file, m_pressure_equalizer->process("", true));
@@ -799,6 +823,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     _writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id()));
     _write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     _write(file, m_writer.postamble());
+    print.throw_if_canceled();
 
     // calculates estimated printing time
     m_time_estimator.calculate_time();
@@ -839,10 +864,13 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         if (!full_config.empty())
             _write(file, full_config);
     }
+    print.throw_if_canceled();
 
     // starts analizer calculations
     if (preview_data != nullptr)
         m_analyzer.calc_gcode_preview_data(*preview_data);
+
+    print.set_done(psGCodeExport);
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)

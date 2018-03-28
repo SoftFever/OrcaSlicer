@@ -2,8 +2,7 @@
 
 namespace Slic3r {
 
-Flow
-PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const
+Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const
 {
     ConfigOptionFloatOrPercent config_width;
     if (width != -1) {

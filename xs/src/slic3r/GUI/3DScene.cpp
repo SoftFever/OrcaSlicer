@@ -647,14 +647,10 @@ std::vector<double> GLVolumeCollection::get_current_print_zs() const
     for (GLVolume *vol : this->volumes)
     {
         for (coordf_t z : vol->print_zs)
-        {
-            double round_z = (double)round(z * 100000.0f) / 100000.0f;
-            if (std::find(print_zs.begin(), print_zs.end(), round_z) == print_zs.end())
-                print_zs.push_back(round_z);
-        }
+            print_zs.emplace_back((double)round(z * 100000.0f) / 100000.0f);
     }
 
-    std::sort(print_zs.begin(), print_zs.end());
+    sort_remove_duplicates(print_zs);
 
     return print_zs;
 }
@@ -1671,6 +1667,9 @@ void _3DScene::_load_print_toolpaths(
     const std::vector<std::string>  &tool_colors,
     bool                             use_VBOs)
 {
+    // The skirt and brim steps should be marked as done, so their paths are valid.
+    assert(print->is_step_done(psSkirt) && print->is_step_done(psBrim));
+
     if (!print->has_skirt() && print->config.brim_width.value == 0)
         return;
     
@@ -1762,9 +1761,9 @@ void _3DScene::_load_print_object_toolpaths(
     std::sort(ctxt.layers.begin(), ctxt.layers.end(), [](const Layer *l1, const Layer *l2) { return l1->print_z < l2->print_z; });
 
     // Maximum size of an allocation block: 32MB / sizeof(float)
-    ctxt.has_perimeters = print_object->state.is_done(posPerimeters);
-    ctxt.has_infill     = print_object->state.is_done(posInfill);
-    ctxt.has_support    = print_object->state.is_done(posSupportMaterial);
+    ctxt.has_perimeters = print_object->is_step_done(posPerimeters);
+    ctxt.has_infill     = print_object->is_step_done(posInfill);
+    ctxt.has_support    = print_object->is_step_done(posSupportMaterial);
     ctxt.tool_colors    = tool_colors.empty() ? nullptr : &tool_colors;
     
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start";

@@ -83,7 +83,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
 
     // Cache the plenty of parameters, which influence the G-code generator only,
     // or they are only notes not influencing the generated G-code.
-    static std::unordered_set<std::string> steps_ignore = {
+    static std::unordered_set<std::string> steps_gcode = {
         "avoid_crossing_perimeters",
         "bed_shape",
         "bed_temperature",
@@ -159,13 +159,18 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "wipe"
     };
 
+    static std::unordered_set<std::string> steps_ignore = {};
+
     std::vector<PrintStep> steps;
     std::vector<PrintObjectStep> osteps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (steps_ignore.find(opt_key) != steps_ignore.end()) {
+        if (steps_gcode.find(opt_key) != steps_gcode.end()) {
             // These options only affect G-code export or they are just notes without influence on the generated G-code,
             // so there is nothing to invalidate.
+            steps.emplace_back(psGCodeExport);
+        } else if (steps_ignore.find(opt_key) != steps_ignore.end()) {
+            // These steps have no influence on the G-code whatsoever. Just ignore them.
         } else if (
                opt_key == "skirts"
             || opt_key == "skirt_height"
@@ -226,22 +231,22 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
 
 bool Print::invalidate_step(PrintStep step)
 {
-    bool invalidated = this->state.invalidate(step);
+    bool invalidated = m_state.invalidate(step);
     // Propagate to dependent steps.
     //FIXME Why should skirt invalidate brim? Shouldn't it be vice versa?
     if (step == psSkirt)
-        invalidated |= this->state.invalidate(psBrim);
+        invalidated |= m_state.invalidate(psBrim);
     return invalidated;
 }
 
 // returns true if an object step is done on all objects
 // and there's at least one object
-bool Print::step_done(PrintObjectStep step) const
+bool Print::is_step_done(PrintObjectStep step) const
 {
     if (this->objects.empty())
         return false;
     for (const PrintObject *object : this->objects)
-        if (!object->state.is_done(step))
+        if (!object->m_state.is_done(step))
             return false;
     return true;
 }
@@ -801,37 +806,42 @@ void Print::process()
     BOOST_LOG_TRIVIAL(info) << "Staring the slicing process.";
     for (PrintObject *obj : this->objects)
         obj->make_perimeters();
+    this->throw_if_canceled();
     this->set_status(70, "Infilling layers");
     for (PrintObject *obj : this->objects)
         obj->infill();
+    this->throw_if_canceled();
     for (PrintObject *obj : this->objects)
         obj->generate_support_material();
-    if (! this->state.is_done(psSkirt)) {
-        this->state.set_started(psSkirt);
+    this->throw_if_canceled();
+    if (! m_state.is_done(psSkirt)) {
+        this->set_started(psSkirt);
         this->skirt.clear();
         if (this->has_skirt()) {
             this->set_status(88, "Generating skirt");
             this->_make_skirt();
         }
-        this->state.set_done(psSkirt);
+        m_state.set_done(psSkirt);
     }
-    if (! this->state.is_done(psBrim)) {
-        this->state.set_started(psBrim);
+    this->throw_if_canceled();
+    if (! m_state.is_done(psBrim)) {
+        this->set_started(psBrim);
         this->brim.clear();
         if (this->config.brim_width > 0) {
             this->set_status(88, "Generating brim");
             this->_make_brim();
         }
-       this->state.set_done(psBrim);
+       m_state.set_done(psBrim);
     }
-    if (! this->state.is_done(psWipeTower)) {
-        this->state.set_started(psWipeTower);
+    this->throw_if_canceled();
+    if (! m_state.is_done(psWipeTower)) {
+        this->set_started(psWipeTower);
         this->_clear_wipe_tower();
         if (this->has_wipe_tower()) {
             //this->set_status(95, "Generating wipe tower");
             this->_make_wipe_tower();
         }
-       this->state.set_done(psWipeTower);
+       m_state.set_done(psWipeTower);
     }
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished.";
 }
@@ -883,6 +893,7 @@ void Print::_make_skirt()
     // Collect points from all layers contained in skirt height.
     Points points;
     for (const PrintObject *object : this->objects) {
+        this->throw_if_canceled();
         Points object_points;
         // Get object layers up to skirt_height_z.
         for (const Layer *layer : object->layers) {
@@ -912,6 +923,7 @@ void Print::_make_skirt()
         // At least three points required for a convex hull.
         return;
     
+    this->throw_if_canceled();
     Polygon convex_hull = Slic3r::Geometry::convex_hull(points);
     
     // Skirt may be printed on several layers, having distinct layer heights,
@@ -946,6 +958,7 @@ void Print::_make_skirt()
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
     for (int i = n_skirts, extruder_idx = 0; i > 0; -- i) {
+        this->throw_if_canceled();
         // Offset the skirt outside.
         distance += coord_t(scale_(spacing));
         // Generate the skirt centerline.
@@ -994,6 +1007,7 @@ void Print::_make_brim()
     Flow        flow = this->brim_flow();
     Polygons    islands;
     for (PrintObject *object : this->objects) {
+        this->throw_if_canceled();
         Polygons object_islands;
         for (ExPolygon &expoly : object->layers.front()->slices.expolygons)
             object_islands.push_back(expoly.contour);
@@ -1009,6 +1023,7 @@ void Print::_make_brim()
     Polygons loops;
     size_t num_loops = size_t(floor(this->config.brim_width.value / flow.width));
     for (size_t i = 0; i < num_loops; ++ i) {
+        this->throw_if_canceled();
         islands = offset(islands, float(flow.scaled_spacing()), jtSquare);
         for (Polygon &poly : islands) {
             // poly.simplify(SCALED_RESOLUTION);
@@ -1088,6 +1103,7 @@ void Print::_make_wipe_tower()
             }
         }
     }
+    this->throw_if_canceled();
 
     // Initialize the wipe tower.
     WipeTowerPrusaMM wipe_tower(
@@ -1119,6 +1135,7 @@ void Print::_make_wipe_tower()
     // Set current_extruder_id to the last extruder primed.
     unsigned int current_extruder_id = m_tool_ordering.all_extruders().back();
     for (const ToolOrdering::LayerTools &layer_tools : m_tool_ordering.layer_tools()) {
+        this->throw_if_canceled();
         if (! layer_tools.has_wipe_tower)
             // This is a support only layer, or the wipe tower does not reach to this height.
             continue;

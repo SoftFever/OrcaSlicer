@@ -39,7 +39,7 @@ public:
 
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
-	bool apply_config(DynamicPrintConfig *config);
+	bool apply_config(const DynamicPrintConfig &config);
 
 	enum State {
 		// m_thread  is not running yet, or it did not reach the STATE_IDLE yet (it does not wait on the condition yet).

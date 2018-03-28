@@ -150,13 +150,12 @@ void Layer::make_fills()
     #ifdef SLIC3R_DEBUG
     printf("Making fills for layer " PRINTF_ZU "\n", this->id());
     #endif
-    for (LayerRegionPtrs::iterator it_layerm = regions.begin(); it_layerm != regions.end(); ++ it_layerm) {
-        LayerRegion &layerm = *(*it_layerm);
-        layerm.fills.clear();
-        make_fill(layerm, layerm.fills);
+    for (LayerRegion *layerm : regions) {
+        layerm->fills.clear();
+        make_fill(*layerm, layerm->fills);
 #ifndef NDEBUG
         for (size_t i = 0; i < layerm.fills.entities.size(); ++ i)
-            assert(dynamic_cast<ExtrusionEntityCollection*>(layerm.fills.entities[i]) != NULL);
+            assert(dynamic_cast<ExtrusionEntityCollection*>(layerm->fills.entities[i]) != NULL);
 #endif
     }
 }

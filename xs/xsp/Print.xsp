@@ -74,7 +74,7 @@ _constant()
     Ref<SupportLayer> get_support_layer(int idx);
 
     bool step_done(PrintObjectStep step)
-        %code%{ RETVAL = THIS->state.is_done(step); %};
+        %code%{ RETVAL = THIS->is_step_done(step); %};
 
     void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
         %code%{
@@ -123,9 +123,9 @@ _constant()
         %code%{ RETVAL = THIS->regions.size(); %};
     
     bool step_done(PrintStep step)
-        %code%{ RETVAL = THIS->state.is_done(step); %};
+        %code%{ RETVAL = THIS->is_step_done(step); %};
     bool object_step_done(PrintObjectStep step)
-        %code%{ RETVAL = THIS->step_done(step); %};
+        %code%{ RETVAL = THIS->is_step_done(step); %};
     
     SV* filament_stats()
         %code%{

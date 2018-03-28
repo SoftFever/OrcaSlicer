@@ -3,6 +3,7 @@
 
 #include "libslic3r.h"
 #include <admesh/stl.h>
+#include <functional>
 #include <vector>
 #include <boost/thread.hpp>
 #include "BoundingBox.hpp"
@@ -130,9 +131,13 @@ typedef std::vector<IntersectionLine*> IntersectionLinePtrs;
 class TriangleMeshSlicer
 {
 public:
-    TriangleMeshSlicer(TriangleMesh* _mesh);
-    void slice(const std::vector<float> &z, std::vector<Polygons>* layers) const;
-    void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers) const;
+    typedef std::function<void()> throw_on_cancel_callback_type;
+    TriangleMeshSlicer() : mesh(nullptr) {}
+    // Not quite nice, but the constructor and init() methods require non-const mesh pointer to be able to call mesh->require_shared_vertices()
+    TriangleMeshSlicer(TriangleMesh* mesh) { this->init(mesh, throw_on_cancel_callback_type()); }
+    void init(TriangleMesh *mesh, throw_on_cancel_callback_type throw_on_cancel);
+    void slice(const std::vector<float> &z, std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
+    void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
     bool slice_facet(float slice_z, const stl_facet &facet, const int facet_idx,
         const float min_z, const float max_z, IntersectionLine *line_out) const;
     void cut(float z, TriangleMesh* upper, TriangleMesh* lower) const;

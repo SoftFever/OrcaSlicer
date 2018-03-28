@@ -606,11 +606,11 @@ TriangleMesh::require_shared_vertices()
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - end";
 }
 
-
-TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) : 
-    mesh(_mesh)
+void TriangleMeshSlicer::init(TriangleMesh *_mesh, throw_on_cancel_callback_type throw_on_cancel)
 {
+    mesh = _mesh;
     _mesh->require_shared_vertices();
+    throw_on_cancel();
     facets_edges.assign(_mesh->stl.stats.number_of_facets * 3, -1);
     v_scaled_shared.assign(_mesh->stl.v_shared, _mesh->stl.v_shared + _mesh->stl.stats.shared_vertices);
     // Scale the copied vertices.
@@ -650,6 +650,7 @@ TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) :
                 e2f.face_edge = - e2f.face_edge;
             }
         }
+    throw_on_cancel();
     std::sort(edges_map.begin(), edges_map.end());
 
     // Assign a unique common edge id to touching triangle edges.
@@ -689,11 +690,12 @@ TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) :
 			edge_j.face = -1;
 		}
         ++ num_edges;
+        if ((i & 0x0ffff) == 0)
+            throw_on_cancel();
     }
 }
 
-void
-TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* layers) const
+void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const
 {
     BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::slice";
 
@@ -730,13 +732,17 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
         boost::mutex lines_mutex;
         tbb::parallel_for(
             tbb::blocked_range<int>(0,this->mesh->stl.stats.number_of_facets),
-            [&lines, &lines_mutex, &z, this](const tbb::blocked_range<int>& range) {
-                for (int facet_idx = range.begin(); facet_idx < range.end(); ++ facet_idx)
+            [&lines, &lines_mutex, &z, throw_on_cancel, this](const tbb::blocked_range<int>& range) {
+                for (int facet_idx = range.begin(); facet_idx < range.end(); ++ facet_idx) {
+                    if ((facet_idx & 0x0ffff) == 0)
+                        throw_on_cancel();
                     this->_slice_do(facet_idx, &lines, &lines_mutex, z);
+                }
             }
         );
     }
-    
+    throw_on_cancel();
+
     // v_scaled_shared could be freed here
     
     // build loops
@@ -744,9 +750,12 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* la
     layers->resize(z.size());
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, z.size()),
-        [&lines, &layers, this](const tbb::blocked_range<size_t>& range) {
-            for (size_t line_idx = range.begin(); line_idx < range.end(); ++ line_idx)
+        [&lines, &layers, throw_on_cancel, this](const tbb::blocked_range<size_t>& range) {
+            for (size_t line_idx = range.begin(); line_idx < range.end(); ++ line_idx) {
+                if ((line_idx & 0x0ffff) == 0)
+                    throw_on_cancel();
                 this->make_loops(lines[line_idx], &(*layers)[line_idx]);
+            }
         }
     );
     BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::slice finished";
@@ -823,21 +832,21 @@ void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLin
     }
 }
 
-void
-TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* layers) const
+void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const
 {
     std::vector<Polygons> layers_p;
-    this->slice(z, &layers_p);
+    this->slice(z, &layers_p, throw_on_cancel);
     
 	BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::make_expolygons in parallel - start";
 	layers->resize(z.size());
 	tbb::parallel_for(
 		tbb::blocked_range<size_t>(0, z.size()),
-		[&layers_p, layers, this](const tbb::blocked_range<size_t>& range) {
+		[&layers_p, layers, throw_on_cancel, this](const tbb::blocked_range<size_t>& range) {
     		for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
 #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     			printf("Layer " PRINTF_ZU " (slice_z = %.2f):\n", layer_id, z[layer_id]);
 #endif
+                throw_on_cancel();
     			this->make_expolygons(layers_p[layer_id], &(*layers)[layer_id]);
     		}
     	});

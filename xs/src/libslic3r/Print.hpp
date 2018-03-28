@@ -18,21 +18,32 @@
 #include "GCode/WipeTower.hpp"
 
 #include "tbb/atomic.h"
+// tbb/mutex.h includes Windows, which in turn defines min/max macros. Convince Windows.h to not define these min/max macros.
+#ifndef NOMINMAX
+    #define NOMINMAX
+#endif
+#include "tbb/mutex.h"
 
 namespace Slic3r {
 
 class Print;
 class PrintObject;
 class ModelObject;
+class GCode;
 class GCodePreviewData;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
-    psSkirt, psBrim, psWipeTower, psCount,
+    psSkirt, psBrim, psWipeTower, psGCodeExport, psCount,
 };
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
     posInfill, posSupportMaterial, posCount,
+};
+
+class CanceledException : public std::exception {
+public:
+   const char* what() const throw() { return "Background processing has been canceled"; }
 };
 
 // To be instantiated over PrintStep or PrintObjectStep enums.
@@ -40,34 +51,38 @@ template <class StepType, size_t COUNT>
 class PrintState
 {
 public:
-    PrintState() { memset(state, 0, sizeof(state)); }
+    PrintState() { for (size_t i = 0; i < COUNT; ++ i) m_state[i] = INVALID; }
 
     enum State {
         INVALID,
         STARTED,
         DONE,
     };
-    State state[COUNT];
     
-    bool is_started(StepType step) const { return this->state[step] == STARTED; }
-    bool is_done(StepType step) const { return this->state[step] == DONE; }
-    void set_started(StepType step) { this->state[step] = STARTED; }
-    void set_done(StepType step) { this->state[step] = DONE; }
+    bool is_done(StepType step) const { return m_state[step] == DONE; }
+    // set_started() will lock the provided mutex before setting the state.
+    // This is necessary to block until the Print::apply_config() updates its state, which may
+    // influence the processing step being entered.
+    void set_started(StepType step, tbb::mutex &mtx) { mtx.lock(); m_state[step] = STARTED; mtx.unlock(); }
+    void set_done(StepType step) { m_state[step] = DONE; }
     bool invalidate(StepType step) {
-        bool invalidated = this->state[step] != INVALID;
-        this->state[step] = INVALID;
+        bool invalidated = m_state[step] != INVALID;
+        m_state[step] = INVALID;
         return invalidated;
     }
     bool invalidate_all() {
         bool invalidated = false;
         for (size_t i = 0; i < COUNT; ++ i)
-            if (this->state[i] != INVALID) {
+            if (m_state[i] != INVALID) {
                 invalidated = true;
+                m_state[i] = INVALID;
                 break;
             }
-        memset(state, 0, sizeof(state));
         return invalidated;
     }
+
+private:
+    std::atomic<State>          m_state[COUNT];
 };
 
 // A PrintRegion object represents a group of volumes to print
@@ -131,7 +146,6 @@ public:
 
     LayerPtrs                               layers;
     SupportLayerPtrs                        support_layers;
-    PrintState<PrintObjectStep, posCount>   state;
 
     Print*              print()                 { return this->_print; }
     const Print*        print() const           { return this->_print; }
@@ -174,7 +188,8 @@ public:
     // methods for handling state
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintObjectStep step);
-    bool invalidate_all_steps() { return this->state.invalidate_all(); }
+    bool invalidate_all_steps() { return m_state.invalidate_all(); }
+    bool is_step_done(PrintObjectStep step) const { return m_state.is_done(step); }
 
     // To be used over the layer_height_profile of both the PrintObject and ModelObject
     // to initialize the height profile with the height ranges.
@@ -218,11 +233,18 @@ private:
     ModelObject* _model_object;
     Points _copies;      // Slic3r::Point objects in scaled G-code coordinates
 
+    PrintState<PrintObjectStep, posCount>   m_state;
+    // Mutex used for synchronization of the worker thread with the UI thread:
+    // The mutex will be used to guard the worker thread against entering a stage
+    // while the data influencing the stage is modified.
+    tbb::mutex                              m_mutex;
+
     // TODO: call model_object->get_bounding_box() instead of accepting
         // parameter
     PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox);
     ~PrintObject() {}
 
+    void set_started(PrintObjectStep step) { m_state.set_started(step, m_mutex); }
     std::vector<ExPolygons> _slice_region(size_t region_id, const std::vector<float> &z, bool modifier);
 };
 
@@ -242,7 +264,6 @@ public:
     std::string                     estimated_print_time;
     double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
     std::map<size_t, float>         filament_stats;
-    PrintState<PrintStep, psCount>  state;
 
     // ordered collections of extrusion paths to build skirt loops and brim
     ExtrusionEntityCollection skirt, brim;
@@ -266,9 +287,10 @@ public:
     
     // methods for handling state
     bool invalidate_step(PrintStep step);
-    bool invalidate_all_steps() { return this->state.invalidate_all(); }
-    bool step_done(PrintObjectStep step) const;
-    
+    bool invalidate_all_steps() { return m_state.invalidate_all(); }
+    bool is_step_done(PrintStep step) const { return m_state.is_done(step); }
+    bool is_step_done(PrintObjectStep step) const;
+
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig config);
     bool has_infinite_skirt() const;
@@ -308,7 +330,7 @@ public:
     typedef std::function<void(int, const std::string&)>  status_callback_type;
     // Default status console print out in the form of percent => message.
     void set_status_default() { m_status_callback = nullptr; }
-    // No status output or callback whatsoever.
+    // No status output or callback whatsoever, useful mostly for automatic tests.
     void set_status_silent() { m_status_callback = [](int, const std::string&){}; }
     // Register a custom status callback.
     void set_status_callback(status_callback_type cb) { m_status_callback = cb; }
@@ -323,7 +345,12 @@ public:
     void restart() { m_canceled = false; }
     // Has the calculation been canceled?
     bool canceled() { return m_canceled; }
-    
+    void throw_if_canceled() { if (m_canceled) throw CanceledException(); }
+
+protected:
+    void set_started(PrintStep step) { m_state.set_started(step, m_mutex); }
+    void set_done(PrintStep step) { m_state.set_done(step); }
+
 private:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
@@ -333,9 +360,18 @@ private:
     void _clear_wipe_tower();
     void _make_wipe_tower();
 
+    PrintState<PrintStep, psCount>          m_state;
+    // Mutex used for synchronization of the worker thread with the UI thread:
+    // The mutex will be used to guard the worker thread against entering a stage
+    // while the data influencing the stage is modified.
+    tbb::mutex                              m_mutex;
     // Has the calculation been canceled?
-    tbb::atomic<bool>       m_canceled;
-    status_callback_type    m_status_callback;
+    tbb::atomic<bool>                       m_canceled;
+    // Callback to be evoked regularly to update state of the UI thread.
+    status_callback_type                    m_status_callback;
+
+    // To allow GCode to set the Print's GCodeExport step status.
+    friend class GCode;
 };
 
 #define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)

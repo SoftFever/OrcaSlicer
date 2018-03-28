@@ -1162,7 +1162,7 @@ sub stop_background_process {
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
-    # Stop the background task.
+    # Stop the background task, wait until the thread goes into the "Idle" state.
     $self->{background_slicing_process}->stop;
     # Update the UI with the slicing results.
     $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
@@ -1275,7 +1275,11 @@ sub on_update_print_preview {
 # This gets called also if we don't have threads.
 sub on_process_completed {
     my ($self, $result) = @_;
-    
+
+    # Stop the background task, wait until the thread goes into the "Idle" state.
+    # At this point of time the thread should be either finished or canceled,
+    # so the following call just confirms, that the produced data were consumed.
+    $self->{background_slicing_process}->stop;
     $self->statusbar->SetCancelCallback(undef);
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");

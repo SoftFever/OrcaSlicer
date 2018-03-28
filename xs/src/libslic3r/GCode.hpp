@@ -136,7 +136,8 @@ public:
         {}
     ~GCode() {}
 
-    // throws std::runtime_exception
+    // throws std::runtime_exception on error,
+    // throws CanceledException through print->throw_if_canceled().
     void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.

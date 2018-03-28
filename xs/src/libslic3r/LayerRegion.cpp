@@ -51,8 +51,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     }
 }
 
-void
-LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
@@ -340,8 +339,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 }
 
-void
-LayerRegion::prepare_fill_surfaces()
+void LayerRegion::prepare_fill_surfaces()
 {
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     export_region_slices_to_svg_debug("2_prepare_fill_surfaces-initial");
@@ -382,8 +380,7 @@ LayerRegion::prepare_fill_surfaces()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 }
 
-double
-LayerRegion::infill_area_threshold() const
+double LayerRegion::infill_area_threshold() const
 {
     double ss = this->flow(frSolidInfill).scaled_spacing();
     return ss*ss;

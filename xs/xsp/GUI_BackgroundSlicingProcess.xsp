@@ -17,7 +17,8 @@
 
     bool start();
     bool stop();
-    bool apply_config(DynamicPrintConfig *config);
+    bool apply_config(DynamicPrintConfig *config) 
+        %code%{ RETVAL = THIS->apply_config(*config); %};
 
     bool running();
 };
