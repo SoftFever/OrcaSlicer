@@ -49,7 +49,7 @@ use Slic3r::Test;
     my $parser = Slic3r::GCode::PlaceholderParser->new;
     my $config = Slic3r::Config::new_from_defaults;
     $config->set('printer_notes', '  PRINTER_VENDOR_PRUSA3D  PRINTER_MODEL_MK2  ');
-    $config->set('nozzle_diameter', [0.6, 0.6, 0.6, 0.6]);
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $parser->apply_config($config);
     $parser->set('foo' => 0);
     $parser->set('bar' => 2);
@@ -123,6 +123,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('extruder', 2);
     $config->set('first_layer_temperature', [200,205]);
     
@@ -204,6 +205,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6,0.6]);
     $config->set('start_gcode', qq!
 ;substitution:{if infill_extruder==1}if block
          {elsif infill_extruder==2}elsif block 1
@@ -228,6 +230,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('start_gcode', 
         ';substitution:{if infill_extruder==1}{if perimeter_extruder==1}block11{else}block12{endif}' .
         '{elsif infill_extruder==2}{if perimeter_extruder==1}block21{else}block22{endif}' .

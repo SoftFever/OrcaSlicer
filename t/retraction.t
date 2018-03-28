@@ -95,6 +95,7 @@ use Slic3r::Test qw(_eq);
         1;
     };
 
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('first_layer_height',      $config->layer_height);
     $config->set('first_layer_speed',       '100%');
     $config->set('start_gcode',             '');  # to avoid dealing with the nozzle lift in start G-code
@@ -207,6 +208,7 @@ use Slic3r::Test qw(_eq);
 
 {
     my $config = Slic3r::Config::new_from_defaults;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('start_gcode', '');
     $config->set('retract_lift', [3, 4]);
     
