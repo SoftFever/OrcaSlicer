@@ -951,7 +951,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_time");
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
-			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(ramming_dialog_btn);
             

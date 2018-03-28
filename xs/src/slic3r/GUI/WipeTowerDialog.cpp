@@ -11,18 +11,16 @@
 
 
 RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
-: wxDialog(parent, wxID_ANY, _(L("Ramming customization")), wxPoint(50,50), wxSize(800,550), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+: wxDialog(parent, wxID_ANY, _(L("Ramming customization")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    this->Centre();
     m_panel_ramming  = new RammingPanel(this,parameters);
     m_panel_ramming->Show(true);
     this->Show();
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
-    main_sizer->Add(m_panel_ramming, 1, wxEXPAND);
-    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM | wxTOP, 10);
+    main_sizer->Add(m_panel_ramming, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 5);
+    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, 10);
     SetSizer(main_sizer);
-    SetMinSize(GetSize());
     main_sizer->SetSizeHints(this);
 
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
@@ -38,34 +36,48 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 
 
 RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
-: wxPanel(parent,wxID_ANY,wxPoint(50,50), wxSize(800,350),wxBORDER_RAISED)
+: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,/*wxPoint(50,50), wxSize(800,350),*/wxBORDER_RAISED)
 {
-    new wxStaticText(this,wxID_ANY,wxString("Total ramming time (s):"),     wxPoint(500,105),      wxSize(200,25),wxALIGN_LEFT);
-    m_widget_time = new wxSpinCtrlDouble(this,wxID_ANY,wxEmptyString,       wxPoint(700,100),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0.,5.0,3.,0.5);        
-    new wxStaticText(this,wxID_ANY,wxString("Total rammed volume (mm\u00B3):"),  wxPoint(500,135),      wxSize(200,25),wxALIGN_LEFT);
-    m_widget_volume = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,           wxPoint(700,130),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,10000,0);        
-    new wxStaticText(this,wxID_ANY,wxString("Ramming line width (%):"),     wxPoint(500,205),      wxSize(200,25),wxALIGN_LEFT);
-    m_widget_ramming_line_width_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,       wxPoint(700,200),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,10,200,100);        
-    new wxStaticText(this,wxID_ANY,wxString("Ramming line spacing (%):"),   wxPoint(500,235),      wxSize(200,25),wxALIGN_LEFT);
-    m_widget_ramming_step_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,     wxPoint(700,230),      wxSize(75,25),wxSP_ARROW_KEYS|wxALIGN_RIGHT,10,200,100);        
-    
-    std::stringstream stream{parameters};
-    stream >> m_ramming_line_width_multiplicator >> m_ramming_step_multiplicator;
-    int ramming_speed_size = 0;
-    float dummy = 0.f;
-    while (stream >> dummy)
-        ++ramming_speed_size;
-    stream.clear();
-    stream.get();    
-    
-    std::vector<std::pair<float,float>> buttons;
-    float x = 0.f;
-    float y = 0.f;
-    while (stream >> x >> y)
-        buttons.push_back(std::make_pair(x,y));        
-    
-    m_chart = new Chart(this,wxRect(10,10,480,360),buttons,ramming_speed_size,0.25f);
-    
+	auto sizer_chart = new wxBoxSizer(wxVERTICAL);
+	auto sizer_param = new wxBoxSizer(wxVERTICAL);
+
+	std::stringstream stream{ parameters };
+	stream >> m_ramming_line_width_multiplicator >> m_ramming_step_multiplicator;
+	int ramming_speed_size = 0;
+	float dummy = 0.f;
+	while (stream >> dummy)
+		++ramming_speed_size;
+	stream.clear();
+	stream.get();
+
+	std::vector<std::pair<float, float>> buttons;
+	float x = 0.f;
+	float y = 0.f;
+	while (stream >> x >> y)
+		buttons.push_back(std::make_pair(x, y));
+
+	m_chart = new Chart(this, wxRect(10, 10, 480, 360), buttons, ramming_speed_size, 0.25f);
+ 	sizer_chart->Add(m_chart, 0, wxALL, 5);
+
+    m_widget_time						= new wxSpinCtrlDouble(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(75, -1),wxSP_ARROW_KEYS,0.,5.0,3.,0.5);        
+    m_widget_volume							  = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(75, -1),wxSP_ARROW_KEYS,0,10000,0);        
+    m_widget_ramming_line_width_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(75, -1),wxSP_ARROW_KEYS,10,200,100);        
+    m_widget_ramming_step_multiplicator		  = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(75, -1),wxSP_ARROW_KEYS,10,200,100);        
+
+	auto gsizer_param = new wxFlexGridSizer(2, 5, 15);
+	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Total ramming time (s):")))), 0, wxALIGN_CENTER_VERTICAL);
+	gsizer_param->Add(m_widget_time);
+	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Total rammed volume (mm"))+"\u00B3):")), 0, wxALIGN_CENTER_VERTICAL);
+	gsizer_param->Add(m_widget_volume);
+	gsizer_param->AddSpacer(20);
+	gsizer_param->AddSpacer(20);
+	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Ramming line width (%):")))), 0, wxALIGN_CENTER_VERTICAL);
+	gsizer_param->Add(m_widget_ramming_line_width_multiplicator);
+	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Ramming line spacing (%):")))), 0, wxALIGN_CENTER_VERTICAL);
+	gsizer_param->Add(m_widget_ramming_step_multiplicator);
+
+	sizer_param->Add(gsizer_param, 0, wxTOP, 100);
+
     m_widget_time->SetValue(m_chart->get_time());
     m_widget_time->SetDigits(2);
     m_widget_volume->SetValue(m_chart->get_volume());
@@ -75,6 +87,14 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
     
     m_widget_ramming_step_multiplicator->Bind(wxEVT_TEXT,[this](wxCommandEvent&) { line_parameters_changed(); });
     m_widget_ramming_line_width_multiplicator->Bind(wxEVT_TEXT,[this](wxCommandEvent&) { line_parameters_changed(); });
+
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	sizer->Add(sizer_chart, 0, wxALL, 5);
+	sizer->Add(sizer_param, 0, wxALL, 10);
+
+	sizer->SetSizeHints(this);
+	SetSizer(sizer);
+
     m_widget_time->Bind(wxEVT_TEXT,[this](wxCommandEvent&) {m_chart->set_xy_range(m_widget_time->GetValue(),-1);});
     m_widget_time->Bind(wxEVT_CHAR,[](wxKeyEvent&){});      // do nothing - prevents the user to change the value
     m_widget_volume->Bind(wxEVT_CHAR,[](wxKeyEvent&){});    // do nothing - prevents the user to change the value   
