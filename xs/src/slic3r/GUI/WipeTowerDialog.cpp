@@ -29,6 +29,12 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
         m_output_data = m_panel_ramming->get_parameters();
         EndModal(wxID_OK);
         },wxID_OK);
+    this->Show();
+    wxMessageDialog(this,L("Ramming denotes the rapid extrusion just before a tool change in a single-extruder MM printer. Its purpose is to "
+                   "properly shape the end of the unloaded filament so it does not prevent insertion of the new filament and can itself "
+                   "be reinserted later. This phase is important and different materials can require different extrusion speeds to get "
+                   "the good shape. For this reason, the extrusion rates during ramming are adjustable.\n\nThis is an expert-level "
+                   "setting, incorrect adjustment will likely lead to jams, extruder wheel grinding into filament etc."),L("Warning"),wxOK|wxICON_EXCLAMATION).ShowModal();
 }
 
 
@@ -181,7 +187,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 	m_page_advanced->SetSizer(m_sizer_advanced);
 
     auto gridsizer_simple   = new wxGridSizer(3, 5, 10);
-    auto gridsizer_advanced = new wxGridSizer(m_number_of_extruders+1, 5, 1);
+    m_gridsizer_advanced = new wxGridSizer(m_number_of_extruders+1, 5, 1);
 
 	// First create controls for advanced mode and assign them to m_page_advanced:
 	for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
@@ -195,17 +201,17 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 				edit_boxes[i][j]->SetValue(wxString("") << int(matrix[m_number_of_extruders*j + i]));
 		}
 	}
-	gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("")));
+	m_gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("")));
 	for (unsigned int i = 0; i < m_number_of_extruders; ++i)
-		gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("") << i + 1), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
+		m_gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("") << i + 1), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
 	for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
-		gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("") << i + 1), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
+		m_gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("") << i + 1), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
 		for (unsigned int j = 0; j < m_number_of_extruders; ++j)
-			gridsizer_advanced->Add(edit_boxes[j][i], 0);
+			m_gridsizer_advanced->Add(edit_boxes[j][i], 0);
 	}
 
 	// collect and format sizer
-	format_sizer(m_sizer_advanced, m_page_advanced, gridsizer_advanced,
+	format_sizer(m_sizer_advanced, m_page_advanced, m_gridsizer_advanced,
 		_(L("Here you can adjust required purging volume (mm\u00B3) for any given pair of tools.")),
 		_(L("Extruder changed to")));
 
@@ -247,7 +253,8 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                                               int text_width = 0;
                                               int text_height = 0;
                                               dc.GetTextExtent(label,&text_width,&text_height);
-                                              dc.DrawRotatedText(label,5,y_pos + text_width/2.f,90);
+                                              int xpos = m_gridsizer_advanced->GetPosition().x;
+                                              dc.DrawRotatedText(label,xpos-text_height,y_pos + text_width/2.f,90);
     });
 }
 

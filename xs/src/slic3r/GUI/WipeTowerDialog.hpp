@@ -64,8 +64,9 @@ private:
 	wxPanel*	m_page_simple = nullptr;
 	wxPanel*	m_page_advanced = nullptr;
     wxBoxSizer*	m_sizer = nullptr;
-    wxBoxSizer*m_sizer_simple = nullptr;
-    wxBoxSizer*m_sizer_advanced = nullptr;
+    wxBoxSizer* m_sizer_simple = nullptr;
+    wxBoxSizer* m_sizer_advanced = nullptr;
+    wxGridSizer* m_gridsizer_advanced = nullptr;
     wxButton* m_widget_button     = nullptr;
 };
 
