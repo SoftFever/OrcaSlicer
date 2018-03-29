@@ -58,8 +58,6 @@ private:
         
     std::vector<wxSpinCtrl*> m_old;
     std::vector<wxSpinCtrl*> m_new;
-    std::vector<wxWindow*>   m_advanced_widgets;
-    std::vector<wxWindow*>   m_notadvanced_widgets;
     std::vector<std::vector<wxTextCtrl*>> edit_boxes;
     unsigned int m_number_of_extruders  = 0;
     bool m_advanced                     = false;

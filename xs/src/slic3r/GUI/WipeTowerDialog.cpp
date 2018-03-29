@@ -11,7 +11,7 @@
 
 
 RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
-: wxDialog(parent, wxID_ANY, _(L("Ramming customization")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+: wxDialog(parent, wxID_ANY, _(L("Ramming customization")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
 {
     m_panel_ramming  = new RammingPanel(this,parameters);
     m_panel_ramming->Show(true);
@@ -36,7 +36,7 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 
 
 RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
-: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,/*wxPoint(50,50), wxSize(800,350),*/wxBORDER_RAISED).
+: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxPoint(50,50), wxSize(800,350),wxBORDER_RAISED*/)
 {
 	auto sizer_chart = new wxBoxSizer(wxVERTICAL);
 	auto sizer_param = new wxBoxSizer(wxVERTICAL);
@@ -125,7 +125,7 @@ std::string RammingPanel::get_parameters()
 #define	ITEM_WIDTH	60
 // Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
 WipingDialog::WipingDialog(wxWindow* parent,const std::vector<float>& matrix, const std::vector<float>& extruders)
-: wxDialog(parent, wxID_ANY, _(L("Wipe tower - Purging volume adjustment")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+: wxDialog(parent, wxID_ANY, _(L("Wipe tower - Purging volume adjustment")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
 {
     auto widget_button = new wxButton(this,wxID_ANY,"-",wxPoint(0,0),wxDefaultSize);
     m_panel_wiping  = new WipingPanel(this,matrix,extruders, widget_button);
@@ -156,16 +156,16 @@ WipingDialog::WipingDialog(wxWindow* parent,const std::vector<float>& matrix, co
 // This function allows to "play" with sizers parameters (like align or border)
 void WipingPanel::format_sizer(wxSizer* sizer, wxPanel* page, wxGridSizer* grid_sizer, const wxString& info, const wxString& table_title, int table_lshift/*=0*/)
 {
-	sizer->Add(new wxStaticText(page, wxID_ANY, info), 0, wxEXPAND | wxLEFT, 15);
+	sizer->Add(new wxStaticText(page, wxID_ANY, info,wxDefaultPosition,wxSize(0,50)), 0, wxEXPAND | wxLEFT, 15);
 	auto table_sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(table_sizer, 0, wxALIGN_LEFT | wxLEFT, table_lshift);
+	sizer->Add(table_sizer, 0, wxALIGN_CENTER | wxCENTER, table_lshift);
 	table_sizer->Add(new wxStaticText(page, wxID_ANY, table_title), 0, wxALIGN_CENTER | wxTOP, 50);
 	table_sizer->Add(grid_sizer, 0, wxALIGN_CENTER | wxTOP, 10);
 }
 
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
 WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, wxButton* widget_button)
-: wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize,wxBORDER_RAISED)
+: wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/)
 {
     m_widget_button = widget_button;    // pointer to the button in parent dialog
     m_widget_button->Bind(wxEVT_BUTTON,[this](wxCommandEvent&){ toggle_advanced(true); });
@@ -207,7 +207,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 	// collect and format sizer
 	format_sizer(m_sizer_advanced, m_page_advanced, gridsizer_advanced,
 		_(L("Here you can adjust required purging volume (mm\u00B3) for any given pair of tools.")),
-		_(L("Filament changed to")));
+		_(L("Extruder changed to")));
 
 	// Hide preview page before new page creating 
 	// It allows to do that from a beginning of the main panel
@@ -239,6 +239,16 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 	SetSizer(m_sizer);
 
     toggle_advanced(); // to show/hide what is appropriate
+    
+    m_page_advanced->Bind(wxEVT_PAINT,[this](wxPaintEvent&) {
+                                              wxPaintDC dc(m_page_advanced);
+                                              int y_pos = 0.5 * (edit_boxes[0][0]->GetPosition().y + edit_boxes[0][edit_boxes.size()-1]->GetPosition().y + edit_boxes[0][edit_boxes.size()-1]->GetSize().y);
+                                              wxString label = L("From");
+                                              int text_width = 0;
+                                              int text_height = 0;
+                                              dc.GetTextExtent(label,&text_width,&text_height);
+                                              dc.DrawRotatedText(label,5,y_pos + text_width/2.f,90);
+    });
 }
 
 
