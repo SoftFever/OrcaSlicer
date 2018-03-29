@@ -65,7 +65,7 @@ void Chart::draw(wxDC& dc) {
         int x = m_rect.GetLeft();
         if (last_mark-y < 50) continue;    
         dc.DrawLine(x-3,y,x+3,y);
-        dc.DrawText(wxString()<<math_y,wxPoint(x-25,y-7));
+        dc.DrawText(wxString()<<math_y,wxPoint(x-25,y-2/*7*/));
         last_mark = y;
     }
     

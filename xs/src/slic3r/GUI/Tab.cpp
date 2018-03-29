@@ -521,7 +521,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wipe_tower_bridging");
         line = { _(L("Advanced")), "" };
         line.widget = [this](wxWindow* parent){
-			m_wipe_tower_btn = new wxButton(parent, wxID_ANY, _(L("Purging volumes"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			m_wipe_tower_btn = new wxButton(parent, wxID_ANY, _(L("Purging volumes"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(m_wipe_tower_btn);
 			m_wipe_tower_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
@@ -951,7 +951,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_time");
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
-			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(ramming_dialog_btn);
             

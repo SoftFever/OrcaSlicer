@@ -57,7 +57,7 @@ plan tests => 8;
     my $config = Slic3r::Config::new_from_defaults;
     $config->set('layer_height', 0.2);
     $config->set('first_layer_height', 0.2);
-    $config->set('nozzle_diameter', [0.5]);
+    $config->set('nozzle_diameter', [0.5,0.5,0.5,0.5]);
     $config->set('infill_every_layers', 2);
     $config->set('perimeter_extruder', 1);
     $config->set('infill_extruder', 2);
