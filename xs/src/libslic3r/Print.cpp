@@ -581,6 +581,12 @@ std::string Print::validate() const
             return "The Spiral Vase option can only be used when printing single material objects.";
     }
 
+    if (this->config.single_extruder_multi_material) {
+        for (size_t i=1; i<this->config.nozzle_diameter.values.size(); ++i)
+            if (this->config.nozzle_diameter.values[i] != this->config.nozzle_diameter.values[i-1])
+                return "All extruders must have the same diameter for single extruder multimaterial printer.";
+    }
+
     if (this->has_wipe_tower() && ! this->objects.empty()) {
         #if 0
         for (auto dmr : this->config.nozzle_diameter.values)
@@ -606,10 +612,10 @@ std::string Print::validate() const
             bool was_layer_height_profile_valid = object->layer_height_profile_valid;
             object->update_layer_height_profile();
             object->layer_height_profile_valid = was_layer_height_profile_valid;
-            for (size_t i = 5; i < object->layer_height_profile.size(); i += 2)
+            /*for (size_t i = 5; i < object->layer_height_profile.size(); i += 2)
                 if (object->layer_height_profile[i-1] > slicing_params.object_print_z_min + EPSILON &&
                     std::abs(object->layer_height_profile[i] - object->config.layer_height) > EPSILON)
-                    return "The Wipe Tower is currently only supported with constant Z layer spacing. Layer editing is not allowed.";
+                    return "The Wipe Tower is currently only supported with constant Z layer spacing. Layer editing is not allowed.";*/
         }
     }
     
@@ -1066,7 +1072,8 @@ void Print::_make_wipe_tower()
             this->config.filament_unloading_speed.get_at(i),
             this->config.filament_toolchange_delay.get_at(i),
             this->config.filament_cooling_time.get_at(i),
-            this->config.filament_ramming_parameters.get_at(i));
+            this->config.filament_ramming_parameters.get_at(i),
+            this->config.nozzle_diameter.get_at(i));
 
     // When printing the first layer's wipe tower, the first extruder is expected to be active and primed.
     // Therefore the number of wipe sections at the wipe tower will be (m_tool_ordering.front().extruders-1) at the 1st layer.

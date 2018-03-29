@@ -67,7 +67,7 @@ public:
 
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
-                      float unloading_speed, float delay, float cooling_time, std::string ramming_parameters)
+                      float unloading_speed, float delay, float cooling_time, std::string ramming_parameters, float nozzle_diameter)
 	{
         //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
         m_filpar.push_back(FilamentParameters());
@@ -79,6 +79,9 @@ public:
         m_filpar[idx].unloading_speed = unloading_speed;
         m_filpar[idx].delay = delay;
         m_filpar[idx].cooling_time = cooling_time;
+        m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
+
+        m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
 
         std::stringstream stream{ramming_parameters};
         float speed = 0.f;
@@ -171,8 +174,7 @@ private:
 
 
     const bool  m_peters_wipe_tower   = false; // sparse wipe tower inspired by Peter's post processor - not finished yet
-    const float Filament_Area         = M_PI * 1.75f * 1.75f / 4.f; // filament area in mm^3
-    const float Nozzle_Diameter       = 0.4f;  // nozzle diameter in mm
+    const float Filament_Area         = M_PI * 1.75f * 1.75f / 4.f; // filament area in mm^2
     const float Width_To_Nozzle_Ratio = 1.25f; // desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
     const float WT_EPSILON            = 1e-3f;
 
@@ -194,7 +196,7 @@ private:
     float           m_bridging                  = 0.f;
     bool            m_adhesion                  = true;
 
-	float m_perimeter_width = Nozzle_Diameter * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
+	float m_perimeter_width = 0.4 * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
 
 
@@ -209,6 +211,7 @@ private:
         float               ramming_line_width_multiplicator = 0.f;
         float               ramming_step_multiplicator = 0.f;
         std::vector<float>  ramming_speed;
+        float               nozzle_diameter;
     };
 
 	// Extruder specific parameters.
@@ -235,7 +238,7 @@ private:
 	{
 		if ( layer_height < 0 )
 			return m_extrusion_flow;
-		return layer_height * ( Width_To_Nozzle_Ratio * Nozzle_Diameter - layer_height * (1-M_PI/4.f)) / (Filament_Area);
+		return layer_height * ( m_perimeter_width - layer_height * (1-M_PI/4.f)) / Filament_Area;
 	}
 
 	// Calculates length of extrusion line to extrude given volume

@@ -1104,7 +1104,7 @@ void WipeTowerPrusaMM::plan_tower()
 		if (this_layer_depth > m_wipe_tower_depth - m_perimeter_width)
 			m_wipe_tower_depth = this_layer_depth + m_perimeter_width;
 
-		for (int i = layer_index - 1; i >= 0 /*&& m_plan[i].depth < this_layer_depth*/; i--)
+		for (int i = layer_index - 1; i >= 0 ; i--)
 		{
 			if (m_plan[i].depth - this_layer_depth < 2*m_perimeter_width )
 				m_plan[i].depth = this_layer_depth;
