@@ -90,8 +90,8 @@ private:
     struct State
     {
         EUnits units;
-        EPositioningType positioning_xyz_type;
-        EPositioningType positioning_e_type;
+        EPositioningType global_positioning_type;
+        EPositioningType e_local_positioning_type;
         Metadata data;
         Pointf3 start_position;
         float start_extrusion;
@@ -170,11 +170,11 @@ private:
     void _set_units(EUnits units);
     EUnits _get_units() const;
 
-    void _set_positioning_xyz_type(EPositioningType type);
-    EPositioningType _get_positioning_xyz_type() const;
+    void _set_global_positioning_type(EPositioningType type);
+    EPositioningType _get_global_positioning_type() const;
 
-    void _set_positioning_e_type(EPositioningType type);
-    EPositioningType _get_positioning_e_type() const;
+    void _set_e_local_positioning_type(EPositioningType type);
+    EPositioningType _get_e_local_positioning_type() const;
 
     void _set_extrusion_role(ExtrusionRole extrusion_role);
     ExtrusionRole _get_extrusion_role() const;
