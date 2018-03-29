@@ -147,7 +147,7 @@ PresetCollection::arrayref()
     void                        install_vendor_configbundle(const char *path)
         %code%{
             try {
-                THIS->install_vendor_configbundle(path);
+                THIS->install_vendor_configbundle(std::string(path));
             } catch (std::exception& e) {
                 croak("Installing a vendor config bundle %s failed:\n%s\n", path, e.what());
             }

@@ -11,9 +11,9 @@
 
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI.hpp"
-// #include "slic3r/GUI/AppConfig.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
+#include "slic3r/Utils/Semver.hpp"
 
 namespace fs = boost::filesystem;
 

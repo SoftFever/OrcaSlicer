@@ -68,12 +68,9 @@ public:
 	void 				clear_section(const std::string &section)
 		{ m_storage[section].clear(); }
 
-	// TODO: remove / upgrade
-	// ConfigOptionStrings get_strings(const std::string &section, const std::string &key) const;
-	// void set_strings(const std::string &section, const std::string &key, const ConfigOptionStrings &value);
-	// TODO:
 	bool get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const;
 	void set_variant(const std::string &vendor, const std::string &model, const std::string &variant, bool enable);
+	void set_vendors(const AppConfig &from);
 
 	// return recent/skein_directory or recent/config_directory or empty string.
 	std::string 		get_last_dir() const;

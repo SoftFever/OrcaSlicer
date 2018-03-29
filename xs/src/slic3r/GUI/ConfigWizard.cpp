@@ -74,13 +74,17 @@ void ConfigWizardPage::append_text(wxString text)
 	auto *widget = new wxStaticText(this, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 	widget->Wrap(CONTENT_WIDTH);
 	widget->SetMinSize(wxSize(CONTENT_WIDTH, -1));
-	// content->Add(widget, 1, wxALIGN_LEFT | wxTOP | wxBOTTOM, 10);
 	content->Add(widget, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, 10);
 }
 
-void ConfigWizardPage::append_widget(wxWindow *widget, int proportion)
+void ConfigWizardPage::append_widget(wxWindow *widget, int proportion, int flag, int border)
 {
-	content->Add(widget, proportion, wxEXPAND | wxTOP | wxBOTTOM, 10);
+	content->Add(widget, proportion, flag, border);
+}
+
+void ConfigWizardPage::append_sizer(wxSizer *sizer, int proportion)
+{
+	content->Add(sizer, proportion, wxEXPAND | wxTOP | wxBOTTOM, 10);
 }
 
 void ConfigWizardPage::append_spacer(int space)
@@ -99,17 +103,19 @@ void ConfigWizardPage::enable_next(bool enable) { parent->p->enable_next(enable)
 
 // Wizard pages
 
-PageWelcome::PageWelcome(ConfigWizard *parent, const PresetBundle &bundle) :
+// PageWelcome::PageWelcome(ConfigWizard *parent, const PresetBundle &bundle) :
+PageWelcome::PageWelcome(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Welcome to the Slic3r Configuration assistant")), _(L("Welcome"))),
 	others_buttons(new wxPanel(parent)),
 	variants_checked(0)
 {
 	append_text(_(L("Hello, welcome to Slic3r Prusa Edition! TODO: This text.")));
 
+	const PresetBundle &bundle = wizard_p()->bundle_vendors;
 	const auto &vendors = bundle.vendors;
 	const auto vendor_prusa = std::find(vendors.cbegin(), vendors.cend(), VendorProfile("PrusaResearch"));
 
-	// TODO: preload checkiness from app config
+	const AppConfig &appconfig_vendors = wizard_p()->appconfig_vendors;
 
 	if (vendor_prusa != vendors.cend()) {
 		const auto &models = vendor_prusa->models;
@@ -138,12 +144,20 @@ PageWelcome::PageWelcome(ConfigWizard *parent, const PresetBundle &bundle) :
 
 			sizer->AddSpacer(20);
 
+			std::string model_id = model->id;
+
 			for (const auto &variant : model->variants) {
+				std::string variant_name = variant.name;
 				auto *cbox = new wxCheckBox(panel, wxID_ANY, wxString::Format("%s %s %s", variant.name, _(L("mm")), _(L("nozzle"))));
+				bool enabled = appconfig_vendors.get_variant("PrusaResearch", model_id, variant_name);
+				variants_checked += enabled;
+				cbox->SetValue(enabled);
 				sizer->Add(cbox, 0, wxBOTTOM, 3);
-				cbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) {
+				cbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent &event) {
 					this->variants_checked += event.IsChecked() ? 1 : -1;
 					this->on_variant_checked();
+					AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
+					appconfig_vendors.set_variant("PrusaResearch", model_id, variant_name, event.IsChecked());
 				});
 			}
 
@@ -156,6 +170,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent, const PresetBundle &bundle) :
 	{
 		auto *sizer = new wxBoxSizer(wxHORIZONTAL);
 		auto *other_vendors = new wxButton(others_buttons, wxID_ANY, _(L("Other vendors")));
+		other_vendors->Disable();
 		auto *custom_setup = new wxButton(others_buttons, wxID_ANY, _(L("Custom setup")));
 
 		sizer->Add(other_vendors);
@@ -181,17 +196,24 @@ void PageWelcome::on_variant_checked()
 }
 
 PageUpdate::PageUpdate(ConfigWizard *parent) :
-	ConfigWizardPage(parent, _(L("Automatic updates")), _(L("Updates")))
+	ConfigWizardPage(parent, _(L("Automatic updates")), _(L("Updates"))),
+	version_check(true),
+	preset_update(true)
 {
-	append_text(_(L("TODO: text")));
-	auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _(L("Check for Slic3r updates")));
-	box_slic3r->SetValue(true);
-	append_widget(box_slic3r);
+	const AppConfig *app_config = GUI::get_app_config();
 	
 	append_text(_(L("TODO: text")));
+	auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _(L("Check for Slic3r updates")));
+	box_slic3r->SetValue(app_config->get("version_check") == "1");
+	append_widget(box_slic3r);
+
+	append_text(_(L("TODO: text")));
 	auto *box_presets = new wxCheckBox(this, wxID_ANY, _(L("Update built-in Presets automatically")));
-	box_presets->SetValue(true);
+	box_presets->SetValue(app_config->get("preset_update") == "1");
 	append_widget(box_presets);
+
+	box_slic3r->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->version_check = event.IsChecked(); });
+	box_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->preset_update = event.IsChecked(); });
 }
 
 void PageUpdate::presets_update_enable(bool enable)
@@ -201,7 +223,42 @@ void PageUpdate::presets_update_enable(bool enable)
 
 PageVendors::PageVendors(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Other Vendors")), _(L("Other Vendors")))
-{}
+{
+	enum {
+		INDENT_SPACING = 30,
+		VERTICAL_SPACING = 10,
+	};
+
+	append_text(_(L("Other vendors! TODO: This text.")));
+
+	const PresetBundle &bundle = wizard_p()->bundle_vendors;
+	auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
+
+	for (const auto &vendor : bundle.vendors) {
+		if (vendor.id == "PrusaResearch") { continue; }
+
+		auto *label_vendor = new wxStaticText(this, wxID_ANY, vendor.name);
+		label_vendor->SetFont(boldfont);
+		append_thing(label_vendor, 0, 0, 0);
+
+		for (const auto &model : vendor.models) {
+			auto *label_model = new wxStaticText(this, wxID_ANY, model.name);
+			label_model->SetFont(boldfont);
+			append_thing(label_model, 0, wxLEFT, INDENT_SPACING);
+
+			for (const auto &variant : model.variants) {
+				auto *cbox = new wxCheckBox(this, wxID_ANY, variant.name);
+				append_thing(cbox, 0, wxEXPAND | wxLEFT, 2 * INDENT_SPACING);
+				cbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) {
+					// TODO
+				});
+			}
+		}
+
+		append_spacer(VERTICAL_SPACING);
+	}
+}
 
 PageFirmware::PageFirmware(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Firmware Type")), _(L("Firmware")))
@@ -289,6 +346,31 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 
 // priv
 
+void ConfigWizard::priv::load_vendors()
+{
+	const auto vendor_dir = fs::path(Slic3r::data_dir()) / "vendor";
+	// const auto profiles_dir = fs::path(resources_dir()) / "profiles";
+	for (fs::directory_iterator it(vendor_dir); it != fs::directory_iterator(); ++it) {
+		if (it->path().extension() == ".ini") {
+			bundle_vendors.load_configbundle(it->path().native(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
+		}
+	}
+
+	// XXX
+	// for (const auto &vendor : bundle_vendors.vendors) {
+	// 	std::cerr << "vendor: " << vendor.name << std::endl;
+	// 	std::cerr << "  URL: " << vendor.config_update_url << std::endl;
+	// 	for (const auto &model : vendor.models) {
+	// 		std::cerr << "\tmodel: " << model.id << " (" << model.name << ")" << std::endl;
+	// 		for (const auto &variant : model.variants) {
+	// 			std::cerr << "\t\tvariant: " << variant.name << std::endl;
+	// 		}
+	// 	}
+	// }
+
+	appconfig_vendors.set_vendors(*GUI::get_app_config());
+}
+
 void ConfigWizard::priv::index_refresh()
 {
 	index->load_items(page_welcome);
@@ -344,12 +426,31 @@ void ConfigWizard::priv::on_custom_setup()
 	set_page(page_firmware);
 }
 
+void ConfigWizard::priv::on_finish()
+{
+	const bool is_custom_setup = page_welcome->page_next() == page_firmware;
+
+	if (! is_custom_setup) {
+		AppConfig *app_config = GUI::get_app_config();
+		app_config->set_vendors(appconfig_vendors);
+
+		app_config->set("version_check", page_update->version_check ? "1" : "0");
+		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
+	} else {
+		// TODO
+	}
+
+	q->EndModal(wxID_OK);
+}
+
 // Public
 
-ConfigWizard::ConfigWizard(wxWindow *parent, const PresetBundle &bundle) :
+ConfigWizard::ConfigWizard(wxWindow *parent) :
 	wxDialog(parent, wxID_ANY, _(L("Configuration Assistant")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
+	p->load_vendors();
+
 	p->index = new ConfigWizardIndex(this);
 
 	auto *vsizer = new wxBoxSizer(wxVERTICAL);
@@ -372,7 +473,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent, const PresetBundle &bundle) :
 	p->btnsizer->Add(p->btn_finish, 0, wxLEFT, BTN_SPACING);
 	p->btnsizer->Add(p->btn_cancel, 0, wxLEFT, BTN_SPACING);
 
-	p->add_page(p->page_welcome  = new PageWelcome(this, bundle));
+	p->add_page(p->page_welcome  = new PageWelcome(this));
 	p->add_page(p->page_update   = new PageUpdate(this));
 	p->add_page(p->page_vendors  = new PageVendors(this));
 	p->add_page(p->page_firmware = new PageFirmware(this));
@@ -397,35 +498,24 @@ ConfigWizard::ConfigWizard(wxWindow *parent, const PresetBundle &bundle) :
 
 	p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_prev(); });
 	p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_next(); });
+	p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->on_finish(); });
 }
 
 ConfigWizard::~ConfigWizard() {}
 
-void ConfigWizard::run(wxWindow *parent)
+void ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
 {
-	PresetBundle bundle;
-
 	const auto profiles_dir = fs::path(resources_dir()) / "profiles";
 	for (fs::directory_iterator it(profiles_dir); it != fs::directory_iterator(); ++it) {
 		if (it->path().extension() == ".ini") {
-			bundle.load_configbundle(it->path().native(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
+			PresetBundle::install_vendor_configbundle(it->path());
 		}
 	}
 
-	// XXX
-	for (const auto &vendor : bundle.vendors) {
-		std::cerr << "vendor: " << vendor.name << std::endl;
-		std::cerr << "  URL: " << vendor.config_update_url << std::endl;
-		for (const auto &model : vendor.models) {
-			std::cerr << "\tmodel: " << model.id << " (" << model.name << ")" << std::endl;
-			for (const auto &variant : model.variants) {
-				std::cerr << "\t\tvariant: " << variant.name << std::endl;
-			}
-		}
+	ConfigWizard wizard(parent);
+	if (wizard.ShowModal() == wxID_OK) {
+		preset_bundle->load_presets(*GUI::get_app_config());
 	}
-
-	ConfigWizard wizard(parent, bundle);
-	wizard.ShowModal();
 }
 
 

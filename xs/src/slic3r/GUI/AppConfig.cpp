@@ -135,7 +135,7 @@ void AppConfig::save()
 
 bool AppConfig::get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const
 {
-    std::cerr << "AppConfig::get_variant(" << vendor << ", " << model << ", " << variant  << ") ";
+    // std::cerr << "AppConfig::get_variant(" << vendor << ", " << model << ", " << variant  << ") " << std::endl;
 
     const auto it_v = m_vendors.find(vendor);
     if (it_v == m_vendors.end()) { return false; }
@@ -158,6 +158,12 @@ void AppConfig::set_variant(const std::string &vendor, const std::string &model,
         it_m->second.erase(it_var);
     }
     // If we got here, there was an update
+    m_dirty = true;
+}
+
+void AppConfig::set_vendors(const AppConfig &from)
+{
+    m_vendors = from.m_vendors;
     m_dirty = true;
 }
 

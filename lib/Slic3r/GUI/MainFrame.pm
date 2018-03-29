@@ -646,7 +646,11 @@ sub config_wizard {
 
 
     # TODO: Offer "reset user profile"
-    Slic3r::GUI::open_config_wizard();
+    Slic3r::GUI::open_config_wizard(wxTheApp->{preset_bundle});
+    # Load the currently selected preset into the GUI, update the preset selection box.
+    foreach my $tab (values %{$self->{options_tabs}}) {    # XXX: only if not cancelled?
+        $tab->load_current_preset;
+    }
     return;
 
     # Enumerate the profiles bundled with the Slic3r installation under resources/profiles.

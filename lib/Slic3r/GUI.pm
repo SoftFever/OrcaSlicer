@@ -154,7 +154,7 @@ sub OnInit {
             $self->{mainframe}->config_wizard(1);
         }
 
-        $self->{preset_updater}->download($self->{preset_bundle});
+        # $self->{preset_updater}->download($self->{preset_bundle});
     });
 
     # The following event is emited by the C++ menu implementation of application language change.

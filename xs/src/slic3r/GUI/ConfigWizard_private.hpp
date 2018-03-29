@@ -9,6 +9,9 @@
 #include <wx/panel.h>
 #include <wx/button.h>
 
+#include "AppConfig.hpp"
+#include "PresetBundle.hpp"
+
 
 namespace Slic3r {
 namespace GUI {
@@ -34,14 +37,23 @@ struct ConfigWizardPage: wxPanel
 
 	virtual ~ConfigWizardPage();
 
-	ConfigWizardPage *page_prev() const { return p_prev; }
-	ConfigWizardPage *page_next() const { return p_next; }
+	ConfigWizardPage* page_prev() const { return p_prev; }
+	ConfigWizardPage* page_next() const { return p_next; }
 	ConfigWizardPage* chain(ConfigWizardPage *page);
 
 	void append_text(wxString text);
-	void append_widget(wxWindow *widget, int proportion = 0);
+	void append_widget(wxWindow *widget, int proportion = 0, int flag = wxEXPAND|wxTOP|wxBOTTOM, int border = 10);
+
+	template<class T>
+	void append_thing(T *thing, int proportion = 0, int flag = wxEXPAND|wxTOP|wxBOTTOM, int border = 10)
+	{
+		content->Add(thing, proportion, flag, border);
+	}
+
+	// TODO: remove:
+	void append_sizer(wxSizer *sizer, int proportion = 0);
 	void append_spacer(int space);
-	
+
 	ConfigWizard::priv *wizard_p() const { return parent->p.get(); }
 
 	virtual bool Show(bool show = true);
@@ -60,7 +72,7 @@ struct PageWelcome: ConfigWizardPage
 	wxPanel *others_buttons;
 	unsigned variants_checked;
 
-	PageWelcome(ConfigWizard *parent, const PresetBundle &bundle);
+	PageWelcome(ConfigWizard *parent);
 
 	virtual wxPanel* extra_buttons() { return others_buttons; }
 	virtual void on_page_set();
@@ -70,6 +82,9 @@ struct PageWelcome: ConfigWizardPage
 
 struct PageUpdate: ConfigWizardPage
 {
+	bool version_check;
+	bool preset_update;
+	
 	PageUpdate(ConfigWizard *parent);
 
 	void presets_update_enable(bool enable);
@@ -124,6 +139,9 @@ private:
 struct ConfigWizard::priv
 {
 	ConfigWizard *q;
+	AppConfig appconfig_vendors;
+	PresetBundle bundle_vendors;
+
 	wxBoxSizer *topsizer = nullptr;
 	wxBoxSizer *btnsizer = nullptr;
 	ConfigWizardPage *page_current = nullptr;
@@ -143,6 +161,7 @@ struct ConfigWizard::priv
 
 	priv(ConfigWizard *q) : q(q) {}
 
+	void load_vendors();
 	void add_page(ConfigWizardPage *page);
 	void index_refresh();
 	void set_page(ConfigWizardPage *page);
@@ -152,6 +171,7 @@ struct ConfigWizard::priv
 
 	void on_other_vendors();
 	void on_custom_setup();
+	void on_finish();
 };
 
 

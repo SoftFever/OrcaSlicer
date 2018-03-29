@@ -2,6 +2,7 @@
 #include <cassert>
 
 #include "Preset.hpp"
+#include "AppConfig.hpp"
 
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -173,6 +174,16 @@ bool Preset::is_compatible_with_printer(const Preset &active_printer) const
 bool Preset::update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config)
 {
     return this->is_compatible = is_compatible_with_printer(active_printer, extra_config);
+}
+
+void Preset::set_visible_from_appconfig(const AppConfig &app_config)
+{
+    if (vendor == nullptr) { return; }
+    const std::string &model = config.opt_string("printer_model");
+    const std::string &variant = config.opt_string("printer_variant");
+    if (model.empty() || variant.empty()) { return; }
+    is_visible = app_config.get_variant(vendor->id, model, variant);
+    std::cerr << vendor->id << " / " << model  << " / " << variant << ": visible: " << is_visible << std::endl;
 }
 
 const std::vector<std::string>& Preset::print_options()

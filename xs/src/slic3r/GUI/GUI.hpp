@@ -86,7 +86,7 @@ wxColour*	get_sys_label_clr();
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
 
 // Opens the first-time configuration wizard
-void open_config_wizard();
+void open_config_wizard(PresetBundle *preset_bundle);
 
 // Create "Preferences" dialog after selecting menu "Preferences" in Perl part
 void open_preferences_dialog(int event_preferences);
