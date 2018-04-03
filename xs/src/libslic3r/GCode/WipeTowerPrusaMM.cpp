@@ -786,7 +786,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
     float edist = -(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42);
     writer.suppress_preview()
           .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15 * 83 )    // fixed speed after ramming
-          .load_move_x(oldx         ,edist  , 60.f * std::hypot(xdist,edist)/edist * m_filpar[m_current_tool].unloading_speed )
+          .load_move_x(oldx         ,edist  , 60.f * std::hypot(xdist,edist)/std::abs(edist) * m_filpar[m_current_tool].unloading_speed )
           .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15       * m_filpar[m_current_tool].unloading_speed*0.55f )
           .load_move_x(oldx         ,-12    , 60.f * std::hypot(xdist,12)/12       * m_filpar[m_current_tool].unloading_speed*0.35f )
           .resume_preview();
