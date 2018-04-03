@@ -612,6 +612,15 @@ std::string Print::validate() const
             bool was_layer_height_profile_valid = object->layer_height_profile_valid;
             object->update_layer_height_profile();
             object->layer_height_profile_valid = was_layer_height_profile_valid;
+
+            PrintObject* first_object = this->objects.front();
+            int i = 0;
+            while ( i < first_object->layer_height_profile.size() && i < object->layer_height_profile.size() ) {
+                if (std::abs(first_object->layer_height_profile[i] - object->layer_height_profile[i]) > EPSILON )
+                    return "The Wipe tower is only supported if all objects have the same layer height profile";
+                ++i;
+            }
+
             /*for (size_t i = 5; i < object->layer_height_profile.size(); i += 2)
                 if (object->layer_height_profile[i-1] > slicing_params.object_print_z_min + EPSILON &&
                     std::abs(object->layer_height_profile[i] - object->config.layer_height) > EPSILON)
