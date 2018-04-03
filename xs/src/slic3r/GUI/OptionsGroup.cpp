@@ -137,7 +137,7 @@ void OptionsGroup::append_line(const Line& line) {
     // If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(parent());
-		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
+		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 1);
 		return;
 	}
 	

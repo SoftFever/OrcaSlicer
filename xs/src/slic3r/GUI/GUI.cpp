@@ -182,6 +182,7 @@ wxLocale*	g_wxLocale;
 
 std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 double m_brim_width = 0.0;
+wxButton*	g_wiping_dialog_button = nullptr;
 
 void set_wxapp(wxApp *app)
 {
@@ -682,10 +683,10 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
     Line line = { _(L("")), "" };
         line.widget = [config](wxWindow* parent){
-			auto wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
-			sizer->Add(wiping_dialog_button);
-			wiping_dialog_button->Bind(wxEVT_BUTTON, ([config, parent](wxCommandEvent& e)
+			sizer->Add(g_wiping_dialog_button);
+			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([config, parent](wxCommandEvent& e)
 			{
                 std::vector<double> init_matrix = (config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
                 std::vector<double> init_extruders = (config->option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
@@ -711,6 +712,10 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 ConfigOptionsGroup* get_optgroup()
 {
 	return m_optgroup.get();
+}
+
+wxButton* get_wiping_dialog_button(){
+	return g_wiping_dialog_button;
 }
 
 } }

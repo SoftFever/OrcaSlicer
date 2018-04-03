@@ -335,7 +335,11 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 		bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
 		get_optgroup()->set_value("brim", val);
 	}
-
+	if (opt_key == "wipe_tower"){
+		m_config->opt_bool("wipe_tower") ? 
+			get_wiping_dialog_button()->Show() : 
+			get_wiping_dialog_button()->Hide();
+	}
 		
 	update();
 }
