@@ -67,3 +67,10 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
 
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};
+
+void add_export_option(SV *ui, std::string format)
+    %code%{ Slic3r::GUI::add_export_option((wxFileDialog*)wxPli_sv_2_object(aTHX_ ui, "Wx::FileDialog"), format); %};
+    
+int get_export_option(SV *ui)
+    %code%{ RETVAL = Slic3r::GUI::get_export_option((wxFileDialog*)wxPli_sv_2_object(aTHX_ ui, "Wx::FileDialog")); %};
+    

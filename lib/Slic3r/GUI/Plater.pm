@@ -1560,7 +1560,7 @@ sub export_amf {
     return if !@{$self->{objects}};
     # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('AMF') or return;
-    my $res = $self->{model}->store_amf($output_file, $self->{print});
+    my $res = $self->{model}->store_amf($output_file, $self->{print}, $self->{export_option});
     if ($res)
     {
         $self->statusbar->SetStatusText(L("AMF file exported to ").$output_file);
@@ -1576,7 +1576,7 @@ sub export_3mf {
     return if !@{$self->{objects}};
     # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('3MF') or return;
-    my $res = $self->{model}->store_3mf($output_file, $self->{print});
+    my $res = $self->{model}->store_3mf($output_file, $self->{print}, $self->{export_option});
     if ($res)
     {
         $self->statusbar->SetStatusText(L("3MF file exported to ").$output_file);
@@ -1618,11 +1618,13 @@ sub _get_export_file {
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
     my $dlg = Wx::FileDialog->new($self, L("Save ").$format.L(" file as:"), dirname($output_file),
         basename($output_file), &Slic3r::GUI::FILE_WILDCARDS->{$wildcard}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    Slic3r::GUI::add_export_option($dlg, $format);
     if ($dlg->ShowModal != wxID_OK) {
         $dlg->Destroy;
         return undef;
     }
     $output_file = $dlg->GetPath;
+    $self->{export_option} = Slic3r::GUI::get_export_option($dlg);
     $dlg->Destroy;
     return $output_file;
 }
