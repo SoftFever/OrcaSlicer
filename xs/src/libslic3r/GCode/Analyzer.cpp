@@ -97,8 +97,8 @@ GCodeAnalyzer::GCodeAnalyzer()
 void GCodeAnalyzer::reset()
 {
     _set_units(Millimeters);
-    _set_positioning_xyz_type(Absolute);
-    _set_positioning_e_type(Relative);
+    _set_global_positioning_type(Absolute);
+    _set_e_local_positioning_type(Absolute);
     _set_extrusion_role(erNone);
     _set_extruder_id(DEFAULT_EXTRUDER_ID);
     _set_mm3_per_mm(Default_mm3_per_mm);
@@ -247,13 +247,13 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
 }
 
 // Returns the new absolute position on the given axis in dependence of the given parameters
-float axis_absolute_position_from_G1_line(GCodeAnalyzer::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeAnalyzer::EUnits units, GCodeAnalyzer::EPositioningType type, float current_absolute_position)
+float axis_absolute_position_from_G1_line(GCodeAnalyzer::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeAnalyzer::EUnits units, bool is_relative, float current_absolute_position)
 {
     float lengthsScaleFactor = (units == GCodeAnalyzer::Inches) ? INCHES_TO_MM : 1.0f;
     if (lineG1.has(Slic3r::Axis(axis)))
     {
         float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
-        return (type == GCodeAnalyzer::Absolute) ? ret : current_absolute_position + ret;
+        return is_relative ? current_absolute_position + ret : ret;
     }
     else
         return current_absolute_position;
@@ -266,7 +266,11 @@ void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
     float new_pos[Num_Axis];
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
-        new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, (a == E) ? _get_positioning_e_type() : _get_positioning_xyz_type(), _get_axis_position((EAxis)a));
+        bool is_relative = (_get_global_positioning_type() == Relative);
+        if (a == E)
+            is_relative |= (_get_e_local_positioning_type() == Relative);
+
+        new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, is_relative, _get_axis_position((EAxis)a));
     }
 
     // updates feedrate from line, if present
@@ -341,12 +345,12 @@ void GCodeAnalyzer::_processG23(const GCodeReader::GCodeLine& line)
 
 void GCodeAnalyzer::_processG90(const GCodeReader::GCodeLine& line)
 {
-    _set_positioning_xyz_type(Absolute);
+    _set_global_positioning_type(Absolute);
 }
 
 void GCodeAnalyzer::_processG91(const GCodeReader::GCodeLine& line)
 {
-    _set_positioning_xyz_type(Relative);
+    _set_global_positioning_type(Relative);
 }
 
 void GCodeAnalyzer::_processG92(const GCodeReader::GCodeLine& line)
@@ -389,12 +393,12 @@ void GCodeAnalyzer::_processG92(const GCodeReader::GCodeLine& line)
 
 void GCodeAnalyzer::_processM82(const GCodeReader::GCodeLine& line)
 {
-    _set_positioning_e_type(Absolute);
+    _set_e_local_positioning_type(Absolute);
 }
 
 void GCodeAnalyzer::_processM83(const GCodeReader::GCodeLine& line)
 {
-    _set_positioning_e_type(Relative);
+    _set_e_local_positioning_type(Relative);
 }
 
 void GCodeAnalyzer::_processT(const GCodeReader::GCodeLine& line)
@@ -488,24 +492,24 @@ GCodeAnalyzer::EUnits GCodeAnalyzer::_get_units() const
     return m_state.units;
 }
 
-void GCodeAnalyzer::_set_positioning_xyz_type(GCodeAnalyzer::EPositioningType type)
+void GCodeAnalyzer::_set_global_positioning_type(GCodeAnalyzer::EPositioningType type)
 {
-    m_state.positioning_xyz_type = type;
+    m_state.global_positioning_type = type;
 }
 
-GCodeAnalyzer::EPositioningType GCodeAnalyzer::_get_positioning_xyz_type() const
+GCodeAnalyzer::EPositioningType GCodeAnalyzer::_get_global_positioning_type() const
 {
-    return m_state.positioning_xyz_type;
+    return m_state.global_positioning_type;
 }
 
-void GCodeAnalyzer::_set_positioning_e_type(GCodeAnalyzer::EPositioningType type)
+void GCodeAnalyzer::_set_e_local_positioning_type(GCodeAnalyzer::EPositioningType type)
 {
-    m_state.positioning_e_type = type;
+    m_state.e_local_positioning_type = type;
 }
 
-GCodeAnalyzer::EPositioningType GCodeAnalyzer::_get_positioning_e_type() const
+GCodeAnalyzer::EPositioningType GCodeAnalyzer::_get_e_local_positioning_type() const
 {
-    return m_state.positioning_e_type;
+    return m_state.e_local_positioning_type;
 }
 
 void GCodeAnalyzer::_set_extrusion_role(ExtrusionRole extrusion_role)
