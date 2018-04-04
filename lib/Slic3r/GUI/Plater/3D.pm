@@ -12,7 +12,7 @@ use Wx::Locale gettext => 'L';
 
 __PACKAGE__->mk_accessors(qw(
     on_arrange on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
-    on_remove_object on_increase_objects on_decrease_objects));
+    on_remove_object on_increase_objects on_decrease_objects on_enable_action_buttons));
 
 sub new {
     my $class = shift;
@@ -176,6 +176,11 @@ sub set_on_model_update {
     $self->on_model_update($cb);
 }
 
+sub set_on_enable_action_buttons {
+    my ($self, $cb) = @_;
+    $self->on_enable_action_buttons($cb);
+}
+
 sub reload_scene {
     my ($self, $force) = @_;
 
@@ -218,10 +223,12 @@ sub reload_scene {
         if (!$self->{model}->fits_print_volume($self->{config})) {
             $self->set_warning_enabled(1);
             Slic3r::GUI::_3DScene::generate_warning_texture(L("Detected object outside print volume"));
+            $self->on_enable_action_buttons->(0) if ($self->on_enable_action_buttons);
         } else {
             $self->set_warning_enabled(0);
             $self->volumes->update_outside_state($self->{config}, 1);
             Slic3r::GUI::_3DScene::reset_warning_texture();
+            $self->on_enable_action_buttons->(1) if ($self->on_enable_action_buttons);
         }
     }
 }

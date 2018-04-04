@@ -576,8 +576,7 @@ bool load_amf_archive(const char *path, PresetBundle* bundle, Model *model)
         return false;
     }
 
-    std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(path).filename().string(), ".zip.amf", ".amf");
-    if (internal_amf_filename != stat.m_filename)
+    if (!boost::iends_with(stat.m_filename, ".amf"))
     {
         printf("Found invalid internal filename\n");
         mz_zip_reader_end(&archive);
@@ -644,15 +643,20 @@ bool load_amf(const char *path, PresetBundle* bundle, Model *model)
         return false;
 }
 
-bool store_amf(const char *path, Model *model, Print* print)
+bool store_amf(const char *path, Model *model, Print* print, bool export_print_config)
 {
     if ((path == nullptr) || (model == nullptr) || (print == nullptr))
         return false;
 
+    // forces ".zip.amf" extension
+    std::string export_path = path;
+    if (!boost::iends_with(export_path, ".zip.amf"))
+        export_path = boost::filesystem::path(export_path).replace_extension(".zip.amf").string();
+
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    mz_bool res = mz_zip_writer_init_file(&archive, path, 0);
+    mz_bool res = mz_zip_writer_init_file(&archive, export_path.c_str(), 0);
     if (res == 0)
         return false;
 
@@ -661,9 +665,12 @@ bool store_amf(const char *path, Model *model, Print* print)
     stream << "<amf unit=\"millimeter\">\n";
     stream << "<metadata type=\"cad\">Slic3r " << SLIC3R_VERSION << "</metadata>\n";
 
-    std::string config = "\n";
-    GCode::append_full_config(*print, config);
-    stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << config << "</metadata>\n";
+    if (export_print_config)
+    {
+        std::string config = "\n";
+        GCode::append_full_config(*print, config);
+        stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << config << "</metadata>\n";
+    }
 
     for (const auto &material : model->materials) {
         if (material.first.empty())
@@ -767,20 +774,20 @@ bool store_amf(const char *path, Model *model, Print* print)
     }
     stream << "</amf>\n";
 
-    std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(path).filename().string(), ".zip.amf", ".amf");
+    std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(export_path).filename().string(), ".zip.amf", ".amf");
     std::string out = stream.str();
 
     if (!mz_zip_writer_add_mem(&archive, internal_amf_filename.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
     {
         mz_zip_writer_end(&archive);
-        boost::filesystem::remove(path);
+        boost::filesystem::remove(export_path);
         return false;
     }
 
     if (!mz_zip_writer_finalize_archive(&archive))
     {
         mz_zip_writer_end(&archive);
-        boost::filesystem::remove(path);
+        boost::filesystem::remove(export_path);
         return false;
     }
 

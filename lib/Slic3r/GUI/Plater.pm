@@ -97,6 +97,16 @@ sub new {
         $self->update;
     };
     
+    # callback to enable/disable action buttons
+    my $enable_action_buttons = sub {
+        my ($enable) = @_;
+        $self->{btn_export_gcode}->Enable($enable);
+        $self->{btn_reslice}->Enable($enable);
+        $self->{btn_print}->Enable($enable);
+        $self->{btn_send_gcode}->Enable($enable);
+        $self->{btn_export_stl}->Enable($enable);    
+    };
+    
     # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
@@ -112,6 +122,7 @@ sub new {
         $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
         $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+        $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
         $self->{canvas3D}->use_plain_shader(1);
         $self->{canvas3D}->set_on_wipe_tower_moved(sub {
             my ($new_pos_3f) = @_;
@@ -1469,7 +1480,11 @@ sub on_export_completed {
     # Send $self->{send_gcode_file} to OctoPrint.
     if ($send_gcode) {
         my $op = Slic3r::OctoPrint->new($self->{config});
-        $op->send_gcode($self->GetId(), $PROGRESS_BAR_EVENT, $ERROR_EVENT, $self->{send_gcode_file});
+        if ($op->send_gcode($self->{send_gcode_file})) {
+            $self->statusbar->SetStatusText(L("OctoPrint upload finished."));
+        } else {
+            $self->statusbar->SetStatusText("");
+        }
     }
 
     $self->{print_file} = undef;
@@ -1559,7 +1574,7 @@ sub export_amf {
     return if !@{$self->{objects}};
     # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('AMF') or return;
-    my $res = $self->{model}->store_amf($output_file, $self->{print});
+    my $res = $self->{model}->store_amf($output_file, $self->{print}, $self->{export_option});
     if ($res)
     {
         $self->statusbar->SetStatusText(L("AMF file exported to ").$output_file);
@@ -1575,7 +1590,7 @@ sub export_3mf {
     return if !@{$self->{objects}};
     # Ask user for a file name to write into.
     my $output_file = $self->_get_export_file('3MF') or return;
-    my $res = $self->{model}->store_3mf($output_file, $self->{print});
+    my $res = $self->{model}->store_3mf($output_file, $self->{print}, $self->{export_option});
     if ($res)
     {
         $self->statusbar->SetStatusText(L("3MF file exported to ").$output_file);
@@ -1617,11 +1632,13 @@ sub _get_export_file {
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
     my $dlg = Wx::FileDialog->new($self, L("Save ").$format.L(" file as:"), dirname($output_file),
         basename($output_file), &Slic3r::GUI::FILE_WILDCARDS->{$wildcard}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    Slic3r::GUI::add_export_option($dlg, $format);
     if ($dlg->ShowModal != wxID_OK) {
         $dlg->Destroy;
         return undef;
     }
     $output_file = $dlg->GetPath;
+    $self->{export_option} = Slic3r::GUI::get_export_option($dlg);
     $dlg->Destroy;
     return $output_file;
 }
