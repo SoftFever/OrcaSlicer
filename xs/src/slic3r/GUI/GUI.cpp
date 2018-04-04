@@ -716,8 +716,10 @@ ConfigOptionsGroup* get_optgroup()
 }
 
 
-wxButton* get_wiping_dialog_button(){
+wxButton* get_wiping_dialog_button()
+{
 	return g_wiping_dialog_button;
+}
 
 wxWindow* export_option_creator(wxWindow* parent)
 {
@@ -762,6 +764,9 @@ int get_export_option(wxFileDialog* dlg)
     }
 
     return 0;
+
 }
 
-} }
+
+} // namespace GUI
+} // namespace Slic3r
