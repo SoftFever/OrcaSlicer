@@ -372,6 +372,10 @@ void Tab::update_frequently_changed_parameters()
 
 	bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
 	get_optgroup()->set_value("brim", val);
+
+	m_config->opt_bool("wipe_tower") ?
+		get_wiping_dialog_button()->Show() :
+		get_wiping_dialog_button()->Hide();
 }
 
 void Tab::reload_compatible_printers_widget()
