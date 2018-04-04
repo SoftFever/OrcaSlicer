@@ -194,8 +194,8 @@ void GLIndexedVertexArray::render(
 
 const float GLVolume::SELECTED_COLOR[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 const float GLVolume::HOVER_COLOR[4] = { 0.4f, 0.9f, 0.1f, 1.0f };
-const float GLVolume::OUTSIDE_COLOR[4] = { 0.75f, 0.0f, 0.75f, 1.0f };
-const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 1.0f, 0.0f, 1.0f, 1.0f };
+const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
+const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 
 void GLVolume::set_render_color(float r, float g, float b, float a)
 {
@@ -627,6 +627,8 @@ void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, 
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
     BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config->opt_float("max_print_height")));
+    // Allow the objects to protrude below the print bed
+    print_volume.min.z = -1e10;
 
     for (GLVolume* volume : this->volumes)
     {
