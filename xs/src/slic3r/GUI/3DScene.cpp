@@ -642,23 +642,24 @@ void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, 
 
 std::vector<double> GLVolumeCollection::get_current_print_zs() const
 {
+    // Collect layer top positions of all volumes.
     std::vector<double> print_zs;
-    std::vector<double> rounded_print_zs;
-
     for (GLVolume *vol : this->volumes)
-    {
-        for (coordf_t z : vol->print_zs)
-        {
-            double round_z = ::round(z * 100000.0 + 0.5) / 100000.0;
-            if (std::find(rounded_print_zs.begin(), rounded_print_zs.end(), round_z) == rounded_print_zs.end())
-            {
-                print_zs.push_back(z);
-                rounded_print_zs.push_back(round_z);
-            }
-        }
-    }
-
+        append(print_zs, vol->print_zs);
     std::sort(print_zs.begin(), print_zs.end());
+
+    // Replace intervals of layers with similar top positions with their average value.
+    int n = int(print_zs.size());
+    int k = 0;
+    for (int i = 0; i < n;) {
+        int j = i + 1;
+        coordf_t zmax = print_zs[i] + EPSILON;
+        for (; j < n && print_zs[j] <= zmax; ++ j) ;
+        print_zs[k ++] = (j > i + 1) ? (0.5 * (print_zs[i] + print_zs[j - 1])) : print_zs[i];
+        i = j;
+    }
+    if (k < n)
+        print_zs.erase(print_zs.begin() + k, print_zs.end());
 
     return print_zs;
 }
