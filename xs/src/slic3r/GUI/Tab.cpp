@@ -376,6 +376,7 @@ void Tab::update_frequently_changed_parameters()
 	m_config->opt_bool("wipe_tower") ?
 		get_wiping_dialog_button()->Show() :
 		get_wiping_dialog_button()->Hide();
+    (get_wiping_dialog_button()->GetParent())->Layout();
 }
 
 void Tab::reload_compatible_printers_widget()
