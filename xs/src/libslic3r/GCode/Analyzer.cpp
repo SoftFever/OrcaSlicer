@@ -177,6 +177,16 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
                         _processG1(line);
                         break;
                     }
+                case 10: // Retract
+                    {
+                        _processG10(line);
+                        break;
+                    }
+                case 11: // Unretract
+                    {
+                        _processG11(line);
+                        break;
+                    }
                 case 22: // Firmware controlled Retract
                     {
                         _processG22(line);
@@ -303,6 +313,18 @@ void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
     // stores the move
     if (type != GCodeMove::Noop)
         _store_move(type);
+}
+
+void GCodeAnalyzer::_processG10(const GCodeReader::GCodeLine& line)
+{
+    // stores retract move
+    _store_move(GCodeMove::Retract);
+}
+
+void GCodeAnalyzer::_processG11(const GCodeReader::GCodeLine& line)
+{
+    // stores unretract move
+    _store_move(GCodeMove::Unretract);
 }
 
 void GCodeAnalyzer::_processG22(const GCodeReader::GCodeLine& line)
@@ -648,14 +670,16 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     float z = FLT_MAX;
     Polyline polyline;
     Pointf3 position(FLT_MAX, FLT_MAX, FLT_MAX);
+    float volumetric_rate = FLT_MAX;
     GCodePreviewData::Range height_range;
     GCodePreviewData::Range width_range;
     GCodePreviewData::Range feedrate_range;
+    GCodePreviewData::Range volumetric_rate_range;
 
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : extrude_moves->second)
     {
-        if ((data != move.data) || (data.feedrate != move.data.feedrate) || (z != move.start_position.z) || (position != move.start_position))
+        if ((data != move.data) || (z != move.start_position.z) || (position != move.start_position) || (volumetric_rate != move.data.feedrate * (float)move.data.mm3_per_mm))
         {
             // store current polyline
             polyline.remove_duplicate_points();
@@ -671,9 +695,11 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
             // update current values
             data = move.data;
             z = move.start_position.z;
+            volumetric_rate = move.data.feedrate * (float)move.data.mm3_per_mm;
             height_range.update_from(move.data.height);
             width_range.update_from(move.data.width);
             feedrate_range.update_from(move.data.feedrate);
+            volumetric_rate_range.update_from(volumetric_rate);
         }
         else
             // append end vertex of the move to current polyline
@@ -688,9 +714,10 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     Helper::store_polyline(polyline, data, z, preview_data);
 
     // updates preview ranges data
-    preview_data.extrusion.ranges.height.set_from(height_range);
-    preview_data.extrusion.ranges.width.set_from(width_range);
-    preview_data.extrusion.ranges.feedrate.set_from(feedrate_range);
+    preview_data.ranges.height.set_from(height_range);
+    preview_data.ranges.width.set_from(width_range);
+    preview_data.ranges.feedrate.set_from(feedrate_range);
+    preview_data.ranges.volumetric_rate.set_from(volumetric_rate_range);
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
@@ -716,6 +743,10 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
     GCodePreviewData::Travel::Polyline::EDirection direction = GCodePreviewData::Travel::Polyline::Num_Directions;
     float feedrate = FLT_MAX;
     unsigned int extruder_id = -1;
+
+    GCodePreviewData::Range height_range;
+    GCodePreviewData::Range width_range;
+    GCodePreviewData::Range feedrate_range;
 
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : travel_moves->second)
@@ -745,11 +776,19 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
         type = move_type;
         feedrate = move.data.feedrate;
         extruder_id = move.data.extruder_id;
+        height_range.update_from(move.data.height);
+        width_range.update_from(move.data.width);
+        feedrate_range.update_from(move.data.feedrate);
     }
 
     // store last polyline
     polyline.remove_duplicate_points();
     Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, preview_data);
+
+    // updates preview ranges data
+    preview_data.ranges.height.set_from(height_range);
+    preview_data.ranges.width.set_from(width_range);
+    preview_data.ranges.feedrate.set_from(feedrate_range);
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_data)

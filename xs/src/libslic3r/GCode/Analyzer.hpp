@@ -127,6 +127,12 @@ private:
     // Move
     void _processG1(const GCodeReader::GCodeLine& line);
 
+    // Retract
+    void _processG10(const GCodeReader::GCodeLine& line);
+
+    // Unretract
+    void _processG11(const GCodeReader::GCodeLine& line);
+
     // Firmware controlled Retract
     void _processG22(const GCodeReader::GCodeLine& line);
 
