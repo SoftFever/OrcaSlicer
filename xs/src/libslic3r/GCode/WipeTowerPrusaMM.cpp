@@ -260,10 +260,13 @@ public:
 	// Set extruder temperature, don't wait by default.
 	Writer& set_extruder_temp(int temperature, bool wait = false)
 	{
-		char buf[128];
-		sprintf(buf, "M%d S%d\n", wait ? 109 : 104, temperature);
-		m_gcode += buf;
-		return *this;
+        if (temperature != current_temp) {
+            char buf[128];
+            sprintf(buf, "M%d S%d\n", wait ? 109 : 104, temperature);
+            m_gcode += buf;
+            current_temp = temperature;
+        }
+        return *this;
 	};
 
     // Wait for a period of time (seconds).
@@ -377,6 +380,7 @@ private:
 	float 		  m_wipe_tower_width = 0.f;
 	float		  m_wipe_tower_depth = 0.f;
 	float		  m_last_fan_speed = 0.f;
+    int           current_temp = -1;
 
 		std::string
 		set_format_X(float x)
