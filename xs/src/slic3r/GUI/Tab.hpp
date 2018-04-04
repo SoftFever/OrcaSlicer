@@ -90,7 +90,6 @@ protected:
 	wxImageList*		m_icons;
 	wxCheckBox*			m_compatible_printers_checkbox;
 	wxButton*			m_compatible_printers_btn;
-    wxButton*           m_wipe_tower_btn;
 
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index in $self->{icons}.

@@ -686,18 +686,19 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(g_wiping_dialog_button);
-			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([config, parent](wxCommandEvent& e)
+			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
 			{
-                std::vector<double> init_matrix = (config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
-                std::vector<double> init_extruders = (config->option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+				auto &config = g_PresetBundle->project_config;
+                std::vector<double> init_matrix = (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+                std::vector<double> init_extruders = (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
 
                 WipingDialog dlg(parent,std::vector<float>(init_matrix.begin(),init_matrix.end()),std::vector<float>(init_extruders.begin(),init_extruders.end()));
 
 				if (dlg.ShowModal() == wxID_OK) {
                     std::vector<float> matrix = dlg.get_matrix();
                     std::vector<float> extruders = dlg.get_extruders();
-                    (config->option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(),matrix.end());
-                    (config->option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(),extruders.end());
+                    (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(),matrix.end());
+                    (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(),extruders.end());
                 }
 			}));
 			return sizer;
