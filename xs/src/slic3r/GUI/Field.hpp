@@ -207,7 +207,7 @@ public:
 		m_disable_change_event = false;
 	}
 	boost::any		get_value() override {
-		return boost::any(dynamic_cast<wxSpinCtrl*>(window)->GetValue());
+		return boost::any(tmp_value);
 	}
 
 	void			enable() override { dynamic_cast<wxSpinCtrl*>(window)->Enable(); }
