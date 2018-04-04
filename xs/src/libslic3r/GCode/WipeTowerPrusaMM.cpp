@@ -1174,7 +1174,7 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 
 		if (! layer_finished()) {
             auto finish_layer_toolchange = finish_layer();
-            if (layer_result.size() > 1) { // we will merge it to the last toolchange
+            if ( ! layer.tool_changes.empty() ) { // we will merge it to the last toolchange
                 auto& last_toolchange = layer_result.back();
                 if (last_toolchange.end_pos != finish_layer_toolchange.start_pos) {
                     char buf[2048];     // Add a travel move from tc1.end_pos to tc2.start_pos.
