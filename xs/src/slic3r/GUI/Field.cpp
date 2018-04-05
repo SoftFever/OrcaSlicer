@@ -173,7 +173,8 @@ namespace Slic3r { namespace GUI {
 
 		temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 		{
-			on_kill_focus(e);
+//			on_kill_focus(e);
+			e.Skip();
 			temp->GetToolTip()->Enable(true);
 		}), temp->GetId());
 
