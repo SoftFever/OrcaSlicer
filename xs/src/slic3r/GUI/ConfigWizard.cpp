@@ -23,6 +23,86 @@ namespace Slic3r {
 namespace GUI {
 
 
+// FIXME: scrolling
+
+
+// Printer model picker GUI control
+
+struct PrinterPickerEvent : public wxEvent
+{
+	std::string vendor_id;
+	std::string model_id;
+	std::string variant_name;
+	bool enable;
+
+	PrinterPickerEvent(wxEventType eventType, int winid, std::string vendor_id, std::string model_id, std::string variant_name, bool enable) :
+		wxEvent(winid, eventType),
+		vendor_id(std::move(vendor_id)),
+		model_id(std::move(model_id)),
+		variant_name(std::move(variant_name)),
+		enable(enable)
+	{}
+
+	virtual wxEvent *Clone() const
+	{
+		return new PrinterPickerEvent(*this);
+	}
+};
+
+wxDEFINE_EVENT(EVT_PRINTER_PICK, PrinterPickerEvent);
+
+PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, const AppConfig &appconfig_vendors) :
+	wxPanel(parent),
+	variants_checked(0)
+{
+	const auto vendor_id = vendor.id;
+	const auto &models = vendor.models;
+
+	auto *printer_grid = new wxFlexGridSizer(models.size(), 0, 20);
+	printer_grid->SetFlexibleDirection(wxVERTICAL);
+	SetSizer(printer_grid);
+
+	auto namefont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	namefont.SetWeight(wxFONTWEIGHT_BOLD);
+
+	for (auto model = models.cbegin(); model != models.cend(); ++model) {
+		auto *panel = new wxPanel(this);
+		auto *sizer = new wxBoxSizer(wxVERTICAL);
+		panel->SetSizer(sizer);
+
+		auto *title = new wxStaticText(panel, wxID_ANY, model->name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+		title->SetFont(namefont);
+		sizer->Add(title, 0, wxBOTTOM, 3);
+
+		auto bitmap_file = wxString::Format("printers/%s_%s.png", vendor.id, model->id);
+		wxBitmap bitmap(GUI::from_u8(Slic3r::var(bitmap_file.ToStdString())), wxBITMAP_TYPE_PNG);
+		auto *bitmap_widget = new wxStaticBitmap(panel, wxID_ANY, bitmap);
+		sizer->Add(bitmap_widget, 0, wxBOTTOM, 3);
+
+		sizer->AddSpacer(20);
+
+		const auto model_id = model->id;
+
+		for (const auto &variant : model->variants) {
+			const auto variant_name = variant.name;
+			auto *cbox = new wxCheckBox(panel, wxID_ANY, wxString::Format("%s %s %s", variant.name, _(L("mm")), _(L("nozzle"))));
+			bool enabled = appconfig_vendors.get_variant("PrusaResearch", model_id, variant_name);
+			variants_checked += enabled;
+			cbox->SetValue(enabled);
+			sizer->Add(cbox, 0, wxBOTTOM, 3);
+			cbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent &event) {
+				this->variants_checked += event.IsChecked() ? 1 : -1;
+				PrinterPickerEvent evt(EVT_PRINTER_PICK, this->GetId(), std::move(vendor_id), std::move(model_id), std::move(variant_name), event.IsChecked());
+				this->AddPendingEvent(evt);
+			});
+		}
+
+		printer_grid->Add(panel);
+	}
+
+}
+
+
 // Wizard page base
 
 ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxString shortname) :
@@ -95,8 +175,8 @@ void ConfigWizardPage::enable_next(bool enable) { parent->p->enable_next(enable)
 
 PageWelcome::PageWelcome(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Welcome to the Slic3r Configuration assistant")), _(L("Welcome"))),
-	others_buttons(new wxPanel(parent)),
-	variants_checked(0)
+	printer_picker(nullptr),
+	others_buttons(new wxPanel(parent))
 {
 	append_text(_(L("Hello, welcome to Slic3r Prusa Edition! TODO: This text.")));
 
@@ -104,73 +184,34 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 	const auto &vendors = bundle.vendors;
 	const auto vendor_prusa = std::find(vendors.cbegin(), vendors.cend(), VendorProfile("PrusaResearch"));
 
-	const AppConfig &appconfig_vendors = wizard_p()->appconfig_vendors;
-
 	if (vendor_prusa != vendors.cend()) {
 		const auto &models = vendor_prusa->models;
 
-		auto *printer_picker = new wxPanel(this);
-		auto *printer_grid = new wxFlexGridSizer(models.size(), 0, 20);
-		printer_grid->SetFlexibleDirection(wxVERTICAL);
-		printer_picker->SetSizer(printer_grid);
+		AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 
-		auto namefont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-		namefont.SetWeight(wxFONTWEIGHT_BOLD);
-
-		for (auto model = models.cbegin(); model != models.cend(); ++model) {
-			auto *panel = new wxPanel(printer_picker);
-			auto *sizer = new wxBoxSizer(wxVERTICAL);
-			panel->SetSizer(sizer);
-
-			auto *title = new wxStaticText(panel, wxID_ANY, model->name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-			title->SetFont(namefont);
-			sizer->Add(title, 0, wxBOTTOM, 3);
-
-			auto bitmap_file = wxString::Format("printers/%s.png", model->id);
-			wxBitmap bitmap(GUI::from_u8(Slic3r::var(bitmap_file.ToStdString())), wxBITMAP_TYPE_PNG);
-			auto *bitmap_widget = new wxStaticBitmap(panel, wxID_ANY, bitmap);
-			sizer->Add(bitmap_widget, 0, wxBOTTOM, 3);
-
-			sizer->AddSpacer(20);
-
-			std::string model_id = model->id;
-
-			for (const auto &variant : model->variants) {
-				std::string variant_name = variant.name;
-				auto *cbox = new wxCheckBox(panel, wxID_ANY, wxString::Format("%s %s %s", variant.name, _(L("mm")), _(L("nozzle"))));
-				bool enabled = appconfig_vendors.get_variant("PrusaResearch", model_id, variant_name);
-				variants_checked += enabled;
-				cbox->SetValue(enabled);
-				sizer->Add(cbox, 0, wxBOTTOM, 3);
-				cbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent &event) {
-					this->variants_checked += event.IsChecked() ? 1 : -1;
-					this->on_variant_checked();
-					AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
-					appconfig_vendors.set_variant("PrusaResearch", model_id, variant_name, event.IsChecked());
-				});
-			}
-
-			printer_grid->Add(panel);
-		}
+		printer_picker = new PrinterPicker(this, *vendor_prusa, appconfig_vendors);
+		printer_picker->Bind(EVT_PRINTER_PICK, [this, &appconfig_vendors](const PrinterPickerEvent &evt) {
+			appconfig_vendors.set_variant(evt.vendor_id, evt.model_id, evt.variant_name, evt.enable);
+			this->on_variant_checked();
+		});
 
 		append(printer_picker);
 	}
 
-	{
-		auto *sizer = new wxBoxSizer(wxHORIZONTAL);
-		auto *other_vendors = new wxButton(others_buttons, wxID_ANY, _(L("Other vendors")));
-		// other_vendors->Disable();    // XXX
-		auto *custom_setup = new wxButton(others_buttons, wxID_ANY, _(L("Custom setup")));
+	const size_t num_other_vendors = vendors.size() - (vendor_prusa != vendors.cend());
+	auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+	auto *other_vendors = new wxButton(others_buttons, wxID_ANY, _(L("Other vendors")));
+	other_vendors->Enable(num_other_vendors > 0);
+	auto *custom_setup = new wxButton(others_buttons, wxID_ANY, _(L("Custom setup")));
 
-		sizer->Add(other_vendors);
-		sizer->AddSpacer(BTN_SPACING);
-		sizer->Add(custom_setup);
+	sizer->Add(other_vendors);
+	sizer->AddSpacer(BTN_SPACING);
+	sizer->Add(custom_setup);
 
-		other_vendors->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->wizard_p()->on_other_vendors(); });
-		custom_setup->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->wizard_p()->on_custom_setup(); });
+	other_vendors->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->wizard_p()->on_other_vendors(); });
+	custom_setup->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->wizard_p()->on_custom_setup(); });
 
-		others_buttons->SetSizer(sizer);
-	}
+	others_buttons->SetSizer(sizer);
 }
 
 void PageWelcome::on_page_set()
@@ -181,7 +222,7 @@ void PageWelcome::on_page_set()
 
 void PageWelcome::on_variant_checked()
 {
-	enable_next(variants_checked > 0);
+	enable_next(printer_picker != nullptr ? printer_picker->variants_checked > 0 : false);
 }
 
 PageUpdate::PageUpdate(ConfigWizard *parent) :
@@ -208,35 +249,63 @@ PageUpdate::PageUpdate(ConfigWizard *parent) :
 PageVendors::PageVendors(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Other Vendors")), _(L("Other Vendors")))
 {
+	append_text(_(L("Pick another vendor supported by Slic3r PE:")));
+
 	const PresetBundle &bundle = wizard_p()->bundle_vendors;
 	auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
+	AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
+	wxArrayString choices_vendors;
+
 	for (const auto &vendor : bundle.vendors) {
 		if (vendor.id == "PrusaResearch") { continue; }
 
-		auto *label_vendor = new wxStaticText(this, wxID_ANY, vendor.name);
-		label_vendor->SetFont(boldfont);
-		append(label_vendor, 0, 0, 0);
+		auto *picker = new PrinterPicker(this, vendor, appconfig_vendors);
+		picker->Hide();
+		pickers.push_back(picker);
+		choices_vendors.Add(vendor.name);
 
-		for (const auto &model : vendor.models) {
-			auto *label_model = new wxStaticText(this, wxID_ANY, model.name);
-			label_model->SetFont(boldfont);
-			append(label_model, 0, wxLEFT, INDENT_SPACING);
+		picker->Bind(EVT_PRINTER_PICK, [this, &appconfig_vendors](const PrinterPickerEvent &evt) {
+			appconfig_vendors.set_variant(evt.vendor_id, evt.model_id, evt.variant_name, evt.enable);
+			this->on_variant_checked();
+		});
+	}
 
-			for (const auto &variant : model.variants) {
-				auto *cbox = new wxCheckBox(this, wxID_ANY, variant.name);
-				append(cbox, 0, wxEXPAND | wxLEFT, 2 * INDENT_SPACING);
-				cbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) {
-					// TODO
-				});
-			}
-		}
+	auto *vendor_picker = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices_vendors);
+	if (choices_vendors.GetCount() > 0) {
+		vendor_picker->SetSelection(0);
+		on_vendor_pick(0);
+	}
 
-		append_spacer(VERTICAL_SPACING);
+	vendor_picker->Bind(wxEVT_CHOICE, [this](wxCommandEvent &evt) {
+		this->on_vendor_pick(evt.GetInt());
+	});
+
+	append(vendor_picker);
+	for (PrinterPicker *picker : pickers) { this->append(picker); }
+}
+
+void PageVendors::on_page_set()
+{
+	on_variant_checked();
+}
+
+void PageVendors::on_vendor_pick(size_t i)
+{
+	for (PrinterPicker *picker : pickers) { picker->Hide(); }
+	if (i < pickers.size()) {
+		pickers[i]->Show();
+		Layout();
 	}
 }
 
+void PageVendors::on_variant_checked()
+{
+	size_t variants_checked = 0;
+	for (const PrinterPicker *picker : pickers) { variants_checked += picker->variants_checked; }
+	enable_next(variants_checked > 0);
+}
 
 PageFirmware::PageFirmware(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Firmware Type")), _(L("Firmware"))),
@@ -613,7 +682,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent) :
 
 	p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_prev(); });
 	p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_next(); });
-	// p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->on_finish(); });
 	p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->EndModal(wxID_OK); });
 }
 

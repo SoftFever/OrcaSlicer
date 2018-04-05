@@ -29,6 +29,13 @@ enum {
 	VERTICAL_SPACING = 10,
 };
 
+struct PrinterPicker: wxPanel
+{
+	unsigned variants_checked;
+
+	PrinterPicker(wxWindow *parent, const VendorProfile &vendor, const AppConfig &appconfig_vendors);
+};
+
 struct ConfigWizardPage: wxPanel
 {
 	enum {
@@ -72,8 +79,8 @@ private:
 
 struct PageWelcome: ConfigWizardPage
 {
+	PrinterPicker *printer_picker;
 	wxPanel *others_buttons;
-	unsigned variants_checked;
 
 	PageWelcome(ConfigWizard *parent);
 
@@ -93,7 +100,14 @@ struct PageUpdate: ConfigWizardPage
 
 struct PageVendors: ConfigWizardPage
 {
+	std::vector<PrinterPicker*> pickers;
+
 	PageVendors(ConfigWizard *parent);
+
+	virtual void on_page_set();
+
+	void on_vendor_pick(size_t i);
+	void on_variant_checked();
 };
 
 struct PageFirmware: ConfigWizardPage
