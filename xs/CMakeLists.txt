@@ -299,6 +299,11 @@ add_library(Shiny STATIC
     ${LIBDIR}/Shiny/ShinyZone.h
 )
 
+add_library(semver STATIC
+    ${LIBDIR}/semver/semver.h
+    ${LIBDIR}/semver/semver.c
+)
+
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
 add_custom_command(
