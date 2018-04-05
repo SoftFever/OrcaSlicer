@@ -74,17 +74,7 @@ void ConfigWizardPage::append_text(wxString text)
 	auto *widget = new wxStaticText(this, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 	widget->Wrap(CONTENT_WIDTH);
 	widget->SetMinSize(wxSize(CONTENT_WIDTH, -1));
-	content->Add(widget, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, 10);
-}
-
-void ConfigWizardPage::append_widget(wxWindow *widget, int proportion, int flag, int border)
-{
-	content->Add(widget, proportion, flag, border);
-}
-
-void ConfigWizardPage::append_sizer(wxSizer *sizer, int proportion)
-{
-	content->Add(sizer, proportion, wxEXPAND | wxTOP | wxBOTTOM, 10);
+	append(widget);
 }
 
 void ConfigWizardPage::append_spacer(int space)
@@ -103,7 +93,6 @@ void ConfigWizardPage::enable_next(bool enable) { parent->p->enable_next(enable)
 
 // Wizard pages
 
-// PageWelcome::PageWelcome(ConfigWizard *parent, const PresetBundle &bundle) :
 PageWelcome::PageWelcome(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Welcome to the Slic3r Configuration assistant")), _(L("Welcome"))),
 	others_buttons(new wxPanel(parent)),
@@ -164,13 +153,13 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 			printer_grid->Add(panel);
 		}
 
-		append_widget(printer_picker);
+		append(printer_picker);
 	}
 
 	{
 		auto *sizer = new wxBoxSizer(wxHORIZONTAL);
 		auto *other_vendors = new wxButton(others_buttons, wxID_ANY, _(L("Other vendors")));
-		other_vendors->Disable();
+		// other_vendors->Disable();    // XXX
 		auto *custom_setup = new wxButton(others_buttons, wxID_ANY, _(L("Custom setup")));
 
 		sizer->Add(other_vendors);
@@ -201,36 +190,24 @@ PageUpdate::PageUpdate(ConfigWizard *parent) :
 	preset_update(true)
 {
 	const AppConfig *app_config = GUI::get_app_config();
-	
+
 	append_text(_(L("TODO: text")));
 	auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _(L("Check for Slic3r updates")));
 	box_slic3r->SetValue(app_config->get("version_check") == "1");
-	append_widget(box_slic3r);
+	append(box_slic3r);
 
 	append_text(_(L("TODO: text")));
 	auto *box_presets = new wxCheckBox(this, wxID_ANY, _(L("Update built-in Presets automatically")));
 	box_presets->SetValue(app_config->get("preset_update") == "1");
-	append_widget(box_presets);
+	append(box_presets);
 
 	box_slic3r->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->version_check = event.IsChecked(); });
 	box_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->preset_update = event.IsChecked(); });
 }
 
-void PageUpdate::presets_update_enable(bool enable)
-{
-	// TODO
-}
-
 PageVendors::PageVendors(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Other Vendors")), _(L("Other Vendors")))
 {
-	enum {
-		INDENT_SPACING = 30,
-		VERTICAL_SPACING = 10,
-	};
-
-	append_text(_(L("Other vendors! TODO: This text.")));
-
 	const PresetBundle &bundle = wizard_p()->bundle_vendors;
 	auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
@@ -240,16 +217,16 @@ PageVendors::PageVendors(ConfigWizard *parent) :
 
 		auto *label_vendor = new wxStaticText(this, wxID_ANY, vendor.name);
 		label_vendor->SetFont(boldfont);
-		append_thing(label_vendor, 0, 0, 0);
+		append(label_vendor, 0, 0, 0);
 
 		for (const auto &model : vendor.models) {
 			auto *label_model = new wxStaticText(this, wxID_ANY, model.name);
 			label_model->SetFont(boldfont);
-			append_thing(label_model, 0, wxLEFT, INDENT_SPACING);
+			append(label_model, 0, wxLEFT, INDENT_SPACING);
 
 			for (const auto &variant : model.variants) {
 				auto *cbox = new wxCheckBox(this, wxID_ANY, variant.name);
-				append_thing(cbox, 0, wxEXPAND | wxLEFT, 2 * INDENT_SPACING);
+				append(cbox, 0, wxEXPAND | wxLEFT, 2 * INDENT_SPACING);
 				cbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) {
 					// TODO
 				});
@@ -260,21 +237,169 @@ PageVendors::PageVendors(ConfigWizard *parent) :
 	}
 }
 
+
 PageFirmware::PageFirmware(ConfigWizard *parent) :
-	ConfigWizardPage(parent, _(L("Firmware Type")), _(L("Firmware")))
-{}
+	ConfigWizardPage(parent, _(L("Firmware Type")), _(L("Firmware"))),
+	gcode_opt(print_config_def.options["gcode_flavor"]),
+	gcode_picker(nullptr)
+{
+	append_text(_(L("Choose the type of firmware used by your printer.")));
+	append_text(gcode_opt.tooltip);
+
+	wxArrayString choices;
+	choices.Alloc(gcode_opt.enum_labels.size());
+	for (const auto &label : gcode_opt.enum_labels) {
+		choices.Add(label);
+	}
+
+	gcode_picker = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
+	const auto &enum_values = gcode_opt.enum_values;
+	auto needle = enum_values.cend();
+	if (gcode_opt.default_value != nullptr) {
+		needle = std::find(enum_values.cbegin(), enum_values.cend(), gcode_opt.default_value->serialize());
+	}
+	if (needle != enum_values.cend()) {
+		gcode_picker->SetSelection(needle - enum_values.cbegin());
+	} else {
+		gcode_picker->SetSelection(0);
+	}
+
+	append(gcode_picker);
+}
+
+void PageFirmware::apply_custom_config(DynamicPrintConfig &config)
+{
+	ConfigOptionEnum<GCodeFlavor> opt;
+
+	auto sel = gcode_picker->GetSelection();
+	if (sel != wxNOT_FOUND && opt.deserialize(gcode_picker->GetString(sel).ToStdString())) {
+		config.set_key_value("gcode_flavor", &opt);
+	}
+}
 
 PageBedShape::PageBedShape(ConfigWizard *parent) :
-	ConfigWizardPage(parent, _(L("Bed Shape and Size")), _(L("Bed Shape")))
-{}
+	ConfigWizardPage(parent, _(L("Bed Shape and Size")), _(L("Bed Shape"))),
+	shape_panel(new BedShapePanel(this))
+{
+	append_text(_(L("Set the shape of your printer's bed.")));
+
+	shape_panel->build_panel(wizard_p()->custom_config.option<ConfigOptionPoints>("bed_shape"));
+	append(shape_panel);
+}
+
+void PageBedShape::apply_custom_config(DynamicPrintConfig &config)
+{
+	const auto points(shape_panel->GetValue());
+	auto *opt = new ConfigOptionPoints(points);
+	config.set_key_value("bed_shape", opt);
+}
 
 PageDiameters::PageDiameters(ConfigWizard *parent) :
-	ConfigWizardPage(parent, _(L("Filament and Nozzle Diameter")), _(L("Print Diameters")))
-{}
+	ConfigWizardPage(parent, _(L("Filament and Nozzle Diameters")), _(L("Print Diameters"))),
+	spin_nozzle(new wxSpinCtrlDouble(this, wxID_ANY)),
+	spin_filam(new wxSpinCtrlDouble(this, wxID_ANY))
+{
+	spin_nozzle->SetDigits(2);
+	spin_nozzle->SetIncrement(0.1);
+	const auto &def_nozzle = print_config_def.options["nozzle_diameter"];
+	auto *default_nozzle = dynamic_cast<const ConfigOptionFloats*>(def_nozzle.default_value);
+	spin_nozzle->SetValue(default_nozzle != nullptr && default_nozzle->size() > 0 ? default_nozzle->get_at(0) : 0.5);
+
+	spin_filam->SetDigits(2);
+	spin_filam->SetIncrement(0.25);
+	const auto &def_filam = print_config_def.options["filament_diameter"];
+	auto *default_filam = dynamic_cast<const ConfigOptionFloats*>(def_filam.default_value);
+	spin_filam->SetValue(default_filam != nullptr && default_filam->size() > 0 ? default_filam->get_at(0) : 3.0);
+
+	append_text(_(L("Enter the diameter of your printer's hot end nozzle.")));
+
+	auto *sizer_nozzle = new wxFlexGridSizer(3, 5, 5);
+	auto *text_nozzle = new wxStaticText(this, wxID_ANY, _(L("Nozzle Diameter:")));
+	auto *unit_nozzle = new wxStaticText(this, wxID_ANY, _(L("mm")));
+	sizer_nozzle->AddGrowableCol(0, 1);
+	sizer_nozzle->Add(text_nozzle, 0, wxALIGN_CENTRE_VERTICAL);
+	sizer_nozzle->Add(spin_nozzle);
+	sizer_nozzle->Add(unit_nozzle, 0, wxALIGN_CENTRE_VERTICAL);
+	append(sizer_nozzle);
+
+	append_spacer(VERTICAL_SPACING);
+
+	append_text(_(L("Enter the diameter of your filament.")));
+	append_text(_(L("Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average.")));
+
+	auto *sizer_filam = new wxFlexGridSizer(3, 5, 5);
+	auto *text_filam = new wxStaticText(this, wxID_ANY, _(L("Filament Diameter:")));
+	auto *unit_filam = new wxStaticText(this, wxID_ANY, _(L("mm")));
+	sizer_filam->AddGrowableCol(0, 1);
+	sizer_filam->Add(text_filam, 0, wxALIGN_CENTRE_VERTICAL);
+	sizer_filam->Add(spin_filam);
+	sizer_filam->Add(unit_filam, 0, wxALIGN_CENTRE_VERTICAL);
+	append(sizer_filam);
+}
+
+void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
+{
+	auto *opt_nozzle = new ConfigOptionFloats(1, spin_nozzle->GetValue());
+	config.set_key_value("nozzle_diameter", opt_nozzle);
+	auto *opt_filam = new ConfigOptionFloats(1, spin_filam->GetValue());
+	config.set_key_value("filament_diameter", opt_filam);
+}
 
 PageTemperatures::PageTemperatures(ConfigWizard *parent) :
-	ConfigWizardPage(parent, _(L("Bed and Extruder Temperature")), _(L("Temperatures")))
-{}
+	ConfigWizardPage(parent, _(L("Extruder and Bed Temperatures")), _(L("Temperatures"))),
+	spin_extr(new wxSpinCtrl(this, wxID_ANY)),
+	spin_bed(new wxSpinCtrl(this, wxID_ANY))
+{
+	spin_extr->SetIncrement(5);
+	const auto &def_extr = print_config_def.options["temperature"];
+	spin_extr->SetRange(def_extr.min, def_extr.max);
+	auto *default_extr = dynamic_cast<const ConfigOptionInts*>(def_extr.default_value);
+	spin_extr->SetValue(default_extr != nullptr && default_extr->size() > 0 ? default_extr->get_at(0) : 200);
+
+	spin_bed->SetIncrement(5);
+	const auto &def_bed = print_config_def.options["bed_temperature"];
+	spin_bed->SetRange(def_bed.min, def_bed.max);
+	auto *default_bed = dynamic_cast<const ConfigOptionInts*>(def_bed.default_value);
+	spin_bed->SetValue(default_bed != nullptr && default_bed->size() > 0 ? default_bed->get_at(0) : 0);
+
+	append_text(_(L("Enter the temperature needed for extruding your filament.")));
+	append_text(_(L("A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS.")));
+
+	auto *sizer_extr = new wxFlexGridSizer(3, 5, 5);
+	auto *text_extr = new wxStaticText(this, wxID_ANY, _(L("Extrusion Temperature:")));
+	auto *unit_extr = new wxStaticText(this, wxID_ANY, _(L("°C")));
+	sizer_extr->AddGrowableCol(0, 1);
+	sizer_extr->Add(text_extr, 0, wxALIGN_CENTRE_VERTICAL);
+	sizer_extr->Add(spin_extr);
+	sizer_extr->Add(unit_extr, 0, wxALIGN_CENTRE_VERTICAL);
+	append(sizer_extr);
+
+	append_spacer(VERTICAL_SPACING);
+
+	append_text(_(L("Enter the bed temperature needed for getting your filament to stick to your heated bed.")));
+	append_text(_(L("A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed.")));
+
+	auto *sizer_bed = new wxFlexGridSizer(3, 5, 5);
+	auto *text_bed = new wxStaticText(this, wxID_ANY, _(L("Bed Temperature:")));
+	auto *unit_bed = new wxStaticText(this, wxID_ANY, _(L("°C")));
+	sizer_bed->AddGrowableCol(0, 1);
+	sizer_bed->Add(text_bed, 0, wxALIGN_CENTRE_VERTICAL);
+	sizer_bed->Add(spin_bed);
+	sizer_bed->Add(unit_bed, 0, wxALIGN_CENTRE_VERTICAL);
+	append(sizer_bed);
+}
+
+void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
+{
+	auto *opt_extr = new ConfigOptionInts(1, spin_extr->GetValue());
+	config.set_key_value("temperature", opt_extr);
+	auto *opt_extr1st = new ConfigOptionInts(1, spin_extr->GetValue());
+	config.set_key_value("first_layer_temperature", opt_extr1st);
+	auto *opt_bed = new ConfigOptionInts(1, spin_bed->GetValue());
+	config.set_key_value("bed_temperature", opt_bed);
+	auto *opt_bed1st = new ConfigOptionInts(1, spin_bed->GetValue());
+	config.set_key_value("first_layer_bed_temperature", opt_bed1st);
+}
 
 
 // Index
@@ -349,24 +474,11 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 void ConfigWizard::priv::load_vendors()
 {
 	const auto vendor_dir = fs::path(Slic3r::data_dir()) / "vendor";
-	// const auto profiles_dir = fs::path(resources_dir()) / "profiles";
 	for (fs::directory_iterator it(vendor_dir); it != fs::directory_iterator(); ++it) {
 		if (it->path().extension() == ".ini") {
 			bundle_vendors.load_configbundle(it->path().native(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
 		}
 	}
-
-	// XXX
-	// for (const auto &vendor : bundle_vendors.vendors) {
-	// 	std::cerr << "vendor: " << vendor.name << std::endl;
-	// 	std::cerr << "  URL: " << vendor.config_update_url << std::endl;
-	// 	for (const auto &model : vendor.models) {
-	// 		std::cerr << "\tmodel: " << model.id << " (" << model.name << ")" << std::endl;
-	// 		for (const auto &variant : model.variants) {
-	// 			std::cerr << "\t\tvariant: " << variant.name << std::endl;
-	// 		}
-	// 	}
-	// }
 
 	appconfig_vendors.set_vendors(*GUI::get_app_config());
 }
@@ -426,21 +538,22 @@ void ConfigWizard::priv::on_custom_setup()
 	set_page(page_firmware);
 }
 
-void ConfigWizard::priv::on_finish()
+void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle)
 {
 	const bool is_custom_setup = page_welcome->page_next() == page_firmware;
 
 	if (! is_custom_setup) {
-		AppConfig *app_config = GUI::get_app_config();
 		app_config->set_vendors(appconfig_vendors);
-
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
+		app_config->reset_selections();     // XXX: only on "fresh start"?
+		preset_bundle->load_presets(*app_config);
 	} else {
-		// TODO
+		for (ConfigWizardPage *page = page_firmware; page != nullptr; page = page->page_next()) {
+			page->apply_custom_config(custom_config);
+		}
+		preset_bundle->load_config("My Settings", custom_config);
 	}
-
-	q->EndModal(wxID_OK);
 }
 
 // Public
@@ -450,6 +563,10 @@ ConfigWizard::ConfigWizard(wxWindow *parent) :
 	p(new priv(this))
 {
 	p->load_vendors();
+	std::unique_ptr<DynamicPrintConfig> custom_config_defaults(DynamicPrintConfig::new_from_defaults_keys({
+		"gcode_flavor", "bed_shape", "nozzle_diameter", "filament_diameter", "temperature", "bed_temperature",
+	}));
+	p->custom_config.apply(*custom_config_defaults);
 
 	p->index = new ConfigWizardIndex(this);
 
@@ -461,10 +578,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent) :
 	p->topsizer->Add(p->index, 0, wxEXPAND);
 	p->topsizer->AddSpacer(INDEX_MARGIN);
 
-	// TODO: btn labels vs default w/ icons ... use arrows from resources? (no apply icon)
-	// Also: http://docs.wxwidgets.org/3.0/page_stockitems.html
-	p->btn_prev = new wxButton(this, wxID_BACKWARD, _(L("< &Back")));
-	p->btn_next = new wxButton(this, wxID_FORWARD, _(L("&Next >")));
+	p->btn_prev = new wxButton(this, wxID_BACKWARD);
+	p->btn_next = new wxButton(this, wxID_FORWARD);
 	p->btn_finish = new wxButton(this, wxID_APPLY, _(L("&Finish")));
 	p->btn_cancel = new wxButton(this, wxID_CANCEL);
 	p->btnsizer->AddStretchSpacer();
@@ -498,7 +613,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent) :
 
 	p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_prev(); });
 	p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_next(); });
-	p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->on_finish(); });
+	// p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->on_finish(); });
+	p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->EndModal(wxID_OK); });
 }
 
 ConfigWizard::~ConfigWizard() {}
@@ -514,7 +630,7 @@ void ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
 
 	ConfigWizard wizard(parent);
 	if (wizard.ShowModal() == wxID_OK) {
-		preset_bundle->load_presets(*GUI::get_app_config());
+		wizard.p->apply_config(GUI::get_app_config(), preset_bundle);
 	}
 }
 
