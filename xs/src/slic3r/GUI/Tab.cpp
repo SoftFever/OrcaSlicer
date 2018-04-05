@@ -335,14 +335,27 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 		bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
 		get_optgroup()->set_value("brim", val);
 	}
-	if (opt_key == "wipe_tower"){
-		m_config->opt_bool("wipe_tower") ? 
-			get_wiping_dialog_button()->Show() : 
-			get_wiping_dialog_button()->Hide();
-	}
-		
+
+    if (opt_key == "wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
+        update_wiping_button_visibility();
+
 	update();
 }
+
+
+// Show/hide the 'purging volumes' button
+void Tab::update_wiping_button_visibility() {
+    bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("wipe_tower"))->value;
+    bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
+    bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
+
+    if (wipe_tower_enabled && multiple_extruders && single_extruder_mm)
+        get_wiping_dialog_button()->Show();
+    else get_wiping_dialog_button()->Hide();
+
+    (get_wiping_dialog_button()->GetParent())->Layout();
+}
+
 
 // Call a callback to update the selection of presets on the platter:
 // To update the content of the selection boxes,
@@ -373,10 +386,7 @@ void Tab::update_frequently_changed_parameters()
 	bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
 	get_optgroup()->set_value("brim", val);
 
-	m_config->opt_bool("wipe_tower") ?
-		get_wiping_dialog_button()->Show() :
-		get_wiping_dialog_button()->Hide();
-    (get_wiping_dialog_button()->GetParent())->Layout();
+	update_wiping_button_visibility();
 }
 
 void Tab::reload_compatible_printers_widget()
@@ -1062,6 +1072,8 @@ void TabPrinter::build()
 				if (opt_key.compare("extruders_count")==0 || opt_key.compare("single_extruder_multi_material")==0) {
 					extruders_count_changed(extruders_count);
 					update_dirty();
+                    if (opt_key.compare("single_extruder_multi_material")==0) // the single_extruder_multimaterial was added to force pages
+                        on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
 				}
 				else {
 					update_dirty();

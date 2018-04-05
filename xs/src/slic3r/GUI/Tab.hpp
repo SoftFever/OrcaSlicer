@@ -174,6 +174,7 @@ public:
 protected:
 	void			on_presets_changed();
 	void			update_frequently_changed_parameters();
+    void            update_wiping_button_visibility();
 };
 
 //Slic3r::GUI::Tab::Print;
