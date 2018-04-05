@@ -36,16 +36,20 @@ struct Http::priv
 	::curl_slist *headerlist;
 	std::string buffer;
 	size_t limit;
+	bool cancel;
 
 	std::thread io_thread;
 	Http::CompleteFn completefn;
 	Http::ErrorFn errorfn;
+	Http::ProgressFn progressfn;
 
 	priv(const std::string &url);
 	~priv();
 
 	static bool ca_file_supported(::CURL *curl);
 	static size_t writecb(void *data, size_t size, size_t nmemb, void *userp);
+	static int xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
+	static int xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow);
 	std::string curl_error(CURLcode curlcode);
 	std::string body_size_error();
 	void http_perform();
@@ -55,7 +59,8 @@ Http::priv::priv(const std::string &url) :
 	curl(::curl_easy_init()),
 	form(nullptr),
 	form_end(nullptr),
-	headerlist(nullptr)
+	headerlist(nullptr),
+	cancel(false)
 {
 	if (curl == nullptr) {
 		throw std::runtime_error(std::string("Could not construct Curl object"));
@@ -112,6 +117,24 @@ size_t Http::priv::writecb(void *data, size_t size, size_t nmemb, void *userp)
 	return realsize;
 }
 
+int Http::priv::xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
+{
+	auto self = static_cast<priv*>(userp);
+	bool cb_cancel = false;
+
+	if (self->progressfn) {
+		Progress progress(dltotal, dlnow, ultotal, ulnow);
+		self->progressfn(progress, cb_cancel);
+	}
+
+	return self->cancel || cb_cancel;
+}
+
+int Http::priv::xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+	return xfercb(userp, dltotal, dlnow, ultotal, ulnow);
+}
+
 std::string Http::priv::curl_error(CURLcode curlcode)
 {
 	return (boost::format("%1% (%2%)")
@@ -132,6 +155,16 @@ void Http::priv::http_perform()
 	::curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writecb);
 	::curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(this));
 
+	::curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+#if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 32
+	::curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xfercb);
+	::curl_easy_setopt(curl, CURLOPT_XFERINFODATA, static_cast<void*>(this));
+	(void)xfercb_legacy;   // prevent unused function warning
+#else
+	::curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, xfercb);
+	::curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, static_cast<void*>(this));
+#endif
+
 #ifndef NDEBUG
 	::curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
@@ -149,16 +182,16 @@ void Http::priv::http_perform()
 	::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
 
 	if (res != CURLE_OK) {
-		std::string error;
-		if (res == CURLE_WRITE_ERROR) {
-			error = std::move(body_size_error());
-		} else {
-			error = std::move(curl_error(res));
-		};
-
-		if (errorfn) {
-			errorfn(std::move(buffer), std::move(error), http_status);
+		if (res == CURLE_ABORTED_BY_CALLBACK) {
+			Progress dummyprogress(0, 0, 0, 0);
+			bool cancel = true;
+			if (progressfn) { progressfn(dummyprogress, cancel); }
 		}
+		else if (res == CURLE_WRITE_ERROR) {
+			if (errorfn) { errorfn(std::move(buffer), std::move(body_size_error()), http_status); }
+		} else {
+			if (errorfn) { errorfn(std::move(buffer), std::move(curl_error(res)), http_status); }
+		};
 	} else {
 		if (completefn) {
 			completefn(std::move(buffer), http_status);
@@ -258,6 +291,12 @@ Http& Http::on_error(ErrorFn fn)
 	return *this;
 }
 
+Http& Http::on_progress(ProgressFn fn)
+{
+	if (p) { p->progressfn = std::move(fn); }
+	return *this;
+}
+
 Http::Ptr Http::perform()
 {
 	auto self = std::make_shared<Http>(std::move(*this));
@@ -275,6 +314,11 @@ Http::Ptr Http::perform()
 void Http::perform_sync()
 {
 	if (p) { p->http_perform(); }
+}
+
+void Http::cancel()
+{
+	if (p) { p->cancel = true; }
 }
 
 Http Http::get(std::string url)
@@ -295,6 +339,17 @@ bool Http::ca_file_supported()
 	bool res = priv::ca_file_supported(curl);
 	if (curl != nullptr) { ::curl_easy_cleanup(curl); }
 	return res;
+}
+
+std::ostream& operator<<(std::ostream &os, const Http::Progress &progress)
+{
+	os << "Http::Progress("
+		<< "dltotal = " << progress.dltotal
+		<< ", dlnow = " << progress.dlnow
+		<< ", ultotal = " << progress.ultotal
+		<< ", ulnow = " << progress.ulnow
+		<< ")";
+	return os;
 }
 
 

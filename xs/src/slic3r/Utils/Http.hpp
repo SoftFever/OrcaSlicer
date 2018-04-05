@@ -14,9 +14,22 @@ class Http : public std::enable_shared_from_this<Http> {
 private:
 	struct priv;
 public:
+	struct Progress
+	{
+		size_t dltotal;
+		size_t dlnow;
+		size_t ultotal;
+		size_t ulnow;
+		
+		Progress(size_t dltotal, size_t dlnow, size_t ultotal, size_t ulnow) :
+			dltotal(dltotal), dlnow(dlnow), ultotal(ultotal), ulnow(ulnow)
+		{}
+	};
+
 	typedef std::shared_ptr<Http> Ptr;
 	typedef std::function<void(std::string /* body */, unsigned /* http_status */)> CompleteFn;
 	typedef std::function<void(std::string /* body */, std::string /* error */, unsigned /* http_status */)> ErrorFn;
+	typedef std::function<void(Progress, bool& /* cancel */)> ProgressFn;
 
 	Http(Http &&other);
 
@@ -37,9 +50,11 @@ public:
 
 	Http& on_complete(CompleteFn fn);
 	Http& on_error(ErrorFn fn);
+	Http& on_progress(ProgressFn fn);
 
 	Ptr perform();
 	void perform_sync();
+	void cancel();
 
 	static bool ca_file_supported();
 private:
@@ -47,6 +62,8 @@ private:
 
 	std::unique_ptr<priv> p;
 };
+
+std::ostream& operator<<(std::ostream &, const Http::Progress &);
 
 
 }

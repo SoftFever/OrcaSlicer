@@ -1481,7 +1481,11 @@ sub on_export_completed {
     # Send $self->{send_gcode_file} to OctoPrint.
     if ($send_gcode) {
         my $op = Slic3r::OctoPrint->new($self->{config});
-        $op->send_gcode($self->GetId(), $PROGRESS_BAR_EVENT, $ERROR_EVENT, $self->{send_gcode_file});
+        if ($op->send_gcode($self->{send_gcode_file})) {
+            $self->statusbar->SetStatusText(L("OctoPrint upload finished."));
+        } else {
+            $self->statusbar->SetStatusText("");
+        }
     }
 
     $self->{print_file} = undef;
