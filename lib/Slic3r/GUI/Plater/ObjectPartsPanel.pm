@@ -88,7 +88,7 @@ sub new {
     $self->{btn_move_down}->SetFont($Slic3r::GUI::small_font);
     
     # part settings panel
-    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self, on_change => sub { $self->{part_settings_changed} = 1; });
+    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self, on_change => sub { $self->{part_settings_changed} = 1; $self->_update_canvas; });
     my $settings_sizer = Wx::StaticBoxSizer->new($self->{staticbox} = Wx::StaticBox->new($self, -1, "Part Settings"), wxVERTICAL);
     $settings_sizer->Add($self->{settings_panel}, 1, wxEXPAND | wxALL, 0);
 
@@ -479,6 +479,7 @@ sub _parts_changed {
         $self->{canvas}->reset_objects;
         $self->{canvas}->load_object($self->{model_object});
         $self->{canvas}->zoom_to_volumes;
+        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
         $self->{canvas}->Render;
     }
 }
@@ -509,6 +510,25 @@ sub PartSettingsChanged {
     return $self->{part_settings_changed};
 }
 
+sub _update_canvas {
+    my ($self) = @_;
+    
+    if ($self->{canvas}) {
+        $self->{canvas}->reset_objects;
+        $self->{canvas}->load_object($self->{model_object});
+
+        # restore selection, if any
+        if (my $itemData = $self->get_selection) {
+            if ($itemData->{type} eq 'volume') {
+                $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
+            }
+        }
+                
+        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+        $self->{canvas}->Render;
+    }
+}
+
 sub _update {
     my ($self) = @_;
     my ($m_x, $m_y, $m_z) = ($self->{move_options}{x}, $self->{move_options}{y}, $self->{move_options}{z});
@@ -529,6 +549,7 @@ sub _update {
     push @objects, $self->{model_object};
     $self->{canvas}->reset_objects;
     $self->{canvas}->load_object($_, undef, [0]) for @objects;
+    $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
     $self->{canvas}->Render;
 }
 
