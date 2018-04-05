@@ -203,7 +203,8 @@ public:
 	}
 	void			set_value(boost::any value, bool change_event = false) {
 		m_disable_change_event = !change_event;
-		dynamic_cast<wxSpinCtrl*>(window)->SetValue(boost::any_cast<int>(value));
+		tmp_value = boost::any_cast<int>(value);
+		dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value/*boost::any_cast<int>(value)*/);
 		m_disable_change_event = false;
 	}
 	boost::any		get_value() override {
