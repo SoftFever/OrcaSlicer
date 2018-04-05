@@ -644,19 +644,24 @@ void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, 
 
 std::vector<double> GLVolumeCollection::get_current_print_zs() const
 {
+    // Collect layer top positions of all volumes.
     std::vector<double> print_zs;
-
     for (GLVolume *vol : this->volumes)
-    {
-        for (coordf_t z : vol->print_zs)
-        {
-            double round_z = (double)round(z * 100000.0f) / 100000.0f;
-            if (std::find(print_zs.begin(), print_zs.end(), round_z) == print_zs.end())
-                print_zs.push_back(round_z);
-        }
-    }
-
+        append(print_zs, vol->print_zs);
     std::sort(print_zs.begin(), print_zs.end());
+
+    // Replace intervals of layers with similar top positions with their average value.
+    int n = int(print_zs.size());
+    int k = 0;
+    for (int i = 0; i < n;) {
+        int j = i + 1;
+        coordf_t zmax = print_zs[i] + EPSILON;
+        for (; j < n && print_zs[j] <= zmax; ++ j) ;
+        print_zs[k ++] = (j > i + 1) ? (0.5 * (print_zs[i] + print_zs[j - 1])) : print_zs[i];
+        i = j;
+    }
+    if (k < n)
+        print_zs.erase(print_zs.begin() + k, print_zs.end());
 
     return print_zs;
 }
@@ -2041,6 +2046,8 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
                 return path.width;
             case GCodePreviewData::Extrusion::Feedrate:
                 return path.feedrate;
+            case GCodePreviewData::Extrusion::VolumetricRate:
+                return path.feedrate * (float)path.mm3_per_mm;
             case GCodePreviewData::Extrusion::Tool:
                 return (float)path.extruder_id;
             }
@@ -2055,11 +2062,13 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
             case GCodePreviewData::Extrusion::FeatureType:
                 return data.get_extrusion_role_color((ExtrusionRole)(int)value);
             case GCodePreviewData::Extrusion::Height:
-                return data.get_extrusion_height_color(value);
+                return data.get_height_color(value);
             case GCodePreviewData::Extrusion::Width:
-                return data.get_extrusion_width_color(value);
+                return data.get_width_color(value);
             case GCodePreviewData::Extrusion::Feedrate:
-                return data.get_extrusion_feedrate_color(value);
+                return data.get_feedrate_color(value);
+            case GCodePreviewData::Extrusion::VolumetricRate:
+                return data.get_volumetric_rate_color(value);
             case GCodePreviewData::Extrusion::Tool:
                 {
                     static GCodePreviewData::Color color;
@@ -2339,7 +2348,7 @@ bool _3DScene::_travel_paths_by_feedrate(const GCodePreviewData& preview_data, G
     // creates a new volume for each feedrate
     for (Feedrate& feedrate : feedrates)
     {
-        GLVolume* volume = new GLVolume(preview_data.get_extrusion_feedrate_color(feedrate.value).rgba);
+        GLVolume* volume = new GLVolume(preview_data.get_feedrate_color(feedrate.value).rgba);
         if (volume == nullptr)
             return false;
         else

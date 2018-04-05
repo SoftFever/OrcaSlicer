@@ -104,10 +104,10 @@
 
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
-    bool store_amf(char *path, Print* print)
-        %code%{ RETVAL = Slic3r::store_amf(path, THIS, print); %};
-    bool store_3mf(char *path, Print* print)
-        %code%{ RETVAL = Slic3r::store_3mf(path, THIS, print); %};
+    bool store_amf(char *path, Print* print, bool export_print_config)
+        %code%{ RETVAL = Slic3r::store_amf(path, THIS, print, export_print_config); %};
+    bool store_3mf(char *path, Print* print, bool export_print_config)
+        %code%{ RETVAL = Slic3r::store_3mf(path, THIS, print, export_print_config); %};
 
 %{
 

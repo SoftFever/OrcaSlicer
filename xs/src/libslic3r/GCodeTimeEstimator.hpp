@@ -61,8 +61,8 @@ namespace Slic3r {
         {
             GCodeFlavor dialect;
             EUnits units;
-            EPositioningType positioning_xyz_type;
-            EPositioningType positioning_e_type;
+            EPositioningType global_positioning_type;
+            EPositioningType e_local_positioning_type;
             Axis axis[Num_Axis];
             float feedrate;                     // mm/s
             float acceleration;                 // mm/s^2
@@ -257,11 +257,11 @@ namespace Slic3r {
         void set_units(EUnits units);
         EUnits get_units() const;
 
-        void set_positioning_xyz_type(EPositioningType type);
-        EPositioningType get_positioning_xyz_type() const;
+        void set_global_positioning_type(EPositioningType type);
+        EPositioningType get_global_positioning_type() const;
 
-        void set_positioning_e_type(EPositioningType type);
-        EPositioningType get_positioning_e_type() const;
+        void set_e_local_positioning_type(EPositioningType type);
+        EPositioningType get_e_local_positioning_type() const;
 
         void add_additional_time(float timeSec);
         void set_additional_time(float timeSec);

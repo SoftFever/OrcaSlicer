@@ -1443,10 +1443,10 @@ namespace Slic3r {
         IdToObjectDataMap m_objects_data;
 
     public:
-        bool save_model_to_file(const std::string& filename, Model& model, const Print& print);
+        bool save_model_to_file(const std::string& filename, Model& model, const Print& print, bool export_print_config);
 
     private:
-        bool _save_model_to_file(const std::string& filename, Model& model, const Print& print);
+        bool _save_model_to_file(const std::string& filename, Model& model, const Print& print, bool export_print_config);
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -1457,13 +1457,13 @@ namespace Slic3r {
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model);
     };
 
-    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const Print& print)
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const Print& print, bool export_print_config)
     {
         clear_errors();
-        return _save_model_to_file(filename, model, print);
+        return _save_model_to_file(filename, model, print, export_print_config);
     }
 
-    bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const Print& print)
+    bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const Print& print, bool export_print_config)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -1502,11 +1502,14 @@ namespace Slic3r {
         }
 
         // adds slic3r print config file
-        if (!_add_print_config_file_to_archive(archive, print))
+        if (export_print_config)
         {
-            mz_zip_writer_end(&archive);
-            boost::filesystem::remove(filename);
-            return false;
+            if (!_add_print_config_file_to_archive(archive, print))
+            {
+                mz_zip_writer_end(&archive);
+                boost::filesystem::remove(filename);
+                return false;
+            }
         }
 
         // adds slic3r model config file
@@ -1863,13 +1866,13 @@ namespace Slic3r {
         return res;
     }
 
-    bool store_3mf(const char* path, Model* model, Print* print)
+    bool store_3mf(const char* path, Model* model, Print* print, bool export_print_config)
     {
         if ((path == nullptr) || (model == nullptr) || (print == nullptr))
             return false;
 
         _3MF_Exporter exporter;
-        bool res = exporter.save_model_to_file(path, *model, *print);
+        bool res = exporter.save_model_to_file(path, *model, *print, export_print_config);
 
         if (!res)
             exporter.log_errors();

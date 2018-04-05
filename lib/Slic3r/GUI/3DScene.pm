@@ -96,7 +96,7 @@ use constant MANIPULATION_IDLE          => 0;
 use constant MANIPULATION_DRAGGING      => 1;
 use constant MANIPULATION_LAYER_HEIGHT  => 2;
 
-use constant GIMBALL_LOCK_THETA_MAX => 170;
+use constant GIMBALL_LOCK_THETA_MAX => 180;
 
 use constant VARIABLE_LAYER_THICKNESS_BAR_WIDTH => 70;
 use constant VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT => 22;

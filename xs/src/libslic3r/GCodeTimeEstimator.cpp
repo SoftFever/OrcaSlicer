@@ -369,24 +369,24 @@ namespace Slic3r {
         return _state.units;
     }
 
-    void GCodeTimeEstimator::set_positioning_xyz_type(GCodeTimeEstimator::EPositioningType type)
+    void GCodeTimeEstimator::set_global_positioning_type(GCodeTimeEstimator::EPositioningType type)
     {
-        _state.positioning_xyz_type = type;
+        _state.global_positioning_type = type;
     }
 
-    GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_positioning_xyz_type() const
+    GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_global_positioning_type() const
     {
-        return _state.positioning_xyz_type;
+        return _state.global_positioning_type;
     }
 
-    void GCodeTimeEstimator::set_positioning_e_type(GCodeTimeEstimator::EPositioningType type)
+    void GCodeTimeEstimator::set_e_local_positioning_type(GCodeTimeEstimator::EPositioningType type)
     {
-        _state.positioning_e_type = type;
+        _state.e_local_positioning_type = type;
     }
 
-    GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_positioning_e_type() const
+    GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_e_local_positioning_type() const
     {
-        return _state.positioning_e_type;
+        return _state.e_local_positioning_type;
     }
 
     void GCodeTimeEstimator::add_additional_time(float timeSec)
@@ -408,8 +408,8 @@ namespace Slic3r {
     {
         set_units(Millimeters);
         set_dialect(gcfRepRap);
-        set_positioning_xyz_type(Absolute);
-        set_positioning_e_type(Relative);
+        set_global_positioning_type(Absolute);
+        set_e_local_positioning_type(Absolute);
 
         set_feedrate(DEFAULT_FEEDRATE);
         set_acceleration(DEFAULT_ACCELERATION);
@@ -628,13 +628,13 @@ namespace Slic3r {
     }
 
     // Returns the new absolute position on the given axis in dependence of the given parameters
-    float axis_absolute_position_from_G1_line(GCodeTimeEstimator::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeTimeEstimator::EUnits units, GCodeTimeEstimator::EPositioningType type, float current_absolute_position)
+    float axis_absolute_position_from_G1_line(GCodeTimeEstimator::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeTimeEstimator::EUnits units, bool is_relative, float current_absolute_position)
     {
         float lengthsScaleFactor = (units == GCodeTimeEstimator::Inches) ? INCHES_TO_MM : 1.0f;
         if (lineG1.has(Slic3r::Axis(axis)))
         {
             float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
-            return (type == GCodeTimeEstimator::Absolute) ? ret : current_absolute_position + ret;
+            return is_relative ? current_absolute_position + ret : ret;
         }
         else
             return current_absolute_position;
@@ -647,7 +647,11 @@ namespace Slic3r {
         float new_pos[Num_Axis];
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
-            new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, (a == E) ? get_positioning_e_type() : get_positioning_xyz_type(), get_axis_position((EAxis)a));
+            bool is_relative = (get_global_positioning_type() == Relative);
+            if (a == E)
+                is_relative |= (get_e_local_positioning_type() == Relative);
+
+            new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, is_relative, get_axis_position((EAxis)a));
         }
 
         // updates feedrate from line, if present
@@ -865,14 +869,12 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processG90(const GCodeReader::GCodeLine& line)
     {
-        set_positioning_xyz_type(Absolute);
+        set_global_positioning_type(Absolute);
     }
 
     void GCodeTimeEstimator::_processG91(const GCodeReader::GCodeLine& line)
     {
-        // TODO: THERE ARE DIALECT VARIANTS
-
-        set_positioning_xyz_type(Relative);
+        set_global_positioning_type(Relative);
     }
 
     void GCodeTimeEstimator::_processG92(const GCodeReader::GCodeLine& line)
@@ -922,12 +924,12 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM82(const GCodeReader::GCodeLine& line)
     {
-        set_positioning_e_type(Absolute);
+        set_e_local_positioning_type(Absolute);
     }
 
     void GCodeTimeEstimator::_processM83(const GCodeReader::GCodeLine& line)
     {
-        set_positioning_e_type(Relative);
+        set_e_local_positioning_type(Relative);
     }
 
     void GCodeTimeEstimator::_processM109(const GCodeReader::GCodeLine& line)
