@@ -105,7 +105,6 @@ sub new {
         $self->{btn_reslice}->Enable($enable);
         $self->{btn_print}->Enable($enable);
         $self->{btn_send_gcode}->Enable($enable);
-        $self->{btn_export_stl}->Enable($enable);    
     };
     
     # Initialize 3D plater
@@ -1915,7 +1914,8 @@ sub object_list_changed {
     }
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
-    my $method = ($have_objects && ! $export_in_progress) ? 'Enable' : 'Disable';
+    my $model_fits = $self->{model}->fits_print_volume($self->{config});
+    my $method = ($have_objects && ! $export_in_progress && $model_fits) ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
 }
