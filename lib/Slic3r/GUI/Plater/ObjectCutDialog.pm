@@ -247,6 +247,7 @@ sub _update {
                 $self->{cut_options}{z},
                 [@expolygons],
             );
+            $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->{config});
             $self->{canvas}->Render;
         }
     }

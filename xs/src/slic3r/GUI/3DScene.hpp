@@ -246,12 +246,15 @@ public:
         composite_id(-1),
         select_group_id(-1),
         drag_group_id(-1),
+        extruder_id(0),
         selected(false),
         is_active(true),
         zoom_to_volumes(true),
         outside_printer_detection_enabled(true),
         is_outside(false),
         hover(false),
+        is_modifier(false),
+        is_wipe_tower(false),
         tverts_range(0, size_t(-1)),
         qverts_range(0, size_t(-1))
     {
@@ -287,6 +290,8 @@ public:
     int                 select_group_id;
     // An ID for group dragging. It may be the same for all meshes of all object instances, or for just a single object instance.
     int                 drag_group_id;
+    // An ID containing the extruder ID (used to select color).
+    int                 extruder_id;
     // Is this object selected?
     bool                selected;
     // Whether or not this volume is active for rendering
@@ -299,6 +304,10 @@ public:
     bool                is_outside;
     // Boolean: Is mouse over this object?
     bool                hover;
+    // Wheter or not this volume has been generated from a modifier
+    bool                 is_modifier;
+    // Wheter or not this volume has been generated from the wipe tower
+    bool                 is_wipe_tower;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
@@ -417,6 +426,7 @@ public:
     }
 
     void update_outside_state(const DynamicPrintConfig* config, bool all_inside);
+    void update_colors_by_extruder(const DynamicPrintConfig* config);
 
     // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
     std::vector<double> get_current_print_zs() const;

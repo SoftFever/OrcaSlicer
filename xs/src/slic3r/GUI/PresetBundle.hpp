@@ -98,6 +98,8 @@ public:
     // preset if the current print or filament preset is not compatible.
     void                        update_compatible_with_printer(bool select_other_if_incompatible);
 
+    static bool parse_color(const std::string &scolor, unsigned char *rgb_out);
+
 private:
     // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
     // and the external config is just referenced, not stored into user profile directory.

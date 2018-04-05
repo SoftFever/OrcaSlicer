@@ -162,6 +162,7 @@ sub new {
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,700]);
+        $canvas->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
         $canvas->zoom_to_volumes;
     }
     

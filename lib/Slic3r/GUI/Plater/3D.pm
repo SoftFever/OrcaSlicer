@@ -216,6 +216,8 @@ sub reload_scene {
         }
     }
     
+    $self->update_volumes_colors_by_extruder($self->{config});
+    
     # checks for geometry outside the print volume to render it accordingly
     if (scalar @{$self->volumes} > 0)
     {

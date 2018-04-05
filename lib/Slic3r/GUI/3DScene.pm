@@ -1677,6 +1677,11 @@ sub draw_warning {
     }
 }
 
+sub update_volumes_colors_by_extruder {
+    my ($self, $config) = @_;    
+    $self->volumes->update_colors_by_extruder($config);
+}
+
 sub opengl_info
 {
     my ($self, %params) = @_;
