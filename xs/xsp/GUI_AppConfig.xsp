@@ -41,4 +41,6 @@
     void                        update_skein_dir(char *dir);
     std::string                 get_last_output_dir(const char *alt = "");
     void                        update_last_output_dir(char *dir);
+
+    void                        reset_selections();
 };
