@@ -183,7 +183,8 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 			vertex_distances.push_back(distance);
 			avg_dist += distance;
 		}
-			
+
+		avg_dist /= vertex_distances.size();
 		bool defined_value = true;
 		for (auto el: vertex_distances)
 		{

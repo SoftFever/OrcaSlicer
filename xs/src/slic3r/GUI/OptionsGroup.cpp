@@ -82,7 +82,16 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_initial_value(opt_id);
 	};
-	if (!m_is_tab_opt) field->m_Undo_btn->Hide();
+	field->m_back_to_sys_value = [this](std::string opt_id){
+		if (!this->m_disabled)
+			this->back_to_sys_value(opt_id);
+	};
+	if (!m_is_tab_opt) {
+		field->m_Undo_btn->Hide();
+		field->m_Undo_to_sys_btn->Hide();
+	}
+	if (nonsys_btn_icon != nullptr)
+		field->set_nonsys_btn_icon(nonsys_btn_icon());
     
 	// assign function objects for callbacks, etc.
     return field;
@@ -112,7 +121,10 @@ void OptionsGroup::append_line(const Line& line) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
-		sizer->Add(field->m_Undo_btn);
+		auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+		btn_sizer->Add(field->m_Undo_to_sys_btn);
+		btn_sizer->Add(field->m_Undo_btn);
+		sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
 		if (is_window_field(field))
 			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_sizer_field(field))
@@ -149,6 +161,7 @@ void OptionsGroup::append_line(const Line& line) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option, label);
 
+		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL); 
 		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 		if (is_window_field(field)) 
 			sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) |
@@ -177,6 +190,7 @@ void OptionsGroup::append_line(const Line& line) {
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
+		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL, 0);
 		is_sizer_field(field) ? 
 			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
@@ -287,7 +301,20 @@ void ConfigOptionsGroup::back_to_initial_value(const std::string opt_key)
 {
 	if (m_get_initial_config == nullptr)
 		return;
-	DynamicPrintConfig config = m_get_initial_config();
+	back_to_config_value(m_get_initial_config(), opt_key);
+}
+
+void ConfigOptionsGroup::back_to_sys_value(const std::string opt_key)
+{
+	if (m_get_sys_config == nullptr)
+		return;
+	if (!have_sys_config())
+		return;
+	back_to_config_value(m_get_sys_config(), opt_key);
+}
+
+void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, const std::string opt_key)
+{
 	boost::any value;
 	if (opt_key == "extruders_count"){
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
@@ -300,15 +327,18 @@ void ConfigOptionsGroup::back_to_initial_value(const std::string opt_key)
 		int opt_index = m_opt_map.at(opt_id).second;
 		value = get_config_value(config, opt_short_key, opt_index);
 	}
-	else
+	else{
 		value = get_config_value(config, opt_key);
+		change_opt_value(*m_config, opt_key, value);
+		return;
+	}
 
 	set_value(opt_key, value);
 	on_change_OG(opt_key, get_value(opt_key));
 }
 
 void ConfigOptionsGroup::reload_config(){
-	for (std::map< std::string, std::pair<std::string, int> >::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
+	for (t_opt_map::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
 		auto opt_id = it->first;
 		std::string opt_key = m_opt_map.at(opt_id).first;
 		int opt_index = m_opt_map.at(opt_id).second;
@@ -335,7 +365,7 @@ boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, 
 	}
 }
 
-boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std::string opt_key, int opt_index/* = -1*/)
+boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config, std::string opt_key, int opt_index /*= -1*/)
 {
 	size_t idx = opt_index == -1 ? 0 : opt_index;
 	
@@ -379,8 +409,9 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 			ret = text_value;
 		else if (opt->gui_flags.compare("serialized") == 0){
 			std::vector<std::string> values = config.option<ConfigOptionStrings>(opt_key)->values;
-			for (auto el : values)
-				text_value += el + ";";
+			if (!values.empty() && values[0].compare("") != 0)
+				for (auto el : values)
+					text_value += el + ";";
 			ret = text_value;
 		}
 		else
@@ -414,7 +445,10 @@ boost::any ConfigOptionsGroup::get_config_value(DynamicPrintConfig& config, std:
 	}
 		break;
 	case coPoints:
-		ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
+		if (opt_key.compare("bed_shape") == 0)
+			ret = config.option<ConfigOptionPoints>(opt_key)->values;
+		else
+			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
 		break;
 	case coNone:
 	default:
@@ -428,7 +462,7 @@ Field* ConfigOptionsGroup::get_fieldc(t_config_option_key opt_key, int opt_index
 	if (field != nullptr)
 		return field;
 	std::string opt_id = "";
-	for (std::map< std::string, std::pair<std::string, int> >::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
+	for (t_opt_map::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
 		if (opt_key == m_opt_map.at(it->first).first && opt_index == m_opt_map.at(it->first).second){
 			opt_id = it->first;
 			break;
