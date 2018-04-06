@@ -65,7 +65,7 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
     double z_sin = sin(z);
     double z_cos = cos(z);
     Polylines result;
-    if (abs(z_sin) <= abs(z_cos)) {
+    if (std::abs(z_sin) <= std::abs(z_cos)) {
         // Vertical wave
         double x0 = M_PI * (int)((- 0.5 * M_PI) / M_PI - 1.);
         bool   flip          = ((int)(x0 / M_PI + 1.) & 1) != 0;
