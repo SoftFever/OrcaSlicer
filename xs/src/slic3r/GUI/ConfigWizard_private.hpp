@@ -136,8 +136,8 @@ struct PageDiameters: ConfigWizardPage
 
 struct PageTemperatures: ConfigWizardPage
 {
-	wxSpinCtrl *spin_extr;
-	wxSpinCtrl *spin_bed;
+	wxSpinCtrlDouble *spin_extr;
+	wxSpinCtrlDouble *spin_bed;
 
 	PageTemperatures(ConfigWizard *parent);
 	virtual void apply_custom_config(DynamicPrintConfig &config);

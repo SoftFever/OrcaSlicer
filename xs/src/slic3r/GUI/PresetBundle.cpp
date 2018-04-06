@@ -4,7 +4,6 @@
 #include "PresetBundle.hpp"
 #include "BitmapCache.hpp"
 
-#include <iostream>    // XXX
 #include <algorithm>
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -201,10 +200,7 @@ static inline std::string remove_ini_suffix(const std::string &name)
 // If the "vendor" section is missing, enable all models and variants of the particular vendor.
 void PresetBundle::load_installed_printers(const AppConfig &config)
 {
-    std::cerr << "load_installed_printers()" << std::endl;
-
     for (auto &preset : printers) {
-        std::cerr << "preset: printer: " << preset.name << std::endl;
         preset.set_visible_from_appconfig(config);
     }
 }
@@ -742,7 +738,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     const VendorProfile *vendor_profile = nullptr;
     if (flags & (LOAD_CFGBNDLE_SYSTEM | LOAD_CFGBUNDLE_VENDOR_ONLY)) {
         boost::filesystem::path fspath(path);
-        VendorProfile vp(fspath.stem().native());
+        VendorProfile vp(fspath.stem().string());
         load_vendor_profile(tree, vp);
         if (vp.name.empty())
             throw std::runtime_error(std::string("Vendor Config Bundle is not valid: Missing vendor name key."));

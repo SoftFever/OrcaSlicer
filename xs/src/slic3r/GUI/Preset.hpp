@@ -37,14 +37,12 @@ public:
         PrinterVariant() {}
         PrinterVariant(const std::string &name) : name(name) {}
         std::string                 name;
-        // bool                        enabled = true;    // TODO: remove these?
     };
 
     struct PrinterModel {
         PrinterModel() {}
         std::string                 id;
         std::string                 name;
-        // bool                        enabled = true;
         std::vector<PrinterVariant> variants;
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
@@ -87,7 +85,8 @@ public:
     bool                is_external = false;
     // System preset is read-only.
     bool                is_system   = false;
-    // Preset is visible, if it is compatible with the active Printer.   TODO: fix
+    // Preset is visible, if it is associated with a printer model / variant that is enabled in the AppConfig
+    // or if it has no printer model / variant association.
     // Also the "default" preset is only visible, if it is the only preset in the list.
     bool                is_visible  = true;
     // Has this preset been modified?

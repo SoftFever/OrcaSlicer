@@ -73,7 +73,6 @@ void break_to_debugger();
 // Passing the wxWidgets GUI classes instantiated by the Perl part to C++.
 void set_wxapp(wxApp *app);
 void set_main_frame(wxFrame *main_frame);
-// wxFrame* get_main_frame();
 void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
@@ -85,8 +84,8 @@ wxColour*	get_sys_label_clr();
 
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
 
-// Opens the first-time configuration wizard
-void open_config_wizard(PresetBundle *preset_bundle);
+// Opens the first-time configuration wizard, returns true if wizard is finished & accepted.
+bool open_config_wizard(PresetBundle *preset_bundle);
 
 // Create "Preferences" dialog after selecting menu "Preferences" in Perl part
 void open_preferences_dialog(int event_preferences);

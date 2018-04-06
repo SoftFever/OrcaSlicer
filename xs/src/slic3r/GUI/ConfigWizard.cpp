@@ -412,16 +412,16 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
 
 PageTemperatures::PageTemperatures(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Extruder and Bed Temperatures")), _(L("Temperatures"))),
-	spin_extr(new wxSpinCtrl(this, wxID_ANY)),
-	spin_bed(new wxSpinCtrl(this, wxID_ANY))
+	spin_extr(new wxSpinCtrlDouble(this, wxID_ANY)),
+	spin_bed(new wxSpinCtrlDouble(this, wxID_ANY))
 {
-	spin_extr->SetIncrement(5);
+	spin_extr->SetIncrement(5.0);
 	const auto &def_extr = print_config_def.options["temperature"];
 	spin_extr->SetRange(def_extr.min, def_extr.max);
 	auto *default_extr = dynamic_cast<const ConfigOptionInts*>(def_extr.default_value);
 	spin_extr->SetValue(default_extr != nullptr && default_extr->size() > 0 ? default_extr->get_at(0) : 200);
 
-	spin_bed->SetIncrement(5);
+	spin_bed->SetIncrement(5.0);
 	const auto &def_bed = print_config_def.options["bed_temperature"];
 	spin_bed->SetRange(def_bed.min, def_bed.max);
 	auto *default_bed = dynamic_cast<const ConfigOptionInts*>(def_bed.default_value);
@@ -541,7 +541,7 @@ void ConfigWizard::priv::load_vendors()
 	const auto vendor_dir = fs::path(Slic3r::data_dir()) / "vendor";
 	for (fs::directory_iterator it(vendor_dir); it != fs::directory_iterator(); ++it) {
 		if (it->path().extension() == ".ini") {
-			bundle_vendors.load_configbundle(it->path().native(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
+			bundle_vendors.load_configbundle(it->path().string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
 		}
 	}
 
@@ -688,7 +688,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent) :
 
 ConfigWizard::~ConfigWizard() {}
 
-void ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
+bool ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
 {
 	const auto profiles_dir = fs::path(resources_dir()) / "profiles";
 	for (fs::directory_iterator it(profiles_dir); it != fs::directory_iterator(); ++it) {
@@ -700,6 +700,9 @@ void ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
 	ConfigWizard wizard(parent);
 	if (wizard.ShowModal() == wxID_OK) {
 		wizard.p->apply_config(GUI::get_app_config(), preset_bundle);
+		return true;
+	} else {
+		return false;
 	}
 }
 

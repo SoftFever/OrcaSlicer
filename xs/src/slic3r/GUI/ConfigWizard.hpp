@@ -15,7 +15,6 @@ namespace GUI {
 class ConfigWizard: public wxDialog
 {
 public:
-	// ConfigWizard(wxWindow *parent, const PresetBundle &bundle);
 	ConfigWizard(wxWindow *parent);
 	ConfigWizard(ConfigWizard &&) = delete;
 	ConfigWizard(const ConfigWizard &) = delete;
@@ -23,7 +22,7 @@ public:
 	ConfigWizard &operator=(const ConfigWizard &) = delete;
 	~ConfigWizard();
 
-	static void run(wxWindow *parent, PresetBundle *preset_bundle);
+	static bool run(wxWindow *parent, PresetBundle *preset_bundle);
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

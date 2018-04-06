@@ -353,13 +353,13 @@ void add_debug_menu(wxMenuBar *menu, int event_language_change)
 //#endif
 }
 
-void open_config_wizard(PresetBundle *preset_bundle)
+bool open_config_wizard(PresetBundle *preset_bundle)
 {
 	if (g_wxMainFrame == nullptr) {
 		throw std::runtime_error("Main frame not set");
 	}
 
-	ConfigWizard::run(g_wxMainFrame, preset_bundle);
+	return ConfigWizard::run(g_wxMainFrame, preset_bundle);
 }
 
 void open_preferences_dialog(int event_preferences)
