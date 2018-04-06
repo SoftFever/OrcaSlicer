@@ -21,6 +21,7 @@
 #include <wx/treectrl.h>
 #include <wx/imaglist.h>
 #include <wx/statbox.h>
+#include <wx/dataview.h>
 
 #include <map>
 #include <vector>
@@ -95,6 +96,7 @@ protected:
 	wxButton*			m_compatible_printers_btn;
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
+	wxComboCtrl*		m_cc_presets_choice;
 
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index

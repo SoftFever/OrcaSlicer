@@ -20,6 +20,7 @@
 #include <wx/filedlg.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include "wxExtensions.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -37,6 +38,50 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
+
+	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L("Presets"), wxDefaultPosition, wxSize(270, -1), wxCB_READONLY);
+	wxDataViewTreeCtrlComboPopup* popup = new wxDataViewTreeCtrlComboPopup;
+	if (popup != nullptr)
+	{
+		// FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
+		//  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
+// 		comboCtrl->UseAltPopupWindow();
+// 		comboCtrl->EnablePopupAnimation(false);
+		m_cc_presets_choice->SetPopupControl(popup);
+		popup->SetStringValue(from_u8("Text1"));
+
+		popup->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this, popup](wxCommandEvent& evt)
+		{
+			auto selected = popup->GetItemText(popup->GetSelection());
+			if (selected != _(L("System presets")) && selected != _(L("Default presets")))
+				m_cc_presets_choice->SetText(selected);
+//			popup->OnDataViewTreeCtrlSelection(evt);
+		});
+		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
+		popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
+
+		auto icons = new wxImageList(16, 16, true, 1);
+		popup->SetImageList(icons);
+		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
+		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
+
+		Freeze();
+
+		// get label of the currently selected item
+		auto selected = popup->GetItemText(popup->GetSelection());
+		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
+		auto tree_node1 = popup->AppendItem(root_sys, _("Sys1"), 0);
+		auto tree_node2 = popup->AppendContainer(root_sys, _("Sys2"), 0);
+		auto tree_node2_1 = popup->AppendItem(tree_node2, _("Sys2_1"), 0);
+
+		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
+		auto tree_node01 = popup->AppendContainer(root_def, _("Def1"), 0);
+		auto tree_node02 = popup->AppendContainer(root_def, _("Def2"), 0);
+		auto tree_node02_1 = popup->AppendItem(tree_node02, _("Def2_1"), 0);
+
+		Thaw();
+	}
+
 
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -82,6 +127,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer->AddSpacer(64);
 	m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+	m_hsizer->AddSpacer(64);
+	m_hsizer->Add(m_cc_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
 
 	//Horizontal sizer to hold the tree and the selected page.
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);

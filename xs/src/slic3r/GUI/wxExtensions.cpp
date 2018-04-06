@@ -109,3 +109,47 @@ void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)
         ProcessEvent(event);
     }
 }
+
+
+// ***  wxDataViewTreeCtrlComboPopup  ***
+
+const unsigned int wxDataViewTreeCtrlComboPopup::DefaultWidth = 270;
+const unsigned int wxDataViewTreeCtrlComboPopup::DefaultHeight = 200;
+const unsigned int wxDataViewTreeCtrlComboPopup::DefaultItemHeight = 22;
+
+bool wxDataViewTreeCtrlComboPopup::Create(wxWindow* parent)
+{
+	return wxDataViewTreeCtrl::Create(parent, wxID_HIGHEST + 1, wxPoint(0, 0), wxSize(270, -1));
+}
+
+wxSize wxDataViewTreeCtrlComboPopup::GetAdjustedSize(int minWidth, int prefHeight, int maxHeight)
+{
+	// matches owner wxComboCtrl's width
+	// and sets height dinamically in dependence of contained items count
+	return wxSize(DefaultWidth, DefaultHeight);
+}
+
+void wxDataViewTreeCtrlComboPopup::OnKeyEvent(wxKeyEvent& evt)
+{
+	// filters out all the keys which are not working properly
+	if (evt.GetKeyCode() == WXK_UP)
+	{
+		return;
+	}
+	else if (evt.GetKeyCode() == WXK_DOWN)
+	{
+		return;
+	}
+	else
+	{
+		evt.Skip();
+		return;
+	}
+}
+
+void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& evt)
+{
+	wxComboCtrl* cmb = GetComboCtrl();
+	auto selected = GetItemText(GetSelection());
+	cmb->SetText(selected);
+}
