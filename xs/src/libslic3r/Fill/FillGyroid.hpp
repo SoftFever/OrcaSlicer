@@ -17,10 +17,6 @@ public:
     virtual bool use_bridge_flow() const { return true; }
 
 protected:
-    
-    // mult of density, to have a good %of weight for each density parameter
-    float scaling = 1.75;
-
     virtual void _fill_surface_single(
         const FillParams                &params, 
         unsigned int                     thickness_layers,

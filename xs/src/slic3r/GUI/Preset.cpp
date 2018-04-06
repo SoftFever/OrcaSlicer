@@ -80,7 +80,7 @@ void Preset::set_num_extruders(DynamicPrintConfig &config, unsigned int num_extr
         auto *opt = config.option(key, false);
         assert(opt != nullptr);
         assert(opt->is_vector());
-        if (opt != nullptr && opt->is_vector())
+        if (opt != nullptr && opt->is_vector() && key != "default_filament_profile")
             static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
     }
 }
@@ -198,10 +198,8 @@ const std::vector<std::string>& Preset::print_options()
         "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "first_layer_extrusion_width", 
         "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", 
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
-        "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x",
-        "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging",
-        "compatible_printers", "compatible_printers_condition"
-
+        "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
+        "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging", "compatible_printers", "compatible_printers_condition","inherits"
     };
     return s_opts;
 }
@@ -209,12 +207,12 @@ const std::vector<std::string>& Preset::print_options()
 const std::vector<std::string>& Preset::filament_options()
 {    
     static std::vector<std::string> s_opts {
-        "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed", 
+        "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed",
         "extrusion_multiplier", "filament_density", "filament_cost", "filament_loading_speed", "filament_unloading_speed", "filament_toolchange_delay",
         "filament_cooling_time", "filament_ramming_parameters", "temperature", "first_layer_temperature", "bed_temperature",
         "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", "disable_fan_first_layers",
         "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", "end_filament_gcode","compatible_printers",
-        "compatible_printers_condition"
+        "compatible_printers_condition", "inherits"
     };
     return s_opts;
 }
@@ -227,14 +225,16 @@ const std::vector<std::string>& Preset::printer_options()
             "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
             "octoprint_host", "octoprint_apikey", "octoprint_cafile", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height",
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
-            "between_objects_gcode", "printer_notes", "cooling_tube_retraction", "cooling_tube_length", "parking_pos_retraction",
-            "max_print_height"
+            "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "cooling_tube_retraction",
+            "cooling_tube_length", "parking_pos_retraction", "max_print_height", "default_print_profile", "inherits",
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }
     return s_opts;
 }
 
+// The following nozzle options of a printer profile will be adjusted to match the size 
+// of the nozzle_diameter vector.
 const std::vector<std::string>& Preset::nozzle_options()
 {
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
@@ -242,7 +242,8 @@ const std::vector<std::string>& Preset::nozzle_options()
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
         "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
         "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
-        "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour"
+        "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour", 
+        "default_filament_profile"
     };
     return s_opts;
 }
@@ -271,7 +272,7 @@ void PresetCollection::reset(bool delete_files)
         if (delete_files) {
             // Erase the preset files.
             for (Preset &preset : m_presets)
-                if (! preset.is_default && ! preset.is_external)
+                if (! preset.is_default && ! preset.is_external && ! preset.is_system)
                     boost::nowide::remove(preset.file.c_str());
         }
         // Don't use m_presets.resize() here as it requires a default constructor for Preset.
@@ -286,7 +287,6 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 {
 	boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
 	m_dir_path = dir.string();
-    m_presets.erase(m_presets.begin()+1, m_presets.end());
     t_config_option_keys keys = this->default_preset().config.keys();
     std::string errors_cummulative;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
@@ -294,6 +294,10 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
             std::string name = dir_entry.path().filename().string();
             // Remove the .ini suffix.
             name.erase(name.size() - 4);
+            if (this->find_preset(name, false)) {
+                errors_cummulative += "The user preset \"" + name + "\" cannot be loaded. A system preset of the same name has already been loaded.";
+                continue;
+            }
             try {
                 Preset preset(m_type, name, false);
                 preset.file = dir_entry.path().string();
@@ -344,16 +348,33 @@ void PresetCollection::save_current_preset(const std::string &new_name)
     if (it != m_presets.end() && it->name == new_name) {
         // Preset with the same name found.
         Preset &preset = *it;
-        if (preset.is_default)
+        if (preset.is_default || preset.is_external || preset.is_system)
             // Cannot overwrite the default preset.
             return;
         // Overwriting an existing preset.
         preset.config = std::move(m_edited_preset.config);
     } else {
         // Creating a new preset.
-		Preset &preset = *m_presets.insert(it, m_edited_preset);
+		Preset       &preset   = *m_presets.insert(it, m_edited_preset);
+        std::string  &inherits = preset.config.opt_string("inherits", true);
+        std::string   old_name = preset.name;
         preset.name = new_name;
 		preset.file = this->path_from_name(new_name);
+        preset.vendor = nullptr;
+        if (preset.is_system) {
+            // Inheriting from a system preset.
+            inherits = /* preset.vendor->name + "/" + */ old_name;
+        } else if (inherits.empty()) {
+            // Inheriting from a user preset. Link the new preset to the old preset.
+            // inherits = old_name;
+        } else {
+            // Inherited from a user preset. Just maintain the "inherited" flag, 
+            // meaning it will inherit from either the system preset, or the inherited user preset.
+        }
+        preset.inherits = inherits;
+        preset.is_default  = false;
+        preset.is_system   = false;
+        preset.is_external = false;
     }
 	// 2) Activate the saved preset.
 	this->select_preset_by_name(new_name, true);
@@ -366,7 +387,7 @@ void PresetCollection::delete_current_preset()
     const Preset &selected = this->get_selected_preset();
     if (selected.is_default)
         return;
-	if (! selected.is_external) {
+	if (! selected.is_external && ! selected.is_system) {
 		// Erase the preset file.
 		boost::nowide::remove(selected.file.c_str());
 	}
@@ -384,6 +405,15 @@ void PresetCollection::delete_current_preset()
 bool PresetCollection::load_bitmap_default(const std::string &file_name)
 {
     return m_bitmap_main_frame->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
+}
+
+const Preset* PresetCollection::get_selected_preset_parent() const
+{
+    auto *inherits = dynamic_cast<const ConfigOptionString*>(this->get_edited_preset().config.option("inherits"));
+    if (inherits == nullptr || inherits->value.empty())
+		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; // nullptr; 
+    const Preset* preset = this->find_preset(inherits->value, false);
+    return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
 }
 
 // Return a preset by its name. If the preset is active, a temporary copy is returned.
@@ -529,18 +559,32 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
     return was_dirty != is_dirty;
 }
 
-std::vector<std::string> PresetCollection::current_dirty_options() const
-{ 
-    std::vector<std::string> changed = this->get_selected_preset().config.diff(this->get_edited_preset().config);
-    // The "compatible_printers" option key is handled differently from the others:
-    // It is not mandatory. If the key is missing, it means it is compatible with any printer.
-    // If the key exists and it is empty, it means it is compatible with no printer.
-    std::initializer_list<const char*> optional_keys { "compatible_printers", "compatible_printers_condition" };
-    for (auto &opt_key : optional_keys) {
-        if (this->get_selected_preset().config.has(opt_key) != this->get_edited_preset().config.has(opt_key))
-            changed.emplace_back(opt_key);
+std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, const Preset *reference)
+{
+    std::vector<std::string> changed;
+    if (edited != nullptr && reference != nullptr) {
+        changed = reference->config.diff(edited->config);
+        // The "compatible_printers" option key is handled differently from the others:
+        // It is not mandatory. If the key is missing, it means it is compatible with any printer.
+        // If the key exists and it is empty, it means it is compatible with no printer.
+        std::initializer_list<const char*> optional_keys { "compatible_printers", "compatible_printers_condition" };
+        for (auto &opt_key : optional_keys) {
+            if (reference->config.has(opt_key) != edited->config.has(opt_key))
+                changed.emplace_back(opt_key);
+        }
     }
     return changed;
+}
+
+std::vector<std::string>    PresetCollection::system_equal_options() const
+{
+	const Preset *edited = &this->get_edited_preset();
+	const Preset *reference = this->get_selected_preset_parent();
+	std::vector<std::string> equal;
+	if (edited != nullptr && reference != nullptr) {
+		equal = reference->config.equal(edited->config);
+	}
+	return equal;
 }
 
 // Select a new preset. This resets all the edits done to the currently selected preset.

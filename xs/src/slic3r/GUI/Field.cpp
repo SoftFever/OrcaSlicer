@@ -19,14 +19,22 @@ namespace Slic3r { namespace GUI {
 	}
 
 	void Field::PostInitialize(){
-		m_Undo_btn = new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-		// use bouth of temporary_icons till don't have "undo_icon" 
 		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-		if (wxMSW) m_Undo_btn->SetBackgroundColour(color);
+		m_Undo_btn			= new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+		m_Undo_to_sys_btn	= new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+		if (wxMSW) {
+			m_Undo_btn->SetBackgroundColour(color);
+			m_Undo_to_sys_btn->SetBackgroundColour(color);
+		}
 		m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
 		m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
+		m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
 
 		BUILD();
+	}
+
+	void Field::set_nonsys_btn_icon(const std::string& icon){
+		m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(icon)), wxBITMAP_TYPE_PNG));
 	}
 
 	void Field::on_kill_focus(wxEvent& event) {
@@ -45,10 +53,14 @@ namespace Slic3r { namespace GUI {
             m_on_change(m_opt_id, get_value());
     }
 
-	void Field::on_back_to_initial_value()
-	{
+	void Field::on_back_to_initial_value(){
 		if (m_back_to_initial_value != nullptr && m_is_modified_value)
 			m_back_to_initial_value(m_opt_id);
+	}
+
+	void Field::on_back_to_sys_value(){
+		if (m_back_to_sys_value != nullptr && m_is_nonsys_value)
+			m_back_to_sys_value(m_opt_id);
 	}
 
 	wxString Field::get_tooltip_text(const wxString& default_string)
@@ -161,7 +173,8 @@ namespace Slic3r { namespace GUI {
 
 		temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 		{
-			on_kill_focus(e);
+//			on_kill_focus(e);
+			e.Skip();
 			temp->GetToolTip()->Enable(true);
 		}), temp->GetId());
 
@@ -253,8 +266,8 @@ void SpinCtrl::BUILD() {
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0, min_val, max_val, default_value);
 
-	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
-	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { tmp_value = undef_spin_val; on_kill_focus(e); }), temp->GetId());
+// 	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
+// 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { tmp_value = undef_spin_val; on_kill_focus(e); }), temp->GetId());
 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
 	{
 // 		# On OSX / Cocoa, wxSpinCtrl::GetValue() doesn't return the new value
@@ -392,6 +405,7 @@ void Choice::set_value(boost::any value, bool change_event)
 	case coInt:
 	case coFloat:
 	case coPercent:
+	case coString:
 	case coStrings:{
 		wxString text_value;
 		if (m_opt.type == coInt) 
@@ -405,7 +419,6 @@ void Choice::set_value(boost::any value, bool change_event)
 				break;
 			++idx;
 		}
-//		if (m_opt.type == coPercent) text_value += "%";
 		idx == m_opt.enum_values.size() ?
 			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
@@ -434,6 +447,7 @@ void Choice::set_values(const std::vector<std::string> values)
 	auto ww = dynamic_cast<wxComboBox*>(window);
 	auto value = ww->GetValue();
 	ww->Clear();
+	ww->Append("");
 	for (auto el : values)
 		ww->Append(wxString(el));
 	ww->SetValue(value);

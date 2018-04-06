@@ -73,6 +73,11 @@ public:
 	std::string 		get_last_output_dir(const std::string &alt) const;
 	void                update_last_output_dir(const std::string &dir);
 
+	// reset the current print / filament / printer selections, so that 
+	// the  PresetBundle::load_selections(const AppConfig &config) call will select
+	// the first non-default preset when called.
+    void                reset_selections();
+
 	// Get the default config path from Slic3r::data_dir().
 	static std::string  config_path();
 

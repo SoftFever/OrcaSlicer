@@ -54,6 +54,9 @@ public:
 	}
 	~Page(){}
 
+	bool				m_is_modified_values{ false };
+	bool				m_is_nonsys_values{ true };
+
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
 	DynamicPrintConfig* m_config;
@@ -90,26 +93,35 @@ protected:
 	wxImageList*		m_icons;
 	wxCheckBox*			m_compatible_printers_checkbox;
 	wxButton*			m_compatible_printers_btn;
+	wxButton*			m_undo_btn;
+	wxButton*			m_undo_to_sys_btn;
 
 	int					m_icon_count;
-	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index in $self->{icons}.
-	std::vector<PageShp>			m_pages;	// $self->{pages} = [];
+	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index
+	std::vector<PageShp>			m_pages;
 	bool				m_disable_tree_sel_changed_event;
 	bool				m_show_incompatible_presets;
 	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 	std::vector<std::string>	m_dirty_options = {};
+	std::vector<std::string>	m_sys_options = {};
+	std::vector<std::string>	m_full_options_list = {};
 
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
 	wxEventType 		m_event_presets_changed = 0;
+
+	bool				m_is_modified_values{ false };
+	bool				m_is_nonsys_values{ true };
 
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
+	std::string			m_nonsys_btn_icon;
+	ogStaticText*		m_parent_preset_description_line;
 
 public:
 	Tab() {}
@@ -147,13 +159,21 @@ public:
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
 	void		update_changed_ui();
-	
+	void		update_full_options_list();
+	void		update_sys_ui_after_sel_preset();
+	void		update_changed_tree_ui();
+	void		update_undo_buttons();
+
+	void		on_back_to_initial_value();
+	void		on_back_to_sys_value();
+
 	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
 
 	virtual void	OnActivate(){}
 	virtual void	on_preset_loaded(){}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
+	void			load_initial_data();
 	void			update_dirty();
 	void			update_tab_ui();
 	void			load_config(DynamicPrintConfig config);
@@ -221,6 +241,7 @@ public:
 
 	size_t		m_extruders_count;
 	size_t		m_initial_extruders_count;
+	size_t		m_sys_extruders_count;
 	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}

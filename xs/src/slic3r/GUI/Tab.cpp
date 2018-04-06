@@ -61,6 +61,17 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
 	m_btn_delete_preset->Disable();
 
+	m_undo_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	m_undo_to_sys_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	if (wxMSW) {
+		m_undo_btn->SetBackgroundColour(color);
+		m_undo_to_sys_btn->SetBackgroundColour(color);
+	}
+	m_undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
+	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
+	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
+	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
+
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
 	m_hsizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
@@ -70,6 +81,9 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->AddSpacer(16);
 	m_hsizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL);
+	m_hsizer->AddSpacer(64);
+	m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
+	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 
 	//Horizontal sizer to hold the tree and the selected page.
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -103,7 +117,6 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
 			select_preset(selected_string);
-			update_changed_ui();
 		}
 	}));
 
@@ -117,6 +130,14 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	build();
 	rebuild_page_tree();
 	update();
+}
+
+void Tab::load_initial_data()
+{
+	m_config = &m_presets->get_edited_preset().config;
+	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
+		"bullet_white.png" :
+		wxMSW ? "sys_unlock.png" : "lock_open.png";
 }
 
 PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
@@ -159,6 +180,23 @@ void add_correct_opts_to_dirty_options(const std::string &opt_key, std::vector<s
 	}
 }
 
+template<class T>
+void add_correct_opts_to_sys_options(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
+{
+	const Preset* sys_preset = tab->m_presets->get_selected_preset_parent();
+	if (sys_preset == nullptr)
+		return;
+	T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
+	const T *opt_sys = static_cast<const T*>(sys_preset->config.option(opt_key));
+	int opt_max_id = opt_sys->values.size()-1;
+	for (int i = 0; i < opt_cur->values.size(); i++)
+	{
+		int init_id = i <= opt_max_id ? i : 0;
+		if (opt_cur->values[i] == opt_sys->values[init_id])
+			vec->emplace_back(opt_key + "#" + std::to_string(i));
+	}
+}
+
 // Update UI according to changes
 void Tab::update_changed_ui()
 {
@@ -167,63 +205,273 @@ void Tab::update_changed_ui()
 	if (name() == "printer"){
 		// Update dirty_options in case changes of Extruder's options 
 		TabPrinter* tab = static_cast<TabPrinter*>(this);
-		std::vector<std::string> new_dirty;
+		m_dirty_options.resize(0);
 		for (auto opt_key : dirty_options)
 		{
+			if (opt_key == "bed_shape"){ m_dirty_options.emplace_back(opt_key);		continue; }
 			switch (m_config->option(opt_key)->type())
 			{
-			case coInts:	add_correct_opts_to_dirty_options<ConfigOptionInts		>(opt_key, &new_dirty, tab);	break;
-			case coBools:	add_correct_opts_to_dirty_options<ConfigOptionBools		>(opt_key, &new_dirty, tab);	break;
-			case coFloats:	add_correct_opts_to_dirty_options<ConfigOptionFloats	>(opt_key, &new_dirty, tab);	break;
-			case coStrings:	add_correct_opts_to_dirty_options<ConfigOptionStrings	>(opt_key, &new_dirty, tab);	break;
-			case coPercents:add_correct_opts_to_dirty_options<ConfigOptionPercents	>(opt_key, &new_dirty, tab);	break;
-			case coPoints:	add_correct_opts_to_dirty_options<ConfigOptionPoints	>(opt_key, &new_dirty, tab);	break;
-			default:		new_dirty.emplace_back(opt_key);		break;
+			case coInts:	add_correct_opts_to_dirty_options<ConfigOptionInts		>(opt_key, &m_dirty_options, tab);	break;
+			case coBools:	add_correct_opts_to_dirty_options<ConfigOptionBools		>(opt_key, &m_dirty_options, tab);	break;
+			case coFloats:	add_correct_opts_to_dirty_options<ConfigOptionFloats	>(opt_key, &m_dirty_options, tab);	break;
+			case coStrings:	add_correct_opts_to_dirty_options<ConfigOptionStrings	>(opt_key, &m_dirty_options, tab);	break;
+			case coPercents:add_correct_opts_to_dirty_options<ConfigOptionPercents	>(opt_key, &m_dirty_options, tab);	break;
+			case coPoints:	add_correct_opts_to_dirty_options<ConfigOptionPoints	>(opt_key, &m_dirty_options, tab);	break;
+			default:		m_dirty_options.emplace_back(opt_key);		break;
 			}
 		}
+		if (tab->m_initial_extruders_count != tab->m_extruders_count)
+			m_dirty_options.emplace_back("extruders_count");
 
-		dirty_options.resize(0);
-		dirty_options = new_dirty;
-		if (tab->m_initial_extruders_count != tab->m_extruders_count){
-			dirty_options.emplace_back("extruders_count");
-		}
-	}
-
-	// Add new dirty options to m_dirty_options
-	for (auto opt_key : dirty_options){
-		Field* field = get_field(opt_key);
-		if (field != nullptr && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end()){
-			if (field->m_Label != nullptr){
-				field->m_Label->SetForegroundColour(*get_modified_label_clr());
-				field->m_Label->Refresh(true);
+		m_sys_options.resize(0);
+		const auto sys_preset = m_presets->get_selected_preset_parent();
+		if (sys_preset){
+			for (auto opt_key : m_config->keys())
+			{
+				if (opt_key == "bed_shape"){ 
+					if (*tab->m_config->option(opt_key) == *sys_preset->config.option(opt_key))
+						m_sys_options.emplace_back(opt_key);		
+					continue; 
+				}
+				switch (m_config->option(opt_key)->type())
+				{
+				case coInts:	add_correct_opts_to_sys_options<ConfigOptionInts	>(opt_key, &m_sys_options, tab);	break;
+				case coBools:	add_correct_opts_to_sys_options<ConfigOptionBools	>(opt_key, &m_sys_options, tab);	break;
+				case coFloats:	add_correct_opts_to_sys_options<ConfigOptionFloats	>(opt_key, &m_sys_options, tab);	break;
+				case coStrings:	add_correct_opts_to_sys_options<ConfigOptionStrings	>(opt_key, &m_sys_options, tab);	break;
+				case coPercents:add_correct_opts_to_sys_options<ConfigOptionPercents>(opt_key, &m_sys_options, tab);	break;
+				case coPoints:	add_correct_opts_to_sys_options<ConfigOptionPoints	>(opt_key, &m_sys_options, tab);	break;
+				default:{
+					const ConfigOption *opt_cur = tab->m_config->option(opt_key);
+					const ConfigOption *opt_sys = sys_preset->config.option(opt_key);
+					if (opt_cur != nullptr && opt_sys != nullptr && *opt_cur == *opt_sys)
+						m_sys_options.emplace_back(opt_key);		
+					break;
+				}
+				}
 			}
-			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(wxMSW ? var("action_undo.png") : var("arrow_undo.png")), wxBITMAP_TYPE_PNG));
-			field->m_is_modified_value = true;
 
-			m_dirty_options.push_back(opt_key);
+			if (tab->m_sys_extruders_count == tab->m_extruders_count)
+				m_sys_options.emplace_back("extruders_count");
 		}
 	}
+	else{
+		m_sys_options = m_presets->system_equal_options();
+		m_dirty_options = dirty_options;
+	}
 
-	// Delete clear options from m_dirty_options
-	for (auto i = 0; i < m_dirty_options.size(); ++i)
+	//update options "decoration"
+	for (const auto opt_key : m_full_options_list)
 	{
-		const std::string &opt_key = m_dirty_options[i];
-		Field* field = get_field(opt_key);
-		if (field != nullptr && find(dirty_options.begin(), dirty_options.end(), opt_key) == dirty_options.end())
+		bool is_nonsys_value = false;
+		bool is_modified_value = true;
+		std::string sys_icon = wxMSW ? "sys_lock.png" : "lock.png";
+		std::string icon = wxMSW ? "action_undo.png" : "arrow_undo.png";
+		wxColour& color = *get_sys_label_clr();
+		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
+			is_nonsys_value = true;
+			sys_icon = m_nonsys_btn_icon;
+			if(find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
+				color = wxSYS_COLOUR_WINDOWTEXT;
+			else
+				color = *get_modified_label_clr();
+		}
+		if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
 		{
-			field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
+			is_modified_value = false;
+			icon = "bullet_white.png";
+		}
+		Field* field = get_field(opt_key);
+		if (field == nullptr) continue;
+		field->m_is_nonsys_value = is_nonsys_value;
+		field->m_is_modified_value = is_modified_value;
+		field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var(icon)), wxBITMAP_TYPE_PNG));
+		field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(sys_icon)), wxBITMAP_TYPE_PNG));
+		if (field->m_Label != nullptr){
+			field->m_Label->SetForegroundColour(color);
+			field->m_Label->Refresh(true);
+		}
+	}
+
+	wxTheApp->CallAfter([this]() {
+		update_changed_tree_ui();
+	});
+}
+
+template<class T>
+void add_correct_opts_to_full_options_list(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
+{
+	T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
+	for (int i = 0; i < opt_cur->values.size(); i++)
+		vec->emplace_back(opt_key + "#" + std::to_string(i));
+}
+
+void Tab::update_full_options_list()
+{
+	if (!m_full_options_list.empty())
+		m_full_options_list.resize(0);
+
+	if (m_name != "printer"){
+		m_full_options_list = m_config->keys();
+		return;
+	}
+
+	TabPrinter* tab = static_cast<TabPrinter*>(this);
+	for (const auto opt_key : m_config->keys())
+	{
+		if (opt_key == "bed_shape"){
+			m_full_options_list.emplace_back(opt_key);
+			continue;
+		}
+		switch (m_config->option(opt_key)->type())
+		{
+		case coInts:	add_correct_opts_to_full_options_list<ConfigOptionInts		>(opt_key, &m_full_options_list, tab);	break;
+		case coBools:	add_correct_opts_to_full_options_list<ConfigOptionBools		>(opt_key, &m_full_options_list, tab);	break;
+		case coFloats:	add_correct_opts_to_full_options_list<ConfigOptionFloats	>(opt_key, &m_full_options_list, tab);	break;
+		case coStrings:	add_correct_opts_to_full_options_list<ConfigOptionStrings	>(opt_key, &m_full_options_list, tab);	break;
+		case coPercents:add_correct_opts_to_full_options_list<ConfigOptionPercents	>(opt_key, &m_full_options_list, tab);	break;
+		case coPoints:	add_correct_opts_to_full_options_list<ConfigOptionPoints	>(opt_key, &m_full_options_list, tab);	break;
+		default:		m_full_options_list.emplace_back(opt_key);		break;
+		}
+	}
+	m_full_options_list.emplace_back("extruders_count");
+}
+
+void Tab::update_sys_ui_after_sel_preset()
+{
+	for (const auto opt_key : m_full_options_list){
+		Field* field = get_field(opt_key);
+		if (field != nullptr){
+			field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(m_nonsys_btn_icon)), wxBITMAP_TYPE_PNG));
+			field->m_is_nonsys_value = true;
 			if (field->m_Label != nullptr){
 				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 				field->m_Label->Refresh(true);
 			}
-			field->m_is_modified_value = false;
-			std::vector<std::string>::iterator itr = find(m_dirty_options.begin(), m_dirty_options.end(), opt_key);
-			if (itr != m_dirty_options.end()){
-				m_dirty_options.erase(itr);
-				--i;
-			}
 		}
 	}
+	m_sys_options.resize(0);
+}
+
+void Tab::update_changed_tree_ui()
+{
+	auto cur_item = m_treectrl->GetFirstVisibleItem();
+	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+	while (cur_item){
+		auto title = m_treectrl->GetItemText(cur_item);
+		int i=0;
+		for (auto page : m_pages)
+		{
+			if (page->title() != title)
+				continue;
+			bool sys_page = true;
+			bool modified_page = false;
+			if (title == _("General")){
+				std::initializer_list<const char*> optional_keys{ "extruders_count", "bed_shape" };
+				for (auto &opt_key : optional_keys) {
+					if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
+						sys_page = false;
+					if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
+						modified_page = true;
+				}
+			}
+			for (auto group : page->m_optgroups)
+			{
+				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+					const std::string& opt_key = it->first;
+					if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
+						sys_page = false;
+					if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
+						modified_page = true;
+				}
+				if (!sys_page && modified_page)
+					break;
+			}
+			if (sys_page)
+				m_treectrl->SetItemTextColour(cur_item, *get_sys_label_clr());
+			else if (modified_page)
+				m_treectrl->SetItemTextColour(cur_item, *get_modified_label_clr());
+			else
+				m_treectrl->SetItemTextColour(cur_item, wxSYS_COLOUR_WINDOWTEXT);
+
+			page->m_is_nonsys_values = !sys_page;
+			page->m_is_modified_values = modified_page;
+
+			if (selection == title){
+				m_is_nonsys_values = page->m_is_nonsys_values;
+				m_is_modified_values = page->m_is_modified_values;
+			}
+			break;
+		}
+		auto next_item = m_treectrl->GetNextVisible(cur_item);
+		cur_item = next_item;
+	}
+	update_undo_buttons();
+}
+
+void Tab::update_undo_buttons()
+{
+	const std::string& undo_icon = !m_is_modified_values ? "bullet_white.png" :
+									wxMSW ? "action_undo.png" : "arrow_undo.png";
+	const std::string& undo_to_sys_icon = m_is_nonsys_values ? m_nonsys_btn_icon :
+									wxMSW ? "sys_lock.png" : "lock.png";
+
+	m_undo_btn->SetBitmap(wxBitmap(from_u8(var(undo_icon)), wxBITMAP_TYPE_PNG));
+	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(undo_to_sys_icon)), wxBITMAP_TYPE_PNG));
+}
+
+void Tab::on_back_to_initial_value()
+{
+	if (!m_is_modified_values) return;
+
+	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+	for (auto page : m_pages)
+		if (page->title() == selection)	{
+			for (auto group : page->m_optgroups){
+				if (group->title == _("Capabilities")){
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), "extruders_count") != m_dirty_options.end())
+						group->back_to_initial_value("extruders_count");
+				}
+				if (group->title == _("Size and coordinates")){
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), "bed_shape") != m_dirty_options.end())
+						group->back_to_initial_value("bed_shape");
+				}
+				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+					const std::string& opt_key = it->first;
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
+						group->back_to_initial_value(opt_key);
+				}
+			}
+			break;
+		}
+	update_changed_ui();
+}
+
+void Tab::on_back_to_sys_value()
+{
+	if (!m_is_nonsys_values) return;
+
+	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+	for (auto page : m_pages)
+		if (page->title() == selection)	{
+			for (auto group : page->m_optgroups) {
+				if (group->title == _("Capabilities")){
+					if (find(m_sys_options.begin(), m_sys_options.end(), "extruders_count") == m_sys_options.end())
+						group->back_to_sys_value("extruders_count");
+				}
+				if (group->title == _("Size and coordinates")){
+					if (find(m_sys_options.begin(), m_sys_options.end(), "bed_shape") == m_sys_options.end())
+						group->back_to_sys_value("bed_shape");
+				}
+				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+					const std::string& opt_key = it->first;
+					if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
+						group->back_to_sys_value(opt_key);
+				}
+			}
+			break;
+		}
+	update_changed_ui();
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
@@ -369,6 +617,13 @@ void Tab::on_presets_changed()
 		event.SetString(m_name);
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
+
+	const Preset* parent = m_presets->get_selected_preset_parent();
+	const wxString description_line = parent == nullptr ?
+		_(L("It's default preset")) : parent == &m_presets->get_selected_preset() ?
+		_(L("It's system preset")) :
+		_(L("Current preset is inherited from")) + ":\n" + parent->name;
+	m_parent_preset_description_line->SetText(description_line);
 }
 
 void Tab::update_frequently_changed_parameters()
@@ -400,7 +655,7 @@ void Tab::reload_compatible_printers_widget()
 void TabPrint::build()
 {
 	m_presets = &m_preset_bundle->prints;
-	m_config = &m_presets->get_edited_preset().config;
+	load_initial_data();
 
 	auto page = add_options_page(_(L("Layers and perimeters")), "layers.png");
 		auto optgroup = page->new_optgroup(_(L("Layer height")));
@@ -543,7 +798,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("interface_shells");
 
 	page = add_options_page(_(L("Advanced")), "wrench.png");
-		optgroup = page->new_optgroup(_(L("Extrusion width")), 180);
+		optgroup = page->new_optgroup(_(L("Extrusion width")));
 		optgroup->append_single_option_line("extrusion_width");
 		optgroup->append_single_option_line("first_layer_extrusion_width");
 		optgroup->append_single_option_line("perimeter_extrusion_width");
@@ -608,6 +863,13 @@ void TabPrint::build()
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
+
+		line = Line{ "", "" };
+		line.full_width = 1;
+		line.widget = [this](wxWindow* parent) {
+			return description_line_widget(parent, &m_parent_preset_description_line);
+		};
+		optgroup->append_line(line);
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -620,9 +882,11 @@ void TabPrint::update()
 {
 	Freeze();
 
+	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
+
 	if (m_config->opt_bool("spiral_vase") &&
 		!(m_config->opt_int("perimeters") == 1 && m_config->opt_int("top_solid_layers") == 0 &&
-		m_config->option<ConfigOptionPercent>("fill_density")->value == 0)) {
+		fill_density == 0)) {
 		wxString msg_text = _(L("The Spiral Vase mode requires:\n"
 			"- one perimeter\n"
 			"- no top solid layers\n"
@@ -639,11 +903,13 @@ void TabPrint::update()
 			new_conf.set_key_value("support_material", new ConfigOptionBool(false));
 			new_conf.set_key_value("support_material_enforce_layers", new ConfigOptionInt(0));
 			new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
+			fill_density = 0;
 		}
 		else {
 			new_conf.set_key_value("spiral_vase", new ConfigOptionBool(false));
 		}
 		load_config(new_conf);
+		on_value_change("fill_density", fill_density);
 	}
 
 	auto first_layer_height = m_config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value;
@@ -757,7 +1023,6 @@ void TabPrint::update()
 					"\nShall I switch to rectilinear fill pattern?"));
 				auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Infill")), wxICON_WARNING | wxYES | wxNO);
 				DynamicPrintConfig new_conf = *m_config;
-				double fill_density;
 				if (dialog->ShowModal() == wxID_YES) {
 					new_conf.set_key_value("fill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 					fill_density = 100;
@@ -857,7 +1122,7 @@ void TabPrint::OnActivate()
 void TabFilament::build()
 {
 	m_presets = &m_preset_bundle->filaments;
-	m_config = &m_preset_bundle->filaments.get_edited_preset().config;
+	load_initial_data();
 
 	auto page = add_options_page(_(L("Filament")), "spool.png");
 		auto optgroup = page->new_optgroup(_(L("Filament")));
@@ -973,6 +1238,13 @@ void TabFilament::build()
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
+
+		line = Line{ "", "" };
+		line.full_width = 1;
+		line.widget = [this](wxWindow* parent) {
+			return description_line_widget(parent, &m_parent_preset_description_line);
+		};
+		optgroup->append_line(line);
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -1023,11 +1295,13 @@ bool Tab::current_preset_is_dirty()
 void TabPrinter::build()
 {
 	m_presets = &m_preset_bundle->printers;
-	m_config = &m_preset_bundle->printers.get_edited_preset().config;
-	auto default_config = m_preset_bundle->full_config();
+	load_initial_data();
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
+	const Preset* parent_preset = m_presets->get_selected_preset_parent();
+	m_sys_extruders_count = parent_preset == nullptr ? 0 :
+			static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
 
 	auto page = add_options_page(_(L("General")), "printer_empty.png");
 		auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
@@ -1045,8 +1319,10 @@ void TabPrinter::build()
 			{
 				auto dlg = new BedShapeDialog(this);
 				dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
-				if (dlg->ShowModal() == wxID_OK)
+				if (dlg->ShowModal() == wxID_OK){
 					load_key_value("bed_shape", dlg->GetValue());
+					update_changed_ui();
+				}
 			}));
 
 			return sizer;
@@ -1267,6 +1543,15 @@ void TabPrinter::build()
 		option.opt.height = 250;
 		optgroup->append_single_option_line(option);
 
+	page = add_options_page(_(L("Dependencies")), "wrench.png");
+		optgroup = page->new_optgroup(_(L("Profile dependencies")));
+		line = Line{ "", "" };
+		line.full_width = 1;
+		line.widget = [this](wxWindow* parent) {
+			return description_line_widget(parent, &m_parent_preset_description_line);
+		};
+		optgroup->append_line(line);
+
 	build_extruder_pages();
 
 	if (!m_no_controller)
@@ -1462,12 +1747,17 @@ void TabPrinter::update(){
 void Tab::load_current_preset()
 {
 	auto preset = m_presets->get_edited_preset();
+
 	preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 	update();
 	// For the printer profile, generate the extruder pages.
 	on_preset_loaded();
 	// Reload preset pages with the new configuration values.
 	reload_config();
+	const Preset* parent = m_presets->get_selected_preset_parent();
+	m_nonsys_btn_icon = parent == nullptr ?
+		"bullet_white.png" :
+		wxMSW ? "sys_unlock.png" : "lock_open.png";
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
@@ -1482,8 +1772,14 @@ void Tab::load_current_preset()
 
 		if (name() == "print")
 			update_frequently_changed_parameters();
-		if (m_name == "printer")
+		if (m_name == "printer"){
 			static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+			const Preset* parent_preset = m_presets->get_selected_preset_parent();
+			static_cast<TabPrinter*>(this)->m_sys_extruders_count = parent_preset == nullptr ? 0 :
+				static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
+		}
+		update_sys_ui_after_sel_preset();
+		update_full_options_list();
 		update_changed_ui();
 	});
 }
@@ -1629,6 +1925,8 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 		if (p->title() == selection)
 		{
 			page = p.get();
+			m_is_nonsys_values = page->m_is_nonsys_values;
+			m_is_modified_values = page->m_is_modified_values;
 			break;
 		}
 	if (page == nullptr) return;
@@ -1638,6 +1936,8 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	page->Show();
 	m_hsizer->Layout();
 	Refresh();
+
+	update_undo_buttons();
 }
 
 void Tab::OnKeyDown(wxKeyEvent& event)
@@ -1673,7 +1973,7 @@ void Tab::save_preset(std::string name /*= ""*/)
 		std::vector<std::string> values;
 		for (size_t i = 0; i < m_presets->size(); ++i) {
 			const Preset &preset = m_presets->preset(i);
-			if (preset.is_default || preset.is_external)
+			if (preset.is_default || preset.is_system || preset.is_external)
 				continue;
 			values.push_back(preset.name);
 		}
@@ -1687,6 +1987,15 @@ void Tab::save_preset(std::string name /*= ""*/)
 			show_error(this, _(L("The supplied name is empty. It can't be saved.")));
 			return;
 		}
+		const Preset *existing = m_presets->find_preset(name, false);
+		if (existing && (existing->is_default || existing->is_system)) {
+			show_error(this, _(L("Cannot overwrite a system profile.")));
+			return;
+		}
+		if (existing && (existing->is_external)) {
+			show_error(this, _(L("Cannot overwrite an external.")));
+			return;
+		}
 	}
 
 	// Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
@@ -1697,6 +2006,10 @@ void Tab::save_preset(std::string name /*= ""*/)
 	update_tab_ui();
 	// Update the selection boxes at the platter.
 	on_presets_changed();
+
+	if (m_name == "printer")
+		static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+	update_changed_ui();
 }
 
 // Called for a currently selected preset.
@@ -1786,7 +2099,7 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 		for (size_t idx = 0; idx < printers->size(); ++idx)
 		{
 			Preset& preset = printers->preset(idx);
-			if (!preset.is_default && !preset.is_external)
+			if (!preset.is_default && !preset.is_external && !preset.is_system)
 				presets.Add(preset.name);
 		}
 
@@ -1870,6 +2183,19 @@ ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_wid
 	optgroup->m_get_initial_config = [this](){
 		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset().config;
 		return config;
+	};
+
+	optgroup->m_get_sys_config = [this](){
+		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent()->config;
+		return config;
+	};
+
+	optgroup->have_sys_config = [this](){
+		return static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent() != nullptr;
+	};
+
+	optgroup->nonsys_btn_icon = [this](){
+		return static_cast<Tab*>(GetParent())->m_nonsys_btn_icon;
 	};
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
