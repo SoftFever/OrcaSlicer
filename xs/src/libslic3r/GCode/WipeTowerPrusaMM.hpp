@@ -121,8 +121,12 @@ public:
 		m_print_brim = is_first_layer;
 		m_depth_traversed  = 0.f;
 		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
-		
-		++ m_num_layer_changes;
+		if (is_first_layer) {
+            this->m_num_layer_changes 	= 0;
+            this->m_num_tool_changes 	= 0;
+        }
+        else
+            ++ m_num_layer_changes;
 		
 		// Calculate extrusion flow from desired line width, nozzle diameter, filament diameter and layer_height:
 		m_extrusion_flow = extrusion_flow(layer_height);

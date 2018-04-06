@@ -460,7 +460,6 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 {
 
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
-	this->m_num_layer_changes 	= 0;
 	this->m_current_tool 		= tools.front();
     
     // The Prusa i3 MK2 has a working space of [0, -2.2] to [250, 210].
@@ -574,7 +573,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		.set_y_shift(m_y_shift + (tool!=(unsigned int)(-1) && (m_current_shape == SHAPE_REVERSED && !m_peters_wipe_tower) ? m_layer_info->depth - m_layer_info->toolchanges_depth(): 0.f))
 		.append(";--------------------\n"
 				"; CP TOOLCHANGE START\n")
-		.comment_with_value(" toolchange #", m_num_tool_changes)
+		.comment_with_value(" toolchange #", m_num_tool_changes + 1) // the number is zero-based
 		.comment_material(m_filpar[m_current_tool].material)
 		.append(";--------------------\n")
 		.speed_override(100);
@@ -975,8 +974,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 		.set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED && !m_peters_wipe_tower ? m_layer_info->toolchanges_depth() : 0.f))
 		.append(";--------------------\n"
 				"; CP EMPTY GRID START\n")
-		// m_num_layer_changes is incremented by set_z, so it is 1 based.
-		.comment_with_value(" layer #", m_num_layer_changes - 1);
+		.comment_with_value(" layer #", m_num_layer_changes + 1);
 
 	// Slow down on the 1st layer.
 	float speed_factor = m_is_first_layer ? 0.5f : 1.f;
