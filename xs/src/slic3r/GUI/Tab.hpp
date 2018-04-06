@@ -196,6 +196,7 @@ public:
 protected:
 	void			on_presets_changed();
 	void			update_frequently_changed_parameters();
+	void			update_tab_presets(wxComboCtrl* ui, bool show_incompatible);
 };
 
 //Slic3r::GUI::Tab::Print;

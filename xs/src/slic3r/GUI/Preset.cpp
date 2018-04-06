@@ -417,6 +417,10 @@ const Preset* PresetCollection::get_selected_preset_parent() const
     return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
 }
 
+const std::string& PresetCollection::get_suffix_modified() {
+	return g_suffix_modified;
+}
+
 // Return a preset by its name. If the preset is active, a temporary copy is returned.
 // If a preset is not found by its name, null is returned.
 Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found)

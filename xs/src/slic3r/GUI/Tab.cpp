@@ -54,32 +54,21 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		{
 			auto selected = popup->GetItemText(popup->GetSelection());
 			if (selected != _(L("System presets")) && selected != _(L("Default presets")))
+			{
 				m_cc_presets_choice->SetText(selected);
+				std::string selected_string = selected.ToUTF8().data();
+//!				select_preset(selected_string);
+			}				
 //			popup->OnDataViewTreeCtrlSelection(evt);
 		});
+
 		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
 		popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
 
 		auto icons = new wxImageList(16, 16, true, 1);
 		popup->SetImageList(icons);
-		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
 		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
-
-		Freeze();
-
-		// get label of the currently selected item
-		auto selected = popup->GetItemText(popup->GetSelection());
-		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
-		auto tree_node1 = popup->AppendItem(root_sys, _("Sys1"), 0);
-		auto tree_node2 = popup->AppendContainer(root_sys, _("Sys2"), 0);
-		auto tree_node2_1 = popup->AppendItem(tree_node2, _("Sys2_1"), 0);
-
-		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
-		auto tree_node01 = popup->AppendContainer(root_def, _("Def1"), 0);
-		auto tree_node02 = popup->AppendContainer(root_def, _("Def2"), 0);
-		auto tree_node02_1 = popup->AppendItem(tree_node02, _("Def2_1"), 0);
-
-		Thaw();
+		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
 	}
 
 
@@ -525,11 +514,13 @@ void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();	
 	update_changed_ui();
+//	update_dirty_presets(m_cc_presets_choice);
 }
 
 void Tab::update_tab_ui()
 {
 	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
+	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
@@ -2139,6 +2130,46 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 		}
 	}));
 	return sizer; 
+}
+
+void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
+{
+	if (ui == nullptr)
+		return;
+	ui->Freeze();
+	ui->Clear();
+	auto presets = m_presets->get_presets();
+	auto idx_selected = m_presets->get_idx_selected();
+	auto suffix_modified = m_presets->get_suffix_modified();
+	int icon_compatible = 0;
+	int icon_incompatible = 1;
+	int cnt_items = 0;
+
+	wxDataViewTreeCtrlComboPopup* popup = wxDynamicCast(m_cc_presets_choice->GetPopupControl(), wxDataViewTreeCtrlComboPopup);
+	if (popup != nullptr)
+	{
+		popup->DeleteAllItems();
+		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
+		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
+
+		for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
+			const Preset &preset = presets[i];
+			if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
+				continue;
+
+			auto preset_name = wxString::FromUTF8((preset.name + (preset.is_dirty ? suffix_modified : "")).c_str());
+
+			auto item = popup->AppendItem(preset.is_system ? root_sys : root_def, preset_name, 
+										  preset.is_compatible ? icon_compatible : icon_incompatible);
+			cnt_items++;
+			if (i == idx_selected){
+				popup->Select(item);
+				m_cc_presets_choice->SetText(preset_name);
+			}
+		}
+	}
+	popup->SetItemsCnt(cnt_items);
+	ui->Thaw();
 }
 
 void Page::reload_config()

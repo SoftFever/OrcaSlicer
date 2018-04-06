@@ -36,7 +36,7 @@ class wxDataViewTreeCtrlComboPopup: public wxDataViewTreeCtrl, public wxComboPop
 	static const unsigned int DefaultItemHeight;
 
 	wxString	m_text;
-	int			m_cnt_open_items=2;
+	int			m_cnt_open_items{0};
 
 public:
 	virtual bool		Create(wxWindow* parent);
@@ -47,6 +47,7 @@ public:
 
 	virtual void		OnKeyEvent(wxKeyEvent& evt);
 	void				OnDataViewTreeCtrlSelection(wxCommandEvent& evt);
+	void				SetItemsCnt(int cnt) { m_cnt_open_items = cnt; }
 };
 
 #endif // slic3r_GUI_wxExtensions_hpp_

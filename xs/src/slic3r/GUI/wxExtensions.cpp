@@ -126,7 +126,19 @@ wxSize wxDataViewTreeCtrlComboPopup::GetAdjustedSize(int minWidth, int prefHeigh
 {
 	// matches owner wxComboCtrl's width
 	// and sets height dinamically in dependence of contained items count
-	return wxSize(DefaultWidth, DefaultHeight);
+	wxComboCtrl* cmb = GetComboCtrl();
+	if (cmb != nullptr)
+	{
+		wxSize size = GetComboCtrl()->GetSize();
+		if (m_cnt_open_items > 0)
+			size.SetHeight(m_cnt_open_items * DefaultItemHeight);
+		else
+			size.SetHeight(DefaultHeight);
+
+		return size;
+	}
+	else
+		return wxSize(DefaultWidth, DefaultHeight);
 }
 
 void wxDataViewTreeCtrlComboPopup::OnKeyEvent(wxKeyEvent& evt)
