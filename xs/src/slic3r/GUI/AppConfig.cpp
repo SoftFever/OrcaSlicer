@@ -135,8 +135,6 @@ void AppConfig::save()
 
 bool AppConfig::get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const
 {
-    // std::cerr << "AppConfig::get_variant(" << vendor << ", " << model << ", " << variant  << ") " << std::endl;
-
     const auto it_v = m_vendors.find(vendor);
     if (it_v == m_vendors.end()) { return false; }
     const auto it_m = it_v->second.find(model);

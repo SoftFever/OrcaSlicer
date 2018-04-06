@@ -1,6 +1,5 @@
 #include "ConfigWizard_private.hpp"
 
-#include <iostream>   // XXX
 #include <algorithm>
 #include <utility>
 #include <boost/filesystem.hpp>
@@ -21,9 +20,6 @@ namespace fs = boost::filesystem;
 
 namespace Slic3r {
 namespace GUI {
-
-
-// FIXME: scrolling
 
 
 // Printer model picker GUI control
@@ -296,7 +292,7 @@ void PageVendors::on_vendor_pick(size_t i)
 	for (PrinterPicker *picker : pickers) { picker->Hide(); }
 	if (i < pickers.size()) {
 		pickers[i]->Show();
-		Layout();
+		wizard_p()->layout_fit();
 	}
 }
 
@@ -352,7 +348,7 @@ PageBedShape::PageBedShape(ConfigWizard *parent) :
 {
 	append_text(_(L("Set the shape of your printer's bed.")));
 
-	shape_panel->build_panel(wizard_p()->custom_config.option<ConfigOptionPoints>("bed_shape"));
+	shape_panel->build_panel(wizard_p()->custom_config->option<ConfigOptionPoints>("bed_shape"));
 	append(shape_panel);
 }
 
@@ -583,7 +579,13 @@ void ConfigWizard::priv::set_page(ConfigWizardPage *page)
 	btn_next->Show(page->page_next() != nullptr);
 	btn_finish->Show(page->page_next() == nullptr);
 
+	layout_fit();
+}
+
+void ConfigWizard::priv::layout_fit()
+{
 	q->Layout();
+	q->Fit();
 }
 
 void ConfigWizard::priv::enable_next(bool enable)
@@ -619,9 +621,9 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		preset_bundle->load_presets(*app_config);
 	} else {
 		for (ConfigWizardPage *page = page_firmware; page != nullptr; page = page->page_next()) {
-			page->apply_custom_config(custom_config);
+			page->apply_custom_config(*custom_config);
 		}
-		preset_bundle->load_config("My Settings", custom_config);
+		preset_bundle->load_config("My Settings", *custom_config);
 	}
 }
 
@@ -632,10 +634,9 @@ ConfigWizard::ConfigWizard(wxWindow *parent) :
 	p(new priv(this))
 {
 	p->load_vendors();
-	std::unique_ptr<DynamicPrintConfig> custom_config_defaults(DynamicPrintConfig::new_from_defaults_keys({
+	p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
 		"gcode_flavor", "bed_shape", "nozzle_diameter", "filament_diameter", "temperature", "bed_temperature",
 	}));
-	p->custom_config.apply(*custom_config_defaults);
 
 	p->index = new ConfigWizardIndex(this);
 

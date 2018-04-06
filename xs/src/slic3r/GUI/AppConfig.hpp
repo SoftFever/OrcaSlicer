@@ -68,9 +68,9 @@ public:
 	void 				clear_section(const std::string &section)
 		{ m_storage[section].clear(); }
 
-	bool get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const;
-	void set_variant(const std::string &vendor, const std::string &model, const std::string &variant, bool enable);
-	void set_vendors(const AppConfig &from);
+	bool                get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const;
+	void                set_variant(const std::string &vendor, const std::string &model, const std::string &variant, bool enable);
+	void                set_vendors(const AppConfig &from);
 
 	// return recent/skein_directory or recent/config_directory or empty string.
 	std::string 		get_last_dir() const;
@@ -86,8 +86,8 @@ public:
     void                reset_selections();
 
 	// Whether the Slic3r version available online differs from this one
-	bool version_check_enabled() const;
-	bool slic3r_update_avail() const;
+	bool                version_check_enabled() const;
+	bool                slic3r_update_avail() const;
 
 	// Get the default config path from Slic3r::data_dir().
 	static std::string  config_path();

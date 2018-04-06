@@ -22,6 +22,8 @@ namespace GUI {
 
 
 enum {
+	CONTENT_WIDTH = 500,
+
 	DIALOG_MARGIN = 15,
 	INDEX_MARGIN = 40,
 	BTN_SPACING = 10,
@@ -38,10 +40,6 @@ struct PrinterPicker: wxPanel
 
 struct ConfigWizardPage: wxPanel
 {
-	enum {
-		CONTENT_WIDTH = 500,
-	};
-
 	ConfigWizard *parent;
 	const wxString shortname;
 	wxBoxSizer *content;
@@ -171,7 +169,7 @@ struct ConfigWizard::priv
 	ConfigWizard *q;
 	AppConfig appconfig_vendors;
 	PresetBundle bundle_vendors;
-	DynamicPrintConfig custom_config;
+	std::unique_ptr<DynamicPrintConfig> custom_config;
 
 	wxBoxSizer *topsizer = nullptr;
 	wxBoxSizer *btnsizer = nullptr;
@@ -196,6 +194,7 @@ struct ConfigWizard::priv
 	void add_page(ConfigWizardPage *page);
 	void index_refresh();
 	void set_page(ConfigWizardPage *page);
+	void layout_fit();
 	void go_prev() { if (page_current != nullptr) { set_page(page_current->page_prev()); } }
 	void go_next() { if (page_current != nullptr) { set_page(page_current->page_next()); } }
 	void enable_next(bool enable);

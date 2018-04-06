@@ -235,9 +235,6 @@ PresetHints*	    		O_OBJECT_SLIC3R
 Ref<PresetHints>    		O_OBJECT_SLIC3R_T
 TabIface*	   				O_OBJECT_SLIC3R
 Ref<TabIface> 				O_OBJECT_SLIC3R_T
-# TODO: remove:
-# ConfigWizard*               O_OBJECT_SLIC3R
-# Ref<ConfigWizard>           O_OBJECT_SLIC3R_T
 
 PresetUpdater*              O_OBJECT_SLIC3R
 Ref<PresetUpdater>          O_OBJECT_SLIC3R_T
