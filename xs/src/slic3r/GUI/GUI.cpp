@@ -428,8 +428,7 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 				std::vector<std::string> values = boost::any_cast<std::vector<std::string>>(value);
 				if (values.size() == 1 && values[0] == "")
 					break;
-				for (auto el : values)
-					config.option<ConfigOptionStrings>(opt_key)->values.push_back(el);
+				config.option<ConfigOptionStrings>(opt_key)->values = values;
 			}
 			else{
 				ConfigOptionStrings* vec_new = new ConfigOptionStrings{ boost::any_cast<std::string>(value) };
@@ -465,6 +464,10 @@ void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, b
 			}
 			break;
 		case coPoints:{
+			if (opt_key.compare("bed_shape") == 0){
+				config.option<ConfigOptionPoints>(opt_key)->values = boost::any_cast<std::vector<Pointf>>(value);
+				break;
+			}
 			ConfigOptionPoints* vec_new = new ConfigOptionPoints{ boost::any_cast<Pointf>(value) };
 			config.option<ConfigOptionPoints>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
@@ -511,9 +514,12 @@ wxApp* get_app(){
 	return g_wxApp;
 }
 
-wxColour* get_modified_label_clr()
-{
+wxColour* get_modified_label_clr(){
 	return new wxColour(253, 88, 0);
+}
+
+wxColour* get_sys_label_clr(){
+	return new wxColour(26, 132, 57);
 }
 
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)

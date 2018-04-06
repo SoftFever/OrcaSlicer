@@ -80,6 +80,7 @@ void set_preset_bundle(PresetBundle *preset_bundle);
 AppConfig*	get_app_config();
 wxApp*		get_app();
 wxColour*	get_modified_label_clr();
+wxColour*	get_sys_label_clr();
 
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
 

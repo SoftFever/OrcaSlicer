@@ -172,6 +172,8 @@ add_library(libslic3r STATIC
 add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/AppConfig.cpp
     ${LIBDIR}/slic3r/GUI/AppConfig.hpp
+    ${LIBDIR}/slic3r/GUI/BitmapCache.cpp
+    ${LIBDIR}/slic3r/GUI/BitmapCache.hpp
     ${LIBDIR}/slic3r/GUI/3DScene.cpp
     ${LIBDIR}/slic3r/GUI/3DScene.hpp
     ${LIBDIR}/slic3r/GUI/GLShader.cpp

@@ -145,6 +145,17 @@ void AppConfig::update_last_output_dir(const std::string &dir)
     this->set("", "last_output_path", dir);
 }
 
+void AppConfig::reset_selections()
+{
+    auto it = m_storage.find("presets");
+    if (it != m_storage.end()) {
+        it->second.erase("print");
+        it->second.erase("filament");
+        it->second.erase("printer");
+        m_dirty = true;
+    }
+}
+
 std::string AppConfig::config_path()
 {
 	return (boost::filesystem::path(Slic3r::data_dir()) / "slic3r.ini").make_preferred().string();
