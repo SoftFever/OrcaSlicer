@@ -263,40 +263,12 @@ namespace PerlUtils {
 std::string timestamp_str()
 {
     const auto now = boost::posix_time::second_clock::local_time();
-    const auto date = now.date();
     char buf[2048];
     sprintf(buf, "on %04d-%02d-%02d at %02d:%02d:%02d",
         // Local date in an ANSII format.
         int(now.date().year()), int(now.date().month()), int(now.date().day()),
         int(now.time_of_day().hours()), int(now.time_of_day().minutes()), int(now.time_of_day().seconds()));
     return buf;
-}
-
-std::string octoprint_encode_file_send_request_content(const char *cpath, bool select, bool print, const char *boundary)
-{
-    // Read the complete G-code string into a string buffer.
-    // It will throw if the file cannot be open or read.
-    std::stringstream str_stream;
-    {
-        boost::nowide::ifstream ifs(cpath);
-        str_stream << ifs.rdbuf();
-    }
-
-    boost::filesystem::path path(cpath);
-    std::string request = boundary + '\n';
-    request += "Content-Disposition: form-data; name=\"";
-    request += path.stem().string() + "\"; filename=\"" + path.filename().string() + "\"\n";
-    request += "Content-Type: application/octet-stream\n\n";
-    request += str_stream.str();
-    request += boundary + '\n';
-    request += "Content-Disposition: form-data; name=\"select\"\n\n";
-    request += select ? "true\n" : "false\n";
-    request += boundary + '\n';
-    request += "Content-Disposition: form-data; name=\"print\"\n\n";
-    request += print ? "true\n" : "false\n";
-    request += boundary + '\n';
-
-    return request;
 }
 
 }; // namespace Slic3r

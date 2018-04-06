@@ -54,6 +54,7 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/ExtrusionEntityCollection.hpp
     ${LIBDIR}/libslic3r/ExtrusionSimulator.cpp
     ${LIBDIR}/libslic3r/ExtrusionSimulator.hpp
+    ${LIBDIR}/libslic3r/FileParserError.hpp
     ${LIBDIR}/libslic3r/Fill/Fill.cpp
     ${LIBDIR}/libslic3r/Fill/Fill.hpp
     ${LIBDIR}/libslic3r/Fill/Fill3DHoneycomb.cpp
@@ -201,6 +202,10 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
     ${LIBDIR}/slic3r/GUI/BonjourDialog.cpp
     ${LIBDIR}/slic3r/GUI/BonjourDialog.hpp
+    ${LIBDIR}/slic3r/Config/Snapshot.cpp
+    ${LIBDIR}/slic3r/Config/Snapshot.hpp
+    ${LIBDIR}/slic3r/Config/Version.cpp
+    ${LIBDIR}/slic3r/Config/Version.hpp    
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.cpp
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
