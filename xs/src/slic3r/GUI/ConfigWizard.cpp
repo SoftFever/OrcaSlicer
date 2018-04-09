@@ -477,10 +477,22 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent) :
 	bullet_white(GUI::from_u8(Slic3r::var("bullet_white.png")), wxBITMAP_TYPE_PNG)
 {
 	SetMinSize(bg.GetSize());
-	Bind(wxEVT_PAINT, &ConfigWizardIndex::on_paint, this);
 
 	wxClientDC dc(this);
 	text_height = dc.GetCharHeight();
+
+	// Add logo bitmap.
+	// This could be done in on_paint() along with the index labels, but I've found it tricky
+	// to get the bitmap rendered well on all platforms with transparent background.
+	// In some cases it didn't work at all. And so wxStaticBitmap is used here instead,
+	// because it has all the platform quirks figured out.
+	auto *sizer = new wxBoxSizer(wxVERTICAL);
+	auto *logo = new wxStaticBitmap(this, wxID_ANY, bg);
+	sizer->AddStretchSpacer();
+	sizer->Add(logo);
+	SetSizer(sizer);
+
+	Bind(wxEVT_PAINT, &ConfigWizardIndex::on_paint, this);
 }
 
 void ConfigWizardIndex::load_items(ConfigWizardPage *firstpage)
@@ -509,12 +521,9 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 	};
 
 	const auto size = GetClientSize();
-	const auto h = size.GetHeight();
-	const auto w = size.GetWidth();
-	if (h == 0 || w == 0) { return; }
+	if (size.GetHeight() == 0 || size.GetWidth() == 0) { return; }
 
 	wxPaintDC dc(this);
-	dc.DrawBitmap(bg, 0, h - bg.GetHeight(), false);
 
 	const auto bullet_w = bullet_black.GetSize().GetWidth();
 	const auto bullet_h = bullet_black.GetSize().GetHeight();
