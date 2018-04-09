@@ -6,6 +6,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include "Version.hpp"
 #include "../Utils/Semver.hpp"
 
 namespace Slic3r { 
@@ -14,6 +15,8 @@ class AppConfig;
 
 namespace GUI {
 namespace Config {
+
+class Version;
 
 // A snapshot contains:
 // 		Slic3r.ini
@@ -75,12 +78,16 @@ public:
 class SnapshotDB
 {
 public:
+	// Initialize the SnapshotDB singleton instance. Load the database if it has not been loaded yet.
+	static SnapshotDB&				singleton();
+
 	typedef std::vector<Snapshot>::const_iterator const_iterator;
 
 	// Load the snapshot database from the snapshots directory.
 	// If the snapshot directory or its parent does not exist yet, it will be created.
 	// Returns a number of snapshots loaded.
 	size_t 							load_db();
+	void 							update_slic3r_versions(std::vector<Index> &index_db);
 
 	// Create a snapshot directory, copy the vendor config bundles, user print/filament/printer profiles,
 	// create an index.

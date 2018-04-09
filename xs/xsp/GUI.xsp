@@ -9,6 +9,9 @@
 
 %package{Slic3r::GUI};
 
+void about()
+    %code{% Slic3r::GUI::about(); %};
+
 void disable_screensaver()
     %code{% Slic3r::GUI::disable_screensaver(); %};
 
@@ -32,9 +35,9 @@ void set_main_frame(SV *ui)
 
 void set_tab_panel(SV *ui)
     %code%{ Slic3r::GUI::set_tab_panel((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook")); %};
-    
-void add_debug_menu(SV *ui, int event_language_change)
-    %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_language_change); %};
+
+void add_config_menu(SV *ui, int event_preferences_changed, int event_language_change)    
+    %code%{ Slic3r::GUI::add_config_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_preferences_changed, event_language_change); %};
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
     %code%{ Slic3r::GUI::create_preset_tabs(no_controller, event_value_change, event_presets_changed); %};
@@ -53,9 +56,6 @@ int combochecklist_get_flags(SV *ui)
 
 void set_app_config(AppConfig *app_config)
     %code%{ Slic3r::GUI::set_app_config(app_config); %};
-
-void open_preferences_dialog(int preferences_event)
-    %code%{ Slic3r::GUI::open_preferences_dialog(preferences_event); %};
 
 void set_preset_bundle(PresetBundle *preset_bundle)
     %code%{ Slic3r::GUI::set_preset_bundle(preset_bundle); %};

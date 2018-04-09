@@ -42,6 +42,7 @@
 
 #include "Tab.hpp"
 #include "TabIface.hpp"
+#include "AboutDialog.hpp"
 #include "AppConfig.hpp"
 #include "Utils.hpp"
 #include "Preferences.hpp"
@@ -330,32 +331,56 @@ void get_installed_languages(wxArrayString & names,
 	}
 }
 
-void add_debug_menu(wxMenuBar *menu, int event_language_change)
+enum ConfigMenuIDs {
+	ConfigMenuWizard,
+	ConfigMenuSnapshots,
+	ConfigMenuTakeSnapshot,
+	ConfigMenuUpdate,
+	ConfigMenuPreferences,
+	ConfigMenuLanguage,
+	ConfigMenuCnt,
+};
+
+void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
-//#if 0
     auto local_menu = new wxMenu();
-	local_menu->Append(wxWindow::NewControlId(1), _(L("Change Application Language")));
-	local_menu->Bind(wxEVT_MENU, [event_language_change](wxEvent&){
-		wxArrayString names;
-		wxArrayLong identifiers;
-		get_installed_languages(names, identifiers);
-		if (select_language(names, identifiers)){
-			save_language();
-			show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
-			if (event_language_change > 0) {
-				wxCommandEvent event(event_language_change);
-				g_wxApp->ProcessEvent(event);
+    wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
+	
+    // Cmd+, is standard on OS X - what about other operating systems?
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		_(L("Configuration Wizard\u2026")), 	_(L("Run configuration wizard")));
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots\u2026")), 	_(L("Inspect / activate configuration snapshots")));
+   	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 	_(L("Capture a configuration snapshot")));
+   	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 				_(L("Check for configuration updates")));
+   	local_menu->AppendSeparator();
+   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences\u2026\tCtrl+,")), 		_(L("Application preferences")));
+   	local_menu->AppendSeparator();
+   	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
+	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
+		switch (event.GetId() - config_id_base) {
+		case ConfigMenuPreferences:
+		{
+			auto dlg = new PreferencesDialog(g_wxMainFrame, event_preferences_changed);
+			dlg->ShowModal();
+			break;
+		}
+		case ConfigMenuLanguage:
+		{
+			wxArrayString names;
+			wxArrayLong identifiers;
+			get_installed_languages(names, identifiers);
+			if (select_language(names, identifiers)) {
+				save_language();
+				show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
+				if (event_language_change > 0) {
+					wxCommandEvent event(event_language_change);
+					g_wxApp->ProcessEvent(event);
+				}
 			}
+			break;
+		}		
 		}
 	});
-	menu->Append(local_menu, _(L("&Localization")));
-//#endif
-}
-
-void open_preferences_dialog(int event_preferences)
-{
-	auto dlg = new PreferencesDialog(g_wxMainFrame, event_preferences);
-	dlg->ShowModal();
+	menu->Append(local_menu, _(L("&Configuration")));
 }
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
@@ -735,6 +760,13 @@ int get_export_option(wxFileDialog* dlg)
     }
 
     return 0;
+}
+
+void about()
+{
+    AboutDialog dlg;
+    dlg.ShowModal();
+    dlg.Destroy();
 }
 
 } }

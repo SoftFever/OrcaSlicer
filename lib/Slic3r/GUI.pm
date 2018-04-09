@@ -7,7 +7,6 @@ use File::Basename qw(basename);
 use FindBin;
 use List::Util qw(first);
 use Slic3r::GUI::2DBed;
-use Slic3r::GUI::AboutDialog;
 use Slic3r::GUI::BedShapeDialog;
 use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Controller;
@@ -189,13 +188,6 @@ sub recreate_GUI{
             $self->{mainframe}->config_wizard(1);
         });
     }
-}
-
-sub about {
-    my ($self) = @_;
-    my $about = Slic3r::GUI::AboutDialog->new(undef);
-    $about->ShowModal;
-    $about->Destroy;
 }
 
 sub system_info {

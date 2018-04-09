@@ -205,6 +205,22 @@ size_t SnapshotDB::load_db()
     return m_snapshots.size();
 }
 
+void SnapshotDB::update_slic3r_versions(std::vector<Index> &index_db)
+{
+	for (Snapshot &snapshot : m_snapshots) {
+		for (Snapshot::VendorConfig &vendor_config : snapshot.vendor_configs) {
+			auto it = std::find_if(index_db.begin(), index_db.end(), [&vendor_config](const Index &idx) { return idx.vendor() == vendor_config.name; });
+			if (it != index_db.end()) {
+				Index::const_iterator it_version = it->find(vendor_config.version);
+				if (it_version != it->end()) {
+					vendor_config.min_slic3r_version = it_version->min_slic3r_version;
+					vendor_config.max_slic3r_version = it_version->max_slic3r_version;
+				}
+			}
+		}
+	}
+}
+
 static void copy_config_dir_single_level(const boost::filesystem::path &path_src, const boost::filesystem::path &path_dst)
 {
     if (! boost::filesystem::is_directory(path_dst) && 
@@ -301,6 +317,26 @@ boost::filesystem::path SnapshotDB::create_db_dir()
             throw std::runtime_error(std::string("Slic3r was unable to create a directory at ") + subdir.string());
     }
     return snapshots_dir;
+}
+
+SnapshotDB& SnapshotDB::singleton()
+{
+	static SnapshotDB instance;
+	bool       loaded = false;
+	if (! loaded) {
+		try {
+			loaded = true;
+			// Load the snapshot database.
+			instance.load_db();
+			// Load the vendor specific configuration indices.
+			std::vector<Index> index_db = Index::load_db();
+			// Update the min / max slic3r versions compatible with the configurations stored inside the snapshots
+			// based on the min / max slic3r versions defined by the vendor specific config indices.
+			instance.update_slic3r_versions(index_db);
+		} catch (std::exception &ex) {
+		}
+	}
+	return instance;
 }
 
 } // namespace Config

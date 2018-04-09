@@ -237,12 +237,6 @@ sub _init_menubar {
             $self->repair_stl;
         }, undef, 'wrench.png');
         $fileMenu->AppendSeparator();
-        # Cmd+, is standard on OS X - what about other operating systems?
-        $self->_append_menu_item($fileMenu, L("Preferences…\tCtrl+,"), L('Application preferences'), sub {
-            # Opening the C++ preferences dialog.
-            Slic3r::GUI::open_preferences_dialog($self->{preferences_event});
-        }, wxID_PREFERENCES);
-        $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, L("&Quit"), L('Quit Slic3r'), sub {
             $self->Close(0);
         }, wxID_EXIT);
@@ -348,7 +342,7 @@ sub _init_menubar {
             Wx::LaunchDefaultBrowser('http://github.com/prusa3d/slic3r/issues/new');
         });
         $self->_append_menu_item($helpMenu, L("&About Slic3r"), L('Show about dialog'), sub {
-            wxTheApp->about;
+            Slic3r::GUI::about;
         });
     }
 
@@ -362,11 +356,9 @@ sub _init_menubar {
         $menubar->Append($self->{object_menu}, L("&Object")) if $self->{object_menu};
         $menubar->Append($windowMenu, L("&Window"));
         $menubar->Append($self->{viewMenu}, L("&View")) if $self->{viewMenu};
-        # Add an optional debug menu 
-        # (Select application language from the list of installed languages)
-        Slic3r::GUI::add_debug_menu($menubar, $self->{lang_ch_event});
+        # Add a configuration  menu.
+        Slic3r::GUI::add_config_menu($menubar, $self->{preferences_event}, $self->{lang_ch_event});
         $menubar->Append($helpMenu, L("&Help"));
-        # Add an optional debug menu. In production code, the add_debug_menu() call should do nothing.
         $self->SetMenuBar($menubar);
     }
 }

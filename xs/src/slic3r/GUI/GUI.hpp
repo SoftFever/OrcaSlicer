@@ -82,10 +82,7 @@ wxApp*		get_app();
 wxColour*	get_modified_label_clr();
 wxColour*	get_sys_label_clr();
 
-void add_debug_menu(wxMenuBar *menu, int event_language_change);
-
-// Create "Preferences" dialog after selecting menu "Preferences" in Perl part
-void open_preferences_dialog(int event_preferences);
+void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
 // Create a new preset tab (print, filament and printer),
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed);
@@ -134,7 +131,11 @@ ConfigOptionsGroup* get_optgroup();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
-}
-}
+
+// Display an About dialog
+void about();
+
+} // namespace GUI
+} // namespace Slic3r
 
 #endif
