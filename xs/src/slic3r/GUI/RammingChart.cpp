@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <wx/dcbuffer.h>
+
 #include "RammingChart.hpp"
 
 
@@ -11,7 +13,8 @@
 wxDEFINE_EVENT(EVT_WIPE_TOWER_CHART_CHANGED, wxCommandEvent);
 
 
-void Chart::draw(wxDC& dc) {
+void Chart::draw() {
+    wxAutoBufferedPaintDC dc(this); // unbuffered DC caused flickering on win
     dc.SetPen(*wxBLACK_PEN);
     dc.SetBrush(*wxWHITE_BRUSH);
     dc.DrawRectangle(m_rect);

@@ -16,6 +16,7 @@ public:
     Chart(wxWindow* parent, wxRect rect,const std::vector<std::pair<float,float>>& initial_buttons,int ramming_speed_size, float sampling) :
         wxWindow(parent,wxID_ANY,rect.GetTopLeft(),rect.GetSize())
     {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
         m_rect = wxRect(wxPoint(50,0),rect.GetSize()-wxSize(50,50));
         visible_area = wxRect2DDouble(0.0, 0.0, sampling*ramming_speed_size, 20.);
         m_buttons.clear();
@@ -36,7 +37,7 @@ public:
     std::vector<float> get_ramming_speed(float sampling) const; //returns sampled ramming speed
     std::vector<std::pair<float,float>> get_buttons() const; // returns buttons position   
     
-    void draw(wxDC& dc);
+    void draw();
     
     void mouse_clicked(wxMouseEvent& event);
     void mouse_right_button_clicked(wxMouseEvent& event);
@@ -44,7 +45,7 @@ public:
     void mouse_double_clicked(wxMouseEvent& event);
     void mouse_left_window(wxMouseEvent&) { m_dragged = nullptr; }        
     void mouse_released(wxMouseEvent&)    { m_dragged = nullptr; }
-    void paint_event(wxPaintEvent&) { wxPaintDC dc(this); draw(dc); }
+    void paint_event(wxPaintEvent&) { draw(); }
     DECLARE_EVENT_TABLE()
     
 
