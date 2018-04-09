@@ -406,9 +406,24 @@ void Model::convert_multipart_object()
     ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
     
+    unsigned int auto_extruder_id = 1;
+    char str_extruder[64];
+
     for (const ModelObject* o : this->objects)
         for (const ModelVolume* v : o->volumes)
-            object->add_volume(*v)->name = o->name;
+        {
+            ModelVolume* new_v = object->add_volume(*v);
+            if (new_v != nullptr)
+            {
+                new_v->name = o->name;
+
+                sprintf(str_extruder, "%ud", auto_extruder_id);
+                new_v->config.set_deserialize("extruder", str_extruder);
+
+                if (++auto_extruder_id > 4)
+                    auto_extruder_id = 1;
+            }
+        }
 
     for (const ModelInstance* i : this->objects.front()->instances)
         object->add_instance(*i);
