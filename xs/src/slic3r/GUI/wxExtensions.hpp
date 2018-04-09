@@ -43,7 +43,7 @@ public:
 	virtual wxWindow*	GetControl() { return this; }
 	virtual void		SetStringValue(const wxString& value) { m_text = value; }
 	virtual wxString	GetStringValue() const { return m_text; }
-	virtual wxSize		GetAdjustedSize(int minWidth, int prefHeight, int maxHeight);
+//	virtual wxSize		GetAdjustedSize(int minWidth, int prefHeight, int maxHeight);
 
 	virtual void		OnKeyEvent(wxKeyEvent& evt);
 	void				OnDataViewTreeCtrlSelection(wxCommandEvent& evt);

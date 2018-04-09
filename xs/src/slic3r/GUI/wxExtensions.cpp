@@ -121,7 +121,7 @@ bool wxDataViewTreeCtrlComboPopup::Create(wxWindow* parent)
 {
 	return wxDataViewTreeCtrl::Create(parent, wxID_HIGHEST + 1, wxPoint(0, 0), wxSize(270, -1));
 }
-
+/*
 wxSize wxDataViewTreeCtrlComboPopup::GetAdjustedSize(int minWidth, int prefHeight, int maxHeight)
 {
 	// matches owner wxComboCtrl's width
@@ -140,7 +140,7 @@ wxSize wxDataViewTreeCtrlComboPopup::GetAdjustedSize(int minWidth, int prefHeigh
 	else
 		return wxSize(DefaultWidth, DefaultHeight);
 }
-
+*/
 void wxDataViewTreeCtrlComboPopup::OnKeyEvent(wxKeyEvent& evt)
 {
 	// filters out all the keys which are not working properly

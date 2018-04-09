@@ -45,9 +45,9 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	{
 		// FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
 		//  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
-		m_cc_presets_choice->UseAltPopupWindow();
+//		m_cc_presets_choice->UseAltPopupWindow();
 
-		m_cc_presets_choice->EnablePopupAnimation(false);
+//		m_cc_presets_choice->EnablePopupAnimation(false);
 		m_cc_presets_choice->SetPopupControl(popup);
 		popup->SetStringValue(from_u8("Text1"));
 
@@ -2150,8 +2150,11 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 	if (popup != nullptr)
 	{
 		popup->DeleteAllItems();
+		auto root_1 = popup->AppendContainer(wxDataViewItem(0), _(L("Root 1")));
 		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
-		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
+		auto show_def = get_app_config()->get("no_defaults")[0] != '1';
+		wxDataViewItem root_def;
+		if (show_def) root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
 
 		for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
 			const Preset &preset = presets[i];
@@ -2161,11 +2164,15 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 			auto preset_name = wxString::FromUTF8((preset.name + (preset.is_dirty ? suffix_modified : "")).c_str());
 
 			wxDataViewItem item;
-			if (preset.is_system || preset.is_default)
-				item = popup->AppendItem(preset.is_system ? root_sys : root_def, preset_name, 
+			if (preset.is_system)
+				item = popup->AppendItem(root_sys, preset_name, 
+										 preset.is_compatible ? icon_compatible : icon_incompatible);
+			else if (show_def && preset.is_default)
+				item = popup->AppendItem(root_def, preset_name, 
 										 preset.is_compatible ? icon_compatible : icon_incompatible);
 			else {
-				
+				item = popup->AppendItem(root_1, preset_name, 
+										 preset.is_compatible ? icon_compatible : icon_incompatible);				
 			}
 
 			cnt_items++;
