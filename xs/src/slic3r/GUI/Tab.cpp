@@ -45,8 +45,9 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	{
 		// FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
 		//  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
-// 		comboCtrl->UseAltPopupWindow();
-// 		comboCtrl->EnablePopupAnimation(false);
+		m_cc_presets_choice->UseAltPopupWindow();
+
+		m_cc_presets_choice->EnablePopupAnimation(false);
 		m_cc_presets_choice->SetPopupControl(popup);
 		popup->SetStringValue(from_u8("Text1"));
 
@@ -57,7 +58,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 			{
 				m_cc_presets_choice->SetText(selected);
 				std::string selected_string = selected.ToUTF8().data();
-//!				select_preset(selected_string);
+				select_preset(selected_string);
 			}				
 //			popup->OnDataViewTreeCtrlSelection(evt);
 		});
@@ -2159,8 +2160,14 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 
 			auto preset_name = wxString::FromUTF8((preset.name + (preset.is_dirty ? suffix_modified : "")).c_str());
 
-			auto item = popup->AppendItem(preset.is_system ? root_sys : root_def, preset_name, 
-										  preset.is_compatible ? icon_compatible : icon_incompatible);
+			wxDataViewItem item;
+			if (preset.is_system || preset.is_default)
+				item = popup->AppendItem(preset.is_system ? root_sys : root_def, preset_name, 
+										 preset.is_compatible ? icon_compatible : icon_incompatible);
+			else {
+				
+			}
+
 			cnt_items++;
 			if (i == idx_selected){
 				popup->Select(item);
@@ -2168,7 +2175,7 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 			}
 		}
 	}
-	popup->SetItemsCnt(cnt_items);
+	popup->SetItemsCnt(cnt_items+2);
 	ui->Thaw();
 }
 
