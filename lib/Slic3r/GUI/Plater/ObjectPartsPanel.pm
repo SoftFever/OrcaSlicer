@@ -401,14 +401,17 @@ sub on_tree_key_down {
     my ($self, $event) = @_;
     my $keycode = $event->GetKeyCode;    
     # Wx >= 0.9911
-    if (defined(&Wx::TreeEvent::GetKeyEvent) && 
-        ($event->GetKeyEvent->GetModifiers & wxMOD_CONTROL)) {
-        if ($keycode == WXK_UP) {
-            $event->Skip;
-            $self->on_btn_move_up;
-        } elsif ($keycode == WXK_DOWN) {
-            $event->Skip;
-            $self->on_btn_move_down;
+    if (defined(&Wx::TreeEvent::GetKeyEvent)) { 
+        if ($event->GetKeyEvent->GetModifiers & wxMOD_CONTROL) {
+            if ($keycode == WXK_UP) {
+                $event->Skip;
+                $self->on_btn_move_up;
+            } elsif ($keycode == WXK_DOWN) {
+                $event->Skip;
+                $self->on_btn_move_down;
+            }
+        } elsif ($keycode == WXK_DELETE) {
+            $self->on_btn_delete;
         }
     }
 }
