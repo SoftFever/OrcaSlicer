@@ -72,7 +72,7 @@ public:
 		{ m_wipe_tower_pos = pos; m_wipe_tower_width = width; m_wipe_tower_depth=depth; m_angle_deg = angle; return (*this); }
 
 	Writer&				 set_y_shift(float shift) {
-        m_current_pos.y += shift-m_y_shift;
+        m_current_pos.y -= shift-m_y_shift;
         m_y_shift = shift;
         return (*this);
     }
@@ -112,8 +112,8 @@ public:
 
 
 		// For rotated wipe tower, transform position to printer coordinates
-		WipeTower::xy rotated_current_pos(WipeTower::xy(m_current_pos,0.f,m_y_shift).rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg));
-		WipeTower::xy rot(WipeTower::xy(x,y+m_y_shift).rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg));
+		WipeTower::xy rotated_current_pos(WipeTower::xy(m_current_pos,0.f,m_y_shift).rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg)); // this is where we are
+		WipeTower::xy rot(WipeTower::xy(x,y+m_y_shift).rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg));                               // this is where we want to go
 
 		if (! m_preview_suppressed && e > 0.f && len > 0.) {
 			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
@@ -127,14 +127,14 @@ public:
 		}
 
 		m_gcode += "G1";
-		if (rot.x != rotated_current_pos.x)
-			m_gcode += set_format_X(rot.x);
-		if (rot.y != rotated_current_pos.y)
+		if (rot.x != rotated_current_pos.x) {
+			m_gcode += set_format_X(rot.x);     // Transform current position back to wipe tower coordinates (was updated by set_format_X)
+            m_current_pos.x = x;
+        }
+		if (rot.y != rotated_current_pos.y) {
 			m_gcode += set_format_Y(rot.y);
-			
-		// Transform current position back to wipe tower coordinates (was updated by set_format_X)
-		m_current_pos.x = x;
-		m_current_pos.y = y;
+            m_current_pos.y = y;
+        }
 
 		if (e != 0.f)
 			m_gcode += set_format_E(e);
@@ -179,16 +179,20 @@ public:
         corners[1] = WipeTower::xy(ld,width,0.f);
         corners[2] = WipeTower::xy(ld,width,height);
         corners[3] = WipeTower::xy(ld,0.f,height);
-        int index_of_closest = (x()-ld.x < ld.x+width-x() ? 0 : 1);
-        if (y()-ld.y > ld.y+height-x())   // closer to the top
-            index_of_closest += (index_of_closest==0 ? 3 : 1);
-        travel(corners[index_of_closest].x,y(),f);      // travel to the closest corner
-        travel(x(),corners[index_of_closest].y,f);
+        int index_of_closest = 0;
+        if (x()-ld.x > ld.x+width-x())    // closer to the right
+            index_of_closest = 1;
+        if (y()-ld.y > ld.y+height-y())   // closer to the top
+            index_of_closest = (index_of_closest==0 ? 3 : 2);
+
+        travel(corners[index_of_closest].x, y());      // travel to the closest corner
+        travel(x(),corners[index_of_closest].y);
+
         int i = index_of_closest;
         do {
             ++i;
             if (i==4) i=0;
-            this->extrude(corners[i]);
+            extrude(corners[i]);
         } while (i != index_of_closest);
         return (*this);
     }
@@ -611,7 +615,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
         else {
             writer.rectangle(m_wipe_tower_pos,m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
             if (layer_finished()) { // no finish_layer will be called, we must wipe the nozzle
-                writer.travel(m_wipe_tower_pos.x + (writer.x()>m_wipe_tower_pos.x + EPSILON ? 0.f : m_wipe_tower_width), writer.y());
+                writer.travel(m_wipe_tower_pos.x + (writer.x()> (m_wipe_tower_pos.x + m_wipe_tower_width) / 2.f ? 0.f : m_wipe_tower_width), writer.y());
             }
         }
     }
@@ -986,6 +990,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
         writer.set_initial_position(fill_box.ru);
     else
         writer.set_initial_position(fill_box.lu);
+
 
 	box_coordinates box = fill_box;
     for (int i=0;i<2;++i) {
