@@ -39,7 +39,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
 
-	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L("Presets"), wxDefaultPosition, wxSize(270, -1), wxCB_READONLY);
+	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize/*wxSize(270, -1)*/, wxCB_READONLY);
 	wxDataViewTreeCtrlComboPopup* popup = new wxDataViewTreeCtrlComboPopup;
 	if (popup != nullptr)
 	{
@@ -63,8 +63,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 //			popup->OnDataViewTreeCtrlSelection(evt);
 		});
 
-		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
-		popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
+// 		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
+// 		popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
 
 		auto icons = new wxImageList(16, 16, true, 1);
 		popup->SetImageList(icons);
@@ -307,7 +307,7 @@ void Tab::update_changed_ui()
 			is_nonsys_value = true;
 			sys_icon = m_nonsys_btn_icon;
 			if(find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
-				color = wxSYS_COLOUR_WINDOWTEXT;
+				color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 			else
 				color = *get_modified_label_clr();
 		}
@@ -380,7 +380,7 @@ void Tab::update_sys_ui_after_sel_preset()
 			field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(m_nonsys_btn_icon)), wxBITMAP_TYPE_PNG));
 			field->m_is_nonsys_value = true;
 			if (field->m_Label != nullptr){
-				field->m_Label->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+				field->m_Label->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
 				field->m_Label->Refresh(true);
 			}
 		}
@@ -427,7 +427,7 @@ void Tab::update_changed_tree_ui()
 			else if (modified_page)
 				m_treectrl->SetItemTextColour(cur_item, *get_modified_label_clr());
 			else
-				m_treectrl->SetItemTextColour(cur_item, wxSYS_COLOUR_WINDOWTEXT);
+				m_treectrl->SetItemTextColour(cur_item, wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
 
 			page->m_is_nonsys_values = !sys_page;
 			page->m_is_modified_values = modified_page;
@@ -2150,11 +2150,16 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 	if (popup != nullptr)
 	{
 		popup->DeleteAllItems();
-		auto root_1 = popup->AppendContainer(wxDataViewItem(0), _(L("Root 1")));
+
+		auto root_exp1 = popup->AppendContainer(wxDataViewItem(0), "Exp_root_1");
+		auto item1 = popup->AppendItem(root_exp1, "child_1_1");
+		auto item2 = popup->AppendItem(root_exp1, "child_1_2");
+		auto item3 = popup->AppendItem(item2, "child_2_1");
+
 		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
+		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
+
 		auto show_def = get_app_config()->get("no_defaults")[0] != '1';
-		wxDataViewItem root_def;
-		if (show_def) root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
 
 		for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
 			const Preset &preset = presets[i];
@@ -2170,9 +2175,41 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 			else if (show_def && preset.is_default)
 				item = popup->AppendItem(root_def, preset_name, 
 										 preset.is_compatible ? icon_compatible : icon_incompatible);
-			else {
-				item = popup->AppendItem(root_1, preset_name, 
-										 preset.is_compatible ? icon_compatible : icon_incompatible);				
+			else 
+			{
+				auto parent = m_presets->get_preset_parent(preset);
+				if (parent == nullptr)
+					item = popup->AppendItem(root_def, preset_name,
+											 preset.is_compatible ? icon_compatible : icon_incompatible);
+				else
+				{
+					auto parent_name = parent->name;
+
+					wxDataViewTreeStoreContainerNode *node = popup->GetStore()->FindContainerNode(root_sys);
+					if (node) 
+					{
+						wxDataViewTreeStoreNodeList::iterator iter;
+						for (iter = node->GetChildren().begin(); iter != node->GetChildren().end(); iter++)
+						{
+							wxDataViewTreeStoreNode* child = *iter;
+							auto child_item = child->GetItem();
+							auto item_text = popup->GetItemText(child_item);
+							if (item_text == parent_name)
+							{
+								auto added_child = popup->AppendItem(child->GetItem(), preset_name,
+									preset.is_compatible ? icon_compatible : icon_incompatible);
+								if (!added_child){
+									popup->DeleteItem(child->GetItem());
+									auto new_parent = popup->AppendContainer(root_sys, parent_name,
+										preset.is_compatible ? icon_compatible : icon_incompatible);
+									popup->AppendItem(new_parent, preset_name,
+										preset.is_compatible ? icon_compatible : icon_incompatible);
+								}
+								break;
+							}
+						}
+					}
+				}
 			}
 
 			cnt_items++;
@@ -2181,8 +2218,9 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 				m_cc_presets_choice->SetText(preset_name);
 			}
 		}
+		if (popup->GetStore()->GetChildCount(root_def) == 0)
+			popup->DeleteItem(root_def);
 	}
-	popup->SetItemsCnt(cnt_items+2);
 	ui->Thaw();
 }
 

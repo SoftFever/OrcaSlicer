@@ -209,7 +209,9 @@ public:
     // The parent preset may be a system preset or a user preset, which will be
     // reflected by the UI.
     const Preset*   get_selected_preset_parent() const;
-    // Return the selected preset including the user modifications.
+	// get parent preset for some child preset
+	const Preset*	get_preset_parent(const Preset& child) const;
+	// Return the selected preset including the user modifications.
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
 

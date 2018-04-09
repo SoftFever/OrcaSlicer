@@ -417,6 +417,16 @@ const Preset* PresetCollection::get_selected_preset_parent() const
     return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
 }
 
+const Preset* PresetCollection::get_preset_parent(const Preset& child) const
+{
+    auto *inherits = dynamic_cast<const ConfigOptionString*>(child.config.option("inherits"));
+    if (inherits == nullptr || inherits->value.empty())
+// 		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
+		return nullptr; 
+    const Preset* preset = this->find_preset(inherits->value, false);
+    return (preset == nullptr/* || preset->is_default */|| preset->is_external) ? nullptr : preset;
+}
+
 const std::string& PresetCollection::get_suffix_modified() {
 	return g_suffix_modified;
 }

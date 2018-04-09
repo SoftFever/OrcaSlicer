@@ -119,7 +119,7 @@ const unsigned int wxDataViewTreeCtrlComboPopup::DefaultItemHeight = 22;
 
 bool wxDataViewTreeCtrlComboPopup::Create(wxWindow* parent)
 {
-	return wxDataViewTreeCtrl::Create(parent, wxID_HIGHEST + 1, wxPoint(0, 0), wxSize(270, -1));
+	return wxDataViewTreeCtrl::Create(parent, wxID_ANY/*HIGHEST + 1*/, wxPoint(0, 0), wxDefaultSize/*wxSize(270, -1)*/, wxDV_NO_HEADER);
 }
 /*
 wxSize wxDataViewTreeCtrlComboPopup::GetAdjustedSize(int minWidth, int prefHeight, int maxHeight)
