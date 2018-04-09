@@ -58,9 +58,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 			{
 				m_cc_presets_choice->SetText(selected);
 				std::string selected_string = selected.ToUTF8().data();
-				select_preset(selected_string);
+// 				select_preset(selected_string);
 			}				
-//			popup->OnDataViewTreeCtrlSelection(evt);
 		});
 
 // 		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
@@ -2150,11 +2149,6 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 	if (popup != nullptr)
 	{
 		popup->DeleteAllItems();
-
-		auto root_exp1 = popup->AppendContainer(wxDataViewItem(0), "Exp_root_1");
-		auto item1 = popup->AppendItem(root_exp1, "child_1_1");
-		auto item2 = popup->AppendItem(root_exp1, "child_1_2");
-		auto item3 = popup->AppendItem(item2, "child_2_1");
 
 		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
 		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
