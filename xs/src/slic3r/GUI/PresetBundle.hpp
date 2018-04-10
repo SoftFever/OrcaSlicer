@@ -5,6 +5,7 @@
 #include "Preset.hpp"
 
 #include <set>
+#include <boost/filesystem/path.hpp>
 
 namespace Slic3r {
 
@@ -81,12 +82,14 @@ public:
         LOAD_CFGBNDLE_RESET_USER_PROFILE = 2,
         // Load a system config bundle.
         LOAD_CFGBNDLE_SYSTEM = 4,
+        LOAD_CFGBUNDLE_VENDOR_ONLY = 8,
     };
     // Load the config bundle, store it to the user profile directory by default.
     size_t                      load_configbundle(const std::string &path, unsigned int flags = LOAD_CFGBNDLE_SAVE);
 
     // Install the Vendor specific config bundle into user's directory.
     void                        install_vendor_configbundle(const std::string &src_path);
+    static void                 install_vendor_configbundle(const boost::filesystem::path &src_path);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path); // , const DynamicPrintConfig &settings);

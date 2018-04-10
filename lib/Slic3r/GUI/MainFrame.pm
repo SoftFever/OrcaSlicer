@@ -95,7 +95,7 @@ sub new {
     });
 
     $self->update_ui_from_settings;
-    
+
     return $self;
 }
 
@@ -635,39 +635,9 @@ sub config_wizard {
     my ($self, $fresh_start) = @_;
     # Exit wizard if there are unsaved changes and the user cancels the action.
     return unless $self->check_unsaved_changes;
-    # Enumerate the profiles bundled with the Slic3r installation under resources/profiles.
-    my $directory = Slic3r::resources_dir() . "/profiles";
-    my @profiles = ();
-    if (opendir(DIR, Slic3r::encode_path($directory))) {
-        while (my $file = readdir(DIR)) {
-            if ($file =~ /\.ini$/) {
-                $file =~ s/\.ini$//;
-                push @profiles, Slic3r::decode_path($file);
-            }
-        }
-        closedir(DIR);
-    }
-    # Open the wizard.
-    if (my $result = Slic3r::GUI::ConfigWizard->new($self, \@profiles, $fresh_start)->run) {
-        eval {
-            if ($result->{reset_user_profile}) {
-                wxTheApp->{preset_bundle}->reset(1);
-            }
-            if (defined $result->{config}) {
-                # Load and save the settings into print, filament and printer presets.
-                wxTheApp->{preset_bundle}->load_config('My Settings', $result->{config});
-            } else {
-                # Wizard returned a name of a preset bundle bundled with the installation. Unpack it.
-                wxTheApp->{preset_bundle}->install_vendor_configbundle($directory . '/' . $result->{preset_name} . '.ini');
-                # Reset the print / filament / printer selections, so that following line will select some sensible defaults.
-                if ($fresh_start) {
-                    wxTheApp->{app_config}->reset_selections;
-                }
-                # Reload all presets after the vendor config bundle has been installed.
-                wxTheApp->{preset_bundle}->load_presets(wxTheApp->{app_config});
-            }
-        };
-        Slic3r::GUI::catch_error($self) and return;
+
+    # TODO: Offer "reset user profile" ???
+    if (Slic3r::GUI::open_config_wizard(wxTheApp->{preset_bundle})) {
         # Load the currently selected preset into the GUI, update the preset selection box.
         foreach my $tab (values %{$self->{options_tabs}}) {
             $tab->load_current_preset;

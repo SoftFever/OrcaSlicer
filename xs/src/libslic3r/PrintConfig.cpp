@@ -1620,7 +1620,7 @@ PrintConfigDef::PrintConfigDef()
                    "temperature control commands in the output.");
     def->cli = "temperature=i@";
     def->full_label = L("Temperature");
-    def->max = 0;
+    def->min = 0;
     def->max = max_temp;
     def->default_value = new ConfigOptionInts { 200 };
     

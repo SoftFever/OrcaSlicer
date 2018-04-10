@@ -14,6 +14,7 @@ void PreferencesDialog::build()
 		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};
 
+	// TODO
 //    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
 //        opt_id = > 'version_check',
 //        type = > 'bool',

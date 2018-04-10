@@ -84,6 +84,12 @@ wxColour*	get_sys_label_clr();
 
 void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
+// Opens the first-time configuration wizard, returns true if wizard is finished & accepted.
+bool open_config_wizard(PresetBundle *preset_bundle);
+
+// Create "Preferences" dialog after selecting menu "Preferences" in Perl part
+void open_preferences_dialog(int event_preferences);
+
 // Create a new preset tab (print, filament and printer),
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed);
 TabIface* get_preset_tab_iface(char *name);

@@ -13,6 +13,8 @@ class wxItemContainer;
 
 namespace Slic3r {
 
+class AppConfig;
+
 enum ConfigFileType
 {
     CONFIG_FILE_TYPE_UNKNOWN,
@@ -35,14 +37,12 @@ public:
         PrinterVariant() {}
         PrinterVariant(const std::string &name) : name(name) {}
         std::string                 name;
-        bool                        enabled = true;
     };
 
     struct PrinterModel {
         PrinterModel() {}
-        PrinterModel(const std::string &name) : name(name) {}
+        std::string                 id;
         std::string                 name;
-        bool                        enabled = true;
         std::vector<PrinterVariant> variants;
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
@@ -51,11 +51,10 @@ public:
             return nullptr;
         }
         const PrinterVariant* variant(const std::string &name) const { return const_cast<PrinterModel*>(this)->variant(name); }
-
-        bool        operator< (const PrinterModel &rhs) const { return this->name <  rhs.name; }
-        bool        operator==(const PrinterModel &rhs) const { return this->name == rhs.name; }
     };
-    std::set<PrinterModel>          models;
+    std::vector<PrinterModel>          models;
+
+    VendorProfile(std::string id) : id(std::move(id)) {}
 
     size_t      num_variants() const { size_t n = 0; for (auto &model : models) n += model.variants.size(); return n; }
 
@@ -86,7 +85,8 @@ public:
     bool                is_external = false;
     // System preset is read-only.
     bool                is_system   = false;
-    // Preset is visible, if it is compatible with the active Printer.
+    // Preset is visible, if it is associated with a printer model / variant that is enabled in the AppConfig
+    // or if it has no printer model / variant association.
     // Also the "default" preset is only visible, if it is the only preset in the list.
     bool                is_visible  = true;
     // Has this preset been modified?
@@ -132,6 +132,9 @@ public:
     // Mark this preset as compatible if it is compatible with active_printer.
     bool                update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config);
 
+    // Set is_visible according to application config
+    void                set_visible_from_appconfig(const AppConfig &app_config);
+
     // Resize the extruder specific fields, initialize them with the content of the 1st extruder.
     void                set_num_extruders(unsigned int n) { set_num_extruders(this->config, n); }
 
@@ -162,6 +165,13 @@ public:
     // Initialize the PresetCollection with the "- default -" preset.
     PresetCollection(Preset::Type type, const std::vector<std::string> &keys);
     ~PresetCollection();
+
+    typedef std::deque<Preset>::iterator Iterator;
+    typedef std::deque<Preset>::const_iterator ConstIterator;
+    Iterator begin() { return m_presets.begin() + 1; }
+    ConstIterator begin() const { return m_presets.begin() + 1; }
+    Iterator end() { return m_presets.end(); }
+    ConstIterator end() const { return m_presets.end(); }
 
     void            reset(bool delete_files);
 

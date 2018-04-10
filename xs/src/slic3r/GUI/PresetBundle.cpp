@@ -4,6 +4,7 @@
 #include "PresetBundle.hpp"
 #include "BitmapCache.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/clamp.hpp>
@@ -104,6 +105,7 @@ void PresetBundle::setup_directories()
     std::initializer_list<boost::filesystem::path> paths = { 
         data_dir,
 		data_dir / "vendor",
+        data_dir / "cache",      // TODO: rename as vendor-cache? (Check usage elsewhere!)
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
         // Store the print/filament/printer presets into a "presets" directory.
         data_dir / "presets", 
@@ -198,7 +200,9 @@ static inline std::string remove_ini_suffix(const std::string &name)
 // If the "vendor" section is missing, enable all models and variants of the particular vendor.
 void PresetBundle::load_installed_printers(const AppConfig &config)
 {
-    // m_storage
+    for (auto &preset : printers) {
+        preset.set_visible_from_appconfig(config);
+    }
 }
 
 // Load selections (current print, current filaments, current printer) from config.ini
@@ -218,6 +222,10 @@ void PresetBundle::load_selections(const AppConfig &config)
             break;
         this->set_filament_preset(i, remove_ini_suffix(config.get("presets", name)));
     }
+
+    // Update visibility of presets based on application vendor / model / variant configuration.
+    this->load_installed_printers(config);
+
     // Update visibility of presets based on their compatibility with the active printer.
     // Always try to select a compatible print and filament preset to the current printer preset,
     // as the application may have been closed with an active "external" preset, which does not
@@ -667,7 +675,7 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree)
 static void load_vendor_profile(const boost::property_tree::ptree &tree, VendorProfile &vendor_profile)
 {
     const std::string printer_model_key = "printer_model:";
-    for (auto &section : tree)
+    for (auto &section : tree) {
         if (section.first == "vendor") {
             // Load the names of the active presets.
             for (auto &kvp : section.second) {
@@ -682,7 +690,8 @@ static void load_vendor_profile(const boost::property_tree::ptree &tree, VendorP
             }
         } else if (boost::starts_with(section.first, printer_model_key)) {
             VendorProfile::PrinterModel model;
-            model.name = section.first.substr(printer_model_key.size());
+            model.id = section.first.substr(printer_model_key.size());
+            model.name = section.second.get<std::string>("name", model.id);
             section.second.get<std::string>("variants", "");
             std::vector<std::string> variants;
             if (Slic3r::unescape_strings_cstyle(section.second.get<std::string>("variants", ""), variants)) {
@@ -693,9 +702,10 @@ static void load_vendor_profile(const boost::property_tree::ptree &tree, VendorP
             } else {
                 // Log error?
             }
-            if (! model.name.empty() && ! model.variants.empty())
-                vendor_profile.models.insert(model);
+            if (! model.id.empty() && ! model.variants.empty())
+                vendor_profile.models.push_back(std::move(model));
         }
+    }
 }
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
@@ -703,6 +713,11 @@ static void load_vendor_profile(const boost::property_tree::ptree &tree, VendorP
 void PresetBundle::install_vendor_configbundle(const std::string &src_path0)
 {
     boost::filesystem::path src_path(src_path0);
+    install_vendor_configbundle(src_path);
+}
+
+void PresetBundle::install_vendor_configbundle(const boost::filesystem::path &src_path)
+{
     boost::filesystem::copy_file(src_path, (boost::filesystem::path(data_dir()) / "vendor" / src_path.filename()).make_preferred(), boost::filesystem::copy_option::overwrite_if_exists);
 }
 
@@ -719,12 +734,11 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     pt::ptree tree;
     boost::nowide::ifstream ifs(path);
     pt::read_ini(ifs, tree);
-    // Flatten the config bundle by applying the inheritance rules. Internal profiles (with names starting with '*') are removed.
-    flatten_configbundle_hierarchy(tree);
 
     const VendorProfile *vendor_profile = nullptr;
-    if (flags & LOAD_CFGBNDLE_SYSTEM) {
-        VendorProfile vp;
+    if (flags & (LOAD_CFGBNDLE_SYSTEM | LOAD_CFGBUNDLE_VENDOR_ONLY)) {
+        boost::filesystem::path fspath(path);
+        VendorProfile vp(fspath.stem().string());
         load_vendor_profile(tree, vp);
         if (vp.name.empty())
             throw std::runtime_error(std::string("Vendor Config Bundle is not valid: Missing vendor name key."));
@@ -732,6 +746,13 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             return 0;
         vendor_profile = &(*this->vendors.insert(vp).first);
     }
+    
+    if (flags & LOAD_CFGBUNDLE_VENDOR_ONLY) {
+        return 0;
+    }
+
+    // 1.5) Flatten the config bundle by applying the inheritance rules. Internal profiles (with names starting with '*') are removed.
+    flatten_configbundle_hierarchy(tree);
 
     // 2) Parse the property_tree, extract the active preset names and the profiles, save them into local config files.
     std::vector<std::string> loaded_prints;
@@ -803,7 +824,9 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
                         section.first << "\" defines no printer variant, it will be ignored.";
                     continue;
                 }
-                auto it_model = vendor_profile->models.find(VendorProfile::PrinterModel(printer_model));
+                auto it_model = std::find_if(vendor_profile->models.cbegin(), vendor_profile->models.cend(),
+                    [&](const VendorProfile::PrinterModel &m) { return m.id == printer_model; }
+                );
                 if (it_model == vendor_profile->models.end()) {
                     BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
                         section.first << "\" defines invalid printer model \"" << printer_model << "\", it will be ignored.";

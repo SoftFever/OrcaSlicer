@@ -46,6 +46,7 @@
 #include "AppConfig.hpp"
 #include "ConfigSnapshotDialog.hpp"
 #include "Utils.hpp"
+#include "ConfigWizard.hpp"
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
 
@@ -395,6 +396,21 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 		}
 	});
 	menu->Append(local_menu, _(L("&Configuration")));
+}
+
+bool open_config_wizard(PresetBundle *preset_bundle)
+{
+	if (g_wxMainFrame == nullptr) {
+		throw std::runtime_error("Main frame not set");
+	}
+
+	return ConfigWizard::run(g_wxMainFrame, preset_bundle);
+}
+
+void open_preferences_dialog(int event_preferences)
+{
+	auto dlg = new PreferencesDialog(g_wxMainFrame, event_preferences);
+	dlg->ShowModal();
 }
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)

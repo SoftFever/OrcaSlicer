@@ -69,6 +69,8 @@ our $grey = Wx::Colour->new(200,200,200);
 our $LANGUAGE_CHANGE_EVENT  = Wx::NewEventType;
 # 2) To inform about a change of Preferences.
 our $PREFERENCES_EVENT      = Wx::NewEventType;
+# To inform AppConfig about Slic3r version available online
+our $VERSION_ONLINE_EVENT   = Wx::NewEventType;
 
 sub OnInit {
     my ($self) = @_;
@@ -100,6 +102,10 @@ sub OnInit {
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
 
+    # my $version_check = $self->{app_config}->get('version_check');
+    $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT, $self->{app_config});
+    my $slic3r_update = $self->{app_config}->slic3r_update_avail;
+
     Slic3r::GUI::set_app_config($self->{app_config});
     Slic3r::GUI::load_language();
 
@@ -110,6 +116,7 @@ sub OnInit {
         warn $@ . "\n";
         show_error(undef, $@);
     }
+    # TODO: check previously downloaded updates
     $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
 
     Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
@@ -133,14 +140,21 @@ sub OnInit {
         $self->{app_config}->save if $self->{app_config}->dirty;
     });
 
-    if ($run_wizard) {
-        # On OSX the UI was not initialized correctly if the wizard was called
-        # before the UI was up and running.
-        $self->CallAfter(sub {
+    # On OSX the UI was not initialized correctly if the wizard was called
+    # before the UI was up and running.
+    $self->CallAfter(sub {
+        # XXX: recreate_GUI ???
+        if ($slic3r_update) {
+            # TODO
+        }
+        # XXX: ?
+        if ($run_wizard) {
             # Run the config wizard, don't offer the "reset user profile" checkbox.
             $self->{mainframe}->config_wizard(1);
-        });
-    }
+        }
+
+        # $self->{preset_updater}->download($self->{preset_bundle});
+    });
 
     # The following event is emited by the C++ menu implementation of application language change.
     EVT_COMMAND($self, -1, $LANGUAGE_CHANGE_EVENT, sub{
@@ -152,6 +166,14 @@ sub OnInit {
         $self->update_ui_from_settings;
     });
     
+    # The following event is emited by PresetUpdater (C++)
+    EVT_COMMAND($self, -1, $VERSION_ONLINE_EVENT, sub {
+        my ($self, $event) = @_;
+        my $version = $event->GetString;
+        $self->{app_config}->set('version_online', $version);
+        $self->{app_config}->save;
+    });
+
     return 1;
 }
 
