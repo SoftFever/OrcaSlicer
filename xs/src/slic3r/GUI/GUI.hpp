@@ -79,8 +79,10 @@ void set_preset_bundle(PresetBundle *preset_bundle);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
-wxColour*	get_modified_label_clr();
-wxColour*	get_sys_label_clr();
+
+const wxColour& get_modified_label_clr();
+const wxColour& get_sys_label_clr();
+unsigned get_colour_approx_luma(const wxColour &colour);
 
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
 

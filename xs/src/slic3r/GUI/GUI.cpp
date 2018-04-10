@@ -1,6 +1,7 @@
 #include "GUI.hpp"
 
 #include <assert.h>
+#include <cmath>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
@@ -37,6 +38,7 @@
 #include <wx/sizer.h>
 #include <wx/combo.h>
 #include <wx/window.h>
+#include <wx/settings.h>
 
 #include "wxExtensions.hpp"
 
@@ -174,6 +176,8 @@ wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
+wxColour    g_color_label_modified;
+wxColour    g_color_label_sys;
 
 std::vector<Tab *> g_tabs_list;
 
@@ -182,9 +186,22 @@ wxLocale*	g_wxLocale;
 std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 double m_brim_width = 0.0;
 
+static void init_label_colours()
+{
+	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	if (luma >= 128) {
+		g_color_label_modified = wxColour(253, 88, 0);
+		g_color_label_sys = wxColour(26, 132, 57);
+	} else {
+		g_color_label_modified = wxColour(253, 111, 40);
+		g_color_label_sys = wxColour(115, 220, 103);
+	}
+}
+
 void set_wxapp(wxApp *app)
 {
     g_wxApp = app;
+    init_label_colours();
 }
 
 void set_main_frame(wxFrame *main_frame)
@@ -514,12 +531,25 @@ wxApp* get_app(){
 	return g_wxApp;
 }
 
-wxColour* get_modified_label_clr(){
-	return new wxColour(253, 88, 0);
+const wxColour& get_modified_label_clr() {
+	return g_color_label_modified;
 }
 
-wxColour* get_sys_label_clr(){
-	return new wxColour(26, 132, 57);
+const wxColour& get_sys_label_clr() {
+	return g_color_label_sys;
+}
+
+unsigned get_colour_approx_luma(const wxColour &colour)
+{
+	double r = colour.Red();
+	double g = colour.Green();
+	double b = colour.Blue();
+
+	std::round(std::sqrt(
+		r * r * .241 +
+		g * g * .691 +
+		b * b * .068
+	));
 }
 
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
