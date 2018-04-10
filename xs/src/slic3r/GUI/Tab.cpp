@@ -58,7 +58,10 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 			{
 				m_cc_presets_choice->SetText(selected);
 				std::string selected_string = selected.ToUTF8().data();
-// 				select_preset(selected_string);
+#ifdef __APPLE__
+#else
+ 				select_preset(selected_string);
+#endif
 			}				
 		});
 
@@ -143,7 +146,10 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		if (selected != _(L("System presets")) && selected != _(L("Default presets")))
 		{
 			std::string selected_string = selected.ToUTF8().data();
+#ifdef __APPLE__
+#else
 			select_preset(selected_string);
+#endif
 		}
 	});
 
