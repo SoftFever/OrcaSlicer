@@ -9,7 +9,7 @@ use utf8;
 use File::Basename qw(basename);
 use Wx qw(:misc :sizer :treectrl :button :keycode wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG wxID_CANCEL wxMOD_CONTROL
     wxTheApp);
-use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED EVT_TREE_KEY_DOWN);
+use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED EVT_TREE_KEY_DOWN EVT_KEY_DOWN);
 use base 'Wx::Panel';
 
 use constant ICON_OBJECT        => 0;
@@ -191,6 +191,14 @@ sub new {
     EVT_BUTTON($self, $self->{btn_split}, \&on_btn_split);
     EVT_BUTTON($self, $self->{btn_move_up}, \&on_btn_move_up);
     EVT_BUTTON($self, $self->{btn_move_down}, \&on_btn_move_down);
+    EVT_KEY_DOWN($canvas, sub {
+        my ($canvas, $event) = @_;
+        if ($event->GetKeyCode == WXK_DELETE) {
+            $canvas->GetParent->on_btn_delete;
+        } else {
+            $event->Skip;
+        }
+    });
     
     $self->reload_tree;
     
