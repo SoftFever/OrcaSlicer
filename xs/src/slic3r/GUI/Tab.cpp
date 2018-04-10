@@ -123,6 +123,32 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 1, wxEXPAND, 0);
 
+
+
+	//temporary left vertical sizer
+	m_left_sizer = new wxBoxSizer(wxVERTICAL);
+	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
+
+	// tree
+	m_presetctrl = new wxDataViewTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxDV_NO_HEADER);
+	m_left_sizer->Add(m_presetctrl, 1, wxEXPAND);
+	m_preset_icons = new wxImageList(16, 16, true, 1);
+	m_presetctrl->SetImageList(m_preset_icons);
+	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
+	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
+
+	m_presetctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxCommandEvent& evt)
+	{
+		auto selected = m_presetctrl->GetItemText(m_presetctrl->GetSelection());
+		if (selected != _(L("System presets")) && selected != _(L("Default presets")))
+		{
+			std::string selected_string = selected.ToUTF8().data();
+			select_preset(selected_string);
+		}
+	});
+
+
+
 	//left vertical sizer
 	m_left_sizer = new wxBoxSizer(wxVERTICAL);
 	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
@@ -521,6 +547,7 @@ void Tab::update_tab_ui()
 {
 	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
+	update_presetsctrl(m_presetctrl, m_show_incompatible_presets);
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
@@ -2130,6 +2157,87 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 		}
 	}));
 	return sizer; 
+}
+
+void Tab::update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible)
+{
+	if (ui == nullptr)
+		return;
+	ui->Freeze();
+	ui->DeleteAllItems();
+	auto presets = m_presets->get_presets();
+	auto idx_selected = m_presets->get_idx_selected();
+	auto suffix_modified = m_presets->get_suffix_modified();
+	int icon_compatible = 0;
+	int icon_incompatible = 1;
+	int cnt_items = 0;
+
+	auto root_sys = ui->AppendContainer(wxDataViewItem(0), _(L("System presets")));
+	auto root_def = ui->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
+
+	auto show_def = get_app_config()->get("no_defaults")[0] != '1';
+
+	for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
+		const Preset &preset = presets[i];
+		if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
+			continue;
+
+		auto preset_name = wxString::FromUTF8((preset.name + (preset.is_dirty ? suffix_modified : "")).c_str());
+
+		wxDataViewItem item;
+		if (preset.is_system)
+			item = ui->AppendItem(root_sys, preset_name,
+			preset.is_compatible ? icon_compatible : icon_incompatible);
+		else if (show_def && preset.is_default)
+			item = ui->AppendItem(root_def, preset_name,
+			preset.is_compatible ? icon_compatible : icon_incompatible);
+		else
+		{
+			auto parent = m_presets->get_preset_parent(preset);
+			if (parent == nullptr)
+				item = ui->AppendItem(root_def, preset_name,
+				preset.is_compatible ? icon_compatible : icon_incompatible);
+			else
+			{
+				auto parent_name = parent->name;
+
+				wxDataViewTreeStoreContainerNode *node = ui->GetStore()->FindContainerNode(root_sys);
+				if (node)
+				{
+					wxDataViewTreeStoreNodeList::iterator iter;
+					for (iter = node->GetChildren().begin(); iter != node->GetChildren().end(); iter++)
+					{
+						wxDataViewTreeStoreNode* child = *iter;
+						auto child_item = child->GetItem();
+						auto item_text = ui->GetItemText(child_item);
+						if (item_text == parent_name)
+						{
+							auto added_child = ui->AppendItem(child->GetItem(), preset_name,
+								preset.is_compatible ? icon_compatible : icon_incompatible);
+							if (!added_child){
+								ui->DeleteItem(child->GetItem());
+								auto new_parent = ui->AppendContainer(root_sys, parent_name,
+									preset.is_compatible ? icon_compatible : icon_incompatible);
+								ui->AppendItem(new_parent, preset_name,
+									preset.is_compatible ? icon_compatible : icon_incompatible);
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		cnt_items++;
+		if (i == idx_selected){
+			ui->Select(item);
+			m_cc_presets_choice->SetText(preset_name);
+		}
+	}
+	if (ui->GetStore()->GetChildCount(root_def) == 0)
+		ui->DeleteItem(root_def);
+
+	ui->Thaw();
 }
 
 void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)

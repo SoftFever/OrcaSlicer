@@ -97,6 +97,8 @@ protected:
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
 	wxComboCtrl*		m_cc_presets_choice;
+	wxDataViewTreeCtrl*	m_presetctrl;
+	wxImageList*		m_preset_icons;
 
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index
@@ -149,6 +151,7 @@ public:
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, std::string new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
+	void		update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible);
 	void		load_key_value(std::string opt_key, boost::any value);
 	void		reload_compatible_printers_widget();
 
