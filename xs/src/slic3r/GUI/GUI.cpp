@@ -44,9 +44,12 @@
 #include "TabIface.hpp"
 #include "AboutDialog.hpp"
 #include "AppConfig.hpp"
+#include "ConfigSnapshotDialog.hpp"
 #include "Utils.hpp"
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
+
+#include "../Config/Snapshot.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -357,6 +360,17 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
    	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
+		case ConfigMenuTakeSnapshot:
+			// Take a configuration snapshot.
+			Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(*g_AppConfig, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, "");
+			break;
+		case ConfigMenuSnapshots:
+		{
+		    ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton());
+		    dlg.ShowModal();
+		    dlg.Destroy();
+		    break;
+		}
 		case ConfigMenuPreferences:
 		{
 			auto dlg = new PreferencesDialog(g_wxMainFrame, event_preferences_changed);

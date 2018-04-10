@@ -91,7 +91,7 @@ public:
 
 	// Create a snapshot directory, copy the vendor config bundles, user print/filament/printer profiles,
 	// create an index.
-	const Snapshot&					make_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment);
+	const Snapshot&					take_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment);
 	void 							restore_snapshot(const std::string &id, AppConfig &app_config);
 	void 							restore_snapshot(const Snapshot &snapshot, AppConfig &app_config);
 

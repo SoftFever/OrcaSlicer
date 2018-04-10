@@ -46,11 +46,23 @@ public:
 		return Semver(ver);
 	}
 
-	Semver(Semver &&other) { *this = std::move(other); }
-	Semver(const Semver &other) { *this = other; }
+	Semver(Semver &&other) : ver(other.ver)
+	{
+		other.ver.major = other.ver.minor = other.ver.patch = 0;
+		other.ver.metadata = other.ver.prerelease = nullptr;
+	}
+
+	Semver(const Semver &other) : ver(other.ver)
+	{
+		if (other.ver.metadata != nullptr)
+			std::strcpy(ver.metadata, other.ver.metadata);
+		if (other.ver.prerelease != nullptr)
+			std::strcpy(ver.prerelease, other.ver.prerelease);
+	}
 
 	Semver &operator=(Semver &&other)
 	{
+		::semver_free(&ver);
 		ver = other.ver;
 		other.ver.major = other.ver.minor = other.ver.patch = 0;
 		other.ver.metadata = other.ver.prerelease = nullptr;

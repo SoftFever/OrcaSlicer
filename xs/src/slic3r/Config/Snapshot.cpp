@@ -241,7 +241,7 @@ static void delete_existing_ini_files(const boost::filesystem::path &path)
 		    boost::filesystem::remove(dir_entry.path());
 }
 
-const Snapshot&	SnapshotDB::make_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment)
+const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment)
 {
 	boost::filesystem::path data_dir        = boost::filesystem::path(Slic3r::data_dir());
 	boost::filesystem::path snapshot_db_dir = SnapshotDB::create_db_dir();
@@ -267,8 +267,10 @@ const Snapshot&	SnapshotDB::make_snapshot(const AppConfig &app_config, Snapshot:
     }
     // Vendor specific config bundles and installed printers.
 
+	boost::filesystem::path snapshot_dir = snapshot_db_dir / snapshot.id;
+	boost::filesystem::create_directory(snapshot_dir);
+
     // Backup the presets.
-    boost::filesystem::path snapshot_dir = snapshot_db_dir / snapshot.id;
     for (const char *subdir : { "print", "filament", "printer", "vendor" })
     	copy_config_dir_single_level(data_dir / subdir, snapshot_dir / subdir);
 	snapshot.save_ini((snapshot_dir / "snapshot.ini").string());
@@ -322,7 +324,7 @@ boost::filesystem::path SnapshotDB::create_db_dir()
 SnapshotDB& SnapshotDB::singleton()
 {
 	static SnapshotDB instance;
-	bool       loaded = false;
+	static bool       loaded = false;
 	if (! loaded) {
 		try {
 			loaded = true;

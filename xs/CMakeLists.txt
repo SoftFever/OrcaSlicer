@@ -176,6 +176,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/AppConfig.hpp
     ${LIBDIR}/slic3r/GUI/BitmapCache.cpp
     ${LIBDIR}/slic3r/GUI/BitmapCache.hpp
+    ${LIBDIR}/slic3r/GUI/ConfigSnapshotDialog.cpp
+    ${LIBDIR}/slic3r/GUI/ConfigSnapshotDialog.hpp
     ${LIBDIR}/slic3r/GUI/3DScene.cpp
     ${LIBDIR}/slic3r/GUI/3DScene.hpp
     ${LIBDIR}/slic3r/GUI/GLShader.cpp
@@ -218,6 +220,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
     ${LIBDIR}/slic3r/Utils/Bonjour.cpp
     ${LIBDIR}/slic3r/Utils/Bonjour.hpp
+    ${LIBDIR}/slic3r/Utils/Time.cpp
+    ${LIBDIR}/slic3r/Utils/Time.hpp
 )
 
 add_library(admesh STATIC
@@ -408,7 +412,7 @@ if(APPLE)
     # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
     target_link_libraries(XS "-undefined dynamic_lookup")
 endif()
-target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri)
+target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver)
 if(SLIC3R_PROFILE)
     target_link_libraries(XS Shiny)
 endif()
