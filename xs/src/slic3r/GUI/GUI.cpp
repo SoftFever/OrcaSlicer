@@ -545,7 +545,7 @@ unsigned get_colour_approx_luma(const wxColour &colour)
 	double g = colour.Green();
 	double b = colour.Blue();
 
-	std::round(std::sqrt(
+	return std::round(std::sqrt(
 		r * r * .241 +
 		g * g * .691 +
 		b * b * .068
