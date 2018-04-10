@@ -15,6 +15,11 @@ wxDEFINE_EVENT(EVT_WIPE_TOWER_CHART_CHANGED, wxCommandEvent);
 
 void Chart::draw() {
     wxAutoBufferedPaintDC dc(this); // unbuffered DC caused flickering on win
+
+    dc.SetBrush(GetBackgroundColour());
+    dc.SetPen(GetBackgroundColour());
+    dc.DrawRectangle(GetClientRect());  // otherwise the background would end up black on windows
+
     dc.SetPen(*wxBLACK_PEN);
     dc.SetBrush(*wxWHITE_BRUSH);
     dc.DrawRectangle(m_rect);
