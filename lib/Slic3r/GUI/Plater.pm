@@ -737,7 +737,7 @@ sub load_model_objects {
         {
             # if the object is too large (more than 5 times the bed), scale it down
             my $size = $o->bounding_box->size;
-            my $ratio = max(@$size[X,Y]) / unscale(max(@$bed_size[X,Y]));
+            my $ratio = max($size->x / unscale($bed_size->x), $size->y / unscale($bed_size->y));
             if ($ratio > 5) {
                 $_->set_scaling_factor(1/$ratio) for @{$o->instances};
                 $scaled_down = 1;
