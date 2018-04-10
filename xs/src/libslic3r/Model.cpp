@@ -16,6 +16,8 @@
 
 namespace Slic3r {
 
+    unsigned int Model::s_auto_extruder_id = 1;
+
 Model::Model(const Model &other)
 {
     // copy materials
@@ -405,9 +407,8 @@ void Model::convert_multipart_object()
     
     ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
-    
-    unsigned int auto_extruder_id = 1;
-    char str_extruder[64];
+
+    reset_auto_extruder_id();
 
     for (const ModelObject* o : this->objects)
         for (const ModelVolume* v : o->volumes)
@@ -416,12 +417,7 @@ void Model::convert_multipart_object()
             if (new_v != nullptr)
             {
                 new_v->name = o->name;
-
-                sprintf(str_extruder, "%ud", auto_extruder_id);
-                new_v->config.set_deserialize("extruder", str_extruder);
-
-                if (++auto_extruder_id > 4)
-                    auto_extruder_id = 1;
+                new_v->config.set_deserialize("extruder", get_auto_extruder_id_as_string());
             }
         }
 
@@ -479,6 +475,28 @@ bool Model::fits_print_volume(const FullPrintConfig &config) const
     // Allow the objects to protrude below the print bed
     print_volume.min.z = -1e10;
     return print_volume.contains(transformed_bounding_box());
+}
+
+unsigned int Model::get_auto_extruder_id()
+{
+    unsigned int id = s_auto_extruder_id;
+
+    if (++s_auto_extruder_id > 4)
+        reset_auto_extruder_id();
+
+    return id;
+}
+
+std::string Model::get_auto_extruder_id_as_string()
+{
+    char str_extruder[64];
+    sprintf(str_extruder, "%ud", get_auto_extruder_id());
+    return str_extruder;
+}
+
+void Model::reset_auto_extruder_id()
+{
+    s_auto_extruder_id = 1;
 }
 
 ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes) :  
@@ -1010,6 +1028,9 @@ size_t ModelVolume::split()
     size_t idx = 0;
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
     std::string name = this->name;
+
+    Model::reset_auto_extruder_id();
+
     for (TriangleMesh *mesh : meshptrs) {
         mesh->repair();
         if (idx == 0)
@@ -1019,6 +1040,7 @@ size_t ModelVolume::split()
         char str_idx[64];
         sprintf(str_idx, "_%d", idx + 1);
         this->object->volumes[ivolume]->name = name + str_idx;
+        this->object->volumes[ivolume]->config.set_deserialize("extruder", Model::get_auto_extruder_id_as_string());
         delete mesh;
         ++ idx;
     }
