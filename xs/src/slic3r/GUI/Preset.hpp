@@ -3,8 +3,12 @@
 
 #include <deque>
 
+#include <boost/filesystem/path.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
+
 #include "../../libslic3r/libslic3r.h"
 #include "../../libslic3r/PrintConfig.hpp"
+#include "slic3r/Utils/Semver.hpp"
 
 class wxBitmap;
 class wxChoice;
@@ -30,7 +34,7 @@ class VendorProfile
 public:
     std::string                     name;
     std::string                     id;
-    std::string                     config_version;
+    Semver                          config_version;
     std::string                     config_update_url;
 
     struct PrinterVariant {
@@ -54,7 +58,10 @@ public:
     };
     std::vector<PrinterModel>          models;
 
-    VendorProfile(std::string id) : id(std::move(id)) {}
+    VendorProfile(std::string id) : id(std::move(id)), config_version(0, 0, 0) {}
+
+    static VendorProfile from_ini(const boost::filesystem::path &path, bool load_all=true);
+    static VendorProfile from_ini(const boost::property_tree::ptree &tree, const boost::filesystem::path &path, bool load_all=true);
 
     size_t      num_variants() const { size_t n = 0; for (auto &model : models) n += model.variants.size(); return n; }
 

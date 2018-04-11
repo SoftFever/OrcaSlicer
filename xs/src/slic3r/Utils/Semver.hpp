@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstring>
+#include <ostream>
 #include <boost/optional.hpp>
 #include <boost/format.hpp>
 
@@ -10,6 +11,7 @@
 
 namespace Slic3r {
 
+// FIXME:: operators=: leak, return
 
 class Semver
 {
@@ -18,9 +20,22 @@ public:
 	struct Minor { const int i;  Minor(int i) : i(i) {} };
 	struct Patch { const int i;  Patch(int i) : i(i) {} };
 
+	Semver(int major, int minor, int patch,
+		boost::optional<std::string> metadata = boost::none,
+		boost::optional<std::string> prerelease = boost::none)
+	{
+		ver.major = major;
+		ver.minor = minor;
+		ver.patch = patch;
+		ver.metadata = metadata ? std::strcpy(ver.metadata, metadata->c_str()) : nullptr;
+		ver.prerelease = prerelease ? std::strcpy(ver.prerelease, prerelease->c_str()) : nullptr;
+	}
+
+	// TODO: throwing ctor ???
+
 	static boost::optional<Semver> parse(const std::string &str)
 	{
-		semver_t ver;
+		semver_t ver = semver_zero();
 		if (::semver_parse(str.c_str(), &ver) == 0) {
 			return Semver(ver);
 		} else {
@@ -121,6 +136,8 @@ private:
 	semver_t ver;
 
 	Semver(semver_t ver) : ver(ver) {}
+
+	static semver_t semver_zero() { return { 0, 0, 0, nullptr, nullptr }; }
 };
 
 

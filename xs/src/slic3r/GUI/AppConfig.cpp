@@ -8,6 +8,7 @@
 #include <utility>
 #include <assert.h>
 #include <vector>
+#include <stdexcept>
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/cenv.hpp>
@@ -228,7 +229,25 @@ bool AppConfig::version_check_enabled() const
 
 bool AppConfig::slic3r_update_avail() const
 {
+    // FIXME: Update with Semver
+    // TODO: probably need to move semver to libslic3r
     return version_check_enabled() && get("version_online") != SLIC3R_VERSION;
+}
+
+Semver AppConfig::get_slic3r_version() const
+{
+    // TODO: move to Semver c-tor (???)
+    auto res = Semver::parse(get("version"));
+    if (! res) {
+        throw std::runtime_error(std::string("Could not parse Slic3r version string in application config."));
+    } else {
+        return *res;
+    }
+}
+
+void AppConfig::set_slic3r_version(const Semver &version)
+{
+    set("version", version.to_string());
 }
 
 std::string AppConfig::config_path()

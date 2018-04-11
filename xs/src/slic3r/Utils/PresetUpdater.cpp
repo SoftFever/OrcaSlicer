@@ -1,9 +1,8 @@
 #include "PresetUpdater.hpp"
 
-#include <iostream>  // XXX
 #include <thread>
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
 #include <wx/app.h>
@@ -22,6 +21,7 @@ namespace Slic3r {
 
 
 // TODO: proper URL
+// TODO: Actually, use index
 static const std::string SLIC3R_VERSION_URL = "https://gist.githubusercontent.com/vojtechkral/4d8fd4a3b8699a01ec892c264178461c/raw/e9187c3e15ceaf1a90f29b7c43cf3ccc746140f0/slic3rPE.version";
 enum {
 	SLIC3R_VERSION_BODY_MAX = 256,
@@ -52,8 +52,6 @@ PresetUpdater::priv::priv(int event) :
 
 void PresetUpdater::priv::download(const std::set<VendorProfile> vendors) const
 {
-	std::cerr << "PresetUpdater::priv::download()" << std::endl;
-
 	if (!version_check) { return; }
 
 	// Download current Slic3r version
@@ -64,7 +62,6 @@ void PresetUpdater::priv::download(const std::set<VendorProfile> vendors) const
 		})
 		.on_complete([&](std::string body, unsigned http_status) {
 			boost::trim(body);
-			std::cerr << "Got version: " << http_status << ", body: \"" << body << '"' << std::endl;
 			wxCommandEvent* evt = new wxCommandEvent(version_online_event);
 			evt->SetString(body);
 			GUI::get_app()->QueueEvent(evt);
@@ -74,25 +71,19 @@ void PresetUpdater::priv::download(const std::set<VendorProfile> vendors) const
 	if (!preset_update) { return; }
 
 	// Donwload vendor preset bundles
-	std::cerr << "Bundle vendors: " << vendors.size() << std::endl;
 	for (const auto &vendor : vendors) {
-		std::cerr << "vendor: " << vendor.name << std::endl;
-		std::cerr << "  URL: " << vendor.config_update_url << std::endl;
-
 		if (cancel) { return; }
 
 		// TODO: Proper caching
 
 		auto target_path = cache_path / vendor.id;
 		target_path += ".ini";
-		std::cerr << "target_path: " << target_path << std::endl;
 
 		Http::get(vendor.config_update_url)
 			.on_progress([this](Http::Progress, bool &cancel) {
 				cancel = this->cancel;
 			})
 			.on_complete([&](std::string body, unsigned http_status) {
-				std::cerr << "Got ini: " << http_status << ", body: " << body.size() << std::endl;
 				fs::fstream file(target_path, std::ios::out | std::ios::binary | std::ios::trunc);
 				file.write(body.c_str(), body.size());
 			})
@@ -121,7 +112,6 @@ PresetUpdater::~PresetUpdater()
 
 void PresetUpdater::download(PresetBundle *preset_bundle)
 {
-	std::cerr << "PresetUpdater::download()" << std::endl;
 
 	// Copy the whole vendors data for use in the background thread
 	// Unfortunatelly as of C++11, it needs to be copied again
@@ -131,6 +121,24 @@ void PresetUpdater::download(PresetBundle *preset_bundle)
 	p->thread = std::move(std::thread([this, vendors]() {
 		this->p->download(std::move(vendors));
 	}));
+}
+
+void PresetUpdater::init_vendors()
+{
+	const auto vendors_rources = fs::path(resources_dir()) / "profiles";
+	const auto vendors_data = fs::path(Slic3r::data_dir()) / "vendor";
+
+	for (fs::directory_iterator it(vendors_rources); it != fs::directory_iterator(); ++it) {
+		if (it->path().extension() == ".ini") {
+			auto vp = VendorProfile::from_ini(it->path(), false);
+			const auto path_in_data = vendors_data / it->path().filename();
+
+			if (! fs::exists(path_in_data) || VendorProfile::from_ini(path_in_data, false).config_version < vp.config_version) {
+				// FIXME: update vendor bundle properly when snapshotting is ready
+				PresetBundle::install_vendor_configbundle(it->path());
+			}
+		}
+	}
 }
 
 

@@ -6,6 +6,7 @@
 #include <string>
 
 #include "libslic3r/Config.hpp"
+#include "slic3r/Utils/Semver.hpp"
 
 namespace Slic3r {
 
@@ -91,6 +92,8 @@ public:
 	// Whether the Slic3r version available online differs from this one
 	bool                version_check_enabled() const;
 	bool                slic3r_update_avail() const;
+	Semver              get_slic3r_version() const;
+	void                set_slic3r_version(const Semver &version);
 
 	// Get the default config path from Slic3r::data_dir().
 	static std::string  config_path();

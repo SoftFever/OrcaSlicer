@@ -61,7 +61,13 @@ bool check_unsaved_changes()
     %code%{ RETVAL=Slic3r::GUI::check_unsaved_changes(); %};
 
 bool config_wizard(int fresh_start)
-    %code%{ RETVAL=Slic3r::GUI::config_wizard(fresh_start != 0); %};
+    %code%{
+        try {
+            RETVAL = Slic3r::GUI::config_wizard(fresh_start != 0);
+        } catch (std::exception& e) {
+            croak("%s\n", e.what());
+        }
+    %};
 
 void open_preferences_dialog(int preferences_event)
     %code%{ Slic3r::GUI::open_preferences_dialog(preferences_event); %};
