@@ -200,7 +200,7 @@ semver_parse_version (const char *str, semver_t *ver) {
       slice = next + 1;
   }
 
-  return 0;
+  return (index == 3) ? 0 : -1;
 }
 
 static int

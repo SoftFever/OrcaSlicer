@@ -57,6 +57,7 @@ void Snapshot::load_ini(const std::string &path)
     // Parse snapshot.ini
     std::string group_name_vendor = "Vendor:";
 	std::string key_filament = "filament";
+    std::string key_prefix_model = "model_";
     for (auto &section : tree) {
     	if (section.first == "snapshot") {
     		// Parse the common section.
@@ -107,10 +108,7 @@ void Snapshot::load_ini(const std::string &path)
             VendorConfig vc;
             vc.name = section.first.substr(group_name_vendor.size());
             for (auto &kvp : section.second) {
-            	if (boost::starts_with(kvp.first, "model_")) {
-            		//model:MK2S = 0.4;xxx
-					//model:MK3 = 0.4;xxx
-            	} else if (kvp.first == "version" || kvp.first == "min_slic3r_version" || kvp.first == "max_slic3r_version") {
+            	if (kvp.first == "version" || kvp.first == "min_slic3r_version" || kvp.first == "max_slic3r_version") {
             		// Version of the vendor specific config bundle bundled with this snapshot.            		
                 	auto semver = Semver::parse(kvp.second.data());
                 	if (! semver)
@@ -121,8 +119,16 @@ void Snapshot::load_ini(const std::string &path)
                 		vc.min_slic3r_version = *semver;
                 	else
                 		vc.max_slic3r_version = *semver;
-            	}
+            	} else if (boost::starts_with(kvp.first, key_prefix_model) && kvp.first.size() > key_prefix_model.size()) {
+                    // Parse the printer variants installed for the current model.
+                    auto &set_variants = vc.models_variants_installed[kvp.first.substr(key_prefix_model.size())];
+                    std::vector<std::string> variants;
+                    if (unescape_strings_cstyle(kvp.second.data(), variants))
+                        for (auto &variant : variants)
+                            set_variants.insert(std::move(variant));
+                }
 			}
+			this->vendor_configs.emplace_back(std::move(vc));
         }
     }
 }
@@ -155,6 +161,14 @@ void Snapshot::save_ini(const std::string &path)
 		c << "version = " << vc.version.to_string() << std::endl;
 		c << "min_slic3r_version = " << vc.min_slic3r_version.to_string() << std::endl;
 		c << "max_slic3r_version = " << vc.max_slic3r_version.to_string() << std::endl;
+        // Export installed printer models and their variants.
+        for (const auto &model : vc.models_variants_installed) {
+            if (model.second.size() == 0)
+                continue;
+            const std::vector<std::string> variants(model.second.begin(), model.second.end());
+            const auto escaped = escape_strings_cstyle(variants);
+            c << "model_" << model.first << " = " << escaped << std::endl;
+        }
     }
     c.close();
 }

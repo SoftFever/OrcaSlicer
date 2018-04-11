@@ -55,9 +55,9 @@ public:
 	Semver(const Semver &other) : ver(other.ver)
 	{
 		if (other.ver.metadata != nullptr)
-			std::strcpy(ver.metadata, other.ver.metadata);
+			ver.metadata = strdup(other.ver.metadata);
 		if (other.ver.prerelease != nullptr)
-			std::strcpy(ver.prerelease, other.ver.prerelease);
+			ver.prerelease = strdup(other.ver.prerelease);
 	}
 
 	Semver &operator=(Semver &&other)
@@ -73,8 +73,10 @@ public:
 	{
 		::semver_free(&ver);
 		ver = other.ver;
-		if (other.ver.metadata != nullptr) { std::strcpy(ver.metadata, other.ver.metadata); }
-		if (other.ver.prerelease != nullptr) { std::strcpy(ver.prerelease, other.ver.prerelease); }
+		if (other.ver.metadata != nullptr) 
+			ver.metadata = strdup(other.ver.metadata);
+		if (other.ver.prerelease != nullptr)
+			ver.prerelease = strdup(other.ver.prerelease);
 		return *this;
 	}
 
