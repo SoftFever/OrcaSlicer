@@ -38,8 +38,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
-
-	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize/*wxSize(270, -1)*/, wxCB_READONLY);
+	/*
+	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
 	wxDataViewTreeCtrlComboPopup* popup = new wxDataViewTreeCtrlComboPopup;
 	if (popup != nullptr)
 	{
@@ -73,8 +73,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
 		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
 	}
-
-
+*/
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
 	//buttons
@@ -119,13 +118,15 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer->AddSpacer(64);
 	m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(64);
-	m_hsizer->Add(m_cc_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
+// 	m_hsizer->AddSpacer(64);
+// 	m_hsizer->Add(m_cc_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
 
 	//Horizontal sizer to hold the tree and the selected page.
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 1, wxEXPAND, 0);
 
+
+/*
 
 
 	//temporary left vertical sizer
@@ -153,7 +154,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		}
 	});
 
-
+*/
 
 	//left vertical sizer
 	m_left_sizer = new wxBoxSizer(wxVERTICAL);
@@ -202,8 +203,8 @@ void Tab::load_initial_data()
 {
 	m_config = &m_presets->get_edited_preset().config;
 	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
-		"bullet_white.png" :
-		wxMSW ? "sys_unlock.png" : "lock_open.png";
+		"bullet_white.png" : "sys_unlock.png";
+// 		wxMSW ? "sys_unlock.png" : "lock_open.png";
 }
 
 PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
@@ -331,8 +332,8 @@ void Tab::update_changed_ui()
 	{
 		bool is_nonsys_value = false;
 		bool is_modified_value = true;
-		std::string sys_icon = wxMSW ? "sys_lock.png" : "lock.png";
-		std::string icon = wxMSW ? "action_undo.png" : "arrow_undo.png";
+		std::string sys_icon = /*wxMSW ? */"sys_lock.png"/* : "lock.png"*/;
+		std::string icon = /*wxMSW ? */"action_undo.png"/* : "arrow_undo.png"*/;
 		wxColour& color = *get_sys_label_clr();
 		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
 			is_nonsys_value = true;
@@ -478,9 +479,9 @@ void Tab::update_changed_tree_ui()
 void Tab::update_undo_buttons()
 {
 	const std::string& undo_icon = !m_is_modified_values ? "bullet_white.png" :
-									wxMSW ? "action_undo.png" : "arrow_undo.png";
+									/*wxMSW ? */"action_undo.png"/* : "arrow_undo.png"*/;
 	const std::string& undo_to_sys_icon = m_is_nonsys_values ? m_nonsys_btn_icon :
-									wxMSW ? "sys_lock.png" : "lock.png";
+									/*wxMSW ? */"sys_lock.png"/* : "lock.png"*/;
 
 	m_undo_btn->SetBitmap(wxBitmap(from_u8(var(undo_icon)), wxBITMAP_TYPE_PNG));
 	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(undo_to_sys_icon)), wxBITMAP_TYPE_PNG));
@@ -552,8 +553,8 @@ void Tab::update_dirty(){
 void Tab::update_tab_ui()
 {
 	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
-	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
-	update_presetsctrl(m_presetctrl, m_show_incompatible_presets);
+// 	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
+// 	update_presetsctrl(m_presetctrl, m_show_incompatible_presets);
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
@@ -1786,7 +1787,7 @@ void Tab::load_current_preset()
 	const Preset* parent = m_presets->get_selected_preset_parent();
 	m_nonsys_btn_icon = parent == nullptr ?
 		"bullet_white.png" :
-		wxMSW ? "sys_unlock.png" : "lock_open.png";
+		/*wxMSW ? */"sys_unlock.png"/* : "lock_open.png"*/;
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
