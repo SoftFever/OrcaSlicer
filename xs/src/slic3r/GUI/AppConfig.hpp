@@ -71,6 +71,9 @@ public:
 	bool                get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const;
 	void                set_variant(const std::string &vendor, const std::string &model, const std::string &variant, bool enable);
 	void                set_vendors(const AppConfig &from);
+	void 				set_vendors(const std::map<std::string, std::map<std::string, std::set<std::string>>> &vendors) { m_vendors = vendors; m_dirty = true; }
+	void 				set_vendors(std::map<std::string, std::map<std::string, std::set<std::string>>> &&vendors) { m_vendors = std::move(vendors); m_dirty = true; }
+	const std::map<std::string, std::map<std::string, std::set<std::string>>> vendors() const { return m_vendors; }
 
 	// return recent/skein_directory or recent/config_directory or empty string.
 	std::string 		get_last_dir() const;

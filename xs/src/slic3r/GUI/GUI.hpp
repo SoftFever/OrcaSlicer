@@ -82,13 +82,17 @@ wxApp*		get_app();
 wxColour*	get_modified_label_clr();
 wxColour*	get_sys_label_clr();
 
-void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
+extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
+
+// This is called when closing the application, when loading a config file or when starting the config wizard
+// to notify the user whether he is aware that some preset changes will be lost.
+extern bool check_unsaved_changes();
 
 // Opens the first-time configuration wizard, returns true if wizard is finished & accepted.
-bool open_config_wizard(PresetBundle *preset_bundle);
+extern bool config_wizard(bool fresh_start);
 
 // Create "Preferences" dialog after selecting menu "Preferences" in Perl part
-void open_preferences_dialog(int event_preferences);
+extern void open_preferences_dialog(int event_preferences);
 
 // Create a new preset tab (print, filament and printer),
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed);

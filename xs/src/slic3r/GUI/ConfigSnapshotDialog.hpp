@@ -19,9 +19,13 @@ class ConfigSnapshotDialog : public wxDialog
 public:
     ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db);
     
+    const std::string& snapshot_to_activate() const { return m_snapshot_to_activate; }
+
 private:
     void onLinkClicked(wxHtmlLinkEvent &event);
     void onCloseDialog(wxEvent &);
+
+    std::string m_snapshot_to_activate;
 };
 
 } // namespace GUI

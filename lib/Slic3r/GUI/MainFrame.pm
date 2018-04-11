@@ -81,7 +81,7 @@ sub new {
     # declare events
     EVT_CLOSE($self, sub {
         my (undef, $event) = @_;
-        if ($event->CanVeto && !$self->check_unsaved_changes) {
+        if ($event->CanVeto && !Slic3r::GUI::check_unsaved_changes) {
             $event->Veto;
             return;
         }
@@ -313,11 +313,6 @@ sub _init_menubar {
     # Help menu
     my $helpMenu = Wx::Menu->new;
     {
-        $self->_append_menu_item($helpMenu, L("&Configuration ").$Slic3r::GUI::ConfigWizard::wizard."…", L("Run Configuration ").$Slic3r::GUI::ConfigWizard::wizard, sub {
-            # Run the config wizard, offer the "reset user profile" checkbox.
-            $self->config_wizard(0);
-        });
-        $helpMenu->AppendSeparator();
         $self->_append_menu_item($helpMenu, L("Prusa 3D Drivers"), L('Open the Prusa3D drivers download page in your browser'), sub {
             Wx::LaunchDefaultBrowser('http://www.prusa3d.com/drivers/');
         });
@@ -554,7 +549,7 @@ sub export_config {
 sub load_config_file {
     my ($self, $file) = @_;
     if (!$file) {
-        return unless $self->check_unsaved_changes;
+        return unless Slic3r::GUI::check_unsaved_changes;
         my $dlg = Wx::FileDialog->new($self, L('Select configuration to load:'), 
             $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
             "config.ini",
@@ -573,7 +568,7 @@ sub load_config_file {
 
 sub export_configbundle {
     my ($self) = @_;
-    return unless $self->check_unsaved_changes;
+    return unless Slic3r::GUI::check_unsaved_changes;
     # validate current configuration in case it's dirty
     eval { wxTheApp->{preset_bundle}->full_config->validate; };
     Slic3r::GUI::catch_error($self) and return;
@@ -597,7 +592,7 @@ sub export_configbundle {
 # but that behavior was not documented and likely buggy.
 sub load_configbundle {
     my ($self, $file, $reset_user_profile) = @_;
-    return unless $self->check_unsaved_changes;
+    return unless Slic3r::GUI::check_unsaved_changes;
     if (!$file) {
         my $dlg = Wx::FileDialog->new($self, L('Select configuration to load:'), 
             $last_config ? dirname($last_config) : wxTheApp->{app_config}->get_last_dir,
@@ -629,40 +624,6 @@ sub load_config {
     my ($self, $config) = @_;
     $_->load_config($config) foreach values %{$self->{options_tabs}};
     $self->{plater}->on_config_change($config) if $self->{plater};
-}
-
-sub config_wizard {
-    my ($self, $fresh_start) = @_;
-    # Exit wizard if there are unsaved changes and the user cancels the action.
-    return unless $self->check_unsaved_changes;
-
-    # TODO: Offer "reset user profile" ???
-    if (Slic3r::GUI::open_config_wizard(wxTheApp->{preset_bundle})) {
-        # Load the currently selected preset into the GUI, update the preset selection box.
-        foreach my $tab (values %{$self->{options_tabs}}) {
-            $tab->load_current_preset;
-        }
-    }
-}
-
-# This is called when closing the application, when loading a config file or when starting the config wizard
-# to notify the user whether he is aware that some preset changes will be lost.
-sub check_unsaved_changes {
-    my $self = shift;
-    
-    my @dirty = ();
-    foreach my $tab (values %{$self->{options_tabs}}) {
-        push @dirty, $tab->title if $tab->current_preset_is_dirty;
-    }
-    
-    if (@dirty) {
-        my $titles = join ', ', @dirty;
-        my $confirm = Wx::MessageDialog->new($self, L("You have unsaved changes ").($titles).L(". Discard changes and continue anyway?"),
-                                             L('Unsaved Presets'), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-        return $confirm->ShowModal == wxID_YES;
-    }
-    
-    return 1;
 }
 
 sub select_tab {

@@ -349,9 +349,17 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 {
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
-	
+
+	// A different naming convention is used for the Wizard on Windows vs. OSX & GTK.	
+#if WIN32
+    std::string config_wizard_menu    = _(L("Configuration Wizard"));
+    std::string config_wizard_tooltip = _(L("Run configuration wizard"));
+#else
+    std::string config_wizard_menu    = _(L("Configuration Assistant"));
+    std::string config_wizard_tooltip = _(L("Run configuration Assistant"));
+#endif
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		_(L("Configuration Wizard\u2026")), 	_(L("Run configuration wizard")));
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		config_wizard_menu + "\u2026", 			config_wizard_tooltip);
    	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots\u2026")), 	_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 	_(L("Capture a configuration snapshot")));
    	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 				_(L("Check for configuration updates")));
@@ -361,21 +369,35 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
    	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
+		case ConfigMenuWizard:
+            config_wizard(0);
+            break;
 		case ConfigMenuTakeSnapshot:
 			// Take a configuration snapshot.
-			Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(*g_AppConfig, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, "");
+			if (check_unsaved_changes()) {
+				wxTextEntryDialog dlg(nullptr, _(L("Taking configuration snapshot")), _(L("Snapshot name")));
+				if (dlg.ShowModal() == wxID_OK)
+					Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
+						*g_AppConfig, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data());
+			}
 			break;
 		case ConfigMenuSnapshots:
-		{
-		    ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton());
-		    dlg.ShowModal();
-		    dlg.Destroy();
+			if (check_unsaved_changes()) {
+		    	ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton());
+		    	dlg.ShowModal();
+		    	if (! dlg.snapshot_to_activate().empty()) {
+		    		Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *g_AppConfig);
+		    		g_PresetBundle->load_presets(*g_AppConfig);
+		    		// Load the currently selected preset into the GUI, update the preset selection box.
+					for (Tab *tab : g_tabs_list)
+						tab->load_current_preset();
+		    	}
+		    }
 		    break;
-		}
 		case ConfigMenuPreferences:
 		{
-			auto dlg = new PreferencesDialog(g_wxMainFrame, event_preferences_changed);
-			dlg->ShowModal();
+			PreferencesDialog dlg(g_wxMainFrame, event_preferences_changed);
+			dlg.ShowModal();
 			break;
 		}
 		case ConfigMenuLanguage:
@@ -398,13 +420,45 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 	menu->Append(local_menu, _(L("&Configuration")));
 }
 
-bool open_config_wizard(PresetBundle *preset_bundle)
+// This is called when closing the application, when loading a config file or when starting the config wizard
+// to notify the user whether he is aware that some preset changes will be lost.
+bool check_unsaved_changes()
 {
-	if (g_wxMainFrame == nullptr) {
-		throw std::runtime_error("Main frame not set");
-	}
+	std::string dirty;
+	for (Tab *tab : g_tabs_list)
+		if (tab->current_preset_is_dirty())
+			if (dirty.empty())
+				dirty = tab->name();
+			else
+				dirty += std::string(", ") + tab->name();
+	if (dirty.empty())
+		// No changes, the application may close or reload presets.
+		return true;
+	// Ask the user.
+	auto dialog = new wxMessageDialog(g_wxMainFrame,
+		_(L("You have unsaved changes ")) + dirty + _(L(". Discard changes and continue anyway?")), 
+		_(L("Unsaved Presets")),
+		wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+	return dialog->ShowModal() == wxID_YES;
+}
 
-	return ConfigWizard::run(g_wxMainFrame, preset_bundle);
+bool config_wizard(bool fresh_start)
+{
+	if (g_wxMainFrame == nullptr)
+		throw std::runtime_error("Main frame not set");
+
+    // Exit wizard if there are unsaved changes and the user cancels the action.
+    if (! check_unsaved_changes())
+    	return false;
+
+    // TODO: Offer "reset user profile" ???
+	if (! ConfigWizard::run(g_wxMainFrame, g_PresetBundle))
+		return false;
+
+    // Load the currently selected preset into the GUI, update the preset selection box.
+	for (Tab *tab : g_tabs_list)
+		tab->load_current_preset();
+	return true;
 }
 
 void open_preferences_dialog(int event_preferences)

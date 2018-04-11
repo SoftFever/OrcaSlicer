@@ -57,8 +57,11 @@ int combochecklist_get_flags(SV *ui)
 void set_app_config(AppConfig *app_config)
     %code%{ Slic3r::GUI::set_app_config(app_config); %};
 
-bool open_config_wizard(PresetBundle *preset_bundle)
-    %code%{ RETVAL=Slic3r::GUI::open_config_wizard(preset_bundle); %};
+bool check_unsaved_changes()
+    %code%{ RETVAL=Slic3r::GUI::check_unsaved_changes(); %};
+
+bool config_wizard(int fresh_start)
+    %code%{ RETVAL=Slic3r::GUI::config_wizard(fresh_start != 0); %};
 
 void open_preferences_dialog(int preferences_event)
     %code%{ Slic3r::GUI::open_preferences_dialog(preferences_event); %};

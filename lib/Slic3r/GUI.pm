@@ -8,7 +8,6 @@ use FindBin;
 use List::Util qw(first);
 use Slic3r::GUI::2DBed;
 use Slic3r::GUI::BedShapeDialog;
-use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Controller;
 use Slic3r::GUI::Controller::ManualControlDialog;
 use Slic3r::GUI::Controller::PrinterPanel;
@@ -150,7 +149,7 @@ sub OnInit {
         # XXX: ?
         if ($run_wizard) {
             # Run the config wizard, don't offer the "reset user profile" checkbox.
-            $self->{mainframe}->config_wizard(1);
+            Slic3r::GUI::config_wizard(1);
         }
 
         # $self->{preset_updater}->download($self->{preset_bundle});
@@ -207,7 +206,7 @@ sub recreate_GUI{
         # before the UI was up and running.
         $self->CallAfter(sub {
             # Run the config wizard, don't offer the "reset user profile" checkbox.
-            $self->{mainframe}->config_wizard(1);
+            Slic3r::GUI::config_wizard(1);
         });
     }
 }

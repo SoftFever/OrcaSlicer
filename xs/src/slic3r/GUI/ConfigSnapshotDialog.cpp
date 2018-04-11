@@ -26,7 +26,19 @@ static std::string generate_html_row(const Config::Snapshot &snapshot, bool row_
     text += "printer: " + snapshot.printer + "<br>";
 
     for (const Config::Snapshot::VendorConfig &vc : snapshot.vendor_configs) {
-        text += "vendor: " + vc.name + ", ver: " + vc.version.to_string() + ", min slic3r ver: " + vc.min_slic3r_version.to_string() + ", max slic3r ver: " + vc.max_slic3r_version.to_string() + "<br>";
+        text += "vendor: " + vc.name + ", ver: " + vc.version.to_string() + ", min slic3r ver: " + vc.min_slic3r_version.to_string();
+        if (vc.max_slic3r_version != Semver::inf())
+            text += ", max slic3r ver: " + vc.max_slic3r_version.to_string();
+        text += "<br>";
+        for (const std::pair<std::string, std::set<std::string>> &model : vc.models_variants_installed) {
+            text += "model: " + model.first + ", variants: ";
+            for (const std::string &variant : model.second) {
+                if (&variant != &*model.second.begin())
+                    text += ", ";
+                text += variant;
+            }
+            text += "<br>";
+        }
     }
 
     text += "<p align=\"right\"><a href=\"" + snapshot.id + "\">Activate</a></p>";
@@ -43,7 +55,7 @@ static std::string generate_html_page(const Config::SnapshotDB &snapshot_db)
         "<font color=\"#000000\">";
     text += "<table style=\"width:100%\">";
     for (size_t i_row = 0; i_row < snapshot_db.snapshots().size(); ++ i_row) {
-        const Config::Snapshot &snapshot = snapshot_db.snapshots()[i_row];
+        const Config::Snapshot &snapshot = snapshot_db.snapshots()[snapshot_db.snapshots().size() - i_row - 1];
         text += generate_html_row(snapshot, i_row & 1);
     }
     text +=
@@ -96,8 +108,9 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
 
 void ConfigSnapshotDialog::onLinkClicked(wxHtmlLinkEvent &event)
 {
-    wxLaunchDefaultBrowser(event.GetLinkInfo().GetHref());
-    event.Skip(false);
+    m_snapshot_to_activate = event.GetLinkInfo().GetHref();
+    this->EndModal(wxID_CLOSE);
+    this->Close();
 }
 
 void ConfigSnapshotDialog::onCloseDialog(wxEvent &)

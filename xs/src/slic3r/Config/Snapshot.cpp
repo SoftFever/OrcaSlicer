@@ -1,5 +1,6 @@
 #include "Snapshot.hpp"
 #include "../GUI/AppConfig.hpp"
+#include "../GUI/PresetBundle.hpp"
 #include "../Utils/Time.hpp"
 
 #include <time.h>
@@ -172,6 +173,14 @@ void Snapshot::export_selections(AppConfig &config) const
     config.set("presets", "printer",  printer);
 }
 
+void Snapshot::export_vendor_configs(AppConfig &config) const
+{
+    std::map<std::string, std::map<std::string, std::set<std::string>>> vendors;
+    for (const VendorConfig &vc : vendor_configs)
+        vendors[vc.name] = vc.models_variants_installed;
+    config.set_vendors(std::move(vendors));
+}
+
 size_t SnapshotDB::load_db()
 {
 	boost::filesystem::path snapshots_dir = SnapshotDB::create_db_dir();
@@ -199,7 +208,8 @@ size_t SnapshotDB::load_db()
             }
             m_snapshots.emplace_back(std::move(snapshot));
         }
-
+    // Sort the snapshots by their date/time.
+    std::sort(m_snapshots.begin(), m_snapshots.end(), [](const Snapshot &s1, const Snapshot &s2) { return s1.time_captured < s2.time_captured; });
     if (! errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
     return m_snapshots.size();
@@ -266,6 +276,30 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
 	    snapshot.filaments.emplace_back(app_config.get("presets", name));
     }
     // Vendor specific config bundles and installed printers.
+    for (const std::pair<std::string, std::map<std::string, std::set<std::string>>> &vendor : app_config.vendors()) {
+        Snapshot::VendorConfig cfg;
+        cfg.name = vendor.first;
+        cfg.models_variants_installed = vendor.second;
+        // Read the active config bundle, parse the config version.
+        PresetBundle bundle;
+        bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
+        for (const VendorProfile &vp : bundle.vendors)
+            if (vp.id == cfg.name)
+                cfg.version = *Semver::parse(vp.config_version);
+        // Fill-in the min/max slic3r version from the config index, if possible.
+        try {
+            // Load the config index for the vendor.
+            Index index;
+            index.load(data_dir / "vendor" / (cfg.name + ".idx"));
+            auto it = index.find(cfg.version);
+            if (it != index.end()) {
+                cfg.min_slic3r_version = it->min_slic3r_version;
+                cfg.max_slic3r_version = it->max_slic3r_version;
+            }
+        } catch (const std::runtime_error &err) {
+        }
+        snapshot.vendor_configs.emplace_back(std::move(cfg));
+    }
 
 	boost::filesystem::path snapshot_dir = snapshot_db_dir / snapshot.id;
 	boost::filesystem::create_directory(snapshot_dir);
@@ -274,6 +308,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
     for (const char *subdir : { "print", "filament", "printer", "vendor" })
     	copy_config_dir_single_level(data_dir / subdir, snapshot_dir / subdir);
 	snapshot.save_ini((snapshot_dir / "snapshot.ini").string());
+    assert(m_snapshots.empty() || m_snapshots.back().time_captured <= snapshot.time_captured);
     m_snapshots.emplace_back(std::move(snapshot));
     return m_snapshots.back();
 }
@@ -293,18 +328,15 @@ void SnapshotDB::restore_snapshot(const Snapshot &snapshot, AppConfig &app_confi
 	boost::filesystem::path data_dir        = boost::filesystem::path(Slic3r::data_dir());
 	boost::filesystem::path snapshot_db_dir = SnapshotDB::create_db_dir();
     boost::filesystem::path snapshot_dir 	= snapshot_db_dir / snapshot.id;
-
     // Remove existing ini files and restore the ini files from the snapshot.
     for (const char *subdir : { "print", "filament", "printer", "vendor" }) {
 		delete_existing_ini_files(data_dir / subdir);
     	copy_config_dir_single_level(snapshot_dir / subdir, data_dir / subdir);
     }
-
-    // Update app_config from the snapshot.
+    // Update AppConfig with the selections of the print / filament / printer profiles
+    // and about the installed printer types and variants.
     snapshot.export_selections(app_config);
-
-    // Store information about the snapshot.
-
+    snapshot.export_vendor_configs(app_config);
 }
 
 boost::filesystem::path SnapshotDB::create_db_dir()

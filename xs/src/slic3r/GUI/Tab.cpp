@@ -2061,9 +2061,9 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 				presets.Add(preset.name);
 		}
 
-		auto dlg = new wxMultiChoiceDialog(parent,
-		_(L("Select the printers this profile is compatible with.")),
-		_(L("Compatible printers")),  presets);
+		wxMultiChoiceDialog dlg(parent,
+			_(L("Select the printers this profile is compatible with.")),
+			_(L("Compatible printers")),  presets);
 		// # Collect and set indices of printers marked as compatible.
 		wxArrayInt selections;
 		auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(m_config->option("compatible_printers"));
@@ -2075,12 +2075,12 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 						selections.Add(idx);
 						break;
 					}
-		dlg->SetSelections(selections);
+		dlg.SetSelections(selections);
 		std::vector<std::string> value;
 		// Show the dialog.
-		if (dlg->ShowModal() == wxID_OK) {
+		if (dlg.ShowModal() == wxID_OK) {
 			selections.Clear();
-			selections = dlg->GetSelections();
+			selections = dlg.GetSelections();
 			for (auto idx : selections)
 				value.push_back(presets[idx].ToStdString());
 			if (value.empty()) {

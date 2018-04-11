@@ -1,6 +1,8 @@
 #ifndef slic3r_GUI_Snapshot_
 #define slic3r_GUI_Snapshot_
 
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -17,6 +19,7 @@ namespace GUI {
 namespace Config {
 
 class Version;
+class Index;
 
 // A snapshot contains:
 // 		Slic3r.ini
@@ -42,6 +45,7 @@ public:
 
 	// Export the print / filament / printer selections to be activated into the AppConfig.
 	void 		export_selections(AppConfig &config) const;
+	void 		export_vendor_configs(AppConfig &config) const;
 
 	// ID of a snapshot should equal to the name of the snapshot directory.
 	// The ID contains the date/time, reason and comment to be human readable.
@@ -70,6 +74,8 @@ public:
 		Semver		min_slic3r_version = Semver::zero();
 		// Maximum Slic3r version compatible with this vendor configuration, or empty.
 		Semver 		max_slic3r_version = Semver::inf();
+		// Which printer models of this vendor were installed, and which variants of the models?
+		std::map<std::string, std::set<std::string>> models_variants_installed;
 	};
 	// List of vendor configs contained in this snapshot.
 	std::vector<VendorConfig> 	vendor_configs;

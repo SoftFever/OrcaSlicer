@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx qw(wxTheApp :frame :id :misc :sizer :bitmap :button :icon :dialog);
+use Wx qw(wxTheApp :frame :id :misc :sizer :bitmap :button :icon :dialog wxBORDER_NONE);
 use Wx::Event qw(EVT_CLOSE EVT_LEFT_DOWN EVT_MENU);
 use base qw(Wx::ScrolledWindow Class::Accessor);
 use List::Util qw(first);
@@ -34,7 +34,7 @@ sub new {
     # button for adding new printer panels
     {
         my $btn = $self->{btn_add} = Wx::BitmapButton->new($self, -1, Wx::Bitmap->new(Slic3r::var("add.png"), wxBITMAP_TYPE_PNG),
-            wxDefaultPosition, wxDefaultSize, Wx::wxBORDER_NONE);
+            wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         $btn->SetToolTipString("Add printer…")
             if $btn->can('SetToolTipString');
         
