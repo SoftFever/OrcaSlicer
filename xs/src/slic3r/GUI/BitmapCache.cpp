@@ -88,7 +88,10 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, std::vector<wxBitma
 
     wxMemoryDC memDC;
     memDC.SelectObject(*bitmap);
-    memDC.SetBackground(*wxTRANSPARENT_BRUSH);
+#ifdef __WXGTK__
+#else
+	memDC.SetBackground(*wxTRANSPARENT_BRUSH);
+#endif
     memDC.Clear();
     size_t x = 0;
 	for (wxBitmap &bmp : bmps) {

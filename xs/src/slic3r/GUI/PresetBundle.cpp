@@ -254,8 +254,8 @@ bool PresetBundle::load_compatible_bitmaps()
 {
     const std::string path_bitmap_compatible   = "flag-green-icon.png";
     const std::string path_bitmap_incompatible = "flag-red-icon.png";
-    const std::string path_bitmap_lock         = "lock.png";
-    const std::string path_bitmap_lock_open    = "lock_open.png";
+    const std::string path_bitmap_lock         = "sys_lock.png";//"lock.png";
+	const std::string path_bitmap_lock_open    = "sys_unlock.png";//"lock_open.png";
     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
