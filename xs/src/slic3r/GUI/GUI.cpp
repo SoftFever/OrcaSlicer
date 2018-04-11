@@ -352,11 +352,11 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
 	// A different naming convention is used for the Wizard on Windows vs. OSX & GTK.	
 #if WIN32
-    std::string config_wizard_menu    = _(L("Configuration Wizard"));
-    std::string config_wizard_tooltip = _(L("Run configuration wizard"));
+    auto config_wizard_menu    = _(L("Configuration Wizard"));
+    auto config_wizard_tooltip = _(L("Run configuration wizard"));
 #else
-    std::string config_wizard_menu    = _(L("Configuration Assistant"));
-    std::string config_wizard_tooltip = _(L("Run configuration Assistant"));
+    auto config_wizard_menu    = _(L("Configuration Assistant"));
+    auto config_wizard_tooltip = _(L("Run configuration Assistant"));
 #endif
     // Cmd+, is standard on OS X - what about other operating systems?
    	local_menu->Append(config_id_base + ConfigMenuWizard, 		config_wizard_menu + "\u2026", 			config_wizard_tooltip);

@@ -71,7 +71,8 @@ time_t get_current_time_utc()
 	tm.tm_isdst = -1;
 	return mktime(&tm);
 #else
-	return gmtime();
+	const time_t current_local = time(nullptr);
+	return mktime(gmtime(&current_local));
 #endif
 }
 
