@@ -700,9 +700,6 @@ ConfigWizard::~ConfigWizard() {}
 
 bool ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
 {
-	// FIXME: this should be done always at app startup
-	PresetUpdater::init_vendors();
-
 	ConfigWizard wizard(parent);
 	if (wizard.ShowModal() == wxID_OK) {
 		wizard.p->apply_config(GUI::get_app_config(), preset_bundle);
