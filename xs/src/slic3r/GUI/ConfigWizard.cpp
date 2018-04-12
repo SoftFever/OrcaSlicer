@@ -15,6 +15,7 @@
 #include "libslic3r/Utils.hpp"
 #include "PresetBundle.hpp"
 #include "GUI.hpp"
+#include "slic3r/Utils/PresetUpdater.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -699,13 +700,6 @@ ConfigWizard::~ConfigWizard() {}
 
 bool ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
 {
-	const auto profiles_dir = fs::path(resources_dir()) / "profiles";
-	for (fs::directory_iterator it(profiles_dir); it != fs::directory_iterator(); ++it) {
-		if (it->path().extension() == ".ini") {
-			PresetBundle::install_vendor_configbundle(it->path());
-		}
-	}
-
 	ConfigWizard wizard(parent);
 	if (wizard.ShowModal() == wxID_OK) {
 		wizard.p->apply_config(GUI::get_app_config(), preset_bundle);

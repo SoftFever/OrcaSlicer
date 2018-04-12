@@ -615,3 +615,21 @@ semver_numeric (semver_t *x) {
 
   return num;
 }
+
+static char *semver_strdup(const char *src) {
+  if (src == NULL) return NULL;
+  size_t len = strlen(src) + 1;
+  char *res = malloc(len);
+  return res != NULL ? (char *) memcpy(res, src, len) : NULL;
+}
+
+semver_t
+semver_copy(const semver_t *ver) {
+  semver_t res = *ver;
+  if (ver->metadata != NULL) {
+    res.metadata = strdup(ver->metadata);
+  }
+  if (ver->prerelease != NULL) {
+    res.prerelease = strdup(ver->prerelease);
+  }
+}

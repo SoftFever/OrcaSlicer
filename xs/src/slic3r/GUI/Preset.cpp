@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <boost/nowide/cenv.hpp>
@@ -24,14 +25,16 @@
 #include "../../libslic3r/Utils.hpp"
 #include "../../libslic3r/PlaceholderParser.hpp"
 
+using boost::property_tree::ptree;
+
 namespace Slic3r {
 
-ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree)
+ConfigFileType guess_config_file_type(const ptree &tree)
 {
     size_t app_config   = 0;
     size_t bundle       = 0;
     size_t config       = 0;
-    for (const boost::property_tree::ptree::value_type &v : tree) {
+    for (const ptree::value_type &v : tree) {
         if (v.second.empty()) {
             if (v.first == "background_processing" ||
                 v.first == "last_output_path" ||
@@ -58,6 +61,74 @@ ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree)
     return (app_config > bundle && app_config > config) ? CONFIG_FILE_TYPE_APP_CONFIG :
            (bundle > config) ? CONFIG_FILE_TYPE_CONFIG_BUNDLE : CONFIG_FILE_TYPE_CONFIG;
 }
+
+
+VendorProfile VendorProfile::from_ini(const boost::filesystem::path &path, bool load_all)
+{
+    ptree tree;
+    boost::filesystem::ifstream ifs(path);
+    boost::property_tree::read_ini(ifs, tree);
+    return VendorProfile::from_ini(tree, path, load_all);
+}
+
+VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem::path &path, bool load_all)
+{
+    static const std::string printer_model_key = "printer_model:";
+    const std::string id = path.stem().string();
+    VendorProfile res(id);
+
+    auto get_or_throw = [&](const ptree &tree, const std::string &key) -> ptree::const_assoc_iterator
+    {
+        auto res = tree.find(key);
+        if (res == tree.not_found()) {
+            throw std::runtime_error((boost::format("Vendor Config Bundle `%1%` is not valid: Missing secion or key: `%2%`.") % id % key).str());
+        }
+        return res;
+    };
+
+    const auto &vendor_section = get_or_throw(tree, "vendor")->second;
+    res.name = get_or_throw(vendor_section, "name")->second.data();
+
+    auto config_version_str = get_or_throw(vendor_section, "config_version")->second.data();
+    auto config_version = Semver::parse(config_version_str);
+    if (! config_version) {
+        throw std::runtime_error((boost::format("Vendor Config Bundle `%1%` is not valid: Cannot parse config_version: `%2%`.") % id % config_version_str).str());
+    } else {
+        res.config_version = std::move(*config_version);
+    }
+
+    auto config_update_url = vendor_section.find("config_update_url");
+    if (config_update_url != vendor_section.not_found()) {
+        res.config_update_url = config_update_url->second.data();
+    }
+
+    if (! load_all) {
+        return res;
+    }
+
+    for (auto &section : tree) {
+        if (boost::starts_with(section.first, printer_model_key)) {
+            VendorProfile::PrinterModel model;
+            model.id = section.first.substr(printer_model_key.size());
+            model.name = section.second.get<std::string>("name", model.id);
+            section.second.get<std::string>("variants", "");
+            std::vector<std::string> variants;
+            if (Slic3r::unescape_strings_cstyle(section.second.get<std::string>("variants", ""), variants)) {
+                for (const std::string &variant_name : variants) {
+                    if (model.variant(variant_name) == nullptr)
+                        model.variants.emplace_back(VendorProfile::PrinterVariant(variant_name));
+                }
+            } else {
+                // Log error?   // XXX
+            }
+            if (! model.id.empty() && ! model.variants.empty())
+                res.models.push_back(std::move(model));
+        }
+    }
+
+    return res;
+}
+
 
 // Suffix to be added to a modified preset name in the combo box.
 static std::string g_suffix_modified = " (modified)";

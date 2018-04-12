@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstring>
+#include <ostream>
 #include <boost/optional.hpp>
 #include <boost/format.hpp>
 
@@ -10,6 +11,7 @@
 
 namespace Slic3r {
 
+// FIXME:: operators=: leak, return
 
 class Semver
 {
@@ -18,9 +20,22 @@ public:
 	struct Minor { const int i;  Minor(int i) : i(i) {} };
 	struct Patch { const int i;  Patch(int i) : i(i) {} };
 
+	Semver(int major, int minor, int patch,
+		boost::optional<std::string> metadata = boost::none,
+		boost::optional<std::string> prerelease = boost::none)
+	{
+		ver.major = major;
+		ver.minor = minor;
+		ver.patch = patch;
+		ver.metadata = metadata ? std::strcpy(ver.metadata, metadata->c_str()) : nullptr;
+		ver.prerelease = prerelease ? std::strcpy(ver.prerelease, prerelease->c_str()) : nullptr;
+	}
+
+	// TODO: throwing ctor ???
+
 	static boost::optional<Semver> parse(const std::string &str)
 	{
-		semver_t ver;
+		semver_t ver = semver_zero();
 		if (::semver_parse(str.c_str(), &ver) == 0) {
 			return Semver(ver);
 		} else {
@@ -28,11 +43,7 @@ public:
 		}
 	}
 
-	static const Semver zero()
-	{
-		static semver_t ver = { 0, 0, 0, nullptr, nullptr };
-		return Semver(ver);
-	}
+	static const Semver zero() { return Semver(semver_zero()); }
 
 	static const Semver inf()
 	{
@@ -46,37 +57,21 @@ public:
 		return Semver(ver);
 	}
 
-	Semver(Semver &&other) : ver(other.ver)
-	{
-		other.ver.major = other.ver.minor = other.ver.patch = 0;
-		other.ver.metadata = other.ver.prerelease = nullptr;
-	}
-
-	Semver(const Semver &other) : ver(other.ver)
-	{
-		if (other.ver.metadata != nullptr)
-			ver.metadata = strdup(other.ver.metadata);
-		if (other.ver.prerelease != nullptr)
-			ver.prerelease = strdup(other.ver.prerelease);
-	}
+	Semver(Semver &&other) : ver(other.ver) { other.ver = semver_zero(); }
+	Semver(const Semver &other) : ver(::semver_copy(&other.ver)) {}
 
 	Semver &operator=(Semver &&other)
 	{
 		::semver_free(&ver);
 		ver = other.ver;
-		other.ver.major = other.ver.minor = other.ver.patch = 0;
-		other.ver.metadata = other.ver.prerelease = nullptr;
+		other.ver = semver_zero();
 		return *this;
 	}
 
 	Semver &operator=(const Semver &other)
 	{
 		::semver_free(&ver);
-		ver = other.ver;
-		if (other.ver.metadata != nullptr) 
-			ver.metadata = strdup(other.ver.metadata);
-		if (other.ver.prerelease != nullptr)
-			ver.prerelease = strdup(other.ver.prerelease);
+		ver = ::semver_copy(&other.ver);
 		return *this;
 	}
 
@@ -121,6 +116,8 @@ private:
 	semver_t ver;
 
 	Semver(semver_t ver) : ver(ver) {}
+
+	static semver_t semver_zero() { return { 0, 0, 0, nullptr, nullptr }; }
 };
 
 

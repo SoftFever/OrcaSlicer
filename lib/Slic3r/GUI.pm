@@ -101,6 +101,8 @@ sub OnInit {
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
 
+    Slic3r::PresetUpdater::init_vendors();
+
     # my $version_check = $self->{app_config}->get('version_check');
     $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT, $self->{app_config});
     my $slic3r_update = $self->{app_config}->slic3r_update_avail;

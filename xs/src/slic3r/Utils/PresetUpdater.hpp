@@ -19,7 +19,9 @@ public:
 	PresetUpdater &operator=(const PresetUpdater &) = delete;
 	~PresetUpdater();
 
-	void download(PresetBundle *preset_bundle);
+	void download(PresetBundle *preset_bundle);     // XXX
+
+	static void init_vendors();
 private:
 	struct priv;
 	std::unique_ptr<priv> p;
