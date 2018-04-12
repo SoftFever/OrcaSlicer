@@ -863,33 +863,9 @@ void ModelObject::cut(coordf_t z, Model* model) const
             lower->add_volume(*volume);
         } else {
             TriangleMesh upper_mesh, lower_mesh;
-            // TODO: shouldn't we use object bounding box instead of per-volume bb?
-            coordf_t cut_z = z + volume->mesh.bounding_box().min.z;
-            if (false) {
-//            if (volume->mesh.has_multiple_patches()) {
-                // Cutting algorithm does not work on intersecting meshes.
-                // As we are not sure whether the meshes don't intersect,
-                // we rather split the mesh into multiple non-intersecting pieces.
-                TriangleMeshPtrs meshptrs = volume->mesh.split();
-                for (TriangleMeshPtrs::iterator mesh = meshptrs.begin(); mesh != meshptrs.end(); ++mesh) {
-                    printf("Cutting mesh patch %d of %d\n", int(mesh - meshptrs.begin()), int(meshptrs.size()));
-                    (*mesh)->repair();
-                    TriangleMeshSlicer tms(*mesh);
-                    if (mesh == meshptrs.begin()) {
-                        tms.cut(cut_z, &upper_mesh, &lower_mesh);
-                    } else {
-                        TriangleMesh upper_mesh_this, lower_mesh_this;
-                        tms.cut(cut_z, &upper_mesh_this, &lower_mesh_this);
-                        upper_mesh.merge(upper_mesh_this);
-                        lower_mesh.merge(lower_mesh_this);
-                    }
-                    delete *mesh;
-                }
-            } else {
-                printf("Cutting mesh patch\n");
-                TriangleMeshSlicer tms(&volume->mesh);
-                tms.cut(cut_z, &upper_mesh, &lower_mesh);
-            }
+            printf("Cutting mesh patch\n");
+            TriangleMeshSlicer tms(&volume->mesh);
+            tms.cut(z, &upper_mesh, &lower_mesh);
 
             upper_mesh.repair();
             lower_mesh.repair();
