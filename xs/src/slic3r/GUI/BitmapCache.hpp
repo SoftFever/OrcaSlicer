@@ -31,10 +31,7 @@ public:
 
 	static wxBitmap mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency);
 	static wxBitmap mksolid(size_t width, size_t height, const unsigned char rgb[3]) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE); }
-	static wxBitmap mkclear(size_t width, size_t height) {
-		wxColour bg_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-		return mksolid(width, height, bg_clr.Red(), bg_clr.Green(), bg_clr.Blue()/*, 0, 0, 0*/,  wxALPHA_TRANSPARENT);
-	}
+	static wxBitmap mkclear(size_t width, size_t height) { return mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT); }
 
 private:
     std::map<std::string, wxBitmap*>	m_map;
