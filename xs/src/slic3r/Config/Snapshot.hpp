@@ -57,6 +57,8 @@ public:
 	std::string 				comment;
 	Reason						reason;
 
+	std::string 				format_reason() const;
+
 	// Active presets at the time of the snapshot.
 	std::string 				print;
 	std::vector<std::string>	filaments;

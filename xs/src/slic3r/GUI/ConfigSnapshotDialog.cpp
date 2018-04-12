@@ -8,6 +8,21 @@
 namespace Slic3r { 
 namespace GUI {
 
+static std::string format_reason(const Config::Snapshot::Reason reason) 
+{
+    switch (reason) {
+    case Config::Snapshot::SNAPSHOT_UPGRADE:
+        return std::string(_(L("Upgrade")));
+    case Config::Snapshot::SNAPSHOT_DOWNGRADE:
+        return std::string(_(L("Downgrade")));
+    case Config::Snapshot::SNAPSHOT_USER:
+        return std::string(_(L("User")));
+    case Config::Snapshot::SNAPSHOT_UNKNOWN:
+    default:
+        return std::string(_(L("Unknown")));
+    }
+}
+
 static std::string generate_html_row(const Config::Snapshot &snapshot, bool row_even)
 {
     // Start by declaring a row with an alternating background color.
@@ -15,11 +30,15 @@ static std::string generate_html_row(const Config::Snapshot &snapshot, bool row_
     text += row_even ? "#FFFFFF" : "#C0C0C0";
     text += "\">";
     text += "<td>";
-//    text += _(L("ID:")) + " " + snapshot.id + "<br>";
-    text += _(L("time captured:")) + " " + Utils::format_local_date_time(snapshot.time_captured) + "<br>";
-    text += _(L("slic3r version:")) + " " + snapshot.slic3r_version_captured.to_string() + "<br>";
+    // Format the row header.
+    text += std::string("<font size=\"5\"><b>") + Utils::format_local_date_time(snapshot.time_captured) + ": " + format_reason(snapshot.reason);
     if (! snapshot.comment.empty())
-        text += _(L("user comment:")) + " " + snapshot.comment + "<br>";
+        text += " (" + snapshot.comment + ")";
+    text += "</b></font><br>";
+    // End of row header.
+//    text += _(L("ID:")) + " " + snapshot.id + "<br>";
+    // text += _(L("time captured:")) + " " + Utils::format_local_date_time(snapshot.time_captured) + "<br>";
+    text += _(L("slic3r version:")) + " " + snapshot.slic3r_version_captured.to_string() + "<br>";
 //    text += "reason: " + snapshot.reason + "<br>";
     text += "print: " + snapshot.print + "<br>";
     text += "filaments: " + snapshot.filaments.front() + "<br>";
@@ -79,9 +98,9 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
     {
         wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
         #ifdef __WXMSW__
-            int size[] = {8,8,8,8,8,8,8};
+            int size[] = {8,8,8,8,11,11,11};
         #else
-            int size[] = {11,11,11,11,11,11,11};
+            int size[] = {11,11,11,11,14,14,14};
         #endif
         html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
         html->SetBorders(2);
