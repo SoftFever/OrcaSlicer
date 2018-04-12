@@ -90,8 +90,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "bridge_acceleration",
         "bridge_fan_speed",
         "cooling",
-        "cooling_tube_retraction",
-        "cooling_tube_length",
         "default_acceleration",
         "deretract_speed",
         "disable_fan_first_layers",
@@ -131,7 +129,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "notes",
         "only_retract_when_crossing_perimeters",
         "output_filename_format",
-        "parking_pos_retraction",
         "perimeter_acceleration",
         "post_process",
         "printer_notes",
@@ -202,6 +199,9 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower_rotation_angle"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wiping_volumes_matrix"
+            || opt_key == "parking_pos_retraction"
+            || opt_key == "cooling_tube_retraction"
+            || opt_key == "cooling_tube_length"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
         } else if (
