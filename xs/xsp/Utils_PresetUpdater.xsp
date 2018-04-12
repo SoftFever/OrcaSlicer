@@ -8,5 +8,5 @@
 %name{Slic3r::PresetUpdater} class PresetUpdater {
     PresetUpdater(int version_online_event, AppConfig *app_config);
     void download(PresetBundle* preset_bundle);
-    static void init_vendors();
+    void config_update();
 };

@@ -4,6 +4,9 @@
 #include "ConfigWizard.hpp"
 
 #include <vector>
+#include <set>
+#include <unordered_map>
+#include <boost/filesystem.hpp>
 
 #include <wx/sizer.h>
 #include <wx/panel.h>
@@ -13,13 +16,16 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "AppConfig.hpp"
-#include "PresetBundle.hpp"
+#include "Preset.hpp"
+// #include "PresetBundle.hpp"
 #include "BedShapeDialog.hpp"
 
+namespace fs = boost::filesystem;
 
 namespace Slic3r {
 namespace GUI {
 
+// typedef std::unordered_map<std::string, VendorProfile> VendorMap;
 
 enum {
 	CONTENT_WIDTH = 500,
@@ -168,7 +174,9 @@ struct ConfigWizard::priv
 {
 	ConfigWizard *q;
 	AppConfig appconfig_vendors;
-	PresetBundle bundle_vendors;
+	// PresetBundle bundle_vendors;
+	std::unordered_map<std::string, VendorProfile> vendors;
+	std::unordered_map<std::string, fs::path> vendors_rsrc;
 	std::unique_ptr<DynamicPrintConfig> custom_config;
 
 	wxBoxSizer *topsizer = nullptr;

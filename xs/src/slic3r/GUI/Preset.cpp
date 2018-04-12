@@ -5,6 +5,8 @@
 #include "AppConfig.hpp"
 
 #include <fstream>
+#include <stdexcept>
+#include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -75,6 +77,11 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
 {
     static const std::string printer_model_key = "printer_model:";
     const std::string id = path.stem().string();
+
+    if (! boost::filesystem::exists(path)) {
+        throw std::runtime_error((boost::format("Cannot load Vendor Config Bundle `%1%`: File not found: `%2%`.") % id % path).str());
+    }
+
     VendorProfile res(id);
 
     auto get_or_throw = [&](const ptree &tree, const std::string &key) -> ptree::const_assoc_iterator

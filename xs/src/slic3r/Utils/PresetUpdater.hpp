@@ -21,7 +21,7 @@ public:
 
 	void download(PresetBundle *preset_bundle);     // XXX
 
-	static void init_vendors();
+	void config_update();
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

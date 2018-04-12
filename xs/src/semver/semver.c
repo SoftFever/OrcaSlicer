@@ -632,4 +632,5 @@ semver_copy(const semver_t *ver) {
   if (ver->prerelease != NULL) {
     res.prerelease = strdup(ver->prerelease);
   }
+  return res;
 }

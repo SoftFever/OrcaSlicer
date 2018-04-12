@@ -62,7 +62,7 @@ public:
 
 	const_iterator				begin()   const { return m_configs.begin(); }
 	const_iterator				end()     const { return m_configs.end(); }
-	const_iterator 				find(const Semver &ver);
+	const_iterator 				find(const Semver &ver) const;
 	const std::vector<Version>& configs() const { return m_configs; }
 	// Finds a recommended config to be installed for the current Slic3r version.
 	// Returns configs().end() if such version does not exist in the index. This shall never happen

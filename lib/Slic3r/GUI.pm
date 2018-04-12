@@ -101,11 +101,14 @@ sub OnInit {
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
 
-    Slic3r::PresetUpdater::init_vendors();
-
     # my $version_check = $self->{app_config}->get('version_check');
     $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT, $self->{app_config});
-    my $slic3r_update = $self->{app_config}->slic3r_update_avail;
+    eval { $self->{preset_updater}->config_update() };
+    if ($@) {
+        warn $@ . "\n";
+        fatal_error(undef, $@);
+    }
+    # my $slic3r_update = $self->{app_config}->slic3r_update_avail;
 
     Slic3r::GUI::set_app_config($self->{app_config});
     Slic3r::GUI::load_language();
@@ -123,6 +126,7 @@ sub OnInit {
     Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
     
     # application frame
+    print STDERR "Creating main frame...\n";
     Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
@@ -145,9 +149,9 @@ sub OnInit {
     # before the UI was up and running.
     $self->CallAfter(sub {
         # XXX: recreate_GUI ???
-        if ($slic3r_update) {
-            # TODO
-        }
+        # if ($slic3r_update) {
+        #     # TODO
+        # }
         # XXX: ?
         if ($run_wizard) {
             # Run the config wizard, don't offer the "reset user profile" checkbox.
@@ -159,6 +163,7 @@ sub OnInit {
 
     # The following event is emited by the C++ menu implementation of application language change.
     EVT_COMMAND($self, -1, $LANGUAGE_CHANGE_EVENT, sub{
+        print STDERR "LANGUAGE_CHANGE_EVENT\n";
         $self->recreate_GUI;
     });
 
@@ -179,6 +184,7 @@ sub OnInit {
 }
 
 sub recreate_GUI{
+    print STDERR "recreate_GUI\n";
     my ($self) = @_;
     my $topwindow = $self->GetTopWindow();
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(

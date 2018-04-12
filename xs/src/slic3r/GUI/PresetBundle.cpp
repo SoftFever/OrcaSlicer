@@ -701,8 +701,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
 
     const VendorProfile *vendor_profile = nullptr;
     if (flags & (LOAD_CFGBNDLE_SYSTEM | LOAD_CFGBUNDLE_VENDOR_ONLY)) {
-        boost::filesystem::path fspath(path);
-        auto vp = VendorProfile::from_ini(tree, fspath.stem().string());
+        auto vp = VendorProfile::from_ini(tree, path);
         if (vp.num_variants() == 0)
             return 0;
         vendor_profile = &(*this->vendors.insert(vp).first);
