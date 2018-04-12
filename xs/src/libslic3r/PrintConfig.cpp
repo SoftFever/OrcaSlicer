@@ -1038,7 +1038,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("parking_pos_retraction", coFloat);
     def->label = L("Filament parking position");
-    def->tooltip = L("Distance of the extruder tip from the position where the filament is parked"
+    def->tooltip = L("Distance of the extruder tip from the position where the filament is parked "
                       "when unloaded. This should match the value in printer firmware. ");
     def->sidetext = L("mm");
     def->cli = "parking_pos_retraction=f";
@@ -1818,18 +1818,18 @@ PrintConfigDef::PrintConfigDef()
                      "wipe tower. These values are used to simplify creation of the full purging "
                      "volumes below. ");
     def->cli = "wiping-volumes-extruders=f@";
-    def->default_value = new ConfigOptionFloats { 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f, 50.f  };
+    def->default_value = new ConfigOptionFloats { 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f  };
 
     def = this->add("wiping_volumes_matrix", coFloats);
     def->label = L("Purging volumes - matrix");
     def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
                      " new filament on the wipe tower for any given pair of tools. ");
     def->cli = "wiping-volumes-matrix=f@";
-    def->default_value = new ConfigOptionFloats {   0.f, 100.f, 100.f, 100.f, 100.f,
-                                                  100.f,   0.f, 100.f, 100.f, 100.f,
-                                                  100.f, 100.f,   0.f, 100.f, 100.f,
-                                                  100.f, 100.f, 100.f,   0.f, 100.f,
-                                                  100.f, 100.f, 100.f, 100.f,   0.f };
+    def->default_value = new ConfigOptionFloats {   0.f, 140.f, 140.f, 140.f, 140.f,
+                                                  140.f,   0.f, 140.f, 140.f, 140.f,
+                                                  140.f, 140.f,   0.f, 140.f, 140.f,
+                                                  140.f, 140.f, 140.f,   0.f, 140.f,
+                                                  140.f, 140.f, 140.f, 140.f,   0.f };
 
     def = this->add("wipe_tower_x", coFloat);
     def->label = L("Position X");
