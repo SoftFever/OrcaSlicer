@@ -37,7 +37,7 @@ if ($destdir -eq "") {
 }
 
 $BOOST = 'boost_1_63_0'
-$CURL = 'curl-7.28.0'
+$CURL = 'curl-7.58.0'
 $TBB_SHA = 'a0dc9bf76d0120f917b641ed095360448cabc85b'
 $TBB = "tbb-$TBB_SHA"
 

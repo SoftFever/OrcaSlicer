@@ -18,6 +18,7 @@ class wxArrayLong;
 class wxColour;
 class wxBoxSizer;
 class wxFlexGridSizer;
+class wxFileDialog;
 
 namespace Slic3r { 
 
@@ -78,8 +79,10 @@ void set_preset_bundle(PresetBundle *preset_bundle);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
-wxColour*	get_modified_label_clr();
-wxColour*	get_sys_label_clr();
+
+const wxColour& get_modified_label_clr();
+const wxColour& get_sys_label_clr();
+unsigned get_colour_approx_luma(const wxColour &colour);
 
 void add_debug_menu(wxMenuBar *menu, int event_language_change);
 
@@ -131,6 +134,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
 ConfigOptionsGroup* get_optgroup();
 
+void add_export_option(wxFileDialog* dlg, const std::string& format);
+int get_export_option(wxFileDialog* dlg);
 }
 }
 

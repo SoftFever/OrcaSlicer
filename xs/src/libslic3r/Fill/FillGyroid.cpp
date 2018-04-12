@@ -41,7 +41,7 @@ static inline Polyline make_wave_horizontal(
     polyline.points.emplace_back(Point(0, coord_t(clamp(0., height, y0) * scaleFactor)));
     double phase_offset_sin = (z_sin < 0 ? M_PI : 0) + (flip ? 0 : M_PI);
     double phase_offset_cos = z_sin < 0 ? M_PI : 0.;
-    for (double x=0.; x < width + segmentSize; x += segmentSize) {
+    for (double x = 0.; x < width + segmentSize; x += segmentSize) {
         x = std::min(x, width);
         double a   = cos(x + phase_offset_cos);
         double b   = - z_sin;
@@ -55,17 +55,17 @@ static inline Polyline make_wave_horizontal(
     return polyline;
 }
 
-static Polylines make_gyroid_waves(double gridZ, double density, double layer_width, double width, double height)
+static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double line_spacing, double width, double height)
 {
-    double scaleFactor = scale_(layer_width) / density;
-    double segmentSize = 0.5 * density;
+    double scaleFactor = scale_(line_spacing) / density_adjusted;
+    double segmentSize = 0.5 * density_adjusted;
  //scale factor for 5% : 8 712 388
  // 1z = 10^-6 mm ?
     double z     = gridZ / scaleFactor;
     double z_sin = sin(z);
     double z_cos = cos(z);
     Polylines result;
-    if (abs(z_sin) <= abs(z_cos)) {
+    if (std::abs(z_sin) <= std::abs(z_cos)) {
         // Vertical wave
         double x0 = M_PI * (int)((- 0.5 * M_PI) / M_PI - 1.);
         bool   flip          = ((int)(x0 / M_PI + 1.) & 1) != 0;
@@ -74,7 +74,7 @@ static Polylines make_gyroid_waves(double gridZ, double density, double layer_wi
     } else {
         // Horizontal wave
         bool flip = true;
-        for (double y0 = 0.; y0 < width; y0 += M_PI, flip = !flip)
+        for (double y0 = 0.; y0 < height; y0 += M_PI, flip = !flip)
             result.emplace_back(make_wave_horizontal(width, height, y0, segmentSize, scaleFactor, z_cos, z_sin, flip));
     }
     return result;
@@ -87,17 +87,20 @@ void FillGyroid::_fill_surface_single(
     ExPolygon                       &expolygon, 
     Polylines                       &polylines_out)
 {
-    // no rotation is supported for this infill pattern
+    // no rotation is supported for this infill pattern (yet)
     BoundingBox bb = expolygon.contour.bounding_box();
-    coord_t     distance = coord_t(scale_(this->spacing) / (params.density*this->scaling));
+    // Density adjusted to have a good %of weight.
+    double      density_adjusted = params.density * 1.75;
+    // Distance between the gyroid waves in scaled coordinates.
+    coord_t     distance = coord_t(scale_(this->spacing) / density_adjusted);
 
     // align bounding box to a multiple of our grid module
-    bb.merge(_align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
+    bb.merge(_align_to_grid(bb.min, Point(2.*M_PI*distance, 2.*M_PI*distance)));
     
     // generate pattern
     Polylines   polylines = make_gyroid_waves(
         scale_(this->z),
-        params.density*this->scaling,
+        density_adjusted,
         this->spacing,
         ceil(bb.size().x / distance) + 1.,
         ceil(bb.size().y / distance) + 1.);

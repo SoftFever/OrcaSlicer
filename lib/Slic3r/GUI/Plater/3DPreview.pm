@@ -69,6 +69,7 @@ sub new {
     $choice_view_type->Append(L("Height"));
     $choice_view_type->Append(L("Width"));
     $choice_view_type->Append(L("Speed"));
+    $choice_view_type->Append(L("Volumetric flow rate"));
     $choice_view_type->Append(L("Tool"));
     $choice_view_type->SetSelection(0);
 

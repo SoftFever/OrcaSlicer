@@ -334,14 +334,14 @@ void Tab::update_changed_ui()
 		bool is_modified_value = true;
 		std::string sys_icon = /*wxMSW ? */"sys_lock.png"/* : "lock.png"*/;
 		std::string icon = /*wxMSW ? */"action_undo.png"/* : "arrow_undo.png"*/;
-		wxColour& color = *get_sys_label_clr();
+		wxColour color = get_sys_label_clr();
 		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
 			is_nonsys_value = true;
 			sys_icon = m_nonsys_btn_icon;
 			if(find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
 				color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 			else
-				color = *get_modified_label_clr();
+				color = get_modified_label_clr();
 		}
 		if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
 		{
@@ -455,9 +455,9 @@ void Tab::update_changed_tree_ui()
 					break;
 			}
 			if (sys_page)
-				m_treectrl->SetItemTextColour(cur_item, *get_sys_label_clr());
+				m_treectrl->SetItemTextColour(cur_item, get_sys_label_clr());
 			else if (modified_page)
-				m_treectrl->SetItemTextColour(cur_item, *get_modified_label_clr());
+				m_treectrl->SetItemTextColour(cur_item, get_modified_label_clr());
 			else
 				m_treectrl->SetItemTextColour(cur_item, wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
 
