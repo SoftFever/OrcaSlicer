@@ -738,7 +738,13 @@ sub load_model_objects {
             # if the object is too large (more than 5 times the bed), scale it down
             my $size = $o->bounding_box->size;
             my $ratio = max($size->x / unscale($bed_size->x), $size->y / unscale($bed_size->y));
-            if ($ratio > 5) {
+            if ($ratio > 10000) {
+                # the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
+                # so scale down the mesh
+                $o->scale_xyz(Slic3r::Pointf3->new(1/$ratio, 1/$ratio, 1/$ratio));
+                $scaled_down = 1;
+            }
+            elsif ($ratio > 5) {
                 $_->set_scaling_factor(1/$ratio) for @{$o->instances};
                 $scaled_down = 1;
             }
