@@ -11,7 +11,6 @@
 
 namespace Slic3r {
 
-// FIXME:: operators=: leak, return
 
 class Semver
 {
@@ -19,6 +18,8 @@ public:
 	struct Major { const int i;  Major(int i) : i(i) {} };
 	struct Minor { const int i;  Minor(int i) : i(i) {} };
 	struct Patch { const int i;  Patch(int i) : i(i) {} };
+
+	Semver() : ver(semver_zero()) {}
 
 	Semver(int major, int minor, int patch,
 		boost::optional<std::string> metadata = boost::none,

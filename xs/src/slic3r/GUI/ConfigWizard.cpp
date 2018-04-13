@@ -1,8 +1,8 @@
 #include "ConfigWizard_private.hpp"
 
+#include <iostream>   // XXX
 #include <algorithm>
 #include <utility>
-#include <boost/filesystem.hpp>
 
 #include <wx/settings.h>
 #include <wx/stattext.h>
@@ -17,7 +17,6 @@
 #include "GUI.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
-namespace fs = boost::filesystem;
 
 namespace Slic3r {
 namespace GUI {
@@ -62,25 +61,25 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 	auto namefont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	namefont.SetWeight(wxFONTWEIGHT_BOLD);
 
-	for (auto model = models.cbegin(); model != models.cend(); ++model) {
+	for (const auto &model : models) {
 		auto *panel = new wxPanel(this);
 		auto *sizer = new wxBoxSizer(wxVERTICAL);
 		panel->SetSizer(sizer);
 
-		auto *title = new wxStaticText(panel, wxID_ANY, model->name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+		auto *title = new wxStaticText(panel, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 		title->SetFont(namefont);
 		sizer->Add(title, 0, wxBOTTOM, 3);
 
-		auto bitmap_file = wxString::Format("printers/%s_%s.png", vendor.id, model->id);
+		auto bitmap_file = wxString::Format("printers/%s_%s.png", vendor.id, model.id);
 		wxBitmap bitmap(GUI::from_u8(Slic3r::var(bitmap_file.ToStdString())), wxBITMAP_TYPE_PNG);
 		auto *bitmap_widget = new wxStaticBitmap(panel, wxID_ANY, bitmap);
 		sizer->Add(bitmap_widget, 0, wxBOTTOM, 3);
 
 		sizer->AddSpacer(20);
 
-		const auto model_id = model->id;
+		const auto model_id = model.id;
 
-		for (const auto &variant : model->variants) {
+		for (const auto &variant : model.variants) {
 			const auto variant_name = variant.name;
 			auto *cbox = new wxCheckBox(panel, wxID_ANY, wxString::Format("%s %s %s", variant.name, _(L("mm")), _(L("nozzle"))));
 			bool enabled = appconfig_vendors.get_variant("PrusaResearch", model_id, variant_name);
@@ -177,16 +176,18 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 {
 	append_text(_(L("Hello, welcome to Slic3r Prusa Edition! TODO: This text.")));
 
-	const PresetBundle &bundle = wizard_p()->bundle_vendors;
-	const auto &vendors = bundle.vendors;
-	const auto vendor_prusa = std::find(vendors.cbegin(), vendors.cend(), VendorProfile("PrusaResearch"));
+	// const PresetBundle &bundle = wizard_p()->bundle_vendors;
+	// const auto &vendors = bundle.vendors;
+	const auto &vendors = wizard_p()->vendors;
+	// const auto vendor_prusa = std::find(vendors.cbegin(), vendors.cend(), VendorProfile("PrusaResearch"));
+	const auto vendor_prusa = vendors.find("PrusaResearch");
 
 	if (vendor_prusa != vendors.cend()) {
-		const auto &models = vendor_prusa->models;
+		const auto &models = vendor_prusa->second.models;
 
 		AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 
-		printer_picker = new PrinterPicker(this, *vendor_prusa, appconfig_vendors);
+		printer_picker = new PrinterPicker(this, vendor_prusa->second, appconfig_vendors);
 		printer_picker->Bind(EVT_PRINTER_PICK, [this, &appconfig_vendors](const PrinterPickerEvent &evt) {
 			appconfig_vendors.set_variant(evt.vendor_id, evt.model_id, evt.variant_name, evt.enable);
 			this->on_variant_checked();
@@ -248,14 +249,17 @@ PageVendors::PageVendors(ConfigWizard *parent) :
 {
 	append_text(_(L("Pick another vendor supported by Slic3r PE:")));
 
-	const PresetBundle &bundle = wizard_p()->bundle_vendors;
+	// const PresetBundle &bundle = wizard_p()->bundle_vendors;
+	// const auto &vendors = wizard_p()->vendors;
 	auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
 	AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 	wxArrayString choices_vendors;
 
-	for (const auto &vendor : bundle.vendors) {
+	// for (const auto &vendor : vendors) {
+	for (const auto vendor_pair : wizard_p()->vendors) {
+		const auto &vendor = vendor_pair.second;
 		if (vendor.id == "PrusaResearch") { continue; }
 
 		auto *picker = new PrinterPicker(this, vendor, appconfig_vendors);
@@ -549,9 +553,25 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 void ConfigWizard::priv::load_vendors()
 {
 	const auto vendor_dir = fs::path(Slic3r::data_dir()) / "vendor";
+	const auto rsrc_vendor_dir = fs::path(resources_dir()) / "profiles";
+
+	// Load vendors from the "vendors" directory in datadir
 	for (fs::directory_iterator it(vendor_dir); it != fs::directory_iterator(); ++it) {
 		if (it->path().extension() == ".ini") {
-			bundle_vendors.load_configbundle(it->path().string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
+			auto vp = VendorProfile::from_ini(it->path());
+			vendors[vp.id] = std::move(vp);
+		}
+	}
+
+	// Additionally load up vendors from the application resources directory, but only those not seen in the datadir
+	for (fs::directory_iterator it(rsrc_vendor_dir); it != fs::directory_iterator(); ++it) {
+		if (it->path().extension() == ".ini") {
+			const auto id = it->path().stem().string();
+			if (vendors.find(id) == vendors.end()) {
+				auto vp = VendorProfile::from_ini(it->path());
+				vendors_rsrc[vp.id] = it->path();
+				vendors[vp.id] = std::move(vp);
+			}
 		}
 	}
 
@@ -624,11 +644,25 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 	const bool is_custom_setup = page_welcome->page_next() == page_firmware;
 
 	if (! is_custom_setup) {
+		const auto enabled_vendors = appconfig_vendors.vendors();
+		for (const auto &vendor_rsrc : vendors_rsrc) {
+			const auto vendor = enabled_vendors.find(vendor_rsrc.first);
+			if (vendor == enabled_vendors.end()) { continue; }
+	
+			size_t size_sum = 0;
+			for (const auto &model : vendor->second) { size_sum += model.second.size(); }
+			if (size_sum == 0) { continue; }
+
+			// This vendor needs to be installed
+			PresetBundle::install_vendor_configbundle(vendor_rsrc.second);
+		}
+
 		app_config->set_vendors(appconfig_vendors);
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
 		if (fresh_start)
 			app_config->reset_selections();
+		// ^ TODO: replace with appropriate printer selection
 		preset_bundle->load_presets(*app_config);
 	} else {
 		for (ConfigWizardPage *page = page_firmware; page != nullptr; page = page->page_next()) {

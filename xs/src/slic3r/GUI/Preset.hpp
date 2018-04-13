@@ -59,7 +59,8 @@ public:
     };
     std::vector<PrinterModel>          models;
 
-    VendorProfile(std::string id) : id(std::move(id)), config_version(0, 0, 0) {}
+    VendorProfile() {}
+    VendorProfile(std::string id) : id(std::move(id)) {}
 
     static VendorProfile from_ini(const boost::filesystem::path &path, bool load_all=true);
     static VendorProfile from_ini(const boost::property_tree::ptree &tree, const boost::filesystem::path &path, bool load_all=true);

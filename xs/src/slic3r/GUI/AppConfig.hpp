@@ -69,12 +69,13 @@ public:
 	void 				clear_section(const std::string &section)
 		{ m_storage[section].clear(); }
 
+	typedef std::map<std::string, std::map<std::string, std::set<std::string>>> VendorMap;
 	bool                get_variant(const std::string &vendor, const std::string &model, const std::string &variant) const;
 	void                set_variant(const std::string &vendor, const std::string &model, const std::string &variant, bool enable);
 	void                set_vendors(const AppConfig &from);
-	void 				set_vendors(const std::map<std::string, std::map<std::string, std::set<std::string>>> &vendors) { m_vendors = vendors; m_dirty = true; }
-	void 				set_vendors(std::map<std::string, std::map<std::string, std::set<std::string>>> &&vendors) { m_vendors = std::move(vendors); m_dirty = true; }
-	const std::map<std::string, std::map<std::string, std::set<std::string>>> vendors() const { return m_vendors; }
+	void 				set_vendors(const VendorMap &vendors) { m_vendors = vendors; m_dirty = true; }
+	void 				set_vendors(VendorMap &&vendors) { m_vendors = std::move(vendors); m_dirty = true; }
+	const VendorMap&    vendors() const { return m_vendors; }
 
 	// return recent/skein_directory or recent/config_directory or empty string.
 	std::string 		get_last_dir() const;
@@ -105,7 +106,7 @@ private:
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;
 	// Map of enabled vendors / models / variants
-	std::map<std::string, std::map<std::string, std::set<std::string>>> m_vendors;
+	VendorMap                                                   m_vendors;
 	// Has any value been modified since the config.ini has been last saved or loaded?
 	bool														m_dirty;
 };

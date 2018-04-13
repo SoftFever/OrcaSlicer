@@ -46,11 +46,15 @@ void AppConfig::set_defaults()
         set("no_defaults", "1");
     if (get("show_incompatible_presets").empty())
         set("show_incompatible_presets", "0");
-    // Version check is enabled by default in the config, but it is not implemented yet.   // XXX
+
     if (get("version_check").empty())
         set("version_check", "1");
+    // TODO: proper URL
+    if (get("version_check_url").empty())
+        set("version_check_url", "https://gist.githubusercontent.com/vojtechkral/4d8fd4a3b8699a01ec892c264178461c/raw/e9187c3e15ceaf1a90f29b7c43cf3ccc746140f0/slic3rPE.version");
     if (get("preset_update").empty())
         set("preset_update", "1");
+
     // Use OpenGL 1.1 even if OpenGL 2.0 is available. This is mainly to support some buggy Intel HD Graphics drivers.
     // https://github.com/prusa3d/Slic3r/issues/233
     if (get("use_legacy_opengl").empty())

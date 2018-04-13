@@ -270,7 +270,7 @@ Semver Index::version() const
     return ver;
 }
 
-Index::const_iterator Index::find(const Semver &ver)
+Index::const_iterator Index::find(const Semver &ver) const
 { 
 	Version key;
 	key.config_version = ver;
@@ -282,22 +282,21 @@ Index::const_iterator Index::find(const Semver &ver)
 Index::const_iterator Index::recommended() const
 {
 	int idx = -1;
-	const_iterator highest = m_configs.end();
+	const_iterator highest = this->end();
 	for (const_iterator it = this->begin(); it != this->end(); ++ it)
 		if (it->is_current_slic3r_supported() &&
-			(highest == this->end() || highest->max_slic3r_version < it->max_slic3r_version))
+			(highest == this->end() || highest->config_version < it->config_version))
 			highest = it;
 	return highest;
 }
 
 std::vector<Index> Index::load_db()
 {
-    boost::filesystem::path data_dir   = boost::filesystem::path(Slic3r::data_dir());
-    boost::filesystem::path vendor_dir = data_dir / "vendor";
+    boost::filesystem::path cache_dir = boost::filesystem::path(Slic3r::data_dir()) / "cache";
 
     std::vector<Index> index_db;
     std::string errors_cummulative;
-	for (auto &dir_entry : boost::filesystem::directory_iterator(vendor_dir))
+	for (auto &dir_entry : boost::filesystem::directory_iterator(cache_dir))
         if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".idx")) {
         	Index idx;
             try {
