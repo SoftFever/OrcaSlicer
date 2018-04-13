@@ -27,7 +27,8 @@ public:
 	wxBitmap* 		insert(const std::string &name, const wxBitmap &bmp);
 	wxBitmap* 		insert(const std::string &name, const wxBitmap &bmp, const wxBitmap &bmp2);
 	wxBitmap* 		insert(const std::string &name, const wxBitmap &bmp, const wxBitmap &bmp2, const wxBitmap &bmp3);
-	wxBitmap* 		insert(const std::string &name, std::vector<wxBitmap> &bmps);
+	wxBitmap* 		insert(const std::string &name, const std::vector<wxBitmap> &bmps) { return this->insert(name, &bmps.front(), &bmps.front() + bmps.size()); }
+	wxBitmap* 		insert(const std::string &name, const wxBitmap *begin, const wxBitmap *end);
 
 	static wxBitmap mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency);
 	static wxBitmap mksolid(size_t width, size_t height, const unsigned char rgb[3]) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE); }
