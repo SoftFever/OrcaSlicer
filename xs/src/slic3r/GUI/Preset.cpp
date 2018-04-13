@@ -199,8 +199,7 @@ const std::vector<std::string>& Preset::print_options()
         "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", 
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
-        "wipe_tower_width", "wipe_tower_per_color_wipe",
-        "compatible_printers", "compatible_printers_condition", "inherits"
+        "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging", "compatible_printers", "compatible_printers_condition","inherits"
     };
     return s_opts;
 }
@@ -208,12 +207,12 @@ const std::vector<std::string>& Preset::print_options()
 const std::vector<std::string>& Preset::filament_options()
 {    
     static std::vector<std::string> s_opts {
-        "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed", 
-        "extrusion_multiplier", "filament_density", "filament_cost", "temperature", "first_layer_temperature", "bed_temperature", 
-        "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", 
-        "disable_fan_first_layers", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", 
-        "end_filament_gcode",
-        "compatible_printers", "compatible_printers_condition", "inherits"
+        "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed",
+        "extrusion_multiplier", "filament_density", "filament_cost", "filament_loading_speed", "filament_unloading_speed", "filament_toolchange_delay",
+        "filament_cooling_time", "filament_ramming_parameters", "temperature", "first_layer_temperature", "bed_temperature",
+        "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", "disable_fan_first_layers",
+        "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", "end_filament_gcode","compatible_printers",
+        "compatible_printers_condition", "inherits"
     };
     return s_opts;
 }
@@ -226,8 +225,8 @@ const std::vector<std::string>& Preset::printer_options()
             "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
             "octoprint_host", "octoprint_apikey", "octoprint_cafile", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height",
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
-			"between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "max_print_height", 
-        	"default_print_profile", "inherits",
+            "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "cooling_tube_retraction",
+            "cooling_tube_length", "parking_pos_retraction", "max_print_height", "default_print_profile", "inherits",
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }

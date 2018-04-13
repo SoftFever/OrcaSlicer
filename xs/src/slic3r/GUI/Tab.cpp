@@ -3,9 +3,11 @@
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
 #include "../../libslic3r/Utils.hpp"
+
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/OctoPrint.hpp"
 #include "BonjourDialog.hpp"
+#include "WipeTowerDialog.hpp"
 
 #include <wx/app.h>
 #include <wx/button.h>
@@ -582,9 +584,26 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 		get_optgroup()->set_value("brim", val);
 	}
 
-		
+    if (opt_key == "wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
+        update_wiping_button_visibility();
+
 	update();
 }
+
+
+// Show/hide the 'purging volumes' button
+void Tab::update_wiping_button_visibility() {
+    bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("wipe_tower"))->value;
+    bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
+    bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
+
+    if (wipe_tower_enabled && multiple_extruders && single_extruder_mm)
+        get_wiping_dialog_button()->Show();
+    else get_wiping_dialog_button()->Hide();
+
+    (get_wiping_dialog_button()->GetParent())->Layout();
+}
+
 
 // Call a callback to update the selection of presets on the platter:
 // To update the content of the selection boxes,
@@ -621,6 +640,8 @@ void Tab::update_frequently_changed_parameters()
 
 	bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
 	get_optgroup()->set_value("brim", val);
+
+	update_wiping_button_visibility();
 }
 
 void Tab::reload_compatible_printers_widget()
@@ -770,7 +791,8 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_x");
 		optgroup->append_single_option_line("wipe_tower_y");
 		optgroup->append_single_option_line("wipe_tower_width");
-		optgroup->append_single_option_line("wipe_tower_per_color_wipe");
+		optgroup->append_single_option_line("wipe_tower_rotation_angle");
+        optgroup->append_single_option_line("wipe_tower_bridging");
 
 		optgroup = page->new_optgroup(_(L("Advanced")));
 		optgroup->append_single_option_line("interface_shells");
@@ -1015,53 +1037,40 @@ void TabPrint::update()
 	}
 
 	bool have_perimeters = m_config->opt_int("perimeters") > 0;
-	std::vector<std::string> vec_enable = {	"extra_perimeters", "ensure_vertical_shell_thickness", "thin_walls", "overhangs",
-											"seam_position", "external_perimeters_first", "external_perimeter_extrusion_width",
-											"perimeter_speed", "small_perimeter_speed", "external_perimeter_speed" };
-	for (auto el : vec_enable)
+	for (auto el : {"extra_perimeters", "ensure_vertical_shell_thickness", "thin_walls", "overhangs",
+					"seam_position", "external_perimeters_first", "external_perimeter_extrusion_width",
+					"perimeter_speed", "small_perimeter_speed", "external_perimeter_speed" })
 		get_field(el)->toggle(have_perimeters);
 
 	bool have_infill = m_config->option<ConfigOptionPercent>("fill_density")->value > 0;
-	vec_enable.resize(0);
-	vec_enable = {	"fill_pattern", "infill_every_layers", "infill_only_where_needed",
-					"solid_infill_every_layers", "solid_infill_below_area", "infill_extruder" };
 	// infill_extruder uses the same logic as in Print::extruders()
-	for (auto el : vec_enable)
+	for (auto el : {"fill_pattern", "infill_every_layers", "infill_only_where_needed",
+					"solid_infill_every_layers", "solid_infill_below_area", "infill_extruder" })
 		get_field(el)->toggle(have_infill);
 
 	bool have_solid_infill = m_config->opt_int("top_solid_layers") > 0 || m_config->opt_int("bottom_solid_layers") > 0;
-	vec_enable.resize(0);
-	vec_enable = {	"external_fill_pattern", "infill_first", "solid_infill_extruder",
-					"solid_infill_extrusion_width", "solid_infill_speed" };
 	// solid_infill_extruder uses the same logic as in Print::extruders()
-	for (auto el : vec_enable)
+	for (auto el : {"external_fill_pattern", "infill_first", "solid_infill_extruder",
+					"solid_infill_extrusion_width", "solid_infill_speed" })
 		get_field(el)->toggle(have_solid_infill);
 
-	vec_enable.resize(0);
-	vec_enable = {	"fill_angle", "bridge_angle", "infill_extrusion_width",
-					"infill_speed", "bridge_speed" };
-	for (auto el : vec_enable)
+	for (auto el : {"fill_angle", "bridge_angle", "infill_extrusion_width",
+					"infill_speed", "bridge_speed" })
 		get_field(el)->toggle(have_infill || have_solid_infill);
 
 	get_field("gap_fill_speed")->toggle(have_perimeters && have_infill);
 
 	bool have_top_solid_infill = m_config->opt_int("top_solid_layers") > 0;
-	vec_enable.resize(0);
-	vec_enable = { "top_infill_extrusion_width", "top_solid_infill_speed" };
-	for (auto el : vec_enable)
+	for (auto el : { "top_infill_extrusion_width", "top_solid_infill_speed" })
 		get_field(el)->toggle(have_top_solid_infill);
 
 	bool have_default_acceleration = m_config->opt_float("default_acceleration") > 0;
-	vec_enable.resize(0);
-	vec_enable = {	"perimeter_acceleration", "infill_acceleration",
-					"bridge_acceleration", "first_layer_acceleration" };
-	for (auto el : vec_enable)
+	for (auto el : {"perimeter_acceleration", "infill_acceleration",
+					"bridge_acceleration", "first_layer_acceleration" })
 		get_field(el)->toggle(have_default_acceleration);
 
 	bool have_skirt = m_config->opt_int("skirts") > 0 || m_config->opt_float("min_skirt_length") > 0;
-	vec_enable.resize(0);
-	vec_enable = { "skirt_distance", "skirt_height" };
-	for (auto el : vec_enable)
+	for (auto el : { "skirt_distance", "skirt_height" })
 		get_field(el)->toggle(have_skirt);
 
 	bool have_brim = m_config->opt_float("brim_width") > 0;
@@ -1072,18 +1081,14 @@ void TabPrint::update()
 	bool have_support_material = m_config->opt_bool("support_material") || have_raft;
 	bool have_support_interface = m_config->opt_int("support_material_interface_layers") > 0;
 	bool have_support_soluble = have_support_material && m_config->opt_float("support_material_contact_distance") == 0;
-	vec_enable.resize(0);
-	vec_enable = {	"support_material_threshold", "support_material_pattern", "support_material_with_sheath",
+	for (auto el : {"support_material_threshold", "support_material_pattern", "support_material_with_sheath",
 					"support_material_spacing", "support_material_angle", "support_material_interface_layers",
 					"dont_support_bridges", "support_material_extrusion_width", "support_material_contact_distance",
-					"support_material_xy_spacing" };
-	for (auto el : vec_enable)
+					"support_material_xy_spacing" })
 		get_field(el)->toggle(have_support_material);
 
-	vec_enable.resize(0);
-	vec_enable = {	"support_material_interface_spacing", "support_material_interface_extruder",
-					"support_material_interface_speed", "support_material_interface_contact_loops" };
-	for (auto el : vec_enable)
+	for (auto el : {"support_material_interface_spacing", "support_material_interface_extruder",
+					"support_material_interface_speed", "support_material_interface_contact_loops" })
 		get_field(el)->toggle(have_support_material && have_support_interface);
 	get_field("support_material_synchronize_layers")->toggle(have_support_soluble);
 
@@ -1092,18 +1097,14 @@ void TabPrint::update()
 	get_field("support_material_speed")->toggle(have_support_material || have_brim || have_skirt);
 
 	bool have_sequential_printing = m_config->opt_bool("complete_objects");
-	vec_enable.resize(0);
-	vec_enable = { "extruder_clearance_radius", "extruder_clearance_height" };
-	for (auto el : vec_enable)
+	for (auto el : { "extruder_clearance_radius", "extruder_clearance_height" })
 		get_field(el)->toggle(have_sequential_printing);
 
 	bool have_ooze_prevention = m_config->opt_bool("ooze_prevention");
 	get_field("standby_temperature_delta")->toggle(have_ooze_prevention);
 
 	bool have_wipe_tower = m_config->opt_bool("wipe_tower");
-	vec_enable.resize(0);
-	vec_enable = { "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_per_color_wipe" };
-	for (auto el : vec_enable)
+	for (auto el : { "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging"})
 		get_field(el)->toggle(have_wipe_tower);
 
 	m_recommended_thin_wall_thickness_description_line->SetText(
@@ -1183,7 +1184,29 @@ void TabFilament::build()
 		};
 		optgroup->append_line(line);
 
-	page = add_options_page(_(L("Custom G-code")), "cog.png");
+        optgroup = page->new_optgroup(_(L("Toolchange behaviour")));
+		optgroup->append_single_option_line("filament_loading_speed");
+        optgroup->append_single_option_line("filament_unloading_speed");
+        optgroup->append_single_option_line("filament_toolchange_delay");
+        optgroup->append_single_option_line("filament_cooling_time");
+        line = { _(L("Ramming")), "" };
+        line.widget = [this](wxWindow* parent){
+			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(ramming_dialog_btn);
+            
+            ramming_dialog_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+			{
+                RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
+                if (dlg.ShowModal() == wxID_OK)
+                    (m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0) = dlg.get_parameters();
+			}));
+			return sizer;
+		};
+		optgroup->append_line(line);
+
+
+        page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		Option option = optgroup->get_option("start_filament_gcode");
 		option.opt.full_width = true;
@@ -1240,13 +1263,10 @@ void TabFilament::update()
 	bool cooling = m_config->opt_bool("cooling", 0);
 	bool fan_always_on = cooling || m_config->opt_bool("fan_always_on", 0);
 
-	std::vector<std::string> vec_enable = { "max_fan_speed", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed" };
-	for (auto el : vec_enable)
+	for (auto el : { "max_fan_speed", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed" })
 		get_field(el)->toggle(cooling);
 
-	vec_enable.resize(0);
-	vec_enable = { "min_fan_speed", "disable_fan_first_layers" };
-	for (auto el : vec_enable)
+	for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
 		get_field(el)->toggle(fan_always_on);
 }
 
@@ -1325,9 +1345,11 @@ void TabPrinter::build()
 		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value){
 			size_t extruders_count = boost::any_cast<int>(optgroup->get_value("extruders_count"));
 			wxTheApp->CallAfter([this, opt_key, value, extruders_count](){
-				if (opt_key.compare("extruders_count")==0) {
+				if (opt_key.compare("extruders_count")==0 || opt_key.compare("single_extruder_multi_material")==0) {
 					extruders_count_changed(extruders_count);
 					update_dirty();
+                    if (opt_key.compare("single_extruder_multi_material")==0) // the single_extruder_multimaterial was added to force pages
+                        on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
 				}
 				else {
 					update_dirty();
@@ -1335,6 +1357,7 @@ void TabPrinter::build()
 				}
 			});
 		};
+
 
 		if (!m_no_controller)
 		{
@@ -1606,6 +1629,25 @@ void TabPrinter::build_extruder_pages(){
 	for (auto page_extruder : m_extruder_pages)
 		m_pages.push_back(page_extruder);
 	m_pages.push_back(page_note);
+
+    {
+        // if we have a single extruder MM setup, add a page with configuration options:
+        for (int i=0;i<m_pages.size();++i) // first make sure it's not there already
+            if (m_pages[i]->title().find(_(L("Single extruder MM setup"))) != std::string::npos) {
+                m_pages.erase(m_pages.begin()+i);
+                break;
+            }
+        if ( m_extruder_pages.size()>1 && m_config->opt_bool("single_extruder_multi_material")) {
+            // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
+            auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png",true);
+                auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
+                optgroup->append_single_option_line("cooling_tube_retraction");
+                optgroup->append_single_option_line("cooling_tube_length");
+                optgroup->append_single_option_line("parking_pos_retraction");
+            m_pages.insert(m_pages.begin()+1,page);
+        }
+    }
+
 	rebuild_page_tree();
 }
 

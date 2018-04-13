@@ -1,4 +1,5 @@
 #include "GUI.hpp"
+#include "WipeTowerDialog.hpp"
 
 #include <assert.h>
 #include <cmath>
@@ -185,6 +186,7 @@ wxLocale*	g_wxLocale;
 
 std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 double m_brim_width = 0.0;
+wxButton*	g_wiping_dialog_button = nullptr;
 
 static void init_label_colours()
 {
@@ -714,12 +716,45 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	option = Option(def, "brim");
 	m_optgroup->append_single_option_line(option);
 
+
+    Line line = { _(L("")), "" };
+        line.widget = [config](wxWindow* parent){
+			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(g_wiping_dialog_button);
+			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
+			{
+				auto &config = g_PresetBundle->project_config;
+                std::vector<double> init_matrix = (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+                std::vector<double> init_extruders = (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+
+                WipingDialog dlg(parent,std::vector<float>(init_matrix.begin(),init_matrix.end()),std::vector<float>(init_extruders.begin(),init_extruders.end()));
+
+				if (dlg.ShowModal() == wxID_OK) {
+                    std::vector<float> matrix = dlg.get_matrix();
+                    std::vector<float> extruders = dlg.get_extruders();
+                    (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(),matrix.end());
+                    (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(),extruders.end());
+                }
+			}));
+			return sizer;
+		};
+		m_optgroup->append_line(line);
+
+
+
 	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxBottom, 1);
 }
 
 ConfigOptionsGroup* get_optgroup()
 {
 	return m_optgroup.get();
+}
+
+
+wxButton* get_wiping_dialog_button()
+{
+	return g_wiping_dialog_button;
 }
 
 wxWindow* export_option_creator(wxWindow* parent)
@@ -765,6 +800,9 @@ int get_export_option(wxFileDialog* dlg)
     }
 
     return 0;
+
 }
 
-} }
+
+} // namespace GUI
+} // namespace Slic3r

@@ -420,12 +420,17 @@ std::vector<int> GLVolumeCollection::load_object(
 
 
 int GLVolumeCollection::load_wipe_tower_preview(
-    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs)
+    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs)
 {
     float color[4] = { 1.0f, 1.0f, 0.0f, 0.5f };
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
-    auto mesh = make_cube(width, depth, height);
+
+    auto mesh = make_cube(width, depth, height);    
+    mesh.translate(-width/2.f,-depth/2.f,0.f);    
+    Point origin_of_rotation(0.f,0.f);
+    mesh.rotate(rotation_angle,&origin_of_rotation);
+
     if (use_VBOs)
         v.indexed_vertex_array.load_mesh_full_shading(mesh);
     else
@@ -2594,8 +2599,10 @@ void _3DScene::_load_shells(const Print& print, GLVolumeCollection& volumes, boo
     coordf_t max_z = print.objects[0]->model_object()->get_model()->bounding_box().max.z;
     const PrintConfig& config = print.config;
     unsigned int extruders_count = config.nozzle_diameter.size();
-    if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects)
-        volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, config.wipe_tower_per_color_wipe * (extruders_count - 1), max_z, use_VBOs);
+    if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
+        const float width_per_extruder = 15.f; // a simple workaround after wipe_tower_per_color_wipe got obsolete
+        volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, width_per_extruder * (extruders_count - 1), max_z, config.wipe_tower_rotation_angle, use_VBOs);
+    }
 }
 
-}
+} // namespace Slic3r

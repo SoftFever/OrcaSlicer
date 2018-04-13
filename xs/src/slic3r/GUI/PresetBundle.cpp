@@ -33,6 +33,11 @@
 
 namespace Slic3r {
 
+static std::vector<std::string> s_project_options {
+    "wiping_volumes_extruders",
+    "wiping_volumes_matrix"
+};
+
 PresetBundle::PresetBundle() :
     prints(Preset::TYPE_PRINT, Preset::print_options()), 
     filaments(Preset::TYPE_FILAMENT, Preset::filament_options()), 
@@ -68,6 +73,8 @@ PresetBundle::PresetBundle() :
     this->filaments.load_bitmap_default("spool.png");
     this->printers .load_bitmap_default("printer_empty.png");
     this->load_compatible_bitmaps();
+
+    this->project_config.apply_only(FullPrintConfig::defaults(), s_project_options);
 }
 
 PresetBundle::~PresetBundle()
@@ -293,6 +300,7 @@ DynamicPrintConfig PresetBundle::full_config() const
     out.apply(FullPrintConfig());
     out.apply(this->prints.get_edited_preset().config);
     out.apply(this->printers.get_edited_preset().config);
+    out.apply(this->project_config);
 
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();
@@ -481,6 +489,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             this->filament_presets.emplace_back(new_name);
         }
     }
+
+    // 4) Load the project config values (the per extruder wipe matrix etc).
+    this->project_config.apply_only(config, s_project_options);
 
     this->update_compatible_with_printer(false);
 }
@@ -873,6 +884,34 @@ void PresetBundle::update_multi_material_filament_presets()
     // Append the rest of filament presets.
 //    if (this->filament_presets.size() < num_extruders)
         this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
+
+
+    // Now verify if wiping_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
+    std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values;
+    size_t old_number_of_extruders = int(sqrt(old_matrix.size())+EPSILON);
+    if (num_extruders != old_number_of_extruders) {
+            // First verify if purging volumes presets for each extruder matches number of extruders
+            std::vector<double>& extruders = this->project_config.option<ConfigOptionFloats>("wiping_volumes_extruders")->values;
+            while (extruders.size() < 2*num_extruders) {
+                extruders.push_back(extruders.size()>1 ? extruders[0] : 50.);  // copy the values from the first extruder
+                extruders.push_back(extruders.size()>1 ? extruders[1] : 50.);
+            }
+            while (extruders.size() > 2*num_extruders) {
+                extruders.pop_back();
+                extruders.pop_back();
+            }
+
+        std::vector<double> new_matrix;
+        for (unsigned int i=0;i<num_extruders;++i)
+            for (unsigned int j=0;j<num_extruders;++j) {
+                // append the value for this pair from the old matrix (if it's there):
+                if (i<old_number_of_extruders && j<old_number_of_extruders)
+                    new_matrix.push_back(old_matrix[i*old_number_of_extruders + j]);
+                else
+                    new_matrix.push_back( i==j ? 0. : extruders[2*i]+extruders[2*j+1]); // so it matches new extruder volumes
+            }
+		this->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values = new_matrix;
+    }
 }
 
 void PresetBundle::update_compatible_with_printer(bool select_other_if_incompatible)

@@ -44,6 +44,11 @@ public:
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;
 
+    // The project configuration values are kept separated from the print/filament/printer preset,
+    // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode, 
+    // and they are being used by slicing core.
+    DynamicPrintConfig          project_config;
+
     // There will be an entry for each system profile loaded, 
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
     std::set<VendorProfile>     vendors;

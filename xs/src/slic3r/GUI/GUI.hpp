@@ -18,6 +18,7 @@ class wxArrayLong;
 class wxColour;
 class wxBoxSizer;
 class wxFlexGridSizer;
+class wxButton;
 class wxFileDialog;
 
 namespace Slic3r { 
@@ -133,6 +134,7 @@ wxString	from_u8(const std::string &str);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 
 ConfigOptionsGroup* get_optgroup();
+wxButton*			get_wiping_dialog_button();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);

@@ -34,7 +34,7 @@ void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 
 void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 {
-//	on_change(nullptr);
+//  on_change(nullptr);
 
 	auto box = new wxStaticBox(this, wxID_ANY, _(L("Shape")));
 	auto sbsizer = new wxStaticBoxSizer(box, wxVERTICAL);
