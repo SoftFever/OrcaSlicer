@@ -117,6 +117,8 @@ public:
     // preset if the current print or filament preset is not compatible.
     void                        update_compatible_with_printer(bool select_other_if_incompatible);
 
+    static bool parse_color(const std::string &scolor, unsigned char *rgb_out);
+
 private:
     std::string                 load_system_presets();
 

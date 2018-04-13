@@ -990,7 +990,7 @@ static inline int hex_digit_to_int(const char c)
         (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
 
-static inline bool parse_color(const std::string &scolor, unsigned char *rgb_out)
+bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out)
 {
     rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
     if (scolor.size() != 7 || scolor.front() != '#')

@@ -217,6 +217,8 @@ sub reload_scene {
         }
     }
     
+    $self->update_volumes_colors_by_extruder($self->{config});
+    
     # checks for geometry outside the print volume to render it accordingly
     if (scalar @{$self->volumes} > 0)
     {
@@ -230,6 +232,9 @@ sub reload_scene {
             Slic3r::GUI::_3DScene::reset_warning_texture();
             $self->on_enable_action_buttons->(1) if ($self->on_enable_action_buttons);
         }
+    } else {
+        $self->set_warning_enabled(0);
+        Slic3r::GUI::_3DScene::reset_warning_texture();
     }
 }
 
