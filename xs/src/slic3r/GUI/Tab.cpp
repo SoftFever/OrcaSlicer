@@ -326,6 +326,7 @@ void Tab::update_changed_ui()
 		m_dirty_options = dirty_options;
 	}
 
+	Freeze();
 	//update options "decoration"
 	for (const auto opt_key : m_full_options_list)
 	{
@@ -347,6 +348,14 @@ void Tab::update_changed_ui()
 			is_modified_value = false;
 			icon = "bullet_white.png";
 		}
+		if (opt_key == "bed_shape" || opt_key == "compatible_printers") {
+			if (m_colored_Label != nullptr)	{
+				m_colored_Label->SetForegroundColour(color);
+				m_colored_Label->Refresh(true);
+			}
+			continue;
+		}
+
 		Field* field = get_field(opt_key);
 		if (field == nullptr) continue;
 		field->m_is_nonsys_value = is_nonsys_value;
@@ -358,6 +367,7 @@ void Tab::update_changed_ui()
 			field->m_Label->Refresh(true);
 		}
 	}
+	Thaw();
 
 	wxTheApp->CallAfter([this]() {
 		update_changed_tree_ui();
@@ -419,13 +429,20 @@ void Tab::update_sys_ui_after_sel_preset()
 	m_sys_options.resize(0);
 }
 
+void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
+{
+	if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
+		sys_page = false;
+	if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
+		modified_page = true;
+}
+
 void Tab::update_changed_tree_ui()
 {
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	while (cur_item){
 		auto title = m_treectrl->GetItemText(cur_item);
-		int i=0;
 		for (auto page : m_pages)
 		{
 			if (page->title() != title)
@@ -435,23 +452,20 @@ void Tab::update_changed_tree_ui()
 			if (title == _("General")){
 				std::initializer_list<const char*> optional_keys{ "extruders_count", "bed_shape" };
 				for (auto &opt_key : optional_keys) {
-					if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
-						sys_page = false;
-					if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
-						modified_page = true;
+					get_sys_and_mod_flags(opt_key, sys_page, modified_page);
 				}
+			}
+			if (title == _("Dependencies")){
+				get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
 			}
 			for (auto group : page->m_optgroups)
 			{
-				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
-					const std::string& opt_key = it->first;
-					if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
-						sys_page = false;
-					if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
-						modified_page = true;
-				}
 				if (!sys_page && modified_page)
 					break;
+				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+					const std::string& opt_key = it->first;
+					get_sys_and_mod_flags(opt_key, sys_page, modified_page);
+				}
 			}
 			if (sys_page)
 				m_treectrl->SetItemTextColour(cur_item, get_sys_label_clr());
@@ -500,6 +514,14 @@ void Tab::on_back_to_initial_value()
 					if (find(m_dirty_options.begin(), m_dirty_options.end(), "bed_shape") != m_dirty_options.end())
 						group->back_to_initial_value("bed_shape");
 				}
+				if (group->title == _("Profile dependencies")){
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), "compatible_printers") != m_dirty_options.end())
+						group->back_to_initial_value("compatible_printers");
+
+					bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+					m_compatible_printers_checkbox->SetValue(is_empty);
+					is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
 					if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
@@ -526,6 +548,14 @@ void Tab::on_back_to_sys_value()
 				if (group->title == _("Size and coordinates")){
 					if (find(m_sys_options.begin(), m_sys_options.end(), "bed_shape") == m_sys_options.end())
 						group->back_to_sys_value("bed_shape");
+				}
+				if (group->title == _("Profile dependencies")){
+					if (find(m_sys_options.begin(), m_sys_options.end(), "compatible_printers") == m_sys_options.end())
+						group->back_to_sys_value("compatible_printers");
+
+					bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+					m_compatible_printers_checkbox->SetValue(is_empty);
+					is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
 				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
@@ -905,7 +935,7 @@ void TabPrint::build()
 		line.widget = [this](wxWindow* parent){
 			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
 		};
-		optgroup->append_line(line);
+		optgroup->append_line(line, &m_colored_Label);
 
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
@@ -1279,7 +1309,7 @@ void TabFilament::build()
 		line.widget = [this](wxWindow* parent){
 			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
 		};
-		optgroup->append_line(line);
+		optgroup->append_line(line, &m_colored_Label);
 
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
@@ -1376,7 +1406,7 @@ void TabPrinter::build()
 
 			return sizer;
 		};
-		optgroup->append_line(line);
+		optgroup->append_line(line, &m_colored_Label);
         optgroup->append_single_option_line("max_print_height");
         optgroup->append_single_option_line("z_offset");
 
@@ -2114,6 +2144,7 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 		if ((*checkbox)->GetValue())
 			load_key_value("compatible_printers", std::vector<std::string> {});
 		get_field("compatible_printers_condition")->toggle((*checkbox)->GetValue());
+		update_changed_ui();
 	}) );
 
 	(*btn)->Bind(wxEVT_BUTTON, ([this, parent, checkbox, btn](wxCommandEvent e)
@@ -2156,6 +2187,7 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 			}
 			// All printers have been made compatible with this preset.
 			load_key_value("compatible_printers", value);
+			update_changed_ui();
 		}
 	}));
 	return sizer; 

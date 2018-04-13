@@ -93,7 +93,7 @@ public:
     /// but defining it as const means a lot of const_casts to deal with wx functions.
     inline wxWindow* parent() const { return m_parent; }
 
-    void		append_line(const Line& line);
+	void		append_line(const Line& line, wxStaticText** colored_Label = nullptr);
     Line		create_single_option_line(const Option& option) const;
     void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
 

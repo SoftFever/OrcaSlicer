@@ -126,6 +126,7 @@ public:
 	DynamicPrintConfig*	m_config;
 	std::string			m_nonsys_btn_icon;
 	ogStaticText*		m_parent_preset_description_line;
+	wxStaticText*		m_colored_Label = nullptr;
 
 public:
 	Tab() {}
@@ -166,6 +167,7 @@ public:
 	void		update_changed_ui();
 	void		update_full_options_list();
 	void		update_sys_ui_after_sel_preset();
+	void		get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page);
 	void		update_changed_tree_ui();
 	void		update_undo_buttons();
 

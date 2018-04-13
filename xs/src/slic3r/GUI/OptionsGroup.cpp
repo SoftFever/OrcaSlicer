@@ -97,7 +97,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     return field;
 }
 
-void OptionsGroup::append_line(const Line& line) {
+void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* = nullptr*/) {
 //!    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)){
 	if ( (line.sizer != nullptr || line.widget != nullptr) && line.full_width){
 		if (line.sizer != nullptr) {
@@ -150,6 +150,7 @@ void OptionsGroup::append_line(const Line& line) {
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(parent());
 		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
+		if (colored_Label != nullptr) *colored_Label = label;
 		return;
 	}
 	
@@ -396,6 +397,10 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = static_cast<wxString>(config.opt_string(opt_key));
 		break;
 	case coStrings:
+		if (opt_key.compare("compatible_printers") == 0){
+			ret = config.option<ConfigOptionStrings>(opt_key)->values;
+			break;
+		}
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
 		else if (opt->gui_flags.compare("serialized") == 0){
