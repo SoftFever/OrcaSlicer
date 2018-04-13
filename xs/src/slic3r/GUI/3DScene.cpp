@@ -305,7 +305,7 @@ void GLVolume::render_using_layer_height() const
         glUniform1f(z_texture_row_to_normalized_id, (GLfloat)(1.0f / layer_height_texture_height()));
 
     if (z_cursor_id >= 0)
-        glUniform1f(z_cursor_id, (GLfloat)(bounding_box.max.z * layer_height_texture_data.z_cursor_relative));
+        glUniform1f(z_cursor_id, (GLfloat)(layer_height_texture_data.print_object->model_object()->bounding_box().max.z * layer_height_texture_data.z_cursor_relative));
 
     if (z_cursor_band_width_id >= 0)
         glUniform1f(z_cursor_band_width_id, (GLfloat)layer_height_texture_data.edit_band_width);
@@ -325,6 +325,11 @@ void GLVolume::render_using_layer_height() const
 
     if ((current_program_id > 0) && (layer_height_texture_data.shader_id != current_program_id))
         glUseProgram(current_program_id);
+}
+
+double GLVolume::layer_height_texture_z_to_row_id() const
+{
+    return (this->layer_height_texture.get() == nullptr) ? 0.0 : double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * this->layer_height_texture_data.print_object->model_object()->bounding_box().max.z);
 }
 
 void GLVolume::generate_layer_height_texture(PrintObject *print_object, bool force)

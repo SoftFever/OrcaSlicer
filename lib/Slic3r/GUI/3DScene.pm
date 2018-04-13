@@ -1527,10 +1527,13 @@ sub draw_active_object_annotations {
     my ($reset_left, $reset_bottom, $reset_right, $reset_top) = $self->_variable_layer_thickness_reset_rect_viewport;
     my $z_cursor_relative = $self->_variable_layer_thickness_bar_mouse_cursor_z_relative;
 
+    my $print_object = $self->{print}->get_object($object_idx);
+    my $z_max = $print_object->model_object->bounding_box->z_max;
+    
     $self->{layer_height_edit_shader}->enable;
     $self->{layer_height_edit_shader}->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
     $self->{layer_height_edit_shader}->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
-    $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $volume->bounding_box->z_max * $z_cursor_relative);
+    $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $z_max * $z_cursor_relative);
     $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
     glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
     glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
@@ -1552,8 +1555,8 @@ sub draw_active_object_annotations {
     glBegin(GL_QUADS);
     glVertex3f($bar_left,  $bar_bottom, 0);
     glVertex3f($bar_right, $bar_bottom, 0);
-    glVertex3f($bar_right, $bar_top, $volume->bounding_box->z_max);
-    glVertex3f($bar_left,  $bar_top, $volume->bounding_box->z_max);
+    glVertex3f($bar_right, $bar_top, $z_max);
+    glVertex3f($bar_left,  $bar_top, $z_max);
     glEnd();
     glBindTexture(GL_TEXTURE_2D, 0);
     $self->{layer_height_edit_shader}->disable;
@@ -1572,7 +1575,6 @@ sub draw_active_object_annotations {
 
     # Paint the graph.
     #FIXME show some kind of legend.
-    my $print_object = $self->{print}->get_object($object_idx);
     my $max_z = unscale($print_object->size->z);
     my $profile = $print_object->model_object->layer_height_profile;
     my $layer_height = $print_object->config->get('layer_height');
@@ -1933,8 +1935,6 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 //#define LIGHT_FRONT_SHININESS 5.0
 
 #define INTENSITY_AMBIENT    0.3
-
-uniform float z_to_texture_row;
 
 // x = tainted, y = specular;
 varying vec2 intensity;

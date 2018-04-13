@@ -361,10 +361,7 @@ public:
         return (layer_height_texture.get() == nullptr) ? 0 :
             (void*)(layer_height_texture->data.data() + layer_height_texture->width * layer_height_texture->height * 4);
     }
-    double              layer_height_texture_z_to_row_id() const { 
-        return (this->layer_height_texture.get() == nullptr) ? 0. : 
-            double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * bounding_box.max.z);
-    }
+    double              layer_height_texture_z_to_row_id() const;
     void                generate_layer_height_texture(PrintObject *print_object, bool force);
 
     void set_layer_height_texture_data(unsigned int texture_id, unsigned int shader_id, PrintObject* print_object, float z_cursor_relative, float edit_band_width)
