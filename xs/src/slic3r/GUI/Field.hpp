@@ -31,8 +31,8 @@ namespace Slic3r { namespace GUI {
 class Field;
 using t_field = std::unique_ptr<Field>;
 using t_kill_focus = std::function<void()>;
-using t_change = std::function<void(t_config_option_key, boost::any)>;
-using t_back_to_init = std::function<void(std::string)>;
+using t_change = std::function<void(t_config_option_key, const boost::any&)>;
+using t_back_to_init = std::function<void(const std::string&)>;
 
 wxString double_to_string(double const value);
 
@@ -81,7 +81,7 @@ public:
     /// Sets a value for this control.
     /// subclasses should overload with a specific version
     /// Postcondition: Method does not fire the on_change event.
-    virtual void		set_value(boost::any value, bool change_event) = 0;
+    virtual void		set_value(const boost::any& value, bool change_event) = 0;
     
     /// Gets a boost::any representing this control.
     /// subclasses should overload with a specific version
@@ -100,7 +100,7 @@ public:
 	virtual wxString	get_tooltip_text(const wxString& default_string);
 
     // set icon to "UndoToSystemValue" button according to an inheritance of preset
-	void set_nonsys_btn_icon(const std::string& icon);
+	void				set_nonsys_btn_icon(const std::string& icon);
 
     Field(const ConfigOptionDef& opt, const t_config_option_key& id) : m_opt(opt), m_opt_id(id) {};
     Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : m_parent(parent), m_opt(opt), m_opt_id(id) {};
@@ -109,8 +109,8 @@ public:
     virtual wxSizer*	getSizer()  { return nullptr; }
     virtual wxWindow*	getWindow() { return nullptr; }
 
-	bool		is_matched(std::string string, std::string pattern);
-	boost::any	get_value_by_opt_type(wxString str);
+	bool				is_matched(const std::string& string, const std::string& pattern);
+	boost::any			get_value_by_opt_type(wxString& str);
 
     /// Factory method for generating new derived classes.
     template<class T>
@@ -137,16 +137,17 @@ class TextCtrl : public Field {
 public:
 	TextCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt,  id) {}
 	TextCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	~TextCtrl() {}
 
     void BUILD();
     wxWindow* window {nullptr};
 
-    virtual void	set_value(std::string value, bool change_event = false) {
+    virtual void	set_value(const std::string& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
         dynamic_cast<wxTextCtrl*>(window)->SetValue(wxString(value));
 		m_disable_change_event = false;
     }
-    virtual void	set_value(boost::any value, bool change_event = false) {
+	virtual void	set_value(const boost::any& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
 		dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
 		m_disable_change_event = false;
@@ -164,6 +165,7 @@ class CheckBox : public Field {
 public:
 	CheckBox(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	CheckBox(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	~CheckBox() {}
 
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;
@@ -173,7 +175,7 @@ public:
 		dynamic_cast<wxCheckBox*>(window)->SetValue(value);
 		m_disable_change_event = false;
 	}
-	void			set_value(boost::any value, bool change_event = false) {
+	void			set_value(const boost::any& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
 		dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<bool>(value));
 		m_disable_change_event = false;
@@ -190,21 +192,22 @@ class SpinCtrl : public Field {
 public:
 	SpinCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id), tmp_value(-9999) {}
 	SpinCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id), tmp_value(-9999) {}
+	~SpinCtrl() {}
 
 	int				tmp_value;
 
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;
 
-	void			set_value(const std::string value, bool change_event = false) {
+	void			set_value(const std::string& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
 		dynamic_cast<wxSpinCtrl*>(window)->SetValue(value);
 		m_disable_change_event = false;
 	}
-	void			set_value(boost::any value, bool change_event = false) {
+	void			set_value(const boost::any& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
 		tmp_value = boost::any_cast<int>(value);
-		dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value/*boost::any_cast<int>(value)*/);
+		dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value);
 		m_disable_change_event = false;
 	}
 	boost::any		get_value() override {
@@ -221,14 +224,15 @@ class Choice : public Field {
 public:
 	Choice(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	Choice(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	~Choice() {}
 
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;
 
 	void			set_selection();
-	void			set_value(const std::string value, bool change_event = false);
-	void			set_value(boost::any value, bool change_event = false);
-	void			set_values(const std::vector<std::string> values);
+	void			set_value(const std::string& value, bool change_event = false);
+	void			set_value(const boost::any& value, bool change_event = false);
+	void			set_values(const std::vector<std::string> &values);
 	boost::any		get_value() override;
 
 	void			enable() override { dynamic_cast<wxComboBox*>(window)->Enable(); };
@@ -241,16 +245,17 @@ class ColourPicker : public Field {
 public:
 	ColourPicker(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	ColourPicker(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	~ColourPicker() {}
 
 	wxWindow*		window{ nullptr };
 	void			BUILD()  override;
 
-	void			set_value(const std::string value, bool change_event = false) {
+	void			set_value(const std::string& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
 		m_disable_change_event = false;
 	 	}
-	void			set_value(boost::any value, bool change_event = false) {
+	void			set_value(const boost::any& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast<wxString>(value));
 		m_disable_change_event = false;
@@ -268,23 +273,24 @@ class PointCtrl : public Field {
 public:
 	PointCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	PointCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	~PointCtrl() {}
 
 	wxSizer*		sizer{ nullptr };
-	wxTextCtrl*		x_textctrl;
-	wxTextCtrl*		y_textctrl;
+	wxTextCtrl*		x_textctrl{ nullptr };
+	wxTextCtrl*		y_textctrl{ nullptr };
 
 	void			BUILD()  override;
 
-	void			set_value(const Pointf value, bool change_event = false);
-	void			set_value(boost::any value, bool change_event = false);
+	void			set_value(const Pointf& value, bool change_event = false);
+	void			set_value(const boost::any& value, bool change_event = false);
 	boost::any		get_value() override;
 
 	void			enable() override {
 		x_textctrl->Enable();
-		y_textctrl->Enable(); };
+		y_textctrl->Enable(); }
 	void			disable() override{
 		x_textctrl->Disable();
-		y_textctrl->Disable(); };
+		y_textctrl->Disable(); }
 	wxSizer*		getSizer() override { return sizer; }
 };
 

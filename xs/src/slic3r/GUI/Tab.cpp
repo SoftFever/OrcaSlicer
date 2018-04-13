@@ -22,6 +22,7 @@
 #include <wx/filedlg.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include "wxExtensions.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -39,7 +40,42 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
+	/*
+	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
+	wxDataViewTreeCtrlComboPopup* popup = new wxDataViewTreeCtrlComboPopup;
+	if (popup != nullptr)
+	{
+		// FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
+		//  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
+//		m_cc_presets_choice->UseAltPopupWindow();
 
+//		m_cc_presets_choice->EnablePopupAnimation(false);
+		m_cc_presets_choice->SetPopupControl(popup);
+		popup->SetStringValue(from_u8("Text1"));
+
+		popup->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this, popup](wxCommandEvent& evt)
+		{
+			auto selected = popup->GetItemText(popup->GetSelection());
+			if (selected != _(L("System presets")) && selected != _(L("Default presets")))
+			{
+				m_cc_presets_choice->SetText(selected);
+				std::string selected_string = selected.ToUTF8().data();
+#ifdef __APPLE__
+#else
+ 				select_preset(selected_string);
+#endif
+			}				
+		});
+
+// 		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
+// 		popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
+
+		auto icons = new wxImageList(16, 16, true, 1);
+		popup->SetImageList(icons);
+		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
+		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
+	}
+*/
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
 	//buttons
@@ -84,10 +120,43 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer->AddSpacer(64);
 	m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+// 	m_hsizer->AddSpacer(64);
+// 	m_hsizer->Add(m_cc_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
 
 	//Horizontal sizer to hold the tree and the selected page.
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 1, wxEXPAND, 0);
+
+
+/*
+
+
+	//temporary left vertical sizer
+	m_left_sizer = new wxBoxSizer(wxVERTICAL);
+	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
+
+	// tree
+	m_presetctrl = new wxDataViewTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxDV_NO_HEADER);
+	m_left_sizer->Add(m_presetctrl, 1, wxEXPAND);
+	m_preset_icons = new wxImageList(16, 16, true, 1);
+	m_presetctrl->SetImageList(m_preset_icons);
+	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
+	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
+
+	m_presetctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxCommandEvent& evt)
+	{
+		auto selected = m_presetctrl->GetItemText(m_presetctrl->GetSelection());
+		if (selected != _(L("System presets")) && selected != _(L("Default presets")))
+		{
+			std::string selected_string = selected.ToUTF8().data();
+#ifdef __APPLE__
+#else
+			select_preset(selected_string);
+#endif
+		}
+	});
+
+*/
 
 	//left vertical sizer
 	m_left_sizer = new wxBoxSizer(wxVERTICAL);
@@ -136,11 +205,10 @@ void Tab::load_initial_data()
 {
 	m_config = &m_presets->get_edited_preset().config;
 	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
-		"bullet_white.png" :
-		wxMSW ? "sys_unlock.png" : "lock_open.png";
+						"bullet_white.png" : "sys_unlock.png";
 }
 
-PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
+PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages/* = false*/)
 {
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
@@ -260,13 +328,14 @@ void Tab::update_changed_ui()
 		m_dirty_options = dirty_options;
 	}
 
+	Freeze();
 	//update options "decoration"
 	for (const auto opt_key : m_full_options_list)
 	{
 		bool is_nonsys_value = false;
 		bool is_modified_value = true;
-		std::string sys_icon = wxMSW ? "sys_lock.png" : "lock.png";
-		std::string icon = wxMSW ? "action_undo.png" : "arrow_undo.png";
+		std::string sys_icon = "sys_lock.png";
+		std::string icon = "action_undo.png";
 		wxColour color = get_sys_label_clr();
 		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
 			is_nonsys_value = true;
@@ -281,6 +350,14 @@ void Tab::update_changed_ui()
 			is_modified_value = false;
 			icon = "bullet_white.png";
 		}
+		if (opt_key == "bed_shape" || opt_key == "compatible_printers") {
+			if (m_colored_Label != nullptr)	{
+				m_colored_Label->SetForegroundColour(color);
+				m_colored_Label->Refresh(true);
+			}
+			continue;
+		}
+
 		Field* field = get_field(opt_key);
 		if (field == nullptr) continue;
 		field->m_is_nonsys_value = is_nonsys_value;
@@ -292,6 +369,7 @@ void Tab::update_changed_ui()
 			field->m_Label->Refresh(true);
 		}
 	}
+	Thaw();
 
 	wxTheApp->CallAfter([this]() {
 		update_changed_tree_ui();
@@ -353,13 +431,20 @@ void Tab::update_sys_ui_after_sel_preset()
 	m_sys_options.resize(0);
 }
 
+void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
+{
+	if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
+		sys_page = false;
+	if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
+		modified_page = true;
+}
+
 void Tab::update_changed_tree_ui()
 {
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	while (cur_item){
 		auto title = m_treectrl->GetItemText(cur_item);
-		int i=0;
 		for (auto page : m_pages)
 		{
 			if (page->title() != title)
@@ -369,23 +454,20 @@ void Tab::update_changed_tree_ui()
 			if (title == _("General")){
 				std::initializer_list<const char*> optional_keys{ "extruders_count", "bed_shape" };
 				for (auto &opt_key : optional_keys) {
-					if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
-						sys_page = false;
-					if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
-						modified_page = true;
+					get_sys_and_mod_flags(opt_key, sys_page, modified_page);
 				}
+			}
+			if (title == _("Dependencies")){
+				get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
 			}
 			for (auto group : page->m_optgroups)
 			{
-				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
-					const std::string& opt_key = it->first;
-					if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
-						sys_page = false;
-					if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
-						modified_page = true;
-				}
 				if (!sys_page && modified_page)
 					break;
+				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+					const std::string& opt_key = it->first;
+					get_sys_and_mod_flags(opt_key, sys_page, modified_page);
+				}
 			}
 			if (sys_page)
 				m_treectrl->SetItemTextColour(cur_item, get_sys_label_clr());
@@ -411,10 +493,8 @@ void Tab::update_changed_tree_ui()
 
 void Tab::update_undo_buttons()
 {
-	const std::string& undo_icon = !m_is_modified_values ? "bullet_white.png" :
-									wxMSW ? "action_undo.png" : "arrow_undo.png";
-	const std::string& undo_to_sys_icon = m_is_nonsys_values ? m_nonsys_btn_icon :
-									wxMSW ? "sys_lock.png" : "lock.png";
+	const std::string& undo_icon = !m_is_modified_values ? "bullet_white.png" : "action_undo.png";
+	const std::string& undo_to_sys_icon = m_is_nonsys_values ? m_nonsys_btn_icon : "sys_lock.png";
 
 	m_undo_btn->SetBitmap(wxBitmap(from_u8(var(undo_icon)), wxBITMAP_TYPE_PNG));
 	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(undo_to_sys_icon)), wxBITMAP_TYPE_PNG));
@@ -435,6 +515,14 @@ void Tab::on_back_to_initial_value()
 				if (group->title == _("Size and coordinates")){
 					if (find(m_dirty_options.begin(), m_dirty_options.end(), "bed_shape") != m_dirty_options.end())
 						group->back_to_initial_value("bed_shape");
+				}
+				if (group->title == _("Profile dependencies")){
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), "compatible_printers") != m_dirty_options.end())
+						group->back_to_initial_value("compatible_printers");
+
+					bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+					m_compatible_printers_checkbox->SetValue(is_empty);
+					is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
 				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
@@ -463,6 +551,14 @@ void Tab::on_back_to_sys_value()
 					if (find(m_sys_options.begin(), m_sys_options.end(), "bed_shape") == m_sys_options.end())
 						group->back_to_sys_value("bed_shape");
 				}
+				if (group->title == _("Profile dependencies")){
+					if (find(m_sys_options.begin(), m_sys_options.end(), "compatible_printers") == m_sys_options.end())
+						group->back_to_sys_value("compatible_printers");
+
+					bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+					m_compatible_printers_checkbox->SetValue(is_empty);
+					is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
 					if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
@@ -480,16 +576,19 @@ void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();	
 	update_changed_ui();
+//	update_dirty_presets(m_cc_presets_choice);
 }
 
 void Tab::update_tab_ui()
 {
 	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
+// 	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
+// 	update_presetsctrl(m_presetctrl, m_show_incompatible_presets);
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
 // This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
-void Tab::load_config(DynamicPrintConfig config)
+void Tab::load_config(const DynamicPrintConfig& config)
 {
 	bool modified = 0;
 	for(auto opt_key : m_config->diff(config)) {
@@ -512,7 +611,7 @@ void Tab::reload_config(){
  	Thaw();
 }
 
-Field* Tab::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
+Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
 {
 	Field* field = nullptr;
 	for (auto page : m_pages){
@@ -526,7 +625,7 @@ Field* Tab::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
 // Set a key/value pair on this page. Return true if the value has been modified.
 // Currently used for distributing extruders_count over preset pages of Slic3r::GUI::Tab::Printer
 // after a preset is loaded.
-bool Tab::set_value(t_config_option_key opt_key, boost::any value){
+bool Tab::set_value(const t_config_option_key& opt_key, const boost::any& value){
 	bool changed = false;
 	for(auto page: m_pages) {
 		if (page->set_value(opt_key, value))
@@ -537,7 +636,7 @@ bool Tab::set_value(t_config_option_key opt_key, boost::any value){
 
 // To be called by custom widgets, load a value into a config,
 // update the preset selection boxes (the dirty flags)
-void Tab::load_key_value(std::string opt_key, boost::any value)
+void Tab::load_key_value(const std::string& opt_key, const boost::any& value)
 {
 	change_opt_value(*m_config, opt_key, value);
 	// Mark the print & filament enabled if they are compatible with the currently selected preset.
@@ -551,7 +650,7 @@ void Tab::load_key_value(std::string opt_key, boost::any value)
 
 extern wxFrame *g_wxMainFrame;
 
-void Tab::on_value_change(std::string opt_key, boost::any value)
+void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
 	if (m_event_value_change > 0) {
 		wxCommandEvent event(m_event_value_change);
@@ -566,8 +665,8 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 	}
 	if (opt_key == "fill_density")
 	{
-		value = get_optgroup()->get_config_value(*m_config, opt_key);
-		get_optgroup()->set_value(opt_key, value);
+		boost::any val = get_optgroup()->get_config_value(*m_config, opt_key);
+		get_optgroup()->set_value(opt_key, val);
 	}
 	if (opt_key == "support_material" || opt_key == "support_material_buildplate_only")
 	{
@@ -858,7 +957,7 @@ void TabPrint::build()
 		line.widget = [this](wxWindow* parent){
 			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
 		};
-		optgroup->append_line(line);
+		optgroup->append_line(line, &m_colored_Label);
 
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
@@ -1233,7 +1332,7 @@ void TabFilament::build()
 		line.widget = [this](wxWindow* parent){
 			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
 		};
-		optgroup->append_line(line);
+		optgroup->append_line(line, &m_colored_Label);
 
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
@@ -1327,7 +1426,7 @@ void TabPrinter::build()
 
 			return sizer;
 		};
-		optgroup->append_line(line);
+		optgroup->append_line(line, &m_colored_Label);
         optgroup->append_single_option_line("max_print_height");
         optgroup->append_single_option_line("z_offset");
 
@@ -1755,9 +1854,7 @@ void Tab::load_current_preset()
 	// Reload preset pages with the new configuration values.
 	reload_config();
 	const Preset* parent = m_presets->get_selected_preset_parent();
-	m_nonsys_btn_icon = parent == nullptr ?
-		"bullet_white.png" :
-		wxMSW ? "sys_unlock.png" : "lock_open.png";
+	m_nonsys_btn_icon = parent == nullptr ? "bullet_white.png" : "sys_unlock.png";
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
@@ -1814,7 +1911,7 @@ void Tab::rebuild_page_tree()
 // Called by the UI combo box when the user switches profiles.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(std::string preset_name /*= ""*/)
+void Tab::select_preset(const std::string& preset_name /*= ""*/)
 {
 	std::string name = preset_name;
 	auto force = false;
@@ -1881,7 +1978,7 @@ void Tab::select_preset(std::string preset_name /*= ""*/)
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
-bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, std::string new_printer_name /*= ""*/)
+bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/)
 {
 	if (presets == nullptr) presets = m_presets;
 	// Display a dialog showing the dirty options in a human readable form.
@@ -2089,6 +2186,7 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 		if ((*checkbox)->GetValue())
 			load_key_value("compatible_printers", std::vector<std::string> {});
 		get_field("compatible_printers_condition")->toggle((*checkbox)->GetValue());
+		update_changed_ui();
 	}) );
 
 	(*btn)->Bind(wxEVT_BUTTON, ([this, parent, checkbox, btn](wxCommandEvent e)
@@ -2131,9 +2229,177 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 			}
 			// All printers have been made compatible with this preset.
 			load_key_value("compatible_printers", value);
+			update_changed_ui();
 		}
 	}));
 	return sizer; 
+}
+
+void Tab::update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible)
+{
+	if (ui == nullptr)
+		return;
+	ui->Freeze();
+	ui->DeleteAllItems();
+	auto presets = m_presets->get_presets();
+	auto idx_selected = m_presets->get_idx_selected();
+	auto suffix_modified = m_presets->get_suffix_modified();
+	int icon_compatible = 0;
+	int icon_incompatible = 1;
+	int cnt_items = 0;
+
+	auto root_sys = ui->AppendContainer(wxDataViewItem(0), _(L("System presets")));
+	auto root_def = ui->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
+
+	auto show_def = get_app_config()->get("no_defaults")[0] != '1';
+
+	for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
+		const Preset &preset = presets[i];
+		if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
+			continue;
+
+		auto preset_name = wxString::FromUTF8((preset.name + (preset.is_dirty ? suffix_modified : "")).c_str());
+
+		wxDataViewItem item;
+		if (preset.is_system)
+			item = ui->AppendItem(root_sys, preset_name,
+			preset.is_compatible ? icon_compatible : icon_incompatible);
+		else if (show_def && preset.is_default)
+			item = ui->AppendItem(root_def, preset_name,
+			preset.is_compatible ? icon_compatible : icon_incompatible);
+		else
+		{
+			auto parent = m_presets->get_preset_parent(preset);
+			if (parent == nullptr)
+				item = ui->AppendItem(root_def, preset_name,
+				preset.is_compatible ? icon_compatible : icon_incompatible);
+			else
+			{
+				auto parent_name = parent->name;
+
+				wxDataViewTreeStoreContainerNode *node = ui->GetStore()->FindContainerNode(root_sys);
+				if (node)
+				{
+					wxDataViewTreeStoreNodeList::iterator iter;
+					for (iter = node->GetChildren().begin(); iter != node->GetChildren().end(); iter++)
+					{
+						wxDataViewTreeStoreNode* child = *iter;
+						auto child_item = child->GetItem();
+						auto item_text = ui->GetItemText(child_item);
+						if (item_text == parent_name)
+						{
+							auto added_child = ui->AppendItem(child->GetItem(), preset_name,
+								preset.is_compatible ? icon_compatible : icon_incompatible);
+							if (!added_child){
+								ui->DeleteItem(child->GetItem());
+								auto new_parent = ui->AppendContainer(root_sys, parent_name,
+									preset.is_compatible ? icon_compatible : icon_incompatible);
+								ui->AppendItem(new_parent, preset_name,
+									preset.is_compatible ? icon_compatible : icon_incompatible);
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		cnt_items++;
+		if (i == idx_selected){
+			ui->Select(item);
+			m_cc_presets_choice->SetText(preset_name);
+		}
+	}
+	if (ui->GetStore()->GetChildCount(root_def) == 0)
+		ui->DeleteItem(root_def);
+
+	ui->Thaw();
+}
+
+void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
+{
+	if (ui == nullptr)
+		return;
+	ui->Freeze();
+	ui->Clear();
+	auto presets = m_presets->get_presets();
+	auto idx_selected = m_presets->get_idx_selected();
+	auto suffix_modified = m_presets->get_suffix_modified();
+	int icon_compatible = 0;
+	int icon_incompatible = 1;
+	int cnt_items = 0;
+
+	wxDataViewTreeCtrlComboPopup* popup = wxDynamicCast(m_cc_presets_choice->GetPopupControl(), wxDataViewTreeCtrlComboPopup);
+	if (popup != nullptr)
+	{
+		popup->DeleteAllItems();
+
+		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
+		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
+
+		auto show_def = get_app_config()->get("no_defaults")[0] != '1';
+
+		for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
+			const Preset &preset = presets[i];
+			if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
+				continue;
+
+			auto preset_name = wxString::FromUTF8((preset.name + (preset.is_dirty ? suffix_modified : "")).c_str());
+
+			wxDataViewItem item;
+			if (preset.is_system)
+				item = popup->AppendItem(root_sys, preset_name, 
+										 preset.is_compatible ? icon_compatible : icon_incompatible);
+			else if (show_def && preset.is_default)
+				item = popup->AppendItem(root_def, preset_name, 
+										 preset.is_compatible ? icon_compatible : icon_incompatible);
+			else 
+			{
+				auto parent = m_presets->get_preset_parent(preset);
+				if (parent == nullptr)
+					item = popup->AppendItem(root_def, preset_name,
+											 preset.is_compatible ? icon_compatible : icon_incompatible);
+				else
+				{
+					auto parent_name = parent->name;
+
+					wxDataViewTreeStoreContainerNode *node = popup->GetStore()->FindContainerNode(root_sys);
+					if (node) 
+					{
+						wxDataViewTreeStoreNodeList::iterator iter;
+						for (iter = node->GetChildren().begin(); iter != node->GetChildren().end(); iter++)
+						{
+							wxDataViewTreeStoreNode* child = *iter;
+							auto child_item = child->GetItem();
+							auto item_text = popup->GetItemText(child_item);
+							if (item_text == parent_name)
+							{
+								auto added_child = popup->AppendItem(child->GetItem(), preset_name,
+									preset.is_compatible ? icon_compatible : icon_incompatible);
+								if (!added_child){
+									popup->DeleteItem(child->GetItem());
+									auto new_parent = popup->AppendContainer(root_sys, parent_name,
+										preset.is_compatible ? icon_compatible : icon_incompatible);
+									popup->AppendItem(new_parent, preset_name,
+										preset.is_compatible ? icon_compatible : icon_incompatible);
+								}
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			cnt_items++;
+			if (i == idx_selected){
+				popup->Select(item);
+				m_cc_presets_choice->SetText(preset_name);
+			}
+		}
+		if (popup->GetStore()->GetChildCount(root_def) == 0)
+			popup->DeleteItem(root_def);
+	}
+	ui->Thaw();
 }
 
 void Page::reload_config()
@@ -2142,7 +2408,7 @@ void Page::reload_config()
 		group->reload_config();
 }
 
-Field* Page::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
+Field* Page::get_field(const t_config_option_key& opt_key, int opt_index /*= -1*/) const
 {
 	Field* field = nullptr;
 	for (auto opt : m_optgroups){
@@ -2153,7 +2419,7 @@ Field* Page::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) cons
 	return field;
 }
 
-bool Page::set_value(t_config_option_key opt_key, boost::any value){
+bool Page::set_value(const t_config_option_key& opt_key, const boost::any& value){
 	bool changed = false;
 	for(auto optgroup: m_optgroups) {
 		if (optgroup->set_value(opt_key, value))
@@ -2163,7 +2429,7 @@ bool Page::set_value(t_config_option_key opt_key, boost::any value){
 }
 
 // package Slic3r::GUI::Tab::Page;
-ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_width /*= -1*/)
+ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_label_width /*= -1*/)
 {
 	//! config_ have to be "right"
 	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config, true);
@@ -2204,7 +2470,7 @@ ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_wid
 	return optgroup;
 }
 
-void SavePresetWindow::build(wxString title, std::string default_name, std::vector<std::string> &values)
+void SavePresetWindow::build(const wxString& title, const std::string& default_name, std::vector<std::string> &values)
 {
 	auto text = new wxStaticText(this, wxID_ANY, _(L("Save ")) + title + _(L(" as:")), 
 									wxDefaultPosition, wxDefaultSize);

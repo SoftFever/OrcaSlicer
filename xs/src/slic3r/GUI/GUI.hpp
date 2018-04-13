@@ -97,11 +97,11 @@ TabIface* get_preset_tab_iface(char *name);
 // add it at the end of the tab panel.
 void add_created_tab(Tab* panel);
 // Change option value in config
-void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value, int opt_index = 0);
+void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
-void show_error(wxWindow* parent, wxString message);
-void show_info(wxWindow* parent, wxString message, wxString title);
-void warning_catcher(wxWindow* parent, wxString message);
+void show_error(wxWindow* parent, const wxString& message);
+void show_info(wxWindow* parent, const wxString& message, const wxString& title);
+void warning_catcher(wxWindow* parent, const wxString& message);
 
 // load language saved at application config 
 bool load_language();

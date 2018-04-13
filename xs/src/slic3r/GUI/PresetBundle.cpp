@@ -261,8 +261,8 @@ bool PresetBundle::load_compatible_bitmaps()
 {
     const std::string path_bitmap_compatible   = "flag-green-icon.png";
     const std::string path_bitmap_incompatible = "flag-red-icon.png";
-    const std::string path_bitmap_lock         = "lock.png";
-    const std::string path_bitmap_lock_open    = "lock_open.png";
+    const std::string path_bitmap_lock         = "sys_lock.png";//"lock.png";
+	const std::string path_bitmap_lock_open    = "sys_unlock.png";//"lock_open.png";
     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
@@ -1025,6 +1025,8 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
     // and draw a red flag in front of the selected preset.
     bool          wide_icons      = selected_preset != nullptr && ! selected_preset->is_compatible && m_bitmapIncompatible != nullptr;
     assert(selected_preset != nullptr);
+	std::map<wxString, wxBitmap> nonsys_presets;
+	wxString selected_str = "";
     for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++ i) {
         const Preset &preset    = this->filaments.preset(i);
         bool          selected  = this->filament_presets[idx_extruder] == preset.name;
@@ -1062,10 +1064,36 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
                 (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
-		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
-        if (selected)
-            ui->SetSelection(ui->GetCount() - 1);
+// 		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
+//         if (selected)
+//             ui->SetSelection(ui->GetCount() - 1);
+
+		if (preset.is_default || preset.is_system){
+			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
+				(bitmap == 0) ? wxNullBitmap : *bitmap);
+			if (selected)
+				ui->SetSelection(ui->GetCount() - 1);
+		}
+		else
+		{
+			nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
+				(bitmap == 0) ? wxNullBitmap : *bitmap);
+			if (selected)
+				selected_str = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+		}
+		if (preset.is_default)
+			ui->Append("------------------------------------", wxNullBitmap);
     }
+
+	if (!nonsys_presets.empty())
+	{
+		ui->Append("------------------------------------", wxNullBitmap);
+		for (std::map<wxString, wxBitmap>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+			ui->Append(it->first, it->second);
+			if (it->first == selected_str)
+				ui->SetSelection(ui->GetCount() - 1);
+		}
+	}
     ui->Thaw();
 }
 

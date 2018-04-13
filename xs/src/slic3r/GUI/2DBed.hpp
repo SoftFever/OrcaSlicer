@@ -6,7 +6,7 @@ namespace GUI {
 
 class Bed_2D : public wxPanel
 {
-	bool		m_user_drawn_background = false;
+	bool		m_user_drawn_background = true;
 
 	bool		m_painted = false;
 	bool		m_interactive = false;
@@ -26,7 +26,9 @@ public:
 	{
 		Create(parent, wxID_ANY, wxDefaultPosition, wxSize(250, -1), wxTAB_TRAVERSAL);
 //		m_user_drawn_background = $^O ne 'darwin';
-		m_user_drawn_background = true;
+#ifdef __APPLE__
+		m_user_drawn_background = false;
+#endif /*__APPLE__*/
 		Bind(wxEVT_PAINT, ([this](wxPaintEvent e) { repaint(); }));
 //		EVT_ERASE_BACKGROUND($self, sub{}) if $self->{user_drawn_background};
 //		Bind(EVT_MOUSE_EVENTS, ([this](wxMouseEvent  event){/*mouse_event()*/; }));

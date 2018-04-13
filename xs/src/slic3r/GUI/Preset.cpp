@@ -416,6 +416,20 @@ const Preset* PresetCollection::get_selected_preset_parent() const
     return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
 }
 
+const Preset* PresetCollection::get_preset_parent(const Preset& child) const
+{
+    auto *inherits = dynamic_cast<const ConfigOptionString*>(child.config.option("inherits"));
+    if (inherits == nullptr || inherits->value.empty())
+// 		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
+		return nullptr; 
+    const Preset* preset = this->find_preset(inherits->value, false);
+    return (preset == nullptr/* || preset->is_default */|| preset->is_external) ? nullptr : preset;
+}
+
+const std::string& PresetCollection::get_suffix_modified() {
+	return g_suffix_modified;
+}
+
 // Return a preset by its name. If the preset is active, a temporary copy is returned.
 // If a preset is not found by its name, null is returned.
 Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found)
@@ -497,16 +511,44 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
     // Otherwise fill in the list from scratch.
     ui->Freeze();
     ui->Clear();
+	std::map<wxString, bool> nonsys_presets;
+	wxString selected = "";
     for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
             continue;
         const wxBitmap *bmp = (i == 0 || preset.is_compatible) ? m_bitmap_main_frame : m_bitmap_incompatible;
-        ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
-            (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
-		if (i == m_idx_selected)
-            ui->SetSelection(ui->GetCount() - 1);
-    }
+//         ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
+//             (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
+// 		if (i == m_idx_selected)
+//             ui->SetSelection(ui->GetCount() - 1);
+
+		if (preset.is_default || preset.is_system){
+			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
+				(bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
+			if (i == m_idx_selected)
+				ui->SetSelection(ui->GetCount() - 1);
+		}
+		else
+		{
+			nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), preset.is_compatible);
+			if (i == m_idx_selected)
+				selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
+		}
+		if (preset.is_default)
+			ui->Append("------------------------------------", wxNullBitmap);
+	}
+	if (!nonsys_presets.empty())
+	{
+		ui->Append("------------------------------------", wxNullBitmap);
+		for (std::map<wxString, bool>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+			const wxBitmap *bmp = it->second ? m_bitmap_compatible : m_bitmap_incompatible;
+			ui->Append(it->first,
+				(bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
+			if (it->first == selected)
+				ui->SetSelection(ui->GetCount() - 1);
+		}
+	}
     ui->Thaw();
 }
 
@@ -516,16 +558,44 @@ void PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatibl
         return;
     ui->Freeze();
     ui->Clear();
+	std::map<wxString, bool> nonsys_presets;
+	wxString selected = "";
     for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! show_incompatible && ! preset.is_compatible && i != m_idx_selected))
             continue;
         const wxBitmap *bmp = preset.is_compatible ? m_bitmap_compatible : m_bitmap_incompatible;
-        ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
-            (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
-		if (i == m_idx_selected)
-            ui->SetSelection(ui->GetCount() - 1);
+//         ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
+//             (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
+// 		if (i == m_idx_selected)
+//             ui->SetSelection(ui->GetCount() - 1);
+
+		if (preset.is_default || preset.is_system){
+			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
+				(bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
+			if (i == m_idx_selected)
+				ui->SetSelection(ui->GetCount() - 1);
+		}
+		else
+		{
+			nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()), preset.is_compatible);
+			if (i == m_idx_selected)
+				selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
+		}
+		if (preset.is_default)
+			ui->Append("------------------------------------", wxNullBitmap);
     }
+	if (!nonsys_presets.empty())
+	{
+		ui->Append("------------------------------------", wxNullBitmap);
+		for (std::map<wxString, bool>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+			const wxBitmap *bmp = it->second ? m_bitmap_compatible : m_bitmap_incompatible;
+			ui->Append(it->first,
+				(bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
+			if (it->first == selected)
+				ui->SetSelection(ui->GetCount() - 1);
+		}
+	}
     ui->Thaw();
 }
 
