@@ -203,11 +203,10 @@ void Tab::load_initial_data()
 {
 	m_config = &m_presets->get_edited_preset().config;
 	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
-		"bullet_white.png" : "sys_unlock.png";
-// 		wxMSW ? "sys_unlock.png" : "lock_open.png";
+						"bullet_white.png" : "sys_unlock.png";
 }
 
-PageShp Tab::add_options_page(wxString title, std::string icon, bool is_extruder_pages/* = false*/)
+PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages/* = false*/)
 {
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
@@ -332,8 +331,8 @@ void Tab::update_changed_ui()
 	{
 		bool is_nonsys_value = false;
 		bool is_modified_value = true;
-		std::string sys_icon = /*wxMSW ? */"sys_lock.png"/* : "lock.png"*/;
-		std::string icon = /*wxMSW ? */"action_undo.png"/* : "arrow_undo.png"*/;
+		std::string sys_icon = "sys_lock.png";
+		std::string icon = "action_undo.png";
 		wxColour color = get_sys_label_clr();
 		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
 			is_nonsys_value = true;
@@ -478,10 +477,8 @@ void Tab::update_changed_tree_ui()
 
 void Tab::update_undo_buttons()
 {
-	const std::string& undo_icon = !m_is_modified_values ? "bullet_white.png" :
-									/*wxMSW ? */"action_undo.png"/* : "arrow_undo.png"*/;
-	const std::string& undo_to_sys_icon = m_is_nonsys_values ? m_nonsys_btn_icon :
-									/*wxMSW ? */"sys_lock.png"/* : "lock.png"*/;
+	const std::string& undo_icon = !m_is_modified_values ? "bullet_white.png" : "action_undo.png";
+	const std::string& undo_to_sys_icon = m_is_nonsys_values ? m_nonsys_btn_icon : "sys_lock.png";
 
 	m_undo_btn->SetBitmap(wxBitmap(from_u8(var(undo_icon)), wxBITMAP_TYPE_PNG));
 	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(undo_to_sys_icon)), wxBITMAP_TYPE_PNG));
@@ -559,7 +556,7 @@ void Tab::update_tab_ui()
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
 // This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
-void Tab::load_config(DynamicPrintConfig config)
+void Tab::load_config(const DynamicPrintConfig& config)
 {
 	bool modified = 0;
 	for(auto opt_key : m_config->diff(config)) {
@@ -582,7 +579,7 @@ void Tab::reload_config(){
  	Thaw();
 }
 
-Field* Tab::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
+Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
 {
 	Field* field = nullptr;
 	for (auto page : m_pages){
@@ -596,7 +593,7 @@ Field* Tab::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
 // Set a key/value pair on this page. Return true if the value has been modified.
 // Currently used for distributing extruders_count over preset pages of Slic3r::GUI::Tab::Printer
 // after a preset is loaded.
-bool Tab::set_value(t_config_option_key opt_key, boost::any value){
+bool Tab::set_value(const t_config_option_key& opt_key, const boost::any& value){
 	bool changed = false;
 	for(auto page: m_pages) {
 		if (page->set_value(opt_key, value))
@@ -607,7 +604,7 @@ bool Tab::set_value(t_config_option_key opt_key, boost::any value){
 
 // To be called by custom widgets, load a value into a config,
 // update the preset selection boxes (the dirty flags)
-void Tab::load_key_value(std::string opt_key, boost::any value)
+void Tab::load_key_value(const std::string& opt_key, const boost::any& value)
 {
 	change_opt_value(*m_config, opt_key, value);
 	// Mark the print & filament enabled if they are compatible with the currently selected preset.
@@ -621,7 +618,7 @@ void Tab::load_key_value(std::string opt_key, boost::any value)
 
 extern wxFrame *g_wxMainFrame;
 
-void Tab::on_value_change(std::string opt_key, boost::any value)
+void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
 	if (m_event_value_change > 0) {
 		wxCommandEvent event(m_event_value_change);
@@ -636,8 +633,8 @@ void Tab::on_value_change(std::string opt_key, boost::any value)
 	}
 	if (opt_key == "fill_density")
 	{
-		value = get_optgroup()->get_config_value(*m_config, opt_key);
-		get_optgroup()->set_value(opt_key, value);
+		boost::any val = get_optgroup()->get_config_value(*m_config, opt_key);
+		get_optgroup()->set_value(opt_key, val);
 	}
 	if (opt_key == "support_material" || opt_key == "support_material_buildplate_only")
 	{
@@ -1785,9 +1782,7 @@ void Tab::load_current_preset()
 	// Reload preset pages with the new configuration values.
 	reload_config();
 	const Preset* parent = m_presets->get_selected_preset_parent();
-	m_nonsys_btn_icon = parent == nullptr ?
-		"bullet_white.png" :
-		/*wxMSW ? */"sys_unlock.png"/* : "lock_open.png"*/;
+	m_nonsys_btn_icon = parent == nullptr ? "bullet_white.png" : "sys_unlock.png";
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
@@ -1844,7 +1839,7 @@ void Tab::rebuild_page_tree()
 // Called by the UI combo box when the user switches profiles.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(std::string preset_name /*= ""*/)
+void Tab::select_preset(const std::string& preset_name /*= ""*/)
 {
 	std::string name = preset_name;
 	auto force = false;
@@ -1911,7 +1906,7 @@ void Tab::select_preset(std::string preset_name /*= ""*/)
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
-bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, std::string new_printer_name /*= ""*/)
+bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/)
 {
 	if (presets == nullptr) presets = m_presets;
 	// Display a dialog showing the dirty options in a human readable form.
@@ -2339,7 +2334,7 @@ void Page::reload_config()
 		group->reload_config();
 }
 
-Field* Page::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) const
+Field* Page::get_field(const t_config_option_key& opt_key, int opt_index /*= -1*/) const
 {
 	Field* field = nullptr;
 	for (auto opt : m_optgroups){
@@ -2350,7 +2345,7 @@ Field* Page::get_field(t_config_option_key opt_key, int opt_index/* = -1*/) cons
 	return field;
 }
 
-bool Page::set_value(t_config_option_key opt_key, boost::any value){
+bool Page::set_value(const t_config_option_key& opt_key, const boost::any& value){
 	bool changed = false;
 	for(auto optgroup: m_optgroups) {
 		if (optgroup->set_value(opt_key, value))
@@ -2360,7 +2355,7 @@ bool Page::set_value(t_config_option_key opt_key, boost::any value){
 }
 
 // package Slic3r::GUI::Tab::Page;
-ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_width /*= -1*/)
+ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_label_width /*= -1*/)
 {
 	//! config_ have to be "right"
 	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config, true);
@@ -2401,7 +2396,7 @@ ConfigOptionsGroupShp Page::new_optgroup(wxString title, int noncommon_label_wid
 	return optgroup;
 }
 
-void SavePresetWindow::build(wxString title, std::string default_name, std::vector<std::string> &values)
+void SavePresetWindow::build(const wxString& title, const std::string& default_name, std::vector<std::string> &values)
 {
 	auto text = new wxStaticText(this, wxID_ANY, _(L("Save ")) + title + _(L(" as:")), 
 									wxDefaultPosition, wxDefaultSize);

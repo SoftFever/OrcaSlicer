@@ -75,13 +75,13 @@ namespace Slic3r { namespace GUI {
 		return tooltip_text;
 	}
 
-	bool Field::is_matched(std::string string, std::string pattern)
+	bool Field::is_matched(const std::string& string, const std::string& pattern)
 	{
 		std::regex regex_pattern(pattern, std::regex_constants::icase); // use ::icase to make the matching case insensitive like /i in perl
 		return std::regex_match(string, regex_pattern);
 	}
 
-	boost::any Field::get_value_by_opt_type(wxString str)
+	boost::any Field::get_value_by_opt_type(wxString& str)
 	{
 		boost::any ret_val;
 		switch (m_opt.type){
@@ -377,7 +377,7 @@ void Choice::set_selection()
 	}
 }
 
-void Choice::set_value(const std::string value, bool change_event)  //! Redundant?
+void Choice::set_value(const std::string& value, bool change_event)  //! Redundant?
 {
 	m_disable_change_event = !change_event;
 
@@ -396,7 +396,7 @@ void Choice::set_value(const std::string value, bool change_event)  //! Redundan
 	m_disable_change_event = false;
 }
 
-void Choice::set_value(boost::any value, bool change_event)
+void Choice::set_value(const boost::any& value, bool change_event)
 {
 	m_disable_change_event = !change_event;
 
@@ -435,7 +435,7 @@ void Choice::set_value(boost::any value, bool change_event)
 }
 
 //! it's needed for _update_serial_ports()
-void Choice::set_values(const std::vector<std::string> values)
+void Choice::set_values(const std::vector<std::string>& values)
 {
 	if (values.empty())
 		return;
@@ -554,7 +554,7 @@ void PointCtrl::BUILD()
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
-void PointCtrl::set_value(const Pointf value, bool change_event)
+void PointCtrl::set_value(const Pointf& value, bool change_event)
 {
 	m_disable_change_event = !change_event;
 
@@ -566,10 +566,10 @@ void PointCtrl::set_value(const Pointf value, bool change_event)
 	m_disable_change_event = false;
 }
 
-void PointCtrl::set_value(boost::any value, bool change_event)
+void PointCtrl::set_value(const boost::any& value, bool change_event)
 {
 	Pointf pt;
-	Pointf *ptf = boost::any_cast<Pointf>(&value);
+	const Pointf *ptf = boost::any_cast<Pointf>(&value);
 	if (!ptf)
 	{
 		ConfigOptionPoints* pts = boost::any_cast<ConfigOptionPoints*>(value);
@@ -577,21 +577,6 @@ void PointCtrl::set_value(boost::any value, bool change_event)
 	}
 	else
 		pt = *ptf;
-// 	try
-// 	{
-// 		pt = boost::any_cast<ConfigOptionPoints*>(value)->values.at(0);
-// 	}
-// 	catch (const std::exception &e)
-// 	{
-// 		try{
-// 			pt = boost::any_cast<Pointf>(value);
-// 		}
-// 		catch (const std::exception &e)
-// 		{
-// 			std::cerr << "Error! Can't cast PointCtrl value" << m_opt_id << "\n";
-// 			return;
-// 		}		
-// 	}	
 	set_value(pt, change_event);
 }
 

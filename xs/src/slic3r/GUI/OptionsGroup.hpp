@@ -98,16 +98,16 @@ public:
     void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
 
     // return a non-owning pointer reference 
-    inline Field*	get_field(t_config_option_key id) const{
+    inline Field*	get_field(const t_config_option_key& id) const{
 							if (m_fields.find(id) == m_fields.end()) return nullptr;
 							return m_fields.at(id).get();
     }
-	bool			set_value(t_config_option_key id, boost::any value, bool change_event = false) {
+	bool			set_value(const t_config_option_key& id, const boost::any& value, bool change_event = false) {
 							if (m_fields.find(id) == m_fields.end()) return false;
 							m_fields.at(id)->set_value(value, change_event);
 							return true;
     }
-	boost::any		get_value(t_config_option_key id) {
+	boost::any		get_value(const t_config_option_key& id) {
 							boost::any out; 
     						if (m_fields.find(id) == m_fields.end()) ;
 							else 
@@ -118,7 +118,7 @@ public:
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
-    OptionsGroup(wxWindow* _parent, wxString title, bool is_tab_opt=false) : 
+    OptionsGroup(wxWindow* _parent, const wxString& title, bool is_tab_opt=false) : 
 		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!="") {
         sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
@@ -152,14 +152,14 @@ protected:
 	const t_field&		build_field(const Option& opt, wxStaticText* label = nullptr);
 
     virtual void		on_kill_focus (){};
-	virtual void		on_change_OG(t_config_option_key opt_id, boost::any value);
-	virtual void		back_to_initial_value(const std::string opt_key){};
-	virtual void		back_to_sys_value(const std::string opt_key){};
+	virtual void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value);
+	virtual void		back_to_initial_value(const std::string& opt_key){}
+	virtual void		back_to_sys_value(const std::string& opt_key){}
 };
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-	ConfigOptionsGroup(wxWindow* parent, wxString title, DynamicPrintConfig* _config = nullptr, bool is_tab_opt = false) :
+	ConfigOptionsGroup(wxWindow* parent, const wxString& title, DynamicPrintConfig* _config = nullptr, bool is_tab_opt = false) :
 		OptionsGroup(parent, title, is_tab_opt), m_config(_config) {}
 
     /// reference to libslic3r config, non-owning pointer (?).
@@ -167,8 +167,8 @@ public:
     bool					m_full_labels {0};
 	t_opt_map				m_opt_map;
 
-	Option		get_option(const std::string opt_key, int opt_index = -1);
-	Line		create_single_option_line(const std::string title, int idx = -1) /*const*/{
+	Option		get_option(const std::string& opt_key, int opt_index = -1);
+	Line		create_single_option_line(const std::string& title, int idx = -1) /*const*/{
 		Option option = get_option(title, idx);
 		return OptionsGroup::create_single_option_line(option);
 	}
@@ -181,16 +181,16 @@ public:
 		append_single_option_line(option);		
 	}
 
-	void		on_change_OG(t_config_option_key opt_id, boost::any value) override;
-	void		back_to_initial_value(const std::string opt_key) override;
-	void		back_to_sys_value(const std::string opt_key) override;
-	void back_to_config_value(const DynamicPrintConfig& config, const std::string opt_key);
+	void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value) override;
+	void		back_to_initial_value(const std::string& opt_key) override;
+	void		back_to_sys_value(const std::string& opt_key) override;
+	void		back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key);
 	void		on_kill_focus() override{ reload_config();}
 	void		reload_config();
-	boost::any	config_value(std::string opt_key, int opt_index, bool deserialize);
+	boost::any	config_value(const std::string& opt_key, int opt_index, bool deserialize);
 	// return option value from config 
-	boost::any get_config_value(const DynamicPrintConfig& config, std::string opt_key, int opt_index = -1);
-	Field*		get_fieldc(t_config_option_key opt_key, int opt_index);
+	boost::any	get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index = -1);
+	Field*		get_fieldc(const t_config_option_key& opt_key, int opt_index);
 };
 
 //  Static text shown among the options.
@@ -200,7 +200,7 @@ public:
 	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize){}
 	~ogStaticText(){}
 
-	void SetText(wxString value);
+	void		SetText(const wxString& value);
 };
 
 }}

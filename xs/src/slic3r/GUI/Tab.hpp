@@ -68,9 +68,9 @@ public:
 	size_t		iconID() const { return m_iconID; }
 	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
 	void		reload_config();
-	Field*		get_field(t_config_option_key opt_key, int opt_index = -1) const;
-	bool		set_value(t_config_option_key opt_key, boost::any value);
-	ConfigOptionsGroupShp	new_optgroup(wxString title, int noncommon_label_width = -1);
+	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
+	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
+	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);
 };
 
 // Slic3r::GUI::Tab;
@@ -129,7 +129,7 @@ public:
 
 public:
 	Tab() {}
-	Tab(wxNotebook* parent, wxString title, const char* name, bool no_controller) : 
+	Tab(wxNotebook* parent, const wxString& title, const char* name, bool no_controller) : 
 		m_parent(parent), m_title(title), m_name(name), m_no_controller(no_controller) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 		get_tabs_list().push_back(this);
@@ -147,12 +147,12 @@ public:
 	void		create_preset_tab(PresetBundle *preset_bundle);
 	void		load_current_preset();
 	void		rebuild_page_tree();
-	void		select_preset(std::string preset_name = "");
-	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, std::string new_printer_name = "");
+	void		select_preset(const std::string& preset_name = "");
+	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
 	void		update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible);
-	void		load_key_value(std::string opt_key, boost::any value);
+	void		load_key_value(const std::string& opt_key, const boost::any& value);
 	void		reload_compatible_printers_widget();
 
 	void		OnTreeSelChange(wxTreeEvent& event);
@@ -172,7 +172,7 @@ public:
 	void		on_back_to_initial_value();
 	void		on_back_to_sys_value();
 
-	PageShp		add_options_page(wxString title, std::string icon, bool is_extruder_pages = false);
+	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 
 	virtual void	OnActivate(){}
 	virtual void	on_preset_loaded(){}
@@ -181,10 +181,10 @@ public:
 	void			load_initial_data();
 	void			update_dirty();
 	void			update_tab_ui();
-	void			load_config(DynamicPrintConfig config);
+	void			load_config(const DynamicPrintConfig& config);
 	virtual void	reload_config();
-	Field*			get_field(t_config_option_key opt_key, int opt_index = -1) const;
-	bool			set_value(t_config_option_key opt_key, boost::any value);
+	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
+	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 	bool			current_preset_is_dirty();
 	DynamicPrintConfig*	get_config() { return m_config; }
@@ -194,7 +194,7 @@ public:
 	}
 	std::vector<std::string>	get_dependent_tabs() { return m_reload_dependent_tabs; }
 
-	void			on_value_change(std::string opt_key, boost::any value);
+	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
 protected:
 	void			on_presets_changed();
@@ -270,7 +270,7 @@ public:
 	std::string		m_chosen_name;
 	wxComboBox*		m_combo;
 
-	void			build(wxString title, std::string default_name, std::vector<std::string> &values);
+	void			build(const wxString& title, const std::string& default_name, std::vector<std::string> &values);
 	void			accept();
 	std::string		get_name() { return m_chosen_name; }
 };
