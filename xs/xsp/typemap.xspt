@@ -208,8 +208,6 @@
 %typemap{Ref<PresetCollection>}{simple};
 %typemap{PresetBundle*};
 %typemap{Ref<PresetBundle>}{simple};
-%typemap{PresetHints*};
-%typemap{Ref<PresetHints>}{simple};
 %typemap{TabIface*};
 %typemap{Ref<TabIface>}{simple};
 

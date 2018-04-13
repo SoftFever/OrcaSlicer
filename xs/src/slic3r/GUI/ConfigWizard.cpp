@@ -619,7 +619,7 @@ void ConfigWizard::priv::on_custom_setup()
 	set_page(page_firmware);
 }
 
-void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle)
+void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, bool fresh_start)
 {
 	const bool is_custom_setup = page_welcome->page_next() == page_firmware;
 
@@ -627,7 +627,8 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		app_config->set_vendors(appconfig_vendors);
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
-		app_config->reset_selections();     // XXX: only on "fresh start"?
+		if (fresh_start)
+			app_config->reset_selections();
 		preset_bundle->load_presets(*app_config);
 	} else {
 		for (ConfigWizardPage *page = page_firmware; page != nullptr; page = page->page_next()) {
@@ -635,6 +636,8 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		}
 		preset_bundle->load_config("My Settings", *custom_config);
 	}
+	// Update the selections from the compatibilty.
+	preset_bundle->export_selections(*app_config);
 }
 
 // Public
@@ -698,11 +701,11 @@ ConfigWizard::ConfigWizard(wxWindow *parent) :
 
 ConfigWizard::~ConfigWizard() {}
 
-bool ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
+bool ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle, bool fresh_start)
 {
 	ConfigWizard wizard(parent);
 	if (wizard.ShowModal() == wxID_OK) {
-		wizard.p->apply_config(GUI::get_app_config(), preset_bundle);
+		wizard.p->apply_config(GUI::get_app_config(), preset_bundle, fresh_start);
 		return true;
 	} else {
 		return false;

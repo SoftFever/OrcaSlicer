@@ -59,6 +59,9 @@ public:
 	size_t						load(const boost::filesystem::path &path);
 
 	const std::string&			vendor() const { return m_vendor; }
+	// Returns version of the index as the highest version of all the configs.
+	// If there is no config, Semver::zero() is returned.
+	Semver						version() const;
 
 	const_iterator				begin()   const { return m_configs.begin(); }
 	const_iterator				end()     const { return m_configs.end(); }

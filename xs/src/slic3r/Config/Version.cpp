@@ -141,6 +141,15 @@ size_t Index::load(const boost::filesystem::path &path)
     return m_configs.size();
 }
 
+Semver Index::version() const
+{
+    Semver ver = Semver::zero();
+    for (const Version &cv : m_configs)
+        if (cv.config_version >= ver)
+            ver = cv.config_version;
+    return ver;
+}
+
 Index::const_iterator Index::find(const Semver &ver)
 { 
 	Version key;

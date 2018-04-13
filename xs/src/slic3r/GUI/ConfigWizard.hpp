@@ -22,7 +22,7 @@ public:
 	ConfigWizard &operator=(const ConfigWizard &) = delete;
 	~ConfigWizard();
 
-	static bool run(wxWindow *parent, PresetBundle *preset_bundle);
+	static bool run(wxWindow *parent, PresetBundle *preset_bundle, bool fresh_start);
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

@@ -452,7 +452,7 @@ bool config_wizard(bool fresh_start)
     	return false;
 
     // TODO: Offer "reset user profile" ???
-	if (! ConfigWizard::run(g_wxMainFrame, g_PresetBundle))
+	if (! ConfigWizard::run(g_wxMainFrame, g_PresetBundle, fresh_start))
 		return false;
 
     // Load the currently selected preset into the GUI, update the preset selection box.

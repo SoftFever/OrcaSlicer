@@ -521,18 +521,6 @@ size_t PresetCollection::first_visible_idx() const
     return idx;
 }
 
-// Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
-size_t PresetCollection::first_compatible_idx() const
-{
-    size_t idx = m_default_suppressed ? 1 : 0;
-    for (; idx < this->m_presets.size(); ++ idx)
-        if (m_presets[idx].is_compatible)
-            break;
-    if (idx == this->m_presets.size())
-        idx = 0;
-    return idx;
-}
-
 void PresetCollection::set_default_suppressed(bool default_suppressed)
 {
     if (m_default_suppressed != default_suppressed) {
@@ -541,7 +529,7 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
     }
 }
 
-void PresetCollection::update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible)
+size_t PresetCollection::update_compatible_with_printer_internal(const Preset &active_printer, bool unselect_if_incompatible)
 {
     DynamicPrintConfig config;
     config.set_key_value("printer_preset", new ConfigOptionString(active_printer.name));
@@ -552,14 +540,12 @@ void PresetCollection::update_compatible_with_printer(const Preset &active_print
         Preset &preset_selected = m_presets[idx_preset];
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
         if (! preset_edited.update_compatible_with_printer(active_printer, &config) &&
-            selected && select_other_if_incompatible)
+            selected && unselect_if_incompatible)
             m_idx_selected = (size_t)-1;
         if (selected)
             preset_selected.is_compatible = preset_edited.is_compatible;
     }
-    if (m_idx_selected == (size_t)-1)
-        // Find some other compatible preset, or the "-- default --" preset.
-        this->select_preset(first_compatible_idx());
+    return m_idx_selected;
 }
 
 // Save the preset under a new name. If the name is different from the old one,
@@ -689,8 +675,8 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
     // 1) Try to find the preset by its name.
     auto it = this->find_preset_internal(name);
     size_t idx = 0;
-    if (it != m_presets.end() && it->name == name)
-        // Preset found by its name.
+	if (it != m_presets.end() && it->name == name && it->is_visible)
+        // Preset found by its name and it is visible.
         idx = it - m_presets.begin();
     else {
         // Find the first visible preset.
@@ -708,6 +694,23 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
         return true;
     }
 
+    return false;
+}
+
+bool PresetCollection::select_preset_by_name_strict(const std::string &name)
+{   
+    // 1) Try to find the preset by its name.
+    auto it = this->find_preset_internal(name);
+    size_t idx = (size_t)-1;
+	if (it != m_presets.end() && it->name == name && it->is_visible)
+        // Preset found by its name.
+        idx = it - m_presets.begin();
+    // 2) Select the new preset.
+    if (idx != (size_t)-1) {
+        this->select_preset(idx);
+        return true;
+    }
+    m_idx_selected = idx;
     return false;
 }
 

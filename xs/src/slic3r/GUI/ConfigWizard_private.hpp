@@ -202,7 +202,7 @@ struct ConfigWizard::priv
 	void on_other_vendors();
 	void on_custom_setup();
 
-	void apply_config(AppConfig *app_config, PresetBundle *preset_bundle);
+	void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, bool fresh_start);
 };
 
 
