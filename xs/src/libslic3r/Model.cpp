@@ -863,7 +863,6 @@ void ModelObject::cut(coordf_t z, Model* model) const
             lower->add_volume(*volume);
         } else {
             TriangleMesh upper_mesh, lower_mesh;
-            printf("Cutting mesh patch\n");
             TriangleMeshSlicer tms(&volume->mesh);
             tms.cut(z, &upper_mesh, &lower_mesh);
 
