@@ -388,7 +388,6 @@ namespace Slic3r {
 
         bool _create_object_instance(int object_id, const Matrix4x4& matrix, unsigned int recur_counter);
 
-        void _apply_transform(ModelObject& object, const Matrix4x4& matrix);
         void _apply_transform(ModelInstance& instance, const Matrix4x4& matrix);
 
         bool _handle_start_config(const char** attributes, unsigned int num_attributes);
@@ -557,19 +556,6 @@ namespace Slic3r {
 
             if (!_generate_volumes(*object.second, obj_geometry->second, *volumes_ptr))
                 return false;
-
-            // apply transformation if the object contains a single instance
-            if (object.second->instances.size() == 1)
-            {
-                for (const Instance& instance : m_instances)
-                {
-                    if (object.second->instances[0] == instance.instance)
-                    {
-                        _apply_transform(*object.second, instance.matrix);
-                        break;
-                    }
-                }
-            }
         }
 
         // fixes the min z of the model if negative
@@ -822,10 +808,9 @@ namespace Slic3r {
             if (instance.instance != nullptr)
             {
                 ModelObject* object = instance.instance->get_object();
-                if ((object != nullptr) && (object->instances.size() > 1))
+                if (object != nullptr)
                 {
-                    // multiple instances -> apply the matrix to the instance
-                    // (for single instance the transformation can be applied only after the volumes have been generated)
+                    // apply the matrix to the instance
                     _apply_transform(*instance.instance, instance.matrix);
                 }
             }
@@ -1118,15 +1103,6 @@ namespace Slic3r {
         }
 
         return true;
-    }
-
-    void _3MF_Importer::_apply_transform(ModelObject& object, const Matrix4x4& matrix)
-    {
-        float matrix3x4[12] = { matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3),
-                                matrix(1, 0), matrix(1, 1), matrix(1, 2), matrix(1, 3),
-                                matrix(2, 0), matrix(2, 1), matrix(2, 2), matrix(2, 3) };
-
-        object.transform(matrix3x4);
     }
 
     void _3MF_Importer::_apply_transform(ModelInstance& instance, const Matrix4x4& matrix)
@@ -1645,9 +1621,7 @@ namespace Slic3r {
             }
 
             Eigen::Affine3f transform;
-            transform = Eigen::Translation3f((float)(instance->offset.x + object.origin_translation.x), (float)(instance->offset.y + object.origin_translation.y), (float)object.origin_translation.z)
-                        * Eigen::AngleAxisf((float)instance->rotation, Eigen::Vector3f::UnitZ())
-                        * Eigen::Scaling((float)instance->scaling_factor);
+            transform = Eigen::Translation3f((float)instance->offset.x, (float)instance->offset.y, 0.0f) * Eigen::AngleAxisf((float)instance->rotation, Eigen::Vector3f::UnitZ()) * Eigen::Scaling((float)instance->scaling_factor);
             build_items.emplace_back(instance_id, transform.matrix());
 
             stream << "  </" << OBJECT_TAG << ">\n";
@@ -1690,10 +1664,9 @@ namespace Slic3r {
             for (int i = 0; i < stl.stats.shared_vertices; ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
-                // Subtract origin_translation in order to restore the original local coordinates
-                stream << "x=\"" << (stl.v_shared[i].x - object.origin_translation.x) << "\" ";
-                stream << "y=\"" << (stl.v_shared[i].y - object.origin_translation.y) << "\" ";
-                stream << "z=\"" << (stl.v_shared[i].z - object.origin_translation.z) << "\" />\n";
+                stream << "x=\"" << stl.v_shared[i].x << "\" ";
+                stream << "y=\"" << stl.v_shared[i].y << "\" ";
+                stream << "z=\"" << stl.v_shared[i].z << "\" />\n";
             }
         }
 
