@@ -1944,8 +1944,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "standby_temperature", "scale", "rotate", "duplicate", "duplicate_grid",
         "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start", 
         "seal_position", "vibration_limit", "bed_size", "octoprint_host",
-        "print_center", "g0", "threads", "pressure_advance" 
+        "print_center", "g0", "threads", "pressure_advance", "wipe_tower_per_color_wipe"
     };
+
     if (ignore.find(opt_key) != ignore.end()) {
         opt_key = "";
         return;

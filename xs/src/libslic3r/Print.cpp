@@ -644,7 +644,7 @@ std::string Print::validate() const
         unsigned int total_extruders_count = this->config.nozzle_diameter.size();
         for (const auto& extruder_idx : extruders)
             if ( extruder_idx >= total_extruders_count )
-                return "One or more object have assigned an extruder that the printer does not have.";
+                return "One or more object were assigned an extruder that the printer does not have.";
 
         for (PrintObject *object : this->objects) {
             if ((object->config.support_material_extruder == -1 || object->config.support_material_interface_extruder == -1) &&
