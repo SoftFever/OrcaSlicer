@@ -27,7 +27,7 @@ struct Version
 	// Single comment line.
 	std::string comment;
 
-	bool 		is_slic3r_supported(const Semver &slicer_version) const { return slicer_version.in_range(min_slic3r_version, max_slic3r_version); }
+	bool 		is_slic3r_supported(const Semver &slicer_version) const;
 	bool 		is_current_slic3r_supported() const;
 };
 
