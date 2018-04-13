@@ -119,7 +119,7 @@ static std::string g_data_dir;
 
 void set_data_dir(const std::string &dir)
 {
-    g_data_dir = dir + "-alpha";    // FIXME: Resolve backcompat problems
+    g_data_dir = dir;
 }
 
 const std::string& data_dir()

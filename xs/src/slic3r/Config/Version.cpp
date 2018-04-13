@@ -153,10 +153,10 @@ Index::const_iterator Index::find(const Semver &ver) const
 Index::const_iterator Index::recommended() const
 {
 	int idx = -1;
-	const_iterator highest = m_configs.end();
+	const_iterator highest = this->end();
 	for (const_iterator it = this->begin(); it != this->end(); ++ it)
 		if (it->is_current_slic3r_supported() &&
-			(highest == this->end() || highest->max_slic3r_version < it->max_slic3r_version))
+			(highest == this->end() || highest->config_version < it->config_version))
 			highest = it;
 	return highest;
 }

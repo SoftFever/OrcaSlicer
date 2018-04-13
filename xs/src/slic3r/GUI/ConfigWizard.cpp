@@ -660,7 +660,8 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		app_config->set_vendors(appconfig_vendors);
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
-		app_config->reset_selections();     // XXX: only on "fresh start"?
+		app_config->reset_selections();
+		// ^ TODO: replace with appropriate printer selection
 		preset_bundle->load_presets(*app_config);
 	} else {
 		for (ConfigWizardPage *page = page_firmware; page != nullptr; page = page->page_next()) {

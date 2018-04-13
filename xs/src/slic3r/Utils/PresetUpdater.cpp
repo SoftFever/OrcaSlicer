@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <thread>
 #include <stack>
+#include <stdexcept>
+#include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -25,18 +27,16 @@ using Slic3r::GUI::Config::Version;
 using Slic3r::GUI::Config::Snapshot;
 using Slic3r::GUI::Config::SnapshotDB;
 
-// XXX: Prevent incomplete file downloads: download a tmp file, then move
-//      Delete incomplete ones on startup.
 
 namespace Slic3r {
 
 
-// TODO: proper URL
-// TODO: Actually, use index
-static const std::string SLIC3R_VERSION_URL = "https://gist.githubusercontent.com/vojtechkral/4d8fd4a3b8699a01ec892c264178461c/raw/e9187c3e15ceaf1a90f29b7c43cf3ccc746140f0/slic3rPE.version";
 enum {
 	SLIC3R_VERSION_BODY_MAX = 256,
 };
+
+static const char *INDEX_FILENAME = "index.idx";
+static const char *TMP_EXTENSION = ".download";
 
 
 struct Update
@@ -45,7 +45,7 @@ struct Update
 	fs::path target;
 	Version version;
 
-	Update(const fs::path &source, fs::path &&target, const Version &version) :
+	Update(fs::path &&source, const fs::path &target, const Version &version) :
 		source(source),
 		target(std::move(target)),
 		version(version)
@@ -60,9 +60,11 @@ typedef std::vector<Update> Updates;
 struct PresetUpdater::priv
 {
 	int version_online_event;
-	AppConfig *app_config;
-	bool version_check;
-	bool preset_update;
+	std::vector<Index> index_db;
+
+	bool enabled_version_check;
+	bool enabled_config_update;
+	std::string version_check_url;
 
 	fs::path cache_path;
 	fs::path rsrc_path;
@@ -73,7 +75,11 @@ struct PresetUpdater::priv
 
 	priv(int event, AppConfig *app_config);
 
-	void download(const std::set<VendorProfile> vendors) const;
+	void set_download_prefs(AppConfig *app_config);
+	bool get_file(const std::string &url, const fs::path &target_path) const;
+	void prune_tmps() const;
+	void sync_version() const;
+	void sync_config(const std::set<VendorProfile> vendors) const;
 
 	void check_install_indices() const;
 	Updates config_update() const;
@@ -81,21 +87,62 @@ struct PresetUpdater::priv
 
 PresetUpdater::priv::priv(int event, AppConfig *app_config) :
 	version_online_event(event),
-	app_config(app_config),
-	version_check(false),
-	preset_update(false),
 	cache_path(fs::path(Slic3r::data_dir()) / "cache"),
 	rsrc_path(fs::path(resources_dir()) / "profiles"),
 	vendor_path(fs::path(Slic3r::data_dir()) / "vendor"),
 	cancel(false)
-{}
-
-void PresetUpdater::priv::download(const std::set<VendorProfile> vendors) const
 {
-	if (!version_check) { return; }
+	set_download_prefs(app_config);
+	check_install_indices();
+	index_db = std::move(Index::load_db());
+}
 
-	// Download current Slic3r version
-	Http::get(SLIC3R_VERSION_URL)
+void PresetUpdater::priv::set_download_prefs(AppConfig *app_config)
+{
+	enabled_version_check = app_config->get("version_check") == "1";
+	version_check_url = app_config->get("version_check_url");
+	enabled_config_update = app_config->get("preset_update") == "1";
+}
+
+bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &target_path) const
+{
+	std::cerr << "get_file(): " << url << " -> " << target_path << std::endl;
+
+	// TODO: Proper caching
+
+	bool res = false;
+	fs::path tmp_path = target_path;
+	tmp_path += TMP_EXTENSION;
+
+	Http::get(url)
+		.on_progress([this](Http::Progress, bool &cancel) {
+			if (cancel) { cancel = true; }
+		})
+		.on_complete([&](std::string body, unsigned http_status) {
+			fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+			file.write(body.c_str(), body.size());
+			fs::rename(tmp_path, target_path);
+			res = true;
+		})
+		.perform_sync();
+
+	return res;
+}
+
+void PresetUpdater::priv::prune_tmps() const
+{
+	for (fs::directory_iterator it(cache_path); it != fs::directory_iterator(); ++it) {
+		if (it->path().extension() == TMP_EXTENSION) {
+			fs::remove(it->path());
+		}
+	}
+}
+
+void PresetUpdater::priv::sync_version() const
+{
+	if (! enabled_version_check) { return; }
+
+	Http::get(version_check_url)
 		.size_limit(SLIC3R_VERSION_BODY_MAX)
 		.on_progress([this](Http::Progress, bool &cancel) {
 			cancel = this->cancel;
@@ -107,27 +154,55 @@ void PresetUpdater::priv::download(const std::set<VendorProfile> vendors) const
 			GUI::get_app()->QueueEvent(evt);
 		})
 		.perform_sync();
+}
 
-	if (!preset_update) { return; }
+void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors) const
+{
+	std::cerr << "sync_config()" << std::endl;
+
+	if (!enabled_config_update) { return; }
 
 	// Donwload vendor preset bundles
-	for (const auto &vendor : vendors) {
+	for (const auto &index : index_db) {
 		if (cancel) { return; }
 
-		// TODO: Proper caching
+		std::cerr << "Index: " << index.vendor() << std::endl;
 
-		auto target_path = cache_path / vendor.id;
-		target_path += ".ini";
+		const auto vendor_it = vendors.find(VendorProfile(index.vendor()));
+		if (vendor_it == vendors.end()) { continue; }
 
-		Http::get(vendor.config_update_url)
-			.on_progress([this](Http::Progress, bool &cancel) {
-				cancel = this->cancel;
-			})
-			.on_complete([&](std::string body, unsigned http_status) {
-				fs::fstream file(target_path, std::ios::out | std::ios::binary | std::ios::trunc);
-				file.write(body.c_str(), body.size());
-			})
-			.perform_sync();
+		const VendorProfile &vendor = *vendor_it;
+		if (vendor.config_update_url.empty()) { continue; }
+
+		// Download a fresh index
+		const auto idx_url = vendor.config_update_url + "/" + INDEX_FILENAME;
+		const auto idx_path = cache_path / (vendor.id + ".idx");
+		if (! get_file(idx_url, idx_path)) { continue; }
+		if (cancel) { return; }
+
+		std::cerr << "Got a new index: " << idx_path << std::endl;
+
+		// Load the fresh index up
+		Index new_index;
+		new_index.load(idx_path);
+
+		// See if a there's a new version to download
+		const auto recommended_it = new_index.recommended();
+		if (recommended_it == new_index.end()) { continue; }
+		const auto recommended = recommended_it->config_version;
+
+		std::cerr << "Current vendor version: " << vendor.config_version.to_string() << std::endl;
+		std::cerr << "Recommended version:\t" << recommended.to_string() << std::endl;
+
+		if (vendor.config_version >= recommended) { continue; }
+
+		// Download a fresh bundle
+		const auto bundle_url = (boost::format("%1%/%2%.ini") % vendor.config_update_url % recommended.to_string()).str();
+		const auto bundle_path = cache_path / (vendor.id + ".ini");
+		if (! get_file(bundle_url, bundle_path)) { continue; }
+		if (cancel) { return; }
+
+		std::cerr << "Got a new bundle: " << bundle_path << std::endl;
 	}
 }
 
@@ -148,34 +223,10 @@ void PresetUpdater::priv::check_install_indices() const
 
 Updates PresetUpdater::priv::config_update() const
 {
-	priv::check_install_indices();
-	const auto index_db = Index::load_db();     // TODO: Keep in Snapshots singleton?
-
 	Updates updates;
 
 	for (const auto idx : index_db) {
 		const auto bundle_path = vendor_path / (idx.vendor() + ".ini");
-
-		// If the bundle doesn't exist at all, update from resources
-		// if (! fs::exists(bundle_path)) {
-		// 	auto path_in_rsrc = rsrc_path / (idx.vendor() + ".ini");
-
-		// 	// Otherwise load it and check for chached updates
-		// 	const auto rsrc_vp = VendorProfile::from_ini(path_in_rsrc, false);
-
-		// 	const auto rsrc_ver = idx.find(rsrc_vp.config_version);
-		// 	if (rsrc_ver == idx.end()) {
-		// 		// TODO: throw
-		// 	}
-
-		// 	if (fs::exists(path_in_rsrc)) {
-		// 		updates.emplace_back(bundle_path, std::move(path_in_rsrc), *rsrc_ver);
-		// 	} else {
-		// 		// XXX: ???
-		// 	}
-
-		// 	continue;
-		// }
 
 		if (! fs::exists(bundle_path)) {
 			continue;
@@ -186,12 +237,12 @@ Updates PresetUpdater::priv::config_update() const
 
 		const auto ver_current = idx.find(vp.config_version);
 		if (ver_current == idx.end()) {
-			// TODO: throw
+			// TODO: throw / ignore ?
 		}
 
 		const auto recommended = idx.recommended();
 		if (recommended == idx.end()) {
-			// TODO: throw
+			throw std::runtime_error((boost::format("Invalid index: `%1%`") % idx.vendor()).str());
 		}
 
 		if (! ver_current->is_current_slic3r_supported()) {
@@ -202,38 +253,18 @@ Updates PresetUpdater::priv::config_update() const
 			// Config bundle update situation
 
 			auto path_in_cache = cache_path / (idx.vendor() + ".ini");
+			if (! fs::exists(path_in_cache)) {
+				continue;
+			}
+
 			const auto cached_vp = VendorProfile::from_ini(path_in_cache, false);
 			if (cached_vp.config_version == recommended->config_version) {
-				updates.emplace_back(bundle_path, std::move(path_in_cache), *ver_current);
+				updates.emplace_back(std::move(path_in_cache), bundle_path, *recommended);
 			} else {
-				// XXX: ???
+				// XXX: ?
 			}
 		}
 	}
-
-	// Check for bundles that don't have an index
-	// for (fs::directory_iterator it(rsrc_path); it != fs::directory_iterator(); ++it) {
-	// 	if (it->path().extension() == ".ini") {
-	// 		const auto &path = it->path();
-	// 		const auto vendor_id = path.stem().string();
-
-	// 		const auto needle = std::find_if(index_db.begin(), index_db.end(), [&vendor_id](const Index &idx) {
-	// 			return idx.vendor() == vendor_id;
-	// 		});
-	// 		if (needle != index_db.end()) {
-	// 			continue;
-	// 		}
-
-	// 		auto vp = VendorProfile::from_ini(path, false);
-	// 		auto path_in_data = vendor_path / path.filename();
-
-	// 		if (! fs::exists(path_in_data)) {
-	// 			Version version;
-	// 			version.config_version = vp.config_version;
-	// 			updates.emplace_back(path, std::move(path_in_data), version);
-	// 		}
-	// 	}
-	// }
 
 	return updates;
 }
@@ -241,11 +272,7 @@ Updates PresetUpdater::priv::config_update() const
 
 PresetUpdater::PresetUpdater(int version_online_event, AppConfig *app_config) :
 	p(new priv(version_online_event, app_config))
-{
-	p->preset_update = app_config->get("preset_update") == "1";
-	// preset_update implies version_check:   // XXX: not any more
-	p->version_check = p->preset_update || app_config->get("version_check") == "1";
-}
+{}
 
 
 // Public
@@ -258,8 +285,10 @@ PresetUpdater::~PresetUpdater()
 	}
 }
 
-void PresetUpdater::download(PresetBundle *preset_bundle)
+void PresetUpdater::sync(AppConfig *app_config, PresetBundle *preset_bundle)
 {
+	p->set_download_prefs(app_config);
+	if (!p->enabled_version_check && !p->enabled_config_update) { return; }
 
 	// Copy the whole vendors data for use in the background thread
 	// Unfortunatelly as of C++11, it needs to be copied again
@@ -267,12 +296,16 @@ void PresetUpdater::download(PresetBundle *preset_bundle)
 	std::set<VendorProfile> vendors = preset_bundle->vendors;
 
 	p->thread = std::move(std::thread([this, vendors]() {
-		this->p->download(std::move(vendors));
+		this->p->prune_tmps();
+		this->p->sync_version();
+		this->p->sync_config(std::move(vendors));
 	}));
 }
 
-void PresetUpdater::config_update()
+void PresetUpdater::config_update(AppConfig *app_config)
 {
+	if (! p->enabled_config_update) { return; }
+
 	const auto updates = p->config_update();
 	if (updates.size() > 0) {
 		const auto msg = _(L("Configuration update is available. Would you like to install it?"));
@@ -298,12 +331,11 @@ void PresetUpdater::config_update()
 		if (res == wxID_YES) {
 			// User gave clearance, updates are go
 
-			// TODO: Comment?
-			SnapshotDB::singleton().take_snapshot(*p->app_config, Snapshot::SNAPSHOT_UPGRADE, "");
+			SnapshotDB::singleton().take_snapshot(*app_config, Snapshot::SNAPSHOT_UPGRADE, "");
 
 			for (const auto &update : updates) {
 				fs::copy_file(update.source, update.target, fs::copy_option::overwrite_if_exists);
-				
+
 				PresetBundle bundle;
 				bundle.load_configbundle(update.target.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
 

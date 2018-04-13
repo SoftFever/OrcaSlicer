@@ -17,7 +17,6 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "AppConfig.hpp"
 #include "Preset.hpp"
-// #include "PresetBundle.hpp"
 #include "BedShapeDialog.hpp"
 
 namespace fs = boost::filesystem;
@@ -173,9 +172,8 @@ private:
 struct ConfigWizard::priv
 {
 	ConfigWizard *q;
-	AppConfig appconfig_vendors;
-	// PresetBundle bundle_vendors;
-	std::unordered_map<std::string, VendorProfile> vendors;
+	AppConfig appconfig_vendors;    // TODO: use order-preserving container
+	std::unordered_map<std::string, VendorProfile> vendors;   // TODO: just set?
 	std::unordered_map<std::string, fs::path> vendors_rsrc;
 	std::unique_ptr<DynamicPrintConfig> custom_config;
 

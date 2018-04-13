@@ -103,7 +103,7 @@ sub OnInit {
 
     # my $version_check = $self->{app_config}->get('version_check');
     $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT, $self->{app_config});
-    eval { $self->{preset_updater}->config_update() };
+    eval { $self->{preset_updater}->config_update($self->{app_config}) };
     if ($@) {
         warn $@ . "\n";
         fatal_error(undef, $@);
@@ -158,7 +158,8 @@ sub OnInit {
             Slic3r::GUI::config_wizard(1);
         }
 
-        # $self->{preset_updater}->download($self->{preset_bundle});
+        # TODO: call periodically?
+        $self->{preset_updater}->sync($self->{app_config}, $self->{preset_bundle});
     });
 
     # The following event is emited by the C++ menu implementation of application language change.

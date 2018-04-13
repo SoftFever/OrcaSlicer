@@ -86,9 +86,6 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
         html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
         html->SetBorders(2);
         std::string text = generate_html_page(snapshot_db);
-        FILE *file = ::fopen("d:\\temp\\configsnapshotdialog.html", "wt");
-        fwrite(text.data(), 1, text.size(), file);
-        fclose(file);
         html->SetPage(text.c_str());
         vsizer->Add(html, 1, wxEXPAND | wxALIGN_LEFT | wxRIGHT | wxBOTTOM, 0);
         html->Bind(wxEVT_HTML_LINK_CLICKED, &ConfigSnapshotDialog::onLinkClicked, this);

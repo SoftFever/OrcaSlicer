@@ -19,9 +19,9 @@ public:
 	PresetUpdater &operator=(const PresetUpdater &) = delete;
 	~PresetUpdater();
 
-	void download(PresetBundle *preset_bundle);     // XXX
+	void sync(AppConfig *app_config, PresetBundle *preset_bundle);
 
-	void config_update();
+	void config_update(AppConfig *app_config);
 private:
 	struct priv;
 	std::unique_ptr<priv> p;
