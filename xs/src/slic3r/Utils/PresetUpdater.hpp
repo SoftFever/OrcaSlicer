@@ -2,6 +2,7 @@
 #define slic3r_PresetUpdate_hpp_
 
 #include <memory>
+#include <vector>
 
 namespace Slic3r {
 
@@ -20,8 +21,8 @@ public:
 	~PresetUpdater();
 
 	void sync(AppConfig *app_config, PresetBundle *preset_bundle);
-
 	void config_update(AppConfig *app_config);
+	void install_bundles_rsrc(AppConfig *app_config, std::vector<std::string> &&bundles);
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

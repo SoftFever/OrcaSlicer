@@ -15,6 +15,7 @@
 #include <wx/spinctrl.h>
 
 #include "libslic3r/PrintConfig.hpp"
+#include "slic3r/Utils/PresetUpdater.hpp"
 #include "AppConfig.hpp"
 #include "Preset.hpp"
 #include "BedShapeDialog.hpp"
@@ -23,8 +24,6 @@ namespace fs = boost::filesystem;
 
 namespace Slic3r {
 namespace GUI {
-
-// typedef std::unordered_map<std::string, VendorProfile> VendorMap;
 
 enum {
 	CONTENT_WIDTH = 500,
@@ -38,9 +37,26 @@ enum {
 
 struct PrinterPicker: wxPanel
 {
+	struct Checkbox : wxCheckBox
+	{
+		Checkbox(wxWindow *parent, const wxString &label, const std::string &model, const std::string &variant) :
+			wxCheckBox(parent, wxID_ANY, label),
+			model(model),
+			variant(variant)
+		{}
+
+		std::string model;
+		std::string variant;
+	};
+
+	const std::string vendor_id;
+	std::vector<Checkbox*> cboxes;
 	unsigned variants_checked;
 
 	PrinterPicker(wxWindow *parent, const VendorProfile &vendor, const AppConfig &appconfig_vendors);
+
+	void select_all(bool select);
+	void on_checkbox(const Checkbox *cbox, bool checked);
 };
 
 struct ConfigWizardPage: wxPanel
@@ -174,7 +190,7 @@ struct ConfigWizard::priv
 	ConfigWizard *q;
 	AppConfig appconfig_vendors;    // TODO: use order-preserving container
 	std::unordered_map<std::string, VendorProfile> vendors;   // TODO: just set?
-	std::unordered_map<std::string, fs::path> vendors_rsrc;
+	std::unordered_map<std::string, std::string> vendors_rsrc;
 	std::unique_ptr<DynamicPrintConfig> custom_config;
 
 	wxBoxSizer *topsizer = nullptr;
@@ -208,7 +224,7 @@ struct ConfigWizard::priv
 	void on_other_vendors();
 	void on_custom_setup();
 
-	void apply_config(AppConfig *app_config, PresetBundle *preset_bundle);
+	void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, PresetUpdater *updater);
 };
 
 

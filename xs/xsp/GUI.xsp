@@ -60,10 +60,10 @@ void set_app_config(AppConfig *app_config)
 bool check_unsaved_changes()
     %code%{ RETVAL=Slic3r::GUI::check_unsaved_changes(); %};
 
-bool config_wizard(int fresh_start)
+void config_wizard_startup(int app_config_exists)
     %code%{
         try {
-            RETVAL = Slic3r::GUI::config_wizard(fresh_start != 0);
+            Slic3r::GUI::config_wizard_startup(app_config_exists != 0);
         } catch (std::exception& e) {
             croak("%s\n", e.what());
         }
@@ -74,6 +74,9 @@ void open_preferences_dialog(int preferences_event)
 
 void set_preset_bundle(PresetBundle *preset_bundle)
     %code%{ Slic3r::GUI::set_preset_bundle(preset_bundle); %};
+
+void set_preset_updater(PresetUpdater* updater)
+    %code%{ Slic3r::GUI::set_preset_updater(updater); %};
 
 void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_sizer)
     %code%{ Slic3r::GUI::add_frequently_changed_parameters((wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),

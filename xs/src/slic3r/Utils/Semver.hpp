@@ -32,8 +32,6 @@ public:
 		ver.prerelease = prerelease ? std::strcpy(ver.prerelease, prerelease->c_str()) : nullptr;
 	}
 
-	// TODO: throwing ctor ???
-
 	static boost::optional<Semver> parse(const std::string &str)
 	{
 		semver_t ver = semver_zero();

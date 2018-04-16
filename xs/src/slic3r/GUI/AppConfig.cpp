@@ -98,6 +98,10 @@ void AppConfig::load()
         }
     }
 
+    // Figure out if datadir has legacy presets
+    auto ini_ver = Semver::parse(get("version"));
+    m_legacy_datadir = ini_ver ? *ini_ver < Semver(1, 40, 0) : true;
+
     // Override missing or keys with their defaults.
     this->set_defaults();
     m_dirty = false;
@@ -240,7 +244,6 @@ bool AppConfig::slic3r_update_avail() const
 
 Semver AppConfig::get_slic3r_version() const
 {
-    // TODO: move to Semver c-tor (???)
     auto res = Semver::parse(get("version"));
     if (! res) {
         throw std::runtime_error(std::string("Could not parse Slic3r version string in application config."));

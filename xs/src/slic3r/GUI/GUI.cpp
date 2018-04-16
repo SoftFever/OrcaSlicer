@@ -37,6 +37,7 @@
 #include <wx/sizer.h>
 #include <wx/combo.h>
 #include <wx/window.h>
+#include <wx/msgdlg.h>
 
 #include "wxExtensions.hpp"
 
@@ -50,6 +51,7 @@
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
 
+#include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -179,6 +181,7 @@ wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
+PresetUpdater *g_PresetUpdater = nullptr;
 
 std::vector<Tab *> g_tabs_list;
 
@@ -210,6 +213,11 @@ void set_app_config(AppConfig *app_config)
 void set_preset_bundle(PresetBundle *preset_bundle)
 {
 	g_PresetBundle = preset_bundle;
+}
+
+void set_preset_updater(PresetUpdater *updater)
+{
+	g_PresetUpdater = updater;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -442,23 +450,51 @@ bool check_unsaved_changes()
 	return dialog->ShowModal() == wxID_YES;
 }
 
-bool config_wizard(bool fresh_start)
+void config_wizard_startup(bool app_config_exists)
+{
+	if (! app_config_exists || g_PresetBundle->has_defauls_only()) {
+		config_wizard(true);
+	} else if (g_AppConfig->legacy_datadir()) {
+		// Looks like user has legacy pre-vendorbundle data directory,
+		// explain what this is and run the wizard
+
+		const auto msg = _(L("Configuration update"));
+		const auto ext_msg = _(L(
+			"Slic3r PE now uses an updated configuration structure.\n\n"
+
+			"So called 'System presets' have been introduced, which hold the built-in default settings for various "
+			"printers. These System presets cannot be modified, instead, users now may create their"
+			"own presets inheriting settings from one of the System presets.\n"
+			"An inheriting preset may either inherit a particular value from its parent or override it with a customized value.\n\n"
+
+			// TODO: Assistant vs Wizard
+			"Please proceed with the Configuration wizard that follows to set up the new presets "
+			"and to choose whether to enable automatic preset updates."
+		));
+		wxMessageDialog dlg(NULL, msg, _(L("Configuration update")), wxOK|wxCENTRE);
+		dlg.SetExtendedMessage(ext_msg);
+		const auto res = dlg.ShowModal();
+
+		config_wizard(true);
+	}
+}
+
+void config_wizard(bool fresh_start)   // TODO: fresh_start useful ?
 {
 	if (g_wxMainFrame == nullptr)
 		throw std::runtime_error("Main frame not set");
 
     // Exit wizard if there are unsaved changes and the user cancels the action.
     if (! check_unsaved_changes())
-    	return false;
+    	return;
 
-    // TODO: Offer "reset user profile" ???
-	if (! ConfigWizard::run(g_wxMainFrame, g_PresetBundle))
-		return false;
+	// TODO: Offer "reset user profile" ???
+	ConfigWizard wizard(g_wxMainFrame);
+	wizard.run(g_PresetBundle, g_PresetUpdater);
 
     // Load the currently selected preset into the GUI, update the preset selection box.
 	for (Tab *tab : g_tabs_list)
 		tab->load_current_preset();
-	return true;
 }
 
 void open_preferences_dialog(int event_preferences)

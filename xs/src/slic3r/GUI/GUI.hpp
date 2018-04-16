@@ -25,6 +25,7 @@ namespace Slic3r {
 class PresetBundle;
 class PresetCollection;
 class AppConfig;
+class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
 
@@ -76,6 +77,7 @@ void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
+void set_preset_updater(PresetUpdater *updater);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
@@ -88,8 +90,11 @@ extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int 
 // to notify the user whether he is aware that some preset changes will be lost.
 extern bool check_unsaved_changes();
 
-// Opens the first-time configuration wizard, returns true if wizard is finished & accepted.
-extern bool config_wizard(bool fresh_start);
+// Checks if configuration wizard needs to run, calls config_wizard if so
+extern void config_wizard_startup(bool app_config_exists);
+
+// Opens the configuration wizard, returns true if wizard is finished & accepted.
+extern void config_wizard(bool fresh_start);
 
 // Create "Preferences" dialog after selecting menu "Preferences" in Perl part
 extern void open_preferences_dialog(int event_preferences);

@@ -1,8 +1,8 @@
 #include "ConfigWizard_private.hpp"
 
-#include <iostream>   // XXX
 #include <algorithm>
 #include <utility>
+#include <unordered_map>
 
 #include <wx/settings.h>
 #include <wx/stattext.h>
@@ -17,6 +17,7 @@
 #include "GUI.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
+// TODO: Wizard vs Assistant
 
 namespace Slic3r {
 namespace GUI {
@@ -54,48 +55,80 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 	const auto vendor_id = vendor.id;
 	const auto &models = vendor.models;
 
+	auto *sizer = new wxBoxSizer(wxVERTICAL);
+
 	auto *printer_grid = new wxFlexGridSizer(models.size(), 0, 20);
 	printer_grid->SetFlexibleDirection(wxVERTICAL);
-	SetSizer(printer_grid);
+	sizer->Add(printer_grid);
 
 	auto namefont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	namefont.SetWeight(wxFONTWEIGHT_BOLD);
 
 	for (const auto &model : models) {
 		auto *panel = new wxPanel(this);
-		auto *sizer = new wxBoxSizer(wxVERTICAL);
-		panel->SetSizer(sizer);
+		auto *col_sizer = new wxBoxSizer(wxVERTICAL);
+		panel->SetSizer(col_sizer);
 
 		auto *title = new wxStaticText(panel, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 		title->SetFont(namefont);
-		sizer->Add(title, 0, wxBOTTOM, 3);
+		col_sizer->Add(title, 0, wxBOTTOM, 3);
 
 		auto bitmap_file = wxString::Format("printers/%s_%s.png", vendor.id, model.id);
 		wxBitmap bitmap(GUI::from_u8(Slic3r::var(bitmap_file.ToStdString())), wxBITMAP_TYPE_PNG);
 		auto *bitmap_widget = new wxStaticBitmap(panel, wxID_ANY, bitmap);
-		sizer->Add(bitmap_widget, 0, wxBOTTOM, 3);
+		col_sizer->Add(bitmap_widget, 0, wxBOTTOM, 3);
 
-		sizer->AddSpacer(20);
+		col_sizer->AddSpacer(20);
 
 		const auto model_id = model.id;
 
 		for (const auto &variant : model.variants) {
-			const auto variant_name = variant.name;
-			auto *cbox = new wxCheckBox(panel, wxID_ANY, wxString::Format("%s %s %s", variant.name, _(L("mm")), _(L("nozzle"))));
-			bool enabled = appconfig_vendors.get_variant("PrusaResearch", model_id, variant_name);
+			const auto label = wxString::Format("%s %s %s", variant.name, _(L("mm")), _(L("nozzle")));
+			auto *cbox = new Checkbox(panel, label, model_id, variant.name);
+			const size_t idx = cboxes.size();
+			cboxes.push_back(cbox);
+			bool enabled = appconfig_vendors.get_variant("PrusaResearch", model_id, variant.name);
 			variants_checked += enabled;
 			cbox->SetValue(enabled);
-			sizer->Add(cbox, 0, wxBOTTOM, 3);
-			cbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent &event) {
-				this->variants_checked += event.IsChecked() ? 1 : -1;
-				PrinterPickerEvent evt(EVT_PRINTER_PICK, this->GetId(), std::move(vendor_id), std::move(model_id), std::move(variant_name), event.IsChecked());
-				this->AddPendingEvent(evt);
+			col_sizer->Add(cbox, 0, wxBOTTOM, 3);
+			cbox->Bind(wxEVT_CHECKBOX, [this, idx](wxCommandEvent &event) {
+				if (idx >= this->cboxes.size()) { return; }
+				this->on_checkbox(this->cboxes[idx], event.IsChecked());
 			});
 		}
 
 		printer_grid->Add(panel);
 	}
 
+	auto *all_none_sizer = new wxBoxSizer(wxHORIZONTAL);
+	auto *sel_all = new wxButton(this, wxID_ANY, _(L("Select all")));
+	auto *sel_none = new wxButton(this, wxID_ANY, _(L("Select none")));
+	sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(true); });
+	sel_none->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(false); });
+	all_none_sizer->AddStretchSpacer();
+	all_none_sizer->Add(sel_all);
+	all_none_sizer->Add(sel_none);
+	sizer->AddStretchSpacer();
+	sizer->Add(all_none_sizer, 0, wxEXPAND);
+
+	SetSizer(sizer);
+}
+
+void PrinterPicker::select_all(bool select)
+{
+	for (const auto &cb : cboxes) {
+		if (cb->GetValue() != select) {
+			cb->SetValue(select);
+			on_checkbox(cb, select);
+		}
+	}
+}
+
+void PrinterPicker::on_checkbox(const Checkbox *cbox, bool checked)
+{
+	variants_checked += checked ? 1 : -1;
+	PrinterPickerEvent evt(EVT_PRINTER_PICK, GetId(), vendor_id, cbox->model, cbox->variant, checked);
+	AddPendingEvent(evt);
 }
 
 
@@ -176,15 +209,10 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 {
 	append_text(_(L("Hello, welcome to Slic3r Prusa Edition! TODO: This text.")));
 
-	// const PresetBundle &bundle = wizard_p()->bundle_vendors;
-	// const auto &vendors = bundle.vendors;
 	const auto &vendors = wizard_p()->vendors;
-	// const auto vendor_prusa = std::find(vendors.cbegin(), vendors.cend(), VendorProfile("PrusaResearch"));
 	const auto vendor_prusa = vendors.find("PrusaResearch");
 
 	if (vendor_prusa != vendors.cend()) {
-		const auto &models = vendor_prusa->second.models;
-
 		AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 
 		printer_picker = new PrinterPicker(this, vendor_prusa->second, appconfig_vendors);
@@ -550,6 +578,17 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 
 // priv
 
+static const std::unordered_map<std::string, std::pair<std::string, std::string>> legacy_preset_map {{
+	{ "Original Prusa i3 MK2.ini",                           std::make_pair("MK2S", "0.4") },
+	{ "Original Prusa i3 MK2 MM Single Mode.ini",            std::make_pair("MK2S", "0.4") },
+	{ "Original Prusa i3 MK2 MM Single Mode 0.6 nozzle.ini", std::make_pair("MK2S", "0.6") },
+	{ "Original Prusa i3 MK2 MultiMaterial.ini",             std::make_pair("MK2S", "0.4") },
+	{ "Original Prusa i3 MK2 MultiMaterial 0.6 nozzle.ini",  std::make_pair("MK2S", "0.6") },
+	{ "Original Prusa i3 MK2 0.25 nozzle.ini",               std::make_pair("MK2S", "0.25") },
+	{ "Original Prusa i3 MK2 0.6 nozzle.ini",                std::make_pair("MK2S", "0.6") },
+	{ "Original Prusa i3 MK3.ini",                           std::make_pair("MK3",  "0.4") },
+}};
+
 void ConfigWizard::priv::load_vendors()
 {
 	const auto vendor_dir = fs::path(Slic3r::data_dir()) / "vendor";
@@ -569,13 +608,28 @@ void ConfigWizard::priv::load_vendors()
 			const auto id = it->path().stem().string();
 			if (vendors.find(id) == vendors.end()) {
 				auto vp = VendorProfile::from_ini(it->path());
-				vendors_rsrc[vp.id] = it->path();
+				vendors_rsrc[vp.id] = it->path().filename().string();
 				vendors[vp.id] = std::move(vp);
 			}
 		}
 	}
 
-	appconfig_vendors.set_vendors(*GUI::get_app_config());
+	// Load up the set of vendors / models / variants the user has had enabled up till now
+	const AppConfig *app_config = GUI::get_app_config();
+	if (! app_config->legacy_datadir()) {
+		appconfig_vendors.set_vendors(*app_config);
+	} else {
+		// In case of legacy datadir, try to guess the preference based on the printer preset files that are present
+		const auto printer_dir = fs::path(Slic3r::data_dir()) / "printer";
+		for (fs::directory_iterator it(printer_dir); it != fs::directory_iterator(); ++it) {
+			auto needle = legacy_preset_map.find(it->path().filename().string());
+			if (needle == legacy_preset_map.end()) { continue; }
+
+			const auto &model = needle->second.first;
+			const auto &variant = needle->second.second;
+			appconfig_vendors.set_variant("PrusaResearch", model, variant, true);
+		}
+	}
 }
 
 void ConfigWizard::priv::index_refresh()
@@ -639,22 +693,28 @@ void ConfigWizard::priv::on_custom_setup()
 	set_page(page_firmware);
 }
 
-void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle)
+void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, PresetUpdater *updater)
 {
 	const bool is_custom_setup = page_welcome->page_next() == page_firmware;
 
 	if (! is_custom_setup) {
 		const auto enabled_vendors = appconfig_vendors.vendors();
+
+		// Install bundles from resources if needed:
+		std::vector<std::string> install_bundles;
 		for (const auto &vendor_rsrc : vendors_rsrc) {
 			const auto vendor = enabled_vendors.find(vendor_rsrc.first);
 			if (vendor == enabled_vendors.end()) { continue; }
-	
+
 			size_t size_sum = 0;
 			for (const auto &model : vendor->second) { size_sum += model.second.size(); }
 			if (size_sum == 0) { continue; }
 
 			// This vendor needs to be installed
-			PresetBundle::install_vendor_configbundle(vendor_rsrc.second);
+			install_bundles.emplace_back(vendor_rsrc.second);
+		}
+		if (install_bundles.size() > 0) {
+			updater->install_bundles_rsrc(app_config, std::move(install_bundles));
 		}
 
 		app_config->set_vendors(appconfig_vendors);
@@ -732,14 +792,10 @@ ConfigWizard::ConfigWizard(wxWindow *parent) :
 
 ConfigWizard::~ConfigWizard() {}
 
-bool ConfigWizard::run(wxWindow *parent, PresetBundle *preset_bundle)
+void ConfigWizard::run(PresetBundle *preset_bundle, PresetUpdater *updater)
 {
-	ConfigWizard wizard(parent);
-	if (wizard.ShowModal() == wxID_OK) {
-		wizard.p->apply_config(GUI::get_app_config(), preset_bundle);
-		return true;
-	} else {
-		return false;
+	if (ShowModal() == wxID_OK) {
+		p->apply_config(GUI::get_app_config(), preset_bundle, updater);
 	}
 }
 

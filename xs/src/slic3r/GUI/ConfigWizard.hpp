@@ -8,6 +8,7 @@
 namespace Slic3r {
 
 class PresetBundle;
+class PresetUpdater;
 
 namespace GUI {
 
@@ -22,7 +23,7 @@ public:
 	ConfigWizard &operator=(const ConfigWizard &) = delete;
 	~ConfigWizard();
 
-	static bool run(wxWindow *parent, PresetBundle *preset_bundle);
+	void run(PresetBundle *preset_bundle, PresetUpdater *updater);
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

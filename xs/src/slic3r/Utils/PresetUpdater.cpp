@@ -51,6 +51,11 @@ struct Update
 		version(version)
 	{}
 
+	Update(fs::path &&source, fs::path &&target) :
+		source(source),
+		target(std::move(target))
+	{}
+
 	std::string name() { return source.stem().string(); }
 };
 
@@ -83,6 +88,7 @@ struct PresetUpdater::priv
 
 	void check_install_indices() const;
 	Updates config_update() const;
+	void perform_updates(AppConfig *app_config, Updates &&updates) const;
 };
 
 PresetUpdater::priv::priv(int event, AppConfig *app_config) :
@@ -121,6 +127,7 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 		.on_complete([&](std::string body, unsigned http_status) {
 			fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
 			file.write(body.c_str(), body.size());
+			file.close();
 			fs::rename(tmp_path, target_path);
 			res = true;
 		})
@@ -269,6 +276,26 @@ Updates PresetUpdater::priv::config_update() const
 	return updates;
 }
 
+void PresetUpdater::priv::perform_updates(AppConfig *app_config, Updates &&updates) const
+{
+	SnapshotDB::singleton().take_snapshot(*app_config, Snapshot::SNAPSHOT_UPGRADE);
+
+	for (const auto &update : updates) {
+		fs::copy_file(update.source, update.target, fs::copy_option::overwrite_if_exists);
+
+		PresetBundle bundle;
+		bundle.load_configbundle(update.target.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
+
+		auto preset_remover = [](const Preset &preset) {
+			fs::remove(preset.file);
+		};
+
+		for (const auto &preset : bundle.prints)    { preset_remover(preset); }
+		for (const auto &preset : bundle.filaments) { preset_remover(preset); }
+		for (const auto &preset : bundle.printers)  { preset_remover(preset); }
+	}
+}
+
 
 PresetUpdater::PresetUpdater(int version_online_event, AppConfig *app_config) :
 	p(new priv(version_online_event, app_config))
@@ -306,7 +333,7 @@ void PresetUpdater::config_update(AppConfig *app_config)
 {
 	if (! p->enabled_config_update) { return; }
 
-	const auto updates = p->config_update();
+	auto updates = p->config_update();
 	if (updates.size() > 0) {
 		const auto msg = _(L("Configuration update is available. Would you like to install it?"));
 
@@ -330,25 +357,22 @@ void PresetUpdater::config_update(AppConfig *app_config)
 		std::cerr << "After modal" << std::endl;
 		if (res == wxID_YES) {
 			// User gave clearance, updates are go
-
-			SnapshotDB::singleton().take_snapshot(*app_config, Snapshot::SNAPSHOT_UPGRADE, "");
-
-			for (const auto &update : updates) {
-				fs::copy_file(update.source, update.target, fs::copy_option::overwrite_if_exists);
-
-				PresetBundle bundle;
-				bundle.load_configbundle(update.target.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
-
-				auto preset_remover = [](const Preset &preset) {
-					fs::remove(preset.file);
-				};
-
-				for (const auto &preset : bundle.prints) { preset_remover(preset); }
-				for (const auto &preset : bundle.filaments) { preset_remover(preset); }
-				for (const auto &preset : bundle.printers) { preset_remover(preset); }
-			}
+			p->perform_updates(app_config, std::move(updates));
 		}
 	}
+}
+
+void PresetUpdater::install_bundles_rsrc(AppConfig *app_config, std::vector<std::string> &&bundles)
+{
+	Updates updates;
+
+	for (const auto &bundle : bundles) {
+		auto path_in_rsrc = p->rsrc_path / bundle;
+		auto path_in_vendors = p->vendor_path / bundle;
+		updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors));
+	}
+
+	p->perform_updates(app_config, std::move(updates));
 }
 
 

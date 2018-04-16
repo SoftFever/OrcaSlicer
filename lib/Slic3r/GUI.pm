@@ -95,14 +95,15 @@ sub OnInit {
         warn $@ . "\n";
         fatal_error(undef, $@);
     }
-    my $run_wizard = ! $self->{app_config}->exists;
+    my $app_conf_exists = $self->{app_config}->exists;
     # load settings
-    $self->{app_config}->load if ! $run_wizard;
+    $self->{app_config}->load if $app_conf_exists;
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
 
     # my $version_check = $self->{app_config}->get('version_check');
     $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT, $self->{app_config});
+    Slic3r::GUI::set_preset_updater($self->{preset_updater});
     eval { $self->{preset_updater}->config_update($self->{app_config}) };
     if ($@) {
         warn $@ . "\n";
@@ -120,8 +121,6 @@ sub OnInit {
         warn $@ . "\n";
         show_error(undef, $@);
     }
-    # TODO: check previously downloaded updates
-    $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
 
     Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
     
@@ -148,16 +147,8 @@ sub OnInit {
     # On OSX the UI was not initialized correctly if the wizard was called
     # before the UI was up and running.
     $self->CallAfter(sub {
-        # XXX: recreate_GUI ???
-        # if ($slic3r_update) {
-        #     # TODO
-        # }
-        # XXX: ?
-        if ($run_wizard) {
-            # Run the config wizard, don't offer the "reset user profile" checkbox.
-            Slic3r::GUI::config_wizard(1);
-        }
-
+        Slic3r::GUI::config_wizard_startup($app_conf_exists);
+        
         # TODO: call periodically?
         $self->{preset_updater}->sync($self->{app_config}, $self->{preset_bundle});
     });
@@ -209,15 +200,12 @@ sub recreate_GUI{
         $self->{app_config}->save if $self->{app_config}->dirty;
     });
 
-    my $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
-    if ($run_wizard) {
-        # On OSX the UI was not initialized correctly if the wizard was called
-        # before the UI was up and running.
-        $self->CallAfter(sub {
-            # Run the config wizard, don't offer the "reset user profile" checkbox.
-            Slic3r::GUI::config_wizard(1);
-        });
-    }
+    # On OSX the UI was not initialized correctly if the wizard was called
+    # before the UI was up and running.
+    $self->CallAfter(sub {
+        # Run the config wizard, don't offer the "reset user profile" checkbox.
+        Slic3r::GUI::config_wizard_startup(1);
+    });
 }
 
 sub system_info {

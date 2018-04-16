@@ -13,7 +13,7 @@ namespace Slic3r {
 class AppConfig
 {
 public:
-	AppConfig() : m_dirty(false) { this->reset(); }
+	AppConfig() : m_dirty(false), m_legacy_datadir(false) { this->reset(); }
 
 	// Clear and reset to defaults.
 	void 			   	reset();
@@ -98,6 +98,8 @@ public:
 
 	// Get the default config path from Slic3r::data_dir().
 	static std::string  config_path();
+	
+	bool legacy_datadir() const { return m_legacy_datadir; }
 
 	// Does the config file exist?
 	static bool 		exists();
@@ -109,6 +111,8 @@ private:
 	VendorMap                                                   m_vendors;
 	// Has any value been modified since the config.ini has been last saved or loaded?
 	bool														m_dirty;
+	// Whether the existing version is before system profiles & configuration updating
+	bool                                                        m_legacy_datadir;
 };
 
 }; // namespace Slic3r
