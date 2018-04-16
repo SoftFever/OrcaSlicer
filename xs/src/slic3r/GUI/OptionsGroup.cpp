@@ -97,7 +97,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     return field;
 }
 
-void OptionsGroup::append_line(const Line& line) {
+void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* = nullptr*/) {
 //!    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)){
 	if ( (line.sizer != nullptr || line.widget != nullptr) && line.full_width){
 		if (line.sizer != nullptr) {
@@ -150,6 +150,7 @@ void OptionsGroup::append_line(const Line& line) {
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(parent());
 		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
+		if (colored_Label != nullptr) *colored_Label = label;
 		return;
 	}
 	
@@ -227,12 +228,12 @@ Line OptionsGroup::create_single_option_line(const Option& option) const {
     return retval;
 }
 
-void OptionsGroup::on_change_OG(t_config_option_key id, /*config_value*/boost::any value) {
+void OptionsGroup::on_change_OG(const t_config_option_key& opt_id, const boost::any& value) {
 	if (m_on_change != nullptr)
-		m_on_change(id, value);
+		m_on_change(opt_id, value);
 }
 
-Option ConfigOptionsGroup::get_option(const std::string opt_key, int opt_index /*= -1*/)
+Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index /*= -1*/)
 {
 	if (!m_config->has(opt_key)) {
 		std::cerr << "No " << opt_key << " in ConfigOptionsGroup config.";
@@ -245,7 +246,7 @@ Option ConfigOptionsGroup::get_option(const std::string opt_key, int opt_index /
 	return Option(*m_config->def()->get(opt_key), opt_id);
 }
 
-void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any value)
+void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const boost::any& value)
 {
 	if (!m_opt_map.empty())
 	{
@@ -268,16 +269,7 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 			if (opt_index != -1){
 				// 		die "Can't set serialized option indexed value" ;
 			}
-			// 		# Split a string to multiple strings by a semi - colon.This is the old way of storing multi - string values.
-			// 		# Currently used for the post_process config value only.
-			// 		my @values = split / ; / , $field_value;
-			// 		$self->config->set($opt_key, \@values);
-			std::string str = boost::any_cast<std::string>(value);
-			if (str.back() == ';')
-				str.pop_back();
-			std::vector<std::string> values;
-			boost::split(values, str, boost::is_any_of(";"));
-			change_opt_value(*m_config, opt_key, values);
+			change_opt_value(*m_config, opt_key, value);
 		}
 		else {
 			if (opt_index == -1) {
@@ -297,14 +289,14 @@ void ConfigOptionsGroup::on_change_OG(t_config_option_key opt_id, boost::any val
 	OptionsGroup::on_change_OG(opt_id, value); //!? Why doing this
 }
 
-void ConfigOptionsGroup::back_to_initial_value(const std::string opt_key)
+void ConfigOptionsGroup::back_to_initial_value(const std::string& opt_key)
 {
 	if (m_get_initial_config == nullptr)
 		return;
 	back_to_config_value(m_get_initial_config(), opt_key);
 }
 
-void ConfigOptionsGroup::back_to_sys_value(const std::string opt_key)
+void ConfigOptionsGroup::back_to_sys_value(const std::string& opt_key)
 {
 	if (m_get_sys_config == nullptr)
 		return;
@@ -313,7 +305,7 @@ void ConfigOptionsGroup::back_to_sys_value(const std::string opt_key)
 	back_to_config_value(m_get_sys_config(), opt_key);
 }
 
-void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, const std::string opt_key)
+void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key)
 {
 	boost::any value;
 	if (opt_key == "extruders_count"){
@@ -348,7 +340,7 @@ void ConfigOptionsGroup::reload_config(){
 
 }
 
-boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, bool deserialize){
+boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize){
 
 	if (deserialize) {
 		// Want to edit a vector value(currently only multi - strings) in a single edit box.
@@ -365,7 +357,7 @@ boost::any ConfigOptionsGroup::config_value(std::string opt_key, int opt_index, 
 	}
 }
 
-boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config, std::string opt_key, int opt_index /*= -1*/)
+boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index /*= -1*/)
 {
 	size_t idx = opt_index == -1 ? 0 : opt_index;
 	
@@ -405,6 +397,10 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = static_cast<wxString>(config.opt_string(opt_key));
 		break;
 	case coStrings:
+		if (opt_key.compare("compatible_printers") == 0){
+			ret = config.option<ConfigOptionStrings>(opt_key)->values;
+			break;
+		}
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
 		else if (opt->gui_flags.compare("serialized") == 0){
@@ -457,7 +453,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	return ret;
 }
 
-Field* ConfigOptionsGroup::get_fieldc(t_config_option_key opt_key, int opt_index){
+Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int opt_index){
 	Field* field = get_field(opt_key);
 	if (field != nullptr)
 		return field;
@@ -471,7 +467,7 @@ Field* ConfigOptionsGroup::get_fieldc(t_config_option_key opt_key, int opt_index
 	return opt_id.empty() ? nullptr : get_field(opt_id);
 }
 
-void ogStaticText::SetText(wxString value)
+void ogStaticText::SetText(const wxString& value)
 {
 	SetLabel(value);
 	Wrap(400);

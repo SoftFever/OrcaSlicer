@@ -34,6 +34,11 @@
 
 namespace Slic3r {
 
+static std::vector<std::string> s_project_options {
+    "wiping_volumes_extruders",
+    "wiping_volumes_matrix"
+};
+
 PresetBundle::PresetBundle() :
     prints(Preset::TYPE_PRINT, Preset::print_options()), 
     filaments(Preset::TYPE_FILAMENT, Preset::filament_options()), 
@@ -69,6 +74,8 @@ PresetBundle::PresetBundle() :
     this->filaments.load_bitmap_default("spool.png");
     this->printers .load_bitmap_default("printer_empty.png");
     this->load_compatible_bitmaps();
+
+    this->project_config.apply_only(FullPrintConfig::defaults(), s_project_options);
 }
 
 PresetBundle::~PresetBundle()
@@ -274,8 +281,8 @@ bool PresetBundle::load_compatible_bitmaps()
 {
     const std::string path_bitmap_compatible   = "flag-green-icon.png";
     const std::string path_bitmap_incompatible = "flag-red-icon.png";
-    const std::string path_bitmap_lock         = "lock.png";
-    const std::string path_bitmap_lock_open    = "lock_open.png";
+    const std::string path_bitmap_lock         = "sys_lock.png";//"lock.png";
+	const std::string path_bitmap_lock_open    = "sys_unlock.png";//"lock_open.png";
     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
@@ -313,6 +320,7 @@ DynamicPrintConfig PresetBundle::full_config() const
     out.apply(FullPrintConfig());
     out.apply(this->prints.get_edited_preset().config);
     out.apply(this->printers.get_edited_preset().config);
+    out.apply(this->project_config);
 
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();
@@ -501,6 +509,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             this->filament_presets.emplace_back(new_name);
         }
     }
+
+    // 4) Load the project config values (the per extruder wipe matrix etc).
+    this->project_config.apply_only(config, s_project_options);
 
     this->update_compatible_with_printer(false);
 }
@@ -868,6 +879,34 @@ void PresetBundle::update_multi_material_filament_presets()
     // Append the rest of filament presets.
 //    if (this->filament_presets.size() < num_extruders)
         this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
+
+
+    // Now verify if wiping_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
+    std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values;
+    size_t old_number_of_extruders = int(sqrt(old_matrix.size())+EPSILON);
+    if (num_extruders != old_number_of_extruders) {
+            // First verify if purging volumes presets for each extruder matches number of extruders
+            std::vector<double>& extruders = this->project_config.option<ConfigOptionFloats>("wiping_volumes_extruders")->values;
+            while (extruders.size() < 2*num_extruders) {
+                extruders.push_back(extruders.size()>1 ? extruders[0] : 50.);  // copy the values from the first extruder
+                extruders.push_back(extruders.size()>1 ? extruders[1] : 50.);
+            }
+            while (extruders.size() > 2*num_extruders) {
+                extruders.pop_back();
+                extruders.pop_back();
+            }
+
+        std::vector<double> new_matrix;
+        for (unsigned int i=0;i<num_extruders;++i)
+            for (unsigned int j=0;j<num_extruders;++j) {
+                // append the value for this pair from the old matrix (if it's there):
+                if (i<old_number_of_extruders && j<old_number_of_extruders)
+                    new_matrix.push_back(old_matrix[i*old_number_of_extruders + j]);
+                else
+                    new_matrix.push_back( i==j ? 0. : extruders[2*i]+extruders[2*j+1]); // so it matches new extruder volumes
+            }
+		this->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values = new_matrix;
+    }
 }
 
 void PresetBundle::update_compatible_with_printer(bool select_other_if_incompatible)
@@ -967,7 +1006,7 @@ static inline int hex_digit_to_int(const char c)
         (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
 
-static inline bool parse_color(const std::string &scolor, unsigned char *rgb_out)
+bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out)
 {
     rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
     if (scolor.size() != 7 || scolor.front() != '#')
@@ -1002,6 +1041,8 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
     // and draw a red flag in front of the selected preset.
     bool          wide_icons      = selected_preset != nullptr && ! selected_preset->is_compatible && m_bitmapIncompatible != nullptr;
     assert(selected_preset != nullptr);
+	std::map<wxString, wxBitmap> nonsys_presets;
+	wxString selected_str = "";
     for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++ i) {
         const Preset &preset    = this->filaments.preset(i);
         bool          selected  = this->filament_presets[idx_extruder] == preset.name;
@@ -1039,10 +1080,36 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
                 (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
-		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
-        if (selected)
-            ui->SetSelection(ui->GetCount() - 1);
+// 		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
+//         if (selected)
+//             ui->SetSelection(ui->GetCount() - 1);
+
+		if (preset.is_default || preset.is_system){
+			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
+				(bitmap == 0) ? wxNullBitmap : *bitmap);
+			if (selected)
+				ui->SetSelection(ui->GetCount() - 1);
+		}
+		else
+		{
+			nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
+				(bitmap == 0) ? wxNullBitmap : *bitmap);
+			if (selected)
+				selected_str = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+		}
+		if (preset.is_default)
+			ui->Append("------------------------------------", wxNullBitmap);
     }
+
+	if (!nonsys_presets.empty())
+	{
+		ui->Append("------------------------------------", wxNullBitmap);
+		for (std::map<wxString, wxBitmap>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+			ui->Append(it->first, it->second);
+			if (it->first == selected_str)
+				ui->SetSelection(ui->GetCount() - 1);
+		}
+	}
     ui->Thaw();
 }
 

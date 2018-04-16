@@ -45,6 +45,11 @@ public:
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;
 
+    // The project configuration values are kept separated from the print/filament/printer preset,
+    // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode, 
+    // and they are being used by slicing core.
+    DynamicPrintConfig          project_config;
+
     // There will be an entry for each system profile loaded, 
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
     std::set<VendorProfile>     vendors;
@@ -114,6 +119,8 @@ public:
     // If select_other_if_incompatible is true, then the print or filament preset is switched to some compatible
     // preset if the current print or filament preset is not compatible.
     void                        update_compatible_with_printer(bool select_other_if_incompatible);
+
+    static bool parse_color(const std::string &scolor, unsigned char *rgb_out);
 
 private:
     std::string                 load_system_presets();

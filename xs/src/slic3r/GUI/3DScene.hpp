@@ -246,12 +246,15 @@ public:
         composite_id(-1),
         select_group_id(-1),
         drag_group_id(-1),
+        extruder_id(0),
         selected(false),
         is_active(true),
         zoom_to_volumes(true),
         outside_printer_detection_enabled(true),
         is_outside(false),
         hover(false),
+        is_modifier(false),
+        is_wipe_tower(false),
         tverts_range(0, size_t(-1)),
         qverts_range(0, size_t(-1))
     {
@@ -271,7 +274,7 @@ public:
         const std::string        &drag_by);
 
     int load_wipe_tower_preview(
-        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs);
+        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs);
 
     // Bounding box of this volume, in unscaled coordinates.
     BoundingBoxf3       bounding_box;
@@ -287,6 +290,8 @@ public:
     int                 select_group_id;
     // An ID for group dragging. It may be the same for all meshes of all object instances, or for just a single object instance.
     int                 drag_group_id;
+    // An ID containing the extruder ID (used to select color).
+    int                 extruder_id;
     // Is this object selected?
     bool                selected;
     // Whether or not this volume is active for rendering
@@ -299,6 +304,10 @@ public:
     bool                is_outside;
     // Boolean: Is mouse over this object?
     bool                hover;
+    // Wheter or not this volume has been generated from a modifier
+    bool                 is_modifier;
+    // Wheter or not this volume has been generated from the wipe tower
+    bool                 is_wipe_tower;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
@@ -352,10 +361,7 @@ public:
         return (layer_height_texture.get() == nullptr) ? 0 :
             (void*)(layer_height_texture->data.data() + layer_height_texture->width * layer_height_texture->height * 4);
     }
-    double              layer_height_texture_z_to_row_id() const { 
-        return (this->layer_height_texture.get() == nullptr) ? 0. : 
-            double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * bounding_box.max.z);
-    }
+    double              layer_height_texture_z_to_row_id() const;
     void                generate_layer_height_texture(PrintObject *print_object, bool force);
 
     void set_layer_height_texture_data(unsigned int texture_id, unsigned int shader_id, PrintObject* print_object, float z_cursor_relative, float edit_band_width)
@@ -392,7 +398,7 @@ public:
         bool                     use_VBOs);
 
     int load_wipe_tower_preview(
-        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs);
+        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs);
 
     // Render the volumes by OpenGL.
     void render_VBOs() const;
@@ -417,6 +423,7 @@ public:
     }
 
     void update_outside_state(const DynamicPrintConfig* config, bool all_inside);
+    void update_colors_by_extruder(const DynamicPrintConfig* config);
 
     // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
     std::vector<double> get_current_print_zs() const;

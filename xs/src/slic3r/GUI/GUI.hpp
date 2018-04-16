@@ -18,6 +18,7 @@ class wxArrayLong;
 class wxColour;
 class wxBoxSizer;
 class wxFlexGridSizer;
+class wxButton;
 class wxFileDialog;
 
 namespace Slic3r { 
@@ -81,8 +82,10 @@ void set_preset_updater(PresetUpdater *updater);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
-wxColour*	get_modified_label_clr();
-wxColour*	get_sys_label_clr();
+
+const wxColour& get_modified_label_clr();
+const wxColour& get_sys_label_clr();
+unsigned get_colour_approx_luma(const wxColour &colour);
 
 extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -106,11 +109,11 @@ TabIface* get_preset_tab_iface(char *name);
 // add it at the end of the tab panel.
 void add_created_tab(Tab* panel);
 // Change option value in config
-void change_opt_value(DynamicPrintConfig& config, t_config_option_key opt_key, boost::any value, int opt_index = 0);
+void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
-void show_error(wxWindow* parent, wxString message);
-void show_info(wxWindow* parent, wxString message, wxString title);
-void warning_catcher(wxWindow* parent, wxString message);
+void show_error(wxWindow* parent, const wxString& message);
+void show_info(wxWindow* parent, const wxString& message, const wxString& title);
+void warning_catcher(wxWindow* parent, const wxString& message);
 
 // load language saved at application config 
 bool load_language();
@@ -143,6 +146,7 @@ wxString	from_u8(const std::string &str);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 
 ConfigOptionsGroup* get_optgroup();
+wxButton*			get_wiping_dialog_button();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);

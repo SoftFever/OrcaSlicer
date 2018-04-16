@@ -230,6 +230,8 @@ private:
 // all objects may share mutliple materials.
 class Model
 {
+    static unsigned int s_auto_extruder_id;
+
 public:
     // Materials are owned by a model and referenced by objects through t_model_material_id.
     // Single material may be shared by multiple models.
@@ -288,6 +290,10 @@ public:
     bool fits_print_volume(const FullPrintConfig &config) const;
 
     void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
+
+    static unsigned int get_auto_extruder_id();
+    static std::string get_auto_extruder_id_as_string();
+    static void reset_auto_extruder_id();
 };
 
 }

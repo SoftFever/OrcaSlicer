@@ -9,7 +9,7 @@ use utf8;
 use File::Basename qw(basename);
 use Wx qw(:misc :sizer :treectrl :button :keycode wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG wxID_CANCEL wxMOD_CONTROL
     wxTheApp);
-use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED EVT_TREE_KEY_DOWN);
+use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED EVT_TREE_KEY_DOWN EVT_KEY_DOWN);
 use base 'Wx::Panel';
 
 use constant ICON_OBJECT        => 0;
@@ -88,7 +88,7 @@ sub new {
     $self->{btn_move_down}->SetFont($Slic3r::GUI::small_font);
     
     # part settings panel
-    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self, on_change => sub { $self->{part_settings_changed} = 1; });
+    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self, on_change => sub { $self->{part_settings_changed} = 1; $self->_update_canvas; });
     my $settings_sizer = Wx::StaticBoxSizer->new($self->{staticbox} = Wx::StaticBox->new($self, -1, "Part Settings"), wxVERTICAL);
     $settings_sizer->Add($self->{settings_panel}, 1, wxEXPAND | wxALL, 0);
 
@@ -162,6 +162,7 @@ sub new {
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,700]);
+        $canvas->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
         $canvas->zoom_to_volumes;
     }
     
@@ -190,6 +191,14 @@ sub new {
     EVT_BUTTON($self, $self->{btn_split}, \&on_btn_split);
     EVT_BUTTON($self, $self->{btn_move_up}, \&on_btn_move_up);
     EVT_BUTTON($self, $self->{btn_move_down}, \&on_btn_move_down);
+    EVT_KEY_DOWN($canvas, sub {
+        my ($canvas, $event) = @_;
+        if ($event->GetKeyCode == WXK_DELETE) {
+            $canvas->GetParent->on_btn_delete;
+        } else {
+            $event->Skip;
+        }
+    });
     
     $self->reload_tree;
     
@@ -400,14 +409,17 @@ sub on_tree_key_down {
     my ($self, $event) = @_;
     my $keycode = $event->GetKeyCode;    
     # Wx >= 0.9911
-    if (defined(&Wx::TreeEvent::GetKeyEvent) && 
-        ($event->GetKeyEvent->GetModifiers & wxMOD_CONTROL)) {
-        if ($keycode == WXK_UP) {
-            $event->Skip;
-            $self->on_btn_move_up;
-        } elsif ($keycode == WXK_DOWN) {
-            $event->Skip;
-            $self->on_btn_move_down;
+    if (defined(&Wx::TreeEvent::GetKeyEvent)) { 
+        if ($event->GetKeyEvent->GetModifiers & wxMOD_CONTROL) {
+            if ($keycode == WXK_UP) {
+                $event->Skip;
+                $self->on_btn_move_up;
+            } elsif ($keycode == WXK_DOWN) {
+                $event->Skip;
+                $self->on_btn_move_down;
+            }
+        } elsif ($keycode == WXK_DELETE) {
+            $self->on_btn_delete;
         }
     }
 }
@@ -478,6 +490,7 @@ sub _parts_changed {
         $self->{canvas}->reset_objects;
         $self->{canvas}->load_object($self->{model_object});
         $self->{canvas}->zoom_to_volumes;
+        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
         $self->{canvas}->Render;
     }
 }
@@ -508,6 +521,25 @@ sub PartSettingsChanged {
     return $self->{part_settings_changed};
 }
 
+sub _update_canvas {
+    my ($self) = @_;
+    
+    if ($self->{canvas}) {
+        $self->{canvas}->reset_objects;
+        $self->{canvas}->load_object($self->{model_object});
+
+        # restore selection, if any
+        if (my $itemData = $self->get_selection) {
+            if ($itemData->{type} eq 'volume') {
+                $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
+            }
+        }
+                
+        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+        $self->{canvas}->Render;
+    }
+}
+
 sub _update {
     my ($self) = @_;
     my ($m_x, $m_y, $m_z) = ($self->{move_options}{x}, $self->{move_options}{y}, $self->{move_options}{z});
@@ -528,6 +560,7 @@ sub _update {
     push @objects, $self->{model_object};
     $self->{canvas}->reset_objects;
     $self->{canvas}->load_object($_, undef, [0]) for @objects;
+    $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
     $self->{canvas}->Render;
 }
 

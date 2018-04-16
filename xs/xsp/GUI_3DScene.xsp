@@ -84,7 +84,7 @@
 
     std::vector<int> load_object(ModelObject *object, int obj_idx, std::vector<int> instance_idxs, std::string color_by, std::string select_by, std::string drag_by, bool use_VBOs);
 
-    int load_wipe_tower_preview(int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs);
+    int load_wipe_tower_preview(int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs);
 
     void erase()
         %code{% THIS->clear(); %};
@@ -105,6 +105,7 @@
 
     void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z);
     void update_outside_state(DynamicPrintConfig* config, bool all_inside);
+    void update_colors_by_extruder(DynamicPrintConfig* config);
 
     bool move_volume_up(int idx)
         %code%{ 

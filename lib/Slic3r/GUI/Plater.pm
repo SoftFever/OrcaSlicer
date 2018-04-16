@@ -52,9 +52,8 @@ sub new {
     $self->{config} = Slic3r::Config::new_from_defaults_keys([qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
         serial_port serial_speed octoprint_host octoprint_apikey octoprint_cafile
-        nozzle_diameter single_extruder_multi_material 
-        wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width wipe_tower_per_color_wipe extruder_colour filament_colour
-        max_print_height
+        nozzle_diameter single_extruder_multi_material wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width
+	wipe_tower_rotation_angle extruder_colour filament_colour max_print_height
     )]);
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;
@@ -105,7 +104,6 @@ sub new {
         $self->{btn_reslice}->Enable($enable);
         $self->{btn_print}->Enable($enable);
         $self->{btn_send_gcode}->Enable($enable);
-        $self->{btn_export_stl}->Enable($enable);    
     };
     
     # Initialize 3D plater
@@ -738,8 +736,14 @@ sub load_model_objects {
         {
             # if the object is too large (more than 5 times the bed), scale it down
             my $size = $o->bounding_box->size;
-            my $ratio = max(@$size[X,Y]) / unscale(max(@$bed_size[X,Y]));
-            if ($ratio > 5) {
+            my $ratio = max($size->x / unscale($bed_size->x), $size->y / unscale($bed_size->y));
+            if ($ratio > 10000) {
+                # the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
+                # so scale down the mesh
+                $o->scale_xyz(Slic3r::Pointf3->new(1/$ratio, 1/$ratio, 1/$ratio));
+                $scaled_down = 1;
+            }
+            elsif ($ratio > 5) {
                 $_->set_scaling_factor(1/$ratio) for @{$o->instances};
                 $scaled_down = 1;
             }
@@ -1915,7 +1919,8 @@ sub object_list_changed {
     }
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
-    my $method = ($have_objects && ! $export_in_progress) ? 'Enable' : 'Disable';
+    my $model_fits = $self->{model}->fits_print_volume($self->{config});
+    my $method = ($have_objects && ! $export_in_progress && $model_fits) ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
 }

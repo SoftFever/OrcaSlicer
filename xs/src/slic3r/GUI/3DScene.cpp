@@ -9,6 +9,7 @@
 #include "../../libslic3r/GCode/PreviewData.hpp"
 #include "../../libslic3r/Print.hpp"
 #include "../../libslic3r/Slicing.hpp"
+#include "../../slic3r/GUI/PresetBundle.hpp"
 #include "GCode/Analyzer.hpp"
 
 #include <stdio.h>
@@ -304,7 +305,7 @@ void GLVolume::render_using_layer_height() const
         glUniform1f(z_texture_row_to_normalized_id, (GLfloat)(1.0f / layer_height_texture_height()));
 
     if (z_cursor_id >= 0)
-        glUniform1f(z_cursor_id, (GLfloat)(bounding_box.max.z * layer_height_texture_data.z_cursor_relative));
+        glUniform1f(z_cursor_id, (GLfloat)(layer_height_texture_data.print_object->model_object()->bounding_box().max.z * layer_height_texture_data.z_cursor_relative));
 
     if (z_cursor_band_width_id >= 0)
         glUniform1f(z_cursor_band_width_id, (GLfloat)layer_height_texture_data.edit_band_width);
@@ -324,6 +325,11 @@ void GLVolume::render_using_layer_height() const
 
     if ((current_program_id > 0) && (layer_height_texture_data.shader_id != current_program_id))
         glUseProgram(current_program_id);
+}
+
+double GLVolume::layer_height_texture_z_to_row_id() const
+{
+    return (this->layer_height_texture.get() == nullptr) ? 0.0 : double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * this->layer_height_texture_data.print_object->model_object()->bounding_box().max.z);
 }
 
 void GLVolume::generate_layer_height_texture(PrintObject *print_object, bool force)
@@ -381,6 +387,15 @@ std::vector<int> GLVolumeCollection::load_object(
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++ volume_idx) {
         const ModelVolume *model_volume = model_object->volumes[volume_idx];
+
+        int extruder_id = -1;
+        if (!model_volume->modifier)
+        {
+            extruder_id = model_volume->config.has("extruder") ? model_volume->config.option("extruder")->getInt() : 0;
+            if (extruder_id == 0)
+                extruder_id = model_object->config.has("extruder") ? model_object->config.option("extruder")->getInt() : 0;
+        }
+
         for (int instance_idx : instance_idxs) {
             const ModelInstance *instance = model_object->instances[instance_idx];
             TriangleMesh mesh = model_volume->mesh;
@@ -410,8 +425,14 @@ std::vector<int> GLVolumeCollection::load_object(
                 v.drag_group_id = obj_idx * 1000;
             else if (drag_by == "instance")
                 v.drag_group_id = obj_idx * 1000 + instance_idx;
-            if (! model_volume->modifier)
+
+            if (!model_volume->modifier)
+            {
                 v.layer_height_texture = layer_height_texture;
+                if (extruder_id != -1)
+                    v.extruder_id = extruder_id;
+            }
+            v.is_modifier = model_volume->modifier;
         }
     }
     
@@ -420,12 +441,17 @@ std::vector<int> GLVolumeCollection::load_object(
 
 
 int GLVolumeCollection::load_wipe_tower_preview(
-    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, bool use_VBOs)
+    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs)
 {
     float color[4] = { 1.0f, 1.0f, 0.0f, 0.5f };
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
-    auto mesh = make_cube(width, depth, height);
+
+    auto mesh = make_cube(width, depth, height);    
+    mesh.translate(-width/2.f,-depth/2.f,0.f);    
+    Point origin_of_rotation(0.f,0.f);
+    mesh.rotate(rotation_angle,&origin_of_rotation);
+
     if (use_VBOs)
         v.indexed_vertex_array.load_mesh_full_shading(mesh);
     else
@@ -438,6 +464,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.composite_id = obj_idx * 1000000;
     v.select_group_id = obj_idx * 1000000;
     v.drag_group_id = obj_idx * 1000;
+    v.is_wipe_tower = true;
     return int(this->volumes.size() - 1);
 }
 
@@ -639,6 +666,83 @@ void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, 
         }
 
         volume->is_outside = !print_volume.contains(volume->transformed_bounding_box());
+    }
+}
+
+void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* config)
+{
+    static const float inv_255 = 1.0f / 255.0f;
+
+    struct Color
+    {
+        std::string text;
+        unsigned char rgb[3];
+
+        Color()
+            : text("")
+        {
+            rgb[0] = 255;
+            rgb[1] = 255;
+            rgb[2] = 255;
+        }
+
+        void set(const std::string& text, unsigned char* rgb)
+        {
+            this->text = text;
+            ::memcpy((void*)this->rgb, (const void*)rgb, 3 * sizeof(unsigned char));
+        }
+    };
+
+    if (config == nullptr)
+        return;
+
+    const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(config->option("extruder_colour"));
+    if (extruders_opt == nullptr)
+        return;
+
+    const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(config->option("filament_colour"));
+    if (filamemts_opt == nullptr)
+        return;
+
+    unsigned int colors_count = std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size());
+    if (colors_count == 0)
+        return;
+
+    std::vector<Color> colors(colors_count);
+
+    unsigned char rgb[3];
+    for (unsigned int i = 0; i < colors_count; ++i)
+    {
+        const std::string& txt_color = config->opt_string("extruder_colour", i);
+        if (PresetBundle::parse_color(txt_color, rgb))
+        {
+            colors[i].set(txt_color, rgb);
+        }
+        else
+        {
+            const std::string& txt_color = config->opt_string("filament_colour", i);
+            if (PresetBundle::parse_color(txt_color, rgb))
+                colors[i].set(txt_color, rgb);
+        }
+    }
+
+    for (GLVolume* volume : volumes)
+    {
+        if ((volume == nullptr) || volume->is_modifier || volume->is_wipe_tower)
+            continue;
+
+        int extruder_id = volume->extruder_id - 1;
+        if ((extruder_id < 0) || ((unsigned int)colors.size() <= extruder_id))
+            extruder_id = 0;
+
+        const Color& color = colors[extruder_id];
+        if (!color.text.empty())
+        {
+            for (int i = 0; i < 3; ++i)
+            {
+                volume->color[i] = (float)color.rgb[i] * inv_255;
+            }
+        }
     }
 }
 
@@ -2594,8 +2698,10 @@ void _3DScene::_load_shells(const Print& print, GLVolumeCollection& volumes, boo
     coordf_t max_z = print.objects[0]->model_object()->get_model()->bounding_box().max.z;
     const PrintConfig& config = print.config;
     unsigned int extruders_count = config.nozzle_diameter.size();
-    if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects)
-        volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, config.wipe_tower_per_color_wipe * (extruders_count - 1), max_z, use_VBOs);
+    if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
+        const float width_per_extruder = 15.f; // a simple workaround after wipe_tower_per_color_wipe got obsolete
+        volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, width_per_extruder * (extruders_count - 1), max_z, config.wipe_tower_rotation_angle, use_VBOs);
+    }
 }
 
-}
+} // namespace Slic3r
