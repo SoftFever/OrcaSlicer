@@ -118,6 +118,7 @@ protected:
 
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
+	bool				m_postpone_update_ui {false};
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -153,7 +154,7 @@ public:
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
 	void		update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible);
-	void		load_key_value(const std::string& opt_key, const boost::any& value);
+	void		load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
 	void		reload_compatible_printers_widget();
 
 	void		OnTreeSelChange(wxTreeEvent& event);

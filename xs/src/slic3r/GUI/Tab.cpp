@@ -268,6 +268,8 @@ void add_correct_opts_to_sys_options(const std::string &opt_key, std::vector<std
 // Update UI according to changes
 void Tab::update_changed_ui()
 {
+	if (m_postpone_update_ui) 
+		return;
 	auto dirty_options = m_presets->current_dirty_options();
 
 	if (name() == "printer"){
@@ -504,6 +506,8 @@ void Tab::on_back_to_initial_value()
 {
 	if (!m_is_modified_values) return;
 
+	m_postpone_update_ui = true;
+
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	for (auto page : m_pages)
 		if (page->title() == selection)	{
@@ -513,16 +517,21 @@ void Tab::on_back_to_initial_value()
 						group->back_to_initial_value("extruders_count");
 				}
 				if (group->title == _("Size and coordinates")){
-					if (find(m_dirty_options.begin(), m_dirty_options.end(), "bed_shape") != m_dirty_options.end())
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), "bed_shape") != m_dirty_options.end()){
 						group->back_to_initial_value("bed_shape");
+						load_key_value("bed_shape", true/*some value*/, true);
+					}
+
 				}
 				if (group->title == _("Profile dependencies")){
-					if (find(m_dirty_options.begin(), m_dirty_options.end(), "compatible_printers") != m_dirty_options.end())
+					if (find(m_dirty_options.begin(), m_dirty_options.end(), "compatible_printers") != m_dirty_options.end()){
 						group->back_to_initial_value("compatible_printers");
+						load_key_value("compatible_printers", true/*some value*/, true);
 
-					bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-					m_compatible_printers_checkbox->SetValue(is_empty);
-					is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+						bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+						m_compatible_printers_checkbox->SetValue(is_empty);
+						is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+					}
 				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
@@ -532,12 +541,16 @@ void Tab::on_back_to_initial_value()
 			}
 			break;
 		}
+
+	m_postpone_update_ui = false;
 	update_changed_ui();
 }
 
 void Tab::on_back_to_sys_value()
 {
 	if (!m_is_nonsys_values) return;
+
+	m_postpone_update_ui = true;
 
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	for (auto page : m_pages)
@@ -548,16 +561,20 @@ void Tab::on_back_to_sys_value()
 						group->back_to_sys_value("extruders_count");
 				}
 				if (group->title == _("Size and coordinates")){
-					if (find(m_sys_options.begin(), m_sys_options.end(), "bed_shape") == m_sys_options.end())
+					if (find(m_sys_options.begin(), m_sys_options.end(), "bed_shape") == m_sys_options.end()){
 						group->back_to_sys_value("bed_shape");
+						load_key_value("bed_shape", true/*some value*/, true);
+					}
 				}
 				if (group->title == _("Profile dependencies")){
-					if (find(m_sys_options.begin(), m_sys_options.end(), "compatible_printers") == m_sys_options.end())
+					if (find(m_sys_options.begin(), m_sys_options.end(), "compatible_printers") == m_sys_options.end()){
 						group->back_to_sys_value("compatible_printers");
+						load_key_value("compatible_printers", true/*some value*/, true);
 
-					bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-					m_compatible_printers_checkbox->SetValue(is_empty);
-					is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+						bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+						m_compatible_printers_checkbox->SetValue(is_empty);
+						is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+					}
 				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
@@ -567,6 +584,8 @@ void Tab::on_back_to_sys_value()
 			}
 			break;
 		}
+
+	m_postpone_update_ui = false;
 	update_changed_ui();
 }
 
@@ -636,9 +655,11 @@ bool Tab::set_value(const t_config_option_key& opt_key, const boost::any& value)
 
 // To be called by custom widgets, load a value into a config,
 // update the preset selection boxes (the dirty flags)
-void Tab::load_key_value(const std::string& opt_key, const boost::any& value)
+// If value is saved before calling this function, put saved_value = true,
+// and value can be some random value because in this case it will not been used
+void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value /*= false*/)
 {
-	change_opt_value(*m_config, opt_key, value);
+	if (!saved_value) change_opt_value(*m_config, opt_key, value);
 	// Mark the print & filament enabled if they are compatible with the currently selected preset.
 	if (opt_key.compare("compatible_printers") == 0) {
 		m_preset_bundle->update_compatible_with_printer(0);
