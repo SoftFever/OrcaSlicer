@@ -1743,6 +1743,7 @@ void TabPrinter::build_extruder_pages(){
                 optgroup->append_single_option_line("cooling_tube_retraction");
                 optgroup->append_single_option_line("cooling_tube_length");
                 optgroup->append_single_option_line("parking_pos_retraction");
+                optgroup->append_single_option_line("extra_loading_move");
             m_pages.insert(m_pages.begin()+1,page);
         }
     }

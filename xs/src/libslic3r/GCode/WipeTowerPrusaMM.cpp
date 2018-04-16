@@ -792,9 +792,17 @@ void WipeTowerPrusaMM::toolchange_Unload(
     float xdist = std::abs(oldx-turning_point);
     float edist = -(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42);
     writer.suppress_preview()
-          .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15 * 83 )    // fixed speed after ramming
-          .load_move_x(oldx         ,edist  , 60.f * std::hypot(xdist,edist)/std::abs(edist) * m_filpar[m_current_tool].unloading_speed )
-          .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15       * m_filpar[m_current_tool].unloading_speed*0.55f )
+          .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15 * 83 );    // fixed speed after ramming
+
+    // now an ugly hack: unload the filament with a check that the x speed is 50 mm/s
+    const float speed = m_filpar[m_current_tool].unloading_speed;
+    xdist = std::min(xdist, std::abs( 50 * edist / speed ));
+    const float feedrate = std::abs( std::hypot(edist, xdist) / ((edist / speed) / 60.f));
+    writer.load_move_x(writer.x() + (m_left_to_right ? -1.f : 1.f) * xdist ,edist, feedrate );
+    xdist = std::abs(oldx-turning_point); // recover old value of xdist
+
+
+    writer.load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15       * m_filpar[m_current_tool].unloading_speed*0.55f )
           .load_move_x(oldx         ,-12    , 60.f * std::hypot(xdist,12)/12       * m_filpar[m_current_tool].unloading_speed*0.35f )
           .resume_preview();
 
@@ -876,11 +884,12 @@ void WipeTowerPrusaMM::toolchange_Load(
     float loading_speed = m_filpar[m_current_tool].loading_speed; // mm/s in e axis
     float turning_point = ( oldx-xl < xr-oldx ? xr : xl );
     float dist = std::abs(oldx-turning_point);
-    float edist = m_parking_pos_retraction-50-2; // loading is 2mm shorter that previous retraction, 50mm reserved for acceleration/deceleration
+    //float edist = m_parking_pos_retraction-50-2; // loading is 2mm shorter that previous retraction, 50mm reserved for acceleration/deceleration
+    float edist = m_parking_pos_retraction-50+m_extra_loading_move; // 50mm reserved for acceleration/deceleration
 	writer.append("; CP TOOLCHANGE LOAD\n")
 		  .suppress_preview()
 		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Acceleration
-		  .load_move_x(oldx,edist,60*std::hypot(dist,edist)/edist * loading_speed)             // Fast phase
+		  .load_move_x(oldx,edist,std::abs( 60*std::hypot(dist,edist)/edist * loading_speed) ) // Fast phase
 		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Slowing down
 		  .load_move_x(oldx, 10, 60*std::hypot(dist,10.f)/10.f * loading_speed*0.1f)           // Super slow
 		  .resume_preview();

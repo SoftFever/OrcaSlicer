@@ -506,6 +506,7 @@ public:
     ConfigOptionFloat               cooling_tube_retraction;
     ConfigOptionFloat               cooling_tube_length;
     ConfigOptionFloat               parking_pos_retraction;
+    ConfigOptionFloat               extra_loading_move;
 
 
     std::string get_extrusion_axis() const
@@ -564,6 +565,7 @@ protected:
         OPT_PTR(cooling_tube_retraction);
         OPT_PTR(cooling_tube_length);
         OPT_PTR(parking_pos_retraction);
+        OPT_PTR(extra_loading_move);
     }
 };
 

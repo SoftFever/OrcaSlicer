@@ -1045,6 +1045,15 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(92.f);
 
+    def = this->add("extra_loading_move", coFloat);
+    def->label = L("Extra loading distance");
+    def->tooltip = L("When set to zero, the distance the filament is moved from parking position during load "
+                      "is exactly the same as it was moved back during unload. When positive, it is loaded further, "
+                      " if negative, the loading move is shorter than unloading. ");
+    def->sidetext = L("mm");
+    def->cli = "extra_loading_move=f";
+    def->default_value = new ConfigOptionFloat(-2.f);
+
     def = this->add("perimeter_acceleration", coFloat);
     def->label = L("Perimeters");
     def->tooltip = L("This is the acceleration your printer will use for perimeters. "
