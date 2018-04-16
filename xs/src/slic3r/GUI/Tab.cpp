@@ -88,9 +88,9 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	if (wxMSW) m_btn_delete_preset->SetBackgroundColour(color);
 
 	m_show_incompatible_presets = false;
-	m_bmp_show_incompatible_presets = new wxBitmap(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
-	m_bmp_hide_incompatible_presets = new wxBitmap(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
-	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, *m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	m_bmp_show_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
+	m_bmp_hide_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
+	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_hide_incompatible_presets->SetBackgroundColour(color);
 
 	m_btn_save_preset->SetToolTip(_(L("Save current ")) + m_title);
@@ -103,9 +103,16 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		m_undo_btn->SetBackgroundColour(color);
 		m_undo_to_sys_btn->SetBackgroundColour(color);
 	}
-	m_undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
+	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
+	m_bmp_value_lock  	  .LoadFile(from_u8(var("sys_lock.png")),     wxBITMAP_TYPE_PNG);
+	m_bmp_value_unlock	  .LoadFile(from_u8(var("sys_unlock.png")),   wxBITMAP_TYPE_PNG);
+	m_bmp_non_system = &m_bmp_white_bullet;
+	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
+	m_bmp_value_revert	  .LoadFile(from_u8(var("action_undo.png")),  wxBITMAP_TYPE_PNG);
+	m_bmp_white_bullet	  .LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
+	m_undo_btn->SetBitmap(m_bmp_white_bullet);
 	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
-	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
+	m_undo_to_sys_btn->SetBitmap(m_bmp_white_bullet);
 	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
 
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -204,8 +211,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 void Tab::load_initial_data()
 {
 	m_config = &m_presets->get_edited_preset().config;
-	m_nonsys_btn_icon = m_presets->get_selected_preset_parent() == nullptr ?
-						"bullet_white.png" : "sys_unlock.png";
+	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
 }
 
 PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages/* = false*/)
@@ -336,12 +342,12 @@ void Tab::update_changed_ui()
 	{
 		bool is_nonsys_value = false;
 		bool is_modified_value = true;
-		std::string sys_icon = "sys_lock.png";
-		std::string icon = "action_undo.png";
+		const wxBitmap *sys_icon = &m_bmp_value_lock;
+		const wxBitmap *icon     = &m_bmp_value_revert;
 		wxColour color = get_sys_label_clr();
 		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
 			is_nonsys_value = true;
-			sys_icon = m_nonsys_btn_icon;
+			sys_icon = m_bmp_non_system;
 			if(find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
 				color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 			else
@@ -350,7 +356,7 @@ void Tab::update_changed_ui()
 		if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
 		{
 			is_modified_value = false;
-			icon = "bullet_white.png";
+			icon = &m_bmp_white_bullet;
 		}
 		if (opt_key == "bed_shape" || opt_key == "compatible_printers") {
 			if (m_colored_Label != nullptr)	{
@@ -364,8 +370,8 @@ void Tab::update_changed_ui()
 		if (field == nullptr) continue;
 		field->m_is_nonsys_value = is_nonsys_value;
 		field->m_is_modified_value = is_modified_value;
-		field->m_Undo_btn->SetBitmap(wxBitmap(from_u8(var(icon)), wxBITMAP_TYPE_PNG));
-		field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(sys_icon)), wxBITMAP_TYPE_PNG));
+		field->set_undo_bitmap(icon);
+		field->set_undo_to_sys_bitmap(sys_icon);
 		if (field->m_Label != nullptr){
 			field->m_Label->SetForegroundColour(color);
 			field->m_Label->Refresh(true);
@@ -422,7 +428,7 @@ void Tab::update_sys_ui_after_sel_preset()
 	for (const auto opt_key : m_full_options_list){
 		Field* field = get_field(opt_key);
 		if (field != nullptr){
-			field->m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(m_nonsys_btn_icon)), wxBITMAP_TYPE_PNG));
+			field->set_undo_to_sys_bitmap(m_bmp_non_system);
 			field->m_is_nonsys_value = true;
 			if (field->m_Label != nullptr){
 				field->m_Label->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
@@ -495,11 +501,8 @@ void Tab::update_changed_tree_ui()
 
 void Tab::update_undo_buttons()
 {
-	const std::string& undo_icon = !m_is_modified_values ? "bullet_white.png" : "action_undo.png";
-	const std::string& undo_to_sys_icon = m_is_nonsys_values ? m_nonsys_btn_icon : "sys_lock.png";
-
-	m_undo_btn->SetBitmap(wxBitmap(from_u8(var(undo_icon)), wxBITMAP_TYPE_PNG));
-	m_undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(undo_to_sys_icon)), wxBITMAP_TYPE_PNG));
+	m_undo_btn->SetBitmap(m_is_modified_values ? m_bmp_value_revert : m_bmp_white_bullet);
+	m_undo_to_sys_btn->SetBitmap(m_is_nonsys_values ? *m_bmp_non_system : m_bmp_value_lock);
 }
 
 void Tab::on_back_to_initial_value()
@@ -1874,8 +1877,7 @@ void Tab::load_current_preset()
 	on_preset_loaded();
 	// Reload preset pages with the new configuration values.
 	reload_config();
-	const Preset* parent = m_presets->get_selected_preset_parent();
-	m_nonsys_btn_icon = parent == nullptr ? "bullet_white.png" : "sys_unlock.png";
+	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
@@ -2163,7 +2165,7 @@ void Tab::toggle_show_hide_incompatible()
 void Tab::update_show_hide_incompatible_button()
 {
 	m_btn_hide_incompatible_presets->SetBitmap(m_show_incompatible_presets ?
-		*m_bmp_show_incompatible_presets : *m_bmp_hide_incompatible_presets);
+		m_bmp_show_incompatible_presets : m_bmp_hide_incompatible_presets);
 	m_btn_hide_incompatible_presets->SetToolTip(m_show_incompatible_presets ?
 		"Both compatible an incompatible presets are shown. Click to hide presets not compatible with the current printer." :
 		"Only compatible presets are shown. Click to show both the presets compatible and not compatible with the current printer.");
@@ -2481,9 +2483,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 		return static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent() != nullptr;
 	};
 
-	optgroup->nonsys_btn_icon = [this](){
-		return static_cast<Tab*>(GetParent())->m_nonsys_btn_icon;
-	};
+//	optgroup->nonsys_btn_icon = m_bmp_non_system;
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
 	m_optgroups.push_back(optgroup);
