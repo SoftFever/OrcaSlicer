@@ -90,8 +90,8 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		field->m_Undo_btn->Hide();
 		field->m_Undo_to_sys_btn->Hide();
 	}
-	if (nonsys_btn_icon != nullptr)
-		field->set_nonsys_btn_icon(nonsys_btn_icon());
+//	if (nonsys_btn_icon != nullptr)
+//		field->set_nonsys_btn_icon(*nonsys_btn_icon);
     
 	// assign function objects for callbacks, etc.
     return field;

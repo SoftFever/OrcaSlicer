@@ -91,8 +91,6 @@ public:
     virtual void		disable() = 0;
 
 	wxStaticText*		m_Label = nullptr;
-	wxButton*			m_Undo_btn = nullptr;
-	wxButton*			m_Undo_to_sys_btn = nullptr;
 
     /// Fires the enable or disable function, based on the input.
     inline void			toggle(bool en) { en ? enable() : disable(); }
@@ -100,7 +98,7 @@ public:
 	virtual wxString	get_tooltip_text(const wxString& default_string);
 
     // set icon to "UndoToSystemValue" button according to an inheritance of preset
-	void				set_nonsys_btn_icon(const std::string& icon);
+//	void				set_nonsys_btn_icon(const wxBitmap& icon);
 
     Field(const ConfigOptionDef& opt, const t_config_option_key& id) : m_opt(opt), m_opt_id(id) {};
     Field(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : m_parent(parent), m_opt(opt), m_opt_id(id) {};
@@ -120,6 +118,34 @@ public:
         p->PostInitialize();
 		return std::move(p); //!p;
     }
+
+    bool 	set_undo_bitmap(const wxBitmap *bmp) {
+    	if (m_undo_bitmap != bmp) {
+    		m_undo_bitmap = bmp;
+    		m_Undo_btn->SetBitmap(*bmp);
+    		return true;
+    	}
+    	return false;
+    }
+
+    bool 	set_undo_to_sys_bitmap(const wxBitmap *bmp) {
+    	if (m_undo_to_sys_bitmap != bmp) {
+    		m_undo_to_sys_bitmap = bmp;
+    		m_Undo_to_sys_btn->SetBitmap(*bmp);
+    		return true;
+    	}
+    	return false;
+    }
+
+protected:
+	wxButton*			m_Undo_btn = nullptr;
+	// Bitmap for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
+	const wxBitmap*		m_undo_bitmap = nullptr;
+	wxButton*			m_Undo_to_sys_btn = nullptr;
+	// Bitmap for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
+	const wxBitmap*		m_undo_to_sys_bitmap = nullptr;
+
+	friend class OptionsGroup;
 };
 
 /// Convenience function, accepts a const reference to t_field and checks to see whether 

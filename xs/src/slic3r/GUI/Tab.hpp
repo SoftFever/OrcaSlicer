@@ -85,8 +85,6 @@ protected:
 	wxBitmapComboBox*	m_presets_choice;
 	wxBitmapButton*		m_btn_save_preset;
 	wxBitmapButton*		m_btn_delete_preset;
-	wxBitmap*			m_bmp_show_incompatible_presets;
-	wxBitmap*			m_bmp_hide_incompatible_presets;
 	wxBitmapButton*		m_btn_hide_incompatible_presets;
 	wxBoxSizer*			m_hsizer;
 	wxBoxSizer*			m_left_sizer;
@@ -95,10 +93,24 @@ protected:
 	wxCheckBox*			m_compatible_printers_checkbox;
 	wxButton*			m_compatible_printers_btn;
 	wxButton*			m_undo_btn;
-	wxButton*			m_undo_to_sys_btn;
+	wxButton*			m_undo_to_sys_btn;	
 	wxComboCtrl*		m_cc_presets_choice;
 	wxDataViewTreeCtrl*	m_presetctrl;
 	wxImageList*		m_preset_icons;
+
+	// Cached bitmaps.
+	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.
+	wxBitmap			m_bmp_show_incompatible_presets;
+	wxBitmap			m_bmp_hide_incompatible_presets;
+	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
+	wxBitmap 			m_bmp_value_lock;
+	wxBitmap 			m_bmp_value_unlock;
+	wxBitmap 			m_bmp_white_bullet;
+	// The following bitmap points to either m_bmp_value_unlock or m_bmp_white_bullet, depending on whether the current preset has a parent preset.
+	wxBitmap 		   *m_bmp_non_system;
+	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
+	wxBitmap 			m_bmp_value_revert;
+	wxBitmap 			m_bmp_value_unmodified;
 
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index
@@ -124,7 +136,6 @@ public:
 	bool				m_show_btn_incompatible_presets = false;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
-	std::string			m_nonsys_btn_icon;
 	ogStaticText*		m_parent_preset_description_line;
 	wxStaticText*		m_colored_Label = nullptr;
 
