@@ -489,7 +489,7 @@ void config_wizard(bool fresh_start)   // TODO: fresh_start useful ?
     	return;
 
 	// TODO: Offer "reset user profile" ???
-	ConfigWizard wizard(g_wxMainFrame);
+	ConfigWizard wizard(g_wxMainFrame, fresh_start);
 	wizard.run(g_PresetBundle, g_PresetUpdater);
 
     // Load the currently selected preset into the GUI, update the preset selection box.

@@ -18,6 +18,7 @@ class wxItemContainer;
 namespace Slic3r {
 
 class AppConfig;
+class PresetBundle;
 
 enum ConfigFileType
 {
@@ -244,19 +245,49 @@ public:
         { return const_cast<PresetCollection*>(this)->find_preset(name, first_visible_if_not_found); }
 
     size_t          first_visible_idx() const;
-    size_t          first_compatible_idx() const;
+    // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
+    // If one of the prefered_alternates is compatible, select it.
+    template<typename PreferedCondition>
+    size_t          first_compatible_idx(PreferedCondition prefered_condition) const
+    {
+        size_t i = m_default_suppressed ? 1 : 0;
+        size_t n = this->m_presets.size();
+        size_t i_compatible = n;
+        for (; i < n; ++ i)
+            if (m_presets[i].is_compatible) {
+                if (prefered_condition(m_presets[i].name))
+                    return i;
+                if (i_compatible == n)
+                    // Store the first compatible profile into i_compatible.
+                    i_compatible = i;
+            }
+        return (i_compatible == n) ? 0 : i_compatible;
+    }
+    // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
+    size_t          first_compatible_idx() const { return this->first_compatible_idx([](const std::string&){return true;}); }
+
     // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
     // Return the first visible preset. Certainly at least the '- default -' preset shall be visible.
     Preset&         first_visible()             { return this->preset(this->first_visible_idx()); }
     const Preset&   first_visible() const       { return this->preset(this->first_visible_idx()); }
     Preset&         first_compatible()          { return this->preset(this->first_compatible_idx()); }
+    template<typename PreferedCondition>
+    Preset&         first_compatible(PreferedCondition prefered_condition) { return this->preset(this->first_compatible_idx(prefered_condition)); }
     const Preset&   first_compatible() const    { return this->preset(this->first_compatible_idx()); }
 
     // Return number of presets including the "- default -" preset.
     size_t          size() const                { return this->m_presets.size(); }
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
-    void            update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible);
+    template<typename PreferedCondition>
+    void            update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible, PreferedCondition prefered_condition)
+    {
+        if (this->update_compatible_with_printer_internal(active_printer, select_other_if_incompatible) == (size_t)-1)
+            // Find some other compatible preset, or the "-- default --" preset.
+            this->select_preset(this->first_compatible_idx(prefered_condition));        
+    }
+    void            update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible)
+        { this->update_compatible_with_printer(active_printer, select_other_if_incompatible, [](const std::string&){return true;}); }
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
@@ -292,6 +323,11 @@ public:
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string &new_name) const;
 
+protected:
+    // Select a preset, if it exists. If it does not exist, select an invalid (-1) index.
+    // This is a temporary state, which shall be fixed immediately by the following step.
+    bool            select_preset_by_name_strict(const std::string &name);
+
 private:
     PresetCollection();
     PresetCollection(const PresetCollection &other);
@@ -308,6 +344,8 @@ private:
     }
     std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
+
+    size_t update_compatible_with_printer_internal(const Preset &active_printer, bool unselect_if_incompatible);
 
     static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference);
 
@@ -334,6 +372,9 @@ private:
     wxBitmap               *m_bitmap_main_frame;
     // Path to the directory to store the config files into.
     std::string             m_dir_path;
+
+    // to access select_preset_by_name_strict()
+    friend class PresetBundle;
 };
 
 } // namespace Slic3r

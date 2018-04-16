@@ -720,7 +720,8 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		app_config->set_vendors(appconfig_vendors);
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
-		app_config->reset_selections();
+		if (fresh_start)
+			app_config->reset_selections();
 		// ^ TODO: replace with appropriate printer selection
 		preset_bundle->load_presets(*app_config);
 	} else {
@@ -729,14 +730,17 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		}
 		preset_bundle->load_config("My Settings", *custom_config);
 	}
+	// Update the selections from the compatibilty.
+	preset_bundle->export_selections(*app_config);
 }
 
 // Public
 
-ConfigWizard::ConfigWizard(wxWindow *parent) :
+ConfigWizard::ConfigWizard(wxWindow *parent, bool fresh_start) :
 	wxDialog(parent, wxID_ANY, _(L("Configuration Assistant")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
+	p->fresh_start = fresh_start;
 	p->load_vendors();
 	p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
 		"gcode_flavor", "bed_shape", "nozzle_diameter", "filament_diameter", "temperature", "bed_temperature",

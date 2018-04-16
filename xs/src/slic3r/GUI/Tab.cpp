@@ -540,7 +540,8 @@ void Tab::load_key_value(std::string opt_key, boost::any value)
 	change_opt_value(*m_config, opt_key, value);
 	// Mark the print & filament enabled if they are compatible with the currently selected preset.
 	if (opt_key.compare("compatible_printers") == 0) {
-		m_preset_bundle->update_compatible_with_printer(0);
+		// Don't select another profile if this profile happens to become incompatible.
+		m_preset_bundle->update_compatible_with_printer(false);
 	} 
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();
@@ -1772,7 +1773,7 @@ void Tab::rebuild_page_tree()
 // Called by the UI combo box when the user switches profiles.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(std::string preset_name /*= ""*/)
+void Tab::select_preset(const std::string &preset_name /*= ""*/)
 {
 	std::string name = preset_name;
 	auto force = false;

@@ -76,6 +76,13 @@ public:
 
 	~Semver() { ::semver_free(&ver); }
 
+	// const accessors
+	int 		major() 	 const { return ver.major; }
+	int 		minor() 	 const { return ver.minor; }
+	int 		patch() 	 const { return ver.patch; }
+	const char*	prerelease() const { return ver.prerelease; }
+	const char*	metadata() 	 const { return ver.metadata; }
+
 	// Comparison
 	bool operator<(const Semver &b)  const { return ::semver_compare(ver, b.ver) == -1; }
 	bool operator<=(const Semver &b) const { return ::semver_compare(ver, b.ver) <= 0; }

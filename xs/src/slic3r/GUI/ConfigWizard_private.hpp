@@ -188,6 +188,7 @@ private:
 struct ConfigWizard::priv
 {
 	ConfigWizard *q;
+	bool fresh_start;
 	AppConfig appconfig_vendors;    // TODO: use order-preserving container
 	std::unordered_map<std::string, VendorProfile> vendors;   // TODO: just set?
 	std::unordered_map<std::string, std::string> vendors_rsrc;

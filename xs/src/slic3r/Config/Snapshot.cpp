@@ -133,6 +133,21 @@ void Snapshot::load_ini(const std::string &path)
     }
 }
 
+static std::string reason_string(const Snapshot::Reason reason) 
+{
+    switch (reason) {
+    case Snapshot::SNAPSHOT_UPGRADE:
+        return "upgrade";
+    case Snapshot::SNAPSHOT_DOWNGRADE:
+        return "downgrade";
+    case Snapshot::SNAPSHOT_USER:
+        return "user";
+    case Snapshot::SNAPSHOT_UNKNOWN:
+    default:
+        return "unknown";
+    }
+}
+
 void Snapshot::save_ini(const std::string &path)
 {
 	boost::nowide::ofstream c;
@@ -145,7 +160,7 @@ void Snapshot::save_ini(const std::string &path)
 	c << "time_captured = " << Slic3r::Utils::format_time_ISO8601Z(this->time_captured) << std::endl;
 	c << "slic3r_version_captured = " << this->slic3r_version_captured.to_string() << std::endl;
 	c << "comment = " << this->comment << std::endl;
-	c << "reason = " << this->reason << std::endl;
+	c << "reason = " << reason_string(this->reason) << std::endl;
 
     // Export the active presets at the time of the snapshot.
 	c << std::endl << "[presets]" << std::endl;
@@ -294,6 +309,11 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
         Snapshot::VendorConfig cfg;
         cfg.name = vendor.first;
         cfg.models_variants_installed = vendor.second;
+        for (auto it = cfg.models_variants_installed.begin(); it != cfg.models_variants_installed.end();)
+            if (it->second.empty())
+                cfg.models_variants_installed.erase(it ++);
+            else
+                ++ it;
         // Read the active config bundle, parse the config version.
         PresetBundle bundle;
         bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);

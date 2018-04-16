@@ -175,6 +175,9 @@ semver_parse_version (const char *str, semver_t *ver) {
   slice = (char *) str;
   index = 0;
 
+  // non mandatory
+  ver->patch = 0;
+
   while (slice != NULL && index++ < 4) {
     next = strchr(slice, DELIMITER[0]);
     if (next == NULL)
@@ -200,7 +203,8 @@ semver_parse_version (const char *str, semver_t *ver) {
       slice = next + 1;
   }
 
-  return (index == 3) ? 0 : -1;
+  // Major and minor versions are mandatory, patch version is not mandatory.
+  return (index == 2 || index == 3) ? 0 : -1;
 }
 
 static int
