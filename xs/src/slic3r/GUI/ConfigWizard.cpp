@@ -50,9 +50,9 @@ wxDEFINE_EVENT(EVT_PRINTER_PICK, PrinterPickerEvent);
 
 PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, const AppConfig &appconfig_vendors) :
 	wxPanel(parent),
+	vendor_id(vendor.id),
 	variants_checked(0)
 {
-	const auto vendor_id = vendor.id;
 	const auto &models = vendor.models;
 
 	auto *sizer = new wxBoxSizer(wxVERTICAL);
