@@ -77,8 +77,8 @@ public:
 	~Semver() { ::semver_free(&ver); }
 
 	// const accessors
-	int 		major() 	 const { return ver.major; }
-	int 		minor() 	 const { return ver.minor; }
+	int 		maj()        const { return ver.major; }
+	int 		min()        const { return ver.minor; }
 	int 		patch() 	 const { return ver.patch; }
 	const char*	prerelease() const { return ver.prerelease; }
 	const char*	metadata() 	 const { return ver.metadata; }
