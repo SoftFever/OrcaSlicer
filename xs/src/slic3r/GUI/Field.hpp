@@ -90,9 +90,7 @@ public:
     virtual void		enable() = 0;
     virtual void		disable() = 0;
 
-	wxStaticText*		m_Label = nullptr;
-
-    /// Fires the enable or disable function, based on the input.
+	/// Fires the enable or disable function, based on the input.
     inline void			toggle(bool en) { en ? enable() : disable(); }
 
 	virtual wxString	get_tooltip_text(const wxString& default_string);
@@ -137,6 +135,16 @@ public:
     	return false;
     }
 
+	bool	set_label_colour(const wxColour *clr) {
+		if (m_Label == nullptr) return false;
+		if (m_label_color != clr) {
+			m_label_color = clr;
+			m_Label->SetForegroundColour(*clr);
+			m_Label->Refresh(true);
+		}
+		return false;
+	}
+
 protected:
 	wxButton*			m_Undo_btn = nullptr;
 	// Bitmap for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
@@ -144,6 +152,10 @@ protected:
 	wxButton*			m_Undo_to_sys_btn = nullptr;
 	// Bitmap for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
 	const wxBitmap*		m_undo_to_sys_bitmap = nullptr;
+
+	wxStaticText*		m_Label = nullptr;
+	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
+	const wxColour*		m_label_color;
 
 	friend class OptionsGroup;
 };

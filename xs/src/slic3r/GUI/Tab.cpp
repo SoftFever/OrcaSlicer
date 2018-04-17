@@ -23,6 +23,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include "wxExtensions.hpp"
+#include <wx/wupdlock.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -114,6 +115,11 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
 	m_undo_to_sys_btn->SetBitmap(m_bmp_white_bullet);
 	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
+
+	// Colors for ui "decoration"
+	m_sys_label_clr			= get_sys_label_clr();
+	m_modified_label_clr	= get_modified_label_clr();
+	m_default_text_clr		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
@@ -344,14 +350,14 @@ void Tab::update_changed_ui()
 		bool is_modified_value = true;
 		const wxBitmap *sys_icon = &m_bmp_value_lock;
 		const wxBitmap *icon     = &m_bmp_value_revert;
-		wxColour color = get_sys_label_clr();
+		const wxColour *color    = &m_sys_label_clr;
 		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
 			is_nonsys_value = true;
 			sys_icon = m_bmp_non_system;
 			if(find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
-				color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+				color = &m_default_text_clr;
 			else
-				color = get_modified_label_clr();
+				color = &m_modified_label_clr;
 		}
 		if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
 		{
@@ -360,7 +366,7 @@ void Tab::update_changed_ui()
 		}
 		if (opt_key == "bed_shape" || opt_key == "compatible_printers") {
 			if (m_colored_Label != nullptr)	{
-				m_colored_Label->SetForegroundColour(color);
+				m_colored_Label->SetForegroundColour(*color);
 				m_colored_Label->Refresh(true);
 			}
 			continue;
@@ -372,10 +378,7 @@ void Tab::update_changed_ui()
 		field->m_is_modified_value = is_modified_value;
 		field->set_undo_bitmap(icon);
 		field->set_undo_to_sys_bitmap(sys_icon);
-		if (field->m_Label != nullptr){
-			field->m_Label->SetForegroundColour(color);
-			field->m_Label->Refresh(true);
-		}
+		field->set_label_colour(color);
 	}
 	Thaw();
 
@@ -425,15 +428,13 @@ void Tab::update_full_options_list()
 
 void Tab::update_sys_ui_after_sel_preset()
 {
+	const wxColour* clr = &m_default_text_clr;
 	for (const auto opt_key : m_full_options_list){
 		Field* field = get_field(opt_key);
 		if (field != nullptr){
 			field->set_undo_to_sys_bitmap(m_bmp_non_system);
 			field->m_is_nonsys_value = true;
-			if (field->m_Label != nullptr){
-				field->m_Label->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
-				field->m_Label->Refresh(true);
-			}
+			field->set_label_colour(clr);
 		}
 	}
 	m_sys_options.resize(0);
@@ -2039,6 +2040,8 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 void Tab::OnTreeSelChange(wxTreeEvent& event)
 {
 	if (m_disable_tree_sel_changed_event) return;
+	wxWindowUpdateLocker noUpdates(this);
+
 	Page* page = nullptr;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	for (auto p : m_pages)

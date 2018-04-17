@@ -112,6 +112,11 @@ protected:
 	wxBitmap 			m_bmp_value_revert;
 	wxBitmap 			m_bmp_value_unmodified;
 
+	// Colors for ui "decoration"
+	wxColour			m_sys_label_clr;
+	wxColour			m_modified_label_clr;
+	wxColour			m_default_text_clr;
+
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index
 	std::vector<PageShp>			m_pages;
