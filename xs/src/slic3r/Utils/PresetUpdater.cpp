@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/app.h>
 #include <wx/event.h>
@@ -113,8 +114,6 @@ void PresetUpdater::priv::set_download_prefs(AppConfig *app_config)
 bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &target_path) const
 {
 	std::cerr << "get_file(): " << url << " -> " << target_path << std::endl;
-
-	// TODO: Proper caching
 
 	bool res = false;
 	fs::path tmp_path = target_path;
@@ -251,7 +250,8 @@ Updates PresetUpdater::priv::config_update() const
 
 		const auto ver_current = idx.find(vp.config_version);
 		if (ver_current == idx.end()) {
-			// TODO: throw / ignore ?
+			BOOST_LOG_TRIVIAL(warning) << boost::format("Preset bundle (`%1%`) version not found in index: %2%") % idx.vendor() % vp.config_version.to_string();
+			continue;
 		}
 
 		const auto recommended = idx.recommended();

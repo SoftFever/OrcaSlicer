@@ -24,6 +24,8 @@ public:
 	~ConfigWizard();
 
 	void run(PresetBundle *preset_bundle, PresetUpdater *updater);
+
+	static const wxString& name();
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

@@ -1,7 +1,6 @@
 # This is an example configuration version index.
 # The index contains version numbers 
 min_slic3r_version =1.39.0
-max_slic3r_version= 1.39.5
 1.1.1
 1.1.0
 0.2.0-alpha "some test comment"

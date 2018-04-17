@@ -203,7 +203,7 @@ void ConfigWizardPage::enable_next(bool enable) { parent->p->enable_next(enable)
 // Wizard pages
 
 PageWelcome::PageWelcome(ConfigWizard *parent) :
-	ConfigWizardPage(parent, _(L("Welcome to the Slic3r Configuration assistant")), _(L("Welcome"))),
+	ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the Slic3r %s")), ConfigWizard::name()), _(L("Welcome"))),
 	printer_picker(nullptr),
 	others_buttons(new wxPanel(parent))
 {
@@ -257,16 +257,26 @@ PageUpdate::PageUpdate(ConfigWizard *parent) :
 	preset_update(true)
 {
 	const AppConfig *app_config = GUI::get_app_config();
+	auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
-	append_text(_(L("TODO: text")));
-	auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _(L("Check for Slic3r updates")));
+	auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _(L("Check for application updates")));
 	box_slic3r->SetValue(app_config->get("version_check") == "1");
 	append(box_slic3r);
+	append_text(_(L("If enabled, Slic3r checks for new versions of Slic3r PE online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.")));
 
-	append_text(_(L("TODO: text")));
+	append_spacer(VERTICAL_SPACING);
+
 	auto *box_presets = new wxCheckBox(this, wxID_ANY, _(L("Update built-in Presets automatically")));
 	box_presets->SetValue(app_config->get("preset_update") == "1");
 	append(box_presets);
+	append_text(_(L("If enabled, Slic3r downloads updates of built-in system presets in the background. These updates are downloaded into a separate temporary location. When a new preset version becomes available it is offered at application startup.")));
+	const auto text_bold = _(L("Updates are never applied without user's consent and never overwrite user's customized settings."));
+	auto *label_bold = new wxStaticText(this, wxID_ANY, text_bold);
+	label_bold->SetFont(boldfont);
+	label_bold->Wrap(CONTENT_WIDTH);
+	append(label_bold);
+	append_text(_(L("Additionally a backup snapshot of the whole configuration is created before an update is applied.")));
 
 	box_slic3r->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->version_check = event.IsChecked(); });
 	box_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->preset_update = event.IsChecked(); });
@@ -277,15 +287,12 @@ PageVendors::PageVendors(ConfigWizard *parent) :
 {
 	append_text(_(L("Pick another vendor supported by Slic3r PE:")));
 
-	// const PresetBundle &bundle = wizard_p()->bundle_vendors;
-	// const auto &vendors = wizard_p()->vendors;
 	auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
 	AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 	wxArrayString choices_vendors;
 
-	// for (const auto &vendor : vendors) {
 	for (const auto vendor_pair : wizard_p()->vendors) {
 		const auto &vendor = vendor_pair.second;
 		if (vendor.id == "PrusaResearch") { continue; }
@@ -737,7 +744,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent, bool fresh_start) :
-	wxDialog(parent, wxID_ANY, _(L("Configuration Assistant")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+	wxDialog(parent, wxID_ANY, name(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
 	p->fresh_start = fresh_start;
@@ -803,6 +810,17 @@ void ConfigWizard::run(PresetBundle *preset_bundle, PresetUpdater *updater)
 	}
 }
 
+
+const wxString& ConfigWizard::name()
+{
+	// A different naming convention is used for the Wizard on Windows vs. OSX & GTK.
+#if WIN32
+	static const wxString config_wizard_name = _(L("Configuration Wizard"));
+#else
+	static const wxString config_wizard_name = _(L("Configuration Assistant"));
+#endif
+	return config_wizard_name;
+}
 
 }
 }

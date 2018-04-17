@@ -377,16 +377,9 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
 
-	// A different naming convention is used for the Wizard on Windows vs. OSX & GTK.	
-#if WIN32
-    auto config_wizard_menu    = _(L("Configuration Wizard"));
-    auto config_wizard_tooltip = _(L("Run configuration wizard"));
-#else
-    auto config_wizard_menu    = _(L("Configuration Assistant"));
-    auto config_wizard_tooltip = _(L("Run configuration Assistant"));
-#endif
+    const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		config_wizard_menu + "\u2026", 			config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 		config_wizard_tooltip);
    	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots\u2026")), 	_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 	_(L("Capture a configuration snapshot")));
    	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 				_(L("Check for configuration updates")));
