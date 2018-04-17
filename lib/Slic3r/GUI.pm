@@ -102,18 +102,13 @@ sub OnInit {
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
 
-    # my $version_check = $self->{app_config}->get('version_check');
     $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT);
     Slic3r::GUI::set_preset_updater($self->{preset_updater});
-    eval {
-        $self->{preset_updater}->slic3r_update_notify();
-        $self->{preset_updater}->config_update();
-    };
+    eval { $self->{preset_updater}->config_update(); };
     if ($@) {
         warn $@ . "\n";
         fatal_error(undef, $@);
     }
-    # my $slic3r_update = $self->{app_config}->slic3r_update_avail;
 
     Slic3r::GUI::load_language();
 
@@ -139,7 +134,6 @@ sub OnInit {
     );
     $self->SetTopWindow($frame);
 
-    #EVT_IDLE($frame, sub {
     EVT_IDLE($self->{mainframe}, sub {
         while (my $cb = shift @cb) {
             $cb->();
@@ -151,8 +145,7 @@ sub OnInit {
     # before the UI was up and running.
     $self->CallAfter(sub {
         Slic3r::GUI::config_wizard_startup($app_conf_exists);
-        
-        # TODO: call periodically?
+        $self->{preset_updater}->slic3r_update_notify();
         $self->{preset_updater}->sync($self->{preset_bundle});
     });
 

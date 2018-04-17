@@ -86,7 +86,7 @@ struct UpdateNotification : wxDialog
 		sizer->Add(link);
 		sizer->AddSpacer(2*SPACING);
 
-		cbox = new wxCheckBox(this, wxID_ANY, _(L("Don't notify about new versions any more")));
+		cbox = new wxCheckBox(this, wxID_ANY, _(L("Don't notify about new releases any more")));
 		sizer->Add(cbox);
 		sizer->AddSpacer(SPACING);
 
@@ -136,6 +136,7 @@ struct PresetUpdater::priv
 	bool enabled_version_check;
 	bool enabled_config_update;
 	std::string version_check_url;
+	bool had_config_update;
 
 	fs::path cache_path;
 	fs::path rsrc_path;
@@ -159,6 +160,7 @@ struct PresetUpdater::priv
 
 PresetUpdater::priv::priv(int version_online_event) :
 	version_online_event(version_online_event),
+	had_config_update(false),
 	cache_path(fs::path(Slic3r::data_dir()) / "cache"),
 	rsrc_path(fs::path(resources_dir()) / "profiles"),
 	vendor_path(fs::path(Slic3r::data_dir()) / "vendor"),
@@ -401,7 +403,8 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 
 void PresetUpdater::slic3r_update_notify()
 {
-	if (! p->enabled_version_check) { return; }
+	if (! p->enabled_version_check || p->had_config_update) { return; }
+	// ^ We don't want to bother the user with updates multiple times, put off till next time.
 
 	auto* app_config = GUI::get_app_config();
 	const auto ver_slic3r = Semver::parse(SLIC3R_VERSION);
@@ -450,6 +453,8 @@ void PresetUpdater::config_update() const
 			// User gave clearance, updates are go
 			p->perform_updates(std::move(updates));
 		}
+
+		p->had_config_update = true;
 	}
 }
 
