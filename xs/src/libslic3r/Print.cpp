@@ -186,7 +186,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_loading_speed"
             || opt_key == "filament_unloading_speed"
             || opt_key == "filament_toolchange_delay"
-            || opt_key == "filament_cooling_time"
             || opt_key == "filament_ramming_parameters"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
@@ -1091,7 +1090,6 @@ void Print::_make_wipe_tower()
             this->config.filament_loading_speed.get_at(i),
             this->config.filament_unloading_speed.get_at(i),
             this->config.filament_toolchange_delay.get_at(i),
-            this->config.filament_cooling_time.get_at(i),
             this->config.filament_ramming_parameters.get_at(i),
             this->config.nozzle_diameter.get_at(i));
 

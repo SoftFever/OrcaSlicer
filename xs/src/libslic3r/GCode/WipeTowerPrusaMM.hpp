@@ -67,7 +67,7 @@ public:
 
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
-                      float unloading_speed, float delay, float cooling_time, std::string ramming_parameters, float nozzle_diameter)
+                      float unloading_speed, float delay, std::string ramming_parameters, float nozzle_diameter)
 	{
         //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
         m_filpar.push_back(FilamentParameters());
@@ -78,7 +78,7 @@ public:
         m_filpar[idx].loading_speed = loading_speed;
         m_filpar[idx].unloading_speed = unloading_speed;
         m_filpar[idx].delay = delay;
-        m_filpar[idx].cooling_time = cooling_time;
+        m_filpar[idx].cooling_time = 14.f; // let's fix it for now, cooling moves will be reworked for 1.41 anyway
         m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
 
         m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter

@@ -481,15 +481,6 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-toolchange-delay=f@";
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
-    
-    def = this->add("filament_cooling_time", coFloats);
-    def->label = L("Cooling time");
-    def->tooltip = L("The filament is slowly moved back and forth after retraction into the cooling tube "
-                   "for this amount of time.");
-    def->cli = "filament_cooling_time=i@";
-    def->sidetext = L("s");
-    def->min = 0;
-    def->default_value = new ConfigOptionFloats { 14.f };
 
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
