@@ -231,10 +231,11 @@ PresetCollection*	      	O_OBJECT_SLIC3R
 Ref<PresetCollection>      	O_OBJECT_SLIC3R_T
 PresetBundle*	    		O_OBJECT_SLIC3R
 Ref<PresetBundle>    		O_OBJECT_SLIC3R_T
-PresetHints*	    		O_OBJECT_SLIC3R
-Ref<PresetHints>    		O_OBJECT_SLIC3R_T
 TabIface*	   				O_OBJECT_SLIC3R
 Ref<TabIface> 				O_OBJECT_SLIC3R_T
+
+PresetUpdater*              O_OBJECT_SLIC3R
+Ref<PresetUpdater>          O_OBJECT_SLIC3R_T
 
 OctoPrint*                  O_OBJECT_SLIC3R
 Ref<OctoPrint>              O_OBJECT_SLIC3R_T

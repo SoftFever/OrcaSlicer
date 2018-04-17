@@ -1,11 +1,14 @@
 #ifndef slic3r_GUI_Snapshot_
 #define slic3r_GUI_Snapshot_
 
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
 
 #include <boost/filesystem.hpp>
 
+#include "Version.hpp"
 #include "../Utils/Semver.hpp"
 
 namespace Slic3r { 
@@ -14,6 +17,9 @@ class AppConfig;
 
 namespace GUI {
 namespace Config {
+
+class Version;
+class Index;
 
 // A snapshot contains:
 // 		Slic3r.ini
@@ -39,6 +45,7 @@ public:
 
 	// Export the print / filament / printer selections to be activated into the AppConfig.
 	void 		export_selections(AppConfig &config) const;
+	void 		export_vendor_configs(AppConfig &config) const;
 
 	// ID of a snapshot should equal to the name of the snapshot directory.
 	// The ID contains the date/time, reason and comment to be human readable.
@@ -49,6 +56,8 @@ public:
 	// Comment entered by the user at the start of the snapshot capture.
 	std::string 				comment;
 	Reason						reason;
+
+	std::string 				format_reason() const;
 
 	// Active presets at the time of the snapshot.
 	std::string 				print;
@@ -67,6 +76,8 @@ public:
 		Semver		min_slic3r_version = Semver::zero();
 		// Maximum Slic3r version compatible with this vendor configuration, or empty.
 		Semver 		max_slic3r_version = Semver::inf();
+		// Which printer models of this vendor were installed, and which variants of the models?
+		std::map<std::string, std::set<std::string>> models_variants_installed;
 	};
 	// List of vendor configs contained in this snapshot.
 	std::vector<VendorConfig> 	vendor_configs;
@@ -75,16 +86,20 @@ public:
 class SnapshotDB
 {
 public:
+	// Initialize the SnapshotDB singleton instance. Load the database if it has not been loaded yet.
+	static SnapshotDB&				singleton();
+
 	typedef std::vector<Snapshot>::const_iterator const_iterator;
 
 	// Load the snapshot database from the snapshots directory.
 	// If the snapshot directory or its parent does not exist yet, it will be created.
 	// Returns a number of snapshots loaded.
 	size_t 							load_db();
+	void 							update_slic3r_versions(std::vector<Index> &index_db);
 
 	// Create a snapshot directory, copy the vendor config bundles, user print/filament/printer profiles,
 	// create an index.
-	const Snapshot&					make_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment);
+	const Snapshot&					take_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment = "");
 	void 							restore_snapshot(const std::string &id, AppConfig &app_config);
 	void 							restore_snapshot(const Snapshot &snapshot, AppConfig &app_config);
 

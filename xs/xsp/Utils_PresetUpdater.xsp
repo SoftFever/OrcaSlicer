@@ -1,0 +1,12 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/Utils/PresetUpdater.hpp"
+%}
+
+%name{Slic3r::PresetUpdater} class PresetUpdater {
+    PresetUpdater(int version_online_event, AppConfig *app_config);
+    void sync(AppConfig *app_config, PresetBundle* preset_bundle);
+    void config_update(AppConfig *app_config);
+};

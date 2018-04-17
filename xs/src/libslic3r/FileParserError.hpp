@@ -4,6 +4,7 @@
 #include "libslic3r.h"
 
 #include <string>
+#include <boost/filesystem/path.hpp>
 #include <stdexcept>
 
 namespace Slic3r {
@@ -15,6 +16,9 @@ public:
     file_parser_error(const std::string &msg, const std::string &file, unsigned long line = 0) :
         std::runtime_error(format_what(msg, file, line)),
         m_message(msg), m_filename(file), m_line(line) {}
+    file_parser_error(const std::string &msg, const boost::filesystem::path &file, unsigned long line = 0) :
+        std::runtime_error(format_what(msg, file.string(), line)),
+        m_message(msg), m_filename(file.string()), m_line(line) {}
     // gcc 3.4.2 complains about lack of throw specifier on compiler
     // generated dtor
     ~file_parser_error() throw() {}

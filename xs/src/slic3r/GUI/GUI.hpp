@@ -26,6 +26,7 @@ namespace Slic3r {
 class PresetBundle;
 class PresetCollection;
 class AppConfig;
+class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
 
@@ -77,6 +78,7 @@ void set_main_frame(wxFrame *main_frame);
 void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
+void set_preset_updater(PresetUpdater *updater);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
@@ -85,10 +87,20 @@ const wxColour& get_modified_label_clr();
 const wxColour& get_sys_label_clr();
 unsigned get_colour_approx_luma(const wxColour &colour);
 
-void add_debug_menu(wxMenuBar *menu, int event_language_change);
+extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
+
+// This is called when closing the application, when loading a config file or when starting the config wizard
+// to notify the user whether he is aware that some preset changes will be lost.
+extern bool check_unsaved_changes();
+
+// Checks if configuration wizard needs to run, calls config_wizard if so
+extern void config_wizard_startup(bool app_config_exists);
+
+// Opens the configuration wizard, returns true if wizard is finished & accepted.
+extern void config_wizard(bool fresh_start);
 
 // Create "Preferences" dialog after selecting menu "Preferences" in Perl part
-void open_preferences_dialog(int event_preferences);
+extern void open_preferences_dialog(int event_preferences);
 
 // Create a new preset tab (print, filament and printer),
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed);
@@ -138,7 +150,11 @@ wxButton*			get_wiping_dialog_button();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
-}
-}
+
+// Display an About dialog
+void about();
+
+} // namespace GUI
+} // namespace Slic3r
 
 #endif
