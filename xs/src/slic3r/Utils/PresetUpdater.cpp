@@ -220,9 +220,16 @@ void PresetUpdater::priv::check_install_indices() const
 		if (path.extension() == ".idx") {
 			const auto path_in_cache = cache_path / path.filename();
 
-			// TODO: compare versions
 			if (! fs::exists(path_in_cache)) {
 				fs::copy_file(path, path_in_cache, fs::copy_option::overwrite_if_exists);
+			} else {
+				Index idx_rsrc, idx_cache;
+				idx_rsrc.load(path);
+				idx_cache.load(path_in_cache);
+
+				if (idx_cache.version() < idx_rsrc.version()) {
+					fs::copy_file(path, path_in_cache, fs::copy_option::overwrite_if_exists);
+				}
 			}
 		}
 	}
@@ -267,8 +274,6 @@ Updates PresetUpdater::priv::config_update() const
 			const auto cached_vp = VendorProfile::from_ini(path_in_cache, false);
 			if (cached_vp.config_version == recommended->config_version) {
 				updates.emplace_back(std::move(path_in_cache), bundle_path, *recommended);
-			} else {
-				// XXX: ?
 			}
 		}
 	}
