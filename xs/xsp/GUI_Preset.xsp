@@ -117,14 +117,6 @@ PresetCollection::arrayref()
                 croak("Loading of a config bundle %s failed:\n%s\n", path, e.what());
             }
         %};
-    void                        install_vendor_configbundle(const char *path)
-        %code%{
-            try {
-                THIS->install_vendor_configbundle(std::string(path));
-            } catch (std::exception& e) {
-                croak("Installing a vendor config bundle %s failed:\n%s\n", path, e.what());
-            }
-        %};
     void                        export_configbundle(char *path)
         %code%{
             try {

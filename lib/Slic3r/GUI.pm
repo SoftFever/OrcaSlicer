@@ -87,6 +87,7 @@ sub OnInit {
 
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
     $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
+    Slic3r::GUI::set_app_config($self->{app_config});
 
     # just checking for existence of Slic3r::data_dir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
@@ -102,16 +103,18 @@ sub OnInit {
     $self->{app_config}->save;
 
     # my $version_check = $self->{app_config}->get('version_check');
-    $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT, $self->{app_config});
+    $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT);
     Slic3r::GUI::set_preset_updater($self->{preset_updater});
-    eval { $self->{preset_updater}->config_update($self->{app_config}) };
+    eval {
+        $self->{preset_updater}->slic3r_update_notify();
+        $self->{preset_updater}->config_update();
+    };
     if ($@) {
         warn $@ . "\n";
         fatal_error(undef, $@);
     }
     # my $slic3r_update = $self->{app_config}->slic3r_update_avail;
 
-    Slic3r::GUI::set_app_config($self->{app_config});
     Slic3r::GUI::load_language();
 
     # Suppress the '- default -' presets.
@@ -150,7 +153,7 @@ sub OnInit {
         Slic3r::GUI::config_wizard_startup($app_conf_exists);
         
         # TODO: call periodically?
-        $self->{preset_updater}->sync($self->{app_config}, $self->{preset_bundle});
+        $self->{preset_updater}->sync($self->{preset_bundle});
     });
 
     # The following event is emited by the C++ menu implementation of application language change.

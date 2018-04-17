@@ -721,7 +721,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 			install_bundles.emplace_back(vendor_rsrc.second);
 		}
 		if (install_bundles.size() > 0) {
-			updater->install_bundles_rsrc(app_config, std::move(install_bundles));
+			updater->install_bundles_rsrc(std::move(install_bundles));
 		}
 
 		app_config->set_vendors(appconfig_vendors);

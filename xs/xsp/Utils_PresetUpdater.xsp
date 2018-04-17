@@ -6,7 +6,8 @@
 %}
 
 %name{Slic3r::PresetUpdater} class PresetUpdater {
-    PresetUpdater(int version_online_event, AppConfig *app_config);
-    void sync(AppConfig *app_config, PresetBundle* preset_bundle);
-    void config_update(AppConfig *app_config);
+    PresetUpdater(int version_online_event);
+    void sync(PresetBundle* preset_bundle);
+    void slic3r_update_notify();
+    void config_update();
 };

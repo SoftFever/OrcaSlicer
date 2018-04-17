@@ -14,7 +14,15 @@
 #include <wx/app.h>
 #include <wx/event.h>
 #include <wx/msgdlg.h>
+#include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/button.h>
+#include <wx/hyperlink.h>
+#include <wx/statbmp.h>
+#include <wx/checkbox.h>
 
+#include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
@@ -39,6 +47,63 @@ enum {
 static const char *INDEX_FILENAME = "index.idx";
 static const char *TMP_EXTENSION = ".download";
 
+
+struct UpdateNotification : wxDialog
+{
+	// If this dialog gets any more complex, it should probably be factored out...
+
+	enum {
+		CONTENT_WIDTH = 400,
+		BORDER = 30,
+		SPACING = 15,
+	};
+
+	wxCheckBox *cbox;
+
+	UpdateNotification(const Semver &ver_current, const Semver &ver_online) : wxDialog(nullptr, wxID_ANY, _(L("Update available")))
+	{
+		auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
+		auto *sizer = new wxBoxSizer(wxVERTICAL);
+
+		const auto url = wxString::Format("https://github.com/prusa3d/Slic3r/releases/tag/version_%s", ver_online.to_string());
+		auto *link = new wxHyperlinkCtrl(this, wxID_ANY, url, url);
+
+		auto *text = new wxStaticText(this, wxID_ANY,
+			_(L("New version of Slic3r PE is available. To download, follow the link below.")));
+		const auto link_width = link->GetSize().GetWidth();
+		text->Wrap(CONTENT_WIDTH > link_width ? CONTENT_WIDTH : link_width);
+		sizer->Add(text);
+		sizer->AddSpacer(SPACING);
+
+		auto *versions = new wxFlexGridSizer(2, 0, SPACING);
+		versions->Add(new wxStaticText(this, wxID_ANY, _(L("Current version:"))));
+		versions->Add(new wxStaticText(this, wxID_ANY, ver_current.to_string()));
+		versions->Add(new wxStaticText(this, wxID_ANY, _(L("New version:"))));
+		versions->Add(new wxStaticText(this, wxID_ANY, ver_online.to_string()));
+		sizer->Add(versions);
+		sizer->AddSpacer(SPACING);
+
+		sizer->Add(link);
+		sizer->AddSpacer(2*SPACING);
+
+		cbox = new wxCheckBox(this, wxID_ANY, _(L("Don't notify about new versions any more")));
+		sizer->Add(cbox);
+		sizer->AddSpacer(SPACING);
+
+		auto *ok = new wxButton(this, wxID_OK);
+		ok->SetFocus();
+		sizer->Add(ok, 0, wxALIGN_CENTRE_HORIZONTAL);
+
+		auto *logo = new wxStaticBitmap(this, wxID_ANY, wxBitmap(GUI::from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG));
+
+		topsizer->Add(logo, 0, wxALL, BORDER);
+		topsizer->Add(sizer, 0, wxALL, BORDER);
+
+		SetSizerAndFit(topsizer);
+	}
+
+	bool disable_version_check() const { return cbox->GetValue(); }
+};
 
 struct Update
 {
@@ -79,7 +144,7 @@ struct PresetUpdater::priv
 	bool cancel;
 	std::thread thread;
 
-	priv(int event, AppConfig *app_config);
+	priv(int version_online_event);
 
 	void set_download_prefs(AppConfig *app_config);
 	bool get_file(const std::string &url, const fs::path &target_path) const;
@@ -89,17 +154,17 @@ struct PresetUpdater::priv
 
 	void check_install_indices() const;
 	Updates config_update() const;
-	void perform_updates(AppConfig *app_config, Updates &&updates) const;
+	void perform_updates(Updates &&updates) const;
 };
 
-PresetUpdater::priv::priv(int event, AppConfig *app_config) :
-	version_online_event(event),
+PresetUpdater::priv::priv(int version_online_event) :
+	version_online_event(version_online_event),
 	cache_path(fs::path(Slic3r::data_dir()) / "cache"),
 	rsrc_path(fs::path(resources_dir()) / "profiles"),
 	vendor_path(fs::path(Slic3r::data_dir()) / "vendor"),
 	cancel(false)
 {
-	set_download_prefs(app_config);
+	set_download_prefs(GUI::get_app_config());
 	check_install_indices();
 	index_db = std::move(Index::load_db());
 }
@@ -281,9 +346,9 @@ Updates PresetUpdater::priv::config_update() const
 	return updates;
 }
 
-void PresetUpdater::priv::perform_updates(AppConfig *app_config, Updates &&updates) const
+void PresetUpdater::priv::perform_updates(Updates &&updates) const
 {
-	SnapshotDB::singleton().take_snapshot(*app_config, Snapshot::SNAPSHOT_UPGRADE);
+	SnapshotDB::singleton().take_snapshot(*GUI::get_app_config(), Snapshot::SNAPSHOT_UPGRADE);
 
 	for (const auto &update : updates) {
 		fs::copy_file(update.source, update.target, fs::copy_option::overwrite_if_exists);
@@ -302,8 +367,8 @@ void PresetUpdater::priv::perform_updates(AppConfig *app_config, Updates &&updat
 }
 
 
-PresetUpdater::PresetUpdater(int version_online_event, AppConfig *app_config) :
-	p(new priv(version_online_event, app_config))
+PresetUpdater::PresetUpdater(int version_online_event) :
+	p(new priv(version_online_event))
 {}
 
 
@@ -317,9 +382,9 @@ PresetUpdater::~PresetUpdater()
 	}
 }
 
-void PresetUpdater::sync(AppConfig *app_config, PresetBundle *preset_bundle)
+void PresetUpdater::sync(PresetBundle *preset_bundle)
 {
-	p->set_download_prefs(app_config);
+	p->set_download_prefs(GUI::get_app_config());
 	if (!p->enabled_version_check && !p->enabled_config_update) { return; }
 
 	// Copy the whole vendors data for use in the background thread
@@ -334,7 +399,28 @@ void PresetUpdater::sync(AppConfig *app_config, PresetBundle *preset_bundle)
 	}));
 }
 
-void PresetUpdater::config_update(AppConfig *app_config)
+void PresetUpdater::slic3r_update_notify()
+{
+	if (! p->enabled_version_check) { return; }
+
+	auto* app_config = GUI::get_app_config();
+	const auto ver_slic3r = Semver::parse(SLIC3R_VERSION);
+	const auto ver_online = Semver::parse(app_config->get("version_online"));
+	if (! ver_slic3r) {
+		throw std::runtime_error("Could not parse Slic3r version string: " SLIC3R_VERSION);
+	}
+
+	if (ver_online && *ver_online > *ver_slic3r) {
+		UpdateNotification notification(*ver_slic3r, *ver_online);
+		notification.ShowModal();
+		if (notification.disable_version_check()) {
+			app_config->set("version_check", "0");
+			p->enabled_version_check = false;
+		}
+	}
+}
+
+void PresetUpdater::config_update() const
 {
 	if (! p->enabled_config_update) { return; }
 
@@ -362,12 +448,12 @@ void PresetUpdater::config_update(AppConfig *app_config)
 		std::cerr << "After modal" << std::endl;
 		if (res == wxID_YES) {
 			// User gave clearance, updates are go
-			p->perform_updates(app_config, std::move(updates));
+			p->perform_updates(std::move(updates));
 		}
 	}
 }
 
-void PresetUpdater::install_bundles_rsrc(AppConfig *app_config, std::vector<std::string> &&bundles)
+void PresetUpdater::install_bundles_rsrc(std::vector<std::string> &&bundles)
 {
 	Updates updates;
 
@@ -377,7 +463,7 @@ void PresetUpdater::install_bundles_rsrc(AppConfig *app_config, std::vector<std:
 		updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors));
 	}
 
-	p->perform_updates(app_config, std::move(updates));
+	p->perform_updates(std::move(updates));
 }
 
 

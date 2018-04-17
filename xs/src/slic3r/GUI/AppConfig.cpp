@@ -51,7 +51,7 @@ void AppConfig::set_defaults()
         set("version_check", "1");
     // TODO: proper URL
     if (get("version_check_url").empty())
-        set("version_check_url", "https://gist.githubusercontent.com/vojtechkral/4d8fd4a3b8699a01ec892c264178461c/raw/e9187c3e15ceaf1a90f29b7c43cf3ccc746140f0/slic3rPE.version");
+        set("version_check_url", "https://gist.githubusercontent.com/vojtechkral/4d8fd4a3b8699a01ec892c264178461c/raw/2f05a64db19e45a7f8fe2cedeff555d544af679b/slic3rPE.version");
     if (get("preset_update").empty())
         set("preset_update", "1");
 
@@ -228,33 +228,6 @@ void AppConfig::reset_selections()
         it->second.erase("printer");
         m_dirty = true;
     }
-}
-
-bool AppConfig::version_check_enabled() const
-{
-    return get("version_check") == "1";
-}
-
-bool AppConfig::slic3r_update_avail() const
-{
-    // FIXME: Update with Semver
-    // TODO: probably need to move semver to libslic3r
-    return version_check_enabled() && get("version_online") != SLIC3R_VERSION;
-}
-
-Semver AppConfig::get_slic3r_version() const
-{
-    auto res = Semver::parse(get("version"));
-    if (! res) {
-        throw std::runtime_error(std::string("Could not parse Slic3r version string in application config."));
-    } else {
-        return *res;
-    }
-}
-
-void AppConfig::set_slic3r_version(const Semver &version)
-{
-    set("version", version.to_string());
 }
 
 std::string AppConfig::config_path()

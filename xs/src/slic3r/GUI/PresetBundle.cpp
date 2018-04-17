@@ -697,19 +697,6 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree)
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
 // of the local configuration directory.
-void PresetBundle::install_vendor_configbundle(const std::string &src_path0)
-{
-    boost::filesystem::path src_path(src_path0);
-    install_vendor_configbundle(src_path);
-}
-
-void PresetBundle::install_vendor_configbundle(const boost::filesystem::path &src_path)
-{
-    boost::filesystem::copy_file(src_path, (boost::filesystem::path(data_dir()) / "vendor" / src_path.filename()).make_preferred(), boost::filesystem::copy_option::overwrite_if_exists);
-}
-
-// Load a config bundle file, into presets and store the loaded presets into separate files
-// of the local configuration directory.
 size_t PresetBundle::load_configbundle(const std::string &path, unsigned int flags)
 {
     if (flags & (LOAD_CFGBNDLE_RESET_USER_PROFILE | LOAD_CFGBNDLE_SYSTEM))
