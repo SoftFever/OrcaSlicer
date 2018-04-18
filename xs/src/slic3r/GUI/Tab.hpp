@@ -51,6 +51,7 @@ public:
 	{
 		Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 		m_vsizer = new wxBoxSizer(wxVERTICAL);
+		m_item_color = &get_default_label_clr();
 		SetSizer(m_vsizer);
 	}
 	~Page(){}
@@ -71,6 +72,22 @@ public:
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);
+
+	bool		set_item_colour(const wxColour *clr) {
+		if (m_item_color != clr) {
+			m_item_color = clr;
+			return true;
+		}
+		return false;
+	}
+
+	const wxColour	get_item_colour() {
+			return *m_item_color;
+	}
+
+protected:
+	// Color of TreeCtrlItem. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
+	const wxColour*		m_item_color;
 };
 
 // Slic3r::GUI::Tab;
@@ -125,9 +142,13 @@ protected:
 	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
-	std::vector<std::string>	m_dirty_options = {};
-	std::vector<std::string>	m_sys_options = {};
-	std::vector<std::string>	m_full_options_list = {};
+// 	std::vector<std::string>	m_dirty_options = {};
+// 	std::vector<std::string>	m_nonsys_options = {};
+//  std::vector<std::string>	m_sys_options = {};
+// 	std::vector<std::string>	m_full_options_list = {};
+	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
+	std::map<std::string, int>	m_options_list;
+	int							m_opt_status_value;
 
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
@@ -182,14 +203,15 @@ public:
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
 	void		update_changed_ui();
-	void		update_full_options_list();
-	void		update_sys_ui_after_sel_preset();
+// 	void		update_full_options_list();
+// 	void		update_sys_ui_after_sel_preset();
 	void		get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page);
 	void		update_changed_tree_ui();
 	void		update_undo_buttons();
 
-	void		on_back_to_initial_value();
-	void		on_back_to_sys_value();
+	void		on_roll_back_value(const bool to_sys = false);
+// 	void		on_back_to_initial_value();
+// 	void		on_back_to_sys_value();
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 
@@ -197,6 +219,7 @@ public:
 	virtual void	on_preset_loaded(){}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
+	virtual void	init_options_list();
 	void			load_initial_data();
 	void			update_dirty();
 	void			update_tab_ui();
@@ -265,9 +288,10 @@ public:
 	wxButton*	m_octoprint_host_test_btn;
 
 	size_t		m_extruders_count;
+	size_t		m_extruders_count_old = 0;
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
-	std::vector<PageShp>	m_extruder_pages;
+//	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}
 	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
@@ -279,6 +303,7 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
+	void		init_options_list() override;
 };
 
 class SavePresetWindow :public wxDialog

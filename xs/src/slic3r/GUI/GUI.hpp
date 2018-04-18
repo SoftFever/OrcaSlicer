@@ -83,6 +83,7 @@ wxApp*		get_app();
 
 const wxColour& get_modified_label_clr();
 const wxColour& get_sys_label_clr();
+const wxColour& get_default_label_clr();
 unsigned get_colour_approx_luma(const wxColour &colour);
 
 void add_debug_menu(wxMenuBar *menu, int event_language_change);

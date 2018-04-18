@@ -25,6 +25,8 @@
 #include "wxExtensions.hpp"
 #include <wx/wupdlock.h>
 
+#include <chrono>
+
 namespace Slic3r {
 namespace GUI {
 
@@ -112,14 +114,14 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_bmp_value_revert	  .LoadFile(from_u8(var("action_undo.png")),  wxBITMAP_TYPE_PNG);
 	m_bmp_white_bullet	  .LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
 	m_undo_btn->SetBitmap(m_bmp_white_bullet);
-	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
+	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ /*on_back_to_initial_value*/on_roll_back_value(); }));
 	m_undo_to_sys_btn->SetBitmap(m_bmp_white_bullet);
-	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
+	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ /*on_back_to_sys_value*/on_roll_back_value(true); }));
 
 	// Colors for ui "decoration"
 	m_sys_label_clr			= get_sys_label_clr();
 	m_modified_label_clr	= get_modified_label_clr();
-	m_default_text_clr		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+	m_default_text_clr		= get_default_label_clr();
 
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
@@ -246,45 +248,108 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 	return page;
 }
 
-template<class T>
-void add_correct_opts_to_dirty_options(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
-{
-	auto opt_init = static_cast<T*>(tab->m_presets->get_selected_preset().config.option(opt_key));
-	auto opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
-	int opt_init_max_id = opt_init->values.size()-1;
-	for (int i = 0; i < opt_cur->values.size(); i++)
-	{
-		int init_id = i <= opt_init_max_id ? i : 0;
-		if (opt_cur->values[i] != opt_init->values[init_id])
-			vec->emplace_back(opt_key + "#" + std::to_string(i));
-	}
-}
-
-template<class T>
-void add_correct_opts_to_sys_options(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
-{
-	const Preset* sys_preset = tab->m_presets->get_selected_preset_parent();
-	if (sys_preset == nullptr)
-		return;
-	T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
-	const T *opt_sys = static_cast<const T*>(sys_preset->config.option(opt_key));
-	int opt_max_id = opt_sys->values.size()-1;
-	for (int i = 0; i < opt_cur->values.size(); i++)
-	{
-		int init_id = i <= opt_max_id ? i : 0;
-		if (opt_cur->values[i] == opt_sys->values[init_id])
-			vec->emplace_back(opt_key + "#" + std::to_string(i));
-	}
-}
+// template<class T>
+// void add_correct_opts_to_dirty_options(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
+// {
+// 	auto opt_init = static_cast<T*>(tab->m_presets->get_selected_preset().config.option(opt_key));
+// 	auto opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
+// 	int opt_init_max_id = opt_init->values.size()-1;
+// 	for (int i = 0; i < opt_cur->values.size(); i++)
+// 	{
+// 		int init_id = i <= opt_init_max_id ? i : 0;
+// 		if (opt_cur->values[i] != opt_init->values[init_id])
+// 			vec->emplace_back(opt_key + "#" + std::to_string(i));
+// 	}
+// }
+// 
+// template<class T>
+// void add_correct_opts_to_sys_options(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
+// {
+// 	const Preset* sys_preset = tab->m_presets->get_selected_preset_parent();
+// 	if (sys_preset == nullptr)
+// 		return;
+// 	T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
+// 	const T *opt_sys = static_cast<const T*>(sys_preset->config.option(opt_key));
+// 	int opt_max_id = opt_sys->values.size()-1;
+// 	for (int i = 0; i < opt_cur->values.size(); i++)
+// 	{
+// 		int init_id = i <= opt_max_id ? i : 0;
+// 		if (opt_cur->values[i] == opt_sys->values[init_id])
+// 			vec->emplace_back(opt_key + "#" + std::to_string(i));
+// 	}
+// }
 
 // Update UI according to changes
 void Tab::update_changed_ui()
 {
 	if (m_postpone_update_ui) 
 		return;
-	auto dirty_options = m_presets->current_dirty_options();
 
-	if (name() == "printer"){
+	const bool is_printer_type = (name() == "printer");
+	auto m_dirty_options = m_presets->current_dirty_options(is_printer_type);
+	auto m_nonsys_options = m_presets->current_different_from_parent_options(is_printer_type);
+	if (is_printer_type){
+		TabPrinter* tab = static_cast<TabPrinter*>(this);
+		if (tab->m_initial_extruders_count != tab->m_extruders_count)
+			m_dirty_options.emplace_back("extruders_count");
+		if (tab->m_sys_extruders_count != tab->m_extruders_count)
+			m_nonsys_options.emplace_back("extruders_count");
+	}
+
+	for (auto& it : m_options_list)
+		it.second = m_opt_status_value;
+
+//	auto m_options_list = m_options_list;
+	for (auto opt_key : m_dirty_options)	m_options_list[opt_key] &= ~osInitValue;
+	for (auto opt_key : m_nonsys_options)	m_options_list[opt_key] &= ~osSystemValue;
+
+	Freeze();
+	//update options "decoration"
+	for (const auto opt : m_options_list/*m_options_list*/)
+	{
+		bool is_nonsys_value = false;
+		bool is_modified_value = true;
+		const wxBitmap *sys_icon = &m_bmp_value_lock;
+		const wxBitmap *icon = &m_bmp_value_revert;
+		const wxColour *color = &m_sys_label_clr;
+
+		if ((opt.second & osSystemValue) == 0){
+//		if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end()) {
+			is_nonsys_value = true;
+			sys_icon = m_bmp_non_system;
+			if ((opt.second & osInitValue) != 0)
+//			if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
+				color = &m_default_text_clr;
+			else
+				color = &m_modified_label_clr;
+		}
+		if ((opt.second & osInitValue) != 0)
+//		if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) == m_dirty_options.end())
+		{
+			is_modified_value = false;
+			icon = &m_bmp_white_bullet;
+		}
+		if (opt.first == "bed_shape" || opt.first == "compatible_printers") {
+			if (m_colored_Label != nullptr)	{
+				m_colored_Label->SetForegroundColour(*color);
+				m_colored_Label->Refresh(true);
+			}
+			continue;
+		}
+
+		Field* field = get_field(opt.first);
+		if (field == nullptr) continue;
+		field->m_is_nonsys_value = is_nonsys_value;
+		field->m_is_modified_value = is_modified_value;
+		field->set_undo_bitmap(icon);
+		field->set_undo_to_sys_bitmap(sys_icon);
+		field->set_label_colour(color);
+	}
+	Thaw();
+//	m_options_list = m_options_list;
+/*	auto dirty_options = m_presets->current_dirty_options();
+
+	if (){
 		// Update dirty_options in case changes of Extruder's options 
 		TabPrinter* tab = static_cast<TabPrinter*>(this);
 		m_dirty_options.resize(0);
@@ -381,71 +446,113 @@ void Tab::update_changed_ui()
 		field->set_label_colour(color);
 	}
 	Thaw();
-
+*/
 	wxTheApp->CallAfter([this]() {
 		update_changed_tree_ui();
 	});
 }
 
+void Tab::init_options_list()
+{
+	if (!m_options_list.empty())
+		m_options_list.clear();
+
+	for (const auto opt_key : m_config->keys())
+		m_options_list.emplace(opt_key, m_opt_status_value);
+}
+
 template<class T>
-void add_correct_opts_to_full_options_list(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
+void add_correct_opts_to_options_list(const std::string &opt_key, std::map<std::string, int>& map, TabPrinter *tab, const int& value)
 {
 	T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
 	for (int i = 0; i < opt_cur->values.size(); i++)
-		vec->emplace_back(opt_key + "#" + std::to_string(i));
+		map.emplace(opt_key + "#" + std::to_string(i), value);
 }
 
-void Tab::update_full_options_list()
+void TabPrinter::init_options_list()
 {
-	if (!m_full_options_list.empty())
-		m_full_options_list.resize(0);
+	if (!m_options_list.empty())
+		m_options_list.clear();
 
-	if (m_name != "printer"){
-		m_full_options_list = m_config->keys();
-		return;
-	}
-
-	TabPrinter* tab = static_cast<TabPrinter*>(this);
 	for (const auto opt_key : m_config->keys())
 	{
 		if (opt_key == "bed_shape"){
-			m_full_options_list.emplace_back(opt_key);
+			m_options_list.emplace(opt_key, m_opt_status_value);
 			continue;
 		}
 		switch (m_config->option(opt_key)->type())
 		{
-		case coInts:	add_correct_opts_to_full_options_list<ConfigOptionInts		>(opt_key, &m_full_options_list, tab);	break;
-		case coBools:	add_correct_opts_to_full_options_list<ConfigOptionBools		>(opt_key, &m_full_options_list, tab);	break;
-		case coFloats:	add_correct_opts_to_full_options_list<ConfigOptionFloats	>(opt_key, &m_full_options_list, tab);	break;
-		case coStrings:	add_correct_opts_to_full_options_list<ConfigOptionStrings	>(opt_key, &m_full_options_list, tab);	break;
-		case coPercents:add_correct_opts_to_full_options_list<ConfigOptionPercents	>(opt_key, &m_full_options_list, tab);	break;
-		case coPoints:	add_correct_opts_to_full_options_list<ConfigOptionPoints	>(opt_key, &m_full_options_list, tab);	break;
-		default:		m_full_options_list.emplace_back(opt_key);		break;
+		case coInts:	add_correct_opts_to_options_list<ConfigOptionInts		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+		case coBools:	add_correct_opts_to_options_list<ConfigOptionBools		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+		case coFloats:	add_correct_opts_to_options_list<ConfigOptionFloats		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+		case coStrings:	add_correct_opts_to_options_list<ConfigOptionStrings	>(opt_key, m_options_list, this, m_opt_status_value);	break;
+		case coPercents:add_correct_opts_to_options_list<ConfigOptionPercents	>(opt_key, m_options_list, this, m_opt_status_value);	break;
+		case coPoints:	add_correct_opts_to_options_list<ConfigOptionPoints		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+		default:		m_options_list.emplace(opt_key, m_opt_status_value);		break;
 		}
 	}
-	m_full_options_list.emplace_back("extruders_count");
+	m_options_list.emplace("extruders_count", m_opt_status_value);
 }
 
-void Tab::update_sys_ui_after_sel_preset()
-{
-	const wxColour* clr = &m_default_text_clr;
-	for (const auto opt_key : m_full_options_list){
-		Field* field = get_field(opt_key);
-		if (field != nullptr){
-			field->set_undo_to_sys_bitmap(m_bmp_non_system);
-			field->m_is_nonsys_value = true;
-			field->set_label_colour(clr);
-		}
-	}
-	m_sys_options.resize(0);
-}
+
+// template<class T>
+// void add_correct_opts_to_full_options_list(const std::string &opt_key, std::vector<std::string> *vec, TabPrinter *tab)
+// {
+// 	T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
+// 	for (int i = 0; i < opt_cur->values.size(); i++)
+// 		vec->emplace_back(opt_key + "#" + std::to_string(i));
+// }
+
+// void Tab::update_full_options_list()
+// {
+// 	if (!m_full_options_list.empty())
+// 		m_full_options_list.resize(0);
+// 
+// 	if (m_name != "printer"){
+// 		m_full_options_list = m_config->keys();
+// 		return;
+// 	}
+// 
+// 	TabPrinter* tab = static_cast<TabPrinter*>(this);
+// 	for (const auto opt_key : m_config->keys())
+// 	{
+// 		if (opt_key == "bed_shape"){
+// 			m_full_options_list.emplace_back(opt_key);
+// 			continue;
+// 		}
+// 		switch (m_config->option(opt_key)->type())
+// 		{
+// 		case coInts:	add_correct_opts_to_full_options_list<ConfigOptionInts		>(opt_key, &m_full_options_list, tab);	break;
+// 		case coBools:	add_correct_opts_to_full_options_list<ConfigOptionBools		>(opt_key, &m_full_options_list, tab);	break;
+// 		case coFloats:	add_correct_opts_to_full_options_list<ConfigOptionFloats	>(opt_key, &m_full_options_list, tab);	break;
+// 		case coStrings:	add_correct_opts_to_full_options_list<ConfigOptionStrings	>(opt_key, &m_full_options_list, tab);	break;
+// 		case coPercents:add_correct_opts_to_full_options_list<ConfigOptionPercents	>(opt_key, &m_full_options_list, tab);	break;
+// 		case coPoints:	add_correct_opts_to_full_options_list<ConfigOptionPoints	>(opt_key, &m_full_options_list, tab);	break;
+// 		default:		m_full_options_list.emplace_back(opt_key);		break;
+// 		}
+// 	}
+// 	m_full_options_list.emplace_back("extruders_count");
+// }
+
+// void Tab::update_sys_ui_after_sel_preset()
+// {
+// 	const wxColour* clr = &m_default_text_clr;
+// 	for (const auto opt_key : m_full_options_list){
+// 		Field* field = get_field(opt_key);
+// 		if (field != nullptr){
+// 			field->set_undo_to_sys_bitmap(m_bmp_non_system);
+// 			field->m_is_nonsys_value = true;
+// 			field->set_label_colour(clr);
+// 		}
+// 	}
+// 	m_sys_options.resize(0);
+// }
 
 void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
 {
-	if (sys_page && find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
-		sys_page = false;
-	if (!modified_page && find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
-		modified_page = true;
+	auto opt = m_options_list.find(opt_key);
+	if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
+	if (!modified_page) modified_page = (opt->second & osInitValue) == 0;
 }
 
 void Tab::update_changed_tree_ui()
@@ -466,7 +573,7 @@ void Tab::update_changed_tree_ui()
 					get_sys_and_mod_flags(opt_key, sys_page, modified_page);
 				}
 			}
-			if (title == _("Dependencies")){
+			if (title == _("Dependencies") && name() != "printer"){
 				get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
 			}
 			for (auto group : page->m_optgroups)
@@ -478,12 +585,13 @@ void Tab::update_changed_tree_ui()
 					get_sys_and_mod_flags(opt_key, sys_page, modified_page);
 				}
 			}
-			if (sys_page)
-				m_treectrl->SetItemTextColour(cur_item, get_sys_label_clr());
-			else if (modified_page)
-				m_treectrl->SetItemTextColour(cur_item, get_modified_label_clr());
-			else
-				m_treectrl->SetItemTextColour(cur_item, wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+
+			const wxColor *clr = sys_page		?	&m_sys_label_clr :
+								 modified_page	?	&m_modified_label_clr : 
+													&m_default_text_clr;
+
+			if (page->set_item_colour(clr))
+				m_treectrl->SetItemTextColour(cur_item, *clr);
 
 			page->m_is_nonsys_values = !sys_page;
 			page->m_is_modified_values = modified_page;
@@ -506,9 +614,17 @@ void Tab::update_undo_buttons()
 	m_undo_to_sys_btn->SetBitmap(m_is_nonsys_values ? *m_bmp_non_system : m_bmp_value_lock);
 }
 
-void Tab::on_back_to_initial_value()
+void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 {
-	if (!m_is_modified_values) return;
+	int os;
+	if (to_sys)	{
+		if (!m_is_nonsys_values) return;
+		os = osSystemValue;
+	}
+	else {
+		if (!m_is_modified_values) return;
+		os = osInitValue;
+	}
 
 	m_postpone_update_ui = true;
 
@@ -517,19 +633,19 @@ void Tab::on_back_to_initial_value()
 		if (page->title() == selection)	{
 			for (auto group : page->m_optgroups){
 				if (group->title == _("Capabilities")){
-					if (find(m_dirty_options.begin(), m_dirty_options.end(), "extruders_count") != m_dirty_options.end())
-						group->back_to_initial_value("extruders_count");
+					if ((m_options_list["extruders_count"] & os) == 0)
+						to_sys ? group->back_to_sys_value("extruders_count") : group->back_to_initial_value("extruders_count");
 				}
 				if (group->title == _("Size and coordinates")){
-					if (find(m_dirty_options.begin(), m_dirty_options.end(), "bed_shape") != m_dirty_options.end()){
-						group->back_to_initial_value("bed_shape");
+					if ((m_options_list["bed_shape"] & os) == 0){
+						to_sys ? group->back_to_sys_value("bed_shape") : group->back_to_initial_value("bed_shape");
 						load_key_value("bed_shape", true/*some value*/, true);
 					}
 
 				}
-				if (group->title == _("Profile dependencies")){
-					if (find(m_dirty_options.begin(), m_dirty_options.end(), "compatible_printers") != m_dirty_options.end()){
-						group->back_to_initial_value("compatible_printers");
+				if (group->title == _("Profile dependencies") && name() != "printer"){
+					if ((m_options_list["compatible_printers"] & os) == 0){
+						to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
 						load_key_value("compatible_printers", true/*some value*/, true);
 
 						bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
@@ -539,8 +655,8 @@ void Tab::on_back_to_initial_value()
 				}
 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
 					const std::string& opt_key = it->first;
-					if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
-						group->back_to_initial_value(opt_key);
+					if ((m_options_list[opt_key] & os) == 0)
+						to_sys ? group->back_to_sys_value(opt_key) : group->back_to_initial_value(opt_key);
 				}
 			}
 			break;
@@ -550,48 +666,111 @@ void Tab::on_back_to_initial_value()
 	update_changed_ui();
 }
 
-void Tab::on_back_to_sys_value()
-{
-	if (!m_is_nonsys_values) return;
-
-	m_postpone_update_ui = true;
-
-	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
-	for (auto page : m_pages)
-		if (page->title() == selection)	{
-			for (auto group : page->m_optgroups) {
-				if (group->title == _("Capabilities")){
-					if (find(m_sys_options.begin(), m_sys_options.end(), "extruders_count") == m_sys_options.end())
-						group->back_to_sys_value("extruders_count");
-				}
-				if (group->title == _("Size and coordinates")){
-					if (find(m_sys_options.begin(), m_sys_options.end(), "bed_shape") == m_sys_options.end()){
-						group->back_to_sys_value("bed_shape");
-						load_key_value("bed_shape", true/*some value*/, true);
-					}
-				}
-				if (group->title == _("Profile dependencies")){
-					if (find(m_sys_options.begin(), m_sys_options.end(), "compatible_printers") == m_sys_options.end()){
-						group->back_to_sys_value("compatible_printers");
-						load_key_value("compatible_printers", true/*some value*/, true);
-
-						bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-						m_compatible_printers_checkbox->SetValue(is_empty);
-						is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
-					}
-				}
-				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
-					const std::string& opt_key = it->first;
-					if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
-						group->back_to_sys_value(opt_key);
-				}
-			}
-			break;
-		}
-
-	m_postpone_update_ui = false;
-	update_changed_ui();
-}
+// void Tab::on_back_to_initial_value()
+// {
+// 	if (!m_is_modified_values) return;
+// 	std::chrono::milliseconds ms1 = std::chrono::duration_cast<std::chrono::milliseconds>(
+// 		std::chrono::system_clock::now().time_since_epoch()
+// 		);
+// 
+// 	m_postpone_update_ui = true;
+// 
+// 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+// 	for (auto page : m_pages)
+// 		if (page->title() == selection)	{
+// 			for (auto group : page->m_optgroups){
+// 				if (group->title == _("Capabilities")){
+// 					if (find(m_dirty_options.begin(), m_dirty_options.end(), "extruders_count") != m_dirty_options.end())
+// 						group->back_to_initial_value("extruders_count");
+// 				}
+// 				if (group->title == _("Size and coordinates")){
+// 					if (find(m_dirty_options.begin(), m_dirty_options.end(), "bed_shape") != m_dirty_options.end()){
+// 						group->back_to_initial_value("bed_shape");
+// 						load_key_value("bed_shape", true/*some value*/, true);
+// 					}
+// 
+// 				}
+// 				if (group->title == _("Profile dependencies")){
+// 					if (find(m_dirty_options.begin(), m_dirty_options.end(), "compatible_printers") != m_dirty_options.end()){
+// 						group->back_to_initial_value("compatible_printers");
+// 						load_key_value("compatible_printers", true/*some value*/, true);
+// 
+// 						bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+// 						m_compatible_printers_checkbox->SetValue(is_empty);
+// 						is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+// 					}
+// 				}
+// 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+// 					const std::string& opt_key = it->first;
+// 					if (find(m_dirty_options.begin(), m_dirty_options.end(), opt_key) != m_dirty_options.end())
+// 						group->back_to_initial_value(opt_key);
+// 				}
+// 			}
+// 			break;
+// 		}
+// 
+// 	std::chrono::milliseconds ms2 = std::chrono::duration_cast<std::chrono::milliseconds>(
+// 		std::chrono::system_clock::now().time_since_epoch()
+// 		);
+// 
+// 	m_postpone_update_ui = false;
+// 	update_changed_ui();
+// 
+// 	std::chrono::milliseconds ms3 = std::chrono::duration_cast<std::chrono::milliseconds>(
+// 		std::chrono::system_clock::now().time_since_epoch()
+// 		);
+// 
+// 	auto roll_back_duration = std::chrono::microseconds(ms2 - ms1).count();
+// 	auto update_ui_duration = std::chrono::microseconds(ms3 - ms2).count();
+// 	printf("back_to init_duration duration = %lld ms \n", roll_back_duration);
+// 	printf("update_ui_duration duration = %lld ms \n", update_ui_duration);
+// 
+// // 	m_postpone_update_ui = false;
+// // 	update_changed_ui();
+// }
+// 
+// void Tab::on_back_to_sys_value()
+// {
+// 	if (!m_is_nonsys_values) return;
+// 
+// 	m_postpone_update_ui = true;
+// 
+// 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+// 	for (auto page : m_pages)
+// 		if (page->title() == selection)	{
+// 			for (auto group : page->m_optgroups) {
+// 				if (group->title == _("Capabilities")){
+// 					if (find(m_sys_options.begin(), m_sys_options.end(), "extruders_count") == m_sys_options.end())
+// 						group->back_to_sys_value("extruders_count");
+// 				}
+// 				if (group->title == _("Size and coordinates")){
+// 					if (find(m_sys_options.begin(), m_sys_options.end(), "bed_shape") == m_sys_options.end()){
+// 						group->back_to_sys_value("bed_shape");
+// 						load_key_value("bed_shape", true/*some value*/, true);
+// 					}
+// 				}
+// 				if (group->title == _("Profile dependencies")){
+// 					if (find(m_sys_options.begin(), m_sys_options.end(), "compatible_printers") == m_sys_options.end()){
+// 						group->back_to_sys_value("compatible_printers");
+// 						load_key_value("compatible_printers", true/*some value*/, true);
+// 
+// 						bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+// 						m_compatible_printers_checkbox->SetValue(is_empty);
+// 						is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+// 					}
+// 				}
+// 				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
+// 					const std::string& opt_key = it->first;
+// 					if (find(m_sys_options.begin(), m_sys_options.end(), opt_key) == m_sys_options.end())
+// 						group->back_to_sys_value(opt_key);
+// 				}
+// 			}
+// 			break;
+// 		}
+// 
+// 	m_postpone_update_ui = false;
+// 	update_changed_ui();
+// }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
 // comparing the selected preset config with $self->{config}.
@@ -1698,12 +1877,34 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 }
 
 void TabPrinter::build_extruder_pages(){
-	for (auto extruder_idx = m_extruder_pages.size(); extruder_idx < m_extruders_count; ++extruder_idx){
+	if (m_extruders_count_old == m_extruders_count)
+	{
+		// if we have a single extruder MM setup, add a page with configuration options:
+		for (int i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
+			if (m_pages[i]->title().find(_(L("Single extruder MM setup"))) != std::string::npos) {
+				m_pages.erase(m_pages.begin() + i);
+				break;
+			}
+		if (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material")) {
+			// create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
+			auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png", true);
+			auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
+			optgroup->append_single_option_line("cooling_tube_retraction");
+			optgroup->append_single_option_line("cooling_tube_length");
+			optgroup->append_single_option_line("parking_pos_retraction");
+			m_pages.insert(m_pages.end()-2, page);
+		}
+		rebuild_page_tree();
+		return;
+	}
+		
+	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
 		char buf[MIN_BUF_LENGTH_FOR_L];
 		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
 		auto page = add_options_page(from_u8(buf), "funnel.png", true);
-		m_extruder_pages.push_back(page);
+		m_pages.insert(m_pages.begin() + 2+extruder_idx, page);
+//  		m_extruder_pages.push_back(page);
 			
 			auto optgroup = page->new_optgroup(_(L("Size")));
 			optgroup->append_single_option_line("nozzle_diameter", extruder_idx);
@@ -1741,36 +1942,31 @@ void TabPrinter::build_extruder_pages(){
 	}
  
 	// # remove extra pages
-	if (m_extruders_count <= m_extruder_pages.size()) {
-		m_extruder_pages.resize(m_extruders_count);
-	}
+// 	if (m_extruders_count <= m_extruders_count_old) {
+// 		m_extruder_pages.resize(m_extruders_count);
+// 	}
+
+	if (m_extruders_count < m_extruders_count_old)
+		m_pages.erase(m_pages.begin() + 2 + m_extruders_count, m_pages.begin() + 2 + m_extruders_count_old);
+
+	m_extruders_count_old = m_extruders_count;
 
 	// # rebuild page list
-	PageShp page_note = m_pages.back();
-	m_pages.pop_back();
-	while (m_pages.back()->title().find(_(L("Extruder"))) != std::string::npos)
-		m_pages.pop_back();
-	for (auto page_extruder : m_extruder_pages)
-		m_pages.push_back(page_extruder);
-	m_pages.push_back(page_note);
-
-    {
-        // if we have a single extruder MM setup, add a page with configuration options:
-        for (int i=0;i<m_pages.size();++i) // first make sure it's not there already
-            if (m_pages[i]->title().find(_(L("Single extruder MM setup"))) != std::string::npos) {
-                m_pages.erase(m_pages.begin()+i);
-                break;
-            }
-        if ( m_extruder_pages.size()>1 && m_config->opt_bool("single_extruder_multi_material")) {
-            // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
-            auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png",true);
-                auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
-                optgroup->append_single_option_line("cooling_tube_retraction");
-                optgroup->append_single_option_line("cooling_tube_length");
-                optgroup->append_single_option_line("parking_pos_retraction");
-            m_pages.insert(m_pages.begin()+1,page);
-        }
-    }
+// 	PageShp page_note = m_pages.back();
+// 	m_pages.pop_back();
+// 	PageShp page_depend = m_pages.back();
+// 	m_pages.pop_back();
+// 	auto counter = m_extruders_count_old;
+// 	while (counter > m_extruders_count/*m_pages.back()->title().find(_(L("Extruder"))) != std::string::npos*/){
+// 		m_pages.pop_back();
+// 		--counter;
+// 	}
+// // 	for (auto page_extruder : m_extruder_pages)
+// //		m_pages.push_back(page_extruder);
+// 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx)
+// 		m_pages.push_back(m_extruder_pages[extruder_idx]);
+//  	m_pages.push_back(page_note);
+// 	m_pages.push_back(page_depend);
 
 	rebuild_page_tree();
 }
@@ -1899,8 +2095,10 @@ void Tab::load_current_preset()
 			static_cast<TabPrinter*>(this)->m_sys_extruders_count = parent_preset == nullptr ? 0 :
 				static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
 		}
-		update_sys_ui_after_sel_preset();
-		update_full_options_list();
+//		update_sys_ui_after_sel_preset();
+//		update_full_options_list();
+		m_opt_status_value = (m_presets->get_selected_preset_parent() ? osSystemValue : 0) | osInitValue;
+		init_options_list();
 		update_changed_ui();
 	});
 }
@@ -1917,6 +2115,7 @@ void Tab::rebuild_page_tree()
 	for (auto p : m_pages)
 	{
 		auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
+		m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
 		if (p->title() == selected) {
 			m_disable_tree_sel_changed_event = 1;
 			m_treectrl->SelectItem(itemId);

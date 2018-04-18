@@ -629,11 +629,13 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
     return was_dirty != is_dirty;
 }
 
-std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, const Preset *reference)
+std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, const Preset *reference, const bool is_printer_type /*= false*/)
 {
     std::vector<std::string> changed;
-    if (edited != nullptr && reference != nullptr) {
-        changed = reference->config.diff(edited->config);
+	if (edited != nullptr && reference != nullptr) {
+        changed = is_printer_type  ? 
+				reference->config.deep_diff(edited->config) :
+				reference->config.diff(edited->config);
         // The "compatible_printers" option key is handled differently from the others:
         // It is not mandatory. If the key is missing, it means it is compatible with any printer.
         // If the key exists and it is empty, it means it is compatible with no printer.

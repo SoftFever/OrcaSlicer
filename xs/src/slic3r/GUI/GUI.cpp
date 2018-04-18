@@ -179,6 +179,7 @@ AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
 wxColour    g_color_label_modified;
 wxColour    g_color_label_sys;
+wxColour    g_color_label_default;
 
 std::vector<Tab *> g_tabs_list;
 
@@ -198,6 +199,7 @@ static void init_label_colours()
 		g_color_label_modified = wxColour(253, 111, 40);
 		g_color_label_sys = wxColour(115, 220, 103);
 	}
+	g_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 }
 
 void set_wxapp(wxApp *app)
@@ -546,6 +548,10 @@ const wxColour& get_modified_label_clr() {
 
 const wxColour& get_sys_label_clr() {
 	return g_color_label_sys;
+}
+
+const wxColour& get_default_label_clr() {
+	return g_color_label_default;
 }
 
 unsigned get_colour_approx_luma(const wxColour &colour)

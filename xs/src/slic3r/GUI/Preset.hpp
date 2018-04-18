@@ -253,11 +253,11 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
     bool                        current_is_dirty() const { return ! this->current_dirty_options().empty(); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_dirty_options() const 
-        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset()); }
+    std::vector<std::string>    current_dirty_options(const bool is_printer_type = false) const
+        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset(), is_printer_type); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_different_from_parent_options() const
-        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent()); }
+    std::vector<std::string>    current_different_from_parent_options(const bool is_printer_type = false) const
+        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), is_printer_type); }
     // Compare the content of get_selected_preset() with get_selected_preset_parent() configs, return the list of keys where they equal.
 	std::vector<std::string>    system_equal_options() const;
 
@@ -299,7 +299,7 @@ private:
     std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
 
-    static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference);
+    static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference, const bool is_printer_type = false);
 
     // Type of this PresetCollection: TYPE_PRINT, TYPE_FILAMENT or TYPE_PRINTER.
     Preset::Type            m_type;
