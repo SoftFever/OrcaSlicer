@@ -336,6 +336,9 @@ protected:
     // This is a temporary state, which shall be fixed immediately by the following step.
     bool            select_preset_by_name_strict(const std::string &name);
 
+    // Merge one vendor's presets with the other vendor's presets, report duplicates.
+    std::vector<std::string> merge_presets(PresetCollection &&other, const std::set<VendorProfile> &new_vendors);
+
 private:
     PresetCollection();
     PresetCollection(const PresetCollection &other);

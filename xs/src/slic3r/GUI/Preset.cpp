@@ -790,6 +790,29 @@ bool PresetCollection::select_preset_by_name_strict(const std::string &name)
     return false;
 }
 
+// Merge one vendor's presets with the other vendor's presets, report duplicates.
+std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&other, const std::set<VendorProfile> &new_vendors)
+{
+    std::vector<std::string> duplicates;
+    for (Preset &preset : other.m_presets) {
+        if (preset.is_default || preset.is_external)
+            continue;
+        Preset key(m_type, preset.name);
+        auto it = std::lower_bound(m_presets.begin() + 1, m_presets.end(), key);
+        if (it == m_presets.end() || it->name != preset.name) {
+            if (preset.vendor != nullptr) {
+                // Re-assign a pointer to the vendor structure in the new PresetBundle.
+                auto it = new_vendors.find(*preset.vendor);
+                assert(it != new_vendors.end());
+                preset.vendor = &(*it);
+            }
+            this->m_presets.emplace(it, std::move(preset));
+        } else
+            duplicates.emplace_back(std::move(preset.name));
+    }
+    return duplicates;
+}
+
 std::string PresetCollection::name() const
 {
     switch (this->type()) {

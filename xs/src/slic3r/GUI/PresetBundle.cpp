@@ -178,6 +178,7 @@ std::string PresetBundle::load_system_presets()
     // Here the vendor specific read only Config Bundles are stored.
     boost::filesystem::path dir = (boost::filesystem::path(data_dir()) / "vendor").make_preferred();
     std::string errors_cummulative;
+    bool        first = true;
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
         if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini")) {
             std::string name = dir_entry.path().filename().string();
@@ -185,13 +186,43 @@ std::string PresetBundle::load_system_presets()
             name.erase(name.size() - 4);
             try {
                 // Load the config bundle, flatten it.
-                this->load_configbundle(dir_entry.path().string(), LOAD_CFGBNDLE_SYSTEM);
+                if (first) {
+                    // Reset this PresetBundle and load the first vendor config.
+                    this->load_configbundle(dir_entry.path().string(), LOAD_CFGBNDLE_SYSTEM);
+                    first = false;
+                } else {
+                    // Load the other vendor configs, merge them with this PresetBundle.
+                    // Report duplicate profiles.
+                    PresetBundle other;
+                    other.load_configbundle(dir_entry.path().string(), LOAD_CFGBNDLE_SYSTEM);
+                    std::vector<std::string> duplicates = this->merge_presets(std::move(other));
+                    if (! duplicates.empty()) {
+                        errors_cummulative += "Vendor configuration file " + name + " contains the following presets with names used by other vendors: ";
+                        for (size_t i = 0; i < duplicates.size(); ++ i) {
+                            if (i > 0)
+                                errors_cummulative += ", ";
+                            errors_cummulative += duplicates[i];
+                        }
+                    }
+                }
             } catch (const std::runtime_error &err) {
                 errors_cummulative += err.what();
                 errors_cummulative += "\n";
             }
         }
     return errors_cummulative;
+}
+
+// Merge one vendor's presets with the other vendor's presets, report duplicates.
+std::vector<std::string> PresetBundle::merge_presets(PresetBundle &&other)
+{
+    this->vendors.insert(other.vendors.begin(), other.vendors.end());
+    std::vector<std::string> duplicate_prints    = this->prints   .merge_presets(std::move(other.prints),    this->vendors);
+    std::vector<std::string> duplicate_filaments = this->filaments.merge_presets(std::move(other.filaments), this->vendors);
+    std::vector<std::string> duplicate_printers  = this->printers .merge_presets(std::move(other.printers),  this->vendors);
+    append(duplicate_prints, std::move(duplicate_filaments));
+    append(duplicate_prints, std::move(duplicate_printers));
+    return duplicate_prints;
 }
 
 static inline std::string remove_ini_suffix(const std::string &name)

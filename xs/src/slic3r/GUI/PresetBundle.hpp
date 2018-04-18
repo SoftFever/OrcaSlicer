@@ -116,10 +116,12 @@ public:
     // preset if the current print or filament preset is not compatible.
     void                        update_compatible_with_printer(bool select_other_if_incompatible);
 
-    static bool parse_color(const std::string &scolor, unsigned char *rgb_out);
+    static bool                 parse_color(const std::string &scolor, unsigned char *rgb_out);
 
 private:
     std::string                 load_system_presets();
+    // Merge one vendor's presets with the other vendor's presets, report duplicates.
+    std::vector<std::string>    merge_presets(PresetBundle &&other);
 
     // Set the "enabled" flag for printer vendors, printer models and printer variants
     // based on the user configuration.
