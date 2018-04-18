@@ -1281,10 +1281,7 @@ sub Render {
         # disable depth testing so that axes are not covered by ground
         glDisable(GL_DEPTH_TEST);
         my $origin = $self->origin;
-        my $axis_len = max(
-            0.3 * max(@{ $self->bed_bounding_box->size }),
-              2 * max(@{ $volumes_bb->size }),
-        );
+        my $axis_len = $self->use_plain_shader ? 0.3 * max(@{ $self->bed_bounding_box->size }) : 2 * max(@{ $volumes_bb->size });
         glLineWidth(2);
         glBegin(GL_LINES);
         # draw line for x axis
