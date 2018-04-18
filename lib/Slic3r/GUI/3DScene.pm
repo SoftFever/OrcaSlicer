@@ -1330,8 +1330,8 @@ sub Render {
         glEnable(GL_CULL_FACE) if ($self->enable_picking);
     }
 
-    # draw cutting plane
     if (defined $self->cutting_plane_z) {
+        # draw cutting plane
         my $plane_z = $self->cutting_plane_z;
         my $bb = $volumes_bb;
         glDisable(GL_CULL_FACE);
@@ -1347,6 +1347,15 @@ sub Render {
         glEnd();
         glEnable(GL_CULL_FACE);
         glDisable(GL_BLEND);
+        
+        # draw cutting contours
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glLineWidth(2);
+        glColor3f(0, 0, 0);
+        glVertexPointer_c(3, GL_FLOAT, 0, $self->cut_lines_vertices->ptr());
+        glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
+        glVertexPointer_c(3, GL_FLOAT, 0, 0);
+        glDisableClientState(GL_VERTEX_ARRAY);
     }
 
     # draw warning message
@@ -1393,18 +1402,10 @@ sub draw_volumes {
         $volume->render;
     }
     glDisableClientState(GL_NORMAL_ARRAY);
-    glDisable(GL_BLEND);
-
-    glEnable(GL_CULL_FACE);
-    
-    if (defined $self->cutting_plane_z) {
-        glLineWidth(2);
-        glColor3f(0, 0, 0);
-        glVertexPointer_c(3, GL_FLOAT, 0, $self->cut_lines_vertices->ptr());
-        glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
-        glVertexPointer_c(3, GL_FLOAT, 0, 0);
-    }
     glDisableClientState(GL_VERTEX_ARRAY);
+    
+    glDisable(GL_BLEND);
+    glEnable(GL_CULL_FACE);    
 }
 
 sub mark_volumes_for_layer_height {
