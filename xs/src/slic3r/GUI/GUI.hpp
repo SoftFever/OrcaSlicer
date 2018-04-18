@@ -97,7 +97,7 @@ extern bool check_unsaved_changes();
 extern void config_wizard_startup(bool app_config_exists);
 
 // Opens the configuration wizard, returns true if wizard is finished & accepted.
-extern void config_wizard(bool fresh_start);
+extern void config_wizard(bool startup, bool empty_datadir);
 
 // Create "Preferences" dialog after selecting menu "Preferences" in Perl part
 extern void open_preferences_dialog(int event_preferences);

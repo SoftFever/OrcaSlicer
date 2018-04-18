@@ -23,7 +23,7 @@ public:
 	void sync(PresetBundle *preset_bundle);
 	void slic3r_update_notify();
 	void config_update() const;
-	void install_bundles_rsrc(std::vector<std::string> &&bundles);
+	void install_bundles_rsrc(std::vector<std::string> &&bundles, bool snapshot = true);
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

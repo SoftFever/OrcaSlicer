@@ -155,7 +155,7 @@ struct PresetUpdater::priv
 
 	void check_install_indices() const;
 	Updates config_update() const;
-	void perform_updates(Updates &&updates) const;
+	void perform_updates(Updates &&updates, bool snapshot = true) const;
 };
 
 PresetUpdater::priv::priv(int version_online_event) :
@@ -348,9 +348,11 @@ Updates PresetUpdater::priv::config_update() const
 	return updates;
 }
 
-void PresetUpdater::priv::perform_updates(Updates &&updates) const
+void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) const
 {
-	SnapshotDB::singleton().take_snapshot(*GUI::get_app_config(), Snapshot::SNAPSHOT_UPGRADE);
+	if (snapshot) {
+		SnapshotDB::singleton().take_snapshot(*GUI::get_app_config(), Snapshot::SNAPSHOT_UPGRADE);
+	}
 
 	for (const auto &update : updates) {
 		fs::copy_file(update.source, update.target, fs::copy_option::overwrite_if_exists);
@@ -458,7 +460,7 @@ void PresetUpdater::config_update() const
 	}
 }
 
-void PresetUpdater::install_bundles_rsrc(std::vector<std::string> &&bundles)
+void PresetUpdater::install_bundles_rsrc(std::vector<std::string> &&bundles, bool snapshot)
 {
 	Updates updates;
 
@@ -468,7 +470,7 @@ void PresetUpdater::install_bundles_rsrc(std::vector<std::string> &&bundles)
 		updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors));
 	}
 
-	p->perform_updates(std::move(updates));
+	p->perform_updates(std::move(updates), snapshot);
 }
 
 

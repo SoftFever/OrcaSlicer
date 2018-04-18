@@ -390,7 +390,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case ConfigMenuWizard:
-            config_wizard(0);
+            config_wizard(false, false);
             break;
 		case ConfigMenuTakeSnapshot:
 			// Take a configuration snapshot.
@@ -465,33 +465,35 @@ bool check_unsaved_changes()
 void config_wizard_startup(bool app_config_exists)
 {
 	if (! app_config_exists || g_PresetBundle->has_defauls_only()) {
-		config_wizard(true);
+		config_wizard(true, true);
 	} else if (g_AppConfig->legacy_datadir()) {
 		// Looks like user has legacy pre-vendorbundle data directory,
 		// explain what this is and run the wizard
 
 		const auto msg = _(L("Configuration update"));
-		const auto ext_msg = _(L(
-			"Slic3r PE now uses an updated configuration structure.\n\n"
+		const auto ext_msg = wxString::Format(
+			_(L(
+				"Slic3r PE now uses an updated configuration structure.\n\n"
 
-			"So called 'System presets' have been introduced, which hold the built-in default settings for various "
-			"printers. These System presets cannot be modified, instead, users now may create their"
-			"own presets inheriting settings from one of the System presets.\n"
-			"An inheriting preset may either inherit a particular value from its parent or override it with a customized value.\n\n"
+				"So called 'System presets' have been introduced, which hold the built-in default settings for various "
+				"printers. These System presets cannot be modified, instead, users now may create their"
+				"own presets inheriting settings from one of the System presets.\n"
+				"An inheriting preset may either inherit a particular value from its parent or override it with a customized value.\n\n"
 
-			// TODO: Assistant vs Wizard
-			"Please proceed with the Configuration wizard that follows to set up the new presets "
-			"and to choose whether to enable automatic preset updates."
-		));
+				"Please proceed with the %s that follows to set up the new presets "
+				"and to choose whether to enable automatic preset updates."
+			)),
+			ConfigWizard::name()
+		);
 		wxMessageDialog dlg(NULL, msg, _(L("Configuration update")), wxOK|wxCENTRE);
 		dlg.SetExtendedMessage(ext_msg);
 		const auto res = dlg.ShowModal();
 
-		config_wizard(true);
+		config_wizard(true, false);
 	}
 }
 
-void config_wizard(bool fresh_start)   // TODO: fresh_start useful ?
+void config_wizard(bool startup, bool empty_datadir)
 {
 	if (g_wxMainFrame == nullptr)
 		throw std::runtime_error("Main frame not set");
@@ -500,8 +502,7 @@ void config_wizard(bool fresh_start)   // TODO: fresh_start useful ?
     if (! check_unsaved_changes())
     	return;
 
-	// TODO: Offer "reset user profile" ???
-	ConfigWizard wizard(g_wxMainFrame, fresh_start);
+	ConfigWizard wizard(g_wxMainFrame, startup, empty_datadir);
 	wizard.run(g_PresetBundle, g_PresetUpdater);
 
     // Load the currently selected preset into the GUI, update the preset selection box.

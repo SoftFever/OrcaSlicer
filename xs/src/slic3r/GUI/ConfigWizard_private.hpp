@@ -100,12 +100,14 @@ struct PageWelcome: ConfigWizardPage
 {
 	PrinterPicker *printer_picker;
 	wxPanel *others_buttons;
+	wxCheckBox *cbox_reset;
 
 	PageWelcome(ConfigWizard *parent);
 
 	virtual wxPanel* extra_buttons() { return others_buttons; }
 	virtual void on_page_set();
 
+	bool reset_user_profile() const { return cbox_reset->GetValue(); }
 	void on_variant_checked();
 };
 
@@ -188,9 +190,10 @@ private:
 struct ConfigWizard::priv
 {
 	ConfigWizard *q;
-	bool fresh_start;
-	AppConfig appconfig_vendors;    // TODO: use order-preserving container
-	std::unordered_map<std::string, VendorProfile> vendors;   // TODO: just set?
+	bool flag_startup;
+	bool flag_empty_datadir;
+	AppConfig appconfig_vendors;
+	std::unordered_map<std::string, VendorProfile> vendors;
 	std::unordered_map<std::string, std::string> vendors_rsrc;
 	std::unique_ptr<DynamicPrintConfig> custom_config;
 

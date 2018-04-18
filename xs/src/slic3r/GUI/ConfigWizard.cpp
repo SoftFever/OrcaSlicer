@@ -17,7 +17,6 @@
 #include "GUI.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
-// TODO: Wizard vs Assistant
 
 namespace Slic3r {
 namespace GUI {
@@ -205,9 +204,18 @@ void ConfigWizardPage::enable_next(bool enable) { parent->p->enable_next(enable)
 PageWelcome::PageWelcome(ConfigWizard *parent) :
 	ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the Slic3r %s")), ConfigWizard::name()), _(L("Welcome"))),
 	printer_picker(nullptr),
-	others_buttons(new wxPanel(parent))
+	others_buttons(new wxPanel(parent)),
+	cbox_reset(new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles - install from scratch (a snapshot will be taken beforehand)"))))
 {
-	append_text(_(L("Hello, welcome to Slic3r Prusa Edition! TODO: This text.")));
+	if (wizard_p()->flag_startup && wizard_p()->flag_empty_datadir) {
+		wxString::Format(_(L("Run %s")), ConfigWizard::name());
+		append_text(wxString::Format(
+			_(L("Hello, welcome to Slic3r Prusa Edition! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")),
+			ConfigWizard::name())
+		);
+	} else {
+		append(cbox_reset);
+	}
 
 	const auto &vendors = wizard_p()->vendors;
 	const auto vendor_prusa = vendors.find("PrusaResearch");
@@ -720,14 +728,22 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 			// This vendor needs to be installed
 			install_bundles.emplace_back(vendor_rsrc.second);
 		}
+
+		// If the datadir was empty don't take a snapshot (it would just be an empty snapshot)
+		const bool snapshot = !flag_empty_datadir || page_welcome->reset_user_profile();
 		if (install_bundles.size() > 0) {
-			updater->install_bundles_rsrc(std::move(install_bundles));
+			// Install bundles from resources.
+			updater->install_bundles_rsrc(std::move(install_bundles), snapshot);
+		}
+
+		if (page_welcome->reset_user_profile()) {
+			preset_bundle->reset(true);
 		}
 
 		app_config->set_vendors(appconfig_vendors);
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
-		if (fresh_start)
+		if (flag_startup)
 			app_config->reset_selections();
 		// ^ TODO: replace with appropriate printer selection
 		preset_bundle->load_presets(*app_config);
@@ -743,11 +759,13 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
 // Public
 
-ConfigWizard::ConfigWizard(wxWindow *parent, bool fresh_start) :
+ConfigWizard::ConfigWizard(wxWindow *parent, bool startup, bool empty_datadir) :
 	wxDialog(parent, wxID_ANY, name(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
-	p->fresh_start = fresh_start;
+	p->flag_startup = startup;
+	p->flag_empty_datadir = empty_datadir;
+
 	p->load_vendors();
 	p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
 		"gcode_flavor", "bed_shape", "nozzle_diameter", "filament_diameter", "temperature", "bed_temperature",

@@ -16,7 +16,7 @@ namespace GUI {
 class ConfigWizard: public wxDialog
 {
 public:
-	ConfigWizard(wxWindow *parent, bool fresh_start);
+	ConfigWizard(wxWindow *parent, bool startup, bool empty_datadir);
 	ConfigWizard(ConfigWizard &&) = delete;
 	ConfigWizard(const ConfigWizard &) = delete;
 	ConfigWizard &operator=(ConfigWizard &&) = delete;
