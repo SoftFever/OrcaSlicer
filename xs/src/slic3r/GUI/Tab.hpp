@@ -142,10 +142,6 @@ protected:
 	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
-// 	std::vector<std::string>	m_dirty_options = {};
-// 	std::vector<std::string>	m_nonsys_options = {};
-//  std::vector<std::string>	m_sys_options = {};
-// 	std::vector<std::string>	m_full_options_list = {};
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
 	std::map<std::string, int>	m_options_list;
 	int							m_opt_status_value;
@@ -203,15 +199,11 @@ public:
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
 	void		update_changed_ui();
-// 	void		update_full_options_list();
-// 	void		update_sys_ui_after_sel_preset();
 	void		get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page);
 	void		update_changed_tree_ui();
 	void		update_undo_buttons();
 
 	void		on_roll_back_value(const bool to_sys = false);
-// 	void		on_back_to_initial_value();
-// 	void		on_back_to_sys_value();
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 
@@ -291,7 +283,6 @@ public:
 	size_t		m_extruders_count_old = 0;
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
-//	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}
 	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
