@@ -59,13 +59,54 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
+#define MSGBUFFER_SIZE 4096
+char msgbuffer[MSGBUFFER_SIZE];
+
+static void avrdude_message_handler_null(const char *msg, unsigned size, void *user_p)
+{
+    (void)size;
+    fputs(msg, stderr);
+}
+
+static void *avrdude_message_handler_user_p = NULL;
+static avrdude_message_handler_t avrdude_message_handler = avrdude_message_handler_null;
+
+avrdude_message_handler_t avrdude_message_handler_set(avrdude_message_handler_t newhandler, void *user_p)
+{
+    avrdude_message_handler_t previous = avrdude_message_handler == avrdude_message_handler_null ? NULL : avrdude_message_handler;
+
+    if (newhandler != NULL) {
+        avrdude_message_handler = newhandler;
+        avrdude_message_handler_user_p = user_p;
+    } else {
+        avrdude_message_handler = NULL;
+        avrdude_message_handler_user_p = NULL;
+    }
+
+    return previous;
+}
+
 int avrdude_message(const int msglvl, const char *format, ...)
 {
+    static const char *format_error = "avrdude_message: Could not format message";
+  
     int rc = 0;
     va_list ap;
     if (verbose >= msglvl) {
         va_start(ap, format);
-        rc = vfprintf(stderr, format, ap);
+        rc = vsnprintf(msgbuffer, MSGBUFFER_SIZE, format, ap);
+
+        if (rc > 0 && rc < MSGBUFFER_SIZE) {
+            avrdude_message_handler(msgbuffer, rc, avrdude_message_handler_user_p);
+        } else {
+            rc = snprintf(msgbuffer, MSGBUFFER_SIZE, "%s: %s", format_error, format);
+            if (rc > 0 && rc < MSGBUFFER_SIZE) {
+                avrdude_message_handler(msgbuffer, rc, avrdude_message_handler_user_p);
+            } else {
+                avrdude_message_handler(format_error, strlen(format_error), avrdude_message_handler_user_p);
+            }
+        }
+
         va_end(ap);
     }
     return rc;
@@ -138,40 +179,40 @@ static void usage(void)
 }
 
 
-static void update_progress_tty (int percent, double etime, char *hdr)
-{
-  static char hashes[51];
-  static char *header;
-  static int last = 0;
-  int i;
+// static void update_progress_tty (int percent, double etime, char *hdr)
+// {
+//   static char hashes[51];
+//   static char *header;
+//   static int last = 0;
+//   int i;
 
-  setvbuf(stderr, (char*)NULL, _IONBF, 0);
+//   setvbuf(stderr, (char*)NULL, _IONBF, 0);
 
-  hashes[50] = 0;
+//   hashes[50] = 0;
 
-  memset (hashes, ' ', 50);
-  for (i=0; i<percent; i+=2) {
-    hashes[i/2] = '#';
-  }
+//   memset (hashes, ' ', 50);
+//   for (i=0; i<percent; i+=2) {
+//     hashes[i/2] = '#';
+//   }
 
-  if (hdr) {
-    avrdude_message(MSG_INFO, "\n");
-    last = 0;
-    header = hdr;
-  }
+//   if (hdr) {
+//     avrdude_message(MSG_INFO, "\n");
+//     last = 0;
+//     header = hdr;
+//   }
 
-  if (last == 0) {
-    avrdude_message(MSG_INFO, "\r%s | %s | %d%% %0.2fs",
-            header, hashes, percent, etime);
-  }
+//   if (last == 0) {
+//     avrdude_message(MSG_INFO, "\r%s | %s | %d%% %0.2fs",
+//             header, hashes, percent, etime);
+//   }
 
-  if (percent == 100) {
-    if (!last) avrdude_message(MSG_INFO, "\n\n");
-    last = 1;
-  }
+//   if (percent == 100) {
+//     if (!last) avrdude_message(MSG_INFO, "\n\n");
+//     last = 1;
+//   }
 
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
-}
+//   setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+// }
 
 static void update_progress_no_tty (int percent, double etime, char *hdr)
 {
@@ -179,7 +220,7 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   static int last = 0;
   int cnt = (percent>>1)*2;
 
-  setvbuf(stderr, (char*)NULL, _IONBF, 0);
+  // setvbuf(stderr, (char*)NULL, _IONBF, 0);
 
   if (hdr) {
     avrdude_message(MSG_INFO, "\n%s | ", hdr);
@@ -201,7 +242,7 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   else
     last = (percent>>1)*2;    /* Make last a multiple of 2. */
 
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+  // setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 }
 
 static void list_programmers_callback(const char *name, const char *desc,
@@ -285,7 +326,7 @@ static void exithook(void)
         pgm->teardown(pgm);
 }
 
-static void cleanup_main(void)
+static int cleanup_main(int status)
 {
     if (updates) {
         ldestroy_cb(updates, (void(*)(void*))free_update);
@@ -301,12 +342,14 @@ static void cleanup_main(void)
     }
 
     cleanup_config();
+
+    return status;
 }
 
 /*
  * main routine
  */
-int main(int argc, char * argv [])
+int avrdude_main(int argc, char * argv [], const char *sys_config)
 {
   int              rc;          /* general return code checking */
   int              exitrc;      /* exit code for main() */
@@ -329,7 +372,7 @@ int main(int argc, char * argv [])
   char  * exitspecs;   /* exit specs string from command line */
   char  * programmer;  /* programmer id */
   char  * partdesc;    /* part id */
-  char    sys_config[PATH_MAX]; /* system wide config file */
+  // char    sys_config[PATH_MAX]; /* system wide config file */
   char    usr_config[PATH_MAX]; /* per-user config file */
   char  * e;           /* for strtol() error checking */
   int     baudrate;    /* override default programmer baud rate */
@@ -357,8 +400,8 @@ int main(int argc, char * argv [])
    * Set line buffering for file descriptors so we see stdout and stderr
    * properly interleaved.
    */
-  setvbuf(stdout, (char*)NULL, _IOLBF, 0);
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+  // setvbuf(stdout, (char*)NULL, _IOLBF, 0);
+  // setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 
   progname = strrchr(argv[0],'/');
 
@@ -379,24 +422,24 @@ int main(int argc, char * argv [])
 
   init_config();
 
-  atexit(cleanup_main);
+  // atexit(cleanup_main);
 
   updates = lcreat(NULL, 0);
   if (updates == NULL) {
     avrdude_message(MSG_INFO, "%s: cannot initialize updater list\n", progname);
-    exit(1);
+    return cleanup_main(1);
   }
 
   extended_params = lcreat(NULL, 0);
   if (extended_params == NULL) {
     avrdude_message(MSG_INFO, "%s: cannot initialize extended parameter list\n", progname);
-    exit(1);
+    return cleanup_main(1);
   }
 
   additional_config_files = lcreat(NULL, 0);
   if (additional_config_files == NULL) {
     avrdude_message(MSG_INFO, "%s: cannot initialize additional config files list\n", progname);
-    exit(1);
+    return cleanup_main(1);
   }
 
   partdesc      = NULL;
@@ -420,30 +463,30 @@ int main(int argc, char * argv [])
   is_open       = 0;
   logfile       = NULL;
 
-#if defined(WIN32NATIVE)
+// #if defined(WIN32NATIVE)
 
-  win_sys_config_set(sys_config);
-  win_usr_config_set(usr_config);
+//   win_sys_config_set(sys_config);
+//   win_usr_config_set(usr_config);
 
-#else
+// #else
 
-  strcpy(sys_config, CONFIG_DIR);
-  i = strlen(sys_config);
-  if (i && (sys_config[i-1] != '/'))
-    strcat(sys_config, "/");
-  strcat(sys_config, "avrdude.conf");
+//   strcpy(sys_config, CONFIG_DIR);
+//   i = strlen(sys_config);
+//   if (i && (sys_config[i-1] != '/'))
+//     strcat(sys_config, "/");
+//   strcat(sys_config, "avrdude.conf");
 
-  usr_config[0] = 0;
-  homedir = getenv("HOME");
-  if (homedir != NULL) {
-    strcpy(usr_config, homedir);
-    i = strlen(usr_config);
-    if (i && (usr_config[i-1] != '/'))
-      strcat(usr_config, "/");
-    strcat(usr_config, ".avrduderc");
-  }
+//   usr_config[0] = 0;
+//   homedir = getenv("HOME");
+//   if (homedir != NULL) {
+//     strcpy(usr_config, homedir);
+//     i = strlen(usr_config);
+//     if (i && (usr_config[i-1] != '/'))
+//       strcat(usr_config, "/");
+//     strcat(usr_config, ".avrduderc");
+//   }
 
-#endif
+// #endif
 
   len = strlen(progname) + 2;
   for (i=0; i<len; i++)
@@ -470,7 +513,7 @@ int main(int argc, char * argv [])
         if ((e == optarg) || (*e != 0)) {
           avrdude_message(MSG_INFO, "%s: invalid baud rate specified '%s'\n",
                   progname, optarg);
-          exit(1);
+          return cleanup_main(1);
         }
         break;
 
@@ -520,7 +563,7 @@ int main(int argc, char * argv [])
 	if ((e == optarg) || bitclock == 0.0) {
 	  avrdude_message(MSG_INFO, "%s: invalid bit clock period specified '%s'\n",
                   progname, optarg);
-          exit(1);
+          return cleanup_main(1);
         }
         break;
 
@@ -529,7 +572,7 @@ int main(int argc, char * argv [])
 	if ((e == optarg) || (*e != 0) || ispdelay == 0) {
 	  avrdude_message(MSG_INFO, "%s: invalid isp clock delay specified '%s'\n",
                   progname, optarg);
-          exit(1);
+          return cleanup_main(1);
         }
         break;
 
@@ -537,14 +580,14 @@ int main(int argc, char * argv [])
         programmer = optarg;
         break;
 
-      case 'C': /* system wide configuration file */
-        if (optarg[0] == '+') {
-          ladd(additional_config_files, optarg+1);
-        } else {
-          strncpy(sys_config, optarg, PATH_MAX);
-          sys_config[PATH_MAX-1] = 0;
-        }
-        break;
+      // case 'C': /* system wide configuration file */
+      //   if (optarg[0] == '+') {
+      //     ladd(additional_config_files, optarg+1);
+      //   } else {
+      //     strncpy(sys_config, optarg, PATH_MAX);
+      //     sys_config[PATH_MAX-1] = 0;
+      //   }
+      //   break;
 
       case 'D': /* disable auto erase */
         uflags &= ~UF_AUTO_ERASE;
@@ -605,7 +648,7 @@ int main(int argc, char * argv [])
         if (upd == NULL) {
           avrdude_message(MSG_INFO, "%s: error parsing update operation '%s'\n",
                   progname, optarg);
-          exit(1);
+          return cleanup_main(1);
         }
         ladd(updates, upd);
 
@@ -640,39 +683,40 @@ int main(int argc, char * argv [])
 
       case '?': /* help */
         usage();
-        exit(0);
+        return cleanup_main(0);
         break;
 
       default:
         avrdude_message(MSG_INFO, "%s: invalid option -%c\n\n", progname, ch);
         usage();
-        exit(1);
+        return cleanup_main(1);
         break;
     }
 
   }
 
-  if (logfile != NULL) {
-    FILE *newstderr = freopen(logfile, "w", stderr);
-    if (newstderr == NULL) {
-      /* Help!  There's no stderr to complain to anymore now. */
-      printf("Cannot create logfile \"%s\": %s\n",
-	     logfile, strerror(errno));
-      return 1;
-    }
-  }
+  // if (logfile != NULL) {
+  //   FILE *newstderr = freopen(logfile, "w", stderr);
+  //   if (newstderr == NULL) {
+  //     /* Help!  There's no stderr to complain to anymore now. */
+  //     printf("Cannot create logfile \"%s\": %s\n",
+	//      logfile, strerror(errno));
+  //     return 1;
+  //   }
+  // }
 
   if (quell_progress == 0) {
-    if (isatty (STDERR_FILENO))
-      update_progress = update_progress_tty;
-    else {
-      update_progress = update_progress_no_tty;
-      /* disable all buffering of stderr for compatibility with
-         software that captures and redirects output to a GUI
-         i.e. Programmers Notepad */
-      setvbuf( stderr, NULL, _IONBF, 0 );
-      setvbuf( stdout, NULL, _IONBF, 0 );
-    }
+    // if (isatty (STDERR_FILENO))
+    //   update_progress = update_progress_tty;
+    // else {
+    //   update_progress = update_progress_no_tty;
+    //   /* disable all buffering of stderr for compatibility with
+    //      software that captures and redirects output to a GUI
+    //      i.e. Programmers Notepad */
+    //   setvbuf( stderr, NULL, _IONBF, 0 );
+    //   setvbuf( stdout, NULL, _IONBF, 0 );
+    // }
+    update_progress = update_progress_no_tty;
   }
 
   /*
@@ -690,7 +734,7 @@ int main(int argc, char * argv [])
   if (rc) {
     avrdude_message(MSG_INFO, "%s: error reading system wide configuration file \"%s\"\n",
                     progname, sys_config);
-    exit(1);
+    return cleanup_main(1);
   }
 
   if (usr_config[0] != 0) {
@@ -708,7 +752,7 @@ int main(int argc, char * argv [])
       if (rc) {
         avrdude_message(MSG_INFO, "%s: error reading user configuration file \"%s\"\n",
                 progname, usr_config);
-        exit(1);
+        return cleanup_main(1);
       }
     }
   }
@@ -726,7 +770,7 @@ int main(int argc, char * argv [])
       if (rc) {
         avrdude_message(MSG_INFO, "%s: error reading additional configuration file \"%s\"\n",
                         progname, p);
-        exit(1);
+        return cleanup_main(1);
       }
     }
   }
@@ -744,7 +788,7 @@ int main(int argc, char * argv [])
       avrdude_message(MSG_INFO, "Valid parts are:\n");
       list_parts(stderr, "  ", part_list);
       avrdude_message(MSG_INFO, "\n");
-      exit(1);
+      return cleanup_main(1);
     }
   }
 
@@ -754,14 +798,14 @@ int main(int argc, char * argv [])
       avrdude_message(MSG_INFO, "Valid programmers are:\n");
       list_programmers(stderr, "  ", programmers);
       avrdude_message(MSG_INFO, "\n");
-      exit(1);
+      return cleanup_main(1);
     }
     if (strcmp(programmer, "?type") == 0) {
       avrdude_message(MSG_INFO, "\n");
       avrdude_message(MSG_INFO, "Valid programmer types are:\n");
       list_programmer_types(stderr, "  ");
       avrdude_message(MSG_INFO, "\n");
-      exit(1);
+      return cleanup_main(1);
     }
   }
 
@@ -772,7 +816,7 @@ int main(int argc, char * argv [])
                     progname);
     avrdude_message(MSG_INFO, "%sSpecify a programmer using the -c option and try again\n\n",
                     progbuf);
-    exit(1);
+    return cleanup_main(1);
   }
 
   pgm = locate_programmer(programmers, programmer);
@@ -783,7 +827,7 @@ int main(int argc, char * argv [])
     avrdude_message(MSG_INFO, "\nValid programmers are:\n");
     list_programmers(stderr, "  ", programmers);
     avrdude_message(MSG_INFO, "\n");
-    exit(1);
+    return cleanup_main(1);
   }
 
   if (pgm->initpgm) {
@@ -791,15 +835,15 @@ int main(int argc, char * argv [])
   } else {
     avrdude_message(MSG_INFO, "\n%s: Can't initialize the programmer.\n\n",
                     progname);
-    exit(1);
+    return cleanup_main(1);
   }
 
   if (pgm->setup) {
     pgm->setup(pgm);
   }
-  if (pgm->teardown) {
-    atexit(exithook);
-  }
+  // if (pgm->teardown) {
+  //   atexit(exithook);
+  // }
 
   if (lsize(extended_params) > 0) {
     if (pgm->parseextparams == NULL) {
@@ -810,7 +854,7 @@ int main(int argc, char * argv [])
       if (pgm->parseextparams(pgm, extended_params) < 0) {
         avrdude_message(MSG_INFO, "%s: Error parsing extended parameter list\n",
                         progname);
-        exit(1);
+        return cleanup_main(1);
       }
     }
   }
@@ -838,7 +882,7 @@ int main(int argc, char * argv [])
     avrdude_message(MSG_INFO, "Valid parts are:\n");
     list_parts(stderr, "  ", part_list);
     avrdude_message(MSG_INFO, "\n");
-    exit(1);
+    return cleanup_main(1);
   }
 
 
@@ -849,7 +893,7 @@ int main(int argc, char * argv [])
     avrdude_message(MSG_INFO, "Valid parts are:\n");
     list_parts(stderr, "  ", part_list);
     avrdude_message(MSG_INFO, "\n");
-    exit(1);
+    return cleanup_main(1);
   }
 
 
@@ -861,7 +905,7 @@ int main(int argc, char * argv [])
     }
     else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
       usage();
-      exit(1);
+      return cleanup_main(1);
     }
   }
 
@@ -892,7 +936,7 @@ int main(int argc, char * argv [])
   {
     avrdude_message(MSG_INFO, "\n%s: failed to initialize memories\n",
             progname);
-    exit(1);
+    return cleanup_main(1);
   }
 
   /*
@@ -911,7 +955,7 @@ int main(int argc, char * argv [])
                       upd->filename, mtype);
       if ((upd->memtype = strdup(mtype)) == NULL) {
         avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-        exit(1);
+        return cleanup_main(1);
       }
     }
   }
@@ -925,7 +969,7 @@ int main(int argc, char * argv [])
             progname);
     avrdude_message(MSG_INFO, "%sSpecify a port using the -P option and try again\n\n",
             progbuf);
-    exit(1);
+    return cleanup_main(1);
   }
 
   if (verbose) {
@@ -1408,5 +1452,6 @@ main_exit:
     avrdude_message(MSG_INFO, "\n%s done.  Thank you.\n\n", progname);
   }
 
-  return exitrc;
+  exithook();
+  return cleanup_main(exitrc);
 }

@@ -1,6 +1,12 @@
 /* ac_cfg.h.  Generated from ac_cfg.h.in by configure.  */
 /* ac_cfg.h.in.  Generated from configure.ac by autoheader.  */
 
+
+// Edited by hand for usage with Slic3r PE
+
+#define CONFIG_DIR "CONFIG_DIR"
+
+
 /* Define to 1 if you have the <ddk/hidsdi.h> header file. */
 /* #undef HAVE_DDK_HIDSDI_H */
 
@@ -20,10 +26,10 @@
 #define HAVE_INTTYPES_H 1
 
 /* Define if ELF support is enabled via libelf */
-#define HAVE_LIBELF 1
+// #define HAVE_LIBELF 1
 
 /* Define to 1 if you have the <libelf.h> header file. */
-#define HAVE_LIBELF_H 1
+// #define HAVE_LIBELF_H 1
 
 /* Define to 1 if you have the <libelf/libelf.h> header file. */
 /* #undef HAVE_LIBELF_LIBELF_H */
@@ -32,7 +38,7 @@
 /* #undef HAVE_LIBFTDI */
 
 /* Define if FTDI support is enabled via libftdi1 */
-#define HAVE_LIBFTDI1 1
+// #define HAVE_LIBFTDI1 1
 
 /* Define if libftdi supports FT232H, libftdi version >= 0.20 */
 /* #undef HAVE_LIBFTDI_TYPE_232H */
@@ -44,22 +50,22 @@
 /* #undef HAVE_LIBHIDAPI */
 
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
-#define HAVE_LIBNCURSES 1
+// #define HAVE_LIBNCURSES 1
 
 /* Define to 1 if you have the `readline' library (-lreadline). */
-#define HAVE_LIBREADLINE 1
+// #define HAVE_LIBREADLINE 1
 
 /* Define to 1 if you have the `termcap' library (-ltermcap). */
 /* #undef HAVE_LIBTERMCAP */
 
 /* Define if USB support is enabled via libusb */
-#define HAVE_LIBUSB 1
+// #define HAVE_LIBUSB 1
 
 /* Define if USB support is enabled via a libusb-1.0 compatible libusb */
-#define HAVE_LIBUSB_1_0 1
+// #define HAVE_LIBUSB_1_0 1
 
 /* Define to 1 if you have the <libusb-1.0/libusb.h> header file. */
-#define HAVE_LIBUSB_1_0_LIBUSB_H 1
+// #define HAVE_LIBUSB_1_0_LIBUSB_H 1
 
 /* Define to 1 if you have the <libusb.h> header file. */
 /* #undef HAVE_LIBUSB_H */
@@ -86,7 +92,7 @@
 #define HAVE_PARPORT 1
 
 /* Define to 1 if you have the <pthread.h> header file. */
-#define HAVE_PTHREAD_H 1
+// #define HAVE_PTHREAD_H 1
 
 /* Define to 1 if you have the `select' function. */
 #define HAVE_SELECT 1

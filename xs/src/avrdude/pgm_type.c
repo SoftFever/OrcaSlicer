@@ -30,15 +30,15 @@
 
 #include "arduino.h"
 #include "avr910.h"
-#include "avrftdi.h"
+// #include "avrftdi.h"
 #include "buspirate.h"
 #include "butterfly.h"
-#include "flip1.h"
-#include "flip2.h"
-#include "ft245r.h"
-#include "jtagmkI.h"
-#include "jtagmkII.h"
-#include "jtag3.h"
+// #include "flip1.h"
+// #include "flip2.h"
+// #include "ft245r.h"
+// #include "jtagmkI.h"
+// #include "jtagmkII.h"
+// #include "jtag3.h"
 #include "linuxgpio.h"
 #include "par.h"
 #include "pickit2.h"
@@ -47,38 +47,38 @@
 #include "stk500.h"
 #include "stk500generic.h"
 #include "stk500v2.h"
-#include "usbasp.h"
-#include "usbtiny.h"
+// #include "usbasp.h"
+// #include "usbtiny.h"
 #include "wiring.h"
 
 
 const PROGRAMMER_TYPE programmers_types[] = {
         {"arduino", arduino_initpgm, arduino_desc},
         {"avr910", avr910_initpgm, avr910_desc},
-        {"avrftdi", avrftdi_initpgm, avrftdi_desc},
+        // {"avrftdi", avrftdi_initpgm, avrftdi_desc},
         {"buspirate", buspirate_initpgm, buspirate_desc},
         {"buspirate_bb", buspirate_bb_initpgm, buspirate_bb_desc},
         {"butterfly", butterfly_initpgm, butterfly_desc},
         {"butterfly_mk", butterfly_mk_initpgm, butterfly_mk_desc},
-        {"dragon_dw", jtagmkII_dragon_dw_initpgm, jtagmkII_dragon_dw_desc},
+        // {"dragon_dw", jtagmkII_dragon_dw_initpgm, jtagmkII_dragon_dw_desc},
         {"dragon_hvsp", stk500v2_dragon_hvsp_initpgm, stk500v2_dragon_hvsp_desc},
         {"dragon_isp", stk500v2_dragon_isp_initpgm, stk500v2_dragon_isp_desc},
-        {"dragon_jtag", jtagmkII_dragon_initpgm, jtagmkII_dragon_desc},
-        {"dragon_pdi", jtagmkII_dragon_pdi_initpgm, jtagmkII_dragon_pdi_desc},
+        // {"dragon_jtag", jtagmkII_dragon_initpgm, jtagmkII_dragon_desc},
+        // {"dragon_pdi", jtagmkII_dragon_pdi_initpgm, jtagmkII_dragon_pdi_desc},
         {"dragon_pp", stk500v2_dragon_pp_initpgm, stk500v2_dragon_pp_desc},
-        {"flip1", flip1_initpgm, flip1_desc},
-        {"flip2", flip2_initpgm, flip2_desc},
-        {"ftdi_syncbb", ft245r_initpgm, ft245r_desc},
-        {"jtagmki", jtagmkI_initpgm, jtagmkI_desc},
-        {"jtagmkii", jtagmkII_initpgm, jtagmkII_desc},
-        {"jtagmkii_avr32", jtagmkII_avr32_initpgm, jtagmkII_avr32_desc},
-        {"jtagmkii_dw", jtagmkII_dw_initpgm, jtagmkII_dw_desc},
-        {"jtagmkii_isp", stk500v2_jtagmkII_initpgm, stk500v2_jtagmkII_desc},
-        {"jtagmkii_pdi", jtagmkII_pdi_initpgm, jtagmkII_pdi_desc},
-        {"jtagice3", jtag3_initpgm, jtag3_desc},
-        {"jtagice3_pdi", jtag3_pdi_initpgm, jtag3_pdi_desc},
-        {"jtagice3_dw", jtag3_dw_initpgm, jtag3_dw_desc},
-        {"jtagice3_isp", stk500v2_jtag3_initpgm, stk500v2_jtag3_desc},
+        // {"flip1", flip1_initpgm, flip1_desc},
+        // {"flip2", flip2_initpgm, flip2_desc},
+        // {"ftdi_syncbb", ft245r_initpgm, ft245r_desc},
+        // {"jtagmki", jtagmkI_initpgm, jtagmkI_desc},
+        // {"jtagmkii", jtagmkII_initpgm, jtagmkII_desc},
+        // {"jtagmkii_avr32", jtagmkII_avr32_initpgm, jtagmkII_avr32_desc},
+        // {"jtagmkii_dw", jtagmkII_dw_initpgm, jtagmkII_dw_desc},
+        // {"jtagmkii_isp", stk500v2_jtagmkII_initpgm, stk500v2_jtagmkII_desc},
+        // {"jtagmkii_pdi", jtagmkII_pdi_initpgm, jtagmkII_pdi_desc},
+        // {"jtagice3", jtag3_initpgm, jtag3_desc},
+        // {"jtagice3_pdi", jtag3_pdi_initpgm, jtag3_pdi_desc},
+        // {"jtagice3_dw", jtag3_dw_initpgm, jtag3_dw_desc},
+        // {"jtagice3_isp", stk500v2_jtag3_initpgm, stk500v2_jtag3_desc},
         {"linuxgpio", linuxgpio_initpgm, linuxgpio_desc},
         {"par", par_initpgm, par_desc},
         {"pickit2", pickit2_initpgm, pickit2_desc},
@@ -91,8 +91,8 @@ const PROGRAMMER_TYPE programmers_types[] = {
         {"stk600", stk600_initpgm, stk600_desc},
         {"stk600hvsp", stk600hvsp_initpgm, stk600hvsp_desc},
         {"stk600pp", stk600pp_initpgm, stk600pp_desc},
-        {"usbasp", usbasp_initpgm, usbasp_desc},
-        {"usbtiny", usbtiny_initpgm, usbtiny_desc},
+        // {"usbasp", usbasp_initpgm, usbasp_desc},
+        // {"usbtiny", usbtiny_initpgm, usbtiny_desc},
         {"wiring", wiring_initpgm, wiring_desc},
 };
 

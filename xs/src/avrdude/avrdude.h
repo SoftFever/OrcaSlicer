@@ -28,6 +28,8 @@ extern int ovsigck;		/* override signature check (-F) */
 extern int verbose;		/* verbosity level (-v, -vv, ...) */
 extern int quell_progress;	/* quiteness level (-q, -qq) */
 
+typedef void (*avrdude_message_handler_t)(const char *msg, unsigned size, void *user_p);
+avrdude_message_handler_t avrdude_message_handler_set(avrdude_message_handler_t newhandler, void *user_p);
 int avrdude_message(const int msglvl, const char *format, ...);
 
 #define MSG_INFO    (0) /* no -v option, can be supressed with -qq */
@@ -36,6 +38,8 @@ int avrdude_message(const int msglvl, const char *format, ...);
 #define MSG_DEBUG   (3) /* displayed with -vvv */
 #define MSG_TRACE   (4) /* displayed with -vvvv, show trace commuication */
 #define MSG_TRACE2  (5) /* displayed with -vvvvv */
+
+int avrdude_main(int argc, char * argv [], const char *sys_config);
 
 #if defined(WIN32NATIVE)
 
