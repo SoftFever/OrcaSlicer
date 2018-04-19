@@ -107,7 +107,7 @@ struct PageWelcome: ConfigWizardPage
 	virtual wxPanel* extra_buttons() { return others_buttons; }
 	virtual void on_page_set();
 
-	bool reset_user_profile() const { return cbox_reset->GetValue(); }
+	bool reset_user_profile() const { return cbox_reset != nullptr ? cbox_reset->GetValue() : false; }
 	void on_variant_checked();
 };
 

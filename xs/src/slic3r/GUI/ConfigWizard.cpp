@@ -205,7 +205,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 	ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the Slic3r %s")), ConfigWizard::name()), _(L("Welcome"))),
 	printer_picker(nullptr),
 	others_buttons(new wxPanel(parent)),
-	cbox_reset(new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles - install from scratch (a snapshot will be taken beforehand)"))))
+	cbox_reset(nullptr)
 {
 	if (wizard_p()->flag_startup && wizard_p()->flag_empty_datadir) {
 		wxString::Format(_(L("Run %s")), ConfigWizard::name());
@@ -214,6 +214,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 			ConfigWizard::name())
 		);
 	} else {
+		cbox_reset = new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles - install from scratch (a snapshot will be taken beforehand)")));
 		append(cbox_reset);
 	}
 
