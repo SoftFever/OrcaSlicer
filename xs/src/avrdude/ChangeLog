@@ -1,0 +1,90 @@
+2016-05-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Hannes Jochriem:
+	* avrdude.conf.in (ehajo-isp): New programmer.
+
+2016-04-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (libftdi1): Rather than hardcoding the library
+	providing the libusb-1.0 API, use the result from the previous
+	probe.  This helps detecting libftdi1 on FreeBSD where the
+	libusb-1.0 API is provided by the system's libusb.
+
+2016-04-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_hidapi.c (usbhid_open): Correctly calculate the
+	offset for serial number matching
+
+2016-03-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #47550: Linux GPIO broken
+	* linuxgpio.c: Replace %ud by %u in snprintf calls.
+
+2016-03-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_hidapi.c (usbhid_recv): Bump read timeout to 300 ms.
+
+2016-02-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c: add support for libhidapi as (optional) transport for
+	CMSIS-DAP compliant debuggers (JTAGICE3 with firmware 3+,
+	AtmelICE, EDBG, mEDBG)
+	* usb_hidapi.c: (New file)
+	* libavrdude.h: Mention usbhid_serdev
+	* configure.ac: Bump version date
+
+2016-02-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	(Obtained from patch #8717: pattch for mcprog and libhidapi support)
+	* configure.ac: Probe for libhidapi
+	* Makefile.am: Add @LIBHIDAPI@
+
+2016-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* doc/avrdude.texi: Bump copyright year.
+
+2016-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Bump for post-release 6.3.
+
+2016-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Released version 6.3.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8894: Spelling in 6.2 doc
+	* doc/avrdude.texi: Various spelling fixes.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8895: Spelling in 6.2 code
+	* avrftdi.c (avrftdi_open): Spell fix.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8896: Silence cppcheck warnings in 6.2 code
+	* linuxgpio.c: Use %ud to print GPIO values.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8735: ATtiny28 support in avrdude.conf
+	* avrdude.conf.in (ATtiny28): New device.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega48PB, ATmega88PB, ATmega168PB): New
+	devices.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8435: Implementing mEDBG CMSIS-DAP protocol
+	* usb_libusb.c: Add endpoint IDs for Xplained Mini, correctly
+	transfer trailing ZLP when needed
+	* avrdude.conf.in (xplainedmini, xplainedmini_dw): New entries.
+	* jtag3.c (jtag3_edbg_send, jtag3_edbg_recv_frame): Implement
+	fragmentation needed for the 64-byte EP size of the Xplained Mini
+	* avrdude.1: Document the change
+	* doc/avrdude.texi: (Dito.)
+
+
