@@ -22,6 +22,7 @@
 #include <wx/imaglist.h>
 #include <wx/statbox.h>
 #include <wx/dataview.h>
+#include <wx/richtooltip.h>
 
 #include <map>
 #include <vector>
@@ -110,7 +111,11 @@ protected:
 	wxCheckBox*			m_compatible_printers_checkbox;
 	wxButton*			m_compatible_printers_btn;
 	wxButton*			m_undo_btn;
-	wxButton*			m_undo_to_sys_btn;	
+	wxButton*			m_undo_to_sys_btn;
+	wxButton*			m_question_btn;
+	wxStaticText*		m_undo_btns_legent;
+	wxRichToolTip*		m_undo_btn_tip;
+
 	wxComboCtrl*		m_cc_presets_choice;
 	wxDataViewTreeCtrl*	m_presetctrl;
 	wxImageList*		m_preset_icons;
@@ -128,6 +133,7 @@ protected:
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
 	wxBitmap 			m_bmp_value_revert;
 	wxBitmap 			m_bmp_value_unmodified;
+	wxBitmap			m_bmp_question;
 
 	// Colors for ui "decoration"
 	wxColour			m_sys_label_clr;
@@ -171,7 +177,13 @@ public:
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 		get_tabs_list().push_back(this);
 	}
-	~Tab() { delete_tab_from_list(this); }
+	~Tab(){
+		delete_tab_from_list(this);
+		if (m_undo_btn_tip){
+			delete m_undo_btn_tip;
+			m_undo_btn_tip = nullptr;
+		}
+	}
 
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }

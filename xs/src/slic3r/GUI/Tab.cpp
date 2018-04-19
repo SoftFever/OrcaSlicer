@@ -102,10 +102,42 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	m_undo_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 	m_undo_to_sys_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	m_question_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	m_undo_btns_legent = new wxStaticText(panel, wxID_ANY, _(L("For more information about buttons hover the mouse cursor over them.")), wxDefaultPosition, wxDefaultSize);
 	if (wxMSW) {
 		m_undo_btn->SetBackgroundColour(color);
 		m_undo_to_sys_btn->SetBackgroundColour(color);
+		m_question_btn->SetBackgroundColour(color);
 	}
+
+#ifdef __WXMSW__
+	m_undo_to_sys_btn->SetToolTip(_(L(	"Unlocked lock icon indicates about some value changes compared with system values "
+										"in current option group.\n"
+										"Locked lock icon indicates about same values compared with system values "
+										"in current option group.\n"
+										"White bullet icon indicates about nonsystem preset.\n"
+										"Click the unlocked lock to revert all values in current option group to system values.")));
+#else
+	// ToolTips to undo buttons
+	m_undo_btn_tip = new wxRichToolTip("Information about current button",
+		_(L("Unlocked lock icon indicates about some value changes compared with system values "
+			"in current option group.\n"
+			"Locked lock icon indicates about same values compared with system values "
+			"in current option group.\n"
+			"White bullet icon indicates about nonsystem preset.\n"
+			"Click the unlocked lock to revert all values in current option group to system values.")));
+	m_undo_btn_tip->SetIcon(wxICON_INFORMATION);
+	m_undo_btn_tip->ShowFor(m_undo_btn);
+#endif //__WXMSW__
+
+	m_undo_btn->SetToolTip(_(L(	"Back arrow icon indicates about some value changes compared with last saved preset values "
+								"in current option group.\n"
+								"White bullet icon indicates about same values compared with last saved preset values "
+								"in current option group.\n"
+								"Click the Back arrow to revert all values in current option group to last saved preset values.")));
+
+	m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information.")));
+
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
 	m_bmp_value_lock  	  .LoadFile(from_u8(var("sys_lock.png")),     wxBITMAP_TYPE_PNG);
 	m_bmp_value_unlock	  .LoadFile(from_u8(var("sys_unlock.png")),   wxBITMAP_TYPE_PNG);
@@ -113,10 +145,13 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
 	m_bmp_value_revert	  .LoadFile(from_u8(var("action_undo.png")),  wxBITMAP_TYPE_PNG);
 	m_bmp_white_bullet	  .LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
+	m_bmp_question        .LoadFile(from_u8(var("question_mark_01.png")), wxBITMAP_TYPE_PNG);
+
 	m_undo_btn->SetBitmap(m_bmp_white_bullet);
-	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ /*on_back_to_initial_value*/on_roll_back_value(); }));
+	m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_roll_back_value(); }));
 	m_undo_to_sys_btn->SetBitmap(m_bmp_white_bullet);
-	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ /*on_back_to_sys_value*/on_roll_back_value(true); }));
+	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_roll_back_value(true); }));
+	m_question_btn->SetBitmap(m_bmp_question);
 
 	// Colors for ui "decoration"
 	m_sys_label_clr			= get_sys_label_clr();
@@ -135,6 +170,9 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer->AddSpacer(64);
 	m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+	m_hsizer->AddSpacer(16);
+	m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
+	m_hsizer->Add(m_undo_btns_legent, 0, wxALIGN_CENTER_VERTICAL);
 // 	m_hsizer->AddSpacer(64);
 // 	m_hsizer->Add(m_cc_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
 
