@@ -620,7 +620,7 @@ semver_numeric (semver_t *x) {
   return num;
 }
 
-static char *semver_strdup(const char *src) {
+char *semver_strdup(const char *src) {
   if (src == NULL) return NULL;
   size_t len = strlen(src) + 1;
   char *res = malloc(len);

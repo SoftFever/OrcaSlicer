@@ -100,7 +100,13 @@ void AppConfig::load()
 
     // Figure out if datadir has legacy presets
     auto ini_ver = Semver::parse(get("version"));
-    m_legacy_datadir = ini_ver ? *ini_ver < Semver(1, 40, 0) : true;
+    m_legacy_datadir = false;
+    if (ini_ver) {
+        // Make 1.40.0 alphas compare well
+        ini_ver->set_metadata(boost::none);
+        ini_ver->set_prerelease(boost::none);
+        m_legacy_datadir = ini_ver < Semver(1, 40, 0);
+    }
 
     // Override missing or keys with their defaults.
     this->set_defaults();
