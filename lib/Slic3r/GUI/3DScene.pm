@@ -70,6 +70,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _legend_enabled
                               _warning_enabled
                               _apply_zoom_to_volumes_filter
+                              _mouse_dragging
                                                             
                               ) );
                               
@@ -146,6 +147,7 @@ sub new {
     $self->_warning_enabled(0);
     $self->use_plain_shader(0);
     $self->_apply_zoom_to_volumes_filter(0);
+    $self->_mouse_dragging(0);
 
     # Collection of GLVolume objects
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
@@ -381,6 +383,8 @@ sub mouse_event {
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
     my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
 
+    $self->_mouse_dragging($e->Dragging);
+    
     if ($e->Entering && &Wx::wxMSW) {
         # wxMSW needs focus in order to catch mouse wheel events
         $self->SetFocus;
@@ -1182,7 +1186,7 @@ sub Render {
     # Head light
     glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
     
-    if ($self->enable_picking) {
+    if ($self->enable_picking && !$self->_mouse_dragging) {
         if (my $pos = $self->_mouse_pos) {
             # Render the object for picking.
             # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
