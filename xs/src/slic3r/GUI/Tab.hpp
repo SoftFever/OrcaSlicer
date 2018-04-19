@@ -154,6 +154,8 @@ protected:
 	bool				m_is_nonsys_values{ true };
 	bool				m_postpone_update_ui {false};
 
+	size_t				m_selected_preset_item{ 0 };
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;

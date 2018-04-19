@@ -198,8 +198,16 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		//! select_preset(m_presets_choice->GetStringSelection().ToStdString()); 
 		//! we doing next:
 		int selected_item = m_presets_choice->GetSelection();
+		if (m_selected_preset_item == selected_item)
+			return;
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
+			if (selected_string == "------- System presets -------" ||
+				selected_string == "-------  User presets  -------"){
+				m_presets_choice->SetSelection(m_selected_preset_item);
+				return;
+			}
+			m_selected_preset_item = selected_item;
 			select_preset(selected_string);
 		}
 	}));
@@ -488,7 +496,7 @@ void Tab::update_dirty(){
 
 void Tab::update_tab_ui()
 {
-	m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
+	m_selected_preset_item = m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 // 	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
 // 	update_presetsctrl(m_presetctrl, m_show_incompatible_presets);
 }

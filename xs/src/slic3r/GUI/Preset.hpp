@@ -13,6 +13,10 @@ class wxItemContainer;
 
 namespace Slic3r {
 
+namespace GUI {
+	class BitmapCache;
+}
+
 enum ConfigFileType
 {
     CONFIG_FILE_TYPE_UNKNOWN,
@@ -264,7 +268,7 @@ public:
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
-    void            update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible);
+    size_t          update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible);
     // Update the choice UI from the list of presets.
     // Only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
@@ -324,6 +328,8 @@ private:
     wxBitmap               *m_bitmap_main_frame;
     // Path to the directory to store the config files into.
     std::string             m_dir_path;
+	// Caching color bitmaps for the filament combo box.
+	GUI::BitmapCache       *m_bitmap_cache = nullptr;
 };
 
 } // namespace Slic3r
