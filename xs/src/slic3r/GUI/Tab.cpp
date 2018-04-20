@@ -144,7 +144,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_question_btn->SetBitmap(m_bmp_question);
 	m_question_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent)
 	{
-		auto dlg = new ButtonsDescription(parent(), &m_icon_descriptions);
+		auto dlg = new ButtonsDescription(this, &m_icon_descriptions);
 		dlg->ShowModal();
 	}));
 
