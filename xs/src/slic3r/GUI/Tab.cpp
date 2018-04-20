@@ -2355,14 +2355,16 @@ void Tab::fill_icon_descriptions()
 		"indicates about same values compared with system values in current option group")));
 
 	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_unlock, L("UNLOCKED LOCK;"
-		"indicates about some value changes compared with system values in current option group")));
+		"indicates about some value changes compared with system values in current option group.\n"
+		"Click the UNLOCKED LOCK to revert all values in current option group to system values.")));
 
 	m_icon_descriptions.push_back(t_icon_description(&m_bmp_white_bullet, L("WHITE BULLET;"
 		"indicates about : \n - nonsystem preset (on left button)"
 		"\n - same values compared with last saved preset values in current option group(on right button)")));
 
 	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_revert, L("BACK ARROW;"
-		"indicates about some value changes compared with last saved preset values in current option group")));
+		"indicates about some value changes compared with last saved preset values in current option group.\n"
+		"Click the BACK ARROW to revert all values in current option group to last saved preset values.")));
 }
 
 void Page::reload_config()
