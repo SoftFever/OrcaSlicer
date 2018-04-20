@@ -1,3 +1,6 @@
+#ifndef slic3r_Tab_hpp_
+#define slic3r_Tab_hpp_
+
 //	 The "Expert" tab at the right of the main tabbed window.
 //	
 //	 This file implements following packages:
@@ -22,7 +25,6 @@
 #include <wx/imaglist.h>
 #include <wx/statbox.h>
 #include <wx/dataview.h>
-#include <wx/richtooltip.h>
 
 #include <map>
 #include <vector>
@@ -34,6 +36,9 @@
 
 namespace Slic3r {
 namespace GUI {
+
+typedef std::pair<wxBitmap*, std::string>				t_icon_description;
+typedef std::vector<std::pair<wxBitmap*, std::string>>	t_icon_descriptions;
 
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
@@ -113,8 +118,7 @@ protected:
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
 	wxButton*			m_question_btn;
-	wxStaticText*		m_undo_btns_legent;
-	wxRichToolTip*		m_undo_btn_tip;
+// 	wxStaticText*		m_undo_btns_legent;
 
 	wxComboCtrl*		m_cc_presets_choice;
 	wxDataViewTreeCtrl*	m_presetctrl;
@@ -152,6 +156,8 @@ protected:
 	std::map<std::string, int>	m_options_list;
 	int							m_opt_status_value;
 
+	t_icon_descriptions	m_icon_descriptions = {};
+
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
 	wxEventType 		m_event_presets_changed = 0;
@@ -179,10 +185,6 @@ public:
 	}
 	~Tab(){
 		delete_tab_from_list(this);
-		if (m_undo_btn_tip){
-			delete m_undo_btn_tip;
-			m_undo_btn_tip = nullptr;
-		}
 	}
 
 	wxWindow*	parent() const { return m_parent; }
@@ -249,6 +251,7 @@ protected:
 	void			update_frequently_changed_parameters();
     void            update_wiping_button_visibility();
 	void			update_tab_presets(wxComboCtrl* ui, bool show_incompatible);
+	void			fill_icon_descriptions();
 };
 
 //Slic3r::GUI::Tab::Print;
@@ -327,3 +330,5 @@ public:
 
 } // GUI
 } // Slic3r
+
+#endif /* slic3r_Tab_hpp_ */

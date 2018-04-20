@@ -22,7 +22,7 @@ namespace Slic3r { namespace GUI {
 		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 		auto sz = 16;
 	#ifdef __WXGTK__
-		sz = 28
+		sz = 28;
 	#endif // __WXGTK__
 		m_Undo_btn			= new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxSize(sz,sz), wxNO_BORDER);
 		m_Undo_to_sys_btn	= new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxSize(sz,sz), wxNO_BORDER);

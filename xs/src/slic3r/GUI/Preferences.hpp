@@ -1,3 +1,6 @@
+#ifndef slic3r_Preferences_hpp_
+#define slic3r_Preferences_hpp_
+
 #include "GUI.hpp"
 
 #include <wx/dialog.h>
@@ -25,3 +28,5 @@ public:
 } // GUI
 } // Slic3r
 
+
+#endif /* slic3r_Preferences_hpp_ */

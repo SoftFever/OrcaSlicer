@@ -1,3 +1,6 @@
+#ifndef slic3r_TabIface_hpp_
+#define slic3r_TabIface_hpp_
+
 #include <vector>
 #include <string>
 
@@ -30,6 +33,8 @@ public:
 
 protected:
 	GUI::Tab   *m_tab;
-};
+}; // namespace GUI
 
 }; // namespace Slic3r
+
+#endif /* slic3r_TabIface_hpp_ */

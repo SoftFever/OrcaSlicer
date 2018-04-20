@@ -1,3 +1,6 @@
+#ifndef slic3r_OptionsGroup_hpp_
+#define slic3r_OptionsGroup_hpp_
+
 #include <wx/wx.h>
 #include <wx/stattext.h>
 #include <wx/settings.h>
@@ -204,3 +207,5 @@ public:
 };
 
 }}
+
+#endif /* slic3r_OptionsGroup_hpp_ */

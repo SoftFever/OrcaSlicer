@@ -1,3 +1,5 @@
+#ifndef slic3r_BedShapeDialog_hpp_
+#define slic3r_BedShapeDialog_hpp_
 // The bed shape dialog.
 // The dialog opens from Print Settins tab->Bed Shape : Set...
 
@@ -49,3 +51,6 @@ public:
 
 } // GUI
 } // Slic3r
+
+
+#endif  /* slic3r_BedShapeDialog_hpp_ */
