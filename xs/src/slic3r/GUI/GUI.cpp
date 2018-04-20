@@ -397,16 +397,23 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 			if (check_unsaved_changes()) {
 				wxTextEntryDialog dlg(nullptr, _(L("Taking configuration snapshot")), _(L("Snapshot name")));
 				if (dlg.ShowModal() == wxID_OK)
-					Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
-						*g_AppConfig, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data());
+					g_AppConfig->set("on_snapshot", 
+						Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
+							*g_AppConfig, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data()).id);
 			}
 			break;
 		case ConfigMenuSnapshots:
 			if (check_unsaved_changes()) {
-		    	ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton());
+				std::string on_snapshot;
+		    	if (Config::SnapshotDB::singleton().is_on_snapshot(*g_AppConfig))
+		    		on_snapshot = g_AppConfig->get("on_snapshot");
+		    	ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
 		    	dlg.ShowModal();
 		    	if (! dlg.snapshot_to_activate().empty()) {
-		    		Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *g_AppConfig);
+		    		if (! Config::SnapshotDB::singleton().is_on_snapshot(*g_AppConfig))
+		    			Config::SnapshotDB::singleton().take_snapshot(*g_AppConfig, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
+		    		g_AppConfig->set("on_snapshot", 
+		    			Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *g_AppConfig).id);
 		    		g_PresetBundle->load_presets(*g_AppConfig);
 		    		// Load the currently selected preset into the GUI, update the preset selection box.
 					for (Tab *tab : g_tabs_list)

@@ -17,14 +17,14 @@ namespace Config {
 class ConfigSnapshotDialog : public wxDialog
 {
 public:
-    ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db);
-    
+    ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const std::string &id);
     const std::string& snapshot_to_activate() const { return m_snapshot_to_activate; }
 
 private:
     void onLinkClicked(wxHtmlLinkEvent &event);
     void onCloseDialog(wxEvent &);
 
+    // If set, it contains a snapshot ID to be restored after the dialog closes.
     std::string m_snapshot_to_activate;
 };
 

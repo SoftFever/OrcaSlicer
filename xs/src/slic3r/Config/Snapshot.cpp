@@ -7,6 +7,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -81,6 +82,8 @@ void Snapshot::load_ini(const std::string &path)
                 		this->reason = SNAPSHOT_UPGRADE;
                 	else if (rsn == "downgrade")
                 		this->reason = SNAPSHOT_DOWNGRADE;
+                    else if (rsn == "before_rollback")
+                        this->reason = SNAPSHOT_BEFORE_ROLLBACK;
                 	else if (rsn == "user")
                 		this->reason = SNAPSHOT_USER;
                 	else
@@ -131,6 +134,9 @@ void Snapshot::load_ini(const std::string &path)
 			this->vendor_configs.emplace_back(std::move(vc));
         }
     }
+    // Sort the vendors lexicographically.
+    std::sort(this->vendor_configs.begin(), this->vendor_configs.begin(), 
+        [](const VendorConfig &cfg1, const VendorConfig &cfg2) { return cfg1.name < cfg2.name; });
 }
 
 static std::string reason_string(const Snapshot::Reason reason) 
@@ -140,6 +146,8 @@ static std::string reason_string(const Snapshot::Reason reason)
         return "upgrade";
     case Snapshot::SNAPSHOT_DOWNGRADE:
         return "downgrade";
+    case Snapshot::SNAPSHOT_BEFORE_ROLLBACK:
+        return "before_rollback";
     case Snapshot::SNAPSHOT_USER:
         return "user";
     case Snapshot::SNAPSHOT_UNKNOWN:
@@ -208,6 +216,74 @@ void Snapshot::export_vendor_configs(AppConfig &config) const
     for (const VendorConfig &vc : vendor_configs)
         vendors[vc.name] = vc.models_variants_installed;
     config.set_vendors(std::move(vendors));
+}
+
+// Perform a deep compare of the active print / filament / printer / vendor directories.
+// Return true if the content of the current print / filament / printer / vendor directories
+// matches the state stored in this snapshot.
+bool Snapshot::equal_to_active(const AppConfig &app_config) const
+{
+    // 1) Check, whether this snapshot contains the same set of active vendors, printer models and variants
+    // as app_config.
+    {
+        std::set<std::string> matched;
+        for (const VendorConfig &vc : this->vendor_configs) {
+            auto it_vendor_models_variants = app_config.vendors().find(vc.name);
+            if (it_vendor_models_variants == app_config.vendors().end() ||
+                it_vendor_models_variants->second != vc.models_variants_installed)
+                // There are more vendors enabled in the snapshot than currently installed.
+                return false;
+            matched.insert(vc.name);
+        }
+        for (const std::pair<std::string, std::map<std::string, std::set<std::string>>> &v : app_config.vendors())
+            if (matched.find(v.first) == matched.end() && ! v.second.empty())
+                // There are more vendors currently installed than enabled in the snapshot.
+                return false;
+    }
+
+    // 2) Check, whether this snapshot references the same set of ini files as the current state.
+    boost::filesystem::path data_dir     = boost::filesystem::path(Slic3r::data_dir());
+    boost::filesystem::path snapshot_dir = boost::filesystem::path(Slic3r::data_dir()) / SLIC3R_SNAPSHOTS_DIR / this->id;
+    for (const char *subdir : { "print", "filament", "printer", "vendor" }) {
+        boost::filesystem::path path1 = data_dir / subdir;
+        boost::filesystem::path path2 = snapshot_dir / subdir;
+        std::vector<std::string> files1, files2;
+        for (auto &dir_entry : boost::filesystem::directory_iterator(path1))
+            if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
+                files1.emplace_back(dir_entry.path().filename().string());
+        for (auto &dir_entry : boost::filesystem::directory_iterator(path2))
+            if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
+                files2.emplace_back(dir_entry.path().filename().string());
+        std::sort(files1.begin(), files1.end());
+        std::sort(files2.begin(), files2.end());
+        if (files1 != files2)
+            return false;
+        for (const std::string &filename : files1) {
+            FILE *f1 = boost::nowide::fopen((path1 / filename).string().c_str(), "rb");
+            FILE *f2 = boost::nowide::fopen((path2 / filename).string().c_str(), "rb");
+            bool same = true;
+            if (f1 && f2) {
+                char buf1[4096];
+                char buf2[4096];
+                do {
+                    size_t r1 = fread(buf1, 1, 4096, f1);
+                    size_t r2 = fread(buf2, 1, 4096, f2);
+                    if (r1 != r2 || memcmp(buf1, buf2, r1)) {
+                        same = false;
+                        break;
+                    }
+                } while (! feof(f1) || ! feof(f2));
+            } else
+                same = false;
+            if (f1)
+                fclose(f1);
+            if (f2)
+                fclose(f2);
+            if (! same)
+                return false;
+        }
+    }
+    return true;
 }
 
 size_t SnapshotDB::load_db()
@@ -347,12 +423,12 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
     return m_snapshots.back();
 }
 
-void SnapshotDB::restore_snapshot(const std::string &id, AppConfig &app_config)
+const Snapshot& SnapshotDB::restore_snapshot(const std::string &id, AppConfig &app_config)
 {
 	for (const Snapshot &snapshot : m_snapshots)
 		if (snapshot.id == id) {
 			this->restore_snapshot(snapshot, app_config);
-			return;
+			return snapshot;
 		}
 	throw std::runtime_error(std::string("Snapshot with id " + id + " was not found."));
 }
@@ -371,6 +447,50 @@ void SnapshotDB::restore_snapshot(const Snapshot &snapshot, AppConfig &app_confi
     // and about the installed printer types and variants.
     snapshot.export_selections(app_config);
     snapshot.export_vendor_configs(app_config);
+}
+
+bool SnapshotDB::is_on_snapshot(AppConfig &app_config) const
+{
+    // Is the "on_snapshot" configuration value set?
+    std::string on_snapshot = app_config.get("on_snapshot");
+    if (on_snapshot.empty())
+        // No, we are not on a snapshot.
+        return false;
+    // Is the "on_snapshot" equal to the current configuration state?
+    auto it_snapshot = this->snapshot(on_snapshot);
+    if (it_snapshot != this->end() && it_snapshot->equal_to_active(app_config))
+        // Yes, we are on the snapshot.
+        return true;
+    // No, we are no more on a snapshot. Reset the state.
+    app_config.set("on_snapshot", "");
+    return false;
+}
+
+SnapshotDB::const_iterator SnapshotDB::snapshot_with_vendor_preset(const std::string &vendor_name, const Semver &config_version)
+{
+    auto it_found = m_snapshots.end();
+    Snapshot::VendorConfig key;
+    key.name = vendor_name;
+    for (auto it = m_snapshots.begin(); it != m_snapshots.end(); ++ it) {
+        const Snapshot &snapshot = *it;
+        auto it_vendor_config = std::lower_bound(snapshot.vendor_configs.begin(), snapshot.vendor_configs.end(), 
+            key, [](const Snapshot::VendorConfig &cfg1, const Snapshot::VendorConfig &cfg2) { return cfg1.name < cfg2.name; });
+        if (it_vendor_config != snapshot.vendor_configs.end() && it_vendor_config->name == vendor_name &&
+            config_version == it_vendor_config->version) {
+            // Vendor config found with the correct version.
+            // Save it, but continue searching, as we want the newest snapshot.
+            it_found = it;
+        }
+    }
+    return it_found;
+}
+
+SnapshotDB::const_iterator SnapshotDB::snapshot(const std::string &id) const
+{
+    for (const_iterator it = m_snapshots.begin(); it != m_snapshots.end(); ++ it)
+        if (it->id == id)
+            return it;
+    return m_snapshots.end();
 }
 
 boost::filesystem::path SnapshotDB::create_db_dir()
