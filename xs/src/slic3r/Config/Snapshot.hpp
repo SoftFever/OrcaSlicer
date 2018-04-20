@@ -34,6 +34,7 @@ public:
 		SNAPSHOT_UNKNOWN,
 		SNAPSHOT_UPGRADE,
 		SNAPSHOT_DOWNGRADE,
+		SNAPSHOT_BEFORE_ROLLBACK,
 		SNAPSHOT_USER,
 	};
 
@@ -46,6 +47,11 @@ public:
 	// Export the print / filament / printer selections to be activated into the AppConfig.
 	void 		export_selections(AppConfig &config) const;
 	void 		export_vendor_configs(AppConfig &config) const;
+
+	// Perform a deep compare of the active print / filament / printer / vendor directories.
+	// Return true if the content of the current print / filament / printer / vendor directories
+	// matches the state stored in this snapshot.
+	bool 		equal_to_active(const AppConfig &app_config) const;
 
 	// ID of a snapshot should equal to the name of the snapshot directory.
 	// The ID contains the date/time, reason and comment to be human readable.
@@ -79,7 +85,7 @@ public:
 		// Which printer models of this vendor were installed, and which variants of the models?
 		std::map<std::string, std::set<std::string>> models_variants_installed;
 	};
-	// List of vendor configs contained in this snapshot.
+	// List of vendor configs contained in this snapshot, sorted lexicographically.
 	std::vector<VendorConfig> 	vendor_configs;
 };
 
@@ -100,17 +106,24 @@ public:
 	// Create a snapshot directory, copy the vendor config bundles, user print/filament/printer profiles,
 	// create an index.
 	const Snapshot&					take_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment = "");
-	void 							restore_snapshot(const std::string &id, AppConfig &app_config);
+	const Snapshot&					restore_snapshot(const std::string &id, AppConfig &app_config);
 	void 							restore_snapshot(const Snapshot &snapshot, AppConfig &app_config);
+	// Test whether the AppConfig's on_snapshot variable points to an existing snapshot, and the existing snapshot
+	// matches the current state. If it does not match the current state, the AppConfig's "on_snapshot" ID is reset.
+	bool 							is_on_snapshot(AppConfig &app_config) const;
+	// Finds the newest snapshot, which contains a config bundle for vendor_name with config_version.
+	const_iterator					snapshot_with_vendor_preset(const std::string &vendor_name, const Semver &config_version);
 
 	const_iterator					begin()     const { return m_snapshots.begin(); }
 	const_iterator					end()       const { return m_snapshots.end(); }
+	const_iterator 					snapshot(const std::string &id) const;
 	const std::vector<Snapshot>& 	snapshots() const { return m_snapshots; }
 
 private:
 	// Create the snapshots directory if it does not exist yet.
 	static boost::filesystem::path	create_db_dir();
 
+	// Snapshots are sorted by their date/time, oldest first.
 	std::vector<Snapshot>			m_snapshots;
 };
 
