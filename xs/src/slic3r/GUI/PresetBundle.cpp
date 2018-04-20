@@ -977,6 +977,10 @@ void PresetBundle::export_configbundle(const std::string &path) //, const Dynami
 // an optional "(modified)" suffix will be removed from the filament name.
 void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
 {
+	if (name == "------- System presets -------" ||
+		name == "-------  User presets  -------")
+		return;
+
     if (idx >= filament_presets.size())
         filament_presets.resize(idx + 1, filaments.default_preset().name);
     filament_presets[idx] = Preset::remove_suffix_modified(name);

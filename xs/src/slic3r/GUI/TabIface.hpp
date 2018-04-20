@@ -30,6 +30,7 @@ public:
 	DynamicPrintConfig*			get_config();
 	PresetCollection*			get_presets();
 	std::vector<std::string>	get_dependent_tabs();
+	size_t						get_selected_preset_item();
 
 protected:
 	GUI::Tab   *m_tab;

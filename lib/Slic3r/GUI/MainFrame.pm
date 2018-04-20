@@ -149,6 +149,7 @@ sub _init_tabpanel {
             if (defined $presets){
                 my $reload_dependent_tabs = $tab->get_dependent_tabs;
                 $self->{plater}->update_presets($tab_name, $reload_dependent_tabs, $presets);
+                $self->{plater}->{"selected_item_$tab_name"} = $tab->get_selected_preset_item;
                 if ($tab_name eq 'printer') {
                     # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
                     for my $tab_name_other (qw(print filament)) {

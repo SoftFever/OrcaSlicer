@@ -237,12 +237,11 @@ public:
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 	bool			current_preset_is_dirty();
+
 	DynamicPrintConfig*	get_config() { return m_config; }
-	PresetCollection*	get_presets()
-	{
-		return m_presets;
-	}
+	PresetCollection*	get_presets() { return m_presets; }
 	std::vector<std::string>	get_dependent_tabs() { return m_reload_dependent_tabs; }
+	size_t				get_selected_preset_item() { return m_selected_preset_item; }
 
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
