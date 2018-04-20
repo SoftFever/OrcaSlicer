@@ -180,11 +180,12 @@ void PresetUpdater::priv::set_download_prefs(AppConfig *app_config)
 
 bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &target_path) const
 {
-	std::cerr << "get_file(): " << url << " -> " << target_path << std::endl;
-
 	bool res = false;
 	fs::path tmp_path = target_path;
-	tmp_path += TMP_EXTENSION;
+	tmp_path += (boost::format(".%1%%2%") % get_current_pid() % TMP_EXTENSION).str();
+
+	std::cerr << "get_file(): " << url << " -> " << target_path << std::endl
+		<< "\ttmp_path: " << tmp_path << std::endl;
 
 	Http::get(url)
 		.on_progress([this](Http::Progress, bool &cancel) {
