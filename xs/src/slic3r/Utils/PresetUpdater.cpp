@@ -411,18 +411,24 @@ void PresetUpdater::slic3r_update_notify()
 
 	auto* app_config = GUI::get_app_config();
 	const auto ver_slic3r = Semver::parse(SLIC3R_VERSION);
-	const auto ver_online = Semver::parse(app_config->get("version_online"));
+	const auto ver_online_str = app_config->get("version_online");
+	const auto ver_online = Semver::parse(ver_online_str);
+	const auto ver_online_seen = Semver::parse(app_config->get("version_online_seen"));
 	if (! ver_slic3r) {
 		throw std::runtime_error("Could not parse Slic3r version string: " SLIC3R_VERSION);
 	}
 
-	if (ver_online && *ver_online > *ver_slic3r) {
-		UpdateNotification notification(*ver_slic3r, *ver_online);
-		notification.ShowModal();
-		if (notification.disable_version_check()) {
-			app_config->set("version_check", "0");
-			p->enabled_version_check = false;
+	if (ver_online) {
+		// Only display the notification if the version available online is newer AND if we haven't seen it before
+		if (*ver_online > *ver_slic3r && (! ver_online_seen || *ver_online_seen < *ver_online)) {
+			UpdateNotification notification(*ver_slic3r, *ver_online);
+			notification.ShowModal();
+			if (notification.disable_version_check()) {
+				app_config->set("version_check", "0");
+				p->enabled_version_check = false;
+			}
 		}
+		app_config->set("version_online_seen", ver_online_str);
 	}
 }
 
