@@ -160,7 +160,7 @@ struct PresetUpdater::priv
 	void sync_config(const std::set<VendorProfile> vendors) const;
 
 	void check_install_indices() const;
-	Updates config_update() const;
+	Updates get_config_updates() const;
 	void perform_updates(Updates &&updates, bool snapshot = true) const;
 };
 
@@ -347,10 +347,10 @@ void PresetUpdater::priv::check_install_indices() const
 }
 
 // Generates a list of bundle updates that are to be performed
-Updates PresetUpdater::priv::config_update() const
+Updates PresetUpdater::priv::get_config_updates() const
 {
 	Updates updates;
-	
+
 	BOOST_LOG_TRIVIAL(info) << "Checking for cached configuration updates...";
 
 	for (const auto idx : index_db) {
@@ -387,6 +387,16 @@ Updates PresetUpdater::priv::config_update() const
 
 		} else if (recommended->config_version > ver_current->config_version) {
 			// Config bundle update situation
+
+			// Check if the update is already present in a snapshot
+			const auto recommended_snap = SnapshotDB::singleton().snapshot_with_vendor_preset(vp.name, recommended->config_version);
+			if (recommended_snap != SnapshotDB::singleton().end()) {
+				BOOST_LOG_TRIVIAL(info) << boost::format("Bundle update %1% %2% already found in snapshot %3%, skipping...")
+					% vp.name
+					% recommended->config_version.to_string()
+					% recommended_snap->id;
+				continue;
+			}
 
 			auto path_in_cache = cache_path / (idx.vendor() + ".ini");
 			if (! fs::exists(path_in_cache)) {
@@ -502,7 +512,7 @@ void PresetUpdater::config_update() const
 {
 	if (! p->enabled_config_update) { return; }
 
-	auto updates = p->config_update();
+	auto updates = p->get_config_updates();
 	if (updates.size() > 0) {
 		BOOST_LOG_TRIVIAL(info) << boost::format("Update of %1% bundles available. Asking for confirmation ...") % updates.size();
 
