@@ -20,10 +20,17 @@ public:
 	PresetUpdater &operator=(const PresetUpdater &) = delete;
 	~PresetUpdater();
 
+	// If either version check or config updating is enabled, get the appropriate data in the background and cache it.
 	void sync(PresetBundle *preset_bundle);
+
+	// If version check is enabled, check if chaced online slic3r version is newer, notify if so.
 	void slic3r_update_notify();
+
+	// If updating is enabled, check if updates are available in cache, if so, ask about installation.
 	void config_update() const;
-	void install_bundles_rsrc(std::vector<std::string> &&bundles, bool snapshot = true);
+
+	// "Update" a list of bundles from resources (behaves like an online update).
+	void install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot = true);
 private:
 	struct priv;
 	std::unique_ptr<priv> p;
