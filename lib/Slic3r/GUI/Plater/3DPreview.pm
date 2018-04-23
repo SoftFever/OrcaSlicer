@@ -289,6 +289,12 @@ sub refresh_print {
     $self->load_print;
 }
 
+sub reset_gcode_preview_data {
+    my ($self) = @_;
+    $self->gcode_preview_data->reset;
+    $self->canvas->reset_legend_texture();
+}
+
 sub load_print {
     my ($self) = @_;
     
