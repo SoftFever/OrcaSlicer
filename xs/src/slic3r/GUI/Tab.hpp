@@ -300,11 +300,6 @@ public:
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
 
-	std::vector<wxTreeItemId> m_extruders_tree_items;
-	wxTreeItemId	m_single_extruder_MM_item = nullptr;
-	bool			m_correct_treectrl = false;	// m_correct_tree = false -> delete/create m_treectrl
-												// m_correct_tree = true  -> just correct m_treectrl
-
 	TabPrinter() {}
 	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
 	~TabPrinter(){}

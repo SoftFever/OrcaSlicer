@@ -1352,7 +1352,6 @@ void TabPrinter::build()
 
 	// to avoid redundant memory allocation / deallocation during extruders count changing
 	m_pages.reserve(30);
-	m_extruders_tree_items.reserve(30);
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
@@ -1403,10 +1402,8 @@ void TabPrinter::build()
 			size_t extruders_count = boost::any_cast<int>(optgroup->get_value("extruders_count"));
 			wxTheApp->CallAfter([this, opt_key, value, extruders_count](){
 				if (opt_key.compare("extruders_count")==0 || opt_key.compare("single_extruder_multi_material")==0) {
-					m_correct_treectrl = true;
 					extruders_count_changed(extruders_count);
 					update_dirty();
-					m_correct_treectrl = false;
                     if (opt_key.compare("single_extruder_multi_material")==0) // the single_extruder_multimaterial was added to force pages
                         on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
 				}
@@ -1633,6 +1630,9 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 }
 
 void TabPrinter::build_extruder_pages(){
+	size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
+	size_t		n_after_single_extruder_MM = 2; //	Count of pages after single_extruder_multi_material page
+
 	if (m_extruders_count_old == m_extruders_count || m_extruders_count <= 2)
 	{
 		// if we have a single extruder MM setup, add a page with configuration options:
@@ -1648,16 +1648,16 @@ void TabPrinter::build_extruder_pages(){
 			optgroup->append_single_option_line("cooling_tube_retraction");
 			optgroup->append_single_option_line("cooling_tube_length");
 			optgroup->append_single_option_line("parking_pos_retraction");
-			m_pages.insert(m_pages.end()-2, page);
+			m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
 		}
 	}
-		
+
 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
 		char buf[MIN_BUF_LENGTH_FOR_L];
 		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
 		auto page = add_options_page(from_u8(buf), "funnel.png", true);
-		m_pages.insert(m_pages.begin() + 2+extruder_idx, page);
+		m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 			
 			auto optgroup = page->new_optgroup(_(L("Size")));
 			optgroup->append_single_option_line("nozzle_diameter", extruder_idx);
@@ -1696,7 +1696,8 @@ void TabPrinter::build_extruder_pages(){
  
 	// # remove extra pages
 	if (m_extruders_count < m_extruders_count_old)
-		m_pages.erase(m_pages.begin() + 2 + m_extruders_count, m_pages.begin() + 2 + m_extruders_count_old);
+		m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count, 
+						m_pages.begin() + n_before_extruders + m_extruders_count_old);
 
 	m_extruders_count_old = m_extruders_count;
 
@@ -1842,79 +1843,19 @@ void Tab::rebuild_page_tree()
 	auto rootItem = m_treectrl->GetRootItem();
 
 	auto have_selection = 0;
-	if (name() == "printer")
+	m_treectrl->DeleteChildren(rootItem);
+	for (auto p : m_pages)
 	{
-		TabPrinter* tab = dynamic_cast<TabPrinter*>(this);
-		if (!tab->m_correct_treectrl){
-			m_treectrl->DeleteChildren(rootItem);
-			tab->m_extruders_tree_items.resize(0);
-			tab->m_single_extruder_MM_item = nullptr;
-			for (auto p : m_pages)
-			{
-				auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
-				m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
-
-				if (p->title().Contains(_("Extruder")))
-					tab->m_extruders_tree_items.push_back(itemId);
-
-				if (p->title() == _("Single extruder MM setup"))
-					tab->m_single_extruder_MM_item = itemId;
-
-				if (p->title() == selected) {
-					m_disable_tree_sel_changed_event = 1;
-					m_treectrl->SelectItem(itemId);
-					m_disable_tree_sel_changed_event = 0;
-					have_selection = 1;
-				}
-			}
-		}
-		else
-		{
-			while (tab->m_extruders_tree_items.size() > tab->m_extruders_count){
-				m_treectrl->Delete(tab->m_extruders_tree_items.back());
-				tab->m_extruders_tree_items.pop_back();
-			}
-
-			size_t i = 2 + tab->m_extruders_tree_items.size();
-			for (; i < 2 + tab->m_extruders_count; ++i)
-			{
-				auto p = m_pages[i];
-				auto itemId = m_treectrl->InsertItem(rootItem, tab->m_extruders_tree_items.back(), p->title(), p->iconID());
-				m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
-				tab->m_extruders_tree_items.push_back(itemId);
-			}
-
-			if (tab->m_extruders_count == 1 || !m_config->opt_bool("single_extruder_multi_material") 
-				&& tab->m_single_extruder_MM_item)
-			{
-				m_treectrl->Delete(tab->m_single_extruder_MM_item);
-				tab->m_single_extruder_MM_item = nullptr;
-			}
-			else if (tab->m_single_extruder_MM_item == nullptr)
-			{
-				auto p = m_pages[i];
-				auto itemId = tab->m_single_extruder_MM_item =
-					m_treectrl->InsertItem(rootItem, tab->m_extruders_tree_items.back(), p->title(), p->iconID());
-				m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
-			}
+		auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
+		m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
+		if (p->title() == selected) {
+			m_disable_tree_sel_changed_event = 1;
+			m_treectrl->SelectItem(itemId);
+			m_disable_tree_sel_changed_event = 0;
+			have_selection = 1;
 		}
 	}
-	else 
-	{
-		m_treectrl->DeleteChildren(rootItem);
-		for (auto p : m_pages)
-		{
-			auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
-			m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
-			if (p->title() == selected) {
-				m_disable_tree_sel_changed_event = 1;
-				m_treectrl->SelectItem(itemId);
-				m_disable_tree_sel_changed_event = 0;
-				have_selection = 1;
-			}
-		}
- 	}
-	
+
 	if (!have_selection) {
 		// this is triggered on first load, so we don't disable the sel change event
 		m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
