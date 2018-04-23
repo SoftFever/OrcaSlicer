@@ -147,6 +147,31 @@ public:
     BoundingBoxf3() : BoundingBox3Base<Pointf3>() {};
     BoundingBoxf3(const Pointf3 &pmin, const Pointf3 &pmax) : BoundingBox3Base<Pointf3>(pmin, pmax) {};
     BoundingBoxf3(const std::vector<Pointf3> &points) : BoundingBox3Base<Pointf3>(points) {};
+
+    // check if the given point is contained inside this bounding box
+    // all quantities are compared after being quantized to try to reduce instability due to float imprecision
+    bool contains_quantized(const Pointf3& point) const {
+        struct Helper
+        {
+            static coordf_t quantize(coordf_t value)
+            {
+                static const coordf_t INV_EPSILON = 1.0 / EPSILON;
+                return round(value * INV_EPSILON + 0.5) * EPSILON;
+            }
+        };
+
+        coordf_t x = Helper::quantize(point.x);
+        coordf_t y = Helper::quantize(point.y);
+        coordf_t z = Helper::quantize(point.z);
+
+        return (Helper::quantize(min.x) <= x) && (x <= Helper::quantize(max.x))
+            && (Helper::quantize(min.y) <= y) && (y <= Helper::quantize(max.y))
+            && (Helper::quantize(min.z) <= z) && (z <= Helper::quantize(max.z));
+    }
+
+    bool contains_quantized(const BoundingBoxf3& other) const {
+        return contains_quantized(other.min) && contains_quantized(other.max);
+    }
 };
 
 template<typename VT>

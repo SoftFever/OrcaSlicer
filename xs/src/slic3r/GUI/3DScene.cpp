@@ -665,7 +665,7 @@ void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, 
             continue;
         }
 
-        volume->is_outside = !print_volume.contains(volume->transformed_bounding_box());
+        volume->is_outside = !print_volume.contains_quantized(volume->transformed_bounding_box());
     }
 }
 
