@@ -1306,6 +1306,7 @@ void TabFilament::reload_config(){
 
 void TabFilament::update()
 {
+	Freeze();
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
 	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
@@ -1319,6 +1320,7 @@ void TabFilament::update()
 
 	for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
 		get_field(el)->toggle(fan_always_on);
+	Thaw();
 }
 
 void TabFilament::OnActivate()
@@ -1349,7 +1351,8 @@ void TabPrinter::build()
 	load_initial_data();
 
 	// to avoid redundant memory allocation / deallocation during extruders count changing
-	m_pages.reserve(30); 
+	m_pages.reserve(30);
+	m_extruders_tree_items.reserve(30);
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
@@ -1400,8 +1403,10 @@ void TabPrinter::build()
 			size_t extruders_count = boost::any_cast<int>(optgroup->get_value("extruders_count"));
 			wxTheApp->CallAfter([this, opt_key, value, extruders_count](){
 				if (opt_key.compare("extruders_count")==0 || opt_key.compare("single_extruder_multi_material")==0) {
+					m_correct_treectrl = true;
 					extruders_count_changed(extruders_count);
 					update_dirty();
+					m_correct_treectrl = false;
                     if (opt_key.compare("single_extruder_multi_material")==0) // the single_extruder_multimaterial was added to force pages
                         on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
 				}
@@ -1835,19 +1840,80 @@ void Tab::rebuild_page_tree()
 	// get label of the currently selected item
 	auto selected = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	auto rootItem = m_treectrl->GetRootItem();
-	m_treectrl->DeleteChildren(rootItem);
+
 	auto have_selection = 0;
-	for (auto p : m_pages)
+	if (name() == "printer")
 	{
-		auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
-		m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
-		if (p->title() == selected) {
-			m_disable_tree_sel_changed_event = 1;
-			m_treectrl->SelectItem(itemId);
-			m_disable_tree_sel_changed_event = 0;
-			have_selection = 1;
+		TabPrinter* tab = dynamic_cast<TabPrinter*>(this);
+		if (!tab->m_correct_treectrl){
+			m_treectrl->DeleteChildren(rootItem);
+			tab->m_extruders_tree_items.resize(0);
+			tab->m_single_extruder_MM_item = nullptr;
+			for (auto p : m_pages)
+			{
+				auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
+				m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
+
+				if (p->title().Contains(_("Extruder")))
+					tab->m_extruders_tree_items.push_back(itemId);
+
+				if (p->title() == _("Single extruder MM setup"))
+					tab->m_single_extruder_MM_item = itemId;
+
+				if (p->title() == selected) {
+					m_disable_tree_sel_changed_event = 1;
+					m_treectrl->SelectItem(itemId);
+					m_disable_tree_sel_changed_event = 0;
+					have_selection = 1;
+				}
+			}
+		}
+		else
+		{
+			while (tab->m_extruders_tree_items.size() > tab->m_extruders_count){
+				m_treectrl->Delete(tab->m_extruders_tree_items.back());
+				tab->m_extruders_tree_items.pop_back();
+			}
+
+			size_t i = 2 + tab->m_extruders_tree_items.size();
+			for (; i < 2 + tab->m_extruders_count; ++i)
+			{
+				auto p = m_pages[i];
+				auto itemId = m_treectrl->InsertItem(rootItem, tab->m_extruders_tree_items.back(), p->title(), p->iconID());
+				m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
+				tab->m_extruders_tree_items.push_back(itemId);
+			}
+
+			if (tab->m_extruders_count == 1 || !m_config->opt_bool("single_extruder_multi_material") 
+				&& tab->m_single_extruder_MM_item)
+			{
+				m_treectrl->Delete(tab->m_single_extruder_MM_item);
+				tab->m_single_extruder_MM_item = nullptr;
+			}
+			else if (tab->m_single_extruder_MM_item == nullptr)
+			{
+				auto p = m_pages[i];
+				auto itemId = tab->m_single_extruder_MM_item =
+					m_treectrl->InsertItem(rootItem, tab->m_extruders_tree_items.back(), p->title(), p->iconID());
+				m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
+			}
 		}
 	}
+	else 
+	{
+		m_treectrl->DeleteChildren(rootItem);
+		for (auto p : m_pages)
+		{
+			auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
+			m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
+			if (p->title() == selected) {
+				m_disable_tree_sel_changed_event = 1;
+				m_treectrl->SelectItem(itemId);
+				m_disable_tree_sel_changed_event = 0;
+				have_selection = 1;
+			}
+		}
+ 	}
 	
 	if (!have_selection) {
 		// this is triggered on first load, so we don't disable the sel change event
