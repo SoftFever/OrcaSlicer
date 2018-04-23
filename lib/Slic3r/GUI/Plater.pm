@@ -1856,6 +1856,7 @@ sub object_cut_dialog {
 	    $self->remove($obj_idx);
 	    $self->load_model_objects(grep defined($_), @new_objects);
 	    $self->arrange;
+        $self->{canvas3D}->zoom_to_volumes if $self->{canvas3D};
 	}
 }
 

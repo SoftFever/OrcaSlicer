@@ -10,7 +10,7 @@ use base qw(Wx::Panel Class::Accessor);
 
 use Wx::Locale gettext => 'L';
 
-__PACKAGE__->mk_accessors(qw(print gcode_preview_data enabled _loaded canvas slider_low slider_high single_layer auto_zoom));
+__PACKAGE__->mk_accessors(qw(print gcode_preview_data enabled _loaded canvas slider_low slider_high single_layer));
 
 sub new {
     my $class = shift;
@@ -21,7 +21,6 @@ sub new {
     $self->{number_extruders} = 1;
     # Show by feature type by default.
     $self->{preferred_color_mode} = 'feature';
-    $self->auto_zoom(1);
 
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
@@ -207,41 +206,29 @@ sub new {
         my $selection = $choice_view_type->GetCurrentSelection();
         $self->{preferred_color_mode} = ($selection == 4) ? 'tool' : 'feature';
         $self->gcode_preview_data->set_type($selection);
-        $self->auto_zoom(0);
         $self->reload_print;
-        $self->auto_zoom(1);
     });
     EVT_CHECKLISTBOX($self, $combochecklist_features, sub {
         my $flags = Slic3r::GUI::combochecklist_get_flags($combochecklist_features);
         
         $self->gcode_preview_data->set_extrusion_flags($flags);
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });    
     EVT_CHECKBOX($self, $checkbox_travel, sub {
         $self->gcode_preview_data->set_travel_visible($checkbox_travel->IsChecked());
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });    
     EVT_CHECKBOX($self, $checkbox_retractions, sub {
         $self->gcode_preview_data->set_retractions_visible($checkbox_retractions->IsChecked());
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });
     EVT_CHECKBOX($self, $checkbox_unretractions, sub {
         $self->gcode_preview_data->set_unretractions_visible($checkbox_unretractions->IsChecked());
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });
     EVT_CHECKBOX($self, $checkbox_shells, sub {
         $self->gcode_preview_data->set_shells_visible($checkbox_shells->IsChecked());
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });
     
     $self->SetSizer($main_sizer);
@@ -374,7 +361,7 @@ sub load_print {
             }
             $self->show_hide_ui_elements('simple');
         } else {
-            $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0) && $self->auto_zoom;
+            $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0);
             $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
             $self->show_hide_ui_elements('full');
 
@@ -384,10 +371,6 @@ sub load_print {
         }
 
         $self->update_sliders($n_layers);
-                
-        if ($self->auto_zoom) {
-            $self->canvas->zoom_to_volumes;
-        }
         $self->_loaded(1);
     }
 }

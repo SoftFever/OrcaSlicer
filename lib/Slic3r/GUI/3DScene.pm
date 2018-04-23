@@ -201,6 +201,10 @@ sub new {
                 $self->select_view('left');
             } elsif ($key == ord('6')) {
                 $self->select_view('right');
+            } elsif ($key == ord('z')) {
+                $self->zoom_to_volumes;
+            } elsif ($key == ord('b')) {
+                $self->zoom_to_bed;
             } else {
                 $event->Skip;
             }
@@ -599,22 +603,23 @@ sub mouse_wheel_event {
     $zoom = $zoom_min if defined $zoom_min && $zoom < $zoom_min;
     $self->_zoom($zoom);
     
-    # In order to zoom around the mouse point we need to translate
-    # the camera target
-    my $size = Slic3r::Pointf->new($self->GetSizeWH);
-    my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
-    $self->_camera_target->translate(
-        # ($pos - $size/2) represents the vector from the viewport center
-        # to the mouse point. By multiplying it by $zoom we get the new,
-        # transformed, length of such vector.
-        # Since we want that point to stay fixed, we move our camera target
-        # in the opposite direction by the delta of the length of such vector
-        # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
-        # $self->_camera_target is expressed in terms of model units.
-        -($pos->x - $size->x/2) * ($zoom) / $self->_zoom,
-        -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
-        0,
-    ) if 0;
+#    # In order to zoom around the mouse point we need to translate
+#    # the camera target
+#    my $size = Slic3r::Pointf->new($self->GetSizeWH);
+#    my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
+#    $self->_camera_target->translate(
+#        # ($pos - $size/2) represents the vector from the viewport center
+#        # to the mouse point. By multiplying it by $zoom we get the new,
+#        # transformed, length of such vector.
+#        # Since we want that point to stay fixed, we move our camera target
+#        # in the opposite direction by the delta of the length of such vector
+#        # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
+#        # $self->_camera_target is expressed in terms of model units.
+#        -($pos->x - $size->x/2) * ($zoom) / $self->_zoom,
+#        -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
+#        0,
+#    ) if 0;
+
     $self->on_viewport_changed->() if $self->on_viewport_changed;
     $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
     $self->Refresh;
@@ -683,9 +688,82 @@ sub select_view {
 
 sub get_zoom_to_bounding_box_factor {
     my ($self, $bb) = @_;
-    return undef if ($bb->empty);
-    my $max_size = max(@{$bb->size}) * 2;
-    return ($max_size == 0) ? undef : min($self->GetSizeWH) / $max_size;
+    my $max_bb_size = max(@{ $bb->size });
+    return undef if ($max_bb_size == 0);
+        
+    # project the bbox vertices on a plane perpendicular to the camera forward axis
+    # then calculates the vertices coordinate on this plane along the camera xy axes
+    
+    # we need the view matrix, we let opengl calculate it (same as done in render sub)
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    if (!TURNTABLE_MODE) {
+        # Shift the perspective camera.
+        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+        glTranslatef(@$camera_pos);
+    }
+    
+    if (TURNTABLE_MODE) {
+        # Turntable mode is enabled by default.
+        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
+        glRotatef($self->_sphi, 0, 0, 1);    # yaw
+    } else {
+        # Shift the perspective camera.
+        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+        glTranslatef(@$camera_pos);
+        my @rotmat = quat_to_rotmatrix($self->quat);
+        glMultMatrixd_p(@rotmat[0..15]);
+    }    
+    glTranslatef(@{ $self->_camera_target->negative });
+    
+    # get the view matrix back from opengl
+    my @matrix = glGetFloatv_p(GL_MODELVIEW_MATRIX);
+
+    # camera axes
+    my $right = Slic3r::Pointf3->new($matrix[0], $matrix[4], $matrix[8]);
+    my $up = Slic3r::Pointf3->new($matrix[1], $matrix[5], $matrix[9]);
+    my $forward = Slic3r::Pointf3->new($matrix[2], $matrix[6], $matrix[10]);
+    
+    my $bb_min = $bb->min_point();
+    my $bb_max = $bb->max_point();
+    my $bb_center = $bb->center();
+    
+    # bbox vertices in world space
+    my @vertices = ();    
+    push(@vertices, $bb_min);
+    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_min->y(), $bb_min->z()));
+    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_max->y(), $bb_min->z()));
+    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_max->y(), $bb_min->z()));
+    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_min->y(), $bb_max->z()));
+    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_min->y(), $bb_max->z()));
+    push(@vertices, $bb_max);
+    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_max->y(), $bb_max->z()));
+    
+    my $max_x = 0.0;
+    my $max_y = 0.0;
+
+    # margin factor to give some empty space around the bbox
+    my $margin_factor = 1.25;
+    
+    foreach my $v (@vertices) {
+        # project vertex on the plane perpendicular to camera forward axis
+        my $pos = Slic3r::Pointf3->new($v->x() - $bb_center->x(), $v->y() - $bb_center->y(), $v->z() - $bb_center->z());
+        my $proj_on_normal = $pos->x() * $forward->x() + $pos->y() * $forward->y() + $pos->z() * $forward->z();
+        my $proj_on_plane = Slic3r::Pointf3->new($pos->x() - $proj_on_normal * $forward->x(), $pos->y() - $proj_on_normal * $forward->y(), $pos->z() - $proj_on_normal * $forward->z());
+        
+        # calculates vertex coordinate along camera xy axes
+        my $x_on_plane = $proj_on_plane->x() * $right->x() + $proj_on_plane->y() * $right->y() + $proj_on_plane->z() * $right->z();
+        my $y_on_plane = $proj_on_plane->x() * $up->x() + $proj_on_plane->y() * $up->y() + $proj_on_plane->z() * $up->z();
+    
+        $max_x = max($max_x, $margin_factor * 2 * abs($x_on_plane));
+        $max_y = max($max_y, $margin_factor * 2 * abs($y_on_plane));
+    }
+    
+    my ($cw, $ch) = $self->GetSizeWH;
+    my $min_ratio = min($cw / $max_x, $ch / $max_y);
+
+    return $min_ratio;
 }
 
 sub zoom_to_bounding_box {
@@ -697,6 +775,8 @@ sub zoom_to_bounding_box {
         # center view around bounding box center
         $self->_camera_target($bb->center);
         $self->on_viewport_changed->() if $self->on_viewport_changed;
+        $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
+        $self->Refresh;
     }
 }
 
@@ -1031,8 +1111,8 @@ sub Resize {
         #FIXME setting the size of the box 10x larger than necessary
         # is only a workaround for an incorrectly set camera.
         # This workaround harms Z-buffer accuracy!
-#        my $depth = 1.05 * $self->max_bounding_box->radius(); 
-       my $depth = 10.0 * $self->max_bounding_box->radius();
+#        my $depth = 1.05 * $self->max_bounding_box->radius();
+       my $depth = max(@{ $self->max_bounding_box->size });
         glOrtho(
             -$x/2, $x/2, -$y/2, $y/2,
             -$depth, $depth,
@@ -1162,7 +1242,7 @@ sub Render {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    {
+    if (!TURNTABLE_MODE) {
         # Shift the perspective camera.
         my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
         glTranslatef(@$camera_pos);
