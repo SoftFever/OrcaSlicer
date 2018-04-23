@@ -126,13 +126,15 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information.")));
 
+	// Determine the theme color of OS (dark or light)
+	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
 	m_bmp_value_lock  	  .LoadFile(from_u8(var("sys_lock.png")),     wxBITMAP_TYPE_PNG);
-	m_bmp_value_unlock	  .LoadFile(from_u8(var("sys_unlock.png")),   wxBITMAP_TYPE_PNG);
+	m_bmp_value_unlock    .LoadFile(from_u8(var(luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png")), wxBITMAP_TYPE_PNG);
 	m_bmp_non_system = &m_bmp_white_bullet;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
-	m_bmp_value_revert	  .LoadFile(from_u8(var("action_undo.png")),  wxBITMAP_TYPE_PNG);
-	m_bmp_white_bullet	  .LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
+	m_bmp_value_revert    .LoadFile(from_u8(var(luma >= 128 ? "action_undo.png" : "action_undo_grey.png")), wxBITMAP_TYPE_PNG);
+	m_bmp_white_bullet    .LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
 	m_bmp_question        .LoadFile(from_u8(var("question_mark_01.png")), wxBITMAP_TYPE_PNG);
 
 	fill_icon_descriptions();

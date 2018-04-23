@@ -546,8 +546,6 @@ sub _on_select_preset {
         wxTheApp->{preset_bundle}->update_platter_filament_ui($idx, $choice);
 	} else {
         my $selected_item = $choice->GetSelection();
-        print ("selected_item = $selected_item\n");
-        print ("selected_item_$group = ". $self->{"selected_item_$group"}. "\n");
         return if ($selected_item == $self->{"selected_item_$group"});
 
         my $selected_string = $choice->GetString($selected_item);
