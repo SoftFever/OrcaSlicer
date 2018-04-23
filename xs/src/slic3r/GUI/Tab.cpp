@@ -1348,6 +1348,9 @@ void TabPrinter::build()
 	m_presets = &m_preset_bundle->printers;
 	load_initial_data();
 
+	// to avoid redundant memory allocation / deallocation during extruders count changing
+	m_pages.reserve(30); 
+
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
 	const Preset* parent_preset = m_presets->get_selected_preset_parent();
@@ -1625,7 +1628,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 }
 
 void TabPrinter::build_extruder_pages(){
-	if (m_extruders_count_old == m_extruders_count)
+	if (m_extruders_count_old == m_extruders_count || m_extruders_count <= 2)
 	{
 		// if we have a single extruder MM setup, add a page with configuration options:
 		for (int i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
@@ -1642,8 +1645,6 @@ void TabPrinter::build_extruder_pages(){
 			optgroup->append_single_option_line("parking_pos_retraction");
 			m_pages.insert(m_pages.end()-2, page);
 		}
-		rebuild_page_tree();
-		return;
 	}
 		
 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx){
