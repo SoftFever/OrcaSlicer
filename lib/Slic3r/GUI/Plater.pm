@@ -1677,6 +1677,7 @@ sub update {
 
     $self->{canvas}->reload_scene if $self->{canvas};
     $self->{canvas3D}->reload_scene if $self->{canvas3D};
+    $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
