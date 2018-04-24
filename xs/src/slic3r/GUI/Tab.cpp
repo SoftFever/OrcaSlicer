@@ -104,27 +104,41 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_undo_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 	m_undo_to_sys_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 	m_question_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-// 	m_undo_btns_legent = new wxStaticText(panel, wxID_ANY, _(L("For more information about buttons hover the mouse cursor over them.")), wxDefaultPosition, wxDefaultSize);
 	if (wxMSW) {
 		m_undo_btn->SetBackgroundColour(color);
 		m_undo_to_sys_btn->SetBackgroundColour(color);
 		m_question_btn->SetBackgroundColour(color);
 	}
 
-	m_undo_to_sys_btn->SetToolTip(_(L(	"LOCKED LOCK icon indicates that the settings are the same as the system values "
-										"for the current option group.\n"
-										"UNLOCKED LOCK icon indicates that some settings were changed and are not equal "
-										"to the system values for the current option group.\n"
-										"WHITE BULLET icon indicates a nonsystem preset.\n\n"
-										"Click the UNLOCKED LOCK icon to reset all settings for current option group to "
-										"the system values.")));
+// 	m_undo_to_sys_btn->SetToolTip(_(L(	"LOCKED LOCK icon indicates that the settings are the same as the system values "
+// 										"for the current option group.\n"
+// 										"UNLOCKED LOCK icon indicates that some settings were changed and are not equal "
+// 										"to the system values for the current option group.\n"
+// 										"WHITE BULLET icon indicates a non system preset.\n\n"
+// 										"Click the UNLOCKED LOCK icon to reset all settings for current option group to "
+// 										"the system values.")));
+// 
+// 	m_undo_btn->SetToolTip(_(L(	"WHITE BULLET icon indicates that the settings are the same as in the last saved"
+// 								"preset  for the current option group.\n"
+// 								"BACK ARROW icon indicates that the settings were changed and are not equal to "
+// 								"the last saved preset for the current option group.\n\n"
+// 								"Click the BACK ARROW icon to reset all settings for the current option group to "
+// 								"the last saved preset.")));
 
-	m_undo_btn->SetToolTip(_(L(	"WHITE BULLET icon indicates that the settings are the same as in the last saved"
-								"preset  for the current option group.\n"
-								"BACK ARROW icon indicates that the settings were changed and are not equal to "
-								"the last saved preset for the current option group.\n\n"
-								"Click the BACK ARROW icon to reset all settings for the current option group to "
-								"the last saved preset.")));
+	// Text to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
+	m_tt_value_lock =		_(L("LOCKED LOCK icon indicates that the settings are the same as the system values "
+								"for the current option group"));
+	m_tt_value_unlock =		_(L("UNLOCKED LOCK icon indicates that some settings were changed and are not equal "
+								"to the system values for the current option group.\n"
+								"Click it to reset all settings for current option group to the system values."));
+	m_tt_white_bullet_ns=	_(L("WHITE BULLET icon indicates a non system preset."));
+	m_tt_non_system = &m_tt_white_bullet_ns;
+	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
+	m_tt_white_bullet =		_(L("WHITE BULLET icon indicates that the settings are the same as in the last saved "
+								"preset for the current option group."));
+	m_tt_value_revert =		_(L("BACK ARROW icon indicates that the settings were changed and are not equal to "
+								"the last saved preset for the current option group.\n"
+								"Click it to reset all settings for the current option group to the last saved preset."));
 
 	m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information.")));
 
@@ -171,8 +185,6 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->AddSpacer(32);
 	m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
-// 	m_hsizer->Add(m_undo_btns_legent, 0, wxALIGN_CENTER_VERTICAL);
-// 	m_hsizer->AddSpacer(64);
 // 	m_hsizer->Add(m_cc_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
 
 	//Horizontal sizer to hold the tree and the selected page.
@@ -265,6 +277,7 @@ void Tab::load_initial_data()
 {
 	m_config = &m_presets->get_edited_preset().config;
 	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
+	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_tt_white_bullet_ns;
 }
 
 PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages/* = false*/)
@@ -468,6 +481,9 @@ void Tab::update_undo_buttons()
 {
 	m_undo_btn->SetBitmap(m_is_modified_values ? m_bmp_value_revert : m_bmp_white_bullet);
 	m_undo_to_sys_btn->SetBitmap(m_is_nonsys_values ? *m_bmp_non_system : m_bmp_value_lock);
+
+	m_undo_btn->SetToolTip(m_is_modified_values ? m_tt_value_revert : m_tt_white_bullet);
+	m_undo_to_sys_btn->SetToolTip(m_is_nonsys_values ? *m_tt_non_system : m_tt_value_lock);
 }
 
 void Tab::on_roll_back_value(const bool to_sys /*= true*/)
@@ -1810,6 +1826,7 @@ void Tab::load_current_preset()
 	// Reload preset pages with the new configuration values.
 	reload_config();
 	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
+	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_tt_white_bullet_ns;
 
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 

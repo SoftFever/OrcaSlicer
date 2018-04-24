@@ -118,7 +118,6 @@ protected:
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
 	wxButton*			m_question_btn;
-// 	wxStaticText*		m_undo_btns_legent;
 
 	wxComboCtrl*		m_cc_presets_choice;
 	wxDataViewTreeCtrl*	m_presetctrl;
@@ -136,13 +135,23 @@ protected:
 	wxBitmap 		   *m_bmp_non_system;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
 	wxBitmap 			m_bmp_value_revert;
-	wxBitmap 			m_bmp_value_unmodified;
+// 	wxBitmap 			m_bmp_value_unmodified;
 	wxBitmap			m_bmp_question;
 
 	// Colors for ui "decoration"
 	wxColour			m_sys_label_clr;
 	wxColour			m_modified_label_clr;
 	wxColour			m_default_text_clr;
+
+	// Text for reset buttons tooltips
+	wxString			m_tt_value_lock;
+	wxString			m_tt_value_unlock;
+	wxString			m_tt_white_bullet_ns;
+	// The following text points to either m_bmp_value_unlock or m_bmp_white_bullet, depending on whether the current preset has a parent preset.
+	wxString			*m_tt_non_system;
+	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
+	wxString			m_tt_white_bullet;
+	wxString			m_tt_value_revert;
 
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index

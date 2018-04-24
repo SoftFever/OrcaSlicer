@@ -149,7 +149,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
     // If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(parent());
-		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
+		// If widget doesn't have label, don't use border
+		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
 		if (colored_Label != nullptr) *colored_Label = label;
 		return;
 	}
