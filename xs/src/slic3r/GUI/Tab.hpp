@@ -1,3 +1,6 @@
+#ifndef slic3r_Tab_hpp_
+#define slic3r_Tab_hpp_
+
 //	 The "Expert" tab at the right of the main tabbed window.
 //	
 //	 This file implements following packages:
@@ -34,6 +37,9 @@
 namespace Slic3r {
 namespace GUI {
 
+typedef std::pair<wxBitmap*, std::string>				t_icon_description;
+typedef std::vector<std::pair<wxBitmap*, std::string>>	t_icon_descriptions;
+
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
@@ -51,6 +57,7 @@ public:
 	{
 		Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 		m_vsizer = new wxBoxSizer(wxVERTICAL);
+		m_item_color = &get_default_label_clr();
 		SetSizer(m_vsizer);
 	}
 	~Page(){}
@@ -71,6 +78,22 @@ public:
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);
+
+	bool		set_item_colour(const wxColour *clr) {
+		if (m_item_color != clr) {
+			m_item_color = clr;
+			return true;
+		}
+		return false;
+	}
+
+	const wxColour	get_item_colour() {
+			return *m_item_color;
+	}
+
+protected:
+	// Color of TreeCtrlItem. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
+	const wxColour*		m_item_color;
 };
 
 // Slic3r::GUI::Tab;
@@ -85,8 +108,6 @@ protected:
 	wxBitmapComboBox*	m_presets_choice;
 	wxBitmapButton*		m_btn_save_preset;
 	wxBitmapButton*		m_btn_delete_preset;
-	wxBitmap*			m_bmp_show_incompatible_presets;
-	wxBitmap*			m_bmp_hide_incompatible_presets;
 	wxBitmapButton*		m_btn_hide_incompatible_presets;
 	wxBoxSizer*			m_hsizer;
 	wxBoxSizer*			m_left_sizer;
@@ -96,9 +117,50 @@ protected:
 	wxButton*			m_compatible_printers_btn;
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
+	wxButton*			m_question_btn;
+
 	wxComboCtrl*		m_cc_presets_choice;
 	wxDataViewTreeCtrl*	m_presetctrl;
 	wxImageList*		m_preset_icons;
+
+	// Cached bitmaps.
+	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.
+	wxBitmap			m_bmp_show_incompatible_presets;
+	wxBitmap			m_bmp_hide_incompatible_presets;
+	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
+	wxBitmap 			m_bmp_value_lock;
+	wxBitmap 			m_bmp_value_unlock;
+	wxBitmap 			m_bmp_white_bullet;
+	// The following bitmap points to either m_bmp_value_unlock or m_bmp_white_bullet, depending on whether the current preset has a parent preset.
+	wxBitmap 		   *m_bmp_non_system;
+	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
+	wxBitmap 			m_bmp_value_revert;
+// 	wxBitmap 			m_bmp_value_unmodified;
+	wxBitmap			m_bmp_question;
+
+	// Colors for ui "decoration"
+	wxColour			m_sys_label_clr;
+	wxColour			m_modified_label_clr;
+	wxColour			m_default_text_clr;
+
+	// Tooltip text for reset buttons (for whole options group)
+	wxString			m_ttg_value_lock;
+	wxString			m_ttg_value_unlock;
+	wxString			m_ttg_white_bullet_ns;
+	// The following text points to either m_ttg_value_unlock or m_ttg_white_bullet_ns, depending on whether the current preset has a parent preset.
+	wxString			*m_ttg_non_system;
+	// Tooltip text to be shown on the "Undo user changes" button next to each input field.
+	wxString			m_ttg_white_bullet;
+	wxString			m_ttg_value_revert;
+
+	// Tooltip text for reset buttons (for each option in group)
+	wxString			m_tt_value_lock;
+	wxString			m_tt_value_unlock;
+	// The following text points to either m_tt_value_unlock or m_ttg_white_bullet_ns, depending on whether the current preset has a parent preset.
+	wxString			*m_tt_non_system;
+	// Tooltip text to be shown on the "Undo user changes" button next to each input field.
+	wxString			m_tt_white_bullet;
+	wxString			m_tt_value_revert;
 
 	int					m_icon_count;
 	std::map<std::string, size_t>	m_icon_index;		// Map from an icon file name to its index
@@ -108,9 +170,11 @@ protected:
 	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
-	std::vector<std::string>	m_dirty_options = {};
-	std::vector<std::string>	m_sys_options = {};
-	std::vector<std::string>	m_full_options_list = {};
+	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
+	std::map<std::string, int>	m_options_list;
+	int							m_opt_status_value;
+
+	t_icon_descriptions	m_icon_descriptions = {};
 
 	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
 	wxEventType			m_event_value_change = 0;
@@ -118,13 +182,15 @@ protected:
 
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
+	bool				m_postpone_update_ui {false};
+
+	size_t				m_selected_preset_item{ 0 };
 
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
 	PresetCollection*	m_presets;
 	DynamicPrintConfig*	m_config;
-	std::string			m_nonsys_btn_icon;
 	ogStaticText*		m_parent_preset_description_line;
 	wxStaticText*		m_colored_Label = nullptr;
 
@@ -135,7 +201,9 @@ public:
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 		get_tabs_list().push_back(this);
 	}
-	~Tab() { delete_tab_from_list(this); }
+	~Tab(){
+		delete_tab_from_list(this);
+	}
 
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
@@ -153,7 +221,7 @@ public:
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
 	void		update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible);
-	void		load_key_value(const std::string& opt_key, const boost::any& value);
+	void		load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
 	void		reload_compatible_printers_widget();
 
 	void		OnTreeSelChange(wxTreeEvent& event);
@@ -165,14 +233,11 @@ public:
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
 	void		update_changed_ui();
-	void		update_full_options_list();
-	void		update_sys_ui_after_sel_preset();
 	void		get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page);
 	void		update_changed_tree_ui();
 	void		update_undo_buttons();
 
-	void		on_back_to_initial_value();
-	void		on_back_to_sys_value();
+	void		on_roll_back_value(const bool to_sys = false);
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 
@@ -180,6 +245,7 @@ public:
 	virtual void	on_preset_loaded(){}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
+	virtual void	init_options_list();
 	void			load_initial_data();
 	void			update_dirty();
 	void			update_tab_ui();
@@ -189,12 +255,11 @@ public:
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
 	bool			current_preset_is_dirty();
+
 	DynamicPrintConfig*	get_config() { return m_config; }
-	PresetCollection*	get_presets()
-	{
-		return m_presets;
-	}
+	PresetCollection*	get_presets() { return m_presets; }
 	std::vector<std::string>	get_dependent_tabs() { return m_reload_dependent_tabs; }
+	size_t				get_selected_preset_item() { return m_selected_preset_item; }
 
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
@@ -203,6 +268,8 @@ protected:
 	void			update_frequently_changed_parameters();
     void            update_wiping_button_visibility();
 	void			update_tab_presets(wxComboCtrl* ui, bool show_incompatible);
+	void			fill_icon_descriptions();
+	void			set_tooltips_text();
 };
 
 //Slic3r::GUI::Tab::Print;
@@ -248,9 +315,9 @@ public:
 	wxButton*	m_octoprint_host_test_btn;
 
 	size_t		m_extruders_count;
+	size_t		m_extruders_count_old = 0;
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
-	std::vector<PageShp>	m_extruder_pages;
 
 	TabPrinter() {}
 	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
@@ -262,6 +329,7 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
+	void		init_options_list() override;
 };
 
 class SavePresetWindow :public wxDialog
@@ -280,3 +348,5 @@ public:
 
 } // GUI
 } // Slic3r
+
+#endif /* slic3r_Tab_hpp_ */

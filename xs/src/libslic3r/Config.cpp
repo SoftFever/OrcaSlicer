@@ -206,6 +206,44 @@ t_config_option_keys ConfigBase::diff(const ConfigBase &other) const
     return diff;
 }
 
+template<class T>
+void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& vec, const ConfigBase &other, const ConfigBase *this_c)
+{
+	const T* opt_init = static_cast<const T*>(other.option(opt_key));
+	const T* opt_cur = static_cast<const T*>(this_c->option(opt_key));
+	int opt_init_max_id = opt_init->values.size() - 1;
+	for (int i = 0; i < opt_cur->values.size(); i++)
+	{
+		int init_id = i <= opt_init_max_id ? i : 0;
+		if (opt_cur->values[i] != opt_init->values[init_id])
+			vec.emplace_back(opt_key + "#" + std::to_string(i));
+	}
+}
+
+t_config_option_keys ConfigBase::deep_diff(const ConfigBase &other) const
+{
+    t_config_option_keys diff;
+    for (const t_config_option_key &opt_key : this->keys()) {
+        const ConfigOption *this_opt  = this->option(opt_key);
+        const ConfigOption *other_opt = other.option(opt_key);
+		if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
+		{
+			if (opt_key == "bed_shape"){ diff.emplace_back(opt_key);		continue; }
+			switch (other_opt->type())
+			{
+			case coInts:	add_correct_opts_to_diff<ConfigOptionInts		>(opt_key, diff, other, this);	break;
+			case coBools:	add_correct_opts_to_diff<ConfigOptionBools		>(opt_key, diff, other, this);	break;
+			case coFloats:	add_correct_opts_to_diff<ConfigOptionFloats		>(opt_key, diff, other, this);	break;
+			case coStrings:	add_correct_opts_to_diff<ConfigOptionStrings	>(opt_key, diff, other, this);	break;
+			case coPercents:add_correct_opts_to_diff<ConfigOptionPercents	>(opt_key, diff, other, this);	break;
+			case coPoints:	add_correct_opts_to_diff<ConfigOptionPoints		>(opt_key, diff, other, this);	break;
+			default:		diff.emplace_back(opt_key);		break;
+			}
+		}
+    }
+    return diff;
+}
+
 t_config_option_keys ConfigBase::equal(const ConfigBase &other) const
 {
     t_config_option_keys equal;

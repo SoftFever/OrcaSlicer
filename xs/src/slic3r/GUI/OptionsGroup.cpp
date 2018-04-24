@@ -90,8 +90,8 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		field->m_Undo_btn->Hide();
 		field->m_Undo_to_sys_btn->Hide();
 	}
-	if (nonsys_btn_icon != nullptr)
-		field->set_nonsys_btn_icon(nonsys_btn_icon());
+//	if (nonsys_btn_icon != nullptr)
+//		field->set_nonsys_btn_icon(*nonsys_btn_icon);
     
 	// assign function objects for callbacks, etc.
     return field;
@@ -149,7 +149,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
     // If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(parent());
-		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
+		// If widget doesn't have label, don't use border
+		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
 		if (colored_Label != nullptr) *colored_Label = label;
 		return;
 	}

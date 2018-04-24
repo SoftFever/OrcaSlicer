@@ -514,6 +514,13 @@ sub new {
         $self->SetSizer($sizer);
     }
 
+    # Last correct selected item for each preset
+    {
+        $self->{selected_item_print} = 0;
+        $self->{selected_item_filament} = 0;
+        $self->{selected_item_printer} = 0;
+    }
+
     $self->update_ui_from_settings();
     
     return $self;
@@ -538,9 +545,21 @@ sub _on_select_preset {
         # Only update the platter UI for the 2nd and other filaments.
         wxTheApp->{preset_bundle}->update_platter_filament_ui($idx, $choice);
 	} else {
+        my $selected_item = $choice->GetSelection();
+        return if ($selected_item == $self->{"selected_item_$group"});
+
+        my $selected_string = $choice->GetString($selected_item);
+        if ($selected_string eq "------- System presets -------" ||
+            $selected_string eq "-------  User presets  -------"){
+            $choice->SetSelection($self->{"selected_item_$group"});
+            return;
+        }
+        
     	# call GetSelection() in scalar context as it's context-aware
-    	$self->{on_select_preset}->($group, $choice->GetStringSelection)
-    	    if $self->{on_select_preset};
+#    	$self->{on_select_preset}->($group, $choice->GetStringSelection)
+        $self->{on_select_preset}->($group, $selected_string)
+            if $self->{on_select_preset};
+        $self->{"selected_item_$group"} = $selected_item;
     }
     # Synchronize config.ini with the current selections.
     wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});

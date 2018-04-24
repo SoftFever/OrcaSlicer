@@ -86,6 +86,7 @@ PresetBundle* get_preset_bundle();
 
 const wxColour& get_modified_label_clr();
 const wxColour& get_sys_label_clr();
+const wxColour& get_default_label_clr();
 unsigned get_colour_approx_luma(const wxColour &colour);
 
 extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);

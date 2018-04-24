@@ -1,3 +1,6 @@
+#ifndef slic3r_OptionsGroup_hpp_
+#define slic3r_OptionsGroup_hpp_
+
 #include <wx/wx.h>
 #include <wx/stattext.h>
 #include <wx/settings.h>
@@ -86,7 +89,7 @@ public:
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 
-	std::function<std::string()>	nonsys_btn_icon{ nullptr };
+//	std::function<const wxBitmap&()>	nonsys_btn_icon{ nullptr };
 
     /// Returns a copy of the pointer of the parent wxWindow.
     /// Accessor function is because users are not allowed to change the parent
@@ -204,3 +207,5 @@ public:
 };
 
 }}
+
+#endif /* slic3r_OptionsGroup_hpp_ */
