@@ -77,7 +77,7 @@ class MsgDataIncompatible : public MsgDialog
 {
 public:
 	// incompats is a map of "vendor name" -> "version restrictions"
-	MsgDataIncompatible(const std::unordered_map<std::string, std::string> &incompats);
+	MsgDataIncompatible(const std::unordered_map<std::string, wxString> &incompats);
 	MsgDataIncompatible(MsgDataIncompatible &&) = delete;
 	MsgDataIncompatible(const MsgDataIncompatible &) = delete;
 	MsgDataIncompatible &operator=(MsgDataIncompatible &&) = delete;

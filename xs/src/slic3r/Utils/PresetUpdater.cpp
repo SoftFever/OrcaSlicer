@@ -483,14 +483,14 @@ bool PresetUpdater::config_update() const
 	if (updates.incompats.size() > 0) {
 		BOOST_LOG_TRIVIAL(info) << boost::format("%1% bundles incompatible. Asking for action...") % updates.incompats.size();
 
-		std::unordered_map<std::string, std::string> incompats_map;
+		std::unordered_map<std::string, wxString> incompats_map;
 		for (const auto &incompat : updates.incompats) {
 			auto vendor = incompat.name();
 			auto restrictions = wxString::Format(_(L("requires min. %s and max. %s")),
 				incompat.version.min_slic3r_version.to_string(),
 				incompat.version.max_slic3r_version.to_string()
 			);
-			incompats_map.emplace(std::move(vendor), std::move(restrictions));
+			incompats_map.emplace(std::make_pair(std::move(vendor), std::move(restrictions)));
 		}
 
 		GUI::MsgDataIncompatible dlg(std::move(incompats_map));
@@ -519,7 +519,7 @@ bool PresetUpdater::config_update() const
 			if (! update.version.comment.empty()) {
 				ver_str += std::string(" (") + update.version.comment + ")";
 			}
-			updates_map.emplace(std::move(vendor), std::move(ver_str));
+			updates_map.emplace(std::make_pair(std::move(vendor), std::move(ver_str)));
 		}
 
 		GUI::MsgUpdateConfig dlg(std::move(updates_map));

@@ -150,7 +150,7 @@ MsgUpdateConfig::~MsgUpdateConfig() {}
 
 // MsgDataIncompatible
 
-MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, std::string> &incompats) :
+MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, wxString> &incompats) :
 	MsgDialog(_(L("Slic3r incompatibility")), _(L("Slic3r configuration is incompatible")), wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png"))), wxID_NONE)
 {
 	auto *text = new wxStaticText(this, wxID_ANY, _(L(
