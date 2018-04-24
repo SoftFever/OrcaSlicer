@@ -99,9 +99,6 @@
 
     void print_info() const;
 
-    bool fits_print_volume(DynamicPrintConfig* config) const
-        %code%{ RETVAL = THIS->fits_print_volume(config); %};
-
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
     bool store_amf(char *path, Print* print, bool export_print_config)

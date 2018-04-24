@@ -285,10 +285,6 @@ public:
     // Ensures that the min z of the model is not negative
     void adjust_min_z();
 
-    // Returs true if this model is contained into the print volume defined inside the given config
-    bool fits_print_volume(const DynamicPrintConfig* config) const;
-    bool fits_print_volume(const FullPrintConfig &config) const;
-
     void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
 
     static unsigned int get_auto_extruder_id();

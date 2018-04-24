@@ -643,29 +643,40 @@ void GLVolumeCollection::render_legacy() const
     glDisable(GL_BLEND);
 }
 
-void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, bool all_inside)
+bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config)
 {
     if (config == nullptr)
-        return;
+        return false;
 
     const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config->option("bed_shape"));
     if (opt == nullptr)
-        return;
+        return false;
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
     BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config->opt_float("max_print_height")));
     // Allow the objects to protrude below the print bed
     print_volume.min.z = -1e10;
 
+    bool contained = true;
     for (GLVolume* volume : this->volumes)
     {
-        if (all_inside)
+        if (volume != nullptr)
         {
-            volume->is_outside = false;
-            continue;
+            bool state = print_volume.contains(volume->transformed_bounding_box());
+            contained &= state;
+            volume->is_outside = !state;
         }
+    }
 
-        volume->is_outside = !print_volume.contains_quantized(volume->transformed_bounding_box());
+    return contained;
+}
+
+void GLVolumeCollection::reset_outside_state()
+{
+    for (GLVolume* volume : this->volumes)
+    {
+        if (volume != nullptr)
+            volume->is_outside = false;
     }
 }
 

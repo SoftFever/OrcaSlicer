@@ -447,36 +447,6 @@ void Model::adjust_min_z()
     }
 }
 
-bool Model::fits_print_volume(const DynamicPrintConfig* config) const
-{
-    if (config == nullptr)
-        return false;
-
-    if (objects.empty())
-        return true;
-
-    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config->option("bed_shape"));
-    if (opt == nullptr)
-        return false;
-
-    BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config->opt_float("max_print_height")));
-    // Allow the objects to protrude below the print bed
-    print_volume.min.z = -1e10;
-    return print_volume.contains_quantized(transformed_bounding_box());
-}
-
-bool Model::fits_print_volume(const FullPrintConfig &config) const
-{
-    if (objects.empty())
-        return true;
-    BoundingBox bed_box_2D = get_extents(Polygon::new_scale(config.bed_shape.values));
-    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config.max_print_height));
-    // Allow the objects to protrude below the print bed
-    print_volume.min.z = -1e10;
-    return print_volume.contains_quantized(transformed_bounding_box());
-}
-
 unsigned int Model::get_auto_extruder_id()
 {
     unsigned int id = s_auto_extruder_id;
