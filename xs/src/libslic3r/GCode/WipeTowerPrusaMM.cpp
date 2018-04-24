@@ -814,10 +814,10 @@ void WipeTowerPrusaMM::toolchange_Unload(
 		writer.set_extruder_temp(new_temperature, false);
 
     // Cooling:
-    const unsigned number_of_moves = 3;
+    const int& number_of_moves = m_filpar[m_current_tool].cooling_moves;
     if (number_of_moves > 0) {
-        const float initial_speed = 2.2f;   // mm/s
-        const float final_speed   = 3.4f;
+        const float& initial_speed = m_filpar[m_current_tool].cooling_initial_speed;
+        const float& final_speed   = m_filpar[m_current_tool].cooling_final_speed;
 
         float speed_inc = (final_speed - initial_speed) / (2.f * number_of_moves - 1.f);
 
@@ -825,7 +825,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
               .travel(writer.x(), writer.y() + y_step);
         old_x = writer.x();
         turning_point = xr-old_x > old_x-xl ? xr : xl;
-        for (unsigned i=0; i<number_of_moves; ++i) {
+        for (int i=0; i<number_of_moves; ++i) {
             float speed = initial_speed + speed_inc * 2*i;
             writer.load_move_x_advanced(turning_point, m_cooling_tube_length, speed);
             speed += speed_inc;

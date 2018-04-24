@@ -489,7 +489,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-cooling-moves=i@";
     def->max = 0;
     def->max = 20;
-    def->default_value = new ConfigOptionInts { 6 };
+    def->default_value = new ConfigOptionInts { 4 };
 
     def = this->add("filament_cooling_initial_speed", coFloats);
     def->label = L("Speed of the first cooling move");
