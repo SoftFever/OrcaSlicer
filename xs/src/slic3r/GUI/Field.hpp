@@ -146,13 +146,33 @@ public:
 		return false;
 	}
 
+	bool 	set_undo_tooltip(const wxString *tip) {
+		if (m_undo_tooltip != tip) {
+			m_undo_tooltip = tip;
+			m_Undo_btn->SetToolTip(*tip);
+			return true;
+		}
+		return false;
+	}
+
+	bool 	set_undo_to_sys_tooltip(const wxString *tip) {
+		if (m_undo_to_sys_tooltip != tip) {
+			m_undo_to_sys_tooltip = tip;
+			m_Undo_to_sys_btn->SetToolTip(*tip);
+			return true;
+		}
+		return false;
+	}
+
 protected:
 	wxButton*			m_Undo_btn = nullptr;
-	// Bitmap for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
+	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
 	const wxBitmap*		m_undo_bitmap = nullptr;
+	const wxString*		m_undo_tooltip = nullptr;
 	wxButton*			m_Undo_to_sys_btn = nullptr;
-	// Bitmap for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
+	// Bitmap and Tooltip text for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
 	const wxBitmap*		m_undo_to_sys_bitmap = nullptr;
+	const wxString*		m_undo_to_sys_tooltip = nullptr;
 
 	wxStaticText*		m_Label = nullptr;
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.

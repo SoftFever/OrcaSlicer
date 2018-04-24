@@ -143,13 +143,22 @@ protected:
 	wxColour			m_modified_label_clr;
 	wxColour			m_default_text_clr;
 
-	// Text for reset buttons tooltips
+	// Tooltip text for reset buttons (for whole options group)
+	wxString			m_ttg_value_lock;
+	wxString			m_ttg_value_unlock;
+	wxString			m_ttg_white_bullet_ns;
+	// The following text points to either m_ttg_value_unlock or m_ttg_white_bullet_ns, depending on whether the current preset has a parent preset.
+	wxString			*m_ttg_non_system;
+	// Tooltip text to be shown on the "Undo user changes" button next to each input field.
+	wxString			m_ttg_white_bullet;
+	wxString			m_ttg_value_revert;
+
+	// Tooltip text for reset buttons (for each option in group)
 	wxString			m_tt_value_lock;
 	wxString			m_tt_value_unlock;
-	wxString			m_tt_white_bullet_ns;
-	// The following text points to either m_bmp_value_unlock or m_bmp_white_bullet, depending on whether the current preset has a parent preset.
+	// The following text points to either m_tt_value_unlock or m_ttg_white_bullet_ns, depending on whether the current preset has a parent preset.
 	wxString			*m_tt_non_system;
-	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
+	// Tooltip text to be shown on the "Undo user changes" button next to each input field.
 	wxString			m_tt_white_bullet;
 	wxString			m_tt_value_revert;
 
@@ -260,6 +269,7 @@ protected:
     void            update_wiping_button_visibility();
 	void			update_tab_presets(wxComboCtrl* ui, bool show_incompatible);
 	void			fill_icon_descriptions();
+	void			set_tooltips_text();
 };
 
 //Slic3r::GUI::Tab::Print;
