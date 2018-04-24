@@ -156,7 +156,9 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, s
 	auto *text = new wxStaticText(this, wxID_ANY, _(L(
 		"This version of Slic3r PE is not compatible with currently installed configuration bundles.\n"
 		"This probably happened as a result of running an older Slic3r PE after using a newer one.\n\n"
-		"TODO: more instrs\n"
+
+		"You may either exit Slic3r and try again with a newer version, or you may re-run the initial configuration. "
+		"Doing so will create a backup snapshot of the existing configuration before installing files compatible with this Slic3r.\n"
 	)));
 	text->Wrap(CONTENT_WIDTH);
 	content_sizer->Add(text);
