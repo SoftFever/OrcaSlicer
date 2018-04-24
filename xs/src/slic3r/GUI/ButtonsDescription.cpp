@@ -24,10 +24,12 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* ic
 
 		std::istringstream f(pair.second);
 		std::string s;
-		while (getline(f, s, ';')) {
-			auto description = new wxStaticText(this, wxID_ANY, _(s));
-			grid_sizer->Add(description, -1, wxALIGN_CENTRE_VERTICAL);
-		}
+		getline(f, s, ';');
+		auto description = new wxStaticText(this, wxID_ANY, _(s));
+		grid_sizer->Add(description, -1, wxALIGN_CENTRE_VERTICAL);
+		getline(f, s, ';');
+		description = new wxStaticText(this, wxID_ANY, _(s));
+		grid_sizer->Add(description, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
 	}
 
 	auto button = CreateStdDialogButtonSizer(wxOK);

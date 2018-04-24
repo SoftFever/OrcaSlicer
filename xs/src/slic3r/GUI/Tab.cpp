@@ -111,18 +111,20 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		m_question_btn->SetBackgroundColour(color);
 	}
 
-	m_undo_to_sys_btn->SetToolTip(_(L(	"UNLOCKED LOCK icon indicates about some value changes compared with system values "
-										"in current option group.\n"
-										"LOCKED LOCK icon indicates about same values compared with system values "
-										"in current option group.\n"
-										"WHITE BULLET icon indicates about nonsystem preset.\n\n"
-										"Click the UNLOCKED LOCK to revert all values in current option group to system values.")));
+	m_undo_to_sys_btn->SetToolTip(_(L(	"LOCKED LOCK icon indicates that the settings are the same as the system values "
+										"for the current option group.\n"
+										"UNLOCKED LOCK icon indicates that some settings were changed and are not equal "
+										"to the system values for the current option group.\n"
+										"WHITE BULLET icon indicates a nonsystem preset.\n\n"
+										"Click the UNLOCKED LOCK icon to reset all settings for current option group to "
+										"the system values.")));
 
-	m_undo_btn->SetToolTip(_(L(	"BACK ARROW icon indicates about some value changes compared with last saved preset values "
-								"in current option group.\n"
-								"WHITE BULLET icon indicates about same values compared with last saved preset values "
-								"in current option group.\n\n"
-								"Click the BACK ARROW to revert all values in current option group to last saved preset values.")));
+	m_undo_btn->SetToolTip(_(L(	"WHITE BULLET icon indicates that the settings are the same as in the last saved"
+								"preset  for the current option group.\n"
+								"BACK ARROW icon indicates that the settings were changed and are not equal to "
+								"the last saved preset for the current option group.\n\n"
+								"Click the BACK ARROW icon to reset all settings for the current option group to "
+								"the last saved preset.")));
 
 	m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information.")));
 
@@ -2362,19 +2364,23 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 void Tab::fill_icon_descriptions()
 {
 	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_lock, L("LOCKED LOCK;"
-		"indicates about same values compared with system values in current option group")));
+		"indicates that the settings are the same as the system values for the current option group")));
 
 	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_unlock, L("UNLOCKED LOCK;"
-		"indicates about some value changes compared with system values in current option group.\n"
-		"Click the UNLOCKED LOCK to revert all values in current option group to system values.")));
+		"indicates that some settings were changed and are not equal to the system values for "
+		"the current option group.\n"
+		"Click the UNLOCKED LOCK icon to reset all settings for current option group to "
+		"the system values.")));
 
 	m_icon_descriptions.push_back(t_icon_description(&m_bmp_white_bullet, L("WHITE BULLET;"
-		"indicates about : \n - nonsystem preset (on left button)"
-		"\n - same values compared with last saved preset values in current option group(on right button)")));
+		"for the left button: \tindicates a non-system preset,\n"
+		"for the right button: \tindicates that the settings hasn't been modified.")));
 
 	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_revert, L("BACK ARROW;"
-		"indicates about some value changes compared with last saved preset values in current option group.\n"
-		"Click the BACK ARROW to revert all values in current option group to last saved preset values.")));
+		"indicates that the settings were changed and are not equal to the last saved preset for "
+		"the current option group.\n"
+		"Click the BACK ARROW icon to reset all settings for the current option group to "
+		"the last saved preset.")));
 }
 
 void Page::reload_config()
@@ -2434,8 +2440,6 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 	optgroup->have_sys_config = [this](){
 		return static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent() != nullptr;
 	};
-
-//	optgroup->nonsys_btn_icon = m_bmp_non_system;
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
 	m_optgroups.push_back(optgroup);
