@@ -10,7 +10,7 @@ use base qw(Wx::Panel Class::Accessor);
 
 use Wx::Locale gettext => 'L';
 
-__PACKAGE__->mk_accessors(qw(print gcode_preview_data enabled _loaded canvas slider_low slider_high single_layer auto_zoom));
+__PACKAGE__->mk_accessors(qw(print gcode_preview_data enabled _loaded canvas slider_low slider_high single_layer));
 
 sub new {
     my $class = shift;
@@ -21,7 +21,6 @@ sub new {
     $self->{number_extruders} = 1;
     # Show by feature type by default.
     $self->{preferred_color_mode} = 'feature';
-    $self->auto_zoom(1);
 
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
@@ -73,6 +72,9 @@ sub new {
     $choice_view_type->Append(L("Tool"));
     $choice_view_type->SetSelection(0);
 
+    # the following value needs to be changed if new items are added into $choice_view_type before "Tool"
+    $self->{tool_idx} = 5;
+    
     my $label_show_features = $self->{label_show_features} = Wx::StaticText->new($self, -1, L("Show"));
     
     my $combochecklist_features = $self->{combochecklist_features} = Wx::ComboCtrl->new();
@@ -205,43 +207,31 @@ sub new {
     });
     EVT_CHOICE($self, $choice_view_type, sub {
         my $selection = $choice_view_type->GetCurrentSelection();
-        $self->{preferred_color_mode} = ($selection == 4) ? 'tool' : 'feature';
+        $self->{preferred_color_mode} = ($selection == $self->{tool_idx}) ? 'tool' : 'feature';
         $self->gcode_preview_data->set_type($selection);
-        $self->auto_zoom(0);
         $self->reload_print;
-        $self->auto_zoom(1);
     });
     EVT_CHECKLISTBOX($self, $combochecklist_features, sub {
         my $flags = Slic3r::GUI::combochecklist_get_flags($combochecklist_features);
         
         $self->gcode_preview_data->set_extrusion_flags($flags);
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });    
     EVT_CHECKBOX($self, $checkbox_travel, sub {
         $self->gcode_preview_data->set_travel_visible($checkbox_travel->IsChecked());
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });    
     EVT_CHECKBOX($self, $checkbox_retractions, sub {
         $self->gcode_preview_data->set_retractions_visible($checkbox_retractions->IsChecked());
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });
     EVT_CHECKBOX($self, $checkbox_unretractions, sub {
         $self->gcode_preview_data->set_unretractions_visible($checkbox_unretractions->IsChecked());
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });
     EVT_CHECKBOX($self, $checkbox_shells, sub {
         $self->gcode_preview_data->set_shells_visible($checkbox_shells->IsChecked());
-        $self->auto_zoom(0);
         $self->refresh_print;
-        $self->auto_zoom(1);
     });
     
     $self->SetSizer($main_sizer);
@@ -302,6 +292,12 @@ sub refresh_print {
     $self->load_print;
 }
 
+sub reset_gcode_preview_data {
+    my ($self) = @_;
+    $self->gcode_preview_data->reset;
+    $self->canvas->reset_legend_texture();
+}
+
 sub load_print {
     my ($self) = @_;
     
@@ -341,7 +337,7 @@ sub load_print {
         # It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
         # Color by feature if it is a single extruder print.
         my $extruders = $self->{print}->extruders;
-        my $type = (scalar(@{$extruders}) > 1) ? 4 : 0;
+        my $type = (scalar(@{$extruders}) > 1) ? $self->{tool_idx} : 0;
         $self->gcode_preview_data->set_type($type);
         $self->{choice_view_type}->SetSelection($type);
         # If the ->SetSelection changed the following line, revert it to "decide yourself".
@@ -350,7 +346,7 @@ sub load_print {
 
     # Collect colors per extruder.
     my @colors = ();
-    if (! $self->gcode_preview_data->empty() || $self->gcode_preview_data->type == 4) {
+    if (! $self->gcode_preview_data->empty() || $self->gcode_preview_data->type == $self->{tool_idx}) {
         my @extruder_colors = @{$self->{config}->extruder_colour};
         my @filament_colors = @{$self->{config}->filament_colour};
         for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
@@ -374,7 +370,7 @@ sub load_print {
             }
             $self->show_hide_ui_elements('simple');
         } else {
-            $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0) && $self->auto_zoom;
+            $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0);
             $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
             $self->show_hide_ui_elements('full');
 
@@ -384,10 +380,6 @@ sub load_print {
         }
 
         $self->update_sliders($n_layers);
-                
-        if ($self->auto_zoom) {
-            $self->canvas->zoom_to_volumes;
-        }
         $self->_loaded(1);
     }
 }
@@ -475,11 +467,11 @@ sub set_number_extruders {
     if ($self->{number_extruders} != $number_extruders) {
         $self->{number_extruders} = $number_extruders;
         my $type = ($number_extruders > 1) ?
-              4  # color by a tool number
+              $self->{tool_idx}  # color by a tool number
             : 0; # color by a feature type
         $self->{choice_view_type}->SetSelection($type);
         $self->gcode_preview_data->set_type($type);
-        $self->{preferred_color_mode} = ($type == 4) ? 'tool_or_feature' : 'feature';
+        $self->{preferred_color_mode} = ($type == $self->{tool_idx}) ? 'tool_or_feature' : 'feature';
     }
 }
 

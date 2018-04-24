@@ -162,6 +162,7 @@ sub thread_cleanup {
     *Slic3r::TriangleMesh::DESTROY          = sub {};
     *Slic3r::GUI::AppConfig::DESTROY        = sub {};
     *Slic3r::GUI::PresetBundle::DESTROY     = sub {};
+    *Slic3r::GUI::Tab::DESTROY              = sub {};
     *Slic3r::PresetUpdater::DESTROY         = sub {};
     return undef;  # this prevents a "Scalars leaked" warning
 }

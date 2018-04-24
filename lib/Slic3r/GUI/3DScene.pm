@@ -70,6 +70,7 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _legend_enabled
                               _warning_enabled
                               _apply_zoom_to_volumes_filter
+                              _mouse_dragging
                                                             
                               ) );
                               
@@ -146,6 +147,7 @@ sub new {
     $self->_warning_enabled(0);
     $self->use_plain_shader(0);
     $self->_apply_zoom_to_volumes_filter(0);
+    $self->_mouse_dragging(0);
 
     # Collection of GLVolume objects
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
@@ -199,6 +201,10 @@ sub new {
                 $self->select_view('left');
             } elsif ($key == ord('6')) {
                 $self->select_view('right');
+            } elsif ($key == ord('z')) {
+                $self->zoom_to_volumes;
+            } elsif ($key == ord('b')) {
+                $self->zoom_to_bed;
             } else {
                 $event->Skip;
             }
@@ -381,6 +387,8 @@ sub mouse_event {
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
     my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
 
+    $self->_mouse_dragging($e->Dragging);
+    
     if ($e->Entering && &Wx::wxMSW) {
         # wxMSW needs focus in order to catch mouse wheel events
         $self->SetFocus;
@@ -595,22 +603,23 @@ sub mouse_wheel_event {
     $zoom = $zoom_min if defined $zoom_min && $zoom < $zoom_min;
     $self->_zoom($zoom);
     
-    # In order to zoom around the mouse point we need to translate
-    # the camera target
-    my $size = Slic3r::Pointf->new($self->GetSizeWH);
-    my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
-    $self->_camera_target->translate(
-        # ($pos - $size/2) represents the vector from the viewport center
-        # to the mouse point. By multiplying it by $zoom we get the new,
-        # transformed, length of such vector.
-        # Since we want that point to stay fixed, we move our camera target
-        # in the opposite direction by the delta of the length of such vector
-        # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
-        # $self->_camera_target is expressed in terms of model units.
-        -($pos->x - $size->x/2) * ($zoom) / $self->_zoom,
-        -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
-        0,
-    ) if 0;
+#    # In order to zoom around the mouse point we need to translate
+#    # the camera target
+#    my $size = Slic3r::Pointf->new($self->GetSizeWH);
+#    my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
+#    $self->_camera_target->translate(
+#        # ($pos - $size/2) represents the vector from the viewport center
+#        # to the mouse point. By multiplying it by $zoom we get the new,
+#        # transformed, length of such vector.
+#        # Since we want that point to stay fixed, we move our camera target
+#        # in the opposite direction by the delta of the length of such vector
+#        # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
+#        # $self->_camera_target is expressed in terms of model units.
+#        -($pos->x - $size->x/2) * ($zoom) / $self->_zoom,
+#        -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
+#        0,
+#    ) if 0;
+
     $self->on_viewport_changed->() if $self->on_viewport_changed;
     $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
     $self->Refresh;
@@ -679,9 +688,82 @@ sub select_view {
 
 sub get_zoom_to_bounding_box_factor {
     my ($self, $bb) = @_;
-    return undef if ($bb->empty);
-    my $max_size = max(@{$bb->size}) * 2;
-    return ($max_size == 0) ? undef : min($self->GetSizeWH) / $max_size;
+    my $max_bb_size = max(@{ $bb->size });
+    return undef if ($max_bb_size == 0);
+        
+    # project the bbox vertices on a plane perpendicular to the camera forward axis
+    # then calculates the vertices coordinate on this plane along the camera xy axes
+    
+    # we need the view matrix, we let opengl calculate it (same as done in render sub)
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    if (!TURNTABLE_MODE) {
+        # Shift the perspective camera.
+        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+        glTranslatef(@$camera_pos);
+    }
+    
+    if (TURNTABLE_MODE) {
+        # Turntable mode is enabled by default.
+        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
+        glRotatef($self->_sphi, 0, 0, 1);    # yaw
+    } else {
+        # Shift the perspective camera.
+        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+        glTranslatef(@$camera_pos);
+        my @rotmat = quat_to_rotmatrix($self->quat);
+        glMultMatrixd_p(@rotmat[0..15]);
+    }    
+    glTranslatef(@{ $self->_camera_target->negative });
+    
+    # get the view matrix back from opengl
+    my @matrix = glGetFloatv_p(GL_MODELVIEW_MATRIX);
+
+    # camera axes
+    my $right = Slic3r::Pointf3->new($matrix[0], $matrix[4], $matrix[8]);
+    my $up = Slic3r::Pointf3->new($matrix[1], $matrix[5], $matrix[9]);
+    my $forward = Slic3r::Pointf3->new($matrix[2], $matrix[6], $matrix[10]);
+    
+    my $bb_min = $bb->min_point();
+    my $bb_max = $bb->max_point();
+    my $bb_center = $bb->center();
+    
+    # bbox vertices in world space
+    my @vertices = ();    
+    push(@vertices, $bb_min);
+    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_min->y(), $bb_min->z()));
+    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_max->y(), $bb_min->z()));
+    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_max->y(), $bb_min->z()));
+    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_min->y(), $bb_max->z()));
+    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_min->y(), $bb_max->z()));
+    push(@vertices, $bb_max);
+    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_max->y(), $bb_max->z()));
+    
+    my $max_x = 0.0;
+    my $max_y = 0.0;
+
+    # margin factor to give some empty space around the bbox
+    my $margin_factor = 1.25;
+    
+    foreach my $v (@vertices) {
+        # project vertex on the plane perpendicular to camera forward axis
+        my $pos = Slic3r::Pointf3->new($v->x() - $bb_center->x(), $v->y() - $bb_center->y(), $v->z() - $bb_center->z());
+        my $proj_on_normal = $pos->x() * $forward->x() + $pos->y() * $forward->y() + $pos->z() * $forward->z();
+        my $proj_on_plane = Slic3r::Pointf3->new($pos->x() - $proj_on_normal * $forward->x(), $pos->y() - $proj_on_normal * $forward->y(), $pos->z() - $proj_on_normal * $forward->z());
+        
+        # calculates vertex coordinate along camera xy axes
+        my $x_on_plane = $proj_on_plane->x() * $right->x() + $proj_on_plane->y() * $right->y() + $proj_on_plane->z() * $right->z();
+        my $y_on_plane = $proj_on_plane->x() * $up->x() + $proj_on_plane->y() * $up->y() + $proj_on_plane->z() * $up->z();
+    
+        $max_x = max($max_x, $margin_factor * 2 * abs($x_on_plane));
+        $max_y = max($max_y, $margin_factor * 2 * abs($y_on_plane));
+    }
+    
+    my ($cw, $ch) = $self->GetSizeWH;
+    my $min_ratio = min($cw / $max_x, $ch / $max_y);
+
+    return $min_ratio;
 }
 
 sub zoom_to_bounding_box {
@@ -693,6 +775,8 @@ sub zoom_to_bounding_box {
         # center view around bounding box center
         $self->_camera_target($bb->center);
         $self->on_viewport_changed->() if $self->on_viewport_changed;
+        $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
+        $self->Refresh;
     }
 }
 
@@ -1027,8 +1111,8 @@ sub Resize {
         #FIXME setting the size of the box 10x larger than necessary
         # is only a workaround for an incorrectly set camera.
         # This workaround harms Z-buffer accuracy!
-#        my $depth = 1.05 * $self->max_bounding_box->radius(); 
-       my $depth = 10.0 * $self->max_bounding_box->radius();
+#        my $depth = 1.05 * $self->max_bounding_box->radius();
+       my $depth = max(@{ $self->max_bounding_box->size });
         glOrtho(
             -$x/2, $x/2, -$y/2, $y/2,
             -$depth, $depth,
@@ -1158,7 +1242,7 @@ sub Render {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    {
+    if (!TURNTABLE_MODE) {
         # Shift the perspective camera.
         my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
         glTranslatef(@$camera_pos);
@@ -1182,7 +1266,7 @@ sub Render {
     # Head light
     glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
     
-    if ($self->enable_picking) {
+    if ($self->enable_picking && !$self->_mouse_dragging) {
         if (my $pos = $self->_mouse_pos) {
             # Render the object for picking.
             # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
@@ -1281,10 +1365,7 @@ sub Render {
         # disable depth testing so that axes are not covered by ground
         glDisable(GL_DEPTH_TEST);
         my $origin = $self->origin;
-        my $axis_len = max(
-            0.3 * max(@{ $self->bed_bounding_box->size }),
-              2 * max(@{ $volumes_bb->size }),
-        );
+        my $axis_len = $self->use_plain_shader ? 0.3 * max(@{ $self->bed_bounding_box->size }) : 2 * max(@{ $volumes_bb->size });
         glLineWidth(2);
         glBegin(GL_LINES);
         # draw line for x axis
@@ -1330,8 +1411,8 @@ sub Render {
         glEnable(GL_CULL_FACE) if ($self->enable_picking);
     }
 
-    # draw cutting plane
     if (defined $self->cutting_plane_z) {
+        # draw cutting plane
         my $plane_z = $self->cutting_plane_z;
         my $bb = $volumes_bb;
         glDisable(GL_CULL_FACE);
@@ -1347,6 +1428,15 @@ sub Render {
         glEnd();
         glEnable(GL_CULL_FACE);
         glDisable(GL_BLEND);
+        
+        # draw cutting contours
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glLineWidth(2);
+        glColor3f(0, 0, 0);
+        glVertexPointer_c(3, GL_FLOAT, 0, $self->cut_lines_vertices->ptr());
+        glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
+        glVertexPointer_c(3, GL_FLOAT, 0, 0);
+        glDisableClientState(GL_VERTEX_ARRAY);
     }
 
     # draw warning message
@@ -1393,18 +1483,10 @@ sub draw_volumes {
         $volume->render;
     }
     glDisableClientState(GL_NORMAL_ARRAY);
-    glDisable(GL_BLEND);
-
-    glEnable(GL_CULL_FACE);
-    
-    if (defined $self->cutting_plane_z) {
-        glLineWidth(2);
-        glColor3f(0, 0, 0);
-        glVertexPointer_c(3, GL_FLOAT, 0, $self->cut_lines_vertices->ptr());
-        glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
-        glVertexPointer_c(3, GL_FLOAT, 0, 0);
-    }
     glDisableClientState(GL_VERTEX_ARRAY);
+    
+    glDisable(GL_BLEND);
+    glEnable(GL_CULL_FACE);    
 }
 
 sub mark_volumes_for_layer_height {
@@ -1753,8 +1835,8 @@ sub _vertex_shader_Gouraud {
 // normalized values for (-0.6/1.31, 0.6/1.31, 1./1.31)
 const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
 #define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SPECULAR   (0.25 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SHININESS  200.0
+#define LIGHT_TOP_SPECULAR   (0.125 * INTENSITY_CORRECTION)
+#define LIGHT_TOP_SHININESS  20.0
 
 // normalized values for (1./1.43, 0.2/1.43, 1./1.43)
 const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
@@ -1784,14 +1866,8 @@ varying vec3 delta_box_max;
 
 void main()
 {
-    vec3 eye = -normalize((gl_ModelViewMatrix * gl_Vertex).xyz);
-
     // First transform the normal into camera space and normalize the result.
     vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
-    
-    // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
-    // Also since we're talking about a directional light, the position field is actually direction.
-    vec3 halfVector = normalize(LIGHT_TOP_DIR + eye);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
@@ -1801,7 +1877,7 @@ void main()
     intensity.y = 0.0;
 
     if (NdotL > 0.0)
-        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
+        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
 
     // Perform the same lighting calculation for the 2nd light source (no specular applied).
     NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
@@ -1926,8 +2002,8 @@ sub _vertex_shader_variable_layer_height {
 
 const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
 #define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SPECULAR   (0.25 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SHININESS  200.0
+#define LIGHT_TOP_SPECULAR   (0.125 * INTENSITY_CORRECTION)
+#define LIGHT_TOP_SHININESS  20.0
 
 const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 #define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
@@ -1943,14 +2019,8 @@ varying float object_z;
 
 void main()
 {
-    vec3 eye = -normalize((gl_ModelViewMatrix * gl_Vertex).xyz);
-
     // First transform the normal into camera space and normalize the result.
     vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
-    
-    // Now normalize the light's direction. Note that according to the OpenGL specification, the light is stored in eye space. 
-    // Also since we're talking about a directional light, the position field is actually direction.
-    vec3 halfVector = normalize(LIGHT_TOP_DIR + eye);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
@@ -1960,7 +2030,7 @@ void main()
     intensity.y = 0.0;
 
     if (NdotL > 0.0)
-        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, halfVector), 0.0), LIGHT_TOP_SHININESS);
+        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
 
     // Perform the same lighting calculation for the 2nd light source (no specular)
     NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);

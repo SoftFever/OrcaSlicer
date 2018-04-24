@@ -213,7 +213,6 @@
 %typemap{PresetHints*};
 %typemap{Ref<PresetHints>}{simple};
 %typemap{TabIface*};
-%typemap{Ref<TabIface>}{simple};
 
 %typemap{PrintRegionPtrs*};
 %typemap{PrintObjectPtrs*};

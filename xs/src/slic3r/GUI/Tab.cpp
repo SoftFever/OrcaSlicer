@@ -1288,7 +1288,6 @@ void TabFilament::build()
 		optgroup->append_single_option_line("filament_loading_speed");
         optgroup->append_single_option_line("filament_unloading_speed");
         optgroup->append_single_option_line("filament_toolchange_delay");
-        optgroup->append_single_option_line("filament_cooling_time");
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
 			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
