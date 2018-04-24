@@ -82,6 +82,7 @@ void set_preset_updater(PresetUpdater *updater);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
+PresetBundle* get_preset_bundle();
 
 const wxColour& get_modified_label_clr();
 const wxColour& get_sys_label_clr();
@@ -93,11 +94,13 @@ extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int 
 // to notify the user whether he is aware that some preset changes will be lost.
 extern bool check_unsaved_changes();
 
-// Checks if configuration wizard needs to run, calls config_wizard if so
-extern void config_wizard_startup(bool app_config_exists);
+// Checks if configuration wizard needs to run, calls config_wizard if so.
+// Returns whether the Wizard ran.
+extern bool config_wizard_startup(bool app_config_exists);
 
 // Opens the configuration wizard, returns true if wizard is finished & accepted.
-extern void config_wizard(bool startup, bool empty_datadir);
+// The run_reason argument is actually ConfigWizard::RunReason, but int is used here because of Perl.
+extern void config_wizard(int run_reason);
 
 // Create "Preferences" dialog after selecting menu "Preferences" in Perl part
 extern void open_preferences_dialog(int event_preferences);

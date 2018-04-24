@@ -27,10 +27,11 @@ public:
 	void slic3r_update_notify();
 
 	// If updating is enabled, check if updates are available in cache, if so, ask about installation.
-	void config_update() const;
+	// A false return value implies Slic3r should exit due to incompatibility of configuration.
+	bool config_update() const;
 
 	// "Update" a list of bundles from resources (behaves like an online update).
-	void install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot = true);
+	void install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot = true) const;
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

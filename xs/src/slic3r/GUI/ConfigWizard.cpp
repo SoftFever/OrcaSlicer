@@ -207,7 +207,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 	others_buttons(new wxPanel(parent)),
 	cbox_reset(nullptr)
 {
-	if (wizard_p()->flag_startup && wizard_p()->flag_empty_datadir) {
+	if (wizard_p()->run_reason == ConfigWizard::RR_DATA_EMPTY) {
 		wxString::Format(_(L("Run %s")), ConfigWizard::name());
 		append_text(wxString::Format(
 			_(L("Hello, welcome to Slic3r Prusa Edition! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")),
@@ -709,7 +709,7 @@ void ConfigWizard::priv::on_custom_setup()
 	set_page(page_firmware);
 }
 
-void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, PresetUpdater *updater)
+void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater)
 {
 	const bool is_custom_setup = page_welcome->page_next() == page_firmware;
 
@@ -730,8 +730,14 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 			install_bundles.emplace_back(vendor_rsrc.second);
 		}
 
-		// If the datadir was empty don't take a snapshot (it would just be an empty snapshot)
-		const bool snapshot = !flag_empty_datadir || page_welcome->reset_user_profile();
+		// Decide whether to create snapshot based on run_reason and the reset profile checkbox
+		bool snapshot = true;
+		switch (run_reason) {
+			case ConfigWizard::RR_DATA_EMPTY:    snapshot = false; break;
+			case ConfigWizard::RR_DATA_LEGACY:   snapshot = true; break;
+			case ConfigWizard::RR_DATA_INCOMPAT: snapshot = false; break;      // In this case snapshot is done by PresetUpdater with the appropriate reason
+			case ConfigWizard::RR_USER:          snapshot = page_welcome->reset_user_profile(); break;
+		}
 		if (install_bundles.size() > 0) {
 			// Install bundles from resources.
 			updater->install_bundles_rsrc(std::move(install_bundles), snapshot);
@@ -744,8 +750,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		app_config->set_vendors(appconfig_vendors);
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
-		if (flag_startup)
-			app_config->reset_selections();
+		app_config->reset_selections();
 		// ^ TODO: replace with appropriate printer selection
 		preset_bundle->load_presets(*app_config);
 	} else {
@@ -760,12 +765,11 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
 // Public
 
-ConfigWizard::ConfigWizard(wxWindow *parent, bool startup, bool empty_datadir) :
+ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	wxDialog(parent, wxID_ANY, name(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
-	p->flag_startup = startup;
-	p->flag_empty_datadir = empty_datadir;
+	p->run_reason = reason;
 
 	p->load_vendors();
 	p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
@@ -822,10 +826,13 @@ ConfigWizard::ConfigWizard(wxWindow *parent, bool startup, bool empty_datadir) :
 
 ConfigWizard::~ConfigWizard() {}
 
-void ConfigWizard::run(PresetBundle *preset_bundle, PresetUpdater *updater)
+bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater)
 {
 	if (ShowModal() == wxID_OK) {
 		p->apply_config(GUI::get_app_config(), preset_bundle, updater);
+		return true;
+	} else {
+		return false;
 	}
 }
 

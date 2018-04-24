@@ -9,5 +9,5 @@
     PresetUpdater(int version_online_event);
     void sync(PresetBundle* preset_bundle);
     void slic3r_update_notify();
-    void config_update();
+    bool config_update();
 };

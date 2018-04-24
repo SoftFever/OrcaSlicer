@@ -60,10 +60,10 @@ void set_app_config(AppConfig *app_config)
 bool check_unsaved_changes()
     %code%{ RETVAL=Slic3r::GUI::check_unsaved_changes(); %};
 
-void config_wizard_startup(int app_config_exists)
+bool config_wizard_startup(int app_config_exists)
     %code%{
         try {
-            Slic3r::GUI::config_wizard_startup(app_config_exists != 0);
+            RETVAL=Slic3r::GUI::config_wizard_startup(app_config_exists != 0);
         } catch (std::exception& e) {
             croak("%s\n", e.what());
         }

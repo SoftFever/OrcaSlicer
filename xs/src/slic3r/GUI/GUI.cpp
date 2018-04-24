@@ -390,7 +390,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case ConfigMenuWizard:
-            config_wizard(false, false);
+            config_wizard(ConfigWizard::RR_USER);
             break;
 		case ConfigMenuTakeSnapshot:
 			// Take a configuration snapshot.
@@ -469,10 +469,11 @@ bool check_unsaved_changes()
 	return dialog->ShowModal() == wxID_YES;
 }
 
-void config_wizard_startup(bool app_config_exists)
+bool config_wizard_startup(bool app_config_exists)
 {
 	if (! app_config_exists || g_PresetBundle->has_defauls_only()) {
-		config_wizard(true, true);
+		config_wizard(ConfigWizard::RR_DATA_EMPTY);
+		return true;
 	} else if (g_AppConfig->legacy_datadir()) {
 		// Looks like user has legacy pre-vendorbundle data directory,
 		// explain what this is and run the wizard
@@ -496,20 +497,19 @@ void config_wizard_startup(bool app_config_exists)
 		dlg.SetExtendedMessage(ext_msg);
 		const auto res = dlg.ShowModal();
 
-		config_wizard(true, false);
+		config_wizard(ConfigWizard::RR_DATA_LEGACY);
+		return true;
 	}
+	return false;
 }
 
-void config_wizard(bool startup, bool empty_datadir)
+void config_wizard(int reason)
 {
-	if (g_wxMainFrame == nullptr)
-		throw std::runtime_error("Main frame not set");
-
     // Exit wizard if there are unsaved changes and the user cancels the action.
     if (! check_unsaved_changes())
     	return;
 
-	ConfigWizard wizard(g_wxMainFrame, startup, empty_datadir);
+	ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
 	wizard.run(g_PresetBundle, g_PresetUpdater);
 
     // Load the currently selected preset into the GUI, update the preset selection box.
@@ -684,6 +684,11 @@ void warning_catcher(wxWindow* parent, const wxString& message){
 
 wxApp* get_app(){
 	return g_wxApp;
+}
+
+PresetBundle* get_preset_bundle()
+{
+	return g_PresetBundle;
 }
 
 const wxColour& get_modified_label_clr() {

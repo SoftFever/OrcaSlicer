@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <thread>
-#include <stack>
+#include <unordered_map>
 #include <ostream>
 #include <stdexcept>
 #include <boost/format.hpp>
@@ -14,18 +14,13 @@
 #include <wx/app.h>
 #include <wx/event.h>
 #include <wx/msgdlg.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/button.h>
-#include <wx/hyperlink.h>
-#include <wx/statbmp.h>
-#include <wx/checkbox.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/UpdateDialogs.hpp"
+#include "slic3r/GUI/ConfigWizard.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Config/Version.hpp"
 #include "slic3r/Config/Snapshot.hpp"
@@ -48,90 +43,49 @@ static const char *INDEX_FILENAME = "index.idx";
 static const char *TMP_EXTENSION = ".download";
 
 
-// A confirmation dialog listing configuration updates
-struct UpdateNotification : wxDialog
-{
-	// If this dialog gets any more complex, it should probably be factored out...
-
-	enum {
-		CONTENT_WIDTH = 400,
-		BORDER = 30,
-		SPACING = 15,
-	};
-
-	wxCheckBox *cbox;
-
-	UpdateNotification(const Semver &ver_current, const Semver &ver_online) : wxDialog(nullptr, wxID_ANY, _(L("Update available")))
-	{
-		auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
-		auto *sizer = new wxBoxSizer(wxVERTICAL);
-
-		const auto url = wxString::Format("https://github.com/prusa3d/Slic3r/releases/tag/version_%s", ver_online.to_string());
-		auto *link = new wxHyperlinkCtrl(this, wxID_ANY, url, url);
-
-		auto *text = new wxStaticText(this, wxID_ANY,
-			_(L("New version of Slic3r PE is available. To download, follow the link below.")));
-		const auto link_width = link->GetSize().GetWidth();
-		text->Wrap(CONTENT_WIDTH > link_width ? CONTENT_WIDTH : link_width);
-		sizer->Add(text);
-		sizer->AddSpacer(SPACING);
-
-		auto *versions = new wxFlexGridSizer(2, 0, SPACING);
-		versions->Add(new wxStaticText(this, wxID_ANY, _(L("Current version:"))));
-		versions->Add(new wxStaticText(this, wxID_ANY, ver_current.to_string()));
-		versions->Add(new wxStaticText(this, wxID_ANY, _(L("New version:"))));
-		versions->Add(new wxStaticText(this, wxID_ANY, ver_online.to_string()));
-		sizer->Add(versions);
-		sizer->AddSpacer(SPACING);
-
-		sizer->Add(link);
-		sizer->AddSpacer(2*SPACING);
-
-		cbox = new wxCheckBox(this, wxID_ANY, _(L("Don't notify about new releases any more")));
-		sizer->Add(cbox);
-		sizer->AddSpacer(SPACING);
-
-		auto *ok = new wxButton(this, wxID_OK);
-		ok->SetFocus();
-		sizer->Add(ok, 0, wxALIGN_CENTRE_HORIZONTAL);
-
-		auto *logo = new wxStaticBitmap(this, wxID_ANY, wxBitmap(GUI::from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG));
-
-		topsizer->Add(logo, 0, wxALL, BORDER);
-		topsizer->Add(sizer, 0, wxALL, BORDER);
-
-		SetSizerAndFit(topsizer);
-	}
-
-	bool disable_version_check() const { return cbox->GetValue(); }
-};
-
 struct Update
 {
 	fs::path source;
 	fs::path target;
 	Version version;
 
-	Update(fs::path &&source, const fs::path &target, const Version &version) :
-		source(source),
+	Update(fs::path &&source, fs::path &&target, const Version &version) :
+		source(std::move(source)),
 		target(std::move(target)),
 		version(version)
 	{}
 
-	Update(fs::path &&source, fs::path &&target) :
-		source(source),
-		target(std::move(target))
-	{}
+	std::string name() const { return source.stem().string(); }
 
-	std::string name() { return source.stem().string(); }
-
-	friend std::ostream& operator<<(std::ostream& os , const Update &update) {
-		os << "Update(" << update.source.string() << " -> " << update.target.string() << ')';
+	friend std::ostream& operator<<(std::ostream& os , const Update &self) {
+		os << "Update(" << self.source.string() << " -> " << self.target.string() << ')';
 		return os;
 	}
 };
 
-typedef std::vector<Update> Updates;
+struct Incompat
+{
+	fs::path bundle;
+	Version version;
+
+	Incompat(fs::path &&bundle, const Version &version) :
+		bundle(std::move(bundle)),
+		version(version)
+	{}
+
+	std::string name() const { return bundle.stem().string(); }
+
+	friend std::ostream& operator<<(std::ostream& os , const Incompat &self) {
+		os << "Incompat(" << self.bundle.string() << ')';
+		return os;
+	}
+};
+
+struct Updates
+{
+	std::vector<Incompat> incompats;
+	std::vector<Update> updates;
+};
 
 
 struct PresetUpdater::priv
@@ -206,7 +160,7 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 			BOOST_LOG_TRIVIAL(error) << boost::format("Error getting: `%1%`: HTTP %2%, %3%")
 				% url
 				% http_status
-				% body;
+				% error;
 		})
 		.on_complete([&](std::string body, unsigned http_status) {
 			fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
@@ -248,7 +202,7 @@ void PresetUpdater::priv::sync_version() const
 			BOOST_LOG_TRIVIAL(error) << boost::format("Error getting: `%1%`: HTTP %2%, %3%")
 				% version_check_url
 				% http_status
-				% body;
+				% error;
 		})
 		.on_complete([&](std::string body, unsigned http_status) {
 			boost::trim(body);
@@ -354,7 +308,7 @@ Updates PresetUpdater::priv::get_config_updates() const
 	BOOST_LOG_TRIVIAL(info) << "Checking for cached configuration updates...";
 
 	for (const auto idx : index_db) {
-		const auto bundle_path = vendor_path / (idx.vendor() + ".ini");
+		auto bundle_path = vendor_path / (idx.vendor() + ".ini");
 
 		if (! fs::exists(bundle_path)) {
 			BOOST_LOG_TRIVIAL(info) << "Bundle not present for index, skipping: " << idx.vendor();
@@ -377,14 +331,12 @@ Updates PresetUpdater::priv::get_config_updates() const
 
 		BOOST_LOG_TRIVIAL(debug) << boost::format("Vendor: %1%, version installed: %2%, version cached: %3%")
 			% vp.name
-			% recommended->config_version.to_string()
-			% ver_current->config_version.to_string();
+			% ver_current->config_version.to_string()
+			% recommended->config_version.to_string();
 
 		if (! ver_current->is_current_slic3r_supported()) {
 			BOOST_LOG_TRIVIAL(warning) << "Current Slic3r incompatible with installed bundle: " << bundle_path.string();
-
-			// TODO: Downgrade situation
-
+			updates.incompats.emplace_back(std::move(bundle_path), *ver_current);
 		} else if (recommended->config_version > ver_current->config_version) {
 			// Config bundle update situation
 
@@ -406,7 +358,7 @@ Updates PresetUpdater::priv::get_config_updates() const
 
 			const auto cached_vp = VendorProfile::from_ini(path_in_cache, false);
 			if (cached_vp.config_version == recommended->config_version) {
-				updates.emplace_back(std::move(path_in_cache), bundle_path, *recommended);
+				updates.updates.emplace_back(std::move(path_in_cache), std::move(bundle_path), *recommended);
 			}
 		}
 	}
@@ -416,28 +368,43 @@ Updates PresetUpdater::priv::get_config_updates() const
 
 void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) const
 {
-	BOOST_LOG_TRIVIAL(info) << boost::format("Performing %1% updates") % updates.size();
+	if (updates.incompats.size() > 0) {
+		if (snapshot) {
+			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
+			SnapshotDB::singleton().take_snapshot(*GUI::get_app_config(), Snapshot::SNAPSHOT_DOWNGRADE);
+		}
 
-	if (snapshot) {
-		BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
-		SnapshotDB::singleton().take_snapshot(*GUI::get_app_config(), Snapshot::SNAPSHOT_UPGRADE);
+		BOOST_LOG_TRIVIAL(info) << boost::format("Deleting %1% incompatible bundles") % updates.incompats.size();
+
+		for (const auto &incompat : updates.incompats) {
+			BOOST_LOG_TRIVIAL(info) << '\t' << incompat;
+			fs::remove(incompat.bundle);
+		}
 	}
+	else if (updates.updates.size() > 0) {
+		if (snapshot) {
+			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
+			SnapshotDB::singleton().take_snapshot(*GUI::get_app_config(), Snapshot::SNAPSHOT_UPGRADE);
+		}
 
-	for (const auto &update : updates) {
-		BOOST_LOG_TRIVIAL(info) << '\t' << update;
+		BOOST_LOG_TRIVIAL(info) << boost::format("Performing %1% updates") % updates.updates.size();
 
-		fs::copy_file(update.source, update.target, fs::copy_option::overwrite_if_exists);
+		for (const auto &update : updates.updates) {
+			BOOST_LOG_TRIVIAL(info) << '\t' << update;
 
-		PresetBundle bundle;
-		bundle.load_configbundle(update.target.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
+			fs::copy_file(update.source, update.target, fs::copy_option::overwrite_if_exists);
 
-		auto preset_remover = [](const Preset &preset) {
-			fs::remove(preset.file);
-		};
+			PresetBundle bundle;
+			bundle.load_configbundle(update.target.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
 
-		for (const auto &preset : bundle.prints)    { preset_remover(preset); }
-		for (const auto &preset : bundle.filaments) { preset_remover(preset); }
-		for (const auto &preset : bundle.printers)  { preset_remover(preset); }
+			auto preset_remover = [](const Preset &preset) {
+				fs::remove(preset.file);
+			};
+
+			for (const auto &preset : bundle.prints)    { preset_remover(preset); }
+			for (const auto &preset : bundle.filaments) { preset_remover(preset); }
+			for (const auto &preset : bundle.printers)  { preset_remover(preset); }
+		}
 	}
 }
 
@@ -497,7 +464,7 @@ void PresetUpdater::slic3r_update_notify()
 	if (ver_online) {
 		// Only display the notification if the version available online is newer AND if we haven't seen it before
 		if (*ver_online > *ver_slic3r && (! ver_online_seen || *ver_online_seen < *ver_online)) {
-			UpdateNotification notification(*ver_slic3r, *ver_online);
+			GUI::MsgUpdateSlic3r notification(*ver_slic3r, *ver_online);
 			notification.ShowModal();
 			if (notification.disable_version_check()) {
 				app_config->set("version_check", "0");
@@ -508,32 +475,55 @@ void PresetUpdater::slic3r_update_notify()
 	}
 }
 
-void PresetUpdater::config_update() const
+bool PresetUpdater::config_update() const
 {
-	if (! p->enabled_config_update) { return; }
+	if (! p->enabled_config_update) { return true; }
 
 	auto updates = p->get_config_updates();
-	if (updates.size() > 0) {
-		BOOST_LOG_TRIVIAL(info) << boost::format("Update of %1% bundles available. Asking for confirmation ...") % updates.size();
+	if (updates.incompats.size() > 0) {
+		BOOST_LOG_TRIVIAL(info) << boost::format("%1% bundles incompatible. Asking for action...") % updates.incompats.size();
 
-		const auto msg = _(L("Configuration update is available. Would you like to install it?"));
-
-		auto ext_msg = _(L(
-			"Note that a full configuration snapshot will be created first. It can then be restored at any time "
-			"should there be a problem with the new version.\n\n"
-			"Updated configuration bundles:\n"
-		));
-
-		for (const auto &update : updates) {
-			ext_msg += update.target.stem().string() + " " + update.version.config_version.to_string();
-			if (! update.version.comment.empty()) {
-				ext_msg += std::string(" (") + update.version.comment + ")";
-			}
-			ext_msg += "\n";
+		std::unordered_map<std::string, std::string> incompats_map;
+		for (const auto &incompat : updates.incompats) {
+			auto vendor = incompat.name();
+			auto restrictions = wxString::Format(_(L("requires min. %s and max. %s")),
+				incompat.version.min_slic3r_version.to_string(),
+				incompat.version.max_slic3r_version.to_string()
+			);
+			incompats_map.emplace(std::move(vendor), std::move(restrictions));
 		}
 
-		wxMessageDialog dlg(NULL, msg, _(L("Configuration update")), wxYES_NO|wxCENTRE);
-		dlg.SetExtendedMessage(ext_msg);
+		GUI::MsgDataIncompatible dlg(std::move(incompats_map));
+		const auto res = dlg.ShowModal();
+		if (res == wxID_REPLACE) {
+			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
+			p->perform_updates(std::move(updates));
+			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
+			if (wizard.run(GUI::get_preset_bundle(), this)) {
+				p->had_config_update = true;
+			} else {
+				return false;
+			}
+		} else {
+			BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
+			return false;
+		}
+	}
+	else if (updates.updates.size() > 0) {
+		BOOST_LOG_TRIVIAL(info) << boost::format("Update of %1% bundles available. Asking for confirmation ...") % updates.updates.size();
+
+		std::unordered_map<std::string, std::string> updates_map;
+		for (const auto &update : updates.updates) {
+			auto vendor = update.name();
+			auto ver_str = update.version.config_version.to_string();
+			if (! update.version.comment.empty()) {
+				ver_str += std::string(" (") + update.version.comment + ")";
+			}
+			updates_map.emplace(std::move(vendor), std::move(ver_str));
+		}
+
+		GUI::MsgUpdateConfig dlg(std::move(updates_map));
+
 		const auto res = dlg.ShowModal();
 		if (res == wxID_YES) {
 			BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
@@ -546,9 +536,11 @@ void PresetUpdater::config_update() const
 	} else {
 		BOOST_LOG_TRIVIAL(info) << "No configuration updates available.";
 	}
+
+	return true;
 }
 
-void PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot)
+void PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
 {
 	Updates updates;
 
@@ -557,7 +549,7 @@ void PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool 
 	for (const auto &bundle : bundles) {
 		auto path_in_rsrc = p->rsrc_path / bundle;
 		auto path_in_vendors = p->vendor_path / bundle;
-		updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors));
+		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version());
 	}
 
 	p->perform_updates(std::move(updates), snapshot);

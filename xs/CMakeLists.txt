@@ -220,6 +220,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.cpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.hpp
+    ${LIBDIR}/slic3r/GUI/UpdateDialogs.cpp
+    ${LIBDIR}/slic3r/GUI/UpdateDialogs.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
