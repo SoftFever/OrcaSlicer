@@ -85,7 +85,7 @@ public:
     
     /// Gets a boost::any representing this control.
     /// subclasses should overload with a specific version
-    virtual boost::any	get_value() = 0;
+    virtual boost::any&	get_value() = 0;
 
     virtual void		enable() = 0;
     virtual void		disable() = 0;
@@ -106,7 +106,8 @@ public:
     virtual wxWindow*	getWindow() { return nullptr; }
 
 	bool				is_matched(const std::string& string, const std::string& pattern);
-	boost::any			get_value_by_opt_type(wxString& str);
+// 	boost::any			get_value_by_opt_type(wxString& str);
+	void				get_value_by_opt_type(wxString& str);
 
     /// Factory method for generating new derived classes.
     template<class T>
@@ -157,6 +158,9 @@ protected:
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
 	const wxColour*		m_label_color;
 
+	// current value
+	boost::any			m_value;
+
 	friend class OptionsGroup;
 };
 
@@ -191,7 +195,7 @@ public:
 		m_disable_change_event = false;
     }
 
-	boost::any		get_value() override;
+	boost::any&		get_value() override;
 
     virtual void	enable();
     virtual void	disable();
@@ -218,7 +222,7 @@ public:
 		dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<bool>(value));
 		m_disable_change_event = false;
 	}
-	boost::any		get_value() override;
+	boost::any&		get_value() override;
 
 	void			enable() override { dynamic_cast<wxCheckBox*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<wxCheckBox*>(window)->Disable(); }
@@ -248,8 +252,9 @@ public:
 		dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value);
 		m_disable_change_event = false;
 	}
-	boost::any		get_value() override {
-		return boost::any(tmp_value);
+	boost::any&		get_value() override {
+// 		return boost::any(tmp_value);
+		return m_value = tmp_value;
 	}
 
 	void			enable() override { dynamic_cast<wxSpinCtrl*>(window)->Enable(); }
@@ -271,7 +276,7 @@ public:
 	void			set_value(const std::string& value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false);
 	void			set_values(const std::vector<std::string> &values);
-	boost::any		get_value() override;
+	boost::any&		get_value() override;
 
 	void			enable() override { dynamic_cast<wxComboBox*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxComboBox*>(window)->Disable(); };
@@ -299,7 +304,7 @@ public:
 		m_disable_change_event = false;
 	}
 
-	boost::any		get_value() override;
+	boost::any&		get_value() override;
 
 	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
@@ -321,7 +326,7 @@ public:
 
 	void			set_value(const Pointf& value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false);
-	boost::any		get_value() override;
+	boost::any&		get_value() override;
 
 	void			enable() override {
 		x_textctrl->Enable();
