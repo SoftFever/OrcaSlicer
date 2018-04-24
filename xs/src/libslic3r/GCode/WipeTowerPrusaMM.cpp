@@ -219,6 +219,17 @@ public:
 	Writer& retract(float e, float f = 0.f)
 		{ return load(-e, f); }
 
+// Loads filament while also moving towards given points in x-axis (x feedrate is limited by cutting the distance short if necessary)
+    Writer& load_move_x_advanced(float farthest_x, float loading_dist, float loading_speed, float max_x_speed = 50.f)
+    {
+        float time = std::abs(loading_dist / loading_speed);
+        float x_speed = std::min(max_x_speed, std::abs(farthest_x - x()) / time);
+        float feedrate = 60.f * std::hypot(x_speed, loading_speed);
+
+        float end_point = x() + (farthest_x > x() ? 1.f : -1.f) * x_speed * time;
+        return extrude_explicit(end_point, y(), loading_dist, feedrate);
+    }
+
 	// Elevate the extruder head above the current print_z position.
 	Writer& z_hop(float hop, float f = 0.f)
 	{ 
@@ -786,58 +797,43 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	}
 	WipeTower::xy end_of_ramming(writer.x(),writer.y());
 
-    // Pull the filament end to the BEGINNING of the cooling tube while still moving the print head
-    float oldx = writer.x();
-    float turning_point = (!m_left_to_right ? std::max(xl,oldx-15.f) : std::min(xr,oldx+15.f) ); // so it's not too far
-    float xdist = std::abs(oldx-turning_point);
-    float edist = -(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42);
+
+    // Retraction:
+    float old_x = writer.x();
+    float turning_point = (!m_left_to_right ? xl : xr );
+    float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
     writer.suppress_preview()
-          .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15 * 83 );    // fixed speed after ramming
-
-    // now an ugly hack: unload the filament with a check that the x speed is 50 mm/s
-    const float speed = m_filpar[m_current_tool].unloading_speed;
-    xdist = std::min(xdist, std::abs( 50 * edist / speed ));
-    const float feedrate = std::abs( std::hypot(edist, xdist) / ((edist / speed) / 60.f));
-    writer.load_move_x(writer.x() + (m_left_to_right ? -1.f : 1.f) * xdist ,edist, feedrate );
-    xdist = std::abs(oldx-turning_point); // recover old value of xdist
-
-
-    writer.load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15       * m_filpar[m_current_tool].unloading_speed*0.55f )
-          .load_move_x(oldx         ,-12    , 60.f * std::hypot(xdist,12)/12       * m_filpar[m_current_tool].unloading_speed*0.35f )
+          .load_move_x_advanced(turning_point, -15.f, 83.f, 50.f) // this is done at fixed speed
+          .load_move_x_advanced(old_x,         -0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed)
+          .load_move_x_advanced(turning_point, -0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed)
+          .load_move_x_advanced(old_x,         -0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed)
+          .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate
           .resume_preview();
 
-	if (new_temperature != 0) 	// Set the extruder temperature, but don't wait.
+    if (new_temperature != 0) 	// Set the extruder temperature, but don't wait.
 		writer.set_extruder_temp(new_temperature, false);
 
-// cooling:
-	writer.suppress_preview();
-	writer.travel(writer.x(), writer.y() + y_step);
-	const float start_x = writer.x();
-	turning_point = ( xr-start_x > start_x-xl ? xr : xl );
-	const float max_x_dist = 2*std::abs(start_x-turning_point);
-	const unsigned int N = 4 + std::max(0.f, (m_filpar[m_current_tool].cooling_time-14)/3);
-	float time = m_filpar[m_current_tool].cooling_time / float(N);
+    // Cooling:
+    const unsigned number_of_moves = 3;
+    if (number_of_moves > 0) {
+        const float initial_speed = 2.2f;   // mm/s
+        const float final_speed   = 3.4f;
 
-	i = 0;
-	while (i<N) {
-		const float speed = std::min(3.4,2.2 + i*0.3 + (i==0 ? 0 : 0.3)); // mm per second: 2.2, 2.8, 3.1, 3.4, 3.4, 3.4, ...		
-		const float e_dist = std::min(speed * time,2*m_cooling_tube_length); // distance to travel
-		
-		// this move is the last one at this speed or someone set tube_length to zero
-        if (speed * time < 2*m_cooling_tube_length || m_cooling_tube_length<WT_EPSILON) {
-            ++i;
-			time = m_filpar[m_current_tool].cooling_time / float(N);
-		}
-		else
-			time -= e_dist / speed; // subtract time this part will really take
+        float speed_inc = (final_speed - initial_speed) / (2.f * number_of_moves - 1.f);
 
-		// as for x, we will make sure the feedrate is at most 2000
-		float x_dist = (turning_point - WT_EPSILON < xl ? -1.f : 1.f) * std::min(e_dist * (float)sqrt(pow(2000 / (60 * speed), 2) - 1),max_x_dist);
-		const float feedrate = std::hypot(e_dist, x_dist) / ((e_dist / speed) / 60.f);
-		writer.cool(start_x+x_dist/2.f,start_x,e_dist/2.f,-e_dist/2.f, feedrate);
-	}
+        writer.suppress_preview()
+              .travel(writer.x(), writer.y() + y_step);
+        old_x = writer.x();
+        turning_point = xr-old_x > old_x-xl ? xr : xl;
+        for (unsigned i=0; i<number_of_moves; ++i) {
+            float speed = initial_speed + speed_inc * 2*i;
+            writer.load_move_x_advanced(turning_point, m_cooling_tube_length, speed);
+            speed += speed_inc;
+            writer.load_move_x_advanced(old_x, -m_cooling_tube_length, speed);
+        }
+    }
 
-    // let's wait is necessary
+    // let's wait is necessary:
     writer.wait(m_filpar[m_current_tool].delay);
     // we should be at the beginning of the cooling tube again - let's move to parking position:
     writer.retract(-m_cooling_tube_length/2.f+m_parking_pos_retraction-m_cooling_tube_retraction, 2000);
@@ -881,17 +877,16 @@ void WipeTowerPrusaMM::toolchange_Load(
 	float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
 
     // Load the filament while moving left / right, so the excess material will not create a blob at a single position.
-    float loading_speed = m_filpar[m_current_tool].loading_speed; // mm/s in e axis
     float turning_point = ( oldx-xl < xr-oldx ? xr : xl );
-    float dist = std::abs(oldx-turning_point);
-    //float edist = m_parking_pos_retraction-50-2; // loading is 2mm shorter that previous retraction, 50mm reserved for acceleration/deceleration
-    float edist = m_parking_pos_retraction-50+m_extra_loading_move; // 50mm reserved for acceleration/deceleration
-	writer.append("; CP TOOLCHANGE LOAD\n")
+    float edist = m_parking_pos_retraction+m_extra_loading_move;
+
+    writer.append("; CP TOOLCHANGE LOAD\n")
 		  .suppress_preview()
-		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Acceleration
-		  .load_move_x(oldx,edist,std::abs( 60*std::hypot(dist,edist)/edist * loading_speed) ) // Fast phase
-		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Slowing down
-		  .load_move_x(oldx, 10, 60*std::hypot(dist,10.f)/10.f * loading_speed*0.1f)           // Super slow
+		  .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Acceleration
+		  .load_move_x_advanced(oldx,          0.5f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
+		  .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Slowing down
+		  .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow
+          .travel(oldx, writer.y()) // in case last move was shortened to limit x feedrate
 		  .resume_preview();
 
 	// Reset the extruder current to the normal value.
