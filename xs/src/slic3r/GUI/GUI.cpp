@@ -40,6 +40,8 @@
 #include <wx/combo.h>
 #include <wx/window.h>
 #include <wx/settings.h>
+#include <wx/collpane.h>
+#include <wx/wupdlock.h>
 
 #include "wxExtensions.hpp"
 
@@ -638,8 +640,26 @@ wxString from_u8(const std::string &str)
 
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)
 {
+	// Experiments with new UI
+	wxCollapsiblePane *collpane = new wxCollapsiblePane(parent, wxID_ANY, "Print settings:");
+	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, collpane](wxCommandEvent e){
+		wxWindowUpdateLocker noUpdates(parent);
+
+  		parent->Layout();
+		collpane->Refresh();
+	}));
+
+	// add the pane with a zero proportion value to the sizer which contains it
+	sizer->Add(collpane, 0, wxGROW | wxALL, 5);
+	// now add a test label in the collapsible pane using a sizer to layout it:
+	wxWindow *win = collpane->GetPane();
+#ifdef __WXMSW__
+	collpane->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	win->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif //__WXMSW__
+
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
-	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
+	m_optgroup = std::make_shared<ConfigOptionsGroup>(/*parent*/win, "", config);
 //	const wxArrayInt& ar = preset_sizer->GetColWidths();
 // 	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front(); // doesn't work
 	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
@@ -755,7 +775,13 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
 
 
-	sizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
+// 	sizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
+
+
+	wxSizer *paneSz = new wxBoxSizer(wxVERTICAL);
+	paneSz->Add(m_optgroup->sizer, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
+	win->SetSizer(paneSz);
+	paneSz->SetSizeHints(win);
 }
 
 ConfigOptionsGroup* get_optgroup()
