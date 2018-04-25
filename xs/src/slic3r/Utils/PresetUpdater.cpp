@@ -525,7 +525,7 @@ bool PresetUpdater::config_update() const
 		GUI::MsgUpdateConfig dlg(std::move(updates_map));
 
 		const auto res = dlg.ShowModal();
-		if (res == wxID_YES) {
+		if (res == wxID_OK) {
 			BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
 			p->perform_updates(std::move(updates));
 		} else {
