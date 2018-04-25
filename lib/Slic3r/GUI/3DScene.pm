@@ -688,6 +688,9 @@ sub select_view {
 
 sub get_zoom_to_bounding_box_factor {
     my ($self, $bb) = @_;
+    
+    return undef if (! $self->init);
+    
     my $max_bb_size = max(@{ $bb->size });
     return undef if ($max_bb_size == 0);
         
