@@ -791,8 +791,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 {
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
-	const wxArrayInt& ar = preset_sizer->GetColWidths();
-	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front();
+//	const wxArrayInt& ar = preset_sizer->GetColWidths();
+// 	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front(); // doesn't work
 	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
@@ -846,10 +846,9 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		tab_print->update_dirty();
 	};
 
-	const int width = 250;
 	Option option = m_optgroup->get_option("fill_density");
 	option.opt.sidetext = "";
-	option.opt.width = width;
+	option.opt.full_width = true;
 	m_optgroup->append_single_option_line(option);
 
 	ConfigOptionDef def;
@@ -868,7 +867,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		"Everywhere";
 	def.default_value = new ConfigOptionStrings { selection };
 	option = Option(def, "support");
-	option.opt.width = width;
+	option.opt.full_width = true;
 	m_optgroup->append_single_option_line(option);
 
 	m_brim_width = config->opt_float("brim_width");
@@ -907,7 +906,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
 
 
-	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxBottom, 1);
+	sizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
 }
 
 ConfigOptionsGroup* get_optgroup()

@@ -131,7 +131,7 @@ public:
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxHORIZONTAL);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width != 0);
 
-        sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX ? 0: 5);
+        sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
     }
 
 protected:
