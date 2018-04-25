@@ -21,6 +21,7 @@ namespace Slic3r {
 
 static const std::string VENDOR_PREFIX = "vendor:";
 static const std::string MODEL_PREFIX = "model:";
+static const std::string VERSION_CHECK_URL = "https://raw.githubusercontent.com/prusa3d/Slic3r-settings/master/live/Slic3rPE.version";
 
 void AppConfig::reset()
 {
@@ -49,9 +50,6 @@ void AppConfig::set_defaults()
 
     if (get("version_check").empty())
         set("version_check", "1");
-    // TODO: proper URL
-    if (get("version_check_url").empty())
-        set("version_check_url", "https://gist.githubusercontent.com/vojtechkral/4d8fd4a3b8699a01ec892c264178461c/raw/2f05a64db19e45a7f8fe2cedeff555d544af679b/slic3rPE.version");
     if (get("preset_update").empty())
         set("preset_update", "1");
 
@@ -239,6 +237,12 @@ void AppConfig::reset_selections()
 std::string AppConfig::config_path()
 {
 	return (boost::filesystem::path(Slic3r::data_dir()) / "slic3r.ini").make_preferred().string();
+}
+
+std::string AppConfig::version_check_url() const
+{
+    auto from_settings = get("version_check_url");
+    return from_settings.empty() ? VERSION_CHECK_URL : from_settings;
 }
 
 bool AppConfig::exists()
