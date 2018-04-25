@@ -102,6 +102,13 @@ struct PerExtruderAdjustments
                 time_total += line.time;
         return time_total;
     }
+    float adjustable_time(bool slowdown_external_perimeters) {
+        float time_total = 0.f;
+        for (const CoolingLine &line : lines)
+            if (line.adjustable(slowdown_external_perimeters))
+                time_total += line.time;
+        return time_total;
+    }
     // Calculate the non-adjustable part of the total time.
     float non_adjustable_time(bool slowdown_external_perimeters) {
         float time_total = 0.f;
@@ -207,11 +214,14 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
     const size_t                 num_extruders = extruders.size();
 
     std::vector<PerExtruderAdjustments> per_extruder_adjustments(num_extruders);
-    std::vector<size_t>                 map_extruder_to_per_extruder_adjustment(num_extruders, 0);
+    unsigned int                        id_extruder_max = 0;
+    for (const Extruder &ex : extruders)
+        id_extruder_max = std::max(ex.id(), id_extruder_max);
+    std::vector<size_t>                 map_extruder_to_per_extruder_adjustment(id_extruder_max + 1, 0);
     for (size_t i = 0; i < num_extruders; ++ i) {
         unsigned int extruder_id = extruders[i].id();
         per_extruder_adjustments[i].extruder_id = extruder_id;
-        per_extruder_adjustments[i].min_print_speed = config.min_print_speed.get_at(i);
+        per_extruder_adjustments[i].min_print_speed = config.min_print_speed.get_at(extruder_id);
         map_extruder_to_per_extruder_adjustment[extruder_id] = i;
     }
     const std::string     toolchange_prefix = m_gcodegen.writer().toolchange_prefix();
@@ -442,6 +452,7 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
                     std::sort(by_min_print_speed.begin(), by_min_print_speed.end(), 
                         [](const PerExtruderAdjustments *p1, const PerExtruderAdjustments *p2){ return p1->min_print_speed > p2->min_print_speed; });
                     // Slow down, fast moves first.
+                    float time_stretch = slowdown_below_layer_time - total;
                     for (;;) {
                         // For each extruder, find the span of lines with a feedrate close to feedrate.
                         for (PerExtruderAdjustments *adj : by_min_print_speed) {
@@ -457,23 +468,34 @@ std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_
                         // Slow down, limited by max(feedrate_next, min_print_speed).
                         for (auto adj = by_min_print_speed.begin(); adj != by_min_print_speed.end();) {
                             float feedrate_limit = std::max(feedrate_next, (*adj)->min_print_speed);
-                            float time_stretch = slowdown_below_layer_time - total;
-                            float time_stretch_max = 0.f;
-                            std::pair<float, float> time_stretched(0.f, 0.f);
-                            for (auto it = adj; it != by_min_print_speed.end(); ++ it)
-                                time_stretch_max += (*it)->time_stretch_when_slowing_down_to(feedrate_limit);
-							bool done = false;
-							if (time_stretch_max > time_stretch) {
-								feedrate_limit = feedrate - (feedrate - feedrate_limit) * time_stretch / time_stretch_max;
-								done = true;
-							}
-                            for (auto it = adj; it != by_min_print_speed.end(); ++ it)
-                                (*it)->slow_down_to(feedrate_limit);
-							if (done) {
-								// Break from two levels of loops.
-								feedrate_next = 0.f;
-								break;
-							}
+                            if (feedrate_limit == 0.f) {
+                                float adjustable_time = 0.f;
+                                for (auto it = adj; it != by_min_print_speed.end(); ++ it)
+                                    adjustable_time += (*it)->adjustable_time(true);
+                                float ratio = (adjustable_time + time_stretch) / adjustable_time;
+                                for (auto it = adj; it != by_min_print_speed.end(); ++ it)
+                                    (*it)->slow_down_proportional(ratio, true);
+                                // Break from two levels of loops.
+                                feedrate_next = 0.f;
+                                break;
+                            } else {
+                                float time_stretch_max = 0.f;
+                                for (auto it = adj; it != by_min_print_speed.end(); ++ it)
+                                    time_stretch_max += (*it)->time_stretch_when_slowing_down_to(feedrate_limit);
+    							bool done = false;
+    							if (time_stretch_max > time_stretch) {
+    								feedrate_limit = feedrate - (feedrate - feedrate_limit) * time_stretch / time_stretch_max;
+    								done = true;
+    							}
+                                for (auto it = adj; it != by_min_print_speed.end(); ++ it)
+                                    (*it)->slow_down_to(feedrate_limit);
+    							if (done) {
+    								// Break from two levels of loops.
+    								feedrate_next = 0.f;
+    								break;
+    							}
+                                time_stretch -= time_stretch_max;
+                            }
                             // Skip the other extruders with nearly the same min_print_speed, as they have been processed already.
                             auto next = adj;
                             for (++ next; next != by_min_print_speed.end() && (*next)->min_print_speed > (*adj)->min_print_speed - EPSILON; ++ next);
