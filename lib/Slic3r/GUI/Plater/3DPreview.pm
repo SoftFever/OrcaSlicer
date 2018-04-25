@@ -72,6 +72,9 @@ sub new {
     $choice_view_type->Append(L("Tool"));
     $choice_view_type->SetSelection(0);
 
+    # the following value needs to be changed if new items are added into $choice_view_type before "Tool"
+    $self->{tool_idx} = 5;
+    
     my $label_show_features = $self->{label_show_features} = Wx::StaticText->new($self, -1, L("Show"));
     
     my $combochecklist_features = $self->{combochecklist_features} = Wx::ComboCtrl->new();
@@ -204,7 +207,7 @@ sub new {
     });
     EVT_CHOICE($self, $choice_view_type, sub {
         my $selection = $choice_view_type->GetCurrentSelection();
-        $self->{preferred_color_mode} = ($selection == 4) ? 'tool' : 'feature';
+        $self->{preferred_color_mode} = ($selection == $self->{tool_idx}) ? 'tool' : 'feature';
         $self->gcode_preview_data->set_type($selection);
         $self->reload_print;
     });
@@ -334,7 +337,7 @@ sub load_print {
         # It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
         # Color by feature if it is a single extruder print.
         my $extruders = $self->{print}->extruders;
-        my $type = (scalar(@{$extruders}) > 1) ? 4 : 0;
+        my $type = (scalar(@{$extruders}) > 1) ? $self->{tool_idx} : 0;
         $self->gcode_preview_data->set_type($type);
         $self->{choice_view_type}->SetSelection($type);
         # If the ->SetSelection changed the following line, revert it to "decide yourself".
@@ -343,7 +346,7 @@ sub load_print {
 
     # Collect colors per extruder.
     my @colors = ();
-    if (! $self->gcode_preview_data->empty() || $self->gcode_preview_data->type == 4) {
+    if (! $self->gcode_preview_data->empty() || $self->gcode_preview_data->type == $self->{tool_idx}) {
         my @extruder_colors = @{$self->{config}->extruder_colour};
         my @filament_colors = @{$self->{config}->filament_colour};
         for (my $i = 0; $i <= $#extruder_colors; $i += 1) {
@@ -464,11 +467,11 @@ sub set_number_extruders {
     if ($self->{number_extruders} != $number_extruders) {
         $self->{number_extruders} = $number_extruders;
         my $type = ($number_extruders > 1) ?
-              4  # color by a tool number
+              $self->{tool_idx}  # color by a tool number
             : 0; # color by a feature type
         $self->{choice_view_type}->SetSelection($type);
         $self->gcode_preview_data->set_type($type);
-        $self->{preferred_color_mode} = ($type == 4) ? 'tool_or_feature' : 'feature';
+        $self->{preferred_color_mode} = ($type == $self->{tool_idx}) ? 'tool_or_feature' : 'feature';
     }
 }
 

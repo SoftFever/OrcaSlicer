@@ -663,6 +663,9 @@ sub load_files {
             Slic3r::GUI::show_error($self, $@) if $@;
             $_->load_current_preset for (values %{$self->GetFrame->{options_tabs}});
             wxTheApp->{app_config}->update_config_dir(dirname($input_file));
+            # forces the update of the config here, or it will invalidate the imported layer heights profile if done using the timer
+            # and if the config contains a "layer_height" different from the current defined one
+            $self->async_apply_config;
         }
         else
         {
