@@ -925,6 +925,7 @@ wxWindow* export_option_creator(wxWindow* parent)
     wxPanel* panel = new wxPanel(parent, -1);
     wxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     wxCheckBox* cbox = new wxCheckBox(panel, wxID_HIGHEST + 1, L("Export print config"));
+    cbox->SetValue(true);
     sizer->AddSpacer(5);
     sizer->Add(cbox, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
     panel->SetSizer(sizer);
