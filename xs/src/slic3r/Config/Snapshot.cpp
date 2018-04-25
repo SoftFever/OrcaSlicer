@@ -117,11 +117,11 @@ void Snapshot::load_ini(const std::string &path)
                 	if (! semver)
                 		throw_on_parse_error("invalid " + kvp.first + " format for " + section.first);
 					if (kvp.first == "version")
-                		vc.version = *semver;
+                		vc.version.config_version = *semver;
                 	else if (kvp.first == "min_slic3r_version")
-                		vc.min_slic3r_version = *semver;
+                		vc.version.min_slic3r_version = *semver;
                 	else
-                		vc.max_slic3r_version = *semver;
+                		vc.version.max_slic3r_version = *semver;
             	} else if (boost::starts_with(kvp.first, key_prefix_model) && kvp.first.size() > key_prefix_model.size()) {
                     // Parse the printer variants installed for the current model.
                     auto &set_variants = vc.models_variants_installed[kvp.first.substr(key_prefix_model.size())];
@@ -181,9 +181,9 @@ void Snapshot::save_ini(const std::string &path)
     // Export the vendor configs.
     for (const VendorConfig &vc : this->vendor_configs) {
 		c << std::endl << "[Vendor:" << vc.name << "]" << std::endl;
-		c << "version = " << vc.version.to_string() << std::endl;
-		c << "min_slic3r_version = " << vc.min_slic3r_version.to_string() << std::endl;
-		c << "max_slic3r_version = " << vc.max_slic3r_version.to_string() << std::endl;
+		c << "version = " << vc.version.config_version.to_string() << std::endl;
+		c << "min_slic3r_version = " << vc.version.min_slic3r_version.to_string() << std::endl;
+		c << "max_slic3r_version = " << vc.version.max_slic3r_version.to_string() << std::endl;
         // Export installed printer models and their variants.
         for (const auto &model : vc.models_variants_installed) {
             if (model.second.size() == 0)
@@ -326,10 +326,10 @@ void SnapshotDB::update_slic3r_versions(std::vector<Index> &index_db)
 		for (Snapshot::VendorConfig &vendor_config : snapshot.vendor_configs) {
 			auto it = std::find_if(index_db.begin(), index_db.end(), [&vendor_config](const Index &idx) { return idx.vendor() == vendor_config.name; });
 			if (it != index_db.end()) {
-				Index::const_iterator it_version = it->find(vendor_config.version);
+				Index::const_iterator it_version = it->find(vendor_config.version.config_version);
 				if (it_version != it->end()) {
-					vendor_config.min_slic3r_version = it_version->min_slic3r_version;
-					vendor_config.max_slic3r_version = it_version->max_slic3r_version;
+					vendor_config.version.min_slic3r_version = it_version->min_slic3r_version;
+					vendor_config.version.max_slic3r_version = it_version->max_slic3r_version;
 				}
 			}
 		}
@@ -395,16 +395,16 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
         bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
         for (const VendorProfile &vp : bundle.vendors)
             if (vp.id == cfg.name)
-                cfg.version = vp.config_version;
+                cfg.version.config_version = vp.config_version;
         // Fill-in the min/max slic3r version from the config index, if possible.
         try {
             // Load the config index for the vendor.
             Index index;
             index.load(data_dir / "vendor" / (cfg.name + ".idx"));
-            auto it = index.find(cfg.version);
+            auto it = index.find(cfg.version.config_version);
             if (it != index.end()) {
-                cfg.min_slic3r_version = it->min_slic3r_version;
-                cfg.max_slic3r_version = it->max_slic3r_version;
+                cfg.version.min_slic3r_version = it->min_slic3r_version;
+                cfg.version.max_slic3r_version = it->max_slic3r_version;
             }
         } catch (const std::runtime_error &err) {
         }
@@ -476,7 +476,7 @@ SnapshotDB::const_iterator SnapshotDB::snapshot_with_vendor_preset(const std::st
         auto it_vendor_config = std::lower_bound(snapshot.vendor_configs.begin(), snapshot.vendor_configs.end(), 
             key, [](const Snapshot::VendorConfig &cfg1, const Snapshot::VendorConfig &cfg2) { return cfg1.name < cfg2.name; });
         if (it_vendor_config != snapshot.vendor_configs.end() && it_vendor_config->name == vendor_name &&
-            config_version == it_vendor_config->version) {
+            config_version == it_vendor_config->version.config_version) {
             // Vendor config found with the correct version.
             // Save it, but continue searching, as we want the newest snapshot.
             it_found = it;

@@ -39,18 +39,16 @@ static std::string generate_html_row(const Config::Snapshot &snapshot, bool row_
         text += " (" + snapshot.comment + ")";
     text += "</b></font><br>";
     // End of row header.
-//    text += _(L("ID:")) + " " + snapshot.id + "<br>";
-    // text += _(L("time captured:")) + " " + Utils::format_local_date_time(snapshot.time_captured) + "<br>";
     text += _(L("slic3r version")) + ": " + snapshot.slic3r_version_captured.to_string() + "<br>";
-//    text += "reason: " + snapshot.reason + "<br>";
     text += _(L("print")) + ": " + snapshot.print + "<br>";
     text += _(L("filaments")) + ": " + snapshot.filaments.front() + "<br>";
     text += _(L("printer")) + ": " + snapshot.printer + "<br>";
 
+    bool compatible = true;
     for (const Config::Snapshot::VendorConfig &vc : snapshot.vendor_configs) {
-        text += _(L("vendor")) + ": " + vc.name + ", ver: " + vc.version.to_string() + ", min slic3r ver: " + vc.min_slic3r_version.to_string();
-        if (vc.max_slic3r_version != Semver::inf())
-            text += ", max slic3r ver: " + vc.max_slic3r_version.to_string();
+        text += _(L("vendor")) + ": " + vc.name + ", ver: " + vc.version.config_version.to_string() + ", min slic3r ver: " + vc.version.min_slic3r_version.to_string();
+        if (vc.version.max_slic3r_version != Semver::inf())
+            text += ", max slic3r ver: " + vc.version.max_slic3r_version.to_string();
         text += "<br>";
         for (const std::pair<std::string, std::set<std::string>> &model : vc.models_variants_installed) {
             text += _(L("model")) + ": " + model.first + ", " + _(L("variants")) + ": ";
@@ -61,9 +59,13 @@ static std::string generate_html_row(const Config::Snapshot &snapshot, bool row_
             }
             text += "<br>";
         }
+        if (! vc.version.is_current_slic3r_supported()) { compatible = false; }
     }
 
-    if (! snapshot_active)
+    if (! compatible) {
+        text += "<p align=\"right\">" + _(L("Incompatible with this Slic3r")) + "</p>";
+    }
+    else if (! snapshot_active)
         text += "<p align=\"right\"><a href=\"" + snapshot.id + "\">" + _(L("Activate")) + "</a></p>";
     text += "</td>";
 	text += "</tr>";

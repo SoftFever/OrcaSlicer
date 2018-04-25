@@ -4,6 +4,7 @@
 #include <string>
 #include <cstring>
 #include <ostream>
+#include <stdexcept>
 #include <boost/optional.hpp>
 #include <boost/format.hpp>
 
@@ -31,6 +32,16 @@ public:
 		ver.patch = patch;
 		set_metadata(metadata);
 		set_prerelease(prerelease);
+	}
+
+	Semver(const std::string &str) : ver(semver_zero())
+	{
+		auto parsed = parse(str);
+		if (! parsed) {
+			throw std::runtime_error(std::string("Could not parse version string: ") + str);
+		}
+		ver = parsed->ver;
+		parsed->ver = semver_zero();
 	}
 
 	static boost::optional<Semver> parse(const std::string &str)
