@@ -99,8 +99,8 @@ public:
 	void set_maj(int maj) { ver.major = maj; }
 	void set_min(int min) { ver.minor = min; }
 	void set_patch(int patch) { ver.patch = patch; }
-	void set_metadata(boost::optional<const std::string&> meta) { meta ? strdup(*meta) : nullptr; }
-	void set_prerelease(boost::optional<const std::string&> pre) { pre ? strdup(*pre) : nullptr; }
+	void set_metadata(boost::optional<const std::string&> meta) { ver.metadata = meta ? strdup(*meta) : nullptr; }
+	void set_prerelease(boost::optional<const std::string&> pre) { ver.prerelease = pre ? strdup(*pre) : nullptr; }
 
 	// Comparison
 	bool operator<(const Semver &b)  const { return ::semver_compare(ver, b.ver) == -1; }

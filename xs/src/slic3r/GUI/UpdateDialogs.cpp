@@ -138,7 +138,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::unordered_map<std::string, std::stri
 	auto *btn_cancel = new wxButton(this, wxID_CANCEL);
 	btn_sizer->Add(btn_cancel);
 	btn_sizer->AddSpacer(HORIZ_SPACING);
-	auto *btn_ok = new wxButton(this, wxID_YES);
+	auto *btn_ok = new wxButton(this, wxID_OK);
 	btn_sizer->Add(btn_ok);
 	btn_ok->SetFocus();
 
