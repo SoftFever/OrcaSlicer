@@ -718,10 +718,10 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     Helper::store_polyline(polyline, data, z, preview_data);
 
     // updates preview ranges data
-    preview_data.ranges.height.set_from(height_range);
-    preview_data.ranges.width.set_from(width_range);
-    preview_data.ranges.feedrate.set_from(feedrate_range);
-    preview_data.ranges.volumetric_rate.set_from(volumetric_rate_range);
+    preview_data.ranges.height.update_from(height_range);
+    preview_data.ranges.width.update_from(width_range);
+    preview_data.ranges.feedrate.update_from(feedrate_range);
+    preview_data.ranges.volumetric_rate.update_from(volumetric_rate_range);
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
@@ -790,9 +790,9 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
     Helper::store_polyline(polyline, type, direction, feedrate, extruder_id, preview_data);
 
     // updates preview ranges data
-    preview_data.ranges.height.set_from(height_range);
-    preview_data.ranges.width.set_from(width_range);
-    preview_data.ranges.feedrate.set_from(feedrate_range);
+    preview_data.ranges.height.update_from(height_range);
+    preview_data.ranges.width.update_from(width_range);
+    preview_data.ranges.feedrate.update_from(feedrate_range);
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_data)
