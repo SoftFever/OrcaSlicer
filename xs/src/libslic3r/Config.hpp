@@ -659,6 +659,7 @@ public:
     ConfigOptionPoints() : ConfigOptionVector<Pointf>() {}
     explicit ConfigOptionPoints(size_t n, const Pointf &value) : ConfigOptionVector<Pointf>(n, value) {}
     explicit ConfigOptionPoints(std::initializer_list<Pointf> il) : ConfigOptionVector<Pointf>(std::move(il)) {}
+    explicit ConfigOptionPoints(const std::vector<Pointf> &values) : ConfigOptionVector<Pointf>(values) {}
 
     static ConfigOptionType static_type() { return coPoints; }
     ConfigOptionType        type()  const override { return static_type(); }

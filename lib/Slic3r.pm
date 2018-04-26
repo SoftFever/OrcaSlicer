@@ -278,5 +278,6 @@ sub system_info
 # this package declaration prevents an ugly fatal warning to be emitted when
 # spawning a new thread
 package GLUquadricObjPtr;
+package Wx::Printout;
 
 1;
