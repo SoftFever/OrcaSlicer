@@ -1115,7 +1115,7 @@ sub Resize {
         # is only a workaround for an incorrectly set camera.
         # This workaround harms Z-buffer accuracy!
 #        my $depth = 1.05 * $self->max_bounding_box->radius();
-       my $depth = max(@{ $self->max_bounding_box->size });
+       my $depth = 5.0 * max(@{ $self->max_bounding_box->size });
         glOrtho(
             -$x/2, $x/2, -$y/2, $y/2,
             -$depth, $depth,
