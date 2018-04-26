@@ -201,8 +201,8 @@ static void init_label_colours()
 {
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	if (luma >= 128) {
-		g_color_label_modified = wxColour(253, 88, 0);
-		g_color_label_sys = wxColour(26, 132, 57);
+		g_color_label_modified = wxColour(255, 108, 30);//wxColour(253, 88, 0);
+		g_color_label_sys = wxColour(19, 100, 44); //wxColour(26, 132, 57);
 	} else {
 		g_color_label_modified = wxColour(253, 111, 40);
 		g_color_label_sys = wxColour(115, 220, 103);

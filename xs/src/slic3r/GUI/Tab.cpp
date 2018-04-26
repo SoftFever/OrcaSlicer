@@ -218,7 +218,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		//! select_preset(m_presets_choice->GetStringSelection().ToStdString()); 
 		//! we doing next:
 		int selected_item = m_presets_choice->GetSelection();
-		if (m_selected_preset_item == selected_item)
+		if (m_selected_preset_item == selected_item && !m_presets->current_is_dirty())
 			return;
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
@@ -670,13 +670,52 @@ void Tab::on_presets_changed()
 		event.SetString(m_name);
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
+	update_preset_description_line();
+}
 
+void Tab::update_preset_description_line()
+{
 	const Preset* parent = m_presets->get_selected_preset_parent();
-	const wxString description_line = parent == nullptr ?
-		_(L("It's default preset")) : parent == &m_presets->get_selected_preset() ?
-		_(L("It's system preset")) :
-		_(L("Current preset is inherited from")) + ":\n" + parent->name;
-	m_parent_preset_description_line->SetText(description_line);
+	const Preset& preset = m_presets->get_edited_preset();
+			
+	wxString description_line = preset.is_default ?
+		_(L("It's a default preset.")) : preset.is_system ?
+		_(L("It's a system preset.")) : 
+		_(L("Current preset is inherited from ")) + (parent == nullptr ? 
+													"default preset." : 
+													":\n\t" + parent->name);
+	
+	if (preset.is_default || preset.is_system)
+		description_line += "\n\t" + _(L("It can't be deleted or modified. ")) + 
+							"\n\t" + _(L("Any modifications should be saved as a new preset inherited from this one. ")) + 
+							"\n\t" + _(L("To do that please specify a new name for the preset."));
+	
+	if (parent && parent->vendor)
+	{
+		description_line += "\n\n" + _(L("Additional information:")) + "\n";
+		description_line += "\t" + _(L("vendor")) + ": " + (name()=="printer" ? "\n\t\t" : "") + parent->vendor->name +
+							", ver: " + parent->vendor->config_version.to_string();
+		if (name() == "printer"){
+			const std::string              &printer_model = preset.config.opt_string("printer_model");
+			const std::string              &default_print_profile = preset.config.opt_string("default_print_profile");
+			const std::vector<std::string> &default_filament_profiles = preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+			if (!printer_model.empty())
+				description_line += "\n\n\t" + _(L("printer model")) + ": \n\t\t" + printer_model;
+			if (!default_print_profile.empty())
+				description_line += "\n\n\t" + _(L("default print profile")) + ": \n\t\t" + default_print_profile;
+			if (!default_filament_profiles.empty())
+			{
+				description_line += "\n\n\t" + _(L("default filament profile")) + ": \n\t\t";
+				for (auto& profile : default_filament_profiles){
+					if (&profile != &*default_filament_profiles.begin())
+						description_line += ", ";
+					description_line += profile;
+				}
+			}
+		}
+	}
+
+	m_parent_preset_description_line->SetText(description_line, false);
 }
 
 void Tab::update_frequently_changed_parameters()
@@ -1337,7 +1376,7 @@ wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticTex
 	(*StaticText)->SetFont(font);
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	sizer->Add(*StaticText);
+	sizer->Add(*StaticText, 1, wxEXPAND|wxALL, 0);
 	return sizer;
 }
 
@@ -1802,7 +1841,7 @@ void Tab::load_current_preset()
 {
 	auto preset = m_presets->get_edited_preset();
 
-	preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
+	(preset.is_default || preset.is_system) ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 	update();
 	// For the printer profile, generate the extruder pages.
 	on_preset_loaded();

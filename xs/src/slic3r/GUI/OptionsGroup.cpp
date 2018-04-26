@@ -468,10 +468,10 @@ Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int op
 	return opt_id.empty() ? nullptr : get_field(opt_id);
 }
 
-void ogStaticText::SetText(const wxString& value)
+void ogStaticText::SetText(const wxString& value, bool wrap/* = true*/)
 {
 	SetLabel(value);
-	Wrap(400);
+	if (wrap) Wrap(400);
 	GetParent()->Layout();
 }
 
