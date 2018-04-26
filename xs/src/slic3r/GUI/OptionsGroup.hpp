@@ -203,7 +203,7 @@ public:
 	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize){}
 	~ogStaticText(){}
 
-	void		SetText(const wxString& value);
+	void		SetText(const wxString& value, bool wrap = true);
 };
 
 }}
