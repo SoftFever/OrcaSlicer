@@ -36,6 +36,24 @@ using t_back_to_init = std::function<void(const std::string&)>;
 
 wxString double_to_string(double const value);
 
+class MyButton : public wxButton
+{
+public:
+	MyButton() {}
+	MyButton(wxWindow* parent, wxWindowID id, const wxString& label = wxEmptyString,
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize, long style = 0,
+		const wxValidator& validator = wxDefaultValidator,
+		const wxString& name = wxTextCtrlNameStr)
+	{
+		this->Create(parent, id, label, pos, size, style, validator, name);
+	}
+
+	// overridden from wxWindow base class
+	virtual bool
+		AcceptsFocusFromKeyboard() const { return false; }
+};
+
 class Field {
 protected:
     // factory function to defer and enforce creation of derived type. 
@@ -165,11 +183,11 @@ public:
 	}
 
 protected:
-	wxButton*			m_Undo_btn = nullptr;
+	MyButton*			m_Undo_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
 	const wxBitmap*		m_undo_bitmap = nullptr;
 	const wxString*		m_undo_tooltip = nullptr;
-	wxButton*			m_Undo_to_sys_btn = nullptr;
+	MyButton*			m_Undo_to_sys_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
 	const wxBitmap*		m_undo_to_sys_bitmap = nullptr;
 	const wxString*		m_undo_to_sys_tooltip = nullptr;
