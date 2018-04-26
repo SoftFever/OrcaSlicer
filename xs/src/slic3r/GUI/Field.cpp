@@ -20,18 +20,20 @@ namespace Slic3r { namespace GUI {
 
 	void Field::PostInitialize(){
 		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-		auto sz = 16;
-	#ifdef __WXGTK__
-		sz = 28;
-	#endif // __WXGTK__
-		m_Undo_btn			= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxSize(sz,sz), wxNO_BORDER);
-		m_Undo_to_sys_btn	= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxSize(sz,sz), wxNO_BORDER);
+		m_Undo_btn			= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+		m_Undo_to_sys_btn	= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 		if (wxMSW) {
 			m_Undo_btn->SetBackgroundColour(color);
 			m_Undo_to_sys_btn->SetBackgroundColour(color);
 		}
 		m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
 		m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
+
+		//set default bitmap
+		wxBitmap bmp;
+		bmp.LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
+		set_undo_bitmap(&bmp);
+		set_undo_to_sys_bitmap(&bmp);
 
 		BUILD();
 	}
