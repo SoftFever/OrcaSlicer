@@ -370,7 +370,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             list.reserve(Range::Colors_Count);
 
             float step = range.step_size();
-            for (unsigned int i = 0; i < Range::Colors_Count; ++i)
+            for (int i = Range::Colors_Count - 1; i >= 0; --i)
             {
                 char buf[1024];
                 sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (range.min + (float)i * step), decimals, scale_factor * (range.min + (float)(i + 1) * step));
