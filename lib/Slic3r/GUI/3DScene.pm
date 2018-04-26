@@ -687,10 +687,7 @@ sub select_view {
 }
 
 sub get_zoom_to_bounding_box_factor {
-    my ($self, $bb) = @_;
-    
-    return undef if (! $self->init);
-    
+    my ($self, $bb) = @_;    
     my $max_bb_size = max(@{ $bb->size });
     return undef if ($max_bb_size == 0);
         
@@ -762,6 +759,8 @@ sub get_zoom_to_bounding_box_factor {
         $max_x = max($max_x, $margin_factor * 2 * abs($x_on_plane));
         $max_y = max($max_y, $margin_factor * 2 * abs($y_on_plane));
     }
+    
+    return undef if (($max_x == 0) || ($max_y == 0));
     
     my ($cw, $ch) = $self->GetSizeWH;
     my $min_ratio = min($cw / $max_x, $ch / $max_y);
