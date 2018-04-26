@@ -50,7 +50,7 @@ struct CoolingLine
 
     CoolingLine(unsigned int type, size_t  line_start, size_t  line_end) :
         type(type), line_start(line_start), line_end(line_end),
-        length(0.f), time(0.f), time_max(0.f), slowdown(false) {}
+        length(0.f), feedrate(0.f), time(0.f), time_max(0.f), slowdown(false) {}
 
     bool adjustable(bool slowdown_external_perimeters) const {
         return (this->type & TYPE_ADJUSTABLE) && 
@@ -158,9 +158,9 @@ struct PerExtruderAdjustments
             bool adj2 = l2.adjustable();
             return (adj1 == adj2) ? l1.feedrate > l2.feedrate : adj1;
         });
-        for (n_lines_adjustable = 0; n_lines_adjustable < lines.size(); ++ n_lines_adjustable)
-            if ((this->lines[n_lines_adjustable].type & CoolingLine::TYPE_ADJUSTABLE) == 0)
-                break;
+        for (n_lines_adjustable = 0; 
+            n_lines_adjustable < lines.size() && this->lines[n_lines_adjustable].adjustable();
+            ++ n_lines_adjustable);
         time_non_adjustable = 0.f;
         for (size_t i = n_lines_adjustable; i < lines.size(); ++ i)
             time_non_adjustable += lines[i].time;
@@ -329,10 +329,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                     // Movement in the extruder axis.
                     line.length = std::abs(dif[3]);
                 }
-                if (line.length > 0) {
-                    line.feedrate = new_pos[4]; // current F
-                    line.time   = line.length / line.feedrate;
-                }
+                line.feedrate = new_pos[4];
+                assert((line.type & CoolingLine::TYPE_ADJUSTABLE) == 0 || line.feedrate > 0.f);
+                if (line.length > 0)
+                    line.time = line.length / line.feedrate;
                 line.time_max = line.time;
                 if ((line.type & CoolingLine::TYPE_ADJUSTABLE) || active_speed_modifier != size_t(-1))
                     line.time_max = (adjustment->min_print_speed == 0.f) ? FLT_MAX : std::max(line.time, line.length / adjustment->min_print_speed);
@@ -340,6 +340,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                     // Inside the ";_EXTRUDE_SET_SPEED" blocks, there must not be a G1 Fxx entry.
                     assert((line.type & CoolingLine::TYPE_HAS_F) == 0);
                     CoolingLine &sm = adjustment->lines[active_speed_modifier];
+                    assert(sm.feedrate > 0.f);
                     sm.length   += line.length;
                     sm.time     += line.time;
                     if (sm.time_max != FLT_MAX) {
