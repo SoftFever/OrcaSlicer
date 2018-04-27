@@ -1805,22 +1805,26 @@ sub on_config_change {
 sub list_item_deselected {
     my ($self, $event) = @_;
     return if $PreventListEvents;
+    $self->{_lecursor} = Wx::BusyCursor->new();
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
         $self->{canvas}->Refresh;
         #FIXME VBOs are being refreshed just to change a selection color?
         $self->{canvas3D}->reload_scene if $self->{canvas3D};
     }
+    undef $self->{_lecursor};
 }
 
 sub list_item_selected {
     my ($self, $event) = @_;
     return if $PreventListEvents;
+    $self->{_lecursor} = Wx::BusyCursor->new();
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
     $self->{canvas}->Refresh;
     #FIXME VBOs are being refreshed just to change a selection color?
     $self->{canvas3D}->reload_scene if $self->{canvas3D};
+    undef $self->{_lecursor};
 }
 
 sub list_item_activated {
@@ -1954,7 +1958,8 @@ sub selection_changed {
     my ($self) = @_;
     my ($obj_idx, $object) = $self->selected_object;
     my $have_sel = defined $obj_idx;
-    
+
+    $self->Freeze;
     if ($self->{htoolbar}) {
         # On OSX or Linux
         $self->{htoolbar}->EnableTool($_, $have_sel)
@@ -2005,6 +2010,7 @@ sub selection_changed {
     
     # prepagate the event to the frame (a custom Wx event would be cleaner)
     $self->GetFrame->on_plater_selection_changed($have_sel);
+    $self->Thaw;
 }
 
 sub select_object {
