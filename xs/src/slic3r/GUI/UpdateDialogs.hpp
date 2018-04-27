@@ -85,6 +85,18 @@ public:
 	~MsgDataIncompatible();
 };
 
+// Informs about a legacy data directory - an update from Slic3r PE < 1.40
+class MsgDataLegacy : public MsgDialog
+{
+public:
+	MsgDataLegacy();
+	MsgDataLegacy(MsgDataLegacy &&) = delete;
+	MsgDataLegacy(const MsgDataLegacy &) = delete;
+	MsgDataLegacy &operator=(MsgDataLegacy &&) = delete;
+	MsgDataLegacy &operator=(const MsgDataLegacy &) = delete;
+	~MsgDataLegacy();
+};
+
 
 }
 }

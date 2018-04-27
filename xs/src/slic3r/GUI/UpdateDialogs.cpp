@@ -12,6 +12,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
+#include "ConfigWizard.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -199,6 +200,37 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, w
 }
 
 MsgDataIncompatible::~MsgDataIncompatible() {}
+
+
+// MsgDataLegacy
+
+MsgDataLegacy::MsgDataLegacy() :
+	MsgDialog(_(L("Configuration update")), _(L("Configuration update")))
+{
+	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(
+		_(L(
+			"Slic3r PE now uses an updated configuration structure.\n\n"
+
+			"So called 'System presets' have been introduced, which hold the built-in default settings for various "
+			"printers. These System presets cannot be modified, instead, users now may create their "
+			"own presets inheriting settings from one of the System presets.\n"
+			"An inheriting preset may either inherit a particular value from its parent or override it with a customized value.\n\n"
+
+			"Please proceed with the %s that follows to set up the new presets "
+			"and to choose whether to enable automatic preset updates."
+		)),
+		ConfigWizard::name()
+	));
+	text->Wrap(CONTENT_WIDTH);
+	content_sizer->Add(text);
+	content_sizer->AddSpacer(VERT_SPACING);
+
+	// TODO: Add link to wiki?
+
+	Fit();
+}
+
+MsgDataLegacy::~MsgDataLegacy() {}
 
 
 }

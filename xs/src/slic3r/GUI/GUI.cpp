@@ -53,6 +53,7 @@
 #include "ConfigWizard.hpp"
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
+#include "UpdateDialogs.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
@@ -480,24 +481,8 @@ bool config_wizard_startup(bool app_config_exists)
 		// Looks like user has legacy pre-vendorbundle data directory,
 		// explain what this is and run the wizard
 
-		const auto msg = _(L("Configuration update"));
-		const auto ext_msg = wxString::Format(
-			_(L(
-				"Slic3r PE now uses an updated configuration structure.\n\n"
-
-				"So called 'System presets' have been introduced, which hold the built-in default settings for various "
-				"printers. These System presets cannot be modified, instead, users now may create their"
-				"own presets inheriting settings from one of the System presets.\n"
-				"An inheriting preset may either inherit a particular value from its parent or override it with a customized value.\n\n"
-
-				"Please proceed with the %s that follows to set up the new presets "
-				"and to choose whether to enable automatic preset updates."
-			)),
-			ConfigWizard::name()
-		);
-		wxMessageDialog dlg(NULL, msg, _(L("Configuration update")), wxOK|wxCENTRE);
-		dlg.SetExtendedMessage(ext_msg);
-		const auto res = dlg.ShowModal();
+		MsgDataLegacy dlg;
+		dlg.ShowModal();
 
 		config_wizard(ConfigWizard::RR_DATA_LEGACY);
 		return true;
