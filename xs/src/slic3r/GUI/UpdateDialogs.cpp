@@ -18,6 +18,8 @@ namespace Slic3r {
 namespace GUI {
 
 
+static const std::string CONFIG_UPDATE_WIKI_URL("https://github.com/prusa3d/Slic3r/wiki/Slic3r-PE-1.40-configuration-update");
+
 enum {
 	CONTENT_WIDTH = 400,
 	BORDER = 30,
@@ -225,7 +227,13 @@ MsgDataLegacy::MsgDataLegacy() :
 	content_sizer->Add(text);
 	content_sizer->AddSpacer(VERT_SPACING);
 
-	// TODO: Add link to wiki?
+	auto *text2 = new wxStaticText(this, wxID_ANY, _(L("For more information please visit our wiki page:")));
+	static const wxString url("https://github.com/prusa3d/Slic3r/wiki/Slic3r-PE-1.40-configuration-update");
+	// The wiki page name is intentionally not localized:
+	auto *link = new wxHyperlinkCtrl(this, wxID_ANY, "Slic3r PE 1.40 configuration update", CONFIG_UPDATE_WIKI_URL);
+	content_sizer->Add(text2);
+	content_sizer->Add(link);
+	content_sizer->AddSpacer(VERT_SPACING);
 
 	Fit();
 }
