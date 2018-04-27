@@ -99,17 +99,31 @@ void GCodePreviewData::Range::set_from(const Range& other)
 
 float GCodePreviewData::Range::step_size() const
 {
-    return (max - min) / (float)Colors_Count;
+    return (max - min) / (float)(Colors_Count - 1);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::Range::get_color_at_max() const
+GCodePreviewData::Color GCodePreviewData::Range::get_color_at(float value) const
 {
-    return colors[Colors_Count - 1];
-}
+    if (empty())
+        return Color::Dummy;
 
-const GCodePreviewData::Color& GCodePreviewData::Range::get_color_at(float value) const
-{
-    return empty() ? get_color_at_max() : colors[clamp((unsigned int)0, Colors_Count - 1, (unsigned int)((value - min) / step_size()))];
+    float global_t = (value - min) / step_size();
+
+    unsigned int low = (unsigned int)global_t;
+    unsigned int high = clamp((unsigned int)0, Colors_Count - 1, low + 1);
+
+    Color color_low = colors[low];
+    Color color_high = colors[high];
+
+    float local_t = global_t - (float)low;
+
+    // interpolate in RGB space
+    Color ret;
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        ret.rgba[i] = lerp(color_low.rgba[i], color_high.rgba[i], local_t);
+    }
+    return ret;
 }
 
 GCodePreviewData::LegendItem::LegendItem(const std::string& text, const GCodePreviewData::Color& color)
@@ -266,22 +280,22 @@ const GCodePreviewData::Color& GCodePreviewData::get_extrusion_role_color(Extrus
     return extrusion.role_colors[role];
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_height_color(float height) const
+GCodePreviewData::Color GCodePreviewData::get_height_color(float height) const
 {
     return ranges.height.get_color_at(height);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_width_color(float width) const
+GCodePreviewData::Color GCodePreviewData::get_width_color(float width) const
 {
     return ranges.width.get_color_at(width);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_feedrate_color(float feedrate) const
+GCodePreviewData::Color GCodePreviewData::get_feedrate_color(float feedrate) const
 {
     return ranges.feedrate.get_color_at(feedrate);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_volumetric_rate_color(float rate) const
+GCodePreviewData::Color GCodePreviewData::get_volumetric_rate_color(float rate) const
 {
     return ranges.volumetric_rate.get_color_at(rate);
 }
@@ -373,7 +387,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             for (int i = Range::Colors_Count - 1; i >= 0; --i)
             {
                 char buf[1024];
-                sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (range.min + (float)i * step), decimals, scale_factor * (range.min + (float)(i + 1) * step));
+                sprintf(buf, "%.*f", decimals, scale_factor * (range.min + (float)i * step));
                 list.emplace_back(buf, range.colors[i]);
             }
         }
@@ -408,7 +422,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
         }
     case Extrusion::Feedrate:
         {
-            Helper::FillListFromRange(items, ranges.feedrate, 0, 1.0f);
+            Helper::FillListFromRange(items, ranges.feedrate, 1, 1.0f);
             break;
         }
     case Extrusion::VolumetricRate:
