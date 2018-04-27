@@ -161,8 +161,12 @@ sub thread_cleanup {
     *Slic3r::Print::SupportMaterial2::DESTROY = sub {};
     *Slic3r::TriangleMesh::DESTROY          = sub {};
     *Slic3r::GUI::AppConfig::DESTROY        = sub {};
+    *Slic3r::GUI::GCodePreviewData::DESTROY = sub {};
     *Slic3r::GUI::PresetBundle::DESTROY     = sub {};
     *Slic3r::GUI::Tab::DESTROY              = sub {};
+    *Slic3r::GUI::PresetHints::DESTROY      = sub {};
+    *Slic3r::GUI::TabIface::DESTROY         = sub {};
+    *Slic3r::OctoPrint::DESTROY             = sub {};
     *Slic3r::PresetUpdater::DESTROY         = sub {};
     return undef;  # this prevents a "Scalars leaked" warning
 }
