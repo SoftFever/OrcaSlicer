@@ -389,7 +389,7 @@ sub mouse_event {
 
     $self->_mouse_dragging($e->Dragging);
     
-    if ($e->Entering && &Wx::wxMSW) {
+    if ($e->Entering && (&Wx::wxMSW || $^O eq 'linux')) {
         # wxMSW needs focus in order to catch mouse wheel events
         $self->SetFocus;
         $self->_drag_start_xy(undef);        
