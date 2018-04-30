@@ -222,6 +222,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.cpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.hpp
+    ${LIBDIR}/slic3r/GUI/MsgDialog.cpp
+    ${LIBDIR}/slic3r/GUI/MsgDialog.hpp
     ${LIBDIR}/slic3r/GUI/UpdateDialogs.cpp
     ${LIBDIR}/slic3r/GUI/UpdateDialogs.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
@@ -638,6 +640,7 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:XS>" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/Slic3r/"
         COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/xs/lib/Slic3r/XS.pm" "${PERL_LOCAL_LIB_DIR}/Slic3r/"
+    COMMENT "Installing XS.pm and XS.{so,dll,bundle} into the local-lib directory ..."
 )
 if(APPLE)
     add_custom_command(

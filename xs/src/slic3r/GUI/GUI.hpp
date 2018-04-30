@@ -116,6 +116,7 @@ void add_created_tab(Tab* panel);
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
 void show_error(wxWindow* parent, const wxString& message);
+void show_error_id(int id, const std::string& message);   // For Perl
 void show_info(wxWindow* parent, const wxString& message, const wxString& title);
 void warning_catcher(wxWindow* parent, const wxString& message);
 
