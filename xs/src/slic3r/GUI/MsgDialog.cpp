@@ -61,7 +61,7 @@ MsgDialog::~MsgDialog() {}
 // ErrorDialog
 
 ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg) :
-	MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")), wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png"))))
+	MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")), wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png")), wxBITMAP_TYPE_PNG))
 {
 	auto *panel = new wxScrolledWindow(this);
 	auto *p_sizer = new wxBoxSizer(wxVERTICAL);
