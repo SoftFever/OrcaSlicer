@@ -202,13 +202,28 @@ static void init_label_colours()
 {
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	if (luma >= 128) {
-		g_color_label_modified = wxColour(255, 108, 30);//wxColour(253, 88, 0);
-		g_color_label_sys = wxColour(19, 100, 44); //wxColour(26, 132, 57);
+		g_color_label_modified = wxColour(253, 88, 0);
+		g_color_label_sys = wxColour(26, 132, 57);
 	} else {
 		g_color_label_modified = wxColour(253, 111, 40);
 		g_color_label_sys = wxColour(115, 220, 103);
 	}
 	g_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+}
+
+void update_label_colours_from_appconfig()
+{
+	if (g_AppConfig->has("label_clr_sys")){
+		auto str = g_AppConfig->get("label_clr_sys");
+		if (str != "")
+			g_color_label_sys = wxColour(str);
+	}
+	
+	if (g_AppConfig->has("label_clr_modified")){
+		auto str = g_AppConfig->get("label_clr_modified");
+		if (str != "")
+			g_color_label_modified = wxColour(str);
+	}
 }
 
 void set_wxapp(wxApp *app)
@@ -512,6 +527,7 @@ void open_preferences_dialog(int event_preferences)
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
 {	
+	update_label_colours_from_appconfig();
 	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller));
 	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller));
 	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller));
@@ -678,15 +694,31 @@ PresetBundle* get_preset_bundle()
 	return g_PresetBundle;
 }
 
-const wxColour& get_modified_label_clr() {
+const wxColour& get_label_clr_modified() {
 	return g_color_label_modified;
 }
 
-const wxColour& get_sys_label_clr() {
+const wxColour& get_label_clr_sys() {
 	return g_color_label_sys;
 }
 
-const wxColour& get_default_label_clr() {
+void set_label_clr_modified(const wxColour& clr) {
+	g_color_label_modified = clr;
+	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
+	std::string str = clr_str.ToStdString();
+	g_AppConfig->set("label_clr_modified", str);
+	g_AppConfig->save();
+}
+
+void set_label_clr_sys(const wxColour& clr) {
+	g_color_label_sys = clr;
+	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
+	std::string str = clr_str.ToStdString();
+	g_AppConfig->set("label_clr_sys", str);
+	g_AppConfig->save();
+}
+
+const wxColour& get_label_clr_default() {
 	return g_color_label_default;
 }
 

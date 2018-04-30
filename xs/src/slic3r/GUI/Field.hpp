@@ -164,6 +164,13 @@ public:
 		return false;
 	}
 
+	bool	set_label_colour_force(const wxColour *clr) {
+		if (m_Label == nullptr) return false;
+		m_Label->SetForegroundColour(*clr);
+		m_Label->Refresh(true);
+		return false;
+	}
+
 	bool 	set_undo_tooltip(const wxString *tip) {
 		if (m_undo_tooltip != tip) {
 			m_undo_tooltip = tip;
@@ -194,7 +201,7 @@ protected:
 
 	wxStaticText*		m_Label = nullptr;
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
-	const wxColour*		m_label_color;
+	const wxColour*		m_label_color = nullptr;
 
 	// current value
 	boost::any			m_value;

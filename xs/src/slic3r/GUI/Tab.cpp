@@ -110,7 +110,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		m_question_btn->SetBackgroundColour(color);
 	}
 
-	m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information.")));
+	m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information \n"
+								   "or click this button.")));
 
 	// Determine the theme color of OS (dark or light)
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -134,13 +135,20 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_question_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent)
 	{
 		auto dlg = new ButtonsDescription(this, &m_icon_descriptions);
-		dlg->ShowModal();
+		if (dlg->ShowModal() == wxID_OK){
+			// Colors for ui "decoration"
+			for (Tab *tab : get_tabs_list()){
+				tab->m_sys_label_clr = get_label_clr_sys();
+				tab->m_modified_label_clr = get_label_clr_modified();
+				tab->update_labels_colour();
+			}
+		}
 	}));
 
 	// Colors for ui "decoration"
-	m_sys_label_clr			= get_sys_label_clr();
-	m_modified_label_clr	= get_modified_label_clr();
-	m_default_text_clr		= get_default_label_clr();
+	m_sys_label_clr			= get_label_clr_sys();
+	m_modified_label_clr	= get_label_clr_modified();
+	m_default_text_clr		= get_label_clr_default();
 
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
@@ -276,6 +284,56 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 
 	page->set_config(m_config);
 	return page;
+}
+
+void Tab::update_labels_colour()
+{
+	Freeze();
+	//update options "decoration"
+	for (const auto opt : m_options_list)
+	{
+		const wxColour *color = &m_sys_label_clr;
+
+		// value isn't equal to system value
+		if ((opt.second & osSystemValue) == 0){
+			// value is equal to last saved
+			if ((opt.second & osInitValue) != 0)
+				color = &m_default_text_clr;
+			// value is modified
+			else
+				color = &m_modified_label_clr;
+		}
+		if (opt.first == "bed_shape" || opt.first == "compatible_printers") {
+			if (m_colored_Label != nullptr)	{
+				m_colored_Label->SetForegroundColour(*color);
+				m_colored_Label->Refresh(true);
+			}
+			continue;
+		}
+
+		Field* field = get_field(opt.first);
+		if (field == nullptr) continue;
+		field->set_label_colour_force(color);
+	}
+	Thaw();
+
+	auto cur_item = m_treectrl->GetFirstVisibleItem();
+	while (cur_item){
+		auto title = m_treectrl->GetItemText(cur_item);
+		for (auto page : m_pages)
+		{
+			if (page->title() != title)
+				continue;
+			
+			const wxColor *clr = !page->m_is_nonsys_values ? &m_sys_label_clr :
+				page->m_is_modified_values ? &m_modified_label_clr :
+				&m_default_text_clr;
+
+			m_treectrl->SetItemTextColour(cur_item, *clr);
+			break;
+		}
+		cur_item = m_treectrl->GetNextVisible(cur_item);
+	}
 }
 
 // Update UI according to changes
