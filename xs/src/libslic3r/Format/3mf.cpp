@@ -16,6 +16,12 @@
 #include <Eigen/Dense>
 #include <miniz/miniz_zip.h>
 
+// VERSION NUMBERS
+// 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
+// 1 : Introduction of 3mf versioning. No other change in data saved into 3mf files.
+const unsigned int VERSION_3MF = 1;
+const char* SLIC3RPE_3MF_VERSION = "slic3rpe:Version3mf"; // definition of the metadata name saved into .model file
+
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
@@ -37,9 +43,9 @@ const char* COMPONENTS_TAG = "components";
 const char* COMPONENT_TAG = "component";
 const char* BUILD_TAG = "build";
 const char* ITEM_TAG = "item";
+const char* METADATA_TAG = "metadata";
 
 const char* CONFIG_TAG = "config";
-const char* METADATA_TAG = "metadata";
 const char* VOLUME_TAG = "volume";
 
 const char* UNIT_ATTR = "unit";
@@ -318,6 +324,9 @@ namespace Slic3r {
         typedef std::map<int, Geometry> IdToGeometryMap;
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
 
+        // Version of the 3mf file
+        unsigned int m_version;
+
         XML_Parser m_xml_parser;
         Model* m_model;
         float m_unit_factor;
@@ -329,6 +338,8 @@ namespace Slic3r {
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
+        std::string m_curr_metadata_name;
+        std::string m_curr_characters;
 
     public:
         _3MF_Importer();
@@ -349,6 +360,7 @@ namespace Slic3r {
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
         void _handle_end_model_xml_element(const char* name);
+        void _handle_model_xml_characters(const XML_Char* s, int len);
 
         // handlers to parse the MODEL_CONFIG_FILE file
         void _handle_start_config_xml_element(const char* name, const char** attributes);
@@ -390,6 +402,9 @@ namespace Slic3r {
         bool _handle_start_item(const char** attributes, unsigned int num_attributes);
         bool _handle_end_item();
 
+        bool _handle_start_metadata(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_metadata();
+
         bool _create_object_instance(int object_id, const Matrix4x4& matrix, unsigned int recur_counter);
 
         void _apply_transform(ModelInstance& instance, const Matrix4x4& matrix);
@@ -411,6 +426,7 @@ namespace Slic3r {
         // callbacks to parse the .model file
         static void XMLCALL _handle_start_model_xml_element(void* userData, const char* name, const char** attributes);
         static void XMLCALL _handle_end_model_xml_element(void* userData, const char* name);
+        static void XMLCALL _handle_model_xml_characters(void* userData, const XML_Char* s, int len);
 
         // callbacks to parse the MODEL_CONFIG_FILE file
         static void XMLCALL _handle_start_config_xml_element(void* userData, const char* name, const char** attributes);
@@ -418,9 +434,12 @@ namespace Slic3r {
     };
 
     _3MF_Importer::_3MF_Importer()
-        : m_xml_parser(nullptr)
+        : m_version(0)
+        , m_xml_parser(nullptr)
         , m_model(nullptr)   
         , m_unit_factor(1.0f)
+        , m_curr_metadata_name("")
+        , m_curr_characters("")
     {
     }
 
@@ -431,6 +450,7 @@ namespace Slic3r {
 
     bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle)
     {
+        m_version = 0;
         m_model = &model;
         m_unit_factor = 1.0f;
         m_curr_object.reset();
@@ -442,6 +462,8 @@ namespace Slic3r {
         m_curr_config.volume_id = -1;
         m_objects_metadata.clear();
         m_layer_heights_profiles.clear();
+        m_curr_metadata_name.clear();
+        m_curr_characters.clear();
         clear_errors();
 
         return _load_model_from_file(filename, model, bundle);
@@ -477,6 +499,8 @@ namespace Slic3r {
         mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
 
         mz_zip_archive_file_stat stat;
+
+        // we first loop the entries to read from the archive the .model file only, in order to extract the version from it
         for (mz_uint i = 0; i < num_entries; ++i)
         {
             if (mz_zip_reader_file_stat(&archive, i, &stat))
@@ -494,7 +518,18 @@ namespace Slic3r {
                         return false;
                     }
                 }
-                else if (boost::algorithm::iequals(name, LAYER_HEIGHTS_PROFILE_FILE))
+            }
+        }
+
+        // we then loop again the entries to read other files stored in the archive
+        for (mz_uint i = 0; i < num_entries; ++i)
+        {
+            if (mz_zip_reader_file_stat(&archive, i, &stat))
+            {
+                std::string name(stat.m_filename);
+                std::replace(name.begin(), name.end(), '\\', '/');
+
+                if (boost::algorithm::iequals(name, LAYER_HEIGHTS_PROFILE_FILE))
                 {
                     // extract slic3r lazer heights profile file
                     _extract_layer_heights_profile_config_from_archive(archive, stat);
@@ -595,6 +630,7 @@ namespace Slic3r {
 
         XML_SetUserData(m_xml_parser, (void*)this);
         XML_SetElementHandler(m_xml_parser, _3MF_Importer::_handle_start_model_xml_element, _3MF_Importer::_handle_end_model_xml_element);
+        XML_SetCharacterDataHandler(m_xml_parser, _3MF_Importer::_handle_model_xml_characters);
 
         void* parser_buffer = XML_GetBuffer(m_xml_parser, (int)stat.m_uncomp_size);
         if (parser_buffer == nullptr)
@@ -784,6 +820,8 @@ namespace Slic3r {
             res = _handle_start_build(attributes, num_attributes);
         else if (::strcmp(ITEM_TAG, name) == 0)
             res = _handle_start_item(attributes, num_attributes);
+        else if (::strcmp(METADATA_TAG, name) == 0)
+            res = _handle_start_metadata(attributes, num_attributes);
 
         if (!res)
             _stop_xml_parser();
@@ -820,9 +858,16 @@ namespace Slic3r {
             res = _handle_end_build();
         else if (::strcmp(ITEM_TAG, name) == 0)
             res = _handle_end_item();
+        else if (::strcmp(METADATA_TAG, name) == 0)
+            res = _handle_end_metadata();
 
         if (!res)
             _stop_xml_parser();
+    }
+
+    void _3MF_Importer::_handle_model_xml_characters(const XML_Char* s, int len)
+    {
+        m_curr_characters.append(s, len);
     }
 
     void _3MF_Importer::_handle_start_config_xml_element(const char* name, const char** attributes)
@@ -1128,6 +1173,25 @@ namespace Slic3r {
     bool _3MF_Importer::_handle_end_item()
     {
         // do nothing
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_start_metadata(const char** attributes, unsigned int num_attributes)
+    {
+        m_curr_characters.clear();
+
+        std::string name = get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
+        if (!name.empty())
+            m_curr_metadata_name = name;
+
+        return true;
+    }
+
+    bool _3MF_Importer::_handle_end_metadata()
+    {
+        if (m_curr_metadata_name == SLIC3RPE_3MF_VERSION)
+            m_version = (unsigned int)atoi(m_curr_characters.c_str());
+
         return true;
     }
 
@@ -1437,6 +1501,13 @@ namespace Slic3r {
             importer->_handle_end_model_xml_element(name);
     }
 
+    void XMLCALL _3MF_Importer::_handle_model_xml_characters(void* userData, const XML_Char* s, int len)
+    {
+        _3MF_Importer* importer = (_3MF_Importer*)userData;
+        if (importer != nullptr)
+            importer->_handle_model_xml_characters(s, len);
+    }
+
     void XMLCALL _3MF_Importer::_handle_start_config_xml_element(void* userData, const char* name, const char** attributes)
     {
         _3MF_Importer* importer = (_3MF_Importer*)userData;
@@ -1640,7 +1711,8 @@ namespace Slic3r {
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">\n";
+        stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
+        stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
         stream << " <" << RESOURCES_TAG << ">\n";
 
         BuildItemsList build_items;

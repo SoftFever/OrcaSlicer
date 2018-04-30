@@ -42,6 +42,9 @@ void add_config_menu(SV *ui, int event_preferences_changed, int event_language_c
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
     %code%{ Slic3r::GUI::create_preset_tabs(no_controller, event_value_change, event_presets_changed); %};
 
+void show_error_id(int id, std::string msg)
+    %code%{ Slic3r::GUI::show_error_id(id, msg); %};
+
 TabIface* get_preset_tab(char *name)
     %code%{ RETVAL=Slic3r::GUI::get_preset_tab_iface(name); %};
 

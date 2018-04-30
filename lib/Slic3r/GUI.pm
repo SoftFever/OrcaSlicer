@@ -249,7 +249,7 @@ sub catch_error {
 # static method accepting a wxWindow object as first parameter
 sub show_error {
     my ($parent, $message) = @_;
-    Wx::MessageDialog->new($parent, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
+    Slic3r::GUI::show_error_id($parent ? $parent->GetId() : 0, $message);
 }
 
 # static method accepting a wxWindow object as first parameter

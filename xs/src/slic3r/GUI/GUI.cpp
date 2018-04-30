@@ -50,6 +50,7 @@
 #include "AppConfig.hpp"
 #include "ConfigSnapshotDialog.hpp"
 #include "Utils.hpp"
+#include "MsgDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
@@ -668,21 +669,26 @@ void add_created_tab(Tab* panel)
 	g_wxTabPanel->AddPage(panel, panel->title());
 }
 
-void show_error(wxWindow* parent, const wxString& message){
-	auto msg_wingow = new wxMessageDialog(parent, message, _(L("Error")), wxOK | wxICON_ERROR);
-	msg_wingow->ShowModal();
+void show_error(wxWindow* parent, const wxString& message) {
+	ErrorDialog msg(parent, message);
+	msg.ShowModal();
+}
+
+void show_error_id(int id, const std::string& message) {
+	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
+	show_error(parent, message);
 }
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title){
-	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
-	msg_wingow->ShowModal();
+	wxMessageDialog msg_wingow(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
+	msg_wingow.ShowModal();
 }
 
 void warning_catcher(wxWindow* parent, const wxString& message){
 	if (message == _(L("GLUquadricObjPtr | Attempt to free unreferenced scalar")) )
 		return;
-	auto msg = new wxMessageDialog(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
-	msg->ShowModal();	
+	wxMessageDialog msg(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
+	msg.ShowModal();
 }
 
 wxApp* get_app(){

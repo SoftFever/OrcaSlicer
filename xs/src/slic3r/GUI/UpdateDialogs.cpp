@@ -20,60 +20,11 @@ namespace GUI {
 
 static const std::string CONFIG_UPDATE_WIKI_URL("https://github.com/prusa3d/Slic3r/wiki/Slic3r-PE-1.40-configuration-update");
 
-enum {
-	CONTENT_WIDTH = 400,
-	BORDER = 30,
-	VERT_SPACING = 15,
-	HORIZ_SPACING = 5,
-};
-
-
-MsgDialog::MsgDialog(const wxString &title, const wxString &headline, wxWindowID button_id) :
-	MsgDialog(title, headline, wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG), button_id)
-{}
-
-MsgDialog::MsgDialog(const wxString &title, const wxString &headline, wxBitmap bitmap, wxWindowID button_id) :
-	wxDialog(nullptr, wxID_ANY, title),
-	boldfont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)),
-	content_sizer(new wxBoxSizer(wxVERTICAL)),
-	btn_sizer(new wxBoxSizer(wxHORIZONTAL))
-{
-	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
-
-	auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
-	auto *rightsizer = new wxBoxSizer(wxVERTICAL);
-
-	auto *headtext = new wxStaticText(this, wxID_ANY, headline);
-	headtext->SetFont(boldfont);
-	headtext->Wrap(CONTENT_WIDTH);
-	rightsizer->Add(headtext);
-	rightsizer->AddSpacer(VERT_SPACING);
-
-	rightsizer->Add(content_sizer);
-
-	if (button_id != wxID_NONE) {
-		auto *button = new wxButton(this, button_id);
-		button->SetFocus();
-		btn_sizer->Add(button);
-	}
-
-	rightsizer->Add(btn_sizer, 0, wxALIGN_CENTRE_HORIZONTAL);
-
-	auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(bitmap));
-
-	topsizer->Add(logo, 0, wxALL, BORDER);
-	topsizer->Add(rightsizer, 0, wxALL, BORDER);
-
-	SetSizerAndFit(topsizer);
-}
-
-MsgDialog::~MsgDialog() {}
-
 
 // MsgUpdateSlic3r
 
 MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_online) :
-	MsgDialog(_(L("Update available")), _(L("New version of Slic3r PE is available"))),
+	MsgDialog(nullptr, _(L("Update available")), _(L("New version of Slic3r PE is available"))),
 	ver_current(ver_current),
 	ver_online(ver_online)
 {
@@ -115,7 +66,7 @@ bool MsgUpdateSlic3r::disable_version_check() const
 // MsgUpdateConfig
 
 MsgUpdateConfig::MsgUpdateConfig(const std::unordered_map<std::string, std::string> &updates) :
-	MsgDialog(_(L("Configuration update")), _(L("Configuration update is available")), wxID_NONE)
+	MsgDialog(nullptr, _(L("Configuration update")), _(L("Configuration update is available")), wxID_NONE)
 {
 	auto *text = new wxStaticText(this, wxID_ANY, _(L(
 		"Would you like to install it?\n\n"
@@ -154,7 +105,7 @@ MsgUpdateConfig::~MsgUpdateConfig() {}
 // MsgDataIncompatible
 
 MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, wxString> &incompats) :
-	MsgDialog(_(L("Slic3r incompatibility")), _(L("Slic3r configuration is incompatible")), wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png"))), wxID_NONE)
+	MsgDialog(nullptr, _(L("Slic3r incompatibility")), _(L("Slic3r configuration is incompatible")), wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png"))), wxID_NONE)
 {
 	auto *text = new wxStaticText(this, wxID_ANY, _(L(
 		"This version of Slic3r PE is not compatible with currently installed configuration bundles.\n"
@@ -207,7 +158,7 @@ MsgDataIncompatible::~MsgDataIncompatible() {}
 // MsgDataLegacy
 
 MsgDataLegacy::MsgDataLegacy() :
-	MsgDialog(_(L("Configuration update")), _(L("Configuration update")))
+	MsgDialog(nullptr, _(L("Configuration update")), _(L("Configuration update")))
 {
 	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(
 		_(L(
