@@ -18,6 +18,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/image.h>
 #include <wx/choice.h>
@@ -120,14 +121,15 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             model.id = section.first.substr(printer_model_key.size());
             model.name = section.second.get<std::string>("name", model.id);
             section.second.get<std::string>("variants", "");
+            const auto variants_field = section.second.get<std::string>("variants", "");
             std::vector<std::string> variants;
-            if (Slic3r::unescape_strings_cstyle(section.second.get<std::string>("variants", ""), variants)) {
+            if (Slic3r::unescape_strings_cstyle(variants_field, variants)) {
                 for (const std::string &variant_name : variants) {
                     if (model.variant(variant_name) == nullptr)
                         model.variants.emplace_back(VendorProfile::PrinterVariant(variant_name));
                 }
             } else {
-                // Log error?   // XXX
+                BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: Malformed variants field: `%2%`") % id % variants_field;
             }
             if (! model.id.empty() && ! model.variants.empty())
                 res.models.push_back(std::move(model));
@@ -387,7 +389,9 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
             // Remove the .ini suffix.
             name.erase(name.size() - 4);
             if (this->find_preset(name, false)) {
-                errors_cummulative += "The user preset \"" + name + "\" cannot be loaded. A system preset of the same name has already been loaded.";
+                // This happens when there's is a preset (most likely legacy one) with the same name as a system preset
+                // that's already been loaded from a bundle.
+                BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
                 continue;
             }
             try {

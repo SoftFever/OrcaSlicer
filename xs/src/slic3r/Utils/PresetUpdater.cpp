@@ -252,7 +252,7 @@ void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors) con
 		// See if a there's a new version to download
 		const auto recommended_it = new_index.recommended();
 		if (recommended_it == new_index.end()) {
-			BOOST_LOG_TRIVIAL(error) << "No recommended version for vendor: " << vendor.name << ", invalid index?";
+			BOOST_LOG_TRIVIAL(error) << boost::format("No recommended version for vendor: %1%, invalid index?") % vendor.name;
 			continue;
 		}
 		const auto recommended = recommended_it->config_version;
@@ -326,7 +326,7 @@ Updates PresetUpdater::priv::get_config_updates() const
 
 		const auto recommended = idx.recommended();
 		if (recommended == idx.end()) {
-			throw std::runtime_error((boost::format("Invalid index: `%1%`") % idx.vendor()).str());
+			BOOST_LOG_TRIVIAL(error) << boost::format("No recommended version for vendor: %1%, invalid index?") % idx.vendor();
 		}
 
 		BOOST_LOG_TRIVIAL(debug) << boost::format("Vendor: %1%, version installed: %2%, version cached: %3%")
