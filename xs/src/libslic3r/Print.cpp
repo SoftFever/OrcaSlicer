@@ -186,7 +186,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_loading_speed"
             || opt_key == "filament_unloading_speed"
             || opt_key == "filament_toolchange_delay"
-            || opt_key == "filament_cooling_time"
             || opt_key == "filament_ramming_parameters"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
@@ -598,6 +597,12 @@ std::string Print::validate() const
         if (! this->config.use_relative_e_distances)
             return "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).";
         SlicingParameters slicing_params0 = this->objects.front()->slicing_parameters();
+
+        const PrintObject* most_layered_object = this->objects.front(); // object with highest layer_height_profile.size() encountered so far
+        for (const auto* object : objects)
+            if (object->layer_height_profile.size() > most_layered_object->layer_height_profile.size())
+                most_layered_object = object;
+
         for (PrintObject *object : this->objects) {
             SlicingParameters slicing_params = object->slicing_parameters();
             if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
@@ -614,12 +619,15 @@ std::string Print::validate() const
             object->layer_height_profile_valid = was_layer_height_profile_valid;
 
             if ( this->config.variable_layer_height ) {
-                PrintObject* first_object = this->objects.front();
                 int i = 0;
-                while ( i < first_object->layer_height_profile.size() && i < object->layer_height_profile.size() ) {
-                    if (std::abs(first_object->layer_height_profile[i] - object->layer_height_profile[i]) > EPSILON )
+                while ( i < object->layer_height_profile.size() ) {
+                    if (std::abs(most_layered_object->layer_height_profile[i] - object->layer_height_profile[i]) > EPSILON)
                         return "The Wipe tower is only supported if all objects have the same layer height profile";
                     ++i;
+                    if (i == object->layer_height_profile.size()-2) // this element contains the objects max z, if the other object is taller,
+                                                                    // it does not have to match - we will step over it
+                        if (most_layered_object->layer_height_profile[i] > object->layer_height_profile[i])
+                            ++i;
                 }
             }
 
@@ -1082,7 +1090,6 @@ void Print::_make_wipe_tower()
             this->config.filament_loading_speed.get_at(i),
             this->config.filament_unloading_speed.get_at(i),
             this->config.filament_toolchange_delay.get_at(i),
-            this->config.filament_cooling_time.get_at(i),
             this->config.filament_ramming_parameters.get_at(i),
             this->config.nozzle_diameter.get_at(i));
 

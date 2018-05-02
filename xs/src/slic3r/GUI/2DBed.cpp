@@ -1,4 +1,4 @@
-#include "2DBed.hpp";
+#include "2DBed.hpp"
 
 #include <wx/dcbuffer.h>
 #include "BoundingBox.hpp"
@@ -66,7 +66,7 @@ void Bed_2D::repaint()
 					shift.y - (cbb.max.y - GetSize().GetHeight()));
 
 	// draw bed fill
-	dc.SetBrush(*new wxBrush(*new wxColour(255, 255, 255), wxSOLID));
+	dc.SetBrush(wxBrush(wxColour(255, 255, 255), wxSOLID));
 	wxPointList pt_list;
 	for (auto pt: m_bed_shape)
 	{
@@ -87,7 +87,7 @@ void Bed_2D::repaint()
 	}
 	polylines = intersection_pl(polylines, bed_polygon);
 
-	dc.SetPen(*new wxPen(*new wxColour(230, 230, 230), 1, wxSOLID));
+	dc.SetPen(wxPen(wxColour(230, 230, 230), 1, wxSOLID));
 	for (auto pl : polylines)
 	{
 		for (size_t i = 0; i < pl.points.size()-1; i++){
@@ -98,8 +98,8 @@ void Bed_2D::repaint()
 	}
 
 	// draw bed contour
-	dc.SetPen(*new wxPen(*new wxColour(0, 0, 0), 1, wxSOLID));
-	dc.SetBrush(*new wxBrush(*new wxColour(0, 0, 0), wxTRANSPARENT));
+	dc.SetPen(wxPen(wxColour(0, 0, 0), 1, wxSOLID));
+	dc.SetBrush(wxBrush(wxColour(0, 0, 0), wxTRANSPARENT));
 	dc.DrawPolygon(&pt_list, 0, 0);
 
 	auto origin_px = to_pixels(Pointf(0, 0));
@@ -108,7 +108,7 @@ void Bed_2D::repaint()
 	auto axes_len = 50;
 	auto arrow_len = 6;
 	auto arrow_angle = Geometry::deg2rad(45.0);
-	dc.SetPen(*new wxPen(*new wxColour(255, 0, 0), 2, wxSOLID));  // red
+	dc.SetPen(wxPen(wxColour(255, 0, 0), 2, wxSOLID));  // red
 	auto x_end = Pointf(origin_px.x + axes_len, origin_px.y);
 	dc.DrawLine(wxPoint(origin_px.x, origin_px.y), wxPoint(x_end.x, x_end.y));
 	for (auto angle : { -arrow_angle, arrow_angle }){
@@ -118,7 +118,7 @@ void Bed_2D::repaint()
 		dc.DrawLine(wxPoint(x_end.x, x_end.y), wxPoint(end.x, end.y));
 	}
 
-	dc.SetPen(*new wxPen(*new wxColour(0, 255, 0), 2, wxSOLID));  // green
+	dc.SetPen(wxPen(wxColour(0, 255, 0), 2, wxSOLID));  // green
 	auto y_end = Pointf(origin_px.x, origin_px.y - axes_len);
 	dc.DrawLine(wxPoint(origin_px.x, origin_px.y), wxPoint(y_end.x, y_end.y));
 	for (auto angle : { -arrow_angle, arrow_angle }) {
@@ -129,19 +129,23 @@ void Bed_2D::repaint()
 	}
 
 	// draw origin
-	dc.SetPen(*new wxPen(*new wxColour(0, 0, 0), 1, wxSOLID));
-	dc.SetBrush(*new wxBrush(*new wxColour(0, 0, 0), wxSOLID));
+	dc.SetPen(wxPen(wxColour(0, 0, 0), 1, wxSOLID));
+	dc.SetBrush(wxBrush(wxColour(0, 0, 0), wxSOLID));
 	dc.DrawCircle(origin_px.x, origin_px.y, 3);
 
-	dc.SetTextForeground(*new wxColour(0, 0, 0));
-	dc.SetFont(*new wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
-	dc.DrawText("(0,0)", origin_px.x + 1, origin_px.y + 2);
+	static const auto origin_label = wxString("(0,0)");
+	dc.SetTextForeground(wxColour(0, 0, 0));
+	dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
+	auto extent = dc.GetTextExtent(origin_label);
+	const auto origin_label_x = origin_px.x <= cw / 2 ? origin_px.x + 1 : origin_px.x - 1 - extent.GetWidth();
+	const auto origin_label_y = origin_px.y <= ch / 2 ? origin_px.y + 1 : origin_px.y - 1 - extent.GetHeight();
+	dc.DrawText(origin_label, origin_label_x, origin_label_y);
 
 	// draw current position
 	if (m_pos!= Pointf(0, 0)) {
 		auto pos_px = to_pixels(m_pos);
-		dc.SetPen(*new wxPen(*new wxColour(200, 0, 0), 2, wxSOLID));
-		dc.SetBrush(*new wxBrush(*new wxColour(200, 0, 0), wxTRANSPARENT));
+		dc.SetPen(wxPen(wxColour(200, 0, 0), 2, wxSOLID));
+		dc.SetBrush(wxBrush(wxColour(200, 0, 0), wxTRANSPARENT));
 		dc.DrawCircle(pos_px.x, pos_px.y, 5);
 
 		dc.DrawLine(pos_px.x - 15, pos_px.y, pos_px.x + 15, pos_px.y);

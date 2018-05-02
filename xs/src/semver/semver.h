@@ -98,6 +98,12 @@ semver_is_valid (const char *s);
 int
 semver_clean (char *s);
 
+char *
+semver_strdup(const char *src);
+
+semver_t
+semver_copy(const semver_t *ver);
+
 #ifdef __cplusplus
 }
 #endif

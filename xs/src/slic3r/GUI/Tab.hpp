@@ -57,7 +57,7 @@ public:
 	{
 		Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 		m_vsizer = new wxBoxSizer(wxVERTICAL);
-		m_item_color = &get_default_label_clr();
+		m_item_color = &get_label_clr_default();
 		SetSizer(m_vsizer);
 	}
 	~Page(){}
@@ -232,6 +232,7 @@ public:
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();
 	void		update_ui_from_settings();
+	void		update_labels_colour();
 	void		update_changed_ui();
 	void		get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page);
 	void		update_changed_tree_ui();
@@ -265,6 +266,7 @@ public:
 
 protected:
 	void			on_presets_changed();
+	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
     void            update_wiping_button_visibility();
 	void			update_tab_presets(wxComboCtrl* ui, bool show_incompatible);

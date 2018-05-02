@@ -1,11 +1,13 @@
 #include "Snapshot.hpp"
 #include "../GUI/AppConfig.hpp"
+#include "../GUI/PresetBundle.hpp"
 #include "../Utils/Time.hpp"
 
 #include <time.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -56,6 +58,7 @@ void Snapshot::load_ini(const std::string &path)
     // Parse snapshot.ini
     std::string group_name_vendor = "Vendor:";
 	std::string key_filament = "filament";
+    std::string key_prefix_model = "model_";
     for (auto &section : tree) {
     	if (section.first == "snapshot") {
     		// Parse the common section.
@@ -79,6 +82,8 @@ void Snapshot::load_ini(const std::string &path)
                 		this->reason = SNAPSHOT_UPGRADE;
                 	else if (rsn == "downgrade")
                 		this->reason = SNAPSHOT_DOWNGRADE;
+                    else if (rsn == "before_rollback")
+                        this->reason = SNAPSHOT_BEFORE_ROLLBACK;
                 	else if (rsn == "user")
                 		this->reason = SNAPSHOT_USER;
                 	else
@@ -106,23 +111,48 @@ void Snapshot::load_ini(const std::string &path)
             VendorConfig vc;
             vc.name = section.first.substr(group_name_vendor.size());
             for (auto &kvp : section.second) {
-            	if (boost::starts_with(kvp.first, "model_")) {
-            		//model:MK2S = 0.4;xxx
-					//model:MK3 = 0.4;xxx
-            	} else if (kvp.first == "version" || kvp.first == "min_slic3r_version" || kvp.first == "max_slic3r_version") {
+            	if (kvp.first == "version" || kvp.first == "min_slic3r_version" || kvp.first == "max_slic3r_version") {
             		// Version of the vendor specific config bundle bundled with this snapshot.            		
                 	auto semver = Semver::parse(kvp.second.data());
                 	if (! semver)
                 		throw_on_parse_error("invalid " + kvp.first + " format for " + section.first);
 					if (kvp.first == "version")
-                		vc.version = *semver;
+                		vc.version.config_version = *semver;
                 	else if (kvp.first == "min_slic3r_version")
-                		vc.min_slic3r_version = *semver;
+                		vc.version.min_slic3r_version = *semver;
                 	else
-                		vc.max_slic3r_version = *semver;
-            	}
+                		vc.version.max_slic3r_version = *semver;
+            	} else if (boost::starts_with(kvp.first, key_prefix_model) && kvp.first.size() > key_prefix_model.size()) {
+                    // Parse the printer variants installed for the current model.
+                    auto &set_variants = vc.models_variants_installed[kvp.first.substr(key_prefix_model.size())];
+                    std::vector<std::string> variants;
+                    if (unescape_strings_cstyle(kvp.second.data(), variants))
+                        for (auto &variant : variants)
+                            set_variants.insert(std::move(variant));
+                }
 			}
+			this->vendor_configs.emplace_back(std::move(vc));
         }
+    }
+    // Sort the vendors lexicographically.
+    std::sort(this->vendor_configs.begin(), this->vendor_configs.begin(), 
+        [](const VendorConfig &cfg1, const VendorConfig &cfg2) { return cfg1.name < cfg2.name; });
+}
+
+static std::string reason_string(const Snapshot::Reason reason) 
+{
+    switch (reason) {
+    case Snapshot::SNAPSHOT_UPGRADE:
+        return "upgrade";
+    case Snapshot::SNAPSHOT_DOWNGRADE:
+        return "downgrade";
+    case Snapshot::SNAPSHOT_BEFORE_ROLLBACK:
+        return "before_rollback";
+    case Snapshot::SNAPSHOT_USER:
+        return "user";
+    case Snapshot::SNAPSHOT_UNKNOWN:
+    default:
+        return "unknown";
     }
 }
 
@@ -138,7 +168,7 @@ void Snapshot::save_ini(const std::string &path)
 	c << "time_captured = " << Slic3r::Utils::format_time_ISO8601Z(this->time_captured) << std::endl;
 	c << "slic3r_version_captured = " << this->slic3r_version_captured.to_string() << std::endl;
 	c << "comment = " << this->comment << std::endl;
-	c << "reason = " << this->reason << std::endl;
+	c << "reason = " << reason_string(this->reason) << std::endl;
 
     // Export the active presets at the time of the snapshot.
 	c << std::endl << "[presets]" << std::endl;
@@ -151,9 +181,17 @@ void Snapshot::save_ini(const std::string &path)
     // Export the vendor configs.
     for (const VendorConfig &vc : this->vendor_configs) {
 		c << std::endl << "[Vendor:" << vc.name << "]" << std::endl;
-		c << "version = " << vc.version.to_string() << std::endl;
-		c << "min_slic3r_version = " << vc.min_slic3r_version.to_string() << std::endl;
-		c << "max_slic3r_version = " << vc.max_slic3r_version.to_string() << std::endl;
+		c << "version = " << vc.version.config_version.to_string() << std::endl;
+		c << "min_slic3r_version = " << vc.version.min_slic3r_version.to_string() << std::endl;
+		c << "max_slic3r_version = " << vc.version.max_slic3r_version.to_string() << std::endl;
+        // Export installed printer models and their variants.
+        for (const auto &model : vc.models_variants_installed) {
+            if (model.second.size() == 0)
+                continue;
+            const std::vector<std::string> variants(model.second.begin(), model.second.end());
+            const auto escaped = escape_strings_cstyle(variants);
+            c << "model_" << model.first << " = " << escaped << std::endl;
+        }
     }
     c.close();
 }
@@ -170,6 +208,82 @@ void Snapshot::export_selections(AppConfig &config) const
         config.set("presets", name, filaments[i]);
     }
     config.set("presets", "printer",  printer);
+}
+
+void Snapshot::export_vendor_configs(AppConfig &config) const
+{
+    std::map<std::string, std::map<std::string, std::set<std::string>>> vendors;
+    for (const VendorConfig &vc : vendor_configs)
+        vendors[vc.name] = vc.models_variants_installed;
+    config.set_vendors(std::move(vendors));
+}
+
+// Perform a deep compare of the active print / filament / printer / vendor directories.
+// Return true if the content of the current print / filament / printer / vendor directories
+// matches the state stored in this snapshot.
+bool Snapshot::equal_to_active(const AppConfig &app_config) const
+{
+    // 1) Check, whether this snapshot contains the same set of active vendors, printer models and variants
+    // as app_config.
+    {
+        std::set<std::string> matched;
+        for (const VendorConfig &vc : this->vendor_configs) {
+            auto it_vendor_models_variants = app_config.vendors().find(vc.name);
+            if (it_vendor_models_variants == app_config.vendors().end() ||
+                it_vendor_models_variants->second != vc.models_variants_installed)
+                // There are more vendors enabled in the snapshot than currently installed.
+                return false;
+            matched.insert(vc.name);
+        }
+        for (const std::pair<std::string, std::map<std::string, std::set<std::string>>> &v : app_config.vendors())
+            if (matched.find(v.first) == matched.end() && ! v.second.empty())
+                // There are more vendors currently installed than enabled in the snapshot.
+                return false;
+    }
+
+    // 2) Check, whether this snapshot references the same set of ini files as the current state.
+    boost::filesystem::path data_dir     = boost::filesystem::path(Slic3r::data_dir());
+    boost::filesystem::path snapshot_dir = boost::filesystem::path(Slic3r::data_dir()) / SLIC3R_SNAPSHOTS_DIR / this->id;
+    for (const char *subdir : { "print", "filament", "printer", "vendor" }) {
+        boost::filesystem::path path1 = data_dir / subdir;
+        boost::filesystem::path path2 = snapshot_dir / subdir;
+        std::vector<std::string> files1, files2;
+        for (auto &dir_entry : boost::filesystem::directory_iterator(path1))
+            if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
+                files1.emplace_back(dir_entry.path().filename().string());
+        for (auto &dir_entry : boost::filesystem::directory_iterator(path2))
+            if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
+                files2.emplace_back(dir_entry.path().filename().string());
+        std::sort(files1.begin(), files1.end());
+        std::sort(files2.begin(), files2.end());
+        if (files1 != files2)
+            return false;
+        for (const std::string &filename : files1) {
+            FILE *f1 = boost::nowide::fopen((path1 / filename).string().c_str(), "rb");
+            FILE *f2 = boost::nowide::fopen((path2 / filename).string().c_str(), "rb");
+            bool same = true;
+            if (f1 && f2) {
+                char buf1[4096];
+                char buf2[4096];
+                do {
+                    size_t r1 = fread(buf1, 1, 4096, f1);
+                    size_t r2 = fread(buf2, 1, 4096, f2);
+                    if (r1 != r2 || memcmp(buf1, buf2, r1)) {
+                        same = false;
+                        break;
+                    }
+                } while (! feof(f1) || ! feof(f2));
+            } else
+                same = false;
+            if (f1)
+                fclose(f1);
+            if (f2)
+                fclose(f2);
+            if (! same)
+                return false;
+        }
+    }
+    return true;
 }
 
 size_t SnapshotDB::load_db()
@@ -199,10 +313,27 @@ size_t SnapshotDB::load_db()
             }
             m_snapshots.emplace_back(std::move(snapshot));
         }
-
+    // Sort the snapshots by their date/time.
+    std::sort(m_snapshots.begin(), m_snapshots.end(), [](const Snapshot &s1, const Snapshot &s2) { return s1.time_captured < s2.time_captured; });
     if (! errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
     return m_snapshots.size();
+}
+
+void SnapshotDB::update_slic3r_versions(std::vector<Index> &index_db)
+{
+	for (Snapshot &snapshot : m_snapshots) {
+		for (Snapshot::VendorConfig &vendor_config : snapshot.vendor_configs) {
+			auto it = std::find_if(index_db.begin(), index_db.end(), [&vendor_config](const Index &idx) { return idx.vendor() == vendor_config.name; });
+			if (it != index_db.end()) {
+				Index::const_iterator it_version = it->find(vendor_config.version.config_version);
+				if (it_version != it->end()) {
+					vendor_config.version.min_slic3r_version = it_version->min_slic3r_version;
+					vendor_config.version.max_slic3r_version = it_version->max_slic3r_version;
+				}
+			}
+		}
+	}
 }
 
 static void copy_config_dir_single_level(const boost::filesystem::path &path_src, const boost::filesystem::path &path_dst)
@@ -225,7 +356,7 @@ static void delete_existing_ini_files(const boost::filesystem::path &path)
 		    boost::filesystem::remove(dir_entry.path());
 }
 
-const Snapshot&	SnapshotDB::make_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment)
+const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment)
 {
 	boost::filesystem::path data_dir        = boost::filesystem::path(Slic3r::data_dir());
 	boost::filesystem::path snapshot_db_dir = SnapshotDB::create_db_dir();
@@ -235,7 +366,7 @@ const Snapshot&	SnapshotDB::make_snapshot(const AppConfig &app_config, Snapshot:
 	// Snapshot header.
 	snapshot.time_captured 			 = Slic3r::Utils::get_current_time_utc();
 	snapshot.id 					 = Slic3r::Utils::format_time_ISO8601Z(snapshot.time_captured);
-	snapshot.slic3r_version_captured = *Semver::parse(SLIC3R_VERSION);
+	snapshot.slic3r_version_captured = *Semver::parse(SLIC3R_VERSION);     // XXX:  have Semver Slic3r version
 	snapshot.comment 				 = comment;
 	snapshot.reason 				 = reason;
 	// Active presets at the time of the snapshot.
@@ -250,22 +381,54 @@ const Snapshot&	SnapshotDB::make_snapshot(const AppConfig &app_config, Snapshot:
 	    snapshot.filaments.emplace_back(app_config.get("presets", name));
     }
     // Vendor specific config bundles and installed printers.
+    for (const std::pair<std::string, std::map<std::string, std::set<std::string>>> &vendor : app_config.vendors()) {
+        Snapshot::VendorConfig cfg;
+        cfg.name = vendor.first;
+        cfg.models_variants_installed = vendor.second;
+        for (auto it = cfg.models_variants_installed.begin(); it != cfg.models_variants_installed.end();)
+            if (it->second.empty())
+                cfg.models_variants_installed.erase(it ++);
+            else
+                ++ it;
+        // Read the active config bundle, parse the config version.
+        PresetBundle bundle;
+        bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
+        for (const VendorProfile &vp : bundle.vendors)
+            if (vp.id == cfg.name)
+                cfg.version.config_version = vp.config_version;
+        // Fill-in the min/max slic3r version from the config index, if possible.
+        try {
+            // Load the config index for the vendor.
+            Index index;
+            index.load(data_dir / "vendor" / (cfg.name + ".idx"));
+            auto it = index.find(cfg.version.config_version);
+            if (it != index.end()) {
+                cfg.version.min_slic3r_version = it->min_slic3r_version;
+                cfg.version.max_slic3r_version = it->max_slic3r_version;
+            }
+        } catch (const std::runtime_error &err) {
+        }
+        snapshot.vendor_configs.emplace_back(std::move(cfg));
+    }
+
+	boost::filesystem::path snapshot_dir = snapshot_db_dir / snapshot.id;
+	boost::filesystem::create_directory(snapshot_dir);
 
     // Backup the presets.
-    boost::filesystem::path snapshot_dir = snapshot_db_dir / snapshot.id;
     for (const char *subdir : { "print", "filament", "printer", "vendor" })
     	copy_config_dir_single_level(data_dir / subdir, snapshot_dir / subdir);
 	snapshot.save_ini((snapshot_dir / "snapshot.ini").string());
+    assert(m_snapshots.empty() || m_snapshots.back().time_captured <= snapshot.time_captured);
     m_snapshots.emplace_back(std::move(snapshot));
     return m_snapshots.back();
 }
 
-void SnapshotDB::restore_snapshot(const std::string &id, AppConfig &app_config)
+const Snapshot& SnapshotDB::restore_snapshot(const std::string &id, AppConfig &app_config)
 {
 	for (const Snapshot &snapshot : m_snapshots)
 		if (snapshot.id == id) {
 			this->restore_snapshot(snapshot, app_config);
-			return;
+			return snapshot;
 		}
 	throw std::runtime_error(std::string("Snapshot with id " + id + " was not found."));
 }
@@ -275,18 +438,59 @@ void SnapshotDB::restore_snapshot(const Snapshot &snapshot, AppConfig &app_confi
 	boost::filesystem::path data_dir        = boost::filesystem::path(Slic3r::data_dir());
 	boost::filesystem::path snapshot_db_dir = SnapshotDB::create_db_dir();
     boost::filesystem::path snapshot_dir 	= snapshot_db_dir / snapshot.id;
-
     // Remove existing ini files and restore the ini files from the snapshot.
     for (const char *subdir : { "print", "filament", "printer", "vendor" }) {
 		delete_existing_ini_files(data_dir / subdir);
     	copy_config_dir_single_level(snapshot_dir / subdir, data_dir / subdir);
     }
-
-    // Update app_config from the snapshot.
+    // Update AppConfig with the selections of the print / filament / printer profiles
+    // and about the installed printer types and variants.
     snapshot.export_selections(app_config);
+    snapshot.export_vendor_configs(app_config);
+}
 
-    // Store information about the snapshot.
+bool SnapshotDB::is_on_snapshot(AppConfig &app_config) const
+{
+    // Is the "on_snapshot" configuration value set?
+    std::string on_snapshot = app_config.get("on_snapshot");
+    if (on_snapshot.empty())
+        // No, we are not on a snapshot.
+        return false;
+    // Is the "on_snapshot" equal to the current configuration state?
+    auto it_snapshot = this->snapshot(on_snapshot);
+    if (it_snapshot != this->end() && it_snapshot->equal_to_active(app_config))
+        // Yes, we are on the snapshot.
+        return true;
+    // No, we are no more on a snapshot. Reset the state.
+    app_config.set("on_snapshot", "");
+    return false;
+}
 
+SnapshotDB::const_iterator SnapshotDB::snapshot_with_vendor_preset(const std::string &vendor_name, const Semver &config_version)
+{
+    auto it_found = m_snapshots.end();
+    Snapshot::VendorConfig key;
+    key.name = vendor_name;
+    for (auto it = m_snapshots.begin(); it != m_snapshots.end(); ++ it) {
+        const Snapshot &snapshot = *it;
+        auto it_vendor_config = std::lower_bound(snapshot.vendor_configs.begin(), snapshot.vendor_configs.end(), 
+            key, [](const Snapshot::VendorConfig &cfg1, const Snapshot::VendorConfig &cfg2) { return cfg1.name < cfg2.name; });
+        if (it_vendor_config != snapshot.vendor_configs.end() && it_vendor_config->name == vendor_name &&
+            config_version == it_vendor_config->version.config_version) {
+            // Vendor config found with the correct version.
+            // Save it, but continue searching, as we want the newest snapshot.
+            it_found = it;
+        }
+    }
+    return it_found;
+}
+
+SnapshotDB::const_iterator SnapshotDB::snapshot(const std::string &id) const
+{
+    for (const_iterator it = m_snapshots.begin(); it != m_snapshots.end(); ++ it)
+        if (it->id == id)
+            return it;
+    return m_snapshots.end();
 }
 
 boost::filesystem::path SnapshotDB::create_db_dir()
@@ -301,6 +505,26 @@ boost::filesystem::path SnapshotDB::create_db_dir()
             throw std::runtime_error(std::string("Slic3r was unable to create a directory at ") + subdir.string());
     }
     return snapshots_dir;
+}
+
+SnapshotDB& SnapshotDB::singleton()
+{
+	static SnapshotDB instance;
+	static bool       loaded = false;
+	if (! loaded) {
+		try {
+			loaded = true;
+			// Load the snapshot database.
+			instance.load_db();
+			// Load the vendor specific configuration indices.
+			std::vector<Index> index_db = Index::load_db();
+			// Update the min / max slic3r versions compatible with the configurations stored inside the snapshots
+			// based on the min / max slic3r versions defined by the vendor specific config indices.
+			instance.update_slic3r_versions(index_db);
+		} catch (std::exception &ex) {
+		}
+	}
+	return instance;
 }
 
 } // namespace Config

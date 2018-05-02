@@ -39,6 +39,7 @@
 #include <wx/sizer.h>
 #include <wx/combo.h>
 #include <wx/window.h>
+#include <wx/msgdlg.h>
 #include <wx/settings.h>
 #include <wx/collpane.h>
 #include <wx/wupdlock.h>
@@ -47,10 +48,18 @@
 
 #include "Tab.hpp"
 #include "TabIface.hpp"
+#include "AboutDialog.hpp"
 #include "AppConfig.hpp"
+#include "ConfigSnapshotDialog.hpp"
 #include "Utils.hpp"
+#include "MsgDialog.hpp"
+#include "ConfigWizard.hpp"
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
+#include "UpdateDialogs.hpp"
+
+#include "../Utils/PresetUpdater.hpp"
+#include "../Config/Snapshot.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -179,6 +188,7 @@ wxFrame     *g_wxMainFrame  = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
+PresetUpdater *g_PresetUpdater = nullptr;
 wxColour    g_color_label_modified;
 wxColour    g_color_label_sys;
 wxColour    g_color_label_default;
@@ -202,6 +212,21 @@ static void init_label_colours()
 		g_color_label_sys = wxColour(115, 220, 103);
 	}
 	g_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+}
+
+void update_label_colours_from_appconfig()
+{
+	if (g_AppConfig->has("label_clr_sys")){
+		auto str = g_AppConfig->get("label_clr_sys");
+		if (str != "")
+			g_color_label_sys = wxColour(str);
+	}
+	
+	if (g_AppConfig->has("label_clr_modified")){
+		auto str = g_AppConfig->get("label_clr_modified");
+		if (str != "")
+			g_color_label_modified = wxColour(str);
+	}
 }
 
 void set_wxapp(wxApp *app)
@@ -228,6 +253,11 @@ void set_app_config(AppConfig *app_config)
 void set_preset_bundle(PresetBundle *preset_bundle)
 {
 	g_PresetBundle = preset_bundle;
+}
+
+void set_preset_updater(PresetUpdater *updater)
+{
+	g_PresetUpdater = updater;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -353,26 +383,143 @@ void get_installed_languages(wxArrayString & names,
 	}
 }
 
-void add_debug_menu(wxMenuBar *menu, int event_language_change)
+enum ConfigMenuIDs {
+	ConfigMenuWizard,
+	ConfigMenuSnapshots,
+	ConfigMenuTakeSnapshot,
+	ConfigMenuUpdate,
+	ConfigMenuPreferences,
+	ConfigMenuLanguage,
+	ConfigMenuCnt,
+};
+
+void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
-//#if 0
     auto local_menu = new wxMenu();
-	local_menu->Append(wxWindow::NewControlId(1), _(L("Change Application Language")));
-	local_menu->Bind(wxEVT_MENU, [event_language_change](wxEvent&){
-		wxArrayString names;
-		wxArrayLong identifiers;
-		get_installed_languages(names, identifiers);
-		if (select_language(names, identifiers)){
-			save_language();
-			show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
-			if (event_language_change > 0) {
-				wxCommandEvent event(event_language_change);
-				g_wxApp->ProcessEvent(event);
+    wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
+
+    const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
+    // Cmd+, is standard on OS X - what about other operating systems?
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 		config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots\u2026")), 	_(L("Inspect / activate configuration snapshots")));
+   	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 	_(L("Capture a configuration snapshot")));
+   	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 				_(L("Check for configuration updates")));
+   	local_menu->AppendSeparator();
+   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences\u2026\tCtrl+,")), 		_(L("Application preferences")));
+   	local_menu->AppendSeparator();
+   	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
+	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
+		switch (event.GetId() - config_id_base) {
+		case ConfigMenuWizard:
+            config_wizard(ConfigWizard::RR_USER);
+            break;
+		case ConfigMenuTakeSnapshot:
+			// Take a configuration snapshot.
+			if (check_unsaved_changes()) {
+				wxTextEntryDialog dlg(nullptr, _(L("Taking configuration snapshot")), _(L("Snapshot name")));
+				if (dlg.ShowModal() == wxID_OK)
+					g_AppConfig->set("on_snapshot", 
+						Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
+							*g_AppConfig, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data()).id);
 			}
+			break;
+		case ConfigMenuSnapshots:
+			if (check_unsaved_changes()) {
+				std::string on_snapshot;
+		    	if (Config::SnapshotDB::singleton().is_on_snapshot(*g_AppConfig))
+		    		on_snapshot = g_AppConfig->get("on_snapshot");
+		    	ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
+		    	dlg.ShowModal();
+		    	if (! dlg.snapshot_to_activate().empty()) {
+		    		if (! Config::SnapshotDB::singleton().is_on_snapshot(*g_AppConfig))
+		    			Config::SnapshotDB::singleton().take_snapshot(*g_AppConfig, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
+		    		g_AppConfig->set("on_snapshot", 
+		    			Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *g_AppConfig).id);
+		    		g_PresetBundle->load_presets(*g_AppConfig);
+		    		// Load the currently selected preset into the GUI, update the preset selection box.
+					for (Tab *tab : g_tabs_list)
+						tab->load_current_preset();
+		    	}
+		    }
+		    break;
+		case ConfigMenuPreferences:
+		{
+			PreferencesDialog dlg(g_wxMainFrame, event_preferences_changed);
+			dlg.ShowModal();
+			break;
+		}
+		case ConfigMenuLanguage:
+		{
+			wxArrayString names;
+			wxArrayLong identifiers;
+			get_installed_languages(names, identifiers);
+			if (select_language(names, identifiers)) {
+				save_language();
+				show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
+				if (event_language_change > 0) {
+					wxCommandEvent event(event_language_change);
+					g_wxApp->ProcessEvent(event);
+				}
+			}
+			break;
+		}		
 		}
 	});
-	menu->Append(local_menu, _(L("&Localization")));
-//#endif
+	menu->Append(local_menu, _(L("&Configuration")));
+}
+
+// This is called when closing the application, when loading a config file or when starting the config wizard
+// to notify the user whether he is aware that some preset changes will be lost.
+bool check_unsaved_changes()
+{
+	std::string dirty;
+	for (Tab *tab : g_tabs_list)
+		if (tab->current_preset_is_dirty())
+			if (dirty.empty())
+				dirty = tab->name();
+			else
+				dirty += std::string(", ") + tab->name();
+	if (dirty.empty())
+		// No changes, the application may close or reload presets.
+		return true;
+	// Ask the user.
+	auto dialog = new wxMessageDialog(g_wxMainFrame,
+		_(L("You have unsaved changes ")) + dirty + _(L(". Discard changes and continue anyway?")), 
+		_(L("Unsaved Presets")),
+		wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+	return dialog->ShowModal() == wxID_YES;
+}
+
+bool config_wizard_startup(bool app_config_exists)
+{
+	if (! app_config_exists || g_PresetBundle->has_defauls_only()) {
+		config_wizard(ConfigWizard::RR_DATA_EMPTY);
+		return true;
+	} else if (g_AppConfig->legacy_datadir()) {
+		// Looks like user has legacy pre-vendorbundle data directory,
+		// explain what this is and run the wizard
+
+		MsgDataLegacy dlg;
+		dlg.ShowModal();
+
+		config_wizard(ConfigWizard::RR_DATA_LEGACY);
+		return true;
+	}
+	return false;
+}
+
+void config_wizard(int reason)
+{
+    // Exit wizard if there are unsaved changes and the user cancels the action.
+    if (! check_unsaved_changes())
+    	return;
+
+	ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
+	wizard.run(g_PresetBundle, g_PresetUpdater);
+
+    // Load the currently selected preset into the GUI, update the preset selection box.
+	for (Tab *tab : g_tabs_list)
+		tab->load_current_preset();
 }
 
 void open_preferences_dialog(int event_preferences)
@@ -383,6 +530,7 @@ void open_preferences_dialog(int event_preferences)
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
 {	
+	update_label_colours_from_appconfig();
 	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller));
 	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller));
 	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller));
@@ -523,36 +671,62 @@ void add_created_tab(Tab* panel)
 	g_wxTabPanel->AddPage(panel, panel->title());
 }
 
-void show_error(wxWindow* parent, const wxString& message){
-	auto msg_wingow = new wxMessageDialog(parent, message, _(L("Error")), wxOK | wxICON_ERROR);
-	msg_wingow->ShowModal();
+void show_error(wxWindow* parent, const wxString& message) {
+	ErrorDialog msg(parent, message);
+	msg.ShowModal();
+}
+
+void show_error_id(int id, const std::string& message) {
+	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
+	show_error(parent, message);
 }
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title){
-	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
-	msg_wingow->ShowModal();
+	wxMessageDialog msg_wingow(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
+	msg_wingow.ShowModal();
 }
 
 void warning_catcher(wxWindow* parent, const wxString& message){
 	if (message == _(L("GLUquadricObjPtr | Attempt to free unreferenced scalar")) )
 		return;
-	auto msg = new wxMessageDialog(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
-	msg->ShowModal();	
+	wxMessageDialog msg(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
+	msg.ShowModal();
 }
 
 wxApp* get_app(){
 	return g_wxApp;
 }
 
-const wxColour& get_modified_label_clr() {
+PresetBundle* get_preset_bundle()
+{
+	return g_PresetBundle;
+}
+
+const wxColour& get_label_clr_modified() {
 	return g_color_label_modified;
 }
 
-const wxColour& get_sys_label_clr() {
+const wxColour& get_label_clr_sys() {
 	return g_color_label_sys;
 }
 
-const wxColour& get_default_label_clr() {
+void set_label_clr_modified(const wxColour& clr) {
+	g_color_label_modified = clr;
+	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
+	std::string str = clr_str.ToStdString();
+	g_AppConfig->set("label_clr_modified", str);
+	g_AppConfig->save();
+}
+
+void set_label_clr_sys(const wxColour& clr) {
+	g_color_label_sys = clr;
+	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
+	std::string str = clr_str.ToStdString();
+	g_AppConfig->set("label_clr_sys", str);
+	g_AppConfig->save();
+}
+
+const wxColour& get_label_clr_default() {
 	return g_color_label_default;
 }
 
@@ -800,6 +974,7 @@ wxWindow* export_option_creator(wxWindow* parent)
     wxPanel* panel = new wxPanel(parent, -1);
     wxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     wxCheckBox* cbox = new wxCheckBox(panel, wxID_HIGHEST + 1, L("Export print config"));
+    cbox->SetValue(true);
     sizer->AddSpacer(5);
     sizer->Add(cbox, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
     panel->SetSizer(sizer);
@@ -841,6 +1016,11 @@ int get_export_option(wxFileDialog* dlg)
 
 }
 
+void about()
+{
+    AboutDialog dlg;
+    dlg.ShowModal();
+    dlg.Destroy();
+}
 
-} // namespace GUI
-} // namespace Slic3r
+} }

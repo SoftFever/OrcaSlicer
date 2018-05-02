@@ -1,6 +1,12 @@
 #include <locale>
 #include <ctime>
 
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
@@ -269,6 +275,15 @@ std::string timestamp_str()
         int(now.date().year()), int(now.date().month()), int(now.date().day()),
         int(now.time_of_day().hours()), int(now.time_of_day().minutes()), int(now.time_of_day().seconds()));
     return buf;
+}
+
+unsigned get_current_pid()
+{
+#ifdef WIN32
+    return GetCurrentProcessId();
+#else
+    return ::getpid();
+#endif
 }
 
 }; // namespace Slic3r

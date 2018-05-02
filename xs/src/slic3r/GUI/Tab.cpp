@@ -110,7 +110,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		m_question_btn->SetBackgroundColour(color);
 	}
 
-	m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information.")));
+	m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information \n"
+								   "or click this button.")));
 
 	// Determine the theme color of OS (dark or light)
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -134,13 +135,20 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_question_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent)
 	{
 		auto dlg = new ButtonsDescription(this, &m_icon_descriptions);
-		dlg->ShowModal();
+		if (dlg->ShowModal() == wxID_OK){
+			// Colors for ui "decoration"
+			for (Tab *tab : get_tabs_list()){
+				tab->m_sys_label_clr = get_label_clr_sys();
+				tab->m_modified_label_clr = get_label_clr_modified();
+				tab->update_labels_colour();
+			}
+		}
 	}));
 
 	// Colors for ui "decoration"
-	m_sys_label_clr			= get_sys_label_clr();
-	m_modified_label_clr	= get_modified_label_clr();
-	m_default_text_clr		= get_default_label_clr();
+	m_sys_label_clr			= get_label_clr_sys();
+	m_modified_label_clr	= get_label_clr_modified();
+	m_default_text_clr		= get_label_clr_default();
 
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
@@ -218,7 +226,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		//! select_preset(m_presets_choice->GetStringSelection().ToStdString()); 
 		//! we doing next:
 		int selected_item = m_presets_choice->GetSelection();
-		if (m_selected_preset_item == selected_item)
+		if (m_selected_preset_item == selected_item && !m_presets->current_is_dirty())
 			return;
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
@@ -276,6 +284,56 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 
 	page->set_config(m_config);
 	return page;
+}
+
+void Tab::update_labels_colour()
+{
+	Freeze();
+	//update options "decoration"
+	for (const auto opt : m_options_list)
+	{
+		const wxColour *color = &m_sys_label_clr;
+
+		// value isn't equal to system value
+		if ((opt.second & osSystemValue) == 0){
+			// value is equal to last saved
+			if ((opt.second & osInitValue) != 0)
+				color = &m_default_text_clr;
+			// value is modified
+			else
+				color = &m_modified_label_clr;
+		}
+		if (opt.first == "bed_shape" || opt.first == "compatible_printers") {
+			if (m_colored_Label != nullptr)	{
+				m_colored_Label->SetForegroundColour(*color);
+				m_colored_Label->Refresh(true);
+			}
+			continue;
+		}
+
+		Field* field = get_field(opt.first);
+		if (field == nullptr) continue;
+		field->set_label_colour_force(color);
+	}
+	Thaw();
+
+	auto cur_item = m_treectrl->GetFirstVisibleItem();
+	while (cur_item){
+		auto title = m_treectrl->GetItemText(cur_item);
+		for (auto page : m_pages)
+		{
+			if (page->title() != title)
+				continue;
+			
+			const wxColor *clr = !page->m_is_nonsys_values ? &m_sys_label_clr :
+				page->m_is_modified_values ? &m_modified_label_clr :
+				&m_default_text_clr;
+
+			m_treectrl->SetItemTextColour(cur_item, *clr);
+			break;
+		}
+		cur_item = m_treectrl->GetNextVisible(cur_item);
+	}
 }
 
 // Update UI according to changes
@@ -594,7 +652,8 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 	if (!saved_value) change_opt_value(*m_config, opt_key, value);
 	// Mark the print & filament enabled if they are compatible with the currently selected preset.
 	if (opt_key.compare("compatible_printers") == 0) {
-		m_preset_bundle->update_compatible_with_printer(0);
+		// Don't select another profile if this profile happens to become incompatible.
+		m_preset_bundle->update_compatible_with_printer(false);
 	} 
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();
@@ -669,13 +728,52 @@ void Tab::on_presets_changed()
 		event.SetString(m_name);
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
+	update_preset_description_line();
+}
 
+void Tab::update_preset_description_line()
+{
 	const Preset* parent = m_presets->get_selected_preset_parent();
-	const wxString description_line = parent == nullptr ?
-		_(L("It's default preset")) : parent == &m_presets->get_selected_preset() ?
-		_(L("It's system preset")) :
-		_(L("Current preset is inherited from")) + ":\n" + parent->name;
-	m_parent_preset_description_line->SetText(description_line);
+	const Preset& preset = m_presets->get_edited_preset();
+			
+	wxString description_line = preset.is_default ?
+		_(L("It's a default preset.")) : preset.is_system ?
+		_(L("It's a system preset.")) : 
+		_(L("Current preset is inherited from ")) + (parent == nullptr ? 
+													"default preset." : 
+													":\n\t" + parent->name);
+	
+	if (preset.is_default || preset.is_system)
+		description_line += "\n\t" + _(L("It can't be deleted or modified. ")) + 
+							"\n\t" + _(L("Any modifications should be saved as a new preset inherited from this one. ")) + 
+							"\n\t" + _(L("To do that please specify a new name for the preset."));
+	
+	if (parent && parent->vendor)
+	{
+		description_line += "\n\n" + _(L("Additional information:")) + "\n";
+		description_line += "\t" + _(L("vendor")) + ": " + (name()=="printer" ? "\n\t\t" : "") + parent->vendor->name +
+							", ver: " + parent->vendor->config_version.to_string();
+		if (name() == "printer"){
+			const std::string              &printer_model = preset.config.opt_string("printer_model");
+			const std::string              &default_print_profile = preset.config.opt_string("default_print_profile");
+			const std::vector<std::string> &default_filament_profiles = preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+			if (!printer_model.empty())
+				description_line += "\n\n\t" + _(L("printer model")) + ": \n\t\t" + printer_model;
+			if (!default_print_profile.empty())
+				description_line += "\n\n\t" + _(L("default print profile")) + ": \n\t\t" + default_print_profile;
+			if (!default_filament_profiles.empty())
+			{
+				description_line += "\n\n\t" + _(L("default filament profile")) + ": \n\t\t";
+				for (auto& profile : default_filament_profiles){
+					if (&profile != &*default_filament_profiles.begin())
+						description_line += ", ";
+					description_line += profile;
+				}
+			}
+		}
+	}
+
+	m_parent_preset_description_line->SetText(description_line, false);
 }
 
 void Tab::update_frequently_changed_parameters()
@@ -964,29 +1062,6 @@ void TabPrint::update()
 		on_value_change("fill_density", fill_density);
 	}
 
-	auto first_layer_height = m_config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value;
-	auto layer_height = m_config->opt_float("layer_height");
-	if (m_config->opt_bool("wipe_tower") &&
-		(first_layer_height != 0.2 || layer_height < 0.15 || layer_height > 0.35)) {
-		wxString msg_text = _(L("The Wipe Tower currently supports only:\n"
-			"- first layer height 0.2mm\n"
-			"- layer height from 0.15mm to 0.35mm\n"
-			"\nShall I adjust those settings in order to enable the Wipe Tower?"));
-		auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Wipe Tower")), wxICON_WARNING | wxYES | wxNO);
-		DynamicPrintConfig new_conf = *m_config;
-		if (dialog->ShowModal() == wxID_YES) {
-			const auto &val = *m_config->option<ConfigOptionFloatOrPercent>("first_layer_height");
-			auto percent = val.percent;
-			new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.2, percent));
-
-			if (m_config->opt_float("layer_height") < 0.15) new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.15));
-			if (m_config->opt_float("layer_height") > 0.35) new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.35));
-		}
-		else
-			new_conf.set_key_value("wipe_tower", new ConfigOptionBool(false));
-		load_config(new_conf);
-	}
-
 	if (m_config->opt_bool("wipe_tower") && m_config->opt_bool("support_material") &&
 		m_config->opt_float("support_material_contact_distance") > 0. &&
 		(m_config->opt_int("support_material_extruder") != 0 || m_config->opt_int("support_material_interface_extruder") != 0)) {
@@ -1240,7 +1315,6 @@ void TabFilament::build()
 		optgroup->append_single_option_line("filament_loading_speed");
         optgroup->append_single_option_line("filament_unloading_speed");
         optgroup->append_single_option_line("filament_toolchange_delay");
-        optgroup->append_single_option_line("filament_cooling_time");
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
 			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
@@ -1337,7 +1411,7 @@ wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticTex
 	(*StaticText)->SetFont(font);
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	sizer->Add(*StaticText);
+	sizer->Add(*StaticText, 1, wxEXPAND|wxALL, 0);
 	return sizer;
 }
 
@@ -1802,7 +1876,7 @@ void Tab::load_current_preset()
 {
 	auto preset = m_presets->get_edited_preset();
 
-	preset.is_default ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
+	(preset.is_default || preset.is_system) ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 	update();
 	// For the printer profile, generate the extruder pages.
 	on_preset_loaded();
@@ -2161,9 +2235,9 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 				presets.Add(preset.name);
 		}
 
-		auto dlg = new wxMultiChoiceDialog(parent,
-		_(L("Select the printers this profile is compatible with.")),
-		_(L("Compatible printers")),  presets);
+		wxMultiChoiceDialog dlg(parent,
+			_(L("Select the printers this profile is compatible with.")),
+			_(L("Compatible printers")),  presets);
 		// # Collect and set indices of printers marked as compatible.
 		wxArrayInt selections;
 		auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(m_config->option("compatible_printers"));
@@ -2175,12 +2249,12 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 						selections.Add(idx);
 						break;
 					}
-		dlg->SetSelections(selections);
+		dlg.SetSelections(selections);
 		std::vector<std::string> value;
 		// Show the dialog.
-		if (dlg->ShowModal() == wxID_OK) {
+		if (dlg.ShowModal() == wxID_OK) {
 			selections.Clear();
-			selections = dlg->GetSelections();
+			selections = dlg.GetSelections();
 			for (auto idx : selections)
 				value.push_back(presets[idx].ToStdString());
 			if (value.empty()) {
