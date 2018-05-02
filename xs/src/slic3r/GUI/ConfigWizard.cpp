@@ -4,6 +4,8 @@
 #include <utility>
 #include <unordered_map>
 
+#include <boost/log/trivial.hpp>
+
 #include <wx/settings.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -741,9 +743,12 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		if (install_bundles.size() > 0) {
 			// Install bundles from resources.
 			updater->install_bundles_rsrc(std::move(install_bundles), snapshot);
+		} else {
+			BOOST_LOG_TRIVIAL(info) << "No bundles need to be installed from resources";
 		}
 
 		if (page_welcome->reset_user_profile()) {
+			BOOST_LOG_TRIVIAL(info) << "Resetting user profiles...";
 			preset_bundle->reset(true);
 		}
 
@@ -828,10 +833,13 @@ ConfigWizard::~ConfigWizard() {}
 
 bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater)
 {
+	BOOST_LOG_TRIVIAL(info) << "Running ConfigWizard, reason: " << p->run_reason;
 	if (ShowModal() == wxID_OK) {
 		p->apply_config(GUI::get_app_config(), preset_bundle, updater);
+		BOOST_LOG_TRIVIAL(info) << "ConfigWizard applied";
 		return true;
 	} else {
+		BOOST_LOG_TRIVIAL(info) << "ConfigWizard cancelled";
 		return false;
 	}
 }
