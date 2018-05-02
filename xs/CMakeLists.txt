@@ -647,7 +647,12 @@ endif ()
 
 if (MSVC)
     # Here we associate some additional properties with the MSVC project to enable compilation and debugging out of the box.
-    set_target_properties(XS PROPERTIES VS_USER_PROPS "${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl64d.props")
+    get_filename_component(PROPS_PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)
+    string(REPLACE "/" "\\" PROPS_PERL_BIN_PATH "${PROPS_PERL_BIN_PATH}")
+    string(REPLACE "/" "\\" PROPS_PERL_EXECUTABLE "${PERL_EXECUTABLE}")
+    string(REPLACE "/" "\\" PROPS_CMAKE_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl64d.props.in" "${CMAKE_BINARY_DIR}/xs.wperl64d.props" NEWLINE_STYLE CRLF)
+    set_target_properties(XS PROPERTIES VS_USER_PROPS "${CMAKE_BINARY_DIR}/xs.wperl64d.props")
 endif()
 
 # l10n
