@@ -269,6 +269,10 @@ TriangleMesh Model::mesh() const
 
 static bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb, Pointfs &out)
 {
+    if (sizes.empty())
+        // return if the list is empty or the following call to BoundingBoxf constructor will lead to a crash
+        return true;
+
     // we supply unscaled data to arrange()
     bool result = Slic3r::Geometry::arrange(
         sizes.size(),               // number of parts
