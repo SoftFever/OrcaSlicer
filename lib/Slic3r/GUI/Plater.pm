@@ -1809,8 +1809,7 @@ sub list_item_deselected {
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
         $self->{canvas}->Refresh;
-        #FIXME VBOs are being refreshed just to change a selection color?
-        $self->{canvas3D}->reload_scene if $self->{canvas3D};
+        $self->{canvas3D}->deselect_volumes if $self->{canvas3D};
     }
     undef $self->{_lecursor};
 }
@@ -1822,8 +1821,7 @@ sub list_item_selected {
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
     $self->{canvas}->Refresh;
-    #FIXME VBOs are being refreshed just to change a selection color?
-    $self->{canvas3D}->reload_scene if $self->{canvas3D};
+    $self->{canvas3D}->update_volumes_selection if $self->{canvas3D};
     undef $self->{_lecursor};
 }
 
@@ -2015,8 +2013,15 @@ sub selection_changed {
 
 sub select_object {
     my ($self, $obj_idx) = @_;
+
+    # remove current selection
+    foreach my $o (0..$#{$self->{objects}}) {
+        $PreventListEvents = 1;
+        $self->{objects}->[$o]->selected(0);
+        $self->{list}->Select($o, 0);
+        $PreventListEvents = 0;
+    }
     
-    $_->selected(0) for @{ $self->{objects} };
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
         # We use this flag to avoid circular event handling

@@ -116,7 +116,6 @@ sub new {
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
         $canvas->SetMinSize($canvas->GetSize);
-        $canvas->zoom_to_volumes;
     }
     
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);

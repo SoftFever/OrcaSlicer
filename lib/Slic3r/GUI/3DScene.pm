@@ -1152,7 +1152,11 @@ sub InitGL {
     $self->volumes->finalize_geometry(1) 
         if ($^O eq 'linux' && $self->UseVBOs);
 
-    $self->zoom_to_bed;
+    if (scalar @{$self->volumes} > 0) {
+        $self->zoom_to_volumes;
+    } else {
+        $self->zoom_to_bed;
+    }    
         
     glClearColor(0, 0, 0, 1);
     glColor3f(1, 0, 0);
