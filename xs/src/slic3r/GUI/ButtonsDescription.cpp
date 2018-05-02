@@ -10,7 +10,7 @@ namespace Slic3r {
 namespace GUI {
 
 ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* icon_descriptions) :
-	wxDialog(parent, wxID_ANY, "Buttons And Text Colors Description", wxDefaultPosition, wxDefaultSize),
+	wxDialog(parent, wxID_ANY, _(L("Buttons And Text Colors Description")), wxDefaultPosition, wxDefaultSize),
 	m_icon_descriptions(icon_descriptions)
 {
 	auto grid_sizer = new wxFlexGridSizer(3, 20, 20);

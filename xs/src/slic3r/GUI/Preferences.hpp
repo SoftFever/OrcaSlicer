@@ -17,8 +17,7 @@ class PreferencesDialog : public wxDialog
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 	int		m_event_preferences;
 public:
-	PreferencesDialog(wxWindow* parent, int event_preferences) : wxDialog(parent, wxID_ANY, _(L("Preferences")),
-		wxDefaultPosition, wxDefaultSize), m_event_preferences(event_preferences) {	build(); }
+	PreferencesDialog(wxWindow* parent, int event_preferences);
 	~PreferencesDialog(){ }
 
 	void	build();

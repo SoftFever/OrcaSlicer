@@ -8,32 +8,32 @@
 namespace Slic3r { 
 namespace GUI {
 
-static std::string format_reason(const Config::Snapshot::Reason reason) 
+static wxString format_reason(const Config::Snapshot::Reason reason) 
 {
     switch (reason) {
     case Config::Snapshot::SNAPSHOT_UPGRADE:
-        return std::string(_(L("Upgrade")));
+        return wxString(_(L("Upgrade")));
     case Config::Snapshot::SNAPSHOT_DOWNGRADE:
-        return std::string(_(L("Downgrade")));
+        return wxString(_(L("Downgrade")));
     case Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK:
-        return std::string(_(L("Before roll back")));
+        return wxString(_(L("Before roll back")));
     case Config::Snapshot::SNAPSHOT_USER:
-        return std::string(_(L("User")));
+        return wxString(_(L("User")));
     case Config::Snapshot::SNAPSHOT_UNKNOWN:
     default:
-        return std::string(_(L("Unknown")));
+        return wxString(_(L("Unknown")));
     }
 }
 
-static std::string generate_html_row(const Config::Snapshot &snapshot, bool row_even, bool snapshot_active)
+static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_even, bool snapshot_active)
 {
     // Start by declaring a row with an alternating background color.
-    std::string text = "<tr bgcolor=\"";
+    wxString text = "<tr bgcolor=\"";
     text += snapshot_active ? "#B3FFCB" : (row_even ? "#FFFFFF" : "#D5D5D5");
     text += "\">";
     text += "<td>";
     // Format the row header.
-    text += std::string("<font size=\"5\"><b>") + (snapshot_active ? _(L("Active: ")) : "") + 
+    text += wxString("<font size=\"5\"><b>") + (snapshot_active ? _(L("Active: ")) : "") + 
         Utils::format_local_date_time(snapshot.time_captured) + ": " + format_reason(snapshot.reason);
     if (! snapshot.comment.empty())
         text += " (" + snapshot.comment + ")";
@@ -46,9 +46,10 @@ static std::string generate_html_row(const Config::Snapshot &snapshot, bool row_
 
     bool compatible = true;
     for (const Config::Snapshot::VendorConfig &vc : snapshot.vendor_configs) {
-        text += _(L("vendor")) + ": " + vc.name + ", ver: " + vc.version.config_version.to_string() + ", min slic3r ver: " + vc.version.min_slic3r_version.to_string();
+        text += _(L("vendor")) + ": " + vc.name +", " + _(L("version")) + ": " + vc.version.config_version.to_string() + 
+				", " + _(L("min slic3r version")) + ": " + vc.version.min_slic3r_version.to_string();
         if (vc.version.max_slic3r_version != Semver::inf())
-            text += ", max slic3r ver: " + vc.version.max_slic3r_version.to_string();
+            text += ", " + _(L("max slic3r version")) + ": " + vc.version.max_slic3r_version.to_string();
         text += "<br>";
         for (const std::pair<std::string, std::set<std::string>> &model : vc.models_variants_installed) {
             text += _(L("model")) + ": " + model.first + ", " + _(L("variants")) + ": ";
@@ -72,9 +73,9 @@ static std::string generate_html_row(const Config::Snapshot &snapshot, bool row_
     return text;
 }
 
-static std::string generate_html_page(const Config::SnapshotDB &snapshot_db, const std::string &on_snapshot)
+static wxString generate_html_page(const Config::SnapshotDB &snapshot_db, const wxString &on_snapshot)
 {
-    std::string text = 
+    wxString text = 
         "<html>"
         "<body bgcolor=\"#ffffff\" cellspacing=\"2\" cellpadding=\"0\" border=\"0\" link=\"#800000\">"
         "<font color=\"#000000\">";
@@ -91,7 +92,7 @@ static std::string generate_html_page(const Config::SnapshotDB &snapshot_db, con
     return text;
 }
 
-ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const std::string &on_snapshot)
+ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const wxString &on_snapshot)
     : wxDialog(NULL, wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition, wxSize(600, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX)
 {
     this->SetBackgroundColour(*wxWHITE);
@@ -110,8 +111,8 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
         #endif
         html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
         html->SetBorders(2);
-        std::string text = generate_html_page(snapshot_db, on_snapshot);
-        html->SetPage(text.c_str());
+        wxString text = generate_html_page(snapshot_db, on_snapshot);
+        html->SetPage(text);
         vsizer->Add(html, 1, wxEXPAND | wxALIGN_LEFT | wxRIGHT | wxBOTTOM, 0);
         html->Bind(wxEVT_HTML_LINK_CLICKED, &ConfigSnapshotDialog::onLinkClicked, this);
     }

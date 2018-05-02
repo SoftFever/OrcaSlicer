@@ -203,7 +203,7 @@ static void init_label_colours()
 {
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	if (luma >= 128) {
-		g_color_label_modified = wxColour(253, 88, 0);
+		g_color_label_modified = wxColour(252, 77, 1);
 		g_color_label_sys = wxColour(26, 132, 57);
 	} else {
 		g_color_label_modified = wxColour(253, 111, 40);
@@ -339,6 +339,7 @@ bool load_language()
 
 void save_language()
 {
+	//! TO DO !! use GetCanonicalName;
 	long language = wxLANGUAGE_UNKNOWN;
 	if (g_wxLocale)	{
 		language = g_wxLocale->GetLanguage();
@@ -398,12 +399,12 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
     const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 		config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots\u2026")), 	_(L("Inspect / activate configuration snapshots")));
-   	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 	_(L("Capture a configuration snapshot")));
-   	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 				_(L("Check for configuration updates")));
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 			config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+"\u2026",	_(L("Inspect / activate configuration snapshots")));
+   	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
+   	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
-   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences\u2026\tCtrl+,")), 		_(L("Application preferences")));
+   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"\u2026\tCtrl+,", 		_(L("Application preferences")));
    	local_menu->AppendSeparator();
    	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
@@ -685,7 +686,7 @@ void show_info(wxWindow* parent, const wxString& message, const wxString& title)
 }
 
 void warning_catcher(wxWindow* parent, const wxString& message){
-	if (message == _(L("GLUquadricObjPtr | Attempt to free unreferenced scalar")) )
+	if (message == "GLUquadricObjPtr | " + _(L("Attempt to free unreferenced scalar")) )
 		return;
 	wxMessageDialog msg(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
 	msg.ShowModal();
@@ -903,7 +904,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	m_optgroup->append_single_option_line(option);
 
 
-    Line line = { _(L("")), "" };
+    Line line = { "", "" };
         line.widget = [config](wxWindow* parent){
 			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);

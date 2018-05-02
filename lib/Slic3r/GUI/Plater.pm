@@ -549,8 +549,8 @@ sub _on_select_preset {
         return if ($selected_item == $self->{"selected_item_$group"});
 
         my $selected_string = $choice->GetString($selected_item);
-        if ($selected_string eq "------- System presets -------" ||
-            $selected_string eq "-------  User presets  -------"){
+        if ($selected_string eq ("------- ".L("System presets")." -------") ||
+            $selected_string eq ("-------  ".L("User presets")."  -------") ){
             $choice->SetSelection($self->{"selected_item_$group"});
             return;
         }
