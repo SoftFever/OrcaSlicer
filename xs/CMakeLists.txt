@@ -651,8 +651,8 @@ if (MSVC)
     string(REPLACE "/" "\\" PROPS_PERL_BIN_PATH "${PROPS_PERL_BIN_PATH}")
     string(REPLACE "/" "\\" PROPS_PERL_EXECUTABLE "${PERL_EXECUTABLE}")
     string(REPLACE "/" "\\" PROPS_CMAKE_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl64d.props.in" "${CMAKE_BINARY_DIR}/xs.wperl64d.props" NEWLINE_STYLE CRLF)
-    set_target_properties(XS PROPERTIES VS_USER_PROPS "${CMAKE_BINARY_DIR}/xs.wperl64d.props")
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl.props.in" "${CMAKE_BINARY_DIR}/xs.wperl.props" NEWLINE_STYLE CRLF)
+    set_target_properties(XS PROPERTIES VS_USER_PROPS "${CMAKE_BINARY_DIR}/xs.wperl.props")
 endif()
 
 # l10n
