@@ -751,7 +751,10 @@ std::vector<double> GLVolumeCollection::get_current_print_zs() const
     // Collect layer top positions of all volumes.
     std::vector<double> print_zs;
     for (GLVolume *vol : this->volumes)
-        append(print_zs, vol->print_zs);
+    {
+        if (vol->is_active)
+            append(print_zs, vol->print_zs);
+    }
     std::sort(print_zs.begin(), print_zs.end());
 
     // Replace intervals of layers with similar top positions with their average value.
@@ -1757,6 +1760,11 @@ void _3DScene::load_gcode_preview(const Print* print, const GCodePreviewData* pr
         {
             _generate_legend_texture(*preview_data, tool_colors);
             _load_shells(*print, *volumes, use_VBOs);
+
+            // removes empty volumes
+            volumes->volumes.erase(std::remove_if(volumes->volumes.begin(), volumes->volumes.end(),
+                [](const GLVolume *volume) { return volume->print_zs.empty(); }),
+                volumes->volumes.end());
         }
     }
 

@@ -12,7 +12,7 @@ our $VERSION = '0.01';
 BEGIN {
     if ($^O eq 'MSWin32') {
         eval "use Wx";
-#        eval "use Wx::Html";
+        eval "use Wx::Html";
         eval "use Wx::Print";  # because of some Wx bug, thread creation fails if we don't have this (looks like Wx::Printout is hard-coded in some thread cleanup code)
     }
 }

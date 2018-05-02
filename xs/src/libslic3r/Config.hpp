@@ -659,6 +659,7 @@ public:
     ConfigOptionPoints() : ConfigOptionVector<Pointf>() {}
     explicit ConfigOptionPoints(size_t n, const Pointf &value) : ConfigOptionVector<Pointf>(n, value) {}
     explicit ConfigOptionPoints(std::initializer_list<Pointf> il) : ConfigOptionVector<Pointf>(std::move(il)) {}
+    explicit ConfigOptionPoints(const std::vector<Pointf> &values) : ConfigOptionVector<Pointf>(values) {}
 
     static ConfigOptionType static_type() { return coPoints; }
     ConfigOptionType        type()  const override { return static_type(); }
@@ -1046,6 +1047,9 @@ public:
     void apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false);
     bool equals(const ConfigBase &other) const { return this->diff(other).empty(); }
     t_config_option_keys diff(const ConfigBase &other) const;
+	// Use deep_diff to correct return of changed options,
+	// considering individual options for each extruder
+	t_config_option_keys deep_diff(const ConfigBase &other) const;
     t_config_option_keys equal(const ConfigBase &other) const;
     std::string serialize(const t_config_option_key &opt_key) const;
     // Set a configuration value from a string, it will call an overridable handle_legacy() 

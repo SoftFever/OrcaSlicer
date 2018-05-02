@@ -116,7 +116,6 @@ sub new {
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,500]);
         $canvas->SetMinSize($canvas->GetSize);
-        $canvas->zoom_to_volumes;
     }
     
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -227,12 +226,14 @@ sub _update {
                 push @objects, $self->{model_object};
             }
         
+            my $z_cut = $z + $self->{model_object}->bounding_box->z_min;        
+        
             # get section contour
             my @expolygons = ();
             foreach my $volume (@{$self->{model_object}->volumes}) {
                 next if !$volume->mesh;
                 next if $volume->modifier;
-                my $expp = $volume->mesh->slice([ $z + $volume->mesh->bounding_box->z_min ])->[0];
+                my $expp = $volume->mesh->slice([ $z_cut ])->[0];
                 push @expolygons, @$expp;
             }
             foreach my $expolygon (@expolygons) {

@@ -31,7 +31,9 @@ sub new {
     $self->{on_select_object}   = sub {};
     $self->{on_instances_moved} = sub {};
     $self->{on_wipe_tower_moved} = sub {};
-    
+
+    $self->{objects_volumes_idxs} = ();
+        
     $self->on_select(sub {
         my ($volume_idx) = @_;
         $self->{on_select_object}->(($volume_idx == -1) ? undef : $self->volumes->[$volume_idx]->object_idx)
@@ -181,6 +183,17 @@ sub set_on_enable_action_buttons {
     $self->on_enable_action_buttons($cb);
 }
 
+sub update_volumes_selection {
+    my ($self) = @_;
+
+    foreach my $obj_idx (0..$#{$self->{model}->objects}) {
+        if ($self->{objects}[$obj_idx]->selected) {
+            my @volume_idxs = @{$self->{objects_volumes_idxs}[$obj_idx]};
+            $self->select_volume($_) for @volume_idxs;
+        }
+    }
+}
+
 sub reload_scene {
     my ($self, $force) = @_;
 
@@ -194,12 +207,14 @@ sub reload_scene {
 
     $self->{reload_delayed} = 0;
 
+    $self->{objects_volumes_idxs} = ();    
     foreach my $obj_idx (0..$#{$self->{model}->objects}) {
         my @volume_idxs = $self->load_object($self->{model}, $self->{print}, $obj_idx);
-        if ($self->{objects}[$obj_idx]->selected) {
-            $self->select_volume($_) for @volume_idxs;
-        }
+        push(@{$self->{objects_volumes_idxs}}, \@volume_idxs);
     }
+    
+    $self->update_volumes_selection;
+        
     if (defined $self->{config}->nozzle_diameter) {
         # Should the wipe tower be visualized?
         my $extruders_count = scalar @{ $self->{config}->nozzle_diameter };
