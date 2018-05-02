@@ -389,7 +389,7 @@ sub mouse_event {
 
     $self->_mouse_dragging($e->Dragging);
     
-    if ($e->Entering && &Wx::wxMSW) {
+    if ($e->Entering && (&Wx::wxMSW || $^O eq 'linux')) {
         # wxMSW needs focus in order to catch mouse wheel events
         $self->SetFocus;
         $self->_drag_start_xy(undef);        
@@ -687,7 +687,7 @@ sub select_view {
 }
 
 sub get_zoom_to_bounding_box_factor {
-    my ($self, $bb) = @_;
+    my ($self, $bb) = @_;    
     my $max_bb_size = max(@{ $bb->size });
     return undef if ($max_bb_size == 0);
         
@@ -759,6 +759,8 @@ sub get_zoom_to_bounding_box_factor {
         $max_x = max($max_x, $margin_factor * 2 * abs($x_on_plane));
         $max_y = max($max_y, $margin_factor * 2 * abs($y_on_plane));
     }
+    
+    return undef if (($max_x == 0) || ($max_y == 0));
     
     my ($cw, $ch) = $self->GetSizeWH;
     my $min_ratio = min($cw / $max_x, $ch / $max_y);
@@ -1112,7 +1114,7 @@ sub Resize {
         # is only a workaround for an incorrectly set camera.
         # This workaround harms Z-buffer accuracy!
 #        my $depth = 1.05 * $self->max_bounding_box->radius();
-       my $depth = max(@{ $self->max_bounding_box->size });
+       my $depth = 5.0 * max(@{ $self->max_bounding_box->size });
         glOrtho(
             -$x/2, $x/2, -$y/2, $y/2,
             -$depth, $depth,
@@ -1150,6 +1152,12 @@ sub InitGL {
     $self->volumes->finalize_geometry(1) 
         if ($^O eq 'linux' && $self->UseVBOs);
 
+    if (scalar @{$self->volumes} > 0) {
+        $self->zoom_to_volumes;
+    } else {
+        $self->zoom_to_bed;
+    }    
+        
     glClearColor(0, 0, 0, 1);
     glColor3f(1, 0, 0);
     glEnable(GL_DEPTH_TEST);

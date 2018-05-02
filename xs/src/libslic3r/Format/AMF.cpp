@@ -24,6 +24,12 @@
 
 #include <assert.h>
 
+// VERSION NUMBERS
+// 0 : .amf, .amf.xml and .zip.amf files saved by older slic3r. No version definition in them.
+// 1 : Introduction of amf versioning. No other change in data saved into amf files.
+const unsigned int VERSION_AMF = 1;
+const char* SLIC3RPE_AMF_VERSION = "slic3rpe_amf_version";
+
 const char* SLIC3R_CONFIG_TYPE = "slic3rpe_config";
 
 namespace Slic3r
@@ -32,6 +38,7 @@ namespace Slic3r
 struct AMFParserContext
 {
     AMFParserContext(XML_Parser parser, const std::string& archive_filename, PresetBundle* preset_bundle, Model *model) :
+        m_version(0),
         m_parser(parser),
         m_model(*model), 
         m_object(nullptr), 
@@ -137,6 +144,8 @@ struct AMFParserContext
         std::vector<Instance>   instances;
     };
 
+    // Version of the amf file
+    unsigned int m_version;
     // Current Expat XML parser instance.
     XML_Parser               m_parser;
     // Model to receive objects extracted from an AMF file.
@@ -360,9 +369,9 @@ void AMFParserContext::endElement(const char * /* name */)
     case NODE_TYPE_VERTEX:
         assert(m_object);
         // Parse the vertex data
-        m_object_vertices.emplace_back(atof(m_value[0].c_str()));
-        m_object_vertices.emplace_back(atof(m_value[1].c_str()));
-        m_object_vertices.emplace_back(atof(m_value[2].c_str()));
+        m_object_vertices.emplace_back((float)atof(m_value[0].c_str()));
+        m_object_vertices.emplace_back((float)atof(m_value[1].c_str()));
+        m_object_vertices.emplace_back((float)atof(m_value[2].c_str()));
         m_value[0].clear();
         m_value[1].clear();
         m_value[2].clear();
@@ -462,6 +471,10 @@ void AMFParserContext::endElement(const char * /* name */)
             if (m_volume && m_value[0] == "name")
                 m_volume->name = std::move(m_value[1]);
         }
+        else if (strncmp(m_value[0].c_str(), SLIC3RPE_AMF_VERSION, strlen(SLIC3RPE_AMF_VERSION)) == 0) {
+            m_version = (unsigned int)atoi(m_value[1].c_str());
+        }
+
         m_value[0].clear();
         m_value[1].clear();
         break;
@@ -543,46 +556,8 @@ bool load_amf_file(const char *path, PresetBundle* bundle, Model *model)
     return result;
 }
 
-// Load an AMF archive into a provided model.
-bool load_amf_archive(const char *path, PresetBundle* bundle, Model *model)
+bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, const char* path, PresetBundle* bundle, Model* model, unsigned int& version)
 {
-    if ((path == nullptr) || (model == nullptr))
-        return false;
-
-    mz_zip_archive archive;
-    mz_zip_zero_struct(&archive);
-
-    mz_bool res = mz_zip_reader_init_file(&archive, path, 0);
-    if (res == 0)
-    {
-        printf("Unable to init zip reader\n");
-        return false;
-    }
-
-    mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
-    if (num_entries != 1)
-    {
-        printf("Found invalid number of entries\n");
-        mz_zip_reader_end(&archive);
-        return false;
-    }
-
-    mz_zip_archive_file_stat stat;
-    res = mz_zip_reader_file_stat(&archive, 0, &stat);
-    if (res == 0)
-    {
-        printf("Unable to extract entry statistics\n");
-        mz_zip_reader_end(&archive);
-        return false;
-    }
-
-    if (!boost::iends_with(stat.m_filename, ".amf"))
-    {
-        printf("Found invalid internal filename\n");
-        mz_zip_reader_end(&archive);
-        return false;
-    }
-
     if (stat.m_uncomp_size == 0)
     {
         printf("Found invalid size\n");
@@ -610,7 +585,7 @@ bool load_amf_archive(const char *path, PresetBundle* bundle, Model *model)
         return false;
     }
 
-    res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t)stat.m_uncomp_size, 0);
+    mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t)stat.m_uncomp_size, 0);
     if (res == 0)
     {
         printf("Error while reading model data to buffer\n");
@@ -626,6 +601,62 @@ bool load_amf_archive(const char *path, PresetBundle* bundle, Model *model)
     }
 
     ctx.endDocument();
+
+    version = ctx.m_version;
+
+    return true;
+}
+
+// Load an AMF archive into a provided model.
+bool load_amf_archive(const char *path, PresetBundle* bundle, Model *model)
+{
+    if ((path == nullptr) || (model == nullptr))
+        return false;
+
+    unsigned int version = 0;
+
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+
+    mz_bool res = mz_zip_reader_init_file(&archive, path, 0);
+    if (res == 0)
+    {
+        printf("Unable to init zip reader\n");
+        return false;
+    }
+
+    mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
+
+    mz_zip_archive_file_stat stat;
+    // we first loop the entries to read from the archive the .amf file only, in order to extract the version from it
+    for (mz_uint i = 0; i < num_entries; ++i)
+    {
+        if (mz_zip_reader_file_stat(&archive, i, &stat))
+        {
+            if (boost::iends_with(stat.m_filename, ".amf"))
+            {
+                if (!extract_model_from_archive(archive, stat, path, bundle, model, version))
+                {
+                    mz_zip_reader_end(&archive);
+                    printf("Archive does not contain a valid model");
+                    return false;
+                }
+
+                break;
+            }
+        }
+    }
+
+#if 0 // forward compatibility
+    // we then loop again the entries to read other files stored in the archive
+    for (mz_uint i = 0; i < num_entries; ++i)
+    {
+        if (mz_zip_reader_file_stat(&archive, i, &stat))
+        {
+            // add code to extract the file
+        }
+    }
+#endif // forward compatibility
 
     mz_zip_reader_end(&archive);
     return true;
@@ -664,6 +695,7 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
     stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     stream << "<amf unit=\"millimeter\">\n";
     stream << "<metadata type=\"cad\">Slic3r " << SLIC3R_VERSION << "</metadata>\n";
+    stream << "<metadata type=\"" << SLIC3RPE_AMF_VERSION << "\">" << VERSION_AMF << "</metadata>\n";
 
     if (export_print_config)
     {

@@ -5,6 +5,7 @@
 #include "Preset.hpp"
 
 #include <set>
+#include <boost/filesystem/path.hpp>
 
 namespace Slic3r {
 
@@ -86,12 +87,10 @@ public:
         LOAD_CFGBNDLE_RESET_USER_PROFILE = 2,
         // Load a system config bundle.
         LOAD_CFGBNDLE_SYSTEM = 4,
+        LOAD_CFGBUNDLE_VENDOR_ONLY = 8,
     };
     // Load the config bundle, store it to the user profile directory by default.
     size_t                      load_configbundle(const std::string &path, unsigned int flags = LOAD_CFGBNDLE_SAVE);
-
-    // Install the Vendor specific config bundle into user's directory.
-    void                        install_vendor_configbundle(const std::string &src_path);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path); // , const DynamicPrintConfig &settings);
@@ -117,10 +116,12 @@ public:
     // preset if the current print or filament preset is not compatible.
     void                        update_compatible_with_printer(bool select_other_if_incompatible);
 
-    static bool parse_color(const std::string &scolor, unsigned char *rgb_out);
+    static bool                 parse_color(const std::string &scolor, unsigned char *rgb_out);
 
 private:
     std::string                 load_system_presets();
+    // Merge one vendor's presets with the other vendor's presets, report duplicates.
+    std::vector<std::string>    merge_presets(PresetBundle &&other);
 
     // Set the "enabled" flag for printer vendors, printer models and printer variants
     // based on the user configuration.

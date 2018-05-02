@@ -1,3 +1,6 @@
+#ifndef slic3r_TabIface_hpp_
+#define slic3r_TabIface_hpp_
+
 #include <vector>
 #include <string>
 
@@ -27,9 +30,12 @@ public:
 	DynamicPrintConfig*			get_config();
 	PresetCollection*			get_presets();
 	std::vector<std::string>	get_dependent_tabs();
+	size_t						get_selected_preset_item();
 
 protected:
 	GUI::Tab   *m_tab;
-};
+}; // namespace GUI
 
 }; // namespace Slic3r
+
+#endif /* slic3r_TabIface_hpp_ */
