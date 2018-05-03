@@ -17,7 +17,7 @@ namespace Config {
 class ConfigSnapshotDialog : public wxDialog
 {
 public:
-    ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const std::string &id);
+    ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const wxString &id);
     const std::string& snapshot_to_activate() const { return m_snapshot_to_activate; }
 
 private:
