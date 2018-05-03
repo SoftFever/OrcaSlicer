@@ -5,6 +5,12 @@
 namespace Slic3r {
 namespace GUI {
 
+PreferencesDialog::PreferencesDialog(wxWindow* parent, int event_preferences) : 
+	wxDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, wxDefaultSize), 
+	m_event_preferences(event_preferences) {
+		build();
+	}
+
 void PreferencesDialog::build()
 {
 	auto app_config = get_app_config();

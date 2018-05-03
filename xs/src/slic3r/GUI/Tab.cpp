@@ -230,8 +230,9 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 			return;
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
-			if (selected_string == "------- System presets -------" ||
-				selected_string == "-------  User presets  -------"){
+			if (selected_string.find_first_of("-------") == 0
+				/*selected_string == "------- System presets -------" ||
+				selected_string == "-------  User presets  -------"*/){
 				m_presets_choice->SetSelection(m_selected_preset_item);
 				return;
 			}
