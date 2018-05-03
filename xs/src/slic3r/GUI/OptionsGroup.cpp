@@ -118,7 +118,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
 		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr && 
 		line.get_extra_widgets().size() == 0) {
-		wxBoxSizer* tmp_sizer;
+		wxSizer* tmp_sizer;
 #ifdef __WXGTK__
 		tmp_sizer = new wxBoxSizer(wxVERTICAL);
         m_panel->SetSizer(tmp_sizer);
