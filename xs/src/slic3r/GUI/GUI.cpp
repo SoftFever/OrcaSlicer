@@ -309,22 +309,18 @@ bool select_language(wxArrayString & names,
 
 bool load_language()
 {
-	long language;
-	if (!g_AppConfig->has("translation_language"))
-		language = wxLANGUAGE_UNKNOWN;
-	else {
-		auto str_language = g_AppConfig->get("translation_language");
-		language = str_language != "" ? stol(str_language) : wxLANGUAGE_UNKNOWN;
-	}
+	wxString language = wxEmptyString;
+	if (g_AppConfig->has("translation_language"))
+		language = g_AppConfig->get("translation_language");
 
-	if (language == wxLANGUAGE_UNKNOWN) 
+	if (language.IsEmpty()) 
 		return false;
 	wxArrayString	names;
 	wxArrayLong		identifiers;
 	get_installed_languages(names, identifiers);
 	for (size_t i = 0; i < identifiers.Count(); i++)
 	{
-		if (identifiers[i] == language)
+		if (wxLocale::GetLanguageCanonicalName(identifiers[i]) == language)
 		{
 			g_wxLocale = new wxLocale;
 			g_wxLocale->Init(identifiers[i]);
@@ -339,13 +335,11 @@ bool load_language()
 
 void save_language()
 {
-	//! TO DO !! use GetCanonicalName;
-	long language = wxLANGUAGE_UNKNOWN;
-	if (g_wxLocale)	{
-		language = g_wxLocale->GetLanguage();
-	}
-	std::string str_language = std::to_string(language);
-	g_AppConfig->set("translation_language", str_language);
+	wxString language = wxEmptyString; 
+	if (g_wxLocale)	
+		language = g_wxLocale->GetCanonicalName();
+
+	g_AppConfig->set("translation_language", language.ToStdString());
 	g_AppConfig->save();
 }
 
