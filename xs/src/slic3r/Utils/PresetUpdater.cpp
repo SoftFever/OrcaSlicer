@@ -359,6 +359,11 @@ Updates PresetUpdater::priv::get_config_updates() const
 			const auto cached_vp = VendorProfile::from_ini(path_in_cache, false);
 			if (cached_vp.config_version == recommended->config_version) {
 				updates.updates.emplace_back(std::move(path_in_cache), std::move(bundle_path), *recommended);
+			} else {
+				BOOST_LOG_TRIVIAL(warning) << boost::format("Vendor: %1%: Index indicates update (%2%) but cached bundle has a different version: %3%")
+					% idx.vendor()
+					% recommended->config_version.to_string()
+					% cached_vp.config_version.to_string();
 			}
 		}
 	}
