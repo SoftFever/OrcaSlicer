@@ -51,9 +51,6 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Point3>& fa
 
     for (int i = 0; i < stl.stats.number_of_facets; i++) {
         stl_facet facet;
-        facet.normal.x = 0;
-        facet.normal.y = 0;
-        facet.normal.z = 0;
 
         const Pointf3& ref_f1 = points[facets[i].x];
         facet.vertex[0].x = ref_f1.x;
@@ -72,6 +69,13 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Point3>& fa
         
         facet.extra[0] = 0;
         facet.extra[1] = 0;
+
+        float normal[3];
+        stl_calculate_normal(normal, &facet);
+        stl_normalize_vector(normal);
+        facet.normal.x = normal[0];
+        facet.normal.y = normal[1];
+        facet.normal.z = normal[2];
 
         stl.facet_start[i] = facet;
     }
