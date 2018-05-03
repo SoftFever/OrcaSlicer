@@ -118,21 +118,34 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
 		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr && 
 		line.get_extra_widgets().size() == 0) {
+		wxBoxSizer* tmp_sizer;
+#ifdef __WXGTK__
+		tmp_sizer = new wxBoxSizer(wxVERTICAL);
+        m_panel->SetSizer(tmp_sizer);
+        m_panel->Layout();
+#else
+        tmp_sizer = sizer;
+#endif /* __WXGTK__ */
+
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
 		auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 		btn_sizer->Add(field->m_Undo_to_sys_btn);
 		btn_sizer->Add(field->m_Undo_btn);
-		sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
+		tmp_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
 		if (is_window_field(field))
-			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+			tmp_sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_sizer_field(field))
-			sizer->Add(field->getSizer(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+			tmp_sizer->Add(field->getSizer(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		return;
 	}
 
     auto grid_sizer = m_grid_sizer;
+#ifdef __WXGTK__
+        m_panel->SetSizer(m_grid_sizer);
+        m_panel->Layout();
+#endif /* __WXGTK__ */
 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
