@@ -107,7 +107,7 @@ struct PageWelcome: ConfigWizardPage
 	virtual wxPanel* extra_buttons() { return others_buttons; }
 	virtual void on_page_set();
 
-	bool reset_user_profile() const { return cbox_reset->GetValue(); }
+	bool reset_user_profile() const { return cbox_reset != nullptr ? cbox_reset->GetValue() : false; }
 	void on_variant_checked();
 };
 
@@ -190,8 +190,7 @@ private:
 struct ConfigWizard::priv
 {
 	ConfigWizard *q;
-	bool flag_startup;
-	bool flag_empty_datadir;
+	ConfigWizard::RunReason run_reason;
 	AppConfig appconfig_vendors;
 	std::unordered_map<std::string, VendorProfile> vendors;
 	std::unordered_map<std::string, std::string> vendors_rsrc;
@@ -228,7 +227,7 @@ struct ConfigWizard::priv
 	void on_other_vendors();
 	void on_custom_setup();
 
-	void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, PresetUpdater *updater);
+	void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
 };
 
 

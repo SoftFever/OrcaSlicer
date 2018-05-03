@@ -443,13 +443,16 @@ std::vector<int> GLVolumeCollection::load_object(
 int GLVolumeCollection::load_wipe_tower_preview(
     int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs)
 {
-    float color[4] = { 1.0f, 1.0f, 0.0f, 0.5f };
+    float color[4] = { 0.5f, 0.5f, 0.0f, 0.5f };
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
 
-    auto mesh = make_cube(width, depth, height);    
-    mesh.translate(-width/2.f,-depth/2.f,0.f);    
-    Point origin_of_rotation(0.f,0.f);
+    if (height == 0.0f)
+        height = 0.1f;
+
+    auto mesh = make_cube(width, depth, height);
+    mesh.translate(-width / 2.f, -depth / 2.f, 0.f);
+    Point origin_of_rotation(0.f, 0.f);
     mesh.rotate(rotation_angle,&origin_of_rotation);
 
     if (use_VBOs)
@@ -751,7 +754,10 @@ std::vector<double> GLVolumeCollection::get_current_print_zs() const
     // Collect layer top positions of all volumes.
     std::vector<double> print_zs;
     for (GLVolume *vol : this->volumes)
-        append(print_zs, vol->print_zs);
+    {
+        if (vol->is_active)
+            append(print_zs, vol->print_zs);
+    }
     std::sort(print_zs.begin(), print_zs.end());
 
     // Replace intervals of layers with similar top positions with their average value.
@@ -1757,6 +1763,11 @@ void _3DScene::load_gcode_preview(const Print* print, const GCodePreviewData* pr
         {
             _generate_legend_texture(*preview_data, tool_colors);
             _load_shells(*print, *volumes, use_VBOs);
+
+            // removes empty volumes
+            volumes->volumes.erase(std::remove_if(volumes->volumes.begin(), volumes->volumes.end(),
+                [](const GLVolume *volume) { return volume->print_zs.empty(); }),
+                volumes->volumes.end());
         }
     }
 

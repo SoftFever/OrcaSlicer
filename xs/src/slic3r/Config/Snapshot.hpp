@@ -18,7 +18,6 @@ class AppConfig;
 namespace GUI {
 namespace Config {
 
-class Version;
 class Index;
 
 // A snapshot contains:
@@ -76,12 +75,8 @@ public:
 	struct VendorConfig {
 		// Name of the vendor contained in this snapshot.
 		std::string name;
-		// Version of the vendor config contained in this snapshot.
-		Semver 		version 		   = Semver::invalid();
-		// Minimum Slic3r version compatible with this vendor configuration.
-		Semver		min_slic3r_version = Semver::zero();
-		// Maximum Slic3r version compatible with this vendor configuration, or empty.
-		Semver 		max_slic3r_version = Semver::inf();
+		// Version of the vendor config contained in this snapshot, along with compatibility data.
+		Version version;
 		// Which printer models of this vendor were installed, and which variants of the models?
 		std::map<std::string, std::set<std::string>> models_variants_installed;
 	};

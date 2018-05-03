@@ -92,8 +92,13 @@ public:
 
 	// Get the default config path from Slic3r::data_dir().
 	static std::string  config_path();
-	
+
+	// Returns true if the user's data directory comes from before Slic3r 1.40.0 (no updating)
 	bool legacy_datadir() const { return m_legacy_datadir; }
+
+	// Get the Slic3r version check url.
+	// This returns a hardcoded string unless it is overriden by "version_check_url" in the ini file.
+	std::string version_check_url() const;
 
 	// Does the config file exist?
 	static bool 		exists();

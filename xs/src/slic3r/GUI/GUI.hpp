@@ -82,10 +82,14 @@ void set_preset_updater(PresetUpdater *updater);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
+PresetBundle* get_preset_bundle();
 
-const wxColour& get_modified_label_clr();
-const wxColour& get_sys_label_clr();
+const wxColour& get_label_clr_modified();
+const wxColour& get_label_clr_sys();
+const wxColour& get_label_clr_default();
 unsigned get_colour_approx_luma(const wxColour &colour);
+void set_label_clr_modified(const wxColour& clr);
+void set_label_clr_sys(const wxColour& clr);
 
 extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -93,11 +97,13 @@ extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int 
 // to notify the user whether he is aware that some preset changes will be lost.
 extern bool check_unsaved_changes();
 
-// Checks if configuration wizard needs to run, calls config_wizard if so
-extern void config_wizard_startup(bool app_config_exists);
+// Checks if configuration wizard needs to run, calls config_wizard if so.
+// Returns whether the Wizard ran.
+extern bool config_wizard_startup(bool app_config_exists);
 
 // Opens the configuration wizard, returns true if wizard is finished & accepted.
-extern void config_wizard(bool startup, bool empty_datadir);
+// The run_reason argument is actually ConfigWizard::RunReason, but int is used here because of Perl.
+extern void config_wizard(int run_reason);
 
 // Create "Preferences" dialog after selecting menu "Preferences" in Perl part
 extern void open_preferences_dialog(int event_preferences);
@@ -112,6 +118,7 @@ void add_created_tab(Tab* panel);
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
 void show_error(wxWindow* parent, const wxString& message);
+void show_error_id(int id, const std::string& message);   // For Perl
 void show_info(wxWindow* parent, const wxString& message, const wxString& title);
 void warning_catcher(wxWindow* parent, const wxString& message);
 

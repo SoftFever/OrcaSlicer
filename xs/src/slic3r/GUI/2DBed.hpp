@@ -1,3 +1,6 @@
+#ifndef slic3r_2DBed_hpp_
+#define slic3r_2DBed_hpp_
+
 #include <wx/wx.h>
 #include "Config.hpp"
 
@@ -45,3 +48,5 @@ public:
 
 } // GUI
 } // Slic3r
+
+#endif /* slic3r_2DBed_hpp_ */

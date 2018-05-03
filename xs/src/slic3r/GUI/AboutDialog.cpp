@@ -31,13 +31,14 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
 AboutDialog::AboutDialog()
     : wxDialog(NULL, wxID_ANY, _(L("About Slic3r")), wxDefaultPosition, wxSize(600, 340), wxCAPTION)
 {
-    this->SetBackgroundColour(*wxWHITE);
-    
+	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)/**wxWHITE*/);
     wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
     this->SetSizer(hsizer);
 
     // logo
-    AboutDialogLogo* logo = new AboutDialogLogo(this);
+//     AboutDialogLogo* logo = new AboutDialogLogo(this);
+	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG);
+	auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp));
     hsizer->Add(logo, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
@@ -56,7 +57,7 @@ AboutDialog::AboutDialog()
     
     // version
     {
-        auto version_string = _(L("Version ")) + std::string(SLIC3R_VERSION);
+        auto version_string = _(L("Version"))+ " " + std::string(SLIC3R_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxFont version_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
         #ifdef __WXMSW__
@@ -78,6 +79,7 @@ AboutDialog::AboutDialog()
             int size[] = {11,11,11,11,11,11,11};
         #endif
         html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
+		html->SetHTMLBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
         html->SetBorders(2);
         const char* text =
             "<html>"
@@ -106,7 +108,6 @@ AboutDialog::AboutDialog()
     
     this->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
     logo->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
-    html->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
 }
 
 void AboutDialog::onLinkClicked(wxHtmlLinkEvent &event)

@@ -4,6 +4,7 @@
 #include <string>
 #include <cstring>
 #include <ostream>
+#include <stdexcept>
 #include <boost/optional.hpp>
 #include <boost/format.hpp>
 
@@ -22,14 +23,25 @@ public:
 	Semver() : ver(semver_zero()) {}
 
 	Semver(int major, int minor, int patch,
-		boost::optional<std::string> metadata = boost::none,
-		boost::optional<std::string> prerelease = boost::none)
+		boost::optional<const std::string&> metadata = boost::none,
+		boost::optional<const std::string&> prerelease = boost::none)
+		: ver(semver_zero())
 	{
 		ver.major = major;
 		ver.minor = minor;
 		ver.patch = patch;
-		ver.metadata = metadata ? std::strcpy(ver.metadata, metadata->c_str()) : nullptr;
-		ver.prerelease = prerelease ? std::strcpy(ver.prerelease, prerelease->c_str()) : nullptr;
+		set_metadata(metadata);
+		set_prerelease(prerelease);
+	}
+
+	Semver(const std::string &str) : ver(semver_zero())
+	{
+		auto parsed = parse(str);
+		if (! parsed) {
+			throw std::runtime_error(std::string("Could not parse version string: ") + str);
+		}
+		ver = parsed->ver;
+		parsed->ver = semver_zero();
 	}
 
 	static boost::optional<Semver> parse(const std::string &str)
@@ -82,6 +94,13 @@ public:
 	int 		patch() 	 const { return ver.patch; }
 	const char*	prerelease() const { return ver.prerelease; }
 	const char*	metadata() 	 const { return ver.metadata; }
+	
+	// Setters
+	void set_maj(int maj) { ver.major = maj; }
+	void set_min(int min) { ver.minor = min; }
+	void set_patch(int patch) { ver.patch = patch; }
+	void set_metadata(boost::optional<const std::string&> meta) { ver.metadata = meta ? strdup(*meta) : nullptr; }
+	void set_prerelease(boost::optional<const std::string&> pre) { ver.prerelease = pre ? strdup(*pre) : nullptr; }
 
 	// Comparison
 	bool operator<(const Semver &b)  const { return ::semver_compare(ver, b.ver) == -1; }
@@ -124,6 +143,7 @@ private:
 	Semver(semver_t ver) : ver(ver) {}
 
 	static semver_t semver_zero() { return { 0, 0, 0, nullptr, nullptr }; }
+	static char * strdup(const std::string &str) { return ::semver_strdup(const_cast<char*>(str.c_str())); }
 };
 
 

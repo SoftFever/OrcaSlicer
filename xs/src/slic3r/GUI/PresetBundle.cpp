@@ -1011,6 +1011,9 @@ void PresetBundle::export_configbundle(const std::string &path) //, const Dynami
 // an optional "(modified)" suffix will be removed from the filament name.
 void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
 {
+	if (name.find_first_of("-------") == 0)
+		return;
+
     if (idx >= filament_presets.size())
         filament_presets.resize(idx + 1, filaments.default_preset().name);
     filament_presets[idx] = Preset::remove_suffix_modified(name);
@@ -1059,9 +1062,11 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
     // and draw a red flag in front of the selected preset.
     bool          wide_icons      = selected_preset != nullptr && ! selected_preset->is_compatible && m_bitmapIncompatible != nullptr;
     assert(selected_preset != nullptr);
-	std::map<wxString, wxBitmap> nonsys_presets;
+	std::map<wxString, wxBitmap*> nonsys_presets;
 	wxString selected_str = "";
-    for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++ i) {
+	if (!this->filaments().front().is_visible)
+		ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
+	for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++i) {
         const Preset &preset    = this->filaments.preset(i);
         bool          selected  = this->filament_presets[idx_extruder] == preset.name;
 		if (! preset.is_visible || (! preset.is_compatible && ! selected))
@@ -1093,14 +1098,11 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
                 bmps.emplace_back(m_bitmapCache->mksolid(8,  16, rgb));
             }
             // Paint a lock at the system presets.
-            bmps.emplace_back(m_bitmapCache->mkclear(4, 16));
-            bmps.emplace_back((preset.is_system || preset.is_default) ? 
-                (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
+            bmps.emplace_back(m_bitmapCache->mkclear(2, 16));
+			bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(16, 16));
+//                 (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
-// 		ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), (bitmap == 0) ? wxNullBitmap : *bitmap);
-//         if (selected)
-//             ui->SetSelection(ui->GetCount() - 1);
 
 		if (preset.is_default || preset.is_system){
 			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
@@ -1111,19 +1113,19 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
 		else
 		{
 			nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
-				(bitmap == 0) ? wxNullBitmap : *bitmap);
+				(bitmap == 0) ? &wxNullBitmap : bitmap);
 			if (selected)
 				selected_str = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
 		}
 		if (preset.is_default)
-			ui->Append("------------------------------------", wxNullBitmap);
+			ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
     }
 
 	if (!nonsys_presets.empty())
 	{
-		ui->Append("------------------------------------", wxNullBitmap);
-		for (std::map<wxString, wxBitmap>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-			ui->Append(it->first, it->second);
+		ui->Append("-------  " + _(L("User presets")) + "  -------", wxNullBitmap);
+		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+			ui->Append(it->first, *it->second);
 			if (it->first == selected_str)
 				ui->SetSelection(ui->GetCount() - 1);
 		}

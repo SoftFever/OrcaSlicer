@@ -4,6 +4,8 @@
 #include <utility>
 #include <unordered_map>
 
+#include <boost/log/trivial.hpp>
+
 #include <wx/settings.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -205,15 +207,16 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 	ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the Slic3r %s")), ConfigWizard::name()), _(L("Welcome"))),
 	printer_picker(nullptr),
 	others_buttons(new wxPanel(parent)),
-	cbox_reset(new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles - install from scratch (a snapshot will be taken beforehand)"))))
+	cbox_reset(nullptr)
 {
-	if (wizard_p()->flag_startup && wizard_p()->flag_empty_datadir) {
+	if (wizard_p()->run_reason == ConfigWizard::RR_DATA_EMPTY) {
 		wxString::Format(_(L("Run %s")), ConfigWizard::name());
 		append_text(wxString::Format(
 			_(L("Hello, welcome to Slic3r Prusa Edition! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")),
 			ConfigWizard::name())
 		);
 	} else {
+		cbox_reset = new wxCheckBox(this, wxID_ANY, _(L("Remove user profiles - install from scratch (a snapshot will be taken beforehand)")));
 		append(cbox_reset);
 	}
 
@@ -708,7 +711,7 @@ void ConfigWizard::priv::on_custom_setup()
 	set_page(page_firmware);
 }
 
-void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, PresetUpdater *updater)
+void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater)
 {
 	const bool is_custom_setup = page_welcome->page_next() == page_firmware;
 
@@ -729,22 +732,30 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 			install_bundles.emplace_back(vendor_rsrc.second);
 		}
 
-		// If the datadir was empty don't take a snapshot (it would just be an empty snapshot)
-		const bool snapshot = !flag_empty_datadir || page_welcome->reset_user_profile();
+		// Decide whether to create snapshot based on run_reason and the reset profile checkbox
+		bool snapshot = true;
+		switch (run_reason) {
+			case ConfigWizard::RR_DATA_EMPTY:    snapshot = false; break;
+			case ConfigWizard::RR_DATA_LEGACY:   snapshot = true; break;
+			case ConfigWizard::RR_DATA_INCOMPAT: snapshot = false; break;      // In this case snapshot is done by PresetUpdater with the appropriate reason
+			case ConfigWizard::RR_USER:          snapshot = page_welcome->reset_user_profile(); break;
+		}
 		if (install_bundles.size() > 0) {
 			// Install bundles from resources.
 			updater->install_bundles_rsrc(std::move(install_bundles), snapshot);
+		} else {
+			BOOST_LOG_TRIVIAL(info) << "No bundles need to be installed from resources";
 		}
 
 		if (page_welcome->reset_user_profile()) {
+			BOOST_LOG_TRIVIAL(info) << "Resetting user profiles...";
 			preset_bundle->reset(true);
 		}
 
 		app_config->set_vendors(appconfig_vendors);
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
-		if (flag_startup)
-			app_config->reset_selections();
+		app_config->reset_selections();
 		// ^ TODO: replace with appropriate printer selection
 		preset_bundle->load_presets(*app_config);
 	} else {
@@ -759,12 +770,11 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
 // Public
 
-ConfigWizard::ConfigWizard(wxWindow *parent, bool startup, bool empty_datadir) :
+ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	wxDialog(parent, wxID_ANY, name(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
-	p->flag_startup = startup;
-	p->flag_empty_datadir = empty_datadir;
+	p->run_reason = reason;
 
 	p->load_vendors();
 	p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
@@ -821,10 +831,16 @@ ConfigWizard::ConfigWizard(wxWindow *parent, bool startup, bool empty_datadir) :
 
 ConfigWizard::~ConfigWizard() {}
 
-void ConfigWizard::run(PresetBundle *preset_bundle, PresetUpdater *updater)
+bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater)
 {
+	BOOST_LOG_TRIVIAL(info) << "Running ConfigWizard, reason: " << p->run_reason;
 	if (ShowModal() == wxID_OK) {
 		p->apply_config(GUI::get_app_config(), preset_bundle, updater);
+		BOOST_LOG_TRIVIAL(info) << "ConfigWizard applied";
+		return true;
+	} else {
+		BOOST_LOG_TRIVIAL(info) << "ConfigWizard cancelled";
+		return false;
 	}
 }
 

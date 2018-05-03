@@ -86,8 +86,9 @@ sub OnInit {
     Slic3r::GUI::set_wxapp($self);
 
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
-    $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
     Slic3r::GUI::set_app_config($self->{app_config});
+    $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
+    Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
 
     # just checking for existence of Slic3r::data_dir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
@@ -104,7 +105,11 @@ sub OnInit {
 
     $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT);
     Slic3r::GUI::set_preset_updater($self->{preset_updater});
-    eval { $self->{preset_updater}->config_update(); };
+    eval {
+        if (! $self->{preset_updater}->config_update()) {
+            exit 0;
+        }
+    };
     if ($@) {
         warn $@ . "\n";
         fatal_error(undef, $@);
@@ -120,8 +125,6 @@ sub OnInit {
         show_error(undef, $@);
     }
 
-    Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
-    
     # application frame
     print STDERR "Creating main frame...\n";
     Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);
@@ -144,8 +147,10 @@ sub OnInit {
     # On OSX the UI was not initialized correctly if the wizard was called
     # before the UI was up and running.
     $self->CallAfter(sub {
-        Slic3r::GUI::config_wizard_startup($app_conf_exists);
-        $self->{preset_updater}->slic3r_update_notify();
+        if (! Slic3r::GUI::config_wizard_startup($app_conf_exists)) {
+            # Only notify if there was not wizard so as not to bother too much ...
+            $self->{preset_updater}->slic3r_update_notify();
+        }
         $self->{preset_updater}->sync($self->{preset_bundle});
     });
 
@@ -244,7 +249,7 @@ sub catch_error {
 # static method accepting a wxWindow object as first parameter
 sub show_error {
     my ($parent, $message) = @_;
-    Wx::MessageDialog->new($parent, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
+    Slic3r::GUI::show_error_id($parent ? $parent->GetId() : 0, $message);
 }
 
 # static method accepting a wxWindow object as first parameter

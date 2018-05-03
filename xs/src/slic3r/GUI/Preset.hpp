@@ -20,6 +20,10 @@ namespace Slic3r {
 class AppConfig;
 class PresetBundle;
 
+namespace GUI {
+	class BitmapCache;
+}
+
 enum ConfigFileType
 {
     CONFIG_FILE_TYPE_UNKNOWN,
@@ -302,18 +306,18 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
     bool                        current_is_dirty() const { return ! this->current_dirty_options().empty(); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_dirty_options() const 
-        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset()); }
+    std::vector<std::string>    current_dirty_options(const bool is_printer_type = false) const
+        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset(), is_printer_type); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_different_from_parent_options() const
-        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent()); }
+    std::vector<std::string>    current_different_from_parent_options(const bool is_printer_type = false) const
+        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), is_printer_type); }
     // Compare the content of get_selected_preset() with get_selected_preset_parent() configs, return the list of keys where they equal.
 	std::vector<std::string>    system_equal_options() const;
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
-    void            update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible);
+    size_t          update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible);
     // Update the choice UI from the list of presets.
     // Only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
@@ -358,7 +362,7 @@ private:
 
     size_t update_compatible_with_printer_internal(const Preset &active_printer, bool unselect_if_incompatible);
 
-    static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference);
+    static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference, const bool is_printer_type = false);
 
     // Type of this PresetCollection: TYPE_PRINT, TYPE_FILAMENT or TYPE_PRINTER.
     Preset::Type            m_type;
@@ -383,6 +387,9 @@ private:
     wxBitmap               *m_bitmap_main_frame;
     // Path to the directory to store the config files into.
     std::string             m_dir_path;
+
+	// Caching color bitmaps for the filament combo box.
+	GUI::BitmapCache       *m_bitmap_cache = nullptr;
 
     // to access select_preset_by_name_strict()
     friend class PresetBundle;

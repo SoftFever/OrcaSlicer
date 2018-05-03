@@ -50,9 +50,11 @@
 #include "AppConfig.hpp"
 #include "ConfigSnapshotDialog.hpp"
 #include "Utils.hpp"
+#include "MsgDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
+#include "UpdateDialogs.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
@@ -187,6 +189,7 @@ PresetBundle *g_PresetBundle= nullptr;
 PresetUpdater *g_PresetUpdater = nullptr;
 wxColour    g_color_label_modified;
 wxColour    g_color_label_sys;
+wxColour    g_color_label_default;
 
 std::vector<Tab *> g_tabs_list;
 
@@ -200,11 +203,27 @@ static void init_label_colours()
 {
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	if (luma >= 128) {
-		g_color_label_modified = wxColour(253, 88, 0);
+		g_color_label_modified = wxColour(252, 77, 1);
 		g_color_label_sys = wxColour(26, 132, 57);
 	} else {
 		g_color_label_modified = wxColour(253, 111, 40);
 		g_color_label_sys = wxColour(115, 220, 103);
+	}
+	g_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+}
+
+void update_label_colours_from_appconfig()
+{
+	if (g_AppConfig->has("label_clr_sys")){
+		auto str = g_AppConfig->get("label_clr_sys");
+		if (str != "")
+			g_color_label_sys = wxColour(str);
+	}
+	
+	if (g_AppConfig->has("label_clr_modified")){
+		auto str = g_AppConfig->get("label_clr_modified");
+		if (str != "")
+			g_color_label_modified = wxColour(str);
 	}
 }
 
@@ -290,22 +309,18 @@ bool select_language(wxArrayString & names,
 
 bool load_language()
 {
-	long language;
-	if (!g_AppConfig->has("translation_language"))
-		language = wxLANGUAGE_UNKNOWN;
-	else {
-		auto str_language = g_AppConfig->get("translation_language");
-		language = str_language != "" ? stol(str_language) : wxLANGUAGE_UNKNOWN;
-	}
+	wxString language = wxEmptyString;
+	if (g_AppConfig->has("translation_language"))
+		language = g_AppConfig->get("translation_language");
 
-	if (language == wxLANGUAGE_UNKNOWN) 
+	if (language.IsEmpty()) 
 		return false;
 	wxArrayString	names;
 	wxArrayLong		identifiers;
 	get_installed_languages(names, identifiers);
 	for (size_t i = 0; i < identifiers.Count(); i++)
 	{
-		if (identifiers[i] == language)
+		if (wxLocale::GetLanguageCanonicalName(identifiers[i]) == language)
 		{
 			g_wxLocale = new wxLocale;
 			g_wxLocale->Init(identifiers[i]);
@@ -320,12 +335,11 @@ bool load_language()
 
 void save_language()
 {
-	long language = wxLANGUAGE_UNKNOWN;
-	if (g_wxLocale)	{
-		language = g_wxLocale->GetLanguage();
-	}
-	std::string str_language = std::to_string(language);
-	g_AppConfig->set("translation_language", str_language);
+	wxString language = wxEmptyString; 
+	if (g_wxLocale)	
+		language = g_wxLocale->GetCanonicalName();
+
+	g_AppConfig->set("translation_language", language.ToStdString());
 	g_AppConfig->save();
 }
 
@@ -379,18 +393,18 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
     const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 		config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots\u2026")), 	_(L("Inspect / activate configuration snapshots")));
-   	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 	_(L("Capture a configuration snapshot")));
-   	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 				_(L("Check for configuration updates")));
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 			config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+"\u2026",	_(L("Inspect / activate configuration snapshots")));
+   	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
+   	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
-   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences\u2026\tCtrl+,")), 		_(L("Application preferences")));
+   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"\u2026\tCtrl+,", 		_(L("Application preferences")));
    	local_menu->AppendSeparator();
    	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case ConfigMenuWizard:
-            config_wizard(false, false);
+            config_wizard(ConfigWizard::RR_USER);
             break;
 		case ConfigMenuTakeSnapshot:
 			// Take a configuration snapshot.
@@ -469,47 +483,31 @@ bool check_unsaved_changes()
 	return dialog->ShowModal() == wxID_YES;
 }
 
-void config_wizard_startup(bool app_config_exists)
+bool config_wizard_startup(bool app_config_exists)
 {
 	if (! app_config_exists || g_PresetBundle->has_defauls_only()) {
-		config_wizard(true, true);
+		config_wizard(ConfigWizard::RR_DATA_EMPTY);
+		return true;
 	} else if (g_AppConfig->legacy_datadir()) {
 		// Looks like user has legacy pre-vendorbundle data directory,
 		// explain what this is and run the wizard
 
-		const auto msg = _(L("Configuration update"));
-		const auto ext_msg = wxString::Format(
-			_(L(
-				"Slic3r PE now uses an updated configuration structure.\n\n"
+		MsgDataLegacy dlg;
+		dlg.ShowModal();
 
-				"So called 'System presets' have been introduced, which hold the built-in default settings for various "
-				"printers. These System presets cannot be modified, instead, users now may create their"
-				"own presets inheriting settings from one of the System presets.\n"
-				"An inheriting preset may either inherit a particular value from its parent or override it with a customized value.\n\n"
-
-				"Please proceed with the %s that follows to set up the new presets "
-				"and to choose whether to enable automatic preset updates."
-			)),
-			ConfigWizard::name()
-		);
-		wxMessageDialog dlg(NULL, msg, _(L("Configuration update")), wxOK|wxCENTRE);
-		dlg.SetExtendedMessage(ext_msg);
-		const auto res = dlg.ShowModal();
-
-		config_wizard(true, false);
+		config_wizard(ConfigWizard::RR_DATA_LEGACY);
+		return true;
 	}
+	return false;
 }
 
-void config_wizard(bool startup, bool empty_datadir)
+void config_wizard(int reason)
 {
-	if (g_wxMainFrame == nullptr)
-		throw std::runtime_error("Main frame not set");
-
     // Exit wizard if there are unsaved changes and the user cancels the action.
     if (! check_unsaved_changes())
     	return;
 
-	ConfigWizard wizard(g_wxMainFrame, startup, empty_datadir);
+	ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
 	wizard.run(g_PresetBundle, g_PresetUpdater);
 
     // Load the currently selected preset into the GUI, update the preset selection box.
@@ -525,6 +523,7 @@ void open_preferences_dialog(int event_preferences)
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
 {	
+	update_label_colours_from_appconfig();
 	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller));
 	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller));
 	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller));
@@ -665,33 +664,63 @@ void add_created_tab(Tab* panel)
 	g_wxTabPanel->AddPage(panel, panel->title());
 }
 
-void show_error(wxWindow* parent, const wxString& message){
-	auto msg_wingow = new wxMessageDialog(parent, message, _(L("Error")), wxOK | wxICON_ERROR);
-	msg_wingow->ShowModal();
+void show_error(wxWindow* parent, const wxString& message) {
+	ErrorDialog msg(parent, message);
+	msg.ShowModal();
+}
+
+void show_error_id(int id, const std::string& message) {
+	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
+	show_error(parent, message);
 }
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title){
-	auto msg_wingow = new wxMessageDialog(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
-	msg_wingow->ShowModal();
+	wxMessageDialog msg_wingow(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
+	msg_wingow.ShowModal();
 }
 
 void warning_catcher(wxWindow* parent, const wxString& message){
-	if (message == _(L("GLUquadricObjPtr | Attempt to free unreferenced scalar")) )
+	if (message == "GLUquadricObjPtr | " + _(L("Attempt to free unreferenced scalar")) )
 		return;
-	auto msg = new wxMessageDialog(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
-	msg->ShowModal();	
+	wxMessageDialog msg(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
+	msg.ShowModal();
 }
 
 wxApp* get_app(){
 	return g_wxApp;
 }
 
-const wxColour& get_modified_label_clr() {
+PresetBundle* get_preset_bundle()
+{
+	return g_PresetBundle;
+}
+
+const wxColour& get_label_clr_modified() {
 	return g_color_label_modified;
 }
 
-const wxColour& get_sys_label_clr() {
+const wxColour& get_label_clr_sys() {
 	return g_color_label_sys;
+}
+
+void set_label_clr_modified(const wxColour& clr) {
+	g_color_label_modified = clr;
+	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
+	std::string str = clr_str.ToStdString();
+	g_AppConfig->set("label_clr_modified", str);
+	g_AppConfig->save();
+}
+
+void set_label_clr_sys(const wxColour& clr) {
+	g_color_label_sys = clr;
+	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
+	std::string str = clr_str.ToStdString();
+	g_AppConfig->set("label_clr_sys", str);
+	g_AppConfig->save();
+}
+
+const wxColour& get_label_clr_default() {
+	return g_color_label_default;
 }
 
 unsigned get_colour_approx_luma(const wxColour &colour)
@@ -780,8 +809,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 {
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
-	const wxArrayInt& ar = preset_sizer->GetColWidths();
-	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front();
+//	const wxArrayInt& ar = preset_sizer->GetColWidths();
+// 	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front(); // doesn't work
 	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
@@ -835,10 +864,9 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		tab_print->update_dirty();
 	};
 
-	const int width = 250;
 	Option option = m_optgroup->get_option("fill_density");
 	option.opt.sidetext = "";
-	option.opt.width = width;
+	option.opt.full_width = true;
 	m_optgroup->append_single_option_line(option);
 
 	ConfigOptionDef def;
@@ -857,7 +885,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		"Everywhere";
 	def.default_value = new ConfigOptionStrings { selection };
 	option = Option(def, "support");
-	option.opt.width = width;
+	option.opt.full_width = true;
 	m_optgroup->append_single_option_line(option);
 
 	m_brim_width = config->opt_float("brim_width");
@@ -870,7 +898,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	m_optgroup->append_single_option_line(option);
 
 
-    Line line = { _(L("")), "" };
+    Line line = { "", "" };
         line.widget = [config](wxWindow* parent){
 			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -896,7 +924,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
 
 
-	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxBottom, 1);
+	sizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
 }
 
 ConfigOptionsGroup* get_optgroup()
@@ -915,6 +943,7 @@ wxWindow* export_option_creator(wxWindow* parent)
     wxPanel* panel = new wxPanel(parent, -1);
     wxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     wxCheckBox* cbox = new wxCheckBox(panel, wxID_HIGHEST + 1, L("Export print config"));
+    cbox->SetValue(true);
     sizer->AddSpacer(5);
     sizer->Add(cbox, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
     panel->SetSizer(sizer);
