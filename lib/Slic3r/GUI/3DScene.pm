@@ -908,6 +908,9 @@ sub deselect_volumes {
 
 sub select_volume {
     my ($self, $volume_idx) = @_;
+
+    return if ($volume_idx >= scalar(@{$self->volumes}));
+
     $self->volumes->[$volume_idx]->set_selected(1)
         if $volume_idx != -1;
 }
