@@ -84,6 +84,21 @@ inline T next_highest_power_of_2(T v)
     return ++ v;
 }
 
+class PerlCallback {
+public:
+    PerlCallback(void *sv) : m_callback(nullptr) { this->register_callback(sv); }
+    PerlCallback() : m_callback(nullptr) {}
+    ~PerlCallback() { this->deregister_callback(); }
+    void register_callback(void *sv);
+    void deregister_callback();
+    void call();
+    void call(int i);
+    void call(int i, int j);
+//    void call(const std::vector<int> &ints);
+private:
+    void *m_callback;
+};
+
 } // namespace Slic3r
 
 #endif // slic3r_Utils_hpp_
