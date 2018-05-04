@@ -1,7 +1,6 @@
 #include "GUI.hpp"
 #include "WipeTowerDialog.hpp"
 
-#include <iostream>   // XXX
 #include <assert.h>
 #include <cmath>
 
@@ -56,11 +55,11 @@
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
 #include "UpdateDialogs.hpp"
+#include "FirmwareDialog.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
 
-#include "avrdude/avrdude-slic3r.hpp"    // XXX: TMP!
 
 namespace Slic3r { namespace GUI {
 
@@ -254,27 +253,6 @@ void set_app_config(AppConfig *app_config)
 void set_preset_bundle(PresetBundle *preset_bundle)
 {
 	g_PresetBundle = preset_bundle;
-
-	auto res = AvrDude::main({{
-			// "-h",
-			"-v",
-			"-p",
-			"atmega2560",
-			"-c",
-			"wiring",
-			"-P",
-			"COM1",
-			"-b115200",
-			"-D",
-			"-U",
-			"flash:w:c:\\local\\prusa3d_fw-3.2.0-RC2.534-1_75mm_MK3-EINSy10a-E3Dv6full.hex:i",
-		}},
-		"c:\\local\\Slic3r\\resources\\avrdude\\avrdude.conf", std::cerr
-	);   // XXX: tmp
-
-	std::cerr << "AvrDude::main: " << res << std::endl;
-
-	exit(0);
 }
 
 void set_preset_updater(PresetUpdater *updater)
@@ -483,6 +461,42 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 		}
 	});
 	menu->Append(local_menu, _(L("&Configuration")));
+}
+
+enum FirmwareMenuIDs {
+	FirmwareMenuFlash,
+	FirmwareMenuDict,
+	FirmwareMenuCnt,
+};
+
+void add_firmware_menu(wxMenuBar *top_menu)
+{
+	auto *menu = new wxMenu();
+	wxWindowID id_base = wxWindow::NewControlId(FirmwareMenuCnt);
+
+	menu->Append(id_base + FirmwareMenuFlash, _(L("Flash printer firmware")), _(L("Upload a firmware image into a Prusa printer")));
+	menu->Append(id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
+
+	menu->Bind(wxEVT_MENU, [id_base](wxEvent &event) {
+		switch (event.GetId() - id_base) {
+		case FirmwareMenuFlash:
+			FirmwareDialog::run(g_wxMainFrame);
+			break;
+		case FirmwareMenuDict:
+			// TODO
+			break;
+		default:
+			break;
+		}
+	});
+
+	top_menu->Append(menu, _(L("Fir&mware")));
+}
+
+void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
+{
+	add_config_menu(menu, event_language_change, event_language_change);
+	add_firmware_menu(menu);
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard

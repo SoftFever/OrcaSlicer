@@ -226,6 +226,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/MsgDialog.hpp
     ${LIBDIR}/slic3r/GUI/UpdateDialogs.cpp
     ${LIBDIR}/slic3r/GUI/UpdateDialogs.hpp
+    ${LIBDIR}/slic3r/GUI/FirmwareDialog.cpp
+    ${LIBDIR}/slic3r/GUI/FirmwareDialog.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp

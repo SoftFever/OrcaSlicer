@@ -36,8 +36,8 @@ void set_main_frame(SV *ui)
 void set_tab_panel(SV *ui)
     %code%{ Slic3r::GUI::set_tab_panel((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook")); %};
 
-void add_config_menu(SV *ui, int event_preferences_changed, int event_language_change)    
-    %code%{ Slic3r::GUI::add_config_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_preferences_changed, event_language_change); %};
+void add_menus(SV *ui, int event_preferences_changed, int event_language_change)    
+    %code%{ Slic3r::GUI::add_menus((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_preferences_changed, event_language_change); %};
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
     %code%{ Slic3r::GUI::create_preset_tabs(no_controller, event_value_change, event_presets_changed); %};

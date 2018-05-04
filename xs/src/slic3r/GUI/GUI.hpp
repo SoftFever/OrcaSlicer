@@ -91,7 +91,7 @@ unsigned get_colour_approx_luma(const wxColour &colour);
 void set_label_clr_modified(const wxColour& clr);
 void set_label_clr_sys(const wxColour& clr);
 
-extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
+extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
