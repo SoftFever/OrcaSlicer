@@ -536,7 +536,7 @@ float CoolingBuffer::calculate_layer_slowdown(std::vector<PerExtruderAdjustments
         adj.time_total  = adj.elapsed_time_total();
         // Maximum time for this extruder, when all extrusion moves are slowed down to min_extrusion_speed.
         adj.time_maximum = adj.maximum_time_after_slowdown(true);
-        if (adj.cooling_slow_down_enabled) {
+        if (adj.cooling_slow_down_enabled && adj.lines.size() > 0) {
             by_slowdown_time.emplace_back(&adj);
             if (! m_cooling_logic_proportional)
                 // sorts the lines, also sets adj.time_non_adjustable

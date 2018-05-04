@@ -195,15 +195,6 @@ SV* to_SV(TriangleMesh* THIS);
 
 }
 
-#ifdef SLIC3R_HAS_BROKEN_CROAK
-#undef croak
-#ifdef _MSC_VER
-    #define croak(...) confess_at(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#else
-    #define croak(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#endif
-#endif
-
 // Defined in wxPerlIface.cpp
 // Return a pointer to the associated wxWidgets object instance given by classname.
 extern void* wxPli_sv_2_object( pTHX_ SV* scalar, const char* classname );
