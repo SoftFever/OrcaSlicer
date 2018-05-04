@@ -72,7 +72,7 @@ sub new {
     });
     
     # Initialize preview notebook
-    $self->{preview_notebook} = Wx::Notebook->new($self, -1, wxDefaultPosition, [335,335], wxNB_BOTTOM);
+    $self->{preview_notebook} = Wx::Notebook->new($self, -1, wxDefaultPosition, [-1,335], wxNB_BOTTOM);
     
     # Initialize handlers for canvases
     my $on_select_object = sub {
@@ -485,6 +485,7 @@ sub new {
         $buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
         
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $right_sizer->SetMinSize([-1, 600]);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
         $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
@@ -522,6 +523,7 @@ sub new {
     }
 
     $self->update_ui_from_settings();
+    $self->Layout;
     
     return $self;
 }

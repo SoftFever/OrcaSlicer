@@ -812,6 +812,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	// Experiments with new UI
 	wxCollapsiblePane *collpane = new wxCollapsiblePane(parent, wxID_ANY, "Print settings:");
 	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, collpane](wxCommandEvent e){
+		wxWindowUpdateLocker noUpdates_cp(collpane);
 		wxWindowUpdateLocker noUpdates(parent);
   		parent->Layout();
 		collpane->Refresh();
@@ -942,9 +943,142 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		};
 		m_optgroup->append_line(line);
 
+	auto common_sizer = new wxBoxSizer(wxVERTICAL);
+	common_sizer->Add(m_optgroup->sizer);
+
+// 	auto listctrl = new wxDataViewListCtrl(win, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));
+// 	listctrl->AppendToggleColumn("Toggle");
+// 	listctrl->AppendTextColumn("Text");
+// 	wxVector<wxVariant> data;
+// 	data.push_back(wxVariant(true));
+// 	data.push_back(wxVariant("row 1"));
+// 	listctrl->AppendItem(data);
+// 	data.clear();
+// 	data.push_back(wxVariant(false));
+// 	data.push_back(wxVariant("row 3"));
+// 	listctrl->AppendItem(data);
+// 	data.clear();
+// 	data.push_back(wxVariant(false));
+// 	data.push_back(wxVariant("row 2"));
+// 	listctrl->AppendItem(data);
+// 	common_sizer->Add(listctrl, 0, wxEXPAND | wxALL, 1);
+
+	// **********************************************************************************************
+	auto objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	wxSizer *objects_sz = new wxBoxSizer(wxVERTICAL);
+	objects_ctrl->SetMinSize(wxSize(-1, 200));
+	objects_sz->Add(objects_ctrl, 1, wxGROW | wxALL, 5);
+
+	auto objects_model = new MyObjectTreeModel;
+	objects_ctrl->AssociateModel(objects_model);
+#if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
+	objects_ctrl->EnableDragSource(wxDF_UNICODETEXT);
+	objects_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
+#endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
+
+	// column 0 of the view control:
+
+	wxDataViewTextRenderer *tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+	wxDataViewColumn *column00 = new wxDataViewColumn("Name", tr, 0, 150, wxALIGN_LEFT,
+		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+	objects_ctrl->AppendColumn(column00);
+
+	// column 1 of the view control:
+
+	tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+	wxDataViewColumn *column01 = new wxDataViewColumn("Copy", tr, 1, 95, wxALIGN_CENTER_HORIZONTAL,
+		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+	objects_ctrl->AppendColumn(column01);
+
+	// column 2 of the view control:
+
+	tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+	wxDataViewColumn *column02 = new wxDataViewColumn("Scale", tr, 2, 95, wxALIGN_CENTER_HORIZONTAL,
+		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+	objects_ctrl->AppendColumn(column02);
+
+	common_sizer->Add(objects_sz, 0, wxEXPAND | wxALL, 1);
+
+	// **********************************************************************************************
+/*	auto view_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	wxSizer *PanelSz = new wxBoxSizer(wxVERTICAL);
+	view_ctrl->SetMinSize(wxSize(-1, 200));
+	PanelSz->Add(view_ctrl, 1, wxGROW | wxALL, 5);
+	PanelSz->Add( new wxStaticText(win, wxID_ANY, "Most of the cells above are editable!"), 0, wxGROW | wxALL, 5);
+	
+	auto m_music_model = new MyMusicTreeModel;
+	view_ctrl->AssociateModel(m_music_model);
+
+#if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
+	view_ctrl->EnableDragSource(wxDF_UNICODETEXT);
+	view_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
+#endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
+
+	// column 0 of the view control:
+
+	tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+	wxDataViewColumn *column0 =
+		new wxDataViewColumn("title", tr, 0, 150, wxALIGN_LEFT,
+		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+	view_ctrl->AppendColumn(column0);
+#if 0
+	// Call this and sorting is enabled
+	// immediately upon start up.
+	column0->SetAsSortKey();
+#endif
+
+	// column 1 of the view control:
+
+	tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_EDITABLE);
+	wxDataViewColumn *column1 =
+		new wxDataViewColumn("artist", tr, 1, 150, wxALIGN_LEFT,
+		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_REORDERABLE |
+		wxDATAVIEW_COL_RESIZABLE);
+	column1->SetMinWidth(100); // this column can't be resized to be smaller
+	view_ctrl->AppendColumn(column1);
+
+	// column 2 of the view control:
+
+	wxDataViewSpinRenderer *sr =
+		new wxDataViewSpinRenderer(0, 2010, wxDATAVIEW_CELL_EDITABLE,
+		wxALIGN_RIGHT | wxALIGN_CENTRE_VERTICAL);
+	wxDataViewColumn *column2 =
+		new wxDataViewColumn("year", sr, 2, 60, wxALIGN_LEFT,
+		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_REORDERABLE);
+	view_ctrl->AppendColumn(column2);
+
+	// column 3 of the view control:
+
+	wxArrayString choices;
+	choices.Add("good");
+	choices.Add("bad");
+	choices.Add("lousy");
+	wxDataViewChoiceRenderer *c =
+		new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE,
+		wxALIGN_RIGHT | wxALIGN_CENTRE_VERTICAL);
+	wxDataViewColumn *column3 =
+		new wxDataViewColumn("rating", c, 3, 100, wxALIGN_LEFT,
+		wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE);
+	view_ctrl->AppendColumn(column3);
+
+	// column 4 of the view control:
+
+	view_ctrl->AppendProgressColumn("popularity", 4, wxDATAVIEW_CELL_INERT, 80);
+
+	// column 5 of the view control:
+
+	MyCustomRenderer *cr = new MyCustomRenderer(wxDATAVIEW_CELL_ACTIVATABLE);
+	wxDataViewColumn *column5 =
+		new wxDataViewColumn("custom", cr, 5, -1, wxALIGN_LEFT,
+		wxDATAVIEW_COL_RESIZABLE);
+	view_ctrl->AppendColumn(column5);
+
+	// **********************************************************************************************
+	common_sizer->Add(PanelSz, 0, wxEXPAND | wxALL, 1);
+*/
 
 	wxSizer *paneSz = new wxBoxSizer(wxVERTICAL);
-	paneSz->Add(m_optgroup->sizer, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
+	paneSz->Add(common_sizer/*m_optgroup->sizer*/, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
 	win->SetSizer(paneSz);
 	paneSz->SetSizeHints(win);
 }
