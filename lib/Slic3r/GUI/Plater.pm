@@ -1810,6 +1810,7 @@ sub list_item_deselected {
         $self->select_object(undef);
         $self->{canvas}->Refresh;
         $self->{canvas3D}->deselect_volumes if $self->{canvas3D};
+        $self->{canvas3D}->Render if $self->{canvas3D};
     }
     undef $self->{_lecursor};
 }
@@ -1822,6 +1823,7 @@ sub list_item_selected {
     $self->select_object($obj_idx);
     $self->{canvas}->Refresh;
     $self->{canvas3D}->update_volumes_selection if $self->{canvas3D};
+    $self->{canvas3D}->Render if $self->{canvas3D};
     undef $self->{_lecursor};
 }
 
