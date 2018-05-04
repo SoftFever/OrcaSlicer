@@ -43,25 +43,31 @@ int avrdude_main(int argc, char * argv [], const char *sys_config);
 
 #if defined(WIN32NATIVE)
 
-#include "ac_cfg.h"
+// #include "ac_cfg.h"
+
 #include <windows.h>
+#include <unistd.h>
 
-#ifdef __cplusplus
-extern "C" {
+#ifdef UNICODE
+#error "UNICODE should not be defined for avrdude bits on Windows"
 #endif
 
-#if !defined(HAVE_USLEEP)
-int usleep(unsigned int us);
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 
-#if !defined(HAVE_GETTIMEOFDAY)
-struct timezone;
-int gettimeofday(struct timeval *tv, struct timezone *tz);
-#endif /* HAVE_GETTIMEOFDAY */
+// #if !defined(HAVE_USLEEP)
+// int usleep(unsigned int us);
+// #endif
 
-#ifdef __cplusplus
-}
-#endif
+// #if !defined(HAVE_GETTIMEOFDAY)
+// struct timezone;
+// int gettimeofday(struct timeval *tv, struct timezone *tz);
+// #endif /* HAVE_GETTIMEOFDAY */
+
+// #ifdef __cplusplus
+// }
+// #endif
 #endif /* defined(WIN32NATIVE) */
 
 #endif

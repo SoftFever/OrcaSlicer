@@ -331,59 +331,8 @@ add_library(semver STATIC
     ${LIBDIR}/semver/semver.c
 )
 
-add_library(avrdude STATIC
-    ${LIBDIR}/avrdude/arduino.c
-    ${LIBDIR}/avrdude/avr.c
-    # ${LIBDIR}/avrdude/avrftdi.c
-    # ${LIBDIR}/avrdude/avrftdi_tpi.c
-    ${LIBDIR}/avrdude/avrpart.c
-    ${LIBDIR}/avrdude/avr910.c
-    ${LIBDIR}/avrdude/bitbang.c
-    ${LIBDIR}/avrdude/buspirate.c
-    ${LIBDIR}/avrdude/butterfly.c
-    ${LIBDIR}/avrdude/config.c
-    ${LIBDIR}/avrdude/config_gram.c
-    ${LIBDIR}/avrdude/confwin.c
-    ${LIBDIR}/avrdude/crc16.c
-    # ${LIBDIR}/avrdude/dfu.c
-    ${LIBDIR}/avrdude/fileio.c
-    # ${LIBDIR}/avrdude/flip1.c
-    # ${LIBDIR}/avrdude/flip2.c
-    # ${LIBDIR}/avrdude/ft245r.c
-    # ${LIBDIR}/avrdude/jtagmkI.c
-    # ${LIBDIR}/avrdude/jtagmkII.c
-    # ${LIBDIR}/avrdude/jtag3.c
-    ${LIBDIR}/avrdude/lexer.c
-    ${LIBDIR}/avrdude/linuxgpio.c
-    ${LIBDIR}/avrdude/lists.c
-    ${LIBDIR}/avrdude/par.c
-    ${LIBDIR}/avrdude/pgm.c
-    ${LIBDIR}/avrdude/pgm_type.c
-    ${LIBDIR}/avrdude/pickit2.c
-    ${LIBDIR}/avrdude/pindefs.c
-    ${LIBDIR}/avrdude/ppi.c
-    ${LIBDIR}/avrdude/ppiwin.c
-    ${LIBDIR}/avrdude/safemode.c
-    ${LIBDIR}/avrdude/ser_avrdoper.c
-    ${LIBDIR}/avrdude/serbb_posix.c
-    ${LIBDIR}/avrdude/serbb_win32.c
-    ${LIBDIR}/avrdude/ser_posix.c
-    ${LIBDIR}/avrdude/ser_win32.c
-    ${LIBDIR}/avrdude/stk500.c
-    ${LIBDIR}/avrdude/stk500generic.c
-    ${LIBDIR}/avrdude/stk500v2.c
-    ${LIBDIR}/avrdude/term.c
-    ${LIBDIR}/avrdude/update.c
-    # ${LIBDIR}/avrdude/usbasp.c
-    # ${LIBDIR}/avrdude/usb_hidapi.c
-    # ${LIBDIR}/avrdude/usb_libusb.c
-    # ${LIBDIR}/avrdude/usbtiny.c
-    ${LIBDIR}/avrdude/wiring.c
 
-    ${LIBDIR}/avrdude/main.c
-    ${LIBDIR}/avrdude/avrdude-slic3r.hpp
-    ${LIBDIR}/avrdude/avrdude-slic3r.cpp
-)
+add_subdirectory(src/avrdude)
 
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)

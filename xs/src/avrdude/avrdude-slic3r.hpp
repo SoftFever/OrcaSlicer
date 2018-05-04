@@ -8,7 +8,7 @@
 namespace Slic3r {
 
 namespace AvrDude {
-	int main(std::vector<std::string> args, std::string sys_config, std::ostream &stderr);
+	int main(std::vector<std::string> args, std::string sys_config, std::ostream &os);
 }
 
 }

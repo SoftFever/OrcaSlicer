@@ -255,7 +255,26 @@ void set_preset_bundle(PresetBundle *preset_bundle)
 {
 	g_PresetBundle = preset_bundle;
 
-	AvrDude::main({{ "-h" }}, "/tmp/", std::cerr);   // XXX: tmp
+	auto res = AvrDude::main({{
+			// "-h",
+			"-v",
+			"-p",
+			"atmega2560",
+			"-c",
+			"wiring",
+			"-P",
+			"COM1",
+			"-b115200",
+			"-D",
+			"-U",
+			"flash:w:c:\\local\\prusa3d_fw-3.2.0-RC2.534-1_75mm_MK3-EINSy10a-E3Dv6full.hex:i",
+		}},
+		"c:\\local\\Slic3r\\resources\\avrdude\\avrdude.conf", std::cerr
+	);   // XXX: tmp
+
+	std::cerr << "AvrDude::main: " << res << std::endl;
+
+	exit(0);
 }
 
 void set_preset_updater(PresetUpdater *updater)

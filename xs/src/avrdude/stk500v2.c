@@ -44,8 +44,11 @@
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
-#include <sys/time.h>
 #include <time.h>
+
+#if !defined(WIN32NATIVE)
+#  include <sys/time.h>
+#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -303,48 +306,48 @@ void stk500v2_setup(PROGRAMMER * pgm)
 
 static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
 {
-  void *mycookie, *theircookie;
+  // void *mycookie, *theircookie;
 
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: stk500v2_setup(): Out of memory allocating private data\n",
-                    progname);
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
-  PDATA(pgm)->command_sequence = 1;
+  // if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_setup(): Out of memory allocating private data\n",
+  //                   progname);
+  //   exit(1);
+  // }
+  // memset(pgm->cookie, 0, sizeof(struct pdata));
+  // PDATA(pgm)->command_sequence = 1;
 
-  /*
-   * Now, have the JTAG ICE mkII backend allocate its own private
-   * data.  Store our own cookie in a safe place for the time being.
-   */
-  mycookie = pgm->cookie;
-  jtagmkII_setup(pgm);
-  theircookie = pgm->cookie;
-  pgm->cookie = mycookie;
-  PDATA(pgm)->chained_pdata = theircookie;
+  // /*
+  //  * Now, have the JTAG ICE mkII backend allocate its own private
+  //  * data.  Store our own cookie in a safe place for the time being.
+  //  */
+  // mycookie = pgm->cookie;
+  // jtagmkII_setup(pgm);
+  // theircookie = pgm->cookie;
+  // pgm->cookie = mycookie;
+  // PDATA(pgm)->chained_pdata = theircookie;
 }
 
 static void stk500v2_jtag3_setup(PROGRAMMER * pgm)
 {
-  void *mycookie, *theircookie;
+  // void *mycookie, *theircookie;
 
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: stk500v2_setup(): Out of memory allocating private data\n",
-                    progname);
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
-  PDATA(pgm)->command_sequence = 1;
+  // if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_setup(): Out of memory allocating private data\n",
+  //                   progname);
+  //   exit(1);
+  // }
+  // memset(pgm->cookie, 0, sizeof(struct pdata));
+  // PDATA(pgm)->command_sequence = 1;
 
-  /*
-   * Now, have the JTAGICE3 backend allocate its own private
-   * data.  Store our own cookie in a safe place for the time being.
-   */
-  mycookie = pgm->cookie;
-  jtag3_setup(pgm);
-  theircookie = pgm->cookie;
-  pgm->cookie = mycookie;
-  PDATA(pgm)->chained_pdata = theircookie;
+  // /*
+  //  * Now, have the JTAGICE3 backend allocate its own private
+  //  * data.  Store our own cookie in a safe place for the time being.
+  //  */
+  // mycookie = pgm->cookie;
+  // jtag3_setup(pgm);
+  // theircookie = pgm->cookie;
+  // pgm->cookie = mycookie;
+  // PDATA(pgm)->chained_pdata = theircookie;
 }
 
 void stk500v2_teardown(PROGRAMMER * pgm)
@@ -354,24 +357,24 @@ void stk500v2_teardown(PROGRAMMER * pgm)
 
 static void stk500v2_jtagmkII_teardown(PROGRAMMER * pgm)
 {
-  void *mycookie;
+  // void *mycookie;
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  jtagmkII_teardown(pgm);
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // jtagmkII_teardown(pgm);
 
-  free(mycookie);
+  // free(mycookie);
 }
 
 static void stk500v2_jtag3_teardown(PROGRAMMER * pgm)
 {
-  void *mycookie;
+  // void *mycookie;
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  jtag3_teardown(pgm);
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // jtag3_teardown(pgm);
 
-  free(mycookie);
+  // free(mycookie);
 }
 
 
@@ -414,48 +417,49 @@ static unsigned short get_jtagisp_return_size(unsigned char cmd)
  */
 static int stk500v2_jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
-  unsigned char *cmdbuf;
-  int rv;
-  unsigned short sz;
-  void *mycookie;
+  return -1;
+  // unsigned char *cmdbuf;
+  // int rv;
+  // unsigned short sz;
+  // void *mycookie;
 
-  sz = get_jtagisp_return_size(data[0]);
-  if (sz == 0) {
-    avrdude_message(MSG_INFO, "%s: unsupported encapsulated ISP command: %#x\n",
-	    progname, data[0]);
-    return -1;
-  }
-  if (sz == SZ_READ_FLASH_EE) {
-    /*
-     * For CMND_READ_FLASH_ISP and CMND_READ_EEPROM_ISP, extract the
-     * size of the return data from the request.  Note that the
-     * request itself has the size in big endian format, while we are
-     * supposed to deliver it in little endian.
-     */
-    sz = 3 + (data[1] << 8) + data[2];
-  } else if (sz == SZ_SPI_MULTI) {
-    /*
-     * CMND_SPI_MULTI has the Rx size encoded in its 3rd byte.
-     */
-    sz = 3 + data[2];
-  }
+  // sz = get_jtagisp_return_size(data[0]);
+  // if (sz == 0) {
+  //   avrdude_message(MSG_INFO, "%s: unsupported encapsulated ISP command: %#x\n",
+	 //    progname, data[0]);
+  //   return -1;
+  // }
+  // if (sz == SZ_READ_FLASH_EE) {
+  //   /*
+  //    * For CMND_READ_FLASH_ISP and CMND_READ_EEPROM_ISP, extract the
+  //    * size of the return data from the request.  Note that the
+  //    * request itself has the size in big endian format, while we are
+  //    * supposed to deliver it in little endian.
+  //    */
+  //   sz = 3 + (data[1] << 8) + data[2];
+  // } else if (sz == SZ_SPI_MULTI) {
+  //   /*
+  //    * CMND_SPI_MULTI has the Rx size encoded in its 3rd byte.
+  //    */
+  //   sz = 3 + data[2];
+  // }
 
-  if ((cmdbuf = malloc(len + 3)) == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory for command packet\n",
-            progname);
-    exit(1);
-  }
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  cmdbuf[0] = CMND_ISP_PACKET;
-  cmdbuf[1] = sz & 0xff;
-  cmdbuf[2] = (sz >> 8) & 0xff;
-  memcpy(cmdbuf + 3, data, len);
-  rv = jtagmkII_send(pgm, cmdbuf, len + 3);
-  free(cmdbuf);
-  pgm->cookie = mycookie;
+  // if ((cmdbuf = malloc(len + 3)) == NULL) {
+  //   avrdude_message(MSG_INFO, "%s: out of memory for command packet\n",
+  //           progname);
+  //   exit(1);
+  // }
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // cmdbuf[0] = CMND_ISP_PACKET;
+  // cmdbuf[1] = sz & 0xff;
+  // cmdbuf[2] = (sz >> 8) & 0xff;
+  // memcpy(cmdbuf + 3, data, len);
+  // rv = jtagmkII_send(pgm, cmdbuf, len + 3);
+  // free(cmdbuf);
+  // pgm->cookie = mycookie;
 
-  return rv;
+  // return rv;
 }
 
 /*
@@ -463,24 +467,25 @@ static int stk500v2_jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t
  */
 static int stk500v2_jtag3_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
-  unsigned char *cmdbuf;
-  int rv;
-  void *mycookie;
+  return -1;
+  // unsigned char *cmdbuf;
+  // int rv;
+  // void *mycookie;
 
-  if ((cmdbuf = malloc(len + 1)) == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory for command packet\n",
-            progname);
-    exit(1);
-  }
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  cmdbuf[0] = SCOPE_AVR_ISP;
-  memcpy(cmdbuf + 1, data, len);
-  rv = jtag3_send(pgm, cmdbuf, len + 1);
-  free(cmdbuf);
-  pgm->cookie = mycookie;
+  // if ((cmdbuf = malloc(len + 1)) == NULL) {
+  //   avrdude_message(MSG_INFO, "%s: out of memory for command packet\n",
+  //           progname);
+  //   exit(1);
+  // }
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // cmdbuf[0] = SCOPE_AVR_ISP;
+  // memcpy(cmdbuf + 1, data, len);
+  // rv = jtag3_send(pgm, cmdbuf, len + 1);
+  // free(cmdbuf);
+  // pgm->cookie = mycookie;
 
-  return rv;
+  // return rv;
 }
 
 static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
@@ -543,78 +548,80 @@ static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char *msg,
 static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char *msg,
                                   size_t maxsize)
 {
-  int rv;
-  unsigned char *jtagmsg;
-  void *mycookie;
+  return -1;
+  // int rv;
+  // unsigned char *jtagmsg;
+  // void *mycookie;
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  rv = jtagmkII_recv(pgm, &jtagmsg);
-  pgm->cookie = mycookie;
-  if (rv <= 0) {
-    avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): error in jtagmkII_recv()\n",
-            progname);
-    return -1;
-  }
-  if (rv - 1 > maxsize) {
-    avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): got %u bytes, have only room for %u bytes\n",
-                    progname, (unsigned)rv - 1, (unsigned)maxsize);
-    rv = maxsize;
-  }
-  switch (jtagmsg[0]) {
-  case RSP_SPI_DATA:
-    break;
-  case RSP_FAILED:
-    avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): failed\n",
-	    progname);
-    return -1;
-  case RSP_ILLEGAL_MCU_STATE:
-    avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): illegal MCU state\n",
-	    progname);
-    return -1;
-  default:
-    avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): unknown status %d\n",
-	    progname, jtagmsg[0]);
-    return -1;
-  }
-  memcpy(msg, jtagmsg + 1, rv - 1);
-  return rv;
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // rv = jtagmkII_recv(pgm, &jtagmsg);
+  // pgm->cookie = mycookie;
+  // if (rv <= 0) {
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): error in jtagmkII_recv()\n",
+  //           progname);
+  //   return -1;
+  // }
+  // if (rv - 1 > maxsize) {
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): got %u bytes, have only room for %u bytes\n",
+  //                   progname, (unsigned)rv - 1, (unsigned)maxsize);
+  //   rv = maxsize;
+  // }
+  // switch (jtagmsg[0]) {
+  // case RSP_SPI_DATA:
+  //   break;
+  // case RSP_FAILED:
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): failed\n",
+	 //    progname);
+  //   return -1;
+  // case RSP_ILLEGAL_MCU_STATE:
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): illegal MCU state\n",
+	 //    progname);
+  //   return -1;
+  // default:
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): unknown status %d\n",
+	 //    progname, jtagmsg[0]);
+  //   return -1;
+  // }
+  // memcpy(msg, jtagmsg + 1, rv - 1);
+  // return rv;
 }
 
 static int stk500v2_jtag3_recv(PROGRAMMER * pgm, unsigned char *msg,
 			       size_t maxsize)
 {
-  int rv;
-  unsigned char *jtagmsg;
-  void *mycookie;
+  return -1;
+  // int rv;
+  // unsigned char *jtagmsg;
+  // void *mycookie;
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  rv = jtag3_recv(pgm, &jtagmsg);
-  pgm->cookie = mycookie;
-  if (rv <= 0) {
-    avrdude_message(MSG_INFO, "%s: stk500v2_jtag3_recv(): error in jtagmkII_recv()\n",
-            progname);
-    return -1;
-  }
-  /* Getting more data than expected is a normal case for the EDBG
-     implementation of JTAGICE3, as they always request a full 512
-     octets from the ICE.  Thus, only complain at high verbose
-     levels. */
-  if (rv - 1 > maxsize) {
-    avrdude_message(MSG_DEBUG, "%s: stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n",
-                      progname, (unsigned)rv - 1, (unsigned)maxsize);
-    rv = maxsize;
-  }
-  if (jtagmsg[0] != SCOPE_AVR_ISP) {
-    avrdude_message(MSG_INFO, "%s: stk500v2_jtag3_recv(): message is not AVR ISP: 0x%02x\n",
-                    progname, jtagmsg[0]);
-    free(jtagmsg);
-    return -1;
-  }
-  memcpy(msg, jtagmsg + 1, rv - 1);
-  free(jtagmsg);
-  return rv;
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // rv = jtag3_recv(pgm, &jtagmsg);
+  // pgm->cookie = mycookie;
+  // if (rv <= 0) {
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_jtag3_recv(): error in jtagmkII_recv()\n",
+  //           progname);
+  //   return -1;
+  // }
+  // /* Getting more data than expected is a normal case for the EDBG
+  //    implementation of JTAGICE3, as they always request a full 512
+  //    octets from the ICE.  Thus, only complain at high verbose
+  //    levels. */
+  // if (rv - 1 > maxsize) {
+  //   avrdude_message(MSG_DEBUG, "%s: stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n",
+  //                     progname, (unsigned)rv - 1, (unsigned)maxsize);
+  //   rv = maxsize;
+  // }
+  // if (jtagmsg[0] != SCOPE_AVR_ISP) {
+  //   avrdude_message(MSG_INFO, "%s: stk500v2_jtag3_recv(): message is not AVR ISP: 0x%02x\n",
+  //                   progname, jtagmsg[0]);
+  //   free(jtagmsg);
+  //   return -1;
+  // }
+  // memcpy(msg, jtagmsg + 1, rv - 1);
+  // free(jtagmsg);
+  // return rv;
 }
 
 static int stk500v2_recv(PROGRAMMER * pgm, unsigned char *msg, size_t maxsize) {
@@ -1147,51 +1154,52 @@ retry:
         break;
 
     case PGMTYPE_JTAGICE3:
-        if (buf[1] == STATUS_CMD_FAILED &&
-            (p->flags & AVRPART_HAS_DW) != 0) {
-            void *mycookie;
-            unsigned char cmd[4], *resp;
+        return -1;
+        // if (buf[1] == STATUS_CMD_FAILED &&
+        //     (p->flags & AVRPART_HAS_DW) != 0) {
+        //     void *mycookie;
+        //     unsigned char cmd[4], *resp;
 
-            /* Try debugWIRE, and MONCON_DISABLE */
-            avrdude_message(MSG_NOTICE2, "%s: No response in ISP mode, trying debugWIRE\n",
-                                progname);
+        //     /* Try debugWIRE, and MONCON_DISABLE */
+        //     avrdude_message(MSG_NOTICE2, "%s: No response in ISP mode, trying debugWIRE\n",
+        //                         progname);
 
-            mycookie = pgm->cookie;
-            pgm->cookie = PDATA(pgm)->chained_pdata;
+        //     mycookie = pgm->cookie;
+        //     pgm->cookie = PDATA(pgm)->chained_pdata;
 
-            cmd[0] = PARM3_CONN_DW;
-            if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, cmd, 1) < 0) {
-                pgm->cookie = mycookie;
-                break;
-            }
+        //     cmd[0] = PARM3_CONN_DW;
+        //     if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, cmd, 1) < 0) {
+        //         pgm->cookie = mycookie;
+        //         break;
+        //     }
 
-            cmd[0] = SCOPE_AVR;
+        //     cmd[0] = SCOPE_AVR;
 
-            cmd[1] = CMD3_SIGN_ON;
-            cmd[2] = cmd[3] = 0;
-            if (jtag3_command(pgm, cmd, 4, &resp, "AVR sign-on") >= 0) {
-                free(resp);
+        //     cmd[1] = CMD3_SIGN_ON;
+        //     cmd[2] = cmd[3] = 0;
+        //     if (jtag3_command(pgm, cmd, 4, &resp, "AVR sign-on") >= 0) {
+        //         free(resp);
 
-                cmd[1] = CMD3_START_DW_DEBUG;
-                if (jtag3_command(pgm, cmd, 4, &resp, "start DW debug") >= 0) {
-                    free(resp);
+        //         cmd[1] = CMD3_START_DW_DEBUG;
+        //         if (jtag3_command(pgm, cmd, 4, &resp, "start DW debug") >= 0) {
+        //             free(resp);
 
-                    cmd[1] = CMD3_MONCON_DISABLE;
-                    if (jtag3_command(pgm, cmd, 3, &resp, "MonCon disable") >= 0)
-                        free(resp);
-                }
-            }
-            pgm->cookie = mycookie;
-            if (tries++ > 3) {
-                avrdude_message(MSG_INFO, "%s: Failed to return from debugWIRE to ISP.\n",
-                                progname);
-                break;
-            }
-            avrdude_message(MSG_INFO, "%s: Target prepared for ISP, signed off.\n"
-                            "%s: Now retrying without power-cycling the target.\n",
-                            progname, progname);
-            goto retry;
-        }
+        //             cmd[1] = CMD3_MONCON_DISABLE;
+        //             if (jtag3_command(pgm, cmd, 3, &resp, "MonCon disable") >= 0)
+        //                 free(resp);
+        //         }
+        //     }
+        //     pgm->cookie = mycookie;
+        //     if (tries++ > 3) {
+        //         avrdude_message(MSG_INFO, "%s: Failed to return from debugWIRE to ISP.\n",
+        //                         progname);
+        //         break;
+        //     }
+        //     avrdude_message(MSG_INFO, "%s: Target prepared for ISP, signed off.\n"
+        //                     "%s: Now retrying without power-cycling the target.\n",
+        //                     progname, progname);
+        //     goto retry;
+        // }
         break;
 
     default:
@@ -1338,88 +1346,89 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
  */
 static int stk500v2_jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
-  unsigned char parm[4], *resp;
-  LNODEID ln;
-  AVRMEM * m;
-  void *mycookie;
+  return -1;
+  // unsigned char parm[4], *resp;
+  // LNODEID ln;
+  // AVRMEM * m;
+  // void *mycookie;
 
-  if ((p->flags & AVRPART_HAS_PDI) ||
-      (p->flags & AVRPART_HAS_TPI)) {
-    avrdude_message(MSG_INFO, "%s: jtag3_initialize(): part %s has no ISP interface\n",
-	    progname, p->desc);
-    return -1;
-  }
+  // if ((p->flags & AVRPART_HAS_PDI) ||
+  //     (p->flags & AVRPART_HAS_TPI)) {
+  //   avrdude_message(MSG_INFO, "%s: jtag3_initialize(): part %s has no ISP interface\n",
+	 //    progname, p->desc);
+  //   return -1;
+  // }
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
 
-  if (p->flags & AVRPART_HAS_DW)
-    parm[0] = PARM3_ARCH_TINY;
-  else
-    parm[0] = PARM3_ARCH_MEGA;
-  if (jtag3_setparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, parm, 1) < 0) {
-    pgm->cookie = mycookie;
-    return -1;
-  }
+  // if (p->flags & AVRPART_HAS_DW)
+  //   parm[0] = PARM3_ARCH_TINY;
+  // else
+  //   parm[0] = PARM3_ARCH_MEGA;
+  // if (jtag3_setparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, parm, 1) < 0) {
+  //   pgm->cookie = mycookie;
+  //   return -1;
+  // }
 
-  parm[0] = PARM3_SESS_PROGRAMMING;
-  if (jtag3_setparm(pgm, SCOPE_AVR, 0, PARM3_SESS_PURPOSE, parm, 1) < 0) {
-    pgm->cookie = mycookie;
-    return -1;
-  }
+  // parm[0] = PARM3_SESS_PROGRAMMING;
+  // if (jtag3_setparm(pgm, SCOPE_AVR, 0, PARM3_SESS_PURPOSE, parm, 1) < 0) {
+  //   pgm->cookie = mycookie;
+  //   return -1;
+  // }
 
-  parm[0] = PARM3_CONN_ISP;
-  if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, parm, 1) < 0) {
-    pgm->cookie = mycookie;
-    return -1;
-  }
+  // parm[0] = PARM3_CONN_ISP;
+  // if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, parm, 1) < 0) {
+  //   pgm->cookie = mycookie;
+  //   return -1;
+  // }
 
-  parm[0] = SCOPE_AVR_ISP;
-  parm[1] = 0x1e;
-  jtag3_send(pgm, parm, 2);
+  // parm[0] = SCOPE_AVR_ISP;
+  // parm[1] = 0x1e;
+  // jtag3_send(pgm, parm, 2);
 
-  if (jtag3_recv(pgm, &resp) > 0)
-    free(resp);
+  // if (jtag3_recv(pgm, &resp) > 0)
+  //   free(resp);
 
-  pgm->cookie = mycookie;
+  // pgm->cookie = mycookie;
 
-  /*
-   * Examine the avrpart's memory definitions, and initialize the page
-   * caches.  For devices/memory that are not page oriented, treat
-   * them as page size 1 for EEPROM, and 2 for flash.
-   */
-  PDATA(pgm)->flash_pagesize = 2;
-  PDATA(pgm)->eeprom_pagesize = 1;
-  for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
-    m = ldata(ln);
-    if (strcmp(m->desc, "flash") == 0) {
-      if (m->page_size > 0) {
-        if (m->page_size > 256)
-          PDATA(pgm)->flash_pagesize = 256;
-        else
-          PDATA(pgm)->flash_pagesize = m->page_size;
-      }
-    } else if (strcmp(m->desc, "eeprom") == 0) {
-      if (m->page_size > 0)
-	PDATA(pgm)->eeprom_pagesize = m->page_size;
-    }
-  }
-  free(PDATA(pgm)->flash_pagecache);
-  free(PDATA(pgm)->eeprom_pagecache);
-  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    avrdude_message(MSG_INFO, "%s: stk500hv_initialize(): Out of memory\n",
-	    progname);
-    return -1;
-  }
-  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    avrdude_message(MSG_INFO, "%s: stk500hv_initialize(): Out of memory\n",
-	    progname);
-    free(PDATA(pgm)->flash_pagecache);
-    return -1;
-  }
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+  // /*
+  //  * Examine the avrpart's memory definitions, and initialize the page
+  //  * caches.  For devices/memory that are not page oriented, treat
+  //  * them as page size 1 for EEPROM, and 2 for flash.
+  //  */
+  // PDATA(pgm)->flash_pagesize = 2;
+  // PDATA(pgm)->eeprom_pagesize = 1;
+ //  for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
+ //    m = ldata(ln);
+ //    if (strcmp(m->desc, "flash") == 0) {
+ //      if (m->page_size > 0) {
+ //        if (m->page_size > 256)
+ //          PDATA(pgm)->flash_pagesize = 256;
+ //        else
+ //          PDATA(pgm)->flash_pagesize = m->page_size;
+ //      }
+ //    } else if (strcmp(m->desc, "eeprom") == 0) {
+ //      if (m->page_size > 0)
+	// PDATA(pgm)->eeprom_pagesize = m->page_size;
+ //    }
+ //  }
+ //  free(PDATA(pgm)->flash_pagecache);
+ //  free(PDATA(pgm)->eeprom_pagecache);
+ //  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
+ //    avrdude_message(MSG_INFO, "%s: stk500hv_initialize(): Out of memory\n",
+	//     progname);
+ //    return -1;
+ //  }
+ //  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
+ //    avrdude_message(MSG_INFO, "%s: stk500hv_initialize(): Out of memory\n",
+	//     progname);
+ //    free(PDATA(pgm)->flash_pagecache);
+ //    return -1;
+ //  }
+ //  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
 
-  return pgm->program_enable(pgm, p);
+ //  return pgm->program_enable(pgm, p);
 }
 
 
@@ -3269,19 +3278,21 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
   void *mycookie;
 
   if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) {
-    mycookie = pgm->cookie;
-    pgm->cookie = PDATA(pgm)->chained_pdata;
-    jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget_jtag);
-    pgm->cookie = mycookie;
-    avrdude_message(MSG_INFO, "%sVtarget         : %.1f V\n", p,
-	    b2_to_u16(vtarget_jtag) / 1000.0);
+    return;
+    // mycookie = pgm->cookie;
+    // pgm->cookie = PDATA(pgm)->chained_pdata;
+    // jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget_jtag);
+    // pgm->cookie = mycookie;
+    // avrdude_message(MSG_INFO, "%sVtarget         : %.1f V\n", p,
+	   //  b2_to_u16(vtarget_jtag) / 1000.0);
   } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
-    mycookie = pgm->cookie;
-    pgm->cookie = PDATA(pgm)->chained_pdata;
-    jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, vtarget_jtag, 2);
-    pgm->cookie = mycookie;
-    avrdude_message(MSG_INFO, "%sVtarget         : %.1f V\n", p,
-	    b2_to_u16(vtarget_jtag) / 1000.0);
+    return;
+    // mycookie = pgm->cookie;
+    // pgm->cookie = PDATA(pgm)->chained_pdata;
+    // jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, vtarget_jtag, 2);
+    // pgm->cookie = mycookie;
+    // avrdude_message(MSG_INFO, "%sVtarget         : %.1f V\n", p,
+	   //  b2_to_u16(vtarget_jtag) / 1000.0);
 
   } else {
     stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
@@ -3401,71 +3412,72 @@ static int stk500v2_perform_osccal(PROGRAMMER * pgm)
  */
 static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 {
-  union pinfo pinfo;
-  void *mycookie;
-  int rv;
+  return -1;
+//   union pinfo pinfo;
+//   void *mycookie;
+//   int rv;
 
-  avrdude_message(MSG_NOTICE2, "%s: stk500v2_jtagmkII_open()\n", progname);
+//   avrdude_message(MSG_NOTICE2, "%s: stk500v2_jtagmkII_open()\n", progname);
 
-  /*
-   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
-   * attaching.  If the config file or command-line parameters specify
-   * a higher baud rate, we switch to it later on, after establishing
-   * the connection with the ICE.
-   */
-  pinfo.baud = 19200;
+//   /*
+//    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+//    * attaching.  If the config file or command-line parameters specify
+//    * a higher baud rate, we switch to it later on, after establishing
+//    * the connection with the ICE.
+//    */
+//   pinfo.baud = 19200;
 
-  /*
-   * If the port name starts with "usb", divert the serial routines
-   * to the USB ones.  The serial_open() function for USB overrides
-   * the meaning of the "baud" parameter to be the USB device ID to
-   * search for.
-   */
-  if (strncmp(port, "usb", 3) == 0) {
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev;
-    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-    pinfo.usbinfo.flags = 0;
-    pinfo.usbinfo.pid = USB_DEVICE_JTAGICEMKII;
-    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
-    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
-    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
-    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
-#else
-    avrdude_message(MSG_INFO, "avrdude was compiled without usb support.\n");
-    return -1;
-#endif
-  }
+//   /*
+//    * If the port name starts with "usb", divert the serial routines
+//    * to the USB ones.  The serial_open() function for USB overrides
+//    * the meaning of the "baud" parameter to be the USB device ID to
+//    * search for.
+//    */
+//   if (strncmp(port, "usb", 3) == 0) {
+// #if defined(HAVE_LIBUSB)
+//     serdev = &usb_serdev;
+//     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+//     pinfo.usbinfo.flags = 0;
+//     pinfo.usbinfo.pid = USB_DEVICE_JTAGICEMKII;
+//     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+//     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+//     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+//     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
+// #else
+//     avrdude_message(MSG_INFO, "avrdude was compiled without usb support.\n");
+//     return -1;
+// #endif
+//   }
 
-  strcpy(pgm->port, port);
-  if (serial_open(port, pinfo, &pgm->fd)==-1) {
-    return -1;
-  }
+//   strcpy(pgm->port, port);
+//   if (serial_open(port, pinfo, &pgm->fd)==-1) {
+//     return -1;
+//   }
 
-  /*
-   * drain any extraneous input
-   */
-  stk500v2_drain(pgm, 0);
+//   /*
+//    * drain any extraneous input
+//    */
+//   stk500v2_drain(pgm, 0);
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  if ((rv = jtagmkII_getsync(pgm, EMULATOR_MODE_SPI)) != 0) {
-    if (rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
-        avrdude_message(MSG_INFO, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
-                        progname);
-    pgm->cookie = mycookie;
-    return -1;
-  }
-  pgm->cookie = mycookie;
+//   mycookie = pgm->cookie;
+//   pgm->cookie = PDATA(pgm)->chained_pdata;
+//   if ((rv = jtagmkII_getsync(pgm, EMULATOR_MODE_SPI)) != 0) {
+//     if (rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
+//         avrdude_message(MSG_INFO, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+//                         progname);
+//     pgm->cookie = mycookie;
+//     return -1;
+//   }
+//   pgm->cookie = mycookie;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
+//   PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
 
-  if (pgm->bitclock != 0.0) {
-    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
-      return -1;
-  }
+//   if (pgm->bitclock != 0.0) {
+//     if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+//       return -1;
+//   }
 
-  return 0;
+//   return 0;
 }
 
 
@@ -3474,14 +3486,14 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
  */
 static void stk500v2_jtagmkII_close(PROGRAMMER * pgm)
 {
-  void *mycookie;
+  // void *mycookie;
 
-  avrdude_message(MSG_NOTICE2, "%s: stk500v2_jtagmkII_close()\n", progname);
+  // avrdude_message(MSG_NOTICE2, "%s: stk500v2_jtagmkII_close()\n", progname);
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  jtagmkII_close(pgm);
-  pgm->cookie = mycookie;
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // jtagmkII_close(pgm);
+  // pgm->cookie = mycookie;
 }
 
 
@@ -3490,14 +3502,14 @@ static void stk500v2_jtagmkII_close(PROGRAMMER * pgm)
  */
 static void stk500v2_jtag3_close(PROGRAMMER * pgm)
 {
-  void *mycookie;
+  // void *mycookie;
 
-  avrdude_message(MSG_NOTICE2, "%s: stk500v2_jtag3_close()\n", progname);
+  // avrdude_message(MSG_NOTICE2, "%s: stk500v2_jtag3_close()\n", progname);
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  jtag3_close(pgm);
-  pgm->cookie = mycookie;
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // jtag3_close(pgm);
+  // pgm->cookie = mycookie;
 }
 
 
@@ -3513,69 +3525,70 @@ static void stk500v2_jtag3_close(PROGRAMMER * pgm)
  */
 static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
 {
-  union pinfo pinfo;
-  void *mycookie;
+  return -1;
+//   union pinfo pinfo;
+//   void *mycookie;
 
-  avrdude_message(MSG_NOTICE2, "%s: stk500v2_dragon_isp_open()\n", progname);
+//   avrdude_message(MSG_NOTICE2, "%s: stk500v2_dragon_isp_open()\n", progname);
 
-  /*
-   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
-   * attaching.  If the config file or command-line parameters specify
-   * a higher baud rate, we switch to it later on, after establishing
-   * the connection with the ICE.
-   */
-  pinfo.baud = 19200;
+//   /*
+//    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+//    * attaching.  If the config file or command-line parameters specify
+//    * a higher baud rate, we switch to it later on, after establishing
+//    * the connection with the ICE.
+//    */
+//   pinfo.baud = 19200;
 
-  /*
-   * If the port name starts with "usb", divert the serial routines
-   * to the USB ones.  The serial_open() function for USB overrides
-   * the meaning of the "baud" parameter to be the USB device ID to
-   * search for.
-   */
-  if (strncmp(port, "usb", 3) == 0) {
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev;
-    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-    pinfo.usbinfo.flags = 0;
-    pinfo.usbinfo.pid = USB_DEVICE_AVRDRAGON;
-    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
-    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
-    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
-    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
-#else
-    avrdude_message(MSG_INFO, "avrdude was compiled without usb support.\n");
-    return -1;
-#endif
-  }
+//   /*
+//    * If the port name starts with "usb", divert the serial routines
+//    * to the USB ones.  The serial_open() function for USB overrides
+//    * the meaning of the "baud" parameter to be the USB device ID to
+//    * search for.
+//    */
+//   if (strncmp(port, "usb", 3) == 0) {
+// #if defined(HAVE_LIBUSB)
+//     serdev = &usb_serdev;
+//     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+//     pinfo.usbinfo.flags = 0;
+//     pinfo.usbinfo.pid = USB_DEVICE_AVRDRAGON;
+//     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+//     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+//     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+//     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
+// #else
+//     avrdude_message(MSG_INFO, "avrdude was compiled without usb support.\n");
+//     return -1;
+// #endif
+//   }
 
-  strcpy(pgm->port, port);
-  if (serial_open(port, pinfo, &pgm->fd)==-1) {
-    return -1;
-  }
+//   strcpy(pgm->port, port);
+//   if (serial_open(port, pinfo, &pgm->fd)==-1) {
+//     return -1;
+//   }
 
-  /*
-   * drain any extraneous input
-   */
-  stk500v2_drain(pgm, 0);
+//   /*
+//    * drain any extraneous input
+//    */
+//   stk500v2_drain(pgm, 0);
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
-    avrdude_message(MSG_INFO, "%s: failed to sync with the AVR Dragon in ISP mode\n",
-            progname);
-    pgm->cookie = mycookie;
-    return -1;
-  }
-  pgm->cookie = mycookie;
+//   mycookie = pgm->cookie;
+//   pgm->cookie = PDATA(pgm)->chained_pdata;
+//   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
+//     avrdude_message(MSG_INFO, "%s: failed to sync with the AVR Dragon in ISP mode\n",
+//             progname);
+//     pgm->cookie = mycookie;
+//     return -1;
+//   }
+//   pgm->cookie = mycookie;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
+//   PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
 
-  if (pgm->bitclock != 0.0) {
-    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
-      return -1;
-  }
+//   if (pgm->bitclock != 0.0) {
+//     if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+//       return -1;
+//   }
 
-  return 0;
+//   return 0;
 }
 
 
@@ -3591,69 +3604,70 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
  */
 static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
 {
-  union pinfo pinfo;
-  void *mycookie;
+  return -1;
+//   union pinfo pinfo;
+//   void *mycookie;
 
-  avrdude_message(MSG_NOTICE2, "%s: stk500v2_dragon_hv_open()\n", progname);
+//   avrdude_message(MSG_NOTICE2, "%s: stk500v2_dragon_hv_open()\n", progname);
 
-  /*
-   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
-   * attaching.  If the config file or command-line parameters specify
-   * a higher baud rate, we switch to it later on, after establishing
-   * the connection with the ICE.
-   */
-  pinfo.baud = 19200;
+//   /*
+//    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+//    * attaching.  If the config file or command-line parameters specify
+//    * a higher baud rate, we switch to it later on, after establishing
+//    * the connection with the ICE.
+//    */
+//   pinfo.baud = 19200;
 
-  /*
-   * If the port name starts with "usb", divert the serial routines
-   * to the USB ones.  The serial_open() function for USB overrides
-   * the meaning of the "baud" parameter to be the USB device ID to
-   * search for.
-   */
-  if (strncmp(port, "usb", 3) == 0) {
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev;
-    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-    pinfo.usbinfo.flags = 0;
-    pinfo.usbinfo.pid = USB_DEVICE_AVRDRAGON;
-    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
-    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
-    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
-    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
-#else
-    avrdude_message(MSG_INFO, "avrdude was compiled without usb support.\n");
-    return -1;
-#endif
-  }
+//   /*
+//    * If the port name starts with "usb", divert the serial routines
+//    * to the USB ones.  The serial_open() function for USB overrides
+//    * the meaning of the "baud" parameter to be the USB device ID to
+//    * search for.
+//    */
+//   if (strncmp(port, "usb", 3) == 0) {
+// #if defined(HAVE_LIBUSB)
+//     serdev = &usb_serdev;
+//     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+//     pinfo.usbinfo.flags = 0;
+//     pinfo.usbinfo.pid = USB_DEVICE_AVRDRAGON;
+//     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+//     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+//     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+//     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
+// #else
+//     avrdude_message(MSG_INFO, "avrdude was compiled without usb support.\n");
+//     return -1;
+// #endif
+//   }
 
-  strcpy(pgm->port, port);
-  if (serial_open(port, pinfo, &pgm->fd)==-1) {
-    return -1;
-  }
+//   strcpy(pgm->port, port);
+//   if (serial_open(port, pinfo, &pgm->fd)==-1) {
+//     return -1;
+//   }
 
-  /*
-   * drain any extraneous input
-   */
-  stk500v2_drain(pgm, 0);
+//   /*
+//    * drain any extraneous input
+//    */
+//   stk500v2_drain(pgm, 0);
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_HV) != 0) {
-    avrdude_message(MSG_INFO, "%s: failed to sync with the AVR Dragon in HV mode\n",
-            progname);
-    pgm->cookie = mycookie;
-    return -1;
-  }
-  pgm->cookie = mycookie;
+//   mycookie = pgm->cookie;
+//   pgm->cookie = PDATA(pgm)->chained_pdata;
+//   if (jtagmkII_getsync(pgm, EMULATOR_MODE_HV) != 0) {
+//     avrdude_message(MSG_INFO, "%s: failed to sync with the AVR Dragon in HV mode\n",
+//             progname);
+//     pgm->cookie = mycookie;
+//     return -1;
+//   }
+//   pgm->cookie = mycookie;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
+//   PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
 
-  if (pgm->bitclock != 0.0) {
-    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
-      return -1;
-  }
+//   if (pgm->bitclock != 0.0) {
+//     if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+//       return -1;
+//   }
 
-  return 0;
+//   return 0;
 }
 
 /*
@@ -3668,33 +3682,34 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
  */
 static int stk500v2_jtag3_open(PROGRAMMER * pgm, char * port)
 {
-  void *mycookie;
-  int rv;
+  return -1;
+  // void *mycookie;
+  // int rv;
 
-  avrdude_message(MSG_NOTICE2, "%s: stk500v2_jtag3_open()\n", progname);
+  // avrdude_message(MSG_NOTICE2, "%s: stk500v2_jtag3_open()\n", progname);
 
-  if (jtag3_open_common(pgm, port) < 0)
-    return -1;
+  // if (jtag3_open_common(pgm, port) < 0)
+  //   return -1;
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  if ((rv = jtag3_getsync(pgm, 42)) != 0) {
-    if (rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
-        avrdude_message(MSG_INFO, "%s: failed to sync with the JTAGICE3 in ISP mode\n",
-                        progname);
-    pgm->cookie = mycookie;
-    return -1;
-  }
-  pgm->cookie = mycookie;
+  // mycookie = pgm->cookie;
+  // pgm->cookie = PDATA(pgm)->chained_pdata;
+  // if ((rv = jtag3_getsync(pgm, 42)) != 0) {
+  //   if (rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
+  //       avrdude_message(MSG_INFO, "%s: failed to sync with the JTAGICE3 in ISP mode\n",
+  //                       progname);
+  //   pgm->cookie = mycookie;
+  //   return -1;
+  // }
+  // pgm->cookie = mycookie;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE3;
+  // PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE3;
 
-  if (pgm->bitclock != 0.0) {
-    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
-      return -1;
-  }
+  // if (pgm->bitclock != 0.0) {
+  //   if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+  //     return -1;
+  // }
 
-  return 0;
+  // return 0;
 }
 
 

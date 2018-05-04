@@ -16,18 +16,19 @@ static void avrdude_message_handler_ostream(const char *msg, unsigned size, void
 	os << msg;
 }
 
-int main(std::vector<std::string> args, std::string sys_config, std::ostream &stderr)
+int main(std::vector<std::string> args, std::string sys_config, std::ostream &os)
 {
 	std::vector<char *> c_args {{ const_cast<char*>(PACKAGE_NAME) }};
 	for (const auto &arg : args) {
 		c_args.push_back(const_cast<char*>(arg.data()));
 	}
 
-	::avrdude_message_handler_set(avrdude_message_handler_ostream, reinterpret_cast<void*>(&stderr));
+	::avrdude_message_handler_set(avrdude_message_handler_ostream, reinterpret_cast<void*>(&os));
 	const auto res = ::avrdude_main(static_cast<int>(c_args.size()), c_args.data(), sys_config.c_str());
 	::avrdude_message_handler_set(nullptr, nullptr);
 	return res;
 }
+
 
 }
 

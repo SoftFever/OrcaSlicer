@@ -42,8 +42,10 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
+
+#if !defined(WIN32NATIVE)
+#  include <sys/time.h>
+#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"

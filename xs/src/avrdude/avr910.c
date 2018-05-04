@@ -32,8 +32,11 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-#include <sys/time.h>
 #include <unistd.h>
+
+#if !defined(WIN32NATIVE)
+#  include <sys/time.h>
+#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"

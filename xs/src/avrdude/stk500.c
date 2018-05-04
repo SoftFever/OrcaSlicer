@@ -35,6 +35,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <malloc.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -759,7 +760,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                               unsigned int page_size,
                               unsigned int addr, unsigned int n_bytes)
 {
-  unsigned char buf[page_size + 16];
+  unsigned char *buf = alloca(page_size + 16);
   int memtype;
   int a_div;
   int block_size;

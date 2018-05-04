@@ -254,7 +254,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	    port = newname;
 	}
 
-	hComPort = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+	hComPort = CreateFileA(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (hComPort == INVALID_HANDLE_VALUE) {

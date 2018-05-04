@@ -262,7 +262,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 	if (bitbang_check_prerequisites(pgm) < 0)
 	    return -1;
 
-	hComPort = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+	hComPort = CreateFileA(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (hComPort == INVALID_HANDLE_VALUE) {

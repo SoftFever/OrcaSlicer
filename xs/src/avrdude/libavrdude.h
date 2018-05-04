@@ -41,6 +41,11 @@ typedef unsigned long pinmask_t;
 #endif
 
 
+#if defined(WIN32NATIVE)
+#define PATH_MAX 1024   // Tad arbitrary, but should be ok for avrdude's pruposes
+#endif
+
+
 /* formerly lists.h */
 
 /*----------------------------------------------------------------------

@@ -17,7 +17,12 @@
 #define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the `gettimeofday' function. */
+#if defined (WIN32NATIVE)
+/* #undef HAVE_GETTIMEOFDAY */
+// We have a gettimeofday() replacement in unistd.cpp (there is also one in ppiwin.c, but that file is written for Cygwin/MinGW)
+#else
 #define HAVE_GETTIMEOFDAY 1
+#endif
 
 /* Define to 1 if you have the <hidapi/hidapi.h> header file. */
 /* #undef HAVE_HIDAPI_HIDAPI_H */
@@ -89,7 +94,7 @@
 #define HAVE_MEMSET 1
 
 /* parallel port access enabled */
-#define HAVE_PARPORT 1
+// #define HAVE_PARPORT 1
 
 /* Define to 1 if you have the <pthread.h> header file. */
 // #define HAVE_PTHREAD_H 1
