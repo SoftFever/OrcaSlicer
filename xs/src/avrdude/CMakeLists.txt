@@ -1,6 +1,7 @@
 
 
 remove_definitions(-D_UNICODE -DUNICODE)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
 set(AVRDUDE_SOURCES

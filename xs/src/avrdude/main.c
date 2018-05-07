@@ -45,6 +45,8 @@
 
 #if !defined(WIN32NATIVE)
 #  include <sys/time.h>
+#  include <sys/types.h>
+#  include <sys/stat.h>
 #endif
 
 #include "avrdude.h"
@@ -91,7 +93,7 @@ avrdude_message_handler_t avrdude_message_handler_set(avrdude_message_handler_t 
 int avrdude_message(const int msglvl, const char *format, ...)
 {
     static const char *format_error = "avrdude_message: Could not format message";
-  
+
     int rc = 0;
     va_list ap;
     if (verbose >= msglvl) {
@@ -478,7 +480,7 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
 //     strcat(sys_config, "/");
 //   strcat(sys_config, "avrdude.conf");
 
-//   usr_config[0] = 0;
+  usr_config[0] = 0;
 //   homedir = getenv("HOME");
 //   if (homedir != NULL) {
 //     strcpy(usr_config, homedir);
@@ -507,6 +509,7 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
   /*
    * process command line arguments
    */
+  optind = 1;    // Reset getopt, makes it possible to use it multiple times
   while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:l:np:OP:qstU:uvVx:yY:")) != -1) {
 
     switch (ch) {

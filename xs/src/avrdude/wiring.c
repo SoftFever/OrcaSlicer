@@ -151,7 +151,9 @@ static int wiring_open(PROGRAMMER * pgm, char * port)
 
   strcpy(pgm->port, port);
   pinfo.baud = pgm->baudrate ? pgm->baudrate: 115200;
-  serial_open(port, pinfo, &pgm->fd);
+  if (serial_open(port, pinfo, &pgm->fd) < 0) {
+    return -1;
+  }
 
   /* If we have a snoozetime, then we wait and do NOT toggle DTR/RTS */
 
