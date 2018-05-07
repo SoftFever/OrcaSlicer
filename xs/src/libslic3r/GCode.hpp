@@ -121,6 +121,7 @@ public:
         m_enable_cooling_markers(false), 
         m_enable_extrusion_role_markers(false), 
         m_enable_analyzer(false),
+        m_last_analyzer_extrusion_role(erNone),
         m_layer_count(0),
         m_layer_index(-1), 
         m_layer(nullptr), 
@@ -253,6 +254,7 @@ protected:
     // Extended markers will be added during G-code generation.
     // The G-code Analyzer will remove these comments from the final G-code.
     bool                                m_enable_analyzer;
+    ExtrusionRole                       m_last_analyzer_extrusion_role;
     // How many times will change_layer() be called?
     // change_layer() will update the progress bar.
     unsigned int                        m_layer_count;

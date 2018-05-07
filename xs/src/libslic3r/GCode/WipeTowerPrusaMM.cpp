@@ -126,6 +126,11 @@ public:
 			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(rot.x, rot.y), width, m_current_tool));			
 		}
 
+        // adds tag for analyzer
+        char buf[64];
+        sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
+        m_gcode += buf;
+
 		m_gcode += "G1";
 		if (rot.x != rotated_current_pos.x) {
 			m_gcode += set_format_X(rot.x);     // Transform current position back to wipe tower coordinates (was updated by set_format_X)
@@ -488,11 +493,6 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 		.travel(cleaning_box.ld, 7200)
 		.set_extruder_trimpot(750); 			// Increase the extruder driver current to allow fast ramming.
 
-    // adds tag for analyzer
-    char buf[32];
-    sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
-    writer.append(buf);
-
     for (size_t idx_tool = 0; idx_tool < tools.size(); ++ idx_tool) {
         unsigned int tool = tools[idx_tool];
         m_left_to_right = true;
@@ -585,12 +585,6 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 	xy initial_position = cleaning_box.ld + WipeTower::xy(0.f,m_depth_traversed);
     writer.set_initial_position(initial_position);
 
-
-    // adds tag for analyzer
-    char buf[32];
-    sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
-    writer.append(buf);
-
     // Increase the extruder driver current to allow fast ramming.
     writer.set_extruder_trimpot(750);
 
@@ -658,12 +652,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
 	xy initial_position = wipeTower_box.lu - xy(m_perimeter_width * 6.f, 0);
 	writer.set_initial_position(initial_position);
 
-    // adds tag for analyzer
-    char buf[32];
-    sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
-    writer.append(buf)
-          .extrude_explicit(wipeTower_box.ld - xy(m_perimeter_width * 6.f, 0), // Prime the extruder left of the wipe tower.
-                            1.5f * m_extrusion_flow * (wipeTower_box.lu.y - wipeTower_box.ld.y), 2400);
+    writer.extrude_explicit(wipeTower_box.ld - xy(m_perimeter_width * 6.f, 0), // Prime the extruder left of the wipe tower.
+        1.5f * m_extrusion_flow * (wipeTower_box.lu.y - wipeTower_box.ld.y), 2400);
 
     // The tool is supposed to be active and primed at the time when the wipe tower brim is extruded.
     // Extrude 4 rounds of a brim around the future wipe tower.
