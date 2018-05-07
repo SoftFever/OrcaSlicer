@@ -95,7 +95,7 @@
     void duplicate_objects_grid(unsigned int x, unsigned int y, double dist);
 
     bool looks_like_multipart_object() const;
-    void convert_multipart_object();
+    void convert_multipart_object(unsigned int max_extruders);
 
     void print_info() const;
 
@@ -346,7 +346,7 @@ ModelMaterial::attributes()
     void set_modifier(bool modifier)
         %code%{ THIS->modifier = modifier; %};
 
-    size_t split();
+    size_t split(unsigned int max_extruders);
     
     ModelMaterial* assign_unique_material();
 };
