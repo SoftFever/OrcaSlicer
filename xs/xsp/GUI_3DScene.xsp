@@ -151,12 +151,158 @@ GLVolumeCollection::arrayref()
 %package{Slic3r::GUI::_3DScene};
 %{
 
+void
+init_gl()
+    CODE:
+        _3DScene::init_gl();
+
+bool
+use_VBOs()
+    CODE:
+        RETVAL = _3DScene::use_VBOs();
+    OUTPUT:
+        RETVAL
+        
+bool
+add_canvas(canvas, context)
+        SV *canvas;
+        SV *context;
+    CODE:
+        RETVAL = _3DScene::add_canvas((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (wxGLContext*)wxPli_sv_2_object(aTHX_ context, "Wx::GLContext"));
+    OUTPUT:
+        RETVAL
+
+bool
+remove_canvas(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::remove_canvas((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
 
 void
-_glew_init()
+remove_all_canvases()
     CODE:
-        _3DScene::_glew_init();
+        _3DScene::remove_all_canvases();
 
+bool
+is_dirty(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_dirty((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_dirty(canvas, dirty)
+        SV   *canvas;
+        bool dirty;
+    CODE:
+        _3DScene::set_dirty((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), dirty);
+
+bool
+is_shown_on_screen(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_shown_on_screen((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+unsigned int
+get_camera_type(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_camera_type((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_camera_type(canvas, type)
+        SV *canvas;
+        unsigned int type;
+    CODE:
+        _3DScene::set_camera_type((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), type);
+        
+float
+get_camera_zoom(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_camera_zoom((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_camera_zoom(canvas, zoom)
+        SV    *canvas;
+        float zoom;
+    CODE:
+        _3DScene::set_camera_zoom((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), zoom);
+
+float
+get_camera_phi(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_camera_phi((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_camera_phi(canvas, phi)
+        SV    *canvas;
+        float phi;
+    CODE:
+        _3DScene::set_camera_phi((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), phi);
+
+float
+get_camera_theta(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_camera_theta((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_camera_theta(canvas, theta)
+        SV    *canvas;
+        float theta;
+    CODE:
+        _3DScene::set_camera_theta((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), theta);
+
+float
+get_camera_distance(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_camera_distance((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_camera_distance(canvas, distance)
+        SV    *canvas;
+        float distance;
+    CODE:
+        _3DScene::set_camera_distance((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), distance);
+
+Clone<Pointf3>
+get_camera_target(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_camera_target((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_camera_target(canvas, target)
+        SV      *canvas;
+        Pointf3 *target;
+    CODE:
+        _3DScene::set_camera_target((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), target);
+    
+    
+    
+    
+    
+    
 unsigned int
 finalize_legend_texture()
     CODE:

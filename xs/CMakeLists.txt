@@ -182,6 +182,12 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/3DScene.hpp
     ${LIBDIR}/slic3r/GUI/GLShader.cpp
     ${LIBDIR}/slic3r/GUI/GLShader.hpp
+    
+    ${LIBDIR}/slic3r/GUI/GLCanvas3D.hpp
+    ${LIBDIR}/slic3r/GUI/GLCanvas3D.cpp
+    ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.hpp
+    ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.cpp
+    
     ${LIBDIR}/slic3r/GUI/Preferences.cpp
     ${LIBDIR}/slic3r/GUI/Preferences.hpp
     ${LIBDIR}/slic3r/GUI/Preset.cpp
@@ -550,13 +556,13 @@ if (SLIC3R_PRUSACONTROL)
     set(wxWidgets_UseAlienWx 1)
     if (wxWidgets_UseAlienWx)
         set(AlienWx_DEBUG 1)
-        find_package(AlienWx REQUIRED COMPONENTS base core adv html)
+        find_package(AlienWx REQUIRED COMPONENTS base core adv html gl)
         include_directories(${AlienWx_INCLUDE_DIRS})
         #add_compile_options(${AlienWx_CXX_FLAGS})
         add_definitions(${AlienWx_DEFINITIONS})
         set(wxWidgets_LIBRARIES ${AlienWx_LIBRARIES})
     else ()
-        find_package(wxWidgets REQUIRED COMPONENTS base core adv html)
+        find_package(wxWidgets REQUIRED COMPONENTS base core adv html gl)
         include(${wxWidgets_USE_FILE})
     endif ()
     add_definitions(-DSLIC3R_GUI -DSLIC3R_PRUS)

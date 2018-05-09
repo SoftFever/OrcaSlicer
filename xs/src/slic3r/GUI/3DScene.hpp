@@ -6,8 +6,14 @@
 #include "../../libslic3r/Line.hpp"
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
+//##################################################################################################################
+#include "../../slic3r/GUI/GLCanvas3DManager.hpp"
+//##################################################################################################################
 
 class wxBitmap;
+//##################################################################################################################
+class wxWindow;
+//##################################################################################################################
 
 namespace Slic3r {
 
@@ -523,9 +529,44 @@ class _3DScene
 
     static LegendTexture s_legend_texture;
     static WarningTexture s_warning_texture;
+//##################################################################################################################
+    static GUI::GLCanvas3DManager s_canvas_mgr;
+//##################################################################################################################
 
 public:
-    static void _glew_init();
+//##################################################################################################################
+    static void init_gl();
+    static bool use_VBOs();
+
+    static bool add_canvas(wxGLCanvas* canvas, wxGLContext* context);
+    static bool remove_canvas(wxGLCanvas* canvas);
+    static void remove_all_canvases();
+
+    static bool is_dirty(wxGLCanvas* canvas);
+    static void set_dirty(wxGLCanvas* canvas, bool dirty);
+
+    static bool is_shown_on_screen(wxGLCanvas* canvas);
+
+    static unsigned int get_camera_type(wxGLCanvas* canvas);
+    static void set_camera_type(wxGLCanvas* canvas, unsigned int type);
+
+    static float get_camera_zoom(wxGLCanvas* canvas);
+    static void set_camera_zoom(wxGLCanvas* canvas, float zoom);
+
+    static float get_camera_phi(wxGLCanvas* canvas);
+    static void set_camera_phi(wxGLCanvas* canvas, float phi);
+
+    static float get_camera_theta(wxGLCanvas* canvas);
+    static void set_camera_theta(wxGLCanvas* canvas, float theta);
+
+    static float get_camera_distance(wxGLCanvas* canvas);
+    static void set_camera_distance(wxGLCanvas* canvas, float distance);
+
+    static Pointf3 get_camera_target(wxGLCanvas* canvas);
+    static void set_camera_target(wxGLCanvas* canvas, const Pointf3* target);
+
+//    static void _glew_init();
+//##################################################################################################################
 
     static void load_gcode_preview(const Print* print, const GCodePreviewData* preview_data, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs);
 

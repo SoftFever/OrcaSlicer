@@ -1473,6 +1473,9 @@ static void point3_to_verts(const Point3& point, double width, double height, GL
 _3DScene::GCodePreviewVolumeIndex _3DScene::s_gcode_preview_volume_index;
 _3DScene::LegendTexture _3DScene::s_legend_texture;
 _3DScene::WarningTexture _3DScene::s_warning_texture;
+//##################################################################################################################
+GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
+//##################################################################################################################
 
 unsigned int _3DScene::TextureBase::finalize()
 {
@@ -1709,10 +1712,116 @@ bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, con
     return true;
 }
 
-void _3DScene::_glew_init()
-{ 
-    glewInit();
+//##################################################################################################################
+void _3DScene::init_gl()
+{
+    s_canvas_mgr.init_gl();
 }
+
+bool _3DScene::use_VBOs()
+{
+    return s_canvas_mgr.use_VBOs();
+}
+
+bool _3DScene::add_canvas(wxGLCanvas* canvas, wxGLContext* context)
+{
+    std::cout << "_3DScene::add_canvas()" << std::endl;
+    return s_canvas_mgr.add(canvas, context);
+}
+
+bool _3DScene::remove_canvas(wxGLCanvas* canvas)
+{
+    std::cout << "_3DScene::remove_canvas()" << std::endl;
+    return s_canvas_mgr.remove(canvas);
+}
+
+void _3DScene::remove_all_canvases()
+{
+    std::cout << "_3DScene::remove_all_canvases()" << std::endl;
+    std::cout << "# canvases not yet released: " << s_canvas_mgr.count() << std::endl;
+    s_canvas_mgr.remove_all();
+}
+
+bool _3DScene::is_dirty(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_dirty(canvas);
+}
+
+void _3DScene::set_dirty(wxGLCanvas* canvas, bool dirty)
+{
+    s_canvas_mgr.set_dirty(canvas, dirty);
+}
+
+bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_shown_on_screen(canvas);
+}
+
+unsigned int _3DScene::get_camera_type(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_camera_type(canvas);
+}
+
+void _3DScene::set_camera_type(wxGLCanvas* canvas, unsigned int type)
+{
+    s_canvas_mgr.set_camera_type(canvas, type);
+}
+
+float _3DScene::get_camera_zoom(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_camera_zoom(canvas);
+}
+
+void _3DScene::set_camera_zoom(wxGLCanvas* canvas, float zoom)
+{
+    s_canvas_mgr.set_camera_zoom(canvas, zoom);
+}
+
+float _3DScene::get_camera_phi(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_camera_phi(canvas);
+}
+
+void _3DScene::set_camera_phi(wxGLCanvas* canvas, float phi)
+{
+    s_canvas_mgr.set_camera_phi(canvas, phi);
+}
+
+float _3DScene::get_camera_theta(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_camera_theta(canvas);
+}
+
+void _3DScene::set_camera_theta(wxGLCanvas* canvas, float theta)
+{
+    s_canvas_mgr.set_camera_theta(canvas, theta);
+}
+
+float _3DScene::get_camera_distance(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_camera_distance(canvas);
+}
+
+void _3DScene::set_camera_distance(wxGLCanvas* canvas, float distance)
+{
+    s_canvas_mgr.set_camera_distance(canvas, distance);
+}
+
+Pointf3 _3DScene::get_camera_target(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_camera_target(canvas);
+}
+
+void _3DScene::set_camera_target(wxGLCanvas* canvas, const Pointf3* target)
+{
+    s_canvas_mgr.set_camera_target(canvas, target);
+}
+
+//void _3DScene::_glew_init()
+//{ 
+//    glewInit();
+//}
+//##################################################################################################################
 
 static inline int hex_digit_to_int(const char c)
 {

@@ -144,6 +144,9 @@ sub new {
         # Note that the window was already closed, so a pending update will not be executed.
         $self->{already_closed} = 1;
         $self->EndModal(wxID_OK);
+#=============================================================================================================================        
+        $self->{canvas}->Destroy;
+#=============================================================================================================================        
         $self->Destroy();
     });
 
@@ -151,6 +154,9 @@ sub new {
         # Note that the window was already closed, so a pending update will not be executed.
         $self->{already_closed} = 1;
         $self->EndModal(wxID_CANCEL);
+#=============================================================================================================================        
+        $self->{canvas}->Destroy;
+#=============================================================================================================================        
         $self->Destroy();
     });
 

@@ -16,7 +16,10 @@ use strict;
 use warnings;
 
 use Wx qw(wxTheApp :timer :bitmap :icon :dialog);
-use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_CHAR EVT_TIMER);
+#==============================================================================================================================
+use Wx::Event qw(EVT_PAINT EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_CHAR EVT_TIMER);
+#use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_CHAR EVT_TIMER);
+#==============================================================================================================================
 # must load OpenGL *before* Wx::GLCanvas
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
@@ -30,7 +33,8 @@ use Slic3r::Geometry qw(PI);
 # _dirty: boolean flag indicating, that the screen has to be redrawn on EVT_IDLE.
 # volumes: reference to vector of Slic3r::GUI::3DScene::Volume.
 # _camera_type: 'perspective' or 'ortho'
-__PACKAGE__->mk_accessors( qw(_quat _dirty init
+#==============================================================================================================================
+__PACKAGE__->mk_accessors( qw(_quat init
                               enable_picking
                               enable_moving
                               use_plain_shader
@@ -73,6 +77,50 @@ __PACKAGE__->mk_accessors( qw(_quat _dirty init
                               _mouse_dragging
                                                             
                               ) );
+#__PACKAGE__->mk_accessors( qw(_quat _dirty init
+#                              enable_picking
+#                              enable_moving
+#                              use_plain_shader
+#                              on_viewport_changed
+#                              on_hover
+#                              on_select
+#                              on_double_click
+#                              on_right_click
+#                              on_move
+#                              on_model_update
+#                              volumes
+#                              _sphi _stheta
+#                              cutting_plane_z
+#                              cut_lines_vertices
+#                              bed_shape
+#                              bed_triangles
+#                              bed_grid_lines
+#                              bed_polygon
+#                              background
+#                              origin
+#                              _mouse_pos
+#                              _hover_volume_idx
+#
+#                              _drag_volume_idx
+#                              _drag_start_pos
+#                              _drag_volume_center_offset
+#                              _drag_start_xy
+#                              _dragged
+#
+#                              _layer_height_edited
+#
+#                              _camera_type
+#                              _camera_target
+#                              _camera_distance
+#                              _zoom
+#                              
+#                              _legend_enabled
+#                              _warning_enabled
+#                              _apply_zoom_to_volumes_filter
+#                              _mouse_dragging
+#                                                            
+#                              ) );
+#==============================================================================================================================
                               
 use constant TRACKBALLSIZE  => 0.8;
 use constant TURNTABLE_MODE => 1;
@@ -130,13 +178,22 @@ sub new {
     # we request a depth buffer explicitely because it looks like it's not created by 
     # default on Linux, causing transparency issues
     my $self = $class->SUPER::new($parent, -1, Wx::wxDefaultPosition, Wx::wxDefaultSize, 0, "", $attrib);
-    if (Wx::wxVERSION >= 3.000003) {
-        # Wx 3.0.3 contains an ugly hack to support some advanced OpenGL attributes through the attribute list.
-        # The attribute list is transferred between the wxGLCanvas and wxGLContext constructors using a single static array s_wglContextAttribs.
-        # Immediatelly force creation of the OpenGL context to consume the static variable s_wglContextAttribs.
-        $self->GetContext();
-    }
+#==============================================================================================================================
+#    if (Wx::wxVERSION >= 3.000003) {
+#        # Wx 3.0.3 contains an ugly hack to support some advanced OpenGL attributes through the attribute list.
+#        # The attribute list is transferred between the wxGLCanvas and wxGLContext constructors using a single static array s_wglContextAttribs.
+#        # Immediatelly force creation of the OpenGL context to consume the static variable s_wglContextAttribs.
+#        $self->GetContext();
+#    }
+#==============================================================================================================================
 
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::add_canvas($self, $self->GetContext);
+#    my $context = $self->GetContext;
+#    $self->SetCurrent($context);
+#    Slic3r::GUI::_3DScene::add_canvas($self, $context);
+#==============================================================================================================================    
+    
     $self->{can_multisample} = $can_multisample;
     $self->background(1);
     $self->_quat((0, 0, 0, 1));
@@ -171,10 +228,16 @@ sub new {
         my $dc = Wx::PaintDC->new($self);
         $self->Render($dc);
     });
-    EVT_SIZE($self, sub { $self->_dirty(1) });
+#=======================================================================================================================    
+#    EVT_SIZE($self, sub { $self->_dirty(1) });
+#=======================================================================================================================    
     EVT_IDLE($self, sub {
-        return unless $self->_dirty;
-        return if !$self->IsShownOnScreen;
+#==============================================================================================================================
+        return unless Slic3r::GUI::_3DScene::is_dirty($self);
+        return unless Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+#        return unless $self->_dirty;
+#        return if !$self->IsShownOnScreen;
+#==============================================================================================================================
         $self->Resize( $self->GetSizeWH );
         $self->Refresh;
     });
@@ -237,6 +300,9 @@ sub Destroy {
     my ($self) = @_;
     $self->{layer_height_edit_timer}->Stop;
     $self->DestroyGL;
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::remove_canvas($self);    
+#==============================================================================================================================
     return $self->SUPER::Destroy;
 }
 
@@ -621,7 +687,10 @@ sub mouse_wheel_event {
 #    ) if 0;
 
     $self->on_viewport_changed->() if $self->on_viewport_changed;
-    $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
+#==============================================================================================================================
+    $self->Resize($self->GetSizeWH) if Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+#    $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
+#==============================================================================================================================
     $self->Refresh;
 }
 
@@ -633,7 +702,10 @@ sub reset_objects {
         $self->volumes->release_geometry;
     }
     $self->volumes->erase;
-    $self->_dirty(1);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_dirty($self, 1);
+#    $self->_dirty(1);
+#==============================================================================================================================
 }
 
 # Setup camera to view all objects.
@@ -645,7 +717,10 @@ sub set_viewport_from_scene {
     $self->_camera_target($scene->_camera_target);
     $self->_zoom($scene->_zoom);
     $self->_quat($scene->_quat);
-    $self->_dirty(1);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_dirty($self, 1);
+#    $self->_dirty(1);
+#==============================================================================================================================
 }
 
 # Set the camera to a default orientation,
@@ -777,7 +852,10 @@ sub zoom_to_bounding_box {
         # center view around bounding box center
         $self->_camera_target($bb->center);
         $self->on_viewport_changed->() if $self->on_viewport_changed;
-        $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
+#==============================================================================================================================
+        $self->Resize($self->GetSizeWH) if Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+#        $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
+#==============================================================================================================================
         $self->Refresh;
     }
 }
@@ -1071,38 +1149,46 @@ sub SetCurrent {
 sub UseVBOs {
     my ($self) = @_;
 
-    if (! defined ($self->{use_VBOs})) {
-        my $use_legacy = wxTheApp->{app_config}->get('use_legacy_opengl');
-        if ($use_legacy eq '1') {
-            # Disable OpenGL 2.0 rendering.
-            $self->{use_VBOs} = 0;
-            # Don't enable the layer editing tool.
-            $self->{layer_editing_enabled} = 0;
-            # 2 means failed
-            $self->{layer_editing_initialized} = 2;
-            return 0;
-        }
-        # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
-        # first when an OpenGL widget is shown for the first time. How ugly.
-        return 0 if (! $self->init && $^O eq 'linux');
-        # Don't use VBOs if anything fails.
-        $self->{use_VBOs} = 0;
-        if ($self->GetContext) {
-            $self->SetCurrent($self->GetContext);
-            Slic3r::GUI::_3DScene::_glew_init;
-            my @gl_version = split(/\./, glGetString(GL_VERSION));
-            $self->{use_VBOs} = int($gl_version[0]) >= 2;
-            # print "UseVBOs $self OpenGL major: $gl_version[0], minor: $gl_version[1]. Use VBOs: ", $self->{use_VBOs}, "\n";
-        }
-    }
-    return $self->{use_VBOs};
+#==============================================================================================================================
+    return 0 if (! $self->init && $^O eq 'linux');
+    return Slic3r::GUI::_3DScene::use_VBOs();
+        
+#    if (! defined ($self->{use_VBOs})) {
+#        my $use_legacy = wxTheApp->{app_config}->get('use_legacy_opengl');
+#        if ($use_legacy eq '1') {
+#            # Disable OpenGL 2.0 rendering.
+#            $self->{use_VBOs} = 0;
+#            # Don't enable the layer editing tool.
+#            $self->{layer_editing_enabled} = 0;
+#            # 2 means failed
+#            $self->{layer_editing_initialized} = 2;
+#            return 0;
+#        }
+#        # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
+#        # first when an OpenGL widget is shown for the first time. How ugly.
+#        return 0 if (! $self->init && $^O eq 'linux');
+#        # Don't use VBOs if anything fails.
+#        $self->{use_VBOs} = 0;
+#        if ($self->GetContext) {
+#            $self->SetCurrent($self->GetContext);
+#            Slic3r::GUI::_3DScene::_glew_init;
+#            my @gl_version = split(/\./, glGetString(GL_VERSION));
+#            $self->{use_VBOs} = int($gl_version[0]) >= 2;
+#            # print "UseVBOs $self OpenGL major: $gl_version[0], minor: $gl_version[1]. Use VBOs: ", $self->{use_VBOs}, "\n";
+#        }
+#    }
+#    return $self->{use_VBOs};
+#==============================================================================================================================
 }
 
 sub Resize {
     my ($self, $x, $y) = @_;
  
     return unless $self->GetContext;
-    $self->_dirty(0);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_dirty($self, 0);
+#    $self->_dirty(0);
+#==============================================================================================================================
     
     $self->SetCurrent($self->GetContext);
     glViewport(0, 0, $x, $y);
@@ -1148,13 +1234,17 @@ sub InitGL {
     return unless $self->GetContext;
     $self->init(1);
 
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::init_gl;
+#==============================================================================================================================
+    
     # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
     # first when an OpenGL widget is shown for the first time. How ugly.
     # In that case the volumes are wainting to be moved to Vertex Buffer Objects
     # after the OpenGL context is being initialized.
     $self->volumes->finalize_geometry(1) 
         if ($^O eq 'linux' && $self->UseVBOs);
-
+                
     $self->zoom_to_bed;
         
     glClearColor(0, 0, 0, 1);
@@ -1236,7 +1326,10 @@ sub Render {
     my ($self, $dc) = @_;
     
     # prevent calling SetCurrent() when window is not shown yet
-    return unless $self->IsShownOnScreen;
+#==============================================================================================================================
+    return unless Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+#    return unless $self->IsShownOnScreen;
+#==============================================================================================================================
     return unless my $context = $self->GetContext;
     $self->SetCurrent($context);
     $self->InitGL;
