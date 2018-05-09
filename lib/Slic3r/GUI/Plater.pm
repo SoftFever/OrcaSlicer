@@ -700,7 +700,7 @@ sub load_files {
                 . "Instead of considering them as multiple objects, should I consider\n"
                 . "this file as a single object having multiple parts?\n"),
                 L('Multi-part object detected'), wxICON_WARNING | wxYES | wxNO);
-            $model->convert_multipart_object if $dialog->ShowModal() == wxID_YES;
+            $model->convert_multipart_object if $dialog->ShowModal(scalar(@$nozzle_dmrs)) == wxID_YES;
         }
         
         if ($one_by_one) {
@@ -717,7 +717,7 @@ sub load_files {
             . "Instead of considering them as multiple objects, should I consider\n"
             . "these files to represent a single object having multiple parts?\n"),
             L('Multi-part object detected'), wxICON_WARNING | wxYES | wxNO);
-        $new_model->convert_multipart_object if $dialog->ShowModal() == wxID_YES;
+        $new_model->convert_multipart_object if $dialog->ShowModal(scalar(@$nozzle_dmrs)) == wxID_YES;
         push @obj_idx, $self->load_model_objects(@{$new_model->objects});
     }
 
