@@ -186,9 +186,9 @@ MyObjectTreeModel::MyObjectTreeModel()
 	m_objects.emplace(root3);
 	auto root4 = new MyObjectTreeModelNode("Object4");
 	m_objects.emplace(root4);
-	root4->Append(new MyObjectTreeModelNode(root2, "SubObject1"));
-	root4->Append(new MyObjectTreeModelNode(root2, "SubObject2"));
-	root4->Append(new MyObjectTreeModelNode(root2, "SubObject3"));
+	root4->Append(new MyObjectTreeModelNode(root4, "SubObject1"));
+	root4->Append(new MyObjectTreeModelNode(root4, "SubObject2"));
+	root4->Append(new MyObjectTreeModelNode(root4, "SubObject3"));
 }
 
 wxString MyObjectTreeModel::GetName(const wxDataViewItem &item) const
@@ -200,7 +200,7 @@ wxString MyObjectTreeModel::GetName(const wxDataViewItem &item) const
 	return node->m_name;
 }
 
-wxString MyObjectTreeModel::GetCopyCnt(const wxDataViewItem &item) const
+wxString MyObjectTreeModel::GetCopy(const wxDataViewItem &item) const
 {
 	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
 	if (!node)      // happens if item.IsOk()==false
@@ -302,8 +302,8 @@ unsigned int MyObjectTreeModel::GetChildren(const wxDataViewItem &parent, wxData
 	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)parent.GetID();
 	if (!node)
 	{
-		for (auto object: m_objects)
-		array.Add(wxDataViewItem((void*)object));
+		for (auto object : m_objects)
+			array.Add(wxDataViewItem((void*)object));
 		return m_objects.size();
 	}
 

@@ -148,7 +148,7 @@ public:
 	// helper method for wxLog
 
 	wxString GetName(const wxDataViewItem &item) const;
-	wxString GetCopyCnt(const wxDataViewItem &item) const;
+	wxString GetCopy(const wxDataViewItem &item) const;
 	wxString GetScale(const wxDataViewItem &item) const;
 
 	// helper methods to change the model
@@ -172,6 +172,10 @@ public:
 	virtual bool IsContainer(const wxDataViewItem &item) const override;
 	virtual unsigned int GetChildren(const wxDataViewItem &parent,
 		wxDataViewItemArray &array) const override;
+
+	// Is the container just a header or an item with all columns
+	// In our case it is an item with all columns 
+	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
 };
 
 
