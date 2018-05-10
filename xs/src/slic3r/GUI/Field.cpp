@@ -82,10 +82,8 @@ namespace Slic3r { namespace GUI {
 		return std::regex_match(string, regex_pattern);
 	}
 
-// 	boost::any Field::get_value_by_opt_type(wxString& str)
 	void Field::get_value_by_opt_type(wxString& str)
 	{
-// 		boost::any m_value;
 		switch (m_opt.type){
 		case coInt:
 			m_value = wxAtoi(str);
@@ -96,9 +94,24 @@ namespace Slic3r { namespace GUI {
 		case coFloat:{
 			if (m_opt.type == coPercent && str.Last() == '%') 
 				str.RemoveLast();
+			else if (str.Last() == '%')	{
+				show_error(m_parent, _(L("Current option doesn't support percentage")));
+				set_value(double_to_string(m_opt.min), true);
+				m_value = double(m_opt.min);
+				break;
+			}
 			double val;
 			str.ToCDouble(&val);
-			m_value = val;
+			if (m_opt.min <= val && val <= m_opt.max)
+				m_value = val;
+			else
+			{
+				show_error(m_parent, _(L("Input value is out of range")));
+				if (m_opt.min > val) val = m_opt.min;
+				if (val > m_opt.max) val = m_opt.max;
+				set_value(double_to_string(val), true);
+				m_value = val;
+			}
 			break; }
 		case coString:
 		case coStrings:
@@ -108,8 +121,6 @@ namespace Slic3r { namespace GUI {
 		default:
 			break;
 		}
-
-// 		return m_value;
 	}
 
 	void TextCtrl::BUILD() {
@@ -188,9 +199,9 @@ namespace Slic3r { namespace GUI {
 	boost::any& TextCtrl::get_value()
 	{
 		wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-		/*boost::any ret_val*/get_value_by_opt_type(ret_str);
+		get_value_by_opt_type(ret_str);
 
-		return m_value;//ret_val;
+		return m_value;
 	}
 
 	void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
