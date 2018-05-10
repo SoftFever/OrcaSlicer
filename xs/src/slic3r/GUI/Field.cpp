@@ -95,23 +95,25 @@ namespace Slic3r { namespace GUI {
 			if (m_opt.type == coPercent && str.Last() == '%') 
 				str.RemoveLast();
 			else if (str.Last() == '%')	{
-				show_error(m_parent, _(L("Current option doesn't support percentage")));
+				wxString label = m_Label->GetLabel();
+				if		(label.Last() == '\n')	label.RemoveLast();
+				while	(label.Last() == ' ')	label.RemoveLast();
+				if		(label.Last() == ':')	label.RemoveLast();
+				show_error(m_parent, wxString::Format(_(L("%s doesn't support percentage")), label));
 				set_value(double_to_string(m_opt.min), true);
 				m_value = double(m_opt.min);
 				break;
 			}
 			double val;
 			str.ToCDouble(&val);
-			if (m_opt.min <= val && val <= m_opt.max)
-				m_value = val;
-			else
+			if (m_opt.min > val && val > m_opt.max)
 			{
 				show_error(m_parent, _(L("Input value is out of range")));
 				if (m_opt.min > val) val = m_opt.min;
 				if (val > m_opt.max) val = m_opt.max;
 				set_value(double_to_string(val), true);
-				m_value = val;
 			}
+			m_value = val;
 			break; }
 		case coString:
 		case coStrings:
