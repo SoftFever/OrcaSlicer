@@ -817,26 +817,13 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	sizer->Add(main_page, 1, wxEXPAND | wxALL, 1);
 
 	// Experiments with new UI
-	wxCollapsiblePane *collpane = new wxCollapsiblePane(main_page, wxID_ANY, "Frequently Changing Parameters:");
-	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, main_page, collpane](wxCommandEvent e){
-		wxWindowUpdateLocker noUpdates_cp(collpane);
-		wxWindowUpdateLocker noUpdates(main_page);
-		parent->Layout();
-		main_page->Layout();
-		collpane->Refresh();
-	}));
 
+	// *** Frequently Changing Parameters ***
+	auto* collpane = new PrusaCollapsiblePane(main_page, wxID_ANY, "Frequently Changing Parameters:");
 	// add the pane with a zero proportion value to the sizer which contains it
 	main_sizer->Add(collpane, 0, wxGROW | wxALL, 0);
 
 	wxWindow *win = collpane->GetPane();
-#ifdef __WXMSW__
-	wxColour& clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-	collpane->GetControlWidget()->SetWindowStyleFlag(wxNO_BORDER);
-	collpane->GetControlWidget()->SetBackgroundColour(clr);
-	collpane->SetBackgroundColour(clr);
-	win->SetBackgroundColour(clr);
-#endif //__WXMSW__
 
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(win, "", config);
@@ -952,57 +939,24 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		m_optgroup->append_line(line);
 
 	wxSizer *paneSz = new wxBoxSizer(wxVERTICAL);
-	paneSz->Add(m_optgroup->sizer, 1, wxGROW | wxEXPAND | /*wxBOTTOM*/wxALL, /*2*/5);
+	paneSz->Add(m_optgroup->sizer, 1, wxGROW | wxEXPAND | wxLEFT | wxRIGHT, 5);
 	win->SetSizer(paneSz);
 	paneSz->SetSizeHints(win);
 
 
 
-
-	wxCollapsiblePane *collpane_objects = new wxCollapsiblePane(main_page, wxID_ANY, "Objects List:");
-	collpane_objects->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, main_page, collpane_objects](wxCommandEvent e){
-		wxWindowUpdateLocker noUpdates_cp(collpane_objects);
-		wxWindowUpdateLocker noUpdates(main_page);
-		parent->Layout();
-		main_page->Layout();
-		collpane_objects->Refresh();
-	}));
-
+	// *** Objects List ***
+	auto *collpane_objects = new PrusaCollapsiblePane(main_page, wxID_ANY, "Objects List:");
 	// add the pane with a zero proportion value to the sizer which contains it
 	main_sizer->Add(collpane_objects, 0, wxGROW | wxALL, 0);
 
 	wxWindow *win_objects = collpane_objects->GetPane();
-#ifdef __WXMSW__
-	collpane_objects->GetControlWidget()->SetWindowStyleFlag(wxNO_BORDER);
-	collpane_objects->GetControlWidget()->SetBackgroundColour(clr);
-	collpane_objects->SetBackgroundColour(clr);
-	win_objects->SetBackgroundColour(clr);
-#endif //__WXMSW__
-
-// 	auto common_sizer = new wxBoxSizer(wxVERTICAL);
-// 	common_sizer->Add(m_optgroup->sizer);
-
-// 	auto listctrl = new wxDataViewListCtrl(win, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));
-// 	listctrl->AppendToggleColumn("Toggle");
-// 	listctrl->AppendTextColumn("Text");
-// 	wxVector<wxVariant> data;
-// 	data.push_back(wxVariant(true));
-// 	data.push_back(wxVariant("row 1"));
-// 	listctrl->AppendItem(data);
-// 	data.clear();
-// 	data.push_back(wxVariant(false));
-// 	data.push_back(wxVariant("row 3"));
-// 	listctrl->AppendItem(data);
-// 	data.clear();
-// 	data.push_back(wxVariant(false));
-// 	data.push_back(wxVariant("row 2"));
-// 	listctrl->AppendItem(data);
-// 	common_sizer->Add(listctrl, 0, wxEXPAND | wxALL, 1);
 
 	// **********************************************************************************************
 	auto objects_ctrl = new wxDataViewCtrl(win_objects, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 	wxSizer *objects_sz = new wxBoxSizer(wxVERTICAL);
-	objects_ctrl->SetBestFittingSize(wxSize(-1, 200));
+	objects_ctrl->SetBestFittingSize(wxSize(-1, 200)); 
+	// TODO - Set correct height according to the opened/closed objects
 //	objects_ctrl->SetMinSize(wxSize(-1, 200));
 	objects_sz->Add(objects_ctrl, 1, wxGROW | wxALL, 5);
 
@@ -1040,6 +994,29 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	paneSz_objects->Add(objects_sz, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
 	win_objects->SetSizer(paneSz_objects);
 	paneSz_objects->SetSizeHints(win_objects);
+
+
+
+// 	auto common_sizer = new wxBoxSizer(wxVERTICAL);
+// 	common_sizer->Add(m_optgroup->sizer);
+
+// 	auto listctrl = new wxDataViewListCtrl(win, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));
+// 	listctrl->AppendToggleColumn("Toggle");
+// 	listctrl->AppendTextColumn("Text");
+// 	wxVector<wxVariant> data;
+// 	data.push_back(wxVariant(true));
+// 	data.push_back(wxVariant("row 1"));
+// 	listctrl->AppendItem(data);
+// 	data.clear();
+// 	data.push_back(wxVariant(false));
+// 	data.push_back(wxVariant("row 3"));
+// 	listctrl->AppendItem(data);
+// 	data.clear();
+// 	data.push_back(wxVariant(false));
+// 	data.push_back(wxVariant("row 2"));
+// 	listctrl->AppendItem(data);
+// 	common_sizer->Add(listctrl, 0, wxEXPAND | wxALL, 1);
+
 
 }
 

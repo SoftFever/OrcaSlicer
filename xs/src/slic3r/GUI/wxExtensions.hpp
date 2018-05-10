@@ -5,6 +5,10 @@
 #include <wx/combo.h>
 #include <wx/dataview.h>
 #include <wx/dc.h>
+#include <wx/collpane.h>
+#include <wx/wupdlock.h>
+#include <wx/button.h>
+
 #include <vector>
 #include <set>
 
@@ -52,6 +56,63 @@ public:
 	void				OnDataViewTreeCtrlSelection(wxCommandEvent& evt);
 	void				SetItemsCnt(int cnt) { m_cnt_open_items = cnt; }
 };
+
+
+
+// ***  PrusaCollapsiblePane  ***
+// ----------------------------------------------------------------------------
+class PrusaCollapsiblePane : public wxCollapsiblePane
+{
+#ifdef __WXMSW__
+	wxButton*	m_pDisclosureTriangleButton = nullptr;
+	wxBitmap	m_bmp_close;
+	wxBitmap	m_bmp_open;
+#endif //__WXMSW__
+public:
+	PrusaCollapsiblePane() {}
+
+
+	PrusaCollapsiblePane(	wxWindow *parent,
+							wxWindowID winid,
+							const wxString& label,
+							const wxPoint& pos = wxDefaultPosition,
+							const wxSize& size = wxDefaultSize,
+							long style = wxCP_DEFAULT_STYLE,
+							const wxValidator& val = wxDefaultValidator,
+							const wxString& name = wxCollapsiblePaneNameStr)
+	{
+#ifdef __WXMSW__
+		Create(parent, winid, label, pos, size, style, val, name);
+#else
+		this->Create(parent, winid, label);
+#endif //__WXMSW__
+		this->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, this](wxCommandEvent e){
+			wxWindowUpdateLocker noUpdates_cp(this);
+			wxWindowUpdateLocker noUpdates(parent);
+			parent->GetParent()->Layout();
+			parent->Layout();
+			this->Refresh();
+		}));
+	}
+
+	bool Create(wxWindow *parent,
+				wxWindowID id,
+				const wxString& label,
+				const wxPoint& pos,
+				const wxSize& size,
+				long style,
+				const wxValidator& val,
+				const wxString& name);
+
+#ifdef __WXMSW__
+	void UpdateBtnBmp();
+	void Collapse(bool collapse) override;
+	void SetLabel(const wxString &label) override;
+	bool Layout() override;
+#endif //__WXMSW__
+
+};
+
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------
