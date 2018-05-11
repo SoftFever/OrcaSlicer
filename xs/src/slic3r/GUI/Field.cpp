@@ -183,14 +183,21 @@ namespace Slic3r { namespace GUI {
 			//! to allow the default handling
 			event.Skip();
 			//! eliminating the g-code pop up text description
-			temp->GetToolTip()->Enable(false);
+			bool flag = false;
+#ifdef __WXGTK__
+			// I have no idea why, but on GTK flag works in other way
+			flag = true;
+#endif // __WXGTK__
+			temp->GetToolTip()->Enable(flag);
 		}), temp->GetId());
 
+#if !defined(__WXGTK__)
 		temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 		{
 			e.Skip();//	on_kill_focus(e);
 			temp->GetToolTip()->Enable(true);
 		}), temp->GetId());
+#endif // __WXGTK__
 
 		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent) { on_change_field(); }), temp->GetId());
 
