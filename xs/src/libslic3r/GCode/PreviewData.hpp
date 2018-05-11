@@ -187,7 +187,7 @@ public:
     void reset();
     bool empty() const;
 
-    const Color& get_extrusion_role_color(ExtrusionRole role) const;
+    Color get_extrusion_role_color(ExtrusionRole role) const;
     Color get_height_color(float height) const;
     Color get_width_color(float width) const;
     Color get_feedrate_color(float feedrate) const;
