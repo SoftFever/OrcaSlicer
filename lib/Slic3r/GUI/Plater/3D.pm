@@ -32,7 +32,7 @@ sub new {
     $self->{on_instances_moved} = sub {};
     $self->{on_wipe_tower_moved} = sub {};
 
-    $self->{objects_volumes_idxs} = ();
+    $self->{objects_volumes_idxs} = [];
         
     $self->on_select(sub {
         my ($volume_idx) = @_;
@@ -188,8 +188,8 @@ sub update_volumes_selection {
 
     foreach my $obj_idx (0..$#{$self->{model}->objects}) {
         if ($self->{objects}[$obj_idx]->selected) {
-            my @volume_idxs = @{$self->{objects_volumes_idxs}[$obj_idx]};
-            $self->select_volume($_) for @volume_idxs;
+            my $volume_idxs = $self->{objects_volumes_idxs}->[$obj_idx];
+            $self->select_volume($_) for @{$volume_idxs};
         }
     }
 }
@@ -207,7 +207,7 @@ sub reload_scene {
 
     $self->{reload_delayed} = 0;
 
-    $self->{objects_volumes_idxs} = ();    
+    $self->{objects_volumes_idxs} = [];    
     foreach my $obj_idx (0..$#{$self->{model}->objects}) {
         my @volume_idxs = $self->load_object($self->{model}, $self->{print}, $obj_idx);
         push(@{$self->{objects_volumes_idxs}}, \@volume_idxs);
