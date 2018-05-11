@@ -275,12 +275,9 @@ public:
 	// Set extruder temperature, don't wait by default.
 	Writer& set_extruder_temp(int temperature, bool wait = false)
 	{
-        if (temperature != current_temp) {
-            char buf[128];
-            sprintf(buf, "M%d S%d\n", wait ? 109 : 104, temperature);
-            m_gcode += buf;
-            current_temp = temperature;
-        }
+        char buf[128];
+        sprintf(buf, "M%d S%d\n", wait ? 109 : 104, temperature);
+        m_gcode += buf;
         return *this;
 	};
 
@@ -395,10 +392,8 @@ private:
 	float 		  m_wipe_tower_width = 0.f;
 	float		  m_wipe_tower_depth = 0.f;
 	float		  m_last_fan_speed = 0.f;
-    int           current_temp = -1;
 
-		std::string
-		set_format_X(float x)
+	std::string   set_format_X(float x)
 	{
 		char buf[64];
 		sprintf(buf, " X%.3f", x);
@@ -810,8 +805,10 @@ void WipeTowerPrusaMM::toolchange_Unload(
           .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate
           .resume_preview();
 
-    if (new_temperature != 0) 	// Set the extruder temperature, but don't wait.
+    if (new_temperature != 0 && new_temperature != m_old_temperature ) { 	// Set the extruder temperature, but don't wait.
 		writer.set_extruder_temp(new_temperature, false);
+        m_old_temperature = new_temperature;
+    }
 
     // Cooling:
     const int& number_of_moves = m_filpar[m_current_tool].cooling_moves;

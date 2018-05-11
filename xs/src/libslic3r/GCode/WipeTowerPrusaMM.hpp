@@ -196,6 +196,7 @@ private:
 	float  m_layer_height 		= 0.f; 	// Current layer height.
 	size_t m_max_color_changes 	= 0; 	// Maximum number of color changes per layer.
 	bool   m_is_first_layer 	= false;// Is this the 1st layer of the print? If so, print the brim around the waste tower.
+    int    m_old_temperature    = -1;   // To keep track of what was the last temp that we set (so we don't issue the command when not neccessary)
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;
