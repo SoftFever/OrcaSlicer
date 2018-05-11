@@ -70,8 +70,6 @@ class PrusaCollapsiblePane : public wxCollapsiblePane
 #endif //__WXMSW__
 public:
 	PrusaCollapsiblePane() {}
-
-
 	PrusaCollapsiblePane(	wxWindow *parent,
 							wxWindowID winid,
 							const wxString& label,
@@ -84,7 +82,7 @@ public:
 #ifdef __WXMSW__
 		Create(parent, winid, label, pos, size, style, val, name);
 #else
-		this->Create(parent, winid, label);
+		Create(parent, winid, label);
 #endif //__WXMSW__
 		this->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, this](wxCommandEvent e){
 			wxWindowUpdateLocker noUpdates_cp(this);
@@ -95,6 +93,9 @@ public:
 		}));
 	}
 
+	~PrusaCollapsiblePane() {}
+
+#ifdef __WXMSW__
 	bool Create(wxWindow *parent,
 				wxWindowID id,
 				const wxString& label,
@@ -104,7 +105,6 @@ public:
 				const wxValidator& val,
 				const wxString& name);
 
-#ifdef __WXMSW__
 	void UpdateBtnBmp();
 	void Collapse(bool collapse) override;
 	void SetLabel(const wxString &label) override;

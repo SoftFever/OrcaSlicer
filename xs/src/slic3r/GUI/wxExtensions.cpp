@@ -172,8 +172,10 @@ void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& e
 	cmb->SetText(selected);
 }
 
+// ----------------------------------------------------------------------------
 // ***  PrusaCollapsiblePane  ***
 // ----------------------------------------------------------------------------
+#ifdef __WXMSW__
 bool PrusaCollapsiblePane::Create(wxWindow *parent, wxWindowID id, const wxString& label, 
 	const wxPoint& pos, const wxSize& size, long style, const wxValidator& val, const wxString& name)
 {
@@ -284,6 +286,7 @@ bool PrusaCollapsiblePane::Layout()
 
 	return true;
 }
+#endif //__WXMSW__
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------
