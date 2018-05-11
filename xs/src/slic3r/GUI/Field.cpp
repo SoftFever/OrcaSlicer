@@ -194,6 +194,14 @@ namespace Slic3r { namespace GUI {
 
 		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent) { on_change_field(); }), temp->GetId());
 
+		// select all text using Ctrl+A
+		temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
+		{
+			if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+				temp->SetSelection(-1, -1); //select all
+			event.Skip();
+		}));
+
         // recast as a wxWindow to fit the calling convention
         window = dynamic_cast<wxWindow*>(temp);
     }	
