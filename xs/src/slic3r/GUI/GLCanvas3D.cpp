@@ -1,5 +1,7 @@
 #include "GLCanvas3D.hpp"
 
+#include "../../slic3r/GUI/3DScene.hpp"
+
 #include <wx/glcanvas.h>
 
 #include <iostream>
@@ -100,10 +102,37 @@ void GLCanvas3D::Camera::set_target(const Pointf3& target)
     m_target = target;
 }
 
+const Pointfs& GLCanvas3D::Bed::get_shape() const
+{
+    return m_shape;
+}
+
+void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
+{
+    m_shape = shape;
+    _calc_bounding_box();
+}
+
+const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
+{
+    return m_bounding_box;
+}
+
+void GLCanvas3D::Bed::_calc_bounding_box()
+{
+    m_bounding_box = BoundingBoxf3();
+    for (const Pointf& p : m_shape)
+    {
+        m_bounding_box.merge(Pointf3(p.x, p.y, 0.0));
+    }
+}
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
     , m_context(context)
+    , m_volumes(nullptr)
     , m_dirty(true)
+    , m_apply_zoom_to_volumes_filter(false)
 {
 }
 
@@ -111,6 +140,94 @@ void GLCanvas3D::set_current()
 {
     if ((m_canvas != nullptr) && (m_context != nullptr))
         m_canvas->SetCurrent(*m_context);
+}
+
+bool GLCanvas3D::is_shown_on_screen() const
+{
+    return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
+}
+
+void GLCanvas3D::resize(unsigned int w, unsigned int h)
+{
+    if (m_context == nullptr)
+        return;
+    
+    set_current();
+    ::glViewport(0, 0, w, h);
+
+    ::glMatrixMode(GL_PROJECTION);
+    ::glLoadIdentity();
+
+    BoundingBoxf3 bbox = max_bounding_box();
+
+    switch (get_camera_type())
+    {
+    case Camera::CT_Ortho:
+        {
+            float w2 = w;
+            float h2 = h;
+            float two_zoom = 2.0f * get_camera_zoom();
+            if (two_zoom != 0.0f)
+            {
+                float inv_two_zoom = 1.0f / two_zoom;
+                w2 *= inv_two_zoom;
+                h2 *= inv_two_zoom;
+            }
+
+            // FIXME: calculate a tighter value for depth will improve z-fighting
+            Pointf3 bb_size = bbox.size();
+            float depth = 5.0f * (float)std::max(bb_size.x, std::max(bb_size.y, bb_size.z));
+            ::glOrtho(-w2, w2, -h2, h2, -depth, depth);
+
+            break;
+        }
+    case Camera::CT_Perspective:
+        {
+            float bbox_r = (float)bbox.radius();
+            float fov = PI * 45.0f / 180.0f;
+            float fov_tan = tan(0.5f * fov);
+            float cam_distance = 0.5f * bbox_r / fov_tan;
+            set_camera_distance(cam_distance);
+
+            float nr = cam_distance - bbox_r * 1.1f;
+            float fr = cam_distance + bbox_r * 1.1f;
+            if (nr < 1.0f)
+                nr = 1.0f;
+
+            if (fr < nr + 1.0f)
+                fr = nr + 1.0f;
+
+            float h2 = fov_tan * nr;
+            float w2 = h2 * w / h;
+            ::glFrustum(-w2, w2, -h2, h2, nr, fr);
+
+            break;
+        }
+    default:
+        {
+            throw std::runtime_error("Invalid camera type.");
+            break;
+        }
+    }
+
+    ::glMatrixMode(GL_MODELVIEW);
+
+    set_dirty(false);
+}
+
+GLVolumeCollection* GLCanvas3D::get_volumes()
+{
+    return m_volumes;
+}
+
+void GLCanvas3D::set_volumes(GLVolumeCollection* volumes)
+{
+    m_volumes = volumes;
+}
+
+void GLCanvas3D::set_bed_shape(const Pointfs& shape)
+{
+    m_bed.set_shape(shape);
 }
 
 bool GLCanvas3D::is_dirty() const
@@ -121,11 +238,6 @@ bool GLCanvas3D::is_dirty() const
 void GLCanvas3D::set_dirty(bool dirty)
 {
     m_dirty = dirty;
-}
-
-bool GLCanvas3D::is_shown_on_screen() const
-{
-    return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
 }
 
 GLCanvas3D::Camera::EType GLCanvas3D::get_camera_type() const
@@ -198,6 +310,49 @@ void GLCanvas3D::on_size(wxSizeEvent& evt)
     std::cout << "GLCanvas3D::on_size: " << (void*)this << std::endl;
 
     set_dirty(true);
+}
+
+BoundingBoxf3 GLCanvas3D::bed_bounding_box() const
+{
+    return m_bed.get_bounding_box();
+}
+
+BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
+{
+    BoundingBoxf3 bb;
+    if (m_volumes != nullptr)
+    {
+        for (const GLVolume* volume : m_volumes->volumes)
+        {
+            if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes))
+                bb.merge(volume->transformed_bounding_box());
+        }
+    }
+    return bb;
+}
+
+BoundingBoxf3 GLCanvas3D::max_bounding_box() const
+{
+    BoundingBoxf3 bb = bed_bounding_box();
+    bb.merge(volumes_bounding_box());
+    return bb;
+}
+
+void GLCanvas3D::_zoom_to_bed()
+{
+    _zoom_to_bounding_box(bed_bounding_box());
+}
+
+void GLCanvas3D::_zoom_to_volumes()
+{
+    m_apply_zoom_to_volumes_filter = true;
+    _zoom_to_bounding_box(volumes_bounding_box());
+    m_apply_zoom_to_volumes_filter = false;
+}
+
+void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
+{
+    // >>>>>>>>>>>>>>>>>>>> TODO <<<<<<<<<<<<<<<<<<<<<<<<
 }
 
 } // namespace GUI

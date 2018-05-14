@@ -542,10 +542,19 @@ public:
     static bool remove_canvas(wxGLCanvas* canvas);
     static void remove_all_canvases();
 
-    static bool is_dirty(wxGLCanvas* canvas);
-    static void set_dirty(wxGLCanvas* canvas, bool dirty);
+    static void resize(wxGLCanvas* canvas, unsigned int w, unsigned int h);
 
     static bool is_shown_on_screen(wxGLCanvas* canvas);
+
+    static GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
+    static void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
+
+    static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
+
+    static BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
+
+    static bool is_dirty(wxGLCanvas* canvas);
+    static void set_dirty(wxGLCanvas* canvas, bool dirty);
 
     static unsigned int get_camera_type(wxGLCanvas* canvas);
     static void set_camera_type(wxGLCanvas* canvas, unsigned int type);

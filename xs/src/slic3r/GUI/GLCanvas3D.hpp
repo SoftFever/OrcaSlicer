@@ -1,13 +1,16 @@
 #ifndef slic3r_GLCanvas3D_hpp_
 #define slic3r_GLCanvas3D_hpp_
 
-#include "../../libslic3r/Point.hpp"
+#include "../../libslic3r/BoundingBox.hpp"
 
 class wxGLCanvas;
 class wxGLContext;
 class wxSizeEvent;
 
 namespace Slic3r {
+
+class GLVolumeCollection;
+
 namespace GUI {
 
 class GLCanvas3D
@@ -55,22 +58,48 @@ public:
         void set_target(const Pointf3& target);
     };
 
+    class Bed
+    {
+        Pointfs m_shape;
+        BoundingBoxf3 m_bounding_box;
+
+    public:
+        const Pointfs& get_shape() const;
+        void set_shape(const Pointfs& shape);
+
+        const BoundingBoxf3& get_bounding_box() const;
+
+    private:
+        void _calc_bounding_box();
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
     Camera m_camera;
+    Bed m_bed;
+
+    GLVolumeCollection* m_volumes;
 
     bool m_dirty;
+    bool m_apply_zoom_to_volumes_filter;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
 
     void set_current();
 
+    bool is_shown_on_screen() const;
+
+    void resize(unsigned int w, unsigned int h);
+
+    GLVolumeCollection* get_volumes();
+    void set_volumes(GLVolumeCollection* volumes);
+
+    void set_bed_shape(const Pointfs& shape);
+
     bool is_dirty() const;
     void set_dirty(bool dirty);
-
-    bool is_shown_on_screen() const;
 
     Camera::EType get_camera_type() const;
     void set_camera_type(Camera::EType type);
@@ -92,6 +121,15 @@ public:
     void set_camera_target(const Pointf3& target);
 
     void on_size(wxSizeEvent& evt);
+
+    BoundingBoxf3 bed_bounding_box() const;
+    BoundingBoxf3 volumes_bounding_box() const;
+    BoundingBoxf3 max_bounding_box() const;
+
+private:
+    void _zoom_to_bed();
+    void _zoom_to_volumes();
+    void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
 };
 
 } // namespace GUI

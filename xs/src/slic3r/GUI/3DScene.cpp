@@ -1742,6 +1742,36 @@ void _3DScene::remove_all_canvases()
     s_canvas_mgr.remove_all();
 }
 
+void _3DScene::resize(wxGLCanvas* canvas, unsigned int w, unsigned int h)
+{
+    s_canvas_mgr.resize(canvas, w, h);
+}
+
+bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_shown_on_screen(canvas);
+}
+
+GLVolumeCollection* _3DScene::get_volumes(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_volumes(canvas);
+}
+
+void _3DScene::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes)
+{
+    s_canvas_mgr.set_volumes(canvas, volumes);
+}
+
+void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
+{
+    return s_canvas_mgr.set_bed_shape(canvas, shape);
+}
+
+BoundingBoxf3 _3DScene::get_max_bounding_box(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_max_bounding_box(canvas);
+}
+
 bool _3DScene::is_dirty(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_dirty(canvas);
@@ -1750,11 +1780,6 @@ bool _3DScene::is_dirty(wxGLCanvas* canvas)
 void _3DScene::set_dirty(wxGLCanvas* canvas, bool dirty)
 {
     s_canvas_mgr.set_dirty(canvas, dirty);
-}
-
-bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_shown_on_screen(canvas);
 }
 
 unsigned int _3DScene::get_camera_type(wxGLCanvas* canvas)

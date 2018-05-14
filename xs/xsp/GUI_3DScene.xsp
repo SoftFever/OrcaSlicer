@@ -185,6 +185,44 @@ remove_all_canvases()
     CODE:
         _3DScene::remove_all_canvases();
 
+void
+resize(canvas, w, h)
+        SV           *canvas;
+        unsigned int w;
+        unsigned int h;
+    CODE:
+        _3DScene::resize((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), w, h);
+        
+GLVolumeCollection*
+get_volumes(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_volumes(canvas, volumes)
+        SV                 *canvas;
+        GLVolumeCollection *volumes;
+    CODE:
+        _3DScene::set_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), volumes);
+        
+void
+set_bed_shape(canvas, shape)
+        SV      *canvas;
+        Pointfs shape;
+    CODE:
+        _3DScene::set_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), shape);
+        
+Clone<BoundingBoxf3>
+get_max_bounding_box(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_max_bounding_box((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+        
 bool
 is_dirty(canvas)
         SV *canvas;

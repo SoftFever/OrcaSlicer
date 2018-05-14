@@ -146,6 +146,45 @@ bool GLCanvas3DManager::layer_editing_allowed() const
     return m_layer_editing.allowed;
 }
 
+bool GLCanvas3DManager::is_shown_on_screen(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_shown_on_screen() : false;
+}
+
+void GLCanvas3DManager::resize(wxGLCanvas* canvas, unsigned int w, unsigned int h)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->resize(w, h);
+}
+
+GLVolumeCollection* GLCanvas3DManager::get_volumes(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_volumes() : nullptr;
+}
+
+void GLCanvas3DManager::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_volumes(volumes);
+}
+
+void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_bed_shape(shape);
+}
+
+BoundingBoxf3 GLCanvas3DManager::get_max_bounding_box(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->max_bounding_box() : BoundingBoxf3();
+}
+
 bool GLCanvas3DManager::is_dirty(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -157,12 +196,6 @@ void GLCanvas3DManager::set_dirty(wxGLCanvas* canvas, bool dirty)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_dirty(dirty);
-}
-
-bool GLCanvas3DManager::is_shown_on_screen(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_shown_on_screen() : false;
 }
 
 unsigned int GLCanvas3DManager::get_camera_type(wxGLCanvas* canvas) const

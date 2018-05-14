@@ -52,10 +52,19 @@ public:
     bool use_VBOs() const;
     bool layer_editing_allowed() const;
 
+    bool is_shown_on_screen(wxGLCanvas* canvas) const;
+
+    void resize(wxGLCanvas* canvas, unsigned int w, unsigned int h);
+
+    GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
+    void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
+
+    void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
+
+    BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
+
     bool is_dirty(wxGLCanvas* canvas) const;
     void set_dirty(wxGLCanvas* canvas, bool dirty);
-
-    bool is_shown_on_screen(wxGLCanvas* canvas) const;
 
     unsigned int get_camera_type(wxGLCanvas* canvas) const;
     void set_camera_type(wxGLCanvas* canvas, unsigned int type);

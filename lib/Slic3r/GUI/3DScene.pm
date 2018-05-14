@@ -194,10 +194,6 @@ sub new {
     $self->background(1);
     $self->_quat((0, 0, 0, 1));
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_camera_theta($self, 45.0);
-    Slic3r::GUI::_3DScene::set_camera_phi($self, 45.0);
-    Slic3r::GUI::_3DScene::set_camera_zoom($self, 1.0);
-
 #    $self->_stheta(45);
 #    $self->_sphi(45);
 #    $self->_zoom(1);
@@ -210,6 +206,9 @@ sub new {
 
     # Collection of GLVolume objects
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_volumes($self, $self->volumes);
+#==============================================================================================================================
 
     # 3D point in model space
 #==============================================================================================================================
@@ -217,8 +216,6 @@ sub new {
 ##    $self->_camera_type('perspective');
 #==============================================================================================================================
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_camera_target($self, Slic3r::Pointf3->new(0,0,0));
-    Slic3r::GUI::_3DScene::set_camera_distance($self, 0.0);
 #    $self->_camera_target(Slic3r::Pointf3->new(0,0,0));
 #    $self->_camera_distance(0.);
 #==============================================================================================================================
@@ -969,9 +966,13 @@ sub bed_bounding_box {
 sub max_bounding_box {
     my ($self) = @_;
     
-    my $bb = $self->bed_bounding_box;
-    $bb->merge($self->volumes_bounding_box);
-    return $bb;
+#==============================================================================================================================
+    return Slic3r::GUI::_3DScene::get_max_bounding_box($self);
+    
+#    my $bb = $self->bed_bounding_box;
+#    $bb->merge($self->volumes_bounding_box);
+#    return $bb;
+#==============================================================================================================================
 }
 
 # Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane
@@ -1000,6 +1001,9 @@ sub set_bed_shape {
     my ($self, $bed_shape) = @_;
     
     $self->bed_shape($bed_shape);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_bed_shape($self, $bed_shape);
+#==============================================================================================================================
     
     # triangulate bed
     my $expolygon = Slic3r::ExPolygon->new([ map [map scale($_), @$_], @$bed_shape ]);
@@ -1246,63 +1250,48 @@ sub UseVBOs {
 
 sub Resize {
     my ($self, $x, $y) = @_;
- 
-    return unless $self->GetContext;
+
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_dirty($self, 0);
-#    $self->_dirty(0);
-#==============================================================================================================================
+     Slic3r::GUI::_3DScene::resize($self, $x, $y);
     
-    $self->SetCurrent($self->GetContext);
-    glViewport(0, 0, $x, $y);
- 
-#==============================================================================================================================
-    my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
-    $x /= $zoom;
-    $y /= $zoom;
+#    return unless $self->GetContext;
+#    $self->_dirty(0);
+#    
+#    $self->SetCurrent($self->GetContext);
+#    glViewport(0, 0, $x, $y);
+# 
 #    $x /= $self->_zoom;
 #    $y /= $self->_zoom;
-#==============================================================================================================================
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-#==============================================================================================================================
-    my $camera_type = Slic3r::GUI::_3DScene::get_camera_type_as_string($self);
-    if ($camera_type eq 'ortho') {
+#    
+#    glMatrixMode(GL_PROJECTION);
+#    glLoadIdentity();
 #    if ($self->_camera_type eq 'ortho') {
-#==============================================================================================================================    
-        #FIXME setting the size of the box 10x larger than necessary
-        # is only a workaround for an incorrectly set camera.
-        # This workaround harms Z-buffer accuracy!
-#        my $depth = 1.05 * $self->max_bounding_box->radius();
-       my $depth = 5.0 * max(@{ $self->max_bounding_box->size });
-        glOrtho(
-            -$x/2, $x/2, -$y/2, $y/2,
-            -$depth, $depth,
-        );
-    } else {
-#==============================================================================================================================
-        die "Invalid camera type: ", $camera_type, "\n" if ($camera_type ne 'perspective');
+#        #FIXME setting the size of the box 10x larger than necessary
+#        # is only a workaround for an incorrectly set camera.
+#        # This workaround harms Z-buffer accuracy!
+##        my $depth = 1.05 * $self->max_bounding_box->radius();
+#       my $depth = 5.0 * max(@{ $self->max_bounding_box->size });
+#        glOrtho(
+#            -$x/2, $x/2, -$y/2, $y/2,
+#            -$depth, $depth,
+#        );
+#    } else {
 #        die "Invalid camera type: ", $self->_camera_type, "\n" if ($self->_camera_type ne 'perspective');
-#==============================================================================================================================
-        my $bbox_r = $self->max_bounding_box->radius();
-        my $fov = PI * 45. / 180.;
-        my $fov_tan = tan(0.5 * $fov);
-        my $cam_distance = 0.5 * $bbox_r / $fov_tan;
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::set_camera_distance($self, $cam_distance);
+#        my $bbox_r = $self->max_bounding_box->radius();
+#        my $fov = PI * 45. / 180.;
+#        my $fov_tan = tan(0.5 * $fov);
+#        my $cam_distance = 0.5 * $bbox_r / $fov_tan;
 #        $self->_camera_distance($cam_distance);
+#        my $nr = $cam_distance - $bbox_r * 1.1;
+#        my $fr = $cam_distance + $bbox_r * 1.1;
+#        $nr = 1 if ($nr < 1);
+#        $fr = $nr + 1 if ($fr < $nr + 1);
+#        my $h2 = $fov_tan * $nr;
+#        my $w2 = $h2 * $x / $y;
+#        glFrustum(-$w2, $w2, -$h2, $h2, $nr, $fr);        
+#    }
+#    glMatrixMode(GL_MODELVIEW);
 #==============================================================================================================================
-        my $nr = $cam_distance - $bbox_r * 1.1;
-        my $fr = $cam_distance + $bbox_r * 1.1;
-        $nr = 1 if ($nr < 1);
-        $fr = $nr + 1 if ($fr < $nr + 1);
-        my $h2 = $fov_tan * $nr;
-        my $w2 = $h2 * $x / $y;
-        glFrustum(-$w2, $w2, -$h2, $h2, $nr, $fr);        
-    }
-
-    glMatrixMode(GL_MODELVIEW);
 }
 
 sub InitGL {
