@@ -124,7 +124,6 @@ public:
     virtual wxWindow*	getWindow() { return nullptr; }
 
 	bool				is_matched(const std::string& string, const std::string& pattern);
-// 	boost::any			get_value_by_opt_type(wxString& str);
 	void				get_value_by_opt_type(wxString& str);
 
     /// Factory method for generating new derived classes.

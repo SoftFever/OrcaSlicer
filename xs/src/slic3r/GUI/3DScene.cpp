@@ -2313,7 +2313,7 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
             return 0.0f;
         }
 
-        static const GCodePreviewData::Color& path_color(const GCodePreviewData& data, const std::vector<float>& tool_colors, float value)
+        static GCodePreviewData::Color path_color(const GCodePreviewData& data, const std::vector<float>& tool_colors, float value)
         {
             switch (data.extrusion.view_type)
             {
@@ -2329,7 +2329,7 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
                 return data.get_volumetric_rate_color(value);
             case GCodePreviewData::Extrusion::Tool:
                 {
-                    static GCodePreviewData::Color color;
+                    GCodePreviewData::Color color;
                     ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (unsigned int)value * 4), 4 * sizeof(float));
                     return color;
                 }
@@ -2366,7 +2366,6 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
     };
 
     typedef std::vector<Filter> FiltersList;
-
     size_t initial_volumes_count = volumes.volumes.size();
 
     // detects filters
@@ -2390,7 +2389,6 @@ void _3DScene::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data,
     for (Filter& filter : filters)
     {
         s_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Extrusion, (unsigned int)filter.role, (unsigned int)volumes.volumes.size());
-
         GLVolume* volume = new GLVolume(Helper::path_color(preview_data, tool_colors, filter.value).rgba);
         if (volume != nullptr)
         {
