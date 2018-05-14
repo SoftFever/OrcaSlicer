@@ -236,16 +236,14 @@ sub new {
 #=======================================================================================================================    
 #    EVT_SIZE($self, sub { $self->_dirty(1) });
 #=======================================================================================================================    
-    EVT_IDLE($self, sub {
 #==============================================================================================================================
-        return unless Slic3r::GUI::_3DScene::is_dirty($self);
-        return unless Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+#    EVT_IDLE($self, sub {
 #        return unless $self->_dirty;
 #        return if !$self->IsShownOnScreen;
+#        $self->Resize( $self->GetSizeWH );
+#        $self->Refresh;
+#    });
 #==============================================================================================================================
-        $self->Resize( $self->GetSizeWH );
-        $self->Refresh;
-    });
     EVT_MOUSEWHEEL($self, \&mouse_wheel_event);
     EVT_MOUSE_EVENTS($self, \&mouse_event);
 #    EVT_KEY_DOWN($self, sub {

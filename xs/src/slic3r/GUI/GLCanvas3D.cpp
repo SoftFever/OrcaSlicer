@@ -305,13 +305,6 @@ void GLCanvas3D::set_camera_target(const Pointf3& target)
     m_camera.set_target(target);
 }
 
-void GLCanvas3D::on_size(wxSizeEvent& evt)
-{
-    std::cout << "GLCanvas3D::on_size: " << (void*)this << std::endl;
-
-    set_dirty(true);
-}
-
 BoundingBoxf3 GLCanvas3D::bed_bounding_box() const
 {
     return m_bed.get_bounding_box();
@@ -338,6 +331,24 @@ BoundingBoxf3 GLCanvas3D::max_bounding_box() const
     return bb;
 }
 
+void GLCanvas3D::on_size(wxSizeEvent& evt)
+{
+    set_dirty(true);
+}
+
+void GLCanvas3D::on_idle(wxIdleEvent& evt)
+{
+    if (!is_dirty() || !is_shown_on_screen())
+        return;
+
+    if (m_canvas != nullptr)
+    {
+        std::pair<int, int> size = _get_canvas_size();
+        resize((unsigned int)size.first, (unsigned int)size.second);
+        m_canvas->Refresh();
+    }
+}
+
 void GLCanvas3D::_zoom_to_bed()
 {
     _zoom_to_bounding_box(bed_bounding_box());
@@ -353,6 +364,16 @@ void GLCanvas3D::_zoom_to_volumes()
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 {
     // >>>>>>>>>>>>>>>>>>>> TODO <<<<<<<<<<<<<<<<<<<<<<<<
+}
+
+std::pair<int, int> GLCanvas3D::_get_canvas_size() const
+{
+    std::pair<int, int> ret(0, 0);
+
+    if (m_canvas != nullptr)
+        m_canvas->GetSize(&ret.first, &ret.second);
+
+    return ret;
 }
 
 } // namespace GUI

@@ -6,6 +6,7 @@
 class wxGLCanvas;
 class wxGLContext;
 class wxSizeEvent;
+class wxIdleEvent;
 
 namespace Slic3r {
 
@@ -120,16 +121,18 @@ public:
     const Pointf3& get_camera_target() const;
     void set_camera_target(const Pointf3& target);
 
-    void on_size(wxSizeEvent& evt);
-
     BoundingBoxf3 bed_bounding_box() const;
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 max_bounding_box() const;
+
+    void on_size(wxSizeEvent& evt);
+    void on_idle(wxIdleEvent& evt);
 
 private:
     void _zoom_to_bed();
     void _zoom_to_volumes();
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
+    std::pair<int, int> _get_canvas_size() const;
 };
 
 } // namespace GUI
