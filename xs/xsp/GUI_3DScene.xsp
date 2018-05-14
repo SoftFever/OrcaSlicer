@@ -222,7 +222,15 @@ set_camera_type(canvas, type)
         unsigned int type;
     CODE:
         _3DScene::set_camera_type((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), type);
-        
+
+std::string
+get_camera_type_as_string(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_camera_type_as_string((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
 float
 get_camera_zoom(canvas)
         SV *canvas;

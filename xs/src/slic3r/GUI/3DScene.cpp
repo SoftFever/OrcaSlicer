@@ -1767,6 +1767,11 @@ void _3DScene::set_camera_type(wxGLCanvas* canvas, unsigned int type)
     s_canvas_mgr.set_camera_type(canvas, type);
 }
 
+std::string _3DScene::get_camera_type_as_string(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_camera_type_as_string(canvas);
+}
+
 float _3DScene::get_camera_zoom(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_camera_zoom(canvas);

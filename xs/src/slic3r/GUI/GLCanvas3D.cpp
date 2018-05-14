@@ -18,6 +18,20 @@ GLCanvas3D::Camera::Camera()
 {
 }
 
+std::string GLCanvas3D::Camera::get_type_as_string() const
+{
+    switch (type)
+    {
+    default:
+    case CT_Unknown:
+        return "unknown";
+    case CT_Perspective:
+        return "perspective";
+    case CT_Ortho:
+        return "ortho";
+    };
+}
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
     , m_context(context)
@@ -54,6 +68,11 @@ GLCanvas3D::Camera::EType GLCanvas3D::get_camera_type() const
 void GLCanvas3D::set_camera_type(GLCanvas3D::Camera::EType type)
 {
     m_camera.type = type;
+}
+
+std::string GLCanvas3D::get_camera_type_as_string() const
+{
+    return m_camera.get_type_as_string();
 }
 
 float GLCanvas3D::get_camera_zoom() const

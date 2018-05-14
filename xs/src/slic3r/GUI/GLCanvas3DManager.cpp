@@ -181,6 +181,12 @@ void GLCanvas3DManager::set_camera_type(wxGLCanvas* canvas, unsigned int type)
         it->second->set_camera_type((GLCanvas3D::Camera::EType)type);
 }
 
+std::string GLCanvas3DManager::get_camera_type_as_string(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_camera_type_as_string() : "unknown";
+}
+
 float GLCanvas3DManager::get_camera_zoom(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);

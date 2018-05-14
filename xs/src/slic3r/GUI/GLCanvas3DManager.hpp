@@ -59,7 +59,8 @@ public:
 
     unsigned int get_camera_type(wxGLCanvas* canvas) const;
     void set_camera_type(wxGLCanvas* canvas, unsigned int type);
-
+    std::string get_camera_type_as_string(wxGLCanvas* canvas) const;
+    
     float get_camera_zoom(wxGLCanvas* canvas) const;
     void set_camera_zoom(wxGLCanvas* canvas, float zoom);
 

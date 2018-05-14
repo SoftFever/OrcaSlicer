@@ -549,6 +549,7 @@ public:
 
     static unsigned int get_camera_type(wxGLCanvas* canvas);
     static void set_camera_type(wxGLCanvas* canvas, unsigned int type);
+    static std::string get_camera_type_as_string(wxGLCanvas* canvas);
 
     static float get_camera_zoom(wxGLCanvas* canvas);
     static void set_camera_zoom(wxGLCanvas* canvas, float zoom);

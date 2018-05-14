@@ -31,6 +31,8 @@ public:
         Pointf3 target;
 
         Camera();
+
+        std::string get_type_as_string() const;
     };
 
 private:
@@ -52,6 +54,7 @@ public:
 
     Camera::EType get_camera_type() const;
     void set_camera_type(Camera::EType type);
+    std::string get_camera_type_as_string() const;
 
     float get_camera_zoom() const;
     void set_camera_zoom(float zoom);

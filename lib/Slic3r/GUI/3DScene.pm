@@ -46,7 +46,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               on_move
                               on_model_update
                               volumes
-                              _sphi _stheta
                               cutting_plane_z
                               cut_lines_vertices
                               bed_shape
@@ -66,11 +65,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
 
                               _layer_height_edited
 
-                              _camera_type
-                              _camera_target
-                              _camera_distance
-                              _zoom
-                              
                               _legend_enabled
                               _warning_enabled
                               _apply_zoom_to_volumes_filter
@@ -197,9 +191,15 @@ sub new {
     $self->{can_multisample} = $can_multisample;
     $self->background(1);
     $self->_quat((0, 0, 0, 1));
-    $self->_stheta(45);
-    $self->_sphi(45);
-    $self->_zoom(1);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_camera_theta($self, 45.0);
+    Slic3r::GUI::_3DScene::set_camera_phi($self, 45.0);
+    Slic3r::GUI::_3DScene::set_camera_zoom($self, 1.0);
+
+#    $self->_stheta(45);
+#    $self->_sphi(45);
+#    $self->_zoom(1);
+#==============================================================================================================================
     $self->_legend_enabled(0);
     $self->_warning_enabled(0);
     $self->use_plain_shader(0);
@@ -210,10 +210,16 @@ sub new {
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
 
     # 3D point in model space
-    $self->_camera_type('ortho');
-#    $self->_camera_type('perspective');
-    $self->_camera_target(Slic3r::Pointf3->new(0,0,0));
-    $self->_camera_distance(0.);
+#==============================================================================================================================
+#    $self->_camera_type('ortho');
+##    $self->_camera_type('perspective');
+#==============================================================================================================================
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_camera_target($self, Slic3r::Pointf3->new(0,0,0));
+    Slic3r::GUI::_3DScene::set_camera_distance($self, 0.0);
+#    $self->_camera_target(Slic3r::Pointf3->new(0,0,0));
+#    $self->_camera_distance(0.);
+#==============================================================================================================================
 
     $self->layer_editing_enabled(0);
     $self->{layer_height_edit_band_width} = 2.;
@@ -383,7 +389,11 @@ sub _variable_layer_thickness_bar_rect_screen {
 sub _variable_layer_thickness_bar_rect_viewport {
     my ($self) = @_;
     my ($cw, $ch) = $self->GetSizeWH;
-    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$self->_zoom, (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$self->_zoom, $cw/(2*$self->_zoom), $ch/(2*$self->_zoom));
+#==============================================================================================================================
+    my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
+    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$zoom, (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$zoom, $cw/(2*$zoom), $ch/(2*$zoom));
+#    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$self->_zoom, (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$self->_zoom, $cw/(2*$self->_zoom), $ch/(2*$self->_zoom));
+#==============================================================================================================================
 }
 
 # Returns an array with (left, top, right, bottom) of the variable layer thickness bar on the screen.
@@ -396,7 +406,11 @@ sub _variable_layer_thickness_reset_rect_screen {
 sub _variable_layer_thickness_reset_rect_viewport {
     my ($self) = @_;
     my ($cw, $ch) = $self->GetSizeWH;
-    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$self->_zoom, -$ch/(2*$self->_zoom), $cw/(2*$self->_zoom), (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$self->_zoom);
+#==============================================================================================================================
+    my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
+    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$zoom, -$ch/(2*$zoom), $cw/(2*$zoom), (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$zoom);
+#    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$self->_zoom, -$ch/(2*$self->_zoom), $cw/(2*$self->_zoom), (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$self->_zoom);
+#==============================================================================================================================
 }
 
 sub _variable_layer_thickness_bar_rect_mouse_inside {
@@ -570,10 +584,17 @@ sub mouse_event {
                 my $orig = $self->_drag_start_pos;
                 if (TURNTABLE_MODE) {
                     # Turntable mode is enabled by default.
-                    $self->_sphi($self->_sphi + ($pos->x - $orig->x) * TRACKBALLSIZE);
-                    $self->_stheta($self->_stheta - ($pos->y - $orig->y) * TRACKBALLSIZE);        #-
-                    $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
-                    $self->_stheta(0) if $self->_stheta < 0;
+#==============================================================================================================================
+                    Slic3r::GUI::_3DScene::set_camera_phi($self, Slic3r::GUI::_3DScene::get_camera_phi($self) + ($pos->x - $orig->x) * TRACKBALLSIZE);
+                    Slic3r::GUI::_3DScene::set_camera_theta($self, Slic3r::GUI::_3DScene::get_camera_theta($self) - ($pos->y - $orig->y) * TRACKBALLSIZE);
+                    Slic3r::GUI::_3DScene::set_camera_theta($self, GIMBALL_LOCK_THETA_MAX) if Slic3r::GUI::_3DScene::get_camera_theta($self) > GIMBALL_LOCK_THETA_MAX;
+                    Slic3r::GUI::_3DScene::set_camera_theta($self, 0) if Slic3r::GUI::_3DScene::get_camera_theta($self) < 0;
+                                       
+#                    $self->_sphi($self->_sphi + ($pos->x - $orig->x) * TRACKBALLSIZE);
+#                    $self->_stheta($self->_stheta - ($pos->y - $orig->y) * TRACKBALLSIZE);        #-
+#                    $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
+#                    $self->_stheta(0) if $self->_stheta < 0;
+#==============================================================================================================================
                 } else {
                     my $size = $self->GetClientSize;
                     my @quat = trackball(
@@ -595,7 +616,12 @@ sub mouse_event {
                 # get point in model space at Z = 0
                 my $cur_pos = $self->mouse_to_3d($e->GetX, $e->GetY, 0);
                 my $orig    = $self->mouse_to_3d($self->_drag_start_xy->x, $self->_drag_start_xy->y, 0);
-                $self->_camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
+#==============================================================================================================================
+                my $camera_target = Slic3r::GUI::_3DScene::get_camera_target($self);
+                $camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
+                Slic3r::GUI::_3DScene::set_camera_target($self, $camera_target);
+#                $self->_camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
+#==============================================================================================================================
                 $self->on_viewport_changed->() if $self->on_viewport_changed;
                 $self->Refresh;
                 $self->Update;
@@ -662,12 +688,18 @@ sub mouse_wheel_event {
     my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
     $zoom = max(min($zoom, 4), -4);
     $zoom /= 10;
-    $zoom = $self->_zoom / (1-$zoom);
+#==============================================================================================================================
+    $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self) / (1-$zoom);
+#    $zoom = $self->_zoom / (1-$zoom);
+#==============================================================================================================================
     # Don't allow to zoom too far outside the scene.
     my $zoom_min = $self->get_zoom_to_bounding_box_factor($self->max_bounding_box);
     $zoom_min *= 0.4 if defined $zoom_min;
     $zoom = $zoom_min if defined $zoom_min && $zoom < $zoom_min;
-    $self->_zoom($zoom);
+#==============================================================================================================================
+    $zoom = Slic3r::GUI::_3DScene::set_camera_zoom($self, $zoom);
+#    $self->_zoom($zoom);
+#==============================================================================================================================
     
 #    # In order to zoom around the mouse point we need to translate
 #    # the camera target
@@ -712,10 +744,17 @@ sub reset_objects {
 sub set_viewport_from_scene {
     my ($self, $scene) = @_;
     
-    $self->_sphi($scene->_sphi);
-    $self->_stheta($scene->_stheta);
-    $self->_camera_target($scene->_camera_target);
-    $self->_zoom($scene->_zoom);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_camera_phi($self, Slic3r::GUI::_3DScene::get_camera_phi($scene));
+    Slic3r::GUI::_3DScene::set_camera_theta($self, Slic3r::GUI::_3DScene::get_camera_theta($scene));
+    Slic3r::GUI::_3DScene::set_camera_target($self, Slic3r::GUI::_3DScene::get_camera_target($scene));
+    Slic3r::GUI::_3DScene::set_camera_zoom($self, Slic3r::GUI::_3DScene::get_camera_zoom($scene));
+    
+#    $self->_sphi($scene->_sphi);
+#    $self->_stheta($scene->_stheta);
+#    $self->_camera_target($scene->_camera_target);
+#    $self->_zoom($scene->_zoom);
+#==============================================================================================================================
     $self->_quat($scene->_quat);
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::set_dirty($self, 1);
@@ -749,11 +788,19 @@ sub select_view {
     }
     my $bb = $self->volumes_bounding_box;
     if (! $bb->empty) {
-        $self->_sphi($dirvec->[0]);
-        $self->_stheta($dirvec->[1]);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_camera_phi($self, $dirvec->[0]);
+        Slic3r::GUI::_3DScene::set_camera_theta($self, $dirvec->[1]);
         # Avoid gimball lock.
-        $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
-        $self->_stheta(0) if $self->_stheta < 0;
+        Slic3r::GUI::_3DScene::set_camera_theta($self, GIMBALL_LOCK_THETA_MAX) if Slic3r::GUI::_3DScene::get_camera_theta($self) > GIMBALL_LOCK_THETA_MAX;
+        Slic3r::GUI::_3DScene::set_camera_theta($self, 0) if Slic3r::GUI::_3DScene::get_camera_theta($self) < 0;
+        
+#        $self->_sphi($dirvec->[0]);
+#        $self->_stheta($dirvec->[1]);
+#        # Avoid gimball lock.
+#        $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
+#        $self->_stheta(0) if $self->_stheta < 0;
+#==============================================================================================================================
         # View everything.
         $self->zoom_to_bounding_box($bb);
         $self->on_viewport_changed->() if $self->on_viewport_changed;
@@ -775,22 +822,35 @@ sub get_zoom_to_bounding_box_factor {
 
     if (!TURNTABLE_MODE) {
         # Shift the perspective camera.
-        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+#==============================================================================================================================
+        my $camera_pos = Slic3r::Pointf3->new(0,0,-Slic3r::GUI::_3DScene::get_camera_distance($self));
+#        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+#==============================================================================================================================
         glTranslatef(@$camera_pos);
     }
     
     if (TURNTABLE_MODE) {
         # Turntable mode is enabled by default.
-        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
-        glRotatef($self->_sphi, 0, 0, 1);    # yaw
+#==============================================================================================================================        
+        glRotatef(-Slic3r::GUI::_3DScene::get_camera_theta($self), 1, 0, 0); # pitch
+        glRotatef(Slic3r::GUI::_3DScene::get_camera_phi($self), 0, 0, 1);    # yaw
+#        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
+#        glRotatef($self->_sphi, 0, 0, 1);    # yaw
+#==============================================================================================================================
     } else {
         # Shift the perspective camera.
-        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+#==============================================================================================================================
+        my $camera_pos = Slic3r::Pointf3->new(0,0,-Slic3r::GUI::_3DScene::get_camera_distance($self));
+#        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+#==============================================================================================================================
         glTranslatef(@$camera_pos);
         my @rotmat = quat_to_rotmatrix($self->quat);
         glMultMatrixd_p(@rotmat[0..15]);
     }    
-    glTranslatef(@{ $self->_camera_target->negative });
+#==============================================================================================================================
+    glTranslatef(@{ Slic3r::GUI::_3DScene::get_camera_target($self)->negative });
+#    glTranslatef(@{ $self->_camera_target->negative });
+#==============================================================================================================================
     
     # get the view matrix back from opengl
     my @matrix = glGetFloatv_p(GL_MODELVIEW_MATRIX);
@@ -848,9 +908,15 @@ sub zoom_to_bounding_box {
     # Calculate the zoom factor needed to adjust viewport to bounding box.
     my $zoom = $self->get_zoom_to_bounding_box_factor($bb);
     if (defined $zoom) {
-        $self->_zoom($zoom);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_camera_zoom($self, $zoom);
+#        $self->_zoom($zoom);
+#==============================================================================================================================
         # center view around bounding box center
-        $self->_camera_target($bb->center);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_camera_target($self, $bb->center);
+#        $self->_camera_target($bb->center);
+#==============================================================================================================================
         $self->on_viewport_changed->() if $self->on_viewport_changed;
 #==============================================================================================================================
         $self->Resize($self->GetSizeWH) if Slic3r::GUI::_3DScene::is_shown_on_screen($self);
@@ -1193,12 +1259,21 @@ sub Resize {
     $self->SetCurrent($self->GetContext);
     glViewport(0, 0, $x, $y);
  
-    $x /= $self->_zoom;
-    $y /= $self->_zoom;
+#==============================================================================================================================
+    my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
+    $x /= $zoom;
+    $y /= $zoom;
+#    $x /= $self->_zoom;
+#    $y /= $self->_zoom;
+#==============================================================================================================================
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    if ($self->_camera_type eq 'ortho') {
+#==============================================================================================================================
+    my $camera_type = Slic3r::GUI::_3DScene::get_camera_type_as_string($self);
+    if ($camera_type eq 'ortho') {
+#    if ($self->_camera_type eq 'ortho') {
+#==============================================================================================================================    
         #FIXME setting the size of the box 10x larger than necessary
         # is only a workaround for an incorrectly set camera.
         # This workaround harms Z-buffer accuracy!
@@ -1209,12 +1284,18 @@ sub Resize {
             -$depth, $depth,
         );
     } else {
-        die "Invalid camera type: ", $self->_camera_type, "\n" if ($self->_camera_type ne 'perspective');
+#==============================================================================================================================
+        die "Invalid camera type: ", $camera_type, "\n" if ($camera_type ne 'perspective');
+#        die "Invalid camera type: ", $self->_camera_type, "\n" if ($self->_camera_type ne 'perspective');
+#==============================================================================================================================
         my $bbox_r = $self->max_bounding_box->radius();
         my $fov = PI * 45. / 180.;
         my $fov_tan = tan(0.5 * $fov);
         my $cam_distance = 0.5 * $bbox_r / $fov_tan;
-        $self->_camera_distance($cam_distance);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_camera_distance($self, $cam_distance);
+#        $self->_camera_distance($cam_distance);
+#==============================================================================================================================
         my $nr = $cam_distance - $bbox_r * 1.1;
         my $fr = $cam_distance + $bbox_r * 1.1;
         $nr = 1 if ($nr < 1);
@@ -1344,19 +1425,29 @@ sub Render {
 
     if (!TURNTABLE_MODE) {
         # Shift the perspective camera.
-        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+#==============================================================================================================================
+        my $camera_pos = Slic3r::Pointf3->new(0,0,-Slic3r::GUI::_3DScene::get_camera_distance($self));
+#        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+#==============================================================================================================================
         glTranslatef(@$camera_pos);
     }
     
     if (TURNTABLE_MODE) {
         # Turntable mode is enabled by default.
-        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
-        glRotatef($self->_sphi, 0, 0, 1);    # yaw
+#==============================================================================================================================        
+        glRotatef(-Slic3r::GUI::_3DScene::get_camera_theta($self), 1, 0, 0); # pitch
+        glRotatef(Slic3r::GUI::_3DScene::get_camera_phi($self), 0, 0, 1);    # yaw
+#        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
+#        glRotatef($self->_sphi, 0, 0, 1);    # yaw
+#==============================================================================================================================        
     } else {
         my @rotmat = quat_to_rotmatrix($self->quat);
         glMultMatrixd_p(@rotmat[0..15]);
     }
-    glTranslatef(@{ $self->_camera_target->negative });
+#==============================================================================================================================
+    glTranslatef(@{ Slic3r::GUI::_3DScene::get_camera_target($self)->negative });
+#    glTranslatef(@{ $self->_camera_target->negative });
+#==============================================================================================================================
     
     # light from above
     glLightfv_p(GL_LIGHT0, GL_POSITION, -0.5, -0.5, 1, 0);
@@ -1745,8 +1836,14 @@ sub draw_active_object_annotations {
 
     # Paint the tooltip.
     if ($self->_variable_layer_thickness_load_overlay_image) {
-        my $gap = 10/$self->_zoom;
-        my ($l, $r, $b, $t) = ($bar_left - $self->{layer_preview_annotation}->{width}/$self->_zoom - $gap, $bar_left - $gap, $reset_bottom + $self->{layer_preview_annotation}->{height}/$self->_zoom + $gap, $reset_bottom + $gap);
+#==============================================================================================================================
+        my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
+        my $gap = 10/$zoom;
+        my ($l, $r, $b, $t) = ($bar_left - $self->{layer_preview_annotation}->{width}/$zoom - $gap, $bar_left - $gap, $reset_bottom + $self->{layer_preview_annotation}->{height}/$zoom + $gap, $reset_bottom + $gap);
+    
+#        my $gap = 10/$self->_zoom;
+#        my ($l, $r, $b, $t) = ($bar_left - $self->{layer_preview_annotation}->{width}/$self->_zoom - $gap, $bar_left - $gap, $reset_bottom + $self->{layer_preview_annotation}->{height}/$self->_zoom + $gap, $reset_bottom + $gap);
+#==============================================================================================================================
         $self->_render_image($self->{layer_preview_annotation}, $l, $r, $t, $b);
     }
 
