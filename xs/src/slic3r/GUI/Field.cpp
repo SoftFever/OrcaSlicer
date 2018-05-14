@@ -82,10 +82,8 @@ namespace Slic3r { namespace GUI {
 		return std::regex_match(string, regex_pattern);
 	}
 
-// 	boost::any Field::get_value_by_opt_type(wxString& str)
 	void Field::get_value_by_opt_type(wxString& str)
 	{
-// 		boost::any m_value;
 		switch (m_opt.type){
 		case coInt:
 			m_value = wxAtoi(str);
@@ -96,8 +94,25 @@ namespace Slic3r { namespace GUI {
 		case coFloat:{
 			if (m_opt.type == coPercent && str.Last() == '%') 
 				str.RemoveLast();
+			else if (str.Last() == '%')	{
+				wxString label = m_Label->GetLabel();
+				if		(label.Last() == '\n')	label.RemoveLast();
+				while	(label.Last() == ' ')	label.RemoveLast();
+				if		(label.Last() == ':')	label.RemoveLast();
+				show_error(m_parent, wxString::Format(_(L("%s doesn't support percentage")), label));
+				set_value(double_to_string(m_opt.min), true);
+				m_value = double(m_opt.min);
+				break;
+			}
 			double val;
 			str.ToCDouble(&val);
+			if (m_opt.min > val && val > m_opt.max)
+			{
+				show_error(m_parent, _(L("Input value is out of range")));
+				if (m_opt.min > val) val = m_opt.min;
+				if (val > m_opt.max) val = m_opt.max;
+				set_value(double_to_string(val), true);
+			}
 			m_value = val;
 			break; }
 		case coString:
@@ -108,8 +123,6 @@ namespace Slic3r { namespace GUI {
 		default:
 			break;
 		}
-
-// 		return m_value;
 	}
 
 	void TextCtrl::BUILD() {
@@ -170,16 +183,31 @@ namespace Slic3r { namespace GUI {
 			//! to allow the default handling
 			event.Skip();
 			//! eliminating the g-code pop up text description
-			temp->GetToolTip()->Enable(false);
+			bool flag = false;
+#ifdef __WXGTK__
+			// I have no idea why, but on GTK flag works in other way
+			flag = true;
+#endif // __WXGTK__
+			temp->GetToolTip()->Enable(flag);
 		}), temp->GetId());
 
+#if !defined(__WXGTK__)
 		temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 		{
 			e.Skip();//	on_kill_focus(e);
 			temp->GetToolTip()->Enable(true);
 		}), temp->GetId());
+#endif // __WXGTK__
 
 		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent) { on_change_field(); }), temp->GetId());
+
+		// select all text using Ctrl+A
+		temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
+		{
+			if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+				temp->SetSelection(-1, -1); //select all
+			event.Skip();
+		}));
 
         // recast as a wxWindow to fit the calling convention
         window = dynamic_cast<wxWindow*>(temp);
@@ -188,9 +216,9 @@ namespace Slic3r { namespace GUI {
 	boost::any& TextCtrl::get_value()
 	{
 		wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-		/*boost::any ret_val*/get_value_by_opt_type(ret_str);
+		get_value_by_opt_type(ret_str);
 
-		return m_value;//ret_val;
+		return m_value;
 	}
 
 	void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
