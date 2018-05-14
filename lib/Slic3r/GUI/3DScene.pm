@@ -139,7 +139,9 @@ use constant MANIPULATION_IDLE          => 0;
 use constant MANIPULATION_DRAGGING      => 1;
 use constant MANIPULATION_LAYER_HEIGHT  => 2;
 
-use constant GIMBALL_LOCK_THETA_MAX => 180;
+#==============================================================================================================================
+#use constant GIMBALL_LOCK_THETA_MAX => 180;
+#==============================================================================================================================
 
 use constant VARIABLE_LAYER_THICKNESS_BAR_WIDTH => 70;
 use constant VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT => 22;
@@ -587,8 +589,6 @@ sub mouse_event {
 #==============================================================================================================================
                     Slic3r::GUI::_3DScene::set_camera_phi($self, Slic3r::GUI::_3DScene::get_camera_phi($self) + ($pos->x - $orig->x) * TRACKBALLSIZE);
                     Slic3r::GUI::_3DScene::set_camera_theta($self, Slic3r::GUI::_3DScene::get_camera_theta($self) - ($pos->y - $orig->y) * TRACKBALLSIZE);
-                    Slic3r::GUI::_3DScene::set_camera_theta($self, GIMBALL_LOCK_THETA_MAX) if Slic3r::GUI::_3DScene::get_camera_theta($self) > GIMBALL_LOCK_THETA_MAX;
-                    Slic3r::GUI::_3DScene::set_camera_theta($self, 0) if Slic3r::GUI::_3DScene::get_camera_theta($self) < 0;
                                        
 #                    $self->_sphi($self->_sphi + ($pos->x - $orig->x) * TRACKBALLSIZE);
 #                    $self->_stheta($self->_stheta - ($pos->y - $orig->y) * TRACKBALLSIZE);        #-
@@ -791,9 +791,6 @@ sub select_view {
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::set_camera_phi($self, $dirvec->[0]);
         Slic3r::GUI::_3DScene::set_camera_theta($self, $dirvec->[1]);
-        # Avoid gimball lock.
-        Slic3r::GUI::_3DScene::set_camera_theta($self, GIMBALL_LOCK_THETA_MAX) if Slic3r::GUI::_3DScene::get_camera_theta($self) > GIMBALL_LOCK_THETA_MAX;
-        Slic3r::GUI::_3DScene::set_camera_theta($self, 0) if Slic3r::GUI::_3DScene::get_camera_theta($self) < 0;
         
 #        $self->_sphi($dirvec->[0]);
 #        $self->_stheta($dirvec->[1]);

@@ -13,8 +13,9 @@ namespace GUI {
 class GLCanvas3D
 {
 public:
-    struct Camera
+    class Camera
     {
+    public:
         enum EType : unsigned char
         {
             CT_Unknown,
@@ -23,16 +24,35 @@ public:
             CT_Count
         };
 
-        EType type;
-        float zoom;
-        float phi;
-        float theta;
-        float distance;
-        Pointf3 target;
+    private:
+        EType m_type;
+        float m_zoom;
+        float m_phi;
+        float m_theta;
+        float m_distance;
+        Pointf3 m_target;
 
+    public:
         Camera();
 
+        Camera::EType get_type() const;
+        void set_type(Camera::EType type);
         std::string get_type_as_string() const;
+
+        float get_zoom() const;
+        void set_zoom(float zoom);
+
+        float get_phi() const;
+        void set_phi(float phi);
+
+        float get_theta() const;
+        void set_theta(float theta);
+
+        float get_distance() const;
+        void set_distance(float distance);
+
+        const Pointf3& get_target() const;
+        void set_target(const Pointf3& target);
     };
 
 private:
