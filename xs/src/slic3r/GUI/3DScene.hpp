@@ -544,12 +544,16 @@ public:
 
     static void resize(wxGLCanvas* canvas, unsigned int w, unsigned int h);
 
+    static bool is_dirty(wxGLCanvas* canvas);
+    static void set_dirty(wxGLCanvas* canvas, bool dirty);
+
     static bool is_shown_on_screen(wxGLCanvas* canvas);
 
     static GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     static void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
 
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
+    static void set_auto_bed_shape(wxGLCanvas* canvas);
 
     static Pointf get_bed_origin(wxGLCanvas* canvas);
     static void set_bed_origin(wxGLCanvas* canvas, const Pointf* origin);
@@ -557,9 +561,6 @@ public:
     static BoundingBoxf3 get_bed_bounding_box(wxGLCanvas* canvas);
     static BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
     static BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
-
-    static bool is_dirty(wxGLCanvas* canvas);
-    static void set_dirty(wxGLCanvas* canvas, bool dirty);
 
     static unsigned int get_camera_type(wxGLCanvas* canvas);
     static void set_camera_type(wxGLCanvas* canvas, unsigned int type);
@@ -583,6 +584,8 @@ public:
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
     static void select_view(wxGLCanvas* canvas, const std::string& direction);
+
+    static void render(wxGLCanvas* canvas);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 

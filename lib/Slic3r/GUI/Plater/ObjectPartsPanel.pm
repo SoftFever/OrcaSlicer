@@ -160,7 +160,10 @@ sub new {
         });
         
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
-        $canvas->set_auto_bed_shape;
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
+#        $canvas->set_auto_bed_shape;
+#==============================================================================================================================
         $canvas->SetSize([500,700]);
         $canvas->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
     }

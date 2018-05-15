@@ -48,10 +48,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               volumes
                               cutting_plane_z
                               cut_lines_vertices
-                              bed_shape
-                              bed_triangles
-                              bed_grid_lines
-                              bed_polygon
                               background
                               _mouse_pos
                               _hover_volume_idx
@@ -124,14 +120,16 @@ use constant SELECTED_COLOR => [0,1,0,1];
 # For mesh selection: Mouse hovers over the object, but object not selected yet - dark green.
 use constant HOVER_COLOR    => [0.4,0.9,0,1];
 
-# phi / theta angles to orient the camera.
-use constant VIEW_DEFAULT    => [45.0,45.0];
-use constant VIEW_LEFT       => [90.0,90.0];
-use constant VIEW_RIGHT      => [-90.0,90.0];
-use constant VIEW_TOP        => [0.0,0.0];
-use constant VIEW_BOTTOM     => [0.0,180.0];
-use constant VIEW_FRONT      => [0.0,90.0];
-use constant VIEW_REAR       => [180.0,90.0];
+#==============================================================================================================================
+## phi / theta angles to orient the camera.
+#use constant VIEW_DEFAULT    => [45.0,45.0];
+#use constant VIEW_LEFT       => [90.0,90.0];
+#use constant VIEW_RIGHT      => [-90.0,90.0];
+#use constant VIEW_TOP        => [0.0,0.0];
+#use constant VIEW_BOTTOM     => [0.0,180.0];
+#use constant VIEW_FRONT      => [0.0,90.0];
+#use constant VIEW_REAR       => [180.0,90.0];
+#==============================================================================================================================
 
 use constant MANIPULATION_IDLE          => 0;
 use constant MANIPULATION_DRAGGING      => 1;
@@ -547,17 +545,21 @@ sub mouse_event {
                 $self->mouse_to_3d($e->GetX, $e->GetY, 0),
                 $self->mouse_to_3d($e->GetX, $e->GetY, 1))
             ->intersect_plane($self->_drag_start_pos->z);
-        # Clip the new position, so the object center remains close to the bed.
-        {
-            $cur_pos->translate(@{$self->_drag_volume_center_offset});
-            my $cur_pos2 = Slic3r::Point->new(scale($cur_pos->x), scale($cur_pos->y));
-            if (! $self->bed_polygon->contains_point($cur_pos2)) {
-                my $ip = $self->bed_polygon->point_projection($cur_pos2);
-                $cur_pos->set_x(unscale($ip->x));
-                $cur_pos->set_y(unscale($ip->y));
-            }
-            $cur_pos->translate(@{$self->_drag_volume_center_offset->negative});
-        }
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#   >>>>>>>>>>>>>>>>>>>>>>>>>> TEMPORARY DISABLED DUE TO bed_polygon REMOVAL <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+# 
+#        # Clip the new position, so the object center remains close to the bed.
+#        {
+#            $cur_pos->translate(@{$self->_drag_volume_center_offset});
+#            my $cur_pos2 = Slic3r::Point->new(scale($cur_pos->x), scale($cur_pos->y));
+#            if (! $self->bed_polygon->contains_point($cur_pos2)) {
+#                my $ip = $self->bed_polygon->point_projection($cur_pos2);
+#                $cur_pos->set_x(unscale($ip->x));
+#                $cur_pos->set_y(unscale($ip->y));
+#            }
+#            $cur_pos->translate(@{$self->_drag_volume_center_offset->negative});
+#        }
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
         # Calculate the translation vector.
         my $vector = $self->_drag_start_pos->vector_to($cur_pos);
         # Get the volume being dragged.
@@ -980,82 +982,75 @@ sub max_bounding_box {
 #==============================================================================================================================
 }
 
-# Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane
-# to support the scene objects.
-sub set_auto_bed_shape {
-    my ($self, $bed_shape) = @_;
-    
-    # draw a default square bed around object center
-    my $max_size = max(@{ $self->volumes_bounding_box->size });
-    my $center = $self->volumes_bounding_box->center;
-    $self->set_bed_shape([
-        [ $center->x - $max_size, $center->y - $max_size ],  #--
-        [ $center->x + $max_size, $center->y - $max_size ],  #--
-        [ $center->x + $max_size, $center->y + $max_size ],  #++
-        [ $center->x - $max_size, $center->y + $max_size ],  #++
-    ]);
-    # Set the origin for painting of the coordinate system axes.
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_bed_origin($self, Slic3r::Pointf->new(@$center[X,Y]));
+## Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane
+## to support the scene objects.
+#sub set_auto_bed_shape {
+#    my ($self, $bed_shape) = @_;
+#    
+#    # draw a default square bed around object center
+#    my $max_size = max(@{ $self->volumes_bounding_box->size });
+#    my $center = $self->volumes_bounding_box->center;
+#    $self->set_bed_shape([
+#        [ $center->x - $max_size, $center->y - $max_size ],  #--
+#        [ $center->x + $max_size, $center->y - $max_size ],  #--
+#        [ $center->x + $max_size, $center->y + $max_size ],  #++
+#        [ $center->x - $max_size, $center->y + $max_size ],  #++
+#    ]);
+#    # Set the origin for painting of the coordinate system axes.
 #    $self->origin(Slic3r::Pointf->new(@$center[X,Y]));
-#==============================================================================================================================
-}
-
-# Set the bed shape to a single closed 2D polygon (array of two element arrays),
-# triangulate the bed and store the triangles into $self->bed_triangles,
-# fills the $self->bed_grid_lines and sets $self->origin.
-# Sets $self->bed_polygon to limit the object placement.
-sub set_bed_shape {
-    my ($self, $bed_shape) = @_;
-    
-    $self->bed_shape($bed_shape);
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_bed_shape($self, $bed_shape);
-#==============================================================================================================================
-    
-    # triangulate bed
-    my $expolygon = Slic3r::ExPolygon->new([ map [map scale($_), @$_], @$bed_shape ]);
-    my $bed_bb = $expolygon->bounding_box;
-    
-    {
-        my @points = ();
-        foreach my $triangle (@{ $expolygon->triangulate }) {
-            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$triangle;
-        }
-        $self->bed_triangles(OpenGL::Array->new_list(GL_FLOAT, @points));
-    }
-    
-    {
-        my @polylines = ();
-        for (my $x = $bed_bb->x_min; $x <= $bed_bb->x_max; $x += scale 10) {
-            push @polylines, Slic3r::Polyline->new([$x,$bed_bb->y_min], [$x,$bed_bb->y_max]);
-        }
-        for (my $y = $bed_bb->y_min; $y <= $bed_bb->y_max; $y += scale 10) {
-            push @polylines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
-        }
-        # clip with a slightly grown expolygon because our lines lay on the contours and
-        # may get erroneously clipped
-        my @lines = map Slic3r::Line->new(@$_[0,-1]),
-            @{intersection_pl(\@polylines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
-        
-        # append bed contours
-        push @lines, map @{$_->lines}, @$expolygon;
-        
-        my @points = ();
-        foreach my $line (@lines) {
-            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$line;  #))
-        }
-        $self->bed_grid_lines(OpenGL::Array->new_list(GL_FLOAT, @points));
-    }
-    
-    # Set the origin for painting of the coordinate system axes.
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_bed_origin($self, Slic3r::Pointf->new(0,0));
+#}
+#
+## Set the bed shape to a single closed 2D polygon (array of two element arrays),
+## triangulate the bed and store the triangles into $self->bed_triangles,
+## fills the $self->bed_grid_lines and sets $self->origin.
+## Sets $self->bed_polygon to limit the object placement.
+#sub set_bed_shape {
+#    my ($self, $bed_shape) = @_;
+#    
+#    $self->bed_shape($bed_shape);
+#    
+#    # triangulate bed
+#    my $expolygon = Slic3r::ExPolygon->new([ map [map scale($_), @$_], @$bed_shape ]);
+#    my $bed_bb = $expolygon->bounding_box;
+#    
+#    {
+#        my @points = ();
+#        foreach my $triangle (@{ $expolygon->triangulate }) {
+#            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$triangle;
+#        }
+#        $self->bed_triangles(OpenGL::Array->new_list(GL_FLOAT, @points));
+#    }
+#    
+#    {
+#        my @polylines = ();
+#        for (my $x = $bed_bb->x_min; $x <= $bed_bb->x_max; $x += scale 10) {
+#            push @polylines, Slic3r::Polyline->new([$x,$bed_bb->y_min], [$x,$bed_bb->y_max]);
+#        }
+#        for (my $y = $bed_bb->y_min; $y <= $bed_bb->y_max; $y += scale 10) {
+#            push @polylines, Slic3r::Polyline->new([$bed_bb->x_min,$y], [$bed_bb->x_max,$y]);
+#        }
+#        # clip with a slightly grown expolygon because our lines lay on the contours and
+#        # may get erroneously clipped
+#        my @lines = map Slic3r::Line->new(@$_[0,-1]),
+#            @{intersection_pl(\@polylines, [ @{$expolygon->offset(+scaled_epsilon)} ])};
+#        
+#        # append bed contours
+#        push @lines, map @{$_->lines}, @$expolygon;
+#        
+#        my @points = ();
+#        foreach my $line (@lines) {
+#            push @points, map {+ unscale($_->x), unscale($_->y), GROUND_Z } @$line;  #))
+#        }
+#        $self->bed_grid_lines(OpenGL::Array->new_list(GL_FLOAT, @points));
+#    }
+#    
+#    # Set the origin for painting of the coordinate system axes.
 #    $self->origin(Slic3r::Pointf->new(0,0));
+#
+#    $self->bed_polygon(offset_ex([$expolygon->contour], $bed_bb->radius * 1.7, JT_ROUND, scale(0.5))->[0]->contour->clone);
+#}
 #==============================================================================================================================
-
-    $self->bed_polygon(offset_ex([$expolygon->contour], $bed_bb->radius * 1.7, JT_ROUND, scale(0.5))->[0]->contour->clone);
-}
 
 sub deselect_volumes {
     my ($self) = @_;
@@ -1518,33 +1513,37 @@ sub Render {
     
     # draw ground
     my $ground_z = GROUND_Z;
-    if ($self->bed_triangles) {
-        glDisable(GL_DEPTH_TEST);
-        
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glColor4f(0.8, 0.6, 0.5, 0.4);
-        glNormal3d(0,0,1);
-        glVertexPointer_c(3, GL_FLOAT, 0, $self->bed_triangles->ptr());
-        glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
-        glDisableClientState(GL_VERTEX_ARRAY);
-        
-        # we need depth test for grid, otherwise it would disappear when looking
-        # the object from below
-        glEnable(GL_DEPTH_TEST);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::render($self);
     
-        # draw grid
-        glLineWidth(3);
-        glColor4f(0.2, 0.2, 0.2, 0.4);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer_c(3, GL_FLOAT, 0, $self->bed_grid_lines->ptr());
-        glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
-        glDisableClientState(GL_VERTEX_ARRAY);
-        
-        glDisable(GL_BLEND);
-    }
+#    if ($self->bed_triangles) {
+#        glDisable(GL_DEPTH_TEST);
+#        
+#        glEnable(GL_BLEND);
+#        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#        
+#        glEnableClientState(GL_VERTEX_ARRAY);
+#        glColor4f(0.8, 0.6, 0.5, 0.4);
+#        glNormal3d(0,0,1);
+#        glVertexPointer_c(3, GL_FLOAT, 0, $self->bed_triangles->ptr());
+#        glDrawArrays(GL_TRIANGLES, 0, $self->bed_triangles->elements / 3);
+#        glDisableClientState(GL_VERTEX_ARRAY);
+#        
+#        # we need depth test for grid, otherwise it would disappear when looking
+#        # the object from below
+#        glEnable(GL_DEPTH_TEST);
+#    
+#        # draw grid
+#        glLineWidth(3);
+#        glColor4f(0.2, 0.2, 0.2, 0.4);
+#        glEnableClientState(GL_VERTEX_ARRAY);
+#        glVertexPointer_c(3, GL_FLOAT, 0, $self->bed_grid_lines->ptr());
+#        glDrawArrays(GL_LINES, 0, $self->bed_grid_lines->elements / 3);
+#        glDisableClientState(GL_VERTEX_ARRAY);
+#        
+#        glDisable(GL_BLEND);
+#    }
+#==============================================================================================================================
     
     my $volumes_bb = $self->volumes_bounding_box;
     

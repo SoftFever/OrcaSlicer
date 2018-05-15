@@ -12,8 +12,21 @@ class wxIdleEvent;
 namespace Slic3r {
 
 class GLVolumeCollection;
+class ExPolygon;
 
 namespace GUI {
+
+class GeometryBuffer
+{
+    std::vector<float> m_data;
+
+public:
+    bool set_from_triangles(const Polygons& triangles, float z);
+    bool set_from_lines(const Lines& lines, float z);
+
+    const float* get_data() const;
+    unsigned int get_data_size() const;
+};
 
 class GLCanvas3D
 {
@@ -65,6 +78,9 @@ public:
         Pointfs m_shape;
         BoundingBoxf3 m_bounding_box;
         Pointf m_origin;
+        Polygon m_polygon;
+        GeometryBuffer m_triangles;
+        GeometryBuffer m_gridlines;
 
     public:
         const Pointfs& get_shape() const;
@@ -75,8 +91,12 @@ public:
         const Pointf& get_origin() const;
         void set_origin(const Pointf& origin);
 
+        void render();
+
     private:
         void _calc_bounding_box();
+        void _calc_triangles(const ExPolygon& poly);
+        void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     };
 
 private:
@@ -98,6 +118,9 @@ public:
 
     void set_current();
 
+    bool is_dirty() const;
+    void set_dirty(bool dirty);
+
     bool is_shown_on_screen() const;
 
     void resize(unsigned int w, unsigned int h);
@@ -105,13 +128,16 @@ public:
     GLVolumeCollection* get_volumes();
     void set_volumes(GLVolumeCollection* volumes);
 
+    // Set the bed shape to a single closed 2D polygon(array of two element arrays),
+    // triangulate the bed and store the triangles into m_bed.m_triangles,
+    // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
+    // Sets m_bed.m_polygon to limit the object placement.
     void set_bed_shape(const Pointfs& shape);
+    // Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane to support the scene objects.
+    void set_auto_bed_shape();
 
     const Pointf& get_bed_origin() const;
     void set_bed_origin(const Pointf& origin);
-
-    bool is_dirty() const;
-    void set_dirty(bool dirty);
 
     Camera::EType get_camera_type() const;
     void set_camera_type(Camera::EType type);
@@ -139,6 +165,8 @@ public:
     void zoom_to_bed();
     void zoom_to_volumes();
     void select_view(const std::string& direction);
+
+    void render();
 
     void register_on_viewport_changed_callback(void* callback);
 

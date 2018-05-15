@@ -1747,6 +1747,16 @@ void _3DScene::resize(wxGLCanvas* canvas, unsigned int w, unsigned int h)
     s_canvas_mgr.resize(canvas, w, h);
 }
 
+bool _3DScene::is_dirty(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_dirty(canvas);
+}
+
+void _3DScene::set_dirty(wxGLCanvas* canvas, bool dirty)
+{
+    s_canvas_mgr.set_dirty(canvas, dirty);
+}
+
 bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_shown_on_screen(canvas);
@@ -1765,6 +1775,11 @@ void _3DScene::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes)
 void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 {
     return s_canvas_mgr.set_bed_shape(canvas, shape);
+}
+
+void _3DScene::set_auto_bed_shape(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.set_auto_bed_shape(canvas);
 }
 
 Pointf _3DScene::get_bed_origin(wxGLCanvas* canvas)
@@ -1791,16 +1806,6 @@ BoundingBoxf3 _3DScene::get_volumes_bounding_box(wxGLCanvas* canvas)
 BoundingBoxf3 _3DScene::get_max_bounding_box(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_max_bounding_box(canvas);
-}
-
-bool _3DScene::is_dirty(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_dirty(canvas);
-}
-
-void _3DScene::set_dirty(wxGLCanvas* canvas, bool dirty)
-{
-    s_canvas_mgr.set_dirty(canvas, dirty);
 }
 
 unsigned int _3DScene::get_camera_type(wxGLCanvas* canvas)
@@ -1881,6 +1886,11 @@ void _3DScene::zoom_to_volumes(wxGLCanvas* canvas)
 void _3DScene::select_view(wxGLCanvas* canvas, const std::string& direction)
 {
     s_canvas_mgr.select_view(canvas, direction);
+}
+
+void _3DScene::render(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.render(canvas);
 }
 
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

@@ -215,6 +215,12 @@ set_bed_shape(canvas, shape)
     CODE:
         _3DScene::set_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), shape);
 
+void
+set_auto_bed_shape(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::set_auto_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
 Clone<Pointf>
 get_bed_origin(canvas)
         SV      *canvas;
@@ -393,6 +399,12 @@ select_view(canvas, direction)
         std::string direction;
     CODE:
         _3DScene::select_view((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), direction);
+
+void
+render(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::render((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     
 void
 register_on_viewport_changed_callback(canvas, callback)

@@ -474,7 +474,10 @@ sub set_z_idx_high
 
 sub set_bed_shape {
     my ($self, $bed_shape) = @_;
-    $self->canvas->set_bed_shape($bed_shape);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_bed_shape($self->canvas, $bed_shape);
+#    $self->canvas->set_bed_shape($bed_shape);
+#==============================================================================================================================
 }
 
 sub set_number_extruders {

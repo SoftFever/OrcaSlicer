@@ -1,6 +1,7 @@
 #include "GLCanvas3D.hpp"
 
 #include "../../slic3r/GUI/3DScene.hpp"
+#include "../../libslic3r/ClipperUtils.hpp"
 
 #include <wx/glcanvas.h>
 
@@ -8,6 +9,7 @@
 
 static const bool TURNTABLE_MODE = true;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
+static const float GROUND_Z = -0.02f;
 
 // phi / theta angles to orient the camera.
 static const float VIEW_DEFAULT[2] = { 45.0f, 45.0f };
@@ -20,6 +22,65 @@ static const float VIEW_REAR[2] = { 180.0f, 90.0f };
 
 namespace Slic3r {
 namespace GUI {
+
+bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z)
+{
+    m_data.clear();
+
+    unsigned int size = 9 * (unsigned int)triangles.size();
+    if (size == 0)
+        return false;
+
+    m_data = std::vector<float>(size, 0.0f);
+
+    unsigned int coord = 0;
+    for (const Polygon& t : triangles)
+    {
+        for (unsigned int v = 0; v < 3; ++v)
+        {
+            const Point& p = t.points[v];
+            m_data[coord++] = (float)unscale(p.x);
+            m_data[coord++] = (float)unscale(p.y);
+            m_data[coord++] = z;
+        }
+    }
+
+    return true;
+}
+
+bool GeometryBuffer::set_from_lines(const Lines& lines, float z)
+{
+    m_data.clear();
+
+    unsigned int size = 6 * (unsigned int)lines.size();
+    if (size == 0)
+        return false;
+
+    m_data = std::vector<float>(size, 0.0f);
+
+    unsigned int coord = 0;
+    for (const Line& l : lines)
+    {
+        m_data[coord++] = (float)unscale(l.a.x);
+        m_data[coord++] = (float)unscale(l.a.y);
+        m_data[coord++] = z;
+        m_data[coord++] = (float)unscale(l.b.x);
+        m_data[coord++] = (float)unscale(l.b.y);
+        m_data[coord++] = z;
+    }
+
+    return true;
+}
+
+const float* GeometryBuffer::get_data() const
+{
+    return m_data.data();
+}
+
+unsigned int GeometryBuffer::get_data_size() const
+{
+    return (unsigned int)m_data.size();
+}
 
 GLCanvas3D::Camera::Camera()
     : m_type(CT_Ortho)
@@ -120,7 +181,23 @@ const Pointfs& GLCanvas3D::Bed::get_shape() const
 void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
 {
     m_shape = shape;
+
     _calc_bounding_box();
+
+    ExPolygon poly;
+    for (const Pointf& p : m_shape)
+    {
+        poly.contour.append(Point(scale_(p.x), scale_(p.y)));
+    }
+
+    _calc_triangles(poly);
+
+    const BoundingBox& bed_bbox = poly.contour.bounding_box();
+    _calc_gridlines(poly, bed_bbox);
+
+    m_polygon = offset_ex(poly.contour, bed_bbox.radius() * 1.7, jtRound, scale_(0.5))[0].contour;
+
+    set_origin(Pointf(0.0, 0.0));
 }
 
 const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
@@ -138,6 +215,43 @@ void GLCanvas3D::Bed::set_origin(const Pointf& origin)
     m_origin = origin;
 }
 
+void GLCanvas3D::Bed::render()
+{
+    unsigned int triangles_vcount = m_triangles.get_data_size() / 3;
+    if (triangles_vcount > 0)
+    {
+        ::glDisable(GL_DEPTH_TEST);
+
+        ::glEnable(GL_BLEND);
+        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        ::glEnableClientState(GL_VERTEX_ARRAY);
+
+        ::glColor4f(0.8f, 0.6f, 0.5f, 0.4f);
+        ::glNormal3d(0.0f, 0.0f, 1.0f);
+        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_data());
+        ::glDrawArrays(GL_TRIANGLES, 0, triangles_vcount);
+//        ::glDisableClientState(GL_VERTEX_ARRAY);
+
+        // we need depth test for grid, otherwise it would disappear when looking
+        // the object from below
+        glEnable(GL_DEPTH_TEST);
+
+        // draw grid
+        unsigned int gridlines_vcount = m_gridlines.get_data_size() / 3;
+
+        ::glLineWidth(3.0f);
+        ::glColor4f(0.2f, 0.2f, 0.2f, 0.4f);
+//        ::glEnableClientState(GL_VERTEX_ARRAY);
+        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_data());
+        ::glDrawArrays(GL_LINES, 0, gridlines_vcount);
+
+        ::glDisableClientState(GL_VERTEX_ARRAY);
+
+        ::glDisable(GL_BLEND);
+    }
+}
+
 void GLCanvas3D::Bed::_calc_bounding_box()
 {
     m_bounding_box = BoundingBoxf3();
@@ -145,6 +259,44 @@ void GLCanvas3D::Bed::_calc_bounding_box()
     {
         m_bounding_box.merge(Pointf3(p.x, p.y, 0.0));
     }
+}
+
+void GLCanvas3D::Bed::_calc_triangles(const ExPolygon& poly)
+{
+    Polygons triangles;
+    poly.triangulate(&triangles);
+
+    if (!m_triangles.set_from_triangles(triangles, GROUND_Z))
+        printf("Unable to create bed triangles\n");
+}
+
+void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
+{
+    Polylines axes_lines;
+    for (coord_t x = bed_bbox.min.x; x <= bed_bbox.max.x; x += scale_(10.0))
+    {
+        Polyline line;
+        line.append(Point(x, bed_bbox.min.y));
+        line.append(Point(x, bed_bbox.max.y));
+        axes_lines.push_back(line);
+    }
+    for (coord_t y = bed_bbox.min.y; y <= bed_bbox.max.y; y += scale_(10.0))
+    {
+        Polyline line;
+        line.append(Point(bed_bbox.min.x, y));
+        line.append(Point(bed_bbox.max.x, y));
+        axes_lines.push_back(line);
+    }
+
+    // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
+    Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, SCALED_EPSILON)));
+
+    // append bed contours
+    Lines contour_lines = to_lines(poly);
+    std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
+
+    if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
+        printf("Unable to create bed grid lines\n");
 }
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
@@ -165,6 +317,16 @@ void GLCanvas3D::set_current()
 {
     if ((m_canvas != nullptr) && (m_context != nullptr))
         m_canvas->SetCurrent(*m_context);
+}
+
+bool GLCanvas3D::is_dirty() const
+{
+    return m_dirty;
+}
+
+void GLCanvas3D::set_dirty(bool dirty)
+{
+    m_dirty = dirty;
 }
 
 bool GLCanvas3D::is_shown_on_screen() const
@@ -254,6 +416,26 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     m_bed.set_shape(shape);
 }
 
+void GLCanvas3D::set_auto_bed_shape()
+{
+    // draw a default square bed around object center
+    const BoundingBoxf3& bbox = volumes_bounding_box();
+    coordf_t max_size = bbox.max_size();
+    const Pointf3& center = bbox.center();
+
+    Pointfs bed_shape;
+    bed_shape.reserve(4);
+    bed_shape.emplace_back(center.x - max_size, center.y - max_size);
+    bed_shape.emplace_back(center.x + max_size, center.y - max_size);
+    bed_shape.emplace_back(center.x + max_size, center.y + max_size);
+    bed_shape.emplace_back(center.x - max_size, center.y + max_size);
+
+    set_bed_shape(bed_shape);
+
+    // Set the origin for painting of the coordinate system axes.
+    set_bed_origin(Pointf(center.x, center.y));
+}
+
 const Pointf& GLCanvas3D::get_bed_origin() const
 {
     return m_bed.get_origin();
@@ -262,16 +444,6 @@ const Pointf& GLCanvas3D::get_bed_origin() const
 void GLCanvas3D::set_bed_origin(const Pointf& origin)
 {
     m_bed.set_origin(origin);
-}
-
-bool GLCanvas3D::is_dirty() const
-{
-    return m_dirty;
-}
-
-void GLCanvas3D::set_dirty(bool dirty)
-{
-    m_dirty = dirty;
 }
 
 GLCanvas3D::Camera::EType GLCanvas3D::get_camera_type() const
@@ -406,6 +578,11 @@ void GLCanvas3D::select_view(const std::string& direction)
         if (m_canvas != nullptr)
             m_canvas->Refresh();
     }
+}
+
+void GLCanvas3D::render()
+{
+    m_bed.render();
 }
 
 void GLCanvas3D::register_on_viewport_changed_callback(void* callback)

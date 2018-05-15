@@ -255,7 +255,10 @@ sub reload_scene {
 
 sub update_bed_size {
     my ($self) = @_;
-    $self->set_bed_shape($self->{config}->bed_shape);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_bed_shape($self, $self->{config}->bed_shape);
+#    $self->set_bed_shape($self->{config}->bed_shape);
+#==============================================================================================================================
 }
 
 # Called by the Platter wxNotebook when this page is activated.

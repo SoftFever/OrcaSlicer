@@ -147,6 +147,19 @@ bool GLCanvas3DManager::layer_editing_allowed() const
     return m_layer_editing.allowed;
 }
 
+bool GLCanvas3DManager::is_dirty(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_dirty() : false;
+}
+
+void GLCanvas3DManager::set_dirty(wxGLCanvas* canvas, bool dirty)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_dirty(dirty);
+}
+
 bool GLCanvas3DManager::is_shown_on_screen(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -180,6 +193,13 @@ void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
         it->second->set_bed_shape(shape);
 }
 
+void GLCanvas3DManager::set_auto_bed_shape(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_auto_bed_shape();
+}
+
 Pointf GLCanvas3DManager::get_bed_origin(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -209,19 +229,6 @@ BoundingBoxf3 GLCanvas3DManager::get_max_bounding_box(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->max_bounding_box() : BoundingBoxf3();
-}
-
-bool GLCanvas3DManager::is_dirty(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_dirty() : false;
-}
-
-void GLCanvas3DManager::set_dirty(wxGLCanvas* canvas, bool dirty)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_dirty(dirty);
 }
 
 unsigned int GLCanvas3DManager::get_camera_type(wxGLCanvas* canvas) const
@@ -333,6 +340,13 @@ void GLCanvas3DManager::select_view(wxGLCanvas* canvas, const std::string& direc
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->select_view(direction);
+}
+
+void GLCanvas3DManager::render(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->render();
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
