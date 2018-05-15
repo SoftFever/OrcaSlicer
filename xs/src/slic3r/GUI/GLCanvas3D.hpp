@@ -8,6 +8,7 @@ class wxGLCanvas;
 class wxGLContext;
 class wxSizeEvent;
 class wxIdleEvent;
+class wxKeyEvent;
 
 namespace Slic3r {
 
@@ -172,6 +173,7 @@ public:
 
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
+    void on_char(wxKeyEvent& evt);
 
 private:
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);

@@ -244,36 +244,38 @@ sub new {
 #==============================================================================================================================
     EVT_MOUSEWHEEL($self, \&mouse_wheel_event);
     EVT_MOUSE_EVENTS($self, \&mouse_event);
-#    EVT_KEY_DOWN($self, sub {
-    EVT_CHAR($self, sub {
-        my ($s, $event) = @_;
-        if ($event->HasModifiers) {
-            $event->Skip;
-        } else {
-            my $key = $event->GetKeyCode;
-            if ($key == ord('0')) {
-                $self->select_view('iso');
-            } elsif ($key == ord('1')) {
-                $self->select_view('top');
-            } elsif ($key == ord('2')) {
-                $self->select_view('bottom');
-            } elsif ($key == ord('3')) {
-                $self->select_view('front');
-            } elsif ($key == ord('4')) {
-                $self->select_view('rear');
-            } elsif ($key == ord('5')) {
-                $self->select_view('left');
-            } elsif ($key == ord('6')) {
-                $self->select_view('right');
-            } elsif ($key == ord('z')) {
-                $self->zoom_to_volumes;
-            } elsif ($key == ord('b')) {
-                $self->zoom_to_bed;
-            } else {
-                $event->Skip;
-            }
-        }
-    });
+#==============================================================================================================================
+##    EVT_KEY_DOWN($self, sub {
+#    EVT_CHAR($self, sub {
+#        my ($s, $event) = @_;
+#        if ($event->HasModifiers) {
+#            $event->Skip;
+#        } else {
+#            my $key = $event->GetKeyCode;
+#            if ($key == ord('0')) {
+#                $self->select_view('iso');
+#            } elsif ($key == ord('1')) {
+#                $self->select_view('top');
+#            } elsif ($key == ord('2')) {
+#                $self->select_view('bottom');
+#            } elsif ($key == ord('3')) {
+#                $self->select_view('front');
+#            } elsif ($key == ord('4')) {
+#                $self->select_view('rear');
+#            } elsif ($key == ord('5')) {
+#                $self->select_view('left');
+#            } elsif ($key == ord('6')) {
+#                $self->select_view('right');
+#            } elsif ($key == ord('z')) {
+#                $self->zoom_to_volumes;
+#            } elsif ($key == ord('b')) {
+#                $self->zoom_to_bed;
+#            } else {
+#                $event->Skip;
+#            }
+#        }
+#    });
+#==============================================================================================================================
     
     $self->{layer_height_edit_timer_id} = &Wx::NewId();
     $self->{layer_height_edit_timer} = Wx::Timer->new($self, $self->{layer_height_edit_timer_id});

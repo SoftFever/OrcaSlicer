@@ -609,6 +609,41 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     }
 }
 
+void GLCanvas3D::on_char(wxKeyEvent& evt)
+{
+    if (evt.HasModifiers())
+        evt.Skip();
+    else
+    {
+        int keyCode = evt.GetKeyCode();
+        switch (keyCode - 48)
+        {
+        // numerical input
+        case 0: { select_view("iso"); break; }
+        case 1: { select_view("top"); break; }
+        case 2: { select_view("bottom"); break; }
+        case 3: { select_view("front"); break; }
+        case 4: { select_view("rear"); break; }
+        case 5: { select_view("left"); break; }
+        case 6: { select_view("right"); break; }
+        default:
+            {
+                // text input
+                switch (keyCode)
+                {
+                // key B/b
+                case 66:
+                case 98:  { zoom_to_bed(); break; }
+                // key Z/z
+                case 90:
+                case 122: { zoom_to_volumes(); break; }
+                default: { evt.Skip(); break; }
+                }
+            }
+        }
+    }
+}
+
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 {
     // Calculate the zoom factor needed to adjust viewport to bounding box.

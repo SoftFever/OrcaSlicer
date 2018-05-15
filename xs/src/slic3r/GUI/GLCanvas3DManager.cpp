@@ -79,6 +79,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
 
     canvas->Bind(wxEVT_SIZE, [canvas3D](wxSizeEvent& evt) { canvas3D->on_size(evt); });
     canvas->Bind(wxEVT_IDLE, [canvas3D](wxIdleEvent& evt) { canvas3D->on_idle(evt); });
+    canvas->Bind(wxEVT_CHAR, [canvas3D](wxKeyEvent& evt)  { canvas3D->on_char(evt); });
 
     m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
 
