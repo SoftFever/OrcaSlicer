@@ -175,6 +175,9 @@ semver_parse_version (const char *str, semver_t *ver) {
   slice = (char *) str;
   index = 0;
 
+  // non mandatory
+  ver->patch = 0;
+
   while (slice != NULL && index++ < 4) {
     next = strchr(slice, DELIMITER[0]);
     if (next == NULL)
@@ -200,7 +203,8 @@ semver_parse_version (const char *str, semver_t *ver) {
       slice = next + 1;
   }
 
-  return 0;
+  // Major and minor versions are mandatory, patch version is not mandatory.
+  return (index == 2 || index == 3) ? 0 : -1;
 }
 
 static int
@@ -614,4 +618,23 @@ semver_numeric (semver_t *x) {
   if (x->metadata) num += char_to_int(x->metadata);
 
   return num;
+}
+
+char *semver_strdup(const char *src) {
+  if (src == NULL) return NULL;
+  size_t len = strlen(src) + 1;
+  char *res = malloc(len);
+  return res != NULL ? (char *) memcpy(res, src, len) : NULL;
+}
+
+semver_t
+semver_copy(const semver_t *ver) {
+  semver_t res = *ver;
+  if (ver->metadata != NULL) {
+    res.metadata = strdup(ver->metadata);
+  }
+  if (ver->prerelease != NULL) {
+    res.prerelease = strdup(ver->prerelease);
+  }
+  return res;
 }

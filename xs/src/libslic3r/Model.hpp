@@ -173,8 +173,8 @@ public:
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
-    size_t split();
-    
+    size_t split(unsigned int max_extruders);
+
     ModelMaterial* assign_unique_material();
     
 private:
@@ -280,7 +280,7 @@ public:
     void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
 
     bool looks_like_multipart_object() const;
-    void convert_multipart_object();
+    void convert_multipart_object(unsigned int max_extruders);
 
     // Ensures that the min z of the model is not negative
     void adjust_min_z();
@@ -291,8 +291,8 @@ public:
 
     void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
 
-    static unsigned int get_auto_extruder_id();
-    static std::string get_auto_extruder_id_as_string();
+    static unsigned int get_auto_extruder_id(unsigned int max_extruders);
+    static std::string get_auto_extruder_id_as_string(unsigned int max_extruders);
     static void reset_auto_extruder_id();
 };
 

@@ -486,7 +486,7 @@ sub new {
         
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
-        $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 10) if defined $frequently_changed_parameters_sizer;
+        $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $right_sizer->Add($self->{list}, 1, wxEXPAND, 5);
         $right_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
@@ -514,6 +514,13 @@ sub new {
         $self->SetSizer($sizer);
     }
 
+    # Last correct selected item for each preset
+    {
+        $self->{selected_item_print} = 0;
+        $self->{selected_item_filament} = 0;
+        $self->{selected_item_printer} = 0;
+    }
+
     $self->update_ui_from_settings();
     
     return $self;
@@ -538,9 +545,21 @@ sub _on_select_preset {
         # Only update the platter UI for the 2nd and other filaments.
         wxTheApp->{preset_bundle}->update_platter_filament_ui($idx, $choice);
 	} else {
+        my $selected_item = $choice->GetSelection();
+        return if ($selected_item == $self->{"selected_item_$group"});
+
+        my $selected_string = $choice->GetString($selected_item);
+        if ($selected_string eq ("------- ".L("System presets")." -------") ||
+            $selected_string eq ("-------  ".L("User presets")."  -------") ){
+            $choice->SetSelection($self->{"selected_item_$group"});
+            return;
+        }
+        
     	# call GetSelection() in scalar context as it's context-aware
-    	$self->{on_select_preset}->($group, $choice->GetStringSelection)
-    	    if $self->{on_select_preset};
+#    	$self->{on_select_preset}->($group, $choice->GetStringSelection)
+        $self->{on_select_preset}->($group, $selected_string)
+            if $self->{on_select_preset};
+        $self->{"selected_item_$group"} = $selected_item;
     }
     # Synchronize config.ini with the current selections.
     wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
@@ -663,6 +682,9 @@ sub load_files {
             Slic3r::GUI::show_error($self, $@) if $@;
             $_->load_current_preset for (values %{$self->GetFrame->{options_tabs}});
             wxTheApp->{app_config}->update_config_dir(dirname($input_file));
+            # forces the update of the config here, or it will invalidate the imported layer heights profile if done using the timer
+            # and if the config contains a "layer_height" different from the current defined one
+            $self->async_apply_config;
         }
         else
         {
@@ -678,7 +700,7 @@ sub load_files {
                 . "Instead of considering them as multiple objects, should I consider\n"
                 . "this file as a single object having multiple parts?\n"),
                 L('Multi-part object detected'), wxICON_WARNING | wxYES | wxNO);
-            $model->convert_multipart_object if $dialog->ShowModal() == wxID_YES;
+            $model->convert_multipart_object(scalar(@$nozzle_dmrs)) if $dialog->ShowModal() == wxID_YES;
         }
         
         if ($one_by_one) {
@@ -695,7 +717,7 @@ sub load_files {
             . "Instead of considering them as multiple objects, should I consider\n"
             . "these files to represent a single object having multiple parts?\n"),
             L('Multi-part object detected'), wxICON_WARNING | wxYES | wxNO);
-        $new_model->convert_multipart_object if $dialog->ShowModal() == wxID_YES;
+        $new_model->convert_multipart_object(scalar(@$nozzle_dmrs)) if $dialog->ShowModal() == wxID_YES;
         push @obj_idx, $self->load_model_objects(@{$new_model->objects});
     }
 
@@ -1677,6 +1699,7 @@ sub update {
 
     $self->{canvas}->reload_scene if $self->{canvas};
     $self->{canvas3D}->reload_scene if $self->{canvas3D};
+    $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
@@ -1782,22 +1805,26 @@ sub on_config_change {
 sub list_item_deselected {
     my ($self, $event) = @_;
     return if $PreventListEvents;
+    $self->{_lecursor} = Wx::BusyCursor->new();
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
         $self->{canvas}->Refresh;
-        #FIXME VBOs are being refreshed just to change a selection color?
-        $self->{canvas3D}->reload_scene if $self->{canvas3D};
+        $self->{canvas3D}->deselect_volumes if $self->{canvas3D};
+        $self->{canvas3D}->Render if $self->{canvas3D};
     }
+    undef $self->{_lecursor};
 }
 
 sub list_item_selected {
     my ($self, $event) = @_;
     return if $PreventListEvents;
+    $self->{_lecursor} = Wx::BusyCursor->new();
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
     $self->{canvas}->Refresh;
-    #FIXME VBOs are being refreshed just to change a selection color?
-    $self->{canvas3D}->reload_scene if $self->{canvas3D};
+    $self->{canvas3D}->update_volumes_selection if $self->{canvas3D};
+    $self->{canvas3D}->Render if $self->{canvas3D};
+    undef $self->{_lecursor};
 }
 
 sub list_item_activated {
@@ -1856,6 +1883,7 @@ sub object_cut_dialog {
 	    $self->remove($obj_idx);
 	    $self->load_model_objects(grep defined($_), @new_objects);
 	    $self->arrange;
+        $self->{canvas3D}->zoom_to_volumes if $self->{canvas3D};
 	}
 }
 
@@ -1930,7 +1958,8 @@ sub selection_changed {
     my ($self) = @_;
     my ($obj_idx, $object) = $self->selected_object;
     my $have_sel = defined $obj_idx;
-    
+
+    $self->Freeze;
     if ($self->{htoolbar}) {
         # On OSX or Linux
         $self->{htoolbar}->EnableTool($_, $have_sel)
@@ -1981,12 +2010,20 @@ sub selection_changed {
     
     # prepagate the event to the frame (a custom Wx event would be cleaner)
     $self->GetFrame->on_plater_selection_changed($have_sel);
+    $self->Thaw;
 }
 
 sub select_object {
     my ($self, $obj_idx) = @_;
+
+    # remove current selection
+    foreach my $o (0..$#{$self->{objects}}) {
+        $PreventListEvents = 1;
+        $self->{objects}->[$o]->selected(0);
+        $self->{list}->Select($o, 0);
+        $PreventListEvents = 0;
+    }
     
-    $_->selected(0) for @{ $self->{objects} };
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
         # We use this flag to avoid circular event handling

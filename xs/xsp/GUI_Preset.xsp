@@ -44,9 +44,6 @@
 
     Ref<Preset>             find_preset(char *name, bool first_visible_if_not_found = false) %code%{ RETVAL = THIS->find_preset(name, first_visible_if_not_found); %};
 
-    bool                    current_is_dirty();
-    std::vector<std::string> current_dirty_options();
-
     void                    update_tab_ui(SV *ui, bool show_incompatible)
         %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object( aTHX_ ui, "Wx::BitmapComboBox" ); 
                 THIS->update_tab_ui(cb, show_incompatible); %};
@@ -54,30 +51,6 @@
     void                    update_platter_ui(SV *ui)
         %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object( aTHX_ ui, "Wx::BitmapComboBox" ); 
                 THIS->update_platter_ui(cb); %};
-
-    bool                    update_dirty_ui(SV *ui)
-        %code%{ RETVAL = THIS->update_dirty_ui((wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox")); %};
-
-    void                    select_preset(int idx);
-    bool                    select_preset_by_name(char *name) %code%{ RETVAL = THIS->select_preset_by_name(name, true); %};
-    void                    discard_current_changes();
-
-    void                    save_current_preset(char *new_name)
-        %code%{
-            try {
-                THIS->save_current_preset(new_name);
-            } catch (std::exception& e) {
-                croak("Error saving a preset %s:\n%s\n", new_name, e.what());
-            }
-        %};
-    void                    delete_current_preset()
-        %code%{
-            try {
-                THIS->delete_current_preset();
-            } catch (std::exception& e) {
-                croak("Error deleting a preset file %s:\n%s\n", THIS->get_selected_preset().file.c_str(), e.what());
-            }
-        %};
 
 %{
 
@@ -144,14 +117,6 @@ PresetCollection::arrayref()
                 croak("Loading of a config bundle %s failed:\n%s\n", path, e.what());
             }
         %};
-    void                        install_vendor_configbundle(const char *path)
-        %code%{
-            try {
-                THIS->install_vendor_configbundle(path);
-            } catch (std::exception& e) {
-                croak("Installing a vendor config bundle %s failed:\n%s\n", path, e.what());
-            }
-        %};
     void                        export_configbundle(char *path)
         %code%{
             try {
@@ -175,25 +140,10 @@ PresetCollection::arrayref()
 
     std::vector<std::string>    filament_presets() %code%{ RETVAL = THIS->filament_presets; %};
     void                        set_filament_preset(int idx, const char *name);
-    void                        update_multi_material_filament_presets();
-
-    void                        update_compatible_with_printer(bool select_other_if_incompatible);
 
     Clone<DynamicPrintConfig>   full_config() %code%{ RETVAL = THIS->full_config();  %};
 
     void                        update_platter_filament_ui(int extruder_idx, SV *ui)
         %code%{ auto cb = (wxBitmapComboBox*)wxPli_sv_2_object(aTHX_ ui, "Wx::BitmapComboBox");
                 THIS->update_platter_filament_ui(extruder_idx, cb); %};
-};
-
-%name{Slic3r::GUI::PresetHints} class PresetHints {
-    PresetHints();
-    ~PresetHints();
-
-    static std::string cooling_description(Preset *preset) 
-        %code%{ RETVAL = PresetHints::cooling_description(*preset); %};
-    static std::string maximum_volumetric_flow_description(PresetBundle *preset) 
-        %code%{ RETVAL = PresetHints::maximum_volumetric_flow_description(*preset); %};
-    static std::string recommended_thin_wall_thickness(PresetBundle *preset)
-        %code%{ RETVAL = PresetHints::recommended_thin_wall_thickness(*preset); %};
 };

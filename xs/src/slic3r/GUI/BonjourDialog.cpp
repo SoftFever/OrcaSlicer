@@ -191,7 +191,7 @@ void BonjourDialog::on_timer(wxTimerEvent &)
 		label->SetLabel(wxString::Format("%s %s", search_str, dots));
 		timer_state = (timer_state) % 3 + 1;
 	} else {
-		label->SetLabel(wxString::Format("%s: %s", search_str, _(L("Finished."))));
+		label->SetLabel(wxString::Format("%s: %s", search_str, _(L("Finished"))+"."));
 		timer->Stop();
 	}
 }

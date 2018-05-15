@@ -20,21 +20,22 @@ namespace Slic3r { namespace GUI {
 
 	void Field::PostInitialize(){
 		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-		m_Undo_btn			= new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-		m_Undo_to_sys_btn	= new wxButton(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+		m_Undo_btn			= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+		m_Undo_to_sys_btn	= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 		if (wxMSW) {
 			m_Undo_btn->SetBackgroundColour(color);
 			m_Undo_to_sys_btn->SetBackgroundColour(color);
 		}
-		m_Undo_btn->SetBitmap(wxBitmap(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG));
 		m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_initial_value(); }));
 		m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent){ on_back_to_sys_value(); }));
 
-		BUILD();
-	}
+		//set default bitmap
+		wxBitmap bmp;
+		bmp.LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
+		set_undo_bitmap(&bmp);
+		set_undo_to_sys_bitmap(&bmp);
 
-	void Field::set_nonsys_btn_icon(const std::string& icon){
-		m_Undo_to_sys_btn->SetBitmap(wxBitmap(from_u8(var(icon)), wxBITMAP_TYPE_PNG));
+		BUILD();
 	}
 
 	void Field::on_kill_focus(wxEvent& event) {
@@ -81,12 +82,11 @@ namespace Slic3r { namespace GUI {
 		return std::regex_match(string, regex_pattern);
 	}
 
-	boost::any Field::get_value_by_opt_type(wxString& str)
+	void Field::get_value_by_opt_type(wxString& str)
 	{
-		boost::any ret_val;
 		switch (m_opt.type){
 		case coInt:
-			ret_val = wxAtoi(str);
+			m_value = wxAtoi(str);
 			break;
 		case coPercent:
 		case coPercents:
@@ -94,20 +94,35 @@ namespace Slic3r { namespace GUI {
 		case coFloat:{
 			if (m_opt.type == coPercent && str.Last() == '%') 
 				str.RemoveLast();
+			else if (str.Last() == '%')	{
+				wxString label = m_Label->GetLabel();
+				if		(label.Last() == '\n')	label.RemoveLast();
+				while	(label.Last() == ' ')	label.RemoveLast();
+				if		(label.Last() == ':')	label.RemoveLast();
+				show_error(m_parent, wxString::Format(_(L("%s doesn't support percentage")), label));
+				set_value(double_to_string(m_opt.min), true);
+				m_value = double(m_opt.min);
+				break;
+			}
 			double val;
 			str.ToCDouble(&val);
-			ret_val = val;
+			if (m_opt.min > val && val > m_opt.max)
+			{
+				show_error(m_parent, _(L("Input value is out of range")));
+				if (m_opt.min > val) val = m_opt.min;
+				if (val > m_opt.max) val = m_opt.max;
+				set_value(double_to_string(val), true);
+			}
+			m_value = val;
 			break; }
 		case coString:
 		case coStrings:
 		case coFloatOrPercent:
-			ret_val = str.ToStdString();
+			m_value = str.ToStdString();
 			break;
 		default:
 			break;
 		}
-
-		return ret_val;
 	}
 
 	void TextCtrl::BUILD() {
@@ -168,27 +183,42 @@ namespace Slic3r { namespace GUI {
 			//! to allow the default handling
 			event.Skip();
 			//! eliminating the g-code pop up text description
-			temp->GetToolTip()->Enable(false);
+			bool flag = false;
+#ifdef __WXGTK__
+			// I have no idea why, but on GTK flag works in other way
+			flag = true;
+#endif // __WXGTK__
+			temp->GetToolTip()->Enable(flag);
 		}), temp->GetId());
 
+#if !defined(__WXGTK__)
 		temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 		{
 			e.Skip();//	on_kill_focus(e);
 			temp->GetToolTip()->Enable(true);
 		}), temp->GetId());
+#endif // __WXGTK__
 
 		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent) { on_change_field(); }), temp->GetId());
+
+		// select all text using Ctrl+A
+		temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
+		{
+			if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+				temp->SetSelection(-1, -1); //select all
+			event.Skip();
+		}));
 
         // recast as a wxWindow to fit the calling convention
         window = dynamic_cast<wxWindow*>(temp);
     }	
 
-	boost::any TextCtrl::get_value()
+	boost::any& TextCtrl::get_value()
 	{
 		wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-		boost::any ret_val = get_value_by_opt_type(ret_str);
+		get_value_by_opt_type(ret_str);
 
-		return ret_val;
+		return m_value;
 	}
 
 	void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
@@ -216,15 +246,15 @@ void CheckBox::BUILD() {
 	window = dynamic_cast<wxWindow*>(temp);
 }
 
-boost::any CheckBox::get_value()
+boost::any& CheckBox::get_value()
 {
-	boost::any ret_val;
+// 	boost::any m_value;
 	bool value = dynamic_cast<wxCheckBox*>(window)->GetValue();
 	if (m_opt.type == coBool)
-		ret_val = static_cast<bool>(value);
+		m_value = static_cast<bool>(value);
 	else
-		ret_val = static_cast<unsigned char>(value);
- 	return ret_val;
+		m_value = static_cast<unsigned char>(value);
+ 	return m_value;
 }
 
 int undef_spin_val = -9999;		//! Probably, It's not necessary
@@ -424,7 +454,33 @@ void Choice::set_value(const boost::any& value, bool change_event)
 		break;
 	}
 	case coEnum:{
-		dynamic_cast<wxComboBox*>(window)->SetSelection(boost::any_cast<int>(value));
+		int val = boost::any_cast<int>(value);
+		if (m_opt_id.compare("external_fill_pattern") == 0)
+		{
+			if (!m_opt.enum_values.empty()){
+				std::string key;
+				t_config_enum_values map_names = ConfigOptionEnum<InfillPattern>::get_enum_values();				
+				for (auto it : map_names) {
+					if (val == it.second) {
+						key = it.first;
+						break;
+					}
+				}
+
+				size_t idx = 0;
+				for (auto el : m_opt.enum_values)
+				{
+					if (el.compare(key) == 0)
+						break;
+					++idx;
+				}
+
+				val = idx == m_opt.enum_values.size() ? 0 : idx;
+			}
+			else
+				val = 0;
+		}
+		dynamic_cast<wxComboBox*>(window)->SetSelection(val);
 		break;
 	}
 	default:
@@ -454,16 +510,16 @@ void Choice::set_values(const std::vector<std::string>& values)
 	m_disable_change_event = false;
 }
 
-boost::any Choice::get_value()
+boost::any& Choice::get_value()
 {
-	boost::any ret_val;
+// 	boost::any m_value;
 	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
 
 	if (m_opt_id == "support")
-		return ret_str;
+		return m_value = boost::any(ret_str);//ret_str;
 
 	if (m_opt.type != coEnum)
-		ret_val = get_value_by_opt_type(ret_str);
+		/*m_value = */get_value_by_opt_type(ret_str);
 	else
 	{
 		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
@@ -474,22 +530,22 @@ boost::any Choice::get_value()
 				t_config_enum_values map_names = ConfigOptionEnum<InfillPattern>::get_enum_values();
 				int value = map_names.at(key);
 
-				ret_val = static_cast<InfillPattern>(value);
+				m_value = static_cast<InfillPattern>(value);
 			}
 			else
-				ret_val = static_cast<InfillPattern>(0);
+				m_value = static_cast<InfillPattern>(0);
 		}
 		if (m_opt_id.compare("fill_pattern") == 0)
-			ret_val = static_cast<InfillPattern>(ret_enum);
+			m_value = static_cast<InfillPattern>(ret_enum);
 		else if (m_opt_id.compare("gcode_flavor") == 0)
-			ret_val = static_cast<GCodeFlavor>(ret_enum);
+			m_value = static_cast<GCodeFlavor>(ret_enum);
 		else if (m_opt_id.compare("support_material_pattern") == 0)
-			ret_val = static_cast<SupportMaterialPattern>(ret_enum);
+			m_value = static_cast<SupportMaterialPattern>(ret_enum);
 		else if (m_opt_id.compare("seam_position") == 0)
-			ret_val = static_cast<SeamPosition>(ret_enum);
+			m_value = static_cast<SeamPosition>(ret_enum);
 	}	
 
-	return ret_val;
+	return m_value;
 }
 
 void ColourPicker::BUILD()
@@ -509,14 +565,14 @@ void ColourPicker::BUILD()
 	temp->SetToolTip(get_tooltip_text(clr));
 }
 
-boost::any ColourPicker::get_value(){
-	boost::any ret_val;
+boost::any& ColourPicker::get_value(){
+// 	boost::any m_value;
 
 	auto colour = static_cast<wxColourPickerCtrl*>(window)->GetColour();
 	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), colour.Red(), colour.Green(), colour.Blue());
-	ret_val = clr_str.ToStdString();
+	m_value = clr_str.ToStdString();
 
-	return ret_val;
+	return m_value;
 }
 
 void PointCtrl::BUILD()
@@ -580,7 +636,7 @@ void PointCtrl::set_value(const boost::any& value, bool change_event)
 	set_value(pt, change_event);
 }
 
-boost::any PointCtrl::get_value()
+boost::any& PointCtrl::get_value()
 {
 	Pointf ret_point;
 	double val;
@@ -588,7 +644,7 @@ boost::any PointCtrl::get_value()
 	ret_point.x = val;
 	y_textctrl->GetValue().ToDouble(&val);
 	ret_point.y = val;
-	return ret_point;
+	return m_value = ret_point;
 }
 
 } // GUI

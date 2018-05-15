@@ -208,10 +208,11 @@
 %typemap{Ref<PresetCollection>}{simple};
 %typemap{PresetBundle*};
 %typemap{Ref<PresetBundle>}{simple};
+%typemap{PresetUpdater*};
+%typemap{Ref<PresetUpdater>}{simple};
 %typemap{PresetHints*};
 %typemap{Ref<PresetHints>}{simple};
 %typemap{TabIface*};
-%typemap{Ref<TabIface>}{simple};
 
 %typemap{PrintRegionPtrs*};
 %typemap{PrintObjectPtrs*};

@@ -22,13 +22,13 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     // is the normal type.
     if (opt.gui_type.compare("select") == 0) {
     } else if (opt.gui_type.compare("select_open") == 0) {
-		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(m_parent, opt, id)));
+		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
     } else if (opt.gui_type.compare("color") == 0) {
-		m_fields.emplace(id, STDMOVE(ColourPicker::Create<ColourPicker>(m_parent, opt, id)));
+		m_fields.emplace(id, STDMOVE(ColourPicker::Create<ColourPicker>(parent(), opt, id)));
     } else if (opt.gui_type.compare("f_enum_open") == 0 || 
                 opt.gui_type.compare("i_enum_open") == 0 ||
                 opt.gui_type.compare("i_enum_closed") == 0) {
-		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(m_parent, opt, id)));
+		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
     } else if (opt.gui_type.compare("slider") == 0) {
     } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
     } else { 
@@ -40,21 +40,21 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 			case coPercents:
 			case coString:
 			case coStrings:
-				m_fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(m_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(parent(), opt, id)));
                 break;
 			case coBool:
 			case coBools:
-				m_fields.emplace(id, STDMOVE(CheckBox::Create<CheckBox>(m_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(CheckBox::Create<CheckBox>(parent(), opt, id)));
 				break;
 			case coInt:
 			case coInts:
-				m_fields.emplace(id, STDMOVE(SpinCtrl::Create<SpinCtrl>(m_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(SpinCtrl::Create<SpinCtrl>(parent(), opt, id)));
 				break;
             case coEnum:
-				m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(m_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
 				break;
             case coPoints:
-				m_fields.emplace(id, STDMOVE(PointCtrl::Create<PointCtrl>(m_parent, opt, id)));
+				m_fields.emplace(id, STDMOVE(PointCtrl::Create<PointCtrl>(parent(), opt, id)));
 				break;
             case coNone:   break;
             default:
@@ -90,8 +90,8 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		field->m_Undo_btn->Hide();
 		field->m_Undo_to_sys_btn->Hide();
 	}
-	if (nonsys_btn_icon != nullptr)
-		field->set_nonsys_btn_icon(nonsys_btn_icon());
+//	if (nonsys_btn_icon != nullptr)
+//		field->set_nonsys_btn_icon(*nonsys_btn_icon);
     
 	// assign function objects for callbacks, etc.
     return field;
@@ -118,30 +118,43 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
 		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr && 
 		line.get_extra_widgets().size() == 0) {
+		wxSizer* tmp_sizer;
+#ifdef __WXGTK__
+		tmp_sizer = new wxBoxSizer(wxVERTICAL);
+        m_panel->SetSizer(tmp_sizer);
+        m_panel->Layout();
+#else
+        tmp_sizer = sizer;
+#endif /* __WXGTK__ */
+
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
 		auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 		btn_sizer->Add(field->m_Undo_to_sys_btn);
 		btn_sizer->Add(field->m_Undo_btn);
-		sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
+		tmp_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
 		if (is_window_field(field))
-			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+			tmp_sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_sizer_field(field))
-			sizer->Add(field->getSizer(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+			tmp_sizer->Add(field->getSizer(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		return;
 	}
 
     auto grid_sizer = m_grid_sizer;
+#ifdef __WXGTK__
+        m_panel->SetSizer(m_grid_sizer);
+        m_panel->Layout();
+#endif /* __WXGTK__ */
 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {
-		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
-							wxDefaultPosition, wxSize(label_width, -1));
+		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":  "), 
+							wxDefaultPosition, staticbox ? wxSize(label_width, -1) : wxDefaultSize);
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
-		grid_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL,0);
+		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT) | wxALIGN_CENTER_VERTICAL, 0);
 		if (line.label_tooltip.compare("") != 0)
 			label->SetToolTip(line.label_tooltip);
     }
@@ -149,7 +162,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
     // If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(parent());
-		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, wxOSX ? 0 : 5);
+		// If widget doesn't have label, don't use border
+		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
 		if (colored_Label != nullptr) *colored_Label = label;
 		return;
 	}
@@ -165,7 +179,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL); 
 		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 		if (is_window_field(field)) 
-			sizer->Add(field->getWindow(), 0, (option.opt.full_width ? wxEXPAND : 0) |
+			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, (option.opt.full_width ? wxEXPAND : 0) |
 							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, wxOSX ? 0 : 2);
 		if (is_sizer_field(field)) 
 			sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
@@ -467,10 +481,10 @@ Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int op
 	return opt_id.empty() ? nullptr : get_field(opt_id);
 }
 
-void ogStaticText::SetText(const wxString& value)
+void ogStaticText::SetText(const wxString& value, bool wrap/* = true*/)
 {
 	SetLabel(value);
-	Wrap(400);
+	if (wrap) Wrap(400);
 	GetParent()->Layout();
 }
 

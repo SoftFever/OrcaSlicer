@@ -1,3 +1,6 @@
+#ifndef slic3r_OptionsGroup_hpp_
+#define slic3r_OptionsGroup_hpp_
+
 #include <wx/wx.h>
 #include <wx/stattext.h>
 #include <wx/settings.h>
@@ -86,12 +89,18 @@ public:
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 
-	std::function<std::string()>	nonsys_btn_icon{ nullptr };
+//	std::function<const wxBitmap&()>	nonsys_btn_icon{ nullptr };
 
     /// Returns a copy of the pointer of the parent wxWindow.
     /// Accessor function is because users are not allowed to change the parent
     /// but defining it as const means a lot of const_casts to deal with wx functions.
-    inline wxWindow* parent() const { return m_parent; }
+    inline wxWindow* parent() const { 
+#ifdef __WXGTK__
+		return m_panel;
+#else
+		return m_parent;
+#endif /* __WXGTK__ */
+    }
 
 	void		append_line(const Line& line, wxStaticText** colored_Label = nullptr);
     Line		create_single_option_line(const Option& option) const;
@@ -127,8 +136,13 @@ public:
         m_grid_sizer = new wxFlexGridSizer(0, num_columns, 0,0);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxHORIZONTAL);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width != 0);
-
-        sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX ? 0: 5);
+#ifdef __WXGTK__
+        m_panel = new wxPanel( _parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+        sizer->Fit(m_panel);
+        sizer->Add(m_panel, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
+#else
+        sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
+#endif /* __WXGTK__ */
     }
 
 protected:
@@ -143,6 +157,13 @@ protected:
     wxGridSizer*			m_grid_sizer {nullptr};
 	// "true" if option is created in preset tabs
 	bool					m_is_tab_opt{ false };
+
+	// This panel is needed for correct showing of the ToolTips for Button, StaticText and CheckBox
+	// Tooltips on GTK doesn't work inside wxStaticBoxSizer unless you insert a panel 
+	// inside it before you insert the other controls.
+#ifdef __WXGTK__
+	wxPanel*				m_panel {nullptr};
+#endif /* __WXGTK__ */
 
     /// Generate a wxSizer or wxWindow from a configuration option
     /// Precondition: opt resolves to a known ConfigOption
@@ -200,7 +221,9 @@ public:
 	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize){}
 	~ogStaticText(){}
 
-	void		SetText(const wxString& value);
+	void		SetText(const wxString& value, bool wrap = true);
 };
 
 }}
+
+#endif /* slic3r_OptionsGroup_hpp_ */

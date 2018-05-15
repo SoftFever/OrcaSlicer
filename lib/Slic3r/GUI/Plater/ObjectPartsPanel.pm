@@ -163,7 +163,6 @@ sub new {
         $canvas->set_auto_bed_shape;
         $canvas->SetSize([500,700]);
         $canvas->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
-        $canvas->zoom_to_volumes;
     }
     
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -476,7 +475,8 @@ sub on_btn_split {
     my $itemData = $self->get_selection;
     if ($itemData && $itemData->{type} eq 'volume') {
         my $volume = $self->{model_object}->volumes->[$itemData->{volume_id}];
-        $self->{parts_changed} = 1 if $volume->split > 1;
+        my $nozzle_dmrs = $self->GetParent->GetParent->GetParent->{config}->get('nozzle_diameter');
+        $self->{parts_changed} = 1 if $volume->split(scalar(@$nozzle_dmrs)) > 1;
     }
     
     $self->_parts_changed;

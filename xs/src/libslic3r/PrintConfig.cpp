@@ -111,7 +111,8 @@ PrintConfigDef::PrintConfigDef()
                    "with cooling (use a fan) before tweaking this.");
     def->cli = "bridge-flow-ratio=f";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(1);
+	def->max = 2;
+	def->default_value = new ConfigOptionFloat(1);
 
     def = this->add("bridge_speed", coFloat);
     def->label = L("Bridges");
@@ -1713,7 +1714,7 @@ PrintConfigDef::PrintConfigDef()
                    "temperature control commands in the output.");
     def->cli = "temperature=i@";
     def->full_label = L("Temperature");
-    def->max = 0;
+    def->min = 0;
     def->max = max_temp;
     def->default_value = new ConfigOptionInts { 200 };
     

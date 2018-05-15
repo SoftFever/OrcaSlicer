@@ -269,6 +269,10 @@ TriangleMesh Model::mesh() const
 
 static bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb, Pointfs &out)
 {
+    if (sizes.empty())
+        // return if the list is empty or the following call to BoundingBoxf constructor will lead to a crash
+        return true;
+
     // we supply unscaled data to arrange()
     bool result = Slic3r::Geometry::arrange(
         sizes.size(),               // number of parts
@@ -400,7 +404,7 @@ bool Model::looks_like_multipart_object() const
     return false;
 }
 
-void Model::convert_multipart_object()
+void Model::convert_multipart_object(unsigned int max_extruders)
 {
     if (this->objects.empty())
         return;
@@ -417,7 +421,7 @@ void Model::convert_multipart_object()
             if (new_v != nullptr)
             {
                 new_v->name = o->name;
-                new_v->config.set_deserialize("extruder", get_auto_extruder_id_as_string());
+                new_v->config.set_deserialize("extruder", get_auto_extruder_id_as_string(max_extruders));
             }
         }
 
@@ -477,20 +481,20 @@ bool Model::fits_print_volume(const FullPrintConfig &config) const
     return print_volume.contains(transformed_bounding_box());
 }
 
-unsigned int Model::get_auto_extruder_id()
+unsigned int Model::get_auto_extruder_id(unsigned int max_extruders)
 {
     unsigned int id = s_auto_extruder_id;
 
-    if (++s_auto_extruder_id > 4)
+    if (++s_auto_extruder_id > max_extruders)
         reset_auto_extruder_id();
 
     return id;
 }
 
-std::string Model::get_auto_extruder_id_as_string()
+std::string Model::get_auto_extruder_id_as_string(unsigned int max_extruders)
 {
     char str_extruder[64];
-    sprintf(str_extruder, "%ud", get_auto_extruder_id());
+    sprintf(str_extruder, "%ud", get_auto_extruder_id(max_extruders));
     return str_extruder;
 }
 
@@ -992,7 +996,7 @@ ModelMaterial* ModelVolume::assign_unique_material()
 // Split this volume, append the result to the object owning this volume.
 // Return the number of volumes created from this one.
 // This is useful to assign different materials to different volumes of an object.
-size_t ModelVolume::split()
+size_t ModelVolume::split(unsigned int max_extruders)
 {
     TriangleMeshPtrs meshptrs = this->mesh.split();
     if (meshptrs.size() <= 1) {
@@ -1015,7 +1019,7 @@ size_t ModelVolume::split()
         char str_idx[64];
         sprintf(str_idx, "_%d", idx + 1);
         this->object->volumes[ivolume]->name = name + str_idx;
-        this->object->volumes[ivolume]->config.set_deserialize("extruder", Model::get_auto_extruder_id_as_string());
+        this->object->volumes[ivolume]->config.set_deserialize("extruder", Model::get_auto_extruder_id_as_string(max_extruders));
         delete mesh;
         ++ idx;
     }

@@ -85,8 +85,12 @@ namespace Slic3r {
     
 template<class T>
 struct ClassTraits { 
+    // Name of a Perl alias of a C++ class type, owned by Perl, reference counted.
     static const char* name;
-    static const char* name_ref; 
+    // Name of a Perl alias of a C++ class type, owned by the C++ code.
+    // The references shall be enumerated at the end of XS.pm, where the desctructor is undefined with sub DESTROY {},
+    // so Perl will never delete the object instance.
+    static const char* name_ref;
 };
 
 // use this for typedefs for which the forward prototype
@@ -99,11 +103,16 @@ struct ClassTraits {
     class cname;                                                                     \
     __REGISTER_CLASS(cname, perlname);
 
+// Return Perl alias to a C++ class name.
 template<class T>
 const char* perl_class_name(const T*) { return ClassTraits<T>::name; }
+// Return Perl alias to a C++ class name, suffixed with ::Ref.
+// Such a C++ class instance will not be destroyed by Perl, the instance destruction is left to the C++ code.
 template<class T>
 const char* perl_class_name_ref(const T*) { return ClassTraits<T>::name_ref; }
 
+// Mark the Perl SV (Scalar Value) as owning a "blessed" pointer to an object reference.
+// Perl will never release the C++ instance.
 template<class T>
 SV* perl_to_SV_ref(T &t) {
     SV* sv = newSV(0);
@@ -111,6 +120,8 @@ SV* perl_to_SV_ref(T &t) {
     return sv;
 }
 
+// Mark the Perl SV (Scalar Value) as owning a "blessed" pointer to an object instance.
+// Perl will own the C++ instance, therefore it will also release it.
 template<class T>
 SV* perl_to_SV_clone_ref(const T &t) {
     SV* sv = newSV(0);
@@ -118,6 +129,8 @@ SV* perl_to_SV_clone_ref(const T &t) {
     return sv;
 }
 
+// Reference wrapper to provide a C++ instance to Perl while keeping Perl from destroying the instance.
+// The instance is created temporarily by XS.cpp just to provide Perl with a CLASS name and a object instance pointer.
 template <class T> 
 class Ref {
     T* val;
@@ -125,10 +138,15 @@ public:
     Ref() : val(NULL) {}
     Ref(T* t) : val(t) {}
     Ref(const T* t) : val(const_cast<T*>(t)) {}
+    // Called by XS.cpp to convert the referenced object instance to a Perl SV, before it is blessed with the name
+    // returned by CLASS()
     operator T*() const { return val; }
+    // Name to bless the Perl SV with. The name ends with a "::Ref" suffix to keep Perl from destroying the object instance.
     static const char* CLASS() { return ClassTraits<T>::name_ref; }
 };
-  
+
+// Wrapper to clone a C++ object instance before passing it to Perl for ownership.
+// This wrapper instance is created temporarily by XS.cpp to provide Perl with a CLASS name and a object instance pointer.
 template <class T>
 class Clone {
     T* val;
@@ -136,7 +154,11 @@ public:
     Clone() : val(NULL) {}
     Clone(T* t) : val(new T(*t)) {}
     Clone(const T& t) : val(new T(t)) {}
+    // Called by XS.cpp to convert the cloned object instance to a Perl SV, before it is blessed with the name
+    // returned by CLASS()
     operator T*() const { return val; }
+    // Name to bless the Perl SV with. If there is a destructor registered in the XSP file for this class, then Perl will
+    // call this destructor when the reference counter of this SV drops to zero.
     static const char* CLASS() { return ClassTraits<T>::name; }
 };
 
@@ -172,15 +194,6 @@ void from_SV_check(SV* surface_sv, Surface* THIS);
 SV* to_SV(TriangleMesh* THIS);
 
 }
-
-#ifdef SLIC3R_HAS_BROKEN_CROAK
-#undef croak
-#ifdef _MSC_VER
-    #define croak(...) confess_at(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#else
-    #define croak(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#endif
-#endif
 
 // Defined in wxPerlIface.cpp
 // Return a pointer to the associated wxWidgets object instance given by classname.

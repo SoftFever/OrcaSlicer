@@ -41,8 +41,7 @@ public:
         void set_from(const Range& other);
         float step_size() const;
 
-        const Color& get_color_at(float value) const;
-        const Color& get_color_at_max() const;
+        Color get_color_at(float value) const;
     };
 
     struct Ranges
@@ -188,11 +187,11 @@ public:
     void reset();
     bool empty() const;
 
-    const Color& get_extrusion_role_color(ExtrusionRole role) const;
-    const Color& get_height_color(float height) const;
-    const Color& get_width_color(float width) const;
-    const Color& get_feedrate_color(float feedrate) const;
-    const Color& get_volumetric_rate_color(float rate) const;
+    Color get_extrusion_role_color(ExtrusionRole role) const;
+    Color get_height_color(float height) const;
+    Color get_width_color(float width) const;
+    Color get_feedrate_color(float feedrate) const;
+    Color get_volumetric_rate_color(float rate) const;
 
     void set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha);
     void set_extrusion_paths_colors(const std::vector<std::string>& colors);

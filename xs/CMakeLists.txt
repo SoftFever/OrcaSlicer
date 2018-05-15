@@ -170,10 +170,14 @@ add_library(libslic3r STATIC
 )
 
 add_library(libslic3r_gui STATIC
+    ${LIBDIR}/slic3r/GUI/AboutDialog.cpp
+    ${LIBDIR}/slic3r/GUI/AboutDialog.hpp
     ${LIBDIR}/slic3r/GUI/AppConfig.cpp
     ${LIBDIR}/slic3r/GUI/AppConfig.hpp
     ${LIBDIR}/slic3r/GUI/BitmapCache.cpp
     ${LIBDIR}/slic3r/GUI/BitmapCache.hpp
+    ${LIBDIR}/slic3r/GUI/ConfigSnapshotDialog.cpp
+    ${LIBDIR}/slic3r/GUI/ConfigSnapshotDialog.hpp
     ${LIBDIR}/slic3r/GUI/3DScene.cpp
     ${LIBDIR}/slic3r/GUI/3DScene.hpp
     ${LIBDIR}/slic3r/GUI/GLShader.cpp
@@ -208,18 +212,30 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/RammingChart.hpp
     ${LIBDIR}/slic3r/GUI/BonjourDialog.cpp
     ${LIBDIR}/slic3r/GUI/BonjourDialog.hpp
+    ${LIBDIR}/slic3r/GUI/ButtonsDescription.cpp
+    ${LIBDIR}/slic3r/GUI/ButtonsDescription.hpp
     ${LIBDIR}/slic3r/Config/Snapshot.cpp
     ${LIBDIR}/slic3r/Config/Snapshot.hpp
     ${LIBDIR}/slic3r/Config/Version.cpp
     ${LIBDIR}/slic3r/Config/Version.hpp    
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.cpp
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
+    ${LIBDIR}/slic3r/GUI/ConfigWizard.cpp
+    ${LIBDIR}/slic3r/GUI/ConfigWizard.hpp
+    ${LIBDIR}/slic3r/GUI/MsgDialog.cpp
+    ${LIBDIR}/slic3r/GUI/MsgDialog.hpp
+    ${LIBDIR}/slic3r/GUI/UpdateDialogs.cpp
+    ${LIBDIR}/slic3r/GUI/UpdateDialogs.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
     ${LIBDIR}/slic3r/Utils/Bonjour.cpp
     ${LIBDIR}/slic3r/Utils/Bonjour.hpp
+    ${LIBDIR}/slic3r/Utils/PresetUpdater.cpp
+    ${LIBDIR}/slic3r/Utils/PresetUpdater.hpp
+    ${LIBDIR}/slic3r/Utils/Time.cpp
+    ${LIBDIR}/slic3r/Utils/Time.hpp
 )
 
 add_library(admesh STATIC
@@ -365,6 +381,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/SurfaceCollection.xsp
     ${XSP_DIR}/TriangleMesh.xsp
     ${XSP_DIR}/Utils_OctoPrint.xsp
+    ${XSP_DIR}/Utils_PresetUpdater.xsp
     ${XSP_DIR}/XS.xsp
 )
 foreach (file ${XS_XSP_FILES})
@@ -410,7 +427,7 @@ if(APPLE)
     # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
     target_link_libraries(XS "-undefined dynamic_lookup")
 endif()
-target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri)
+target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver)
 if(SLIC3R_PROFILE)
     target_link_libraries(XS Shiny)
 endif()
@@ -456,10 +473,6 @@ endif ()
 if (SLIC3R_PROFILE)
     message("Slic3r will be built with a Shiny invasive profiler")
     add_definitions(-DSLIC3R_PROFILE)
-endif ()
-
-if (SLIC3R_HAS_BROKEN_CROAK)
-    target_compile_definitions(XS PRIVATE -DSLIC3R_HAS_BROKEN_CROAK)
 endif ()
 
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
@@ -537,13 +550,13 @@ if (SLIC3R_PRUSACONTROL)
     set(wxWidgets_UseAlienWx 1)
     if (wxWidgets_UseAlienWx)
         set(AlienWx_DEBUG 1)
-        find_package(AlienWx REQUIRED COMPONENTS base core adv)
+        find_package(AlienWx REQUIRED COMPONENTS base core adv html)
         include_directories(${AlienWx_INCLUDE_DIRS})
         #add_compile_options(${AlienWx_CXX_FLAGS})
         add_definitions(${AlienWx_DEFINITIONS})
         set(wxWidgets_LIBRARIES ${AlienWx_LIBRARIES})
     else ()
-        find_package(wxWidgets REQUIRED COMPONENTS base core adv)
+        find_package(wxWidgets REQUIRED COMPONENTS base core adv html)
         include(${wxWidgets_USE_FILE})
     endif ()
     add_definitions(-DSLIC3R_GUI -DSLIC3R_PRUS)
@@ -623,6 +636,7 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:XS>" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/Slic3r/"
         COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/xs/lib/Slic3r/XS.pm" "${PERL_LOCAL_LIB_DIR}/Slic3r/"
+    COMMENT "Installing XS.pm and XS.{so,dll,bundle} into the local-lib directory ..."
 )
 if(APPLE)
     add_custom_command(
@@ -647,7 +661,12 @@ endif ()
 
 if (MSVC)
     # Here we associate some additional properties with the MSVC project to enable compilation and debugging out of the box.
-    set_target_properties(XS PROPERTIES VS_USER_PROPS "${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl64d.props")
+    get_filename_component(PROPS_PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)
+    string(REPLACE "/" "\\" PROPS_PERL_BIN_PATH "${PROPS_PERL_BIN_PATH}")
+    string(REPLACE "/" "\\" PROPS_PERL_EXECUTABLE "${PERL_EXECUTABLE}")
+    string(REPLACE "/" "\\" PROPS_CMAKE_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl.props.in" "${CMAKE_BINARY_DIR}/xs.wperl.props" NEWLINE_STYLE CRLF)
+    set_target_properties(XS PROPERTIES VS_USER_PROPS "${CMAKE_BINARY_DIR}/xs.wperl.props")
 endif()
 
 # l10n

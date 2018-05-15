@@ -16,6 +16,7 @@
 	bool		current_preset_is_dirty();
 	void		load_key_value(char* opt_key, char* value);
 	void		OnActivate();
+	size_t		get_selected_preset_item();
 	std::string	title();
 	Ref<DynamicPrintConfig>		get_config();
 	Ref<PresetCollection>		get_presets();
