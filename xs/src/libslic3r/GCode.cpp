@@ -798,7 +798,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             _writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id(), &config));
         } else {
             for (const std::string &end_gcode : print.config.end_filament_gcode.values)
-                _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front(), &config)));
+                _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front()), &config));
         }
         _writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id(), &config));
     }
