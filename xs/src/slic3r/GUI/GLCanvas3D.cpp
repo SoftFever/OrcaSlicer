@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+static const bool TURNTABLE_MODE = true;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
 
 namespace Slic3r {
@@ -136,6 +137,11 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
 {
 }
 
+GLCanvas3D::~GLCanvas3D()
+{
+    _deregister_callbacks();
+}
+
 void GLCanvas3D::set_current()
 {
     if ((m_canvas != nullptr) && (m_context != nullptr))
@@ -175,8 +181,7 @@ void GLCanvas3D::resize(unsigned int w, unsigned int h)
             }
 
             // FIXME: calculate a tighter value for depth will improve z-fighting
-            Pointf3 bb_size = bbox.size();
-            float depth = 5.0f * (float)std::max(bb_size.x, std::max(bb_size.y, bb_size.z));
+            float depth = 5.0f * (float)bbox.max_size();
             ::glOrtho(-w2, w2, -h2, h2, -depth, depth);
 
             break;
@@ -331,6 +336,12 @@ BoundingBoxf3 GLCanvas3D::max_bounding_box() const
     return bb;
 }
 
+void GLCanvas3D::register_on_viewport_changed_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_viewport_changed_callback.register_callback(callback);
+}
+
 void GLCanvas3D::on_size(wxSizeEvent& evt)
 {
     set_dirty(true);
@@ -363,7 +374,24 @@ void GLCanvas3D::_zoom_to_volumes()
 
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 {
-    // >>>>>>>>>>>>>>>>>>>> TODO <<<<<<<<<<<<<<<<<<<<<<<<
+    // Calculate the zoom factor needed to adjust viewport to bounding box.
+    float zoom = _get_zoom_to_bounding_box_factor(bbox);
+    if (zoom > 0.0f)
+    {
+        set_camera_zoom(zoom);
+        // center view around bounding box center
+        set_camera_target(bbox.center());
+
+        m_on_viewport_changed_callback.call();
+
+        if (is_shown_on_screen())
+        {
+            std::pair<int, int> size = _get_canvas_size();
+            resize((unsigned int)size.first, (unsigned int)size.second);
+            if (m_canvas != nullptr)
+                m_canvas->Refresh();
+        }
+    }
 }
 
 std::pair<int, int> GLCanvas3D::_get_canvas_size() const
@@ -374,6 +402,97 @@ std::pair<int, int> GLCanvas3D::_get_canvas_size() const
         m_canvas->GetSize(&ret.first, &ret.second);
 
     return ret;
+}
+
+float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const
+{
+    float max_bb_size = bbox.max_size();
+    if (max_bb_size == 0.0f)
+        return -1.0f;
+
+    // project the bbox vertices on a plane perpendicular to the camera forward axis
+    // then calculates the vertices coordinate on this plane along the camera xy axes
+
+    // we need the view matrix, we let opengl calculate it(same as done in render sub)
+    ::glMatrixMode(GL_MODELVIEW);
+    ::glLoadIdentity();
+
+    if (TURNTABLE_MODE)
+    {
+        // Turntable mode is enabled by default.
+        ::glRotatef(-get_camera_theta(), 1.0f, 0.0f, 0.0f); // pitch
+        ::glRotatef(get_camera_phi(), 0.0f, 0.0f, 1.0f);    // yaw
+    }
+    else
+    {
+        // Shift the perspective camera.
+        Pointf3 camera_pos(0.0, 0.0, -(coordf_t)get_camera_distance());
+        ::glTranslatef((float)camera_pos.x, (float)camera_pos.y, (float)camera_pos.z);
+//        my @rotmat = quat_to_rotmatrix($self->quat); <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TEMPORARY COMMENTED OUT
+//        glMultMatrixd_p(@rotmat[0..15]);             <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TEMPORARY COMMENTED OUT
+    }
+
+    const Pointf3& target = get_camera_target();
+    ::glTranslatef(-(float)target.x, -(float)target.y, -(float)target.z);
+
+    // get the view matrix back from opengl
+    GLfloat matrix[16];
+    ::glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+
+    // camera axes
+    Pointf3 right((coordf_t)matrix[0], (coordf_t)matrix[4], (coordf_t)matrix[8]);
+    Pointf3 up((coordf_t)matrix[1], (coordf_t)matrix[5], (coordf_t)matrix[9]);
+    Pointf3 forward((coordf_t)matrix[2], (coordf_t)matrix[6], (coordf_t)matrix[10]);
+
+    Pointf3 bb_min = bbox.min;
+    Pointf3 bb_max = bbox.max;
+    Pointf3 bb_center = bbox.center();
+
+    // bbox vertices in world space
+    std::vector<Pointf3> vertices;
+    vertices.reserve(8);
+    vertices.push_back(bb_min);
+    vertices.emplace_back(bb_max.x, bb_min.y, bb_min.z);
+    vertices.emplace_back(bb_max.x, bb_max.y, bb_min.z);
+    vertices.emplace_back(bb_min.x, bb_max.y, bb_min.z);
+    vertices.emplace_back(bb_min.x, bb_min.y, bb_max.z);
+    vertices.emplace_back(bb_max.x, bb_min.y, bb_max.z);
+    vertices.push_back(bb_max);
+    vertices.emplace_back(bb_min.x, bb_max.y, bb_max.z);
+
+    coordf_t max_x = 0.0;
+    coordf_t max_y = 0.0;
+
+    // margin factor to give some empty space around the bbox
+    coordf_t margin_factor = 1.25;
+
+    for (const Pointf3 v : vertices)
+    {
+        // project vertex on the plane perpendicular to camera forward axis
+        Pointf3 pos(v.x - bb_center.x, v.y - bb_center.y, v.z - bb_center.z);
+        Pointf3 proj_on_plane = pos - dot(pos, forward) * forward;
+
+        // calculates vertex coordinate along camera xy axes
+        coordf_t x_on_plane = dot(proj_on_plane, right);
+        coordf_t y_on_plane = dot(proj_on_plane, up);
+
+        max_x = std::max(max_x, margin_factor * std::abs(x_on_plane));
+        max_y = std::max(max_y, margin_factor * std::abs(y_on_plane));
+    }
+
+    if ((max_x == 0.0) || (max_y == 0.0))
+        return -1.0f;
+
+    max_x *= 2.0;
+    max_y *= 2.0;
+
+    std::pair<int, int> cvs_size = _get_canvas_size();
+    return (float)std::min((coordf_t)cvs_size.first / max_x, (coordf_t)cvs_size.second / max_y);
+}
+
+void GLCanvas3D::_deregister_callbacks()
+{
+    m_on_viewport_changed_callback.deregister_callback();
 }
 
 } // namespace GUI

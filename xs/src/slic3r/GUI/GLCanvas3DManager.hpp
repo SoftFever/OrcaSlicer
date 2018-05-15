@@ -85,6 +85,8 @@ public:
     Pointf3 get_camera_target(wxGLCanvas* canvas) const;
     void set_camera_target(wxGLCanvas* canvas, const Pointf3* target);
 
+    void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
+
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);
     CanvasesMap::const_iterator _get_canvas(wxGLCanvas* canvas) const;

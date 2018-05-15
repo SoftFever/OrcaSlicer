@@ -141,6 +141,9 @@ sub new {
         $self->{canvas3D}->on_viewport_changed(sub {
             $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
         });
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D}); });
+#==============================================================================================================================
     }
     
     # Initialize 2D preview canvas
@@ -157,6 +160,9 @@ sub new {
         $self->{preview3D}->canvas->on_viewport_changed(sub {
             $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
         });
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas); });
+#==============================================================================================================================
         $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
     }

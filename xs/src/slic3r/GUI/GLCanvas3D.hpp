@@ -2,6 +2,7 @@
 #define slic3r_GLCanvas3D_hpp_
 
 #include "../../libslic3r/BoundingBox.hpp"
+#include "../../libslic3r/Utils.hpp"
 
 class wxGLCanvas;
 class wxGLContext;
@@ -85,8 +86,11 @@ private:
     bool m_dirty;
     bool m_apply_zoom_to_volumes_filter;
 
+    PerlCallback m_on_viewport_changed_callback;
+
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
+    ~GLCanvas3D();
 
     void set_current();
 
@@ -125,6 +129,8 @@ public:
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 max_bounding_box() const;
 
+    void register_on_viewport_changed_callback(void* callback);
+
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
 
@@ -133,6 +139,9 @@ private:
     void _zoom_to_volumes();
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
     std::pair<int, int> _get_canvas_size() const;
+    float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
+
+    void _deregister_callbacks();
 };
 
 } // namespace GUI

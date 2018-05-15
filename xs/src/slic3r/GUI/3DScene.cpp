@@ -1847,6 +1847,11 @@ void _3DScene::set_camera_target(wxGLCanvas* canvas, const Pointf3* target)
     s_canvas_mgr.set_camera_target(canvas, target);
 }
 
+void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_viewport_changed_callback(canvas, callback);
+}
+
 //void _3DScene::_glew_init()
 //{ 
 //    glewInit();

@@ -289,6 +289,13 @@ void GLCanvas3DManager::set_camera_target(wxGLCanvas* canvas, const Pointf3* tar
         it->second->set_camera_target(*target);
 }
 
+void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_viewport_changed_callback(callback);
+}
+
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)
 {
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);

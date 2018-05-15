@@ -926,13 +926,15 @@ sub zoom_to_bed {
     }
 }
 
-sub zoom_to_volume {
-    my ($self, $volume_idx) = @_;
-    
-    my $volume = $self->volumes->[$volume_idx];
-    my $bb = $volume->transformed_bounding_box;
-    $self->zoom_to_bounding_box($bb);
-}
+#==============================================================================================================================
+#sub zoom_to_volume {
+#    my ($self, $volume_idx) = @_;
+#    
+#    my $volume = $self->volumes->[$volume_idx];
+#    my $bb = $volume->transformed_bounding_box;
+#    $self->zoom_to_bounding_box($bb);
+#}
+#==============================================================================================================================
 
 sub zoom_to_volumes {
     my ($self) = @_;
