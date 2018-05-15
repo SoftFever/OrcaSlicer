@@ -2,6 +2,13 @@
 
 remove_definitions(-D_UNICODE -DUNICODE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Workaround for an old CMake, which does not understand CMAKE_C_STANDARD.
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall")
+endif()
 
 
 set(AVRDUDE_SOURCES
@@ -64,6 +71,7 @@ if (WIN32)
     )
 endif()
 add_library(avrdude STATIC ${AVRDUDE_SOURCES})
+
 if (WIN32)
     target_compile_definitions(avrdude PRIVATE WIN32NATIVE=1)
     target_include_directories(avrdude SYSTEM PRIVATE ${LIBDIR}/avrdude/windows)    # So that sources find the getopt.h windows drop-in
