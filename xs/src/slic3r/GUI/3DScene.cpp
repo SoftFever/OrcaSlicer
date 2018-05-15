@@ -1767,6 +1767,17 @@ void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
     return s_canvas_mgr.set_bed_shape(canvas, shape);
 }
 
+Pointf _3DScene::get_bed_origin(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_bed_origin(canvas);
+}
+
+void _3DScene::set_bed_origin(wxGLCanvas* canvas, const Pointf* origin)
+{
+    if (origin != nullptr)
+        s_canvas_mgr.set_bed_origin(canvas, *origin);
+}
+
 BoundingBoxf3 _3DScene::get_bed_bounding_box(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_bed_bounding_box(canvas);

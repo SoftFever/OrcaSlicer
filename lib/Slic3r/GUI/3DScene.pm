@@ -53,7 +53,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               bed_grid_lines
                               bed_polygon
                               background
-                              origin
                               _mouse_pos
                               _hover_volume_idx
 
@@ -997,7 +996,10 @@ sub set_auto_bed_shape {
         [ $center->x - $max_size, $center->y + $max_size ],  #++
     ]);
     # Set the origin for painting of the coordinate system axes.
-    $self->origin(Slic3r::Pointf->new(@$center[X,Y]));
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_bed_origin($self, Slic3r::Pointf->new(@$center[X,Y]));
+#    $self->origin(Slic3r::Pointf->new(@$center[X,Y]));
+#==============================================================================================================================
 }
 
 # Set the bed shape to a single closed 2D polygon (array of two element arrays),
@@ -1048,7 +1050,10 @@ sub set_bed_shape {
     }
     
     # Set the origin for painting of the coordinate system axes.
-    $self->origin(Slic3r::Pointf->new(0,0));
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_bed_origin($self, Slic3r::Pointf->new(0,0));
+#    $self->origin(Slic3r::Pointf->new(0,0));
+#==============================================================================================================================
 
     $self->bed_polygon(offset_ex([$expolygon->contour], $bed_bb->radius * 1.7, JT_ROUND, scale(0.5))->[0]->contour->clone);
 }
@@ -1548,7 +1553,10 @@ sub Render {
         # draw axes
         # disable depth testing so that axes are not covered by ground
         glDisable(GL_DEPTH_TEST);
-        my $origin = $self->origin;
+#==============================================================================================================================
+        my $origin = Slic3r::GUI::_3DScene::get_bed_origin($self);
+#        my $origin = $self->origin;
+#==============================================================================================================================
         my $axis_len = $self->use_plain_shader ? 0.3 * max(@{ $self->bed_bounding_box->size }) : 2 * max(@{ $volumes_bb->size });
         glLineWidth(2);
         glBegin(GL_LINES);
@@ -1906,10 +1914,18 @@ sub draw_legend {
 
             my ($cw, $ch) = $self->GetSizeWH;
 
-            my $l = (-0.5 * $cw) / $self->_zoom;
-            my $t = (0.5 * $ch) / $self->_zoom;
-            my $r = $l + $tex_w / $self->_zoom;
-            my $b = $t - $tex_h / $self->_zoom;
+#==============================================================================================================================
+            my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
+            my $l = (-0.5 * $cw) / $zoom;
+            my $t = (0.5 * $ch) / $zoom;
+            my $r = $l + $tex_w / $zoom;
+            my $b = $t - $tex_h / $zoom;
+            
+#            my $l = (-0.5 * $cw) / $self->_zoom;
+#            my $t = (0.5 * $ch) / $self->_zoom;
+#            my $r = $l + $tex_w / $self->_zoom;
+#            my $b = $t - $tex_h / $self->_zoom;
+#==============================================================================================================================
             $self->_render_texture($tex_id, $l, $r, $b, $t);
 
             glPopMatrix();
@@ -1939,10 +1955,18 @@ sub draw_warning {
         
             my ($cw, $ch) = $self->GetSizeWH;
                 
-            my $l = (-0.5 * $tex_w) / $self->_zoom;
-            my $t = (-0.5 * $ch + $tex_h) / $self->_zoom;
-            my $r = $l + $tex_w / $self->_zoom;
-            my $b = $t - $tex_h / $self->_zoom;
+#==============================================================================================================================
+            my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);            
+            my $l = (-0.5 * $tex_w) / $zoom;
+            my $t = (-0.5 * $ch + $tex_h) / $zoom;
+            my $r = $l + $tex_w / $zoom;
+            my $b = $t - $tex_h / $zoom;
+            
+#            my $l = (-0.5 * $tex_w) / $self->_zoom;
+#            my $t = (-0.5 * $ch + $tex_h) / $self->_zoom;
+#            my $r = $l + $tex_w / $self->_zoom;
+#            my $b = $t - $tex_h / $self->_zoom;
+#==============================================================================================================================
             $self->_render_texture($tex_id, $l, $r, $b, $t);
 
             glPopMatrix();

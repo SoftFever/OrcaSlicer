@@ -64,12 +64,16 @@ public:
     {
         Pointfs m_shape;
         BoundingBoxf3 m_bounding_box;
+        Pointf m_origin;
 
     public:
         const Pointfs& get_shape() const;
         void set_shape(const Pointfs& shape);
 
         const BoundingBoxf3& get_bounding_box() const;
+
+        const Pointf& get_origin() const;
+        void set_origin(const Pointf& origin);
 
     private:
         void _calc_bounding_box();
@@ -102,6 +106,9 @@ public:
     void set_volumes(GLVolumeCollection* volumes);
 
     void set_bed_shape(const Pointfs& shape);
+
+    const Pointf& get_bed_origin() const;
+    void set_bed_origin(const Pointf& origin);
 
     bool is_dirty() const;
     void set_dirty(bool dirty);

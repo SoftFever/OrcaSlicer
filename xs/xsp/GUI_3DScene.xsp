@@ -215,6 +215,21 @@ set_bed_shape(canvas, shape)
     CODE:
         _3DScene::set_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), shape);
 
+Clone<Pointf>
+get_bed_origin(canvas)
+        SV      *canvas;
+    CODE:
+        RETVAL = _3DScene::get_bed_origin((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_bed_origin(canvas, origin)
+        SV     *canvas;
+        Pointf *origin
+    CODE:
+        _3DScene::set_bed_origin((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), origin);
+
 Clone<BoundingBoxf3>
 get_bed_bounding_box(canvas)
         SV *canvas;

@@ -119,6 +119,16 @@ const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
     return m_bounding_box;
 }
 
+const Pointf& GLCanvas3D::Bed::get_origin() const
+{
+    return m_origin;
+}
+
+void GLCanvas3D::Bed::set_origin(const Pointf& origin)
+{
+    m_origin = origin;
+}
+
 void GLCanvas3D::Bed::_calc_bounding_box()
 {
     m_bounding_box = BoundingBoxf3();
@@ -233,6 +243,16 @@ void GLCanvas3D::set_volumes(GLVolumeCollection* volumes)
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 {
     m_bed.set_shape(shape);
+}
+
+const Pointf& GLCanvas3D::get_bed_origin() const
+{
+    return m_bed.get_origin();
+}
+
+void GLCanvas3D::set_bed_origin(const Pointf& origin)
+{
+    m_bed.set_origin(origin);
 }
 
 bool GLCanvas3D::is_dirty() const

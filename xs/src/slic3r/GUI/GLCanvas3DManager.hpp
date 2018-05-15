@@ -61,6 +61,9 @@ public:
 
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
 
+    Pointf get_bed_origin(wxGLCanvas* canvas) const;
+    void set_bed_origin(wxGLCanvas* canvas, const Pointf& origin);
+
     BoundingBoxf3 get_bed_bounding_box(wxGLCanvas* canvas);
     BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
     BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);

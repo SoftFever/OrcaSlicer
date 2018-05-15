@@ -180,6 +180,19 @@ void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
         it->second->set_bed_shape(shape);
 }
 
+Pointf GLCanvas3DManager::get_bed_origin(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_bed_origin() : Pointf();
+}
+
+void GLCanvas3DManager::set_bed_origin(wxGLCanvas* canvas, const Pointf& origin)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_bed_origin(origin);
+}
+
 BoundingBoxf3 GLCanvas3DManager::get_bed_bounding_box(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
