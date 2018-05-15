@@ -9,7 +9,7 @@ use File::Basename qw(basename dirname);
 use FindBin;
 use List::Util qw(min first);
 use Slic3r::Geometry qw(X Y);
-use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
+use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog :dirdialog
     :font :icon wxTheApp);
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Frame';
@@ -229,6 +229,9 @@ sub _init_menubar {
         $fileMenu->AppendSeparator();
         $self->_append_menu_item($fileMenu, L("Slice to SV&G…\tCtrl+G"), L('Slice file to a multi-layer SVG'), sub {
             $self->quick_slice(save_as => 1, export_svg => 1);
+        }, undef, 'shape_handles.png');
+        $self->_append_menu_item($fileMenu, L("Slice to PNG…"), L('Slice file to a set of PNG files'), sub {
+            $self->quick_slice(save_as => 0, export_png => 1);
         }, undef, 'shape_handles.png');
         $self->{menu_item_reslice_now} = $self->_append_menu_item(
             $fileMenu, L("(&Re)Slice Now\tCtrl+S"), L('Start new slicing process'), 
@@ -453,6 +456,14 @@ sub quick_slice {
             $qs_last_output_file = $output_file unless $params{export_svg};
             wxTheApp->{app_config}->update_last_output_dir(dirname($output_file));
             $dlg->Destroy;
+        } elsif($params{export_png}) {
+            my $dlg = Wx::DirDialog->new($self, L('Choose output directory'));
+            if ($dlg->ShowModal != wxID_OK) {
+                $dlg->Destroy;
+                return;
+            }
+            $output_file = $dlg->GetPath;
+            $dlg->Destroy;
         }
         
         # show processbar dialog
@@ -467,7 +478,11 @@ sub quick_slice {
             $sprint->output_file($output_file);
             if ($params{export_svg}) {
                 $sprint->export_svg;
-            } else {
+            } 
+            elsif($params{export_png}) {
+                $sprint->export_png;
+            } 
+            else {
                 $sprint->export_gcode;
             }
             $sprint->status_cb(undef);

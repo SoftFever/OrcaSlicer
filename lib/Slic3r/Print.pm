@@ -109,6 +109,16 @@ sub export_gcode {
     }
 }
 
+sub export_png {
+    my $self = shift;
+    my %params = @_;
+
+    $_->slice for @{$self->objects};
+
+    my $fh = $params{output_file};
+    $self->print_to_png($fh);
+}
+
 # Export SVG slices for the offline SLA printing.
 # The export_svg is expected to be executed inside an eval block.
 sub export_svg {

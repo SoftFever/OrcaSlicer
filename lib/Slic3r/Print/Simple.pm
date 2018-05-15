@@ -121,4 +121,14 @@ sub export_svg {
     $self->_after_export;
 }
 
+sub export_png {
+    my ($self) = @_;
+    
+    $self->_before_export;
+    
+    $self->_print->export_png(output_file => $self->output_file);
+    
+    $self->_after_export;
+}
+
 1;

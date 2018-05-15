@@ -11,6 +11,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
+// For png export of the sliced model
+#include <wx/dcmemory.h>
+#include <wx/bitmap.h>
+#include <wx/graphics.h>
+
 namespace Slic3r {
 
 template class PrintState<PrintStep, psCount>;
@@ -444,7 +449,7 @@ bool Print::apply_config(DynamicPrintConfig config)
                         const ModelVolume &volume = *object->model_object()->volumes[volume_id];
                         if (this_region_config_set) {
                             // If the new config for this volume differs from the other
-                            // volume configs currently associated to this region, it means
+                            // volume configs currently associated to this region, it means
                             // the region subdivision does not make sense anymore.
                             if (! this_region_config.equals(this->_region_config_from_model_volume(volume))) {
                                 rearrange_regions = true;
@@ -1240,6 +1245,163 @@ std::string Print::output_filepath(const std::string &path)
 void Print::set_status(int percent, const std::string &message)
 {
     printf("Print::status %d => %s\n", percent, message.c_str());
+}
+
+template<Print::FilePrinterFormat format>
+class FilePrinter {
+public:
+    void drawPolygon(const ExPolygon& p);
+    void save(const std::string& path);
+};
+
+template<>
+class FilePrinter<Print::FilePrinterFormat::PNG> {
+    wxBitmap bitmap_;
+    wxMemoryDC dc_;
+    std::unique_ptr<wxGraphicsContext> gc_;
+public:
+    inline FilePrinter(unsigned width, unsigned height):
+        bitmap_(width, height),
+        dc_(bitmap_),
+        gc_(wxGraphicsContext::Create(dc_)) {
+        gc_->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+    }
+
+    void drawPolygon(const ExPolygon& p) {
+        gc_->SetPen( *wxRED_PEN );
+        std::vector<wxPoint2DDouble> points;
+        points.reserve(p.contour.points.size());
+        for(auto pp : p.contour.points) points.emplace_back(pp.x, pp.y);
+        gc_->DrawLines(points.size(), points.data());
+    }
+
+    void save(const std::string& path) {
+        if(!bitmap_.SaveFile(path, wxBITMAP_TYPE_PNG)) {
+            std::cout << "fail for " << path << std::endl;
+        }
+    }
+};
+
+template<Print::FilePrinterFormat format, class...Args>
+void Print::print_to(std::string dirpath, Args...args)
+{
+
+    std::string dir = dirpath;
+
+#ifdef WIN32
+    if(dir.back() != '\\') dir.push_back('\\');
+#else
+    if(dir.back() != '/') dir.push_back('/');
+#endif
+
+    FilePrinter<format> printer(std::forward<Args>(args)...);
+
+    LayerPtrs layers;
+
+    std::for_each(objects.begin(), objects.end(), [&layers](PrintObject *o){
+        layers.insert(layers.end(), o->layers.begin(), o->layers.end());
+        layers.insert(layers.end(), o->support_layers.begin(),
+                      o->support_layers.end());
+    });
+
+    std::sort(layers.begin(), layers.end(), [](Layer *l1, Layer *l2){
+        return l1->print_z < l2->print_z;
+    });
+
+//    auto printSlice = [&printer](ExPolygon path) {
+
+//    };
+
+    int layer_id = -1;
+    ExPolygons previous_layer_slices;
+    auto print_bb = bounding_box();
+
+    for(auto lp : layers) {
+        Layer& l = *lp;
+        ++layer_id;
+
+        auto slices = l.slices;
+        using Sl = ExPolygons::value_type;
+        std::sort(slices.expolygons.begin(),
+                  slices.expolygons.end(),
+                  [](Sl a, Sl b){
+            return a.contains(b.contour.first_point()) ? false : true;
+        });
+
+        ExPolygons current_layer_slices;
+
+        // please enable C++14 ...
+        std::for_each(l.object()->_shifted_copies.begin(),
+                      l.object()->_shifted_copies.end(),
+                      [&] (Point d)
+        {
+            std::for_each(slices.expolygons.begin(),
+                          slices.expolygons.end(),
+                          [&] (ExPolygon slice)
+            {
+                slice.translate(d.x, d.y);
+                slice.translate(-print_bb.min.x, -print_bb.min.y);
+                printer.drawPolygon(slice);
+                // $print_polygon->($expolygon->contour, 'contour');
+                // $print_polygon->($_, 'hole') for @{$expolygon->holes};
+                current_layer_slices.push_back(slice);
+            });
+        });
+
+        printer.save(dir + "layer" + std::to_string(layer_id) + ".png");
+
+//        layer_id++;
+//        if ($layer->slice_z == -1) {
+//            printf $fh qq{  <g id="layer%d">\n}, $layer_id;
+//        } else {
+//            printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
+//        }
+
+//        my @current_layer_slices = ();
+//        # sort slices so that the outermost ones come first
+//        my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
+//        foreach my $copy (@{$layer->object->_shifted_copies}) {
+//            foreach my $slice (@slices) {
+//                my $expolygon = $slice->clone;
+//                $expolygon->translate(@$copy);
+//                $expolygon->translate(-$print_bb->x_min, -$print_bb->y_min);
+//                $print_polygon->($expolygon->contour, 'contour');
+//                $print_polygon->($_, 'hole') for @{$expolygon->holes};
+//                push @current_layer_slices, $expolygon;
+//            }
+//        }
+//        # generate support material
+//        if ($self->has_support_material && $layer->id > 0) {
+//            my (@supported_slices, @unsupported_slices) = ();
+//            foreach my $expolygon (@current_layer_slices) {
+//                my $intersection = intersection_ex(
+//                    [ map @$_, @previous_layer_slices ],
+//                    [ @$expolygon ],
+//                );
+//                @$intersection
+//                    ? push @supported_slices, $expolygon
+//                    : push @unsupported_slices, $expolygon;
+//            }
+//            my @supported_points = map @$_, @$_, @supported_slices;
+//            foreach my $expolygon (@unsupported_slices) {
+//                # look for the nearest point to this island among all
+//                # supported points
+//                my $contour = $expolygon->contour;
+//                my $support_point = $contour->first_point->nearest_point(\@supported_points)
+//                    or next;
+//                my $anchor_point = $support_point->nearest_point([ @$contour ]);
+//                printf $fh qq{    <line x1="%s" y1="%s" x2="%s" y2="%s" style="stroke-width: 2; stroke: white" />\n},
+//                    map @$_, $support_point, $anchor_point;
+//            }
+//        }
+//        print $fh qq{  </g>\n};
+//        @previous_layer_slices = @current_layer_slices;
+        previous_layer_slices = current_layer_slices;
+    }
+}
+
+void Print::print_to_png(std::string dirpath) {
+    print_to<FilePrinterFormat::PNG>(dirpath, 800, 600);
 }
 
 }

@@ -309,7 +309,19 @@ public:
     void restart() { m_canceled = false; }
     // Has the calculation been canceled?
     bool canceled() { return m_canceled; }
-    
+
+    enum class FilePrinterFormat {
+        PNG,
+        SVG
+    };
+
+    void print_to_png(std::string dirpath);
+
+private:
+
+    template<FilePrinterFormat format, class...Args>
+    void print_to(std::string dirpath, Args...args);
+
 private:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
