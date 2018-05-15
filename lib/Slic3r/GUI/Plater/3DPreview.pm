@@ -58,6 +58,13 @@ sub new {
         [40,-1], wxALIGN_CENTRE_HORIZONTAL);
     $z_label_high->SetFont($Slic3r::GUI::small_font);
 
+    my $z_label_low_idx = $self->{z_label_low_idx} = Wx::StaticText->new($self, -1, "", wxDefaultPosition,
+        [40,-1], wxALIGN_CENTRE_HORIZONTAL);
+    $z_label_low_idx->SetFont($Slic3r::GUI::small_font);
+    my $z_label_high_idx = $self->{z_label_high_idx} = Wx::StaticText->new($self, -1, "", wxDefaultPosition,
+        [40,-1], wxALIGN_CENTRE_HORIZONTAL);
+    $z_label_high_idx->SetFont($Slic3r::GUI::small_font);
+        
     $self->single_layer(0);
     my $checkbox_singlelayer = $self->{checkbox_singlelayer} = Wx::CheckBox->new($self, -1, L("1 Layer"));
     
@@ -103,11 +110,13 @@ sub new {
     my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
     my $vsizer = Wx::BoxSizer->new(wxVERTICAL);
     my $vsizer_outer = Wx::BoxSizer->new(wxVERTICAL);
-    $vsizer->Add($slider_low, 3, 0, 0);
-    $vsizer->Add($z_label_low, 0, 0, 0);
+    $vsizer->Add($slider_low, 3, wxALIGN_CENTER_HORIZONTAL, 0);
+    $vsizer->Add($z_label_low_idx, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    $vsizer->Add($z_label_low, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     $hsizer->Add($vsizer, 0, wxEXPAND, 0);
     $vsizer = Wx::BoxSizer->new(wxVERTICAL);
-    $vsizer->Add($slider_high, 3, 0, 0);
+    $vsizer->Add($slider_high, 3, wxALIGN_CENTER_HORIZONTAL, 0);
+    $vsizer->Add($z_label_high_idx, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer->Add($z_label_high, 0, 0, 0);
     $hsizer->Add($vsizer, 0, wxEXPAND, 0);
     $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -325,6 +334,8 @@ sub load_print {
         $self->slider_high->Hide;
         $self->{z_label_low}->SetLabel("");
         $self->{z_label_high}->SetLabel("");
+        $self->{z_label_low_idx}->SetLabel("");
+        $self->{z_label_high_idx}->SetLabel("");
         $self->canvas->reset_legend_texture();
         $self->canvas->Refresh;  # clears canvas
         return;
@@ -427,6 +438,10 @@ sub set_z_range
     return if !$self->enabled;
     $self->{z_label_low}->SetLabel(sprintf '%.2f', $z_low);
     $self->{z_label_high}->SetLabel(sprintf '%.2f', $z_high);
+    my $z_idx_low = 1 + $self->slider_low->GetValue;
+    my $z_idx_high = 1 + $self->slider_high->GetValue;
+    $self->{z_label_low_idx}->SetLabel(sprintf '%d', $z_idx_low);
+    $self->{z_label_high_idx}->SetLabel(sprintf '%d', $z_idx_high);
     $self->canvas->set_toolpaths_range($z_low - 1e-6, $z_high + 1e-6);
     $self->canvas->Refresh if $self->IsShown;
 }

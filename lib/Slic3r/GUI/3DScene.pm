@@ -679,8 +679,6 @@ sub select_view {
         # Avoid gimball lock.
         $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
         $self->_stheta(0) if $self->_stheta < 0;
-        # View everything.
-        $self->zoom_to_bounding_box($bb);
         $self->on_viewport_changed->() if $self->on_viewport_changed;
         $self->Refresh;
     }
@@ -908,6 +906,9 @@ sub deselect_volumes {
 
 sub select_volume {
     my ($self, $volume_idx) = @_;
+
+    return if ($volume_idx >= scalar(@{$self->volumes}));
+
     $self->volumes->[$volume_idx]->set_selected(1)
         if $volume_idx != -1;
 }

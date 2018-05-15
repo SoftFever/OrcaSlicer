@@ -2125,7 +2125,7 @@ void Tab::save_preset(std::string name /*= ""*/)
 			return;
 		}
 		if (existing && (existing->is_external)) {
-			show_error(this, _(L("Cannot overwrite an external.")));
+			show_error(this, _(L("Cannot overwrite an external profile.")));
 			return;
 		}
 	}

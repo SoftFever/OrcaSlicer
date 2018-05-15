@@ -475,10 +475,6 @@ if (SLIC3R_PROFILE)
     add_definitions(-DSLIC3R_PROFILE)
 endif ()
 
-if (SLIC3R_HAS_BROKEN_CROAK)
-    target_compile_definitions(XS PRIVATE -DSLIC3R_HAS_BROKEN_CROAK)
-endif ()
-
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     target_compile_definitions(XS PRIVATE -DSLIC3R_DEBUG -DDEBUG -D_DEBUG)
 else ()

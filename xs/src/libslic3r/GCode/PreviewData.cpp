@@ -275,7 +275,7 @@ bool GCodePreviewData::empty() const
     return extrusion.layers.empty() && travel.polylines.empty() && retraction.positions.empty() && unretraction.positions.empty();
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_extrusion_role_color(ExtrusionRole role) const
+GCodePreviewData::Color GCodePreviewData::get_extrusion_role_color(ExtrusionRole role) const
 {
     return extrusion.role_colors[role];
 }
