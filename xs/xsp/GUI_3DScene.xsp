@@ -388,6 +388,13 @@ zoom_to_volumes(canvas)
         _3DScene::zoom_to_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     
 void
+select_view(canvas, direction)
+        SV          *canvas;
+        std::string direction;
+    CODE:
+        _3DScene::select_view((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), direction);
+    
+void
 register_on_viewport_changed_callback(canvas, callback)
         SV *canvas;
         SV *callback;

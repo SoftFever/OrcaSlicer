@@ -761,41 +761,40 @@ sub set_viewport_from_scene {
 # zoom to volumes.
 sub select_view {
     my ($self, $direction) = @_;
-    my $dirvec;
-    if (ref($direction)) {
-        $dirvec = $direction;
-    } else {
-        if ($direction eq 'iso') {
-            $dirvec = VIEW_DEFAULT;
-        } elsif ($direction eq 'left') {
-            $dirvec = VIEW_LEFT;
-        } elsif ($direction eq 'right') {
-            $dirvec = VIEW_RIGHT;
-        } elsif ($direction eq 'top') {
-            $dirvec = VIEW_TOP;
-        } elsif ($direction eq 'bottom') {
-            $dirvec = VIEW_BOTTOM;
-        } elsif ($direction eq 'front') {
-            $dirvec = VIEW_FRONT;
-        } elsif ($direction eq 'rear') {
-            $dirvec = VIEW_REAR;
-        }
-    }
-    my $bb = $self->volumes_bounding_box;
-    if (! $bb->empty) {
 #==============================================================================================================================
-        Slic3r::GUI::_3DScene::set_camera_phi($self, $dirvec->[0]);
-        Slic3r::GUI::_3DScene::set_camera_theta($self, $dirvec->[1]);
-        
+    Slic3r::GUI::_3DScene::select_view($self, $direction);
+
+#    my $dirvec;
+#    if (ref($direction)) {
+#        $dirvec = $direction;
+#    } else {
+#        if ($direction eq 'iso') {
+#            $dirvec = VIEW_DEFAULT;
+#        } elsif ($direction eq 'left') {
+#            $dirvec = VIEW_LEFT;
+#        } elsif ($direction eq 'right') {
+#            $dirvec = VIEW_RIGHT;
+#        } elsif ($direction eq 'top') {
+#            $dirvec = VIEW_TOP;
+#        } elsif ($direction eq 'bottom') {
+#            $dirvec = VIEW_BOTTOM;
+#        } elsif ($direction eq 'front') {
+#            $dirvec = VIEW_FRONT;
+#        } elsif ($direction eq 'rear') {
+#            $dirvec = VIEW_REAR;
+#        }
+#    }
+#    my $bb = $self->volumes_bounding_box;
+#    if (! $bb->empty) {
 #        $self->_sphi($dirvec->[0]);
 #        $self->_stheta($dirvec->[1]);
 #        # Avoid gimball lock.
 #        $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
 #        $self->_stheta(0) if $self->_stheta < 0;
+#        $self->on_viewport_changed->() if $self->on_viewport_changed;
+#        $self->Refresh;
+#    }
 #==============================================================================================================================
-        $self->on_viewport_changed->() if $self->on_viewport_changed;
-        $self->Refresh;
-    }
 }
 
 sub get_zoom_to_bounding_box_factor {

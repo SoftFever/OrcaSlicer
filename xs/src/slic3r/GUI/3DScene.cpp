@@ -1878,6 +1878,11 @@ void _3DScene::zoom_to_volumes(wxGLCanvas* canvas)
     s_canvas_mgr.zoom_to_volumes(canvas);
 }
 
+void _3DScene::select_view(wxGLCanvas* canvas, const std::string& direction)
+{
+    s_canvas_mgr.select_view(canvas, direction);
+}
+
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_viewport_changed_callback(canvas, callback);

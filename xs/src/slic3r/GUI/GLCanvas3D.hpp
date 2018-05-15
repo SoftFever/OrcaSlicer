@@ -138,6 +138,7 @@ public:
 
     void zoom_to_bed();
     void zoom_to_volumes();
+    void select_view(const std::string& direction);
 
     void register_on_viewport_changed_callback(void* callback);
 

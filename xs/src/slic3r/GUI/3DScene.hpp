@@ -582,6 +582,7 @@ public:
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
+    static void select_view(wxGLCanvas* canvas, const std::string& direction);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 

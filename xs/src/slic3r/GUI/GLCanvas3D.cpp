@@ -9,6 +9,15 @@
 static const bool TURNTABLE_MODE = true;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
 
+// phi / theta angles to orient the camera.
+static const float VIEW_DEFAULT[2] = { 45.0f, 45.0f };
+static const float VIEW_LEFT[2] = { 90.0f, 90.0f };
+static const float VIEW_RIGHT[2] = { -90.0f, 90.0f };
+static const float VIEW_TOP[2] = { 0.0f, 0.0f };
+static const float VIEW_BOTTOM[2] = { 0.0f, 180.0f };
+static const float VIEW_FRONT[2] = { 0.0f, 90.0f };
+static const float VIEW_REAR[2] = { 180.0f, 90.0f };
+
 namespace Slic3r {
 namespace GUI {
 
@@ -366,6 +375,37 @@ void GLCanvas3D::zoom_to_volumes()
     m_apply_zoom_to_volumes_filter = true;
     _zoom_to_bounding_box(volumes_bounding_box());
     m_apply_zoom_to_volumes_filter = false;
+}
+
+void GLCanvas3D::select_view(const std::string& direction)
+{
+    const float* dir_vec = nullptr;
+
+    if (direction == "iso")
+        dir_vec = VIEW_DEFAULT;
+    else if (direction == "left")
+        dir_vec = VIEW_LEFT;
+    else if (direction == "right")
+        dir_vec = VIEW_RIGHT;
+    else if (direction == "top")
+        dir_vec = VIEW_TOP;
+    else if (direction == "bottom")
+        dir_vec = VIEW_BOTTOM;
+    else if (direction == "front")
+        dir_vec = VIEW_FRONT;
+    else if (direction == "rear")
+        dir_vec = VIEW_REAR;
+
+    if ((dir_vec != nullptr) && !empty(volumes_bounding_box()))
+    {
+        m_camera.set_phi(dir_vec[0]);
+        m_camera.set_theta(dir_vec[1]);
+
+        m_on_viewport_changed_callback.call();
+        
+        if (m_canvas != nullptr)
+            m_canvas->Refresh();
+    }
 }
 
 void GLCanvas3D::register_on_viewport_changed_callback(void* callback)

@@ -328,6 +328,13 @@ void GLCanvas3DManager::zoom_to_volumes(wxGLCanvas* canvas)
         it->second->zoom_to_volumes();
 }
 
+void GLCanvas3DManager::select_view(wxGLCanvas* canvas, const std::string& direction)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->select_view(direction);
+}
+
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
