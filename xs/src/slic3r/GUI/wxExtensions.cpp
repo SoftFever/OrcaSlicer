@@ -192,6 +192,7 @@ bool PrusaCollapsiblePane::Create(wxWindow *parent, wxWindowID id, const wxStrin
 
 	m_pDisclosureTriangleButton = new wxButton(this, wxID_ANY, m_strLabel, wxPoint(0, 0),
 		wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	UpdateBtnBmp();
 	m_pDisclosureTriangleButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
 	{
 		if (event.GetEventObject() != m_pDisclosureTriangleButton)
@@ -206,8 +207,6 @@ bool PrusaCollapsiblePane::Create(wxWindow *parent, wxWindowID id, const wxStrin
 		wxCollapsiblePaneEvent ev(this, GetId(), IsCollapsed());
 		GetEventHandler()->ProcessEvent(ev);
 	});
-
-	UpdateBtnBmp();
 
 	m_sz->Add(m_pDisclosureTriangleButton, 0, wxLEFT | wxTOP | wxBOTTOM, GetBorder());
 
@@ -228,11 +227,17 @@ bool PrusaCollapsiblePane::Create(wxWindow *parent, wxWindowID id, const wxStrin
 
 void PrusaCollapsiblePane::UpdateBtnBmp()
 {
-	IsCollapsed() ?
-		m_pDisclosureTriangleButton->SetBitmap(m_bmp_close) :
+	if (IsCollapsed())
+		m_pDisclosureTriangleButton->SetBitmap(m_bmp_close);
+	else{
 		m_pDisclosureTriangleButton->SetBitmap(m_bmp_open);
+		// To updating button bitmap it's needed to lost focus on this button, so
+		// we set focus to mainframe 
+		//GetParent()->GetParent()->GetParent()->SetFocus();
+		//or to pane
+		GetPane()->SetFocus();
+	}
 	Layout();
-//	m_pDisclosureTriangleButton->Refresh();
 }
 
 void PrusaCollapsiblePane::Collapse(bool collapse)
@@ -246,8 +251,7 @@ void PrusaCollapsiblePane::Collapse(bool collapse)
 	// update our state
 	m_pPane->Show(!collapse);
 
-	// update button label
-//	m_pDisclosureTriangleButton->SetLabel(m_strLabel);
+	// update button bitmap
 	UpdateBtnBmp();
 
 	OnStateChange(GetBestSize());
@@ -256,9 +260,7 @@ void PrusaCollapsiblePane::Collapse(bool collapse)
 void PrusaCollapsiblePane::SetLabel(const wxString &label)
 {
 	m_strLabel = label;
-
 	m_pDisclosureTriangleButton->SetLabel(m_strLabel);
-
 	Layout();
 }
 
