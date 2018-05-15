@@ -180,6 +180,18 @@ void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
         it->second->set_bed_shape(shape);
 }
 
+BoundingBoxf3 GLCanvas3DManager::get_bed_bounding_box(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->bed_bounding_box() : BoundingBoxf3();
+}
+
+BoundingBoxf3 GLCanvas3DManager::get_volumes_bounding_box(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->volumes_bounding_box() : BoundingBoxf3();
+}
+
 BoundingBoxf3 GLCanvas3DManager::get_max_bounding_box(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -287,6 +299,20 @@ void GLCanvas3DManager::set_camera_target(wxGLCanvas* canvas, const Pointf3* tar
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_camera_target(*target);
+}
+
+void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->zoom_to_bed();
+}
+
+void GLCanvas3DManager::zoom_to_volumes(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->zoom_to_volumes();
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

@@ -129,14 +129,15 @@ public:
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 max_bounding_box() const;
 
+    void zoom_to_bed();
+    void zoom_to_volumes();
+
     void register_on_viewport_changed_callback(void* callback);
 
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
 
 private:
-    void _zoom_to_bed();
-    void _zoom_to_volumes();
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
     std::pair<int, int> _get_canvas_size() const;
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;

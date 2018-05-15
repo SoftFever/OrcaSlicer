@@ -1767,6 +1767,16 @@ void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
     return s_canvas_mgr.set_bed_shape(canvas, shape);
 }
 
+BoundingBoxf3 _3DScene::get_bed_bounding_box(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_bed_bounding_box(canvas);
+}
+
+BoundingBoxf3 _3DScene::get_volumes_bounding_box(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_volumes_bounding_box(canvas);
+}
+
 BoundingBoxf3 _3DScene::get_max_bounding_box(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_max_bounding_box(canvas);
@@ -1845,6 +1855,16 @@ Pointf3 _3DScene::get_camera_target(wxGLCanvas* canvas)
 void _3DScene::set_camera_target(wxGLCanvas* canvas, const Pointf3* target)
 {
     s_canvas_mgr.set_camera_target(canvas, target);
+}
+
+void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.zoom_to_bed(canvas);
+}
+
+void _3DScene::zoom_to_volumes(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.zoom_to_volumes(canvas);
 }
 
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

@@ -67,7 +67,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
 
                               _legend_enabled
                               _warning_enabled
-                              _apply_zoom_to_volumes_filter
                               _mouse_dragging
                                                             
                               ) );
@@ -201,7 +200,9 @@ sub new {
     $self->_legend_enabled(0);
     $self->_warning_enabled(0);
     $self->use_plain_shader(0);
-    $self->_apply_zoom_to_volumes_filter(0);
+#==============================================================================================================================
+#    $self->_apply_zoom_to_volumes_filter(0);
+#==============================================================================================================================
     $self->_mouse_dragging(0);
 
     # Collection of GLVolume objects
@@ -793,8 +794,6 @@ sub select_view {
 #        $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
 #        $self->_stheta(0) if $self->_stheta < 0;
 #==============================================================================================================================
-        # View everything.
-        $self->zoom_to_bounding_box($bb);
         $self->on_viewport_changed->() if $self->on_viewport_changed;
         $self->Refresh;
     }
@@ -895,35 +894,31 @@ sub get_zoom_to_bounding_box_factor {
     return $min_ratio;
 }
 
-sub zoom_to_bounding_box {
-    my ($self, $bb) = @_;
-    # Calculate the zoom factor needed to adjust viewport to bounding box.
-    my $zoom = $self->get_zoom_to_bounding_box_factor($bb);
-    if (defined $zoom) {
 #==============================================================================================================================
-        Slic3r::GUI::_3DScene::set_camera_zoom($self, $zoom);
+#sub zoom_to_bounding_box {
+#    my ($self, $bb) = @_;
+#    # Calculate the zoom factor needed to adjust viewport to bounding box.
+#    my $zoom = $self->get_zoom_to_bounding_box_factor($bb);
+#    if (defined $zoom) {
 #        $self->_zoom($zoom);
-#==============================================================================================================================
-        # center view around bounding box center
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::set_camera_target($self, $bb->center);
+#        # center view around bounding box center
 #        $self->_camera_target($bb->center);
-#==============================================================================================================================
-        $self->on_viewport_changed->() if $self->on_viewport_changed;
-#==============================================================================================================================
-        $self->Resize($self->GetSizeWH) if Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+#        $self->on_viewport_changed->() if $self->on_viewport_changed;
 #        $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
+#        $self->Refresh;
+#    }
+#}
 #==============================================================================================================================
-        $self->Refresh;
-    }
-}
 
 sub zoom_to_bed {
     my ($self) = @_;
     
-    if ($self->bed_shape) {
-        $self->zoom_to_bounding_box($self->bed_bounding_box);
-    }
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::zoom_to_bed($self);
+#    if ($self->bed_shape) {
+#        $self->zoom_to_bounding_box($self->bed_bounding_box);
+#    }
+#==============================================================================================================================
 }
 
 #==============================================================================================================================
@@ -938,29 +933,41 @@ sub zoom_to_bed {
 
 sub zoom_to_volumes {
     my ($self) = @_;
-    $self->_apply_zoom_to_volumes_filter(1);
-    $self->zoom_to_bounding_box($self->volumes_bounding_box);
-    $self->_apply_zoom_to_volumes_filter(0);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::zoom_to_volumes($self);
+
+#    $self->_apply_zoom_to_volumes_filter(1);
+#    $self->zoom_to_bounding_box($self->volumes_bounding_box);
+#    $self->_apply_zoom_to_volumes_filter(0);
+#==============================================================================================================================
 }
 
 sub volumes_bounding_box {
     my ($self) = @_;
     
-    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    foreach my $v (@{$self->volumes}) {
-        $bb->merge($v->transformed_bounding_box) if (! $self->_apply_zoom_to_volumes_filter || $v->zoom_to_volumes);
-    }
-    return $bb;
+#==============================================================================================================================
+    return Slic3r::GUI::_3DScene::get_volumes_bounding_box($self);
+
+#    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
+#    foreach my $v (@{$self->volumes}) {
+#        $bb->merge($v->transformed_bounding_box) if (! $self->_apply_zoom_to_volumes_filter || $v->zoom_to_volumes);
+#    }
+#    return $bb;
+#==============================================================================================================================
 }
 
 sub bed_bounding_box {
     my ($self) = @_;
     
-    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
-    if ($self->bed_shape) {
-        $bb->merge_point(Slic3r::Pointf3->new(@$_, 0)) for @{$self->bed_shape};
-    }
-    return $bb;
+#==============================================================================================================================
+    return Slic3r::GUI::_3DScene::get_bed_bounding_box($self);
+    
+#    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
+#    if ($self->bed_shape) {
+#        $bb->merge_point(Slic3r::Pointf3->new(@$_, 0)) for @{$self->bed_shape};
+#    }
+#    return $bb;
+#==============================================================================================================================
 }
 
 sub max_bounding_box {

@@ -214,6 +214,22 @@ set_bed_shape(canvas, shape)
         Pointfs shape;
     CODE:
         _3DScene::set_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), shape);
+
+Clone<BoundingBoxf3>
+get_bed_bounding_box(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_bed_bounding_box((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+Clone<BoundingBoxf3>
+get_volumes_bounding_box(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_volumes_bounding_box((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
         
 Clone<BoundingBoxf3>
 get_max_bounding_box(canvas)
@@ -343,6 +359,18 @@ set_camera_target(canvas, target)
         Pointf3 *target;
     CODE:
         _3DScene::set_camera_target((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), target);
+    
+void
+zoom_to_bed(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::zoom_to_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+zoom_to_volumes(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::zoom_to_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     
 void
 register_on_viewport_changed_callback(canvas, callback)

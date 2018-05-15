@@ -336,6 +336,18 @@ BoundingBoxf3 GLCanvas3D::max_bounding_box() const
     return bb;
 }
 
+void GLCanvas3D::zoom_to_bed()
+{
+    _zoom_to_bounding_box(bed_bounding_box());
+}
+
+void GLCanvas3D::zoom_to_volumes()
+{
+    m_apply_zoom_to_volumes_filter = true;
+    _zoom_to_bounding_box(volumes_bounding_box());
+    m_apply_zoom_to_volumes_filter = false;
+}
+
 void GLCanvas3D::register_on_viewport_changed_callback(void* callback)
 {
     if (callback != nullptr)
@@ -358,18 +370,6 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
         resize((unsigned int)size.first, (unsigned int)size.second);
         m_canvas->Refresh();
     }
-}
-
-void GLCanvas3D::_zoom_to_bed()
-{
-    _zoom_to_bounding_box(bed_bounding_box());
-}
-
-void GLCanvas3D::_zoom_to_volumes()
-{
-    m_apply_zoom_to_volumes_filter = true;
-    _zoom_to_bounding_box(volumes_bounding_box());
-    m_apply_zoom_to_volumes_filter = false;
 }
 
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)

@@ -61,6 +61,8 @@ public:
 
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
 
+    BoundingBoxf3 get_bed_bounding_box(wxGLCanvas* canvas);
+    BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
     BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
 
     bool is_dirty(wxGLCanvas* canvas) const;
@@ -84,6 +86,9 @@ public:
 
     Pointf3 get_camera_target(wxGLCanvas* canvas) const;
     void set_camera_target(wxGLCanvas* canvas, const Pointf3* target);
+
+    void zoom_to_bed(wxGLCanvas* canvas);
+    void zoom_to_volumes(wxGLCanvas* canvas);
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 
