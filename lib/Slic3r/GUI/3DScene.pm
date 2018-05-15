@@ -679,8 +679,6 @@ sub select_view {
         # Avoid gimball lock.
         $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
         $self->_stheta(0) if $self->_stheta < 0;
-        # View everything.
-        $self->zoom_to_bounding_box($bb);
         $self->on_viewport_changed->() if $self->on_viewport_changed;
         $self->Refresh;
     }
