@@ -104,6 +104,9 @@ void PresetBundle::reset(bool delete_files)
     this->printers .reset(delete_files);
     this->filament_presets.clear();
     this->filament_presets.emplace_back(this->filaments.get_selected_preset().name);
+    this->obsolete_presets.prints.clear();
+    this->obsolete_presets.filaments.clear();
+    this->obsolete_presets.printers.clear();
 }
 
 void PresetBundle::setup_directories()
@@ -224,7 +227,10 @@ std::vector<std::string> PresetBundle::merge_presets(PresetBundle &&other)
     std::vector<std::string> duplicate_prints    = this->prints   .merge_presets(std::move(other.prints),    this->vendors);
     std::vector<std::string> duplicate_filaments = this->filaments.merge_presets(std::move(other.filaments), this->vendors);
     std::vector<std::string> duplicate_printers  = this->printers .merge_presets(std::move(other.printers),  this->vendors);
-    append(duplicate_prints, std::move(duplicate_filaments));
+	append(this->obsolete_presets.prints,    std::move(other.obsolete_presets.prints));
+	append(this->obsolete_presets.filaments, std::move(other.obsolete_presets.filaments));
+	append(this->obsolete_presets.printers,  std::move(other.obsolete_presets.printers));
+	append(duplicate_prints, std::move(duplicate_filaments));
     append(duplicate_prints, std::move(duplicate_printers));
     return duplicate_prints;
 }
@@ -365,6 +371,7 @@ DynamicPrintConfig PresetBundle::full_config() const
     } else {
         // Retrieve filament presets and build a single config object for them.
         // First collect the filament configurations based on the user selection of this->filament_presets.
+        // Here this->filaments.find_preset() and this->filaments.first_visible() return the edited copy of the preset if active.
         std::vector<const DynamicPrintConfig*> filament_configs;
         for (const std::string &filament_preset_name : this->filament_presets)
             filament_configs.emplace_back(&this->filaments.find_preset(filament_preset_name, true)->config);
@@ -760,6 +767,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     flatten_configbundle_hierarchy(tree);
 
     // 2) Parse the property_tree, extract the active preset names and the profiles, save them into local config files.
+    // Parse the obsolete preset names, to be deleted when upgrading from the old configuration structure.
     std::vector<std::string> loaded_prints;
     std::vector<std::string> loaded_filaments;
     std::vector<std::string> loaded_printers;
@@ -798,6 +806,20 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
                 } else if (kvp.first == "printer") {
                     active_printer = kvp.second.data();
                 }
+            }
+        } else if (section.first == "obsolete_presets") {
+            // Parse the names of obsolete presets. These presets will be deleted from user's
+            // profile directory on installation of this vendor preset.
+            for (auto &kvp : section.second) {
+                std::vector<std::string> *dst = nullptr;
+                if (kvp.first == "print")
+                    dst = &this->obsolete_presets.prints;
+                else if (kvp.first == "filament")
+                    dst = &this->obsolete_presets.filaments;
+                else if (kvp.first == "printer")
+                    dst = &this->obsolete_presets.printers;
+                if (dst)
+                    unescape_strings_cstyle(kvp.second.data(), *dst);
             }
         } else if (section.first == "settings") {
             // Load the settings.
