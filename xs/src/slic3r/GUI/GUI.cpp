@@ -378,12 +378,20 @@ void get_installed_languages(wxArrayString & names,
 	}
 }
 
+std::string get_view_mode()
+{
+	return g_AppConfig->has("view_mode") ?
+		g_AppConfig->get("view_mode") : "simple";
+}
+
 enum ConfigMenuIDs {
 	ConfigMenuWizard,
 	ConfigMenuSnapshots,
 	ConfigMenuTakeSnapshot,
 	ConfigMenuUpdate,
 	ConfigMenuPreferences,
+	ConfigMenuModeSimple,
+	ConfigMenuModeExpert,
 	ConfigMenuLanguage,
 	ConfigMenuCnt,
 };
@@ -402,7 +410,14 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
    	local_menu->AppendSeparator();
    	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"\u2026\tCtrl+,", 		_(L("Application preferences")));
    	local_menu->AppendSeparator();
-   	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
+	auto mode_menu = new wxMenu();
+	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple,	_(L("&Simple")),					_(L("Simple View Mode")));
+	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert,	_(L("&Expert")),					_(L("Expert View Mode")));
+	if (get_view_mode() == "expert")
+		mode_menu->Check(config_id_base + ConfigMenuModeExpert, true);
+	local_menu->AppendSubMenu(mode_menu,						_(L("&Mode")), 								_(L("Slic3r View Mode")));
+   	local_menu->AppendSeparator();
+	local_menu->Append(config_id_base + ConfigMenuLanguage,		_(L("Change Application Language")));
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case ConfigMenuWizard:
@@ -457,8 +472,21 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 				}
 			}
 			break;
-		}		
 		}
+		}
+	});
+	mode_menu->Bind(wxEVT_MENU, [config_id_base](wxEvent& event) {
+		std::string mode = "";
+		switch (event.GetId() - config_id_base){
+		case ConfigMenuModeExpert:
+			mode = "expert";
+			break;
+		case ConfigMenuModeSimple:
+			mode = "simple";
+			break;
+		}
+		g_AppConfig->set("view_mode", mode);
+		g_AppConfig->save();
 	});
 	menu->Append(local_menu, _(L("&Configuration")));
 }
