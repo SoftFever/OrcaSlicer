@@ -933,6 +933,13 @@ int read_config(const char * file);
 }
 #endif
 
+// Header file for alloca()
+#if defined(WIN32NATIVE)
+#  include <malloc.h>
+#else
+#  include <alloca.h>
+#endif
+
 
 /* formerly confwin.h */
 

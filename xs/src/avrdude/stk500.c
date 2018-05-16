@@ -35,9 +35,6 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#if defined(WIN32NATIVE)
-#  include <malloc.h>  /* for alloca() */
-#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"

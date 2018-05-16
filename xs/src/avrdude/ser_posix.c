@@ -25,8 +25,6 @@
 
 #if !defined(WIN32NATIVE)
 
-#define _BSD_SOURCE    // Needed to enable various macros (such as h_addr)
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

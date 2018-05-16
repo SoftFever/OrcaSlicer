@@ -1,5 +1,6 @@
 
 
+add_definitions(-D_BSD_SOURCE -D_DEFAULT_SOURCE)   # To enable various useful macros and functions on Unices
 remove_definitions(-D_UNICODE -DUNICODE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_C_STANDARD 99)
