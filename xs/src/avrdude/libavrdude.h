@@ -41,9 +41,14 @@ typedef unsigned long pinmask_t;
 #endif
 
 
-#if defined(WIN32NATIVE)
-#define PATH_MAX 1024   // Tad arbitrary, but should be ok for avrdude's pruposes
+// PATH_MAX is used throughout avrdude for various purposes.
+// It is problematic though as it may or may not be defined on various systems
+// and even when it is, it tends to be somewhat arbitrary.
+// So instead we just define a value here that should be fine in most cases.
+#ifdef PATH_MAX
+#undef PATH_MAX
 #endif
+#define PATH_MAX 4096
 
 
 /* formerly lists.h */
