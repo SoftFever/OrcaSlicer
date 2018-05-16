@@ -167,6 +167,7 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/TriangleMesh.hpp
 #    ${LIBDIR}/libslic3r/utils.cpp
     ${LIBDIR}/libslic3r/Utils.hpp
+
 )
 
 add_library(libslic3r_gui STATIC
@@ -330,6 +331,19 @@ add_library(semver STATIC
     ${LIBDIR}/semver/semver.h
     ${LIBDIR}/semver/semver.c
 )
+
+
+find_package(PNG REQUIRED)
+
+add_library(rasterizer STATIC
+    ${LIBDIR}/libslic3r/Rasterizer/Rasterizer.hpp
+    ${LIBDIR}/libslic3r/Rasterizer/Rasterizer.cpp
+)
+
+target_link_libraries(rasterizer ${PNG_LIBRARIES})
+target_include_directories(rasterizer PRIVATE ${PNG_INCLUDE_DIRS})
+target_compile_definitions(rasterizer PRIVATE ${PNG_DEFINITIONS})
+target_link_libraries(libslic3r rasterizer)
 
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)

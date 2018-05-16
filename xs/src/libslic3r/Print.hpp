@@ -315,12 +315,16 @@ public:
         SVG
     };
 
-    void print_to_png(std::string dirpath);
-
-private:
-
     template<FilePrinterFormat format, class...Args>
     void print_to(std::string dirpath, Args...args);
+
+    void print_to_png(std::string dirpath, long width_px, long height_px,
+                      Pointf pixel_size_mm);
+
+    void print_to_png(std::string dirpath) {
+        // Where should this be specified?
+        print_to_png(dirpath, 2560, 1440, Pointf{2560/700.0, 2560/400.0});
+    }
 
 private:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);

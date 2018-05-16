@@ -14,7 +14,10 @@
 // For png export of the sliced model
 #include <wx/dcmemory.h>
 #include <wx/bitmap.h>
+#include <wx/image.h>
 #include <wx/graphics.h>
+
+#include <omp.h>
 
 namespace Slic3r {
 
@@ -1251,28 +1254,52 @@ template<Print::FilePrinterFormat format>
 class FilePrinter {
 public:
     void drawPolygon(const ExPolygon& p);
+    void finish();
     void save(const std::string& path);
 };
 
 template<>
 class FilePrinter<Print::FilePrinterFormat::PNG> {
     wxBitmap bitmap_;
-    wxMemoryDC dc_;
+    std::unique_ptr<wxMemoryDC> dc_;
     std::unique_ptr<wxGraphicsContext> gc_;
+    double pxw_;
+    double pxh_;
 public:
-    inline FilePrinter(unsigned width, unsigned height):
-        bitmap_(width, height),
-        dc_(bitmap_),
-        gc_(wxGraphicsContext::Create(dc_)) {
+    inline FilePrinter(unsigned width_px, unsigned height_px,
+                       double width_mm, double height_mm):
+        bitmap_(width_px, height_px),
+        dc_(new wxMemoryDC(bitmap_)),
+        gc_(wxGraphicsContext::Create(*dc_)),
+        pxw_(width_mm/width_px),
+        pxh_(height_mm/width_px)
+    {
         gc_->SetAntialiasMode(wxANTIALIAS_DEFAULT);
     }
 
-    void drawPolygon(const ExPolygon& p) {
-        gc_->SetPen( *wxRED_PEN );
+    FilePrinter(const FilePrinter& ) = delete;
+    FilePrinter(FilePrinter&& m):
+        bitmap_(std::move(m.bitmap_)), dc_(std::move(m.dc_)),
+        gc_(std::move(m.gc_)), pxw_(m.pxw_), pxh_(m.pxh_) {}
+
+    void drawPolygon(const Polygon& p) {
+
+        gc_->SetPen(*wxWHITE_PEN);
         std::vector<wxPoint2DDouble> points;
-        points.reserve(p.contour.points.size());
-        for(auto pp : p.contour.points) points.emplace_back(pp.x, pp.y);
+        points.reserve(p.points.size());
+
+        for(auto pp : p.points) {
+            points.emplace_back(
+                    std::round(pp.x * SCALING_FACTOR/pxw_),
+                    std::round(pp.y * SCALING_FACTOR/pxh_)
+                        );
+        }
+
         gc_->DrawLines(points.size(), points.data());
+    }
+
+    void finish() {
+
     }
 
     void save(const std::string& path) {
@@ -1294,8 +1321,6 @@ void Print::print_to(std::string dirpath, Args...args)
     if(dir.back() != '/') dir.push_back('/');
 #endif
 
-    FilePrinter<format> printer(std::forward<Args>(args)...);
-
     LayerPtrs layers;
 
     std::for_each(objects.begin(), objects.end(), [&layers](PrintObject *o){
@@ -1308,17 +1333,17 @@ void Print::print_to(std::string dirpath, Args...args)
         return l1->print_z < l2->print_z;
     });
 
-//    auto printSlice = [&printer](ExPolygon path) {
-
-//    };
-
-    int layer_id = -1;
     ExPolygons previous_layer_slices;
     auto print_bb = bounding_box();
 
-    for(auto lp : layers) {
-        Layer& l = *lp;
-        ++layer_id;
+    std::vector<FilePrinter<format>> printers;
+    printers.reserve(layers.size());
+    for(unsigned i = 0; i < layers.size(); i++)
+        printers.emplace_back(std::forward<Args>(args)...);
+
+#pragma omp parallel for
+    for(int layer_id = 0; layer_id < layers.size(); layer_id++) {
+        Layer& l = *(layers[layer_id]);
 
         auto slices = l.slices;
         using Sl = ExPolygons::value_type;
@@ -1330,7 +1355,8 @@ void Print::print_to(std::string dirpath, Args...args)
 
         ExPolygons current_layer_slices;
 
-        // please enable C++14 ...
+        auto& printer = printers[layer_id];
+
         std::for_each(l.object()->_shifted_copies.begin(),
                       l.object()->_shifted_copies.end(),
                       [&] (Point d)
@@ -1341,35 +1367,39 @@ void Print::print_to(std::string dirpath, Args...args)
             {
                 slice.translate(d.x, d.y);
                 slice.translate(-print_bb.min.x, -print_bb.min.y);
-                printer.drawPolygon(slice);
-                // $print_polygon->($expolygon->contour, 'contour');
-                // $print_polygon->($_, 'hole') for @{$expolygon->holes};
+
+                printer.drawPolygon(slice.contour);
+                std::for_each(slice.holes.begin(), slice.holes.end(),
+                              [&printer](const Polygon& hole){
+                    printer.drawPolygon(hole);
+                });
+
                 current_layer_slices.push_back(slice);
             });
         });
 
-        printer.save(dir + "layer" + std::to_string(layer_id) + ".png");
+        printer.finish();
 
-//        layer_id++;
-//        if ($layer->slice_z == -1) {
-//            printf $fh qq{  <g id="layer%d">\n}, $layer_id;
-//        } else {
-//            printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
-//        }
+                                                                                //        layer_id++;
+                                                                                //        if ($layer->slice_z == -1) {
+                                                                                //            printf $fh qq{  <g id="layer%d">\n}, $layer_id;
+                                                                                //        } else {
+                                                                                //            printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
+                                                                                //        }
 
-//        my @current_layer_slices = ();
-//        # sort slices so that the outermost ones come first
-//        my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
-//        foreach my $copy (@{$layer->object->_shifted_copies}) {
-//            foreach my $slice (@slices) {
-//                my $expolygon = $slice->clone;
-//                $expolygon->translate(@$copy);
-//                $expolygon->translate(-$print_bb->x_min, -$print_bb->y_min);
-//                $print_polygon->($expolygon->contour, 'contour');
-//                $print_polygon->($_, 'hole') for @{$expolygon->holes};
-//                push @current_layer_slices, $expolygon;
-//            }
-//        }
+                                                                                //        my @current_layer_slices = ();
+                                                                                //        # sort slices so that the outermost ones come first
+                                                                                //        my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
+                                                                                //        foreach my $copy (@{$layer->object->_shifted_copies}) {
+                                                                                //            foreach my $slice (@slices) {
+                                                                                //                my $expolygon = $slice->clone;
+                                                                                //                $expolygon->translate(@$copy);
+                                                                                //                $expolygon->translate(-$print_bb->x_min, -$print_bb->y_min);
+                                                                                //                $print_polygon->($expolygon->contour, 'contour');
+                                                                                //                $print_polygon->($_, 'hole') for @{$expolygon->holes};
+                                                                                //                push @current_layer_slices, $expolygon;
+                                                                                //            }
+                                                                                //        }
 //        # generate support material
 //        if ($self->has_support_material && $layer->id > 0) {
 //            my (@supported_slices, @unsupported_slices) = ();
@@ -1398,10 +1428,14 @@ void Print::print_to(std::string dirpath, Args...args)
 //        @previous_layer_slices = @current_layer_slices;
         previous_layer_slices = current_layer_slices;
     }
+
+//    for(unsigned i = 0; i < printers.size(); i++)
+//        printers[i].save(dir + "layer" + std::to_string(i) + ".png");
 }
 
-void Print::print_to_png(std::string dirpath) {
-    print_to<FilePrinterFormat::PNG>(dirpath, 800, 600);
+void Print::print_to_png(std::string dirpath, long width_px, long height_px,
+                         Pointf pixel_size_mm) {
+    print_to<FilePrinterFormat::PNG>(dirpath, 2560, 1440, 700, 400);
 }
 
 }
