@@ -47,6 +47,7 @@
 #include "libavrdude.h"
 
 long serial_recv_timeout = 5000; /* ms */
+#define MAX_ZERO_READS 512
 
 struct baud_mapping {
   long baud;
@@ -363,6 +364,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
   int rc;
   unsigned char * p = buf;
   size_t len = 0;
+  unsigned zero_reads = 0;
 
   timeout.tv_sec  = serial_recv_timeout / 1000L;
   timeout.tv_usec = (serial_recv_timeout % 1000L) * 1000;
@@ -397,9 +399,18 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
       avrdude_message(MSG_INFO, "%s: ser_recv(): read error: %s\n",
               progname, strerror(errno));
       return -1;
+    } else if (rc == 0) {
+      zero_reads++;
+      if (zero_reads > MAX_ZERO_READS) {
+        avrdude_message(MSG_NOTICE2, "%s: ser_recv(): programmer is not responding (too many zero reads)\n",
+                progname);
+        return -1;
+      }
+    } else {
+      zero_reads = 0;
+      p += rc;
+      len += rc;
     }
-    p += rc;
-    len += rc;
   }
 
   p = buf;
@@ -435,6 +446,7 @@ static int ser_drain(union filedescriptor *fd, int display)
   int nfds;
   int rc;
   unsigned char buf;
+  unsigned zero_reads = 0;
 
   timeout.tv_sec = 0;
   timeout.tv_usec = 250000;
@@ -472,6 +484,15 @@ static int ser_drain(union filedescriptor *fd, int display)
       avrdude_message(MSG_INFO, "%s: ser_drain(): read error: %s\n",
               progname, strerror(errno));
       return -1;
+    } else if (rc == 0) {
+      zero_reads++;
+      if (zero_reads > MAX_ZERO_READS) {
+        avrdude_message(MSG_NOTICE2, "%s: ser_drain(): programmer is not responding (too many zero reads)\n",
+                progname);
+        return -1;
+      }
+    } else {
+      zero_reads = 0;
     }
     if (display) {
       avrdude_message(MSG_INFO, "%02x ", buf);

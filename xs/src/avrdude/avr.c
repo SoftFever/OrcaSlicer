@@ -1034,6 +1034,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
        * error, otherwise it gets cleared in avr_write_byte()
        */
       pgm->err_led(pgm, ON);
+      return -1;
     }
   }
 
