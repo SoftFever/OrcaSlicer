@@ -8,6 +8,7 @@
 
 
 #include <wx/app.h>
+#include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/settings.h>
 #include <wx/panel.h>
@@ -37,11 +38,18 @@ struct FirmwareDialog::priv
 	wxFilePickerCtrl *hex_picker;
 	wxStaticText *status;
 	wxTextCtrl *txt_stdout;
+	wxButton *btn_close;
 	wxButton *btn_flash;
+	
+	bool flashing;
 
-	priv() : avrdude_config((fs::path(::Slic3r::resources_dir()) / "avrdude" / "avrdude.conf").string()) {}
+	priv() : 
+		avrdude_config((fs::path(::Slic3r::resources_dir()) / "avrdude" / "avrdude.conf").string()),
+		flashing(false)
+	{}
 
 	void find_serial_ports();
+	void set_flashing(bool flashing, int res = 0);
 	void perform_upload();
 };
 
@@ -57,11 +65,35 @@ void FirmwareDialog::priv::find_serial_ports()
 	}
 }
 
+void FirmwareDialog::priv::set_flashing(bool value, int res)
+{
+	flashing = value;
+	
+	if (value) {
+		txt_stdout->SetValue(wxEmptyString);
+		status->SetLabel(_(L("Flashing in progress. Please do not disconnect the printer!")));
+		// auto status_color_orig = status->GetForegroundColour();
+		status->SetForegroundColour(GUI::get_label_clr_modified());
+		btn_close->Disable();
+		btn_flash->Disable();
+	} else {
+		auto text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+		btn_close->Enable();
+		btn_flash->Enable();
+		status->SetForegroundColour(text_color);
+		status->SetLabel(
+			res == 0 ? _(L("Flashing succeeded!")) : _(L("Flashing failed. Please see the avrdude log below."))
+		);
+	}
+}
+
 void FirmwareDialog::priv::perform_upload()
 {
 	auto filename = hex_picker->GetPath();
 	auto port = port_picker->GetValue();
 	if (filename.IsEmpty() || port.IsEmpty()) { return; }
+
+	set_flashing(true);
 
 	// Note: we're not using wxTextCtrl's ability to act as a std::ostream
 	// because its imeplementation doesn't handle conversion from local charset
@@ -72,12 +104,6 @@ void FirmwareDialog::priv::perform_upload()
 		this->txt_stdout->AppendText(wxString(msg));
 		wxTheApp->Yield();
 	};
-
-	txt_stdout->SetValue(wxEmptyString);
-	status->SetLabel(_(L("Flashing in progress. Please do not disconnect the printer!")));
-	auto status_color_orig = status->GetForegroundColour();
-	status->SetForegroundColour(GUI::get_label_clr_modified());
-	btn_flash->Disable();
 
 	std::vector<std::string> args {{
 		"-v",
@@ -98,12 +124,7 @@ void FirmwareDialog::priv::perform_upload()
 
 	BOOST_LOG_TRIVIAL(info) << "avrdude exit code: " << res;
 
-	btn_flash->Enable();
-
-	status->SetForegroundColour(status_color_orig);
-	status->SetLabel(
-		res == 0 ? _(L("Flashing succeeded!")) : _(L("Flashing failed. Please see the avrdude log below."))
-	);
+	set_flashing(false, res);
 }
 
 
@@ -111,7 +132,6 @@ void FirmwareDialog::priv::perform_upload()
 
 FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	wxDialog(parent, wxID_ANY, _(L("Firmware flasher"))),
-	// p(new priv(this))
 	p(new priv())
 {
 	enum {
@@ -156,8 +176,10 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	p->txt_stdout->SetFont(mono_font);
 	vsizer->Add(p->txt_stdout, 1, wxEXPAND | wxBOTTOM, SPACING);
 
+	p->btn_close = new wxButton(panel, wxID_CLOSE);
 	p->btn_flash = new wxButton(panel, wxID_ANY, _(L("Flash!")));
 	auto *bsizer = new wxBoxSizer(wxHORIZONTAL);
+	bsizer->Add(p->btn_close);
 	bsizer->AddStretchSpacer();
 	bsizer->Add(p->btn_flash);
 	vsizer->Add(bsizer, 0, wxEXPAND);
@@ -170,16 +192,17 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	p->find_serial_ports();
 
+	p->btn_close->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->Close(); });
 	p->btn_flash->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->perform_upload(); });
 	btn_rescan->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->find_serial_ports(); });
 
-	// Bind(EVT_BONJOUR_REPLY, &FirmwareDialog::on_reply, this);
-
-	// Bind(EVT_BONJOUR_COMPLETE, [this](wxCommandEvent &) {
-	// 	this->timer_state = 0;
-	// });
-
-	// Bind(wxEVT_TIMER, &FirmwareDialog::on_timer, this);
+	Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &evt) {
+		if (evt.CanVeto() && this->p->flashing) {
+			evt.Veto();
+		} else {
+			evt.Skip();
+		}
+	});
 }
 
 FirmwareDialog::~FirmwareDialog()
