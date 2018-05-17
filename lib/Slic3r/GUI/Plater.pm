@@ -501,6 +501,7 @@ sub new {
         $scrolled_window_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
 
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $right_sizer->SetMinSize([320,-1]);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
         $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
@@ -2018,6 +2019,8 @@ sub selection_changed {
                 } else {
                     $self->{object_info_manifold}->SetLabel(L("Yes"));
                     $self->{object_info_manifold_warning_icon}->Hide;
+                    $self->{object_info_manifold}->SetToolTipString("");
+                    $self->{object_info_manifold_warning_icon}->SetToolTipString("");
                 }
             } else {
                 $self->{object_info_facets}->SetLabel($object->facets);
@@ -2026,6 +2029,7 @@ sub selection_changed {
             $self->{"object_info_$_"}->SetLabel("") for qw(size volume facets materials manifold);
             $self->{object_info_manifold_warning_icon}->Hide;
             $self->{object_info_manifold}->SetToolTipString("");
+            $self->{object_info_manifold_warning_icon}->SetToolTipString("");
         }
         $self->Layout;
     }
