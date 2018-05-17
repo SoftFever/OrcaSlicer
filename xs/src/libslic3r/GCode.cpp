@@ -789,14 +789,19 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     }
 
     // Process filament-specific gcode in extruder order.
-    if (print.config.single_extruder_multi_material) {
-        // Process the end_filament_gcode for the active filament only.
-        _writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id()));
-    } else {
-        for (const std::string &end_gcode : print.config.end_filament_gcode.values)
-            _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front())));
+    {
+        DynamicConfig config;
+        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+        config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position().z - m_config.z_offset.value));
+        if (print.config.single_extruder_multi_material) {
+            // Process the end_filament_gcode for the active filament only.
+            _writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id(), &config));
+        } else {
+            for (const std::string &end_gcode : print.config.end_filament_gcode.values)
+                _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front()), &config));
+        }
+        _writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id(), &config));
     }
-    _writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id()));
     _write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     _write(file, m_writer.postamble());
 
