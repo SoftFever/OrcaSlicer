@@ -82,15 +82,27 @@ void wxCheckListBoxComboPopup::OnCheckListBox(wxCommandEvent& evt)
 {
     // forwards the checklistbox event to the owner wxComboCtrl
 
-    wxComboCtrl* cmb = GetComboCtrl();
-    if (cmb != nullptr)
+    if (m_check_box_events_status == OnCheckListBoxFunction::FreeToProceed )
     {
-        wxCommandEvent event(wxEVT_CHECKLISTBOX, cmb->GetId());
-        event.SetEventObject(cmb);
-        cmb->ProcessWindowEvent(event);
+        wxComboCtrl* cmb = GetComboCtrl();
+        if (cmb != nullptr) {
+            wxCommandEvent event(wxEVT_CHECKLISTBOX, cmb->GetId());
+            event.SetEventObject(cmb);
+            cmb->ProcessWindowEvent(event);
+        }
     }
 
     evt.Skip();
+
+    #ifndef _WIN32  // events are sent differently on OSX+Linux vs Win (more description in header file)
+        if ( m_check_box_events_status == OnCheckListBoxFunction::RefuseToProceed )
+            // this happens if the event was resent by OnListBoxSelection - next call to OnListBoxSelection is due to user clicking the text, so the function should
+            // explicitly change the state on the checkbox
+            m_check_box_events_status = OnCheckListBoxFunction::WasRefusedLastTime;
+        else
+            // if the user clicked the checkbox square, this event was sent before OnListBoxSelection was called, so we don't want it to resend it
+            m_check_box_events_status = OnCheckListBoxFunction::RefuseToProceed;
+    #endif
 }
 
 void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)
@@ -100,9 +112,14 @@ void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)
     int selId = GetSelection();
     if (selId != wxNOT_FOUND)
     {
-        Check((unsigned int)selId, !IsChecked((unsigned int)selId));
-        SetSelection(wxNOT_FOUND);
+        #ifndef _WIN32
+            if (m_check_box_events_status == OnCheckListBoxFunction::RefuseToProceed)
+        #endif
+                Check((unsigned int)selId, !IsChecked((unsigned int)selId));
 
+        m_check_box_events_status = OnCheckListBoxFunction::FreeToProceed; // so the checkbox reacts to square-click the next time
+
+        SetSelection(wxNOT_FOUND);
         wxCommandEvent event(wxEVT_CHECKLISTBOX, GetId());
         event.SetInt(selId);
         event.SetEventObject(this);
