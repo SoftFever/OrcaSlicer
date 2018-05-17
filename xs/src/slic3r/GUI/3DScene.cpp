@@ -1952,12 +1952,13 @@ void _3DScene::load_gcode_preview(const Print* print, const GCodePreviewData* pr
         else
         {
             _generate_legend_texture(*preview_data, tool_colors);
-            _load_shells(*print, *volumes, use_VBOs);
 
             // removes empty volumes
             volumes->volumes.erase(std::remove_if(volumes->volumes.begin(), volumes->volumes.end(),
                 [](const GLVolume *volume) { return volume->print_zs.empty(); }),
                 volumes->volumes.end());
+
+            _load_shells(*print, *volumes, use_VBOs);
         }
     }
 
