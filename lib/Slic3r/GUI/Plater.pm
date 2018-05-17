@@ -1381,6 +1381,8 @@ sub export_gcode {
     };
     Slic3r::GUI::catch_error($self) and return;
     
+    # Copy the names of active presets into the placeholder parser.
+    wxTheApp->{preset_bundle}->export_selections_pp($self->{print}->placeholder_parser);
     # select output file
     if ($output_file) {
         $self->{export_gcode_output_file} = eval { $self->{print}->output_filepath($output_file) };
@@ -1672,6 +1674,8 @@ sub _get_export_file {
         $suffix = '.3mf';
         $wildcard = 'threemf';
     }
+    # Copy the names of active presets into the placeholder parser.
+    wxTheApp->{preset_bundle}->export_selections_pp($self->{print}->placeholder_parser);
     my $output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
     Slic3r::GUI::catch_error($self) and return undef;
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;

@@ -136,7 +136,7 @@ void PresetUpdater::priv::set_download_prefs(AppConfig *app_config)
 {
 	enabled_version_check = app_config->get("version_check") == "1";
 	version_check_url = app_config->version_check_url();
-	enabled_config_update = app_config->get("preset_update") == "1";
+	enabled_config_update = app_config->get("preset_update") == "1" && !app_config->legacy_datadir();
 }
 
 // Downloads a file (http get operation). Cancels if the Updater is being destroyed.

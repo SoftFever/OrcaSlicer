@@ -1,4 +1,4 @@
-use Test::More tests => 77;
+use Test::More tests => 81;
 use strict;
 use warnings;
 
@@ -71,6 +71,10 @@ use Slic3r::Test;
     is $parser->process('{2*foo*(3-12)}'), '0', 'math: 2*foo*(3-12)';
     is $parser->process('{2*bar*(3-12)}'), '-36', 'math: 2*bar*(3-12)';
     ok abs($parser->process('{2.5*bar*(3-12)}') - -45) < 1e-7, 'math: 2.5*bar*(3-12)';
+    is $parser->process('{min(12, 14)}'), '12', 'math: min(12, 14)';
+    is $parser->process('{max(12, 14)}'), '14', 'math: max(12, 14)';
+    is $parser->process('{min(13.4, -1238.1)}'), '-1238.1', 'math: min(13.4, -1238.1)';
+    is $parser->process('{max(13.4, -1238.1)}'), '13.4', 'math: max(13.4, -1238.1)';
 
     # Test the boolean expression parser.
     is $parser->evaluate_boolean_expression('12 == 12'), 1, 'boolean expression parser: 12 == 12';
