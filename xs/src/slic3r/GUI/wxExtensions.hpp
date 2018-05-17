@@ -13,6 +13,21 @@ class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 
     wxString m_text;
 
+    // Events sent on mouseclick are quite complex. Function OnListBoxSelection is supposed to pass the event to the checkbox, which works fine on
+    // Win. On OSX and Linux the events are generated differently - clicking on the checkbox square generates the event twice (and the square
+    // therefore seems not to respond).
+    // This enum is meant to save current state of affairs, i.e., if the event forwarding is ok to do or not. It is only used on Linux
+    // and OSX by some #ifdefs. It also stores information whether OnListBoxSelection is supposed to change the checkbox status,
+    // or if it changed status on its own already (which happens when the square is clicked). More comments in OnCheckListBox(...)
+    // There indeed is a better solution, maybe making a custom event used for the event passing to distinguish the original and passed message
+    // and blocking one of them on OSX and Linux. Feel free to refactor, but carefully test on all platforms.
+    enum class OnCheckListBoxFunction{
+        FreeToProceed,
+        RefuseToProceed,
+        WasRefusedLastTime
+    } m_check_box_events_status = OnCheckListBoxFunction::FreeToProceed;
+
+
 public:
     virtual bool Create(wxWindow* parent);
     virtual wxWindow* GetControl();
