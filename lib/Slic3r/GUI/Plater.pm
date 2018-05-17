@@ -409,8 +409,10 @@ sub new {
             }
         }
 
-        my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxVERTICAL);#(wxHORIZONTAL);
+        my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxVERTICAL);
         Slic3r::GUI::add_frequently_changed_parameters($self, $frequently_changed_parameters_sizer, $presets);
+        my $expert_mode_part_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        Slic3r::GUI::add_expert_mode_part($self, $expert_mode_part_sizer);
 
         my $object_info_sizer;
         {
@@ -495,9 +497,10 @@ sub new {
         $scrolled_window_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
 
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $right_sizer->SetMinSize([-1, 600]);
+        $right_sizer->SetMinSize([320, 600]);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
         $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
+        $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $right_sizer->Add($scrolled_window_panel, 1, wxEXPAND | wxALL, 1);
         # Callback for showing / hiding the print info box.
@@ -525,6 +528,16 @@ sub new {
         
         $sizer->SetSizeHints($self);
         $self->SetSizer($sizer);
+
+        # Send sizers/buttons to C++
+        Slic3r::GUI::set_objects_from_perl( $frequently_changed_parameters_sizer,
+                                $expert_mode_part_sizer,
+                                $scrolled_window_sizer,
+                                $self->{btn_export_stl},
+                                $self->{btn_reslice},
+                                $self->{btn_print},
+                                $self->{btn_send_gcode},
+                                $self->{btn_export_gcode});
     }
 
     # Last correct selected item for each preset

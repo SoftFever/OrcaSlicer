@@ -79,6 +79,14 @@ void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 void set_preset_updater(PresetUpdater *updater);
+void set_objects_from_perl(	wxBoxSizer *frequently_changed_parameters_sizer,
+							wxBoxSizer *expert_mode_part_sizer,
+							wxBoxSizer *scrolled_window_sizer,
+							wxButton *btn_export_stl,
+							wxButton *btn_reslice,
+							wxButton *btn_print,
+							wxButton *btn_send_gcode,
+							wxButton *btn_export_gcode);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
@@ -150,7 +158,10 @@ wxString	L_str(const std::string &str);
 wxString	from_u8(const std::string &str);
 
 
+void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
+// Update view mode according to selected menu 
+void update_mode();
 
 ConfigOptionsGroup* get_optgroup();
 wxButton*			get_wiping_dialog_button();
