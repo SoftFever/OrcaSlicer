@@ -12,10 +12,13 @@
 #include <boost/lexical_cast.hpp>
 
 // For png export of the sliced model
+#include <fstream>
 #include <wx/dcmemory.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/graphics.h>
+
+#include "Rasterizer/Rasterizer.hpp"
 
 #include <omp.h>
 
@@ -1260,54 +1263,87 @@ public:
 
 template<>
 class FilePrinter<Print::FilePrinterFormat::PNG> {
-    wxBitmap bitmap_;
-    std::unique_ptr<wxMemoryDC> dc_;
-    std::unique_ptr<wxGraphicsContext> gc_;
-    double pxw_;
-    double pxh_;
+    std::unique_ptr<Raster> rst_;
+    Raster::Resolution res_;
+    Raster::PixelDim pxdim_;
 public:
     inline FilePrinter(unsigned width_px, unsigned height_px,
-                       double width_mm, double height_mm):
-        bitmap_(width_px, height_px),
-        dc_(new wxMemoryDC(bitmap_)),
-        gc_(wxGraphicsContext::Create(*dc_)),
-        pxw_(width_mm/width_px),
-        pxh_(height_mm/width_px)
-    {
-        gc_->SetAntialiasMode(wxANTIALIAS_DEFAULT);
-    }
+                           double width_mm, double height_mm):
+        res_(width_px, height_px),
+        pxdim_(width_mm/width_px, height_mm/height_px) {}
 
     FilePrinter(const FilePrinter& ) = delete;
     FilePrinter(FilePrinter&& m):
-        bitmap_(std::move(m.bitmap_)), dc_(std::move(m.dc_)),
-        gc_(std::move(m.gc_)), pxw_(m.pxw_), pxh_(m.pxh_) {}
+        rst_(std::move(m.rst_)),
+        res_(m.res_),
+        pxdim_(m.pxdim_) {}
 
-    void drawPolygon(const Polygon& p) {
-
-        gc_->SetPen(*wxWHITE_PEN);
-        std::vector<wxPoint2DDouble> points;
-        points.reserve(p.points.size());
-
-        for(auto pp : p.points) {
-            points.emplace_back(
-                    std::round(pp.x * SCALING_FACTOR/pxw_),
-                    std::round(pp.y * SCALING_FACTOR/pxh_)
-                        );
-        }
-
-        gc_->DrawLines(points.size(), points.data());
+    inline void drawPolygon(const Polygon& p) {
+        if(!rst_) rst_.reset(new Raster(res_, pxdim_));
+        rst_->draw(p);
     }
 
-    void finish() {
-
+    inline void finish() {
+        rst_.reset();
     }
 
-    void save(const std::string& path) {
-        if(!bitmap_.SaveFile(path, wxBITMAP_TYPE_PNG)) {
-            std::cout << "fail for " << path << std::endl;
-        }
+    inline void save(const std::string& path) {
+        std::fstream out(path, std::fstream::out | std::fstream::binary);
+        rst_->save(out);
+        out.close();
     }
 };
+
+//template<>
+//class FilePrinter<Print::FilePrinterFormat::PNG> {
+//    wxBitmap bitmap_;
+//    std::unique_ptr<wxMemoryDC> dc_;
+//    std::unique_ptr<wxGraphicsContext> gc_;
+//    double pxw_;
+//    double pxh_;
+//public:
+//    inline FilePrinter(unsigned width_px, unsigned height_px,
+//                       double width_mm, double height_mm):
+//        bitmap_(width_px, height_px),
+//        dc_(new wxMemoryDC(bitmap_)),
+//        gc_(wxGraphicsContext::Create(*dc_)),
+//        pxw_(width_mm/width_px),
+//        pxh_(height_mm/width_px)
+//    {
+//        gc_->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+//    }
+
+//    FilePrinter(const FilePrinter& ) = delete;
+//    FilePrinter(FilePrinter&& m):
+//        bitmap_(std::move(m.bitmap_)), dc_(std::move(m.dc_)),
+//        gc_(std::move(m.gc_)), pxw_(m.pxw_), pxh_(m.pxh_) {}
+
+//    void drawPolygon(const Polygon& p) {
+
+//        gc_->SetPen(*wxWHITE_PEN);
+//        std::vector<wxPoint2DDouble> points;
+//        points.reserve(p.points.size());
+
+//        for(auto pp : p.points) {
+//            points.emplace_back(
+//                    std::round(pp.x * SCALING_FACTOR/pxw_),
+//                    std::round(pp.y * SCALING_FACTOR/pxh_)
+//                        );
+//        }
+
+//        gc_->DrawLines(points.size(), points.data());
+//    }
+
+//    void finish() {
+
+//    }
+
+//    void save(const std::string& path) {
+//        if(!bitmap_.SaveFile(path, wxBITMAP_TYPE_PNG)) {
+//            std::cout << "fail for " << path << std::endl;
+//        }
+//    }
+//};
 
 template<Print::FilePrinterFormat format, class...Args>
 void Print::print_to(std::string dirpath, Args...args)
@@ -1338,8 +1374,10 @@ void Print::print_to(std::string dirpath, Args...args)
 
     std::vector<FilePrinter<format>> printers;
     printers.reserve(layers.size());
-    for(unsigned i = 0; i < layers.size(); i++)
+
+    for(unsigned i = 0; i < layers.size(); i++) {
         printers.emplace_back(std::forward<Args>(args)...);
+    }
 
 #pragma omp parallel for
     for(int layer_id = 0; layer_id < layers.size(); layer_id++) {
@@ -1378,54 +1416,10 @@ void Print::print_to(std::string dirpath, Args...args)
             });
         });
 
+        printers[layer_id].save(dir + "layer" + std::to_string(layer_id) + ".ppm");
         printer.finish();
 
-                                                                                //        layer_id++;
-                                                                                //        if ($layer->slice_z == -1) {
-                                                                                //            printf $fh qq{  <g id="layer%d">\n}, $layer_id;
-                                                                                //        } else {
-                                                                                //            printf $fh qq{  <g id="layer%d" slic3r:z="%s">\n}, $layer_id, unscale($layer->slice_z);
-                                                                                //        }
-
-                                                                                //        my @current_layer_slices = ();
-                                                                                //        # sort slices so that the outermost ones come first
-                                                                                //        my @slices = sort { $a->contour->contains_point($b->contour->first_point) ? 0 : 1 } @{$layer->slices};
-                                                                                //        foreach my $copy (@{$layer->object->_shifted_copies}) {
-                                                                                //            foreach my $slice (@slices) {
-                                                                                //                my $expolygon = $slice->clone;
-                                                                                //                $expolygon->translate(@$copy);
-                                                                                //                $expolygon->translate(-$print_bb->x_min, -$print_bb->y_min);
-                                                                                //                $print_polygon->($expolygon->contour, 'contour');
-                                                                                //                $print_polygon->($_, 'hole') for @{$expolygon->holes};
-                                                                                //                push @current_layer_slices, $expolygon;
-                                                                                //            }
-                                                                                //        }
-//        # generate support material
-//        if ($self->has_support_material && $layer->id > 0) {
-//            my (@supported_slices, @unsupported_slices) = ();
-//            foreach my $expolygon (@current_layer_slices) {
-//                my $intersection = intersection_ex(
-//                    [ map @$_, @previous_layer_slices ],
-//                    [ @$expolygon ],
-//                );
-//                @$intersection
-//                    ? push @supported_slices, $expolygon
-//                    : push @unsupported_slices, $expolygon;
-//            }
-//            my @supported_points = map @$_, @$_, @supported_slices;
-//            foreach my $expolygon (@unsupported_slices) {
-//                # look for the nearest point to this island among all
-//                # supported points
-//                my $contour = $expolygon->contour;
-//                my $support_point = $contour->first_point->nearest_point(\@supported_points)
-//                    or next;
-//                my $anchor_point = $support_point->nearest_point([ @$contour ]);
-//                printf $fh qq{    <line x1="%s" y1="%s" x2="%s" y2="%s" style="stroke-width: 2; stroke: white" />\n},
-//                    map @$_, $support_point, $anchor_point;
-//            }
-//        }
-//        print $fh qq{  </g>\n};
-//        @previous_layer_slices = @current_layer_slices;
+//        std::cout << "processed layers: " << layer_id + 1 << std::endl;
         previous_layer_slices = current_layer_slices;
     }
 
@@ -1434,8 +1428,9 @@ void Print::print_to(std::string dirpath, Args...args)
 }
 
 void Print::print_to_png(std::string dirpath, long width_px, long height_px,
-                         Pointf pixel_size_mm) {
-    print_to<FilePrinterFormat::PNG>(dirpath, 2560, 1440, 700, 400);
+                         double width_mm, double height_mm) {
+    print_to<FilePrinterFormat::PNG>(dirpath, width_px, height_px,
+                                     width_mm, height_mm);
 }
 
 }

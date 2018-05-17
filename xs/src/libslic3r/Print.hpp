@@ -319,11 +319,11 @@ public:
     void print_to(std::string dirpath, Args...args);
 
     void print_to_png(std::string dirpath, long width_px, long height_px,
-                      Pointf pixel_size_mm);
+                      double width_mm, double height_mm);
 
     void print_to_png(std::string dirpath) {
         // Where should this be specified?
-        print_to_png(dirpath, 2560, 1440, Pointf{2560/700.0, 2560/400.0});
+        print_to_png(dirpath, 2560, 1440, 70.0, 40.0);
     }
 
 private:
