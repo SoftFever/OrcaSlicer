@@ -2012,6 +2012,8 @@ sub selection_changed {
                 } else {
                     $self->{object_info_manifold}->SetLabel(L("Yes"));
                     $self->{object_info_manifold_warning_icon}->Hide;
+                    $self->{object_info_manifold}->SetToolTipString("");
+                    $self->{object_info_manifold_warning_icon}->SetToolTipString("");
                 }
             } else {
                 $self->{object_info_facets}->SetLabel($object->facets);
@@ -2020,6 +2022,7 @@ sub selection_changed {
             $self->{"object_info_$_"}->SetLabel("") for qw(size volume facets materials manifold);
             $self->{object_info_manifold_warning_icon}->Hide;
             $self->{object_info_manifold}->SetToolTipString("");
+            $self->{object_info_manifold_warning_icon}->SetToolTipString("");
         }
         $self->Layout;
     }
