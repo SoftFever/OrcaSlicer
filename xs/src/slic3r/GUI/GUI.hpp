@@ -79,14 +79,15 @@ void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 void set_preset_updater(PresetUpdater *updater);
-void set_objects_from_perl(	wxBoxSizer *frequently_changed_parameters_sizer,
+void set_objects_from_perl(	wxWindow* parent,
+							wxBoxSizer *frequently_changed_parameters_sizer,
 							wxBoxSizer *expert_mode_part_sizer,
 							wxBoxSizer *scrolled_window_sizer,
 							wxButton *btn_export_stl,
 							wxButton *btn_reslice,
 							wxButton *btn_print,
-							wxButton *btn_send_gcode,
-							wxButton *btn_export_gcode);
+							wxButton *btn_send_gcode);
+void set_show_print_info(bool show);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();

@@ -202,6 +202,7 @@ double m_brim_width = 0.0;
 wxButton*	g_wiping_dialog_button = nullptr;
 
 //showed/hided controls according to the view mode
+wxWindow	*g_plater = nullptr;
 wxBoxSizer	*g_frequently_changed_parameters_sizer = nullptr;
 wxBoxSizer	*g_expert_mode_part_sizer = nullptr;
 wxBoxSizer	*g_scrolled_window_sizer = nullptr;
@@ -209,7 +210,7 @@ wxButton	*g_btn_export_stl = nullptr;
 wxButton	*g_btn_reslice = nullptr;
 wxButton	*g_btn_print = nullptr;
 wxButton	*g_btn_send_gcode = nullptr;
-wxButton	*g_btn_export_gcode = nullptr;
+bool		g_show_print_info = false;
 
 static void init_label_colours()
 {
@@ -270,11 +271,12 @@ void set_preset_updater(PresetUpdater *updater)
 	g_PresetUpdater = updater;
 }
 
-void set_objects_from_perl(	wxBoxSizer *frequently_changed_parameters_sizer,  
+void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_parameters_sizer,
 							wxBoxSizer *expert_mode_part_sizer, wxBoxSizer *scrolled_window_sizer,
-							wxButton *btn_export_stl, wxButton *btn_reslice, wxButton *btn_print, 
-							wxButton *btn_send_gcode, wxButton *btn_export_gcode)
+							wxButton *btn_export_stl, wxButton *btn_reslice, 
+							wxButton *btn_print, wxButton *btn_send_gcode)
 {
+	g_plater = parent;
 	g_frequently_changed_parameters_sizer = frequently_changed_parameters_sizer;
 	g_expert_mode_part_sizer = expert_mode_part_sizer;
 	g_scrolled_window_sizer = scrolled_window_sizer;
@@ -282,7 +284,11 @@ void set_objects_from_perl(	wxBoxSizer *frequently_changed_parameters_sizer,
 	g_btn_reslice = btn_reslice;
 	g_btn_print = btn_print;
 	g_btn_send_gcode = btn_send_gcode;
-	g_btn_export_gcode = btn_export_gcode;
+}
+
+void set_show_print_info(bool show)
+{
+	g_show_print_info = show;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -601,6 +607,7 @@ void create_preset_tabs(bool no_controller, int event_value_change, int event_pr
 		tab->set_event_value_change(wxEventType(event_value_change));
 		tab->set_event_presets_changed(wxEventType(event_presets_changed));
 	}
+	update_mode();// TODO change place of call this function
 }
 
 TabIface* get_preset_tab_iface(char *name)
@@ -1082,9 +1089,51 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	sizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
 }
 
+void show_frequently_changed_parameters(bool show)
+{
+	g_frequently_changed_parameters_sizer->Show(show);
+	if (!show) return;
+
+	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
+		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
+		if (!tab)
+			continue;
+		tab->update_wiping_button_visibility();
+		break;
+	}
+}
+
+void show_buttons(bool show)
+{
+	g_btn_export_stl->Show(show);
+	g_btn_reslice->Show(show);
+	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
+		TabPrinter *tab = dynamic_cast<TabPrinter*>(g_wxTabPanel->GetPage(i));
+		if (!tab)
+			continue;
+		g_btn_print->Show(show && !tab->m_config->opt_string("serial_port").empty());
+		g_btn_send_gcode->Show(show && !tab->m_config->opt_string("octoprint_host").empty());
+		break;
+	}
+}
+
+void show_scrolled_window_sizer(bool show)
+{
+	g_scrolled_window_sizer->Show(static_cast<size_t>(0), show);
+	g_scrolled_window_sizer->Show(1, show);
+	g_scrolled_window_sizer->Show(2, show && g_show_print_info);
+}
+
 void update_mode()
 {
+	wxWindowUpdateLocker noUpdates(g_plater);
+	ConfigMenuIDs mode = get_view_mode();
 
+	show_frequently_changed_parameters(mode >= ConfigMenuModeRegular);
+	g_expert_mode_part_sizer->Show(mode == ConfigMenuModeExpert);
+	show_scrolled_window_sizer(mode >= ConfigMenuModeRegular);
+	show_buttons(mode >= ConfigMenuModeRegular);
+	g_plater->Layout();
 }
 
 ConfigOptionsGroup* get_optgroup()

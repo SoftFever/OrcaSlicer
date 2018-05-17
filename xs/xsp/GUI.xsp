@@ -90,24 +90,26 @@ void add_expert_mode_part(SV *ui_parent, SV *ui_sizer)
     %code%{ Slic3r::GUI::add_expert_mode_part((wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
                                                            (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer")); %};
 
-void set_objects_from_perl(  SV *frequently_changed_parameters_sizer,
+void set_objects_from_perl( SV *ui_parent, 
+                            SV *frequently_changed_parameters_sizer,
                             SV *expert_mode_part_sizer,
                             SV *scrolled_window_sizer,
                             SV *btn_export_stl,
                             SV *btn_reslice,
                             SV *btn_print,
-                            SV *btn_send_gcode,
-                            SV *btn_export_gcode)
-    %code%{ Slic3r::GUI::set_objects_from_perl(  
+                            SV *btn_send_gcode)
+    %code%{ Slic3r::GUI::set_objects_from_perl(
+                            (wxWindow *)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
                             (wxBoxSizer *)wxPli_sv_2_object(aTHX_ frequently_changed_parameters_sizer, "Wx::BoxSizer"),
                             (wxBoxSizer *)wxPli_sv_2_object(aTHX_ expert_mode_part_sizer, "Wx::BoxSizer"),
                             (wxBoxSizer *)wxPli_sv_2_object(aTHX_ scrolled_window_sizer, "Wx::BoxSizer"),
                             (wxButton *)wxPli_sv_2_object(aTHX_ btn_export_stl, "Wx::Button"),
                             (wxButton *)wxPli_sv_2_object(aTHX_ btn_reslice, "Wx::Button"),
                             (wxButton *)wxPli_sv_2_object(aTHX_ btn_print, "Wx::Button"),
-                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_send_gcode, "Wx::Button"),
-                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_export_gcode, "Wx::Button")); %};
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_send_gcode, "Wx::Button")); %};
 
+void set_show_print_info(bool show)
+    %code%{ Slic3r::GUI::set_show_print_info(show); %};
 
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};

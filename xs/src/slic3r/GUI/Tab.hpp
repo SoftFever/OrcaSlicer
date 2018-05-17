@@ -264,11 +264,11 @@ public:
 
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
+    void            update_wiping_button_visibility();
 protected:
 	void			on_presets_changed();
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
-    void            update_wiping_button_visibility();
 	void			update_tab_presets(wxComboCtrl* ui, bool show_incompatible);
 	void			fill_icon_descriptions();
 	void			set_tooltips_text();

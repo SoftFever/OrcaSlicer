@@ -171,6 +171,7 @@ protected:
 	const t_field&		build_field(const t_config_option_key& id, const ConfigOptionDef& opt, wxStaticText* label = nullptr);
 	const t_field&		build_field(const t_config_option_key& id, wxStaticText* label = nullptr);
 	const t_field&		build_field(const Option& opt, wxStaticText* label = nullptr);
+	void				add_undo_buttuns_to_sizer(wxBoxSizer* sizer, const t_field& field);
 
     virtual void		on_kill_focus (){};
 	virtual void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value);

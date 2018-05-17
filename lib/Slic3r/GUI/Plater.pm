@@ -509,7 +509,12 @@ sub new {
 #                $right_sizer->Show(5, $_[0]); 
 #                $self->Layout
 #            }
-            if ($scrolled_window_sizer->IsShown(2) != $_[0]) { 
+            if ($scrolled_window_sizer->IsShown(2) != $_[0]) {
+                Slic3r::GUI::set_show_print_info($_[0]);
+                my $mode = wxTheApp->{app_config}->get("view_mode");
+                printf $mode."\n";
+                return if ($mode eq "simple"); 
+                print "non-simple\n";
                 $scrolled_window_sizer->Show(2, $_[0]); 
                 $scrolled_window_panel->Layout
             }
@@ -530,14 +535,14 @@ sub new {
         $self->SetSizer($sizer);
 
         # Send sizers/buttons to C++
-        Slic3r::GUI::set_objects_from_perl( $frequently_changed_parameters_sizer,
+        Slic3r::GUI::set_objects_from_perl( $self,
+                                $frequently_changed_parameters_sizer,
                                 $expert_mode_part_sizer,
                                 $scrolled_window_sizer,
                                 $self->{btn_export_stl},
                                 $self->{btn_reslice},
                                 $self->{btn_print},
-                                $self->{btn_send_gcode},
-                                $self->{btn_export_gcode});
+                                $self->{btn_send_gcode} );
     }
 
     # Last correct selected item for each preset

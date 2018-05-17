@@ -86,15 +86,21 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_sys_value(opt_id);
 	};
-	if (!m_is_tab_opt) {
-		field->m_Undo_btn->Hide();
-		field->m_Undo_to_sys_btn->Hide();
-	}
-//	if (nonsys_btn_icon != nullptr)
-//		field->set_nonsys_btn_icon(*nonsys_btn_icon);
     
 	// assign function objects for callbacks, etc.
     return field;
+}
+
+void OptionsGroup::add_undo_buttuns_to_sizer(wxBoxSizer* sizer, const t_field& field)
+{
+	if (!m_is_tab_opt) {
+		field->m_Undo_btn->Hide();
+		field->m_Undo_to_sys_btn->Hide();
+		return;
+	}
+
+	sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
+	sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 }
 
 void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* = nullptr*/) {
@@ -131,8 +137,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		const auto& field = build_field(option);
 
 		auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-		btn_sizer->Add(field->m_Undo_to_sys_btn);
-		btn_sizer->Add(field->m_Undo_btn);
+		add_undo_buttuns_to_sizer(btn_sizer, field);
 		tmp_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
 		if (is_window_field(field))
 			tmp_sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
@@ -176,8 +181,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		const auto& option = option_set.front();
 		const auto& field = build_field(option, label);
 
-		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL); 
-		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+		add_undo_buttuns_to_sizer(sizer, field);
 		if (is_window_field(field)) 
 			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, (option.opt.full_width ? wxEXPAND : 0) |
 							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, wxOSX ? 0 : 2);
@@ -205,8 +209,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
-		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
-		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL, 0);
+		add_undo_buttuns_to_sizer(sizer, field);
 		is_sizer_field(field) ? 
 			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
 			sizer->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
