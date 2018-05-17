@@ -328,21 +328,11 @@ sub load_print {
     }
 
     if ($n_layers == 0) {
-        $self->enabled(0);
-        $self->set_z_range(0,0);
-        $self->slider_low->Hide;
-        $self->slider_high->Hide;
-        $self->{z_label_low}->SetLabel("");
-        $self->{z_label_high}->SetLabel("");
-        $self->{z_label_low_idx}->SetLabel("");
-        $self->{z_label_high_idx}->SetLabel("");
+        $self->reset_sliders;
         $self->canvas->reset_legend_texture();
         $self->canvas->Refresh;  # clears canvas
         return;
     }
-    
-    # used to set the sliders to the extremes of the current zs range
-    $self->{force_sliders_full_range} = 0;
     
     if ($self->{preferred_color_mode} eq 'tool_or_feature') {
         # It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
@@ -369,6 +359,9 @@ sub load_print {
     }
 
     if ($self->IsShown) {
+        # used to set the sliders to the extremes of the current zs range
+        $self->{force_sliders_full_range} = 0;
+
         if ($self->gcode_preview_data->empty) {
             # load skirt and brim
             $self->canvas->load_print_toolpaths($self->print, \@colors);
@@ -389,11 +382,28 @@ sub load_print {
             # recalculates zs and update sliders accordingly
             $self->{layers_z} = $self->canvas->get_current_print_zs();
             $n_layers = scalar(@{$self->{layers_z}});            
-        }
+            if ($n_layers == 0) {
+                # all layers filtered out
+                $self->reset_sliders;
+                $self->canvas->Refresh;  # clears canvas
+            }
+       }
 
-        $self->update_sliders($n_layers);
+        $self->update_sliders($n_layers) if ($n_layers > 0);
         $self->_loaded(1);
     }
+}
+
+sub reset_sliders {
+    my ($self) = @_;
+    $self->enabled(0);
+    $self->set_z_range(0,0);
+    $self->slider_low->Hide;
+    $self->slider_high->Hide;
+    $self->{z_label_low}->SetLabel("");
+    $self->{z_label_high}->SetLabel("");
+    $self->{z_label_low_idx}->SetLabel("");
+    $self->{z_label_high_idx}->SetLabel("");
 }
 
 sub update_sliders
@@ -410,18 +420,32 @@ sub update_sliders
         $z_idx_low = 0;
         $z_idx_high = $n_layers - 1;
     } elsif ($z_idx_high < $n_layers && ($self->single_layer || $z_idx_high != 0)) {
-        # use $z_idx
-    } else {
+        # search new indices for nearest z (size of $self->{layers_z} may change in dependence of what is shown)
+        if (defined($self->{z_low})) {
+            for (my $i = scalar(@{$self->{layers_z}}) - 1; $i >= 0; $i -= 1) {
+                if ($self->{layers_z}[$i] <= $self->{z_low}) {
+                    $z_idx_low = $i;
+                    last;
+                }
+            }
+        }
+        if (defined($self->{z_high})) {
+            for (my $i = scalar(@{$self->{layers_z}}) - 1; $i >= 0; $i -= 1) {
+                if ($self->{layers_z}[$i] <= $self->{z_high}) {
+                    $z_idx_high = $i;
+                    last;
+                }
+            }
+        }
+    } elsif ($z_idx_high >= $n_layers) {
         # Out of range. Disable 'single layer' view.
         $self->single_layer(0);
         $self->{checkbox_singlelayer}->SetValue(0);
         $z_idx_low = 0;
         $z_idx_high = $n_layers - 1;
-    }
-    if ($self->single_layer) {
-        $z_idx_low = $z_idx_high;
-    } elsif ($z_idx_low > $z_idx_high) {
+    } else {
         $z_idx_low = 0;
+        $z_idx_high = $n_layers - 1;
     }
     
     $self->slider_low->SetValue($z_idx_low);
@@ -437,6 +461,8 @@ sub set_z_range
     my ($self, $z_low, $z_high) = @_;
     
     return if !$self->enabled;
+    $self->{z_low} = $z_low;
+    $self->{z_high} = $z_high;
     $self->{z_label_low}->SetLabel(sprintf '%.2f', $z_low);
     $self->{z_label_high}->SetLabel(sprintf '%.2f', $z_high);
     my $z_idx_low = 1 + $self->slider_low->GetValue;
