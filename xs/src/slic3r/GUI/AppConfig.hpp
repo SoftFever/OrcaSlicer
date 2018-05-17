@@ -101,6 +101,7 @@ public:
 
 	// Returns true if the user's data directory comes from before Slic3r 1.40.0 (no updating)
 	bool legacy_datadir() const { return m_legacy_datadir; }
+	bool set_legacy_datadir(bool value) { m_legacy_datadir = value; }
 
 	// Get the Slic3r version check url.
 	// This returns a hardcoded string unless it is overriden by "version_check_url" in the ini file.
