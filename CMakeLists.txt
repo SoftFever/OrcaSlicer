@@ -49,6 +49,8 @@ if(NOT DEFINED CMAKE_PREFIX_PATH)
 	endif()
 endif()
 
+enable_testing ()
+
 add_subdirectory(xs)
 
 get_filename_component(PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)
@@ -63,7 +65,6 @@ else ()
 	set(PERL_PROVE "${PERL_BIN_PATH}/prove")
 endif ()
 
-enable_testing ()
 add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} -I ${PROJECT_SOURCE_DIR}/local-lib/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/xs)
 add_test (NAME integration COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
