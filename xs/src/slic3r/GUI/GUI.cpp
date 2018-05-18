@@ -210,7 +210,9 @@ wxButton	*g_btn_export_stl = nullptr;
 wxButton	*g_btn_reslice = nullptr;
 wxButton	*g_btn_print = nullptr;
 wxButton	*g_btn_send_gcode = nullptr;
+wxStaticBitmap	*g_manifold_warning_icon = nullptr;
 bool		g_show_print_info = false;
+bool		g_show_manifold_warning_icon = false;
 
 static void init_label_colours()
 {
@@ -274,7 +276,8 @@ void set_preset_updater(PresetUpdater *updater)
 void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_parameters_sizer,
 							wxBoxSizer *expert_mode_part_sizer, wxBoxSizer *scrolled_window_sizer,
 							wxButton *btn_export_stl, wxButton *btn_reslice, 
-							wxButton *btn_print, wxButton *btn_send_gcode)
+							wxButton *btn_print, wxButton *btn_send_gcode,
+							wxStaticBitmap *manifold_warning_icon)
 {
 	g_plater = parent;
 	g_frequently_changed_parameters_sizer = frequently_changed_parameters_sizer;
@@ -284,11 +287,17 @@ void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_par
 	g_btn_reslice = btn_reslice;
 	g_btn_print = btn_print;
 	g_btn_send_gcode = btn_send_gcode;
+	g_manifold_warning_icon = manifold_warning_icon;
 }
 
 void set_show_print_info(bool show)
 {
 	g_show_print_info = show;
+}
+
+void set_show_manifold_warning_icon(bool show)
+{
+	g_show_manifold_warning_icon = show;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -1122,6 +1131,7 @@ void show_scrolled_window_sizer(bool show)
 	g_scrolled_window_sizer->Show(static_cast<size_t>(0), show);
 	g_scrolled_window_sizer->Show(1, show);
 	g_scrolled_window_sizer->Show(2, show && g_show_print_info);
+	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
 }
 
 void update_mode()

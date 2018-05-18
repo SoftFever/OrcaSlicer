@@ -442,7 +442,16 @@ sub new {
                 $self->{"object_info_$field"}->SetFont($Slic3r::GUI::small_font);
                 if ($field eq 'manifold') {
                     $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($scrolled_window_panel, -1, Wx::Bitmap->new(Slic3r::var("error.png"), wxBITMAP_TYPE_PNG));
-                    $self->{object_info_manifold_warning_icon}->Hide;
+                    #$self->{object_info_manifold_warning_icon}->Hide;
+                    $self->{"object_info_manifold_warning_icon_show"} = sub {
+                        if ($self->{object_info_manifold_warning_icon}->IsShown() != $_[0]) {
+                            Slic3r::GUI::set_show_manifold_warning_icon($_[0]);
+                            return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
+                            $self->{object_info_manifold_warning_icon}->Show($_[0]); 
+                            $self->Layout
+                        }
+                    };
+                    $self->{"object_info_manifold_warning_icon_show"}->(0);
                     
                     my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
                     $h_sizer->Add($self->{object_info_manifold_warning_icon}, 0);
@@ -511,10 +520,7 @@ sub new {
 #            }
             if ($scrolled_window_sizer->IsShown(2) != $_[0]) {
                 Slic3r::GUI::set_show_print_info($_[0]);
-                my $mode = wxTheApp->{app_config}->get("view_mode");
-                printf $mode."\n";
-                return if ($mode eq "simple"); 
-                print "non-simple\n";
+                return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
                 $scrolled_window_sizer->Show(2, $_[0]); 
                 $scrolled_window_panel->Layout
             }
@@ -542,7 +548,8 @@ sub new {
                                 $self->{btn_export_stl},
                                 $self->{btn_reslice},
                                 $self->{btn_print},
-                                $self->{btn_send_gcode} );
+                                $self->{btn_send_gcode},
+                                $self->{object_info_manifold_warning_icon} );
     }
 
     # Last correct selected item for each preset
@@ -881,6 +888,9 @@ sub remove {
     $self->select_object(undef);
     $self->update;
     $self->schedule_background_process;
+
+    # Hide the slicing results if the current slicing status is no more valid.
+    $self->{"print_info_box_show"}->(0);
 }
 
 sub reset {
@@ -900,6 +910,9 @@ sub reset {
     
     $self->select_object(undef);
     $self->update;
+
+    # Hide the slicing results if the current slicing status is no more valid.
+    $self->{"print_info_box_show"}->(0);
 }
 
 sub increase {
@@ -2017,7 +2030,8 @@ sub selection_changed {
                 $self->{object_info_facets}->SetLabel(sprintf(L('%d (%d shells)'), $model_object->facets_count, $stats->{number_of_parts}));
                 if (my $errors = sum(@$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)})) {
                     $self->{object_info_manifold}->SetLabel(sprintf(L("Auto-repaired (%d errors)"), $errors));
-                    $self->{object_info_manifold_warning_icon}->Show;
+                    #$self->{object_info_manifold_warning_icon}->Show;
+                    $self->{"object_info_manifold_warning_icon_show"}->(1);
                     
                     # we don't show normals_fixed because we never provide normals
 	                # to admesh, so it generates normals for all facets
@@ -2027,14 +2041,16 @@ sub selection_changed {
                     $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
                 } else {
                     $self->{object_info_manifold}->SetLabel(L("Yes"));
-                    $self->{object_info_manifold_warning_icon}->Hide;
+                    #$self->{object_info_manifold_warning_icon}->Hide;
+                    $self->{"object_info_manifold_warning_icon_show"}->(0);
                 }
             } else {
                 $self->{object_info_facets}->SetLabel($object->facets);
             }
         } else {
             $self->{"object_info_$_"}->SetLabel("") for qw(size volume facets materials manifold);
-            $self->{object_info_manifold_warning_icon}->Hide;
+            #$self->{object_info_manifold_warning_icon}->Hide;
+            $self->{"object_info_manifold_warning_icon_show"}->(0);
             $self->{object_info_manifold}->SetToolTipString("");
         }
         $self->Layout;

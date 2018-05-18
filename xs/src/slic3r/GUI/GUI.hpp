@@ -20,6 +20,7 @@ class wxBoxSizer;
 class wxFlexGridSizer;
 class wxButton;
 class wxFileDialog;
+class wxStaticBitmap;
 
 namespace Slic3r { 
 
@@ -86,8 +87,10 @@ void set_objects_from_perl(	wxWindow* parent,
 							wxButton *btn_export_stl,
 							wxButton *btn_reslice,
 							wxButton *btn_print,
-							wxButton *btn_send_gcode);
+							wxButton *btn_send_gcode,
+							wxStaticBitmap *manifold_warning_icon);
 void set_show_print_info(bool show);
+void set_show_manifold_warning_icon(bool show);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
