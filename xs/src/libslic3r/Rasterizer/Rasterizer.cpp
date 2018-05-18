@@ -22,12 +22,12 @@ namespace Slic3r {
 
 class Raster::Impl {
 public:
-    using TBuffer = std::vector<std::array<std::uint8_t,3>>;
-    using TPixelRenderer = agg::pixfmt_rgb24;
+    using TPixelRenderer = agg::pixfmt_gray8; // agg::pixfmt_rgb24;
     using TRawRenderer = agg::renderer_base<TPixelRenderer>;
-    using TRenderer = agg::renderer_primitives<TRawRenderer>;
     using TPixel = TPixelRenderer::color_type;
     using TRawBuffer = agg::rendering_buffer;
+
+    using TBuffer = std::vector<TPixelRenderer::pixel_type>;
 
     using TRendererAA = agg::renderer_scanline_aa_solid<TRawRenderer>;
 
@@ -41,66 +41,36 @@ private:
     TRawBuffer rbuf_;
     TPixelRenderer pixfmt_;
     TRawRenderer raw_renderer_;
+    TRendererAA renderer_;
 public:
     inline Impl(const Raster::Resolution& res, const Raster::PixelDim &pd):
         resolution_(res), pxdim_(pd),
         buf_(res.pixels()),
-        rbuf_(reinterpret_cast<std::uint8_t*>(buf_.data()),
-              res.width_px, res.height_px, res.width_px*sizeof(TBuffer::value_type)),
+        rbuf_(reinterpret_cast<TPixelRenderer::value_type*>(buf_.data()),
+              res.width_px, res.height_px,
+              res.width_px*TPixelRenderer::num_components),
         pixfmt_(rbuf_),
-        raw_renderer_(pixfmt_)
+        raw_renderer_(pixfmt_),
+        renderer_(raw_renderer_)
     {
+        renderer_.color(ColorWhite);
+
+        // If we would like to play around with gamma
+        // ras.gamma(agg::gamma_power(1.0));
+
         clear();
     }
 
-    void draw(const Polygon &p) {
-        TRendererAA ren_aa(raw_renderer_);
+    void draw(const ExPolygon &poly) {
         agg::rasterizer_scanline_aa<> ras;
         agg::scanline_p8 scanlines;
 
-        agg::path_storage paths;
-
-//        ras.gamma(agg::gamma_power(1.0));
-
-        auto it = p.points.begin();
-        auto itnext = std::next(it);
-
-        {
-            double xf = std::round(it->x * SCALING_FACTOR/pxdim_.w_mm);
-            double yf = std::round(it->y * SCALING_FACTOR/pxdim_.h_mm);
-            double nxf = std::round(itnext->x * SCALING_FACTOR/pxdim_.w_mm);
-            double nyf = std::round(itnext->y * SCALING_FACTOR/pxdim_.h_mm);
-
-            paths.move_to(xf, yf);
-            paths.line_to(nxf, nyf);
-
-            ++it, ++itnext;
-        }
-        while(itnext != p.points.end() ) {
-//            double xf = std::round(it->x * SCALING_FACTOR/pxdim_.w_mm);
-//            double yf = std::round(it->y * SCALING_FACTOR/pxdim_.h_mm);
-//            auto x = renderer_.coord(xf);
-//            auto y = renderer_.coord(yf);
-
-            double nxf = std::round(itnext->x * SCALING_FACTOR/pxdim_.w_mm);
-            double nyf = std::round(itnext->y * SCALING_FACTOR/pxdim_.h_mm);
-//            auto nx = renderer_.coord(nxf);
-//            auto ny = renderer_.coord(nyf);
-
-//            renderer_.move_to(x, y);
-//            renderer_.line_to(nx, ny);
-
-//            paths.move_to(xf, yf);
-            paths.line_to(nxf, nyf);
-
-            /*++it,*/ ++itnext;
+        ras.add_path(to_path(poly.contour));
+        for(auto h : poly.holes) {
+            ras.add_path(to_path(h));
         }
 
-        paths.close_polygon();
-        ras.add_path(paths);
-
-        ren_aa.color(ColorWhite);
-        agg::render_scanlines(ras, scanlines, ren_aa);
+        agg::render_scanlines(ras, scanlines, renderer_);
     }
 
     inline void clear() {
@@ -110,13 +80,36 @@ public:
     inline const TBuffer& buffer() const { return buf_; }
 
     inline const Raster::Resolution resolution() { return resolution_; }
+
+private:
+    double getPx(const Point& p) {
+        return p.x * SCALING_FACTOR/pxdim_.w_mm;
+    }
+
+    double getPy(const Point& p) {
+        return p.y * SCALING_FACTOR/pxdim_.h_mm;
+    }
+
+    agg::path_storage to_path(const Polygon& poly) {
+        agg::path_storage path;
+        auto it = poly.points.begin();
+        path.move_to(getPx(*it), getPy(*it));
+        while(++it != poly.points.end())
+            path.line_to(getPx(*it), getPy(*it));
+
+        path.line_to(getPx(poly.points.front()), getPy(poly.points.front()));
+        return path;
+    }
+
 };
 
-const Raster::Impl::TPixel Raster::Impl::ColorWhite = Raster::Impl::TPixel(255, 255, 255);
-const Raster::Impl::TPixel Raster::Impl::ColorBlack = Raster::Impl::TPixel(0, 0, 0);
+const Raster::Impl::TPixel Raster::Impl::ColorWhite = Raster::Impl::TPixel(255);
+const Raster::Impl::TPixel Raster::Impl::ColorBlack = Raster::Impl::TPixel(0);
 
 Raster::Raster(const Resolution &r, const PixelDim &pd):
     impl_(new Impl(r, pd)) {}
+
+Raster::Raster() {}
 
 Raster::~Raster() {}
 
@@ -127,30 +120,49 @@ Raster::Raster(const Raster &cpy) {
 Raster::Raster(Raster &&m):
     impl_(std::move(m.impl_)) {}
 
+void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd)
+{
+    impl_.reset(new Impl(r, pd));
+}
+
+void Raster::reset()
+{
+    impl_.reset();
+}
+
+Raster::Resolution Raster::resolution() const
+{
+    if(impl_) return impl_->resolution();
+
+    return Resolution(0, 0);
+}
+
 void Raster::clear()
 {
+    assert(impl_);
     impl_->clear();
 }
 
-void Raster::draw(const Polygon &poly)
+void Raster::draw(const ExPolygon &poly)
 {
+    assert(impl_);
     impl_->draw(poly);
 }
 
 void Raster::save(std::ostream& stream, Compression comp)
 {
+    assert(impl_);
     switch(comp) {
-    case Compression::RAW:
     case Compression::PNG:
-        stream << "P6 "
+    case Compression::RAW:
+        stream << "P5 "
                << impl_->resolution().width_px << " "
                << impl_->resolution().height_px << " "
                << "255 ";
-
-        stream.write(reinterpret_cast<const char*>(impl_->buffer().data()),
-                     impl_->buffer().size()*sizeof(Impl::TBuffer::value_type));
-        break;
     }
+
+    stream.write(reinterpret_cast<const char*>(impl_->buffer().data()),
+                 impl_->buffer().size()*sizeof(Impl::TBuffer::value_type));
 }
 
 }

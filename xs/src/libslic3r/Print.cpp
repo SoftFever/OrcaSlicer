@@ -13,6 +13,7 @@
 
 // For png export of the sliced model
 #include <fstream>
+#include <sstream>
 #include <wx/dcmemory.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
@@ -1256,41 +1257,79 @@ void Print::set_status(int percent, const std::string &message)
 template<Print::FilePrinterFormat format>
 class FilePrinter {
 public:
-    void drawPolygon(const ExPolygon& p);
-    void finish();
+    void drawPolygon(const ExPolygon& p, unsigned lyr);
+    void layers(unsigned layernum);
+    unsigned layers() const;
+    void beginLayer(unsigned layer);
+    void beginLayer();
+    void finishLayer(unsigned layer);
+    void finishLayer();
     void save(const std::string& path);
 };
 
 template<>
 class FilePrinter<Print::FilePrinterFormat::PNG> {
-    std::unique_ptr<Raster> rst_;
+    std::vector<std::pair<Raster, std::stringstream>> layers_rst_;
     Raster::Resolution res_;
     Raster::PixelDim pxdim_;
 public:
     inline FilePrinter(unsigned width_px, unsigned height_px,
-                           double width_mm, double height_mm):
+                       double width_mm, double height_mm,
+                       unsigned layer_cnt = 0):
         res_(width_px, height_px),
-        pxdim_(width_mm/width_px, height_mm/height_px) {}
+        pxdim_(width_mm/width_px, height_mm/height_px) {
+        layers(layer_cnt);
+    }
 
     FilePrinter(const FilePrinter& ) = delete;
     FilePrinter(FilePrinter&& m):
-        rst_(std::move(m.rst_)),
+        layers_rst_(std::move(m.layers_rst_)),
         res_(m.res_),
         pxdim_(m.pxdim_) {}
 
-    inline void drawPolygon(const Polygon& p) {
-        if(!rst_) rst_.reset(new Raster(res_, pxdim_));
-        rst_->draw(p);
+    inline void layers(unsigned cnt) { if(cnt > 0) layers_rst_.resize(cnt); }
+    inline unsigned layers() const { return layers_rst_.size(); }
+
+    inline void drawPolygon(const ExPolygon& p, unsigned lyr) {
+        assert(lyr_id < layers_rst_.size());
+        layers_rst_[lyr].first.draw(p);
     }
 
-    inline void finish() {
-        rst_.reset();
+    inline void beginLayer(unsigned lyr) {
+        if(layers_rst_.size() <= lyr) layers_rst_.resize(lyr+1);
+        layers_rst_[lyr].first.reset(res_, pxdim_);
+    }
+
+    inline void beginLayer() {
+        layers_rst_.emplace_back(Raster(res_, pxdim_), std::stringstream());
+    }
+
+    inline void finishLayer(unsigned lyr_id) {
+        assert(lyr_id < layers_rst_.size());
+        layers_rst_[lyr_id].first.save(layers_rst_[lyr_id].second);
+        layers_rst_[lyr_id].first.reset();
+    }
+
+    inline void finishLayer() {
+        if(!layers_rst_.empty()) {
+            layers_rst_.back().first.save(layers_rst_.back().second);
+            layers_rst_.back().first.reset();
+        }
     }
 
     inline void save(const std::string& path) {
-        std::fstream out(path, std::fstream::out | std::fstream::binary);
-        rst_->save(out);
-        out.close();
+        for(unsigned i = 0; i < layers_rst_.size(); i++) {
+            if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
+                std::string loc = path + "layer" + std::to_string(i) + ".pgm";
+                std::fstream out(loc, std::fstream::out | std::fstream::binary);
+                if(out.good()) {
+                    out << layers_rst_[i].second.rdbuf();
+                }
+                out.close();
+                layers_rst_[i].first.reset();
+                layers_rst_[i].second.str("");
+            }
+        }
     }
 };
 
@@ -1372,14 +1411,10 @@ void Print::print_to(std::string dirpath, Args...args)
     ExPolygons previous_layer_slices;
     auto print_bb = bounding_box();
 
-    std::vector<FilePrinter<format>> printers;
-    printers.reserve(layers.size());
+    FilePrinter<format> printer(std::forward<Args>(args)...);
+    printer.layers(layers.size());
 
-    for(unsigned i = 0; i < layers.size(); i++) {
-        printers.emplace_back(std::forward<Args>(args)...);
-    }
-
-#pragma omp parallel for
+#pragma omp parallel for /*num_threads(8)*/
     for(int layer_id = 0; layer_id < layers.size(); layer_id++) {
         Layer& l = *(layers[layer_id]);
 
@@ -1393,7 +1428,12 @@ void Print::print_to(std::string dirpath, Args...args)
 
         ExPolygons current_layer_slices;
 
-        auto& printer = printers[layer_id];
+        try {
+            printer.beginLayer(layer_id);
+        } catch(std::bad_alloc& ) {
+            printer.save(dir);
+            printer.beginLayer(layer_id);
+        }
 
         std::for_each(l.object()->_shifted_copies.begin(),
                       l.object()->_shifted_copies.end(),
@@ -1406,25 +1446,21 @@ void Print::print_to(std::string dirpath, Args...args)
                 slice.translate(d.x, d.y);
                 slice.translate(-print_bb.min.x, -print_bb.min.y);
 
-                printer.drawPolygon(slice.contour);
-                std::for_each(slice.holes.begin(), slice.holes.end(),
-                              [&printer](const Polygon& hole){
-                    printer.drawPolygon(hole);
-                });
+                printer.drawPolygon(slice, layer_id);
 
                 current_layer_slices.push_back(slice);
             });
         });
 
-        printers[layer_id].save(dir + "layer" + std::to_string(layer_id) + ".ppm");
-        printer.finish();
+        printer.finishLayer(layer_id);
 
-//        std::cout << "processed layers: " << layer_id + 1 << std::endl;
+        std::cout << "processed layer: " << layer_id << " by thread: "
+                  << omp_get_thread_num()  << std::endl;
+
         previous_layer_slices = current_layer_slices;
     }
 
-//    for(unsigned i = 0; i < printers.size(); i++)
-//        printers[i].save(dir + "layer" + std::to_string(i) + ".png");
+    printer.save(dir);
 }
 
 void Print::print_to_png(std::string dirpath, long width_px, long height_px,

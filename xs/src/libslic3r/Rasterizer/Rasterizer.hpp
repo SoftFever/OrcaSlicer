@@ -2,7 +2,7 @@
 #define RASTERIZER_HPP
 
 #include <ostream>
-#include <Polygon.hpp>
+#include <ExPolygon.hpp>
 
 namespace Slic3r {
 
@@ -33,13 +33,20 @@ public:
     };
 
     explicit Raster(const Resolution& r, const PixelDim& pd );
+    Raster();
     ~Raster();
     Raster(const Raster& cpy);
     Raster(Raster&& m);
 
+    void reset(const Resolution& r, const PixelDim& pd);
+
+    void reset();
+
+    Resolution resolution() const;
+
     void clear();
 
-    void draw(const Polygon& poly);
+    void draw(const ExPolygon& poly);
 
     void save(std::ostream& stream, Compression comp = Compression::RAW);
 };
