@@ -29,8 +29,14 @@ extern int verbose;		/* verbosity level (-v, -vv, ...) */
 extern int quell_progress;	/* quiteness level (-q, -qq) */
 
 typedef void (*avrdude_message_handler_t)(const char *msg, unsigned size, void *user_p);
-avrdude_message_handler_t avrdude_message_handler_set(avrdude_message_handler_t newhandler, void *user_p);
+void avrdude_message_handler_set(avrdude_message_handler_t newhandler, void *user_p);
 int avrdude_message(const int msglvl, const char *format, ...);
+
+// Progress reporting callback
+// `progress` is in range 0 ~ 100 percent
+typedef void (*avrdude_progress_handler_t)(const char *task, unsigned progress, void *user_p);
+void avrdude_progress_handler_set(avrdude_progress_handler_t newhandler, void *user_p);
+void avrdude_progress_external(const char *task, unsigned progress);
 
 #define MSG_INFO    (0) /* no -v option, can be supressed with -qq */
 #define MSG_NOTICE  (1) /* displayed with -v */

@@ -68,26 +68,24 @@ char msgbuffer[MSGBUFFER_SIZE];
 
 static void avrdude_message_handler_null(const char *msg, unsigned size, void *user_p)
 {
+    // Output to stderr by default
     (void)size;
+    (void)user_p;
     fputs(msg, stderr);
 }
 
 static void *avrdude_message_handler_user_p = NULL;
 static avrdude_message_handler_t avrdude_message_handler = avrdude_message_handler_null;
 
-avrdude_message_handler_t avrdude_message_handler_set(avrdude_message_handler_t newhandler, void *user_p)
+void avrdude_message_handler_set(avrdude_message_handler_t newhandler, void *user_p)
 {
-    avrdude_message_handler_t previous = avrdude_message_handler == avrdude_message_handler_null ? NULL : avrdude_message_handler;
-
     if (newhandler != NULL) {
         avrdude_message_handler = newhandler;
         avrdude_message_handler_user_p = user_p;
     } else {
-        avrdude_message_handler = NULL;
+        avrdude_message_handler = avrdude_message_handler_null;
         avrdude_message_handler_user_p = NULL;
     }
-
-    return previous;
 }
 
 int avrdude_message(const int msglvl, const char *format, ...)
@@ -114,6 +112,34 @@ int avrdude_message(const int msglvl, const char *format, ...)
         va_end(ap);
     }
     return rc;
+}
+
+
+static void avrdude_progress_handler_null(const char *task, unsigned progress, void *user_p)
+{
+    // By default do nothing
+    (void)task;
+    (void)progress;
+    (void)user_p;
+}
+
+static void *avrdude_progress_handler_user_p = NULL;
+static avrdude_progress_handler_t avrdude_progress_handler = avrdude_progress_handler_null;
+
+void avrdude_progress_handler_set(avrdude_progress_handler_t newhandler, void *user_p)
+{
+    if (newhandler != NULL) {
+        avrdude_progress_handler = newhandler;
+        avrdude_progress_handler_user_p = user_p;
+    } else {
+        avrdude_progress_handler = avrdude_progress_handler_null;
+        avrdude_progress_handler_user_p = NULL;
+    }
+}
+
+void avrdude_progress_external(const char *task, unsigned progress)
+{
+    avrdude_progress_handler(task, progress, avrdude_progress_handler_user_p);
 }
 
 
@@ -176,7 +202,7 @@ static void usage(void)
  "  -Y <number>                Initialize erase cycle # in EEPROM.\n"
  "  -v                         Verbose output. -v -v for more.\n"
  "  -q                         Quell progress output. -q -q for less.\n"
- "  -l logfile                 Use logfile rather than stderr for diagnostics.\n"
+//  "  -l logfile                 Use logfile rather than stderr for diagnostics.\n"
  "  -?                         Display this usage.\n"
  "\navrdude version %s, URL: <http://savannah.nongnu.org/projects/avrdude/>\n"
           ,progname, version);
@@ -222,6 +248,7 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
 {
   static int done = 0;
   static int last = 0;
+  static char *header = NULL;
   int cnt = (percent>>1)*2;
 
   // setvbuf(stderr, (char*)NULL, _IONBF, 0);
@@ -230,16 +257,23 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
     avrdude_message(MSG_INFO, "\n%s | ", hdr);
     last = 0;
     done = 0;
+    header = hdr;
+    avrdude_progress_external(header, 0);
   }
   else {
     while ((cnt > last) && (done == 0)) {
       avrdude_message(MSG_INFO, "#");
       cnt -=  2;
     }
+
+    if (done == 0) {
+      avrdude_progress_external(header, percent > 99 ? 99 : percent);
+    }
   }
 
   if ((percent == 100) && (done == 0)) {
     avrdude_message(MSG_INFO, " | 100%% %0.2fs\n\n", etime);
+    avrdude_progress_external(header, 100);
     last = 0;
     done = 1;
   }
@@ -386,7 +420,7 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
   int     init_ok;     /* Device initialization worked well */
   int     is_open;     /* Device open succeeded */
-  char  * logfile;     /* Use logfile rather than stderr for diagnostics */
+  // char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE; /* Flags for do_op() */
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
@@ -396,9 +430,9 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
   char * safemode_response;
   int fuses_specified = 0;
   int fuses_updated = 0;
-#if !defined(WIN32NATIVE)
-  char  * homedir;
-#endif
+// #if !defined(WIN32NATIVE)
+//   char  * homedir;
+// #endif
 
   /*
    * Set line buffering for file descriptors so we see stdout and stderr
@@ -465,7 +499,7 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
   safemode      = 1;       /* Safemode on by default */
   silentsafe    = 0;       /* Ask by default */
   is_open       = 0;
-  logfile       = NULL;
+  // logfile       = NULL;
 
 // #if defined(WIN32NATIVE)
 
@@ -611,9 +645,9 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
         ovsigck = 1;
         break;
 
-      case 'l':
-	logfile = optarg;
-	break;
+  //     case 'l':
+	// logfile = optarg;
+	// break;
 
       case 'n':
         uflags |= UF_NOWRITE;

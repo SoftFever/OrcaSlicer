@@ -17,6 +17,8 @@
 #include <wx/textctrl.h>
 #include <wx/stattext.h>
 #include <wx/combobox.h>
+#include <wx/gauge.h>
+#include <wx/collpane.h>
 
 #include "libslic3r/Utils.hpp"
 #include "avrdude/avrdude-slic3r.hpp"
@@ -36,16 +38,20 @@ struct FirmwareDialog::priv
 
 	wxComboBox *port_picker;
 	wxFilePickerCtrl *hex_picker;
-	wxStaticText *status;
+	wxStaticText *txt_status;
+	wxStaticText *txt_progress;
+	wxGauge *progressbar;
 	wxTextCtrl *txt_stdout;
 	wxButton *btn_close;
 	wxButton *btn_flash;
-	
-	bool flashing;
 
-	priv() : 
+	bool flashing;
+	unsigned progress_tasks_done;
+
+	priv() :
 		avrdude_config((fs::path(::Slic3r::resources_dir()) / "avrdude" / "avrdude.conf").string()),
-		flashing(false)
+		flashing(false),
+		progress_tasks_done(0)
 	{}
 
 	void find_serial_ports();
@@ -68,22 +74,25 @@ void FirmwareDialog::priv::find_serial_ports()
 void FirmwareDialog::priv::set_flashing(bool value, int res)
 {
 	flashing = value;
-	
+
 	if (value) {
 		txt_stdout->SetValue(wxEmptyString);
-		status->SetLabel(_(L("Flashing in progress. Please do not disconnect the printer!")));
-		// auto status_color_orig = status->GetForegroundColour();
-		status->SetForegroundColour(GUI::get_label_clr_modified());
+		txt_status->SetLabel(_(L("Flashing in progress. Please do not disconnect the printer!")));
+		txt_status->SetForegroundColour(GUI::get_label_clr_modified());
 		btn_close->Disable();
 		btn_flash->Disable();
+		progressbar->SetRange(200);   // See progress callback below
+		progressbar->SetValue(0);
+		progress_tasks_done = 0;
 	} else {
 		auto text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 		btn_close->Enable();
 		btn_flash->Enable();
-		status->SetForegroundColour(text_color);
-		status->SetLabel(
+		txt_status->SetForegroundColour(text_color);
+		txt_status->SetLabel(
 			res == 0 ? _(L("Flashing succeeded!")) : _(L("Flashing failed. Please see the avrdude log below."))
 		);
+		progressbar->SetValue(200);
 	}
 }
 
@@ -105,6 +114,25 @@ void FirmwareDialog::priv::perform_upload()
 		wxTheApp->Yield();
 	};
 
+	auto progress_fn = [this](const char *, unsigned progress) {
+		// We try to track overall progress here.
+		// When uploading the firmware, avrdude first reas a littlebit of status data,
+		// then performs write, then reading (verification).
+		// We Pulse() during the first read and combine progress of the latter two tasks.
+
+		if (this->progress_tasks_done == 0) {
+			this->progressbar->Pulse();
+		} else {
+			this->progressbar->SetValue(this->progress_tasks_done - 100 + progress);
+		}
+
+		if (progress == 100) {
+			this->progress_tasks_done += 100;
+		}
+
+		wxTheApp->Yield();
+	};
+
 	std::vector<std::string> args {{
 		"-v",
 		"-p", "atmega2560",
@@ -120,7 +148,11 @@ void FirmwareDialog::priv::perform_upload()
 			return a + ' ' + b;
 		});
 
-	auto res = AvrDude::main(std::move(args), avrdude_config, std::move(message_fn));
+	auto res = AvrDude()
+		.sys_config(avrdude_config)
+		.on_message(std::move(message_fn))
+		.on_progress(std::move(progress_fn))
+		.run(std::move(args));
 
 	BOOST_LOG_TRIVIAL(info) << "avrdude exit code: " << res;
 
@@ -137,10 +169,13 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	enum {
 		DIALOG_MARGIN = 15,
 		SPACING = 10,
+		MIN_WIDTH = 600,
+		MIN_HEIGHT = 100,
+		LOG_MIN_HEIGHT = 200,
 	};
 
-	wxFont bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-	bold_font.MakeBold();
+	wxFont status_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	status_font.MakeBold();
 	wxFont mono_font(wxFontInfo().Family(wxFONTFAMILY_TELETYPE));
 	mono_font.MakeSmaller();
 
@@ -148,33 +183,50 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
 	panel->SetSizer(vsizer);
 
-	auto *txt_port_picker = new wxStaticText(panel, wxID_ANY, _(L("Serial port:")));
+	auto *label_port_picker = new wxStaticText(panel, wxID_ANY, _(L("Serial port:")));
 	p->port_picker = new wxComboBox(panel, wxID_ANY);
 	auto *btn_rescan = new wxButton(panel, wxID_ANY, _(L("Rescan")));
 	auto *port_sizer = new wxBoxSizer(wxHORIZONTAL);
 	port_sizer->Add(p->port_picker, 1, wxEXPAND | wxRIGHT, SPACING);
 	port_sizer->Add(btn_rescan, 0);
 
-	auto *txt_hex_picker = new wxStaticText(panel, wxID_ANY, _(L("Firmware image:")));
+	auto *label_hex_picker = new wxStaticText(panel, wxID_ANY, _(L("Firmware image:")));
 	p->hex_picker = new wxFilePickerCtrl(panel, wxID_ANY);
 
-	auto *txt_status = new wxStaticText(panel, wxID_ANY, _(L("Status:")));
-	p->status = new wxStaticText(panel, wxID_ANY, _(L("Ready")));
-	p->status->SetFont(bold_font);
+	auto *label_status = new wxStaticText(panel, wxID_ANY, _(L("Status:")));
+	p->txt_status = new wxStaticText(panel, wxID_ANY, _(L("Ready")));
+	p->txt_status->SetFont(status_font);
 
-	auto *sizer_pickers = new wxFlexGridSizer(2, SPACING, SPACING);
-	sizer_pickers->AddGrowableCol(1);
-	sizer_pickers->Add(txt_port_picker, 0, wxALIGN_CENTER_VERTICAL);
-	sizer_pickers->Add(port_sizer, 0, wxEXPAND);
-	sizer_pickers->Add(txt_hex_picker, 0, wxALIGN_CENTER_VERTICAL);
-	sizer_pickers->Add(p->hex_picker, 0, wxEXPAND);
-	sizer_pickers->Add(txt_status, 0, wxALIGN_CENTER_VERTICAL);
-	sizer_pickers->Add(p->status, 0, wxEXPAND);
-	vsizer->Add(sizer_pickers, 0, wxEXPAND | wxBOTTOM, SPACING);
+	auto *label_progress = new wxStaticText(panel, wxID_ANY, _(L("Progress:")));
+	p->progressbar = new wxGauge(panel, wxID_ANY, 1, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL | wxGA_SMOOTH);
 
-	p->txt_stdout = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
+	auto *grid = new wxFlexGridSizer(2, SPACING, SPACING);
+	grid->AddGrowableCol(1);
+	grid->Add(label_port_picker, 0, wxALIGN_CENTER_VERTICAL);
+	grid->Add(port_sizer, 0, wxEXPAND);
+
+	grid->Add(label_hex_picker, 0, wxALIGN_CENTER_VERTICAL);
+	grid->Add(p->hex_picker, 0, wxEXPAND);
+
+	grid->Add(label_status, 0, wxALIGN_CENTER_VERTICAL);
+	grid->Add(p->txt_status, 0, wxEXPAND);
+
+	grid->Add(label_progress, 0, wxALIGN_CENTER_VERTICAL);
+	grid->Add(p->progressbar, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
+
+	vsizer->Add(grid, 0, wxEXPAND | wxTOP | wxBOTTOM, SPACING);
+
+	// Unfortunatelly wxCollapsiblePane seems to resize parent in weird ways.
+	// Sometimes it disrespects min size.
+	// The only combo that seems to work well is setting size in its c-tor and a min size on the window.
+	auto *spoiler = new wxCollapsiblePane(panel, wxID_ANY, _(L("Advanced: avrdude output log")), wxDefaultPosition, wxSize(MIN_WIDTH, MIN_HEIGHT));
+	auto *spoiler_pane = spoiler->GetPane();
+	auto *spoiler_sizer = new wxBoxSizer(wxVERTICAL);
+	p->txt_stdout = new wxTextCtrl(spoiler_pane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(0, LOG_MIN_HEIGHT), wxTE_MULTILINE | wxTE_READONLY);
 	p->txt_stdout->SetFont(mono_font);
-	vsizer->Add(p->txt_stdout, 1, wxEXPAND | wxBOTTOM, SPACING);
+	spoiler_sizer->Add(p->txt_stdout, 1, wxEXPAND);
+	spoiler_pane->SetSizer(spoiler_sizer);
+	vsizer->Add(spoiler, 1, wxEXPAND | wxBOTTOM, SPACING);
 
 	p->btn_close = new wxButton(panel, wxID_CLOSE);
 	p->btn_flash = new wxButton(panel, wxID_ANY, _(L("Flash!")));
@@ -187,8 +239,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	auto *topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(panel, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
 	SetSizerAndFit(topsizer);
-	SetMinSize(wxSize(400, 400));
-	SetSize(wxSize(800, 800));
+	SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT));
 
 	p->find_serial_ports();
 
