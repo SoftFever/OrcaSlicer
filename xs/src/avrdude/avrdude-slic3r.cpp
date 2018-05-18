@@ -21,10 +21,10 @@ static void avrdude_message_handler_closure(const char *msg, unsigned size, void
 }
 
 // Used by our custom code in avrdude to report progress in the GUI
-static void avrdude_progress_handler_closure(const char *task, unsigned progress, void *user_p)
+static bool avrdude_progress_handler_closure(const char *task, unsigned progress, void *user_p)
 {
 	auto *progress_fn = reinterpret_cast<AvrDude::ProgressFn*>(user_p);
-	(*progress_fn)(task, progress);
+	return (*progress_fn)(task, progress);
 }
 
 
@@ -73,6 +73,8 @@ int AvrDude::priv::run() {
 
 AvrDude::AvrDude() : p(new priv()) {}
 
+AvrDude::AvrDude(AvrDude &&other) : p(std::move(other.p)) {}
+
 AvrDude::~AvrDude()
 {
 	if (p && p->avrdude_thread.joinable()) {
@@ -98,7 +100,7 @@ AvrDude& AvrDude::on_message(MessageFn fn)
 	return *this;
 }
 
-AvrDude& AvrDude::on_progress(MessageFn fn)
+AvrDude& AvrDude::on_progress(ProgressFn fn)
 {
 	if (p) { p->progress_fn = std::move(fn); }
 	return *this;

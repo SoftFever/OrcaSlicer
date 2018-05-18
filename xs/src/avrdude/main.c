@@ -115,12 +115,13 @@ int avrdude_message(const int msglvl, const char *format, ...)
 }
 
 
-static void avrdude_progress_handler_null(const char *task, unsigned progress, void *user_p)
+static bool avrdude_progress_handler_null(const char *task, unsigned progress, void *user_p)
 {
     // By default do nothing
     (void)task;
     (void)progress;
     (void)user_p;
+    return true;
 }
 
 static void *avrdude_progress_handler_user_p = NULL;
@@ -137,9 +138,9 @@ void avrdude_progress_handler_set(avrdude_progress_handler_t newhandler, void *u
     }
 }
 
-void avrdude_progress_external(const char *task, unsigned progress)
+bool avrdude_progress_external(const char *task, unsigned progress)
 {
-    avrdude_progress_handler(task, progress, avrdude_progress_handler_user_p);
+    return avrdude_progress_handler(task, progress, avrdude_progress_handler_user_p);
 }
 
 
@@ -244,12 +245,13 @@ static void usage(void)
 //   setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 // }
 
-static void update_progress_no_tty (int percent, double etime, char *hdr)
+static bool update_progress_no_tty (int percent, double etime, char *hdr)
 {
   static int done = 0;
   static int last = 0;
   static char *header = NULL;
   int cnt = (percent>>1)*2;
+  bool res = true;
 
   // setvbuf(stderr, (char*)NULL, _IONBF, 0);
 
@@ -258,7 +260,7 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
     last = 0;
     done = 0;
     header = hdr;
-    avrdude_progress_external(header, 0);
+    res = avrdude_progress_external(header, 0);
   }
   else {
     while ((cnt > last) && (done == 0)) {
@@ -267,7 +269,7 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
     }
 
     if (done == 0) {
-      avrdude_progress_external(header, percent > 99 ? 99 : percent);
+      res = avrdude_progress_external(header, percent > 99 ? 99 : percent);
     }
   }
 
@@ -281,6 +283,8 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
     last = (percent>>1)*2;    /* Make last a multiple of 2. */
 
   // setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+
+  return res;
 }
 
 static void list_programmers_callback(const char *name, const char *desc,

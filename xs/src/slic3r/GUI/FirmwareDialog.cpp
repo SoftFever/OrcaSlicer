@@ -17,6 +17,7 @@
 #include <wx/combobox.h>
 #include <wx/gauge.h>
 #include <wx/collpane.h>
+#include <wx/msgdlg.h>
 
 #include "libslic3r/Utils.hpp"
 #include "avrdude/avrdude-slic3r.hpp"
@@ -45,6 +46,14 @@ wxDEFINE_EVENT(EVT_AVRDUDE, wxCommandEvent);
 
 struct FirmwareDialog::priv
 {
+	enum AvrDudeComplete
+	{
+		AC_NONE,
+		AC_SUCCESS,
+		AC_FAILURE,
+		AC_CANCEL,
+	};
+
 	FirmwareDialog *q;      // PIMPL back pointer ("Q-Pointer")
 
 	wxComboBox *port_picker;
@@ -56,21 +65,27 @@ struct FirmwareDialog::priv
 	wxButton *btn_rescan;
 	wxButton *btn_close;
 	wxButton *btn_flash;
+	wxString btn_flash_label_ready;
+	wxString btn_flash_label_flashing;
 
 	// This is a shared pointer holding the background AvrDude task
 	// also serves as a status indication (it is set _iff_ the background task is running, otherwise it is reset).
 	AvrDude::Ptr avrdude;
 	std::string avrdude_config;
 	unsigned progress_tasks_done;
+	bool cancel;
 
 	priv(FirmwareDialog *q) :
 		q(q),
+		btn_flash_label_ready(_(L("Flash!"))),
+		btn_flash_label_flashing(_(L("Cancel"))),
 		avrdude_config((fs::path(::Slic3r::resources_dir()) / "avrdude" / "avrdude.conf").string()),
-		progress_tasks_done(0)
+		progress_tasks_done(0),
+		cancel(false)
 	{}
 
 	void find_serial_ports();
-	void flashing_status(bool flashing, int res = 0);
+	void flashing_status(bool flashing, AvrDudeComplete complete = AC_NONE);
 	void perform_upload();
 	void on_avrdude(const wxCommandEvent &evt);
 };
@@ -87,7 +102,7 @@ void FirmwareDialog::priv::find_serial_ports()
 	}
 }
 
-void FirmwareDialog::priv::flashing_status(bool value, int res)
+void FirmwareDialog::priv::flashing_status(bool value, AvrDudeComplete complete)
 {
 	if (value) {
 		txt_stdout->SetValue(wxEmptyString);
@@ -97,22 +112,26 @@ void FirmwareDialog::priv::flashing_status(bool value, int res)
 		btn_rescan->Disable();
 		hex_picker->Disable();
 		btn_close->Disable();
-		btn_flash->Disable();
+		btn_flash->SetLabel(btn_flash_label_flashing);
 		progressbar->SetRange(200);   // See progress callback below
 		progressbar->SetValue(0);
 		progress_tasks_done = 0;
+		cancel = false;
 	} else {
 		auto text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 		port_picker->Enable();
 		btn_rescan->Enable();
 		hex_picker->Enable();
 		btn_close->Enable();
-		btn_flash->Enable();
+		btn_flash->SetLabel(btn_flash_label_ready);
 		txt_status->SetForegroundColour(text_color);
-		txt_status->SetLabel(
-			res == 0 ? _(L("Flashing succeeded!")) : _(L("Flashing failed. Please see the avrdude log below."))
-		);
 		progressbar->SetValue(200);
+
+		switch (complete) {
+		case AC_SUCCESS: txt_status->SetLabel(_(L("Flashing succeeded!"))); break;
+		case AC_FAILURE: txt_status->SetLabel(_(L("Flashing failed. Please see the avrdude log below."))); break;
+		case AC_CANCEL: txt_status->SetLabel(_(L("Flashing cancelled."))); break;
+		}
 	}
 }
 
@@ -152,11 +171,12 @@ void FirmwareDialog::priv::perform_upload()
 			evt->SetString(msg);
 			wxQueueEvent(q, evt);
 		}))
-		.on_progress(std::move([q](const char * /* task */, unsigned progress) {
-			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
+		.on_progress(std::move([this](const char * /* task */, unsigned progress) {
+			auto evt = new wxCommandEvent(EVT_AVRDUDE, this->q->GetId());
 			evt->SetExtraLong(AE_PRORGESS);
 			evt->SetInt(progress);
-			wxQueueEvent(q, evt);
+			wxQueueEvent(this->q, evt);
+			return !this->cancel;
 		}))
 		.on_complete(std::move([q](int status) {
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
@@ -169,8 +189,9 @@ void FirmwareDialog::priv::perform_upload()
 
 void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
 {
-	switch (evt.GetExtraLong())
-	{
+	AvrDudeComplete complete_kind;
+
+	switch (evt.GetExtraLong()) {
 	case AE_MESSAGE:
 		txt_stdout->AppendText(evt.GetString());
 		break;
@@ -195,7 +216,9 @@ void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
 
 	case AE_EXIT:
 		BOOST_LOG_TRIVIAL(info) << "avrdude exit code: " << evt.GetInt();
-		flashing_status(false, evt.GetInt());
+
+		complete_kind = cancel ? AC_CANCEL : (evt.GetInt() == 0 ? AC_SUCCESS : AC_FAILURE);
+		flashing_status(false, complete_kind);
 
 		// Make sure the background thread is collected and the AvrDude object reset
 		if (avrdude) { avrdude->join(); }
@@ -278,7 +301,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	vsizer->Add(spoiler, 1, wxEXPAND | wxBOTTOM, SPACING);
 
 	p->btn_close = new wxButton(panel, wxID_CLOSE);
-	p->btn_flash = new wxButton(panel, wxID_ANY, _(L("Flash!")));
+	p->btn_flash = new wxButton(panel, wxID_ANY, p->btn_flash_label_ready);
 	auto *bsizer = new wxBoxSizer(wxHORIZONTAL);
 	bsizer->Add(p->btn_close);
 	bsizer->AddStretchSpacer();
@@ -293,8 +316,23 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	p->find_serial_ports();
 
 	p->btn_close->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->Close(); });
-	p->btn_flash->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->perform_upload(); });
 	p->btn_rescan->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->find_serial_ports(); });
+
+	p->btn_flash->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
+		if (this->p->avrdude) {
+			// Flashing is in progress, ask the user if they're really sure about canceling it
+			wxMessageDialog dlg(this,
+				_(L("Are you sure you want to cancel firmware flashing?\nThis could leave your printer in an unusable state!")),
+				_(L("Confirmation")),
+				wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+			if (dlg.ShowModal() == wxID_YES) {
+				this->p->cancel = true;
+			}
+		} else {
+			// Start a flashing task
+			this->p->perform_upload();
+		}
+	});
 
 	Bind(EVT_AVRDUDE, [this](wxCommandEvent &evt) { this->p->on_avrdude(evt); });
 

@@ -727,7 +727,7 @@ void sort_programmers(LISTID programmers);
 
 /* formerly avr.h */
 
-typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
+typedef bool (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 extern struct avrpart parts[];
 
@@ -769,7 +769,7 @@ int avr_mem_hiaddr(AVRMEM * mem);
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
 
-void report_progress (int completed, int total, char *hdr);
+bool report_progress (int completed, int total, char *hdr);
 
 #ifdef __cplusplus
 }

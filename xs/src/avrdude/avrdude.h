@@ -21,6 +21,8 @@
 #ifndef avrdude_h
 #define avrdude_h
 
+#include <stdbool.h>
+
 extern char * progname;		/* name of program, for messages */
 extern char progbuf[];		/* spaces same length as progname */
 
@@ -34,9 +36,9 @@ int avrdude_message(const int msglvl, const char *format, ...);
 
 // Progress reporting callback
 // `progress` is in range 0 ~ 100 percent
-typedef void (*avrdude_progress_handler_t)(const char *task, unsigned progress, void *user_p);
+typedef bool (*avrdude_progress_handler_t)(const char *task, unsigned progress, void *user_p);
 void avrdude_progress_handler_set(avrdude_progress_handler_t newhandler, void *user_p);
-void avrdude_progress_external(const char *task, unsigned progress);
+bool avrdude_progress_external(const char *task, unsigned progress);
 
 #define MSG_INFO    (0) /* no -v option, can be supressed with -qq */
 #define MSG_NOTICE  (1) /* displayed with -v */

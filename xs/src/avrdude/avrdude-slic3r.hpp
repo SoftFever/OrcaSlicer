@@ -13,11 +13,11 @@ class AvrDude
 public:
 	typedef std::shared_ptr<AvrDude> Ptr;
 	typedef std::function<void(const char * /* msg */, unsigned /* size */)> MessageFn;
-	typedef std::function<void(const char * /* task */, unsigned /* progress */)> ProgressFn;
+	typedef std::function<bool(const char * /* task */, unsigned /* progress */)> ProgressFn;
 	typedef std::function<void(int /* exit status */)> CompleteFn;
 
 	AvrDude();
-	AvrDude(AvrDude &&) = default;
+	AvrDude(AvrDude &&);
 	AvrDude(const AvrDude &) = delete;
 	AvrDude &operator=(AvrDude &&) = delete;
 	AvrDude &operator=(const AvrDude &) = delete;
@@ -34,7 +34,8 @@ public:
 
 	// Set progress report callback
 	// Progress is reported per each task (reading / writing), progress is reported in percents.
-	AvrDude& on_progress(MessageFn fn);
+	// The callback's return value indicates whether to continue flashing (true) or cancel (false).
+	AvrDude& on_progress(ProgressFn fn);
 
 	// Called when avrdude's main function finishes
 	AvrDude& on_complete(CompleteFn fn);
