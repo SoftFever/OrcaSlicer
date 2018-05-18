@@ -254,8 +254,11 @@ sub _update {
                     for @$expolygon;
                 $expolygon->translate(map Slic3r::Geometry::scale($_), @{ $self->{model_object}->instances->[0]->offset });
             }
-            
-            $self->{canvas}->reset_objects;
+
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});           
+#            $self->{canvas}->reset_objects;
+#==============================================================================================================================
             $self->{canvas}->load_object($_, undef, undef, [0]) for @objects;
             $self->{canvas}->SetCuttingPlane(
                 $self->{cut_options}{z},

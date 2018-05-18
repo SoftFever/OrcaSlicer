@@ -197,7 +197,10 @@ sub update_volumes_selection {
 sub reload_scene {
     my ($self, $force) = @_;
 
-    $self->reset_objects;
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::reset_volumes($self);
+#    $self->reset_objects;
+#==============================================================================================================================
     $self->update_bed_size;
 
     if (! $self->IsShown && ! $force) {

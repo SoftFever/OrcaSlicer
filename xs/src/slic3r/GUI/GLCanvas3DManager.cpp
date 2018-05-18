@@ -187,6 +187,13 @@ void GLCanvas3DManager::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volu
         it->second->set_volumes(volumes);
 }
 
+void GLCanvas3DManager::reset_volumes(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->reset_volumes();
+}
+
 void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -340,6 +347,12 @@ void GLCanvas3DManager::set_camera_target(wxGLCanvas* canvas, const Pointf3* tar
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_camera_target(*target);
+}
+
+bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_layers_editing_enabled() : false;
 }
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)

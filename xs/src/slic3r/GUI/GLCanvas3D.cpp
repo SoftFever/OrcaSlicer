@@ -395,6 +395,16 @@ void GLCanvas3D::CuttingPlane::render_contour()
     ::glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+GLCanvas3D::LayersEditing::LayersEditing()
+    : m_enabled(false)
+{
+}
+
+bool GLCanvas3D::LayersEditing::is_enabled() const
+{
+    return m_enabled;
+}
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
     , m_context(context)
@@ -409,10 +419,15 @@ GLCanvas3D::~GLCanvas3D()
     _deregister_callbacks();
 }
 
-void GLCanvas3D::set_current()
+bool GLCanvas3D::set_current()
 {
     if ((m_canvas != nullptr) && (m_context != nullptr))
+    {
         m_canvas->SetCurrent(*m_context);
+        return true;
+    }
+
+    return false;
 }
 
 bool GLCanvas3D::is_dirty() const
@@ -505,6 +520,16 @@ GLVolumeCollection* GLCanvas3D::get_volumes()
 void GLCanvas3D::set_volumes(GLVolumeCollection* volumes)
 {
     m_volumes = volumes;
+}
+
+void GLCanvas3D::reset_volumes()
+{
+    if (set_current() && (m_volumes != nullptr))
+    {
+        m_volumes->release_geometry();
+        m_volumes->clear();
+        set_dirty(true);
+    }
 }
 
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
@@ -650,6 +675,11 @@ BoundingBoxf3 GLCanvas3D::max_bounding_box() const
     BoundingBoxf3 bb = bed_bounding_box();
     bb.merge(volumes_bounding_box());
     return bb;
+}
+
+bool GLCanvas3D::is_layers_editing_enabled() const
+{
+    return m_layers_editing.is_enabled();
 }
 
 void GLCanvas3D::zoom_to_bed()

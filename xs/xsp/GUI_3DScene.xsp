@@ -207,6 +207,12 @@ set_volumes(canvas, volumes)
         GLVolumeCollection *volumes;
     CODE:
         _3DScene::set_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), volumes);
+
+void
+reset_volumes(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::reset_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
         
 void
 set_bed_shape(canvas, shape)

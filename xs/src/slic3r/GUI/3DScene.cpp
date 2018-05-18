@@ -1772,6 +1772,11 @@ void _3DScene::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes)
     s_canvas_mgr.set_volumes(canvas, volumes);
 }
 
+void _3DScene::reset_volumes(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.reset_volumes(canvas);
+}
+
 void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 {
     return s_canvas_mgr.set_bed_shape(canvas, shape);
@@ -1886,6 +1891,11 @@ Pointf3 _3DScene::get_camera_target(wxGLCanvas* canvas)
 void _3DScene::set_camera_target(wxGLCanvas* canvas, const Pointf3* target)
 {
     s_canvas_mgr.set_camera_target(canvas, target);
+}
+ 
+bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_layers_editing_enabled(canvas);
 }
 
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)

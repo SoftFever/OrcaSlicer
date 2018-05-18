@@ -128,6 +128,16 @@ public:
         void render_contour();
     };
 
+    class LayersEditing
+    {
+        bool m_enabled;
+
+    public:
+        LayersEditing();
+
+        bool is_enabled() const;
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
@@ -135,6 +145,7 @@ private:
     Bed m_bed;
     Axes m_axes;
     CuttingPlane m_cutting_plane;
+    LayersEditing m_layers_editing;
 
     GLVolumeCollection* m_volumes;
 
@@ -147,7 +158,7 @@ public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
     ~GLCanvas3D();
 
-    void set_current();
+    bool set_current();
 
     bool is_dirty() const;
     void set_dirty(bool dirty);
@@ -158,6 +169,8 @@ public:
 
     GLVolumeCollection* get_volumes();
     void set_volumes(GLVolumeCollection* volumes);
+
+    void reset_volumes();
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -197,6 +210,8 @@ public:
     BoundingBoxf3 bed_bounding_box() const;
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 max_bounding_box() const;
+
+    bool is_layers_editing_enabled() const;
 
     void zoom_to_bed();
     void zoom_to_volumes();

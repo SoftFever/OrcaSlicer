@@ -494,7 +494,10 @@ sub _parts_changed {
     
     $self->reload_tree;
     if ($self->{canvas}) {
-        $self->{canvas}->reset_objects;
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});           
+#        $self->{canvas}->reset_objects;
+#==============================================================================================================================
         $self->{canvas}->load_object($self->{model_object});
         $self->{canvas}->zoom_to_volumes;
         $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
@@ -539,7 +542,10 @@ sub _update_canvas {
     my ($self) = @_;
     
     if ($self->{canvas}) {
-        $self->{canvas}->reset_objects;
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});           
+#        $self->{canvas}->reset_objects;
+#==============================================================================================================================
         $self->{canvas}->load_object($self->{model_object});
 
         # restore selection, if any
@@ -572,7 +578,10 @@ sub _update {
     $self->{parts_changed} = 1;
     my @objects = ();
     push @objects, $self->{model_object};
-    $self->{canvas}->reset_objects;
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});           
+#    $self->{canvas}->reset_objects;
+#==============================================================================================================================
     $self->{canvas}->load_object($_, undef, [0]) for @objects;
     $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
     $self->{canvas}->Render;

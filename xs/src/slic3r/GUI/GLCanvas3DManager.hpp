@@ -62,6 +62,8 @@ public:
     GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
 
+    void reset_volumes(wxGLCanvas* canvas);
+
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
     void set_auto_bed_shape(wxGLCanvas* canvas);
 
@@ -95,6 +97,8 @@ public:
 
     Pointf3 get_camera_target(wxGLCanvas* canvas) const;
     void set_camera_target(wxGLCanvas* canvas, const Pointf3* target);
+
+    bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
 
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);

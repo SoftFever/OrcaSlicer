@@ -110,7 +110,9 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               
 use constant TRACKBALLSIZE  => 0.8;
 use constant TURNTABLE_MODE => 1;
-use constant GROUND_Z       => -0.02;
+#==============================================================================================================================
+#use constant GROUND_Z       => -0.02;
+#==============================================================================================================================
 # For mesh selection: Not selected - bright yellow.
 use constant DEFAULT_COLOR  => [1,1,0];
 # For mesh selection: Selected - bright green.
@@ -127,13 +129,11 @@ use constant HOVER_COLOR    => [0.4,0.9,0,1];
 #use constant VIEW_BOTTOM     => [0.0,180.0];
 #use constant VIEW_FRONT      => [0.0,90.0];
 #use constant VIEW_REAR       => [180.0,90.0];
-#==============================================================================================================================
-
-use constant MANIPULATION_IDLE          => 0;
-use constant MANIPULATION_DRAGGING      => 1;
-use constant MANIPULATION_LAYER_HEIGHT  => 2;
-
-#==============================================================================================================================
+#
+#use constant MANIPULATION_IDLE          => 0;
+#use constant MANIPULATION_DRAGGING      => 1;
+#use constant MANIPULATION_LAYER_HEIGHT  => 2;
+#
 #use constant GIMBALL_LOCK_THETA_MAX => 180;
 #==============================================================================================================================
 
@@ -223,7 +223,10 @@ sub new {
     $self->{layer_height_edit_last_z} = 0.;
     $self->{layer_height_edit_last_action} = 0;
 
-    $self->reset_objects;
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::reset_volumes($self);
+#    $self->reset_objects;
+#==============================================================================================================================
     
     EVT_PAINT($self, sub {
         my $dc = Wx::PaintDC->new($self);
@@ -723,19 +726,18 @@ sub mouse_wheel_event {
     $self->Refresh;
 }
 
-# Reset selection.
-sub reset_objects {
-    my ($self) = @_;
-    if ($self->GetContext) {
-        $self->SetCurrent($self->GetContext);
-        $self->volumes->release_geometry;
-    }
-    $self->volumes->erase;
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_dirty($self, 1);
+## Reset selection.
+#sub reset_objects {
+#    my ($self) = @_;
+#    if ($self->GetContext) {
+#        $self->SetCurrent($self->GetContext);
+#        $self->volumes->release_geometry;
+#    }
+#    $self->volumes->erase;
 #    $self->_dirty(1);
+#}
 #==============================================================================================================================
-}
 
 # Setup camera to view all objects.
 sub set_viewport_from_scene {
@@ -1515,8 +1517,10 @@ sub Render {
     # draw ground and axes
     glDisable(GL_LIGHTING);
     
-    # draw ground
-    my $ground_z = GROUND_Z;
+#==============================================================================================================================
+#    # draw ground
+#    my $ground_z = GROUND_Z;
+#==============================================================================================================================
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::render_bed($self);
     
