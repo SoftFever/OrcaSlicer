@@ -283,6 +283,14 @@ is_shown_on_screen(canvas)
     OUTPUT:
         RETVAL
 
+void
+set_cutting_plane(canvas, z, polygons)
+        SV         *canvas;
+        float      z;
+        ExPolygons polygons;
+    CODE:
+        _3DScene::set_cutting_plane((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), z, polygons);
+        
 unsigned int
 get_camera_type(canvas)
         SV *canvas;
@@ -401,10 +409,16 @@ select_view(canvas, direction)
         _3DScene::select_view((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), direction);
 
 void
-render(canvas)
+render_bed(canvas)
         SV *canvas;
     CODE:
-        _3DScene::render((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+        _3DScene::render_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    
+void
+render_cutting_plane(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::render_cutting_plane((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     
 void
 register_on_viewport_changed_callback(canvas, callback)

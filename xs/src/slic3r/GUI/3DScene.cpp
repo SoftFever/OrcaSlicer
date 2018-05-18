@@ -1808,6 +1808,11 @@ BoundingBoxf3 _3DScene::get_max_bounding_box(wxGLCanvas* canvas)
     return s_canvas_mgr.get_max_bounding_box(canvas);
 }
 
+void _3DScene::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
+{
+    return s_canvas_mgr.set_cutting_plane(canvas, z, polygons);
+}
+
 unsigned int _3DScene::get_camera_type(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_camera_type(canvas);
@@ -1888,9 +1893,14 @@ void _3DScene::select_view(wxGLCanvas* canvas, const std::string& direction)
     s_canvas_mgr.select_view(canvas, direction);
 }
 
-void _3DScene::render(wxGLCanvas* canvas)
+void _3DScene::render_bed(wxGLCanvas* canvas)
 {
-    s_canvas_mgr.render(canvas);
+    s_canvas_mgr.render_bed(canvas);
+}
+
+void _3DScene::render_cutting_plane(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.render_cutting_plane(canvas);
 }
 
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

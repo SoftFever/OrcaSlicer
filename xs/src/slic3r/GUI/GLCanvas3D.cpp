@@ -230,8 +230,7 @@ void GLCanvas3D::Bed::render()
         ::glColor4f(0.8f, 0.6f, 0.5f, 0.4f);
         ::glNormal3d(0.0f, 0.0f, 1.0f);
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_data());
-        ::glDrawArrays(GL_TRIANGLES, 0, triangles_vcount);
-//        ::glDisableClientState(GL_VERTEX_ARRAY);
+        ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount);
 
         // we need depth test for grid, otherwise it would disappear when looking
         // the object from below
@@ -242,9 +241,8 @@ void GLCanvas3D::Bed::render()
 
         ::glLineWidth(3.0f);
         ::glColor4f(0.2f, 0.2f, 0.2f, 0.4f);
-//        ::glEnableClientState(GL_VERTEX_ARRAY);
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_data());
-        ::glDrawArrays(GL_LINES, 0, gridlines_vcount);
+        ::glDrawArrays(GL_LINES, 0, (GLsizei)gridlines_vcount);
 
         ::glDisableClientState(GL_VERTEX_ARRAY);
 
@@ -297,6 +295,66 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
 
     if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
         printf("Unable to create bed grid lines\n");
+}
+
+GLCanvas3D::CuttingPlane::CuttingPlane()
+    : m_z(-1.0f)
+{
+}
+
+bool GLCanvas3D::CuttingPlane::set(float z, const ExPolygons& polygons)
+{
+    m_z = z;
+
+    // grow slices in order to display them better
+    ExPolygons expolygons = offset_ex(polygons, scale_(0.1));
+    Lines lines = to_lines(expolygons);
+    return m_lines.set_from_lines(lines, m_z);
+}
+
+void GLCanvas3D::CuttingPlane::render_plane(const BoundingBoxf3& bb)
+{
+    if (m_z >= 0.0f)
+    {
+        ::glDisable(GL_CULL_FACE);
+        ::glDisable(GL_LIGHTING);
+        ::glEnable(GL_BLEND);
+        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        float margin = 20.0f;
+        float min_x = bb.min.x - margin;
+        float max_x = bb.max.x + margin;
+        float min_y = bb.min.y - margin;
+        float max_y = bb.max.y + margin;
+
+        ::glBegin(GL_QUADS);
+        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+        ::glVertex3f(min_x, min_y, m_z);
+        ::glVertex3f(max_x, min_y, m_z);
+        ::glVertex3f(max_x, max_y, m_z);
+        ::glVertex3f(min_x, max_y, m_z);
+        ::glEnd();
+
+        ::glEnable(GL_CULL_FACE);
+        ::glDisable(GL_BLEND);
+    }
+}
+
+void GLCanvas3D::CuttingPlane::render_contour()
+{
+    ::glEnableClientState(GL_VERTEX_ARRAY);
+
+    if (m_z >= 0.0f)
+    {
+        unsigned int lines_vcount = m_lines.get_data_size() / 3;
+
+        ::glLineWidth(2.0f);
+        ::glColor3f(0.0f, 0.0f, 0.0f);
+        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_lines.get_data());
+        ::glDrawArrays(GL_LINES, 0, (GLsizei)lines_vcount);
+    }
+
+    ::glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
@@ -446,6 +504,11 @@ void GLCanvas3D::set_bed_origin(const Pointf& origin)
     m_bed.set_origin(origin);
 }
 
+void GLCanvas3D::set_cutting_plane(float z, const ExPolygons& polygons)
+{
+    m_cutting_plane.set(z, polygons);
+}
+
 GLCanvas3D::Camera::EType GLCanvas3D::get_camera_type() const
 {
     return m_camera.get_type();
@@ -580,9 +643,15 @@ void GLCanvas3D::select_view(const std::string& direction)
     }
 }
 
-void GLCanvas3D::render()
+void GLCanvas3D::render_bed()
 {
     m_bed.render();
+}
+
+void GLCanvas3D::render_cutting_plane()
+{
+    m_cutting_plane.render_plane(volumes_bounding_box());
+    m_cutting_plane.render_contour();
 }
 
 void GLCanvas3D::register_on_viewport_changed_callback(void* callback)

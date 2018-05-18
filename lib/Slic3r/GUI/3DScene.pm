@@ -46,8 +46,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               on_move
                               on_model_update
                               volumes
-                              cutting_plane_z
-                              cut_lines_vertices
                               background
                               _mouse_pos
                               _hover_volume_idx
@@ -1071,19 +1069,23 @@ sub select_volume {
 sub SetCuttingPlane {
     my ($self, $z, $expolygons) = @_;
     
-    $self->cutting_plane_z($z);
-    
-    # grow slices in order to display them better
-    $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
-    
-    my @verts = ();
-    foreach my $line (map @{$_->lines}, map @$_, @$expolygons) {
-        push @verts, (
-            unscale($line->a->x), unscale($line->a->y), $z,  #))
-            unscale($line->b->x), unscale($line->b->y), $z,  #))
-        );
-    }
-    $self->cut_lines_vertices(OpenGL::Array->new_list(GL_FLOAT, @verts));
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_cutting_plane($self, $z, $expolygons);
+
+#    $self->cutting_plane_z($z);
+#    
+#    # grow slices in order to display them better
+#    $expolygons = offset_ex([ map @$_, @$expolygons ], scale 0.1);
+#    
+#    my @verts = ();
+#    foreach my $line (map @{$_->lines}, map @$_, @$expolygons) {
+#        push @verts, (
+#            unscale($line->a->x), unscale($line->a->y), $z,  #))
+#            unscale($line->b->x), unscale($line->b->y), $z,  #))
+#        );
+#    }
+#    $self->cut_lines_vertices(OpenGL::Array->new_list(GL_FLOAT, @verts));
+#==============================================================================================================================
 }
 
 # Given an axis and angle, compute quaternion.
@@ -1516,7 +1518,7 @@ sub Render {
     # draw ground
     my $ground_z = GROUND_Z;
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::render($self);
+    Slic3r::GUI::_3DScene::render_bed($self);
     
 #    if ($self->bed_triangles) {
 #        glDisable(GL_DEPTH_TEST);
@@ -1603,33 +1605,37 @@ sub Render {
         glEnable(GL_CULL_FACE) if ($self->enable_picking);
     }
 
-    if (defined $self->cutting_plane_z) {
-        # draw cutting plane
-        my $plane_z = $self->cutting_plane_z;
-        my $bb = $volumes_bb;
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_LIGHTING);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        glColor4f(0.8, 0.8, 0.8, 0.5);
-        glVertex3f($bb->x_min-20, $bb->y_min-20, $plane_z);
-        glVertex3f($bb->x_max+20, $bb->y_min-20, $plane_z);
-        glVertex3f($bb->x_max+20, $bb->y_max+20, $plane_z);
-        glVertex3f($bb->x_min-20, $bb->y_max+20, $plane_z);
-        glEnd();
-        glEnable(GL_CULL_FACE);
-        glDisable(GL_BLEND);
-        
-        # draw cutting contours
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glLineWidth(2);
-        glColor3f(0, 0, 0);
-        glVertexPointer_c(3, GL_FLOAT, 0, $self->cut_lines_vertices->ptr());
-        glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
-        glVertexPointer_c(3, GL_FLOAT, 0, 0);
-        glDisableClientState(GL_VERTEX_ARRAY);
-    }
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::render_cutting_plane($self);
+    
+#    if (defined $self->cutting_plane_z) {
+#        # draw cutting plane
+#        my $plane_z = $self->cutting_plane_z;
+#        my $bb = $volumes_bb;
+#        glDisable(GL_CULL_FACE);
+#        glDisable(GL_LIGHTING);
+#        glEnable(GL_BLEND);
+#        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#        glBegin(GL_QUADS);
+#        glColor4f(0.8, 0.8, 0.8, 0.5);
+#        glVertex3f($bb->x_min-20, $bb->y_min-20, $plane_z);
+#        glVertex3f($bb->x_max+20, $bb->y_min-20, $plane_z);
+#        glVertex3f($bb->x_max+20, $bb->y_max+20, $plane_z);
+#        glVertex3f($bb->x_min-20, $bb->y_max+20, $plane_z);
+#        glEnd();
+#        glEnable(GL_CULL_FACE);
+#        glDisable(GL_BLEND);
+#        
+#        # draw cutting contours
+#        glEnableClientState(GL_VERTEX_ARRAY);
+#        glLineWidth(2);
+#        glColor3f(0, 0, 0);
+#        glVertexPointer_c(3, GL_FLOAT, 0, $self->cut_lines_vertices->ptr());
+#        glDrawArrays(GL_LINES, 0, $self->cut_lines_vertices->elements / 3);
+#        glVertexPointer_c(3, GL_FLOAT, 0, 0);
+#        glDisableClientState(GL_VERTEX_ARRAY);
+#    }
+#==============================================================================================================================
 
     # draw warning message
     $self->draw_warning;

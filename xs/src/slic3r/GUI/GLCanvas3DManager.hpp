@@ -1,7 +1,7 @@
 #ifndef slic3r_GLCanvas3DManager_hpp_
 #define slic3r_GLCanvas3DManager_hpp_
 
-#include "GLCanvas3D.hpp"
+#include "../../slic3r/GUI/GLCanvas3D.hpp"
 
 #include <map>
 
@@ -72,6 +72,8 @@ public:
     BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
     BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
 
+    void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
+
     unsigned int get_camera_type(wxGLCanvas* canvas) const;
     void set_camera_type(wxGLCanvas* canvas, unsigned int type);
     std::string get_camera_type_as_string(wxGLCanvas* canvas) const;
@@ -95,7 +97,8 @@ public:
     void zoom_to_volumes(wxGLCanvas* canvas);
     void select_view(wxGLCanvas* canvas, const std::string& direction);
 
-    void render(wxGLCanvas* canvas);
+    void render_bed(wxGLCanvas* canvas);
+    void render_cutting_plane(wxGLCanvas* canvas);
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 

@@ -562,6 +562,8 @@ public:
     static BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
     static BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
 
+    static void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
+
     static unsigned int get_camera_type(wxGLCanvas* canvas);
     static void set_camera_type(wxGLCanvas* canvas, unsigned int type);
     static std::string get_camera_type_as_string(wxGLCanvas* canvas);
@@ -585,7 +587,8 @@ public:
     static void zoom_to_volumes(wxGLCanvas* canvas);
     static void select_view(wxGLCanvas* canvas, const std::string& direction);
 
-    static void render(wxGLCanvas* canvas);
+    static void render_bed(wxGLCanvas* canvas);
+    static void render_cutting_plane(wxGLCanvas* canvas);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 

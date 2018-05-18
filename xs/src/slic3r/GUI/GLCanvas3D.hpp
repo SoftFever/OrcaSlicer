@@ -3,6 +3,7 @@
 
 #include "../../libslic3r/BoundingBox.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "../../libslic3r/ExPolygon.hpp"
 
 class wxGLCanvas;
 class wxGLContext;
@@ -100,11 +101,26 @@ public:
         void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     };
 
+    class CuttingPlane
+    {
+        float m_z;
+        GeometryBuffer m_lines;
+
+    public:
+        CuttingPlane();
+
+        bool set(float z, const ExPolygons& polygons);
+
+        void render_plane(const BoundingBoxf3& bb);
+        void render_contour();
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
     Camera m_camera;
     Bed m_bed;
+    CuttingPlane m_cutting_plane;
 
     GLVolumeCollection* m_volumes;
 
@@ -140,6 +156,8 @@ public:
     const Pointf& get_bed_origin() const;
     void set_bed_origin(const Pointf& origin);
 
+    void set_cutting_plane(float z, const ExPolygons& polygons);
+
     Camera::EType get_camera_type() const;
     void set_camera_type(Camera::EType type);
     std::string get_camera_type_as_string() const;
@@ -167,7 +185,8 @@ public:
     void zoom_to_volumes();
     void select_view(const std::string& direction);
 
-    void render();
+    void render_bed();
+    void render_cutting_plane();
 
     void register_on_viewport_changed_callback(void* callback);
 

@@ -232,6 +232,13 @@ BoundingBoxf3 GLCanvas3DManager::get_max_bounding_box(wxGLCanvas* canvas)
     return (it != m_canvases.end()) ? it->second->max_bounding_box() : BoundingBoxf3();
 }
 
+void GLCanvas3DManager::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_cutting_plane(z, polygons);
+}
+
 unsigned int GLCanvas3DManager::get_camera_type(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -343,11 +350,18 @@ void GLCanvas3DManager::select_view(wxGLCanvas* canvas, const std::string& direc
         it->second->select_view(direction);
 }
 
-void GLCanvas3DManager::render(wxGLCanvas* canvas)
+void GLCanvas3DManager::render_bed(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->render();
+        it->second->render_bed();
+}
+
+void GLCanvas3DManager::render_cutting_plane(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->render_cutting_plane();
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
