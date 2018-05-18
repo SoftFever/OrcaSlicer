@@ -168,52 +168,42 @@ ExPolygon::overlaps(const ExPolygon &other) const
     return ! other.contour.points.empty() && this->contains_b(other.contour.points.front());
 }
 
-void
-ExPolygon::simplify_p(double tolerance, Polygons* polygons) const
+void ExPolygon::simplify_p(double tolerance, Polygons* polygons) const
 {
     Polygons pp = this->simplify_p(tolerance);
     polygons->insert(polygons->end(), pp.begin(), pp.end());
 }
 
-Polygons
-ExPolygon::simplify_p(double tolerance) const
+Polygons ExPolygon::simplify_p(double tolerance) const
 {
     Polygons pp;
     pp.reserve(this->holes.size() + 1);
-    
     // contour
     {
         Polygon p = this->contour;
         p.points.push_back(p.points.front());
         p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
         p.points.pop_back();
-        pp.push_back(p);
+        pp.emplace_back(std::move(p));
     }
-    
     // holes
-    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
-        Polygon p = *it;
+    for (Polygon p : this->holes) {
         p.points.push_back(p.points.front());
         p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
         p.points.pop_back();
-        pp.push_back(p);
+        pp.emplace_back(std::move(p));
     }
-    pp = simplify_polygons(pp);
-    return pp;
+    return simplify_polygons(pp);
 }
 
-ExPolygons
-ExPolygon::simplify(double tolerance) const
+ExPolygons ExPolygon::simplify(double tolerance) const
 {
-    Polygons pp = this->simplify_p(tolerance);
-    return union_ex(pp);
+    return union_ex(this->simplify_p(tolerance));
 }
 
-void
-ExPolygon::simplify(double tolerance, ExPolygons* expolygons) const
+void ExPolygon::simplify(double tolerance, ExPolygons* expolygons) const
 {
-    ExPolygons ep = this->simplify(tolerance);
-    expolygons->insert(expolygons->end(), ep.begin(), ep.end());
+    append(*expolygons, this->simplify(tolerance));
 }
 
 void
