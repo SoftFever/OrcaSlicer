@@ -458,6 +458,19 @@ offset2_ex(const Polygons &polygons, const float delta1, const float delta2,
     return ClipperPaths_to_Slic3rExPolygons(output);
 }
 
+//FIXME Vojtech: This functon may likely be optimized to avoid some of the Slic3r to Clipper 
+// conversions and unnecessary Clipper calls.
+ExPolygons offset2_ex(const ExPolygons &expolygons, const float delta1,
+    const float delta2, ClipperLib::JoinType joinType, double miterLimit)
+{
+    Polygons polys;
+    for (const ExPolygon &expoly : expolygons)
+        append(polys, 
+               offset(offset_ex(expoly, delta1, joinType, miterLimit), 
+                      delta2, joinType, miterLimit));
+    return union_ex(polys);
+}
+
 template <class T>
 T
 _clipper_do(const ClipperLib::ClipType clipType, const Polygons &subject, 
@@ -650,8 +663,7 @@ union_pt_chained(const Polygons &subject, bool safety_offset_)
     return retval;
 }
 
-void
-traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
+void traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
 {
     /* use a nearest neighbor search to order these children
        TODO: supply start_near to chained_path() too? */
@@ -677,8 +689,7 @@ traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
     }
 }
 
-Polygons
-simplify_polygons(const Polygons &subject, bool preserve_collinear)
+Polygons simplify_polygons(const Polygons &subject, bool preserve_collinear)
 {
     // convert into Clipper polygons
     ClipperLib::Paths input_subject = Slic3rMultiPoints_to_ClipperPaths(subject);
@@ -698,13 +709,11 @@ simplify_polygons(const Polygons &subject, bool preserve_collinear)
     return ClipperPaths_to_Slic3rPolygons(output);
 }
 
-ExPolygons
-simplify_polygons_ex(const Polygons &subject, bool preserve_collinear)
+ExPolygons simplify_polygons_ex(const Polygons &subject, bool preserve_collinear)
 {
-    if (!preserve_collinear) {
-        return union_ex(simplify_polygons(subject, preserve_collinear));
-    }
-    
+    if (! preserve_collinear)
+        return union_ex(simplify_polygons(subject, false));
+
     // convert into Clipper polygons
     ClipperLib::Paths input_subject = Slic3rMultiPoints_to_ClipperPaths(subject);
     
