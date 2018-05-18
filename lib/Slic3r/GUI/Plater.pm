@@ -225,9 +225,12 @@ sub new {
         $self->{btoolbar}->Add($self->{"btn_layer_editing"});
     }
 
+    ### Panel for right column
+    $self->{right_panel} = Wx::Panel->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+
     ### Scrolled Window for info boxes
     my $scrolled_window_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    my $scrolled_window_panel = Wx::ScrolledWindow->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    my $scrolled_window_panel = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $scrolled_window_panel->SetSizer($scrolled_window_sizer);
     $scrolled_window_panel->SetScrollbars(1, 1, 1, 1);    
 
@@ -249,11 +252,11 @@ sub new {
     });
     
     # right pane buttons
-    $self->{btn_export_gcode} = Wx::Button->new($self, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_reslice} = Wx::Button->new($self, -1, L("Slice now"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_print} = Wx::Button->new($self, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_send_gcode} = Wx::Button->new($self, -1, L("Send to printer"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_export_stl} = Wx::Button->new($self, -1, L("Export STL…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_reslice} = Wx::Button->new($self->{right_panel}, -1, L("Slice now"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_print} = Wx::Button->new($self->{right_panel}, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_send_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Send to printer"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_export_stl} = Wx::Button->new($self->{right_panel}, -1, L("Export STL…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
     #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_print}->Hide;
@@ -390,9 +393,9 @@ sub new {
             # $self->{preset_choosers}{$group}[$idx]
             $self->{preset_choosers} = {};
             for my $group (qw(print filament printer)) {
-                my $text = Wx::StaticText->new($self, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+                my $text = Wx::StaticText->new($self->{right_panel}, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
-                my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
+                my $choice = Wx::BitmapComboBox->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
                 if ($group eq 'filament') {
                     EVT_LEFT_DOWN($choice, sub { $self->filament_color_box_lmouse_down(0, @_); } );
                 }
@@ -410,9 +413,9 @@ sub new {
         }
 
         my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        Slic3r::GUI::add_frequently_changed_parameters($self, $frequently_changed_parameters_sizer, $presets);
+        Slic3r::GUI::add_frequently_changed_parameters($self->{right_panel}, $frequently_changed_parameters_sizer, $presets);
         my $expert_mode_part_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        Slic3r::GUI::add_expert_mode_part($self, $expert_mode_part_sizer);
+        Slic3r::GUI::add_expert_mode_part($self->{right_panel}, $expert_mode_part_sizer);
 
         my $object_info_sizer;
         {
@@ -528,9 +531,13 @@ sub new {
         # Show the box initially, let it be shown after the slicing is finished.
         $self->{"print_info_box_show"}->(0);
 
+        $right_sizer->SetSizeHints($self->{right_panel});
+        $self->{right_panel}->SetSizer($right_sizer);        
+
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
-        $hsizer->Add($right_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
+        $hsizer->Add($self->{right_panel}, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
+        #$hsizer->Add($right_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
         $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
@@ -2004,7 +2011,7 @@ sub selection_changed {
     my ($obj_idx, $object) = $self->selected_object;
     my $have_sel = defined $obj_idx;
 
-    $self->Freeze;
+    $self->{right_panel}->Freeze;
     if ($self->{htoolbar}) {
         # On OSX or Linux
         $self->{htoolbar}->EnableTool($_, $have_sel)
@@ -2058,7 +2065,7 @@ sub selection_changed {
     
     # prepagate the event to the frame (a custom Wx event would be cleaner)
     $self->GetFrame->on_plater_selection_changed($have_sel);
-    $self->Thaw;
+    $self->{right_panel}->Thaw;
 }
 
 sub select_object {
