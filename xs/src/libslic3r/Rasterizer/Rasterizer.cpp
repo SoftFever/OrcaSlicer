@@ -1,5 +1,4 @@
 #include "Rasterizer.hpp"
-
 #include <cstdint>
 
 // For rasterizing
@@ -16,7 +15,13 @@
 #include <agg/agg_path_storage.h>
 
 // For compression
-#include <png.h>
+#ifdef WIN32
+inline char *strerror_r(int errnum, char *buf, size_t buflen) {
+    strerror_s(buf, buflen, errnum);
+    return buf;
+}
+#endif
+#include <png/writer.hpp>
 
 namespace Slic3r {
 
@@ -77,7 +82,7 @@ public:
         raw_renderer_.clear(ColorBlack);
     }
 
-    inline const TBuffer& buffer() const { return buf_; }
+    inline TBuffer& buffer()  { return buf_; }
 
     inline const Raster::Resolution resolution() { return resolution_; }
 
@@ -153,16 +158,38 @@ void Raster::save(std::ostream& stream, Compression comp)
 {
     assert(impl_);
     switch(comp) {
-    case Compression::PNG:
-    case Compression::RAW:
+    case Compression::PNG: {
+
+        png::writer<std::ostream> wr(stream);
+
+        wr.set_bit_depth(8);
+        wr.set_color_type(png::color_type_gray);
+        wr.set_width(resolution().width_px);
+        wr.set_height(resolution().height_px);
+        wr.set_compression_type(png::compression_type_default);
+
+        wr.write_info();
+
+        auto& b = impl_->buffer();
+        auto ptr = reinterpret_cast<png::byte*>( b.data() );
+        unsigned stride =
+                sizeof(Impl::TBuffer::value_type) *  resolution().width_px;
+
+        for(unsigned r = 0; r < resolution().height_px; r++, ptr+=stride) {
+            wr.write_row(ptr);
+        }
+
+        break;
+    }
+    case Compression::RAW: {
         stream << "P5 "
                << impl_->resolution().width_px << " "
                << impl_->resolution().height_px << " "
                << "255 ";
+        stream.write(reinterpret_cast<const char*>(impl_->buffer().data()),
+                     impl_->buffer().size()*sizeof(Impl::TBuffer::value_type));
     }
-
-    stream.write(reinterpret_cast<const char*>(impl_->buffer().data()),
-                 impl_->buffer().size()*sizeof(Impl::TBuffer::value_type));
+    }
 }
 
 }

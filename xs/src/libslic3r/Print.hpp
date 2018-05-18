@@ -323,7 +323,7 @@ public:
 
     void print_to_png(std::string dirpath) {
         // Where should this be specified?
-        print_to_png(dirpath, 2560, 1440, 70.0, 40.0);
+        print_to_png(dirpath, 1440, 2560, 40.0, 72.0);
     }
 
 private:
