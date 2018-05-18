@@ -1,11 +1,9 @@
 #include "FirmwareDialog.hpp"
 
-#include <ostream>
 #include <numeric>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
-
 
 #include <wx/app.h>
 #include <wx/event.h>
@@ -30,11 +28,24 @@ namespace fs = boost::filesystem;
 namespace Slic3r {
 
 
+// This enum discriminates the kind of information in EVT_AVRDUDE,
+// it's stored in the ExtraLong field of wxCommandEvent.
+enum AvrdudeEvent
+{
+	AE_MESSAGE,
+	AE_PRORGESS,
+	AE_EXIT,
+};
+
+wxDECLARE_EVENT(EVT_AVRDUDE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_AVRDUDE, wxCommandEvent);
+
+
 // Private
 
 struct FirmwareDialog::priv
 {
-	std::string avrdude_config;
+	FirmwareDialog *q;      // PIMPL back pointer ("Q-Pointer")
 
 	wxComboBox *port_picker;
 	wxFilePickerCtrl *hex_picker;
@@ -42,21 +53,26 @@ struct FirmwareDialog::priv
 	wxStaticText *txt_progress;
 	wxGauge *progressbar;
 	wxTextCtrl *txt_stdout;
+	wxButton *btn_rescan;
 	wxButton *btn_close;
 	wxButton *btn_flash;
 
-	bool flashing;
+	// This is a shared pointer holding the background AvrDude task
+	// also serves as a status indication (it is set _iff_ the background task is running, otherwise it is reset).
+	AvrDude::Ptr avrdude;
+	std::string avrdude_config;
 	unsigned progress_tasks_done;
 
-	priv() :
+	priv(FirmwareDialog *q) :
+		q(q),
 		avrdude_config((fs::path(::Slic3r::resources_dir()) / "avrdude" / "avrdude.conf").string()),
-		flashing(false),
 		progress_tasks_done(0)
 	{}
 
 	void find_serial_ports();
-	void set_flashing(bool flashing, int res = 0);
+	void flashing_status(bool flashing, int res = 0);
 	void perform_upload();
+	void on_avrdude(const wxCommandEvent &evt);
 };
 
 void FirmwareDialog::priv::find_serial_ports()
@@ -71,14 +87,15 @@ void FirmwareDialog::priv::find_serial_ports()
 	}
 }
 
-void FirmwareDialog::priv::set_flashing(bool value, int res)
+void FirmwareDialog::priv::flashing_status(bool value, int res)
 {
-	flashing = value;
-
 	if (value) {
 		txt_stdout->SetValue(wxEmptyString);
 		txt_status->SetLabel(_(L("Flashing in progress. Please do not disconnect the printer!")));
 		txt_status->SetForegroundColour(GUI::get_label_clr_modified());
+		port_picker->Disable();
+		btn_rescan->Disable();
+		hex_picker->Disable();
 		btn_close->Disable();
 		btn_flash->Disable();
 		progressbar->SetRange(200);   // See progress callback below
@@ -86,6 +103,9 @@ void FirmwareDialog::priv::set_flashing(bool value, int res)
 		progress_tasks_done = 0;
 	} else {
 		auto text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+		port_picker->Enable();
+		btn_rescan->Enable();
+		hex_picker->Enable();
 		btn_close->Enable();
 		btn_flash->Enable();
 		txt_status->SetForegroundColour(text_color);
@@ -102,36 +122,7 @@ void FirmwareDialog::priv::perform_upload()
 	auto port = port_picker->GetValue();
 	if (filename.IsEmpty() || port.IsEmpty()) { return; }
 
-	set_flashing(true);
-
-	// Note: we're not using wxTextCtrl's ability to act as a std::ostream
-	// because its imeplementation doesn't handle conversion from local charset
-	// which mangles error messages from perror().
-
-	auto message_fn = [this](const char *msg, unsigned /* size */) {
-		// TODO: also log into boost? (Problematic with progress bars.)
-		this->txt_stdout->AppendText(wxString(msg));
-		wxTheApp->Yield();
-	};
-
-	auto progress_fn = [this](const char *, unsigned progress) {
-		// We try to track overall progress here.
-		// When uploading the firmware, avrdude first reas a littlebit of status data,
-		// then performs write, then reading (verification).
-		// We Pulse() during the first read and combine progress of the latter two tasks.
-
-		if (this->progress_tasks_done == 0) {
-			this->progressbar->Pulse();
-		} else {
-			this->progressbar->SetValue(this->progress_tasks_done - 100 + progress);
-		}
-
-		if (progress == 100) {
-			this->progress_tasks_done += 100;
-		}
-
-		wxTheApp->Yield();
-	};
+	flashing_status(true);
 
 	std::vector<std::string> args {{
 		"-v",
@@ -148,15 +139,73 @@ void FirmwareDialog::priv::perform_upload()
 			return a + ' ' + b;
 		});
 
-	auto res = AvrDude()
+	// It is ok here to use the q-pointer to the FirmwareDialog
+	// because the dialog ensures it doesn't exit before the background thread is done.
+	auto q = this->q;
+
+	avrdude = AvrDude()
 		.sys_config(avrdude_config)
-		.on_message(std::move(message_fn))
-		.on_progress(std::move(progress_fn))
-		.run(std::move(args));
+		.args(args)
+		.on_message(std::move([q](const char *msg, unsigned /* size */) {
+			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
+			evt->SetExtraLong(AE_MESSAGE);
+			evt->SetString(msg);
+			wxQueueEvent(q, evt);
+		}))
+		.on_progress(std::move([q](const char * /* task */, unsigned progress) {
+			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
+			evt->SetExtraLong(AE_PRORGESS);
+			evt->SetInt(progress);
+			wxQueueEvent(q, evt);
+		}))
+		.on_complete(std::move([q](int status) {
+			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
+			evt->SetExtraLong(AE_EXIT);
+			evt->SetInt(status);
+			wxQueueEvent(q, evt);
+		}))
+		.run();
+}
 
-	BOOST_LOG_TRIVIAL(info) << "avrdude exit code: " << res;
+void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
+{
+	switch (evt.GetExtraLong())
+	{
+	case AE_MESSAGE:
+		txt_stdout->AppendText(evt.GetString());
+		break;
 
-	set_flashing(false, res);
+	case AE_PRORGESS:
+		// We try to track overall progress here.
+		// When uploading the firmware, avrdude first reads a littlebit of status data,
+		// then performs write, then reading (verification).
+		// We Pulse() during the first read and combine progress of the latter two tasks.
+
+		if (progress_tasks_done == 0) {
+			progressbar->Pulse();
+		} else {
+			progressbar->SetValue(progress_tasks_done - 100 + evt.GetInt());
+		}
+
+		if (evt.GetInt() == 100) {
+			progress_tasks_done += 100;
+		}
+
+		break;
+
+	case AE_EXIT:
+		BOOST_LOG_TRIVIAL(info) << "avrdude exit code: " << evt.GetInt();
+		flashing_status(false, evt.GetInt());
+
+		// Make sure the background thread is collected and the AvrDude object reset
+		if (avrdude) { avrdude->join(); }
+		avrdude.reset();
+
+		break;
+
+	default:
+		break;
+	}
 }
 
 
@@ -164,7 +213,7 @@ void FirmwareDialog::priv::perform_upload()
 
 FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	wxDialog(parent, wxID_ANY, _(L("Firmware flasher"))),
-	p(new priv())
+	p(new priv(this))
 {
 	enum {
 		DIALOG_MARGIN = 15,
@@ -185,10 +234,10 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	auto *label_port_picker = new wxStaticText(panel, wxID_ANY, _(L("Serial port:")));
 	p->port_picker = new wxComboBox(panel, wxID_ANY);
-	auto *btn_rescan = new wxButton(panel, wxID_ANY, _(L("Rescan")));
+	p->btn_rescan = new wxButton(panel, wxID_ANY, _(L("Rescan")));
 	auto *port_sizer = new wxBoxSizer(wxHORIZONTAL);
 	port_sizer->Add(p->port_picker, 1, wxEXPAND | wxRIGHT, SPACING);
-	port_sizer->Add(btn_rescan, 0);
+	port_sizer->Add(p->btn_rescan, 0);
 
 	auto *label_hex_picker = new wxStaticText(panel, wxID_ANY, _(L("Firmware image:")));
 	p->hex_picker = new wxFilePickerCtrl(panel, wxID_ANY);
@@ -245,10 +294,12 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	p->btn_close->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->Close(); });
 	p->btn_flash->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->perform_upload(); });
-	btn_rescan->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->find_serial_ports(); });
+	p->btn_rescan->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->find_serial_ports(); });
+
+	Bind(EVT_AVRDUDE, [this](wxCommandEvent &evt) { this->p->on_avrdude(evt); });
 
 	Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &evt) {
-		if (evt.CanVeto() && this->p->flashing) {
+		if (this->p->avrdude) {
 			evt.Veto();
 		} else {
 			evt.Skip();
